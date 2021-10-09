@@ -68,7 +68,7 @@ inline namespace kernel
 
       auto is_nan() const -> bool override
       {
-        return delay<nanp>().yield<bool>(static_cast<Bound const&>(*this));
+        return delay<is_nan_t>().yield<bool>(static_cast<Bound const&>(*this));
       }
 
       auto type() const noexcept -> std::type_info const& override
@@ -134,6 +134,17 @@ inline namespace kernel
       DEFINE(pow);
 
       #undef DEFINE
+
+      #define PREDICATE(NAME)                                                  \
+      auto NAME() const -> bool override                                       \
+      {                                                                        \
+        return delay<NAME##_t>().yield<bool>(static_cast<Bound const&>(*this)); \
+      }                                                                        \
+      static_assert(true)
+
+      PREDICATE(is_integer);
+
+      #undef PREDICATE
     };
 
   public:
@@ -217,6 +228,8 @@ inline namespace kernel
       }                                                                        \
     }                                                                          \
     static_assert(true)
+
+    DEFINE(is_integer);
 
     DEFINE(exact);
     DEFINE(inexact);

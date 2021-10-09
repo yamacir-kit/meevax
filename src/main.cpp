@@ -22,17 +22,17 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    auto root = syntactic_continuation(import_set<layer::module_system         >(),
+    auto root = syntactic_continuation(import_set<layer::module_system>(),
                                        standard::base,
+                                       standard::character,
                                        standard::evaluate,
                                        standard::inexact,
                                        standard::load,
                                        standard::process_context,
                                        standard::read,
                                        standard::write,
-                                       import_set<layer::standard_procedure    >(),
-                                       import_set<layer::standard_library      >(),
-                                       import_set<layer::experimental_procedure>()
+                                       standard::experimental,
+                                       import_set<layer::standard_library>()
                                        );
     root.configure(argc, argv);
 

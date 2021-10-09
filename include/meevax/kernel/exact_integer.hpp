@@ -32,8 +32,6 @@ inline namespace kernel
 
     value_type value;
 
-    static constexpr std::true_type is_integer {};
-
     explicit exact_integer() noexcept;
 
     exact_integer(exact_integer const&) noexcept;
@@ -77,6 +75,8 @@ inline namespace kernel
     auto floor_quotient(exact_integer const&) const -> exact_integer;
 
     auto inexact() const -> pair::value_type;
+
+    static auto is_integer() noexcept -> bool;
 
     auto string(int = 10) const -> std::string;
 

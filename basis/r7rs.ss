@@ -270,13 +270,9 @@ parameterize ; is defined in srfi-39.ss
   (or (= +inf.0 z)
       (= -inf.0 z)))
 
-(define (square z) (* z z))
-
 ; TODO exact-integer-sqrt
 
 ; ---- 6.3. Booleans -----------------------------------------------------------
-
-(define boolean=? eqv?)
 
 ; ---- 6.4. Pairs and lists ----------------------------------------------------
 
@@ -285,8 +281,6 @@ parameterize ; is defined in srfi-39.ss
 (define (list-set! x k object) (set-car! (list-tail x k) object))
 
 ; ---- 6.5 Symbols -------------------------------------------------------------
-
-(define symbol=? eqv?)
 
 ; ---- 6.6 Characters ----------------------------------------------------------
 
@@ -328,22 +322,6 @@ parameterize ; is defined in srfi-39.ss
 (define call/cc call-with-current-continuation)
 
 ; ---- 6.11. Exceptions --------------------------------------------------------
-
-; error => SRFI-23
-
-; TODO with-exception-handler
-; TODO raise
-; TODO raise-continuable
-
-(define (error-object? x)
-  (or (error? x)
-      (continuable-error? x)
-      (read-error? x)
-      (file-error? x)
-      (syntax-error? x)))
-
-(define error-object-message car)
-(define error-object-irritants cdr)
 
 ; ---- 6.12. Environments and evaluation ---------------------------------------
 
@@ -420,24 +398,13 @@ parameterize ; is defined in srfi-39.ss
 ; TODO open-output-bytevector
 ; TODO get-output-bytevector
 
-(define (write-string string . xs)
-  (case (length xs)
-    ((0)  (::write-string string (current-output-port)))
-    ((1)  (::write-string string (car xs)))
-    (else (::write-string (apply string-copy string (cadr xs)) (car xs)))))
-
 (define (write-path path . x)
-  (::write-path path (if (pair? x)
-                         (car x)
-                         (current-output-port))))
+  (%write-path path (if (pair? x)
+                        (car x)
+                        (current-output-port))))
 
 ; TODO write-u8
 ; TODO write-bytevector
-
-(define (flush-output-port . port)
-  (::flush-output-port (if (pair? port)
-                           (car port)
-                           (current-output-port))))
 
 
 ; ---- 6.14. System interface --------------------------------------------------

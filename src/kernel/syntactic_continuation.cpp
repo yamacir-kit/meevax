@@ -346,302 +346,7 @@ inline namespace kernel
     define<syntax>("letrec", letrec);
     define<syntax>("quote", quotation);
     define<syntax>("set!", assignment);
-  }
 
-  template <>
-  auto syntactic_continuation::import(standard::character_t) -> void
-  {
-  }
-
-  template <>
-  auto syntactic_continuation::import(standard::evaluate_t) -> void
-  {
-    /* -------------------------------------------------------------------------
-     *
-     *  (eval expr-or-def environment-specifier)         eval library procedure
-     *
-     *  If expr-or-def is an expression, it is evaluated in the specified
-     *  environment and its values are returned. If it is a definition, the
-     *  specified identifier(s) are defined in the specified environment,
-     *  provided the environment is not immutable. Implementations may extend
-     *  eval to allow other objects.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("eval", [](let const& xs)
-    {
-      return cadr(xs).as<syntactic_continuation>().evaluate(car(xs));
-    });
-  }
-
-  template <>
-  auto syntactic_continuation::import(standard::inexact_t) -> void
-  {
-    /* -------------------------------------------------------------------------
-     *
-     *  (nan? z)                                      inexact library procedure
-     *
-     *  The nan? procedure returns #t on +nan.0, and on complex numbers if
-     *  their real or imaginary parts or both are +nan.0. Otherwise it returns
-     *  #f.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("nan?", [](auto&& xs)
-    {
-      return car(xs).is_nan() ? t : f;
-    });
-
-    define<procedure>("exp",    [](let const& xs) { return car(xs).exp();  });
-    define<procedure>("sqrt",   [](let const& xs) { return car(xs).sqrt(); });
-
-    define<procedure>("log", [](let const& xs)
-    {
-      switch (length(xs))
-      {
-      case 1:
-        return car(xs).log();
-
-      case 2:
-        return car(xs).log() / cadr(xs).log();
-
-      default:
-        throw invalid_application(intern("log") | xs);
-      }
-    });
-
-    define<procedure>("sin",    [](let const& xs) { return car(xs).sin();   });
-    define<procedure>("cos",    [](let const& xs) { return car(xs).cos();   });
-    define<procedure>("tan",    [](let const& xs) { return car(xs).tan();   });
-    define<procedure>("asin",   [](let const& xs) { return car(xs).asin();  });
-    define<procedure>("acos",   [](let const& xs) { return car(xs).acos();  });
-    define<procedure>("sinh",   [](let const& xs) { return car(xs).sinh();  });
-    define<procedure>("cosh",   [](let const& xs) { return car(xs).cosh();  });
-    define<procedure>("tanh",   [](let const& xs) { return car(xs).tanh();  });
-    define<procedure>("asinh",  [](let const& xs) { return car(xs).asinh(); });
-    define<procedure>("acosh",  [](let const& xs) { return car(xs).acosh(); });
-    define<procedure>("atanh",  [](let const& xs) { return car(xs).atanh(); });
-
-    define<procedure>("atan", [](let const& xs)
-    {
-      switch (length(xs))
-      {
-      case 1:
-        return car(xs).atan();
-
-      case 2:
-        return car(xs).atan2(cadr(xs));
-
-      default:
-        throw invalid_application(intern("atan") | xs);
-      }
-    });
-
-    define<procedure>("expt", [](let const& xs)
-    {
-      return car(xs).pow(cadr(xs));
-    });
-  }
-
-  template <>
-  auto syntactic_continuation::import(standard::load_t) -> void
-  {
-    /* -------------------------------------------------------------------------
-     *
-     *  (load filename)                                  load library procedure
-     *  (load filename environment-specifier)            load library procedure
-     *
-     *  It is an error if filename is not a string. An implementation-dependent
-     *  operation is used to transform filename into the name of an existing
-     *  file containing Scheme source code. The load procedure reads
-     *  expressions and definitions from the file and evaluates them
-     *  sequentially in the environment specified by environment-specifier. If
-     *  environment-specifier is omitted, (interaction-environment) is assumed.
-     *
-     *  It is unspecified whether the results of the expressions are printed.
-     *  The load procedure does not affect the values returned by
-     *  current-input-port and current-output-port. It returns an unspecified
-     *  value.
-     *
-     *  Rationale: For portability, load must operate on source files. Its
-     *  operation on other kinds of files necessarily varies among
-     *  implementations.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("load", [this](let const& xs)
-    {
-      return load(car(xs).as<string>());
-    });
-  }
-
-  template <>
-  auto syntactic_continuation::import(standard::process_context_t) -> void
-  {
-    /* -------------------------------------------------------------------------
-     *
-     *  (emergency-exit)                      process-context library procedure
-     *  (emergency-exit obj)                  process-context library procedure
-     *
-     *  Terminates the program without running any outstanding dynamic-wind
-     *  after procedures and communicates an exit value to the operating system
-     *  in the same manner as exit.
-     *
-     *  NOTE: The emergency-exit procedure corresponds to the exit procedure in
-     *  Windows and Posix.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("emergency-exit", [](let const& xs) -> value_type
-    {
-      switch (length(xs))
-      {
-      case 0:
-        throw exit_status::success;
-
-      case 1:
-        if (let const& x = car(xs); x.is<boolean>())
-        {
-          throw if_(x) ? exit_status::success : exit_status::failure;
-        }
-        else if (x.is<exact_integer>())
-        {
-          throw exit_status(static_cast<int>(x.as<exact_integer>()));
-        }
-        else [[fallthrough]];
-
-      default:
-        throw invalid_application(intern("emergency-exit") | xs);
-      }
-    });
-  }
-
-  template <>
-  auto syntactic_continuation::import(standard::read_t) -> void
-  {
-    /* -------------------------------------------------------------------------
-     *
-     *  (read)                                           read library procedure
-     *  (read port)                                      read library procedure
-     *
-     *  The read procedure converts external representations of Scheme objects
-     *  into the objects themselves. That is, it is a parser for the
-     *  non-terminal hdatumi (see sections 7.1.2 and 6.4). It returns the next
-     *  object parsable from the given textual input port, updating port to
-     *  point to the first character past the end of the external
-     *  representation of the object.
-     *
-     *  Implementations may support extended syntax to represent record types
-     *  or other types that do not have datum representations.
-     *
-     *  If an end of file is encountered in the input before any characters are
-     *  found that can begin an object, then an end-of-file object is returned.
-     *  The port remains open, and further attempts to read will also return an
-     *  end-of-file object. If an end of file is encountered after the
-     *  beginning of an object’s external representation, but the external
-     *  representation is incomplete and therefore not parsable, an error that
-     *  satisfies read-error? is signaled.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("::read", [this](let const& xs)
-    {
-      try
-      {
-        switch (length(xs))
-        {
-        case 0:
-          return read(default_input_port);
-
-        case 1:
-          return read(car(xs));
-
-        default:
-          throw invalid_application(intern("read") | xs);
-        }
-      }
-      catch (eof const&)
-      {
-        return eof_object;
-      }
-      catch (read_error const& error)
-      {
-        return make(error);
-      }
-    });
-  }
-
-  template <>
-  auto syntactic_continuation::import(standard::write_t) -> void
-  {
-    /* -------------------------------------------------------------------------
-     *
-     *  (write-simple obj)                              write library procedure
-     *  (write-simple obj port)                         write library procedure
-     *
-     *  The write-simple procedure is the same as write, except that shared
-     *  structure is never represented using datum labels. This can cause
-     *  write-simple not to terminate if obj contains circular structure.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("::write-simple", [this](let const& xs)
-    {
-      write_to(cadr(xs), car(xs));
-      return unspecified;
-    });
-  }
-
-  template <>
-  void syntactic_continuation::import(import_set<layer::module_system>)
-  {
-    define<procedure>("free-identifier=?", [this](let const& xs)
-    {
-      if (let const& a = car(xs); a.is<symbol>() or a.is<identifier>())
-      {
-        if (let const& b = cadr(xs); b.is<symbol>() or b.is<identifier>())
-        {
-          if (let const& id1 = a.is<identifier>() ? a.as<identifier>().symbol() : a)
-          {
-            if (let const& id2 = b.is<identifier>() ? b.as<identifier>().symbol() : b)
-            {
-              return id1 == id2 ? t : f;
-            }
-          }
-        }
-      }
-
-      // if (let const& a = car(xs); a.is<symbol>() or a.is<identifier>())
-      // {
-      //   if (let const& b = cadr(xs); b.is<symbol>() or b.is<identifier>())
-      //   {
-      //     if (auto const& id1 = a.is<identifier>() ? a.as<identifier>() : locate(a).as<identifier>(); id1.is_free())
-      //     {
-      //       if (auto const& id2 = b.is<identifier>() ? b.as<identifier>() : locate(b).as<identifier>(); id2.is_free())
-      //       {
-      //         return id1 == id2 ? t : f;
-      //       }
-      //     }
-      //   }
-      // }
-
-      return f;
-    });
-
-    define<syntax>("export", exportation); // XXX DEPRECATED
-    define<syntax>("import", importation); // XXX DEPRECATED
-
-    define<procedure>("set-batch!",       [this](auto&&... xs) { return batch       = car(std::forward<decltype(xs)>(xs)...); });
-    define<procedure>("set-debug!",       [this](auto&&... xs) { return debug       = car(std::forward<decltype(xs)>(xs)...); });
-    define<procedure>("set-interactive!", [this](auto&&... xs) { return interactive = car(std::forward<decltype(xs)>(xs)...); });
-    define<procedure>("set-prompt!",      [this](auto&&... xs) { return prompt      = car(std::forward<decltype(xs)>(xs)...); });
-    define<procedure>("set-trace!",       [this](auto&&... xs) { return trace       = car(std::forward<decltype(xs)>(xs)...); });
-    define<procedure>("set-verbose!",     [this](auto&&... xs) { return verbose     = car(std::forward<decltype(xs)>(xs)...); });
-  }
-
-  template <>
-  void syntactic_continuation::import(import_set<layer::standard_procedure>)
-  {
     /* -------------------------------------------------------------------------
      *
      *  (eqv? obj1 obj2)                                              procedure
@@ -654,7 +359,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("eqv?", [](let const& xs)
+    define<procedure>("eqv?", [](let const& xs) // TODO Rename to value=?
     {
       return ::meevax::eqv(car(xs), cadr(xs)) ? t : f;
     });
@@ -678,9 +383,9 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("eq?", [](auto&& xs)
+    define<procedure>("eq?", [](auto&& xs) // TODO Rename to reference=?
     {
-      return car(xs) == cadr(xs) ? t : f;
+      return eq(car(xs), cadr(xs)) ? t : f;
     });
 
     /* -------------------------------------------------------------------------
@@ -705,8 +410,14 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%complex?", is<complex>());
-    define<procedure>("ratio?", is<ratio>());
+    define<procedure>("number?",   [](let const& xs) { return is_number  (car(xs)) ? t : f; });
+    define<procedure>("complex?",  [](let const& xs) { return is_complex (car(xs)) ? t : f; });
+    define<procedure>("real?",     [](let const& xs) { return is_real    (car(xs)) ? t : f; });
+    define<procedure>("rational?", [](let const& xs) { return is_rational(car(xs)) ? t : f; });
+    define<procedure>("integer?",  [](let const& xs) { return car(xs).is_integer() ? t : f; });
+
+    define<procedure>("%complex?",     is<complex     >());
+    define<procedure>("ratio?",        is<ratio       >());
     define<procedure>("single-float?", is<single_float>());
     define<procedure>("double-float?", is<double_float>());
 
@@ -755,25 +466,23 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    #define BOILERPLATE(SYMBOL, OPERATOR)                                      \
-    define<procedure>(#SYMBOL, [](auto&& xs) constexpr                         \
+    #define DEFINE(SYMBOL, COMPARE)                                            \
+    define<procedure>(#SYMBOL, [](let const& xs)                               \
     {                                                                          \
-      const auto compare = std::not_fn([](let const& a, let const& b)          \
-      {                                                                        \
-        return a.load() OPERATOR b;                                            \
-      });                                                                      \
-                                                                               \
       return std::adjacent_find(                                               \
-        std::cbegin(xs), std::cend(xs), compare) == std::end(xs) ? t : f;      \
+               std::begin(xs), std::end(xs), [](let const& a, let const& b)    \
+               {                                                               \
+                 return not COMPARE(a.load(), b);                              \
+               }) == std::end(xs) ? t : f;                                     \
     })
 
-    BOILERPLATE(= , ==);
-    BOILERPLATE(< , < );
-    BOILERPLATE(<=, <=);
-    BOILERPLATE(> , > );
-    BOILERPLATE(>=, >=);
+    DEFINE(= , std::equal_to     <void>());
+    DEFINE(< , std::less         <void>());
+    DEFINE(<=, std::less_equal   <void>());
+    DEFINE(> , std::greater      <void>());
+    DEFINE(>=, std::greater_equal<void>());
 
-    #undef BOILERPLATE
+    #undef DEFINE
 
     /* -------------------------------------------------------------------------
      *
@@ -784,8 +493,8 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("+", [](auto&& xs) { return std::accumulate(std::begin(xs), std::end(xs), e0, add); });
-    define<procedure>("*", [](auto&& xs) { return std::accumulate(std::begin(xs), std::end(xs), e1, mul); });
+    define<procedure>("+", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e0, add); });
+    define<procedure>("*", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e1, mul); });
 
     /* -------------------------------------------------------------------------
      *
@@ -805,25 +514,27 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    #define BOILERPLATE(SYMBOL, FUNCTOR, BASIS)                                \
-    define<procedure>(SYMBOL, [](auto&& xs)                                    \
+    #define DEFINE(SYMBOL, FUNCTION, BASIS)                                    \
+    define<procedure>(SYMBOL, [](let const& xs)                                \
     {                                                                          \
-      if (length(xs) < 2)                                                      \
+      switch (length(xs))                                                      \
       {                                                                        \
-        return std::accumulate(std::begin(xs), std::end(xs), BASIS, FUNCTOR);  \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-        auto const head = std::begin(xs);                                      \
-        return std::accumulate(std::next(head), std::end(xs), *head, FUNCTOR); \
+      case 0:                                                                  \
+        throw invalid_application(intern(SYMBOL) | xs);                        \
+                                                                               \
+      case 1:                                                                  \
+        return FUNCTION(BASIS, car(xs));                                       \
+                                                                               \
+      default:                                                                 \
+        return std::accumulate(std::next(std::begin(xs)), std::end(xs), car(xs), FUNCTION); \
       }                                                                        \
     })
 
-    BOILERPLATE("-", sub, e0);
-    BOILERPLATE("/", div, e1);
-    BOILERPLATE("%", mod, e1);
+    DEFINE("-", sub, e0);
+    DEFINE("/", div, e1);
+    DEFINE("%", mod, e1);
 
-    #undef BOILERPLATE
+    #undef DEFINE
 
     /* -------------------------------------------------------------------------
      *
@@ -859,6 +570,24 @@ inline namespace kernel
     define<procedure>("round", [](let const& xs)
     {
       return car(xs).round();
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (expt z1 z2)                                                  procedure
+     *
+     *  Returns z1 raised to the power z2. For nonzero z1 , this is
+     *
+     *    z1^z2 = e^(z2 log z1)
+     *
+     *  The value of 0 z is 1 if (zero? z), 0 if (real-part z) is positive, and
+     *  an error otherwise. Similarly for 0.0^z , with inexact results.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("expt", [](let const& xs)
+    {
+      return car(xs).pow(cadr(xs));
     });
 
     /* -------------------------------------------------------------------------
@@ -1002,7 +731,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<syntactic_procedure>("cons", construction, [](auto&& xs)
+    define<syntactic_procedure>("cons", construction, [](let const& xs)
     {
       return cons(car(xs), cadr(xs));
     });
@@ -1021,8 +750,8 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("car", [](auto&& xs) { return caar(xs); });
-    define<procedure>("cdr", [](auto&& xs) { return cdar(xs); });
+    define<procedure>("car", [](let const& xs) { return caar(xs); });
+    define<procedure>("cdr", [](let const& xs) { return cdar(xs); });
 
     /* -------------------------------------------------------------------------
      *
@@ -1038,7 +767,6 @@ inline namespace kernel
 
     define<procedure>("set-car!", [](auto&& xs) { return caar(xs) = cadr(xs); });
     define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
-
 
     /* -------------------------------------------------------------------------
      *
@@ -1089,28 +817,6 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
 
     define<procedure>("char?", is<character>());
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (digit-value char)                               char library procedure
-     *
-     *  This procedure returns the numeric value (0 to 9) of its argument if it
-     *  is a numeric digit (that is, if char-numeric? returns #t), or #f on any
-     *  other character.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("digit-value", [](let const& xs)
-    {
-      if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
-      {
-        return make<exact_integer>(c.codepoint - '0');
-      }
-      else
-      {
-        return f;
-      }
-    });
 
     /* -------------------------------------------------------------------------
      *
@@ -1179,17 +885,15 @@ inline namespace kernel
       switch (length(xs))
       {
       case 1:
-        return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()), character());
+        return make<string>(static_cast<string::size_type>(car(xs).as<exact_integer>()), character());
 
       case 2:
-        return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()), cadr(xs).as<character>());
+        return make<string>(static_cast<string::size_type>(car(xs).as<exact_integer>()), cadr(xs).as<character>());
 
       default:
         throw invalid_application(intern("make-string") | xs);
       }
     });
-
-    // NOTE: (string char ...) defined in overture.ss
 
     /* -------------------------------------------------------------------------
      *
@@ -1250,53 +954,11 @@ inline namespace kernel
      *  Returns #t if all the strings are the same length and contain exactly
      *  the same characters in the same positions, otherwise returns #f.
      *
-     * ---------------------------------------------------------------------- */
-
-    #define STRING_COMPARE(OPERATOR)                                           \
-    [](let const& xs)                                                          \
-    {                                                                          \
-      for (let const& each : cdr(xs))                                          \
-      {                                                                        \
-        if (car(xs).as<const string>() OPERATOR each.as<const string>())       \
-        {                                                                      \
-          continue;                                                            \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-          return f;                                                            \
-        }                                                                      \
-      }                                                                        \
-                                                                               \
-      return t;                                                                \
-    }
-
-    define<procedure>("string=?", STRING_COMPARE(==));
-
-    /* -------------------------------------------------------------------------
      *
-     *  (string-ci=? string1 string2 string3 ...)        char library procedure
-     *
-     *  Returns #t if, after case-folding, all the strings are the same length
-     *  and contain the same characters in the same positions, otherwise
-     *  returns #f. Specifically, these procedures behave as if string-foldcase
-     *  were applied to their arguments before comparing them.
-     *
-     * ---------------------------------------------------------------------- */
-    // TODO
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (string<? string1 string2 string3 ...)                        procedure
-     *  (string-ci<? string1 string2 string3 ...)        char library procedure
-     *
-     *  (string>? string1 string2 string3 ...)                        procedure
-     *  (string-ci>? string1 string2 string3 ...)        char library procedure
-     *
+     *  (string<?  string1 string2 string3 ...)                       procedure
+     *  (string>?  string1 string2 string3 ...)                       procedure
      *  (string<=? string1 string2 string3 ...)                       procedure
-     *  (string-ci<=? string1 string2 string3 ...)       char library procedure
-     *
      *  (string>=? string1 string2 string3 ...)                       procedure
-     *  (string-ci>=? string1 string2 string3 ...)       char library procedure
      *
      *  These procedures return #t if their arguments are (respectively):
      *  monotonically increasing, monotonically decreasing, monotonically
@@ -1318,15 +980,33 @@ inline namespace kernel
      *  do not satisfy string>? and string>=? if and only if they do not
      *  satisfy string<?.
      *
-     *  The "-ci" procedures behave as if they applied string-foldcase to their
-     *  arguments before invoking the corresponding procedures without "-ci".
-     *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string<?",  STRING_COMPARE(<));
-    define<procedure>("string>?",  STRING_COMPARE(>));
+    #define STRING_COMPARE(OPERATOR)                                           \
+    [](let const& xs)                                                          \
+    {                                                                          \
+      for (let const& each : cdr(xs))                                          \
+      {                                                                        \
+        if (car(xs).as<const string>() OPERATOR each.as<const string>())       \
+        {                                                                      \
+          continue;                                                            \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+          return f;                                                            \
+        }                                                                      \
+      }                                                                        \
+                                                                               \
+      return t;                                                                \
+    }
+
+    define<procedure>("string=?",  STRING_COMPARE(==));
+    define<procedure>("string<?",  STRING_COMPARE(< ));
+    define<procedure>("string>?",  STRING_COMPARE(> ));
     define<procedure>("string<=?", STRING_COMPARE(<=));
     define<procedure>("string>=?", STRING_COMPARE(>=));
+
+    #undef STRING_COMPARE
 
     /* -------------------------------------------------------------------------
      *
@@ -1693,7 +1373,7 @@ inline namespace kernel
      *  procedure error-object? must return #t on such objects.
      *
      *    (define (error . xs)
-     *      (raise (apply make-error xs)))
+     *      (raise (apply make-error xs))) ; SRFI 23
      *
      * ---------------------------------------------------------------------- */
 
@@ -1923,7 +1603,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("::read-char", [](let const& xs)
+    define<procedure>("%read-char", [](let const& xs)
     {
       try
       {
@@ -1958,7 +1638,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("::peek-char", [](let const& xs)
+    define<procedure>("%peek-char", [](let const& xs)
     {
       try
       {
@@ -2023,7 +1703,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("::char-ready?", [](let const& xs)
+    define<procedure>("%char-ready?", [](let const& xs)
     {
       return car(xs).as<std::istream>() ? t : f;
     });
@@ -2040,7 +1720,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("::read-string", [](let const& xs)
+    define<procedure>("%read-string", [](let const& xs)
     {
       switch (length(xs))
       {
@@ -2063,7 +1743,7 @@ inline namespace kernel
      *
      * --------------------------------------------------------------------- */
 
-    define<procedure>("::write-char", [](let const& xs)
+    define<procedure>("%write-char", [](let const& xs)
     {
       cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
       return unspecified;
@@ -2081,7 +1761,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("::write-string", [](let const& xs)
+    define<procedure>("%write-string", [](let const& xs)
     {
       switch (length(xs))
       {
@@ -2099,14 +1779,6 @@ inline namespace kernel
       return unspecified;
     });
 
-    define<procedure>("path?", is<path>());
-
-    define<procedure>("::write-path", [](let const& xs)
-    {
-      cadr(xs).as<std::ostream>() << car(xs).as<path>().c_str();
-      return unspecified;
-    });
-
     /* -------------------------------------------------------------------------
      *
      *  (flush-output-port)                                           procedure
@@ -2117,7 +1789,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("::flush-output-port", [](let const& xs)
+    define<procedure>("%flush-output-port", [](let const& xs)
     {
       car(xs).as<std::ostream>() << std::flush;
       return unspecified;
@@ -2140,6 +1812,373 @@ inline namespace kernel
     define<procedure>("features", [](auto&&...)
     {
       return features();
+    });
+  }
+
+  template <>
+  auto syntactic_continuation::import(standard::character_t) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (digit-value char)                               char library procedure
+     *
+     *  This procedure returns the numeric value (0 to 9) of its argument if it
+     *  is a numeric digit (that is, if char-numeric? returns #t), or #f on any
+     *  other character.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("digit-value", [](let const& xs)
+    {
+      if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
+      {
+        return make<exact_integer>(c.codepoint - '0');
+      }
+      else
+      {
+        return f;
+      }
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (string-ci=? string1 string2 string3 ...)        char library procedure
+     *
+     *  Returns #t if, after case-folding, all the strings are the same length
+     *  and contain the same characters in the same positions, otherwise
+     *  returns #f. Specifically, these procedures behave as if string-foldcase
+     *  were applied to their arguments before comparing them.
+     *
+     *
+     *  (string-ci<?  string1 string2 string3 ...)       char library procedure
+     *  (string-ci>?  string1 string2 string3 ...)       char library procedure
+     *  (string-ci<=? string1 string2 string3 ...)       char library procedure
+     *  (string-ci>=? string1 string2 string3 ...)       char library procedure
+     *
+     *  The "-ci" procedures behave as if they applied string-foldcase to their
+     *  arguments before invoking the corresponding procedures without "-ci".
+     *
+     * ---------------------------------------------------------------------- */
+  }
+
+  template <>
+  auto syntactic_continuation::import(standard::evaluate_t) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (eval expr-or-def environment-specifier)         eval library procedure
+     *
+     *  If expr-or-def is an expression, it is evaluated in the specified
+     *  environment and its values are returned. If it is a definition, the
+     *  specified identifier(s) are defined in the specified environment,
+     *  provided the environment is not immutable. Implementations may extend
+     *  eval to allow other objects.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("eval", [](let const& xs)
+    {
+      return cadr(xs).as<syntactic_continuation>().evaluate(car(xs));
+    });
+  }
+
+  template <>
+  auto syntactic_continuation::import(standard::inexact_t) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (nan? z)                                      inexact library procedure
+     *
+     *  The nan? procedure returns #t on +nan.0, and on complex numbers if
+     *  their real or imaginary parts or both are +nan.0. Otherwise it returns
+     *  #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("nan?", [](auto&& xs)
+    {
+      return car(xs).is_nan() ? t : f;
+    });
+
+    define<procedure>("exp",    [](let const& xs) { return car(xs).exp();  });
+    define<procedure>("sqrt",   [](let const& xs) { return car(xs).sqrt(); });
+
+    define<procedure>("log", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 1:
+        return car(xs).log();
+
+      case 2:
+        return car(xs).log() / cadr(xs).log();
+
+      default:
+        throw invalid_application(intern("log") | xs);
+      }
+    });
+
+    define<procedure>("sin",    [](let const& xs) { return car(xs).sin();   });
+    define<procedure>("cos",    [](let const& xs) { return car(xs).cos();   });
+    define<procedure>("tan",    [](let const& xs) { return car(xs).tan();   });
+    define<procedure>("asin",   [](let const& xs) { return car(xs).asin();  });
+    define<procedure>("acos",   [](let const& xs) { return car(xs).acos();  });
+    define<procedure>("sinh",   [](let const& xs) { return car(xs).sinh();  });
+    define<procedure>("cosh",   [](let const& xs) { return car(xs).cosh();  });
+    define<procedure>("tanh",   [](let const& xs) { return car(xs).tanh();  });
+    define<procedure>("asinh",  [](let const& xs) { return car(xs).asinh(); });
+    define<procedure>("acosh",  [](let const& xs) { return car(xs).acosh(); });
+    define<procedure>("atanh",  [](let const& xs) { return car(xs).atanh(); });
+
+    define<procedure>("atan", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 1:
+        return car(xs).atan();
+
+      case 2:
+        return car(xs).atan2(cadr(xs));
+
+      default:
+        throw invalid_application(intern("atan") | xs);
+      }
+    });
+  }
+
+  template <>
+  auto syntactic_continuation::import(standard::load_t) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (load filename)                                  load library procedure
+     *  (load filename environment-specifier)            load library procedure
+     *
+     *  It is an error if filename is not a string. An implementation-dependent
+     *  operation is used to transform filename into the name of an existing
+     *  file containing Scheme source code. The load procedure reads
+     *  expressions and definitions from the file and evaluates them
+     *  sequentially in the environment specified by environment-specifier. If
+     *  environment-specifier is omitted, (interaction-environment) is assumed.
+     *
+     *  It is unspecified whether the results of the expressions are printed.
+     *  The load procedure does not affect the values returned by
+     *  current-input-port and current-output-port. It returns an unspecified
+     *  value.
+     *
+     *  Rationale: For portability, load must operate on source files. Its
+     *  operation on other kinds of files necessarily varies among
+     *  implementations.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("load", [this](let const& xs)
+    {
+      return load(car(xs).as<string>());
+    });
+  }
+
+  template <>
+  auto syntactic_continuation::import(standard::process_context_t) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (emergency-exit)                      process-context library procedure
+     *  (emergency-exit obj)                  process-context library procedure
+     *
+     *  Terminates the program without running any outstanding dynamic-wind
+     *  after procedures and communicates an exit value to the operating system
+     *  in the same manner as exit.
+     *
+     *  NOTE: The emergency-exit procedure corresponds to the exit procedure in
+     *  Windows and Posix.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("emergency-exit", [](let const& xs) -> value_type
+    {
+      switch (length(xs))
+      {
+      case 0:
+        throw exit_status::success;
+
+      case 1:
+        if (let const& x = car(xs); x.is<boolean>())
+        {
+          throw if_(x) ? exit_status::success : exit_status::failure;
+        }
+        else if (x.is<exact_integer>())
+        {
+          throw exit_status(static_cast<int>(x.as<exact_integer>()));
+        }
+        else [[fallthrough]];
+
+      default:
+        throw invalid_application(intern("emergency-exit") | xs);
+      }
+    });
+  }
+
+  template <>
+  auto syntactic_continuation::import(standard::read_t) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (read)                                           read library procedure
+     *  (read port)                                      read library procedure
+     *
+     *  The read procedure converts external representations of Scheme objects
+     *  into the objects themselves. That is, it is a parser for the
+     *  non-terminal hdatumi (see sections 7.1.2 and 6.4). It returns the next
+     *  object parsable from the given textual input port, updating port to
+     *  point to the first character past the end of the external
+     *  representation of the object.
+     *
+     *  Implementations may support extended syntax to represent record types
+     *  or other types that do not have datum representations.
+     *
+     *  If an end of file is encountered in the input before any characters are
+     *  found that can begin an object, then an end-of-file object is returned.
+     *  The port remains open, and further attempts to read will also return an
+     *  end-of-file object. If an end of file is encountered after the
+     *  beginning of an object’s external representation, but the external
+     *  representation is incomplete and therefore not parsable, an error that
+     *  satisfies read-error? is signaled.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("%read", [this](let const& xs)
+    {
+      try
+      {
+        switch (length(xs))
+        {
+        case 0:
+          return read(default_input_port);
+
+        case 1:
+          return read(car(xs));
+
+        default:
+          throw invalid_application(intern("read") | xs);
+        }
+      }
+      catch (eof const&)
+      {
+        return eof_object;
+      }
+      catch (read_error const& error)
+      {
+        return make(error);
+      }
+    });
+  }
+
+  template <>
+  auto syntactic_continuation::import(standard::write_t) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (write-simple obj)                              write library procedure
+     *  (write-simple obj port)                         write library procedure
+     *
+     *  The write-simple procedure is the same as write, except that shared
+     *  structure is never represented using datum labels. This can cause
+     *  write-simple not to terminate if obj contains circular structure.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("%write-simple", [this](let const& xs)
+    {
+      write_to(cadr(xs), car(xs));
+      return unspecified;
+    });
+  }
+
+  template <>
+  void syntactic_continuation::import(import_set<layer::module_system>)
+  {
+    define<procedure>("free-identifier=?", [this](let const& xs)
+    {
+      if (let const& a = car(xs); a.is<symbol>() or a.is<identifier>())
+      {
+        if (let const& b = cadr(xs); b.is<symbol>() or b.is<identifier>())
+        {
+          if (let const& id1 = a.is<identifier>() ? a.as<identifier>().symbol() : a)
+          {
+            if (let const& id2 = b.is<identifier>() ? b.as<identifier>().symbol() : b)
+            {
+              return id1 == id2 ? t : f;
+            }
+          }
+        }
+      }
+
+      // if (let const& a = car(xs); a.is<symbol>() or a.is<identifier>())
+      // {
+      //   if (let const& b = cadr(xs); b.is<symbol>() or b.is<identifier>())
+      //   {
+      //     if (auto const& id1 = a.is<identifier>() ? a.as<identifier>() : locate(a).as<identifier>(); id1.is_free())
+      //     {
+      //       if (auto const& id2 = b.is<identifier>() ? b.as<identifier>() : locate(b).as<identifier>(); id2.is_free())
+      //       {
+      //         return id1 == id2 ? t : f;
+      //       }
+      //     }
+      //   }
+      // }
+
+      return f;
+    });
+
+    define<syntax>("export", exportation); // XXX DEPRECATED
+    define<syntax>("import", importation); // XXX DEPRECATED
+
+    define<procedure>("set-batch!",       [this](auto&&... xs) { return batch       = car(std::forward<decltype(xs)>(xs)...); });
+    define<procedure>("set-debug!",       [this](auto&&... xs) { return debug       = car(std::forward<decltype(xs)>(xs)...); });
+    define<procedure>("set-interactive!", [this](auto&&... xs) { return interactive = car(std::forward<decltype(xs)>(xs)...); });
+    define<procedure>("set-prompt!",      [this](auto&&... xs) { return prompt      = car(std::forward<decltype(xs)>(xs)...); });
+    define<procedure>("set-trace!",       [this](auto&&... xs) { return trace       = car(std::forward<decltype(xs)>(xs)...); });
+    define<procedure>("set-verbose!",     [this](auto&&... xs) { return verbose     = car(std::forward<decltype(xs)>(xs)...); });
+  }
+
+  template <>
+  void syntactic_continuation::import(import_set<layer::standard_library>)
+  {
+    std::vector<string_view> const codes {
+      overture,
+      srfi_8,
+      srfi_1,
+      srfi_23,
+      srfi_34,
+      srfi_39,
+      srfi_45,
+      srfi_78,
+      srfi_149,
+      r7rs,
+    };
+
+    for (auto const& code : codes)
+    {
+      // NOTE: Since read performs a putback operation on a given stream, it must be copied and used.
+      std::stringstream port { std::string(code) };
+
+      for (let e = read(port); e != eof_object; e = read(port))
+      {
+        evaluate(e);
+      }
+    }
+  }
+
+  template <>
+  auto syntactic_continuation::import(standard::experimental_t) -> void
+  {
+    define<procedure>("path?", is<path>());
+
+    define<procedure>("%write-path", [](let const& xs)
+    {
+      cadr(xs).as<std::ostream>() << car(xs).as<path>().c_str();
+      return unspecified;
     });
 
     /* -------------------------------------------------------------------------
@@ -2241,39 +2280,7 @@ inline namespace kernel
         throw error(make<string>("not a macro"), caar(xs));
       }
     });
-  }
 
-  template <>
-  void syntactic_continuation::import(import_set<layer::standard_library>)
-  {
-    std::vector<string_view> const codes {
-      overture,
-      srfi_8,
-      srfi_1,
-      srfi_23,
-      srfi_34,
-      srfi_39,
-      srfi_45,
-      srfi_78,
-      srfi_149,
-      r7rs,
-    };
-
-    for (auto const& code : codes)
-    {
-      // NOTE: Since read performs a putback operation on a given stream, it must be copied and used.
-      std::stringstream port { std::string(code) };
-
-      for (let e = read(port); e != eof_object; e = read(port))
-      {
-        evaluate(e);
-      }
-    }
-  }
-
-  template <>
-  void syntactic_continuation::import(import_set<layer::experimental_procedure>)
-  {
     define<procedure>("disassemble", [](let const& xs)
     {
       if (0 < length(xs))
@@ -2326,6 +2333,7 @@ inline namespace kernel
      *  (foreign-function lib*.so function-name)                      procedure
      *
      * ---------------------------------------------------------------------- */
+
     define<procedure>("foreign-function", [](let const& xs)
     {
       return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
