@@ -808,11 +808,83 @@ inline namespace kernel
       return intern(car(xs).as<string>());
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (char? obj)                                                   procedure
+     *
+     *  Returns #t if obj is a character, otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("char?", is<character>());
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (char->integer char)                                          procedure
+     *  (integer->char n)                                             procedure
+     *
+     *  Given a Unicode character, char->integer returns an exact integer
+     *  between 0 and #xD7FF or between #xE000 and #x10FFFF which is equal to
+     *  the Unicode scalar value of that character. Given a non-Unicode
+     *  character, it returns an exact integer greater than #x10FFFF. This is
+     *  true independent of whether the implementation uses the Unicode
+     *  representation internally.
+     *
+     *  Given an exact integer that is the value returned by a character when
+     *  char->integer is applied to it, integer->char returns that character.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("char->integer", [](let const& xs)
+    {
+      if (xs.is<pair>() and car(xs).is<character>())
+      {
+        return make<exact_integer>(car(xs).as<character>().codepoint);
+      }
+      else
+      {
+        throw invalid_application(intern("char->integer") | xs);
+      }
+    });
+
+    define<procedure>("integer->char", [](let const& xs)
+    {
+      if (xs.is<pair>() and car(xs).is<exact_integer>())
+      {
+        return make<character>(static_cast<character::value_type>(car(xs).as<exact_integer>()));
+      }
+      else
+      {
+        throw invalid_application(intern("integer->char") | xs);
+      }
+    });
   }
 
   template <>
   auto syntactic_continuation::import(standard::character_t) -> void
   {
+    /* -------------------------------------------------------------------------
+     *
+     *  (digit-value char)                               char library procedure
+     *
+     *  This procedure returns the numeric value (0 to 9) of its argument if it
+     *  is a numeric digit (that is, if char-numeric? returns #t), or #f on any
+     *  other character.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("digit-value", [](let const& xs)
+    {
+      if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
+      {
+        return make<exact_integer>(c.codepoint - '0');
+      }
+      else
+      {
+        return f;
+      }
+    });
+
   }
 
   template <>
@@ -1099,78 +1171,6 @@ inline namespace kernel
   template <>
   void syntactic_continuation::import(import_set<layer::standard_procedure>)
   {
-    /* -------------------------------------------------------------------------
-     *
-     *  (char? obj)                                                   procedure
-     *
-     *  Returns #t if obj is a character, otherwise returns #f.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("char?", is<character>());
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (digit-value char)                               char library procedure
-     *
-     *  This procedure returns the numeric value (0 to 9) of its argument if it
-     *  is a numeric digit (that is, if char-numeric? returns #t), or #f on any
-     *  other character.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("digit-value", [](let const& xs)
-    {
-      if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
-      {
-        return make<exact_integer>(c.codepoint - '0');
-      }
-      else
-      {
-        return f;
-      }
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (char->integer char)                                          procedure
-     *  (integer->char n)                                             procedure
-     *
-     *  Given a Unicode character, char->integer returns an exact integer
-     *  between 0 and #xD7FF or between #xE000 and #x10FFFF which is equal to
-     *  the Unicode scalar value of that character. Given a non-Unicode
-     *  character, it returns an exact integer greater than #x10FFFF. This is
-     *  true independent of whether the implementation uses the Unicode
-     *  representation internally.
-     *
-     *  Given an exact integer that is the value returned by a character when
-     *  char->integer is applied to it, integer->char returns that character.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("char->integer", [](let const& xs)
-    {
-      if (xs.is<pair>() and car(xs).is<character>())
-      {
-        return make<exact_integer>(car(xs).as<character>().codepoint);
-      }
-      else
-      {
-        throw invalid_application(intern("char->integer") | xs);
-      }
-    });
-
-    define<procedure>("integer->char", [](let const& xs)
-    {
-      if (xs.is<pair>() and car(xs).is<exact_integer>())
-      {
-        return make<character>(static_cast<character::value_type>(car(xs).as<exact_integer>()));
-      }
-      else
-      {
-        throw invalid_application(intern("integer->char") | xs);
-      }
-    });
 
     /* -------------------------------------------------------------------------
      *

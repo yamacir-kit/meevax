@@ -24,6 +24,7 @@ auto main(int const argc, char const* const* const argv) -> int
   {
     auto root = syntactic_continuation(import_set<layer::module_system         >(),
                                        standard::base,
+                                       standard::character,
                                        standard::evaluate,
                                        standard::inexact,
                                        standard::load,
