@@ -1591,6 +1591,209 @@ inline namespace kernel
     {
       return make<string>(car(xs).as<output_string_port>().str());
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (read-char)                                                   procedure
+     *  (read-char port)                                              procedure
+     *
+     *  Returns the next character available from the textual input port,
+     *  updating the port to point to the following character. If no more
+     *  characters are available, an end-of-file object is returned.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("%read-char", [](let const& xs)
+    {
+      try
+      {
+        return make<character>(car(xs).as<std::istream>());
+      }
+      catch (eof const&)
+      {
+        return eof_object;
+      }
+      catch (read_error const& error)
+      {
+        return make(error);
+      }
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (peek-char)                                                   procedure
+     *  (peek-char port)                                              procedure
+     *
+     *  Returns the next character available from the textual input port, but
+     *  without updating the port to point to the following character. If no
+     *  more characters are available, an end-of-file object is returned.
+     *
+     *  Note: The value returned by a call to peek-char is the same as the
+     *  value that would have been returned by a call to read-char with the
+     *  same port. The only difference is that the very next call to read-char
+     *  or peek-char on that port will return the value returned by the
+     *  preceding call to peek-char. In particular, a call to peek-char on an
+     *  interactive port will hang waiting for input whenever a call to
+     *  read-char would have hung.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("%peek-char", [](let const& xs)
+    {
+      try
+      {
+        auto const g = car(xs).as<std::istream>().tellg();
+        let const c = make<character>(car(xs).as<std::istream>());
+        car(xs).as<std::istream>().seekg(g);
+        return c;
+      }
+      catch (eof const&)
+      {
+        return eof_object;
+      }
+      catch (read_error const& error)
+      {
+        return make(error);
+      }
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (eof-object? obj)                                             procedure
+     *
+     *  Returns #t if obj is an end-of-file object, otherwise returns #f. The
+     *  precise set of end-of-file objects will vary among implementations, but
+     *  in any case no end-of-file object will ever be an object that can be
+     *  read in using read.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("eof-object?", is<eof>());
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (eof-object)                                                  procedure
+     *
+     *  Returns an end-of-file object, not necessarily unique.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("eof-object", [](auto&&)
+    {
+      return eof_object;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (char-ready?)                                                 procedure
+     *  (char-ready? port)                                            procedure
+     *
+     *  Returns #t if a character is ready on the textual input port and
+     *  returns #f otherwise. If char-ready returns #t then the next read-char
+     *  operation on the given port is guaranteed not to hang. If the port is
+     *  at end of file then char-ready? returns #t.
+     *
+     *  Rationale: The char-ready? procedure exists to make it possible for a
+     *  program to accept characters from interactive ports without getting
+     *  stuck waiting for input. Any input editors associated with such ports
+     *  must ensure that characters whose existence has been asserted by
+     *  char-ready? cannot be removed from the input. If char-ready? were to
+     *  return #f at end of file, a port at end of file would be
+     *  indistinguishable from an interactive port that has no ready characters.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("%char-ready?", [](let const& xs)
+    {
+      return car(xs).as<std::istream>() ? t : f;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (read-string k)                                               procedure
+     *  (read-string k port)                                          procedure
+     *
+     *  Reads the next k characters, or as many as are available before the end
+     *  of file, from the textual input port into a newly allocated string in
+     *  left-to-right order and returns the string. If no characters are
+     *  available before the end of file, an end-of-file object is returned.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("%read-string", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 2:
+        return make<string>(cadr(xs).as<std::istream>(), static_cast<string::size_type>(car(xs).as<exact_integer>()));
+
+      default:
+        throw invalid_application(intern("read-string") | xs);
+      }
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (write-char char)                                             procedure
+     *  (write-char char port)                                        procedure
+     *
+     *  Writes the character char (not an external representation of the
+     *  character) to the given textual output port and returns an unspecified
+     *  value.
+     *
+     * --------------------------------------------------------------------- */
+
+    define<procedure>("%write-char", [](let const& xs)
+    {
+      cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
+      return unspecified;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (write-string string)                                         procedure
+     *  (write-string string port)                                    procedure
+     *  (write-string string port start)                              procedure
+     *  (write-string string port start end)                          procedure
+     *
+     *  Writes the characters of string from start to end in left-to-right
+     *  order to the textual output port.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("%write-string", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 2:
+        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
+        break;
+
+      case 3: // TODO
+      case 4: // TODO
+
+      default:
+        throw invalid_application(intern("write-string") | xs);
+      }
+
+      return unspecified;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (flush-output-port)                                           procedure
+     *  (flush-output-port port)                                      procedure
+     *
+     *  Flushes any buffered output from the buffer of output-port to the
+     *  underlying file or device and returns an unspecified value.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("%flush-output-port", [](let const& xs)
+    {
+      car(xs).as<std::ostream>() << std::flush;
+      return unspecified;
+    });
   }
 
   template <>
@@ -1825,7 +2028,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("::read", [this](let const& xs)
+    define<procedure>("%read", [this](let const& xs)
     {
       try
       {
@@ -1866,7 +2069,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("::write-simple", [this](let const& xs)
+    define<procedure>("%write-simple", [this](let const& xs)
     {
       write_to(cadr(xs), car(xs));
       return unspecified;
@@ -1923,214 +2126,11 @@ inline namespace kernel
   template <>
   void syntactic_continuation::import(import_set<layer::standard_procedure>)
   {
-    /* -------------------------------------------------------------------------
-     *
-     *  (read-char)                                                   procedure
-     *  (read-char port)                                              procedure
-     *
-     *  Returns the next character available from the textual input port,
-     *  updating the port to point to the following character. If no more
-     *  characters are available, an end-of-file object is returned.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("::read-char", [](let const& xs)
-    {
-      try
-      {
-        return make<character>(car(xs).as<std::istream>());
-      }
-      catch (eof const&)
-      {
-        return eof_object;
-      }
-      catch (read_error const& error)
-      {
-        return make(error);
-      }
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (peek-char)                                                   procedure
-     *  (peek-char port)                                              procedure
-     *
-     *  Returns the next character available from the textual input port, but
-     *  without updating the port to point to the following character. If no
-     *  more characters are available, an end-of-file object is returned.
-     *
-     *  Note: The value returned by a call to peek-char is the same as the
-     *  value that would have been returned by a call to read-char with the
-     *  same port. The only difference is that the very next call to read-char
-     *  or peek-char on that port will return the value returned by the
-     *  preceding call to peek-char. In particular, a call to peek-char on an
-     *  interactive port will hang waiting for input whenever a call to
-     *  read-char would have hung.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("::peek-char", [](let const& xs)
-    {
-      try
-      {
-        auto const g = car(xs).as<std::istream>().tellg();
-        let const c = make<character>(car(xs).as<std::istream>());
-        car(xs).as<std::istream>().seekg(g);
-        return c;
-      }
-      catch (eof const&)
-      {
-        return eof_object;
-      }
-      catch (read_error const& error)
-      {
-        return make(error);
-      }
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (eof-object? obj)                                             procedure
-     *
-     *  Returns #t if obj is an end-of-file object, otherwise returns #f. The
-     *  precise set of end-of-file objects will vary among implementations, but
-     *  in any case no end-of-file object will ever be an object that can be
-     *  read in using read.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("eof-object?", is<eof>());
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (eof-object)                                                  procedure
-     *
-     *  Returns an end-of-file object, not necessarily unique.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("eof-object", [](auto&&)
-    {
-      return eof_object;
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (char-ready?)                                                 procedure
-     *  (char-ready? port)                                            procedure
-     *
-     *  Returns #t if a character is ready on the textual input port and
-     *  returns #f otherwise. If char-ready returns #t then the next read-char
-     *  operation on the given port is guaranteed not to hang. If the port is
-     *  at end of file then char-ready? returns #t.
-     *
-     *  Rationale: The char-ready? procedure exists to make it possible for a
-     *  program to accept characters from interactive ports without getting
-     *  stuck waiting for input. Any input editors associated with such ports
-     *  must ensure that characters whose existence has been asserted by
-     *  char-ready? cannot be removed from the input. If char-ready? were to
-     *  return #f at end of file, a port at end of file would be
-     *  indistinguishable from an interactive port that has no ready characters.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("::char-ready?", [](let const& xs)
-    {
-      return car(xs).as<std::istream>() ? t : f;
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (read-string k)                                               procedure
-     *  (read-string k port)                                          procedure
-     *
-     *  Reads the next k characters, or as many as are available before the end
-     *  of file, from the textual input port into a newly allocated string in
-     *  left-to-right order and returns the string. If no characters are
-     *  available before the end of file, an end-of-file object is returned.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("::read-string", [](let const& xs)
-    {
-      switch (length(xs))
-      {
-      case 2:
-        return make<string>(cadr(xs).as<std::istream>(), static_cast<string::size_type>(car(xs).as<exact_integer>()));
-
-      default:
-        throw invalid_application(intern("read-string") | xs);
-      }
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (write-char char)                                             procedure
-     *  (write-char char port)                                        procedure
-     *
-     *  Writes the character char (not an external representation of the
-     *  character) to the given textual output port and returns an unspecified
-     *  value.
-     *
-     * --------------------------------------------------------------------- */
-
-    define<procedure>("::write-char", [](let const& xs)
-    {
-      cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
-      return unspecified;
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (write-string string)                                         procedure
-     *  (write-string string port)                                    procedure
-     *  (write-string string port start)                              procedure
-     *  (write-string string port start end)                          procedure
-     *
-     *  Writes the characters of string from start to end in left-to-right
-     *  order to the textual output port.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("::write-string", [](let const& xs)
-    {
-      switch (length(xs))
-      {
-      case 2:
-        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
-        break;
-
-      case 3: // TODO
-      case 4: // TODO
-
-      default:
-        throw invalid_application(intern("write-string") | xs);
-      }
-
-      return unspecified;
-    });
-
     define<procedure>("path?", is<path>());
 
     define<procedure>("::write-path", [](let const& xs)
     {
       cadr(xs).as<std::ostream>() << car(xs).as<path>().c_str();
-      return unspecified;
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (flush-output-port)                                           procedure
-     *  (flush-output-port port)                                      procedure
-     *
-     *  Flushes any buffered output from the buffer of output-port to the
-     *  underlying file or device and returns an unspecified value.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("::flush-output-port", [](let const& xs)
-    {
-      car(xs).as<std::ostream>() << std::flush;
       return unspecified;
     });
 

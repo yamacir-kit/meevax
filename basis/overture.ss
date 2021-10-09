@@ -700,15 +700,15 @@
          (close-output-file-port x))
         (else (unspecified))))
 
-(define (read        . x) (::read        (if (pair? x) (car x) (current-input-port))))
-(define (read-char   . x) (::read-char   (if (pair? x) (car x) (current-input-port))))
-(define (peek-char   . x) (::peek-char   (if (pair? x) (car x) (current-input-port))))
-(define (char-ready? . x) (::char-ready? (if (pair? x) (car x) (current-input-port))))
+(define (read        . x) (%read        (if (pair? x) (car x) (current-input-port))))
+(define (read-char   . x) (%read-char   (if (pair? x) (car x) (current-input-port))))
+(define (peek-char   . x) (%peek-char   (if (pair? x) (car x) (current-input-port))))
+(define (char-ready? . x) (%char-ready? (if (pair? x) (car x) (current-input-port))))
 
 (define (write-simple datum . port)
-  (::write-simple datum (if (pair? port)
-                            (car port)
-                            (current-output-port))))
+  (%write-simple datum (if (pair? port)
+                           (car port)
+                           (current-output-port))))
 
 (define write write-simple)
 
@@ -722,6 +722,17 @@
   (apply write-char #\newline port))
 
 (define (write-char char . port)
-  (::write-char char (if (pair? port)
-                         (car port)
-                         (current-output-port))))
+  (%write-char char (if (pair? port)
+                        (car port)
+                        (current-output-port))))
+
+(define (write-string string . xs)
+  (case (length xs)
+    ((0)  (%write-string string (current-output-port)))
+    ((1)  (%write-string string (car xs)))
+    (else (%write-string (apply string-copy string (cadr xs)) (car xs)))))
+
+(define (flush-output-port . port)
+  (%flush-output-port (if (pair? port)
+                          (car port)
+                          (current-output-port))))

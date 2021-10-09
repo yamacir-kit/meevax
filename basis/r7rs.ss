@@ -398,12 +398,6 @@ parameterize ; is defined in srfi-39.ss
 ; TODO open-output-bytevector
 ; TODO get-output-bytevector
 
-(define (write-string string . xs)
-  (case (length xs)
-    ((0)  (::write-string string (current-output-port)))
-    ((1)  (::write-string string (car xs)))
-    (else (::write-string (apply string-copy string (cadr xs)) (car xs)))))
-
 (define (write-path path . x)
   (::write-path path (if (pair? x)
                          (car x)
@@ -411,11 +405,6 @@ parameterize ; is defined in srfi-39.ss
 
 ; TODO write-u8
 ; TODO write-bytevector
-
-(define (flush-output-port . port)
-  (::flush-output-port (if (pair? port)
-                           (car port)
-                           (current-output-port))))
 
 
 ; ---- 6.14. System interface --------------------------------------------------
