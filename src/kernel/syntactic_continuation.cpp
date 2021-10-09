@@ -385,8 +385,36 @@ inline namespace kernel
 
     define<procedure>("eq?", [](auto&& xs)
     {
-      return car(xs) == cadr(xs) ? t : f;
+      return eq(car(xs), cadr(xs)) ? t : f;
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (number? obj)                                                 procedure
+     *  (complex? obj)                                                procedure
+     *  (real? obj)                                                   procedure
+     *  (rational? obj)                                               procedure
+     *  (integer? obj)                                                procedure
+     *
+     *  These numerical type predicates can be applied to any kind of argument,
+     *  including non-numbers. They return #t if the object is of the named
+     *  type, and otherwise they return #f. In general, if a type predicate is
+     *  true of a number then all higher type predicates are also true of that
+     *  number. Consequently, if a type predicate is false of a number, then
+     *  all lower type predicates are also false of that number. If z is a
+     *  complex number, then (real? z) is true if and only if
+     *  (zero? (imag-part z)) is true. If x is an inexact real number, then
+     *  (integer? x) is true if and only if (= x (round x)).
+     *
+     *  The numbers +inf.0, -inf.0, and +nan.0 are real but not rational.
+     *
+     * ---------------------------------------------------------------------- */
+
+    // define<procedure>("number?",   [](let const& xs) { return is_number  (car(xs)) ? t : f; });
+    // define<procedure>("complex?",  [](let const& xs) { return is_complex (car(xs)) ? t : f; });
+    // define<procedure>("real?",     [](let const& xs) { return is_real    (car(xs)) ? t : f; });
+    // define<procedure>("rational?", [](let const& xs) { return is_rational(car(xs)) ? t : f; });
+    define<procedure>("integer?",  [](let const& xs) { return car(xs).is_integer() ? t : f; });
   }
 
   template <>
@@ -683,28 +711,6 @@ inline namespace kernel
   template <>
   void syntactic_continuation::import(import_set<layer::standard_procedure>)
   {
-    /* -------------------------------------------------------------------------
-     *
-     *  (number? obj)                                                 procedure
-     *  (complex? obj)                                                procedure
-     *  (real? obj)                                                   procedure
-     *  (rational? obj)                                               procedure
-     *  (integer? obj)                                                procedure
-     *
-     *  These numerical type predicates can be applied to any kind of argument,
-     *  including non-numbers. They return #t if the object is of the named
-     *  type, and otherwise they return #f. In general, if a type predicate is
-     *  true of a number then all higher type predicates are also true of that
-     *  number. Consequently, if a type predicate is false of a number, then
-     *  all lower type predicates are also false of that number. If z is a
-     *  complex number, then (real? z) is true if and only if
-     *  (zero? (imag-part z)) is true. If x is an inexact real number, then
-     *  (integer? x) is true if and only if (= x (round x)).
-     *
-     *  The numbers +inf.0, -inf.0, and +nan.0 are real but not rational.
-     *
-     * ---------------------------------------------------------------------- */
-
     define<procedure>("%complex?", is<complex>());
     define<procedure>("ratio?", is<ratio>());
     define<procedure>("single-float?", is<single_float>());

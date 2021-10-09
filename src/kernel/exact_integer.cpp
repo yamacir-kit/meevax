@@ -161,6 +161,11 @@ inline namespace kernel
     return make<double_float>(static_cast<double>(*this));
   }
 
+  auto exact_integer::is_integer() noexcept -> bool
+  {
+    return true;
+  }
+
   auto exact_integer::string(int radix) const -> std::string
   {
     auto deallocate = [](pointer<char> data)

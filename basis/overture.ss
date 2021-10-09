@@ -306,20 +306,6 @@
 
 ; ---- 6.2. Numbers ------------------------------------------------------------
 
-; .
-; `-- number?
-;      `-- complex?
-;           |-- %complex?
-;           `-- real?
-;                |-- floating-point?
-;                |    |-- single-float?
-;                |    `-- double-float?
-;                `-- rational?
-;                     |-- ratio?
-;                     `-- integer?
-;                          |-- inexact-integer?
-;                          `-- exact-integer?
-
 (define (number? x) (complex? x))
 
 (define (complex? x)
@@ -337,14 +323,6 @@
 (define (rational? x)
   (or (ratio? x)
       (integer? x)))
-
-(define (integer? x)
-  (or (exact-integer? x) ; TODO ratio e.g. 3/1 is integer.
-      (inexact-integer? x)))
-
-(define (inexact-integer? x)
-  (and (floating-point? x)
-       (= x (truncate x))))
 
 ;  .
 ;  |-- exact?

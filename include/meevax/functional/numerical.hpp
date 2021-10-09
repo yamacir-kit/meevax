@@ -25,7 +25,7 @@ namespace meevax
 {
 inline namespace functional
 {
-  struct nanp
+  struct is_nan_t
   {
     template <typename T>
     auto operator ()(T&& x) -> decltype(std::isnan(std::forward<decltype(x)>(x)))
@@ -33,7 +33,7 @@ inline namespace functional
       return std::isnan(std::forward<decltype(x)>(x));
     }
 
-    friend auto operator <<(std::ostream & os, nanp const&) -> std::ostream &
+    friend auto operator <<(std::ostream & os, is_nan_t const&) -> std::ostream &
     {
       return os << "nan?";
     }
@@ -54,6 +54,8 @@ inline namespace functional
       return os << #NAME;                                                      \
     }                                                                          \
   }
+
+  DEFINE(is_integer);
 
   DEFINE(exact);
   DEFINE(inexact);
