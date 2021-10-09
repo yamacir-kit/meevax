@@ -644,7 +644,15 @@
 
 ; ---- 6.13. Input and output --------------------------------------------------
 
-(define (call-with-port port procedure) (procedure port)) ; R7RS
+; (define (call-with-port port procedure)
+;   (let-values ((results (procedure port)))
+;     (close-port port)
+;     (apply values results)))
+
+(define (call-with-port port procedure)
+  (let ((result (procedure port)))
+    (close-port port)
+    result))
 
 (define (call-with-input-file path procedure)
   (call-with-port (open-input-file path) procedure))

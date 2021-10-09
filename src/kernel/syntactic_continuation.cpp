@@ -1400,6 +1400,197 @@ inline namespace kernel
     define<procedure>("file-error?", is<file_error>());
 
     define<procedure>("syntax-error?", is<syntax_error>());
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (input-port? obj)                                             procedure
+     *  (output-port? obj)                                            procedure
+     *  (textual-port? obj)                                           procedure
+     *  (binary-port? obj)                                            procedure
+     *  (port? obj)                                                   procedure
+     *
+     *  These procedures return #t if obj is an input port, output port,
+     *  textual port, binary port, or any kind of port, respectively. Otherwise
+     *  they return #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("input-file-port?", is<input_file_port>());
+
+    define<procedure>("output-file-port?", is<output_file_port>());
+
+    define<procedure>("input-string-port?", is<input_string_port>());
+
+    define<procedure>("output-string-port?", is<output_string_port>());
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (input-port-open? port)                                       procedure
+     *  (output-port-open? port)                                      procedure
+     *
+     *  Returns #t if port is still open and capable of performing input or
+     *  output, respectively, and #f otherwise.
+     *
+     * --------------------------------------------------------------------- */
+
+    define<procedure>("input-file-port-open?", [](let const& xs)
+    {
+      return car(xs).as<input_file_port>().is_open() ? t : f;
+    });
+
+    define<procedure>("output-file-port-open?", [](let const& xs)
+    {
+      return car(xs).as<output_file_port>().is_open() ? t : f;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (current-input-port)                                          procedure
+     *  (current-output-port)                                         procedure
+     *  (current-error-port)                                          procedure
+     *
+     *  Returns the current default input port, output port, or error port (an
+     *  output port), respectively. These procedures are parameter objects,
+     *  which can be overridden with parameterize (see section 4.2.6). The
+     *  initial bindings for these are implementation-defined textual ports.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("standard-input-port", [](auto&&) { return default_input_port; });
+
+    define<procedure>("standard-output-port", [](auto&&) { return default_output_port; });
+
+    define<procedure>("standard-error-port", [](auto&&) { return default_error_port; });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (open-input-file string)                         file library procedure
+     *  (open-binary-input-file string)                  file library procedure
+     *
+     *  Takes a string for an existing file and returns a textual input port or
+     *  binary input port that is capable of delivering data from the file. If
+     *  the file does not exist or cannot be opened, an error that satisfies
+     *  file-error? is signaled.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("open-input-file", [](let const& xs)
+    {
+      return make<input_file_port>(car(xs).as<string>());
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (open-output-file string)                        file library procedure
+     *  (open-binary-output-file string)                 file library procedure
+     *
+     *  Takes a string naming an output file to be created and returns a
+     *  textual output port or binary output port that is capable of writing
+     *  data to a new file by that name. If a file with the given name already
+     *  exists, the effect is unspecified. If the file cannot be opened, an
+     *  error that satisfies file-error? is signaled.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("open-output-file", [](let const& xs)
+    {
+      return make<output_file_port>(car(xs).as<string>());
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (close-port port)                                             procedure
+     *  (close-input-port port)                                       procedure
+     *  (close-output-port port)                                      procedure
+     *
+     *  Closes the resource associated with port, rendering the port incapable
+     *  of delivering or accepting data. It is an error to apply the last two
+     *  procedures to a port which is not an input or output port, respectively.
+     *  Scheme implementations may provide ports which are simultaneously input
+     *  and output ports, such as sockets; the close-input-port and
+     *  close-output-port procedures can then be used to close the input and
+     *  output sides of the port independently. These routines have no effect
+     *  if the port has already been closed.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("close-input-file-port", [](let const& xs)
+    {
+      car(xs).as<input_file_port>().close();
+      return unspecified;
+    });
+
+    define<procedure>("close-output-file-port", [](let const& xs)
+    {
+      car(xs).as<output_file_port>().close();
+      return unspecified;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (open-input-string string)                                    procedure
+     *
+     *  Takes a string and returns a textual input port that delivers
+     *  characters from the string. If the string is modified, the effect is
+     *  unspecified.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("open-input-string", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 0:
+        return make<input_string_port>();
+
+      case 1:
+        return make<input_string_port>(car(xs).as<string>());
+
+      default:
+        throw invalid_application(intern("open-input-string") | xs);
+      }
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (open-output-string)                                          procedure
+     *
+     *  Returns a textual output port that will accumulate characters for
+     *  retrieval by get-output-string.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("open-output-string", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 0:
+        return make<output_string_port>();
+
+      case 1:
+        return make<output_string_port>(car(xs).as<string>());
+
+      default:
+        throw invalid_application(intern("open-output-string") | xs);
+      }
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (get-output-string port)                                      procedure
+     *
+     *  It is an error if port was not created with open-output-string.
+     *
+     *  Returns a string consisting of the characters that have been output to
+     *  the port so far in the order they were output. If the result string is
+     *  modified, the effect is unspecified.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("get-output-string", [](let const& xs)
+    {
+      return make<string>(car(xs).as<output_string_port>().str());
+    });
   }
 
   template <>
@@ -1732,197 +1923,6 @@ inline namespace kernel
   template <>
   void syntactic_continuation::import(import_set<layer::standard_procedure>)
   {
-    /* -------------------------------------------------------------------------
-     *
-     *  (input-port? obj)                                             procedure
-     *  (output-port? obj)                                            procedure
-     *  (textual-port? obj)                                           procedure
-     *  (binary-port? obj)                                            procedure
-     *  (port? obj)                                                   procedure
-     *
-     *  These procedures return #t if obj is an input port, output port,
-     *  textual port, binary port, or any kind of port, respectively. Otherwise
-     *  they return #f.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("input-file-port?", is<input_file_port>());
-
-    define<procedure>("output-file-port?", is<output_file_port>());
-
-    define<procedure>("input-string-port?", is<input_string_port>());
-
-    define<procedure>("output-string-port?", is<output_string_port>());
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (input-port-open? port)                                       procedure
-     *  (output-port-open? port)                                      procedure
-     *
-     *  Returns #t if port is still open and capable of performing input or
-     *  output, respectively, and #f otherwise.
-     *
-     * --------------------------------------------------------------------- */
-
-    define<procedure>("input-file-port-open?", [](let const& xs)
-    {
-      return car(xs).as<input_file_port>().is_open() ? t : f;
-    });
-
-    define<procedure>("output-file-port-open?", [](let const& xs)
-    {
-      return car(xs).as<output_file_port>().is_open() ? t : f;
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (current-input-port)                                          procedure
-     *  (current-output-port)                                         procedure
-     *  (current-error-port)                                          procedure
-     *
-     *  Returns the current default input port, output port, or error port (an
-     *  output port), respectively. These procedures are parameter objects,
-     *  which can be overridden with parameterize (see section 4.2.6). The
-     *  initial bindings for these are implementation-defined textual ports.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("standard-input-port", [](auto&&) { return default_input_port; });
-
-    define<procedure>("standard-output-port", [](auto&&) { return default_output_port; });
-
-    define<procedure>("standard-error-port", [](auto&&) { return default_error_port; });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (open-input-file string)                         file library procedure
-     *  (open-binary-input-file string)                  file library procedure
-     *
-     *  Takes a string for an existing file and returns a textual input port or
-     *  binary input port that is capable of delivering data from the file. If
-     *  the file does not exist or cannot be opened, an error that satisfies
-     *  file-error? is signaled.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("open-input-file", [](let const& xs)
-    {
-      return make<input_file_port>(car(xs).as<string>());
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (open-output-file string)                        file library procedure
-     *  (open-binary-output-file string)                 file library procedure
-     *
-     *  Takes a string naming an output file to be created and returns a
-     *  textual output port or binary output port that is capable of writing
-     *  data to a new file by that name. If a file with the given name already
-     *  exists, the effect is unspecified. If the file cannot be opened, an
-     *  error that satisfies file-error? is signaled.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("open-output-file", [](let const& xs)
-    {
-      return make<output_file_port>(car(xs).as<string>());
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (close-port port)                                             procedure
-     *  (close-input-port port)                                       procedure
-     *  (close-output-port port)                                      procedure
-     *
-     *  Closes the resource associated with port, rendering the port incapable
-     *  of delivering or accepting data. It is an error to apply the last two
-     *  procedures to a port which is not an input or output port, respectively.
-     *  Scheme implementations may provide ports which are simultaneously input
-     *  and output ports, such as sockets; the close-input-port and
-     *  close-output-port procedures can then be used to close the input and
-     *  output sides of the port independently. These routines have no effect
-     *  if the port has already been closed.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("close-input-file-port", [](let const& xs)
-    {
-      car(xs).as<input_file_port>().close();
-      return unspecified;
-    });
-
-    define<procedure>("close-output-file-port", [](let const& xs)
-    {
-      car(xs).as<output_file_port>().close();
-      return unspecified;
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (open-input-string string)                                    procedure
-     *
-     *  Takes a string and returns a textual input port that delivers
-     *  characters from the string. If the string is modified, the effect is
-     *  unspecified.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("open-input-string", [](let const& xs)
-    {
-      switch (length(xs))
-      {
-      case 0:
-        return make<input_string_port>();
-
-      case 1:
-        return make<input_string_port>(car(xs).as<string>());
-
-      default:
-        throw invalid_application(intern("open-input-string") | xs);
-      }
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (open-output-string)                                          procedure
-     *
-     *  Returns a textual output port that will accumulate characters for
-     *  retrieval by get-output-string.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("open-output-string", [](let const& xs)
-    {
-      switch (length(xs))
-      {
-      case 0:
-        return make<output_string_port>();
-
-      case 1:
-        return make<output_string_port>(car(xs).as<string>());
-
-      default:
-        throw invalid_application(intern("open-output-string") | xs);
-      }
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (get-output-string port)                                      procedure
-     *
-     *  It is an error if port was not created with open-output-string.
-     *
-     *  Returns a string consisting of the characters that have been output to
-     *  the port so far in the order they were output. If the result string is
-     *  modified, the effect is unspecified.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("get-output-string", [](let const& xs)
-    {
-      return make<string>(car(xs).as<output_string_port>().str());
-    });
-
     /* -------------------------------------------------------------------------
      *
      *  (read-char)                                                   procedure
