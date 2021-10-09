@@ -270,8 +270,6 @@ parameterize ; is defined in srfi-39.ss
   (or (= +inf.0 z)
       (= -inf.0 z)))
 
-(define (square z) (* z z))
-
 ; TODO exact-integer-sqrt
 
 ; ---- 6.3. Booleans -----------------------------------------------------------

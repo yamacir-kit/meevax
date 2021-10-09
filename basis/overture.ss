@@ -329,9 +329,8 @@
 (define (zero?     n) (= n 0))
 (define (positive? n) (> n 0))
 (define (negative? n) (< n 0))
-
-(define (odd? n) (not (even? n)))
-(define (even? n) (= (remainder n 2) 0))
+(define (odd?      n) (not (even? n)))
+(define (even?     n) (= (remainder n 2) 0))
 
 (define (max x . xs)
   (define (max-aux x xs)
@@ -366,7 +365,7 @@
 
 (define (floor-quotient x y) (floor (/ x y)))
 
-(define (floor-remainder a b) (% (+ b (% a b)) b))
+(define (floor-remainder x y) (% (+ y (% x y)) y))
 
 (define (floor/ x y)
   (values (floor-quotient x y)
@@ -433,6 +432,8 @@
         (x (abs x))
         (e (abs e)))
     (sr (- x e) (+ x e) return)))
+
+(define (square z) (* z z))
 
 (define (make-rectangular x y) (+ x (* y (sqrt -1))))
 
