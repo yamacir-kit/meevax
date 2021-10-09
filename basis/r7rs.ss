@@ -399,9 +399,9 @@ parameterize ; is defined in srfi-39.ss
 ; TODO get-output-bytevector
 
 (define (write-path path . x)
-  (::write-path path (if (pair? x)
-                         (car x)
-                         (current-output-port))))
+  (%write-path path (if (pair? x)
+                        (car x)
+                        (current-output-port))))
 
 ; TODO write-u8
 ; TODO write-bytevector

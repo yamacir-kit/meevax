@@ -705,10 +705,8 @@
 (define (peek-char   . x) (%peek-char   (if (pair? x) (car x) (current-input-port))))
 (define (char-ready? . x) (%char-ready? (if (pair? x) (car x) (current-input-port))))
 
-(define (write-simple datum . port)
-  (%write-simple datum (if (pair? port)
-                           (car port)
-                           (current-output-port))))
+(define (write-simple x . port) (%write-simple x (if (pair? port) (car port) (current-output-port))))
+(define (write-char   x . port) (%write-char   x (if (pair? port) (car port) (current-output-port))))
 
 (define write write-simple)
 
@@ -720,11 +718,6 @@
 
 (define (newline . port)
   (apply write-char #\newline port))
-
-(define (write-char char . port)
-  (%write-char char (if (pair? port)
-                        (car port)
-                        (current-output-port))))
 
 (define (write-string string . xs)
   (case (length xs)

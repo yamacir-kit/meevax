@@ -232,9 +232,8 @@ inline namespace kernel
   template <auto N>
   using import_set = typename std::integral_constant<decltype(N), N>;
 
-  template <> auto syntactic_continuation::import(import_set<layer::module_system         >) -> void;
-  template <> auto syntactic_continuation::import(import_set<layer::standard_procedure    >) -> void;
-  template <> auto syntactic_continuation::import(import_set<layer::standard_library      >) -> void;
+  template <> auto syntactic_continuation::import(import_set<layer::module_system   >) -> void;
+  template <> auto syntactic_continuation::import(import_set<layer::standard_library>) -> void;
 
   auto operator >>(std::istream &, syntactic_continuation &) -> std::istream &;
 

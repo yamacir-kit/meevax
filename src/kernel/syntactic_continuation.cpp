@@ -1794,6 +1794,25 @@ inline namespace kernel
       car(xs).as<std::ostream>() << std::flush;
       return unspecified;
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (features)                                                    procedure
+     *
+     *  Returns a list of the feature identifiers which cond-expand treats as
+     *  true. It is an error to modify this list. Here is an example of what
+     *  features might return:
+     *
+     *    (features) =>
+     *      (r7rs ratios exact-complex full-unicode gnu-linux little-endian
+     *      fantastic-scheme fantastic-scheme-1.0 space-ship-control-system)
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("features", [](auto&&...)
+    {
+      return features();
+    });
   }
 
   template <>
@@ -2124,33 +2143,42 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::import(import_set<layer::standard_procedure>)
+  void syntactic_continuation::import(import_set<layer::standard_library>)
+  {
+    std::vector<string_view> const codes {
+      overture,
+      srfi_8,
+      srfi_1,
+      srfi_23,
+      srfi_34,
+      srfi_39,
+      srfi_45,
+      srfi_78,
+      srfi_149,
+      r7rs,
+    };
+
+    for (auto const& code : codes)
+    {
+      // NOTE: Since read performs a putback operation on a given stream, it must be copied and used.
+      std::stringstream port { std::string(code) };
+
+      for (let e = read(port); e != eof_object; e = read(port))
+      {
+        evaluate(e);
+      }
+    }
+  }
+
+  template <>
+  auto syntactic_continuation::import(standard::experimental_t) -> void
   {
     define<procedure>("path?", is<path>());
 
-    define<procedure>("::write-path", [](let const& xs)
+    define<procedure>("%write-path", [](let const& xs)
     {
       cadr(xs).as<std::ostream>() << car(xs).as<path>().c_str();
       return unspecified;
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (features)                                                    procedure
-     *
-     *  Returns a list of the feature identifiers which cond-expand treats as
-     *  true. It is an error to modify this list. Here is an example of what
-     *  features might return:
-     *
-     *    (features) =>
-     *      (r7rs ratios exact-complex full-unicode gnu-linux little-endian
-     *      fantastic-scheme fantastic-scheme-1.0 space-ship-control-system)
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("features", [](auto&&...)
-    {
-      return features();
     });
 
     /* -------------------------------------------------------------------------
@@ -2252,39 +2280,7 @@ inline namespace kernel
         throw error(make<string>("not a macro"), caar(xs));
       }
     });
-  }
 
-  template <>
-  void syntactic_continuation::import(import_set<layer::standard_library>)
-  {
-    std::vector<string_view> const codes {
-      overture,
-      srfi_8,
-      srfi_1,
-      srfi_23,
-      srfi_34,
-      srfi_39,
-      srfi_45,
-      srfi_78,
-      srfi_149,
-      r7rs,
-    };
-
-    for (auto const& code : codes)
-    {
-      // NOTE: Since read performs a putback operation on a given stream, it must be copied and used.
-      std::stringstream port { std::string(code) };
-
-      for (let e = read(port); e != eof_object; e = read(port))
-      {
-        evaluate(e);
-      }
-    }
-  }
-
-  template <>
-  auto syntactic_continuation::import(standard::experimental_t) -> void
-  {
     define<procedure>("disassemble", [](let const& xs)
     {
       if (0 < length(xs))
@@ -2337,6 +2333,7 @@ inline namespace kernel
      *  (foreign-function lib*.so function-name)                      procedure
      *
      * ---------------------------------------------------------------------- */
+
     define<procedure>("foreign-function", [](let const& xs)
     {
       return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
