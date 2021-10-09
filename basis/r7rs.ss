@@ -323,22 +323,6 @@ parameterize ; is defined in srfi-39.ss
 
 ; ---- 6.11. Exceptions --------------------------------------------------------
 
-; error => SRFI-23
-
-; TODO with-exception-handler
-; TODO raise
-; TODO raise-continuable
-
-(define (error-object? x)
-  (or (error? x)
-      (continuable-error? x)
-      (read-error? x)
-      (file-error? x)
-      (syntax-error? x)))
-
-(define error-object-message car)
-(define error-object-irritants cdr)
-
 ; ---- 6.12. Environments and evaluation ---------------------------------------
 
 ; TODO environment

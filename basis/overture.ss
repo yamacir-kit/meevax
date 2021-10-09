@@ -604,20 +604,20 @@
 ;       (lambda (cc)
 ;         (apply cc xs)))))
 
-(define values-tag (list 'values)) ; Magic Token Trick
+(define <values> (list 'values)) ; Magic Token Trick
 
 (define (values? x)
   (if (pair? x)
-      (eq? (car x) values-tag)
+      (eq? (car x) <values>)
       #f))
 
 (define (values . xs)
   (if (if (null? xs) #f
           (null? (cdr xs)))
       (car xs)
-      (cons values-tag xs)))
+      (cons <values> xs)))
 
-; (define (call-with-values producer consumer) ; TODO
+; (define (call-with-values producer consumer)
 ;   (let-values ((xs (producer)))
 ;     (apply consumer xs)))
 
@@ -629,6 +629,16 @@
    (producer)))
 
 ; ---- 6.11. Exceptions --------------------------------------------------------
+
+(define (error-object? x)
+  (or (error? x)
+      (read-error? x)
+      (file-error? x)
+      (syntax-error? x)))
+
+(define error-object-message car)
+
+(define error-object-irritants cdr)
 
 ; ---- 6.12. Environments and evaluation ---------------------------------------
 
