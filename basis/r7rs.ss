@@ -282,8 +282,6 @@ parameterize ; is defined in srfi-39.ss
 
 ; ---- 6.5 Symbols -------------------------------------------------------------
 
-(define symbol=? eqv?)
-
 ; ---- 6.6 Characters ----------------------------------------------------------
 
 (define char-foldcase char-downcase)

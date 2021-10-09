@@ -768,6 +768,46 @@ inline namespace kernel
     define<procedure>("set-car!", [](auto&& xs) { return caar(xs) = cadr(xs); });
     define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (symbol? obj)                                                 procedure
+     *
+     *  Returns #t if obj is a symbol, otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("symbol?", is<symbol>());
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (symbol->string symbol)                                       procedure
+     *
+     *  Returns the name of symbol as a string, but without adding escapes. It
+     *  is an error to apply mutation procedures like string-set! to strings
+     *  returned by this procedure.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("symbol->string", [](let const& xs)
+    {
+      return make<string>(car(xs).as<symbol>());
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (string->symbol string)                                       procedure
+     *
+     *  Returns the symbol whose name is string. This procedure can create
+     *  symbols with names containing special characters that would require
+     *  escaping when written, but does not interpret escapes in its input.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("string->symbol", [](let const& xs)
+    {
+      return intern(car(xs).as<string>());
+    });
+
   }
 
   template <>
@@ -1059,46 +1099,6 @@ inline namespace kernel
   template <>
   void syntactic_continuation::import(import_set<layer::standard_procedure>)
   {
-    /* -------------------------------------------------------------------------
-     *
-     *  (symbol? obj)                                                 procedure
-     *
-     *  Returns #t if obj is a symbol, otherwise returns #f.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("symbol?", is<symbol>());
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (symbol->string symbol)                                       procedure
-     *
-     *  Returns the name of symbol as a string, but without adding escapes. It
-     *  is an error to apply mutation procedures like string-set! to strings
-     *  returned by this procedure.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("symbol->string", [](let const& xs)
-    {
-      return make<string>(car(xs).as<symbol>());
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (string->symbol string)                                       procedure
-     *
-     *  Returns the symbol whose name is string. This procedure can create
-     *  symbols with names containing special characters that would require
-     *  escaping when written, but does not interpret escapes in its input.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("string->symbol", [](let const& xs)
-    {
-      return intern(car(xs).as<string>());
-    });
-
     /* -------------------------------------------------------------------------
      *
      *  (char? obj)                                                   procedure
