@@ -415,6 +415,11 @@ inline namespace kernel
     define<procedure>("real?",     [](let const& xs) { return is_real    (car(xs)) ? t : f; });
     define<procedure>("rational?", [](let const& xs) { return is_rational(car(xs)) ? t : f; });
     define<procedure>("integer?",  [](let const& xs) { return car(xs).is_integer() ? t : f; });
+
+    define<procedure>("%complex?", is<complex>());
+    define<procedure>("ratio?", is<ratio>());
+    define<procedure>("single-float?", is<single_float>());
+    define<procedure>("double-float?", is<double_float>());
   }
 
   template <>
@@ -711,11 +716,6 @@ inline namespace kernel
   template <>
   void syntactic_continuation::import(import_set<layer::standard_procedure>)
   {
-    define<procedure>("%complex?", is<complex>());
-    define<procedure>("ratio?", is<ratio>());
-    define<procedure>("single-float?", is<single_float>());
-    define<procedure>("double-float?", is<double_float>());
-
     /* -------------------------------------------------------------------------
      *
      *  (exact-integer? z)                                            procedure

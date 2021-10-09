@@ -306,39 +306,25 @@
 
 ; ---- 6.2. Numbers ------------------------------------------------------------
 
-(define (floating-point? z)
-  (or (single-float? z)
-      (double-float? z)))
-
-;  .
-;  |-- exact?
-;  |    |-- exact-complex?
-;  |    |-- exact-integer?
-;  |    `-- ratio?
-;  `-- inexact?
-;       |-- inexact-complex?
-;       `-- floating-point?
-;            |--- single-float?
-;            `--- single-float?
-
 (define (exact? z)
-  (or (exact-integer? z)
+  (define (exact-complex? x)
+    (and (%complex? x)
+         (exact? (real-part x))
+         (exact? (imag-part x))))
+  (or (exact-complex? z)
       (ratio? z)
-      (exact-complex? z)))
-
-(define (exact-complex? x) ; TODO move into r7rs.ss
-  (and (%complex? x)
-       (exact? (real-part x))
-       (exact? (imag-part x))))
+      (exact-integer? z)))
 
 (define (inexact? z)
-  (or (floating-point? z)
-      (inexact-complex? z)))
-
-(define (inexact-complex? x)
-  (and (%complex? x)
-       (or (inexact? (real-part x))
-           (inexact? (imag-part x)))))
+  (define (inexact-complex? x)
+    (and (%complex? x)
+         (or (inexact? (real-part x))
+             (inexact? (imag-part x)))))
+  (define (floating-point? z)
+    (or (single-float? z)
+        (double-float? z)))
+  (or (inexact-complex? z)
+      (floating-point? z)))
 
 (define (zero?     n) (= n 0))
 (define (positive? n) (> n 0))
