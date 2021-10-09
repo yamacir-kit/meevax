@@ -306,23 +306,9 @@
 
 ; ---- 6.2. Numbers ------------------------------------------------------------
 
-(define (number? x) (complex? x))
-
-(define (complex? x)
-  (or (%complex? x)
-      (real? x)))
-
-(define (real? x)
-  (or (floating-point? x)
-      (rational? x)))
-
 (define (floating-point? z)
   (or (single-float? z)
       (double-float? z)))
-
-(define (rational? x)
-  (or (ratio? x)
-      (integer? x)))
 
 ;  .
 ;  |-- exact?

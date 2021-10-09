@@ -410,10 +410,10 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    // define<procedure>("number?",   [](let const& xs) { return is_number  (car(xs)) ? t : f; });
-    // define<procedure>("complex?",  [](let const& xs) { return is_complex (car(xs)) ? t : f; });
-    // define<procedure>("real?",     [](let const& xs) { return is_real    (car(xs)) ? t : f; });
-    // define<procedure>("rational?", [](let const& xs) { return is_rational(car(xs)) ? t : f; });
+    define<procedure>("number?",   [](let const& xs) { return is_number  (car(xs)) ? t : f; });
+    define<procedure>("complex?",  [](let const& xs) { return is_complex (car(xs)) ? t : f; });
+    define<procedure>("real?",     [](let const& xs) { return is_real    (car(xs)) ? t : f; });
+    define<procedure>("rational?", [](let const& xs) { return is_rational(car(xs)) ? t : f; });
     define<procedure>("integer?",  [](let const& xs) { return car(xs).is_integer() ? t : f; });
   }
 
