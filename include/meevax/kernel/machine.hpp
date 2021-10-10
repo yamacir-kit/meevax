@@ -31,19 +31,19 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename SK>
+  template <typename EnvironmentSpecifier>
   class machine // TR-SECD machine.
   {
-    friend SK;
+    friend EnvironmentSpecifier;
 
-    using syntactic_continuation = SK; // HACK
+    using syntactic_continuation = EnvironmentSpecifier; // HACK
 
     machine()
     {}
 
-    IMPORT(SK, fork, NIL);
-    IMPORT(SK, is_trace_mode, const);
-    IMPORT(SK, locate, NIL);
+    IMPORT(EnvironmentSpecifier, fork, NIL);
+    IMPORT(EnvironmentSpecifier, is_trace_mode, const);
+    IMPORT(EnvironmentSpecifier, locate, NIL);
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -157,12 +157,12 @@ inline namespace kernel
                                                     frames,
                                                     continuation);
           }
-          else if (applicant.is<SK>())
+          else if (applicant.is<syntactic_continuation>())
           {
 
             return compile(syntactic_context::none,
                            current_syntactic_continuation,
-                           applicant.as<SK>().macroexpand(applicant, expression),
+                           applicant.as<syntactic_continuation>().macroexpand(applicant, expression),
                            frames,
                            continuation);
           }

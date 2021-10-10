@@ -29,17 +29,17 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename SK>
+  template <typename EnvironmentSpecifier>
   class configurator
   {
-    friend SK;
+    friend EnvironmentSpecifier;
 
-    IMPORT(SK, evaluate, NIL);
-    IMPORT(SK, load, NIL);
-    IMPORT(SK, newline, const);
-    IMPORT(SK, read, NIL);
-    IMPORT(SK, write, const);
-    IMPORT(SK, write_line, const);
+    IMPORT(EnvironmentSpecifier, evaluate, NIL);
+    IMPORT(EnvironmentSpecifier, load, NIL);
+    IMPORT(EnvironmentSpecifier, newline, const);
+    IMPORT(EnvironmentSpecifier, read, NIL);
+    IMPORT(EnvironmentSpecifier, write, const);
+    IMPORT(EnvironmentSpecifier, write_line, const);
 
   protected:
     let batch       = f;
