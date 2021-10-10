@@ -31,10 +31,9 @@ inline namespace kernel
     explicit writer()
     {}
 
-    IMPORT(EnvironmentSpecifier, is_batch_mode,       const);
-    IMPORT(EnvironmentSpecifier, is_debug_mode,       const);
-    IMPORT(EnvironmentSpecifier, is_interactive_mode, const);
-    IMPORT(EnvironmentSpecifier, is_verbose_mode,     const);
+    IMPORT(EnvironmentSpecifier, is_batch_mode,   const);
+    IMPORT(EnvironmentSpecifier, is_debug_mode,   const);
+    IMPORT(EnvironmentSpecifier, is_verbose_mode, const);
 
   public:
     template <typename... Ts>
@@ -70,11 +69,6 @@ inline namespace kernel
     auto standard_debug_port() const -> pair::const_reference
     {
       return is_debug_mode() ? default_error_port : standard_null_port();
-    }
-
-    auto standard_interaction_port() const -> pair::const_reference
-    {
-      return is_interactive_mode() ? default_output_port : standard_null_port();
     }
   };
 } // namespace kernel

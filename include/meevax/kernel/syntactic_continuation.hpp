@@ -52,7 +52,6 @@ inline namespace kernel
 
     using configurator::is_batch_mode;
     using configurator::is_debug_mode;
-    using configurator::is_interactive_mode;
     using configurator::is_trace_mode;
     using configurator::is_verbose_mode;
 
