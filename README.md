@@ -13,7 +13,7 @@
   <b><a href="#Requirements">Requirements</a></b> &nbsp;|&nbsp;
   <b><a href="#Installation">Installation</a></b> &nbsp;|&nbsp;
   <b><a href="#Usage">Usage</a></b> &nbsp;|&nbsp;
-  <b><a href="#License">Lisence</a></b> &nbsp;|&nbsp;
+  <b><a href="#License">License</a></b> &nbsp;|&nbsp;
   <b><a href="#References">References</a></b>
 </p>
 
@@ -100,9 +100,9 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name        | Description
 |:-------------------|:--
-| `all` (default)    | Build shared-library `libmeevax.0.3.596.so` and executable `meevax`.
+| `all` (default)    | Build shared-library `libmeevax.0.3.597.so` and executable `meevax`.
 | `test`             | Test executable `meevax`.
-| `package`          | Generate debian package `meevax_0.3.596_amd64.deb`.
+| `package`          | Generate debian package `meevax_0.3.597_amd64.deb`.
 | `install`          | Copy files into `/usr/local` __(1)__.
 | `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
 | `safe-install.deb` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
@@ -117,7 +117,7 @@ __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's
 ## Usage
 
 ```
-Meevax Lisp System, version 0.3.596
+Meevax Lisp System, version 0.3.597
 
 Usage: meevax [OPTION...] [FILE...]
 
@@ -142,7 +142,7 @@ Options:
 | `$ meevax -e '(+ 1 2 3)'`                  | Display `6`.
 | `$ meevax -e "(define home \"$HOME\")" -i` | Define value of shell-environment variable `$HOME` as string typed Scheme variable `home`, and then start interactive session on environment includes the variable `home`.
 
-## Liscence
+## License
 
 See [LICENSE](./LICENSE).
 

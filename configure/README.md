@@ -13,7 +13,7 @@
   <b><a href="#Requirements">Requirements</a></b> &nbsp;|&nbsp;
   <b><a href="#Installation">Installation</a></b> &nbsp;|&nbsp;
   <b><a href="#Usage">Usage</a></b> &nbsp;|&nbsp;
-  <b><a href="#License">Lisence</a></b> &nbsp;|&nbsp;
+  <b><a href="#License">License</a></b> &nbsp;|&nbsp;
   <b><a href="#References">References</a></b>
 </p>
 
@@ -142,7 +142,7 @@ Options:
 | `$ meevax -e '(+ 1 2 3)'`                  | Display `6`.
 | `$ meevax -e "(define home \"$HOME\")" -i` | Define value of shell-environment variable `$HOME` as string typed Scheme variable `home`, and then start interactive session on environment includes the variable `home`.
 
-## Liscence
+## License
 
 See [LICENSE](./LICENSE).
 
