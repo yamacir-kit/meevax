@@ -291,38 +291,10 @@ inline namespace kernel
 
   auto syntactic_continuation::macroexpand(const_reference keyword, const_reference form) -> value_type
   {
-    // XXX ???
-    push(d, s, e, cons(make<instruction>(mnemonic::STOP), c));
+    push(d, s, e, cons(make<instruction>(mnemonic::STOP), c)); // XXX ???
 
     s = unit;
-
-    // TODO (3)
-    // make<procedure>("rename", [this](auto&& xs)
-    // {
-    //   const auto id { car(xs) };
-    //
-    //
-    // });
-
-    e = cons(
-          // form, // <lambda> parameters
-          cons(keyword, cdr(form)),
-          dynamic_environment());
-    // TODO (4)
-    // => e = cons(
-    //          list(
-    //            expression,
-    //            make<procedure>("rename", [this](auto&& xs) { ... }),
-    //            make<procedure>("compare", [this](auto&& xs) { ... })
-    //            ),
-    //          dynamic_environment()
-    //          );
-
-    // for (auto const& each : global_environment())
-    // {
-    //   std::cout << "  " << each << std::endl;
-    // }
-
+    e = cons(cons(keyword, cdr(form)), dynamic_environment());
     c = current_expression();
 
     return execute();

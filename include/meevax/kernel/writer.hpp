@@ -50,15 +50,9 @@ inline namespace kernel
     }
 
     template <typename... Ts>
-    auto write(Ts&&... xs) const -> decltype(auto)
-    {
-      return write_to(default_output_port, std::forward<decltype(xs)>(xs)...);
-    }
-
-    template <typename... Ts>
     auto write_line(Ts&&... xs) const -> decltype(auto)
     {
-      return write(std::forward<decltype(xs)>(xs)..., '\n');
+      return write_to(default_output_port, std::forward<decltype(xs)>(xs)..., '\n');
     }
 
     auto newline() const -> decltype(auto)

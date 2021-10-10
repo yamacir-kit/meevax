@@ -62,7 +62,6 @@ inline namespace kernel
     using writer::newline;
     using writer::standard_debug_port;
     using writer::standard_verbose_port;
-    using writer::write;
     using writer::write_to;
     using writer::write_line;
 

@@ -38,7 +38,6 @@ inline namespace kernel
     IMPORT(EnvironmentSpecifier, load, NIL);
     IMPORT(EnvironmentSpecifier, newline, const);
     IMPORT(EnvironmentSpecifier, read, NIL);
-    IMPORT(EnvironmentSpecifier, write, const);
     IMPORT(EnvironmentSpecifier, write_line, const);
 
   protected:
@@ -105,7 +104,7 @@ inline namespace kernel
 
           std::make_pair('w', [this](pair::const_reference x)
           {
-            return write(x), unspecified;
+            return write_line(x), unspecified;
           }),
         }
 
@@ -172,7 +171,7 @@ inline namespace kernel
 
           std::make_pair("write", [this](pair::const_reference x)
           {
-            return write(x), unspecified;
+            return write_line(x), unspecified;
           }),
         }
     {}
