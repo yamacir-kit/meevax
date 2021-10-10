@@ -188,6 +188,8 @@ inline namespace kernel
     }
   };
 
+  using environment = syntactic_continuation;
+
   #define DEFINE_LIBRARY(NAME)                                                 \
   namespace standard                                                           \
   {                                                                            \

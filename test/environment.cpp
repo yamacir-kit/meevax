@@ -24,11 +24,11 @@ auto main() -> int
   assert(gc_count == constants.size() + specials_count);
 
   {
-    auto root = syntactic_continuation(standard::declaration,
-                                       standard::base,
-                                       standard::evaluate,
-                                       standard::experimental,
-                                       standard::srfis);
+    auto root = environment(standard::declaration,
+                            standard::base,
+                            standard::evaluate,
+                            standard::experimental,
+                            standard::srfis);
   }
 
   syntactic_continuation::symbols.clear();

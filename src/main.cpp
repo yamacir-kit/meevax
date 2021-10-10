@@ -22,17 +22,18 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    auto root = syntactic_continuation(standard::declaration,
-                                       standard::base,
-                                       standard::character,
-                                       standard::evaluate,
-                                       standard::inexact,
-                                       standard::load,
-                                       standard::process_context,
-                                       standard::read,
-                                       standard::write,
-                                       standard::experimental,
-                                       standard::srfis);
+    auto root = environment(standard::declaration,
+                            standard::base,
+                            standard::character,
+                            standard::evaluate,
+                            standard::inexact,
+                            standard::load,
+                            standard::process_context,
+                            standard::read,
+                            standard::write,
+                            standard::experimental,
+                            standard::srfis);
+
     root.configure(argc, argv);
 
     while (root.is_interactive_mode() and root.char_ready())
