@@ -1101,6 +1101,21 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
+    define<procedure>("input-port?", [](let const& xs)
+    {
+      return car(xs).is_also<std::istream>() ? t : f;
+    });
+
+    define<procedure>("output-port?", [](let const& xs)
+    {
+      return car(xs).is_also<std::ostream>() ? t : f;
+    });
+
+    define<procedure>("port?", [](let const& xs)
+    {
+      return car(xs).is_also<std::ios>() ? t : f;
+    });
+
     define<procedure>("input-file-port?", is<input_file_port>());
 
     define<procedure>("output-file-port?", is<output_file_port>());

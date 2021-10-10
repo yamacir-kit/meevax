@@ -340,10 +340,6 @@ parameterize ; is defined in srfi-39.ss
 
 (define (binary-port? x) #f)
 
-(define (port? x)
-  (or (input-port? x)
-      (output-port? x)))
-
 (define (input-port-open? x)
   (cond ((input-file-port? x)
          (input-file-port-open? x))

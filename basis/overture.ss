@@ -665,17 +665,6 @@
       (standard-output-port? x)
       (standard-error-port? x)))
 
-(define (input-port? x)
-  (or (input-file-port? x)
-      (input-string-port? x)
-      (standard-input-port? x)))
-
-(define (output-port? x)
-  (or (output-file-port? x)
-      (output-string-port? x)
-      (standard-output-port? x)
-      (standard-error-port? x)))
-
 (define (close-port x)
   (cond ((input-port? x) (close-input-port x))
         ((output-port? x) (close-output-port x))
