@@ -250,7 +250,7 @@ inline namespace kernel
 
     IMPORT(EnvironmentSpecifier, evaluate,            NIL);
     IMPORT(EnvironmentSpecifier, standard_debug_port, NIL);
-    IMPORT(EnvironmentSpecifier, write_to,            NIL);
+    IMPORT(EnvironmentSpecifier, write,               NIL);
 
     using char_type = typename std::istream::char_type;
 
@@ -455,7 +455,7 @@ inline namespace kernel
     {
       let const result = read(default_input_port);
 
-      write_to(standard_debug_port(), header(__func__), result, "\n");
+      write(standard_debug_port(), header(__func__), result, "\n");
 
       return result;
     }

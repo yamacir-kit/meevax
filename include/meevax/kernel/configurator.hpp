@@ -36,7 +36,6 @@ inline namespace kernel
 
     IMPORT(EnvironmentSpecifier, evaluate, NIL);
     IMPORT(EnvironmentSpecifier, load, NIL);
-    IMPORT(EnvironmentSpecifier, newline, const);
     IMPORT(EnvironmentSpecifier, print, const);
     IMPORT(EnvironmentSpecifier, read, NIL);
 
@@ -145,7 +144,7 @@ inline namespace kernel
           std::make_pair("version", [this](auto&&...)
           {
             display_version();
-            newline();
+            print();
             display_license();
             throw exit_status::success;
             return unspecified;

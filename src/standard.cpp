@@ -1776,7 +1776,7 @@ namespace meevax
 
     define<procedure>("%write-simple", [this](let const& xs)
     {
-      write_to(cadr(xs), car(xs));
+      write(cadr(xs), car(xs));
       return unspecified;
     });
   }

@@ -59,11 +59,10 @@ inline namespace kernel
     using reader::intern;
     using reader::read;
 
-    using writer::newline;
     using writer::print;
     using writer::standard_debug_port;
     using writer::standard_verbose_port;
-    using writer::write_to;
+    using writer::write;
 
     template <typename... Ts>
     explicit syntactic_continuation(Ts&&... xs)

@@ -38,23 +38,24 @@ inline namespace kernel
 
   public:
     template <typename... Ts>
-    auto write_to(std::ostream & os, Ts&&... xs) const -> std::ostream &
+    auto write(std::ostream & os, Ts&&... xs) const -> std::ostream &
     {
       return (os << ... << xs) << reset;
     }
 
     template <typename... Ts>
-    auto write_to(pair::const_reference x, Ts&&... xs) const -> decltype(auto)
+    auto write(pair::const_reference x, Ts&&... xs) const -> decltype(auto)
     {
-      return write_to(x.as<std::ostream>(), std::forward<decltype(xs)>(xs)...);
+      return write(x.as<std::ostream>(), std::forward<decltype(xs)>(xs)...);
     }
 
     template <typename... Ts>
     auto print(Ts&&... xs) const -> decltype(auto)
     {
-      return write_to(default_output_port, std::forward<decltype(xs)>(xs)..., '\n');
+      return write(default_output_port, std::forward<decltype(xs)>(xs)..., '\n');
     }
 
+    [[deprecated]]
     auto newline() const -> decltype(auto)
     {
       return print();
