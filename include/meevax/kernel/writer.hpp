@@ -55,12 +55,6 @@ inline namespace kernel
       return write(default_output_port, std::forward<decltype(xs)>(xs)..., '\n');
     }
 
-    [[deprecated]]
-    auto newline() const -> decltype(auto)
-    {
-      return print();
-    }
-
   public:
     auto standard_null_port() const -> pair::const_reference
     {

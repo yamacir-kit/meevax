@@ -76,9 +76,9 @@ inline namespace kernel
         return typeid(Bound);
       }
 
-      auto write_to(std::ostream & os) const -> std::ostream & override
+      auto write(std::ostream & os) const -> std::ostream & override
       {
-        return delay<write>().yield<decltype(os)>(os, static_cast<Bound const&>(*this));
+        return delay<write_t>().yield<decltype(os)>(os, static_cast<Bound const&>(*this));
       }
 
       #define BOILERPLATE(SYMBOL, RESULT, FUNCTION)                            \
@@ -250,7 +250,7 @@ inline namespace kernel
   template <template <typename...> typename Pointer, typename Top>
   auto operator <<(std::ostream & os, heterogeneous<Pointer, Top> const& datum) -> std::ostream &
   {
-    return (datum.template is<null>() ? os << magenta << "()" : datum.load().write_to(os)) << reset;
+    return (datum.template is<null>() ? os << magenta << "()" : datum.load().write(os)) << reset;
   }
 
   #define BOILERPLATE(SYMBOL)                                                  \
