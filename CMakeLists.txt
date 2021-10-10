@@ -84,7 +84,8 @@ add_library(kernel SHARED "")
 
 add_library(${PROJECT_NAME}::kernel ALIAS kernel)
 
-file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
+file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp
+                                                 ${CMAKE_CURRENT_SOURCE_DIR}/src/standard.cpp)
 
 target_sources(kernel PRIVATE ${${PROJECT_NAME}_BASIS}
                       PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})

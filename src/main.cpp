@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/syntactic_continuation.hpp>
+#include <meevax/standard.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int
 {
@@ -22,8 +22,7 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    auto root = environment(standard::declaration,
-                            standard::base,
+    auto root = environment(standard::base,
                             standard::character,
                             standard::evaluate,
                             standard::inexact,

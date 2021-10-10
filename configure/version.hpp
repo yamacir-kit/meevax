@@ -9,43 +9,43 @@ namespace meevax
 inline namespace kernel
 {
   [[deprecated]]
-  auto gmp_version() -> pair::const_reference
+  auto gmp_version = []() -> pair::const_reference
   {
     let static const version = make<symbol>(::gmp_version);
     return version;
-  }
+  };
 
-  auto version() -> pair::const_reference
+  auto version = []() -> pair::const_reference
   {
     let static const version = make<symbol>("${PROJECT_VERSION}");
     return version;
-  }
+  };
 
-  auto major_version() -> pair::const_reference
+  auto major_version = []() -> pair::const_reference
   {
     let static const version = make<exact_integer>("${PROJECT_VERSION_MAJOR}");
     return version;
-  }
+  };
 
-  auto minor_version() -> pair::const_reference
+  auto minor_version = []() -> pair::const_reference
   {
     let static const version = make<exact_integer>("${PROJECT_VERSION_MINOR}");
     return version;
-  }
+  };
 
-  auto patch_version() -> pair::const_reference
+  auto patch_version = []() -> pair::const_reference
   {
     let static const version = make<exact_integer>("${PROJECT_VERSION_PATCH}");
     return version;
-  }
+  };
 
-  auto exact_version() -> pair::const_reference
+  auto exact_version = []() -> pair::const_reference
   {
     let static const version = make<symbol>("${${PROJECT_NAME}_VERSION_EXACT}");
     return version;
-  }
+  };
 
-  auto features() -> pair::const_reference
+  auto features = []() -> pair::const_reference
   {
     let static const features = list(
       // STANDARD FEATURE IDENTIFIERS
@@ -76,7 +76,7 @@ inline namespace kernel
       );
 
     return features;
-  }
+  };
 
   // auto install_prefix() -> pair::const_reference
   // {

@@ -1,7 +1,7 @@
 #undef NDEBUG
 
 #include <cassert>
-#include <meevax/kernel/syntactic_continuation.hpp>
+#include <meevax/standard.hpp>
 
 auto main() -> int
 {
@@ -24,8 +24,7 @@ auto main() -> int
   assert(gc_count == constants.size() + specials_count);
 
   {
-    auto root = environment(standard::declaration,
-                            standard::base,
+    auto root = environment(standard::base,
                             standard::evaluate,
                             standard::experimental,
                             standard::srfis);

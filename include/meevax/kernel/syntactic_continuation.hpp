@@ -71,7 +71,7 @@ inline namespace kernel
     template <typename... Ts>
     explicit syntactic_continuation(Ts&&... xs)
     {
-      (import(xs), ...);
+      import(), (import(xs), ...);
     }
 
     auto operator [](const_reference) -> const_reference;
@@ -107,6 +107,8 @@ inline namespace kernel
     auto global_environment() const noexcept -> const_reference;
 
     auto global_environment() noexcept -> reference;
+
+    auto import() -> void;
 
     template <typename T>
     auto import(T) -> void;
@@ -190,40 +192,6 @@ inline namespace kernel
 
   using environment = syntactic_continuation;
 
-  #define DEFINE_LIBRARY(NAME)                                                 \
-  namespace standard                                                           \
-  {                                                                            \
-    struct NAME##_t                                                            \
-    {                                                                          \
-      explicit NAME##_t() = default;                                           \
-    }                                                                          \
-    inline constexpr NAME {};                                                  \
-  }                                                                            \
-                                                                               \
-  template <>                                                                  \
-  auto syntactic_continuation::import(standard::NAME##_t) -> void
-
-  DEFINE_LIBRARY(base);
-  // DEFINE_LIBRARY(case_lambda);
-  DEFINE_LIBRARY(character);
-  // DEFINE_LIBRARY(complex);
-  // DEFINE_LIBRARY(cxr);
-  DEFINE_LIBRARY(evaluate);
-  // DEFINE_LIBRARY(file);
-  DEFINE_LIBRARY(inexact);
-  // DEFINE_LIBRARY(lazy);
-  DEFINE_LIBRARY(load);
-  DEFINE_LIBRARY(process_context);
-  // DEFINE_LIBRARY(r5rs);
-  DEFINE_LIBRARY(read);
-  // DEFINE_LIBRARY(repl);
-  // DEFINE_LIBRARY(time);
-  DEFINE_LIBRARY(write);
-
-  DEFINE_LIBRARY(declaration);
-  DEFINE_LIBRARY(experimental);
-  DEFINE_LIBRARY(srfis);
-
   auto operator >>(std::istream &, syntactic_continuation &) -> std::istream &;
 
   auto operator <<(std::ostream &, syntactic_continuation &) -> std::ostream &;
@@ -231,9 +199,12 @@ inline namespace kernel
   auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
 
   extern template class configurator<syntactic_continuation>;
-  extern template class machine     <syntactic_continuation>;
-  extern template class reader      <syntactic_continuation>;
-  extern template class writer      <syntactic_continuation>;
+
+  extern template class machine<syntactic_continuation>;
+
+  extern template class reader<syntactic_continuation>;
+
+  extern template class writer<syntactic_continuation>;
 } // namespace kernel
 } // namespace meevax
 
