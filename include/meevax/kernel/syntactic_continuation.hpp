@@ -47,8 +47,6 @@ inline namespace kernel
 
     static inline std::unordered_map<std::string, value_type> external_symbols; // TODO REMOVE
 
-    std::size_t generation = 0;
-
   public:
     let datum = unit;
 

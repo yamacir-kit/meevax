@@ -99,16 +99,10 @@ inline namespace kernel
 
   auto syntactic_continuation::evaluate(const_reference expression) -> value_type
   {
-    if (is_debug_mode())
-    {
-      write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
-    }
-
     c = compile(syntactic_context::none, *this, expression);
 
     if (is_debug_mode())
     {
-      write_to(standard_debug_port(), "\n");
       disassemble(standard_debug_port().as<std::ostream>(), c);
     }
 
@@ -297,8 +291,6 @@ inline namespace kernel
 
   auto syntactic_continuation::macroexpand(const_reference keyword, const_reference form) -> value_type
   {
-    ++generation;
-
     // XXX ???
     push(d, s, e, cons(make<instruction>(mnemonic::STOP), c));
 

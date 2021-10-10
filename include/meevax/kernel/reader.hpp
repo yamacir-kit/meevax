@@ -455,7 +455,7 @@ inline namespace kernel
     {
       let const result = read(default_input_port);
 
-      write_to(standard_debug_port(), "\n", header(__func__), result, "\n");
+      write_to(standard_debug_port(), header(__func__), result, "\n");
 
       return result;
     }
