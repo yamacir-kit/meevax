@@ -31,13 +31,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  #define WRITE_DEBUG(...)                                                     \
-  if (current_syntactic_continuation.is_debug_mode())                          \
-  {                                                                            \
-    current_syntactic_continuation.write_to(                                   \
-      current_syntactic_continuation.standard_debug_port(), header(__func__), indent(), __VA_ARGS__, "\n"); \
-  } indent()
-
   template <typename SK>
   class machine // TR-SECD machine.
   {
@@ -131,28 +124,25 @@ inline namespace kernel
           {
             if (variable.is_variadic)
             {
-              WRITE_DEBUG(expression, faint, " ; is a <variadic bound variable> references ", reset, variable.index);
               return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable.index,
                           continuation);
             }
             else
             {
-              WRITE_DEBUG(expression, faint, " ; is a <bound variable> references ", reset, variable.index);
               return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable.index,
                           continuation);
             }
           }
           else
           {
-            WRITE_DEBUG(expression, faint, " ; is a <free variable>");
             return cons(make<instruction>(mnemonic::LOAD_GLOBAL), current_syntactic_continuation.locate(expression),
                         continuation);
           }
         }
         else // is <self-evaluating>
         {
-          WRITE_DEBUG(expression, faint, " ; is <self-evaluating>");
-          return cons(make<instruction>(mnemonic::LOAD_CONSTANT), expression, continuation);
+          return cons(make<instruction>(mnemonic::LOAD_CONSTANT), expression,
+                      continuation);
         }
       }
       else // is (applicant . arguments)
@@ -161,25 +151,20 @@ inline namespace kernel
         {
           if (applicant.is_also<syntax>())
           {
-            WRITE_DEBUG(magenta, "(", reset, car(expression), faint, " ; is <primitive expression>") >> indent::width;
-
-            let const result =
-              applicant.as<syntax>().transform(
-                current_syntactic_context, current_syntactic_continuation, cdr(expression), frames, continuation);
-
-            WRITE_DEBUG(magenta, ")") << indent::width;
-
-            return result;
+            return applicant.as<syntax>().transform(current_syntactic_context,
+                                                    current_syntactic_continuation,
+                                                    cdr(expression),
+                                                    frames,
+                                                    continuation);
           }
           else if (applicant.is<SK>())
           {
-            WRITE_DEBUG(magenta, "(", reset, car(expression), faint, " ; is <macro application>");
 
-            let const result = applicant.as<SK>().macroexpand(applicant, expression);
-
-            WRITE_DEBUG(result);
-
-            return compile(syntactic_context::none, current_syntactic_continuation, result, frames, continuation);
+            return compile(syntactic_context::none,
+                           current_syntactic_continuation,
+                           applicant.as<SK>().macroexpand(applicant, expression),
+                           frames,
+                           continuation);
           }
         }
 
@@ -222,23 +207,16 @@ inline namespace kernel
          *
          * ------------------------------------------------------------------ */
 
-        WRITE_DEBUG(magenta, "(", reset, faint, " ; is <procedure call>") >> indent::width;
-
-        let const result =
-          operand(syntactic_context::none,
-                  current_syntactic_continuation,
-                  cdr(expression),
-                  frames,
-                  compile(syntactic_context::none,
-                          current_syntactic_continuation,
-                          car(expression),
-                          frames,
-                          cons(make<instruction>(static_cast<bool>(current_syntactic_context bitand syntactic_context::tail) ? mnemonic::TAIL_CALL : mnemonic::CALL),
-                               continuation)));
-
-        WRITE_DEBUG(magenta, ")") << indent::width;
-
-        return result;
+        return operand(syntactic_context::none,
+                       current_syntactic_continuation,
+                       cdr(expression),
+                       frames,
+                       compile(syntactic_context::none,
+                               current_syntactic_continuation,
+                               car(expression),
+                               frames,
+                               cons(make<instruction>(static_cast<bool>(current_syntactic_context bitand syntactic_context::tail) ? mnemonic::TAIL_CALL : mnemonic::CALL),
+                                    continuation)));
       }
     }
 
@@ -610,7 +588,6 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      WRITE_DEBUG(car(expression), faint, " ; is <datum>");
       return cons(make<instruction>(mnemonic::LOAD_CONSTANT), car(expression),
                   continuation);
     }
@@ -718,8 +695,6 @@ inline namespace kernel
     {
       if (frames.is<null>() or static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost))
       {
-        WRITE_DEBUG(car(expression), faint, " ; is <variable>");
-
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
           return compile(syntactic_context::none,
@@ -930,8 +905,6 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      WRITE_DEBUG(car(expression), faint, " ; is <test>");
-
       if (static_cast<bool>(current_syntactic_context bitand syntactic_context::tail))
       {
         auto consequent =
@@ -1010,8 +983,6 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      WRITE_DEBUG(car(expression), faint, " ; is <formals>");
-
       return cons(make<instruction>(mnemonic::LOAD_CLOSURE),
                   body(current_syntactic_context,
                        current_syntactic_continuation,
@@ -1028,8 +999,6 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      WRITE_DEBUG(car(expression), faint, " ; is <procedure>");
-
       return cons(make<instruction>(mnemonic::LOAD_CONTINUATION),
                   continuation,
                   compile(current_syntactic_context,
@@ -1049,8 +1018,8 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      WRITE_DEBUG(car(expression), faint, " ; is <subprogram>");
-      return cons(make<instruction>(mnemonic::FORK), cons(car(expression), frames), continuation);
+      return cons(make<instruction>(mnemonic::FORK), cons(car(expression), frames),
+                  continuation);
     }
 
     static SYNTAX(assignment) /* -----------------------------------------------
@@ -1073,8 +1042,6 @@ inline namespace kernel
       {
         if (variable.is_variadic)
         {
-          WRITE_DEBUG(car(expression), faint, " ; is <variadic bound variable> references ", reset, variable.index);
-
           return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          cadr(expression),
@@ -1084,8 +1051,6 @@ inline namespace kernel
         }
         else
         {
-          WRITE_DEBUG(car(expression), faint, "; is a <bound variable> references ", reset, variable.index);
-
           return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          cadr(expression),
@@ -1096,9 +1061,7 @@ inline namespace kernel
       }
       else
       {
-        WRITE_DEBUG(car(expression), faint, "; is a <free variable>");
-
-        if (let const location = current_syntactic_continuation.locate(car(expression)); static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost) and cdr(location).is<identifier>())
+        if (let const& location = current_syntactic_continuation.locate(car(expression)); static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost) and cdr(location).is<identifier>())
         {
           throw syntax_error(make<string>("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"), expression);
         }
@@ -1118,27 +1081,23 @@ inline namespace kernel
     {
       if (expression.is<null>())
       {
-        WRITE_DEBUG(car(expression), faint, " ; is <identifier> of itself");
         return unit;
       }
       else if (auto variable = de_bruijn_index(car(expression), frames); variable.is_bound())
       {
         if (variable.is_variadic)
         {
-          WRITE_DEBUG(car(expression), faint, " ; is <identifier> of local variadic ", reset, variable.index);
           return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable.index,
                       continuation);
         }
         else
         {
-          WRITE_DEBUG(car(expression), faint, " ; is <identifier> of local ", reset, variable.index);
           return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable.index,
                       continuation);
         }
       }
       else
       {
-        WRITE_DEBUG(car(expression), faint, " ; is <identifier> of free variable");
         return cons(make<instruction>(mnemonic::LOAD_GLOBAL), current_syntactic_continuation.locate(car(expression)),
                     continuation);
       }
