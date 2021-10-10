@@ -1,7 +1,7 @@
 #undef NDEBUG
 
 #include <cassert>
-#include <meevax/kernel/syntactic_continuation.hpp>
+#include <meevax/standard.hpp>
 
 auto main() -> int
 {
@@ -24,7 +24,10 @@ auto main() -> int
   assert(gc_count == constants.size() + specials_count);
 
   {
-    auto main = syntactic_continuation(boot_upto<layer::experimental_procedure>());
+    auto root = environment(standard::base,
+                            standard::evaluate,
+                            standard::experimental,
+                            standard::srfis);
   }
 
   syntactic_continuation::symbols.clear();

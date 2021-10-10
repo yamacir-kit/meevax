@@ -299,37 +299,17 @@ inline namespace kernel
       write_line("Usage: meevax [OPTION...] [FILE...]");
       write_line();
       write_line("Options:");
-      write_line("  -b, --batch            suppress any system output.");
-      write_line("  -d, --debug            display detailed informations for developers.");
-      write_line("  -e, --evaluate=STRING  read and evaluate given STRING at configuration step.");
-      write_line("  -h, --help             display this help text and exit.");
-      write_line("  -i, --interactive      take over control of root syntactic-continuation.");
-      write_line("  -l, --load=FILENAME    same as -e '(load FILENAME)'");
-      write_line("      --prompt=STRING    same as -e '(set-prompt! STRING)'");
-      write_line("  -t, --trace            display stacks of virtual machine for each steps.");
-      write_line("  -v, --version          display version information and exit.");
-      write_line("      --verbose          display detailed informations.");
-      write_line("  -w, --write=OBJECT     same as -e '(write OBJECT)'");
-      write_line();
-      write_line("Boot Sequence:");
-      write_line("  1. Load basis libraries");
-      write_line("  2. Configure");
-      write_line("  3. Load given FILEs");
-      write_line("  4. Interaction (if --interactive specified)");
-      write_line();
-      write_line("Examples:");
-      write_line("  meevax -i");
-      write_line("    => start interactive session.");
-      write_line();
-      write_line("  meevax -i --prompt '\"my-prompt> \"'");
-      write_line("    => Start interactive session with given prompt.");
-      write_line();
-      write_line("  meevax -e '(+ 1 2 3)'");
-      write_line("    => Display 6.");
-      write_line();
-      write_line("  meevax -e \"(define home \\\"$HOME\\\")\" -i");
-      write_line("    => Define value of environment variable $HOME to interaction-environment,");
-      write_line("       and then start interactive session.");
+      write_line("  -b, --batch            Suppress any system output.");
+      write_line("  -d, --debug            Display detailed informations for developers.");
+      write_line("  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.");
+      write_line("  -h, --help             Display this help text and exit.");
+      write_line("  -i, --interactive      Take over control of root syntactic-continuation.");
+      write_line("  -l, --load=FILENAME    Same as -e '(load FILENAME)'");
+      write_line("      --prompt=STRING    Same as -e '(set-prompt! STRING)'");
+      write_line("  -t, --trace            Display stacks of virtual machine for each steps.");
+      write_line("  -v, --version          Display version information and exit.");
+      write_line("      --verbose          Display detailed informations.");
+      write_line("  -w, --write=OBJECT     Same as -e '(write OBJECT)'");
     }
 
     #define BOILERPLATE(NAME)                                                  \

@@ -32,8 +32,6 @@ inline namespace kernel
 
     value_type value;
 
-    static constexpr std::true_type is_integer {};
-
     explicit exact_integer() noexcept;
 
     exact_integer(exact_integer const&) noexcept;
@@ -70,25 +68,43 @@ inline namespace kernel
 
     auto operator=(std::string const&) -> exact_integer &;
 
-    auto as_exact() const noexcept -> exact_integer const&;
-
-    template <typename T, REQUIRES(std::is_floating_point<T>)>
-    auto as_inexact() const
-    {
-      return floating_point(static_cast<T>(*this));
-    }
+    auto exact() const -> pair::value_type;
 
     auto floor_remainder(exact_integer const&) const -> exact_integer;
 
     auto floor_quotient(exact_integer const&) const -> exact_integer;
 
-    auto string(int = 10) const -> std::string; // TODO RENAME TO 'string'
+    auto inexact() const -> pair::value_type;
+
+    static auto is_integer() noexcept -> bool;
+
+    auto string(int = 10) const -> std::string;
 
     auto swap(exact_integer &) noexcept -> void;
 
     auto truncate_remainder(exact_integer const&) const -> exact_integer;
 
     auto truncate_quotient(exact_integer const&) const -> exact_integer;
+
+    #define DEFINE(NAME) auto NAME() const -> pair::value_type
+
+    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
+    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
+    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
+
+    DEFINE(floor);
+    DEFINE(ceil);
+    DEFINE(trunc);
+    DEFINE(round);
+
+    #undef DEFINE
+
+    #define DEFINE(NAME) auto NAME(pair::const_reference) const -> pair::value_type
+
+    DEFINE(atan2);
+    DEFINE(pow);
+
+    #undef DEFINE
 
     explicit operator bool() const;
 

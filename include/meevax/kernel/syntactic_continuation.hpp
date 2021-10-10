@@ -26,18 +26,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  enum class layer : std::size_t
-  {
-    module_system,
-    primitive_expression, // 4.1.
-    standard_procedure, // 6.
-    standard_library,
-    experimental_procedure,
-  };
-
-  template <auto N>
-  using boot_upto = typename std::integral_constant<decltype(N), N>;
-
   class syntactic_continuation
     : public virtual pair
     , public configurator <syntactic_continuation>
@@ -80,19 +68,15 @@ inline namespace kernel
     using writer::write_to;
     using writer::write_line;
 
-    template <auto N>
-    explicit syntactic_continuation(boot_upto<N>)
-      : syntactic_continuation { boot_upto<underlying_decrement(N)>() }
+    template <typename... Ts>
+    explicit syntactic_continuation(Ts&&... xs)
     {
-      boot<N>();
+      import(), (import(xs), ...);
     }
 
     auto operator [](const_reference) -> const_reference;
 
     auto operator [](std::string const&) -> const_reference;
-
-    template <auto = layer::module_system>
-    void boot();
 
     auto build() -> void; // NOTE: Only fork() may call this function.
 
@@ -123,6 +107,11 @@ inline namespace kernel
     auto global_environment() const noexcept -> const_reference;
 
     auto global_environment() noexcept -> reference;
+
+    auto import() -> void;
+
+    template <typename T>
+    auto import(T) -> void;
 
     auto load(std::string const&) -> value_type;
 
@@ -201,14 +190,7 @@ inline namespace kernel
     }
   };
 
-  template <>
-  syntactic_continuation::syntactic_continuation(boot_upto<layer::module_system>);
-
-  template <> auto syntactic_continuation::boot<layer::module_system         >() -> void;
-  template <> auto syntactic_continuation::boot<layer::primitive_expression  >() -> void;
-  template <> auto syntactic_continuation::boot<layer::standard_procedure    >() -> void;
-  template <> auto syntactic_continuation::boot<layer::standard_library      >() -> void;
-  template <> auto syntactic_continuation::boot<layer::experimental_procedure>() -> void;
+  using environment = syntactic_continuation;
 
   auto operator >>(std::istream &, syntactic_continuation &) -> std::istream &;
 
@@ -217,9 +199,12 @@ inline namespace kernel
   auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
 
   extern template class configurator<syntactic_continuation>;
-  extern template class machine     <syntactic_continuation>;
-  extern template class reader      <syntactic_continuation>;
-  extern template class writer      <syntactic_continuation>;
+
+  extern template class machine<syntactic_continuation>;
+
+  extern template class reader<syntactic_continuation>;
+
+  extern template class writer<syntactic_continuation>;
 } // namespace kernel
 } // namespace meevax
 

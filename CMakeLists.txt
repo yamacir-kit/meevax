@@ -84,7 +84,8 @@ add_library(kernel SHARED "")
 
 add_library(${PROJECT_NAME}::kernel ALIAS kernel)
 
-file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
+file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp
+                                                 ${CMAKE_CURRENT_SOURCE_DIR}/src/standard.cpp)
 
 target_sources(kernel PRIVATE ${${PROJECT_NAME}_BASIS}
                       PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})
@@ -193,10 +194,17 @@ foreach(FILEPATH IN LISTS ${PROJECT_NAME}_TEST_CXX)
                    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assert-${FILENAME})
 endforeach()
 
-# ---- Target all+ -------------------------------------------------------------
+# ---- Additional Targets ------------------------------------------------------
 
 execute_process(COMMAND nproc OUTPUT_VARIABLE NPROC)
 
-add_custom_target(all+ COMMAND make all -j ${NPROC}
-                       COMMAND ${CMAKE_CTEST_COMMAND} -j ${NPROC}
-                       COMMAND ${CMAKE_CPACK_COMMAND})
+add_custom_target(install.deb
+  COMMAND make -j ${NPROC}
+  COMMAND ${CMAKE_CPACK_COMMAND}
+  COMMAND sudo apt install ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb)
+
+add_custom_target(safe-install.deb
+  COMMAND make -j ${NPROC}
+  COMMAND ${CMAKE_CTEST_COMMAND} -j ${NPROC}
+  COMMAND ${CMAKE_CPACK_COMMAND}
+  COMMAND sudo apt install ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb)

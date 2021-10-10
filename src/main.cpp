@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/syntactic_continuation.hpp>
+#include <meevax/standard.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int
 {
@@ -22,14 +22,23 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    auto root = syntactic_continuation(boot_upto<layer::experimental_procedure>());
+    auto main = environment(standard::base,
+                            standard::character,
+                            standard::evaluate,
+                            standard::inexact,
+                            standard::load,
+                            standard::process_context,
+                            standard::read,
+                            standard::write,
+                            standard::experimental,
+                            standard::srfis);
 
-    root.configure(argc, argv);
+    main.configure(argc, argv);
 
-    while (root.is_interactive_mode() and root.char_ready())
+    while (main.is_interactive_mode() and main.char_ready())
     {
-      root.write_to(root.standard_interaction_port(), root.current_prompt());
-      root.write_to(root.standard_interaction_port(), root.evaluate(root.read()), "\n");
+      main.write_to(main.standard_interaction_port(), main.current_prompt());
+      main.write_to(main.standard_interaction_port(), main.evaluate(main.read()), "\n");
     }
 
     return underlying_cast(exit_status::success);

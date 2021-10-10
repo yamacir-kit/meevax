@@ -36,8 +36,8 @@ inline namespace kernel
   template <typename T>
   struct floating_point; // floating_point.hpp
 
-  using f32 = floating_point<float>;
-  using f64 = floating_point<double>; // NOTE: typeid(0.0) == typeid(double)
+  using single_float = floating_point<float>;
+  using double_float = floating_point<double>; // NOTE: 0.0 is double
 
   template <template <typename...> typename Pointer, typename T>
   class heterogeneous;

@@ -18,6 +18,7 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/exact_integer.hpp>
+#include <meevax/kernel/floating_point.hpp>
 #include <meevax/posix/vt10x.hpp>
 
 namespace meevax
@@ -136,9 +137,9 @@ inline namespace kernel
     }
   }
 
-  auto exact_integer::as_exact() const noexcept -> exact_integer const&
+  auto exact_integer::exact() const -> pair::value_type
   {
-    return *this;
+    return make(*this);
   }
 
   auto exact_integer::floor_remainder(exact_integer const& divisor) const -> exact_integer
@@ -153,6 +154,16 @@ inline namespace kernel
     exact_integer result {};
     mpz_fdiv_q(result.value, value, divisor.value);
     return result;
+  }
+
+  auto exact_integer::inexact() const -> pair::value_type
+  {
+    return make<double_float>(static_cast<double>(*this));
+  }
+
+  auto exact_integer::is_integer() noexcept -> bool
+  {
+    return true;
   }
 
   auto exact_integer::string(int radix) const -> std::string
@@ -188,6 +199,49 @@ inline namespace kernel
     mpz_tdiv_q(result.value, value, divisor.value);
     return result;
   }
+
+  #define DEFINE(NAME)                                                         \
+  auto exact_integer::NAME() const -> pair::value_type                         \
+  {                                                                            \
+    if (const double_float n { std::NAME(static_cast<double>(*this)) }; n.is_integer()) \
+    {                                                                          \
+      return make<exact_integer>(n.value);                                     \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      return make(n);                                                          \
+    }                                                                          \
+  } static_assert(true)
+
+  DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
+  DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
+  DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
+
+  DEFINE(floor);
+  DEFINE(ceil);
+  DEFINE(trunc);
+  DEFINE(round);
+
+  #undef DEFINE
+
+  #define DEFINE(NAME)                                                         \
+  auto exact_integer::NAME(pair::const_reference x) const -> pair::value_type  \
+  {                                                                            \
+    if (const double_float n { std::NAME(static_cast<double>(*this), x.inexact().as<double_float>()) }; n.is_integer()) \
+    {                                                                          \
+      return make<exact_integer>(n.value);                                     \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      return make(n);                                                          \
+    }                                                                          \
+  }                                                                            \
+  static_assert(true)
+
+  DEFINE(atan2);
+  DEFINE(pow);
+
+  #undef DEFINE
 
   exact_integer::operator bool() const
   {

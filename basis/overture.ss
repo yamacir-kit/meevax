@@ -233,15 +233,6 @@
       `(,let (,(car bindings)) ,@body)
       `(,let (,(car bindings)) (,let* ,(cdr bindings) ,@body))))
 
-(define (caaar x) (car (car (car x))))
-(define (caadr x) (car (car (cdr x))))
-(define (cadar x) (car (cdr (car x))))
-(define (caddr x) (car (cdr (cdr x))))
-(define (cdaar x) (cdr (car (car x))))
-(define (cdadr x) (cdr (car (cdr x))))
-(define (cddar x) (cdr (cdr (car x))))
-(define (cdddr x) (cdr (cdr (cdr x))))
-
 (define (member o x . c) ; for case
   (let ((compare (if (pair? c) (car c) equal?)))
     (let member ((x x))
@@ -265,8 +256,8 @@
       ((free-identifier=? else (caar clauses))
        (body (cdar clauses)))
       ((and (pair? (caar clauses))
-            (null? (cdaar clauses)))
-       `(,if (,eqv? ,result (,quote ,(caaar clauses)))
+            (null? (cdr (caar clauses))))
+       `(,if (,eqv? ,result (,quote ,(car (caar clauses))))
              ,(body (cdar clauses))
              ,(each-clause (cdr clauses))))
       (else
@@ -281,7 +272,7 @@
           `(,begin ,@commands
                    (,rec ,@(map (lambda (x)
                                   (if (pair? (cddr x))
-                                      (caddr x)
+                                      (car (cddr x))
                                       (car x)))
                                 variables)))))
     `(,let ,rec ,(map (lambda (x)
@@ -295,7 +286,7 @@
 
 ; ---- 6.1. Equivalence predicates ---------------------------------------------
 
-(define (equal? x y)
+(define (equal? x y) ; structure=?
   (if (and (pair? x)
            (pair? y))
       (and (equal? (car x)
@@ -306,82 +297,31 @@
 
 ; ---- 6.2. Numbers ------------------------------------------------------------
 
-; .
-; `-- number?
-;      `-- complex?
-;           |-- %complex?
-;           `-- real?
-;                |-- floating-point?
-;                |    |-- single-float?
-;                |    `-- double-float?
-;                `-- rational?
-;                     |-- ratio?
-;                     `-- integer?
-;                          |-- inexact-integer?
-;                          `-- exact-integer?
-
-(define (number? x) (complex? x))
-
-(define (complex? x)
-  (or (%complex? x)
-      (real? x)))
-
-(define (real? x)
-  (or (floating-point? x)
-      (rational? x)))
-
-(define (floating-point? z)
-  (or (single-float? z)
-      (double-float? z)))
-
-(define (rational? x)
-  (or (ratio? x)
-      (integer? x)))
-
-(define (integer? x)
-  (or (exact-integer? x) ; TODO ratio e.g. 3/1 is integer.
-      (inexact-integer? x)))
-
-(define (inexact-integer? x)
-  (and (floating-point? x)
-       (= x (truncate x))))
-
-;  .
-;  |-- exact?
-;  |    |-- exact-complex?
-;  |    |-- exact-integer?
-;  |    `-- ratio?
-;  `-- inexact?
-;       |-- inexact-complex?
-;       `-- floating-point?
-;            |--- single-float?
-;            `--- single-float?
-
 (define (exact? z)
-  (or (exact-integer? z)
+  (define (exact-complex? x)
+    (and (%complex? x)
+         (exact? (real-part x))
+         (exact? (imag-part x))))
+  (or (exact-complex? z)
       (ratio? z)
-      (exact-complex? z)))
-
-(define (exact-complex? x) ; TODO move into r7rs.ss
-  (and (%complex? x)
-       (exact? (real-part x))
-       (exact? (imag-part x))))
+      (exact-integer? z)))
 
 (define (inexact? z)
-  (or (floating-point? z)
-      (inexact-complex? z)))
-
-(define (inexact-complex? x)
-  (and (%complex? x)
-       (or (inexact? (real-part x))
-           (inexact? (imag-part x)))))
+  (define (inexact-complex? x)
+    (and (%complex? x)
+         (or (inexact? (real-part x))
+             (inexact? (imag-part x)))))
+  (define (floating-point? z)
+    (or (single-float? z)
+        (double-float? z)))
+  (or (inexact-complex? z)
+      (floating-point? z)))
 
 (define (zero?     n) (= n 0))
 (define (positive? n) (> n 0))
 (define (negative? n) (< n 0))
-
-(define (odd? n) (not (even? n)))
-(define (even? n) (= (remainder n 2) 0))
+(define (odd?      n) (not (even? n)))
+(define (even?     n) (= (remainder n 2) 0))
 
 (define (max x . xs)
   (define (max-aux x xs)
@@ -416,7 +356,7 @@
 
 (define (floor-quotient x y) (floor (/ x y)))
 
-(define (floor-remainder a b) (% (+ b (% a b)) b))
+(define (floor-remainder x y) (% (+ y (% x y)) y))
 
 (define (floor/ x y)
   (values (floor-quotient x y)
@@ -484,16 +424,7 @@
         (e (abs e)))
     (sr (- x e) (+ x e) return)))
 
-(define (log z . base)
-  (if (pair? base)
-      (/ (ln z)
-         (ln (car base)))
-      (ln z)))
-
-(define (atan y . o)
-  (if (pair? o)
-      (atan-2 y (car o))
-      (atan-1 y)))
+(define (square z) (* z z))
 
 (define (make-rectangular x y) (+ x (* y (sqrt -1))))
 
@@ -521,9 +452,13 @@
   (or (eqv? x #t)
       (eqv? x #f)))
 
+(define boolean=? eqv?)
+
 ; ---- 6.4. Pairs and lists ----------------------------------------------------
 
 ; ---- 6.5 Symbols -------------------------------------------------------------
+
+(define symbol=? eqv?)
 
 ; ---- 6.6 Characters ----------------------------------------------------------
 
@@ -660,20 +595,20 @@
 ;       (lambda (cc)
 ;         (apply cc xs)))))
 
-(define values-tag (list 'values)) ; Magic Token Trick
+(define <values> (list 'values)) ; Magic Token Trick
 
 (define (values? x)
   (if (pair? x)
-      (eq? (car x) values-tag)
+      (eq? (car x) <values>)
       #f))
 
 (define (values . xs)
   (if (if (null? xs) #f
           (null? (cdr xs)))
       (car xs)
-      (cons values-tag xs)))
+      (cons <values> xs)))
 
-; (define (call-with-values producer consumer) ; TODO
+; (define (call-with-values producer consumer)
 ;   (let-values ((xs (producer)))
 ;     (apply consumer xs)))
 
@@ -686,11 +621,29 @@
 
 ; ---- 6.11. Exceptions --------------------------------------------------------
 
+(define (error-object? x)
+  (or (error? x)
+      (read-error? x)
+      (file-error? x)
+      (syntax-error? x)))
+
+(define error-object-message car)
+
+(define error-object-irritants cdr)
+
 ; ---- 6.12. Environments and evaluation ---------------------------------------
 
 ; ---- 6.13. Input and output --------------------------------------------------
 
-(define (call-with-port port procedure) (procedure port)) ; R7RS
+; (define (call-with-port port procedure)
+;   (let-values ((results (procedure port)))
+;     (close-port port)
+;     (apply values results)))
+
+(define (call-with-port port procedure)
+  (let ((result (procedure port)))
+    (close-port port)
+    result))
 
 (define (call-with-input-file path procedure)
   (call-with-port (open-input-file path) procedure))
@@ -738,15 +691,13 @@
          (close-output-file-port x))
         (else (unspecified))))
 
-(define (read        . x) (::read        (if (pair? x) (car x) (current-input-port))))
-(define (read-char   . x) (::read-char   (if (pair? x) (car x) (current-input-port))))
-(define (peek-char   . x) (::peek-char   (if (pair? x) (car x) (current-input-port))))
-(define (char-ready? . x) (::char-ready? (if (pair? x) (car x) (current-input-port))))
+(define (read        . x) (%read        (if (pair? x) (car x) (current-input-port))))
+(define (read-char   . x) (%read-char   (if (pair? x) (car x) (current-input-port))))
+(define (peek-char   . x) (%peek-char   (if (pair? x) (car x) (current-input-port))))
+(define (char-ready? . x) (%char-ready? (if (pair? x) (car x) (current-input-port))))
 
-(define (write-simple datum . port)
-  (::write-simple datum (if (pair? port)
-                            (car port)
-                            (current-output-port))))
+(define (write-simple x . port) (%write-simple x (if (pair? port) (car port) (current-output-port))))
+(define (write-char   x . port) (%write-char   x (if (pair? port) (car port) (current-output-port))))
 
 (define write write-simple)
 
@@ -759,7 +710,13 @@
 (define (newline . port)
   (apply write-char #\newline port))
 
-(define (write-char char . port)
-  (::write-char char (if (pair? port)
-                         (car port)
-                         (current-output-port))))
+(define (write-string string . xs)
+  (case (length xs)
+    ((0)  (%write-string string (current-output-port)))
+    ((1)  (%write-string string (car xs)))
+    (else (%write-string (apply string-copy string (cadr xs)) (car xs)))))
+
+(define (flush-output-port . port)
+  (%flush-output-port (if (pair? port)
+                          (car port)
+                          (current-output-port))))

@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_RATIO_HPP
 #define INCLUDED_MEEVAX_KERNEL_RATIO_HPP
 
+#include <valarray>
+
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
@@ -27,15 +29,51 @@ inline namespace kernel
   {
     using pair::pair;
 
+    template <typename T, REQUIRES(std::is_floating_point<T>)>
+    explicit ratio(T x, T const e = std::numeric_limits<double>::epsilon())
+    {
+      int sign  = x > 0 ? 1 : -1;
+
+      x = std::abs(x);
+
+      std::valarray<T> v1 { static_cast<T>(static_cast<int>(x)), 1 },
+                       v2 { 1, 0 };
+
+      /* ---- Continued Fraction Expantion -------------------------------------
+       *
+       *                        1
+       *  x_0 = a_0 + ---------------------
+       *                           1
+       *              a_1 + ---------------
+       *                              1
+       *                    a_2 + ---------
+       *                                 1
+       *                          a_n + ---
+       *                                 e
+       *
+       * -------------------------------------------------------------------- */
+      auto x_n = x - static_cast<int>(x);
+
+      while (e < x_n)
+      {
+        auto a_n = 1 / x_n;
+
+        x_n = a_n - static_cast<int>(a_n);
+
+        auto old_1 = v1;
+        v1 = static_cast<T>(static_cast<int>(a_n)) * v1 + v2;
+        v2 = old_1;
+      }
+
+      at(0) = make<exact_integer>(sign * v1[0]);
+      at(1) = make<exact_integer>(       v1[1]);
+    }
+
     explicit ratio(std::string const&, int = 0);
 
-    auto as_exact() const noexcept -> ratio const&;
+    auto exact() const -> value_type;
 
-    template <typename T>
-    auto as_inexact() const
-    {
-      return floating_point(numerator().as_inexact<T>() / denominator().as_inexact<T>());
-    }
+    auto inexact() const -> value_type override;
 
     auto denominator() const -> exact_integer const&;
 
@@ -46,6 +84,28 @@ inline namespace kernel
     auto numerator() const -> exact_integer const&;
 
     auto reduce() const -> ratio;
+
+    auto simple() const -> value_type;
+
+    #define DEFINE(NAME) auto NAME() const -> value_type
+
+    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
+    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
+    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
+
+    DEFINE(floor);
+    DEFINE(ceil);
+    DEFINE(trunc);
+    DEFINE(round);
+
+    #undef DEFINE
+
+    #define DEFINE(NAME) auto NAME(pair::const_reference) const -> pair::value_type
+
+    DEFINE(atan2);
+    DEFINE(pow);
+
+    #undef DEFINE
   };
 
   auto operator <<(std::ostream &, ratio const&) -> std::ostream &;
