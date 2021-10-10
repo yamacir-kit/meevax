@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_STRING_HEADER_HPP
 #define INCLUDED_MEEVAX_STRING_HEADER_HPP
 
-#include <meevax/string/indent.hpp>
+#include <string>
 
 namespace meevax
 {

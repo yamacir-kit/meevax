@@ -126,15 +126,6 @@ inline namespace kernel
   private:
     static SYNTAX(exportation)
     {
-      if (current_syntactic_continuation.is_verbose_mode())
-      {
-        std::cerr << (not indent::depth ? "; compile\t; " : ";\t\t; ")
-                  << indent()
-                  << expression
-                  << faint << " is <export specs>"
-                  << reset << std::endl;
-      }
-
       auto exportation = [](let const& xs)
       {
         for (auto const& each : xs)
