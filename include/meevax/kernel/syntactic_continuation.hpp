@@ -50,7 +50,6 @@ inline namespace kernel
   public:
     let datum = unit;
 
-    using configurator::is_batch_mode;
     using configurator::is_debug_mode;
     using configurator::is_trace_mode;
     using configurator::is_verbose_mode;
@@ -59,8 +58,7 @@ inline namespace kernel
     using reader::read;
 
     using writer::print;
-    using writer::standard_debug_port;
-    using writer::standard_verbose_port;
+    using writer::debug_port;
     using writer::write;
 
     template <typename... Ts>

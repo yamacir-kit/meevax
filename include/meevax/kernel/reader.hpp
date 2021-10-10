@@ -248,9 +248,9 @@ inline namespace kernel
     explicit reader()
     {}
 
-    IMPORT(EnvironmentSpecifier, evaluate,            NIL);
-    IMPORT(EnvironmentSpecifier, standard_debug_port, NIL);
-    IMPORT(EnvironmentSpecifier, write,               NIL);
+    IMPORT(EnvironmentSpecifier, evaluate,   NIL);
+    IMPORT(EnvironmentSpecifier, debug_port, NIL);
+    IMPORT(EnvironmentSpecifier, write,      NIL);
 
     using char_type = typename std::istream::char_type;
 
@@ -455,7 +455,7 @@ inline namespace kernel
     {
       let const result = read(default_input_port);
 
-      write(standard_debug_port(), header(__func__), result, "\n");
+      write(debug_port(), header(__func__), result, "\n");
 
       return result;
     }

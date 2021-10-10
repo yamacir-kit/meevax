@@ -55,20 +55,20 @@ inline namespace kernel
     }
 
   public:
-    auto standard_null_port() const -> pair::const_reference
+    auto null_port() const -> pair::const_reference
     {
       let static port = make<output_file_port>("/dev/null");
       return port;
     }
 
-    auto standard_verbose_port() const -> pair::const_reference
+    auto verbose_port() const -> pair::const_reference
     {
-      return is_verbose_mode() ? default_output_port : standard_null_port();
+      return is_verbose_mode() ? default_output_port : null_port();
     }
 
-    auto standard_debug_port() const -> pair::const_reference
+    auto debug_port() const -> pair::const_reference
     {
-      return is_debug_mode() ? default_error_port : standard_null_port();
+      return is_debug_mode() ? default_error_port : null_port();
     }
   };
 } // namespace kernel

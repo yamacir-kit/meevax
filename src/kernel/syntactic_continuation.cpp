@@ -103,7 +103,7 @@ inline namespace kernel
 
     if (is_debug_mode())
     {
-      disassemble(standard_debug_port().as<std::ostream>(), c);
+      disassemble(debug_port().as<std::ostream>(), c);
     }
 
     return execute();
@@ -199,15 +199,15 @@ inline namespace kernel
 
   auto syntactic_continuation::load(std::string const& s) -> value_type
   {
-    write(standard_debug_port(), header(__func__), "open ", s, " => ");
+    write(debug_port(), header(__func__), "open ", s, " => ");
 
     if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
     {
-      write(standard_debug_port(), t, "\n");
+      write(debug_port(), t, "\n");
 
       for (let e = read(port); e != eof_object; e = read(port))
       {
-        write(standard_debug_port(), header(__func__), e, "\n");
+        write(debug_port(), header(__func__), e, "\n");
 
         evaluate(e);
       }
@@ -216,7 +216,7 @@ inline namespace kernel
     }
     else
     {
-      write(standard_debug_port(), f, "\n");
+      write(debug_port(), f, "\n");
 
       throw file_error(make<string>("failed to open file: " + s), unit);
     }
