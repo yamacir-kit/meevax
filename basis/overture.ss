@@ -233,15 +233,6 @@
       `(,let (,(car bindings)) ,@body)
       `(,let (,(car bindings)) (,let* ,(cdr bindings) ,@body))))
 
-(define (caaar x) (car (car (car x))))
-(define (caadr x) (car (car (cdr x))))
-(define (cadar x) (car (cdr (car x))))
-(define (caddr x) (car (cdr (cdr x))))
-(define (cdaar x) (cdr (car (car x))))
-(define (cdadr x) (cdr (car (cdr x))))
-(define (cddar x) (cdr (cdr (car x))))
-(define (cdddr x) (cdr (cdr (cdr x))))
-
 (define (member o x . c) ; for case
   (let ((compare (if (pair? c) (car c) equal?)))
     (let member ((x x))
@@ -265,8 +256,8 @@
       ((free-identifier=? else (caar clauses))
        (body (cdar clauses)))
       ((and (pair? (caar clauses))
-            (null? (cdaar clauses)))
-       `(,if (,eqv? ,result (,quote ,(caaar clauses)))
+            (null? (cdr (caar clauses))))
+       `(,if (,eqv? ,result (,quote ,(car (caar clauses))))
              ,(body (cdar clauses))
              ,(each-clause (cdr clauses))))
       (else
@@ -281,7 +272,7 @@
           `(,begin ,@commands
                    (,rec ,@(map (lambda (x)
                                   (if (pair? (cddr x))
-                                      (caddr x)
+                                      (car (cddr x))
                                       (car x)))
                                 variables)))))
     `(,let ,rec ,(map (lambda (x)

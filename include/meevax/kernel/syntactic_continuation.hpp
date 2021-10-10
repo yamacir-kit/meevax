@@ -26,15 +26,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  enum class layer
-  {
-    module_system,
-    primitive_expression, // 4.1.
-    standard_procedure, // 6.
-    standard_library,
-    experimental_procedure,
-  };
-
   class syntactic_continuation
     : public virtual pair
     , public configurator <syntactic_continuation>
@@ -227,13 +218,9 @@ inline namespace kernel
   // DEFINE_LIBRARY(time);
   DEFINE_LIBRARY(write);
 
+  DEFINE_LIBRARY(declaration);
   DEFINE_LIBRARY(experimental);
-
-  template <auto N>
-  using import_set = typename std::integral_constant<decltype(N), N>;
-
-  template <> auto syntactic_continuation::import(import_set<layer::module_system   >) -> void;
-  template <> auto syntactic_continuation::import(import_set<layer::standard_library>) -> void;
+  DEFINE_LIBRARY(srfis);
 
   auto operator >>(std::istream &, syntactic_continuation &) -> std::istream &;
 

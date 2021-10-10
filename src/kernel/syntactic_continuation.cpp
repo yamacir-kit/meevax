@@ -137,7 +137,7 @@ inline namespace kernel
   {
     let const module = make<syntactic_continuation>(current_continuation(), global_environment());
 
-    module.as<syntactic_continuation>().import(import_set<layer::module_system>());
+    module.as<syntactic_continuation>().import(standard::declaration);
     module.as<syntactic_continuation>().build();
 
     return module;
@@ -2096,7 +2096,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::import(import_set<layer::module_system>)
+  auto syntactic_continuation::import(standard::declaration_t) -> void
   {
     define<procedure>("free-identifier=?", [this](let const& xs)
     {
@@ -2143,7 +2143,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::import(import_set<layer::standard_library>)
+  auto syntactic_continuation::import(standard::srfis_t) -> void
   {
     std::vector<string_view> const codes {
       overture,
@@ -2161,7 +2161,7 @@ inline namespace kernel
     for (auto const& code : codes)
     {
       // NOTE: Since read performs a putback operation on a given stream, it must be copied and used.
-      std::stringstream port { std::string(code) };
+      auto port = std::stringstream(std::string(code));
 
       for (let e = read(port); e != eof_object; e = read(port))
       {

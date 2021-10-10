@@ -24,12 +24,11 @@ auto main() -> int
   assert(gc_count == constants.size() + specials_count);
 
   {
-    auto root = syntactic_continuation(import_set<layer::module_system>(),
+    auto root = syntactic_continuation(standard::declaration,
                                        standard::base,
                                        standard::evaluate,
                                        standard::experimental,
-                                       import_set<layer::standard_library>()
-                                       );
+                                       standard::srfis);
   }
 
   syntactic_continuation::symbols.clear();
