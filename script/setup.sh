@@ -2,6 +2,7 @@
 
 required()
 {
+  echo build-essential
   echo libgmp-dev
 }
 

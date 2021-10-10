@@ -51,14 +51,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, error const& datum) -> std::ostream &
   {
-    os << magenta << "#,(" << green << "error " << reset << datum.message();
-
-    for (let const& each : datum.irritants())
-    {
-      os << " " << each;
-    }
-
-    return os << magenta << ")" << reset;
+    return os << magenta << "#,(" << green << "error " << reset << datum.message() << " " << datum.irritants() << magenta << ")" << reset;
   }
 
   auto raise(std::string const& message) -> void
