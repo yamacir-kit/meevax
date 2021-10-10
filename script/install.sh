@@ -11,6 +11,6 @@ make()
 
 sudo apt remove --yes meevax
 
-make apt-install-tested "$root/build"
+make safe-install.deb "$root/build"
 
 make demo "$root/example/build"

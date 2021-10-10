@@ -198,12 +198,12 @@ endforeach()
 
 execute_process(COMMAND nproc OUTPUT_VARIABLE NPROC)
 
-add_custom_target(apt-install
+add_custom_target(install.deb
   COMMAND make -j ${NPROC}
   COMMAND ${CMAKE_CPACK_COMMAND}
   COMMAND sudo apt install ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb)
 
-add_custom_target(apt-install-tested
+add_custom_target(safe-install.deb
   COMMAND make -j ${NPROC}
   COMMAND ${CMAKE_CTEST_COMMAND} -j ${NPROC}
   COMMAND ${CMAKE_CPACK_COMMAND}

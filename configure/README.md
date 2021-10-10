@@ -65,6 +65,12 @@ Subset of R7RS-small.
 -   [GNU Binutils](https://www.gnu.org/software/binutils/)
 -   [GNU Multiple Precision Arithmetic Library (GMP)](https://gmplib.org/)
 
+To install the above software, it is easy to use the following script.
+
+``` bash
+$ ./script/setup.sh --required
+```
+
 ## Installation
 
 ### Install
@@ -72,13 +78,13 @@ Subset of R7RS-small.
 ``` bash
 $ cmake -B build -DCMAKE_BUILD_TYPE=Release
 $ cd build
-$ make apt-install
+$ make install.deb
 ```
 
 ### Uninstall
 
 ``` bash
-sudo apt remove meevax
+$ sudo apt remove meevax
 ```
 <!--
 or
@@ -92,14 +98,14 @@ sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 
 ### CMake targets
 
-| Target Name          | Description
-|:---------------------|:--
-| `all` (default)      | Build shared-library `libmeevax.${PROJECT_VERSION}.so` and executable `meevax`.
-| `test`               | Test executable `meevax`.
-| `package`            | Generate debian package `meevax_${PROJECT_VERSION}_amd64.deb`.
-| `install`            | Copy files into `/usr/local` __(1)__.
-| `apt-install`        | `all` + `package` + `sudo apt install <meevax>.deb`
-| `apt-install-tested` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
+| Target Name        | Description
+|:-------------------|:--
+| `all` (default)    | Build shared-library `libmeevax.${PROJECT_VERSION}.so` and executable `meevax`.
+| `test`             | Test executable `meevax`.
+| `package`          | Generate debian package `meevax_${PROJECT_VERSION}_amd64.deb`.
+| `install`          | Copy files into `/usr/local` __(1)__.
+| `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
+| `safe-install.deb` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
 
 __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's package manager (for example, `apt remove meevax`). You need to manually delete the following files to uninstall:
 

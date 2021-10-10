@@ -19,6 +19,6 @@ jobs:
       - uses: actions/checkout@v2
       - run: ./script/setup.sh --all
       - run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
-      - run: cmake --build build --target apt-install-tested
+      - run: cmake --build build --target safe-install.deb
       - run: cmake -B example/build -S example -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
       - run: cmake --build example/build --target demo
