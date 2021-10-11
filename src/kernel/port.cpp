@@ -68,40 +68,35 @@ inline namespace kernel
     return os << magenta << "#,(" << reset << "standard-error-port" << magenta << ")" << reset;
   }
 
-  #define BOILERPLATE(TYPENAME, PORTTYPE)                                      \
+  #define DEFINE(TYPENAME, BASE, NAME)                                         \
+  TYPENAME::TYPENAME(std::string const& name)                                  \
+    : BASE { name }                                                            \
+    , name { name }                                                            \
+  {}                                                                           \
+                                                                               \
   auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
   {                                                                            \
-    os << magenta << "#,(" << green << "open-" PORTTYPE << " " << datum.name << reset; \
-                                                                               \
-    if (not datum.is_open())                                                   \
-    {                                                                          \
-      os << faint << " #;closed" << reset;                                     \
-    }                                                                          \
-                                                                               \
-    return os << magenta << ")" << reset;                                      \
-  } static_assert(true)
+    return os << magenta << "#,(" << green << "open-" NAME " " << datum.name << magenta << ")" << reset; \
+  }                                                                            \
+  static_assert(true)
 
-  BOILERPLATE( input_file_port,  "input-file");
-  BOILERPLATE(output_file_port, "output-file");
+  DEFINE(       file_port, std:: fstream,        "file");
+  DEFINE( input_file_port, std::ifstream,  "input-file");
+  DEFINE(output_file_port, std::ofstream, "outout-file");
 
-  #undef BOILERPLATE
+  #undef DEFINE
 
-  #define BOILERPLATE(TYPENAME, PORTTYPE)                                      \
+  #define DEFINE(TYPENAME, NAME)                                               \
   auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
   {                                                                            \
-    os << magenta << "#,(" << green << "open-" PORTTYPE;                       \
-                                                                               \
-    if (auto const s = datum.str(); not std::empty(s))                         \
-    {                                                                          \
-      os << " " << cyan << make<string>(s);                                    \
-    }                                                                          \
-                                                                               \
-    return os << magenta << ")" << reset;                                      \
-  } static_assert(true)
+    return os << magenta << "#,(" << green << "open-" NAME " " << string(datum.str()) << magenta << ")" << reset; \
+  }                                                                            \
+  static_assert(true)
 
-  BOILERPLATE( input_string_port,  "input-string");
-  BOILERPLATE(output_string_port, "output-string");
+  DEFINE(       string_port,        "string");
+  DEFINE( input_string_port,  "input-string");
+  DEFINE(output_string_port, "output-string");
 
-  #undef BOILERPLATE
+  #undef DEFINE
 } // namespace kernel
 } // namespace meevax
