@@ -1087,11 +1087,11 @@ namespace meevax
 
     /* -------------------------------------------------------------------------
      *
-     *  (input-port? obj)                                             procedure
-     *  (output-port? obj)                                            procedure
+     *    (input-port? obj)                                           procedure
+     *   (output-port? obj)                                           procedure
      *  (textual-port? obj)                                           procedure
-     *  (binary-port? obj)                                            procedure
-     *  (port? obj)                                                   procedure
+     *   (binary-port? obj)                                           procedure
+     *          (port? obj)                                           procedure
      *
      *  These procedures return #t if obj is an input port, output port,
      *  textual port, binary port, or any kind of port, respectively. Otherwise
@@ -1099,14 +1099,11 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>( "input-port?", [](let const& xs) { return car(xs).is_also<std::istream>() ? t : f; });
-    define<procedure>("output-port?", [](let const& xs) { return car(xs).is_also<std::ostream>() ? t : f; });
-    define<procedure>("binary-port?", [](let const&   ) { return                                       f; });
-    define<procedure>(       "port?", [](let const& xs) { return car(xs).is_also<std::ios    >() ? t : f; });
-
-    define<procedure>("input-file-port?", is<input_file_port>());
-
-    define<procedure>("output-file-port?", is<output_file_port>());
+    define<procedure>(  "input-port?", [](let const& xs) { return car(xs).is_also<std::istream>() ? t : f; });
+    define<procedure>( "output-port?", [](let const& xs) { return car(xs).is_also<std::ostream>() ? t : f; });
+    define<procedure>( "binary-port?", [](let const&   ) { return                                       f; });
+    define<procedure>("textual-port?", [](let const& xs) { return car(xs).is_also<std::ios    >() ? t : f; });
+    define<procedure>(        "port?", [](let const& xs) { return car(xs).is_also<std::ios    >() ? t : f; });
 
     define<procedure>("input-string-port?", is<input_string_port>());
 
@@ -1144,16 +1141,6 @@ namespace meevax
       {
         return x.is_also<std::ostream>() ? t : f;
       }
-    });
-
-    define<procedure>("input-file-port-open?", [](let const& xs)
-    {
-      return car(xs).as<input_file_port>().is_open() ? t : f;
-    });
-
-    define<procedure>("output-file-port-open?", [](let const& xs)
-    {
-      return car(xs).as<output_file_port>().is_open() ? t : f;
     });
 
     /* -------------------------------------------------------------------------
@@ -1225,15 +1212,23 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("close-input-file-port", [](let const& xs)
+    define<procedure>("close-input-port", [](let const& xs)
     {
-      car(xs).as<input_file_port>().close();
+      if (let const& x = car(xs); x.is_also<std::ifstream>())
+      {
+        x.as<std::ifstream>().close();
+      }
+
       return unspecified;
     });
 
-    define<procedure>("close-output-file-port", [](let const& xs)
+    define<procedure>("close-output-port", [](let const& xs)
     {
-      car(xs).as<output_file_port>().close();
+      if (let const& x = car(xs); x.is_also<std::ofstream>())
+      {
+        x.as<std::ofstream>().close();
+      }
+
       return unspecified;
     });
 

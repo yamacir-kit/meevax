@@ -331,13 +331,6 @@ parameterize ; is defined in srfi-39.ss
 
 ; ---- 6.13. Input and output --------------------------------------------------
 
-(define (textual-port? x)
-  (or (input-file-port? x)
-      (input-string-port? x)
-      (output-file-port? x)
-      (output-string-port? x)
-      (standard-port? x)))
-
 (define current-input-port
   (make-parameter (standard-input-port)
     (lambda (x)

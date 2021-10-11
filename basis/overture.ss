@@ -670,16 +670,6 @@
         ((output-port? x) (close-output-port x))
         (else (unspecified))))
 
-(define (close-input-port x)
-  (cond ((input-file-port? x)
-         (close-input-file-port x))
-        (else (unspecified))))
-
-(define (close-output-port x)
-  (cond ((output-file-port? x)
-         (close-output-file-port x))
-        (else (unspecified))))
-
 (define (read        . x) (%read        (if (pair? x) (car x) (current-input-port))))
 (define (read-char   . x) (%read-char   (if (pair? x) (car x) (current-input-port))))
 (define (peek-char   . x) (%peek-char   (if (pair? x) (car x) (current-input-port))))
