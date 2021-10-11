@@ -338,23 +338,6 @@ parameterize ; is defined in srfi-39.ss
       (output-string-port? x)
       (standard-port? x)))
 
-(define (binary-port? x) #f)
-
-(define (input-port-open? x)
-  (cond ((input-file-port? x)
-         (input-file-port-open? x))
-        ((input-string-port? x) #t)
-        ((standard-input-port? x) #t)
-        (else #f)))
-
-(define (output-port-open? x)
-  (cond ((output-file-port? x)
-         (output-file-port-open? x))
-        ((output-string-port? x) #t)
-        ((standard-output-port? x) #t)
-        ((standard-error-port? x) #t)
-        (else #f)))
-
 (define current-input-port
   (make-parameter (standard-input-port)
     (lambda (x)
