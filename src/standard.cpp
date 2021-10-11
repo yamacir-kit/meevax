@@ -18,6 +18,7 @@
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/standard.hpp>
+#include <sstream>
 
 namespace meevax
 {
@@ -1105,10 +1106,6 @@ namespace meevax
     define<procedure>("textual-port?", [](let const& xs) { return car(xs).is_also<std::ios    >() ? t : f; });
     define<procedure>(        "port?", [](let const& xs) { return car(xs).is_also<std::ios    >() ? t : f; });
 
-    define<procedure>("input-string-port?", is<input_string_port>());
-
-    define<procedure>("output-string-port?", is<output_string_port>());
-
     /* -------------------------------------------------------------------------
      *
      *  (input-port-open? port)                                       procedure
@@ -1295,7 +1292,7 @@ namespace meevax
 
     define<procedure>("get-output-string", [](let const& xs)
     {
-      return make<string>(car(xs).as<output_string_port>().str());
+      return make<string>(car(xs).as<std::ostringstream>().str());
     });
 
     /* -------------------------------------------------------------------------

@@ -319,8 +319,6 @@ parameterize ; is defined in srfi-39.ss
 ; TODO string-for-each
 ; TODO vector-for-each
 
-(define call/cc call-with-current-continuation)
-
 ; ---- 6.11. Exceptions --------------------------------------------------------
 
 ; ---- 6.12. Environments and evaluation ---------------------------------------
@@ -412,47 +410,12 @@ parameterize ; is defined in srfi-39.ss
             %current-dynamic-extents)
   (apply emergency-exit normally?))
 
-; (dynamic-wind
-;   (lambda () (display "before\n"))
-;   (lambda () (exit))
-;   (lambda () (display "after\n")))
-
 ; TODO get-environment-variable
 ; TODO get-environment-variables
 
 ; TODO current-second
 ; TODO current-jiffy
 ; TODO jiffies-per-second
-
-; ------------------------------------------------------------------------------
-;       ...          =>
-;
-;
-;
-;
-;
-;
-;
-;
-;
-;                         else
-;
-;
-; interaction-environment                            let-syntax
-; letrec-syntax
-;
-;                                            null-environment
-;
-;
-;
-; scheme-report-environment
-;
-;
-;
-;                                  syntax-rules
-;
-;
-; ------------------------------------------------------------------------------
 
 (define interaction-environment
   (let ((e (fork/csc identity)))

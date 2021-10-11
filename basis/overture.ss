@@ -589,6 +589,8 @@
                                                     (windup! %current-dynamic-extents current-dynamic-extents)
                                                     (k1 k2)))))))
 
+(define call/cc call-with-current-continuation)
+
 ; (define values
 ;   (lambda xs
 ;     (call-with-current-continuation
@@ -650,20 +652,6 @@
 
 (define (call-with-output-file path procedure)
   (call-with-port (open-output-file path) procedure))
-
-(define (standard-input-port? x)
-  (eq? x (standard-input-port)))
-
-(define (standard-output-port? x)
-  (eq? x (standard-output-port)))
-
-(define (standard-error-port? x)
-  (eq? x (standard-error-port)))
-
-(define (standard-port? x)
-  (or (standard-input-port? x)
-      (standard-output-port? x)
-      (standard-error-port? x)))
 
 (define (close-port x)
   (cond ((input-port? x) (close-input-port x))
