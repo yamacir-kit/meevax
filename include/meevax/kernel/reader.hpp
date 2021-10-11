@@ -259,7 +259,7 @@ inline namespace kernel
 
     inline auto char_ready() const
     {
-      return default_input_port.is_also<std::istream>() and default_input_port.as<std::istream>();
+      return standard_input.is_also<std::istream>() and standard_input.as<std::istream>();
     }
 
     static auto intern(std::string const& name) -> pair::const_reference
@@ -453,7 +453,7 @@ inline namespace kernel
 
     inline auto read() -> pair::value_type
     {
-      let const result = read(default_input_port);
+      let const result = read(standard_input);
 
       write(debug_port(), header(__func__), result, "\n");
 

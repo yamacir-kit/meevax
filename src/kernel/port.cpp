@@ -25,48 +25,26 @@ namespace meevax
 {
 inline namespace kernel
 {
-  let const default_input_port = make<standard_input_port>();
+  #define DEFINE(NAME, STDIO)                                                  \
+  standard_##NAME##_port::standard_##NAME##_port()                             \
+  {                                                                            \
+    copyfmt(STDIO);                                                            \
+    clear(STDIO.rdstate());                                                    \
+    rdbuf(STDIO.rdbuf());                                                      \
+  }                                                                            \
+                                                                               \
+  auto operator <<(std::ostream & os, standard_##NAME##_port const&) -> std::ostream & \
+  {                                                                            \
+    return os << magenta << "#,(" << reset << "standard-" #NAME "-port" << magenta << ")" << reset; \
+  }                                                                            \
+                                                                               \
+  let const standard_##NAME = make<standard_##NAME##_port>()
 
-  let const default_output_port = make<standard_output_port>();
+  DEFINE(input,  std:: cin);
+  DEFINE(output, std::cout);
+  DEFINE(error,  std::cerr);
 
-  let const default_error_port = make<standard_error_port>();
-
-  void copy_ios(std::ios & from, std::ios & to)
-  {
-    to.copyfmt(from);
-    to.clear(from.rdstate());
-    to.rdbuf(from.rdbuf());
-  }
-
-  standard_input_port::standard_input_port()
-  {
-    copy_ios(std::cin, *this);
-  }
-
-  auto operator <<(std::ostream & os, standard_input_port const&) -> std::ostream &
-  {
-    return os << magenta << "#,(" << reset << "standard-input-port" << magenta << ")" << reset;
-  }
-
-  standard_output_port::standard_output_port()
-  {
-    copy_ios(std::cout, *this);
-  }
-
-  auto operator <<(std::ostream & os, standard_output_port const&) -> std::ostream &
-  {
-    return os << magenta << "#,(" << reset << "standard-output-port" << magenta << ")" << reset;
-  }
-
-  standard_error_port::standard_error_port()
-  {
-    copy_ios(std::cerr, *this);
-  }
-
-  auto operator <<(std::ostream & os, standard_error_port const&) -> std::ostream &
-  {
-    return os << magenta << "#,(" << reset << "standard-error-port" << magenta << ")" << reset;
-  }
+  #undef DEFINE
 
   #define DEFINE(TYPENAME, BASE, NAME)                                         \
   TYPENAME::TYPENAME(std::string const& name)                                  \

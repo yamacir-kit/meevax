@@ -37,8 +37,8 @@ auto main(int const argc, char const* const* const argv) -> int
 
     while (main.is_interactive_mode() and main.char_ready())
     {
-      main.write(default_output_port, main.current_prompt());
-      main.write(default_output_port, main.evaluate(main.read()), "\n");
+      main.write(standard_output, main.current_prompt());
+      main.write(standard_output, main.evaluate(main.read()), "\n");
     }
 
     return underlying_cast(exit_status::success);

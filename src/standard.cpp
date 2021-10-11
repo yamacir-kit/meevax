@@ -1153,9 +1153,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("standard-input-port",  [](auto&&) { return default_input_port;  });
-    define<procedure>("standard-output-port", [](auto&&) { return default_output_port; });
-    define<procedure>("standard-error-port",  [](auto&&) { return default_error_port;  });
+    define<procedure>("standard-input-port",  [](auto&&) { return standard_input;  });
+    define<procedure>("standard-output-port", [](auto&&) { return standard_output; });
+    define<procedure>("standard-error-port",  [](auto&&) { return standard_error;  });
 
     /* -------------------------------------------------------------------------
      *
@@ -1757,7 +1757,7 @@ namespace meevax
         switch (length(xs))
         {
         case 0:
-          return read(default_input_port);
+          return read(standard_input);
 
         case 1:
           return read(car(xs));
@@ -1919,7 +1919,7 @@ namespace meevax
         }
       }
 
-      return default_output_port;
+      return standard_output;
     });
 
     define<procedure>("gc-collect", [](auto&&)
@@ -1953,7 +1953,7 @@ namespace meevax
 
       std::cout << std::endl;
 
-      return default_output_port;
+      return standard_output;
     });
 
     /* -------------------------------------------------------------------------
@@ -1971,7 +1971,7 @@ namespace meevax
     {
       std::cout << car(xs).type().name() << std::endl;
 
-      return default_output_port;
+      return standard_output;
     });
   }
 

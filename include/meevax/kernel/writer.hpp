@@ -51,7 +51,7 @@ inline namespace kernel
     template <typename... Ts>
     auto print(Ts&&... xs) const -> decltype(auto)
     {
-      return write(default_output_port, std::forward<decltype(xs)>(xs)..., '\n');
+      return write(standard_output, std::forward<decltype(xs)>(xs)..., '\n');
     }
 
   public:
@@ -63,12 +63,12 @@ inline namespace kernel
 
     auto verbose_port() const -> pair::const_reference
     {
-      return is_verbose_mode() ? default_output_port : null_port();
+      return is_verbose_mode() ? standard_output : null_port();
     }
 
     auto debug_port() const -> pair::const_reference
     {
-      return is_debug_mode() ? default_error_port : null_port();
+      return is_debug_mode() ? standard_error : null_port();
     }
   };
 } // namespace kernel

@@ -26,32 +26,21 @@ namespace meevax
 {
 inline namespace kernel
 {
-  let extern const default_input_port;
+  #define DEFINE(NAME, BASE)                                                   \
+  struct NAME##_port : public BASE                                             \
+  {                                                                            \
+    explicit NAME##_port();                                                    \
+  };                                                                           \
+                                                                               \
+  auto operator <<(std::ostream &, NAME##_port const&) -> std::ostream &;      \
+                                                                               \
+  let extern const NAME
 
-  let extern const default_output_port;
+  DEFINE(standard_input,  std::istream);
+  DEFINE(standard_output, std::ostream);
+  DEFINE(standard_error,  std::ostream);
 
-  let extern const default_error_port;
-
-  struct standard_input_port : public std::istream
-  {
-    explicit standard_input_port();
-  };
-
-  auto operator <<(std::ostream &, standard_input_port const&) -> std::ostream &;
-
-  struct standard_output_port : public std::ostream
-  {
-    explicit standard_output_port();
-  };
-
-  auto operator <<(std::ostream &, standard_output_port const&) -> std::ostream &;
-
-  struct standard_error_port : public std::ostream
-  {
-    explicit standard_error_port();
-  };
-
-  auto operator <<(std::ostream &, standard_error_port const&) -> std::ostream &;
+  #undef DEFINE
 
   #define DEFINE(TYPENAME, BASE)                                               \
   struct TYPENAME : public BASE                                                \
