@@ -477,6 +477,19 @@ namespace meevax
 
     /* -------------------------------------------------------------------------
      *
+     *  (null? obj)                                                   procedure
+     *
+     *  Returns #t if obj is the empty list, otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("null?", [](let const& xs)
+    {
+      return car(xs).is<null>() ? t : f;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
      *  (symbol? obj)                                                 procedure
      *
      *  Returns #t if obj is a symbol, otherwise returns #f.
