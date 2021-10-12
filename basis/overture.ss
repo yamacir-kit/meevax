@@ -34,11 +34,6 @@
 
 (define (null? x) (eqv? x '()))
 
-(define (caar x) (car (car x)))
-(define (cadr x) (car (cdr x)))
-(define (cdar x) (cdr (car x)))
-(define (cddr x) (cdr (cdr x)))
-
 (define (unspecified) (if #f #f))
 
 (define-syntax (cond . clauses)

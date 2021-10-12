@@ -14,11 +14,9 @@
    limitations under the License.
 */
 
-#include <fstream>
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/standard.hpp>
-#include <sstream>
 
 namespace meevax
 {
@@ -455,6 +453,27 @@ namespace meevax
 
     define<procedure>("set-car!", [](auto&& xs) { return caar(xs) = cadr(xs); });
     define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (caar pair)                                                   procedure
+     *  (caar pair)                                                   procedure
+     *  (caar pair)                                                   procedure
+     *  (caar pair)                                                   procedure
+     *
+     *  These procedures are compositions of car and cdr as follows:
+     *
+     *      (define (caar x) (car (car x)))
+     *      (define (cadr x) (car (cdr x)))
+     *      (define (cdar x) (cdr (car x)))
+     *      (define (cddr x) (cdr (cdr x)))
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("caar", [](let const& xs) { return caar(car(xs)); });
+    define<procedure>("cadr", [](let const& xs) { return cadr(car(xs)); });
+    define<procedure>("cdar", [](let const& xs) { return cdar(car(xs)); });
+    define<procedure>("cddr", [](let const& xs) { return cddr(car(xs)); });
 
     /* -------------------------------------------------------------------------
      *
@@ -1562,6 +1581,55 @@ namespace meevax
      *  arguments before invoking the corresponding procedures without "-ci".
      *
      * ---------------------------------------------------------------------- */
+  }
+
+  template <>
+  auto syntactic_continuation::import(standard::cxr_t) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (caaar pair)                                      cxr library procedure
+     *  (caadr pair)                                      cxr library procedure
+     *       .                                                           .
+     *       .                                                           .
+     *       .                                                           .
+     *  (cdddar pair)                                     cxr library procedure
+     *  (cddddr pair)                                     cxr library procedure
+     *
+     *  These twenty-four procedures are further compositions of car and cdr on
+     *  the same principles. For example, caddr could be defined by
+     *
+     *      (define caddr (lambda (x) (car (cdr (cdr x))))).
+     *
+     *  Arbitrary compositions up to four deep are provided.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("caaar", [](let const& xs) { return caaar(car(xs)); });
+    define<procedure>("caadr", [](let const& xs) { return caadr(car(xs)); });
+    define<procedure>("cadar", [](let const& xs) { return cadar(car(xs)); });
+    define<procedure>("caddr", [](let const& xs) { return caddr(car(xs)); });
+    define<procedure>("cdaar", [](let const& xs) { return cdaar(car(xs)); });
+    define<procedure>("cdadr", [](let const& xs) { return cdadr(car(xs)); });
+    define<procedure>("cddar", [](let const& xs) { return cddar(car(xs)); });
+    define<procedure>("cdddr", [](let const& xs) { return cdddr(car(xs)); });
+
+    define<procedure>("caaaar", [](let const& xs) { return caaaar(car(xs)); });
+    define<procedure>("caaadr", [](let const& xs) { return caaadr(car(xs)); });
+    define<procedure>("caadar", [](let const& xs) { return caadar(car(xs)); });
+    define<procedure>("caaddr", [](let const& xs) { return caaddr(car(xs)); });
+    define<procedure>("cadaar", [](let const& xs) { return cadaar(car(xs)); });
+    define<procedure>("cadadr", [](let const& xs) { return cadadr(car(xs)); });
+    define<procedure>("caddar", [](let const& xs) { return caddar(car(xs)); });
+    define<procedure>("cadddr", [](let const& xs) { return cadddr(car(xs)); });
+    define<procedure>("cdaaar", [](let const& xs) { return cdaaar(car(xs)); });
+    define<procedure>("cdaadr", [](let const& xs) { return cdaadr(car(xs)); });
+    define<procedure>("cdadar", [](let const& xs) { return cdadar(car(xs)); });
+    define<procedure>("cdaddr", [](let const& xs) { return cdaddr(car(xs)); });
+    define<procedure>("cddaar", [](let const& xs) { return cddaar(car(xs)); });
+    define<procedure>("cddadr", [](let const& xs) { return cddadr(car(xs)); });
+    define<procedure>("cdddar", [](let const& xs) { return cdddar(car(xs)); });
+    define<procedure>("cddddr", [](let const& xs) { return cddddr(car(xs)); });
   }
 
   template <>

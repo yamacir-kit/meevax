@@ -24,6 +24,7 @@ auto main(int const argc, char const* const* const argv) -> int
   {
     auto main = environment(standard::base,
                             standard::character,
+                            standard::cxr,
                             standard::evaluate,
                             standard::inexact,
                             standard::load,
