@@ -8,9 +8,9 @@ auto main() -> int
   using namespace meevax;
 
   const auto specials_count = 11;
-  assert(default_error_port.is<standard_error_port>());
-  assert(default_input_port.is<standard_input_port>());
-  assert(default_output_port.is<standard_output_port>());
+  assert(standard_error.is<standard_error_port>());
+  assert(standard_input.is<standard_input_port>());
+  assert(standard_output.is<standard_output_port>());
   assert(e0.is<exact_integer>());
   assert(e1.is<exact_integer>());
   assert(eof_object.is<eof>());

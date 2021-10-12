@@ -14,9 +14,11 @@
    limitations under the License.
 */
 
+#include <fstream>
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/standard.hpp>
+#include <sstream>
 
 namespace meevax
 {
@@ -1079,21 +1081,18 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("error?", is<error>());
-
-    define<procedure>("read-error?", is<read_error>());
-
-    define<procedure>("file-error?", is<file_error>());
-
+    define<procedure>(       "error?", is<       error>());
+    define<procedure>(  "read-error?", is<  read_error>());
+    define<procedure>(  "file-error?", is<  file_error>());
     define<procedure>("syntax-error?", is<syntax_error>());
 
     /* -------------------------------------------------------------------------
      *
-     *  (input-port? obj)                                             procedure
-     *  (output-port? obj)                                            procedure
+     *    (input-port? obj)                                           procedure
+     *   (output-port? obj)                                           procedure
      *  (textual-port? obj)                                           procedure
-     *  (binary-port? obj)                                            procedure
-     *  (port? obj)                                                   procedure
+     *   (binary-port? obj)                                           procedure
+     *          (port? obj)                                           procedure
      *
      *  These procedures return #t if obj is an input port, output port,
      *  textual port, binary port, or any kind of port, respectively. Otherwise
@@ -1101,13 +1100,11 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("input-file-port?", is<input_file_port>());
-
-    define<procedure>("output-file-port?", is<output_file_port>());
-
-    define<procedure>("input-string-port?", is<input_string_port>());
-
-    define<procedure>("output-string-port?", is<output_string_port>());
+    define<procedure>(  "input-port?", [](let const& xs) { return car(xs).is_also<std::istream>() ? t : f; });
+    define<procedure>( "output-port?", [](let const& xs) { return car(xs).is_also<std::ostream>() ? t : f; });
+    define<procedure>( "binary-port?", [](let const&   ) { return                                       f; });
+    define<procedure>("textual-port?", [](let const& xs) { return car(xs).is_also<std::ios    >() ? t : f; });
+    define<procedure>(        "port?", [](let const& xs) { return car(xs).is_also<std::ios    >() ? t : f; });
 
     /* -------------------------------------------------------------------------
      *
@@ -1119,14 +1116,28 @@ namespace meevax
      *
      * --------------------------------------------------------------------- */
 
-    define<procedure>("input-file-port-open?", [](let const& xs)
+    define<procedure>("input-port-open?", [](let const& xs)
     {
-      return car(xs).as<input_file_port>().is_open() ? t : f;
+      if (let const& x = car(xs); x.is_also<std::ifstream>())
+      {
+        return x.as<std::ifstream>().is_open() ? t : f;
+      }
+      else
+      {
+        return x.is_also<std::istream>() ? t : f;
+      }
     });
 
-    define<procedure>("output-file-port-open?", [](let const& xs)
+    define<procedure>("output-port-open?", [](let const& xs)
     {
-      return car(xs).as<output_file_port>().is_open() ? t : f;
+      if (let const& x = car(xs); x.is_also<std::ofstream>())
+      {
+        return x.as<std::ofstream>().is_open() ? t : f;
+      }
+      else
+      {
+        return x.is_also<std::ostream>() ? t : f;
+      }
     });
 
     /* -------------------------------------------------------------------------
@@ -1142,11 +1153,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("standard-input-port", [](auto&&) { return default_input_port; });
-
-    define<procedure>("standard-output-port", [](auto&&) { return default_output_port; });
-
-    define<procedure>("standard-error-port", [](auto&&) { return default_error_port; });
+    define<procedure>("standard-input-port",  [](auto&&) { return standard_input;  });
+    define<procedure>("standard-output-port", [](auto&&) { return standard_output; });
+    define<procedure>("standard-error-port",  [](auto&&) { return standard_error;  });
 
     /* -------------------------------------------------------------------------
      *
@@ -1200,15 +1209,23 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("close-input-file-port", [](let const& xs)
+    define<procedure>("close-input-port", [](let const& xs)
     {
-      car(xs).as<input_file_port>().close();
+      if (let const& x = car(xs); x.is_also<std::ifstream>())
+      {
+        x.as<std::ifstream>().close();
+      }
+
       return unspecified;
     });
 
-    define<procedure>("close-output-file-port", [](let const& xs)
+    define<procedure>("close-output-port", [](let const& xs)
     {
-      car(xs).as<output_file_port>().close();
+      if (let const& x = car(xs); x.is_also<std::ofstream>())
+      {
+        x.as<std::ofstream>().close();
+      }
+
       return unspecified;
     });
 
@@ -1275,7 +1292,7 @@ namespace meevax
 
     define<procedure>("get-output-string", [](let const& xs)
     {
-      return make<string>(car(xs).as<output_string_port>().str());
+      return make<string>(car(xs).as<std::ostringstream>().str());
     });
 
     /* -------------------------------------------------------------------------
@@ -1740,7 +1757,7 @@ namespace meevax
         switch (length(xs))
         {
         case 0:
-          return read(default_input_port);
+          return read(standard_input);
 
         case 1:
           return read(car(xs));
@@ -1776,7 +1793,7 @@ namespace meevax
 
     define<procedure>("%write-simple", [this](let const& xs)
     {
-      write_to(cadr(xs), car(xs));
+      write(cadr(xs), car(xs));
       return unspecified;
     });
   }
@@ -1902,7 +1919,7 @@ namespace meevax
         }
       }
 
-      return default_output_port;
+      return standard_output;
     });
 
     define<procedure>("gc-collect", [](auto&&)
@@ -1936,7 +1953,7 @@ namespace meevax
 
       std::cout << std::endl;
 
-      return default_output_port;
+      return standard_output;
     });
 
     /* -------------------------------------------------------------------------
@@ -1954,7 +1971,7 @@ namespace meevax
     {
       std::cout << car(xs).type().name() << std::endl;
 
-      return default_output_port;
+      return standard_output;
     });
   }
 

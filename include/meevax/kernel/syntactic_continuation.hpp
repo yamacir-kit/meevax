@@ -50,21 +50,16 @@ inline namespace kernel
   public:
     let datum = unit;
 
-    using configurator::is_batch_mode;
     using configurator::is_debug_mode;
-    using configurator::is_interactive_mode;
     using configurator::is_trace_mode;
     using configurator::is_verbose_mode;
 
     using reader::intern;
     using reader::read;
 
-    using writer::newline;
-    using writer::standard_debug_port;
-    using writer::standard_verbose_port;
+    using writer::print;
+    using writer::debug_port;
     using writer::write;
-    using writer::write_to;
-    using writer::write_line;
 
     template <typename... Ts>
     explicit syntactic_continuation(Ts&&... xs)

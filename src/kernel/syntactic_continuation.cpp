@@ -103,7 +103,7 @@ inline namespace kernel
 
     if (is_debug_mode())
     {
-      disassemble(standard_debug_port().as<std::ostream>(), c);
+      disassemble(debug_port().as<std::ostream>(), c);
     }
 
     return execute();
@@ -199,15 +199,15 @@ inline namespace kernel
 
   auto syntactic_continuation::load(std::string const& s) -> value_type
   {
-    write_to(standard_debug_port(), header(__func__), "open ", s, " => ");
+    write(debug_port(), header(__func__), "open ", s, " => ");
 
     if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
     {
-      write_to(standard_debug_port(), t, "\n");
+      write(debug_port(), t, "\n");
 
       for (let e = read(port); e != eof_object; e = read(port))
       {
-        write_to(standard_debug_port(), header(__func__), e, "\n");
+        write(debug_port(), header(__func__), e, "\n");
 
         evaluate(e);
       }
@@ -216,7 +216,7 @@ inline namespace kernel
     }
     else
     {
-      write_to(standard_debug_port(), f, "\n");
+      write(debug_port(), f, "\n");
 
       throw file_error(make<string>("failed to open file: " + s), unit);
     }
@@ -291,38 +291,10 @@ inline namespace kernel
 
   auto syntactic_continuation::macroexpand(const_reference keyword, const_reference form) -> value_type
   {
-    // XXX ???
-    push(d, s, e, cons(make<instruction>(mnemonic::STOP), c));
+    push(d, s, e, cons(make<instruction>(mnemonic::STOP), c)); // XXX ???
 
     s = unit;
-
-    // TODO (3)
-    // make<procedure>("rename", [this](auto&& xs)
-    // {
-    //   const auto id { car(xs) };
-    //
-    //
-    // });
-
-    e = cons(
-          // form, // <lambda> parameters
-          cons(keyword, cdr(form)),
-          dynamic_environment());
-    // TODO (4)
-    // => e = cons(
-    //          list(
-    //            expression,
-    //            make<procedure>("rename", [this](auto&& xs) { ... }),
-    //            make<procedure>("compare", [this](auto&& xs) { ... })
-    //            ),
-    //          dynamic_environment()
-    //          );
-
-    // for (auto const& each : global_environment())
-    // {
-    //   std::cout << "  " << each << std::endl;
-    // }
-
+    e = cons(cons(keyword, cdr(form)), dynamic_environment());
     c = current_expression();
 
     return execute();
@@ -330,14 +302,10 @@ inline namespace kernel
 
   auto operator >>(std::istream & is, syntactic_continuation & datum) -> std::istream &
   {
-    datum.write_to(default_output_port,
-      "syntactic_continuation::operator >>(std::istream &, syntactic_continuation &)\n");
+    datum.print("syntactic_continuation::operator >>(std::istream &, syntactic_continuation &)");
+    datum.print("read new expression => ", datum.read(is));
 
-    datum.write_to(default_output_port, "read new expression => ", datum.read(is), "\n");
-
-    // sk.write_to(default_output_port,
-    //   "program == ", sk.program(),
-    //   "current_expression is ", sk.current_expression());
+    // sk.print("program == ", sk.program(), "current_expression is ", sk.current_expression());
 
     return is;
   }
@@ -347,7 +315,7 @@ inline namespace kernel
     // TODO
     // Evaluate current_expression, and write the evaluation to ostream.
 
-    return datum.write_to(os, "syntactic_continuation::operator <<(std::ostream &, syntactic_continuation &)\n");
+    return datum.write(os, "syntactic_continuation::operator <<(std::ostream &, syntactic_continuation &)\n");
   }
 
   auto operator <<(std::ostream & os, syntactic_continuation const& datum) -> std::ostream &

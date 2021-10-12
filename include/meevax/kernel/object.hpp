@@ -57,9 +57,9 @@ inline namespace kernel
       return delay<is_nan_t>().yield<bool>(static_cast<T const&>(*this));
     }
 
-    virtual auto write_to(std::ostream & os) const -> std::ostream &
+    virtual auto write(std::ostream & os) const -> std::ostream &
     {
-      return delay<write>().yield<std::ostream &>(os, static_cast<T const&>(*this));
+      return delay<write_t>().yield<std::ostream &>(os, static_cast<T const&>(*this));
     }
 
     #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                               \
