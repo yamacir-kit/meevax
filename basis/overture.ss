@@ -32,8 +32,6 @@
     (lambda form
       (transform form (current-evaluator) free-identifier=?))))
 
-; (define (null? x) (eqv? x '()))
-
 (define (unspecified) (if #f #f))
 
 (define-syntax (cond . clauses)

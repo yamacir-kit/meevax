@@ -28,15 +28,17 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto to_native_reference = [](auto&& x) -> decltype(auto)
+  auto unwrap = [](auto&& x) -> decltype(auto)
   {
-    if constexpr (std::is_same<typename std::decay<decltype(x)>::type, pair::value_type>::value)
+    using decayed_type = typename std::decay<decltype(x)>::type;
+
+    if constexpr (std::is_same<decayed_type, homoiconic_iterator>::value)
     {
-      return x.load();
+      return std::forward<decltype(x)>(x).unwrap().load();
     }
-    else if constexpr (std::is_same<typename std::decay<decltype(x)>::type, homoiconic_iterator>::value)
+    else if constexpr (std::is_same<decayed_type, pair::value_type>::value)
     {
-      return x.unwrap().load();
+      return std::forward<decltype(x)>(x).load();
     }
     else
     {
@@ -46,12 +48,12 @@ inline namespace kernel
 
   auto car = [](auto&& x) noexcept -> decltype(auto)
   {
-    return std::get<0>(to_native_reference(std::forward<decltype(x)>(x)));
+    return std::get<0>(unwrap(std::forward<decltype(x)>(x)));
   };
 
   auto cdr = [](auto&& x) noexcept -> decltype(auto)
   {
-    return std::get<1>(to_native_reference(std::forward<decltype(x)>(x)));
+    return std::get<1>(unwrap(std::forward<decltype(x)>(x)));
   };
 
   template <typename T, typename U, REQUIRES(std::is_convertible<T, pair::value_type>,
