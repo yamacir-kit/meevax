@@ -47,7 +47,7 @@ namespace meevax
 
     define<procedure>("eqv?", [](let const& xs) // TODO Rename to value=?
     {
-      return ::meevax::eqv(car(xs), cadr(xs)) ? t : f;
+      return eqv(car(xs), cadr(xs)) ? t : f;
     });
 
     /* -------------------------------------------------------------------------
@@ -1478,7 +1478,7 @@ namespace meevax
      *
      * --------------------------------------------------------------------- */
 
-    define<procedure>("%write-char", [](let const& xs)
+    define<procedure>("put-char", [](let const& xs)
     {
       cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
       return unspecified;
@@ -1496,7 +1496,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%write-string", [](let const& xs)
+    define<procedure>("put-string", [](let const& xs)
     {
       switch (length(xs))
       {

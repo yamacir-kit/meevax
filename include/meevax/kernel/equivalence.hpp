@@ -30,7 +30,7 @@ inline namespace kernel
 
   auto eqv = [](auto const& x, auto const& y) // value=?
   {
-    return eq(x, y) or x.eqv(y);
+    return eq(x, y) or x.compare(y);
   };
 
   auto equal(pair::const_reference, pair::const_reference) -> bool; // structure=?

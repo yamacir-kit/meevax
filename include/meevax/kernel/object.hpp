@@ -33,7 +33,7 @@ inline namespace kernel
       return typeid(T);
     }
 
-    virtual auto eqv(let const& x) const -> bool
+    virtual auto compare(let const& x) const -> bool
     {
       if constexpr (is_equality_comparable<T>::value)
       {
@@ -43,7 +43,7 @@ inline namespace kernel
         }
         else
         {
-          return std::is_same<T, std::nullptr_t>::value;
+          return std::is_same<T, null>::value;
         }
       }
       else
