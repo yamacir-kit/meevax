@@ -21,6 +21,7 @@
 
 #include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/path.hpp>
+#include <meevax/utility/description.hpp>
 
 namespace meevax
 {
@@ -42,11 +43,10 @@ inline namespace kernel
 
   #undef DEFINE
 
-  #define DEFINE(TYPENAME, BASE)                                               \
-  struct TYPENAME : public BASE                                                \
+  #define DEFINE(TYPENAME, FILE_STREAM)                                        \
+  struct TYPENAME : public description                                         \
+                  , public FILE_STREAM                                         \
   {                                                                            \
-    std::string const name;                                                    \
-                                                                               \
     explicit TYPENAME(std::string const&);                                     \
   };                                                                           \
                                                                                \

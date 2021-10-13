@@ -46,10 +46,10 @@ inline namespace kernel
 
   #undef DEFINE
 
-  #define DEFINE(TYPENAME, BASE, NAME)                                         \
+  #define DEFINE(TYPENAME, FILE_STREAM, NAME)                                  \
   TYPENAME::TYPENAME(std::string const& name)                                  \
-    : BASE { name }                                                            \
-    , name { name }                                                            \
+    : description { name }                                                     \
+    , FILE_STREAM { name }                                                     \
   {}                                                                           \
                                                                                \
   auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \

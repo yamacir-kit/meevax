@@ -14,21 +14,21 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/syntax.hpp>
-#include <meevax/posix/vt10x.hpp>
+#ifndef INCLUDED_MEEVAX_UTILITY_DESCRIPTION_HPP
+#define INCLUDED_MEEVAX_UTILITY_DESCRIPTION_HPP
+
+#include <string>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  syntax::syntax(std::string const& name, transformer const& transform)
-    : description { name }
-    , transform { transform  }
-  {}
-
-  auto operator <<(std::ostream & os, syntax const& datum) -> std::ostream &
+  struct description
   {
-    return os << magenta << "#,(" << green << "syntax" << reset << " " << datum.name << magenta << ")" << reset;
-  }
+    std::string const name;
+  };
 } // namespace kernel
 } // namespace meevax
+
+
+#endif // INCLUDED_MEEVAX_UTILITY_DESCRIPTION_HPP
