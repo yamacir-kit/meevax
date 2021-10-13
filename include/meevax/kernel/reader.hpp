@@ -35,60 +35,60 @@ inline namespace kernel
 {
   namespace parse
   {
-    using meevax::iostream::operator *;
-    using meevax::iostream::operator +;
+    // using meevax::iostream::operator *;
+    // using meevax::iostream::operator +;
     using meevax::iostream::operator |;
 
-    auto intraline_whitespace = satisfy([](auto c) { return std::isblank(c); });
+    // auto intraline_whitespace = satisfy([](auto c) { return std::isblank(c); });
 
-    auto line_ending = sequence("\r\n") | one_of('\n', '\r');
+    // auto line_ending = sequence("\r\n") | one_of('\n', '\r');
 
-    auto whitespace = intraline_whitespace | line_ending;
+    // auto whitespace = intraline_whitespace | line_ending;
 
-    auto vertical_line = one_of('|');
+    // auto vertical_line = one_of('|');
 
-    auto delimiter = whitespace | vertical_line | one_of('(', ')', '"', ';');
+    // auto delimiter = whitespace | vertical_line | one_of('(', ')', '"', ';');
 
-    auto letter = satisfy([](auto c) { return std::isalpha(c); });
+    // auto letter = satisfy([](auto c) { return std::isalpha(c); });
 
-    auto special_initial = one_of('!', '$', '%', '&', '*', '/', ':', '<', '=', '>', '?', '^', '_', '~');
+    // auto special_initial = one_of('!', '$', '%', '&', '*', '/', ':', '<', '=', '>', '?', '^', '_', '~');
 
-    auto initial = letter | special_initial;
+    // auto initial = letter | special_initial;
 
-    auto digit = satisfy([](auto c) { return std::isdigit(c); });
+    // auto digit = satisfy([](auto c) { return std::isdigit(c); });
 
-    auto hex_digit = satisfy([](auto c) { return std::isxdigit(c); });
+    // auto hex_digit = satisfy([](auto c) { return std::isxdigit(c); });
 
-    auto explicit_sign = one_of('+', '-');
+    // auto explicit_sign = one_of('+', '-');
 
-    auto special_subsequent = explicit_sign | one_of('.', '@');
+    // auto special_subsequent = explicit_sign | one_of('.', '@');
 
-    auto subsequent = initial | digit | special_subsequent;
+    // auto subsequent = initial | digit | special_subsequent;
 
-    auto inline_hex_escape = sequence("\\x") + hex_digit + many(hex_digit);
+    // auto inline_hex_escape = sequence("\\x") + hex_digit + many(hex_digit);
 
     // TODO auto any_character_other_than_vertical_line_or_backslash
 
-    auto symbol_element = letter;
-                        //   any_character_other_than_vertical_line_or_backslash
-                        // | inline_hex_escape
-                        // | mnemonic_escape
-                        // | s("\\|")
+    // auto symbol_element = letter;
+    //                     //   any_character_other_than_vertical_line_or_backslash
+    //                     // | inline_hex_escape
+    //                     // | mnemonic_escape
+    //                     // | s("\\|")
 
-    auto sign_subsequent = initial | explicit_sign | one_of('@');
+    // auto sign_subsequent = initial | explicit_sign | one_of('@');
 
-    auto dot_subsequent = sign_subsequent | one_of('.');
+    // auto dot_subsequent = sign_subsequent | one_of('.');
 
-    auto peculiar_identifier = explicit_sign
-                             | explicit_sign + sign_subsequent + many(subsequent)
-                             | explicit_sign + one_of('.') + dot_subsequent + many(subsequent)
-                             | one_of('.') + dot_subsequent + many(subsequent);
+    // auto peculiar_identifier = explicit_sign
+    //                          | explicit_sign + sign_subsequent + many(subsequent)
+    //                          | explicit_sign + one_of('.') + dot_subsequent + many(subsequent)
+    //                          | one_of('.') + dot_subsequent + many(subsequent);
 
-    auto identifier = initial + many(subsequent)
-                    | vertical_line + many(symbol_element) + vertical_line
-                    | peculiar_identifier;
+    // auto identifier = initial + many(subsequent)
+    //                 | vertical_line + many(symbol_element) + vertical_line
+    //                 | peculiar_identifier;
 
-    auto boolean = sequence("#true") | sequence("#t") | sequence("#false") | sequence("#f");
+    // auto boolean = sequence("#true") | sequence("#t") | sequence("#false") | sequence("#f");
 
     auto token = [](std::istream & is) //  = <identifier> | <boolean> | <number> | <character> | <string> | ( | ) | #( | #u8( | ’ | ` | , | ,@ | .
     {

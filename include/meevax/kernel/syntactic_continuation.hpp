@@ -26,12 +26,11 @@ namespace meevax
 {
 inline namespace kernel
 {
-  class syntactic_continuation
-    : public virtual pair
-    , public configurator <syntactic_continuation>
-    , public machine      <syntactic_continuation>
-    , public reader       <syntactic_continuation>
-    , public writer       <syntactic_continuation>
+  class syntactic_continuation : public virtual pair
+                               , public configurator<syntactic_continuation>
+                               , public machine     <syntactic_continuation>
+                               , public reader      <syntactic_continuation>
+                               , public writer      <syntactic_continuation>
   {
     /* ---- NOTE ---------------------------------------------------------------
      *
