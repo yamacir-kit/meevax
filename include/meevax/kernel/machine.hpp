@@ -48,7 +48,7 @@ inline namespace kernel
   protected:
     let s, // stack (holding intermediate results and return address)
         e, // environment (giving values to symbols)
-        c, // control (instructions yet to be executed)
+        c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
     /* ---- NOTE ---------------------------------------------------------------
@@ -381,7 +381,6 @@ inline namespace kernel
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
-          goto decode;
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
         *
@@ -394,7 +393,6 @@ inline namespace kernel
         {
           s = callee.as<procedure>().apply(cadr(s)) | cddr(s);
           c = cdr(c);
-          goto decode;
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
@@ -409,12 +407,12 @@ inline namespace kernel
           e =                callee.as<continuation>().e();
           c =                callee.as<continuation>().c();
           d =                callee.as<continuation>().d();
-          goto decode;
         }
         else
         {
           throw error(make<string>("not applicable"), callee);
         }
+        goto decode;
 
       case mnemonic::TAIL_CALL:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
@@ -429,7 +427,6 @@ inline namespace kernel
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
-          goto decode;
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
         *
@@ -442,7 +439,6 @@ inline namespace kernel
         {
           s = callee.as<procedure>().apply(cadr(s)) | cddr(s);
           c = cdr(c);
-          goto decode;
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
@@ -457,12 +453,12 @@ inline namespace kernel
           e =                callee.as<continuation>().e();
           c =                callee.as<continuation>().c();
           d =                callee.as<continuation>().d();
-          goto decode;
         }
         else
         {
           throw error(make<string>("not applicable"), callee);
         }
+        goto decode;
 
       case mnemonic::DUMMY: /* -------------------------------------------------
         *

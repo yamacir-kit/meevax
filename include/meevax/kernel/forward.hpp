@@ -42,7 +42,9 @@ inline namespace kernel
   template <template <typename...> typename Pointer, typename T>
   class heterogeneous;
 
-  using let = heterogeneous<cell, pair>;
+  using object = heterogeneous<cell, pair>;
+
+  using let = object;
 
   using null = std::nullptr_t;
 

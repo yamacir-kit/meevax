@@ -22,7 +22,7 @@ namespace meevax
 inline namespace kernel
 {
   syntax::syntax(std::string const& name, transformer const& transform)
-    : name { name }
+    : description { name }
     , transform { transform  }
   {}
 

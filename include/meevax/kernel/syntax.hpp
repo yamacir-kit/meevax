@@ -19,6 +19,7 @@
 
 #include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/syntactic_context.hpp>
+#include <meevax/utility/description.hpp>
 
 #define SYNTAX(NAME)                                                           \
   auto NAME(                                                                   \
@@ -34,13 +35,11 @@ inline namespace kernel
 {
   class syntactic_continuation;
 
-  struct syntax
+  struct syntax : public description
   {
     using signature = SYNTAX((*));
 
     using transformer = std::function<SYNTAX()>;
-
-    std::string const name;
 
     transformer transform;
 

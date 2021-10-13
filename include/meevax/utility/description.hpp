@@ -14,30 +14,21 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_PAIR_HPP
-#define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
+#ifndef INCLUDED_MEEVAX_UTILITY_DESCRIPTION_HPP
+#define INCLUDED_MEEVAX_UTILITY_DESCRIPTION_HPP
 
-#include <meevax/kernel/object.hpp>
+#include <string>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  let extern const unit;
-
-  struct pair
-    : public std::array<object, 2>
-    , public top<pair>
+  struct description
   {
-    explicit pair(const_reference a = unit, const_reference b = unit)
-      : std::array<object, 2> { a, b }
-    {}
-
-    virtual ~pair() = default;
+    std::string const name;
   };
-
-  auto operator <<(std::ostream &, pair const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_PAIR_HPP
+
+#endif // INCLUDED_MEEVAX_UTILITY_DESCRIPTION_HPP

@@ -47,7 +47,7 @@ namespace meevax
 
     define<procedure>("eqv?", [](let const& xs) // TODO Rename to value=?
     {
-      return ::meevax::eqv(car(xs), cadr(xs)) ? t : f;
+      return eqv(car(xs), cadr(xs)) ? t : f;
     });
 
     /* -------------------------------------------------------------------------
@@ -474,6 +474,19 @@ namespace meevax
     define<procedure>("cadr", [](let const& xs) { return cadr(car(xs)); });
     define<procedure>("cdar", [](let const& xs) { return cdar(car(xs)); });
     define<procedure>("cddr", [](let const& xs) { return cddr(car(xs)); });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (null? obj)                                                   procedure
+     *
+     *  Returns #t if obj is the empty list, otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("null?", [](let const& xs)
+    {
+      return car(xs).is<null>() ? t : f;
+    });
 
     /* -------------------------------------------------------------------------
      *
@@ -1465,7 +1478,7 @@ namespace meevax
      *
      * --------------------------------------------------------------------- */
 
-    define<procedure>("%write-char", [](let const& xs)
+    define<procedure>("put-char", [](let const& xs)
     {
       cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
       return unspecified;
@@ -1483,7 +1496,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%write-string", [](let const& xs)
+    define<procedure>("put-string", [](let const& xs)
     {
       switch (length(xs))
       {
