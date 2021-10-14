@@ -179,11 +179,15 @@ inline namespace kernel
       return configure({ argv + 1, argv + argc });
     }
 
-    void configure(std::vector<std::string> const& args)
+    auto configure(std::vector<std::string> const& args) -> void
     {
       static std::regex const pattern { R"(--(\w[-\w]+)(=(.*))?|-([\w]+))" };
 
-      for (auto current_option = std::begin(args); current_option != std::end(args); ++current_option) [&]()
+      if (std::empty(args))
+      {
+        interactive = t;
+      }
+      else for (auto current_option = std::begin(args); current_option != std::end(args); ++current_option) [&]()
       {
         std::smatch analysis {};
 
@@ -214,7 +218,7 @@ inline namespace kernel
               }
               else
               {
-                throw error(make<string>(string_append("option -", name, " requires an argument")), unit);
+                throw error(make<string>(string_append("option -", name, " requires an argument")));
               }
             }
             else if (auto iter = short_options.find(*current_short_option); iter != std::end(short_options))
@@ -223,7 +227,7 @@ inline namespace kernel
             }
             else
             {
-              throw error(make<string>(string_append("unknown short-option -", *current_short_option)), unit);
+              throw error(make<string>(string_append("unknown short-option -", *current_short_option)));
             }
           }
         }
@@ -241,7 +245,7 @@ inline namespace kernel
             }
             else
             {
-              throw error(make<string>(string_append("option --", current_long_option, " requires an argument")), unit);
+              throw error(make<string>(string_append("option --", current_long_option, " requires an argument")));
             }
           }
           else if (auto iter = long_options.find(current_long_option); iter != std::end(long_options))
@@ -250,7 +254,7 @@ inline namespace kernel
           }
           else
           {
-            throw error(make<string>(string_append("unknown long-option: ", *current_option)), unit);
+            throw error(make<string>(string_append("unknown long-option: ", *current_option)));
           }
         }
         else
@@ -289,7 +293,7 @@ inline namespace kernel
       print("   limitations under the License.");
     }
 
-    void display_help() const
+    auto display_help() const -> void
     {
       display_version();
       print();
@@ -313,7 +317,8 @@ inline namespace kernel
     auto is_##NAME##_mode() const -> bool                                      \
     {                                                                          \
       return if_(NAME);                                                        \
-    } static_assert(true)
+    }                                                                          \
+    static_assert(true)
 
     BOILERPLATE(batch);
     BOILERPLATE(debug);
