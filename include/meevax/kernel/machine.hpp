@@ -1073,32 +1073,6 @@ inline namespace kernel
       }
     }
 
-    static SYNTAX(lvalue) // XXX DEPRECATED
-    {
-      if (expression.is<null>())
-      {
-        return unit;
-      }
-      else if (auto variable = de_bruijn_index(car(expression), frames); variable.is_bound())
-      {
-        if (variable.is_variadic)
-        {
-          return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable.index,
-                      continuation);
-        }
-        else
-        {
-          return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable.index,
-                      continuation);
-        }
-      }
-      else
-      {
-        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), current_syntactic_continuation.locate(car(expression)),
-                    continuation);
-      }
-    }
-
     static SYNTAX(construction)
     {
       return compile(syntactic_context::none,

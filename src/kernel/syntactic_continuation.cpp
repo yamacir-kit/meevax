@@ -186,9 +186,6 @@ inline namespace kernel
       return f;
     });
 
-    define<syntax>("export", exportation); // XXX DEPRECATED
-    define<syntax>("import", importation); // XXX DEPRECATED
-
     define<procedure>("set-batch!",       [this](let const& xs) { return batch       = car(xs); });
     define<procedure>("set-debug!",       [this](let const& xs) { return debug       = car(xs); });
     define<procedure>("set-interactive!", [this](let const& xs) { return interactive = car(xs); });

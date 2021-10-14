@@ -44,8 +44,6 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     using pair::pair;
 
-    static inline std::unordered_map<std::string, value_type> external_symbols; // TODO REMOVE
-
   public:
     let datum = unit;
 
@@ -114,63 +112,6 @@ inline namespace kernel
     auto lookup(const_reference) const -> const_reference;
 
     auto macroexpand(const_reference, const_reference) -> value_type;
-
-  private:
-    static SYNTAX(exportation)
-    {
-      auto exportation = [](let const& xs)
-      {
-        for (auto const& each : xs)
-        {
-          std::cerr << ";\t\t; staging " << each << std::endl;
-          external_symbols.emplace(lexical_cast<std::string>(each), each);
-        }
-
-        // std::cerr << ";\t\t; exported identifiers are" << std::endl;
-        //
-        // for ([[maybe_unused]] const auto& [key, value] : external_symbols)
-        // {
-        //   std::cerr << ";\t\t;   " << value << std::endl;
-        // }
-
-        return unspecified;
-      };
-
-      return cons(make<instruction>(mnemonic::LOAD_CONSTANT), expression,
-                  make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("exportation", exportation),
-                  make<instruction>(mnemonic::CALL),
-                  continuation);
-    }
-
-    static SYNTAX(importation)
-    {
-      auto importation = [&](let const& xs)
-      {
-        assert(xs.is<syntactic_continuation>());
-
-        if (xs.as<syntactic_continuation>().external_symbols.empty())
-        {
-          std::cerr << "; import\t; " << xs << " is virgin => expand" << std::endl;
-          xs.as<syntactic_continuation>().macroexpand(xs, cons(xs, unit));
-        }
-
-        // for ([[maybe_unused]] const auto& [key, value] : xs.as<syntactic_continuation>().external_symbols)
-        // {
-        //   std::cerr << ";\t\t; importing " << value << std::endl;
-        // }
-
-        return unspecified;
-      };
-
-      // XXX DIRTY HACK
-      return lvalue(syntactic_context::none,
-                    current_syntactic_continuation,
-                    expression,
-                    frames,
-                    cons(make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
-                         make<instruction>(mnemonic::CALL),
-                         continuation));
-    }
   };
 
   using environment = syntactic_continuation;
