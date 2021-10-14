@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_TYPE_TRAITS_DELAY_HPP
 #define INCLUDED_MEEVAX_TYPE_TRAITS_DELAY_HPP
 
-#include <meevax/kernel/forward.hpp>
+#include <meevax/kernel/overview.hpp>
 #include <meevax/utility/demangle.hpp>
 
 namespace meevax
