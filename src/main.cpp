@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <meevax/standard.hpp>
+#include <meevax/library/standard.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int
 {

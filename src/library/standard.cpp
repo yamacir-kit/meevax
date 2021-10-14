@@ -16,7 +16,7 @@
 
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/basis.hpp>
-#include <meevax/standard.hpp>
+#include <meevax/library/standard.hpp>
 
 namespace meevax
 {
