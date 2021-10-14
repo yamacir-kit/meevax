@@ -232,10 +232,6 @@ inline namespace kernel
     {
       return load(x.as<string>());
     }
-    else if (x.is<path>())
-    {
-      return load(x.as<path>());
-    }
     else
     {
       throw file_error(make<string>(string_append(__FILE__, ":", __LINE__, ":", __func__)), unit);

@@ -658,7 +658,6 @@
 (define (display datum . port)
   (cond ((char?   datum) (apply write-char    datum port))
         ((string? datum) (apply write-string  datum port))
-        ((path?   datum) (apply write-path    datum port))
         (else            (apply write         datum port))))
 
 (define (newline . port)

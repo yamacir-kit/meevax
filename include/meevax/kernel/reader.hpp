@@ -392,11 +392,6 @@ inline namespace kernel
           case 'o':
             return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 8);
 
-          case 'p':
-            assert(is.get() == '"');
-            is.ignore(1);
-            return make<path>(string(is));
-
           case 't':
             parse::token(is);
             return t;

@@ -1882,14 +1882,6 @@ namespace meevax
   template <>
   auto syntactic_continuation::import(standard::experimental_t) -> void
   {
-    define<procedure>("path?", is<path>());
-
-    define<procedure>("%write-path", [](let const& xs)
-    {
-      cadr(xs).as<std::ostream>() << car(xs).as<path>().c_str();
-      return unspecified;
-    });
-
     /* -------------------------------------------------------------------------
      *
      *  (identifier? syntax-object)                                   procedure

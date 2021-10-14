@@ -21,7 +21,6 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
-#include <meevax/kernel/path.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
@@ -39,6 +38,13 @@ inline namespace kernel
     IMPORT(EnvironmentSpecifier, print, const);
     IMPORT(EnvironmentSpecifier, read, NIL);
 
+    template <typename Key>
+    using dispatcher = std::unordered_map<Key, procedure::applicable>;
+
+    const dispatcher<char> short_options, short_options_with_arguments;
+
+    const dispatcher<std::string> long_options, long_options_with_arguments;
+
   protected:
     let batch       = f;
     let debug       = f;
@@ -47,13 +53,6 @@ inline namespace kernel
     let verbose     = f;
 
     let prompt = make<string>(u8"λ> ");
-
-    template <typename Key>
-    using dispatcher = std::unordered_map<Key, procedure::applicable>;
-
-    const dispatcher<char> short_options, short_options_with_arguments;
-
-    const dispatcher<std::string> long_options, long_options_with_arguments;
 
   public:
     explicit configurator()

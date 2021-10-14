@@ -80,7 +80,7 @@ inline namespace kernel
 
   // auto install_prefix() -> pair::const_reference
   // {
-  //   let static const prefix = make<path>("${CMAKE_INSTALL_PREFIX}");
+  //   let static const prefix = make<string>("${CMAKE_INSTALL_PREFIX}");
   //
   //   return prefix;
   // }

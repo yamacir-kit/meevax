@@ -20,7 +20,6 @@
 #include <fstream>
 
 #include <meevax/kernel/pair.hpp>
-#include <meevax/kernel/path.hpp>
 #include <meevax/utility/description.hpp>
 
 namespace meevax

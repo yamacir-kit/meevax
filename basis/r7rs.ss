@@ -368,11 +368,6 @@ parameterize ; is defined in srfi-39.ss
 ; TODO open-output-bytevector
 ; TODO get-output-bytevector
 
-(define (write-path path . x)
-  (%write-path path (if (pair? x)
-                        (car x)
-                        (current-output-port))))
-
 ; TODO write-u8
 ; TODO write-bytevector
 
