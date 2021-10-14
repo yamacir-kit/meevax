@@ -52,9 +52,9 @@ else()
   set(${PROJECT_NAME}_BYTE_ORDER "little-endian")
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp
-                 ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/version.hpp)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 endif()
 
 # ---- Convert Basis-Library Sources to Binary ---------------------------------

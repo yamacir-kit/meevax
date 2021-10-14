@@ -1,3 +1,2 @@
-benchmark/gmon.*
 build
-include/meevax/kernel/version.hpp
+src/kernel/version.cpp
