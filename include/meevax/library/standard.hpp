@@ -38,7 +38,7 @@ namespace meevax
   // DEFINE_LIBRARY(case_lambda);
   DEFINE_LIBRARY(character);
   // DEFINE_LIBRARY(complex);
-  // DEFINE_LIBRARY(cxr);
+  DEFINE_LIBRARY(cxr);
   DEFINE_LIBRARY(evaluate);
   // DEFINE_LIBRARY(file);
   DEFINE_LIBRARY(inexact);

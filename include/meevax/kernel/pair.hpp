@@ -26,11 +26,11 @@ inline namespace kernel
   let extern const unit;
 
   struct pair
-    : public std::array<let, 2>
+    : public std::array<object, 2>
     , public top<pair>
   {
     explicit pair(const_reference a = unit, const_reference b = unit)
-      : std::array<let, 2> { a, b }
+      : std::array<object, 2> { a, b }
     {}
 
     virtual ~pair() = default;

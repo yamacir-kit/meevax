@@ -47,7 +47,7 @@ inline namespace kernel
 
       ~binder() override = default;
 
-      auto eqv(heterogeneous const& x) const -> bool override
+      auto compare(heterogeneous const& x) const -> bool override
       {
         if constexpr (is_equality_comparable<Bound>::value)
         {
@@ -76,9 +76,9 @@ inline namespace kernel
         return typeid(Bound);
       }
 
-      auto write_to(std::ostream & os) const -> std::ostream & override
+      auto write(std::ostream & os) const -> std::ostream & override
       {
-        return delay<write>().yield<decltype(os)>(os, static_cast<Bound const&>(*this));
+        return delay<write_t>().yield<decltype(os)>(os, static_cast<Bound const&>(*this));
       }
 
       #define BOILERPLATE(SYMBOL, RESULT, FUNCTION)                            \
@@ -149,6 +149,8 @@ inline namespace kernel
 
   public:
     using Pointer<Top>::Pointer;
+    using Pointer<Top>::get;
+    using Pointer<Top>::load;
 
     template <typename Bound, typename... Ts, REQUIRES(std::is_compound<Bound>)>
     static auto allocate(Ts&&... xs)
@@ -166,21 +168,27 @@ inline namespace kernel
     template <typename U>
     inline auto as() const -> U &
     {
-      if (pointer<U> data = dynamic_cast<pointer<U>>(Pointer<Top>::get()); data)
+      if (auto data = dynamic_cast<pointer<U>>(get()); data)
       {
         return *data;
       }
       else
       {
         std::stringstream ss {};
-        ss << "no viable conversion from " << demangle(Pointer<Top>::load().type()) << " to " << demangle(typeid(U));
+        ss << "no viable conversion from " << demangle(type()) << " to " << demangle(typeid(U));
         raise(ss.str());
       }
     }
 
-    inline auto eqv(heterogeneous const& rhs) const -> bool
+    template <typename U>
+    inline auto as_const() const -> U const&
     {
-      return type() == rhs.type() and Pointer<Top>::load().eqv(rhs);
+      return as<const U>();
+    }
+
+    inline auto compare(heterogeneous const& rhs) const -> bool
+    {
+      return type() == rhs.type() and load().compare(rhs);
     }
 
     template <typename U>
@@ -199,17 +207,17 @@ inline namespace kernel
     template <typename U>
     inline auto is_also() const
     {
-      return dynamic_cast<pointer<U>>(Pointer<Top>::get()) != nullptr;
+      return dynamic_cast<pointer<U>>(get()) != nullptr;
     }
 
     inline auto is_nan() const
     {
-      return not is<null>() and Pointer<Top>::load().is_nan();
+      return not is<null>() and load().is_nan();
     }
 
     inline auto type() const -> std::type_info const&
     {
-      return *this ? Pointer<Top>::load().type() : typeid(null);
+      return *this ? load().type() : typeid(null);
     }
 
     #define DEFINE(NAME)                                                       \
@@ -218,7 +226,7 @@ inline namespace kernel
     {                                                                          \
       if (not is<null>())                                                      \
       {                                                                        \
-        return Pointer<Top>::load().NAME(std::forward<decltype(xs)>(xs)...);   \
+        return load().NAME(std::forward<decltype(xs)>(xs)...);                 \
       }                                                                        \
       else                                                                     \
       {                                                                        \
@@ -250,7 +258,7 @@ inline namespace kernel
   template <template <typename...> typename Pointer, typename Top>
   auto operator <<(std::ostream & os, heterogeneous<Pointer, Top> const& datum) -> std::ostream &
   {
-    return (datum.template is<null>() ? os << magenta << "()" : datum.load().write_to(os)) << reset;
+    return (datum.template is<null>() ? os << magenta << "()" : datum.load().write(os)) << reset;
   }
 
   #define BOILERPLATE(SYMBOL)                                                  \

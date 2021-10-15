@@ -24,7 +24,7 @@ namespace meevax
 {
 inline namespace functional
 {
-  auto compose = [](auto&& f, auto&& g)
+  auto compose = [](auto&& f, auto&& g) constexpr
   {
     return [fs = std::forward_as_tuple(f, g)](auto&&... xs) constexpr -> decltype(auto)
     {

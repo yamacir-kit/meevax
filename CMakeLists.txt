@@ -52,9 +52,9 @@ else()
   set(${PROJECT_NAME}_BYTE_ORDER "little-endian")
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp
-                 ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/version.hpp)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 endif()
 
 # ---- Convert Basis-Library Sources to Binary ---------------------------------
@@ -84,8 +84,7 @@ add_library(kernel SHARED "")
 
 add_library(${PROJECT_NAME}::kernel ALIAS kernel)
 
-file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp
-                                                 ${CMAKE_CURRENT_SOURCE_DIR}/src/standard.cpp)
+file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
 target_sources(kernel PRIVATE ${${PROJECT_NAME}_BASIS}
                       PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})

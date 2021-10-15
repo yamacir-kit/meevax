@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
-#define INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
+#define INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
 
 #include <meevax/functional/identity.hpp>
 #include <meevax/memory/cell.hpp>
@@ -42,7 +42,9 @@ inline namespace kernel
   template <template <typename...> typename Pointer, typename T>
   class heterogeneous;
 
-  using let = heterogeneous<cell, pair>;
+  using object = heterogeneous<cell, pair>;
+
+  using let = object;
 
   using null = std::nullptr_t;
 
@@ -54,4 +56,4 @@ inline namespace kernel
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP

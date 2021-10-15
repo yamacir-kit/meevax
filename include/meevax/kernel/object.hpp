@@ -33,7 +33,7 @@ inline namespace kernel
       return typeid(T);
     }
 
-    virtual auto eqv(let const& x) const -> bool
+    virtual auto compare(let const& x) const -> bool
     {
       if constexpr (is_equality_comparable<T>::value)
       {
@@ -43,7 +43,7 @@ inline namespace kernel
         }
         else
         {
-          return std::is_same<T, std::nullptr_t>::value;
+          return std::is_same<T, null>::value;
         }
       }
       else
@@ -57,9 +57,9 @@ inline namespace kernel
       return delay<is_nan_t>().yield<bool>(static_cast<T const&>(*this));
     }
 
-    virtual auto write_to(std::ostream & os) const -> std::ostream &
+    virtual auto write(std::ostream & os) const -> std::ostream &
     {
-      return delay<write>().yield<std::ostream &>(os, static_cast<T const&>(*this));
+      return delay<write_t>().yield<std::ostream &>(os, static_cast<T const&>(*this));
     }
 
     #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                               \

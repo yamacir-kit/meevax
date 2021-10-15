@@ -35,60 +35,60 @@ inline namespace kernel
 {
   namespace parse
   {
-    using meevax::iostream::operator *;
-    using meevax::iostream::operator +;
+    // using meevax::iostream::operator *;
+    // using meevax::iostream::operator +;
     using meevax::iostream::operator |;
 
-    auto intraline_whitespace = satisfy([](auto c) { return std::isblank(c); });
+    // auto intraline_whitespace = satisfy([](auto c) { return std::isblank(c); });
 
-    auto line_ending = sequence("\r\n") | one_of('\n', '\r');
+    // auto line_ending = sequence("\r\n") | one_of('\n', '\r');
 
-    auto whitespace = intraline_whitespace | line_ending;
+    // auto whitespace = intraline_whitespace | line_ending;
 
-    auto vertical_line = one_of('|');
+    // auto vertical_line = one_of('|');
 
-    auto delimiter = whitespace | vertical_line | one_of('(', ')', '"', ';');
+    // auto delimiter = whitespace | vertical_line | one_of('(', ')', '"', ';');
 
-    auto letter = satisfy([](auto c) { return std::isalpha(c); });
+    // auto letter = satisfy([](auto c) { return std::isalpha(c); });
 
-    auto special_initial = one_of('!', '$', '%', '&', '*', '/', ':', '<', '=', '>', '?', '^', '_', '~');
+    // auto special_initial = one_of('!', '$', '%', '&', '*', '/', ':', '<', '=', '>', '?', '^', '_', '~');
 
-    auto initial = letter | special_initial;
+    // auto initial = letter | special_initial;
 
-    auto digit = satisfy([](auto c) { return std::isdigit(c); });
+    // auto digit = satisfy([](auto c) { return std::isdigit(c); });
 
-    auto hex_digit = satisfy([](auto c) { return std::isxdigit(c); });
+    // auto hex_digit = satisfy([](auto c) { return std::isxdigit(c); });
 
-    auto explicit_sign = one_of('+', '-');
+    // auto explicit_sign = one_of('+', '-');
 
-    auto special_subsequent = explicit_sign | one_of('.', '@');
+    // auto special_subsequent = explicit_sign | one_of('.', '@');
 
-    auto subsequent = initial | digit | special_subsequent;
+    // auto subsequent = initial | digit | special_subsequent;
 
-    auto inline_hex_escape = sequence("\\x") + hex_digit + many(hex_digit);
+    // auto inline_hex_escape = sequence("\\x") + hex_digit + many(hex_digit);
 
     // TODO auto any_character_other_than_vertical_line_or_backslash
 
-    auto symbol_element = letter;
-                        //   any_character_other_than_vertical_line_or_backslash
-                        // | inline_hex_escape
-                        // | mnemonic_escape
-                        // | s("\\|")
+    // auto symbol_element = letter;
+    //                     //   any_character_other_than_vertical_line_or_backslash
+    //                     // | inline_hex_escape
+    //                     // | mnemonic_escape
+    //                     // | s("\\|")
 
-    auto sign_subsequent = initial | explicit_sign | one_of('@');
+    // auto sign_subsequent = initial | explicit_sign | one_of('@');
 
-    auto dot_subsequent = sign_subsequent | one_of('.');
+    // auto dot_subsequent = sign_subsequent | one_of('.');
 
-    auto peculiar_identifier = explicit_sign
-                             | explicit_sign + sign_subsequent + many(subsequent)
-                             | explicit_sign + one_of('.') + dot_subsequent + many(subsequent)
-                             | one_of('.') + dot_subsequent + many(subsequent);
+    // auto peculiar_identifier = explicit_sign
+    //                          | explicit_sign + sign_subsequent + many(subsequent)
+    //                          | explicit_sign + one_of('.') + dot_subsequent + many(subsequent)
+    //                          | one_of('.') + dot_subsequent + many(subsequent);
 
-    auto identifier = initial + many(subsequent)
-                    | vertical_line + many(symbol_element) + vertical_line
-                    | peculiar_identifier;
+    // auto identifier = initial + many(subsequent)
+    //                 | vertical_line + many(symbol_element) + vertical_line
+    //                 | peculiar_identifier;
 
-    auto boolean = sequence("#true") | sequence("#t") | sequence("#false") | sequence("#f");
+    // auto boolean = sequence("#true") | sequence("#t") | sequence("#false") | sequence("#f");
 
     auto token = [](std::istream & is) //  = <identifier> | <boolean> | <number> | <character> | <string> | ( | ) | #( | #u8( | ’ | ` | , | ,@ | .
     {
@@ -240,17 +240,17 @@ inline namespace kernel
     auto number = complex;
   } // namespace string_to
 
-  template <typename Module>
+  template <typename EnvironmentSpecifier>
   class reader
   {
-    friend Module;
+    friend EnvironmentSpecifier;
 
     explicit reader()
     {}
 
-    IMPORT(Module, evaluate,            NIL);
-    IMPORT(Module, standard_debug_port, NIL);
-    IMPORT(Module, write_to,            NIL);
+    IMPORT(EnvironmentSpecifier, evaluate,   NIL);
+    IMPORT(EnvironmentSpecifier, debug_port, NIL);
+    IMPORT(EnvironmentSpecifier, write,      NIL);
 
     using char_type = typename std::istream::char_type;
 
@@ -259,7 +259,7 @@ inline namespace kernel
 
     inline auto char_ready() const
     {
-      return default_input_port.is_also<std::istream>() and default_input_port.as<std::istream>();
+      return standard_input.is_also<std::istream>() and standard_input.as<std::istream>();
     }
 
     static auto intern(std::string const& name) -> pair::const_reference
@@ -392,11 +392,6 @@ inline namespace kernel
           case 'o':
             return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 8);
 
-          case 'p':
-            assert(is.get() == '"');
-            is.ignore(1);
-            return make<path>(string(is));
-
           case 't':
             parse::token(is);
             return t;
@@ -453,9 +448,9 @@ inline namespace kernel
 
     inline auto read() -> pair::value_type
     {
-      let const result = read(default_input_port);
+      let const result = read(standard_input);
 
-      write_to(standard_debug_port(), "\n", header(__func__), result, "\n");
+      write(debug_port(), header(__func__), result, "\n");
 
       return result;
     }

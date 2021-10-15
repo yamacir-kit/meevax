@@ -32,13 +32,6 @@
     (lambda form
       (transform form (current-evaluator) free-identifier=?))))
 
-(define (null? x) (eqv? x '()))
-
-(define (caar x) (car (car x)))
-(define (cadr x) (car (cdr x)))
-(define (cdar x) (cdr (car x)))
-(define (cddr x) (cdr (cdr x)))
-
 (define (unspecified) (if #f #f))
 
 (define-syntax (cond . clauses)
@@ -149,27 +142,24 @@
 (define-syntax (unless test . body) `(,if (,not ,test) (,begin ,@body))) ; TODO MOVE INTO (scheme base)
 
 (define (map f x . xs) ; map-unorder
-    (define (map-1 f x xs)
-      (if (pair? x)
-          (map-1 f
-                 (cdr x)
-                 (cons (f (car x)) xs))
-          (reverse xs)))
-
-    (define (map-2+ f xs xss)
-      (if (every pair? xs)
-          (map-2+ f
-                  (map-1 cdr xs '())
-                  (cons (apply f (map-1 car xs '())) xss))
-          (reverse xss)))
-
-    (if (null? xs)
-        (map-1  f       x     '())
-        (map-2+ f (cons x xs) '())))
+  (define (map-1 f x xs)
+    (if (pair? x)
+        (map-1 f
+               (cdr x)
+               (cons (f (car x)) xs))
+        (reverse xs)))
+  (define (map-2+ f xs xss)
+    (if (every pair? xs)
+        (map-2+ f
+                (map-1 cdr xs '())
+                (cons (apply f (map-1 car xs '())) xss))
+        (reverse xss)))
+  (if (null? xs)
+      (map-1  f       x     '())
+      (map-2+ f (cons x xs) '())))
 
 (define (apply f x . xs) ; for map
   (define (apply-1 f xs) (f . xs))
-
   (if (null? xs)
       (apply-1 f x)
       ((lambda (rxs)
@@ -185,7 +175,6 @@
         (if (f (car x))
             (every-1 f (cdr x))
             #f)))
-
   (if (null? xs)
       (if (pair? x)
           (every-1 f x)
@@ -202,14 +191,12 @@
            (if result result (any-1 f (cdr x))))
          (f (car x)))
         (f (car x))))
-
   (define (any-2+ f xs)
     (if (every pair? xs)
         ((lambda (result)
            (if result result (any-2+ f (map cdr xs))))
          (apply f (map car xs)))
         #f))
-
   (if (null? xs)
       (if (pair? x)
           (any-1 f x)
@@ -589,6 +576,8 @@
                                                     (windup! %current-dynamic-extents current-dynamic-extents)
                                                     (k1 k2)))))))
 
+(define call/cc call-with-current-continuation)
+
 ; (define values
 ;   (lambda xs
 ;     (call-with-current-continuation
@@ -651,44 +640,9 @@
 (define (call-with-output-file path procedure)
   (call-with-port (open-output-file path) procedure))
 
-(define (standard-input-port? x)
-  (eq? x (standard-input-port)))
-
-(define (standard-output-port? x)
-  (eq? x (standard-output-port)))
-
-(define (standard-error-port? x)
-  (eq? x (standard-error-port)))
-
-(define (standard-port? x)
-  (or (standard-input-port? x)
-      (standard-output-port? x)
-      (standard-error-port? x)))
-
-(define (input-port? x)
-  (or (input-file-port? x)
-      (input-string-port? x)
-      (standard-input-port? x)))
-
-(define (output-port? x)
-  (or (output-file-port? x)
-      (output-string-port? x)
-      (standard-output-port? x)
-      (standard-error-port? x)))
-
 (define (close-port x)
   (cond ((input-port? x) (close-input-port x))
         ((output-port? x) (close-output-port x))
-        (else (unspecified))))
-
-(define (close-input-port x)
-  (cond ((input-file-port? x)
-         (close-input-file-port x))
-        (else (unspecified))))
-
-(define (close-output-port x)
-  (cond ((output-file-port? x)
-         (close-output-file-port x))
         (else (unspecified))))
 
 (define (read        . x) (%read        (if (pair? x) (car x) (current-input-port))))
@@ -697,14 +651,13 @@
 (define (char-ready? . x) (%char-ready? (if (pair? x) (car x) (current-input-port))))
 
 (define (write-simple x . port) (%write-simple x (if (pair? port) (car port) (current-output-port))))
-(define (write-char   x . port) (%write-char   x (if (pair? port) (car port) (current-output-port))))
+(define (write-char   x . port) (put-char      x (if (pair? port) (car port) (current-output-port))))
 
 (define write write-simple)
 
 (define (display datum . port)
   (cond ((char?   datum) (apply write-char    datum port))
         ((string? datum) (apply write-string  datum port))
-        ((path?   datum) (apply write-path    datum port))
         (else            (apply write         datum port))))
 
 (define (newline . port)
@@ -712,9 +665,9 @@
 
 (define (write-string string . xs)
   (case (length xs)
-    ((0)  (%write-string string (current-output-port)))
-    ((1)  (%write-string string (car xs)))
-    (else (%write-string (apply string-copy string (cadr xs)) (car xs)))))
+    ((0)  (put-string string (current-output-port)))
+    ((1)  (put-string string (car xs)))
+    (else (put-string (apply string-copy string (cadr xs)) (car xs)))))
 
 (define (flush-output-port . port)
   (%flush-output-port (if (pair? port)

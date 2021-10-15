@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_TYPE_TRAITS_DELAY_HPP
 #define INCLUDED_MEEVAX_TYPE_TRAITS_DELAY_HPP
 
-#include <meevax/kernel/forward.hpp>
+#include <meevax/kernel/overview.hpp>
 #include <meevax/utility/demangle.hpp>
 
 namespace meevax
@@ -120,18 +120,18 @@ inline namespace type_traits
     }
   };
 
-  struct write
+  struct write_t
   {
-    template <typename Port, typename... Ts>
-    constexpr auto operator ()(Port&& port, Ts&&... xs) const -> decltype(auto)
+    template <typename T, typename... Ts>
+    constexpr auto operator ()(T&& x, Ts&&... xs) const -> T &
     {
-      return (port << ... << xs);
+      return (x << ... << xs);
     }
 
-    template <typename Port>
-    decltype(auto) operator ()(Port&& port, std::string const& datum) const
+    template <typename T>
+    auto operator ()(T&& x, std::string const& datum) const -> T &
     {
-      return port << "#" << std::quoted(datum);
+      return x << "#" << std::quoted(datum);
     }
   };
 } // namespace type_traits

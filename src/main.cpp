@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <meevax/standard.hpp>
+#include <meevax/library/standard.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int
 {
@@ -24,6 +24,7 @@ auto main(int const argc, char const* const* const argv) -> int
   {
     auto main = environment(standard::base,
                             standard::character,
+                            standard::cxr,
                             standard::evaluate,
                             standard::inexact,
                             standard::load,
@@ -37,8 +38,8 @@ auto main(int const argc, char const* const* const argv) -> int
 
     while (main.is_interactive_mode() and main.char_ready())
     {
-      main.write_to(main.standard_interaction_port(), main.current_prompt());
-      main.write_to(main.standard_interaction_port(), main.evaluate(main.read()), "\n");
+      main.write(standard_output, main.current_prompt());
+      main.write(standard_output, main.evaluate(main.read()), "\n");
     }
 
     return underlying_cast(exit_status::success);

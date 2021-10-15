@@ -25,83 +25,56 @@ namespace meevax
 {
 inline namespace kernel
 {
-  let const default_input_port = make<standard_input_port>();
+  #define DEFINE(NAME, STDIO)                                                  \
+  standard_##NAME##_port::standard_##NAME##_port()                             \
+  {                                                                            \
+    copyfmt(STDIO);                                                            \
+    clear(STDIO.rdstate());                                                    \
+    rdbuf(STDIO.rdbuf());                                                      \
+  }                                                                            \
+                                                                               \
+  auto operator <<(std::ostream & os, standard_##NAME##_port const&) -> std::ostream & \
+  {                                                                            \
+    return os << magenta << "#,(" << reset << "standard-" #NAME "-port" << magenta << ")" << reset; \
+  }                                                                            \
+                                                                               \
+  let const standard_##NAME = make<standard_##NAME##_port>()
 
-  let const default_output_port = make<standard_output_port>();
+  DEFINE(input,  std:: cin);
+  DEFINE(output, std::cout);
+  DEFINE(error,  std::cerr);
 
-  let const default_error_port = make<standard_error_port>();
+  #undef DEFINE
 
-  void copy_ios(std::ios & from, std::ios & to)
-  {
-    to.copyfmt(from);
-    to.clear(from.rdstate());
-    to.rdbuf(from.rdbuf());
-  }
-
-  standard_input_port::standard_input_port()
-  {
-    copy_ios(std::cin, *this);
-  }
-
-  auto operator <<(std::ostream & os, standard_input_port const&) -> std::ostream &
-  {
-    return os << magenta << "#,(" << reset << "standard-input-port" << magenta << ")" << reset;
-  }
-
-  standard_output_port::standard_output_port()
-  {
-    copy_ios(std::cout, *this);
-  }
-
-  auto operator <<(std::ostream & os, standard_output_port const&) -> std::ostream &
-  {
-    return os << magenta << "#,(" << reset << "standard-output-port" << magenta << ")" << reset;
-  }
-
-  standard_error_port::standard_error_port()
-  {
-    copy_ios(std::cerr, *this);
-  }
-
-  auto operator <<(std::ostream & os, standard_error_port const&) -> std::ostream &
-  {
-    return os << magenta << "#,(" << reset << "standard-error-port" << magenta << ")" << reset;
-  }
-
-  #define BOILERPLATE(TYPENAME, PORTTYPE)                                      \
+  #define DEFINE(TYPENAME, FILE_STREAM, NAME)                                  \
+  TYPENAME::TYPENAME(std::string const& name)                                  \
+    : description { name }                                                     \
+    , FILE_STREAM { name }                                                     \
+  {}                                                                           \
+                                                                               \
   auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
   {                                                                            \
-    os << magenta << "#,(" << green << "open-" PORTTYPE << " " << datum.name << reset; \
-                                                                               \
-    if (not datum.is_open())                                                   \
-    {                                                                          \
-      os << faint << " #;closed" << reset;                                     \
-    }                                                                          \
-                                                                               \
-    return os << magenta << ")" << reset;                                      \
-  } static_assert(true)
+    return os << magenta << "#,(" << green << "open-" NAME " " << datum.name << magenta << ")" << reset; \
+  }                                                                            \
+  static_assert(true)
 
-  BOILERPLATE( input_file_port,  "input-file");
-  BOILERPLATE(output_file_port, "output-file");
+  DEFINE(       file_port, std:: fstream,        "file");
+  DEFINE( input_file_port, std::ifstream,  "input-file");
+  DEFINE(output_file_port, std::ofstream, "outout-file");
 
-  #undef BOILERPLATE
+  #undef DEFINE
 
-  #define BOILERPLATE(TYPENAME, PORTTYPE)                                      \
+  #define DEFINE(TYPENAME, NAME)                                               \
   auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
   {                                                                            \
-    os << magenta << "#,(" << green << "open-" PORTTYPE;                       \
-                                                                               \
-    if (auto const s = datum.str(); not std::empty(s))                         \
-    {                                                                          \
-      os << " " << cyan << make<string>(s);                                    \
-    }                                                                          \
-                                                                               \
-    return os << magenta << ")" << reset;                                      \
-  } static_assert(true)
+    return os << magenta << "#,(" << green << "open-" NAME " " << string(datum.str()) << magenta << ")" << reset; \
+  }                                                                            \
+  static_assert(true)
 
-  BOILERPLATE( input_string_port,  "input-string");
-  BOILERPLATE(output_string_port, "output-string");
+  DEFINE(       string_port,        "string");
+  DEFINE( input_string_port,  "input-string");
+  DEFINE(output_string_port, "output-string");
 
-  #undef BOILERPLATE
+  #undef DEFINE
 } // namespace kernel
 } // namespace meevax

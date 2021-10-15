@@ -21,7 +21,6 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
-#include <meevax/kernel/path.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
@@ -29,17 +28,22 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename SK>
+  template <typename EnvironmentSpecifier>
   class configurator
   {
-    friend SK;
+    friend EnvironmentSpecifier;
 
-    IMPORT(SK, evaluate, NIL);
-    IMPORT(SK, load, NIL);
-    IMPORT(SK, newline, const);
-    IMPORT(SK, read, NIL);
-    IMPORT(SK, write, const);
-    IMPORT(SK, write_line, const);
+    IMPORT(EnvironmentSpecifier, evaluate, NIL);
+    IMPORT(EnvironmentSpecifier, load, NIL);
+    IMPORT(EnvironmentSpecifier, print, const);
+    IMPORT(EnvironmentSpecifier, read, NIL);
+
+    template <typename Key>
+    using dispatcher = std::unordered_map<Key, procedure::applicable>;
+
+    const dispatcher<char> short_options, short_options_with_arguments;
+
+    const dispatcher<std::string> long_options, long_options_with_arguments;
 
   protected:
     let batch       = f;
@@ -49,13 +53,6 @@ inline namespace kernel
     let verbose     = f;
 
     let prompt = make<string>(u8"λ> ");
-
-    template <typename Key>
-    using dispatcher = std::unordered_map<Key, procedure::applicable>;
-
-    const dispatcher<char> short_options, short_options_with_arguments;
-
-    const dispatcher<std::string> long_options, long_options_with_arguments;
 
   public:
     explicit configurator()
@@ -95,7 +92,7 @@ inline namespace kernel
         {
           std::make_pair('e', [this](pair::const_reference x)
           {
-            return write_line(evaluate(x)), unspecified;
+            return print(evaluate(x)), unspecified;
           }),
 
           std::make_pair('l', [this](pair::const_reference x)
@@ -105,7 +102,7 @@ inline namespace kernel
 
           std::make_pair('w', [this](pair::const_reference x)
           {
-            return write(x), unspecified;
+            return print(x), unspecified;
           }),
         }
 
@@ -146,7 +143,7 @@ inline namespace kernel
           std::make_pair("version", [this](auto&&...)
           {
             display_version();
-            newline();
+            print();
             display_license();
             throw exit_status::success;
             return unspecified;
@@ -157,7 +154,7 @@ inline namespace kernel
         {
           std::make_pair("evaluate", [this](pair::const_reference x)
           {
-            return write_line(evaluate(x)), unspecified;
+            return print(evaluate(x)), unspecified;
           }),
 
           std::make_pair("load", [this](pair::const_reference x)
@@ -172,7 +169,7 @@ inline namespace kernel
 
           std::make_pair("write", [this](pair::const_reference x)
           {
-            return write(x), unspecified;
+            return print(x), unspecified;
           }),
         }
     {}
@@ -182,11 +179,15 @@ inline namespace kernel
       return configure({ argv + 1, argv + argc });
     }
 
-    void configure(std::vector<std::string> const& args)
+    auto configure(std::vector<std::string> const& args) -> void
     {
       static std::regex const pattern { R"(--(\w[-\w]+)(=(.*))?|-([\w]+))" };
 
-      for (auto current_option = std::begin(args); current_option != std::end(args); ++current_option) [&]()
+      if (std::empty(args))
+      {
+        interactive = t;
+      }
+      else for (auto current_option = std::begin(args); current_option != std::end(args); ++current_option) [&]()
       {
         std::smatch analysis {};
 
@@ -217,7 +218,7 @@ inline namespace kernel
               }
               else
               {
-                throw error(make<string>(string_append("option -", name, " requires an argument")), unit);
+                throw error(make<string>(string_append("option -", name, " requires an argument")));
               }
             }
             else if (auto iter = short_options.find(*current_short_option); iter != std::end(short_options))
@@ -226,7 +227,7 @@ inline namespace kernel
             }
             else
             {
-              throw error(make<string>(string_append("unknown short-option -", *current_short_option)), unit);
+              throw error(make<string>(string_append("unknown short-option -", *current_short_option)));
             }
           }
         }
@@ -244,7 +245,7 @@ inline namespace kernel
             }
             else
             {
-              throw error(make<string>(string_append("option --", current_long_option, " requires an argument")), unit);
+              throw error(make<string>(string_append("option --", current_long_option, " requires an argument")));
             }
           }
           else if (auto iter = long_options.find(current_long_option); iter != std::end(long_options))
@@ -253,7 +254,7 @@ inline namespace kernel
           }
           else
           {
-            throw error(make<string>(string_append("unknown long-option: ", *current_option)), unit);
+            throw error(make<string>(string_append("unknown long-option: ", *current_option)));
           }
         }
         else
@@ -270,53 +271,54 @@ inline namespace kernel
       return static_cast<std::string>(prompt.as<string>());
     }
 
-    void display_version() const
+    auto display_version() const -> void
     {
-      write_line("Meevax Lisp System, version ", version());
+      print("Meevax Lisp System, version ", version());
     }
 
-    void display_license() const
+    auto display_license() const -> void
     {
-      write_line("   Copyright 2018-2021 Tatsuya Yamasaki.");
-      write_line();
-      write_line("   Licensed under the Apache License, Version 2.0 (the \"License\");");
-      write_line("   you may not use this file except in compliance with the License.");
-      write_line("   You may obtain a copy of the License at");
-      write_line();
-      write_line("       http://www.apache.org/licenses/LICENSE-2.0");
-      write_line();
-      write_line("   Unless required by applicable law or agreed to in writing, software");
-      write_line("   distributed under the License is distributed on an \"AS IS\" BASIS,");
-      write_line("   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.");
-      write_line("   See the License for the specific language governing permissions and");
-      write_line("   limitations under the License.");
+      print("   Copyright 2018-2021 Tatsuya Yamasaki.");
+      print();
+      print("   Licensed under the Apache License, Version 2.0 (the \"License\");");
+      print("   you may not use this file except in compliance with the License.");
+      print("   You may obtain a copy of the License at");
+      print();
+      print("       http://www.apache.org/licenses/LICENSE-2.0");
+      print();
+      print("   Unless required by applicable law or agreed to in writing, software");
+      print("   distributed under the License is distributed on an \"AS IS\" BASIS,");
+      print("   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.");
+      print("   See the License for the specific language governing permissions and");
+      print("   limitations under the License.");
     }
 
-    void display_help() const
+    auto display_help() const -> void
     {
       display_version();
-      write_line();
-      write_line("Usage: meevax [OPTION...] [FILE...]");
-      write_line();
-      write_line("Options:");
-      write_line("  -b, --batch            Suppress any system output.");
-      write_line("  -d, --debug            Display detailed informations for developers.");
-      write_line("  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.");
-      write_line("  -h, --help             Display this help text and exit.");
-      write_line("  -i, --interactive      Take over control of root syntactic-continuation.");
-      write_line("  -l, --load=FILENAME    Same as -e '(load FILENAME)'");
-      write_line("      --prompt=STRING    Same as -e '(set-prompt! STRING)'");
-      write_line("  -t, --trace            Display stacks of virtual machine for each steps.");
-      write_line("  -v, --version          Display version information and exit.");
-      write_line("      --verbose          Display detailed informations.");
-      write_line("  -w, --write=OBJECT     Same as -e '(write OBJECT)'");
+      print();
+      print("Usage: meevax [OPTION...] [FILE...]");
+      print();
+      print("Options:");
+      print("  -b, --batch            Suppress any system output.");
+      print("  -d, --debug            Display detailed informations for developers.");
+      print("  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.");
+      print("  -h, --help             Display this help text and exit.");
+      print("  -i, --interactive      Take over control of root syntactic-continuation.");
+      print("  -l, --load=FILENAME    Same as -e '(load FILENAME)'");
+      print("      --prompt=STRING    Same as -e '(set-prompt! STRING)'");
+      print("  -t, --trace            Display stacks of virtual machine for each steps.");
+      print("  -v, --version          Display version information and exit.");
+      print("      --verbose          Display detailed informations.");
+      print("  -w, --write=OBJECT     Same as -e '(write OBJECT)'");
     }
 
     #define BOILERPLATE(NAME)                                                  \
     auto is_##NAME##_mode() const -> bool                                      \
     {                                                                          \
       return if_(NAME);                                                        \
-    } static_assert(true)
+    }                                                                          \
+    static_assert(true)
 
     BOILERPLATE(batch);
     BOILERPLATE(debug);

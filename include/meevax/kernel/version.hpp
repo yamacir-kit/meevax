@@ -14,31 +14,29 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_PATH_HPP
-#define INCLUDED_MEEVAX_KERNEL_PATH_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_VERSION_HPP
+#define INCLUDED_MEEVAX_KERNEL_VERSION_HPP
 
-#ifdef __cpp_lib_filesystem
-#include <filesystem>
-#define STD_FILESYSTEM_PATH std::filesystem::path
-#else
-#include <experimental/filesystem>
-#define STD_FILESYSTEM_PATH std::experimental::filesystem::path
-#endif
+#include <meevax/kernel/list.hpp>
+#include <meevax/kernel/number.hpp>
+#include <meevax/kernel/symbol.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct path : public STD_FILESYSTEM_PATH
-  {
-    template <typename... Ts>
-    explicit constexpr path(Ts&&... xs)
-      : STD_FILESYSTEM_PATH { std::forward<decltype(xs)>(xs)... }
-    {}
-  };
+  [[deprecated]]
+  auto gmp_version() -> pair::const_reference;
 
-  auto operator <<(std::ostream &, path const&) -> std::ostream &;
+  auto version() -> pair::const_reference;
+
+  auto major_version() -> pair::const_reference;
+  auto minor_version() -> pair::const_reference;
+  auto patch_version() -> pair::const_reference;
+  auto exact_version() -> pair::const_reference;
+
+  auto features() -> pair::const_reference;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_PATH_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_VERSION_HPP

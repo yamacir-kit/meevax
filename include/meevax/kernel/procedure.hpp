@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
 #include <meevax/kernel/list.hpp>
+#include <meevax/utility/description.hpp>
 
 namespace meevax
 {
@@ -25,13 +26,11 @@ inline namespace kernel
 {
   #define PROCEDURE(...) meevax::pair::value_type __VA_ARGS__(meevax::pair::const_reference xs)
 
-  struct procedure
+  struct procedure : public description
   {
     using signature = PROCEDURE((*));
 
     using applicable = std::function<PROCEDURE()>;
-
-    std::string const name;
 
     applicable apply;
 

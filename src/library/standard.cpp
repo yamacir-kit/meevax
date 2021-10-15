@@ -16,7 +16,7 @@
 
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/basis.hpp>
-#include <meevax/standard.hpp>
+#include <meevax/library/standard.hpp>
 
 namespace meevax
 {
@@ -47,7 +47,7 @@ namespace meevax
 
     define<procedure>("eqv?", [](let const& xs) // TODO Rename to value=?
     {
-      return ::meevax::eqv(car(xs), cadr(xs)) ? t : f;
+      return eqv(car(xs), cadr(xs)) ? t : f;
     });
 
     /* -------------------------------------------------------------------------
@@ -453,6 +453,40 @@ namespace meevax
 
     define<procedure>("set-car!", [](auto&& xs) { return caar(xs) = cadr(xs); });
     define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (caar pair)                                                   procedure
+     *  (caar pair)                                                   procedure
+     *  (caar pair)                                                   procedure
+     *  (caar pair)                                                   procedure
+     *
+     *  These procedures are compositions of car and cdr as follows:
+     *
+     *      (define (caar x) (car (car x)))
+     *      (define (cadr x) (car (cdr x)))
+     *      (define (cdar x) (cdr (car x)))
+     *      (define (cddr x) (cdr (cdr x)))
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("caar", [](let const& xs) { return caar(car(xs)); });
+    define<procedure>("cadr", [](let const& xs) { return cadr(car(xs)); });
+    define<procedure>("cdar", [](let const& xs) { return cdar(car(xs)); });
+    define<procedure>("cddr", [](let const& xs) { return cddr(car(xs)); });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (null? obj)                                                   procedure
+     *
+     *  Returns #t if obj is the empty list, otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("null?", [](let const& xs)
+    {
+      return car(xs).is<null>() ? t : f;
+    });
 
     /* -------------------------------------------------------------------------
      *
@@ -1079,21 +1113,18 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("error?", is<error>());
-
-    define<procedure>("read-error?", is<read_error>());
-
-    define<procedure>("file-error?", is<file_error>());
-
+    define<procedure>(       "error?", is<       error>());
+    define<procedure>(  "read-error?", is<  read_error>());
+    define<procedure>(  "file-error?", is<  file_error>());
     define<procedure>("syntax-error?", is<syntax_error>());
 
     /* -------------------------------------------------------------------------
      *
-     *  (input-port? obj)                                             procedure
-     *  (output-port? obj)                                            procedure
+     *    (input-port? obj)                                           procedure
+     *   (output-port? obj)                                           procedure
      *  (textual-port? obj)                                           procedure
-     *  (binary-port? obj)                                            procedure
-     *  (port? obj)                                                   procedure
+     *   (binary-port? obj)                                           procedure
+     *          (port? obj)                                           procedure
      *
      *  These procedures return #t if obj is an input port, output port,
      *  textual port, binary port, or any kind of port, respectively. Otherwise
@@ -1101,13 +1132,11 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("input-file-port?", is<input_file_port>());
-
-    define<procedure>("output-file-port?", is<output_file_port>());
-
-    define<procedure>("input-string-port?", is<input_string_port>());
-
-    define<procedure>("output-string-port?", is<output_string_port>());
+    define<procedure>(  "input-port?", [](let const& xs) { return car(xs).is_also<std::istream>() ? t : f; });
+    define<procedure>( "output-port?", [](let const& xs) { return car(xs).is_also<std::ostream>() ? t : f; });
+    define<procedure>( "binary-port?", [](let const&   ) { return                                       f; });
+    define<procedure>("textual-port?", [](let const& xs) { return car(xs).is_also<std::ios    >() ? t : f; });
+    define<procedure>(        "port?", [](let const& xs) { return car(xs).is_also<std::ios    >() ? t : f; });
 
     /* -------------------------------------------------------------------------
      *
@@ -1119,14 +1148,28 @@ namespace meevax
      *
      * --------------------------------------------------------------------- */
 
-    define<procedure>("input-file-port-open?", [](let const& xs)
+    define<procedure>("input-port-open?", [](let const& xs)
     {
-      return car(xs).as<input_file_port>().is_open() ? t : f;
+      if (let const& x = car(xs); x.is_also<std::ifstream>())
+      {
+        return x.as<std::ifstream>().is_open() ? t : f;
+      }
+      else
+      {
+        return x.is_also<std::istream>() ? t : f;
+      }
     });
 
-    define<procedure>("output-file-port-open?", [](let const& xs)
+    define<procedure>("output-port-open?", [](let const& xs)
     {
-      return car(xs).as<output_file_port>().is_open() ? t : f;
+      if (let const& x = car(xs); x.is_also<std::ofstream>())
+      {
+        return x.as<std::ofstream>().is_open() ? t : f;
+      }
+      else
+      {
+        return x.is_also<std::ostream>() ? t : f;
+      }
     });
 
     /* -------------------------------------------------------------------------
@@ -1142,11 +1185,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("standard-input-port", [](auto&&) { return default_input_port; });
-
-    define<procedure>("standard-output-port", [](auto&&) { return default_output_port; });
-
-    define<procedure>("standard-error-port", [](auto&&) { return default_error_port; });
+    define<procedure>("standard-input-port",  [](auto&&) { return standard_input;  });
+    define<procedure>("standard-output-port", [](auto&&) { return standard_output; });
+    define<procedure>("standard-error-port",  [](auto&&) { return standard_error;  });
 
     /* -------------------------------------------------------------------------
      *
@@ -1200,15 +1241,23 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("close-input-file-port", [](let const& xs)
+    define<procedure>("close-input-port", [](let const& xs)
     {
-      car(xs).as<input_file_port>().close();
+      if (let const& x = car(xs); x.is_also<std::ifstream>())
+      {
+        x.as<std::ifstream>().close();
+      }
+
       return unspecified;
     });
 
-    define<procedure>("close-output-file-port", [](let const& xs)
+    define<procedure>("close-output-port", [](let const& xs)
     {
-      car(xs).as<output_file_port>().close();
+      if (let const& x = car(xs); x.is_also<std::ofstream>())
+      {
+        x.as<std::ofstream>().close();
+      }
+
       return unspecified;
     });
 
@@ -1275,7 +1324,7 @@ namespace meevax
 
     define<procedure>("get-output-string", [](let const& xs)
     {
-      return make<string>(car(xs).as<output_string_port>().str());
+      return make<string>(car(xs).as<std::ostringstream>().str());
     });
 
     /* -------------------------------------------------------------------------
@@ -1429,7 +1478,7 @@ namespace meevax
      *
      * --------------------------------------------------------------------- */
 
-    define<procedure>("%write-char", [](let const& xs)
+    define<procedure>("put-char", [](let const& xs)
     {
       cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
       return unspecified;
@@ -1447,7 +1496,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%write-string", [](let const& xs)
+    define<procedure>("put-string", [](let const& xs)
     {
       switch (length(xs))
       {
@@ -1545,6 +1594,55 @@ namespace meevax
      *  arguments before invoking the corresponding procedures without "-ci".
      *
      * ---------------------------------------------------------------------- */
+  }
+
+  template <>
+  auto syntactic_continuation::import(standard::cxr_t) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (caaar pair)                                      cxr library procedure
+     *  (caadr pair)                                      cxr library procedure
+     *       .                                                           .
+     *       .                                                           .
+     *       .                                                           .
+     *  (cdddar pair)                                     cxr library procedure
+     *  (cddddr pair)                                     cxr library procedure
+     *
+     *  These twenty-four procedures are further compositions of car and cdr on
+     *  the same principles. For example, caddr could be defined by
+     *
+     *      (define caddr (lambda (x) (car (cdr (cdr x))))).
+     *
+     *  Arbitrary compositions up to four deep are provided.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("caaar", [](let const& xs) { return caaar(car(xs)); });
+    define<procedure>("caadr", [](let const& xs) { return caadr(car(xs)); });
+    define<procedure>("cadar", [](let const& xs) { return cadar(car(xs)); });
+    define<procedure>("caddr", [](let const& xs) { return caddr(car(xs)); });
+    define<procedure>("cdaar", [](let const& xs) { return cdaar(car(xs)); });
+    define<procedure>("cdadr", [](let const& xs) { return cdadr(car(xs)); });
+    define<procedure>("cddar", [](let const& xs) { return cddar(car(xs)); });
+    define<procedure>("cdddr", [](let const& xs) { return cdddr(car(xs)); });
+
+    define<procedure>("caaaar", [](let const& xs) { return caaaar(car(xs)); });
+    define<procedure>("caaadr", [](let const& xs) { return caaadr(car(xs)); });
+    define<procedure>("caadar", [](let const& xs) { return caadar(car(xs)); });
+    define<procedure>("caaddr", [](let const& xs) { return caaddr(car(xs)); });
+    define<procedure>("cadaar", [](let const& xs) { return cadaar(car(xs)); });
+    define<procedure>("cadadr", [](let const& xs) { return cadadr(car(xs)); });
+    define<procedure>("caddar", [](let const& xs) { return caddar(car(xs)); });
+    define<procedure>("cadddr", [](let const& xs) { return cadddr(car(xs)); });
+    define<procedure>("cdaaar", [](let const& xs) { return cdaaar(car(xs)); });
+    define<procedure>("cdaadr", [](let const& xs) { return cdaadr(car(xs)); });
+    define<procedure>("cdadar", [](let const& xs) { return cdadar(car(xs)); });
+    define<procedure>("cdaddr", [](let const& xs) { return cdaddr(car(xs)); });
+    define<procedure>("cddaar", [](let const& xs) { return cddaar(car(xs)); });
+    define<procedure>("cddadr", [](let const& xs) { return cddadr(car(xs)); });
+    define<procedure>("cdddar", [](let const& xs) { return cdddar(car(xs)); });
+    define<procedure>("cddddr", [](let const& xs) { return cddddr(car(xs)); });
   }
 
   template <>
@@ -1740,7 +1838,7 @@ namespace meevax
         switch (length(xs))
         {
         case 0:
-          return read(default_input_port);
+          return read(standard_input);
 
         case 1:
           return read(car(xs));
@@ -1776,7 +1874,7 @@ namespace meevax
 
     define<procedure>("%write-simple", [this](let const& xs)
     {
-      write_to(cadr(xs), car(xs));
+      write(cadr(xs), car(xs));
       return unspecified;
     });
   }
@@ -1784,14 +1882,6 @@ namespace meevax
   template <>
   auto syntactic_continuation::import(standard::experimental_t) -> void
   {
-    define<procedure>("path?", is<path>());
-
-    define<procedure>("%write-path", [](let const& xs)
-    {
-      cadr(xs).as<std::ostream>() << car(xs).as<path>().c_str();
-      return unspecified;
-    });
-
     /* -------------------------------------------------------------------------
      *
      *  (identifier? syntax-object)                                   procedure
@@ -1902,7 +1992,7 @@ namespace meevax
         }
       }
 
-      return default_output_port;
+      return standard_output;
     });
 
     define<procedure>("gc-collect", [](auto&&)
@@ -1936,7 +2026,7 @@ namespace meevax
 
       std::cout << std::endl;
 
-      return default_output_port;
+      return standard_output;
     });
 
     /* -------------------------------------------------------------------------
@@ -1954,7 +2044,7 @@ namespace meevax
     {
       std::cout << car(xs).type().name() << std::endl;
 
-      return default_output_port;
+      return standard_output;
     });
   }
 

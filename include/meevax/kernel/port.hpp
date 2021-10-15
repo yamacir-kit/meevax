@@ -20,71 +20,56 @@
 #include <fstream>
 
 #include <meevax/kernel/pair.hpp>
-#include <meevax/kernel/path.hpp>
+#include <meevax/utility/description.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  let extern const default_input_port;
+  #define DEFINE(NAME, BASE)                                                   \
+  struct NAME##_port : public BASE                                             \
+  {                                                                            \
+    explicit NAME##_port();                                                    \
+  };                                                                           \
+                                                                               \
+  auto operator <<(std::ostream &, NAME##_port const&) -> std::ostream &;      \
+                                                                               \
+  let extern const NAME
 
-  let extern const default_output_port;
+  DEFINE(standard_input,  std::istream);
+  DEFINE(standard_output, std::ostream);
+  DEFINE(standard_error,  std::ostream);
 
-  let extern const default_error_port;
+  #undef DEFINE
 
-  struct standard_input_port : public std::istream
-  {
-    explicit standard_input_port();
-  };
+  #define DEFINE(TYPENAME, FILE_STREAM)                                        \
+  struct TYPENAME : public description                                         \
+                  , public FILE_STREAM                                         \
+  {                                                                            \
+    explicit TYPENAME(std::string const&);                                     \
+  };                                                                           \
+                                                                               \
+  auto operator <<(std::ostream &, TYPENAME const&) -> std::ostream &
 
-  auto operator <<(std::ostream &, standard_input_port const&) -> std::ostream &;
+  DEFINE(       file_port, std:: fstream);
+  DEFINE( input_file_port, std::ifstream);
+  DEFINE(output_file_port, std::ofstream);
 
-  struct standard_output_port : public std::ostream
-  {
-    explicit standard_output_port();
-  };
+  #undef DEFINE
 
-  auto operator <<(std::ostream &, standard_output_port const&) -> std::ostream &;
+  #define DEFINE(TYPENAME, BASE)                                               \
+  struct TYPENAME : public std::BASE                                           \
+  {                                                                            \
+    using std::BASE::BASE;                                                     \
+  };                                                                           \
+                                                                               \
+  auto operator <<(std::ostream &, TYPENAME const&) -> std::ostream &
 
-  struct standard_error_port : public std::ostream
-  {
-    explicit standard_error_port();
-  };
+  DEFINE(       string_port,  stringstream);
+  DEFINE( input_string_port, istringstream);
+  DEFINE(output_string_port, ostringstream);
 
-  auto operator <<(std::ostream &, standard_error_port const&) -> std::ostream &;
-
-  template <typename T>
-  struct file_port : public T
-  {
-    path const name;
-
-    explicit file_port(std::string const& name)
-      : T    { name }
-      , name { name }
-    {}
-  };
-
-  using input_file_port = file_port<std::ifstream>;
-
-  auto operator <<(std::ostream &, input_file_port const&) -> std::ostream &;
-
-  using output_file_port = file_port<std::ofstream>;
-
-  auto operator <<(std::ostream &, output_file_port const&) -> std::ostream &;
-
-  struct input_string_port : public std::istringstream // SRFI 6
-  {
-    using std::istringstream::istringstream;
-  };
-
-  auto operator <<(std::ostream &, input_string_port const&) -> std::ostream &;
-
-  struct output_string_port : public std::ostringstream // SRFI 6
-  {
-    using std::ostringstream::ostringstream;
-  };
-
-  auto operator <<(std::ostream &, output_string_port const&) -> std::ostream &;
+  #undef DEFINE
 } // namespace kernel
 } // namespace meevax
 

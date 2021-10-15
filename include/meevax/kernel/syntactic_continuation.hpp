@@ -26,12 +26,11 @@ namespace meevax
 {
 inline namespace kernel
 {
-  class syntactic_continuation
-    : public virtual pair
-    , public configurator <syntactic_continuation>
-    , public machine      <syntactic_continuation>
-    , public reader       <syntactic_continuation>
-    , public writer       <syntactic_continuation>
+  class syntactic_continuation : public virtual pair
+                               , public configurator<syntactic_continuation>
+                               , public machine     <syntactic_continuation>
+                               , public reader      <syntactic_continuation>
+                               , public writer      <syntactic_continuation>
   {
     /* ---- NOTE ---------------------------------------------------------------
      *
@@ -45,28 +44,19 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     using pair::pair;
 
-    static inline std::unordered_map<std::string, value_type> external_symbols; // TODO REMOVE
-
-    std::size_t generation = 0;
-
   public:
     let datum = unit;
 
-    using configurator::is_batch_mode;
     using configurator::is_debug_mode;
-    using configurator::is_interactive_mode;
     using configurator::is_trace_mode;
     using configurator::is_verbose_mode;
 
     using reader::intern;
     using reader::read;
 
-    using writer::newline;
-    using writer::standard_debug_port;
-    using writer::standard_verbose_port;
+    using writer::print;
+    using writer::debug_port;
     using writer::write;
-    using writer::write_to;
-    using writer::write_line;
 
     template <typename... Ts>
     explicit syntactic_continuation(Ts&&... xs)
@@ -122,72 +112,6 @@ inline namespace kernel
     auto lookup(const_reference) const -> const_reference;
 
     auto macroexpand(const_reference, const_reference) -> value_type;
-
-  private:
-    static SYNTAX(exportation)
-    {
-      if (current_syntactic_continuation.is_verbose_mode())
-      {
-        std::cerr << (not indent::depth ? "; compile\t; " : ";\t\t; ")
-                  << indent()
-                  << expression
-                  << faint << " is <export specs>"
-                  << reset << std::endl;
-      }
-
-      auto exportation = [](let const& xs)
-      {
-        for (auto const& each : xs)
-        {
-          std::cerr << ";\t\t; staging " << each << std::endl;
-          external_symbols.emplace(lexical_cast<std::string>(each), each);
-        }
-
-        // std::cerr << ";\t\t; exported identifiers are" << std::endl;
-        //
-        // for ([[maybe_unused]] const auto& [key, value] : external_symbols)
-        // {
-        //   std::cerr << ";\t\t;   " << value << std::endl;
-        // }
-
-        return unspecified;
-      };
-
-      return cons(make<instruction>(mnemonic::LOAD_CONSTANT), expression,
-                  make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("exportation", exportation),
-                  make<instruction>(mnemonic::CALL),
-                  continuation);
-    }
-
-    static SYNTAX(importation)
-    {
-      auto importation = [&](let const& xs)
-      {
-        assert(xs.is<syntactic_continuation>());
-
-        if (xs.as<syntactic_continuation>().external_symbols.empty())
-        {
-          std::cerr << "; import\t; " << xs << " is virgin => expand" << std::endl;
-          xs.as<syntactic_continuation>().macroexpand(xs, cons(xs, unit));
-        }
-
-        // for ([[maybe_unused]] const auto& [key, value] : xs.as<syntactic_continuation>().external_symbols)
-        // {
-        //   std::cerr << ";\t\t; importing " << value << std::endl;
-        // }
-
-        return unspecified;
-      };
-
-      // XXX DIRTY HACK
-      return lvalue(syntactic_context::none,
-                    current_syntactic_continuation,
-                    expression,
-                    frames,
-                    cons(make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
-                         make<instruction>(mnemonic::CALL),
-                         continuation));
-    }
   };
 
   using environment = syntactic_continuation;

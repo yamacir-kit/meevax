@@ -22,13 +22,8 @@ namespace meevax
   {
     std::string s = "; ";
 
-    if (not indent::depth)
-    {
-      s.append(from);
-    }
-
+    s.append(from);
     s.resize(size + 2, ' ');
-
     s.replace(s.size() - 3, 3, " ; ");
 
     return s;

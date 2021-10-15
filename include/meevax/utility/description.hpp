@@ -14,18 +14,21 @@
    limitations under the License.
 */
 
-#include <iomanip>
+#ifndef INCLUDED_MEEVAX_UTILITY_DESCRIPTION_HPP
+#define INCLUDED_MEEVAX_UTILITY_DESCRIPTION_HPP
 
-#include <meevax/kernel/path.hpp>
-#include <meevax/posix/vt10x.hpp>
+#include <string>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(std::ostream & os, path const& datum) -> std::ostream &
+  struct description
   {
-    return os << cyan << "#p" << std::quoted(datum.c_str()) << reset;
-  }
+    std::string const name;
+  };
 } // namespace kernel
 } // namespace meevax
+
+
+#endif // INCLUDED_MEEVAX_UTILITY_DESCRIPTION_HPP
