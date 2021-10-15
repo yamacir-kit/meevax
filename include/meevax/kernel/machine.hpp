@@ -120,16 +120,16 @@ inline namespace kernel
            *  is an error to reference an unbound variable.
            *
            * ------------------------------------------------------------------ */
-          if (auto const variable = de_bruijn_index(expression, frames); variable.is_bound())
+          if (auto const variable = notate(expression, frames); variable /* .is_bound() */)
           {
-            if (variable.index.is<local_variadic_identifier>())
+            if (variable.is<local_variadic_identifier>())
             {
-              return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable.index,
+              return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable,
                           continuation);
             }
             else
             {
-              return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable.index,
+              return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable,
                           continuation);
             }
           }
@@ -147,7 +147,7 @@ inline namespace kernel
       }
       else // is (applicant . arguments)
       {
-        if (auto local = de_bruijn_index(car(expression), frames); local.is_bound())
+        if (auto local = notate(car(expression), frames); local /* .is_bound() */)
         {
         }
         else if (let const& applicant = current_syntactic_continuation.lookup(car(expression)))
@@ -782,7 +782,7 @@ inline namespace kernel
     {
       auto is_definition = [&](pair::const_reference form)
       {
-        if (form.is<pair>() and de_bruijn_index(car(form), frames).is_free())
+        if (form.is<pair>() and notate(car(form), frames).is<null>() /* .is_free() */)
         {
           let const& callee = current_syntactic_continuation.lookup(car(form));
           return callee.is<syntax>() and callee.as<syntax>().name == "define";
@@ -1037,15 +1037,15 @@ inline namespace kernel
       {
         throw syntax_error(make<string>("set!"), expression);
       }
-      else if (auto variable = de_bruijn_index(car(expression), frames); variable.is_bound())
+      else if (auto variable = notate(car(expression), frames); variable /* .is_bound() */)
       {
-        if (variable.index.is<local_variadic_identifier>())
+        if (variable.is<local_variadic_identifier>())
         {
           return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_VARIADIC), variable.index,
+                         cons(make<instruction>(mnemonic::STORE_VARIADIC), variable,
                               continuation));
         }
         else
@@ -1054,7 +1054,7 @@ inline namespace kernel
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_LOCAL), variable.index,
+                         cons(make<instruction>(mnemonic::STORE_LOCAL), variable,
                               continuation));
         }
       }

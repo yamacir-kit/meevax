@@ -26,25 +26,34 @@ inline namespace kernel
   struct local_identifier : public virtual pair
   {
     using pair::pair;
+
+    auto is_bound() const -> bool
+    {
+      return not is_free();
+    }
+
+    auto is_free() const -> bool
+    {
+      return false;
+    }
   };
 
   struct local_variadic_identifier : public local_identifier
   {
     using local_identifier::local_identifier;
+
+    auto is_bound() const -> bool
+    {
+      return not is_free();
+    }
+
+    auto is_free() const -> bool
+    {
+      return false;
+    }
   };
 
-  struct de_bruijn_index
-  {
-    let const index;
-
-    explicit de_bruijn_index(pair::const_reference, pair::const_reference);
-
-    auto notate(pair::const_reference, pair::const_reference) -> pair::value_type;
-
-    auto is_bound() const -> bool;
-
-    auto is_free() const -> bool;
-  };
+  auto notate(pair::const_reference, pair::const_reference) -> pair::value_type;
 } // namespace kernel
 } // namespace meevax
 

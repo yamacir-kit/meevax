@@ -22,11 +22,8 @@ namespace meevax
 {
 inline namespace kernel
 {
-  de_bruijn_index::de_bruijn_index(pair::const_reference variable, pair::const_reference frames)
-    : index { notate(variable, frames) }
-  {}
-
-  auto de_bruijn_index::notate(pair::const_reference variable, pair::const_reference frames) -> pair::value_type
+  // de_bruijn_index
+  auto notate(pair::const_reference variable, pair::const_reference frames) -> pair::value_type
   {
     for (auto outer = std::begin(frames); outer != std::end(frames); ++outer)
     {
@@ -45,17 +42,7 @@ inline namespace kernel
       }
     }
 
-    return unit;
-  }
-
-  auto de_bruijn_index::is_bound() const -> bool
-  {
-    return not is_free();
-  }
-
-  auto de_bruijn_index::is_free() const -> bool
-  {
-    return index.is<null>();
+    return unit; // TODO call syntactic_continuation::locate
   }
 } // namespace kernel
 } // namespace meevax
