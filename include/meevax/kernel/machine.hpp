@@ -147,7 +147,10 @@ inline namespace kernel
       }
       else // is (applicant . arguments)
       {
-        if (let const& applicant = current_syntactic_continuation.lookup(car(expression)); de_bruijn_index(car(expression), frames).is_free())
+        if (auto local = de_bruijn_index(car(expression), frames); local.is_bound())
+        {
+        }
+        else if (let const& applicant = current_syntactic_continuation.lookup(car(expression)))
         {
           if (applicant.is_also<syntax>())
           {
