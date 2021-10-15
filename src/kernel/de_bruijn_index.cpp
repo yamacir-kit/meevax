@@ -26,32 +26,25 @@ inline namespace kernel
     : index { notate(variable, frames) }
   {}
 
-  // XXX UGLY CODE!!!
   auto de_bruijn_index::notate(pair::const_reference variable, pair::const_reference frames) -> pair::value_type
   {
-    std::size_t layer = 0;
-
-    for (auto const& frame : frames)
+    for (auto outer = std::begin(frames); outer != std::end(frames); ++outer)
     {
-      std::size_t index = 0;
-
-      for (let node = frame; node; node = cdr(node))
+      for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
       {
-        if (node.is<pair>() and eq(car(node), variable))
+        if (inner.unwrap().is<pair>() and eq(*inner, variable))
         {
           is_variadic = false;
-          return cons(make<exact_integer>(layer), make<exact_integer>(index));
+          return cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
+                      make<exact_integer>(std::distance(std::begin(*outer), inner)));
         }
-        else if (node.is<symbol>() and eq(node, variable))
+        else if (inner.unwrap().is<symbol>() and eq(inner, variable))
         {
           is_variadic = true;
-          return cons(make<exact_integer>(layer), make<exact_integer>(index));
+          return cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
+                      make<exact_integer>(std::distance(std::begin(*outer), inner)));
         }
-
-        ++index;
       }
-
-      ++layer;
     }
 
     return unit;
