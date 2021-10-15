@@ -53,6 +53,8 @@ namespace meevax
 
   DEFINE_LIBRARY(experimental);
   DEFINE_LIBRARY(srfis);
+
+  DEFINE_LIBRARY(interaction_environment);
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_STANDARD_HPP

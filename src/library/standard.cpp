@@ -2075,4 +2075,20 @@ namespace meevax
       }
     }
   }
+
+  template <>
+  auto syntactic_continuation::import(standard::interaction_environment_t) -> void
+  {
+    import(standard::base);
+    import(standard::character);
+    import(standard::cxr);
+    import(standard::evaluate);
+    import(standard::inexact);
+    import(standard::load);
+    import(standard::process_context);
+    import(standard::read);
+    import(standard::write);
+    import(standard::experimental);
+    import(standard::srfis);
+  }
 } // namespace meevax

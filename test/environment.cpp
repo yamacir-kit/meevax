@@ -24,10 +24,7 @@ auto main() -> int
   assert(gc_count == constants.size() + specials_count);
 
   {
-    auto root = environment(standard::base,
-                            standard::evaluate,
-                            standard::experimental,
-                            standard::srfis);
+    auto root = environment(standard::interaction_environment);
   }
 
   syntactic_continuation::symbols.clear();
