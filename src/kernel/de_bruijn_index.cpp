@@ -34,15 +34,13 @@ inline namespace kernel
       {
         if (inner.unwrap().is<pair>() and eq(*inner, variable))
         {
-          is_variadic = false;
-          return cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
-                      make<exact_integer>(std::distance(std::begin(*outer), inner)));
+          return make<local_identifier>(make<exact_integer>(std::distance(std::begin(frames), outer)),
+                                        make<exact_integer>(std::distance(std::begin(*outer), inner)));
         }
         else if (inner.unwrap().is<symbol>() and eq(inner, variable))
         {
-          is_variadic = true;
-          return cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
-                      make<exact_integer>(std::distance(std::begin(*outer), inner)));
+          return make<local_variadic_identifier>(make<exact_integer>(std::distance(std::begin(frames), outer)),
+                                                 make<exact_integer>(std::distance(std::begin(*outer), inner)));
         }
       }
     }

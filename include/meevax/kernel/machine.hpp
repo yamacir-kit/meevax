@@ -122,7 +122,7 @@ inline namespace kernel
            * ------------------------------------------------------------------ */
           if (auto const variable = de_bruijn_index(expression, frames); variable.is_bound())
           {
-            if (variable.is_variadic)
+            if (variable.index.is<local_variadic_identifier>())
             {
               return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable.index,
                           continuation);
@@ -1039,7 +1039,7 @@ inline namespace kernel
       }
       else if (auto variable = de_bruijn_index(car(expression), frames); variable.is_bound())
       {
-        if (variable.is_variadic)
+        if (variable.index.is<local_variadic_identifier>())
         {
           return compile(syntactic_context::none,
                          current_syntactic_continuation,

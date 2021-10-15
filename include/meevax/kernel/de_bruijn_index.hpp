@@ -23,10 +23,18 @@ namespace meevax
 {
 inline namespace kernel
 {
+  struct local_identifier : public virtual pair
+  {
+    using pair::pair;
+  };
+
+  struct local_variadic_identifier : public local_identifier
+  {
+    using local_identifier::local_identifier;
+  };
+
   struct de_bruijn_index
   {
-    bool is_variadic;
-
     let const index;
 
     explicit de_bruijn_index(pair::const_reference, pair::const_reference);
