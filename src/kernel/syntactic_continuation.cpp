@@ -49,7 +49,7 @@ inline namespace kernel
      *  environment.
      *
      * -------------------------------------------------------------------- */
-    if (std::get<0>(*this).is<continuation>())
+    if (car(*this).is<continuation>())
     {
       /* ---- NOTE -----------------------------------------------------------
        *
@@ -58,7 +58,7 @@ inline namespace kernel
        *  it is the state that is not registered in the GC.
        *
        * ------------------------------------------------------------------ */
-      auto const& k = std::get<0>(*this).as<continuation>();
+      auto const& k = car(*this).as<continuation>();
 
       s = k.s();
       e = k.e();
@@ -133,7 +133,7 @@ inline namespace kernel
 
   auto syntactic_continuation::form() const noexcept -> const_reference
   {
-    return std::get<0>(*this);
+    return car(*this);
   }
 
   auto syntactic_continuation::form() noexcept -> reference
@@ -143,7 +143,7 @@ inline namespace kernel
 
   auto syntactic_continuation::global_environment() const noexcept -> const_reference
   {
-    return std::get<1>(*this);
+    return cdr(*this);
   }
 
   auto syntactic_continuation::global_environment() noexcept -> reference

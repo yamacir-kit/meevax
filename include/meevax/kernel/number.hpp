@@ -88,7 +88,7 @@ inline namespace kernel
 
     if (auto const iter = overloads.find(b.type()); iter != std::end(overloads))
     {
-      return std::get<1>(*iter)(a, b);
+      return cdr(*iter)(a, b);
     }
     else
     {
@@ -124,7 +124,7 @@ inline namespace kernel
 
     if (auto const iter = overloads.find(b.type()); iter != std::end(overloads))
     {
-      return std::get<1>(*iter)(a, b);
+      return cdr(*iter)(a, b);
     }
     else
     {

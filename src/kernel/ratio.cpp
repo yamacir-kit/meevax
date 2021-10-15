@@ -31,11 +31,11 @@ inline namespace kernel
     {
       auto numerator = exact_integer(result.str(1), radix);
 
-      std::get<0>(*this) = make(numerator);
+      car(*this) = make(numerator);
 
       auto denominator = exact_integer(result.str(2), radix);
 
-      std::get<1>(*this) = make(denominator);
+      cdr(*this) = make(denominator);
     }
     else
     {
@@ -50,7 +50,7 @@ inline namespace kernel
 
   auto ratio::denominator() const -> exact_integer const&
   {
-    return std::get<1>(*this).as<exact_integer>();
+    return cdr(*this).as<exact_integer>();
   }
 
   auto ratio::inexact() const -> pair::value_type
@@ -60,7 +60,7 @@ inline namespace kernel
 
   auto ratio::invert() const -> ratio
   {
-    return ratio(std::get<1>(*this), std::get<0>(*this));
+    return ratio(cdr(*this), car(*this));
   }
 
   auto ratio::is_integer() const -> bool
@@ -70,7 +70,7 @@ inline namespace kernel
 
   auto ratio::numerator() const -> exact_integer const&
   {
-    return std::get<0>(*this).as<exact_integer>();
+    return car(*this).as<exact_integer>();
   }
 
   auto ratio::reduce() const -> ratio
@@ -89,7 +89,7 @@ inline namespace kernel
   {
     if (auto x = reduce(); x.is_integer())
     {
-      return std::get<0>(x);
+      return car(x);
     }
     else
     {
@@ -148,7 +148,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &
   {
-    return os << cyan << std::get<0>(datum) << cyan << "/" << cyan << std::get<1>(datum) << reset;
+    return os << cyan << car(datum) << cyan << "/" << cyan << cdr(datum) << reset;
   }
 } // namespace kernel
 } // namespace meevax

@@ -223,7 +223,7 @@ inline namespace kernel
             }
             else if (auto iter = short_options.find(*current_short_option); iter != std::end(short_options))
             {
-              std::get<1>(*iter)(unit);
+              cdr(*iter)(unit);
             }
             else
             {
@@ -237,11 +237,11 @@ inline namespace kernel
           {
             if (analysis.length(2)) // argument part
             {
-              return std::get<1>(*iter)(read(analysis.str(3)));
+              return cdr(*iter)(read(analysis.str(3)));
             }
             else if (++current_option != std::end(args) and not std::regex_match(*current_option, analysis, pattern))
             {
-              return std::get<1>(*iter)(read(*current_option));
+              return cdr(*iter)(read(*current_option));
             }
             else
             {
@@ -250,7 +250,7 @@ inline namespace kernel
           }
           else if (auto iter = long_options.find(current_long_option); iter != std::end(long_options))
           {
-            return std::get<1>(*iter)(unit);
+            return cdr(*iter)(unit);
           }
           else
           {

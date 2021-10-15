@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/iterator.hpp>
+#include <meevax/kernel/list.hpp>
 
 namespace meevax
 {
@@ -26,7 +26,7 @@ inline namespace kernel
 
   auto homoiconic_iterator::operator *() const -> homoiconic_iterator::const_reference
   {
-    return std::get<0>(unwrap().load());
+    return car(*this);
   }
 
   auto homoiconic_iterator::operator ->() const -> homoiconic_iterator::pointer
@@ -36,7 +36,7 @@ inline namespace kernel
 
   auto homoiconic_iterator::operator ++() -> homoiconic_iterator &
   {
-    return *this = std::get<1>(unwrap().load());
+    return *this = cdr(*this);
   }
 
   auto homoiconic_iterator::operator ++(int) -> homoiconic_iterator

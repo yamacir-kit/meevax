@@ -205,14 +205,7 @@ inline namespace kernel
 
     auto ratio = [](std::string const& token, auto radix = 10)
     {
-      if (auto const value = meevax::ratio(token, radix).reduce(); value.is_integer())
-      {
-        return std::get<0>(value);
-      }
-      else
-      {
-        return make(value);
-      }
+      return meevax::ratio(token, radix).simple();
     };
 
     auto decimal = [](std::string const& token, auto)
@@ -225,7 +218,7 @@ inline namespace kernel
     {
       if (auto iter = constants.find(token); iter != std::end(constants))
       {
-        return std::get<1>(*iter);
+        return cdr(*iter);
       }
       else
       {
@@ -266,11 +259,11 @@ inline namespace kernel
     {
       if (auto const iter = symbols.find(name); iter != std::end(symbols))
       {
-        return std::get<1>(*iter);
+        return cdr(*iter);
       }
       else if (auto const [iter, success] = symbols.emplace(name, make<symbol>(name)); success)
       {
-        return std::get<1>(*iter);
+        return cdr(*iter);
       }
       else
       {

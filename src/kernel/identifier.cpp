@@ -29,13 +29,12 @@ inline namespace kernel
 
   auto identifier::is_free() const -> bool
   {
-    return std::get<1>(*this).is<identifier>() and
-           std::get<1>(*this).as<identifier>() == *this; // NOTE: See syntactic_continuation::locate
+    return cdr(*this).is<identifier>() and cdr(*this).as<identifier>() == *this; // NOTE: See syntactic_continuation::locate
   }
 
   auto identifier::symbol() const noexcept -> const_reference
   {
-    return std::get<0>(*this);
+    return car(*this);
   }
 
   auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &

@@ -22,25 +22,10 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto continuation::s() const -> const_reference
-  {
-    return std::get<0>(*this);
-  }
-
-  auto continuation::e() const -> const_reference
-  {
-    return cadr(*this);
-  }
-
-  auto continuation::c() const -> const_reference
-  {
-    return caddr(*this);
-  }
-
-  auto continuation::d() const -> const_reference
-  {
-    return cdddr(*this);
-  }
+  auto continuation::s() const -> const_reference { return   car(*this); }
+  auto continuation::e() const -> const_reference { return  cadr(*this); }
+  auto continuation::c() const -> const_reference { return caddr(*this); }
+  auto continuation::d() const -> const_reference { return cdddr(*this); }
 
   auto operator <<(std::ostream & os, continuation const& datum) -> std::ostream &
   {
