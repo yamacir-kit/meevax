@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct local_identifier : public virtual pair
+  struct local : public virtual pair
   {
     using pair::pair;
 
@@ -38,9 +38,9 @@ inline namespace kernel
     }
   };
 
-  struct local_variadic_identifier : public local_identifier
+  struct variadic : public local
   {
-    using local_identifier::local_identifier;
+    using local::local;
 
     auto is_bound() const -> bool
     {

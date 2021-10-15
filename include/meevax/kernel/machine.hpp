@@ -122,7 +122,7 @@ inline namespace kernel
            * ------------------------------------------------------------------ */
           if (auto const variable = notate(expression, frames); variable /* .is_bound() */)
           {
-            if (variable.is<local_variadic_identifier>())
+            if (variable.is<variadic>())
             {
               return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable,
                           continuation);
@@ -1039,7 +1039,7 @@ inline namespace kernel
       }
       else if (auto variable = notate(car(expression), frames); variable /* .is_bound() */)
       {
-        if (variable.is<local_variadic_identifier>())
+        if (variable.is<variadic>())
         {
           return compile(syntactic_context::none,
                          current_syntactic_continuation,
