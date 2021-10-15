@@ -36,6 +36,38 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, identifier const&) -> std::ostream &;
+
+  struct local : public virtual pair // de_bruijn_index
+  {
+    using pair::pair;
+
+    auto is_bound() const -> bool
+    {
+      return not is_free();
+    }
+
+    auto is_free() const -> bool
+    {
+      return false;
+    }
+  };
+
+  struct variadic : public local // de_bruijn_index
+  {
+    using local::local;
+
+    auto is_bound() const -> bool
+    {
+      return not is_free();
+    }
+
+    auto is_free() const -> bool
+    {
+      return false;
+    }
+  };
+
+  auto notate(pair::const_reference, pair::const_reference) -> pair::value_type;
 } // namespace kernel
 } // namespace meevax
 
