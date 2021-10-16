@@ -123,12 +123,12 @@ inline namespace kernel
           {
             if (variable.is<variadic>())
             {
-              return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable,
+              return cons(make<instruction>(mnemonic::LOAD_VARIADIC), cdr(variable), // De Bruijn index
                           continuation);
             }
             else
             {
-              return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable,
+              return cons(make<instruction>(mnemonic::LOAD_LOCAL), cdr(variable), // De Bruijn index
                           continuation);
             }
           }
@@ -1044,7 +1044,7 @@ inline namespace kernel
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_VARIADIC), variable,
+                         cons(make<instruction>(mnemonic::STORE_VARIADIC), cdr(variable), // De Bruijn index
                               continuation));
         }
         else
@@ -1053,7 +1053,7 @@ inline namespace kernel
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_LOCAL), variable,
+                         cons(make<instruction>(mnemonic::STORE_LOCAL), cdr(variable), // De Bruijn index
                               continuation));
         }
       }

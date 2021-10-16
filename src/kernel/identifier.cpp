@@ -54,19 +54,23 @@ inline namespace kernel
 
   auto notate(pair::const_reference variable, pair::const_reference frames) -> pair::value_type
   {
+    assert(variable.is<symbol>());
+
     for (auto outer = std::begin(frames); outer != std::end(frames); ++outer)
     {
       for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
       {
         if (inner.unwrap().is<pair>() and eq(*inner, variable))
         {
-          return make<local>(make<exact_integer>(std::distance(std::begin(frames), outer)),
-                             make<exact_integer>(std::distance(std::begin(*outer), inner)));
+          return make<local>(variable,
+                             cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
+                                  make<exact_integer>(std::distance(std::begin(*outer), inner))));
         }
         else if (inner.unwrap().is<symbol>() and eq(inner, variable))
         {
-          return make<variadic>(make<exact_integer>(std::distance(std::begin(frames), outer)),
-                                make<exact_integer>(std::distance(std::begin(*outer), inner)));
+          return make<variadic>(variable,
+                                cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
+                                     make<exact_integer>(std::distance(std::begin(*outer), inner))));
         }
       }
     }
