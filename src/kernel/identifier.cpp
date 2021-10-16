@@ -22,6 +22,16 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto identifier::symbol() const -> const_reference
+  {
+    return car(*this);
+  }
+
+  auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &
+  {
+    return os << underline << datum.symbol() << reset;
+  }
+
   auto global::is_bound() const -> bool
   {
     return not is_free();
@@ -32,14 +42,14 @@ inline namespace kernel
     return cdr(*this).is<global>() and cdr(*this).as<global>() == *this; // NOTE: See syntactic_continuation::locate
   }
 
-  // auto identifier::symbol() const noexcept -> const_reference
-  // {
-  //   return car(*this);
-  // }
-
-  auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &
+  auto local::is_bound() const -> bool
   {
-    return os << underline << datum.symbol() << reset;
+    return not is_free();
+  }
+
+  auto local::is_free() const -> bool
+  {
+    return false;
   }
 
   auto notate(pair::const_reference variable, pair::const_reference frames) -> pair::value_type

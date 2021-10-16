@@ -32,11 +32,10 @@ inline namespace kernel
 
     virtual auto is_free() const -> bool = 0;
 
-    auto symbol() const -> const_reference
-    {
-      return car(*this);
-    }
+    auto symbol() const -> const_reference;
   };
+
+  auto operator <<(std::ostream &, identifier const&) -> std::ostream &;
 
   struct global : public identifier
   {
@@ -45,40 +44,20 @@ inline namespace kernel
     auto is_bound() const -> bool override;
 
     auto is_free() const -> bool override;
-
-    // auto symbol() const noexcept -> const_reference;
   };
-
-  auto operator <<(std::ostream &, identifier const&) -> std::ostream &;
 
   struct local : public virtual pair // de_bruijn_index
   {
     using pair::pair;
 
-    auto is_bound() const -> bool
-    {
-      return not is_free();
-    }
+    auto is_bound() const -> bool;
 
-    auto is_free() const -> bool
-    {
-      return false;
-    }
+    auto is_free() const -> bool;
   };
 
   struct variadic : public local // de_bruijn_index
   {
     using local::local;
-
-    auto is_bound() const -> bool
-    {
-      return not is_free();
-    }
-
-    auto is_free() const -> bool
-    {
-      return false;
-    }
   };
 
   auto notate(pair::const_reference, pair::const_reference) -> pair::value_type;

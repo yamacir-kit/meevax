@@ -215,7 +215,7 @@ inline namespace kernel
     {
       write(debug_port(), f, "\n");
 
-      throw file_error(make<string>("failed to open file: " + s), unit);
+      throw file_error(make<string>("failed to open file: " + s));
     }
   }
 
