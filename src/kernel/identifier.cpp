@@ -22,20 +22,20 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto identifier::is_bound() const -> bool
+  auto global::is_bound() const -> bool
   {
     return not is_free();
   }
 
-  auto identifier::is_free() const -> bool
+  auto global::is_free() const -> bool
   {
-    return cdr(*this).is<identifier>() and cdr(*this).as<identifier>() == *this; // NOTE: See syntactic_continuation::locate
+    return cdr(*this).is<global>() and cdr(*this).as<global>() == *this; // NOTE: See syntactic_continuation::locate
   }
 
-  auto identifier::symbol() const noexcept -> const_reference
-  {
-    return car(*this);
-  }
+  // auto identifier::symbol() const noexcept -> const_reference
+  // {
+  //   return car(*this);
+  // }
 
   auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &
   {

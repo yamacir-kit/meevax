@@ -28,11 +28,25 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto is_bound() const -> bool;
+    virtual auto is_bound() const -> bool = 0;
 
-    auto is_free() const -> bool;
+    virtual auto is_free() const -> bool = 0;
 
-    auto symbol() const noexcept -> const_reference;
+    auto symbol() const -> const_reference
+    {
+      return car(*this);
+    }
+  };
+
+  struct global : public identifier
+  {
+    using identifier::identifier;
+
+    auto is_bound() const -> bool override;
+
+    auto is_free() const -> bool override;
+
+    // auto symbol() const noexcept -> const_reference;
   };
 
   auto operator <<(std::ostream &, identifier const&) -> std::ostream &;

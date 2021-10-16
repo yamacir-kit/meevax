@@ -107,7 +107,7 @@ inline namespace kernel
       }
       else if (not expression.is<pair>()) // is <identifier>
       {
-        if (expression.is<symbol>() or expression.is<identifier>())
+        if (expression.is<symbol>() or expression.is_also<identifier>())
         {
           /* ---- R7RS 4.1.1. Variable references ------------------------------
            *
@@ -1059,7 +1059,7 @@ inline namespace kernel
       }
       else
       {
-        if (let const& location = current_syntactic_continuation.locate(car(expression)); static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost) and cdr(location).is<identifier>())
+        if (let const& location = current_syntactic_continuation.locate(car(expression)); static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost) and location.as<identifier>().is_free())
         {
           throw syntax_error(make<string>("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"), expression);
         }

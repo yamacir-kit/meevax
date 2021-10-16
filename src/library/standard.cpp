@@ -1900,7 +1900,7 @@ namespace meevax
     define<procedure>("identifier?", [](let const& xs)
     {
       let const& x = car(xs);
-      return x.is<identifier>() or x.is<symbol>() ? t : f;
+      return x.is_also<identifier>() or x.is<symbol>() ? t : f;
     });
 
     /* -------------------------------------------------------------------------
@@ -1951,7 +1951,7 @@ namespace meevax
       switch (length(xs))
       {
       case 1:
-        if (let const& x = car(xs); x.is<identifier>())
+        if (let const& x = car(xs); x.is_also<identifier>())
         {
           return x.as<identifier>().symbol();
         }
@@ -1968,7 +1968,7 @@ namespace meevax
 
     define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
 
-    define<procedure>("r6rs:identifier?", is<identifier>());
+    define<procedure>("r6rs:identifier?", is<global>());
 
     define<procedure>("macroexpand-1", [this](let const& xs)
     {
