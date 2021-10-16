@@ -84,7 +84,7 @@ inline namespace kernel
   {
     assert(name.is<symbol>());
 
-    return global_environment() = make<global>(name, value) | global_environment();
+    return global_environment() = make<absolute>(name, value) | global_environment();
   }
 
   auto syntactic_continuation::define(std::string const& name, const_reference value) -> const_reference
@@ -256,7 +256,7 @@ inline namespace kernel
        *
        * -------------------------------------------------------------------- */
 
-      let const id = make<global>(variable);
+      let const id = make<absolute>(variable);
 
       cdr(id) = id; // NOTE: Identifier is self-evaluate if is unbound.
 

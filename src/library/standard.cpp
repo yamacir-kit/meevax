@@ -1968,7 +1968,7 @@ namespace meevax
 
     define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
 
-    define<procedure>("r6rs:identifier?", is<global>());
+    define<procedure>("r6rs:identifier?", is<absolute>());
 
     define<procedure>("macroexpand-1", [this](let const& xs)
     {

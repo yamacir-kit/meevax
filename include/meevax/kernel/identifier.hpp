@@ -37,7 +37,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, identifier const&) -> std::ostream &;
 
-  struct global : public identifier
+  struct absolute : public identifier
   {
     using identifier::identifier;
 
@@ -46,7 +46,7 @@ inline namespace kernel
     auto is_free() const -> bool override;
   };
 
-  struct local : public identifier // de_bruijn_index
+  struct relative : public identifier // de_bruijn_index
   {
     using identifier::identifier;
 
@@ -55,9 +55,9 @@ inline namespace kernel
     auto is_free() const -> bool override;
   };
 
-  struct variadic : public local // de_bruijn_index
+  struct variadic : public relative // de_bruijn_index
   {
-    using local::local;
+    using relative::relative;
   };
 
   auto notate(pair::const_reference, pair::const_reference) -> pair::value_type;

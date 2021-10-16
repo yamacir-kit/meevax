@@ -32,39 +32,37 @@ inline namespace kernel
     return os << underline << datum.symbol() << reset;
   }
 
-  auto global::is_bound() const -> bool
+  auto absolute::is_bound() const -> bool
   {
     return not is_free();
   }
 
-  auto global::is_free() const -> bool
+  auto absolute::is_free() const -> bool
   {
-    return cdr(*this).is<global>() and cdr(*this).as<global>() == *this; // NOTE: See syntactic_continuation::locate
+    return cdr(*this).is<absolute>() and cdr(*this).as<absolute>() == *this; // NOTE: See syntactic_continuation::locate
   }
 
-  auto local::is_bound() const -> bool
+  auto relative::is_bound() const -> bool
   {
     return not is_free();
   }
 
-  auto local::is_free() const -> bool
+  auto relative::is_free() const -> bool
   {
     return false;
   }
 
   auto notate(pair::const_reference variable, pair::const_reference frames) -> pair::value_type
   {
-    assert(variable.is<symbol>());
-
     for (auto outer = std::begin(frames); outer != std::end(frames); ++outer)
     {
       for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
       {
         if (inner.unwrap().is<pair>() and eq(*inner, variable))
         {
-          return make<local>(variable,
-                             cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
-                                  make<exact_integer>(std::distance(std::begin(*outer), inner))));
+          return make<relative>(variable,
+                                cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
+                                     make<exact_integer>(std::distance(std::begin(*outer), inner))));
         }
         else if (inner.unwrap().is<symbol>() and eq(inner, variable))
         {
