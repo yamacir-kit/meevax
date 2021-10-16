@@ -46,13 +46,13 @@ inline namespace kernel
     auto is_free() const -> bool override;
   };
 
-  struct local : public virtual pair // de_bruijn_index
+  struct local : public identifier // de_bruijn_index
   {
-    using pair::pair;
+    using identifier::identifier;
 
-    auto is_bound() const -> bool;
+    auto is_bound() const -> bool override;
 
-    auto is_free() const -> bool;
+    auto is_free() const -> bool override;
   };
 
   struct variadic : public local // de_bruijn_index
