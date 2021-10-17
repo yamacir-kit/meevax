@@ -25,25 +25,25 @@ inline namespace kernel
 {
   enum class mnemonic : std::uint8_t
   {
-    CALL,               // a.k.a AP
+    CALL,               // a.k.a APP
     CONS,
     DEFINE,
     DROP,
     DUMMY,              // a.k.a DUM
     FORK,
     JOIN,
+    LOAD_ABSOLUTE,      // a.k.a LDG
     LOAD_CLOSURE,       // a.k.a LDF
     LOAD_CONSTANT,      // a.k.a LDC
     LOAD_CONTINUATION,
-    LOAD_GLOBAL,
-    LOAD_LOCAL,
+    LOAD_RELATIVE,      // a.k.a LDL
     LOAD_VARIADIC,
     RECURSIVE_CALL,     // a.k.a RAP
     RETURN,
     SELECT,
     STOP,
-    STORE_GLOBAL,
-    STORE_LOCAL,
+    STORE_ABSOLUTE,
+    STORE_RELATIVE,
     STORE_VARIADIC,
     TAIL_CALL,
     TAIL_SELECT,

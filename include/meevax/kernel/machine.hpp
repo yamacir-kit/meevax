@@ -128,13 +128,13 @@ inline namespace kernel
             }
             else
             {
-              return cons(make<instruction>(mnemonic::LOAD_LOCAL), cdr(variable), // De Bruijn index
+              return cons(make<instruction>(mnemonic::LOAD_RELATIVE), cdr(variable), // De Bruijn index
                           continuation);
             }
           }
           else
           {
-            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), current_syntactic_continuation.locate(expression),
+            return cons(make<instruction>(mnemonic::LOAD_ABSOLUTE), current_syntactic_continuation.locate(expression),
                         continuation);
           }
         }
@@ -241,10 +241,10 @@ inline namespace kernel
 
       switch (car(c).template as<instruction>().value)
       {
-      case mnemonic::LOAD_LOCAL: /* --------------------------------------------
+      case mnemonic::LOAD_RELATIVE: /* -----------------------------------------
         *
-        *               S  E (LOAD-LOCAL (i . j) . C) D
-        *  => (result . S) E                       C  D
+        *               S  E (LOAD_RELATIVE (i . j) . C) D
+        *  => (result . S) E                          C  D
         *
         *  where result = (list-ref (list-ref E i) j)
         *
@@ -278,10 +278,10 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::LOAD_GLOBAL: /* -------------------------------------------
+      case mnemonic::LOAD_ABSOLUTE: /* -----------------------------------------
         *
-        *               S  E (LOAD-GLOBAL <identifier> . C) D
-        *  => (object . S) E                             C  D
+        *               S  E (LOAD_ABSOLUTE <identifier> . C) D
+        *  => (object . S) E                               C  D
         *
         *  where <identifier> = (<symbol> . <unknown>)
         *
@@ -518,10 +518,10 @@ inline namespace kernel
         c = cdr(c);
         goto decode;
 
-      case mnemonic::STORE_GLOBAL: /* ------------------------------------------
+      case mnemonic::STORE_ABSOLUTE: /* ----------------------------------------
         *
-        *     (value . S) E (STORE-GLOBAL <identifier> . C) D
-        *  => (value . S) E                              C  D
+        *     (value . S) E (STORE_ABSOLUTE <identifier> . C) D
+        *  => (value . S) E                                C  D
         *
         *  where <identifier> = (<symbol> . x)
         *
@@ -537,10 +537,10 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::STORE_LOCAL: /* -------------------------------------------
+      case mnemonic::STORE_RELATIVE: /* ----------------------------------------
         *
-        *     (value . S) E (STORE-LOCAL (i . j) . C) D
-        *  => (value . S) E                        C  D
+        *     (value . S) E (STORE_RELATIVE (i . j) . C) D
+        *  => (value . S) E                           C  D
         *
         * ------------------------------------------------------------------- */
         car(list_tail(list_ref(e, caadr(c)), cdadr(c))).store(car(s));
@@ -1053,7 +1053,7 @@ inline namespace kernel
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_LOCAL), cdr(variable), // De Bruijn index
+                         cons(make<instruction>(mnemonic::STORE_RELATIVE), cdr(variable), // De Bruijn index
                               continuation));
         }
       }
@@ -1069,7 +1069,7 @@ inline namespace kernel
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_GLOBAL), location,
+                         cons(make<instruction>(mnemonic::STORE_ABSOLUTE), location,
                               continuation));
         }
       }
