@@ -272,18 +272,6 @@ inline namespace kernel
 
   auto syntactic_continuation::lookup(const_reference variable) const -> const_reference
   {
-    if (let const& x = assq(variable, global_environment()); eq(x, f))
-    {
-      return variable;
-    }
-    else
-    {
-      return cdr(x);
-    }
-  }
-
-  auto syntactic_continuation::lookup_(const_reference variable) const -> const_reference
-  {
     return assq(variable, global_environment());
   }
 

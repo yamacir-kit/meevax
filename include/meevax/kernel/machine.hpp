@@ -139,12 +139,29 @@ inline namespace kernel
       }
       else // is (applicant . arguments)
       {
-        if (auto local = notate(car(expression), frames); local /* .is_bound() */)
+        if (let const& applicant = car(expression); applicant.is_also<syntax>())
         {
+          return applicant.as<syntax>().transform(current_syntactic_context,
+                                                  current_syntactic_continuation,
+                                                  cdr(expression),
+                                                  frames,
+                                                  continuation);
         }
-        else if (let const& applicant = current_syntactic_continuation.lookup(car(expression)))
+        else if (applicant.is<syntactic_continuation>())
         {
-          if (applicant.is_also<syntax>())
+          return compile(syntactic_context::none,
+                         current_syntactic_continuation,
+                         applicant.as<syntactic_continuation>().macroexpand(applicant, expression),
+                         frames,
+                         continuation);
+        }
+        else if (let const& identifier = notate(car(expression), frames); identifier.is_also<relative>())
+        {
+          // TODO for let-syntax, letrec-syntax
+        }
+        else if (let const& identifier = current_syntactic_continuation.lookup(applicant); if_(identifier))
+        {
+          if (let const& applicant = cdr(identifier); applicant.is_also<syntax>())
           {
             return applicant.as<syntax>().transform(current_syntactic_context,
                                                     current_syntactic_continuation,
@@ -789,7 +806,7 @@ inline namespace kernel
         {
           if (notate(car(form), frames).is<null>() /* .is_free() */)
           {
-            if (let const& identifier = current_syntactic_continuation.lookup_(car(form)); if_(identifier))
+            if (let const& identifier = current_syntactic_continuation.lookup(car(form)); if_(identifier))
             {
               if (let const& callee = cdr(identifier); callee.is<syntax>())
               {
