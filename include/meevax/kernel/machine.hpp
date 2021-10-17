@@ -583,6 +583,18 @@ inline namespace kernel
       }
     }
 
+    static auto identify(pair::const_reference variable, pair::const_reference frames, syntactic_continuation const& current_syntactic_continuation) -> pair::value_type
+    {
+      if (let const& identifier = notate(variable, frames); identifier.is<null>())
+      {
+        return current_syntactic_continuation.locate(variable); // NOTE: In the const version, locate does not extend the global-environment.
+      }
+      else
+      {
+        return identifier;
+      }
+    }
+
   protected:
     static SYNTAX(quotation) /* ------------------------------------------------
     *
@@ -802,14 +814,11 @@ inline namespace kernel
       {
         if (form.is<pair>())
         {
-          if (notate(car(form), frames).is<null>() /* .is_free() */)
+          if (let const& identifier = identify(car(form), frames, std::as_const(current_syntactic_continuation)); identifier.is<absolute>())
           {
-            if (let const& identifier = std::as_const(current_syntactic_continuation).locate(car(form)); if_(identifier))
+            if (let const& callee = cdr(identifier); callee.is<syntax>())
             {
-              if (let const& callee = cdr(identifier); callee.is<syntax>())
-              {
-                return callee.as<syntax>().name == "define";
-              }
+              return callee.as<syntax>().name == "define";
             }
           }
         }
