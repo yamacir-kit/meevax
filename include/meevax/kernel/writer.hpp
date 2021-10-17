@@ -23,17 +23,17 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename EnvironmentSpecifier>
+  template <typename Environment>
   class writer
   {
-    friend EnvironmentSpecifier;
+    friend Environment;
 
     explicit writer()
     {}
 
-    IMPORT(EnvironmentSpecifier, is_batch_mode,   const);
-    IMPORT(EnvironmentSpecifier, is_debug_mode,   const);
-    IMPORT(EnvironmentSpecifier, is_verbose_mode, const);
+    IMPORT(Environment, is_batch_mode,   const);
+    IMPORT(Environment, is_debug_mode,   const);
+    IMPORT(Environment, is_verbose_mode, const);
 
   public:
     template <typename... Ts>

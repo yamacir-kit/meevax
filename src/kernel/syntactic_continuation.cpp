@@ -153,7 +153,7 @@ inline namespace kernel
 
   auto syntactic_continuation::import() -> void
   {
-    define<procedure>("free-identifier=?", [this](let const& xs)
+    define<procedure>("free-identifier=?", [](let const& xs)
     {
       if (let const& a = car(xs); a.is<symbol>() or a.is_also<identifier>())
       {

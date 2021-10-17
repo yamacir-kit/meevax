@@ -30,19 +30,19 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename EnvironmentSpecifier>
+  template <typename Environment>
   class machine // TR-SECD machine.
   {
-    friend EnvironmentSpecifier;
+    friend Environment;
 
-    using syntactic_continuation = EnvironmentSpecifier; // HACK
+    using syntactic_continuation = Environment; // HACK
 
     machine()
     {}
 
-    IMPORT(EnvironmentSpecifier, fork, NIL);
-    IMPORT(EnvironmentSpecifier, is_trace_mode, const);
-    IMPORT(EnvironmentSpecifier, locate, NIL);
+    IMPORT(Environment, fork, NIL);
+    IMPORT(Environment, is_trace_mode, const);
+    IMPORT(Environment, locate, NIL);
 
   protected:
     let s, // stack (holding intermediate results and return address)

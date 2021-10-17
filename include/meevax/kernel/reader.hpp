@@ -233,17 +233,17 @@ inline namespace kernel
     auto number = complex;
   } // namespace string_to
 
-  template <typename EnvironmentSpecifier>
+  template <typename Environment>
   class reader
   {
-    friend EnvironmentSpecifier;
+    friend Environment;
 
     explicit reader()
     {}
 
-    IMPORT(EnvironmentSpecifier, evaluate,   NIL);
-    IMPORT(EnvironmentSpecifier, debug_port, NIL);
-    IMPORT(EnvironmentSpecifier, write,      NIL);
+    IMPORT(Environment, evaluate,   NIL);
+    IMPORT(Environment, debug_port, NIL);
+    IMPORT(Environment, write,      NIL);
 
     using char_type = typename std::istream::char_type;
 

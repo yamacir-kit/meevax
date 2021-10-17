@@ -28,15 +28,15 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename EnvironmentSpecifier>
+  template <typename Environment>
   class configurator
   {
-    friend EnvironmentSpecifier;
+    friend Environment;
 
-    IMPORT(EnvironmentSpecifier, evaluate, NIL);
-    IMPORT(EnvironmentSpecifier, load, NIL);
-    IMPORT(EnvironmentSpecifier, print, const);
-    IMPORT(EnvironmentSpecifier, read, NIL);
+    IMPORT(Environment, evaluate, NIL);
+    IMPORT(Environment, load, NIL);
+    IMPORT(Environment, print, const);
+    IMPORT(Environment, read, NIL);
 
     template <typename Key>
     using dispatcher = std::unordered_map<Key, procedure::applicable>;
