@@ -93,32 +93,30 @@ inline namespace kernel
       pair::const_reference frames = unit,
       pair::const_reference continuation = list(make<instruction>(mnemonic::STOP))) -> pair::value_type
     {
-      if (expression.is<null>())
+      if (expression.is<null>()) /* --------------------------------------------
+      *
+      *  (<operator> <operand 1> ...)                                    syntax
+      *
+      *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
+      *  expression evaluating to itself. In Scheme, it is an error.
+      *
+      * --------------------------------------------------------------------- */
       {
-        /* ---- R7RS 4.1.3. Procedure calls ------------------------------------
-         *
-         *  (<operator> <operand 1> ...)                                 syntax
-         *
-         *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
-         *  expression evaluating to itself. In Scheme, it is an error.
-         *
-         * ------------------------------------------------------------------ */
         return cons(make<instruction>(mnemonic::LOAD_CONSTANT), unit, continuation);
       }
-      else if (not expression.is<pair>()) // is <identifier>
+      else if (not expression.is<pair>()) /* -----------------------------------
+      *
+      *  <variable>                                                      syntax
+      *
+      *  An expression consisting of a variable (section 3.1) is a variable
+      *  reference. The value of the variable reference is the value stored in
+      *  the location to which the variable is bound. It is an error to
+      *  reference an unbound variable.
+      *
+      * --------------------------------------------------------------------- */
       {
         if (expression.is<symbol>() or expression.is_also<identifier>())
         {
-          /* ---- R7RS 4.1.1. Variable references ------------------------------
-           *
-           *  <variable>                                                 syntax
-           *
-           *  An expression consisting of a variable (section 3.1) is a
-           *  variable reference. The value of the variable reference is the
-           *  value stored in the location to which the variable is bound. It
-           *  is an error to reference an unbound variable.
-           *
-           * ------------------------------------------------------------------ */
           if (let const& identifier = identify(expression, frames, current_syntactic_continuation); identifier.is<absolute>())
           {
             return cons(make<instruction>(mnemonic::LOAD_ABSOLUTE), identifier,
@@ -159,7 +157,7 @@ inline namespace kernel
         {
           // TODO for let-syntax, letrec-syntax
         }
-        else if (let const& identifier = current_syntactic_continuation.lookup(applicant); if_(identifier))
+        else if (let const& identifier = std::as_const(current_syntactic_continuation).locate(applicant); if_(identifier))
         {
           if (let const& applicant = cdr(identifier); applicant.is_also<syntax>())
           {
@@ -735,7 +733,7 @@ inline namespace kernel
       }
       else
       {
-        throw syntax_error(make<string>("definition cannot appear in this syntactic-context"), unit);
+        throw syntax_error(make<string>("definition cannot appear in this syntactic-context"));
       }
     }
 
@@ -806,7 +804,7 @@ inline namespace kernel
         {
           if (notate(car(form), frames).is<null>() /* .is_free() */)
           {
-            if (let const& identifier = current_syntactic_continuation.lookup(car(form)); if_(identifier))
+            if (let const& identifier = std::as_const(current_syntactic_continuation).locate(car(form)); if_(identifier))
             {
               if (let const& callee = cdr(identifier); callee.is<syntax>())
               {

@@ -90,13 +90,11 @@ inline namespace kernel
 
     auto fork() const -> value_type;
 
+    auto form()       noexcept ->       reference;
     auto form() const noexcept -> const_reference;
 
-    auto form() noexcept -> reference;
-
+    auto global_environment()       noexcept ->       reference;
     auto global_environment() const noexcept -> const_reference;
-
-    auto global_environment() noexcept -> reference;
 
     auto import() -> void;
 
@@ -107,9 +105,8 @@ inline namespace kernel
 
     auto load(const_reference) -> value_type;
 
-    auto locate(const_reference) -> const_reference;
-
-    auto lookup(const_reference) const -> const_reference;
+    auto locate(const_reference)       -> const_reference;
+    auto locate(const_reference) const -> const_reference;
 
     auto macroexpand(const_reference, const_reference) -> value_type;
   };
