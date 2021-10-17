@@ -19,7 +19,6 @@
 
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
-#include <meevax/kernel/de_bruijn_index.hpp>
 #include <meevax/kernel/declaration.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identifier.hpp>
@@ -108,7 +107,7 @@ inline namespace kernel
       }
       else if (not expression.is<pair>()) // is <identifier>
       {
-        if (expression.is<symbol>() or expression.is<identifier>())
+        if (expression.is<symbol>() or expression.is_also<identifier>())
         {
           /* ---- R7RS 4.1.1. Variable references ------------------------------
            *
@@ -120,22 +119,15 @@ inline namespace kernel
            *  is an error to reference an unbound variable.
            *
            * ------------------------------------------------------------------ */
-          if (auto const variable = de_bruijn_index(expression, frames); variable.is_bound())
+          if (let const& identifier = identify(expression, frames, current_syntactic_continuation); identifier.is<absolute>())
           {
-            if (variable.is_variadic)
-            {
-              return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable.index,
-                          continuation);
-            }
-            else
-            {
-              return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable.index,
-                          continuation);
-            }
+            return cons(make<instruction>(mnemonic::LOAD_ABSOLUTE), identifier,
+                        continuation);
           }
           else
           {
-            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), current_syntactic_continuation.locate(expression),
+            return cons(identifier.is<relative>() ? make<instruction>(mnemonic::LOAD_RELATIVE)
+                                                  : make<instruction>(mnemonic::LOAD_VARIADIC), cdr(identifier),
                         continuation);
           }
         }
@@ -147,9 +139,29 @@ inline namespace kernel
       }
       else // is (applicant . arguments)
       {
-        if (let const& applicant = current_syntactic_continuation.lookup(car(expression)); de_bruijn_index(car(expression), frames).is_free())
+        if (let const& applicant = car(expression); applicant.is_also<syntax>())
         {
-          if (applicant.is_also<syntax>())
+          return applicant.as<syntax>().transform(current_syntactic_context,
+                                                  current_syntactic_continuation,
+                                                  cdr(expression),
+                                                  frames,
+                                                  continuation);
+        }
+        else if (applicant.is<syntactic_continuation>())
+        {
+          return compile(syntactic_context::none,
+                         current_syntactic_continuation,
+                         applicant.as<syntactic_continuation>().macroexpand(applicant, expression),
+                         frames,
+                         continuation);
+        }
+        else if (let const& identifier = notate(car(expression), frames); identifier.is_also<relative>())
+        {
+          // TODO for let-syntax, letrec-syntax
+        }
+        else if (let const& identifier = current_syntactic_continuation.lookup(applicant); if_(identifier))
+        {
+          if (let const& applicant = cdr(identifier); applicant.is_also<syntax>())
           {
             return applicant.as<syntax>().transform(current_syntactic_context,
                                                     current_syntactic_continuation,
@@ -159,7 +171,6 @@ inline namespace kernel
           }
           else if (applicant.is<syntactic_continuation>())
           {
-
             return compile(syntactic_context::none,
                            current_syntactic_continuation,
                            applicant.as<syntactic_continuation>().macroexpand(applicant, expression),
@@ -239,10 +250,10 @@ inline namespace kernel
 
       switch (car(c).template as<instruction>().value)
       {
-      case mnemonic::LOAD_LOCAL: /* --------------------------------------------
+      case mnemonic::LOAD_RELATIVE: /* -----------------------------------------
         *
-        *               S  E (LOAD-LOCAL (i . j) . C) D
-        *  => (result . S) E                       C  D
+        *               S  E (LOAD_RELATIVE (i . j) . C) D
+        *  => (result . S) E                          C  D
         *
         *  where result = (list-ref (list-ref E i) j)
         *
@@ -276,10 +287,10 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::LOAD_GLOBAL: /* -------------------------------------------
+      case mnemonic::LOAD_ABSOLUTE: /* -----------------------------------------
         *
-        *               S  E (LOAD-GLOBAL <identifier> . C) D
-        *  => (object . S) E                             C  D
+        *               S  E (LOAD_ABSOLUTE <identifier> . C) D
+        *  => (object . S) E                               C  D
         *
         *  where <identifier> = (<symbol> . <unknown>)
         *
@@ -516,10 +527,10 @@ inline namespace kernel
         c = cdr(c);
         goto decode;
 
-      case mnemonic::STORE_GLOBAL: /* ------------------------------------------
+      case mnemonic::STORE_ABSOLUTE: /* ----------------------------------------
         *
-        *     (value . S) E (STORE-GLOBAL <identifier> . C) D
-        *  => (value . S) E                              C  D
+        *     (value . S) E (STORE_ABSOLUTE <identifier> . C) D
+        *  => (value . S) E                                C  D
         *
         *  where <identifier> = (<symbol> . x)
         *
@@ -535,10 +546,10 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::STORE_LOCAL: /* -------------------------------------------
+      case mnemonic::STORE_RELATIVE: /* ----------------------------------------
         *
-        *     (value . S) E (STORE-LOCAL (i . j) . C) D
-        *  => (value . S) E                        C  D
+        *     (value . S) E (STORE_RELATIVE (i . j) . C) D
+        *  => (value . S) E                           C  D
         *
         * ------------------------------------------------------------------- */
         car(list_tail(list_ref(e, caadr(c)), cdadr(c))).store(car(s));
@@ -559,6 +570,18 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         c = cdr(c);
         return pop(s); // return car(s);
+      }
+    }
+
+    static auto identify(pair::const_reference variable, pair::const_reference frames, syntactic_continuation & current_syntactic_continuation) -> pair::value_type
+    {
+      if (let const& identifier = notate(variable, frames); identifier.is<null>())
+      {
+        return current_syntactic_continuation.locate(variable);
+      }
+      else
+      {
+        return identifier;
       }
     }
 
@@ -779,15 +802,21 @@ inline namespace kernel
     {
       auto is_definition = [&](pair::const_reference form)
       {
-        if (form.is<pair>() and de_bruijn_index(car(form), frames).is_free())
+        if (form.is<pair>())
         {
-          let const& callee = current_syntactic_continuation.lookup(car(form));
-          return callee.is<syntax>() and callee.as<syntax>().name == "define";
+          if (notate(car(form), frames).is<null>() /* .is_free() */)
+          {
+            if (let const& identifier = current_syntactic_continuation.lookup(car(form)); if_(identifier))
+            {
+              if (let const& callee = cdr(identifier); callee.is<syntax>())
+              {
+                return callee.as<syntax>().name == "define";
+              }
+            }
+          }
         }
-        else
-        {
-          return false;
-        }
+
+        return false;
       };
 
       auto sweep = [&](auto const& form)
@@ -1034,42 +1063,24 @@ inline namespace kernel
       {
         throw syntax_error(make<string>("set!"), expression);
       }
-      else if (auto variable = de_bruijn_index(car(expression), frames); variable.is_bound())
+      else if (let const& identifier = identify(car(expression), frames, current_syntactic_continuation); identifier.is<absolute>())
       {
-        if (variable.is_variadic)
-        {
-          return compile(syntactic_context::none,
-                         current_syntactic_continuation,
-                         cadr(expression),
-                         frames,
-                         cons(make<instruction>(mnemonic::STORE_VARIADIC), variable.index,
-                              continuation));
-        }
-        else
-        {
-          return compile(syntactic_context::none,
-                         current_syntactic_continuation,
-                         cadr(expression),
-                         frames,
-                         cons(make<instruction>(mnemonic::STORE_LOCAL), variable.index,
-                              continuation));
-        }
+        return compile(syntactic_context::none,
+                       current_syntactic_continuation,
+                       cadr(expression),
+                       frames,
+                       cons(make<instruction>(mnemonic::STORE_ABSOLUTE), identifier,
+                            continuation));
       }
       else
       {
-        if (let const& location = current_syntactic_continuation.locate(car(expression)); static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost) and cdr(location).is<identifier>())
-        {
-          throw syntax_error(make<string>("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"), expression);
-        }
-        else
-        {
-          return compile(syntactic_context::none,
-                         current_syntactic_continuation,
-                         cadr(expression),
-                         frames,
-                         cons(make<instruction>(mnemonic::STORE_GLOBAL), location,
-                              continuation));
-        }
+        return compile(syntactic_context::none,
+                       current_syntactic_continuation,
+                       cadr(expression),
+                       frames,
+                       cons(identifier.is<relative>() ? make<instruction>(mnemonic::STORE_RELATIVE)
+                                                      : make<instruction>(mnemonic::STORE_VARIADIC), cdr(identifier), // De Bruijn index
+                            continuation));
       }
     }
 

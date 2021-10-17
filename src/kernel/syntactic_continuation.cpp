@@ -84,7 +84,7 @@ inline namespace kernel
   {
     assert(name.is<symbol>());
 
-    return global_environment() = make<identifier>(name, value) | global_environment();
+    return global_environment() = make<absolute>(name, value) | global_environment();
   }
 
   auto syntactic_continuation::define(std::string const& name, const_reference value) -> const_reference
@@ -155,13 +155,13 @@ inline namespace kernel
   {
     define<procedure>("free-identifier=?", [this](let const& xs)
     {
-      if (let const& a = car(xs); a.is<symbol>() or a.is<identifier>())
+      if (let const& a = car(xs); a.is<symbol>() or a.is_also<identifier>())
       {
-        if (let const& b = cadr(xs); b.is<symbol>() or b.is<identifier>())
+        if (let const& b = cadr(xs); b.is<symbol>() or b.is_also<identifier>())
         {
-          if (let const& id1 = a.is<identifier>() ? a.as<identifier>().symbol() : a)
+          if (let const& id1 = a.is_also<identifier>() ? a.as<identifier>().symbol() : a)
           {
-            if (let const& id2 = b.is<identifier>() ? b.as<identifier>().symbol() : b)
+            if (let const& id2 = b.is_also<identifier>() ? b.as<identifier>().symbol() : b)
             {
               return id1 == id2 ? t : f;
             }
@@ -169,13 +169,13 @@ inline namespace kernel
         }
       }
 
-      // if (let const& a = car(xs); a.is<symbol>() or a.is<identifier>())
+      // if (let const& a = car(xs); a.is<symbol>() or a.is_also<identifier>())
       // {
-      //   if (let const& b = cadr(xs); b.is<symbol>() or b.is<identifier>())
+      //   if (let const& b = cadr(xs); b.is<symbol>() or b.is_also<identifier>())
       //   {
-      //     if (auto const& id1 = a.is<identifier>() ? a.as<identifier>() : locate(a).as<identifier>(); id1.is_free())
+      //     if (auto const& id1 = a.is_also<identifier>() ? a.as<identifier>() : locate(a).as<identifier>(); id1.is_free())
       //     {
-      //       if (auto const& id2 = b.is<identifier>() ? b.as<identifier>() : locate(b).as<identifier>(); id2.is_free())
+      //       if (auto const& id2 = b.is_also<identifier>() ? b.as<identifier>() : locate(b).as<identifier>(); id2.is_free())
       //       {
       //         return id1 == id2 ? t : f;
       //       }
@@ -215,7 +215,7 @@ inline namespace kernel
     {
       write(debug_port(), f, "\n");
 
-      throw file_error(make<string>("failed to open file: " + s), unit);
+      throw file_error(make<string>("failed to open file: " + s));
     }
   }
 
@@ -256,7 +256,7 @@ inline namespace kernel
        *
        * -------------------------------------------------------------------- */
 
-      let const id = make<identifier>(variable);
+      let const id = make<absolute>(variable);
 
       cdr(id) = id; // NOTE: Identifier is self-evaluate if is unbound.
 
@@ -272,14 +272,7 @@ inline namespace kernel
 
   auto syntactic_continuation::lookup(const_reference variable) const -> const_reference
   {
-    if (let const& x = assq(variable, global_environment()); eq(x, f))
-    {
-      return variable.is<identifier>() ? variable.as<identifier>().symbol() : variable;
-    }
-    else
-    {
-      return cdr(x);
-    }
+    return assq(variable, global_environment());
   }
 
   auto syntactic_continuation::macroexpand(const_reference keyword, const_reference form) -> value_type

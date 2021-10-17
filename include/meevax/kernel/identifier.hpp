@@ -17,8 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 #define INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 
-#include <meevax/kernel/list.hpp>
-#include <meevax/kernel/symbol.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
@@ -28,14 +27,39 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto is_bound() const -> bool;
+    virtual auto is_bound() const -> bool = 0;
 
-    auto is_free() const -> bool;
+    virtual auto is_free() const -> bool = 0;
 
-    auto symbol() const noexcept -> const_reference;
+    auto symbol() const -> const_reference;
   };
 
   auto operator <<(std::ostream &, identifier const&) -> std::ostream &;
+
+  struct absolute : public identifier
+  {
+    using identifier::identifier;
+
+    auto is_bound() const -> bool override;
+
+    auto is_free() const -> bool override;
+  };
+
+  struct relative : public identifier // de_bruijn_index
+  {
+    using identifier::identifier;
+
+    auto is_bound() const -> bool override;
+
+    auto is_free() const -> bool override;
+  };
+
+  struct variadic : public relative // de_bruijn_index
+  {
+    using relative::relative;
+  };
+
+  auto notate(pair::const_reference, pair::const_reference) -> pair::value_type;
 } // namespace kernel
 } // namespace meevax
 
