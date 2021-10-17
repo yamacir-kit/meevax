@@ -274,12 +274,17 @@ inline namespace kernel
   {
     if (let const& x = assq(variable, global_environment()); eq(x, f))
     {
-      return variable.is_also<identifier>() ? variable.as<identifier>().symbol() : variable;
+      return variable;
     }
     else
     {
       return cdr(x);
     }
+  }
+
+  auto syntactic_continuation::lookup_(const_reference variable) const -> const_reference
+  {
+    return assq(variable, global_environment());
   }
 
   auto syntactic_continuation::macroexpand(const_reference keyword, const_reference form) -> value_type

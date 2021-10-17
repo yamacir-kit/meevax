@@ -17,8 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 #define INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 
-#include <meevax/kernel/list.hpp>
-#include <meevax/kernel/symbol.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {

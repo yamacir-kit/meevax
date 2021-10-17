@@ -558,26 +558,14 @@ inline namespace kernel
 
     static auto identify(pair::const_reference variable, pair::const_reference frames, syntactic_continuation & current_syntactic_continuation) -> pair::value_type
     {
-      for (auto outer = std::begin(frames); outer != std::end(frames); ++outer)
+      if (let const& identifier = notate(variable, frames); identifier.is<null>())
       {
-        for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
-        {
-          if (inner.unwrap().is<pair>() and eq(*inner, variable))
-          {
-            return make<relative>(variable,
-                                  cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
-                                       make<exact_integer>(std::distance(std::begin(*outer), inner))));
-          }
-          else if (inner.unwrap().is<symbol>() and eq(inner, variable))
-          {
-            return make<variadic>(variable,
-                                  cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
-                                       make<exact_integer>(std::distance(std::begin(*outer), inner))));
-          }
-        }
+        return current_syntactic_continuation.locate(variable);
       }
-
-      return current_syntactic_continuation.locate(variable);
+      else
+      {
+        return identifier;
+      }
     }
 
   protected:
@@ -797,15 +785,21 @@ inline namespace kernel
     {
       auto is_definition = [&](pair::const_reference form)
       {
-        if (form.is<pair>() and notate(car(form), frames).is<null>() /* .is_free() */)
+        if (form.is<pair>())
         {
-          let const& callee = current_syntactic_continuation.lookup(car(form));
-          return callee.is<syntax>() and callee.as<syntax>().name == "define";
+          if (notate(car(form), frames).is<null>() /* .is_free() */)
+          {
+            if (let const& identifier = current_syntactic_continuation.lookup_(car(form)); if_(identifier))
+            {
+              if (let const& callee = cdr(identifier); callee.is<syntax>())
+              {
+                return callee.as<syntax>().name == "define";
+              }
+            }
+          }
         }
-        else
-        {
-          return false;
-        }
+
+        return false;
       };
 
       auto sweep = [&](auto const& form)
