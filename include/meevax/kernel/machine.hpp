@@ -119,22 +119,15 @@ inline namespace kernel
            *  is an error to reference an unbound variable.
            *
            * ------------------------------------------------------------------ */
-          if (auto const variable = notate(expression, frames); variable /* .is_bound() */)
+          if (let const& identifier = identify(expression, frames, current_syntactic_continuation); identifier.is<absolute>())
           {
-            if (variable.is<variadic>())
-            {
-              return cons(make<instruction>(mnemonic::LOAD_VARIADIC), cdr(variable), // De Bruijn index
-                          continuation);
-            }
-            else
-            {
-              return cons(make<instruction>(mnemonic::LOAD_RELATIVE), cdr(variable), // De Bruijn index
-                          continuation);
-            }
+            return cons(make<instruction>(mnemonic::LOAD_ABSOLUTE), identifier,
+                        continuation);
           }
           else
           {
-            return cons(make<instruction>(mnemonic::LOAD_ABSOLUTE), current_syntactic_continuation.locate(expression),
+            return cons(identifier.is<relative>() ? make<instruction>(mnemonic::LOAD_RELATIVE)
+                                                  : make<instruction>(mnemonic::LOAD_VARIADIC), cdr(identifier),
                         continuation);
           }
         }
@@ -161,7 +154,6 @@ inline namespace kernel
           }
           else if (applicant.is<syntactic_continuation>())
           {
-
             return compile(syntactic_context::none,
                            current_syntactic_continuation,
                            applicant.as<syntactic_continuation>().macroexpand(applicant, expression),
@@ -562,6 +554,30 @@ inline namespace kernel
         c = cdr(c);
         return pop(s); // return car(s);
       }
+    }
+
+    static auto identify(pair::const_reference variable, pair::const_reference frames, syntactic_continuation & current_syntactic_continuation) -> pair::value_type
+    {
+      for (auto outer = std::begin(frames); outer != std::end(frames); ++outer)
+      {
+        for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
+        {
+          if (inner.unwrap().is<pair>() and eq(*inner, variable))
+          {
+            return make<relative>(variable,
+                                  cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
+                                       make<exact_integer>(std::distance(std::begin(*outer), inner))));
+          }
+          else if (inner.unwrap().is<symbol>() and eq(inner, variable))
+          {
+            return make<variadic>(variable,
+                                  cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
+                                       make<exact_integer>(std::distance(std::begin(*outer), inner))));
+          }
+        }
+      }
+
+      return current_syntactic_continuation.locate(variable);
     }
 
   protected:
@@ -1036,42 +1052,24 @@ inline namespace kernel
       {
         throw syntax_error(make<string>("set!"), expression);
       }
-      else if (auto variable = notate(car(expression), frames); variable /* .is_bound() */)
+      else if (let const& identifier = identify(car(expression), frames, current_syntactic_continuation); identifier.is<absolute>())
       {
-        if (variable.is<variadic>())
-        {
-          return compile(syntactic_context::none,
-                         current_syntactic_continuation,
-                         cadr(expression),
-                         frames,
-                         cons(make<instruction>(mnemonic::STORE_VARIADIC), cdr(variable), // De Bruijn index
-                              continuation));
-        }
-        else
-        {
-          return compile(syntactic_context::none,
-                         current_syntactic_continuation,
-                         cadr(expression),
-                         frames,
-                         cons(make<instruction>(mnemonic::STORE_RELATIVE), cdr(variable), // De Bruijn index
-                              continuation));
-        }
+        return compile(syntactic_context::none,
+                       current_syntactic_continuation,
+                       cadr(expression),
+                       frames,
+                       cons(make<instruction>(mnemonic::STORE_ABSOLUTE), identifier,
+                            continuation));
       }
       else
       {
-        if (let const& location = current_syntactic_continuation.locate(car(expression)); static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost) and location.as<identifier>().is_free())
-        {
-          throw syntax_error(make<string>("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"), expression);
-        }
-        else
-        {
-          return compile(syntactic_context::none,
-                         current_syntactic_continuation,
-                         cadr(expression),
-                         frames,
-                         cons(make<instruction>(mnemonic::STORE_ABSOLUTE), location,
-                              continuation));
-        }
+        return compile(syntactic_context::none,
+                       current_syntactic_continuation,
+                       cadr(expression),
+                       frames,
+                       cons(identifier.is<relative>() ? make<instruction>(mnemonic::STORE_RELATIVE)
+                                                      : make<instruction>(mnemonic::STORE_VARIADIC), cdr(identifier), // De Bruijn index
+                            continuation));
       }
     }
 
