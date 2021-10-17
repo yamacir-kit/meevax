@@ -41,8 +41,6 @@ inline namespace kernel
     {}
 
     IMPORT(Environment, fork, NIL);
-    IMPORT(Environment, is_trace_mode, const);
-    IMPORT(Environment, locate, NIL);
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -117,7 +115,7 @@ inline namespace kernel
       {
         if (expression.is<symbol>() or expression.is_also<identifier>())
         {
-          if (let const& identifier = identify(expression, frames, current_syntactic_continuation); identifier.is<absolute>())
+          if (let const& identifier = rename(expression, frames, current_syntactic_continuation); identifier.is<absolute>())
           {
             return cons(make<instruction>(mnemonic::LOAD_ABSOLUTE), identifier,
                         continuation);
@@ -153,11 +151,11 @@ inline namespace kernel
                          frames,
                          continuation);
         }
-        else if (let const& identifier = notate(car(expression), frames); identifier.is_also<relative>())
+        else if (let const& identifier = rename(applicant, frames, std::as_const(current_syntactic_continuation)); identifier.is<relative>())
         {
           // TODO for let-syntax, letrec-syntax
         }
-        else if (let const& identifier = std::as_const(current_syntactic_continuation).locate(applicant); if_(identifier))
+        else if (identifier.is<absolute>())
         {
           if (let const& applicant = cdr(identifier); applicant.is_also<syntax>())
           {
@@ -571,11 +569,11 @@ inline namespace kernel
       }
     }
 
-    static auto identify(pair::const_reference variable, pair::const_reference frames, syntactic_continuation & current_syntactic_continuation) -> pair::value_type
+    static auto rename(pair::const_reference variable, pair::const_reference frames, syntactic_continuation & current_syntactic_continuation) -> pair::value_type
     {
       if (let const& identifier = notate(variable, frames); identifier.is<null>())
       {
-        return current_syntactic_continuation.locate(variable);
+        return current_syntactic_continuation.rename(variable);
       }
       else
       {
@@ -583,11 +581,11 @@ inline namespace kernel
       }
     }
 
-    static auto identify(pair::const_reference variable, pair::const_reference frames, syntactic_continuation const& current_syntactic_continuation) -> pair::value_type
+    static auto rename(pair::const_reference variable, pair::const_reference frames, syntactic_continuation const& current_syntactic_continuation) -> pair::value_type
     {
       if (let const& identifier = notate(variable, frames); identifier.is<null>())
       {
-        return current_syntactic_continuation.locate(variable); // NOTE: In the const version, locate does not extend the global-environment.
+        return current_syntactic_continuation.rename(variable); // NOTE: In the const version, rename does not extend the global-environment.
       }
       else
       {
@@ -730,7 +728,7 @@ inline namespace kernel
                          current_syntactic_continuation,
                          cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
                          frames,
-                         cons(make<instruction>(mnemonic::DEFINE), current_syntactic_continuation.locate(caar(expression)),
+                         cons(make<instruction>(mnemonic::DEFINE), current_syntactic_continuation.rename(caar(expression)),
                               continuation));
         }
         else // (define x ...)
@@ -739,7 +737,7 @@ inline namespace kernel
                          current_syntactic_continuation,
                          cdr(expression) ? cadr(expression) : unspecified,
                          frames,
-                         cons(make<instruction>(mnemonic::DEFINE), current_syntactic_continuation.locate(car(expression)),
+                         cons(make<instruction>(mnemonic::DEFINE), current_syntactic_continuation.rename(car(expression)),
                               continuation));
         }
       }
@@ -814,7 +812,7 @@ inline namespace kernel
       {
         if (form.is<pair>())
         {
-          if (let const& identifier = identify(car(form), frames, std::as_const(current_syntactic_continuation)); identifier.is<absolute>())
+          if (let const& identifier = rename(car(form), frames, std::as_const(current_syntactic_continuation)); identifier.is<absolute>())
           {
             if (let const& callee = cdr(identifier); callee.is<syntax>())
             {
@@ -1070,7 +1068,7 @@ inline namespace kernel
       {
         throw syntax_error(make<string>("set!"), expression);
       }
-      else if (let const& identifier = identify(car(expression), frames, current_syntactic_continuation); identifier.is<absolute>())
+      else if (let const& identifier = rename(car(expression), frames, current_syntactic_continuation); identifier.is<absolute>())
       {
         return compile(syntactic_context::none,
                        current_syntactic_continuation,
