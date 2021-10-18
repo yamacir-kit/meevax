@@ -921,6 +921,52 @@ inline namespace kernel
                   continuation);
     }
 
+    static SYNTAX(let_syntax) /* -----------------------------------------------
+    *
+    *  (let-syntax <bindings> <body>)                                    syntax
+    *
+    *  Syntax: <Bindings> has the form
+    *
+    *      ((<keyword> <transformer spec>) . . . )
+    *
+    *  Each <keyword> is an identifier, each <transformer spec> is an instance
+    *  of syntax-rules, and <body> is a sequence of one or more definitions
+    *  followed by one or more expressions. It is an error for a <keyword> to
+    *  appear more than once in the list of keywords being bound.
+    *
+    *  Semantics: The <body> is expanded in the syntactic environment obtained
+    *  by extending the syntactic environment of the let-syntax expression with
+    *  macros whose keywords are the <keyword>s, bound to the specified
+    *  transformers. Each binding of a <keyword> has <body> as its region.
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      PRINT(expression);
+
+      let const bindings = car(expression);
+      PRINT(bindings);
+
+      for (let const& binding : bindings)
+      {
+        // PRINT(binding);
+
+        let const& keyword = car(binding);
+        PRINT(keyword);
+
+        let const& binding_spec = cadr(binding);
+        PRINT(binding_spec);
+      }
+
+      let const body = cdr(expression);
+      PRINT(body);
+
+      // make<absolute>()
+
+      std::exit(0);
+
+      return continuation;
+    }
+
     static SYNTAX(letrec) /* ---------------------------------------------------
     *
     *  (letrec <bindings> <body>)                                        syntax

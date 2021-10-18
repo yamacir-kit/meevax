@@ -29,6 +29,7 @@ namespace meevax
     define<syntax>("fork-with-current-syntactic-continuation", fork_csc);
     define<syntax>("if", conditional);
     define<syntax>("lambda", lambda);
+    define<syntax>("let-syntax", let_syntax);
     define<syntax>("letrec", letrec);
     define<syntax>("quote", literal);
     define<syntax>("set!", assignment);
