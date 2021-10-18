@@ -121,16 +121,6 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::fork() const -> value_type
-  {
-    let const module = make<syntactic_continuation>(current_continuation(), global_environment());
-
-    module.as<syntactic_continuation>().import();
-    module.as<syntactic_continuation>().build();
-
-    return module;
-  }
-
   auto syntactic_continuation::form() const noexcept -> const_reference
   {
     return car(*this);

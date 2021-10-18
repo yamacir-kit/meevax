@@ -40,7 +40,7 @@ inline namespace kernel
     machine()
     {}
 
-    IMPORT(Environment, fork, NIL);
+    IMPORT(Environment, global_environment, const);
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -567,6 +567,16 @@ inline namespace kernel
         c = cdr(c);
         return pop(s); // return car(s);
       }
+    }
+
+    inline auto fork() const -> pair::value_type
+    {
+      let const module = make<syntactic_continuation>(current_continuation(), global_environment());
+
+      module.as<syntactic_continuation>().import();
+      module.as<syntactic_continuation>().build();
+
+      return module;
     }
 
     static auto rename(pair::const_reference variable, pair::const_reference frames, syntactic_continuation & current_syntactic_continuation) -> pair::value_type

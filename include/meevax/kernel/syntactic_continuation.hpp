@@ -88,8 +88,6 @@ inline namespace kernel
 
     auto execute() -> value_type;
 
-    auto fork() const -> value_type;
-
     auto form()       noexcept ->       reference;
     auto form() const noexcept -> const_reference;
 
