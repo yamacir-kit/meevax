@@ -571,10 +571,10 @@ inline namespace kernel
 
     inline auto fork() const -> pair::value_type
     {
-      let const module = make<syntactic_continuation>(current_continuation(), global_environment());
+      let const module = make<syntactic_continuation>(unit, global_environment());
 
       module.as<syntactic_continuation>().import();
-      module.as<syntactic_continuation>().build();
+      module.as<syntactic_continuation>().build(current_continuation().template as<continuation>());
 
       return module;
     }

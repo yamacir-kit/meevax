@@ -31,48 +31,16 @@ inline namespace kernel
     return (*this)[intern(name)];
   }
 
-  auto syntactic_continuation::build() -> void
+  auto syntactic_continuation::build(continuation const& k) -> void
   {
-    /* ---- NOTE -------------------------------------------------------------
-     *
-     *  If this class was instantiated by the FORK instruction, the instance
-     *  will have received the compilation continuation as a constructor
-     *  argument.
-     *
-     *  The car part contains the registers of the virtual Lisp machine
-     *  (s e c . d). The cdr part is set to the global environment at the
-     *  time the FORK instruction was executed.
-     *
-     *  Here, the value in the c register is the operand of the FORK
-     *  instruction. The operand of the FORK instruction is a pair of a
-     *  lambda expression form passed to the syntax fork/csc and a lexical
-     *  environment.
-     *
-     * -------------------------------------------------------------------- */
-    if (car(*this).is<continuation>())
-    {
-      /* ---- NOTE -----------------------------------------------------------
-       *
-       *  If this class is constructed as make<syntactic_continuation>(...),
-       *  this object until the constructor is completed, the case noted that
-       *  it is the state that is not registered in the GC.
-       *
-       * ------------------------------------------------------------------ */
-      auto const& k = car(*this).as<continuation>();
+    s = k.s();
+    e = k.e();
+    c = compile(syntactic_context::outermost, *this, car(k.c()), cdr(k.c()));
+    d = k.d();
 
-      s = k.s();
-      e = k.e();
-      c = compile(syntactic_context::outermost, *this, car(k.c()), cdr(k.c()));
-      d = k.d();
+    form() = execute();
 
-      form() = execute();
-
-      assert(form().is<closure>());
-    }
-    else
-    {
-      throw error(make<string>(__func__, " was called by something other than the FORK instruction"), unit);
-    }
+    assert(form().is<closure>());
   }
 
   auto syntactic_continuation::current_expression() const -> const_reference
