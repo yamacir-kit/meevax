@@ -227,9 +227,9 @@ inline namespace kernel
       }
     }
 
-    inline auto current_continuation() const -> pair::value_type
+    inline auto current_continuation() const -> continuation
     {
-      return make<continuation>(s, cons(e, cadr(c), d));
+      return continuation(s, cons(e, cadr(c), d));
     }
 
     template <auto Declaration = declaration::none>
@@ -313,7 +313,7 @@ inline namespace kernel
         *  where continuation = (s e c1 . d)
         *
         * ------------------------------------------------------------------- */
-        s = cons(list(current_continuation()), s);
+        s = cons(list(make(current_continuation())), s);
         c = cddr(c);
         goto decode;
 
@@ -325,7 +325,7 @@ inline namespace kernel
         *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        s = cons(fork(), s);
+        s = cons(fork(current_continuation(), global_environment()), s);
         c = cddr(c);
         goto decode;
 
@@ -569,12 +569,12 @@ inline namespace kernel
       }
     }
 
-    inline auto fork() const -> pair::value_type
+    inline auto fork(continuation const& k, let const& syntactic_environment) const -> pair::value_type
     {
-      let const module = make<syntactic_continuation>(unit, global_environment());
+      let const module = make<syntactic_continuation>(unit, syntactic_environment);
 
       module.as<syntactic_continuation>().import();
-      module.as<syntactic_continuation>().build(current_continuation().template as<continuation>());
+      module.as<syntactic_continuation>().build(k);
 
       return module;
     }
