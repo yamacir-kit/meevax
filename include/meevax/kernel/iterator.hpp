@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
 
+#include <cstddef>
 #include <iterator> // std::begin, std::end, std::distance
 
 #include <meevax/kernel/pair.hpp>
@@ -37,9 +38,9 @@ inline namespace kernel
 
     using pointer = const_reference; // homoiconicity
 
-    using difference_type = pair::difference_type;
+    using difference_type = std::ptrdiff_t;
 
-    using size_type = pair::size_type;
+    using size_type = std::size_t;
 
     homoiconic_iterator(pair::const_reference);
 

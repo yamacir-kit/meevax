@@ -65,8 +65,8 @@ inline namespace kernel
         v2 = old_1;
       }
 
-      at(0) = make<exact_integer>(sign * v1[0]);
-      at(1) = make<exact_integer>(       v1[1]);
+      std::get<0>(*this) = make<exact_integer>(sign * v1[0]);
+      std::get<1>(*this) = make<exact_integer>(       v1[1]);
     }
 
     explicit ratio(std::string const&, int = 0);

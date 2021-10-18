@@ -26,18 +26,26 @@ inline namespace kernel
   let extern const unit;
 
   struct pair
-    : public std::array<object, 2>
+    : public std::pair<object, object>
     , public top<pair>
   {
+    using value_type = object;
+
+    using reference = let &;
+
+    using const_reference = let const&;
+
+    using size_type = std::size_t;
+
     explicit pair(const_reference a = unit, const_reference b = unit)
-      : std::array<object, 2> { a, b }
+      : std::pair<object, object> { a, b }
     {}
 
     template <typename T, typename U, typename... Ts>
     explicit pair(const_reference a, T&& b, U&& c, Ts&&... xs)
-      : std::array<object, 2> { a, make<pair>(std::forward<decltype(b)>(b),
-                                              std::forward<decltype(c)>(c),
-                                              std::forward<decltype(xs)>(xs)...) }
+      : std::pair<object, object> { a, make<pair>(std::forward<decltype(b)>(b),
+                                                  std::forward<decltype(c)>(c),
+                                                  std::forward<decltype(xs)>(xs)...) }
     {}
 
     virtual ~pair() = default;
