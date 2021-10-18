@@ -33,6 +33,13 @@ inline namespace kernel
       : std::array<object, 2> { a, b }
     {}
 
+    template <typename T, typename U, typename... Ts>
+    explicit pair(const_reference a, T&& b, U&& c, Ts&&... xs)
+      : std::array<object, 2> { a, make<pair>(std::forward<decltype(b)>(b),
+                                              std::forward<decltype(c)>(c),
+                                              std::forward<decltype(xs)>(xs)...) }
+    {}
+
     virtual ~pair() = default;
   };
 

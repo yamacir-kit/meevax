@@ -227,6 +227,7 @@ inline namespace kernel
       }
     }
 
+    [[deprecated]]
     inline auto current_continuation() const -> continuation
     {
       return continuation(s, cons(e, cadr(c), d));
@@ -313,7 +314,7 @@ inline namespace kernel
         *  where continuation = (s e c1 . d)
         *
         * ------------------------------------------------------------------- */
-        s = cons(list(make(current_continuation())), s);
+        s = cons(list(make<continuation>(s, e, cadr(c), d)), s);
         c = cddr(c);
         goto decode;
 
@@ -325,7 +326,7 @@ inline namespace kernel
         *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        s = cons(fork(current_continuation(), global_environment()), s);
+        s = cons(fork(continuation(s, e, cadr(c), d), global_environment()), s);
         c = cddr(c);
         goto decode;
 
