@@ -41,8 +41,6 @@ inline namespace kernel
     {}
 
     IMPORT(Environment, fork, NIL);
-    IMPORT(Environment, is_trace_mode, const);
-    IMPORT(Environment, locate, NIL);
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -93,33 +91,31 @@ inline namespace kernel
       pair::const_reference frames = unit,
       pair::const_reference continuation = list(make<instruction>(mnemonic::STOP))) -> pair::value_type
     {
-      if (expression.is<null>())
+      if (expression.is<null>()) /* --------------------------------------------
+      *
+      *  (<operator> <operand 1> ...)                                    syntax
+      *
+      *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
+      *  expression evaluating to itself. In Scheme, it is an error.
+      *
+      * --------------------------------------------------------------------- */
       {
-        /* ---- R7RS 4.1.3. Procedure calls ------------------------------------
-         *
-         *  (<operator> <operand 1> ...)                                 syntax
-         *
-         *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
-         *  expression evaluating to itself. In Scheme, it is an error.
-         *
-         * ------------------------------------------------------------------ */
         return cons(make<instruction>(mnemonic::LOAD_CONSTANT), unit, continuation);
       }
-      else if (not expression.is<pair>()) // is <identifier>
+      else if (not expression.is<pair>()) /* -----------------------------------
+      *
+      *  <variable>                                                      syntax
+      *
+      *  An expression consisting of a variable (section 3.1) is a variable
+      *  reference. The value of the variable reference is the value stored in
+      *  the location to which the variable is bound. It is an error to
+      *  reference an unbound variable.
+      *
+      * --------------------------------------------------------------------- */
       {
         if (expression.is<symbol>() or expression.is_also<identifier>())
         {
-          /* ---- R7RS 4.1.1. Variable references ------------------------------
-           *
-           *  <variable>                                                 syntax
-           *
-           *  An expression consisting of a variable (section 3.1) is a
-           *  variable reference. The value of the variable reference is the
-           *  value stored in the location to which the variable is bound. It
-           *  is an error to reference an unbound variable.
-           *
-           * ------------------------------------------------------------------ */
-          if (let const& identifier = identify(expression, frames, current_syntactic_continuation); identifier.is<absolute>())
+          if (let const& identifier = rename(expression, frames, current_syntactic_continuation); identifier.is<absolute>())
           {
             return cons(make<instruction>(mnemonic::LOAD_ABSOLUTE), identifier,
                         continuation);
@@ -155,11 +151,11 @@ inline namespace kernel
                          frames,
                          continuation);
         }
-        else if (let const& identifier = notate(car(expression), frames); identifier.is_also<relative>())
+        else if (let const& identifier = rename(applicant, frames, std::as_const(current_syntactic_continuation)); identifier.is<relative>())
         {
           // TODO for let-syntax, letrec-syntax
         }
-        else if (let const& identifier = current_syntactic_continuation.lookup(applicant); if_(identifier))
+        else if (identifier.is<absolute>())
         {
           if (let const& applicant = cdr(identifier); applicant.is_also<syntax>())
           {
@@ -573,11 +569,23 @@ inline namespace kernel
       }
     }
 
-    static auto identify(pair::const_reference variable, pair::const_reference frames, syntactic_continuation & current_syntactic_continuation) -> pair::value_type
+    static auto rename(pair::const_reference variable, pair::const_reference frames, syntactic_continuation & current_syntactic_continuation) -> pair::value_type
     {
       if (let const& identifier = notate(variable, frames); identifier.is<null>())
       {
-        return current_syntactic_continuation.locate(variable);
+        return current_syntactic_continuation.rename(variable);
+      }
+      else
+      {
+        return identifier;
+      }
+    }
+
+    static auto rename(pair::const_reference variable, pair::const_reference frames, syntactic_continuation const& current_syntactic_continuation) -> pair::value_type
+    {
+      if (let const& identifier = notate(variable, frames); identifier.is<null>())
+      {
+        return current_syntactic_continuation.rename(variable); // NOTE: In the const version, rename does not extend the global-environment.
       }
       else
       {
@@ -720,7 +728,7 @@ inline namespace kernel
                          current_syntactic_continuation,
                          cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
                          frames,
-                         cons(make<instruction>(mnemonic::DEFINE), current_syntactic_continuation.locate(caar(expression)),
+                         cons(make<instruction>(mnemonic::DEFINE), current_syntactic_continuation.rename(caar(expression)),
                               continuation));
         }
         else // (define x ...)
@@ -729,13 +737,13 @@ inline namespace kernel
                          current_syntactic_continuation,
                          cdr(expression) ? cadr(expression) : unspecified,
                          frames,
-                         cons(make<instruction>(mnemonic::DEFINE), current_syntactic_continuation.locate(car(expression)),
+                         cons(make<instruction>(mnemonic::DEFINE), current_syntactic_continuation.rename(car(expression)),
                               continuation));
         }
       }
       else
       {
-        throw syntax_error(make<string>("definition cannot appear in this syntactic-context"), unit);
+        throw syntax_error(make<string>("definition cannot appear in this syntactic-context"));
       }
     }
 
@@ -804,14 +812,11 @@ inline namespace kernel
       {
         if (form.is<pair>())
         {
-          if (notate(car(form), frames).is<null>() /* .is_free() */)
+          if (let const& identifier = rename(car(form), frames, std::as_const(current_syntactic_continuation)); identifier.is<absolute>())
           {
-            if (let const& identifier = current_syntactic_continuation.lookup(car(form)); if_(identifier))
+            if (let const& callee = cdr(identifier); callee.is<syntax>())
             {
-              if (let const& callee = cdr(identifier); callee.is<syntax>())
-              {
-                return callee.as<syntax>().name == "define";
-              }
+              return callee.as<syntax>().name == "define";
             }
           }
         }
@@ -1063,7 +1068,7 @@ inline namespace kernel
       {
         throw syntax_error(make<string>("set!"), expression);
       }
-      else if (let const& identifier = identify(car(expression), frames, current_syntactic_continuation); identifier.is<absolute>())
+      else if (let const& identifier = rename(car(expression), frames, current_syntactic_continuation); identifier.is<absolute>())
       {
         return compile(syntactic_context::none,
                        current_syntactic_continuation,

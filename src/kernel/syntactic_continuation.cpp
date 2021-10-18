@@ -23,7 +23,7 @@ inline namespace kernel
 {
   auto syntactic_continuation::operator [](const_reference name) -> const_reference
   {
-    return cdr(machine::locate(name));
+    return cdr(rename(name));
   }
 
   auto syntactic_continuation::operator [](std::string const& name) -> const_reference
@@ -235,9 +235,24 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::locate(const_reference variable) -> const_reference
+  auto syntactic_continuation::macroexpand(const_reference keyword, const_reference form) -> value_type
   {
-    if (let const& binding = assq(variable, global_environment()); eq(binding, f))
+    push(d, s, e, cons(make<instruction>(mnemonic::STOP), c)); // XXX ???
+
+    s = unit;
+    e = cons(cons(keyword, cdr(form)), dynamic_environment());
+    c = current_expression();
+
+    return execute();
+  }
+
+  auto syntactic_continuation::rename(const_reference variable) -> const_reference
+  {
+    if (let const& binding = assq(variable, global_environment()); if_(binding))
+    {
+      return binding;
+    }
+    else
     {
       /* -----------------------------------------------------------------------
        *
@@ -264,26 +279,11 @@ inline namespace kernel
 
       return car(global_environment());
     }
-    else
-    {
-      return binding;
-    }
   }
 
-  auto syntactic_continuation::lookup(const_reference variable) const -> const_reference
+  auto syntactic_continuation::rename(const_reference variable) const -> const_reference
   {
     return assq(variable, global_environment());
-  }
-
-  auto syntactic_continuation::macroexpand(const_reference keyword, const_reference form) -> value_type
-  {
-    push(d, s, e, cons(make<instruction>(mnemonic::STOP), c)); // XXX ???
-
-    s = unit;
-    e = cons(cons(keyword, cdr(form)), dynamic_environment());
-    c = current_expression();
-
-    return execute();
   }
 
   auto operator >>(std::istream & is, syntactic_continuation & datum) -> std::istream &
