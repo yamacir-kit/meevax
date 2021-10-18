@@ -30,7 +30,7 @@ namespace meevax
     define<syntax>("if", conditional);
     define<syntax>("lambda", lambda);
     define<syntax>("letrec", letrec);
-    define<syntax>("quote", quotation);
+    define<syntax>("quote", literal);
     define<syntax>("set!", assignment);
 
     /* -------------------------------------------------------------------------
