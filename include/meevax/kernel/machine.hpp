@@ -40,8 +40,6 @@ inline namespace kernel
     machine()
     {}
 
-    IMPORT(Environment, global_environment, const);
-
   protected:
     let s, // stack (holding intermediate results and return address)
         e, // environment (giving values to symbols)
@@ -227,12 +225,6 @@ inline namespace kernel
       }
     }
 
-    [[deprecated]]
-    inline auto current_continuation() const -> continuation
-    {
-      return continuation(s, cons(e, cadr(c), d));
-    }
-
     template <auto Declaration = declaration::none>
     inline auto execute() -> object
     {
@@ -326,7 +318,9 @@ inline namespace kernel
         *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        s = cons(fork(continuation(s, e, cadr(c), d), global_environment()), s);
+        s = cons(fork(static_cast<syntactic_continuation const&>(*this),
+                      continuation(s, e, cadr(c), d)),
+                 s);
         c = cddr(c);
         goto decode;
 
@@ -570,9 +564,9 @@ inline namespace kernel
       }
     }
 
-    inline auto fork(continuation const& k, let const& syntactic_environment) const -> object
+    inline auto fork(syntactic_continuation const& sk, continuation const& k) const -> object
     {
-      let const module = make<syntactic_continuation>(unit, syntactic_environment);
+      let const module = make<syntactic_continuation>(unit, sk.global_environment());
 
       module.as<syntactic_continuation>().import();
       module.as<syntactic_continuation>().build(k);
