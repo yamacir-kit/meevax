@@ -25,12 +25,19 @@ inline namespace kernel
 {
   let extern const unit;
 
-  struct pair
-    : public std::array<object, 2>
-    , public top<pair>
+  template <typename T>
+  using pair_of = std::pair<T, T>;
+
+  struct pair : public pair_of<object>
+              , public top<pair>
   {
     explicit pair(const_reference a = unit, const_reference b = unit)
-      : std::array<object, 2> { a, b }
+      : pair_of<object> { a, b }
+    {}
+
+    template <typename... Ts, typename = typename std::enable_if<(1 < sizeof...(Ts))>::type>
+    explicit pair(const_reference a, Ts&&... xs)
+      : pair_of<object> { a, make<pair>(std::forward<decltype(xs)>(xs)...) }
     {}
 
     virtual ~pair() = default;

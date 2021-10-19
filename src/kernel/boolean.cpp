@@ -30,7 +30,7 @@ inline namespace kernel
   let const t = make<boolean>(true);
   let const f = make<boolean>(false);
 
-  auto if_(pair::const_reference x) -> bool
+  auto if_(const_reference x) -> bool
   {
     return not eq(x, f) or not eqv(x, f);
   }

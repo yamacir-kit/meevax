@@ -90,17 +90,17 @@ inline namespace kernel
 
       , short_options_with_arguments
         {
-          std::make_pair('e', [this](pair::const_reference x)
+          std::make_pair('e', [this](const_reference x)
           {
             return print(evaluate(x)), unspecified;
           }),
 
-          std::make_pair('l', [this](pair::const_reference x)
+          std::make_pair('l', [this](const_reference x)
           {
             return load(x);
           }),
 
-          std::make_pair('w', [this](pair::const_reference x)
+          std::make_pair('w', [this](const_reference x)
           {
             return print(x), unspecified;
           }),
@@ -152,22 +152,22 @@ inline namespace kernel
 
       , long_options_with_arguments
         {
-          std::make_pair("evaluate", [this](pair::const_reference x)
+          std::make_pair("evaluate", [this](const_reference x)
           {
             return print(evaluate(x)), unspecified;
           }),
 
-          std::make_pair("load", [this](pair::const_reference x)
+          std::make_pair("load", [this](const_reference x)
           {
             return load(x);
           }),
 
-          std::make_pair("prompt", [this](pair::const_reference x)
+          std::make_pair("prompt", [this](const_reference x)
           {
             return prompt = x;
           }),
 
-          std::make_pair("write", [this](pair::const_reference x)
+          std::make_pair("write", [this](const_reference x)
           {
             return print(x), unspecified;
           }),

@@ -59,7 +59,7 @@ inline namespace kernel
     return os << underline << static_cast<std::string>(datum) << reset;
   }
 
-  auto disassemble(std::ostream & os, pair::const_reference c, std::size_t depth) -> std::ostream &
+  auto disassemble(std::ostream & os, const_reference c, std::size_t depth) -> std::ostream &
   {
     assert(0 < depth);
 

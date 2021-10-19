@@ -248,14 +248,14 @@ inline namespace kernel
     using char_type = typename std::istream::char_type;
 
   public:
-    static inline std::unordered_map<std::string, pair::value_type> symbols {};
+    static inline std::unordered_map<std::string, object> symbols {};
 
     inline auto char_ready() const
     {
       return standard_input.is_also<std::istream>() and standard_input.as<std::istream>();
     }
 
-    static auto intern(std::string const& name) -> pair::const_reference
+    static auto intern(std::string const& name) -> const_reference
     {
       if (auto const iter = symbols.find(name); iter != std::end(symbols))
       {
@@ -271,7 +271,7 @@ inline namespace kernel
       }
     }
 
-    inline auto read(std::istream & is) -> pair::value_type
+    inline auto read(std::istream & is) -> object
     {
       for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
       {
@@ -427,7 +427,7 @@ inline namespace kernel
       return read(is);
     }
 
-    inline auto read(pair::const_reference x) -> pair::value_type
+    inline auto read(const_reference x) -> object
     {
       if (x.is_also<std::istream>())
       {
@@ -439,7 +439,7 @@ inline namespace kernel
       }
     }
 
-    inline auto read() -> pair::value_type
+    inline auto read() -> object
     {
       let const result = read(standard_input);
 
@@ -448,7 +448,7 @@ inline namespace kernel
       return result;
     }
 
-    inline auto read(std::string const& s) -> pair::value_type
+    inline auto read(std::string const& s) -> object
     {
       return read(std::stringstream(s));
     }

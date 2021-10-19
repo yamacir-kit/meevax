@@ -84,9 +84,9 @@ inline namespace kernel
 
     auto dynamic_environment() const -> const_reference;
 
-    auto evaluate(const_reference) -> value_type;
+    auto evaluate(const_reference) -> object;
 
-    auto execute() -> value_type;
+    auto execute() -> object;
 
     auto form()       noexcept ->       reference;
     auto form() const noexcept -> const_reference;
@@ -99,11 +99,11 @@ inline namespace kernel
     template <typename T>
     auto import(T) -> void;
 
-    auto load(std::string const&) -> value_type;
+    auto load(std::string const&) -> object;
 
-    auto load(const_reference) -> value_type;
+    auto load(const_reference) -> object;
 
-    auto macroexpand(const_reference, const_reference) -> value_type;
+    auto macroexpand(const_reference, const_reference) -> object;
 
     auto rename(const_reference)       -> const_reference;
     auto rename(const_reference) const -> const_reference;

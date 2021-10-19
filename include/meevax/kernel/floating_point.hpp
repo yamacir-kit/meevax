@@ -44,7 +44,7 @@ inline namespace kernel
       throw read_error(make<string>("not a decimal"), make<string>(token));
     }
 
-    auto exact() const -> pair::value_type
+    auto exact() const -> object
     {
       /* ---- R7RS 6.2.6 (exact z) ---------------------------------------------
        *
@@ -94,7 +94,7 @@ inline namespace kernel
     #undef DEFINE
 
     #define DEFINE(NAME)                                                       \
-    auto NAME(pair::const_reference x) const                                   \
+    auto NAME(const_reference x) const                                         \
     {                                                                          \
       return make(floating_point(std::NAME(value, x.inexact().as<double_float>()))); \
     }                                                                          \

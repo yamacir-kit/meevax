@@ -65,7 +65,7 @@ inline namespace kernel
     return cdr(form());
   }
 
-  auto syntactic_continuation::evaluate(const_reference expression) -> value_type
+  auto syntactic_continuation::evaluate(const_reference expression) -> object
   {
     c = compile(syntactic_context::none, *this, expression);
 
@@ -77,7 +77,7 @@ inline namespace kernel
     return execute();
   }
 
-  auto syntactic_continuation::execute() -> value_type
+  auto syntactic_continuation::execute() -> object
   {
     if (is_trace_mode())
     {
@@ -152,7 +152,7 @@ inline namespace kernel
     define<procedure>("set-verbose!",     [this](let const& xs) { return verbose     = car(xs); });
   }
 
-  auto syntactic_continuation::load(std::string const& s) -> value_type
+  auto syntactic_continuation::load(std::string const& s) -> object
   {
     write(debug_port(), header(__func__), "open ", s, " => ");
 
@@ -177,7 +177,7 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::load(const_reference x) -> value_type
+  auto syntactic_continuation::load(const_reference x) -> object
   {
     if (x.is<symbol>())
     {
@@ -193,7 +193,7 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::macroexpand(const_reference keyword, const_reference form) -> value_type
+  auto syntactic_continuation::macroexpand(const_reference keyword, const_reference form) -> object
   {
     push(d, s, e, cons(make<instruction>(mnemonic::STOP), c)); // XXX ???
 
