@@ -25,27 +25,24 @@ inline namespace kernel
 {
   let extern const unit;
 
-  struct pair
-    : public std::pair<object, object>
-    , public top<pair>
+  template <typename T>
+  using pair_of = std::pair<T, T>;
+
+  struct pair : public pair_of<object>
+              , public top<pair>
   {
     using value_type = object;
 
-    using reference = let &;
-
+    using       reference = let      &;
     using const_reference = let const&;
 
-    using size_type = std::size_t;
-
     explicit pair(const_reference a = unit, const_reference b = unit)
-      : std::pair<object, object> { a, b }
+      : pair_of<object> { a, b }
     {}
 
-    template <typename T, typename U, typename... Ts>
-    explicit pair(const_reference a, T&& b, U&& c, Ts&&... xs)
-      : std::pair<object, object> { a, make<pair>(std::forward<decltype(b)>(b),
-                                                  std::forward<decltype(c)>(c),
-                                                  std::forward<decltype(xs)>(xs)...) }
+    template <typename... Ts, typename = typename std::enable_if<std::less()(1, sizeof...(Ts))>::type>
+    explicit pair(const_reference a, Ts&&... xs)
+      : pair_of<object> { a, make<pair>(std::forward<decltype(xs)>(xs)...) }
     {}
 
     virtual ~pair() = default;
