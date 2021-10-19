@@ -20,11 +20,11 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto operator * (exact_integer const& a, pair::const_reference b) -> pair::value_type { return apply(mul, a, b); }
-  auto operator + (exact_integer const& a, pair::const_reference b) -> pair::value_type { return apply(add, a, b); }
-  auto operator - (exact_integer const& a, pair::const_reference b) -> pair::value_type { return apply(sub, a, b); }
-  auto operator / (exact_integer const& a, pair::const_reference b) -> pair::value_type { return apply(div, a, b); }
-  auto operator % (exact_integer const& a, pair::const_reference b) -> pair::value_type { return apply(mod, a, b); }
+  auto operator * (exact_integer const& a, pair::const_reference b) -> object { return apply(mul, a, b); }
+  auto operator + (exact_integer const& a, pair::const_reference b) -> object { return apply(add, a, b); }
+  auto operator - (exact_integer const& a, pair::const_reference b) -> object { return apply(sub, a, b); }
+  auto operator / (exact_integer const& a, pair::const_reference b) -> object { return apply(div, a, b); }
+  auto operator % (exact_integer const& a, pair::const_reference b) -> object { return apply(mod, a, b); }
   auto operator !=(exact_integer const& a, pair::const_reference b) -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, a, b); }
   auto operator < (exact_integer const& a, pair::const_reference b) -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, a, b); }
   auto operator <=(exact_integer const& a, pair::const_reference b) -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, a, b); }
@@ -56,11 +56,11 @@ inline namespace kernel
   auto operator > (exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a >  x.numerator() : boolean(false); }
   auto operator >=(exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a >= x.numerator() : boolean(false); }
 
-  auto operator * (ratio const& a, pair::const_reference b) -> pair::value_type { return apply(mul, a, b); }
-  auto operator + (ratio const& a, pair::const_reference b) -> pair::value_type { return apply(add, a, b); }
-  auto operator - (ratio const& a, pair::const_reference b) -> pair::value_type { return apply(sub, a, b); }
-  auto operator / (ratio const& a, pair::const_reference b) -> pair::value_type { return apply(div, a, b); }
-  auto operator % (ratio const& a, pair::const_reference b) -> pair::value_type { return apply(mod, a, b); }
+  auto operator * (ratio const& a, pair::const_reference b) -> object  { return apply(mul, a, b); }
+  auto operator + (ratio const& a, pair::const_reference b) -> object  { return apply(add, a, b); }
+  auto operator - (ratio const& a, pair::const_reference b) -> object  { return apply(sub, a, b); }
+  auto operator / (ratio const& a, pair::const_reference b) -> object  { return apply(div, a, b); }
+  auto operator % (ratio const& a, pair::const_reference b) -> object  { return apply(mod, a, b); }
   auto operator !=(ratio const& a, pair::const_reference b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a != b; }, a, b); }
   auto operator < (ratio const& a, pair::const_reference b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a <  b; }, a, b); }
   auto operator <=(ratio const& a, pair::const_reference b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a <= b; }, a, b); }

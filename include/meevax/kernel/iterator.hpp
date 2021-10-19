@@ -26,11 +26,11 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct homoiconic_iterator : public std::reference_wrapper<const pair::value_type>
+  struct homoiconic_iterator : public std::reference_wrapper<const object>
   {
     using iterator_category = std::forward_iterator_tag;
 
-    using value_type = pair::value_type;
+    using value_type = object;
 
     using reference = pair::reference;
 

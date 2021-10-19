@@ -27,7 +27,7 @@
     [[maybe_unused]] syntactic_continuation & current_syntactic_continuation,  \
     [[maybe_unused]] pair::const_reference expression,                         \
     [[maybe_unused]] pair::const_reference frames,                             \
-    [[maybe_unused]] pair::const_reference continuation) -> pair::value_type
+    [[maybe_unused]] pair::const_reference continuation) -> object
 
 namespace meevax
 {

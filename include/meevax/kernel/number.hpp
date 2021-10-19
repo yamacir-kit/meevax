@@ -132,11 +132,11 @@ inline namespace kernel
     }
   }
 
-  auto operator * (exact_integer const&, pair::const_reference) -> pair::value_type;
-  auto operator + (exact_integer const&, pair::const_reference) -> pair::value_type;
-  auto operator - (exact_integer const&, pair::const_reference) -> pair::value_type;
-  auto operator / (exact_integer const&, pair::const_reference) -> pair::value_type;
-  auto operator % (exact_integer const&, pair::const_reference) -> pair::value_type;
+  auto operator * (exact_integer const&, pair::const_reference) -> object;
+  auto operator + (exact_integer const&, pair::const_reference) -> object;
+  auto operator - (exact_integer const&, pair::const_reference) -> object;
+  auto operator / (exact_integer const&, pair::const_reference) -> object;
+  auto operator % (exact_integer const&, pair::const_reference) -> object;
   auto operator ==(exact_integer const&, pair::const_reference) -> bool;
   auto operator !=(exact_integer const&, pair::const_reference) -> bool;
   auto operator < (exact_integer const&, pair::const_reference) -> bool;
@@ -180,11 +180,11 @@ inline namespace kernel
   template <typename T> auto operator > (exact_integer const& a, floating_point<T> const& b) -> boolean { return a.inexact().as<double_float>() >  b; }
   template <typename T> auto operator >=(exact_integer const& a, floating_point<T> const& b) -> boolean { return a.inexact().as<double_float>() >= b; }
 
-  auto operator * (ratio const&, pair::const_reference) -> pair::value_type;
-  auto operator + (ratio const&, pair::const_reference) -> pair::value_type;
-  auto operator - (ratio const&, pair::const_reference) -> pair::value_type;
-  auto operator / (ratio const&, pair::const_reference) -> pair::value_type;
-  auto operator % (ratio const&, pair::const_reference) -> pair::value_type;
+  auto operator * (ratio const&, pair::const_reference) -> object;
+  auto operator + (ratio const&, pair::const_reference) -> object;
+  auto operator - (ratio const&, pair::const_reference) -> object;
+  auto operator / (ratio const&, pair::const_reference) -> object;
+  auto operator % (ratio const&, pair::const_reference) -> object;
   auto operator !=(ratio const&, pair::const_reference) -> boolean;
   auto operator < (ratio const&, pair::const_reference) -> boolean;
   auto operator <=(ratio const&, pair::const_reference) -> boolean;

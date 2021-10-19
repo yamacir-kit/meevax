@@ -36,7 +36,7 @@ inline namespace kernel
     {
       return std::forward<decltype(x)>(x).unwrap().load();
     }
-    else if constexpr (std::is_same<decayed_type, pair::value_type>::value)
+    else if constexpr (std::is_same<decayed_type, object>::value)
     {
       return std::forward<decltype(x)>(x).load();
     }
@@ -56,8 +56,8 @@ inline namespace kernel
     return std::get<1>(unwrap(std::forward<decltype(x)>(x)));
   };
 
-  template <typename T, typename U, REQUIRES(std::is_convertible<T, pair::value_type>,
-                                             std::is_convertible<U, pair::value_type>)>
+  template <typename T, typename U, REQUIRES(std::is_convertible<T, object>,
+                                             std::is_convertible<U, object>)>
   auto operator |(T&& x, U&& y) -> decltype(auto)
   {
     return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
@@ -104,7 +104,7 @@ inline namespace kernel
 
   auto list_copy = [](auto const& x)
   {
-    auto copy = [](auto&& rec, pair::const_reference x) -> pair::value_type
+    auto copy = [](auto&& rec, pair::const_reference x) -> object
     {
       if (x.is<pair>())
       {
@@ -169,7 +169,7 @@ inline namespace kernel
 
   auto list_tail = [](auto&& x, auto&& k) -> decltype(auto)
   {
-    if constexpr (std::is_same<typename std::decay<decltype(k)>::type, pair::value_type>::value)
+    if constexpr (std::is_same<typename std::decay<decltype(k)>::type, object>::value)
     {
       return std::next(std::cbegin(std::forward<decltype(x)>(x)), static_cast<std::size_t>(k.template as<exact_integer>()));
     }
@@ -184,7 +184,7 @@ inline namespace kernel
     return car(list_tail(std::forward<decltype(xs)>(xs)...));
   };
 
-  auto take(pair::const_reference, std::size_t) -> pair::value_type;
+  auto take(pair::const_reference, std::size_t) -> object;
 
   auto length = [](auto const& x) constexpr
   {
@@ -192,19 +192,19 @@ inline namespace kernel
   };
 
   auto append(pair::const_reference,
-              pair::const_reference) -> pair::value_type;
+              pair::const_reference) -> object;
 
-  auto reverse(pair::const_reference) -> pair::value_type;
+  auto reverse(pair::const_reference) -> object;
 
   auto zip(pair::const_reference,
-           pair::const_reference) -> pair::value_type;
+           pair::const_reference) -> object;
 
-  auto unzip1(pair::const_reference xs) -> pair::value_type;
+  auto unzip1(pair::const_reference xs) -> object;
 
-  auto unzip2(pair::const_reference xs) -> std::tuple<pair::value_type, pair::value_type>;
+  auto unzip2(pair::const_reference xs) -> std::tuple<object, object>;
 
   template <typename Function>
-  auto map(Function&& function, pair::const_reference x) -> pair::value_type
+  auto map(Function&& function, pair::const_reference x) -> object
   {
     return x.is<null>() ? unit : cons(function(car(x)), map(function, cdr(x)));
   }

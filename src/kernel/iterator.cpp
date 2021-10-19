@@ -21,7 +21,7 @@ namespace meevax
 inline namespace kernel
 {
   homoiconic_iterator::homoiconic_iterator(pair::const_reference x)
-    : std::reference_wrapper<pair::value_type const> { std::cref(x) }
+    : std::reference_wrapper<object const> { std::cref(x) }
   {}
 
   auto homoiconic_iterator::operator *() const -> homoiconic_iterator::const_reference

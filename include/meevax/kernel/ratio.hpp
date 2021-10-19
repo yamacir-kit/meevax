@@ -71,9 +71,9 @@ inline namespace kernel
 
     explicit ratio(std::string const&, int = 0);
 
-    auto exact() const -> value_type override;
+    auto exact() const -> object override;
 
-    auto inexact() const -> value_type override;
+    auto inexact() const -> object override;
 
     auto denominator() const -> exact_integer const&;
 
@@ -85,9 +85,9 @@ inline namespace kernel
 
     auto reduce() const -> ratio;
 
-    auto simple() const -> value_type;
+    auto simple() const -> object;
 
-    #define DEFINE(NAME) auto NAME() const -> value_type override
+    #define DEFINE(NAME) auto NAME() const -> object override
 
     DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
     DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
@@ -100,7 +100,7 @@ inline namespace kernel
 
     #undef DEFINE
 
-    #define DEFINE(NAME) auto NAME(pair::const_reference) const -> pair::value_type override
+    #define DEFINE(NAME) auto NAME(pair::const_reference) const -> object override
 
     DEFINE(atan2);
     DEFINE(pow);

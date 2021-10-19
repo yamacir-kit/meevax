@@ -89,7 +89,7 @@ inline namespace kernel
       syntactic_continuation & current_syntactic_continuation,
       pair::const_reference expression,
       pair::const_reference frames = unit,
-      pair::const_reference continuation = list(make<instruction>(mnemonic::STOP))) -> pair::value_type
+      pair::const_reference continuation = list(make<instruction>(mnemonic::STOP))) -> object
     {
       if (expression.is<null>()) /* --------------------------------------------
       *
@@ -234,7 +234,7 @@ inline namespace kernel
     }
 
     template <auto Declaration = declaration::none>
-    inline auto execute() -> pair::value_type
+    inline auto execute() -> object
     {
     decode:
       if constexpr (static_cast<bool>(Declaration bitand declaration::trace))
@@ -570,7 +570,7 @@ inline namespace kernel
       }
     }
 
-    inline auto fork(continuation const& k, let const& syntactic_environment) const -> pair::value_type
+    inline auto fork(continuation const& k, let const& syntactic_environment) const -> object
     {
       let const module = make<syntactic_continuation>(unit, syntactic_environment);
 
@@ -580,7 +580,7 @@ inline namespace kernel
       return module;
     }
 
-    static auto rename(pair::const_reference variable, pair::const_reference frames, syntactic_continuation & current_syntactic_continuation) -> pair::value_type
+    static auto rename(pair::const_reference variable, pair::const_reference frames, syntactic_continuation & current_syntactic_continuation) -> object
     {
       if (let const& identifier = notate(variable, frames); identifier.is<null>())
       {
@@ -592,7 +592,7 @@ inline namespace kernel
       }
     }
 
-    static auto rename(pair::const_reference variable, pair::const_reference frames, syntactic_continuation const& current_syntactic_continuation) -> pair::value_type
+    static auto rename(pair::const_reference variable, pair::const_reference frames, syntactic_continuation const& current_syntactic_continuation) -> object
     {
       if (let const& identifier = notate(variable, frames); identifier.is<null>())
       {

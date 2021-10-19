@@ -44,7 +44,7 @@ inline namespace kernel
       throw read_error(make<string>("not a decimal"), make<string>(token));
     }
 
-    auto exact() const -> pair::value_type
+    auto exact() const -> object
     {
       /* ---- R7RS 6.2.6 (exact z) ---------------------------------------------
        *

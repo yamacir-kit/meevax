@@ -137,7 +137,7 @@ inline namespace kernel
     }
   }
 
-  auto exact_integer::exact() const -> pair::value_type
+  auto exact_integer::exact() const -> object
   {
     return make(*this);
   }
@@ -156,7 +156,7 @@ inline namespace kernel
     return result;
   }
 
-  auto exact_integer::inexact() const -> pair::value_type
+  auto exact_integer::inexact() const -> object
   {
     return make<double_float>(static_cast<double>(*this));
   }
@@ -201,7 +201,7 @@ inline namespace kernel
   }
 
   #define DEFINE(NAME)                                                         \
-  auto exact_integer::NAME() const -> pair::value_type                         \
+  auto exact_integer::NAME() const -> object                                   \
   {                                                                            \
     if (const double_float n { std::NAME(static_cast<double>(*this)) }; n.is_integer()) \
     {                                                                          \
@@ -225,7 +225,7 @@ inline namespace kernel
   #undef DEFINE
 
   #define DEFINE(NAME)                                                         \
-  auto exact_integer::NAME(pair::const_reference x) const -> pair::value_type  \
+  auto exact_integer::NAME(pair::const_reference x) const -> object            \
   {                                                                            \
     if (const double_float n { std::NAME(static_cast<double>(*this), x.inexact().as<double_float>()) }; n.is_integer()) \
     {                                                                          \

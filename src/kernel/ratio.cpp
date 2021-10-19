@@ -43,7 +43,7 @@ inline namespace kernel
     }
   }
 
-  auto ratio::exact() const -> value_type
+  auto ratio::exact() const -> object
   {
     return simple();
   }
@@ -53,7 +53,7 @@ inline namespace kernel
     return cdr(*this).as<exact_integer>();
   }
 
-  auto ratio::inexact() const -> pair::value_type
+  auto ratio::inexact() const -> object
   {
     return make<double_float>(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>());
   }
@@ -85,7 +85,7 @@ inline namespace kernel
     }
   }
 
-  auto ratio::simple() const -> value_type
+  auto ratio::simple() const -> object
   {
     if (auto x = reduce(); x.is_integer())
     {
@@ -98,7 +98,7 @@ inline namespace kernel
   }
 
   #define DEFINE(NAME)                                                         \
-  auto ratio::NAME() const -> value_type                                       \
+  auto ratio::NAME() const -> object                                           \
   {                                                                            \
     if (const double_float x {                                                 \
           std::NAME(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>()) \
@@ -125,7 +125,7 @@ inline namespace kernel
   #undef DEFINE
 
   #define DEFINE(NAME)                                                         \
-  auto ratio::NAME(pair::const_reference x) const -> value_type                \
+  auto ratio::NAME(pair::const_reference x) const -> object                    \
   {                                                                            \
     if (const double_float n {                                                 \
           std::NAME(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>(), \

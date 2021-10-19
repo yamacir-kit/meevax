@@ -31,8 +31,6 @@ inline namespace kernel
   struct pair : public pair_of<object>
               , public top<pair>
   {
-    using value_type = object;
-
     using       reference = let      &;
     using const_reference = let const&;
 
@@ -40,7 +38,7 @@ inline namespace kernel
       : pair_of<object> { a, b }
     {}
 
-    template <typename... Ts, typename = typename std::enable_if<std::less()(1, sizeof...(Ts))>::type>
+    template <typename... Ts, typename = typename std::enable_if<(1 < sizeof...(Ts))>::type>
     explicit pair(const_reference a, Ts&&... xs)
       : pair_of<object> { a, make<pair>(std::forward<decltype(xs)>(xs)...) }
     {}

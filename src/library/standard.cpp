@@ -1780,7 +1780,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("emergency-exit", [](let const& xs) -> value_type
+    define<procedure>("emergency-exit", [](let const& xs) -> object
     {
       switch (length(xs))
       {
