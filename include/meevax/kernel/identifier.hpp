@@ -59,7 +59,7 @@ inline namespace kernel
     using relative::relative;
   };
 
-  auto notate(pair::const_reference, pair::const_reference) -> object;
+  auto notate(const_reference, const_reference) -> object;
 } // namespace kernel
 } // namespace meevax
 

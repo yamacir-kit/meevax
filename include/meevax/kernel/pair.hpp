@@ -31,9 +31,6 @@ inline namespace kernel
   struct pair : public pair_of<object>
               , public top<pair>
   {
-    using       reference = let      &;
-    using const_reference = let const&;
-
     explicit pair(const_reference a = unit, const_reference b = unit)
       : pair_of<object> { a, b }
     {}

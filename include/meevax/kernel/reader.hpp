@@ -255,7 +255,7 @@ inline namespace kernel
       return standard_input.is_also<std::istream>() and standard_input.as<std::istream>();
     }
 
-    static auto intern(std::string const& name) -> pair::const_reference
+    static auto intern(std::string const& name) -> const_reference
     {
       if (auto const iter = symbols.find(name); iter != std::end(symbols))
       {
@@ -427,7 +427,7 @@ inline namespace kernel
       return read(is);
     }
 
-    inline auto read(pair::const_reference x) -> object
+    inline auto read(const_reference x) -> object
     {
       if (x.is_also<std::istream>())
       {

@@ -33,7 +33,7 @@ inline namespace kernel
     return eq(x, y) or x.compare(y);
   };
 
-  auto equal(pair::const_reference, pair::const_reference) -> bool; // structure=?
+  auto equal(const_reference, const_reference) -> bool; // structure=?
 
   template <std::size_t Coarseness = 0>
   struct equivalence_comparator;

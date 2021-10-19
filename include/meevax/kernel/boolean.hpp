@@ -44,7 +44,7 @@ inline namespace kernel
   let extern const t;
   let extern const f;
 
-  auto if_(pair::const_reference x) -> bool;
+  auto if_(const_reference x) -> bool;
 } // namespace kernel
 } // namespace meevax
 

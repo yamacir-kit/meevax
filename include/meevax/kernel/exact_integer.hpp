@@ -99,7 +99,7 @@ inline namespace kernel
 
     #undef DEFINE
 
-    #define DEFINE(NAME) auto NAME(pair::const_reference) const -> object
+    #define DEFINE(NAME) auto NAME(const_reference) const -> object
 
     DEFINE(atan2);
     DEFINE(pow);

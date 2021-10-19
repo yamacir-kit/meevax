@@ -78,7 +78,7 @@ inline namespace kernel
     return cons(std::forward<decltype(a)>(a), std::forward<decltype(d)>(d));
   };
 
-  auto make_list = [](std::size_t k, pair::const_reference x = unit)
+  auto make_list = [](std::size_t k, const_reference x = unit)
   {
     let result = list();
 
@@ -104,7 +104,7 @@ inline namespace kernel
 
   auto list_copy = [](auto const& x)
   {
-    auto copy = [](auto&& rec, pair::const_reference x) -> object
+    auto copy = [](auto&& rec, const_reference x) -> object
     {
       if (x.is<pair>())
       {
@@ -162,7 +162,7 @@ inline namespace kernel
   constexpr auto cdddar = compose(cdr, cddar);
   constexpr auto cddddr = compose(cdr, cdddr);
 
-  auto unpair = [](pair::const_reference x) // a.k.a car+cdr (SRFI 1)
+  auto unpair = [](const_reference x) // a.k.a car+cdr (SRFI 1)
   {
     return std::forward_as_tuple(car(x), cdr(x));
   };
@@ -184,32 +184,30 @@ inline namespace kernel
     return car(list_tail(std::forward<decltype(xs)>(xs)...));
   };
 
-  auto take(pair::const_reference, std::size_t) -> object;
+  auto take(const_reference, std::size_t) -> object;
 
   auto length = [](auto const& x) constexpr
   {
     return std::distance(std::cbegin(x), std::cend(x));
   };
 
-  auto append(pair::const_reference,
-              pair::const_reference) -> object;
+  auto append(const_reference, const_reference) -> object;
 
-  auto reverse(pair::const_reference) -> object;
+  auto reverse(const_reference) -> object;
 
-  auto zip(pair::const_reference,
-           pair::const_reference) -> object;
+  auto zip(const_reference, const_reference) -> object;
 
-  auto unzip1(pair::const_reference xs) -> object;
+  auto unzip1(const_reference xs) -> object;
 
-  auto unzip2(pair::const_reference xs) -> std::tuple<object, object>;
+  auto unzip2(const_reference xs) -> std::tuple<object, object>;
 
   template <typename Function>
-  auto map(Function&& function, pair::const_reference x) -> object
+  auto map(Function&& function, const_reference x) -> object
   {
     return x.is<null>() ? unit : cons(function(car(x)), map(function, cdr(x)));
   }
 
-  auto find = [](pair::const_reference x, auto&& predicate) constexpr -> pair::const_reference
+  auto find = [](const_reference x, auto&& predicate) constexpr -> const_reference
   {
     if (auto const& iter = std::find_if(std::cbegin(x), std::cend(x), std::forward<decltype(predicate)>(predicate)); iter)
     {
@@ -221,9 +219,7 @@ inline namespace kernel
     }
   };
 
-  auto assoc = [](pair::const_reference key,
-                  pair::const_reference alist,
-                  auto&& compare = equivalence_comparator<2>()) -> pair::const_reference
+  auto assoc = [](const_reference key, const_reference alist, auto&& compare = equivalence_comparator<2>()) -> const_reference
   {
     return find(alist, [&](auto&& each)
     {
@@ -231,12 +227,12 @@ inline namespace kernel
     });
   };
 
-  auto assv = [](auto&&... xs) -> pair::const_reference
+  auto assv = [](auto&&... xs) -> const_reference
   {
     return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<1>());
   };
 
-  auto assq = [](auto&&... xs) -> pair::const_reference
+  auto assq = [](auto&&... xs) -> const_reference
   {
     return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<0>());
   };

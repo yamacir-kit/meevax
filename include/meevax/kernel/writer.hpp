@@ -43,7 +43,7 @@ inline namespace kernel
     }
 
     template <typename... Ts>
-    auto write(pair::const_reference x, Ts&&... xs) const -> decltype(auto)
+    auto write(const_reference x, Ts&&... xs) const -> decltype(auto)
     {
       return write(x.as<std::ostream>(), std::forward<decltype(xs)>(xs)...);
     }
@@ -55,18 +55,18 @@ inline namespace kernel
     }
 
   public:
-    auto null_port() const -> pair::const_reference
+    auto null_port() const -> const_reference
     {
       let static port = make<output_file_port>("/dev/null");
       return port;
     }
 
-    auto verbose_port() const -> pair::const_reference
+    auto verbose_port() const -> const_reference
     {
       return is_verbose_mode() ? standard_output : null_port();
     }
 
-    auto debug_port() const -> pair::const_reference
+    auto debug_port() const -> const_reference
     {
       return is_debug_mode() ? standard_error : null_port();
     }

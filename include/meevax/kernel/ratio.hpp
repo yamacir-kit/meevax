@@ -100,7 +100,7 @@ inline namespace kernel
 
     #undef DEFINE
 
-    #define DEFINE(NAME) auto NAME(pair::const_reference) const -> object override
+    #define DEFINE(NAME) auto NAME(const_reference) const -> object override
 
     DEFINE(atan2);
     DEFINE(pow);

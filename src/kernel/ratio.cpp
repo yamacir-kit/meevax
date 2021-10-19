@@ -125,7 +125,7 @@ inline namespace kernel
   #undef DEFINE
 
   #define DEFINE(NAME)                                                         \
-  auto ratio::NAME(pair::const_reference x) const -> object                    \
+  auto ratio::NAME(const_reference x) const -> object                          \
   {                                                                            \
     if (const double_float n {                                                 \
           std::NAME(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>(), \

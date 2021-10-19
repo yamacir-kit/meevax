@@ -87,9 +87,9 @@ inline namespace kernel
     static auto compile(
       syntactic_context const current_syntactic_context,
       syntactic_continuation & current_syntactic_continuation,
-      pair::const_reference expression,
-      pair::const_reference frames = unit,
-      pair::const_reference continuation = list(make<instruction>(mnemonic::STOP))) -> object
+      const_reference expression,
+      const_reference frames = unit,
+      const_reference continuation = list(make<instruction>(mnemonic::STOP))) -> object
     {
       if (expression.is<null>()) /* --------------------------------------------
       *
@@ -580,7 +580,7 @@ inline namespace kernel
       return module;
     }
 
-    static auto rename(pair::const_reference variable, pair::const_reference frames, syntactic_continuation & current_syntactic_continuation) -> object
+    static auto rename(const_reference variable, const_reference frames, syntactic_continuation & current_syntactic_continuation) -> object
     {
       if (let const& identifier = notate(variable, frames); identifier.is<null>())
       {
@@ -592,7 +592,7 @@ inline namespace kernel
       }
     }
 
-    static auto rename(pair::const_reference variable, pair::const_reference frames, syntactic_continuation const& current_syntactic_continuation) -> object
+    static auto rename(const_reference variable, const_reference frames, syntactic_continuation const& current_syntactic_continuation) -> object
     {
       if (let const& identifier = notate(variable, frames); identifier.is<null>())
       {
@@ -644,7 +644,7 @@ inline namespace kernel
 
     static SYNTAX(body)
     {
-      auto is_definition = [&](pair::const_reference form)
+      auto is_definition = [&](const_reference form)
       {
         if (form.is<pair>())
         {

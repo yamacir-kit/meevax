@@ -60,7 +60,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, instruction const&) -> std::ostream &;
 
-  auto disassemble(std::ostream &, pair::const_reference, std::size_t = 1) -> std::ostream &;
+  auto disassemble(std::ostream &, const_reference, std::size_t = 1) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

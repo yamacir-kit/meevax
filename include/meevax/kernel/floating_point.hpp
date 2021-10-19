@@ -94,7 +94,7 @@ inline namespace kernel
     #undef DEFINE
 
     #define DEFINE(NAME)                                                       \
-    auto NAME(pair::const_reference x) const                                   \
+    auto NAME(const_reference x) const                                         \
     {                                                                          \
       return make(floating_point(std::NAME(value, x.inexact().as<double_float>()))); \
     }                                                                          \

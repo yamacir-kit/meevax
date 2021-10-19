@@ -20,24 +20,22 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto take(pair::const_reference x, std::size_t size) -> object
+  auto take(const_reference x, std::size_t size) -> object
   {
     return 0 < size ? car(x) | take(cdr(x), --size) : unit;
   }
 
-  auto append(pair::const_reference x,
-              pair::const_reference y) -> object
+  auto append(const_reference x, const_reference y) -> object
   {
     return x.is<null>() ? y : cons(car(x), append(cdr(x), y));
   }
 
-  auto reverse(pair::const_reference x) -> object
+  auto reverse(const_reference x) -> object
   {
     return x ? append(reverse(cdr(x)), list(car(x))) : unit;
   }
 
-  auto zip(pair::const_reference x,
-           pair::const_reference y) -> object
+  auto zip(const_reference x, const_reference y) -> object
   {
     if (x.is<null>() and y.is<null>())
     {
@@ -53,12 +51,12 @@ inline namespace kernel
     }
   }
 
-  auto unzip1(pair::const_reference xs) -> object
+  auto unzip1(const_reference xs) -> object
   {
     return map(car, xs);
   }
 
-  auto unzip2(pair::const_reference xs) -> std::tuple<object, object>
+  auto unzip2(const_reference xs) -> std::tuple<object, object>
   {
     if (xs.is<null>())
     {

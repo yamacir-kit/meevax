@@ -54,7 +54,7 @@ inline namespace kernel
     return false;
   }
 
-  auto notate(pair::const_reference variable, pair::const_reference frames) -> object
+  auto notate(const_reference variable, const_reference frames) -> object
   {
     for (auto outer = std::begin(frames); outer != std::end(frames); ++outer)
     {
