@@ -33,8 +33,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  class environment;
-
   struct syntactic_continuation
   {
     const syntactic_context preserved_syntactic_context;

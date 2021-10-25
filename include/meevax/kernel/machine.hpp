@@ -316,9 +316,7 @@ inline namespace kernel
         *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        s = cons(fork(static_cast<environment const&>(*this),
-                      continuation(s, e, cadr(c), d)),
-                 s);
+        s = cons(fork(continuation(s, e, cadr(c), d)), s);
         c = cddr(c);
         goto decode;
 
@@ -562,9 +560,9 @@ inline namespace kernel
       }
     }
 
-    inline auto fork(environment const& current_environment, continuation const& k) const -> object
+    inline auto fork(continuation const& k) const -> object
     {
-      let const module = make<environment>(unit, current_environment.global());
+      let const module = make<environment>(unit, static_cast<environment const&>(*this).global());
 
       module.as<environment>().import();
       module.as<environment>().build(k);
