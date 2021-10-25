@@ -21,7 +21,7 @@
 namespace meevax
 {
   template <>
-  auto syntactic_continuation::import(standard::base_t) -> void
+  auto environment::import(standard::base_t) -> void
   {
     define<syntax>("begin", sequence);
     define<syntax>("call-with-current-continuation!", call_with_current_continuation);
@@ -1552,7 +1552,7 @@ namespace meevax
   }
 
   template <>
-  auto syntactic_continuation::import(standard::character_t) -> void
+  auto environment::import(standard::character_t) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1598,7 +1598,7 @@ namespace meevax
   }
 
   template <>
-  auto syntactic_continuation::import(standard::cxr_t) -> void
+  auto environment::import(standard::cxr_t) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1647,7 +1647,7 @@ namespace meevax
   }
 
   template <>
-  auto syntactic_continuation::import(standard::evaluate_t) -> void
+  auto environment::import(standard::evaluate_t) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1663,12 +1663,12 @@ namespace meevax
 
     define<procedure>("eval", [](let const& xs)
     {
-      return cadr(xs).as<syntactic_continuation>().evaluate(car(xs));
+      return cadr(xs).as<environment>().evaluate(car(xs));
     });
   }
 
   template <>
-  auto syntactic_continuation::import(standard::inexact_t) -> void
+  auto environment::import(standard::inexact_t) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1732,7 +1732,7 @@ namespace meevax
   }
 
   template <>
-  auto syntactic_continuation::import(standard::load_t) -> void
+  auto environment::import(standard::load_t) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1764,7 +1764,7 @@ namespace meevax
   }
 
   template <>
-  auto syntactic_continuation::import(standard::process_context_t) -> void
+  auto environment::import(standard::process_context_t) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1805,7 +1805,7 @@ namespace meevax
   }
 
   template <>
-  auto syntactic_continuation::import(standard::read_t) -> void
+  auto environment::import(standard::read_t) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1860,7 +1860,7 @@ namespace meevax
   }
 
   template <>
-  auto syntactic_continuation::import(standard::write_t) -> void
+  auto environment::import(standard::write_t) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1881,7 +1881,7 @@ namespace meevax
   }
 
   template <>
-  auto syntactic_continuation::import(standard::experimental_t) -> void
+  auto environment::import(standard::experimental_t) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1926,9 +1926,9 @@ namespace meevax
 
     define<procedure>("unwrap-syntax", [](let const& xs)
     {
-      if (let const& x = car(xs); x.is<syntactic_continuation>())
+      if (let const& x = car(xs); x.is<environment>())
       {
-        return car(xs).as<syntactic_continuation>().datum;
+        return car(xs).as<environment>().datum;
       }
       else
       {
@@ -1967,15 +1967,15 @@ namespace meevax
       }
     });
 
-    define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
+    define<procedure>("syntactic-continuation?", is<environment>());
 
     define<procedure>("r6rs:identifier?", is<absolute>());
 
     define<procedure>("macroexpand-1", [this](let const& xs)
     {
-      if (let const& macro = (*this)[caar(xs)]; macro.is<syntactic_continuation>())
+      if (let const& macro = (*this)[caar(xs)]; macro.is<environment>())
       {
-        return macro.as<syntactic_continuation>().macroexpand(macro, car(xs));
+        return macro.as<environment>().macroexpand(macro, car(xs));
       }
       else
       {
@@ -2050,7 +2050,7 @@ namespace meevax
   }
 
   template <>
-  auto syntactic_continuation::import(standard::srfis_t) -> void
+  auto environment::import(standard::srfis_t) -> void
   {
     std::vector<string_view> const codes {
       overture,
@@ -2078,7 +2078,7 @@ namespace meevax
   }
 
   template <>
-  auto syntactic_continuation::import(standard::interaction_environment_t) -> void
+  auto environment::import(standard::interaction_environment_t) -> void
   {
     import(standard::base);
     import(standard::character);

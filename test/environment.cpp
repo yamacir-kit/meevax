@@ -27,12 +27,12 @@ auto main() -> int
     auto root = environment(standard::interaction_environment);
   }
 
-  syntactic_continuation::symbols.clear();
+  environment::symbols.clear();
 
   gc.collect();
   gc.collect();
 
-  assert(syntactic_continuation::symbols.empty());
+  assert(environment::symbols.empty());
   assert(gc_count == gc.count());
 
   return EXIT_SUCCESS;

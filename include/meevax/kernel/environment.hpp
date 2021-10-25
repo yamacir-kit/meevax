@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
-#define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
+#define INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
 
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/machine.hpp>
@@ -26,17 +26,17 @@ namespace meevax
 {
 inline namespace kernel
 {
-  class syntactic_continuation : public virtual pair
-                               , public configurator<syntactic_continuation>
-                               , public machine     <syntactic_continuation>
-                               , public reader      <syntactic_continuation>
-                               , public writer      <syntactic_continuation>
+  class environment : public virtual pair
+                    , public configurator<environment>
+                    , public machine     <environment>
+                    , public reader      <environment>
+                    , public writer      <environment>
   {
     /* ---- NOTE ---------------------------------------------------------------
      *
-     *  If this class is constructed as make<syntactic_continuation>(...) then
-     *  the heterogeneous::binder will have forwarded all constructor arguments
-     *  to the virtual base class pair in advance, and this constructor will be
+     *  If this class is constructed as make<environment>(...) then the
+     *  heterogeneous::binder will have forwarded all constructor arguments to
+     *  the virtual base class pair in advance, and this constructor will be
      *  called without any arguments.
      *
      *  (See the heterogeneous::binder::binder for details)
@@ -59,7 +59,7 @@ inline namespace kernel
     using writer::write;
 
     template <typename... Ts>
-    explicit syntactic_continuation(Ts&&... xs)
+    explicit environment(Ts&&... xs)
     {
       import(), (import(xs), ...);
     }
@@ -109,21 +109,19 @@ inline namespace kernel
     auto rename(const_reference) const -> const_reference;
   };
 
-  using environment = syntactic_continuation;
+  auto operator >>(std::istream &, environment &) -> std::istream &;
 
-  auto operator >>(std::istream &, syntactic_continuation &) -> std::istream &;
+  auto operator <<(std::ostream &, environment      &) -> std::ostream &;
+  auto operator <<(std::ostream &, environment const&) -> std::ostream &;
 
-  auto operator <<(std::ostream &, syntactic_continuation      &) -> std::ostream &;
-  auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
+  extern template class configurator<environment>;
 
-  extern template class configurator<syntactic_continuation>;
+  extern template class machine<environment>;
 
-  extern template class machine<syntactic_continuation>;
+  extern template class reader<environment>;
 
-  extern template class reader<syntactic_continuation>;
-
-  extern template class writer<syntactic_continuation>;
+  extern template class writer<environment>;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP

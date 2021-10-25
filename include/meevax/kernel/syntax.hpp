@@ -24,7 +24,7 @@
 #define SYNTAX(NAME)                                                           \
   auto NAME(                                                                   \
     [[maybe_unused]] syntactic_context const current_syntactic_context,        \
-    [[maybe_unused]] syntactic_continuation & current_syntactic_continuation,  \
+    [[maybe_unused]] environment & current_environment,                        \
     [[maybe_unused]] const_reference expression,                               \
     [[maybe_unused]] const_reference frames,                                   \
     [[maybe_unused]] const_reference continuation) -> object
@@ -33,13 +33,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  class syntactic_continuation;
+  class environment;
 
   struct compilation
   {
     const syntactic_context preserved_syntactic_context;
 
-    const std::reference_wrapper<syntactic_continuation> environment;
+    const std::reference_wrapper<environment> preserved_environment;
 
     let const expression;
 
