@@ -35,6 +35,24 @@ inline namespace kernel
 {
   class syntactic_continuation;
 
+  struct compilation
+  {
+    const syntactic_context preserved_syntactic_context;
+
+    const std::reference_wrapper<syntactic_continuation> environment;
+
+    let const expression;
+
+    let const frames;
+
+    let const continuation;
+
+    friend auto operator <<(std::ostream & os, compilation const& datum) -> std::ostream &
+    {
+      return os << "#,(syntax " << datum.expression << ")";
+    }
+  };
+
   struct syntax : public description
   {
     using signature = SYNTAX((*));

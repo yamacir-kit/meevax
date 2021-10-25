@@ -35,7 +35,10 @@ inline namespace kernel
   {
     s = k.s();
     e = k.e();
-    c = compile(syntactic_context::outermost, *this, car(k.c()), cdr(k.c()));
+    c = compile(syntactic_context::outermost,
+                *this,
+                k.c().as<compilation>().expression,
+                k.c().as<compilation>().frames);
     d = k.d();
 
     form() = execute();

@@ -889,7 +889,11 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return cons(make<instruction>(mnemonic::FORK), cons(car(expression), frames),
+      return cons(make<instruction>(mnemonic::FORK), make<compilation>(current_syntactic_context,
+                                                                       current_syntactic_continuation,
+                                                                       car(expression),
+                                                                       frames,
+                                                                       continuation),
                   continuation);
     }
 
