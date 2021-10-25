@@ -48,7 +48,7 @@ inline namespace kernel
 
     /* ---- NOTE ---------------------------------------------------------------
      *
-     *  global-environment: g = global_environment()
+     *  global-environment: g = environment::global()
      *
      *  lexical-environment: e
      *
@@ -564,9 +564,9 @@ inline namespace kernel
       }
     }
 
-    inline auto fork(environment const& sk, continuation const& k) const -> object
+    inline auto fork(environment const& current_environment, continuation const& k) const -> object
     {
-      let const module = make<environment>(unit, sk.global_environment());
+      let const module = make<environment>(unit, current_environment.global());
 
       module.as<environment>().import();
       module.as<environment>().build(k);

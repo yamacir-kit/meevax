@@ -91,8 +91,8 @@ inline namespace kernel
     auto form()       noexcept ->       reference;
     auto form() const noexcept -> const_reference;
 
-    auto global_environment()       noexcept ->       reference;
-    auto global_environment() const noexcept -> const_reference;
+    auto global()       noexcept ->       reference;
+    auto global() const noexcept -> const_reference;
 
     auto import() -> void;
 

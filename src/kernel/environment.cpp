@@ -55,7 +55,7 @@ inline namespace kernel
   {
     assert(name.is<symbol>());
 
-    return global_environment() = make<absolute>(name, value) | global_environment();
+    return global() = make<absolute>(name, value) | global();
   }
 
   auto environment::define(std::string const& name, const_reference value) -> const_reference
@@ -102,14 +102,14 @@ inline namespace kernel
     return const_cast<reference>(std::as_const(*this).form());
   }
 
-  auto environment::global_environment() const noexcept -> const_reference
+  auto environment::global() const noexcept -> const_reference
   {
     return cdr(*this);
   }
 
-  auto environment::global_environment() noexcept -> reference
+  auto environment::global() noexcept -> reference
   {
-    return const_cast<reference>(std::as_const(*this).global_environment());
+    return const_cast<reference>(std::as_const(*this).global());
   }
 
   auto environment::import() -> void
@@ -209,7 +209,7 @@ inline namespace kernel
 
   auto environment::rename(const_reference variable) -> const_reference
   {
-    if (let const& binding = assq(variable, global_environment()); if_(binding))
+    if (let const& binding = assq(variable, global()); if_(binding))
     {
       return binding;
     }
@@ -236,15 +236,15 @@ inline namespace kernel
 
       cdr(id) = id; // NOTE: Identifier is self-evaluate if is unbound.
 
-      global_environment() = cons(id, global_environment());
+      global() = cons(id, global());
 
-      return car(global_environment());
+      return car(global());
     }
   }
 
   auto environment::rename(const_reference variable) const -> const_reference
   {
-    return assq(variable, global_environment());
+    return assq(variable, global());
   }
 
   auto operator >>(std::istream & is, environment & datum) -> std::istream &
