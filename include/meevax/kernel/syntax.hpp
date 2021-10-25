@@ -35,7 +35,7 @@ inline namespace kernel
 {
   class environment;
 
-  struct compilation
+  struct syntactic_continuation
   {
     const syntactic_context preserved_syntactic_context;
 
@@ -47,7 +47,7 @@ inline namespace kernel
 
     let const continuation;
 
-    friend auto operator <<(std::ostream & os, compilation const& datum) -> std::ostream &
+    friend auto operator <<(std::ostream & os, syntactic_continuation const& datum) -> std::ostream &
     {
       return os << "#,(syntax " << datum.expression << ")";
     }

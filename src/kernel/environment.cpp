@@ -37,8 +37,8 @@ inline namespace kernel
     e = k.e();
     c = compile(syntactic_context::outermost,
                 *this,
-                k.c().as<compilation>().expression,
-                k.c().as<compilation>().frames);
+                k.c().as<syntactic_continuation>().expression,
+                k.c().as<syntactic_continuation>().frames);
     d = k.d();
 
     form() = execute();
@@ -268,7 +268,7 @@ inline namespace kernel
   auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &
   {
     return os << magenta << "#,("
-              << green << "syntactic-continuation" << reset
+              << green << "environment" << reset
               << faint << " #;" << &datum << reset
               << magenta << ")" << reset;
   }

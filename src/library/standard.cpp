@@ -1967,7 +1967,7 @@ namespace meevax
       }
     });
 
-    define<procedure>("syntactic-continuation?", is<environment>());
+    define<procedure>("environment?", is<environment>());
 
     define<procedure>("r6rs:identifier?", is<absolute>());
 

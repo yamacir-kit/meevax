@@ -304,7 +304,7 @@ inline namespace kernel
       print("  -d, --debug            Display detailed informations for developers.");
       print("  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.");
       print("  -h, --help             Display this help text and exit.");
-      print("  -i, --interactive      Take over control of root syntactic-continuation.");
+      print("  -i, --interactive      Take over control of root environment.");
       print("  -l, --load=FILENAME    Same as -e '(load FILENAME)'");
       print("      --prompt=STRING    Same as -e '(set-prompt! STRING)'");
       print("  -t, --trace            Display stacks of virtual machine for each steps.");
