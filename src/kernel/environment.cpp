@@ -35,7 +35,7 @@ inline namespace kernel
   {
     auto current_compiler = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
     {
-      return compile(syntactic_context::outermost, *this, expression, frames);
+      return compile(context::outermost, *this, expression, frames);
     };
 
     s = k.s();
@@ -72,7 +72,7 @@ inline namespace kernel
 
   auto environment::evaluate(const_reference expression) -> object
   {
-    c = compile(syntactic_context::none, *this, expression);
+    c = compile(context::none, *this, expression);
 
     if (is_debug_mode())
     {

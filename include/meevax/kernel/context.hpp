@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTEXT_HPP
-#define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTEXT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_CONTEXT_HPP
+#define INCLUDED_MEEVAX_KERNEL_CONTEXT_HPP
 
 #include <meevax/utility/enumeration.hpp>
 
@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  enum class syntactic_context
+  enum class context
   {
     none,
 
@@ -35,4 +35,4 @@ inline namespace kernel
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTEXT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_CONTEXT_HPP

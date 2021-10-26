@@ -17,13 +17,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 
+#include <meevax/kernel/context.hpp>
 #include <meevax/kernel/pair.hpp>
-#include <meevax/kernel/syntactic_context.hpp>
 #include <meevax/utility/description.hpp>
 
 #define SYNTAX(NAME)                                                           \
   auto NAME(                                                                   \
-    [[maybe_unused]] syntactic_context const current_syntactic_context,        \
+    [[maybe_unused]] context const current_context,                            \
     [[maybe_unused]] environment & current_environment,                        \
     [[maybe_unused]] const_reference expression,                               \
     [[maybe_unused]] const_reference frames,                                   \
@@ -35,7 +35,7 @@ inline namespace kernel
 {
   struct syntactic_continuation
   {
-    const syntactic_context context;
+    const context preserved_context;
 
     const std::reference_wrapper<environment> preserved_environment;
 
@@ -47,7 +47,7 @@ inline namespace kernel
 
     auto apply(std::function<SYNTAX()> const& compile) -> decltype(auto)
     {
-      return compile(context, preserved_environment, expression, frames, continuation);
+      return compile(preserved_context, preserved_environment, expression, frames, continuation);
     }
 
     template <typename... Ts>

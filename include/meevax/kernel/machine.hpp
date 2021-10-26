@@ -81,7 +81,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
     static auto compile(
-      syntactic_context const current_syntactic_context,
+      context const current_context,
       environment & current_environment,
       const_reference expression,
       const_reference frames = unit,
@@ -133,7 +133,7 @@ inline namespace kernel
       {
         if (let const& applicant = car(expression); applicant.is_also<syntax>())
         {
-          return applicant.as<syntax>().transform(current_syntactic_context,
+          return applicant.as<syntax>().transform(current_context,
                                                   current_environment,
                                                   cdr(expression),
                                                   frames,
@@ -141,7 +141,7 @@ inline namespace kernel
         }
         else if (applicant.is<environment>())
         {
-          return compile(syntactic_context::none,
+          return compile(context::none,
                          current_environment,
                          applicant.as<environment>().macroexpand(applicant, expression),
                          frames,
@@ -155,7 +155,7 @@ inline namespace kernel
         {
           if (let const& applicant = cdr(identifier); applicant.is_also<syntax>())
           {
-            return applicant.as<syntax>().transform(current_syntactic_context,
+            return applicant.as<syntax>().transform(current_context,
                                                     current_environment,
                                                     cdr(expression),
                                                     frames,
@@ -163,7 +163,7 @@ inline namespace kernel
           }
           else if (applicant.is<environment>())
           {
-            return compile(syntactic_context::none,
+            return compile(context::none,
                            current_environment,
                            applicant.as<environment>().macroexpand(applicant, expression),
                            frames,
@@ -210,15 +210,15 @@ inline namespace kernel
          *
          * ------------------------------------------------------------------ */
 
-        return operand(syntactic_context::none,
+        return operand(context::none,
                        current_environment,
                        cdr(expression),
                        frames,
-                       compile(syntactic_context::none,
+                       compile(context::none,
                                current_environment,
                                car(expression),
                                frames,
-                               cons(make<instruction>(static_cast<bool>(current_syntactic_context bitand syntactic_context::tail) ? mnemonic::TAIL_CALL : mnemonic::CALL),
+                               cons(make<instruction>(static_cast<bool>(current_context bitand context::tail) ? mnemonic::TAIL_CALL : mnemonic::CALL),
                                     continuation)));
       }
     }
@@ -613,7 +613,7 @@ inline namespace kernel
       }
       else if (let const& identifier = rename(car(expression), frames, current_environment); identifier.is<absolute>())
       {
-        return compile(syntactic_context::none,
+        return compile(context::none,
                        current_environment,
                        cadr(expression),
                        frames,
@@ -622,7 +622,7 @@ inline namespace kernel
       }
       else
       {
-        return compile(syntactic_context::none,
+        return compile(context::none,
                        current_environment,
                        cadr(expression),
                        frames,
@@ -685,7 +685,7 @@ inline namespace kernel
       */
       if (cdr(expression).is<null>()) // is tail-sequence
       {
-        return compile(current_syntactic_context | syntactic_context::tail,
+        return compile(current_context | context::tail,
                        current_environment,
                        car(expression),
                        frames,
@@ -700,7 +700,7 @@ inline namespace kernel
 
            where <binding specs> = ((<variable 1> <init 1>) ...)
         */
-        return compile(current_syntactic_context,
+        return compile(current_context,
                        current_environment,
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs),
@@ -711,12 +711,12 @@ inline namespace kernel
       }
       else
       {
-        return compile(current_syntactic_context,
+        return compile(current_context,
                        current_environment,
                        car(expression),
                        frames,
                        cons(make<instruction>(mnemonic::DROP),
-                            sequence(current_syntactic_context,
+                            sequence(current_context,
                                      current_environment,
                                      cdr(expression),
                                      frames,
@@ -733,7 +733,7 @@ inline namespace kernel
     {
       return cons(make<instruction>(mnemonic::LOAD_CONTINUATION),
                   continuation,
-                  compile(current_syntactic_context,
+                  compile(current_context,
                           current_environment,
                           car(expression),
                           frames,
@@ -756,10 +756,10 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (static_cast<bool>(current_syntactic_context bitand syntactic_context::tail))
+      if (static_cast<bool>(current_context bitand context::tail))
       {
         auto consequent =
-          compile(syntactic_context::tail,
+          compile(context::tail,
                   current_environment,
                   cadr(expression),
                   frames,
@@ -767,7 +767,7 @@ inline namespace kernel
 
         auto alternate =
           cddr(expression)
-            ? compile(syntactic_context::tail,
+            ? compile(context::tail,
                       current_environment,
                       caddr(expression),
                       frames,
@@ -775,7 +775,7 @@ inline namespace kernel
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                    make<instruction>(mnemonic::RETURN));
 
-        return compile(syntactic_context::none,
+        return compile(context::none,
                        current_environment,
                        car(expression), // <test>
                        frames,
@@ -785,7 +785,7 @@ inline namespace kernel
       else
       {
         auto consequent =
-          compile(syntactic_context::none,
+          compile(context::none,
                   current_environment,
                   cadr(expression),
                   frames,
@@ -793,7 +793,7 @@ inline namespace kernel
 
         auto alternate =
           cddr(expression)
-            ? compile(syntactic_context::none,
+            ? compile(context::none,
                       current_environment,
                       caddr(expression),
                       frames,
@@ -801,7 +801,7 @@ inline namespace kernel
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                    make<instruction>(mnemonic::JOIN));
 
-        return compile(syntactic_context::none,
+        return compile(context::none,
                        current_environment,
                        car(expression), // <test>
                        frames,
@@ -812,11 +812,11 @@ inline namespace kernel
 
     static SYNTAX(construction)
     {
-      return compile(syntactic_context::none,
+      return compile(context::none,
                      current_environment,
                      cadr(expression),
                      frames,
-                     compile(syntactic_context::none,
+                     compile(context::none,
                              current_environment,
                              car(expression),
                              frames,
@@ -848,11 +848,11 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (frames.is<null>() or static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost))
+      if (frames.is<null>() or static_cast<bool>(current_context bitand context::outermost))
       {
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          return compile(syntactic_context::none,
+          return compile(context::none,
                          current_environment,
                          cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
                          frames,
@@ -861,7 +861,7 @@ inline namespace kernel
         }
         else // (define x ...)
         {
-          return compile(syntactic_context::none,
+          return compile(context::none,
                          current_environment,
                          cdr(expression) ? cadr(expression) : unspecified,
                          frames,
@@ -885,7 +885,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return cons(make<instruction>(mnemonic::FORK), make<syntactic_continuation>(current_syntactic_context,
+      return cons(make<instruction>(mnemonic::FORK), make<syntactic_continuation>(current_context,
                                                                                   current_environment,
                                                                                   car(expression),
                                                                                   frames,
@@ -918,7 +918,7 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       return cons(make<instruction>(mnemonic::LOAD_CLOSURE),
-                  body(current_syntactic_context,
+                  body(current_context,
                        current_environment,
                        cdr(expression),
                        cons(car(expression), frames), // Extend lexical environment.
@@ -1019,11 +1019,11 @@ inline namespace kernel
       auto const& [variables, inits] = unzip2(bindings);
 
       return cons(make<instruction>(mnemonic::DUMMY),
-                  operand(syntactic_context::none,
+                  operand(context::none,
                           current_environment,
                           inits,
                           cons(variables, frames),
-                          lambda(syntactic_context::none,
+                          lambda(context::none,
                                  current_environment,
                                  cons(variables, body),
                                  frames,
@@ -1060,11 +1060,11 @@ inline namespace kernel
     {
       if (expression.is<pair>())
       {
-        return operand(syntactic_context::none,
+        return operand(context::none,
                        current_environment,
                        cdr(expression),
                        frames,
-                       compile(syntactic_context::none,
+                       compile(context::none,
                                current_environment,
                                car(expression),
                                frames,
@@ -1073,7 +1073,7 @@ inline namespace kernel
       }
       else
       {
-        return compile(syntactic_context::none, current_environment, expression, frames, continuation);
+        return compile(context::none, current_environment, expression, frames, continuation);
       }
     }
 
@@ -1103,11 +1103,11 @@ inline namespace kernel
     *
     * ---------------------------------------------------------------------- */
     {
-      if (static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost))
+      if (static_cast<bool>(current_context bitand context::outermost))
       {
         if (cdr(expression).is<null>())
         {
-          return compile(current_syntactic_context,
+          return compile(current_context,
                          current_environment,
                          car(expression),
                          frames,
@@ -1115,12 +1115,12 @@ inline namespace kernel
         }
         else
         {
-          return compile(syntactic_context::outermost,
+          return compile(context::outermost,
                          current_environment,
                          car(expression),
                          frames,
                          cons(make<instruction>(mnemonic::DROP),
-                              sequence(syntactic_context::outermost,
+                              sequence(context::outermost,
                                        current_environment,
                                        cdr(expression),
                                        frames,
@@ -1131,7 +1131,7 @@ inline namespace kernel
       {
         if (cdr(expression).is<null>()) // is tail sequence
         {
-          return compile(current_syntactic_context,
+          return compile(current_context,
                          current_environment,
                          car(expression),
                          frames,
@@ -1139,12 +1139,12 @@ inline namespace kernel
         }
         else
         {
-          return compile(syntactic_context::none,
+          return compile(context::none,
                          current_environment,
                          car(expression), // head expression
                          frames,
                          cons(make<instruction>(mnemonic::DROP), // pop result of head expression
-                              sequence(syntactic_context::none,
+                              sequence(context::none,
                                        current_environment,
                                        cdr(expression), // rest expressions
                                        frames,
