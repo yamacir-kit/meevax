@@ -35,7 +35,7 @@ inline namespace kernel
 {
   struct syntactic_continuation
   {
-    const syntactic_context preserved_syntactic_context;
+    const syntactic_context context;
 
     const std::reference_wrapper<environment> preserved_environment;
 
@@ -44,6 +44,17 @@ inline namespace kernel
     let const frames;
 
     let const continuation;
+
+    auto apply(std::function<SYNTAX()> const& compile) -> decltype(auto)
+    {
+      return compile(context, preserved_environment, expression, frames, continuation);
+    }
+
+    template <typename... Ts>
+    inline auto operator ()(Ts&&... xs) -> decltype(auto)
+    {
+      return apply(std::forward<decltype(xs)>(xs)...);
+    }
 
     friend auto operator <<(std::ostream & os, syntactic_continuation const& datum) -> std::ostream &
     {

@@ -33,12 +33,14 @@ inline namespace kernel
 
   auto environment::build(continuation const& k) -> void
   {
+    auto current_compiler = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
+    {
+      return compile(syntactic_context::outermost, *this, expression, frames);
+    };
+
     s = k.s();
     e = k.e();
-    c = compile(syntactic_context::outermost,
-                *this,
-                k.c().as<syntactic_continuation>().expression,
-                k.c().as<syntactic_continuation>().frames);
+    c = k.c().as<syntactic_continuation>().apply(current_compiler);
     d = k.d();
 
     form() = execute();
