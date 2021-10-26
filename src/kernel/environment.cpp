@@ -86,7 +86,7 @@ inline namespace kernel
   {
     if (is_trace_mode())
     {
-      return machine::execute<declaration::trace>();
+      return machine::execute<option::trace>();
     }
     else
     {

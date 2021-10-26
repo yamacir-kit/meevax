@@ -19,10 +19,10 @@
 
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
-#include <meevax/kernel/declaration.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identifier.hpp>
 #include <meevax/kernel/instruction.hpp>
+#include <meevax/kernel/option.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntactic_procedure.hpp>
 
@@ -218,16 +218,16 @@ inline namespace kernel
                                current_environment,
                                car(expression),
                                frames,
-                               cons(make<instruction>(static_cast<bool>(current_context bitand context::tail) ? mnemonic::TAIL_CALL : mnemonic::CALL),
+                               cons(make<instruction>(current_context & context::tail ? mnemonic::TAIL_CALL : mnemonic::CALL),
                                     continuation)));
       }
     }
 
-    template <auto Declaration = declaration::none>
+    template <auto Option = option::none>
     inline auto execute() -> object
     {
     decode:
-      if constexpr (static_cast<bool>(Declaration bitand declaration::trace))
+      if constexpr (Option & option::trace)
       {
         std::cerr << faint << "; s = " << reset << s << "\n"
                   << faint << "; e = " << reset << e << "\n"
@@ -756,7 +756,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (static_cast<bool>(current_context bitand context::tail))
+      if (current_context & context::tail)
       {
         auto consequent =
           compile(context::tail,
@@ -848,7 +848,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (frames.is<null>() or static_cast<bool>(current_context bitand context::outermost))
+      if (frames.is<null>() or (current_context & context::outermost))
       {
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
@@ -1103,7 +1103,7 @@ inline namespace kernel
     *
     * ---------------------------------------------------------------------- */
     {
-      if (static_cast<bool>(current_context bitand context::outermost))
+      if (current_context & context::outermost)
       {
         if (cdr(expression).is<null>())
         {

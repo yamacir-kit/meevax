@@ -14,24 +14,34 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_DECLARATION_HPP
-#define INCLUDED_MEEVAX_KERNEL_DECLARATION_HPP
-
-#include <meevax/utility/enumeration.hpp>
+#ifndef INCLUDED_MEEVAX_KERNEL_OPTION_HPP
+#define INCLUDED_MEEVAX_KERNEL_OPTION_HPP
 
 namespace meevax
 {
 inline namespace kernel
 {
-  enum class declaration
+  struct option
   {
-    none,
+    enum value_type
+    {
+      none,
+      trace = (1 << 0),
+      size,
+    }
+    const value;
 
-    trace = (1 << 0),
+    template <typename T>
+    constexpr option(T const value) noexcept
+      : value { static_cast<value_type>(value) }
+    {}
 
-    size,
+    constexpr operator value_type() const noexcept
+    {
+      return value;
+    }
   };
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_DECLARATION_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_OPTION_HPP
