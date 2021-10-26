@@ -14,28 +14,33 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/syntactic_continuation.hpp>
+#include <meevax/kernel/environment.hpp>
 #include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto syntactic_continuation::operator [](const_reference name) -> const_reference
+  auto environment::operator [](const_reference name) -> const_reference
   {
     return cdr(rename(name));
   }
 
-  auto syntactic_continuation::operator [](std::string const& name) -> const_reference
+  auto environment::operator [](std::string const& name) -> const_reference
   {
     return (*this)[intern(name)];
   }
 
-  auto syntactic_continuation::build(continuation const& k) -> void
+  auto environment::build(continuation const& k) -> void
   {
+    auto current_compiler = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
+    {
+      return compile(context::outermost, *this, expression, frames);
+    };
+
     s = k.s();
     e = k.e();
-    c = compile(syntactic_context::outermost, *this, car(k.c()), cdr(k.c()));
+    c = k.c().as<syntactic_continuation>().apply(current_compiler);
     d = k.d();
 
     form() = execute();
@@ -43,31 +48,31 @@ inline namespace kernel
     assert(form().is<closure>());
   }
 
-  auto syntactic_continuation::current_expression() const -> const_reference
+  auto environment::current_expression() const -> const_reference
   {
     return car(form());
   }
 
-  auto syntactic_continuation::define(const_reference name, const_reference value) -> const_reference
+  auto environment::define(const_reference name, const_reference value) -> const_reference
   {
     assert(name.is<symbol>());
 
-    return global_environment() = make<absolute>(name, value) | global_environment();
+    return global() = make<absolute>(name, value) | global();
   }
 
-  auto syntactic_continuation::define(std::string const& name, const_reference value) -> const_reference
+  auto environment::define(std::string const& name, const_reference value) -> const_reference
   {
     return define(intern(name), value);
   }
 
-  auto syntactic_continuation::dynamic_environment() const -> const_reference
+  auto environment::dynamic_environment() const -> const_reference
   {
     return cdr(form());
   }
 
-  auto syntactic_continuation::evaluate(const_reference expression) -> object
+  auto environment::evaluate(const_reference expression) -> object
   {
-    c = compile(syntactic_context::none, *this, expression);
+    c = compile(context::none, *this, expression);
 
     if (is_debug_mode())
     {
@@ -77,7 +82,7 @@ inline namespace kernel
     return execute();
   }
 
-  auto syntactic_continuation::execute() -> object
+  auto environment::execute() -> object
   {
     if (is_trace_mode())
     {
@@ -89,27 +94,27 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::form() const noexcept -> const_reference
+  auto environment::form() const noexcept -> const_reference
   {
     return car(*this);
   }
 
-  auto syntactic_continuation::form() noexcept -> reference
+  auto environment::form() noexcept -> reference
   {
     return const_cast<reference>(std::as_const(*this).form());
   }
 
-  auto syntactic_continuation::global_environment() const noexcept -> const_reference
+  auto environment::global() const noexcept -> const_reference
   {
     return cdr(*this);
   }
 
-  auto syntactic_continuation::global_environment() noexcept -> reference
+  auto environment::global() noexcept -> reference
   {
-    return const_cast<reference>(std::as_const(*this).global_environment());
+    return const_cast<reference>(std::as_const(*this).global());
   }
 
-  auto syntactic_continuation::import() -> void
+  auto environment::import() -> void
   {
     define<procedure>("free-identifier=?", [](let const& xs)
     {
@@ -152,7 +157,7 @@ inline namespace kernel
     define<procedure>("set-verbose!",     [this](let const& xs) { return verbose     = car(xs); });
   }
 
-  auto syntactic_continuation::load(std::string const& s) -> object
+  auto environment::load(std::string const& s) -> object
   {
     write(debug_port(), header(__func__), "open ", s, " => ");
 
@@ -177,7 +182,7 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::load(const_reference x) -> object
+  auto environment::load(const_reference x) -> object
   {
     if (x.is<symbol>())
     {
@@ -193,7 +198,7 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::macroexpand(const_reference keyword, const_reference form) -> object
+  auto environment::macroexpand(const_reference keyword, const_reference form) -> object
   {
     push(d, s, e, cons(make<instruction>(mnemonic::STOP), c)); // XXX ???
 
@@ -204,9 +209,9 @@ inline namespace kernel
     return execute();
   }
 
-  auto syntactic_continuation::rename(const_reference variable) -> const_reference
+  auto environment::rename(const_reference variable) -> const_reference
   {
-    if (let const& binding = assq(variable, global_environment()); if_(binding))
+    if (let const& binding = assq(variable, global()); if_(binding))
     {
       return binding;
     }
@@ -233,20 +238,20 @@ inline namespace kernel
 
       cdr(id) = id; // NOTE: Identifier is self-evaluate if is unbound.
 
-      global_environment() = cons(id, global_environment());
+      global() = cons(id, global());
 
-      return car(global_environment());
+      return car(global());
     }
   }
 
-  auto syntactic_continuation::rename(const_reference variable) const -> const_reference
+  auto environment::rename(const_reference variable) const -> const_reference
   {
-    return assq(variable, global_environment());
+    return assq(variable, global());
   }
 
-  auto operator >>(std::istream & is, syntactic_continuation & datum) -> std::istream &
+  auto operator >>(std::istream & is, environment & datum) -> std::istream &
   {
-    datum.print("syntactic_continuation::operator >>(std::istream &, syntactic_continuation &)");
+    datum.print("environment::operator >>(std::istream &, environment &)");
     datum.print("read new expression => ", datum.read(is));
 
     // sk.print("program == ", sk.program(), "current_expression is ", sk.current_expression());
@@ -254,28 +259,28 @@ inline namespace kernel
     return is;
   }
 
-  auto operator <<(std::ostream & os, syntactic_continuation & datum) -> std::ostream &
+  auto operator <<(std::ostream & os, environment & datum) -> std::ostream &
   {
     // TODO
     // Evaluate current_expression, and write the evaluation to ostream.
 
-    return datum.write(os, "syntactic_continuation::operator <<(std::ostream &, syntactic_continuation &)\n");
+    return datum.write(os, "environment::operator <<(std::ostream &, environment &)\n");
   }
 
-  auto operator <<(std::ostream & os, syntactic_continuation const& datum) -> std::ostream &
+  auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &
   {
     return os << magenta << "#,("
-              << green << "syntactic-continuation" << reset
+              << green << "environment" << reset
               << faint << " #;" << &datum << reset
               << magenta << ")" << reset;
   }
 
-  template class configurator<syntactic_continuation>;
+  template class configurator<environment>;
 
-  template class machine<syntactic_continuation>;
+  template class machine<environment>;
 
-  template class reader<syntactic_continuation>;
+  template class reader<environment>;
 
-  template class writer<syntactic_continuation>;
+  template class writer<environment>;
 } // namespace kernel
 } // namespace meevax

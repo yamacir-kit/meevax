@@ -41,7 +41,7 @@ inline namespace kernel
 
   auto absolute::is_free() const -> bool
   {
-    return cdr(*this).is<absolute>() and cdr(*this).as<absolute>() == *this; // NOTE: See syntactic_continuation::locate
+    return cdr(*this).is<absolute>() and cdr(*this).as<absolute>() == *this; // NOTE: See environment::locate
   }
 
   auto relative::is_bound() const -> bool
@@ -75,7 +75,7 @@ inline namespace kernel
       }
     }
 
-    return unit; // TODO call syntactic_continuation::locate
+    return unit;
   }
 } // namespace kernel
 } // namespace meevax

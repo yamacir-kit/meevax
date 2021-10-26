@@ -28,6 +28,8 @@ namespace meevax
 {
 inline namespace kernel
 {
+  class environment;
+
   struct error;          // error.hpp
   struct exact_integer;  // exact_integer.hpp
   struct pair;           // pair.hpp
