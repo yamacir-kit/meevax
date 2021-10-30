@@ -93,15 +93,6 @@
      (,set! ,x ,y)
      (,set! ,y ,value)))
 
-; (define swap!
-;   (er-macro-transformer
-;     (lambda (expression rename compare)
-;       (let ((a (cadr expression))
-;             (b (caddr expression)))
-;        `(,(rename 'let) ((,(rename 'value) ,a))
-;           (,(rename 'set!) ,a ,b)
-;           (,(rename 'set!) ,b ,(rename 'value))) ))))
-
 (define loop
   (fork/csc
     (lambda form

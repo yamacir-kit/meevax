@@ -32,6 +32,7 @@ inline namespace kernel
     DUMMY,              // a.k.a DUM
     FORK,
     JOIN,
+    LET_SYNTAX,
     LOAD_ABSOLUTE,      // a.k.a LDG
     LOAD_CLOSURE,       // a.k.a LDF
     LOAD_CONSTANT,      // a.k.a LDC

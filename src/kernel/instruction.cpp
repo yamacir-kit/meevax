@@ -33,6 +33,7 @@ inline namespace kernel
       case mnemonic::DUMMY:             return "DUMMY";
       case mnemonic::FORK:              return "FORK";
       case mnemonic::JOIN:              return "JOIN";
+      case mnemonic::LET_SYNTAX:        return "LET_SYNTAX";
       case mnemonic::LOAD_ABSOLUTE:     return "LOAD_ABSOLUTE";
       case mnemonic::LOAD_CLOSURE:      return "LOAD_CLOSURE";
       case mnemonic::LOAD_CONSTANT:     return "LOAD_CONSTANT";
@@ -100,6 +101,7 @@ inline namespace kernel
         break;
 
       case mnemonic::FORK:
+      case mnemonic::LET_SYNTAX:
       case mnemonic::LOAD_CONSTANT:
       case mnemonic::LOAD_RELATIVE:
       case mnemonic::LOAD_VARIADIC:

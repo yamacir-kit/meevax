@@ -58,7 +58,7 @@ inline namespace kernel
 
     friend auto operator <<(std::ostream & os, syntactic_continuation const& datum) -> std::ostream &
     {
-      return os << "#,(syntax " << datum.expression << ")";
+      return os << "#,(fork/csc " << datum.expression << ")";
     }
   };
 

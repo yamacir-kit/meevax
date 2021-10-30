@@ -267,13 +267,7 @@
                                 (list (rename 'strip-syntactic-closures) _expr))
                           #f)))))))))
 
-(define-syntax syntax-rules/aux
-  (er-macro-transformer syntax-rules-transformer))
-
 (define-syntax syntax-rules
   (er-macro-transformer
-    (lambda (expr rename compare)
-      (if (identifier? (cadr expr))
-          (list (rename 'let) (list (list (cadr expr) #t))
-                (cons (rename 'syntax-rules/aux) (cdr expr)))
-          (syntax-rules-transformer expr rename compare)))))
+    (lambda (form rename compare)
+      (syntax-rules-transformer form rename compare))))

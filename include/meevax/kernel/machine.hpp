@@ -169,6 +169,19 @@ inline namespace kernel
                            frames,
                            continuation);
           }
+          else if (applicant.is<syntactic_continuation>())
+          {
+            let const local_macro =
+              current_environment.fork(kernel::continuation(current_environment.s,
+                                                            current_environment.e,
+                                                            applicant,
+                                                            current_environment.d)).template as<environment>().form();
+            return compile(context::none,
+                           current_environment,
+                           local_macro.as<environment>().macroexpand(local_macro, expression),
+                           frames,
+                           continuation);
+          }
         }
 
         /* ---- R7RS 4.1.3. Procedure calls ------------------------------------
@@ -318,6 +331,14 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(fork(continuation(s, e, cadr(c), d)), s);
         c = cddr(c);
+        goto decode;
+
+      case mnemonic::LET_SYNTAX: /* --------------------------------------------
+        *
+        *  s e (LET_SYNTAX k . c) d  =>  s e c' d
+        *
+        * ------------------------------------------------------------------- */
+        c = cadr(c).as<syntactic_continuation>().apply(body);
         goto decode;
 
       case mnemonic::SELECT: /* ------------------------------------------------
@@ -946,30 +967,26 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      PRINT(expression);
+      let identifiers = list();
 
-      let const bindings = car(expression);
-      PRINT(bindings);
-
-      for (let const& binding : bindings)
+      for (let const& binding : car(expression))
       {
-        // PRINT(binding);
-
-        let const& keyword = car(binding);
-        PRINT(keyword);
-
-        let const& binding_spec = cadr(binding);
-        PRINT(binding_spec);
+        identifiers = cons(make<absolute>(car(binding),
+                                          make<syntactic_continuation>(current_context,
+                                                                       current_environment,
+                                                                       cadr(binding),
+                                                                       frames,
+                                                                       continuation)),
+                           identifiers);
       }
 
-      let const body = cdr(expression);
-      PRINT(body);
-
-      // make<absolute>()
-
-      std::exit(0);
-
-      return continuation;
+      return cons(make<instruction>(mnemonic::LET_SYNTAX),
+                  make<syntactic_continuation>(current_context,
+                                               current_environment,
+                                               cdr(expression),
+                                               cons(reverse(identifiers), frames),
+                                               continuation),
+                  continuation);
     }
 
     static SYNTAX(letrec) /* ---------------------------------------------------
