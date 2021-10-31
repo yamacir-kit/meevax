@@ -68,13 +68,13 @@ inline namespace kernel
 
     auto operator=(std::string const&) -> exact_integer &;
 
-    auto exact() const -> pair::value_type;
+    auto exact() const -> object;
 
     auto floor_remainder(exact_integer const&) const -> exact_integer;
 
     auto floor_quotient(exact_integer const&) const -> exact_integer;
 
-    auto inexact() const -> pair::value_type;
+    auto inexact() const -> object;
 
     static auto is_integer() noexcept -> bool;
 
@@ -86,7 +86,7 @@ inline namespace kernel
 
     auto truncate_quotient(exact_integer const&) const -> exact_integer;
 
-    #define DEFINE(NAME) auto NAME() const -> pair::value_type
+    #define DEFINE(NAME) auto NAME() const -> object
 
     DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
     DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
@@ -99,7 +99,7 @@ inline namespace kernel
 
     #undef DEFINE
 
-    #define DEFINE(NAME) auto NAME(pair::const_reference) const -> pair::value_type
+    #define DEFINE(NAME) auto NAME(const_reference) const -> object
 
     DEFINE(atan2);
     DEFINE(pow);

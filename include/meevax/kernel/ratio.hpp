@@ -65,29 +65,29 @@ inline namespace kernel
         v2 = old_1;
       }
 
-      at(0) = make<exact_integer>(sign * v1[0]);
-      at(1) = make<exact_integer>(       v1[1]);
+      std::get<0>(*this) = make<exact_integer>(sign * v1[0]);
+      std::get<1>(*this) = make<exact_integer>(       v1[1]);
     }
 
     explicit ratio(std::string const&, int = 0);
 
-    auto exact() const -> value_type;
+    auto exact() const -> object override;
 
-    auto inexact() const -> value_type override;
+    auto inexact() const -> object override;
 
     auto denominator() const -> exact_integer const&;
 
     auto invert() const -> ratio;
 
-    auto is_integer() const -> bool;
+    auto is_integer() const -> bool override;
 
     auto numerator() const -> exact_integer const&;
 
     auto reduce() const -> ratio;
 
-    auto simple() const -> value_type;
+    auto simple() const -> object;
 
-    #define DEFINE(NAME) auto NAME() const -> value_type
+    #define DEFINE(NAME) auto NAME() const -> object override
 
     DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
     DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
@@ -100,7 +100,7 @@ inline namespace kernel
 
     #undef DEFINE
 
-    #define DEFINE(NAME) auto NAME(pair::const_reference) const -> pair::value_type
+    #define DEFINE(NAME) auto NAME(const_reference) const -> object override
 
     DEFINE(atan2);
     DEFINE(pow);

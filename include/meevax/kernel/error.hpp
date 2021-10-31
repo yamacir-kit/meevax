@@ -82,7 +82,7 @@ inline namespace kernel
       return underlying_cast(value);
     }
 
-    catch (pair::const_reference error) // NOTE: default-exception-handler (Terminate the program without running any outstanding dynamic-wind after procedures)
+    catch (const_reference error) // NOTE: default-exception-handler (Terminate the program without running any outstanding dynamic-wind after procedures)
     {
       std::cerr << "; " << error << std::endl;
       return underlying_cast(exit_status::failure);
@@ -107,7 +107,7 @@ inline namespace kernel
     }
   }
 
-  auto invalid_application(pair::const_reference) -> error;
+  auto invalid_application(const_reference) -> error;
 } // namespace kernel
 } // namespace meevax
 

@@ -24,18 +24,15 @@ auto main() -> int
   assert(gc_count == constants.size() + specials_count);
 
   {
-    auto root = environment(standard::base,
-                            standard::evaluate,
-                            standard::experimental,
-                            standard::srfis);
+    auto root = environment(standard::interaction_environment);
   }
 
-  syntactic_continuation::symbols.clear();
+  environment::symbols.clear();
 
   gc.collect();
   gc.collect();
 
-  assert(syntactic_continuation::symbols.empty());
+  assert(environment::symbols.empty());
   assert(gc_count == gc.count());
 
   return EXIT_SUCCESS;

@@ -19,11 +19,10 @@
 
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
-#include <meevax/kernel/de_bruijn_index.hpp>
-#include <meevax/kernel/declaration.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identifier.hpp>
 #include <meevax/kernel/instruction.hpp>
+#include <meevax/kernel/option.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntactic_procedure.hpp>
 
@@ -31,19 +30,15 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename EnvironmentSpecifier>
+  template <typename Environment>
   class machine // TR-SECD machine.
   {
-    friend EnvironmentSpecifier;
+    friend Environment;
 
-    using syntactic_continuation = EnvironmentSpecifier; // HACK
+    using environment = Environment; // HACK
 
     machine()
     {}
-
-    IMPORT(EnvironmentSpecifier, fork, NIL);
-    IMPORT(EnvironmentSpecifier, is_trace_mode, const);
-    IMPORT(EnvironmentSpecifier, locate, NIL);
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -53,15 +48,13 @@ inline namespace kernel
 
     /* ---- NOTE ---------------------------------------------------------------
      *
-     *  global-environment: g = global_environment()
+     *  global-environment: g = environment::global()
      *
      *  lexical-environment: e
      *
      *  dynamic-environment: d = (s e c ...)
      *
      *  syntactic-environment: (e . g) when define-syntax invoked
-     *
-     *  syntactic-continuation: (d . g)
      *
      * ---------------------------------------------------------------------- */
 
@@ -88,54 +81,45 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
     static auto compile(
-      syntactic_context const current_syntactic_context,
-      syntactic_continuation & current_syntactic_continuation,
-      pair::const_reference expression,
-      pair::const_reference frames = unit,
-      pair::const_reference continuation = list(make<instruction>(mnemonic::STOP))) -> pair::value_type
+      context const current_context,
+      environment & current_environment,
+      const_reference expression,
+      const_reference frames = unit,
+      const_reference continuation = list(make<instruction>(mnemonic::STOP))) -> object
     {
-      if (expression.is<null>())
+      if (expression.is<null>()) /* --------------------------------------------
+      *
+      *  (<operator> <operand 1> ...)                                    syntax
+      *
+      *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
+      *  expression evaluating to itself. In Scheme, it is an error.
+      *
+      * --------------------------------------------------------------------- */
       {
-        /* ---- R7RS 4.1.3. Procedure calls ------------------------------------
-         *
-         *  (<operator> <operand 1> ...)                                 syntax
-         *
-         *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
-         *  expression evaluating to itself. In Scheme, it is an error.
-         *
-         * ------------------------------------------------------------------ */
         return cons(make<instruction>(mnemonic::LOAD_CONSTANT), unit, continuation);
       }
-      else if (not expression.is<pair>()) // is <identifier>
+      else if (not expression.is<pair>()) /* -----------------------------------
+      *
+      *  <variable>                                                      syntax
+      *
+      *  An expression consisting of a variable (section 3.1) is a variable
+      *  reference. The value of the variable reference is the value stored in
+      *  the location to which the variable is bound. It is an error to
+      *  reference an unbound variable.
+      *
+      * --------------------------------------------------------------------- */
       {
-        if (expression.is<symbol>() or expression.is<identifier>())
+        if (expression.is<symbol>() or expression.is_also<identifier>())
         {
-          /* ---- R7RS 4.1.1. Variable references ------------------------------
-           *
-           *  <variable>                                                 syntax
-           *
-           *  An expression consisting of a variable (section 3.1) is a
-           *  variable reference. The value of the variable reference is the
-           *  value stored in the location to which the variable is bound. It
-           *  is an error to reference an unbound variable.
-           *
-           * ------------------------------------------------------------------ */
-          if (auto const variable = de_bruijn_index(expression, frames); variable.is_bound())
+          if (let const& identifier = rename(expression, frames, current_environment); identifier.is<absolute>())
           {
-            if (variable.is_variadic)
-            {
-              return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable.index,
-                          continuation);
-            }
-            else
-            {
-              return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable.index,
-                          continuation);
-            }
+            return cons(make<instruction>(mnemonic::LOAD_ABSOLUTE), identifier,
+                        continuation);
           }
           else
           {
-            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), current_syntactic_continuation.locate(expression),
+            return cons(identifier.is<relative>() ? make<instruction>(mnemonic::LOAD_RELATIVE)
+                                                  : make<instruction>(mnemonic::LOAD_VARIADIC), cdr(identifier),
                         continuation);
           }
         }
@@ -147,22 +131,65 @@ inline namespace kernel
       }
       else // is (applicant . arguments)
       {
-        if (let const& applicant = current_syntactic_continuation.lookup(car(expression)); de_bruijn_index(car(expression), frames).is_free())
+        if (let const& applicant = car(expression); applicant.is_also<syntax>())
         {
-          if (applicant.is_also<syntax>())
+          return applicant.as<syntax>().transform(current_context,
+                                                  current_environment,
+                                                  cdr(expression),
+                                                  frames,
+                                                  continuation);
+        }
+        else if (applicant.is<environment>())
+        {
+          return compile(context::none,
+                         current_environment,
+                         applicant.as<environment>().macroexpand(applicant, expression),
+                         frames,
+                         continuation);
+        }
+        else if (let const& identifier = rename(applicant, frames, std::as_const(current_environment)); identifier.is<relative>())
+        {
+          // TODO for let-syntax, letrec-syntax
+        }
+        else if (identifier.is<keyword>())
+        {
+          if (let & macro = cdr(identifier); macro.is<syntactic_continuation>())
           {
-            return applicant.as<syntax>().transform(current_syntactic_context,
-                                                    current_syntactic_continuation,
+            macro = current_environment.fork(
+                      kernel::continuation(current_environment.s,
+                                           current_environment.e,
+                                           macro,
+                                           current_environment.d)).template as<environment>().form();
+            return compile(context::none,
+                           current_environment,
+                           macro.as<environment>().macroexpand(macro, expression),
+                           frames,
+                           continuation);
+          }
+          else
+          {
+            return compile(context::none,
+                           current_environment,
+                           macro.as<environment>().macroexpand(macro, expression),
+                           frames,
+                           continuation);
+          }
+        }
+        else if (identifier.is<absolute>())
+        {
+          if (let const& applicant = cdr(identifier); applicant.is_also<syntax>())
+          {
+            return applicant.as<syntax>().transform(current_context,
+                                                    current_environment,
                                                     cdr(expression),
                                                     frames,
                                                     continuation);
           }
-          else if (applicant.is<syntactic_continuation>())
+          else if (applicant.is<environment>())
           {
-
-            return compile(syntactic_context::none,
-                           current_syntactic_continuation,
-                           applicant.as<syntactic_continuation>().macroexpand(applicant, expression),
+            return compile(context::none,
+                           current_environment,
+                           applicant.as<environment>().macroexpand(applicant, expression),
                            frames,
                            continuation);
           }
@@ -207,29 +234,24 @@ inline namespace kernel
          *
          * ------------------------------------------------------------------ */
 
-        return operand(syntactic_context::none,
-                       current_syntactic_continuation,
+        return operand(context::none,
+                       current_environment,
                        cdr(expression),
                        frames,
-                       compile(syntactic_context::none,
-                               current_syntactic_continuation,
+                       compile(context::none,
+                               current_environment,
                                car(expression),
                                frames,
-                               cons(make<instruction>(static_cast<bool>(current_syntactic_context bitand syntactic_context::tail) ? mnemonic::TAIL_CALL : mnemonic::CALL),
+                               cons(make<instruction>(current_context & context::tail ? mnemonic::TAIL_CALL : mnemonic::CALL),
                                     continuation)));
       }
     }
 
-    inline auto current_continuation() const -> pair::value_type
-    {
-      return make<continuation>(s, cons(e, cadr(c), d));
-    }
-
-    template <auto Declaration = declaration::none>
-    inline auto execute() -> pair::value_type
+    template <auto Option = option::none>
+    inline auto execute() -> object
     {
     decode:
-      if constexpr (static_cast<bool>(Declaration bitand declaration::trace))
+      if constexpr (Option & option::trace)
       {
         std::cerr << faint << "; s = " << reset << s << "\n"
                   << faint << "; e = " << reset << e << "\n"
@@ -239,10 +261,10 @@ inline namespace kernel
 
       switch (car(c).template as<instruction>().value)
       {
-      case mnemonic::LOAD_LOCAL: /* --------------------------------------------
+      case mnemonic::LOAD_RELATIVE: /* -----------------------------------------
         *
-        *               S  E (LOAD-LOCAL (i . j) . C) D
-        *  => (result . S) E                       C  D
+        *               S  E (LOAD_RELATIVE (i . j) . C) D
+        *  => (result . S) E                          C  D
         *
         *  where result = (list-ref (list-ref E i) j)
         *
@@ -276,10 +298,10 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::LOAD_GLOBAL: /* -------------------------------------------
+      case mnemonic::LOAD_ABSOLUTE: /* -----------------------------------------
         *
-        *               S  E (LOAD-GLOBAL <identifier> . C) D
-        *  => (object . S) E                             C  D
+        *               S  E (LOAD_ABSOLUTE <identifier> . C) D
+        *  => (object . S) E                               C  D
         *
         *  where <identifier> = (<symbol> . <unknown>)
         *
@@ -300,13 +322,13 @@ inline namespace kernel
 
       case mnemonic::LOAD_CONTINUATION: /* -------------------------------------
         *
-        *                       s  e (LDK cc . c) d
-        *  => ((continuation) . s) e           c  d
+        *                       s  e (LDK c1 . c2) d
+        *  => ((continuation) . s) e           c2  d
         *
-        *  where continuation = (s e c . d)
+        *  where continuation = (s e c1 . d)
         *
         * ------------------------------------------------------------------- */
-        s = cons(list(current_continuation()), s);
+        s = cons(list(make<continuation>(s, e, cadr(c), d)), s);
         c = cddr(c);
         goto decode;
 
@@ -318,8 +340,16 @@ inline namespace kernel
         *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        s = cons(fork(), s);
+        s = cons(fork(continuation(s, e, cadr(c), d)), s);
         c = cddr(c);
+        goto decode;
+
+      case mnemonic::LET_SYNTAX: /* --------------------------------------------
+        *
+        *  s e (LET_SYNTAX k . c) d  =>  s e c' d
+        *
+        * ------------------------------------------------------------------- */
+        c.load().swap(append(cadr(c).template as<syntactic_continuation>().apply(body), cddr(c)).load());
         goto decode;
 
       case mnemonic::SELECT: /* ------------------------------------------------
@@ -516,10 +546,10 @@ inline namespace kernel
         c = cdr(c);
         goto decode;
 
-      case mnemonic::STORE_GLOBAL: /* ------------------------------------------
+      case mnemonic::STORE_ABSOLUTE: /* ----------------------------------------
         *
-        *     (value . S) E (STORE-GLOBAL <identifier> . C) D
-        *  => (value . S) E                              C  D
+        *     (value . S) E (STORE_ABSOLUTE <identifier> . C) D
+        *  => (value . S) E                                C  D
         *
         *  where <identifier> = (<symbol> . x)
         *
@@ -535,10 +565,10 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::STORE_LOCAL: /* -------------------------------------------
+      case mnemonic::STORE_RELATIVE: /* ----------------------------------------
         *
-        *     (value . S) E (STORE-LOCAL (i . j) . C) D
-        *  => (value . S) E                        C  D
+        *     (value . S) E (STORE_RELATIVE (i . j) . C) D
+        *  => (value . S) E                           C  D
         *
         * ------------------------------------------------------------------- */
         car(list_tail(list_ref(e, caadr(c)), cdadr(c))).store(car(s));
@@ -562,106 +592,267 @@ inline namespace kernel
       }
     }
 
-  protected:
-    static SYNTAX(quotation) /* ------------------------------------------------
-    *
-    *  (quote <datum>)                                                   syntax
-    *
-    *  (quote <datum>) evaluates to <datum>. <Datum> can be any external
-    *  representation of a Scheme object (see section 3.3). This notation is
-    *  used to include literal constants in Scheme code.
-    *
-    *  (quote <datum>) can be abbreviated as '<datum>. The two notations are
-    *  equivalent in all respects.
-    *
-    *  Numerical constants, string constants, character constants, vector
-    *  constants, bytevector constants, and boolean constants evaluate to
-    *  themselves; they need not be quoted.
-    *
-    *  As noted in section 3.4, it is an error to attempt to alter a constant
-    *  (i.e. the value of a literal expression) using a mutation procedure like
-    *  set-car! or string-set!.
-    *
-    * ----------------------------------------------------------------------- */
+    inline auto fork(continuation const& k) const -> object
     {
-      return cons(make<instruction>(mnemonic::LOAD_CONSTANT), car(expression),
-                  continuation);
+      let const module = make<environment>(unit, static_cast<environment const&>(*this).global());
+
+      module.as<environment>().import();
+      module.as<environment>().build(k);
+
+      return module;
     }
 
-    static SYNTAX(sequence) /* -------------------------------------------------
-    *
-    *  Both of Scheme's sequencing constructs are named begin, but the two
-    *  have slightly different forms and uses:
-    *
-    *  (begin <expression or definition> ...)                            syntax
-    *
-    *  This form of begin can appear as part of a <body>, or at the outermost
-    *  level of a <program>, or at the REPL, or directly nested in a begin that
-    *  is itself of this form. It causes the contained expressions and
-    *  definitions to be evaluated exactly as if the enclosing begin construct
-    *  were not present.
-    *
-    *  Rationale: This form is commonly used in the output of macros (see
-    *  section 4.3) which need to generate multiple definitions and splice them
-    *  into the context in which they are expanded.
-    *
-    *  (begin <expression 1> <expression 2> ...)                         syntax
-    *
-    *  This form of begin can be used as an ordinary expression. The
-    *  <expression>s are evaluated sequentially from left to right, and the
-    *  values of the last <expression> are returned. This expression type is
-    *  used to sequence side effects such as assignments or input and output.
-    *
-    * ---------------------------------------------------------------------- */
+    static auto rename(const_reference variable, const_reference frames, environment & current_environment) -> object
     {
-      if (static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost))
+      if (let const& identifier = notate(variable, frames); identifier.is<null>())
       {
-        if (cdr(expression).is<null>())
-        {
-          return compile(current_syntactic_context,
-                         current_syntactic_continuation,
-                         car(expression),
-                         frames,
-                         continuation);
-        }
-        else
-        {
-          return compile(syntactic_context::outermost,
-                         current_syntactic_continuation,
-                         car(expression),
-                         frames,
-                         cons(make<instruction>(mnemonic::DROP),
-                              sequence(syntactic_context::outermost,
-                                       current_syntactic_continuation,
-                                       cdr(expression),
-                                       frames,
-                                       continuation)));
-        }
+        return current_environment.rename(variable);
       }
       else
       {
-        if (cdr(expression).is<null>()) // is tail sequence
-        {
-          return compile(current_syntactic_context,
-                         current_syntactic_continuation,
-                         car(expression),
-                         frames,
-                         continuation);
-        }
-        else
-        {
-          return compile(syntactic_context::none,
-                         current_syntactic_continuation,
-                         car(expression), // head expression
-                         frames,
-                         cons(make<instruction>(mnemonic::DROP), // pop result of head expression
-                              sequence(syntactic_context::none,
-                                       current_syntactic_continuation,
-                                       cdr(expression), // rest expressions
-                                       frames,
-                                       continuation)));
-        }
+        return identifier;
       }
+    }
+
+    static auto rename(const_reference variable, const_reference frames, environment const& current_environment) -> object
+    {
+      if (let const& identifier = notate(variable, frames); identifier.is<null>())
+      {
+        return current_environment.rename(variable); // NOTE: In the const version, rename does not extend the global-environment.
+      }
+      else
+      {
+        return identifier;
+      }
+    }
+
+  protected:
+    static SYNTAX(assignment) /* -----------------------------------------------
+    *
+    *  (set! <variable> <expression>)                                    syntax
+    *
+    *  Semantics: <Expression> is evaluated, and the resulting value is stored
+    *  in the location to which <variable> is bound. It is an error if
+    *  <variable> is not bound either in some region enclosing the set!
+    *  expression or else globally. The result of the set! expression is
+    *  unspecified.
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      if (expression.is<null>())
+      {
+        throw syntax_error(make<string>("set!"), expression);
+      }
+      else if (let const& identifier = rename(car(expression), frames, current_environment); identifier.is<absolute>())
+      {
+        return compile(context::none,
+                       current_environment,
+                       cadr(expression),
+                       frames,
+                       cons(make<instruction>(mnemonic::STORE_ABSOLUTE), identifier,
+                            continuation));
+      }
+      else
+      {
+        return compile(context::none,
+                       current_environment,
+                       cadr(expression),
+                       frames,
+                       cons(identifier.is<relative>() ? make<instruction>(mnemonic::STORE_RELATIVE)
+                                                      : make<instruction>(mnemonic::STORE_VARIADIC), cdr(identifier), // De Bruijn index
+                            continuation));
+      }
+    }
+
+    static SYNTAX(body)
+    {
+      auto is_definition = [&](const_reference form)
+      {
+        if (form.is<pair>())
+        {
+          if (let const& identifier = rename(car(form), frames, std::as_const(current_environment)); identifier.is<absolute>())
+          {
+            if (let const& callee = cdr(identifier); callee.is<syntax>())
+            {
+              return callee.as<syntax>().name == "define";
+            }
+          }
+        }
+
+        return false;
+      };
+
+      auto sweep = [&](auto const& form)
+      {
+        let binding_specs = unit;
+
+        for (auto iter = std::begin(form); iter != std::end(form); ++iter)
+        {
+          if (is_definition(*iter))
+          {
+            if (cadr(*iter).template is<pair>()) // (define (<variable> . <formals>) <body>)
+            {
+              auto const& [variable, formals] = unpair(cadr(*iter));
+
+              binding_specs = list(variable, cons(make<syntax>("lambda", lambda), formals, cddr(*iter))) | binding_specs;
+            }
+            else // (define <variable> <expression>)
+            {
+              binding_specs = cdr(*iter) | binding_specs;
+            }
+          }
+          else
+          {
+            return std::make_pair(reverse(binding_specs), iter);
+          }
+        }
+
+        return std::make_pair(reverse(binding_specs), std::end(form));
+      };
+
+      /*
+         (lambda <formals> <body>)
+
+         where <body> = <definition>* <expression>* <tail expression>
+      */
+      if (cdr(expression).is<null>()) // is tail-sequence
+      {
+        return compile(current_context | context::tail,
+                       current_environment,
+                       car(expression),
+                       frames,
+                       continuation);
+      }
+      else if (auto const& [binding_specs, body] = sweep(expression); binding_specs)
+      {
+        /*
+           (letrec* <binding specs> <body>)
+
+               => ((lambda <variables> <assignments> <body>) <initials>)
+
+           where <binding specs> = ((<variable 1> <init 1>) ...)
+        */
+        return compile(current_context,
+                       current_environment,
+                       cons(cons(make<syntax>("lambda", lambda),
+                                 unzip1(binding_specs),
+                                 append(map(curry(cons)(make<syntax>("set!", assignment)), binding_specs), body)),
+                            make_list(length(binding_specs), undefined)),
+                       frames,
+                       continuation);
+      }
+      else
+      {
+        return compile(current_context,
+                       current_environment,
+                       car(expression),
+                       frames,
+                       cons(make<instruction>(mnemonic::DROP),
+                            sequence(current_context,
+                                     current_environment,
+                                     cdr(expression),
+                                     frames,
+                                     continuation)));
+      }
+    }
+
+    static SYNTAX(call_with_current_continuation) /* ---------------------------
+    *
+    *  (define (call-with-current-continuation procedure)
+    *    (call-with-current-continuation! procedure))
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      return cons(make<instruction>(mnemonic::LOAD_CONTINUATION),
+                  continuation,
+                  compile(current_context,
+                          current_environment,
+                          car(expression),
+                          frames,
+                          cons(make<instruction>(mnemonic::CALL), continuation)));
+    }
+
+    static SYNTAX(conditional) /* ----------------------------------------------
+    *
+    *  (if <test> <consequent> <alternate>)                              syntax
+    *  (if <test> <consequent>)                                          syntax
+    *
+    *  Syntax: <Test>, <consequent>, and <alternate> are expressions.
+    *
+    *  Semantics: An if expression is evaluated as follows: first, <test> is
+    *  evaluated. If it yields a true value (see section 6.3), then
+    *  <consequent> is evaluated and its values are returned. Otherwise
+    *  <alternate> is evaluated and its values are returned. If <test> yields a
+    *  false value and no <alternate> is specified, then the result of the
+    *  expression is unspecified.
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      if (current_context & context::tail)
+      {
+        auto consequent =
+          compile(context::tail,
+                  current_environment,
+                  cadr(expression),
+                  frames,
+                  list(make<instruction>(mnemonic::RETURN)));
+
+        auto alternate =
+          cddr(expression)
+            ? compile(context::tail,
+                      current_environment,
+                      caddr(expression),
+                      frames,
+                      list(make<instruction>(mnemonic::RETURN)))
+            : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
+                   make<instruction>(mnemonic::RETURN));
+
+        return compile(context::none,
+                       current_environment,
+                       car(expression), // <test>
+                       frames,
+                       cons(make<instruction>(mnemonic::TAIL_SELECT), consequent, alternate,
+                            cdr(continuation)));
+      }
+      else
+      {
+        auto consequent =
+          compile(context::none,
+                  current_environment,
+                  cadr(expression),
+                  frames,
+                  list(make<instruction>(mnemonic::JOIN)));
+
+        auto alternate =
+          cddr(expression)
+            ? compile(context::none,
+                      current_environment,
+                      caddr(expression),
+                      frames,
+                      list(make<instruction>(mnemonic::JOIN)))
+            : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
+                   make<instruction>(mnemonic::JOIN));
+
+        return compile(context::none,
+                       current_environment,
+                       car(expression), // <test>
+                       frames,
+                       cons(make<instruction>(mnemonic::SELECT), consequent, alternate,
+                            continuation));
+      }
+    }
+
+    static SYNTAX(construction)
+    {
+      return compile(context::none,
+                     current_environment,
+                     cadr(expression),
+                     frames,
+                     compile(context::none,
+                             current_environment,
+                             car(expression),
+                             frames,
+                             cons(make<instruction>(mnemonic::CONS), continuation)));
     }
 
     static SYNTAX(definition) /* -----------------------------------------------
@@ -689,31 +880,124 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (frames.is<null>() or static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost))
+      if (frames.is<null>() or (current_context & context::outermost))
       {
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          return compile(syntactic_context::none,
-                         current_syntactic_continuation,
+          return compile(context::none,
+                         current_environment,
                          cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
                          frames,
-                         cons(make<instruction>(mnemonic::DEFINE), current_syntactic_continuation.locate(caar(expression)),
+                         cons(make<instruction>(mnemonic::DEFINE), current_environment.rename(caar(expression)),
                               continuation));
         }
         else // (define x ...)
         {
-          return compile(syntactic_context::none,
-                         current_syntactic_continuation,
+          return compile(context::none,
+                         current_environment,
                          cdr(expression) ? cadr(expression) : unspecified,
                          frames,
-                         cons(make<instruction>(mnemonic::DEFINE), current_syntactic_continuation.locate(car(expression)),
+                         cons(make<instruction>(mnemonic::DEFINE), current_environment.rename(car(expression)),
                               continuation));
         }
       }
       else
       {
-        throw syntax_error(make<string>("definition cannot appear in this syntactic-context"), unit);
+        throw syntax_error(make<string>("definition cannot appear in this syntactic-context"));
       }
+    }
+
+    static SYNTAX(fork_csc) /* -------------------------------------------------
+    *
+    *  (fork-with-current-syntactic-continuation <program>)              syntax
+    *
+    *  Semantics: The syntax fork-with-current-syntactic-continuation packages
+    *  the given <program> definition and the continuation of the current
+    *  compilation as a "subprogram".
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      return cons(make<instruction>(mnemonic::FORK), make<syntactic_continuation>(current_context,
+                                                                                  current_environment,
+                                                                                  car(expression),
+                                                                                  frames,
+                                                                                  continuation),
+                  continuation);
+    }
+
+    static SYNTAX(lambda) /* ---------------------------------------------------
+    *
+    *  (lambda <formals> <body>)                                         syntax
+    *
+    *  Syntax: <Formals> is a formal arguments list as described below, and
+    *  <body> is a sequence of zero or more definitions followed by one or more
+    *  expressions.
+    *
+    *  Semantics: A lambda expression evaluates to a procedure. The environment
+    *  in effect when the lambda expression was evaluated is remembered as part
+    *  of the procedure. When the procedure is later called with some actual
+    *  arguments, the environment in which the lambda expression was evaluated
+    *  will be extended by binding the variables in the formal argument list to
+    *  fresh locations, and the corresponding actual argument values will be
+    *  stored in those locations. (A fresh location is one that is distinct
+    *  from every previously existing location.) Next, the expressions in the
+    *  body of the lambda expression (which, if it contains definitions,
+    *  represents a letrec* form - see section 4.2.2) will be evaluated
+    *  sequentially in the extended environment. The results of the last
+    *  expression in the body will be returned as the results of the procedure
+    *  call.
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      return cons(make<instruction>(mnemonic::LOAD_CLOSURE),
+                  body(current_context,
+                       current_environment,
+                       cdr(expression),
+                       cons(car(expression), frames), // Extend lexical environment.
+                       list(make<instruction>(mnemonic::RETURN))),
+                  continuation);
+    }
+
+    static SYNTAX(let_syntax) /* -----------------------------------------------
+    *
+    *  (let-syntax <bindings> <body>)                                    syntax
+    *
+    *  Syntax: <Bindings> has the form
+    *
+    *      ((<keyword> <transformer spec>) . . . )
+    *
+    *  Each <keyword> is an identifier, each <transformer spec> is an instance
+    *  of syntax-rules, and <body> is a sequence of one or more definitions
+    *  followed by one or more expressions. It is an error for a <keyword> to
+    *  appear more than once in the list of keywords being bound.
+    *
+    *  Semantics: The <body> is expanded in the syntactic environment obtained
+    *  by extending the syntactic environment of the let-syntax expression with
+    *  macros whose keywords are the <keyword>s, bound to the specified
+    *  transformers. Each binding of a <keyword> has <body> as its region.
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      let identifiers = list();
+
+      for (let const& binding : car(expression))
+      {
+        identifiers = cons(make<keyword>(car(binding),
+                                         make<syntactic_continuation>(current_context,
+                                                                      current_environment,
+                                                                      cadr(binding),
+                                                                      frames,
+                                                                      continuation)),
+                           identifiers);
+      }
+
+      return cons(make<instruction>(mnemonic::LET_SYNTAX),
+                  make<syntactic_continuation>(current_context,
+                                               current_environment,
+                                               cdr(expression),
+                                               cons(reverse(identifiers), frames),
+                                               continuation),
+                  continuation);
     }
 
     static SYNTAX(letrec) /* ---------------------------------------------------
@@ -763,117 +1047,53 @@ inline namespace kernel
       auto const& [variables, inits] = unzip2(bindings);
 
       return cons(make<instruction>(mnemonic::DUMMY),
-                  operand(syntactic_context::none,
-                          current_syntactic_continuation,
+                  operand(context::none,
+                          current_environment,
                           inits,
                           cons(variables, frames),
-                          lambda(syntactic_context::none,
-                                 current_syntactic_continuation,
+                          lambda(context::none,
+                                 current_environment,
                                  cons(variables, body),
                                  frames,
                                  cons(make<instruction>(mnemonic::RECURSIVE_CALL),
                                       continuation))));
     }
 
-    static SYNTAX(body)
+    static SYNTAX(literal) /* --------------------------------------------------
+    *
+    *  (quote <datum>)                                                   syntax
+    *
+    *  (quote <datum>) evaluates to <datum>. <Datum> can be any external
+    *  representation of a Scheme object (see section 3.3). This notation is
+    *  used to include literal constants in Scheme code.
+    *
+    *  (quote <datum>) can be abbreviated as '<datum>. The two notations are
+    *  equivalent in all respects.
+    *
+    *  Numerical constants, string constants, character constants, vector
+    *  constants, bytevector constants, and boolean constants evaluate to
+    *  themselves; they need not be quoted.
+    *
+    *  As noted in section 3.4, it is an error to attempt to alter a constant
+    *  (i.e. the value of a literal expression) using a mutation procedure like
+    *  set-car! or string-set!.
+    *
+    * ----------------------------------------------------------------------- */
     {
-      auto is_definition = [&](pair::const_reference form)
-      {
-        if (form.is<pair>() and de_bruijn_index(car(form), frames).is_free())
-        {
-          let const& callee = current_syntactic_continuation.lookup(car(form));
-          return callee.is<syntax>() and callee.as<syntax>().name == "define";
-        }
-        else
-        {
-          return false;
-        }
-      };
-
-      auto sweep = [&](auto const& form)
-      {
-        let binding_specs = unit;
-
-        for (auto iter = std::begin(form); iter != std::end(form); ++iter)
-        {
-          if (is_definition(*iter))
-          {
-            if (cadr(*iter).template is<pair>()) // (define (<variable> . <formals>) <body>)
-            {
-              auto const& [variable, formals] = unpair(cadr(*iter));
-
-              binding_specs = list(variable, cons(make<syntax>("lambda", lambda), formals, cddr(*iter))) | binding_specs;
-            }
-            else // (define <variable> <expression>)
-            {
-              binding_specs = cdr(*iter) | binding_specs;
-            }
-          }
-          else
-          {
-            return std::make_pair(reverse(binding_specs), iter);
-          }
-        }
-
-        return std::make_pair(reverse(binding_specs), std::end(form));
-      };
-
-      /*
-         (lambda <formals> <body>)
-
-         where <body> = <definition>* <expression>* <tail expression>
-      */
-      if (cdr(expression).is<null>()) // is tail-sequence
-      {
-        return compile(current_syntactic_context | syntactic_context::tail,
-                       current_syntactic_continuation,
-                       car(expression),
-                       frames,
-                       continuation);
-      }
-      else if (auto const& [binding_specs, body] = sweep(expression); binding_specs)
-      {
-        /*
-           (letrec* <binding specs> <body>)
-
-               => ((lambda <variables> <assignments> <body>) <initials>)
-
-           where <binding specs> = ((<variable 1> <init 1>) ...)
-        */
-        return compile(current_syntactic_context,
-                       current_syntactic_continuation,
-                       cons(cons(make<syntax>("lambda", lambda),
-                                 unzip1(binding_specs),
-                                 append(map(curry(cons)(make<syntax>("set!", assignment)), binding_specs), body)),
-                            make_list(length(binding_specs), undefined)),
-                       frames,
-                       continuation);
-      }
-      else
-      {
-        return compile(current_syntactic_context,
-                       current_syntactic_continuation,
-                       car(expression),
-                       frames,
-                       cons(make<instruction>(mnemonic::DROP),
-                            sequence(current_syntactic_context,
-                                     current_syntactic_continuation,
-                                     cdr(expression),
-                                     frames,
-                                     continuation)));
-      }
+      return cons(make<instruction>(mnemonic::LOAD_CONSTANT), car(expression),
+                  continuation);
     }
 
     static SYNTAX(operand)
     {
       if (expression.is<pair>())
       {
-        return operand(syntactic_context::none,
-                       current_syntactic_continuation,
+        return operand(context::none,
+                       current_environment,
                        cdr(expression),
                        frames,
-                       compile(syntactic_context::none,
-                               current_syntactic_continuation,
+                       compile(context::none,
+                               current_environment,
                                car(expression),
                                frames,
                                cons(make<instruction>(mnemonic::CONS),
@@ -881,209 +1101,84 @@ inline namespace kernel
       }
       else
       {
-        return compile(syntactic_context::none, current_syntactic_continuation, expression, frames, continuation);
+        return compile(context::none, current_environment, expression, frames, continuation);
       }
     }
 
-    static SYNTAX(conditional) /* ----------------------------------------------
+    static SYNTAX(sequence) /* -------------------------------------------------
     *
-    *  (if <test> <consequent> <alternate>)                              syntax
-    *  (if <test> <consequent>)                                          syntax
+    *  Both of Scheme's sequencing constructs are named begin, but the two
+    *  have slightly different forms and uses:
     *
-    *  Syntax: <Test>, <consequent>, and <alternate> are expressions.
+    *  (begin <expression or definition> ...)                            syntax
     *
-    *  Semantics: An if expression is evaluated as follows: first, <test> is
-    *  evaluated. If it yields a true value (see section 6.3), then
-    *  <consequent> is evaluated and its values are returned. Otherwise
-    *  <alternate> is evaluated and its values are returned. If <test> yields a
-    *  false value and no <alternate> is specified, then the result of the
-    *  expression is unspecified.
+    *  This form of begin can appear as part of a <body>, or at the outermost
+    *  level of a <program>, or at the REPL, or directly nested in a begin that
+    *  is itself of this form. It causes the contained expressions and
+    *  definitions to be evaluated exactly as if the enclosing begin construct
+    *  were not present.
     *
-    * ----------------------------------------------------------------------- */
+    *  Rationale: This form is commonly used in the output of macros (see
+    *  section 4.3) which need to generate multiple definitions and splice them
+    *  into the context in which they are expanded.
+    *
+    *  (begin <expression 1> <expression 2> ...)                         syntax
+    *
+    *  This form of begin can be used as an ordinary expression. The
+    *  <expression>s are evaluated sequentially from left to right, and the
+    *  values of the last <expression> are returned. This expression type is
+    *  used to sequence side effects such as assignments or input and output.
+    *
+    * ---------------------------------------------------------------------- */
     {
-      if (static_cast<bool>(current_syntactic_context bitand syntactic_context::tail))
+      if (current_context & context::outermost)
       {
-        auto consequent =
-          compile(syntactic_context::tail,
-                  current_syntactic_continuation,
-                  cadr(expression),
-                  frames,
-                  list(make<instruction>(mnemonic::RETURN)));
-
-        auto alternate =
-          cddr(expression)
-            ? compile(syntactic_context::tail,
-                      current_syntactic_continuation,
-                      caddr(expression),
-                      frames,
-                      list(make<instruction>(mnemonic::RETURN)))
-            : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
-                   make<instruction>(mnemonic::RETURN));
-
-        return compile(syntactic_context::none,
-                       current_syntactic_continuation,
-                       car(expression), // <test>
-                       frames,
-                       cons(make<instruction>(mnemonic::TAIL_SELECT), consequent, alternate,
-                            cdr(continuation)));
-      }
-      else
-      {
-        auto consequent =
-          compile(syntactic_context::none,
-                  current_syntactic_continuation,
-                  cadr(expression),
-                  frames,
-                  list(make<instruction>(mnemonic::JOIN)));
-
-        auto alternate =
-          cddr(expression)
-            ? compile(syntactic_context::none,
-                      current_syntactic_continuation,
-                      caddr(expression),
-                      frames,
-                      list(make<instruction>(mnemonic::JOIN)))
-            : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
-                   make<instruction>(mnemonic::JOIN));
-
-        return compile(syntactic_context::none,
-                       current_syntactic_continuation,
-                       car(expression), // <test>
-                       frames,
-                       cons(make<instruction>(mnemonic::SELECT), consequent, alternate,
-                            continuation));
-      }
-    }
-
-    static SYNTAX(lambda) /* ---------------------------------------------------
-    *
-    *  (lambda <formals> <body>)                                         syntax
-    *
-    *  Syntax: <Formals> is a formal arguments list as described below, and
-    *  <body> is a sequence of zero or more definitions followed by one or more
-    *  expressions.
-    *
-    *  Semantics: A lambda expression evaluates to a procedure. The environment
-    *  in effect when the lambda expression was evaluated is remembered as part
-    *  of the procedure. When the procedure is later called with some actual
-    *  arguments, the environment in which the lambda expression was evaluated
-    *  will be extended by binding the variables in the formal argument list to
-    *  fresh locations, and the corresponding actual argument values will be
-    *  stored in those locations. (A fresh location is one that is distinct
-    *  from every previously existing location.) Next, the expressions in the
-    *  body of the lambda expression (which, if it contains definitions,
-    *  represents a letrec* form - see section 4.2.2) will be evaluated
-    *  sequentially in the extended environment. The results of the last
-    *  expression in the body will be returned as the results of the procedure
-    *  call.
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      return cons(make<instruction>(mnemonic::LOAD_CLOSURE),
-                  body(current_syntactic_context,
-                       current_syntactic_continuation,
-                       cdr(expression),
-                       cons(car(expression), frames), // Extend lexical environment.
-                       list(make<instruction>(mnemonic::RETURN))),
-                  continuation);
-    }
-
-    static SYNTAX(call_with_current_continuation) /* ---------------------------
-    *
-    *  (define (call-with-current-continuation procedure)
-    *    (call-with-current-continuation procedure))
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      return cons(make<instruction>(mnemonic::LOAD_CONTINUATION),
-                  continuation,
-                  compile(current_syntactic_context,
-                          current_syntactic_continuation,
-                          car(expression),
-                          frames,
-                          cons(make<instruction>(mnemonic::CALL), continuation)));
-    }
-
-    static SYNTAX(fork_csc) /* -------------------------------------------------
-    *
-    *  (fork-with-current-syntactic-continuation <program>)              syntax
-    *
-    *  Semantics: The syntax fork-with-current-syntactic-continuation packages
-    *  the given <program> definition and the continuation of the current
-    *  compilation as a "subprogram".
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      return cons(make<instruction>(mnemonic::FORK), cons(car(expression), frames),
-                  continuation);
-    }
-
-    static SYNTAX(assignment) /* -----------------------------------------------
-    *
-    *  (set! <variable> <expression>)                                    syntax
-    *
-    *  Semantics: <Expression> is evaluated, and the resulting value is stored
-    *  in the location to which <variable> is bound. It is an error if
-    *  <variable> is not bound either in some region enclosing the set!
-    *  expression or else globally. The result of the set! expression is
-    *  unspecified.
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      if (expression.is<null>())
-      {
-        throw syntax_error(make<string>("set!"), expression);
-      }
-      else if (auto variable = de_bruijn_index(car(expression), frames); variable.is_bound())
-      {
-        if (variable.is_variadic)
+        if (cdr(expression).is<null>())
         {
-          return compile(syntactic_context::none,
-                         current_syntactic_continuation,
-                         cadr(expression),
+          return compile(current_context,
+                         current_environment,
+                         car(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_VARIADIC), variable.index,
-                              continuation));
+                         continuation);
         }
         else
         {
-          return compile(syntactic_context::none,
-                         current_syntactic_continuation,
-                         cadr(expression),
+          return compile(context::outermost,
+                         current_environment,
+                         car(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_LOCAL), variable.index,
-                              continuation));
+                         cons(make<instruction>(mnemonic::DROP),
+                              sequence(context::outermost,
+                                       current_environment,
+                                       cdr(expression),
+                                       frames,
+                                       continuation)));
         }
       }
       else
       {
-        if (let const& location = current_syntactic_continuation.locate(car(expression)); static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost) and cdr(location).is<identifier>())
+        if (cdr(expression).is<null>()) // is tail sequence
         {
-          throw syntax_error(make<string>("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"), expression);
+          return compile(current_context,
+                         current_environment,
+                         car(expression),
+                         frames,
+                         continuation);
         }
         else
         {
-          return compile(syntactic_context::none,
-                         current_syntactic_continuation,
-                         cadr(expression),
+          return compile(context::none,
+                         current_environment,
+                         car(expression), // head expression
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_GLOBAL), location,
-                              continuation));
+                         cons(make<instruction>(mnemonic::DROP), // pop result of head expression
+                              sequence(context::none,
+                                       current_environment,
+                                       cdr(expression), // rest expressions
+                                       frames,
+                                       continuation)));
         }
       }
-    }
-
-    static SYNTAX(construction)
-    {
-      return compile(syntactic_context::none,
-                     current_syntactic_continuation,
-                     cadr(expression),
-                     frames,
-                     compile(syntactic_context::none,
-                             current_syntactic_continuation,
-                             car(expression),
-                             frames,
-                             cons(make<instruction>(mnemonic::CONS), continuation)));
     }
   };
 } // namespace kernel

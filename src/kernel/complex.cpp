@@ -22,24 +22,24 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto complex::real() const noexcept -> complex::const_reference
+  auto complex::real() const noexcept -> const_reference
   {
-    return std::get<0>(*this);
+    return car(*this);
   }
 
-  auto complex::real() noexcept -> complex::reference
+  auto complex::real() noexcept -> reference
   {
-    return const_cast<complex::reference>(std::as_const(*this).real());
+    return const_cast<reference>(std::as_const(*this).real());
   }
 
-  auto complex::imag() const noexcept -> complex::const_reference
+  auto complex::imag() const noexcept -> const_reference
   {
-    return std::get<1>(*this);
+    return cdr(*this);
   }
 
-  auto complex::imag() noexcept -> complex::reference
+  auto complex::imag() noexcept -> reference
   {
-    return const_cast<complex::reference>(std::as_const(*this).imag());
+    return const_cast<reference>(std::as_const(*this).imag());
   }
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &

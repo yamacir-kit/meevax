@@ -28,6 +28,8 @@ namespace meevax
 {
 inline namespace kernel
 {
+  class environment;
+
   struct error;          // error.hpp
   struct exact_integer;  // exact_integer.hpp
   struct pair;           // pair.hpp
@@ -42,9 +44,10 @@ inline namespace kernel
   template <template <typename...> typename Pointer, typename T>
   class heterogeneous;
 
-  using object = heterogeneous<cell, pair>;
-
-  using let = object;
+  using                         object = heterogeneous<cell, pair>;
+  using                   let = object;
+  using       reference = let      &;
+  using const_reference = let const&;
 
   using null = std::nullptr_t;
 

@@ -28,15 +28,15 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename EnvironmentSpecifier>
+  template <typename Environment>
   class configurator
   {
-    friend EnvironmentSpecifier;
+    friend Environment;
 
-    IMPORT(EnvironmentSpecifier, evaluate, NIL);
-    IMPORT(EnvironmentSpecifier, load, NIL);
-    IMPORT(EnvironmentSpecifier, print, const);
-    IMPORT(EnvironmentSpecifier, read, NIL);
+    IMPORT(Environment, evaluate, NIL);
+    IMPORT(Environment, load, NIL);
+    IMPORT(Environment, print, const);
+    IMPORT(Environment, read, NIL);
 
     template <typename Key>
     using dispatcher = std::unordered_map<Key, procedure::applicable>;
@@ -90,17 +90,17 @@ inline namespace kernel
 
       , short_options_with_arguments
         {
-          std::make_pair('e', [this](pair::const_reference x)
+          std::make_pair('e', [this](const_reference x)
           {
             return print(evaluate(x)), unspecified;
           }),
 
-          std::make_pair('l', [this](pair::const_reference x)
+          std::make_pair('l', [this](const_reference x)
           {
             return load(x);
           }),
 
-          std::make_pair('w', [this](pair::const_reference x)
+          std::make_pair('w', [this](const_reference x)
           {
             return print(x), unspecified;
           }),
@@ -152,22 +152,22 @@ inline namespace kernel
 
       , long_options_with_arguments
         {
-          std::make_pair("evaluate", [this](pair::const_reference x)
+          std::make_pair("evaluate", [this](const_reference x)
           {
             return print(evaluate(x)), unspecified;
           }),
 
-          std::make_pair("load", [this](pair::const_reference x)
+          std::make_pair("load", [this](const_reference x)
           {
             return load(x);
           }),
 
-          std::make_pair("prompt", [this](pair::const_reference x)
+          std::make_pair("prompt", [this](const_reference x)
           {
             return prompt = x;
           }),
 
-          std::make_pair("write", [this](pair::const_reference x)
+          std::make_pair("write", [this](const_reference x)
           {
             return print(x), unspecified;
           }),
@@ -223,7 +223,7 @@ inline namespace kernel
             }
             else if (auto iter = short_options.find(*current_short_option); iter != std::end(short_options))
             {
-              std::get<1>(*iter)(unit);
+              cdr(*iter)(unit);
             }
             else
             {
@@ -237,11 +237,11 @@ inline namespace kernel
           {
             if (analysis.length(2)) // argument part
             {
-              return std::get<1>(*iter)(read(analysis.str(3)));
+              return cdr(*iter)(read(analysis.str(3)));
             }
             else if (++current_option != std::end(args) and not std::regex_match(*current_option, analysis, pattern))
             {
-              return std::get<1>(*iter)(read(*current_option));
+              return cdr(*iter)(read(*current_option));
             }
             else
             {
@@ -250,7 +250,7 @@ inline namespace kernel
           }
           else if (auto iter = long_options.find(current_long_option); iter != std::end(long_options))
           {
-            return std::get<1>(*iter)(unit);
+            return cdr(*iter)(unit);
           }
           else
           {
@@ -304,7 +304,7 @@ inline namespace kernel
       print("  -d, --debug            Display detailed informations for developers.");
       print("  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.");
       print("  -h, --help             Display this help text and exit.");
-      print("  -i, --interactive      Take over control of root syntactic-continuation.");
+      print("  -i, --interactive      Take over control of root environment.");
       print("  -l, --load=FILENAME    Same as -e '(load FILENAME)'");
       print("      --prompt=STRING    Same as -e '(set-prompt! STRING)'");
       print("  -t, --trace            Display stacks of virtual machine for each steps.");

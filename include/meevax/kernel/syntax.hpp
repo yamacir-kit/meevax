@@ -17,23 +17,50 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 
+#include <meevax/kernel/context.hpp>
 #include <meevax/kernel/pair.hpp>
-#include <meevax/kernel/syntactic_context.hpp>
 #include <meevax/utility/description.hpp>
 
 #define SYNTAX(NAME)                                                           \
   auto NAME(                                                                   \
-    [[maybe_unused]] syntactic_context const current_syntactic_context,        \
-    [[maybe_unused]] syntactic_continuation & current_syntactic_continuation,  \
-    [[maybe_unused]] pair::const_reference expression,                         \
-    [[maybe_unused]] pair::const_reference frames,                             \
-    [[maybe_unused]] pair::const_reference continuation) -> pair::value_type
+    [[maybe_unused]] context const current_context,                            \
+    [[maybe_unused]] environment & current_environment,                        \
+    [[maybe_unused]] const_reference expression,                               \
+    [[maybe_unused]] const_reference frames,                                   \
+    [[maybe_unused]] const_reference continuation) -> object
 
 namespace meevax
 {
 inline namespace kernel
 {
-  class syntactic_continuation;
+  struct syntactic_continuation
+  {
+    const context preserved_context;
+
+    const std::reference_wrapper<environment> preserved_environment;
+
+    let const expression;
+
+    let const frames;
+
+    let const continuation;
+
+    auto apply(std::function<SYNTAX()> const& compile) -> decltype(auto)
+    {
+      return compile(preserved_context, preserved_environment, expression, frames, continuation);
+    }
+
+    template <typename... Ts>
+    inline auto operator ()(Ts&&... xs) -> decltype(auto)
+    {
+      return apply(std::forward<decltype(xs)>(xs)...);
+    }
+
+    friend auto operator <<(std::ostream & os, syntactic_continuation const& datum) -> std::ostream &
+    {
+      return os << "#,(fork/csc " << datum.expression << ")";
+    }
+  };
 
   struct syntax : public description
   {

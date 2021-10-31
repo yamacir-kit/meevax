@@ -1,7 +1,7 @@
 #undef NDEBUG
 
 #include <cassert>
-#include <meevax/kernel/syntactic_continuation.hpp>
+#include <meevax/library/standard.hpp>
 
 auto main() -> int
 {
@@ -85,7 +85,7 @@ auto main() -> int
 
   // list->vector
   {
-    auto module = syntactic_continuation();
+    auto module = environment();
 
     auto const gc_count = gc.count();
 
@@ -127,12 +127,12 @@ auto main() -> int
     assert(v.as<vector>().size() == 0);
   }
 
-  syntactic_continuation::symbols.clear();
+  environment::symbols.clear();
   gc.collect();
 
   // vector literal
   {
-    auto module = syntactic_continuation();
+    auto module = environment();
 
     auto const gc_count = gc.count();
 
@@ -166,12 +166,12 @@ auto main() -> int
     assert(gc.count() == gc_count + 4);
   }
 
-  syntactic_continuation::symbols.clear();
+  environment::symbols.clear();
   gc.count();
 
   // vector constructor
   {
-    auto module = syntactic_continuation();
+    auto module = environment();
 
     module.define<procedure>("vector", [](auto&&... xs)
     {

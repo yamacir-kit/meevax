@@ -1,7 +1,7 @@
 #undef NDEBUG
 
 #include <cassert>
-#include <meevax/kernel/syntactic_continuation.hpp>
+#include <meevax/library/standard.hpp>
 
 auto main() -> int
 {
@@ -182,7 +182,7 @@ auto main() -> int
 
   // read list
   {
-    auto module = syntactic_continuation();
+    auto module = environment();
 
     const auto gc_count = gc.count();
 

@@ -106,4 +106,4 @@
 
 (check-report)
 
-(emergency-exit (check-passed? check:correct))
+(exit (check-passed? check:correct))

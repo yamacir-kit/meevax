@@ -22,17 +22,7 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    auto main = environment(standard::base,
-                            standard::character,
-                            standard::cxr,
-                            standard::evaluate,
-                            standard::inexact,
-                            standard::load,
-                            standard::process_context,
-                            standard::read,
-                            standard::write,
-                            standard::experimental,
-                            standard::srfis);
+    auto main = environment(standard::interaction_environment);
 
     main.configure(argc, argv);
 

@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_STANDARD_HPP
 #define INCLUDED_MEEVAX_STANDARD_HPP
 
-#include <meevax/kernel/syntactic_continuation.hpp>
+#include <meevax/kernel/environment.hpp>
 
 namespace meevax
 {
@@ -32,7 +32,7 @@ namespace meevax
   }                                                                            \
                                                                                \
   template <>                                                                  \
-  auto syntactic_continuation::import(standard::NAME##_t) -> void
+  auto environment::import(standard::NAME##_t) -> void
 
   DEFINE_LIBRARY(base);
   // DEFINE_LIBRARY(case_lambda);
@@ -53,6 +53,8 @@ namespace meevax
 
   DEFINE_LIBRARY(experimental);
   DEFINE_LIBRARY(srfis);
+
+  DEFINE_LIBRARY(interaction_environment);
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_STANDARD_HPP

@@ -23,7 +23,7 @@
   (er-macro-transformer
     (lambda (form rename compare)
 
-      (check (syntactic-continuation? (rename 'let)) => #t)
+      (check (environment? (rename 'let)) => #t)
       (check (identifier? (rename 'value)) => #t)
 
       (let ((a (cadr form))
@@ -47,4 +47,4 @@
 
 (check-report)
 
-(emergency-exit (check-passed? check:correct))
+(exit (check-passed? check:correct))

@@ -87,7 +87,7 @@ inline namespace kernel
     : string { std::stringstream(s + "\"") }
   {}
 
-  auto string::list(size_type from, size_type to) const -> pair::value_type
+  auto string::list(size_type from, size_type to) const -> object
   {
     let x = unit;
 
@@ -99,7 +99,7 @@ inline namespace kernel
     return x;
   }
 
-  auto string::list(size_type from) const -> pair::value_type
+  auto string::list(size_type from) const -> object
   {
     return list(from, size());
   }

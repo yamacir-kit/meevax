@@ -33,18 +33,19 @@ inline namespace kernel
       case mnemonic::DUMMY:             return "DUMMY";
       case mnemonic::FORK:              return "FORK";
       case mnemonic::JOIN:              return "JOIN";
+      case mnemonic::LET_SYNTAX:        return "LET_SYNTAX";
+      case mnemonic::LOAD_ABSOLUTE:     return "LOAD_ABSOLUTE";
       case mnemonic::LOAD_CLOSURE:      return "LOAD_CLOSURE";
       case mnemonic::LOAD_CONSTANT:     return "LOAD_CONSTANT";
       case mnemonic::LOAD_CONTINUATION: return "LOAD_CONTINUATION";
-      case mnemonic::LOAD_GLOBAL:       return "LOAD_GLOBAL";
-      case mnemonic::LOAD_LOCAL:        return "LOAD_LOCAL";
+      case mnemonic::LOAD_RELATIVE:     return "LOAD_RELATIVE";
       case mnemonic::LOAD_VARIADIC:     return "LOAD_VARIADIC";
       case mnemonic::RECURSIVE_CALL:    return "RECURSIVE_CALL";
       case mnemonic::RETURN:            return "RETURN";
       case mnemonic::SELECT:            return "SELECT";
       case mnemonic::STOP:              return "STOP";
-      case mnemonic::STORE_GLOBAL:      return "STORE_GLOBAL";
-      case mnemonic::STORE_LOCAL:       return "STORE_LOCAL";
+      case mnemonic::STORE_ABSOLUTE:    return "STORE_ABSOLUTE";
+      case mnemonic::STORE_RELATIVE:    return "STORE_RELATIVE";
       case mnemonic::STORE_VARIADIC:    return "STORE_VARIADIC";
       case mnemonic::TAIL_CALL:         return "TAIL_CALL";
       case mnemonic::TAIL_SELECT:       return "TAIL_SELECT";
@@ -59,7 +60,7 @@ inline namespace kernel
     return os << underline << static_cast<std::string>(datum) << reset;
   }
 
-  auto disassemble(std::ostream & os, pair::const_reference c, std::size_t depth) -> std::ostream &
+  auto disassemble(std::ostream & os, const_reference c, std::size_t depth) -> std::ostream &
   {
     assert(0 < depth);
 
@@ -100,18 +101,19 @@ inline namespace kernel
         break;
 
       case mnemonic::FORK:
+      case mnemonic::LET_SYNTAX:
       case mnemonic::LOAD_CONSTANT:
-      case mnemonic::LOAD_LOCAL:
+      case mnemonic::LOAD_RELATIVE:
       case mnemonic::LOAD_VARIADIC:
-      case mnemonic::STORE_LOCAL:
+      case mnemonic::STORE_RELATIVE:
       case mnemonic::STORE_VARIADIC:
         os << *iter << " " << *++iter << "\n";
         index += 2;
         break;
 
       case mnemonic::DEFINE:
-      case mnemonic::LOAD_GLOBAL:
-      case mnemonic::STORE_GLOBAL:
+      case mnemonic::LOAD_ABSOLUTE:
+      case mnemonic::STORE_ABSOLUTE:
         os << *iter << " " << car(*++iter) << "\n";
         index += 2;
         break;

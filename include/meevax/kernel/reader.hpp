@@ -205,14 +205,7 @@ inline namespace kernel
 
     auto ratio = [](std::string const& token, auto radix = 10)
     {
-      if (auto const value = meevax::ratio(token, radix).reduce(); value.is_integer())
-      {
-        return std::get<0>(value);
-      }
-      else
-      {
-        return make(value);
-      }
+      return meevax::ratio(token, radix).simple();
     };
 
     auto decimal = [](std::string const& token, auto)
@@ -225,7 +218,7 @@ inline namespace kernel
     {
       if (auto iter = constants.find(token); iter != std::end(constants))
       {
-        return std::get<1>(*iter);
+        return cdr(*iter);
       }
       else
       {
@@ -240,37 +233,37 @@ inline namespace kernel
     auto number = complex;
   } // namespace string_to
 
-  template <typename EnvironmentSpecifier>
+  template <typename Environment>
   class reader
   {
-    friend EnvironmentSpecifier;
+    friend Environment;
 
     explicit reader()
     {}
 
-    IMPORT(EnvironmentSpecifier, evaluate,   NIL);
-    IMPORT(EnvironmentSpecifier, debug_port, NIL);
-    IMPORT(EnvironmentSpecifier, write,      NIL);
+    IMPORT(Environment, evaluate,   NIL);
+    IMPORT(Environment, debug_port, NIL);
+    IMPORT(Environment, write,      NIL);
 
     using char_type = typename std::istream::char_type;
 
   public:
-    static inline std::unordered_map<std::string, pair::value_type> symbols {};
+    static inline std::unordered_map<std::string, object> symbols {};
 
     inline auto char_ready() const
     {
       return standard_input.is_also<std::istream>() and standard_input.as<std::istream>();
     }
 
-    static auto intern(std::string const& name) -> pair::const_reference
+    static auto intern(std::string const& name) -> const_reference
     {
       if (auto const iter = symbols.find(name); iter != std::end(symbols))
       {
-        return std::get<1>(*iter);
+        return cdr(*iter);
       }
       else if (auto const [iter, success] = symbols.emplace(name, make<symbol>(name)); success)
       {
-        return std::get<1>(*iter);
+        return cdr(*iter);
       }
       else
       {
@@ -278,7 +271,7 @@ inline namespace kernel
       }
     }
 
-    inline auto read(std::istream & is) -> pair::value_type
+    inline auto read(std::istream & is) -> object
     {
       for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
       {
@@ -434,7 +427,7 @@ inline namespace kernel
       return read(is);
     }
 
-    inline auto read(pair::const_reference x) -> pair::value_type
+    inline auto read(const_reference x) -> object
     {
       if (x.is_also<std::istream>())
       {
@@ -446,7 +439,7 @@ inline namespace kernel
       }
     }
 
-    inline auto read() -> pair::value_type
+    inline auto read() -> object
     {
       let const result = read(standard_input);
 
@@ -455,7 +448,7 @@ inline namespace kernel
       return result;
     }
 
-    inline auto read(std::string const& s) -> pair::value_type
+    inline auto read(std::string const& s) -> object
     {
       return read(std::stringstream(s));
     }

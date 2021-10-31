@@ -22,12 +22,12 @@ inline namespace kernel
 {
   auto error::irritants() const noexcept -> const_reference
   {
-    return std::get<1>(*this);
+    return cdr(*this);
   }
 
   auto error::message() const noexcept -> const_reference
   {
-    return std::get<0>(*this);
+    return car(*this);
   }
 
   auto error::raise() const -> void
@@ -59,7 +59,7 @@ inline namespace kernel
     throw error(make<string>(message));
   }
 
-  auto invalid_application(pair::const_reference irritants) -> error
+  auto invalid_application(const_reference irritants) -> error
   {
     let static const message = make<string>("invalid application");
     return error(message, irritants);
