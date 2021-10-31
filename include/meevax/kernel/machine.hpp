@@ -153,16 +153,24 @@ inline namespace kernel
         }
         else if (identifier.is<keyword>())
         {
-          if (let const& applicant = cdr(identifier); applicant.is<syntactic_continuation>())
+          if (let & macro = cdr(identifier); macro.is<syntactic_continuation>())
           {
-            let const local_macro =
-              current_environment.fork(kernel::continuation(current_environment.s,
-                                                            current_environment.e,
-                                                            applicant,
-                                                            current_environment.d)).template as<environment>().form();
+            macro = current_environment.fork(
+                      kernel::continuation(current_environment.s,
+                                           current_environment.e,
+                                           macro,
+                                           current_environment.d)).template as<environment>().form();
             return compile(context::none,
                            current_environment,
-                           local_macro.as<environment>().macroexpand(local_macro, expression),
+                           macro.as<environment>().macroexpand(macro, expression),
+                           frames,
+                           continuation);
+          }
+          else
+          {
+            return compile(context::none,
+                           current_environment,
+                           macro.as<environment>().macroexpand(macro, expression),
                            frames,
                            continuation);
           }
@@ -341,7 +349,7 @@ inline namespace kernel
         *  s e (LET_SYNTAX k . c) d  =>  s e c' d
         *
         * ------------------------------------------------------------------- */
-        c = cadr(c).template as<syntactic_continuation>().apply(body);
+        c.load().swap(append(cadr(c).as<syntactic_continuation>().apply(body), cddr(c)).load());
         goto decode;
 
       case mnemonic::SELECT: /* ------------------------------------------------

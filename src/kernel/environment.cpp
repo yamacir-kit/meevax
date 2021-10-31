@@ -45,7 +45,7 @@ inline namespace kernel
 
     form() = execute();
 
-    assert(form().is<closure>());
+    // assert(form().is<closure>());
   }
 
   auto environment::current_expression() const -> const_reference

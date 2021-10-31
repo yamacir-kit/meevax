@@ -42,7 +42,7 @@
 
 (set! y 101)
 
-; (check (double-y) => 201)
+(check (double-y) => 201)
 
 (check-report)
 
