@@ -349,7 +349,7 @@ inline namespace kernel
         *  s e (LET_SYNTAX k . c) d  =>  s e c' d
         *
         * ------------------------------------------------------------------- */
-        c.load().swap(append(cadr(c).as<syntactic_continuation>().apply(body), cddr(c)).load());
+        c.load().swap(append(cadr(c).template as<syntactic_continuation>().apply(body), cddr(c)).load());
         goto decode;
 
       case mnemonic::SELECT: /* ------------------------------------------------
