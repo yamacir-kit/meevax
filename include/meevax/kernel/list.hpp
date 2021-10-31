@@ -32,7 +32,7 @@ inline namespace kernel
   {
     using decayed_type = typename std::decay<decltype(x)>::type;
 
-    if constexpr (std::is_same<decayed_type, homoiconic_iterator>::value)
+    if constexpr (std::is_same<decayed_type, iterator>::value)
     {
       return std::forward<decltype(x)>(x).unwrap().load();
     }

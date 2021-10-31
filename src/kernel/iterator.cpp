@@ -20,48 +20,48 @@ namespace meevax
 {
 inline namespace kernel
 {
-  homoiconic_iterator::homoiconic_iterator(const_reference x)
+  iterator::iterator(const_reference x)
     : std::reference_wrapper<object const> { std::cref(x) }
   {}
 
-  auto homoiconic_iterator::operator *() const -> homoiconic_iterator::const_reference
+  auto iterator::operator *() const -> iterator::const_reference
   {
     return car(*this);
   }
 
-  auto homoiconic_iterator::operator ->() const -> homoiconic_iterator::pointer
+  auto iterator::operator ->() const -> iterator::pointer
   {
     return unwrap();
   }
 
-  auto homoiconic_iterator::operator ++() -> homoiconic_iterator &
+  auto iterator::operator ++() -> iterator &
   {
     return *this = cdr(*this);
   }
 
-  auto homoiconic_iterator::operator ++(int) -> homoiconic_iterator
+  auto iterator::operator ++(int) -> iterator
   {
     auto copy = *this;
     operator ++();
     return copy;
   }
 
-  homoiconic_iterator::operator bool() const
+  iterator::operator bool() const
   {
     return static_cast<bool>(unwrap());
   }
 
-  auto homoiconic_iterator::unwrap() const noexcept -> const_reference
+  auto iterator::unwrap() const noexcept -> const_reference
   {
     return get();
   }
 
-  auto operator ==(homoiconic_iterator const& lhs, homoiconic_iterator const& rhs) noexcept -> bool
+  auto operator ==(iterator const& lhs, iterator const& rhs) noexcept -> bool
   {
     return lhs.get() == rhs.get();
   }
 
-  auto operator !=(homoiconic_iterator const& lhs, homoiconic_iterator const& rhs) noexcept -> bool
+  auto operator !=(iterator const& lhs, iterator const& rhs) noexcept -> bool
   {
     return not (lhs == rhs);
   }
@@ -70,25 +70,25 @@ inline namespace kernel
 
 namespace std
 {
-  auto begin(meevax::const_reference x) -> meevax::homoiconic_iterator
+  auto begin(meevax::const_reference x) -> meevax::iterator
   {
     return cbegin(x);
   }
 
-  auto cbegin(meevax::const_reference x) -> meevax::homoiconic_iterator
+  auto cbegin(meevax::const_reference x) -> meevax::iterator
   {
     return x;
   }
 
-  auto cend(meevax::const_reference) -> meevax::homoiconic_iterator const&
+  auto cend(meevax::const_reference) -> meevax::iterator const&
   {
-    static meevax::homoiconic_iterator const cend { meevax::unit };
+    static meevax::iterator const cend { meevax::unit };
     return cend;
   }
 
-  auto end(meevax::const_reference) -> meevax::homoiconic_iterator const&
+  auto end(meevax::const_reference) -> meevax::iterator const&
   {
-    static meevax::homoiconic_iterator const cend { meevax::unit };
+    static meevax::iterator const cend { meevax::unit };
     return cend;
   }
 } // namespace std
