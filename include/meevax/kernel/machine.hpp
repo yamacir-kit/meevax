@@ -85,7 +85,7 @@ inline namespace kernel
       environment & current_environment,
       const_reference expression,
       const_reference frames = unit,
-      const_reference continuation = list(make<instruction>(mnemonic::STOP))) -> object
+      const_reference current_continuation = list(make<instruction>(mnemonic::STOP))) -> object
     {
       if (expression.is<null>()) /* --------------------------------------------
       *
@@ -96,7 +96,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        return cons(make<instruction>(mnemonic::LOAD_CONSTANT), unit, continuation);
+        return cons(make<instruction>(mnemonic::LOAD_CONSTANT), unit, current_continuation);
       }
       else if (not expression.is<pair>()) /* -----------------------------------
       *
@@ -114,19 +114,19 @@ inline namespace kernel
           if (let const& identifier = rename(expression, frames, current_environment); identifier.is<absolute>())
           {
             return cons(make<instruction>(mnemonic::LOAD_ABSOLUTE), identifier,
-                        continuation);
+                        current_continuation);
           }
           else
           {
             return cons(identifier.is<relative>() ? make<instruction>(mnemonic::LOAD_RELATIVE)
                                                   : make<instruction>(mnemonic::LOAD_VARIADIC), cdr(identifier),
-                        continuation);
+                        current_continuation);
           }
         }
         else // is <self-evaluating>
         {
           return cons(make<instruction>(mnemonic::LOAD_CONSTANT), expression,
-                      continuation);
+                      current_continuation);
         }
       }
       else // is (applicant . arguments)
@@ -137,7 +137,7 @@ inline namespace kernel
                                                   current_environment,
                                                   cdr(expression),
                                                   frames,
-                                                  continuation);
+                                                  current_continuation);
         }
         else if (applicant.is<environment>())
         {
@@ -145,7 +145,7 @@ inline namespace kernel
                          current_environment,
                          applicant.as<environment>().macroexpand(applicant, expression),
                          frames,
-                         continuation);
+                         current_continuation);
         }
         else if (let const& identifier = rename(applicant, frames, std::as_const(current_environment)); identifier.is<relative>())
         {
@@ -164,7 +164,7 @@ inline namespace kernel
                            current_environment,
                            macro.as<environment>().macroexpand(macro, expression),
                            frames,
-                           continuation);
+                           current_continuation);
           }
           else
           {
@@ -172,7 +172,7 @@ inline namespace kernel
                            current_environment,
                            macro.as<environment>().macroexpand(macro, expression),
                            frames,
-                           continuation);
+                           current_continuation);
           }
         }
         else if (identifier.is<absolute>())
@@ -183,7 +183,7 @@ inline namespace kernel
                                                     current_environment,
                                                     cdr(expression),
                                                     frames,
-                                                    continuation);
+                                                    current_continuation);
           }
           else if (applicant.is<environment>())
           {
@@ -191,7 +191,7 @@ inline namespace kernel
                            current_environment,
                            applicant.as<environment>().macroexpand(applicant, expression),
                            frames,
-                           continuation);
+                           current_continuation);
           }
         }
 
@@ -243,7 +243,7 @@ inline namespace kernel
                                car(expression),
                                frames,
                                cons(make<instruction>(current_context & context::tail ? mnemonic::TAIL_CALL : mnemonic::CALL),
-                                    continuation)));
+                                    current_continuation)));
       }
     }
 
@@ -650,7 +650,7 @@ inline namespace kernel
                        cadr(expression),
                        frames,
                        cons(make<instruction>(mnemonic::STORE_ABSOLUTE), identifier,
-                            continuation));
+                            current_continuation));
       }
       else
       {
@@ -660,7 +660,7 @@ inline namespace kernel
                        frames,
                        cons(identifier.is<relative>() ? make<instruction>(mnemonic::STORE_RELATIVE)
                                                       : make<instruction>(mnemonic::STORE_VARIADIC), cdr(identifier), // De Bruijn index
-                            continuation));
+                            current_continuation));
       }
     }
 
@@ -721,7 +721,7 @@ inline namespace kernel
                        current_environment,
                        car(expression),
                        frames,
-                       continuation);
+                       current_continuation);
       }
       else if (auto const& [binding_specs, body] = sweep(expression); binding_specs)
       {
@@ -739,7 +739,7 @@ inline namespace kernel
                                  append(map(curry(cons)(make<syntax>("set!", assignment)), binding_specs), body)),
                             make_list(length(binding_specs), undefined)),
                        frames,
-                       continuation);
+                       current_continuation);
       }
       else
       {
@@ -752,7 +752,7 @@ inline namespace kernel
                                      current_environment,
                                      cdr(expression),
                                      frames,
-                                     continuation)));
+                                     current_continuation)));
       }
     }
 
@@ -764,12 +764,12 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       return cons(make<instruction>(mnemonic::LOAD_CONTINUATION),
-                  continuation,
+                  current_continuation,
                   compile(current_context,
                           current_environment,
                           car(expression),
                           frames,
-                          cons(make<instruction>(mnemonic::CALL), continuation)));
+                          cons(make<instruction>(mnemonic::CALL), current_continuation)));
     }
 
     static SYNTAX(conditional) /* ----------------------------------------------
@@ -812,7 +812,7 @@ inline namespace kernel
                        car(expression), // <test>
                        frames,
                        cons(make<instruction>(mnemonic::TAIL_SELECT), consequent, alternate,
-                            cdr(continuation)));
+                            cdr(current_continuation)));
       }
       else
       {
@@ -838,7 +838,7 @@ inline namespace kernel
                        car(expression), // <test>
                        frames,
                        cons(make<instruction>(mnemonic::SELECT), consequent, alternate,
-                            continuation));
+                            current_continuation));
       }
     }
 
@@ -852,7 +852,7 @@ inline namespace kernel
                              current_environment,
                              car(expression),
                              frames,
-                             cons(make<instruction>(mnemonic::CONS), continuation)));
+                             cons(make<instruction>(mnemonic::CONS), current_continuation)));
     }
 
     static SYNTAX(definition) /* -----------------------------------------------
@@ -889,7 +889,7 @@ inline namespace kernel
                          cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
                          frames,
                          cons(make<instruction>(mnemonic::DEFINE), current_environment.rename(caar(expression)),
-                              continuation));
+                              current_continuation));
         }
         else // (define x ...)
         {
@@ -898,7 +898,7 @@ inline namespace kernel
                          cdr(expression) ? cadr(expression) : unspecified,
                          frames,
                          cons(make<instruction>(mnemonic::DEFINE), current_environment.rename(car(expression)),
-                              continuation));
+                              current_continuation));
         }
       }
       else
@@ -921,8 +921,8 @@ inline namespace kernel
                                                                                   current_environment,
                                                                                   car(expression),
                                                                                   frames,
-                                                                                  continuation),
-                  continuation);
+                                                                                  current_continuation),
+                  current_continuation);
     }
 
     static SYNTAX(lambda) /* ---------------------------------------------------
@@ -955,7 +955,7 @@ inline namespace kernel
                        cdr(expression),
                        cons(car(expression), frames), // Extend lexical environment.
                        list(make<instruction>(mnemonic::RETURN))),
-                  continuation);
+                  current_continuation);
     }
 
     static SYNTAX(let_syntax) /* -----------------------------------------------
@@ -987,7 +987,7 @@ inline namespace kernel
                                                                       current_environment,
                                                                       cadr(binding),
                                                                       frames,
-                                                                      continuation)),
+                                                                      current_continuation)),
                            identifiers);
       }
 
@@ -996,8 +996,8 @@ inline namespace kernel
                                                current_environment,
                                                cdr(expression),
                                                cons(reverse(identifiers), frames),
-                                               continuation),
-                  continuation);
+                                               current_continuation),
+                  current_continuation);
     }
 
     static SYNTAX(letrec) /* ---------------------------------------------------
@@ -1056,7 +1056,7 @@ inline namespace kernel
                                  cons(variables, body),
                                  frames,
                                  cons(make<instruction>(mnemonic::RECURSIVE_CALL),
-                                      continuation))));
+                                      current_continuation))));
     }
 
     static SYNTAX(literal) /* --------------------------------------------------
@@ -1081,7 +1081,7 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       return cons(make<instruction>(mnemonic::LOAD_CONSTANT), car(expression),
-                  continuation);
+                  current_continuation);
     }
 
     static SYNTAX(operand)
@@ -1097,11 +1097,11 @@ inline namespace kernel
                                car(expression),
                                frames,
                                cons(make<instruction>(mnemonic::CONS),
-                                    continuation)));
+                                    current_continuation)));
       }
       else
       {
-        return compile(context::none, current_environment, expression, frames, continuation);
+        return compile(context::none, current_environment, expression, frames, current_continuation);
       }
     }
 
@@ -1139,7 +1139,7 @@ inline namespace kernel
                          current_environment,
                          car(expression),
                          frames,
-                         continuation);
+                         current_continuation);
         }
         else
         {
@@ -1152,7 +1152,7 @@ inline namespace kernel
                                        current_environment,
                                        cdr(expression),
                                        frames,
-                                       continuation)));
+                                       current_continuation)));
         }
       }
       else
@@ -1163,7 +1163,7 @@ inline namespace kernel
                          current_environment,
                          car(expression),
                          frames,
-                         continuation);
+                         current_continuation);
         }
         else
         {
@@ -1176,7 +1176,7 @@ inline namespace kernel
                                        current_environment,
                                        cdr(expression), // rest expressions
                                        frames,
-                                       continuation)));
+                                       current_continuation)));
         }
       }
     }
