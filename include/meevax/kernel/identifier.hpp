@@ -45,6 +45,11 @@ inline namespace kernel
     auto is_free() const -> bool override;
   };
 
+  struct keyword : public absolute
+  {
+    using absolute::absolute;
+  };
+
   struct relative : public identifier // de_bruijn_index
   {
     using identifier::identifier;

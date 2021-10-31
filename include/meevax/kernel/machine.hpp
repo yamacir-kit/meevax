@@ -151,6 +151,22 @@ inline namespace kernel
         {
           // TODO for let-syntax, letrec-syntax
         }
+        else if (identifier.is<keyword>())
+        {
+          if (let const& applicant = cdr(identifier); applicant.is<syntactic_continuation>())
+          {
+            let const local_macro =
+              current_environment.fork(kernel::continuation(current_environment.s,
+                                                            current_environment.e,
+                                                            applicant,
+                                                            current_environment.d)).template as<environment>().form();
+            return compile(context::none,
+                           current_environment,
+                           local_macro.as<environment>().macroexpand(local_macro, expression),
+                           frames,
+                           continuation);
+          }
+        }
         else if (identifier.is<absolute>())
         {
           if (let const& applicant = cdr(identifier); applicant.is_also<syntax>())
@@ -166,19 +182,6 @@ inline namespace kernel
             return compile(context::none,
                            current_environment,
                            applicant.as<environment>().macroexpand(applicant, expression),
-                           frames,
-                           continuation);
-          }
-          else if (applicant.is<syntactic_continuation>())
-          {
-            let const local_macro =
-              current_environment.fork(kernel::continuation(current_environment.s,
-                                                            current_environment.e,
-                                                            applicant,
-                                                            current_environment.d)).template as<environment>().form();
-            return compile(context::none,
-                           current_environment,
-                           local_macro.as<environment>().macroexpand(local_macro, expression),
                            frames,
                            continuation);
           }
@@ -971,12 +974,12 @@ inline namespace kernel
 
       for (let const& binding : car(expression))
       {
-        identifiers = cons(make<absolute>(car(binding),
-                                          make<syntactic_continuation>(current_context,
-                                                                       current_environment,
-                                                                       cadr(binding),
-                                                                       frames,
-                                                                       continuation)),
+        identifiers = cons(make<keyword>(car(binding),
+                                         make<syntactic_continuation>(current_context,
+                                                                      current_environment,
+                                                                      cadr(binding),
+                                                                      frames,
+                                                                      continuation)),
                            identifiers);
       }
 

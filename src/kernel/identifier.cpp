@@ -72,7 +72,7 @@ inline namespace kernel
                                 cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
                                      make<exact_integer>(std::distance(std::begin(*outer), inner))));
         }
-        else if (inner.unwrap().is<pair>() and (*inner).is<absolute>() and eq((*inner).as<absolute>().symbol(), variable))
+        else if (inner.unwrap().is<pair>() and (*inner).is<keyword>() and eq((*inner).as<keyword>().symbol(), variable))
         {
           return *inner;
         }
