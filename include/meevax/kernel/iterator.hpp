@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
 
+#include <cstddef>
 #include <iterator> // std::begin, std::end, std::distance
 
 #include <meevax/kernel/pair.hpp>
@@ -25,23 +26,23 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct homoiconic_iterator : public std::reference_wrapper<const pair::value_type>
+  struct homoiconic_iterator : public std::reference_wrapper<const object>
   {
     using iterator_category = std::forward_iterator_tag;
 
-    using value_type = pair::value_type;
+    using value_type = object;
 
-    using reference = pair::reference;
+    using reference = meevax::reference;
 
-    using const_reference = pair::const_reference;
+    using const_reference = meevax::const_reference;
 
-    using pointer = const_reference; // homoiconicity
+    using pointer = meevax::const_reference; // homoiconicity
 
-    using difference_type = pair::difference_type;
+    using difference_type = std::ptrdiff_t;
 
-    using size_type = pair::size_type;
+    using size_type = std::size_t;
 
-    homoiconic_iterator(pair::const_reference);
+    homoiconic_iterator(const_reference);
 
     auto operator *() const -> const_reference;
 
@@ -64,13 +65,13 @@ inline namespace kernel
 
 namespace std
 {
-  auto begin(meevax::pair::const_reference) -> meevax::homoiconic_iterator;
+  auto begin(meevax::const_reference) -> meevax::homoiconic_iterator;
 
-  auto cbegin(meevax::pair::const_reference) -> meevax::homoiconic_iterator;
+  auto cbegin(meevax::const_reference) -> meevax::homoiconic_iterator;
 
-  auto cend(meevax::pair::const_reference) -> meevax::homoiconic_iterator const&;
+  auto cend(meevax::const_reference) -> meevax::homoiconic_iterator const&;
 
-  auto end(meevax::pair::const_reference) -> meevax::homoiconic_iterator const&;
+  auto end(meevax::const_reference) -> meevax::homoiconic_iterator const&;
 } // namespace std
 
 #endif // INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP

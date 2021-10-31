@@ -41,7 +41,7 @@ inline namespace kernel
 
   auto absolute::is_free() const -> bool
   {
-    return cdr(*this).is<absolute>() and cdr(*this).as<absolute>() == *this; // NOTE: See syntactic_continuation::locate
+    return cdr(*this).is<absolute>() and cdr(*this).as<absolute>() == *this; // NOTE: See environment::locate
   }
 
   auto relative::is_bound() const -> bool
@@ -54,7 +54,7 @@ inline namespace kernel
     return false;
   }
 
-  auto notate(pair::const_reference variable, pair::const_reference frames) -> pair::value_type
+  auto notate(const_reference variable, const_reference frames) -> object
   {
     for (auto outer = std::begin(frames); outer != std::end(frames); ++outer)
     {
@@ -72,10 +72,14 @@ inline namespace kernel
                                 cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
                                      make<exact_integer>(std::distance(std::begin(*outer), inner))));
         }
+        else if (inner.unwrap().is<pair>() and (*inner).is<absolute>() and eq((*inner).as<absolute>().symbol(), variable))
+        {
+          return *inner;
+        }
       }
     }
 
-    return unit; // TODO call syntactic_continuation::locate
+    return unit;
   }
 } // namespace kernel
 } // namespace meevax

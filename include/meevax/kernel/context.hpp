@@ -14,25 +14,35 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTEXT_HPP
-#define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTEXT_HPP
-
-#include <meevax/utility/enumeration.hpp>
+#ifndef INCLUDED_MEEVAX_KERNEL_CONTEXT_HPP
+#define INCLUDED_MEEVAX_KERNEL_CONTEXT_HPP
 
 namespace meevax
 {
 inline namespace kernel
 {
-  enum class syntactic_context
+  struct context
   {
-    none,
+    enum value_type
+    {
+      none,
+      outermost = (1 << 0),
+      tail      = (1 << 1),
+      size,
+    }
+    const value;
 
-    outermost = (1 << 0),
-    tail      = (1 << 1),
+    template <typename T>
+    constexpr context(T const value) noexcept
+      : value { static_cast<value_type>(value) }
+    {}
 
-    size,
+    constexpr operator value_type() const noexcept
+    {
+      return value;
+    }
   };
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTEXT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_CONTEXT_HPP

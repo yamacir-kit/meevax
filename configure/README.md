@@ -126,7 +126,7 @@ Options:
   -d, --debug            Display detailed informations for developers.
   -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.
   -h, --help             Display this help text and exit.
-  -i, --interactive      Take over control of root syntactic-continuation.
+  -i, --interactive      Take over control of root environment.
   -l, --load=FILENAME    Same as -e '(load FILENAME)'
       --prompt=STRING    Same as -e '(set-prompt! STRING)'
   -t, --trace            Display stacks of virtual machine for each steps.

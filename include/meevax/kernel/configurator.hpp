@@ -90,17 +90,17 @@ inline namespace kernel
 
       , short_options_with_arguments
         {
-          std::make_pair('e', [this](pair::const_reference x)
+          std::make_pair('e', [this](const_reference x)
           {
             return print(evaluate(x)), unspecified;
           }),
 
-          std::make_pair('l', [this](pair::const_reference x)
+          std::make_pair('l', [this](const_reference x)
           {
             return load(x);
           }),
 
-          std::make_pair('w', [this](pair::const_reference x)
+          std::make_pair('w', [this](const_reference x)
           {
             return print(x), unspecified;
           }),
@@ -152,22 +152,22 @@ inline namespace kernel
 
       , long_options_with_arguments
         {
-          std::make_pair("evaluate", [this](pair::const_reference x)
+          std::make_pair("evaluate", [this](const_reference x)
           {
             return print(evaluate(x)), unspecified;
           }),
 
-          std::make_pair("load", [this](pair::const_reference x)
+          std::make_pair("load", [this](const_reference x)
           {
             return load(x);
           }),
 
-          std::make_pair("prompt", [this](pair::const_reference x)
+          std::make_pair("prompt", [this](const_reference x)
           {
             return prompt = x;
           }),
 
-          std::make_pair("write", [this](pair::const_reference x)
+          std::make_pair("write", [this](const_reference x)
           {
             return print(x), unspecified;
           }),
@@ -304,7 +304,7 @@ inline namespace kernel
       print("  -d, --debug            Display detailed informations for developers.");
       print("  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.");
       print("  -h, --help             Display this help text and exit.");
-      print("  -i, --interactive      Take over control of root syntactic-continuation.");
+      print("  -i, --interactive      Take over control of root environment.");
       print("  -l, --load=FILENAME    Same as -e '(load FILENAME)'");
       print("      --prompt=STRING    Same as -e '(set-prompt! STRING)'");
       print("  -t, --trace            Display stacks of virtual machine for each steps.");

@@ -21,7 +21,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  std::unordered_map<std::string, pair::value_type> const constants
+  std::unordered_map<std::string, object> const constants
   {
     // R7RS 7.1.1. Lexical structure
     { "+inf.0", make<double_float>(+double_float::infinity()) },
