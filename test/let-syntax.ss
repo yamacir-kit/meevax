@@ -43,3 +43,7 @@
 (set! y 101)
 
 ; (check (double-y) => 201)
+
+(check-report)
+
+(exit (check-passed? check:correct))

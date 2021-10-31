@@ -17,6 +17,10 @@
 (define x 1)
 (define y 2)
 
-(print (cons x y))
+(check (cons x y) => (1 . 2))
 (swap! x y)
-(print (cons x y))
+(check (cons x y) => (2 . 1))
+
+(check-report)
+
+(exit (check-passed? check:correct))

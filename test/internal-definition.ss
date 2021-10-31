@@ -4,14 +4,17 @@
 (let ()
   (define a 1)
   (define b 2)
-  (print (+ a b)))
+  (check (+ a b) => 3))
 
 (define hoge "global:hoge")
 (define fuga "global:fuga")
 
-(let ((define (lambda (var expr)
-                (print "variable = " var ", expression = " expr))))
-  (define hoge "local:hoge")
-  (define fuga "local:fuga")
-  (print hoge)
-  (print fuga))
+(let ((define cons))
+  (check (define hoge "local:hoge") => ("global:hoge" . "local:hoge"))
+  (check (define fuga "local:fuga") => ("global:fuga" . "local:fuga"))
+  (check hoge => "global:hoge")
+  (check fuga => "global:fuga"))
+
+(check-report)
+
+(exit (check-passed? check:correct))
