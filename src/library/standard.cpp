@@ -852,7 +852,7 @@ namespace meevax
       switch (length(xs))
       {
       case 1:
-        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), unspecified);
+        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), unspecified_object);
 
       case 2:
         return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), cadr(xs));
@@ -997,22 +997,22 @@ namespace meevax
 
     // define<procedure>("string->vector", [](auto&& xs)
     // {
-    //   return unspecified;
+    //   return unspecified_object;
     // });
 
     // define<procedure>("vector-copy", [](auto&& xs)
     // {
-    //   return unspecified;
+    //   return unspecified_object;
     // });
 
     // define<procedure>("vector-copy!", [](auto&& xs)
     // {
-    //   return unspecified;
+    //   return unspecified_object;
     // });
 
     // define<procedure>("vector-append", [](auto&& xs)
     // {
-    //   return unspecified;
+    //   return unspecified_object;
     // });
 
     /* -------------------------------------------------------------------------
@@ -1046,7 +1046,7 @@ namespace meevax
         throw invalid_application(intern("vector-fill!") | xs);
       }
 
-      return unspecified;
+      return unspecified_object;
     });
 
     /* -------------------------------------------------------------------------
@@ -1076,10 +1076,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("default-exception-handler", [](let const& xs)
+    define<procedure>("default-exception-handler", [](let const& xs) -> object
     {
       throw car(xs);
-      return unspecified;
     });
 
     /* -------------------------------------------------------------------------
@@ -1249,7 +1248,7 @@ namespace meevax
         x.as<std::ifstream>().close();
       }
 
-      return unspecified;
+      return unspecified_object;
     });
 
     define<procedure>("close-output-port", [](let const& xs)
@@ -1259,7 +1258,7 @@ namespace meevax
         x.as<std::ofstream>().close();
       }
 
-      return unspecified;
+      return unspecified_object;
     });
 
     /* -------------------------------------------------------------------------
@@ -1482,7 +1481,7 @@ namespace meevax
     define<procedure>("put-char", [](let const& xs)
     {
       cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
-      return unspecified;
+      return unspecified_object;
     });
 
     /* -------------------------------------------------------------------------
@@ -1512,7 +1511,7 @@ namespace meevax
         throw invalid_application(intern("write-string") | xs);
       }
 
-      return unspecified;
+      return unspecified_object;
     });
 
     /* -------------------------------------------------------------------------
@@ -1528,7 +1527,7 @@ namespace meevax
     define<procedure>("%flush-output-port", [](let const& xs)
     {
       car(xs).as<std::ostream>() << std::flush;
-      return unspecified;
+      return unspecified_object;
     });
 
     /* -------------------------------------------------------------------------
@@ -1876,7 +1875,7 @@ namespace meevax
     define<procedure>("%write-simple", [this](let const& xs)
     {
       write(cadr(xs), car(xs));
-      return unspecified;
+      return unspecified_object;
     });
   }
 

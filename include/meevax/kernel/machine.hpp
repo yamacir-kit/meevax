@@ -156,10 +156,10 @@ inline namespace kernel
           if (let & macro = cdr(identifier); macro.is<syntactic_continuation>())
           {
             macro = current_environment.fork(
-                      kernel::continuation(current_environment.s,
-                                           current_environment.e,
-                                           macro,
-                                           current_environment.d)).template as<environment>().form();
+                      continuation(current_environment.s,
+                                   current_environment.e,
+                                   macro,
+                                   current_environment.d)).template as<environment>().form();
             return compile(context::none,
                            current_environment,
                            macro.as<environment>().macroexpand(macro, expression),
@@ -496,7 +496,7 @@ inline namespace kernel
         *  => s (<undefined> . e)         c  d
         *
         * ------------------------------------------------------------------- */
-        e = cons(undefined, e);
+        e = cons(unit, e);
         c = cdr(c);
         goto decode;
 
@@ -737,7 +737,7 @@ inline namespace kernel
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs),
                                  append(map(curry(cons)(make<syntax>("set!", assignment)), binding_specs), body)),
-                            make_list(length(binding_specs), undefined)),
+                            make_list(length(binding_specs), undefined_object)),
                        frames,
                        current_continuation);
       }
@@ -804,7 +804,7 @@ inline namespace kernel
                       caddr(expression),
                       frames,
                       list(make<instruction>(mnemonic::RETURN)))
-            : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
+            : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified_object,
                    make<instruction>(mnemonic::RETURN));
 
         return compile(context::none,
@@ -830,7 +830,7 @@ inline namespace kernel
                       caddr(expression),
                       frames,
                       list(make<instruction>(mnemonic::JOIN)))
-            : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
+            : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified_object,
                    make<instruction>(mnemonic::JOIN));
 
         return compile(context::none,
@@ -895,7 +895,7 @@ inline namespace kernel
         {
           return compile(context::none,
                          current_environment,
-                         cdr(expression) ? cadr(expression) : unspecified,
+                         cdr(expression) ? cadr(expression) : unspecified_object,
                          frames,
                          cons(make<instruction>(mnemonic::DEFINE), current_environment.rename(car(expression)),
                               current_continuation));

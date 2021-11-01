@@ -172,7 +172,7 @@ inline namespace kernel
         evaluate(e);
       }
 
-      return unspecified;
+      return unspecified_object;
     }
     else
     {

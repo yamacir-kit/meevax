@@ -23,17 +23,15 @@ namespace meevax
 {
 inline namespace kernel
 {
-  /* ---- End-of-File ------------------------------------------------------- */
-
-  struct eof {};
+  struct eof
+  {};
 
   let extern const eof_object;
 
   auto operator <<(std::ostream &, eof const&) -> std::ostream &;
 
-  /* ---- End-of-String ----------------------------------------------------- */
-
-  struct eos {};
+  struct eos
+  {};
 
   let extern const eos_object;
 
