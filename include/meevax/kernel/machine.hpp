@@ -147,11 +147,7 @@ inline namespace kernel
                          frames,
                          current_continuation);
         }
-        else if (let const& identifier = rename(applicant, frames, std::as_const(current_environment)); identifier.is<relative>())
-        {
-          // TODO for let-syntax, letrec-syntax
-        }
-        else if (identifier.is<keyword>())
+        else if (let const& identifier = rename(applicant, frames, std::as_const(current_environment)); identifier.is<keyword>())
         {
           if (let & macro = cdr(identifier); macro.is<syntactic_continuation>())
           {
