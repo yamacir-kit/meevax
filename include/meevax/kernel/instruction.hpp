@@ -52,9 +52,7 @@ inline namespace kernel
 
   struct instruction
   {
-    using value_type = mnemonic;
-
-    const value_type value;
+    const mnemonic value;
 
     explicit operator std::string() const;
   };

@@ -46,8 +46,6 @@ inline namespace kernel
     return x.is<complex>() or is_real(x);
   };
 
-  auto is_number = is_complex;
-
   auto make_number = [](auto&& z)
   {
     if constexpr (std::is_same<typename std::decay<decltype(z)>::type, ratio>::value)

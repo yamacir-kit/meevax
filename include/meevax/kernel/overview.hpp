@@ -35,6 +35,8 @@ inline namespace kernel
   struct pair;           // pair.hpp
   struct ratio;          // ratio.hpp
 
+  struct number {};
+
   template <typename T>
   struct floating_point; // floating_point.hpp
 
