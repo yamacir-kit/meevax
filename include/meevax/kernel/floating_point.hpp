@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 #define INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 
+#include <cmath>
+
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ratio.hpp>

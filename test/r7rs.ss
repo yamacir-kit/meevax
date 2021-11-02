@@ -666,7 +666,7 @@
 (check (real? 3) => #t)
 ; (check (real? -2.5+0i) => #t)
 ; (check (real? -2.5+0.0i) => #t)
-; (check (real? #e1e10) => #t) ; TODO floating_point.hpp's rationalize overflows if large number given.
+(check (real? #e1e10) => #t)
 (check (real? +inf.0) => #t)
 (check (real? +nan.0) => #t)
 (check (rational? -inf.0) => #f)

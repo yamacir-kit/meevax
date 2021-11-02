@@ -86,9 +86,6 @@ inline namespace kernel
     virtual auto is_nan     () const -> bool { return false; }
   };
 
-  template <typename... Ts>
-  using define [[deprecated]] = typename identity<Ts...>::type;
-
   [[noreturn]]
   auto raise(std::string const&) -> void; // error.hpp
 } // namespace kernel

@@ -34,6 +34,8 @@ inline namespace kernel
 
     explicit exact_integer() noexcept;
 
+    explicit exact_integer(value_type) noexcept;
+
     exact_integer(exact_integer const&) noexcept;
 
     explicit exact_integer(exact_integer &&) noexcept;
@@ -68,13 +70,13 @@ inline namespace kernel
 
     auto operator=(std::string const&) -> exact_integer &;
 
-    auto exact() const -> object;
+    auto exact() const -> object override;
 
     auto floor_remainder(exact_integer const&) const -> exact_integer;
 
     auto floor_quotient(exact_integer const&) const -> exact_integer;
 
-    auto inexact() const -> object;
+    auto inexact() const -> object override;
 
     auto is_complex() const noexcept -> bool override { return true; }
 

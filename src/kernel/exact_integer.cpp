@@ -33,9 +33,14 @@ inline namespace kernel
     mpz_init(value);
   }
 
-  exact_integer::exact_integer(exact_integer const& rhs) noexcept
+  exact_integer::exact_integer(value_type given) noexcept
   {
-    mpz_init_set(value, rhs.value);
+    mpz_init_set(value, given);
+  }
+
+  exact_integer::exact_integer(exact_integer const& given) noexcept
+  {
+    mpz_init_set(value, given.value);
   }
 
   exact_integer::exact_integer(exact_integer && rhs) noexcept
