@@ -60,6 +60,12 @@ inline namespace kernel
       return ratio(value).simple();
     }
 
+    auto is_complex() const noexcept -> bool override { return true; }
+
+    auto is_real() const noexcept -> bool override { return true; }
+
+    auto is_rational() const noexcept -> bool override { return is_integer(); }
+
     auto is_integer() const noexcept -> bool override
     {
       return value == std::trunc(value);

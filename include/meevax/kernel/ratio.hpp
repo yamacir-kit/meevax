@@ -80,6 +80,12 @@ inline namespace kernel
 
     auto invert() const -> ratio;
 
+    auto is_complex() const noexcept -> bool override { return true; }
+
+    auto is_real() const noexcept -> bool override { return true; }
+
+    auto is_rational() const noexcept -> bool override { return true; }
+
     auto is_integer() const -> bool override;
 
     auto numerator() const -> exact_integer const&;

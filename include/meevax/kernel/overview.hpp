@@ -78,7 +78,11 @@ inline namespace kernel
 
     #define DEFINE(NAME) virtual auto NAME() const -> bool { return false; } static_assert(true)
 
+    DEFINE(is_complex);
+    DEFINE(is_real);
+    DEFINE(is_rational);
     DEFINE(is_integer);
+
     DEFINE(is_nan);
 
     #undef DEFINE

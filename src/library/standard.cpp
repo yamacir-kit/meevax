@@ -98,10 +98,10 @@ namespace meevax
      * ---------------------------------------------------------------------- */
 
     define<procedure>("number?",   [](let const& xs) { return car(xs).is_also<number>() ? t : f; });
-    define<procedure>("complex?",  [](let const& xs) { return is_complex (car(xs)) ? t : f; });
-    define<procedure>("real?",     [](let const& xs) { return is_real    (car(xs)) ? t : f; });
-    define<procedure>("rational?", [](let const& xs) { return is_rational(car(xs)) ? t : f; });
-    define<procedure>("integer?",  [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_integer() ? t : f; });
+    define<procedure>("complex?",  [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_complex () ? t : f; });
+    define<procedure>("real?",     [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_real    () ? t : f; });
+    define<procedure>("rational?", [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_rational() ? t : f; });
+    define<procedure>("integer?",  [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_integer () ? t : f; });
 
     define<procedure>("%complex?",     is<complex     >());
     define<procedure>("ratio?",        is<ratio       >());

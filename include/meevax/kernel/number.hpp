@@ -41,11 +41,6 @@ inline namespace kernel
     return x.is<single_float>() or x.is<double_float>() or is_rational(x);
   };
 
-  auto is_complex = [](let const& x)
-  {
-    return x.is<complex>() or is_real(x);
-  };
-
   auto make_number = [](auto&& z)
   {
     if constexpr (std::is_same<typename std::decay<decltype(z)>::type, ratio>::value)

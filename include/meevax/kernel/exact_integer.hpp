@@ -76,6 +76,12 @@ inline namespace kernel
 
     auto inexact() const -> object;
 
+    auto is_complex() const noexcept -> bool override { return true; }
+
+    auto is_real() const noexcept -> bool override { return true; }
+
+    auto is_rational() const noexcept -> bool override { return true; }
+
     auto is_integer() const -> bool override;
 
     auto string(int = 10) const -> std::string;
