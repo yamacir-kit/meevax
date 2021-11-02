@@ -57,6 +57,18 @@ inline namespace kernel
     DEFINE(round);
 
     #undef DEFINE
+
+    #define DEFINE(NAME)                                                       \
+    auto NAME(const_reference) const -> object override                        \
+    {                                                                          \
+      return unspecified_object;                                               \
+    }                                                                          \
+    static_assert(true)
+
+    DEFINE(atan2);
+    DEFINE(pow);
+
+    #undef DEFINE
   };
 
   auto operator <<(std::ostream &, complex const&) -> std::ostream &;

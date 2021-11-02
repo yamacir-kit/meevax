@@ -102,18 +102,6 @@ inline namespace kernel
 
       #undef BOILERPLATE
 
-      #define DEFINE(NAME)                                                     \
-      auto NAME(heterogeneous const& x) const -> heterogeneous override        \
-      {                                                                        \
-        return delay<NAME##_t>().yield<heterogeneous>(static_cast<Bound const&>(*this), x); \
-      }                                                                        \
-      static_assert(true)
-
-      DEFINE(atan2);
-      DEFINE(pow);
-
-      #undef DEFINE
-
       #define PREDICATE(NAME)                                                  \
       auto NAME() const -> bool override                                       \
       {                                                                        \
@@ -217,9 +205,6 @@ inline namespace kernel
     static_assert(true)
 
     DEFINE(is_integer);
-
-    DEFINE(atan2);
-    DEFINE(pow);
 
     #undef DEFINE
   };

@@ -84,18 +84,6 @@ inline namespace kernel
 
     #undef BOILERPLATE
 
-    #define DEFINE(NAME)                                                       \
-    virtual auto NAME(let const& x) const -> let                               \
-    {                                                                          \
-      return delay<NAME##_t>().yield<let>(static_cast<T const&>(*this), x);    \
-    }                                                                          \
-    static_assert(true)
-
-    DEFINE(atan2);
-    DEFINE(pow);
-
-    #undef DEFINE
-
     #define PREDICATE(NAME)                                                    \
     virtual auto NAME() const -> bool                                          \
     {                                                                          \

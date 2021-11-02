@@ -68,6 +68,13 @@ inline namespace kernel
     DEFINE(round);
 
     #undef DEFINE
+
+    #define DEFINE(NAME) virtual auto NAME(const_reference) const -> object = 0
+
+    DEFINE(atan2);
+    DEFINE(pow);
+
+    #undef DEFINE
   };
 
   template <typename... Ts>

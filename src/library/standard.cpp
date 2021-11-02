@@ -259,7 +259,7 @@ namespace meevax
 
     define<procedure>("expt", [](let const& xs)
     {
-      return car(xs).pow(cadr(xs));
+      return car(xs).as<number>().pow(cadr(xs));
     });
 
     /* -------------------------------------------------------------------------
@@ -1700,7 +1700,7 @@ namespace meevax
         return car(xs).as<number>().atan();
 
       case 2:
-        return car(xs).atan2(cadr(xs));
+        return car(xs).as<number>().atan2(cadr(xs));
 
       default:
         throw invalid_application(intern("atan") | xs);
