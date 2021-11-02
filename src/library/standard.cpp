@@ -239,25 +239,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("floor", [](let const& xs)
-    {
-      return car(xs).as<number>().floor();
-    });
-
-    define<procedure>("ceiling", [](let const& xs)
-    {
-      return car(xs).ceil();
-    });
-
-    define<procedure>("truncate", [](let const& xs)
-    {
-      return car(xs).trunc();
-    });
-
-    define<procedure>("round", [](let const& xs)
-    {
-      return car(xs).round();
-    });
+    define<procedure>("ceiling",  [](let const& xs) { return car(xs).as<number>().ceil();  });
+    define<procedure>("floor",    [](let const& xs) { return car(xs).as<number>().floor(); });
+    define<procedure>("round",    [](let const& xs) { return car(xs).as<number>().round(); });
+    define<procedure>("truncate", [](let const& xs) { return car(xs).as<number>().trunc(); });
 
     /* -------------------------------------------------------------------------
      *

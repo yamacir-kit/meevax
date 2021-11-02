@@ -45,6 +45,9 @@ inline namespace kernel
     static_assert(true)
 
     DEFINE(floor);
+    DEFINE(ceil);
+    DEFINE(trunc);
+    DEFINE(round);
 
     #undef DEFINE
   };

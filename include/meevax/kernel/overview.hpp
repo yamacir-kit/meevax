@@ -56,6 +56,9 @@ inline namespace kernel
     #define DEFINE(NAME) virtual auto NAME() const -> object = 0
 
     DEFINE(floor);
+    DEFINE(ceil);
+    DEFINE(trunc);
+    DEFINE(round);
 
     #undef DEFINE
   };
