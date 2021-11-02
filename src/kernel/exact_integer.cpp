@@ -227,7 +227,10 @@ inline namespace kernel
   #define DEFINE(NAME)                                                         \
   auto exact_integer::NAME(const_reference x) const -> object                  \
   {                                                                            \
-    if (const double_float n { std::NAME(static_cast<double>(*this), x.inexact().as<double_float>()) }; n.is_integer()) \
+    if (const double_float n {                                                 \
+          std::NAME(static_cast<double>(*this),                                \
+                    x.as<number>().inexact().as<double_float>())               \
+        }; n.is_integer())                                                     \
     {                                                                          \
       return make<exact_integer>(n.value);                                     \
     }                                                                          \

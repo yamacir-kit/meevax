@@ -239,10 +239,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("ceiling",  [](let const& xs) { return car(xs).as<number>().ceil();  });
     define<procedure>("floor",    [](let const& xs) { return car(xs).as<number>().floor(); });
-    define<procedure>("round",    [](let const& xs) { return car(xs).as<number>().round(); });
+    define<procedure>("ceiling",  [](let const& xs) { return car(xs).as<number>().ceil();  });
     define<procedure>("truncate", [](let const& xs) { return car(xs).as<number>().trunc(); });
+    define<procedure>("round",    [](let const& xs) { return car(xs).as<number>().round(); });
 
     /* -------------------------------------------------------------------------
      *
@@ -298,15 +298,8 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("exact", [](auto&& xs)
-    {
-      return car(xs).exact();
-    });
-
-    define<procedure>("inexact", [](auto&& xs)
-    {
-      return car(xs).inexact();
-    });
+    define<procedure>(  "exact", [](let const& xs) { return car(xs).as<number>().exact  (); });
+    define<procedure>("inexact", [](let const& xs) { return car(xs).as<number>().inexact(); });
 
     /* -------------------------------------------------------------------------
      *
@@ -1669,42 +1662,42 @@ namespace meevax
       return car(xs).is_nan() ? t : f;
     });
 
-    define<procedure>("exp",    [](let const& xs) { return car(xs).exp();  });
-    define<procedure>("sqrt",   [](let const& xs) { return car(xs).sqrt(); });
+    define<procedure>("exp",    [](let const& xs) { return car(xs).as<number>().exp();  });
+    define<procedure>("sqrt",   [](let const& xs) { return car(xs).as<number>().sqrt(); });
 
     define<procedure>("log", [](let const& xs)
     {
       switch (length(xs))
       {
       case 1:
-        return car(xs).log();
+        return car(xs).as<number>().log();
 
       case 2:
-        return car(xs).log() / cadr(xs).log();
+        return car(xs).as<number>().log() / cadr(xs).as<number>().log();
 
       default:
         throw invalid_application(intern("log") | xs);
       }
     });
 
-    define<procedure>("sin",    [](let const& xs) { return car(xs).sin();   });
-    define<procedure>("cos",    [](let const& xs) { return car(xs).cos();   });
-    define<procedure>("tan",    [](let const& xs) { return car(xs).tan();   });
-    define<procedure>("asin",   [](let const& xs) { return car(xs).asin();  });
-    define<procedure>("acos",   [](let const& xs) { return car(xs).acos();  });
-    define<procedure>("sinh",   [](let const& xs) { return car(xs).sinh();  });
-    define<procedure>("cosh",   [](let const& xs) { return car(xs).cosh();  });
-    define<procedure>("tanh",   [](let const& xs) { return car(xs).tanh();  });
-    define<procedure>("asinh",  [](let const& xs) { return car(xs).asinh(); });
-    define<procedure>("acosh",  [](let const& xs) { return car(xs).acosh(); });
-    define<procedure>("atanh",  [](let const& xs) { return car(xs).atanh(); });
+    define<procedure>("sin",    [](let const& xs) { return car(xs).as<number>().sin();   });
+    define<procedure>("cos",    [](let const& xs) { return car(xs).as<number>().cos();   });
+    define<procedure>("tan",    [](let const& xs) { return car(xs).as<number>().tan();   });
+    define<procedure>("asin",   [](let const& xs) { return car(xs).as<number>().asin();  });
+    define<procedure>("acos",   [](let const& xs) { return car(xs).as<number>().acos();  });
+    define<procedure>("sinh",   [](let const& xs) { return car(xs).as<number>().sinh();  });
+    define<procedure>("cosh",   [](let const& xs) { return car(xs).as<number>().cosh();  });
+    define<procedure>("tanh",   [](let const& xs) { return car(xs).as<number>().tanh();  });
+    define<procedure>("asinh",  [](let const& xs) { return car(xs).as<number>().asinh(); });
+    define<procedure>("acosh",  [](let const& xs) { return car(xs).as<number>().acosh(); });
+    define<procedure>("atanh",  [](let const& xs) { return car(xs).as<number>().atanh(); });
 
     define<procedure>("atan", [](let const& xs)
     {
       switch (length(xs))
       {
       case 1:
-        return car(xs).atan();
+        return car(xs).as<number>().atan();
 
       case 2:
         return car(xs).atan2(cadr(xs));

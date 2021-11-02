@@ -86,7 +86,7 @@ inline namespace kernel
 
     auto truncate_quotient(exact_integer const&) const -> exact_integer;
 
-    #define DEFINE(NAME) auto NAME() const -> object
+    #define DEFINE(NAME) auto NAME() const -> object override
 
     DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
     DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);

@@ -103,22 +103,6 @@ inline namespace kernel
       #undef BOILERPLATE
 
       #define DEFINE(NAME)                                                     \
-      auto NAME() const -> heterogeneous override                              \
-      {                                                                        \
-        return delay<NAME##_t>().yield<heterogeneous>(static_cast<Bound const&>(*this)); \
-      }                                                                        \
-      static_assert(true)
-
-      DEFINE(exact);
-      DEFINE(inexact);
-
-      DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
-      DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
-      DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
-
-      #undef DEFINE
-
-      #define DEFINE(NAME)                                                     \
       auto NAME(heterogeneous const& x) const -> heterogeneous override        \
       {                                                                        \
         return delay<NAME##_t>().yield<heterogeneous>(static_cast<Bound const&>(*this), x); \
@@ -234,13 +218,8 @@ inline namespace kernel
 
     DEFINE(is_integer);
 
-    DEFINE(exact);
-    DEFINE(inexact);
-
-    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
-    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
-    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(pow);
-                 DEFINE(atan2);                             DEFINE(sqrt);
+    DEFINE(atan2);
+    DEFINE(pow);
 
     #undef DEFINE
   };

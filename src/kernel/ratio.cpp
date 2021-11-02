@@ -129,7 +129,7 @@ inline namespace kernel
   {                                                                            \
     if (const double_float n {                                                 \
           std::NAME(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>(), \
-                    x.inexact().as<double_float>())                            \
+                    x.as<number>().inexact().as<double_float>())               \
         }; n.is_integer())                                                     \
     {                                                                          \
       return make<exact_integer>(n.value);                                     \

@@ -45,7 +45,7 @@ inline namespace kernel
       throw read_error(make<string>("not a decimal"), make<string>(token));
     }
 
-    auto exact() const -> object
+    auto exact() const -> object override
     {
       /* ---- R7RS 6.2.6 (exact z) ---------------------------------------------
        *
@@ -71,13 +71,13 @@ inline namespace kernel
       return lexical_cast<std::string>(value);
     }
 
-    auto inexact() const noexcept
+    auto inexact() const -> object override
     {
       return make(floating_point<double>(value));
     }
 
     #define DEFINE(NAME)                                                       \
-    auto NAME() const -> object                                                \
+    auto NAME() const -> object override                                       \
     {                                                                          \
       return make(floating_point(std::NAME(value)));                           \
     }                                                                          \
@@ -97,7 +97,7 @@ inline namespace kernel
     #define DEFINE(NAME)                                                       \
     auto NAME(const_reference x) const                                         \
     {                                                                          \
-      return make(floating_point(std::NAME(value, x.inexact().as<double_float>()))); \
+      return make(floating_point(std::NAME(value, x.as<number>().inexact().as<double_float>()))); \
     }                                                                          \
     static_assert(true)
 
