@@ -22,7 +22,6 @@
 #include <meevax/functional/division.hpp>
 #include <meevax/functional/modulo.hpp>
 #include <meevax/functional/multiplication.hpp>
-#include <meevax/functional/numerical.hpp>
 #include <meevax/functional/subtraction.hpp>
 #include <meevax/posix/vt10x.hpp>
 #include <meevax/type_traits/delay.hpp>
