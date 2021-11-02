@@ -78,8 +78,6 @@ inline namespace kernel
 
     auto is_integer() const -> bool override;
 
-    auto is_nan() const -> bool override { return false; }
-
     auto string(int = 10) const -> std::string;
 
     auto swap(exact_integer &) noexcept -> void;

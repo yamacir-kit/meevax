@@ -69,18 +69,6 @@ inline namespace kernel
     DEFINE(pow);
 
     #undef DEFINE
-
-    #define DEFINE(NAME)                                                       \
-    auto NAME() const -> bool override                                         \
-    {                                                                          \
-      return false;                                                            \
-    }                                                                          \
-    static_assert(true)
-
-    DEFINE(is_integer);
-    DEFINE(is_nan);
-
-    #undef DEFINE
   };
 
   auto operator <<(std::ostream &, complex const&) -> std::ostream &;

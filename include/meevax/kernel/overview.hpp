@@ -76,7 +76,7 @@ inline namespace kernel
 
     #undef DEFINE
 
-    #define DEFINE(NAME) virtual auto NAME() const -> bool = 0
+    #define DEFINE(NAME) virtual auto NAME() const -> bool { return false; } static_assert(true)
 
     DEFINE(is_integer);
     DEFINE(is_nan);

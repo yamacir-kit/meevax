@@ -82,8 +82,6 @@ inline namespace kernel
 
     auto is_integer() const -> bool override;
 
-    auto is_nan() const -> bool override { return false; }
-
     auto numerator() const -> exact_integer const&;
 
     auto reduce() const -> ratio;
