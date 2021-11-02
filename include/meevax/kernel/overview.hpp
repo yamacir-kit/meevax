@@ -35,8 +35,6 @@ inline namespace kernel
   struct pair;           // pair.hpp
   struct ratio;          // ratio.hpp
 
-  struct number {};
-
   template <typename T>
   struct floating_point; // floating_point.hpp
 
@@ -52,6 +50,15 @@ inline namespace kernel
   using const_reference = let const&;
 
   using null = std::nullptr_t;
+
+  struct number
+  {
+    #define DEFINE(NAME) virtual auto NAME() const -> object = 0
+
+    DEFINE(floor);
+
+    #undef DEFINE
+  };
 
   template <typename... Ts>
   using define [[deprecated]] = typename identity<Ts...>::type;

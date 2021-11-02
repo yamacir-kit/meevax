@@ -116,7 +116,6 @@ inline namespace kernel
       DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
       DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
 
-      DEFINE(floor);
       DEFINE(ceil);
       DEFINE(trunc);
       DEFINE(round);
@@ -247,7 +246,6 @@ inline namespace kernel
     DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(pow);
                  DEFINE(atan2);                             DEFINE(sqrt);
 
-    DEFINE(floor);
     DEFINE(ceil);
     DEFINE(trunc);
     DEFINE(round);

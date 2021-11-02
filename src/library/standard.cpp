@@ -241,7 +241,7 @@ namespace meevax
 
     define<procedure>("floor", [](let const& xs)
     {
-      return car(xs).floor();
+      return car(xs).as<number>().floor();
     });
 
     define<procedure>("ceiling", [](let const& xs)

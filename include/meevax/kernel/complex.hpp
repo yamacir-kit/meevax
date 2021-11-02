@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_COMPLEX_HPP
 #define INCLUDED_MEEVAX_KERNEL_COMPLEX_HPP
 
+#include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
@@ -36,22 +37,16 @@ inline namespace kernel
 
     auto imag() noexcept -> reference;
 
-    // friend auto operator +(const complex& lhs, const complex& rhs)
-    // {
-    //   return
-    //     make<complex>(
-    //       lhs.real() + rhs.real(),
-    //       lhs.imag() + rhs.imag());
-    // }
-    //
-    // template <typename T>
-    // friend auto operator +(const complex& lhs, T&& rhs)
-    // {
-    //   return
-    //     make<complex>(
-    //       lhs.real() + rhs,
-    //       lhs.imag());
-    // }
+    #define DEFINE(NAME)                                                       \
+    auto NAME() const -> object override                                       \
+    {                                                                          \
+      return unspecified_object;                                               \
+    }                                                                          \
+    static_assert(true)
+
+    DEFINE(floor);
+
+    #undef DEFINE
   };
 
   auto operator <<(std::ostream &, complex const&) -> std::ostream &;

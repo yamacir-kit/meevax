@@ -77,7 +77,7 @@ inline namespace kernel
     }
 
     #define DEFINE(NAME)                                                       \
-    auto NAME() const                                                          \
+    auto NAME() const -> object                                                \
     {                                                                          \
       return make(floating_point(std::NAME(value)));                           \
     }                                                                          \
