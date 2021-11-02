@@ -60,15 +60,34 @@ inline namespace kernel
       return ratio(value).simple();
     }
 
-    auto is_complex() const noexcept -> bool override { return true; }
+    auto is_complex() const noexcept -> bool override
+    {
+      return true;
+    }
 
-    auto is_real() const noexcept -> bool override { return true; }
+    auto is_real() const noexcept -> bool override
+    {
+      return true;
+    }
 
-    auto is_rational() const noexcept -> bool override { return is_integer(); }
+    auto is_rational() const noexcept -> bool override
+    {
+      return not is_nan() and is_finite();
+    }
 
     auto is_integer() const noexcept -> bool override
     {
       return value == std::trunc(value);
+    }
+
+    auto is_finite() const -> bool override
+    {
+      return not std::isinf(value);
+    }
+
+    auto is_infinite() const -> bool override
+    {
+      return std::isinf(value);
     }
 
     auto is_nan() const -> bool override

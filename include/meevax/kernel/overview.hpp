@@ -76,16 +76,14 @@ inline namespace kernel
 
     #undef DEFINE
 
-    #define DEFINE(NAME) virtual auto NAME() const -> bool { return false; } static_assert(true)
+    virtual auto is_complex () const -> bool { return true ; }
+    virtual auto is_real    () const -> bool { return false; }
+    virtual auto is_rational() const -> bool { return false; }
+    virtual auto is_integer () const -> bool { return false; }
 
-    DEFINE(is_complex);
-    DEFINE(is_real);
-    DEFINE(is_rational);
-    DEFINE(is_integer);
-
-    DEFINE(is_nan);
-
-    #undef DEFINE
+    virtual auto is_finite  () const -> bool { return true ; }
+    virtual auto is_infinite() const -> bool { return false; }
+    virtual auto is_nan     () const -> bool { return false; }
   };
 
   template <typename... Ts>

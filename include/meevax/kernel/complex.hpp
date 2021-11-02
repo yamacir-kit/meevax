@@ -69,8 +69,6 @@ inline namespace kernel
     DEFINE(pow);
 
     #undef DEFINE
-
-    auto is_complex() const noexcept -> bool override { return true; }
   };
 
   auto operator <<(std::ostream &, complex const&) -> std::ostream &;

@@ -1,7 +1,7 @@
 ; ---- 6.2.6. Numerical operations ---------------------------------------------
 
 (check (rational? 1/3) => #t)
-(check (rational? 0.5) => #f)
+(check (rational? 0.5) => #t)
 
 (let ((x (+ 1 2 3)))
 

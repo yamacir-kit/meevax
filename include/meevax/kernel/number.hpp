@@ -31,16 +31,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto is_rational = [](let const& x)
-  {
-    return x.is<ratio>() or (x.is_also<number>() and x.as<number>().is_integer());
-  };
-
-  auto is_real = [](let const& x)
-  {
-    return x.is<single_float>() or x.is<double_float>() or is_rational(x);
-  };
-
   auto make_number = [](auto&& z)
   {
     if constexpr (std::is_same<typename std::decay<decltype(z)>::type, ratio>::value)

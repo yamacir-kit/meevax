@@ -1649,6 +1649,36 @@ namespace meevax
   {
     /* -------------------------------------------------------------------------
      *
+     *  (finite? z)                                   inexact library procedure
+     *
+     *  The finite? procedure returns #t on all real numbers except +inf.0,
+     *  -inf.0, and +nan.0, and on complex numbers if their real and imaginary
+     *  parts are both finite. Otherwise it returns #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("finite?", [](let const& xs)
+    {
+      return car(xs).as<number>().is_finite() ? t : f;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (infinite? z)                                 inexact library procedure
+     *
+     *  The infinite? procedure returns #t on the real numbers +inf.0 and
+     *  -inf.0, and on complex numbers if their real or imaginary parts or both
+     *  are infinite. Otherwise it returns #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("infinite?", [](let const& xs)
+    {
+      return car(xs).as<number>().is_infinite() ? t : f;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
      *  (nan? z)                                      inexact library procedure
      *
      *  The nan? procedure returns #t on +nan.0, and on complex numbers if
