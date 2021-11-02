@@ -66,11 +66,6 @@ inline namespace kernel
         }
       }
 
-      auto is_nan() const -> bool override
-      {
-        return delay<is_nan_t>().yield<bool>(static_cast<Bound const&>(*this));
-      }
-
       auto type() const noexcept -> std::type_info const& override
       {
         return typeid(Bound);
@@ -101,17 +96,6 @@ inline namespace kernel
       BOILERPLATE(>=, bool, std::greater_equal<void>);
 
       #undef BOILERPLATE
-
-      #define PREDICATE(NAME)                                                  \
-      auto NAME() const -> bool override                                       \
-      {                                                                        \
-        return delay<NAME##_t>().yield<bool>(static_cast<Bound const&>(*this)); \
-      }                                                                        \
-      static_assert(true)
-
-      PREDICATE(is_integer);
-
-      #undef PREDICATE
     };
 
   public:
@@ -177,36 +161,10 @@ inline namespace kernel
       return dynamic_cast<pointer<U>>(get()) != nullptr;
     }
 
-    inline auto is_nan() const
-    {
-      return not is<null>() and load().is_nan();
-    }
-
     inline auto type() const -> std::type_info const&
     {
       return *this ? load().type() : typeid(null);
     }
-
-    #define DEFINE(NAME)                                                       \
-    template <typename... Ts>                                                  \
-    inline auto NAME(Ts&&... xs) const                                         \
-    {                                                                          \
-      if (not is<null>())                                                      \
-      {                                                                        \
-        return load().NAME(std::forward<decltype(xs)>(xs)...);                 \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-        std::stringstream ss {};                                               \
-        ss << "no viable operation " #NAME " for " << *this;                   \
-        raise(ss.str());                                                       \
-      }                                                                        \
-    }                                                                          \
-    static_assert(true)
-
-    DEFINE(is_integer);
-
-    #undef DEFINE
   };
 
   template <template <typename...> typename Pointer, typename Top>

@@ -33,7 +33,7 @@ inline namespace kernel
 {
   auto is_rational = [](let const& x)
   {
-    return x.is<ratio>() or x.is_integer();
+    return x.is<ratio>() or (x.is_also<number>() and x.as<number>().is_integer());
   };
 
   auto is_real = [](let const& x)

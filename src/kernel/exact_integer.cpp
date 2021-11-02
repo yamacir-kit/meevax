@@ -161,7 +161,7 @@ inline namespace kernel
     return make<double_float>(static_cast<double>(*this));
   }
 
-  auto exact_integer::is_integer() noexcept -> bool
+  auto exact_integer::is_integer() const -> bool
   {
     return true;
   }

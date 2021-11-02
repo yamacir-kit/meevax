@@ -60,9 +60,14 @@ inline namespace kernel
       return ratio(value).simple();
     }
 
-    auto is_integer() const noexcept
+    auto is_integer() const noexcept -> bool override
     {
       return value == std::trunc(value);
+    }
+
+    auto is_nan() const -> bool override
+    {
+      return std::isnan(value);
     }
 
     // TODO TEMPLATE SPECIALIZATION to<std::string>()

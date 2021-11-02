@@ -52,11 +52,6 @@ inline namespace kernel
       }
     }
 
-    virtual auto is_nan() const -> bool
-    {
-      return delay<is_nan_t>().yield<bool>(static_cast<T const&>(*this));
-    }
-
     virtual auto write(std::ostream & os) const -> std::ostream &
     {
       return delay<write_t>().yield<std::ostream &>(os, static_cast<T const&>(*this));
@@ -83,17 +78,6 @@ inline namespace kernel
     BOILERPLATE(>=, bool, std::greater_equal<void>);
 
     #undef BOILERPLATE
-
-    #define PREDICATE(NAME)                                                    \
-    virtual auto NAME() const -> bool                                          \
-    {                                                                          \
-      return delay<NAME##_t>().yield<bool>(static_cast<T const&>(*this));      \
-    }                                                                          \
-    static_assert(true)
-
-    PREDICATE(is_integer);
-
-    #undef PREDICATE
   };
 
   template <typename T, typename... Ts>

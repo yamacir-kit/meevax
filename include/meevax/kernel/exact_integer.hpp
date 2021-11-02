@@ -76,7 +76,9 @@ inline namespace kernel
 
     auto inexact() const -> object;
 
-    static auto is_integer() noexcept -> bool;
+    auto is_integer() const -> bool override;
+
+    auto is_nan() const -> bool override { return false; }
 
     auto string(int = 10) const -> std::string;
 

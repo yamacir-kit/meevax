@@ -101,7 +101,7 @@ namespace meevax
     define<procedure>("complex?",  [](let const& xs) { return is_complex (car(xs)) ? t : f; });
     define<procedure>("real?",     [](let const& xs) { return is_real    (car(xs)) ? t : f; });
     define<procedure>("rational?", [](let const& xs) { return is_rational(car(xs)) ? t : f; });
-    define<procedure>("integer?",  [](let const& xs) { return car(xs).is_integer() ? t : f; });
+    define<procedure>("integer?",  [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_integer() ? t : f; });
 
     define<procedure>("%complex?",     is<complex     >());
     define<procedure>("ratio?",        is<ratio       >());
@@ -1657,9 +1657,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("nan?", [](auto&& xs)
+    define<procedure>("nan?", [](let const& xs)
     {
-      return car(xs).is_nan() ? t : f;
+      return car(xs).is_also<number>() and car(xs).as<number>().is_nan() ? t : f;
     });
 
     define<procedure>("exp",    [](let const& xs) { return car(xs).as<number>().exp();  });

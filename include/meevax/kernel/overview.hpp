@@ -75,6 +75,13 @@ inline namespace kernel
     DEFINE(pow);
 
     #undef DEFINE
+
+    #define DEFINE(NAME) virtual auto NAME() const -> bool = 0
+
+    DEFINE(is_integer);
+    DEFINE(is_nan);
+
+    #undef DEFINE
   };
 
   template <typename... Ts>
