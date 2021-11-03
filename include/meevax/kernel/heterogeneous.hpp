@@ -87,13 +87,6 @@ inline namespace kernel
       BOILERPLATE(/, heterogeneous, division);
       BOILERPLATE(%, heterogeneous, modulo);
 
-      BOILERPLATE(==, bool, std::equal_to     <void>);
-      BOILERPLATE(!=, bool, std::not_equal_to <void>);
-      BOILERPLATE(<,  bool, std::less         <void>);
-      BOILERPLATE(<=, bool, std::less_equal   <void>);
-      BOILERPLATE(>,  bool, std::greater      <void>);
-      BOILERPLATE(>=, bool, std::greater_equal<void>);
-
       #undef BOILERPLATE
     };
 
@@ -194,11 +187,6 @@ inline namespace kernel
   BOILERPLATE(- );
   BOILERPLATE(/ );
   BOILERPLATE(% );
-
-  BOILERPLATE(< );
-  BOILERPLATE(<=);
-  BOILERPLATE(> );
-  BOILERPLATE(>=);
 
   #undef BOILERPLATE
 } // namespace kernel

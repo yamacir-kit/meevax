@@ -120,12 +120,6 @@ inline namespace kernel
   auto operator - (exact_integer const&, const_reference) -> object;
   auto operator / (exact_integer const&, const_reference) -> object;
   auto operator % (exact_integer const&, const_reference) -> object;
-  auto operator ==(exact_integer const&, const_reference) -> bool;
-  auto operator !=(exact_integer const&, const_reference) -> bool;
-  auto operator < (exact_integer const&, const_reference) -> bool;
-  auto operator <=(exact_integer const&, const_reference) -> bool;
-  auto operator > (exact_integer const&, const_reference) -> bool;
-  auto operator >=(exact_integer const&, const_reference) -> bool;
 
   auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
@@ -168,12 +162,6 @@ inline namespace kernel
   auto operator - (ratio const&, const_reference) -> object;
   auto operator / (ratio const&, const_reference) -> object;
   auto operator % (ratio const&, const_reference) -> object;
-  auto operator !=(ratio const&, const_reference) -> boolean;
-  auto operator < (ratio const&, const_reference) -> boolean;
-  auto operator <=(ratio const&, const_reference) -> boolean;
-  auto operator ==(ratio const&, const_reference) -> boolean;
-  auto operator > (ratio const&, const_reference) -> boolean;
-  auto operator >=(ratio const&, const_reference) -> boolean;
 
   auto operator * (ratio const&, exact_integer const&) -> ratio;
   auto operator + (ratio const&, exact_integer const&) -> ratio;
@@ -216,12 +204,12 @@ inline namespace kernel
   template <typename T> auto operator - (floating_point<T> const& a, const_reference b) { return apply(sub, a, b); }
   template <typename T> auto operator / (floating_point<T> const& a, const_reference b) { return apply(div, a, b); }
   template <typename T> auto operator % (floating_point<T> const& a, const_reference b) { return apply(mod, a, b); }
-  template <typename T> auto operator !=(floating_point<T> const& a, const_reference b) { return apply<boolean>([](auto&& a, auto&& b) { return a != b; }, a, b); }
-  template <typename T> auto operator < (floating_point<T> const& a, const_reference b) { return apply<boolean>([](auto&& a, auto&& b) { return a <  b; }, a, b); }
-  template <typename T> auto operator <=(floating_point<T> const& a, const_reference b) { return apply<boolean>([](auto&& a, auto&& b) { return a <= b; }, a, b); }
-  template <typename T> auto operator ==(floating_point<T> const& a, const_reference b) { return apply<boolean>([](auto&& a, auto&& b) { return a == b; }, a, b); }
-  template <typename T> auto operator > (floating_point<T> const& a, const_reference b) { return apply<boolean>([](auto&& a, auto&& b) { return a >  b; }, a, b); }
-  template <typename T> auto operator >=(floating_point<T> const& a, const_reference b) { return apply<boolean>([](auto&& a, auto&& b) { return a >= b; }, a, b); }
+  template <typename T> auto floating_point<T>::operator !=(const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, b); }
+  template <typename T> auto floating_point<T>::operator < (const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, b); }
+  template <typename T> auto floating_point<T>::operator <=(const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, b); }
+  template <typename T> auto floating_point<T>::operator ==(const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, *this, b); }
+  template <typename T> auto floating_point<T>::operator > (const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, *this, b); }
+  template <typename T> auto floating_point<T>::operator >=(const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, *this, b); }
 
   template <typename T> auto operator * (floating_point<T> const& a, exact_integer const& b)            { return a *  b.inexact().as<double_float>(); }
   template <typename T> auto operator + (floating_point<T> const& a, exact_integer const& b)            { return a +  b.inexact().as<double_float>(); }

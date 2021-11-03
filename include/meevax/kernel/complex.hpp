@@ -44,17 +44,13 @@ inline namespace kernel
     }                                                                          \
     static_assert(true)
 
-    DEFINE(exact);
-    DEFINE(inexact);
+    DEFINE(exact); DEFINE(inexact);
 
     DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
     DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
     DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
 
-    DEFINE(floor);
-    DEFINE(ceil);
-    DEFINE(trunc);
-    DEFINE(round);
+    DEFINE(floor); DEFINE(ceil); DEFINE(trunc); DEFINE(round);
 
     #undef DEFINE
 
@@ -69,6 +65,13 @@ inline namespace kernel
     DEFINE(pow);
 
     #undef DEFINE
+
+    auto operator ==(const_reference) const -> bool override { return false; };
+    auto operator !=(const_reference) const -> bool override { return false; };
+    auto operator < (const_reference) const -> bool override { return false; };
+    auto operator <=(const_reference) const -> bool override { return false; };
+    auto operator > (const_reference) const -> bool override { return false; };
+    auto operator >=(const_reference) const -> bool override { return false; };
   };
 
   auto operator <<(std::ostream &, complex const&) -> std::ostream &;

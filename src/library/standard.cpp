@@ -159,11 +159,12 @@ namespace meevax
       return std::adjacent_find(                                               \
                std::begin(xs), std::end(xs), [](let const& a, let const& b)    \
                {                                                               \
-                 return not COMPARE(a.load(), b);                              \
+                 return not COMPARE(a.as<number>(), b);                        \
                }) == std::end(xs) ? t : f;                                     \
     })
 
     DEFINE(= , std::equal_to     <void>());
+    DEFINE(!=, std::not_equal_to <void>());
     DEFINE(< , std::less         <void>());
     DEFINE(<=, std::less_equal   <void>());
     DEFINE(> , std::greater      <void>());

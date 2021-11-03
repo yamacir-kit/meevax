@@ -127,6 +127,13 @@ inline namespace kernel
     explicit operator double() const;
 
     explicit operator std::string() const;
+
+    auto operator ==(const_reference) const -> bool override;
+    auto operator !=(const_reference) const -> bool override;
+    auto operator < (const_reference) const -> bool override;
+    auto operator <=(const_reference) const -> bool override;
+    auto operator > (const_reference) const -> bool override;
+    auto operator >=(const_reference) const -> bool override;
   };
 
   auto operator ==(exact_integer const&, int const) -> bool;

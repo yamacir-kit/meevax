@@ -25,12 +25,12 @@ inline namespace kernel
   auto operator - (exact_integer const& a, const_reference b) -> object { return apply(sub, a, b); }
   auto operator / (exact_integer const& a, const_reference b) -> object { return apply(div, a, b); }
   auto operator % (exact_integer const& a, const_reference b) -> object { return apply(mod, a, b); }
-  auto operator !=(exact_integer const& a, const_reference b) -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, a, b); }
-  auto operator < (exact_integer const& a, const_reference b) -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, a, b); }
-  auto operator <=(exact_integer const& a, const_reference b) -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, a, b); }
-  auto operator ==(exact_integer const& a, const_reference b) -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, a, b); }
-  auto operator > (exact_integer const& a, const_reference b) -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, a, b); }
-  auto operator >=(exact_integer const& a, const_reference b) -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, a, b); }
+  auto exact_integer::operator !=(const_reference b) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, b); }
+  auto exact_integer::operator < (const_reference b) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, b); }
+  auto exact_integer::operator <=(const_reference b) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, b); }
+  auto exact_integer::operator ==(const_reference b) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, *this, b); }
+  auto exact_integer::operator > (const_reference b) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, *this, b); }
+  auto exact_integer::operator >=(const_reference b) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, *this, b); }
 
   auto operator * (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(mul, a, b); }
   auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(add, a, b); }
@@ -61,12 +61,12 @@ inline namespace kernel
   auto operator - (ratio const& a, const_reference b) -> object  { return apply(sub, a, b); }
   auto operator / (ratio const& a, const_reference b) -> object  { return apply(div, a, b); }
   auto operator % (ratio const& a, const_reference b) -> object  { return apply(mod, a, b); }
-  auto operator !=(ratio const& a, const_reference b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a != b; }, a, b); }
-  auto operator < (ratio const& a, const_reference b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a <  b; }, a, b); }
-  auto operator <=(ratio const& a, const_reference b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a <= b; }, a, b); }
-  auto operator ==(ratio const& a, const_reference b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a == b; }, a, b); }
-  auto operator > (ratio const& a, const_reference b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a >  b; }, a, b); }
-  auto operator >=(ratio const& a, const_reference b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a >= b; }, a, b); }
+  auto ratio::operator !=(const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, b); }
+  auto ratio::operator < (const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, b); }
+  auto ratio::operator <=(const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, b); }
+  auto ratio::operator ==(const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, *this, b); }
+  auto ratio::operator > (const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, *this, b); }
+  auto ratio::operator >=(const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, *this, b); }
 
   auto operator * (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator() * b), cdr(a)); }
   auto operator + (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator() + a.denominator() * b), cdr(a)); }

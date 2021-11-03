@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
 #define INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
 
-#include <meevax/functional/identity.hpp>
 #include <meevax/memory/cell.hpp>
 #include <meevax/string/append.hpp>
 #include <meevax/type_traits/requires.hpp>
@@ -55,26 +54,18 @@ inline namespace kernel
   {
     #define DEFINE(NAME) virtual auto NAME() const -> object = 0
 
-    DEFINE(exact);
-    DEFINE(inexact);
+    DEFINE(exact); DEFINE(inexact);
 
     DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
     DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
     DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
 
-    DEFINE(floor);
-    DEFINE(ceil);
-    DEFINE(trunc);
-    DEFINE(round);
+    DEFINE(floor); DEFINE(ceil); DEFINE(trunc); DEFINE(round);
 
     #undef DEFINE
 
-    #define DEFINE(NAME) virtual auto NAME(const_reference) const -> object = 0
-
-    DEFINE(atan2);
-    DEFINE(pow);
-
-    #undef DEFINE
+    virtual auto atan2(const_reference) const -> object = 0;
+    virtual auto pow  (const_reference) const -> object = 0;
 
     virtual auto is_complex () const -> bool { return true ; }
     virtual auto is_real    () const -> bool { return false; }
@@ -84,6 +75,13 @@ inline namespace kernel
     virtual auto is_finite  () const -> bool { return true ; }
     virtual auto is_infinite() const -> bool { return false; }
     virtual auto is_nan     () const -> bool { return false; }
+
+    virtual auto operator ==(const_reference) const -> bool = 0;
+    virtual auto operator !=(const_reference) const -> bool = 0;
+    virtual auto operator < (const_reference) const -> bool = 0;
+    virtual auto operator <=(const_reference) const -> bool = 0;
+    virtual auto operator > (const_reference) const -> bool = 0;
+    virtual auto operator >=(const_reference) const -> bool = 0;
   };
 
   [[noreturn]]
