@@ -23,6 +23,7 @@
 #include <meevax/functional/modulo.hpp>
 #include <meevax/functional/multiplication.hpp>
 #include <meevax/functional/subtraction.hpp>
+#include <meevax/kernel/profiler.hpp>
 #include <meevax/posix/vt10x.hpp>
 #include <meevax/type_traits/delay.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
@@ -84,6 +85,8 @@ inline namespace kernel
     template <typename Bound, typename... Ts, REQUIRES(std::is_compound<Bound>)>
     static auto allocate(Ts&&... xs)
     {
+      current_profiler()[typeid(typename std::decay<Bound>::type)].allocation++;
+
       if constexpr (std::is_same<Bound, Top>::value)
       {
         return static_cast<heterogeneous>(new (gc) Top(std::forward<decltype(xs)>(xs)...));
