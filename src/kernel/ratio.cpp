@@ -23,6 +23,18 @@ namespace meevax
 {
 inline namespace kernel
 {
+  ratio::ratio(double x)
+  {
+    mpq_t value;
+    mpq_init(value);
+    mpq_set_d(value, x);
+
+    std::get<0>(*this) = make<exact_integer>(mpq_numref(value));
+    std::get<1>(*this) = make<exact_integer>(mpq_denref(value));
+
+    mpq_clear(value);
+  }
+
   ratio::ratio(std::string const& token, int radix)
   {
     std::regex static const pattern { "([+-]?[0-9a-f]+)/([0-9a-f]+)" };
@@ -129,7 +141,7 @@ inline namespace kernel
   {                                                                            \
     if (const double_float n {                                                 \
           std::NAME(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>(), \
-                    x.inexact().as<double_float>())                            \
+                    x.as<number>().inexact().as<double_float>())               \
         }; n.is_integer())                                                     \
     {                                                                          \
       return make<exact_integer>(n.value);                                     \

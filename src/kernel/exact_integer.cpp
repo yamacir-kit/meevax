@@ -33,9 +33,14 @@ inline namespace kernel
     mpz_init(value);
   }
 
-  exact_integer::exact_integer(exact_integer const& rhs) noexcept
+  exact_integer::exact_integer(value_type given) noexcept
   {
-    mpz_init_set(value, rhs.value);
+    mpz_init_set(value, given);
+  }
+
+  exact_integer::exact_integer(exact_integer const& given) noexcept
+  {
+    mpz_init_set(value, given.value);
   }
 
   exact_integer::exact_integer(exact_integer && rhs) noexcept
@@ -161,7 +166,7 @@ inline namespace kernel
     return make<double_float>(static_cast<double>(*this));
   }
 
-  auto exact_integer::is_integer() noexcept -> bool
+  auto exact_integer::is_integer() const -> bool
   {
     return true;
   }
@@ -227,7 +232,10 @@ inline namespace kernel
   #define DEFINE(NAME)                                                         \
   auto exact_integer::NAME(const_reference x) const -> object                  \
   {                                                                            \
-    if (const double_float n { std::NAME(static_cast<double>(*this), x.inexact().as<double_float>()) }; n.is_integer()) \
+    if (const double_float n {                                                 \
+          std::NAME(static_cast<double>(*this),                                \
+                    x.as<number>().inexact().as<double_float>())               \
+        }; n.is_integer())                                                     \
     {                                                                          \
       return make<exact_integer>(n.value);                                     \
     }                                                                          \

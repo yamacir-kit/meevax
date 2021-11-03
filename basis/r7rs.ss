@@ -264,12 +264,6 @@ parameterize ; is defined in srfi-39.ss
 
 ; ---- 6.2. Numbers ------------------------------------------------------------
 
-(define (finite? z) (not (infinite? z)))
-
-(define (infinite? z)
-  (or (= +inf.0 z)
-      (= -inf.0 z)))
-
 ; TODO exact-integer-sqrt
 
 ; ---- 6.3. Booleans -----------------------------------------------------------

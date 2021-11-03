@@ -26,13 +26,15 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct exact_integer
+  struct exact_integer : public number
   {
     using value_type = mpz_t;
 
     value_type value;
 
     explicit exact_integer() noexcept;
+
+    explicit exact_integer(value_type) noexcept;
 
     exact_integer(exact_integer const&) noexcept;
 
@@ -48,16 +50,11 @@ inline namespace kernel
 
     explicit exact_integer(std::string const&, int = 0);
 
-    explicit exact_integer(addition, exact_integer const&, exact_integer const&);
-
-    explicit exact_integer(subtraction, exact_integer const&, exact_integer const&);
-
-    explicit exact_integer(multiplication, exact_integer const&, exact_integer const&);
-
-    explicit exact_integer(division, exact_integer const&, exact_integer const&);
-
-    explicit exact_integer(modulo, exact_integer const&, exact_integer const&);
-
+    explicit exact_integer(addition,                exact_integer const&, exact_integer const&);
+    explicit exact_integer(subtraction,             exact_integer const&, exact_integer const&);
+    explicit exact_integer(multiplication,          exact_integer const&, exact_integer const&);
+    explicit exact_integer(division,                exact_integer const&, exact_integer const&);
+    explicit exact_integer(modulo,                  exact_integer const&, exact_integer const&);
     explicit exact_integer(greatest_common_divisor, exact_integer const&, exact_integer const&);
 
     ~exact_integer();
@@ -68,15 +65,17 @@ inline namespace kernel
 
     auto operator=(std::string const&) -> exact_integer &;
 
-    auto exact() const -> object;
-
     auto floor_remainder(exact_integer const&) const -> exact_integer;
 
     auto floor_quotient(exact_integer const&) const -> exact_integer;
 
-    auto inexact() const -> object;
+    auto is_complex() const noexcept -> bool override { return true; }
 
-    static auto is_integer() noexcept -> bool;
+    auto is_real() const noexcept -> bool override { return true; }
+
+    auto is_rational() const noexcept -> bool override { return true; }
+
+    auto is_integer() const -> bool override;
 
     auto string(int = 10) const -> std::string;
 
@@ -86,20 +85,19 @@ inline namespace kernel
 
     auto truncate_quotient(exact_integer const&) const -> exact_integer;
 
-    #define DEFINE(NAME) auto NAME() const -> object
+    #define DEFINE(NAME) auto NAME() const -> object override
+
+    DEFINE(exact); DEFINE(inexact);
 
     DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
     DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
     DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
 
-    DEFINE(floor);
-    DEFINE(ceil);
-    DEFINE(trunc);
-    DEFINE(round);
+    DEFINE(floor); DEFINE(ceil); DEFINE(trunc); DEFINE(round);
 
     #undef DEFINE
 
-    #define DEFINE(NAME) auto NAME(const_reference) const -> object
+    #define DEFINE(NAME) auto NAME(const_reference) const -> object override
 
     DEFINE(atan2);
     DEFINE(pow);
@@ -119,6 +117,19 @@ inline namespace kernel
     explicit operator double() const;
 
     explicit operator std::string() const;
+
+    auto operator + (const_reference) const -> object override;
+    auto operator - (const_reference) const -> object override;
+    auto operator * (const_reference) const -> object override;
+    auto operator / (const_reference) const -> object override;
+    auto operator % (const_reference) const -> object override;
+
+    auto operator ==(const_reference) const -> bool override;
+    auto operator !=(const_reference) const -> bool override;
+    auto operator < (const_reference) const -> bool override;
+    auto operator <=(const_reference) const -> bool override;
+    auto operator > (const_reference) const -> bool override;
+    auto operator >=(const_reference) const -> bool override;
   };
 
   auto operator ==(exact_integer const&, int const) -> bool;
