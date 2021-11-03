@@ -20,11 +20,11 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto operator * (exact_integer const& a, const_reference b) -> object { return apply(mul, a, b); }
-  auto operator + (exact_integer const& a, const_reference b) -> object { return apply(add, a, b); }
-  auto operator - (exact_integer const& a, const_reference b) -> object { return apply(sub, a, b); }
-  auto operator / (exact_integer const& a, const_reference b) -> object { return apply(div, a, b); }
-  auto operator % (exact_integer const& a, const_reference b) -> object { return apply(mod, a, b); }
+  auto exact_integer::operator * (const_reference b) const -> object { return apply(mul, *this, b); }
+  auto exact_integer::operator + (const_reference b) const -> object { return apply(add, *this, b); }
+  auto exact_integer::operator - (const_reference b) const -> object { return apply(sub, *this, b); }
+  auto exact_integer::operator / (const_reference b) const -> object { return apply(div, *this, b); }
+  auto exact_integer::operator % (const_reference b) const -> object { return apply(mod, *this, b); }
   auto exact_integer::operator !=(const_reference b) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, b); }
   auto exact_integer::operator < (const_reference b) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, b); }
   auto exact_integer::operator <=(const_reference b) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, b); }
@@ -37,59 +37,59 @@ inline namespace kernel
   auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(sub, a, b); }
   auto operator / (exact_integer const& a, exact_integer const& b) -> ratio         { return ratio(make(a), make(b)); }
   auto operator % (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(mod, a, b); }
-  auto operator !=(exact_integer const& a, exact_integer const& b) -> boolean       { return mpz_cmp(a.value, b.value) != 0; }
-  auto operator < (exact_integer const& a, exact_integer const& b) -> boolean       { return mpz_cmp(a.value, b.value) <  0; }
-  auto operator <=(exact_integer const& a, exact_integer const& b) -> boolean       { return mpz_cmp(a.value, b.value) <= 0; }
-  auto operator ==(exact_integer const& a, exact_integer const& b) -> boolean       { return mpz_cmp(a.value, b.value) == 0; }
-  auto operator > (exact_integer const& a, exact_integer const& b) -> boolean       { return mpz_cmp(a.value, b.value) >  0; }
-  auto operator >=(exact_integer const& a, exact_integer const& b) -> boolean       { return mpz_cmp(a.value, b.value) >= 0; }
+  auto operator !=(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) != 0; }
+  auto operator < (exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) <  0; }
+  auto operator <=(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) <= 0; }
+  auto operator ==(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) == 0; }
+  auto operator > (exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) >  0; }
+  auto operator >=(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) >= 0; }
 
   auto operator * (exact_integer const& a, ratio const& b) -> ratio { return ratio(make(a * b.numerator()), cdr(b)); }
   auto operator + (exact_integer const& a, ratio const& b) -> ratio { return ratio(make(a * b.denominator() + b.numerator()), cdr(b)); }
   auto operator - (exact_integer const& a, ratio const& b) -> ratio { return ratio(make(a * b.denominator() - b.numerator()), cdr(b)); }
   auto operator / (exact_integer const& a, ratio const& b) -> ratio { return a * b.invert(); }
   auto operator % (exact_integer const&  , ratio const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
-  auto operator !=(exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a != x.numerator() : boolean(false); }
-  auto operator < (exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a <  x.numerator() : boolean(false); }
-  auto operator <=(exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a <= x.numerator() : boolean(false); }
-  auto operator ==(exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a == x.numerator() : boolean(false); }
-  auto operator > (exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a >  x.numerator() : boolean(false); }
-  auto operator >=(exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a >= x.numerator() : boolean(false); }
+  auto operator !=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a != x.numerator() : false; }
+  auto operator < (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a <  x.numerator() : false; }
+  auto operator <=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a <= x.numerator() : false; }
+  auto operator ==(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a == x.numerator() : false; }
+  auto operator > (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a >  x.numerator() : false; }
+  auto operator >=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a >= x.numerator() : false; }
 
-  auto operator * (ratio const& a, const_reference b) -> object  { return apply(mul, a, b); }
-  auto operator + (ratio const& a, const_reference b) -> object  { return apply(add, a, b); }
-  auto operator - (ratio const& a, const_reference b) -> object  { return apply(sub, a, b); }
-  auto operator / (ratio const& a, const_reference b) -> object  { return apply(div, a, b); }
-  auto operator % (ratio const& a, const_reference b) -> object  { return apply(mod, a, b); }
-  auto ratio::operator !=(const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, b); }
-  auto ratio::operator < (const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, b); }
-  auto ratio::operator <=(const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, b); }
-  auto ratio::operator ==(const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, *this, b); }
-  auto ratio::operator > (const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, *this, b); }
-  auto ratio::operator >=(const_reference b) const -> bool { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, *this, b); }
+  auto ratio::operator * (const_reference x) const -> object { return apply(mul, *this, x); }
+  auto ratio::operator + (const_reference x) const -> object { return apply(add, *this, x); }
+  auto ratio::operator - (const_reference x) const -> object { return apply(sub, *this, x); }
+  auto ratio::operator / (const_reference x) const -> object { return apply(div, *this, x); }
+  auto ratio::operator % (const_reference x) const -> object { return apply(mod, *this, x); }
+  auto ratio::operator !=(const_reference x) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, x); }
+  auto ratio::operator < (const_reference x) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, x); }
+  auto ratio::operator <=(const_reference x) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, x); }
+  auto ratio::operator ==(const_reference x) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, *this, x); }
+  auto ratio::operator > (const_reference x) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, *this, x); }
+  auto ratio::operator >=(const_reference x) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, *this, x); }
 
   auto operator * (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator() * b), cdr(a)); }
   auto operator + (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator() + a.denominator() * b), cdr(a)); }
   auto operator - (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator() - a.denominator() * b), cdr(a)); }
   auto operator / (ratio const& a, exact_integer const& b) -> ratio { return ratio(car(a), make(a.denominator() * b)); }
   auto operator % (ratio const&  , exact_integer const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
-  auto operator !=(ratio const& a, exact_integer const& b) -> boolean { auto const x = a.reduce(); return x.is_integer() ? x.numerator() != b : boolean(false); }
-  auto operator < (ratio const& a, exact_integer const& b) -> boolean { auto const x = a.reduce(); return x.is_integer() ? x.numerator() <  b : boolean(false); }
-  auto operator <=(ratio const& a, exact_integer const& b) -> boolean { auto const x = a.reduce(); return x.is_integer() ? x.numerator() <= b : boolean(false); }
-  auto operator ==(ratio const& a, exact_integer const& b) -> boolean { auto const x = a.reduce(); return x.is_integer() ? x.numerator() == b : boolean(false); }
-  auto operator > (ratio const& a, exact_integer const& b) -> boolean { auto const x = a.reduce(); return x.is_integer() ? x.numerator() >  b : boolean(false); }
-  auto operator >=(ratio const& a, exact_integer const& b) -> boolean { auto const x = a.reduce(); return x.is_integer() ? x.numerator() >= b : boolean(false); }
+  auto operator !=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator() != b : false; }
+  auto operator < (ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator() <  b : false; }
+  auto operator <=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator() <= b : false; }
+  auto operator ==(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator() == b : false; }
+  auto operator > (ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator() >  b : false; }
+  auto operator >=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator() >= b : false; }
 
-  auto operator + (ratio const& a, ratio const& b) -> ratio   { return ratio(make(a.numerator() * b.denominator() + b.numerator() * a.denominator()), make(a.denominator() * b.denominator())); }
-  auto operator - (ratio const& a, ratio const& b) -> ratio   { return ratio(make(a.numerator() * b.denominator() - b.numerator() * a.denominator()), make(a.denominator() * b.denominator())); }
-  auto operator * (ratio const& a, ratio const& b) -> ratio   { return ratio(make(a.numerator() * b.numerator()), make(a.denominator() * b.denominator())); }
-  auto operator / (ratio const& a, ratio const& b) -> ratio   { return a * b.invert(); }
-  auto operator % (ratio const&  , ratio const&  ) -> ratio   { throw error(make<string>("unsupported operation"), unit); }
-  auto operator ==(ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()) == (b.numerator() * a.denominator()); }
-  auto operator !=(ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()) != (b.numerator() * a.denominator()); }
-  auto operator < (ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()) <  (b.numerator() * a.denominator()); }
-  auto operator <=(ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()) <= (b.numerator() * a.denominator()); }
-  auto operator > (ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()) >  (b.numerator() * a.denominator()); }
-  auto operator >=(ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()) >= (b.numerator() * a.denominator()); }
+  auto operator + (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator() * b.denominator() + b.numerator() * a.denominator()), make(a.denominator() * b.denominator())); }
+  auto operator - (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator() * b.denominator() - b.numerator() * a.denominator()), make(a.denominator() * b.denominator())); }
+  auto operator * (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator() * b.numerator()), make(a.denominator() * b.denominator())); }
+  auto operator / (ratio const& a, ratio const& b) -> ratio { return a * b.invert(); }
+  auto operator % (ratio const&  , ratio const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
+  auto operator ==(ratio const& a, ratio const& b) -> bool  { return (a.numerator() * b.denominator()) == (b.numerator() * a.denominator()); }
+  auto operator !=(ratio const& a, ratio const& b) -> bool  { return (a.numerator() * b.denominator()) != (b.numerator() * a.denominator()); }
+  auto operator < (ratio const& a, ratio const& b) -> bool  { return (a.numerator() * b.denominator()) <  (b.numerator() * a.denominator()); }
+  auto operator <=(ratio const& a, ratio const& b) -> bool  { return (a.numerator() * b.denominator()) <= (b.numerator() * a.denominator()); }
+  auto operator > (ratio const& a, ratio const& b) -> bool  { return (a.numerator() * b.denominator()) >  (b.numerator() * a.denominator()); }
+  auto operator >=(ratio const& a, ratio const& b) -> bool  { return (a.numerator() * b.denominator()) >= (b.numerator() * a.denominator()); }
 } // namespace kernel
 } // namespace meevax

@@ -56,21 +56,6 @@ inline namespace kernel
     {
       return delay<write_t>().yield<std::ostream &>(os, static_cast<T const&>(*this));
     }
-
-    #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                               \
-    virtual auto operator SYMBOL(let const& x) const -> RESULT                 \
-    {                                                                          \
-      return delay<FUNCTOR>().yield<RESULT>(static_cast<T const&>(*this), x);  \
-    }                                                                          \
-    static_assert(true)
-
-    BOILERPLATE(+, let, addition);
-    BOILERPLATE(-, let, subtraction);
-    BOILERPLATE(*, let, multiplication);
-    BOILERPLATE(/, let, division);
-    BOILERPLATE(%, let, modulo);
-
-    #undef BOILERPLATE
   };
 
   template <typename T, typename... Ts>

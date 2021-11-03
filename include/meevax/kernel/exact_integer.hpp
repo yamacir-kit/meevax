@@ -50,16 +50,11 @@ inline namespace kernel
 
     explicit exact_integer(std::string const&, int = 0);
 
-    explicit exact_integer(addition, exact_integer const&, exact_integer const&);
-
-    explicit exact_integer(subtraction, exact_integer const&, exact_integer const&);
-
-    explicit exact_integer(multiplication, exact_integer const&, exact_integer const&);
-
-    explicit exact_integer(division, exact_integer const&, exact_integer const&);
-
-    explicit exact_integer(modulo, exact_integer const&, exact_integer const&);
-
+    explicit exact_integer(addition,                exact_integer const&, exact_integer const&);
+    explicit exact_integer(subtraction,             exact_integer const&, exact_integer const&);
+    explicit exact_integer(multiplication,          exact_integer const&, exact_integer const&);
+    explicit exact_integer(division,                exact_integer const&, exact_integer const&);
+    explicit exact_integer(modulo,                  exact_integer const&, exact_integer const&);
     explicit exact_integer(greatest_common_divisor, exact_integer const&, exact_integer const&);
 
     ~exact_integer();
@@ -127,6 +122,12 @@ inline namespace kernel
     explicit operator double() const;
 
     explicit operator std::string() const;
+
+    auto operator + (const_reference) const -> object override;
+    auto operator - (const_reference) const -> object override;
+    auto operator * (const_reference) const -> object override;
+    auto operator / (const_reference) const -> object override;
+    auto operator % (const_reference) const -> object override;
 
     auto operator ==(const_reference) const -> bool override;
     auto operator !=(const_reference) const -> bool override;

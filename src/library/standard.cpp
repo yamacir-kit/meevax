@@ -181,8 +181,8 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("+", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e0, add); });
-    define<procedure>("*", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e1, mul); });
+    define<procedure>("+", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e0, [](let const& a, let const& b) { return a.as<number>() + b; }); });
+    define<procedure>("*", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e1, [](let const& a, let const& b) { return a.as<number>() * b; }); });
 
     /* -------------------------------------------------------------------------
      *
@@ -211,10 +211,15 @@ namespace meevax
         throw invalid_application(intern(SYMBOL) | xs);                        \
                                                                                \
       case 1:                                                                  \
-        return FUNCTION(BASIS, car(xs));                                       \
+        return FUNCTION(BASIS.as<number>(), car(xs));                          \
                                                                                \
       default:                                                                 \
-        return std::accumulate(std::next(std::begin(xs)), std::end(xs), car(xs), FUNCTION); \
+        return std::accumulate(                                                \
+                 std::next(std::begin(xs)), std::end(xs), car(xs),             \
+                 [](let const& a, let const& b)                                \
+                 {                                                             \
+                   return FUNCTION(a.as<number>(), b);                         \
+                 });                                                           \
       }                                                                        \
     })
 
@@ -1704,7 +1709,7 @@ namespace meevax
         return car(xs).as<number>().log();
 
       case 2:
-        return car(xs).as<number>().log() / cadr(xs).as<number>().log();
+        return car(xs).as<number>().log().as<number>() / cadr(xs).as<number>().log();
 
       default:
         throw invalid_application(intern("log") | xs);

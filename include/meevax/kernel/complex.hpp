@@ -66,6 +66,12 @@ inline namespace kernel
 
     #undef DEFINE
 
+    auto operator + (const_reference) const -> object override { return unspecified_object; }
+    auto operator - (const_reference) const -> object override { return unspecified_object; }
+    auto operator * (const_reference) const -> object override { return unspecified_object; }
+    auto operator / (const_reference) const -> object override { return unspecified_object; }
+    auto operator % (const_reference) const -> object override { return unspecified_object; }
+
     auto operator ==(const_reference) const -> bool override { return false; };
     auto operator !=(const_reference) const -> bool override { return false; };
     auto operator < (const_reference) const -> bool override { return false; };

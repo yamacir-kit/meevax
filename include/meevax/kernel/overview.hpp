@@ -76,6 +76,12 @@ inline namespace kernel
     virtual auto is_infinite() const -> bool { return false; }
     virtual auto is_nan     () const -> bool { return false; }
 
+    virtual auto operator + (const_reference) const -> object = 0;
+    virtual auto operator - (const_reference) const -> object = 0;
+    virtual auto operator * (const_reference) const -> object = 0;
+    virtual auto operator / (const_reference) const -> object = 0;
+    virtual auto operator % (const_reference) const -> object = 0;
+
     virtual auto operator ==(const_reference) const -> bool = 0;
     virtual auto operator !=(const_reference) const -> bool = 0;
     virtual auto operator < (const_reference) const -> bool = 0;

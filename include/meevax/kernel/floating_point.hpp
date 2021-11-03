@@ -141,6 +141,12 @@ inline namespace kernel
     constexpr operator value_type() const noexcept { return value; }
     constexpr operator value_type()       noexcept { return value; }
 
+    auto operator + (const_reference) const -> object override;
+    auto operator - (const_reference) const -> object override;
+    auto operator * (const_reference) const -> object override;
+    auto operator / (const_reference) const -> object override;
+    auto operator % (const_reference) const -> object override;
+
     auto operator ==(const_reference) const -> bool override;
     auto operator !=(const_reference) const -> bool override;
     auto operator < (const_reference) const -> bool override;
