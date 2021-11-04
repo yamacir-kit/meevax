@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <cstddef>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/posix/vt10x.hpp>
@@ -57,20 +58,21 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, instruction const& datum) -> std::ostream &
   {
-    return os << "%" << static_cast<std::string>(datum);
+    return os << '%' << static_cast<std::string>(datum);
   }
 
-  auto disassemble(std::ostream & os, const_reference c, std::size_t depth) -> std::ostream &
+  auto disassemble(std::ostream & os, const_reference c, std::size_t depth) -> void
   {
-    assert(0 < depth);
+    depth = std::clamp(depth, std::numeric_limits<std::size_t>::min(),
+                              std::numeric_limits<std::size_t>::max());
 
-    static std::size_t index = 0;
+    static std::size_t offset = 0;
 
-    index = (depth == 1 ? 0 : index + 1);
+    offset = (depth == 1 ? 0 : offset + 1);
 
     for (auto iter = std::cbegin(c); iter != std::cend(c); ++iter)
     {
-      os << faint << "; " << std::setw(4) << std::right << std::to_string(index) << "  " << reset;
+      os << faint << "; " << std::setw(4) << std::right << std::to_string(offset) << "  " << reset;
 
       if (iter == c)
       {
@@ -83,7 +85,6 @@ inline namespace kernel
 
       switch ((*iter).as<instruction>().value)
       {
-      // 0 operand instruction
       case mnemonic::call:
       case mnemonic::cons:
       case mnemonic::drop:
@@ -92,13 +93,13 @@ inline namespace kernel
       case mnemonic::recursive_call:
       case mnemonic::tail_call:
         os << *iter << "\n";
-        ++index;
+        ++offset;
         break;
 
       case mnemonic::return_:
       case mnemonic::stop:
-        os << *iter << magenta << "\t)\n" << reset;
-        ++index;
+        os << *iter << magenta << ")\n" << reset;
+        ++offset;
         break;
 
       case mnemonic::define:
@@ -112,14 +113,14 @@ inline namespace kernel
       case mnemonic::store_relative:
       case mnemonic::store_variadic:
         os << *iter << " " << *++iter << "\n";
-        index += 2;
+        offset += 2;
         break;
 
       case mnemonic::load_closure:
       case mnemonic::load_continuation:
         os << *iter << "\n";
         disassemble(os, *++iter, depth + 1);
-        ++index;
+        ++offset;
         break;
 
       case mnemonic::select:
@@ -127,15 +128,13 @@ inline namespace kernel
         os << *iter << "\n";
         disassemble(os, *++iter, depth + 1);
         disassemble(os, *++iter, depth + 1);
-        ++index;
+        ++offset;
         break;
 
       default:
         assert(false);
       }
     }
-
-    return os;
   }
 
   static_assert(std::is_pod<instruction>::value);
