@@ -48,6 +48,8 @@ inline namespace kernel
     STORE_VARIADIC,
     TAIL_CALL,
     TAIL_SELECT,
+
+    size,
   };
 
   struct instruction
@@ -56,6 +58,33 @@ inline namespace kernel
 
     explicit operator std::string() const;
   };
+
+  namespace code
+  {
+    let extern const call;
+    let extern const cons;
+    let extern const define;
+    let extern const drop;
+    let extern const dummy;
+    let extern const fork;
+    let extern const join;
+    let extern const let_syntax;
+    let extern const load_absolute;
+    let extern const load_closure;
+    let extern const load_constant;
+    let extern const load_continuation;
+    let extern const load_relative;
+    let extern const load_variadic;
+    let extern const recursive_call;
+    let extern const return_;
+    let extern const select;
+    let extern const stop;
+    let extern const store_absolute;
+    let extern const store_relative;
+    let extern const store_variadic;
+    let extern const tail_call;
+    let extern const tail_select;
+  }
 
   auto operator <<(std::ostream &, instruction const&) -> std::ostream &;
 

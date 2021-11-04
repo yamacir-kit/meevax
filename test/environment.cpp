@@ -21,7 +21,7 @@ auto main() -> int
   assert(unspecified_object.is<unspecified>());
 
   const auto gc_count = gc.count();
-  assert(gc_count == constants.size() + specials_count);
+  assert(gc_count == constants.size() + specials_count + static_cast<std::size_t>(mnemonic::size));
 
   {
     auto root = environment(standard::interaction_environment);

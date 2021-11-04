@@ -60,6 +60,33 @@ inline namespace kernel
     return os << underline << static_cast<std::string>(datum) << reset;
   }
 
+  namespace code
+  {
+    let const call              = make<instruction>(mnemonic::CALL);
+    let const cons              = make<instruction>(mnemonic::CONS);
+    let const define            = make<instruction>(mnemonic::DEFINE);
+    let const drop              = make<instruction>(mnemonic::DROP);
+    let const dummy             = make<instruction>(mnemonic::DUMMY);
+    let const fork              = make<instruction>(mnemonic::FORK);
+    let const join              = make<instruction>(mnemonic::JOIN);
+    let const let_syntax        = make<instruction>(mnemonic::LET_SYNTAX);
+    let const load_absolute     = make<instruction>(mnemonic::LOAD_ABSOLUTE);
+    let const load_closure      = make<instruction>(mnemonic::LOAD_CLOSURE);
+    let const load_constant     = make<instruction>(mnemonic::LOAD_CONSTANT);
+    let const load_continuation = make<instruction>(mnemonic::LOAD_CONTINUATION);
+    let const load_relative     = make<instruction>(mnemonic::LOAD_RELATIVE);
+    let const load_variadic     = make<instruction>(mnemonic::LOAD_VARIADIC);
+    let const recursive_call    = make<instruction>(mnemonic::RECURSIVE_CALL);
+    let const return_           = make<instruction>(mnemonic::RETURN);
+    let const select            = make<instruction>(mnemonic::SELECT);
+    let const stop              = make<instruction>(mnemonic::STOP);
+    let const store_absolute    = make<instruction>(mnemonic::STORE_ABSOLUTE);
+    let const store_relative    = make<instruction>(mnemonic::STORE_RELATIVE);
+    let const store_variadic    = make<instruction>(mnemonic::STORE_VARIADIC);
+    let const tail_call         = make<instruction>(mnemonic::TAIL_CALL);
+    let const tail_select       = make<instruction>(mnemonic::TAIL_SELECT);
+  }
+
   auto disassemble(std::ostream & os, const_reference c, std::size_t depth) -> std::ostream &
   {
     assert(0 < depth);
