@@ -25,29 +25,29 @@ inline namespace kernel
 {
   enum class mnemonic : std::uint8_t
   {
-    CALL,               // a.k.a APP
-    CONS,
-    DEFINE,
-    DROP,
-    DUMMY,              // a.k.a DUM
-    FORK,
-    JOIN,
-    LET_SYNTAX,
-    LOAD_ABSOLUTE,      // a.k.a LDG
-    LOAD_CLOSURE,       // a.k.a LDF
-    LOAD_CONSTANT,      // a.k.a LDC
-    LOAD_CONTINUATION,
-    LOAD_RELATIVE,      // a.k.a LDL
-    LOAD_VARIADIC,
-    RECURSIVE_CALL,     // a.k.a RAP
-    RETURN,
-    SELECT,
-    STOP,
-    STORE_ABSOLUTE,
-    STORE_RELATIVE,
-    STORE_VARIADIC,
-    TAIL_CALL,
-    TAIL_SELECT,
+    call,              // a.k.a APP
+    cons,              //
+    define,            //
+    drop,              //
+    expand,            //
+    extend,            // a.k.a DUM
+    fork,              //
+    join,              //
+    load_absolute,     // a.k.a LDG
+    load_closure,      // a.k.a LDF
+    load_constant,     // a.k.a LDC
+    load_continuation, //
+    load_relative,     // a.k.a LDL
+    load_variadic,     //
+    recursive_call,    // a.k.a RAP
+    return_,           // a.k.a RTN
+    select,            // a.k.a SEL
+    stop,              //
+    store_absolute,    //
+    store_relative,    //
+    store_variadic,    //
+    tail_call,         //
+    tail_select,       //
   };
 
   struct instruction
@@ -59,7 +59,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, instruction const&) -> std::ostream &;
 
-  auto disassemble(std::ostream &, const_reference, std::size_t = 1) -> std::ostream &;
+  auto disassemble(std::ostream &, const_reference, std::size_t = 1) -> void;
 } // namespace kernel
 } // namespace meevax
 

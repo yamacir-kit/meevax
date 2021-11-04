@@ -200,7 +200,7 @@ inline namespace kernel
 
   auto environment::macroexpand(const_reference keyword, const_reference form) -> object
   {
-    push(d, s, e, cons(make<instruction>(mnemonic::STOP), c)); // XXX ???
+    push(d, s, e, cons(make<instruction>(mnemonic::stop), c)); // XXX ???
 
     s = unit;
     e = cons(cons(keyword, cdr(form)), dynamic_environment());
