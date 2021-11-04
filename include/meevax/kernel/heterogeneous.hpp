@@ -85,7 +85,9 @@ inline namespace kernel
     template <typename Bound, typename... Ts, REQUIRES(std::is_compound<Bound>)>
     static auto allocate(Ts&&... xs)
     {
+      #if PROFILE_ALLOCATION
       current_profiler()[typeid(typename std::decay<Bound>::type)].allocation++;
+      #endif
 
       if constexpr (std::is_same<Bound, Top>::value)
       {

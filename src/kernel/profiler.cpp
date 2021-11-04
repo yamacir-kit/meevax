@@ -18,6 +18,7 @@
 #include <iomanip>
 #include <iostream>
 #include <numeric>
+#include <vector>
 
 #include <meevax/kernel/profiler.hpp>
 #include <meevax/utility/demangle.hpp>
