@@ -27,7 +27,10 @@ inline namespace memory
 
   region::~region()
   {
-    release();
+    if (size)
+    {
+      release();
+    }
   }
 
   auto region::assigned() const noexcept -> bool
@@ -45,11 +48,6 @@ inline namespace memory
     return contains(reinterpret_cast<std::uintptr_t>(derived));
   }
 
-  auto region::lower_bound() const noexcept -> std::uintptr_t
-  {
-    return reinterpret_cast<std::uintptr_t>(base);
-  }
-
   auto region::release() -> void
   {
     if (assigned())
@@ -58,8 +56,6 @@ inline namespace memory
     }
 
     reset(nullptr, nullptr);
-
-    size = 0;
   }
 
   auto region::reset(pointer<void> const x, deallocator<void>::signature const f) noexcept -> pointer<region>
@@ -71,11 +67,6 @@ inline namespace memory
     }
 
     return this;
-  }
-
-  auto region::upper_bound() const noexcept -> std::uintptr_t
-  {
-    return lower_bound() + size;
   }
 } // namespace memory
 } // namespace meevax

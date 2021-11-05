@@ -30,9 +30,11 @@ inline namespace memory
 {
   class region : public marker
   {
-    pointer<void> base, derived = nullptr;
+    const_pointer<void> base;
 
-    std::size_t size;
+    const std::size_t size;
+
+    pointer<void> derived = nullptr;
 
     deallocator<void>::signature deallocate = nullptr;
 
@@ -47,13 +49,19 @@ inline namespace memory
 
     auto contains(pointer<void> const) const noexcept -> bool;
 
-    auto lower_bound() const noexcept -> std::uintptr_t;
+    auto lower_bound() const noexcept -> std::uintptr_t
+    {
+      return reinterpret_cast<std::uintptr_t>(base);
+    }
 
     auto release() -> void;
 
     auto reset(pointer<void> const, deallocator<void>::signature const) noexcept -> pointer<region>;
 
-    auto upper_bound() const noexcept -> std::uintptr_t;
+    auto upper_bound() const noexcept -> std::uintptr_t
+    {
+      return lower_bound() + size;
+    }
   };
 } // namespace memory
 } // namespace meevax

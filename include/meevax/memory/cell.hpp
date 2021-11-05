@@ -34,12 +34,12 @@ inline namespace memory
 
     explicit cell(simple_pointer<T> const& datum)
       : simple_pointer<T> { datum }
-      , collector::object { simple_pointer<T>::get() }
+      , collector::object { datum.get() }
     {}
 
     explicit cell(cell const& datum)
       : simple_pointer<T> { datum.get() }
-      , collector::object { simple_pointer<T>::get() }
+      , collector::object { datum.get() }
     {}
 
     auto operator =(cell const& another) -> auto &

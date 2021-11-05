@@ -153,7 +153,7 @@ inline namespace memory
   {
     region dummy { interior, 0 };
 
-    if (auto iter = regions.lower_bound(std::addressof(dummy)); iter != std::cend(regions) and (**iter).contains(interior))
+    if (auto iter = regions.lower_bound(std::addressof(dummy)); iter != std::cend(regions) and (*iter)->contains(interior))
     {
       return iter;
     }
