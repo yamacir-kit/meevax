@@ -16,7 +16,6 @@
 
 #include <meevax/memory/collector.hpp>
 #include <meevax/memory/literal.hpp>
-#include <memory>
 
 namespace meevax
 {
@@ -135,7 +134,7 @@ inline namespace memory
   {
     marker::toggle();
 
-    for (auto [derived, region] : objects)
+    for (auto&& [derived, region] : objects)
     {
       if (region and not region->marked() and region_of(derived) == std::cend(regions))
       {
@@ -218,8 +217,8 @@ inline namespace memory
     {
       the_region->mark();
 
-      auto lower = objects.lower_bound(reinterpret_cast<pointer<object>>(the_region->lower_bound()));
-      auto upper = objects.lower_bound(reinterpret_cast<pointer<object>>(the_region->upper_bound()));
+      const auto lower = objects.lower_bound(reinterpret_cast<pointer<object>>(the_region->lower_bound()));
+      const auto upper = objects.lower_bound(reinterpret_cast<pointer<object>>(the_region->upper_bound()));
 
       for (auto iter = lower; iter != upper; ++iter)
       {

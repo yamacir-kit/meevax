@@ -64,7 +64,7 @@
           ((report)        100)
           (else (error "unrecognized mode" mode)))))
 
-(check-set-mode! 'report-failed)
+(check-set-mode! 'report)
 
 ; -- state --
 

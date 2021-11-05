@@ -25,6 +25,7 @@
 #include <new>
 #include <set>
 
+#include <meevax/memory/pool_allocator.hpp>
 #include <meevax/memory/region.hpp>
 #include <meevax/string/header.hpp>
 
@@ -55,7 +56,7 @@ inline namespace memory
       {
         if (auto const lock = std::unique_lock(resource); derived and lock)
         {
-          objects.emplace(this, collector::reset(derived, deallocate));
+          objects.try_emplace(this, collector::reset(derived, deallocate));
         }
       }
 
@@ -76,7 +77,7 @@ inline namespace memory
       {
         if (auto const lock = std::unique_lock(resource); derived and lock)
         {
-          objects[this] = collector::reset(derived, deallocate);
+          objects.insert_or_assign(this, collector::reset(derived, deallocate));
         }
       }
 
@@ -90,9 +91,18 @@ inline namespace memory
   private:
     static inline std::mutex resource;
 
-    static inline std::map<pointer<object>, pointer<region>> objects;
+    static inline std::map<
+      pointer<object>,
+      pointer<region>,
+      std::less<pointer<object>>,
+      pool_allocator<std::pair<const pointer<object>, pointer<region>>>
+    > objects;
 
-    static inline std::set<pointer<region>> regions;
+    static inline std::set<
+      pointer<region>,
+      std::less<pointer<region>>,
+      pool_allocator<pointer<region>>
+    > regions;
 
     static inline std::size_t allocation;
 
