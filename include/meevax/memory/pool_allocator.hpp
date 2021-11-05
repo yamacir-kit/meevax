@@ -109,7 +109,7 @@ public:
     return (*fresh_chunks).pop();
   }
 
-  auto deallocate(pointer<value_type> p, std::size_t) -> void
+  auto deallocate(pointer<value_type> p, std::size_t = 1) -> void
   {
     reinterpret_cast<pointer<chunk>>(p)->next = recycled_chunk;
     recycled_chunk = reinterpret_cast<pointer<chunk>>(p);
