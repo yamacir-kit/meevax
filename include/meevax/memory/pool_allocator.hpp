@@ -31,13 +31,13 @@ class pool_allocator
   struct chunk
   {
     pointer<chunk> next;
-
-    static constexpr auto size = std::max(sizeof(T), sizeof(chunk));
   };
 
   class chunks
   {
-    std::array<std::uint8_t, chunk::size * Capacity> data;
+    static constexpr auto chunk_size = std::max(sizeof(T), sizeof(chunk));
+
+    std::array<std::uint8_t, chunk_size * Capacity> data;
 
     std::size_t size = Capacity;
 
@@ -60,7 +60,7 @@ class pool_allocator
 
     auto pop()
     {
-      return reinterpret_cast<pointer<value_type>>(std::addressof(data[chunk::size * --size]));
+      return reinterpret_cast<pointer<value_type>>(std::addressof(data[chunk_size * --size]));
     }
   };
 
