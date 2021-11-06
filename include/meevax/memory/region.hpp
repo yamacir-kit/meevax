@@ -30,16 +30,16 @@ inline namespace memory
 {
   class region : public marker
   {
-    void * const base;
+    void const* const base;
 
     const std::size_t size;
 
-    void * derived = nullptr;
+    void const* derived = nullptr;
 
     deallocator<void>::signature deallocate = nullptr;
 
   public:
-    explicit region(void * const, std::size_t const);
+    explicit region(void const* const, std::size_t const);
 
     ~region();
 
@@ -47,7 +47,7 @@ inline namespace memory
 
     auto contains(std::uintptr_t const) const noexcept -> bool;
 
-    auto contains(void * const) const noexcept -> bool;
+    auto contains(void const* const) const noexcept -> bool;
 
     auto lower_bound() const noexcept -> std::uintptr_t
     {
@@ -56,7 +56,7 @@ inline namespace memory
 
     auto release() -> void;
 
-    auto reset(void * const, deallocator<void>::signature const) noexcept -> region *;
+    auto reset(void const* const = nullptr, deallocator<void>::signature const = nullptr) noexcept -> region *;
 
     auto upper_bound() const noexcept -> std::uintptr_t
     {

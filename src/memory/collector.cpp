@@ -61,7 +61,7 @@ inline namespace memory
   {
     if (auto data = ::operator new(size); data)
     {
-      if (overflow())
+      if (threshold < allocation)
       {
         collect();
       }
@@ -78,13 +78,13 @@ inline namespace memory
     }
   }
 
-  void collector::clear()
+  auto collector::clear() -> void
   {
     for (auto iter = std::begin(regions); iter != std::end(regions); )
     {
       assert(*iter);
 
-      if (region * region = *iter; region->assigned())
+      if (auto region = *iter; region->assigned())
       {
         delete region;
         iter = regions.erase(iter);
@@ -115,7 +115,7 @@ inline namespace memory
     return std::size(regions);
   }
 
-  void collector::deallocate(void * const data, std::size_t const)
+  auto collector::deallocate(void * const data, std::size_t const) -> void
   {
     try
     {
@@ -130,7 +130,7 @@ inline namespace memory
     ::operator delete(data);
   }
 
-  void collector::mark()
+  auto collector::mark() -> void
   {
     marker::toggle();
 
@@ -143,29 +143,28 @@ inline namespace memory
     }
   }
 
-  bool collector::overflow() const noexcept
-  {
-    return threshold < allocation;
-  }
-
-  auto collector::region_of(void * const interior) -> decltype(collector::regions)::iterator
+  auto collector::region_of(void const* const interior) -> decltype(collector::regions)::iterator
   {
     region dummy { interior, 0 };
 
-    if (auto iter = regions.lower_bound(std::addressof(dummy)); iter != std::cend(regions) and (*iter)->contains(interior))
+    auto invalid = std::cend(regions);
+
+    if (auto iter = regions.lower_bound(std::addressof(dummy)); iter != invalid and (*iter)->contains(interior))
     {
       return iter;
     }
     else
     {
-      return std::cend(regions);
+      return invalid;
     }
   }
 
   auto collector::reset(void * const derived, deallocator<void>::signature const deallocate) -> region *
   {
-    if (auto const lock = std::unique_lock(resource); lock and derived)
+    if (derived)
     {
+      auto const lock = std::unique_lock(resource);
+
       auto const iter = region_of(derived);
 
       assert(iter != std::cend(regions));
@@ -179,7 +178,7 @@ inline namespace memory
     }
   }
 
-  void collector::reset_threshold(std::size_t const size)
+  auto collector::reset_threshold(std::size_t const size) -> void
   {
     if (auto const lock = std::unique_lock(resource); lock)
     {
@@ -187,7 +186,7 @@ inline namespace memory
     }
   }
 
-  void collector::sweep()
+  auto collector::sweep() -> void
   {
     for (auto iter = std::begin(regions); iter != std::end(regions); )
     {
@@ -211,7 +210,7 @@ inline namespace memory
     }
   }
 
-  void collector::traverse(region * const the_region)
+  auto collector::traverse(region * const the_region) -> void
   {
     if (the_region and not the_region->marked())
     {
@@ -234,7 +233,7 @@ auto operator new(std::size_t const size, meevax::collector & gc) -> void *
   return gc.allocate(size);
 }
 
-void operator delete(void * const data, meevax::collector & gc) noexcept
+auto operator delete(void * const data, meevax::collector & gc) noexcept -> void
 {
   gc.deallocate(data);
 }

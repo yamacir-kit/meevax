@@ -124,9 +124,7 @@ inline namespace memory
 
     auto mark() -> void;
 
-    auto overflow() const noexcept -> bool;
-
-    static auto region_of(void * const) -> decltype(regions)::iterator;
+    static auto region_of(void const* const) -> decltype(regions)::iterator;
 
     static auto reset(void * const, deallocator<void>::signature const) -> region *;
 
