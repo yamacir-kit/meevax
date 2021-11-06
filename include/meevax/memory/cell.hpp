@@ -44,18 +44,13 @@ inline namespace memory
 
     auto operator =(cell const& another) -> auto &
     {
-      return store(another);
+      reset(another.get());
+      return *this;
     }
 
     void reset(T * const data = nullptr)
     {
       collector::object::reset(simple_pointer<T>::reset(data));
-    }
-
-    auto store(cell const& another) -> auto &
-    {
-      reset(another.get());
-      return *this;
     }
 
     void swap(cell & another)

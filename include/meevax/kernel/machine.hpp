@@ -533,7 +533,7 @@ inline namespace kernel
         }
         else
         {
-          cdr(binding).store(car(s));
+          cdr(binding) = car(s);
         }
         c = cddr(c);
         goto decode;
@@ -543,7 +543,7 @@ inline namespace kernel
         *  (x . s) e (%store-relative (i . j) . c) d => (x' . s) e c d
         *
         * ------------------------------------------------------------------- */
-        car(list_tail(list_ref(e, caadr(c)), cdadr(c))).store(car(s));
+        car(list_tail(list_ref(e, caadr(c)), cdadr(c))) = car(s);
         c = cddr(c);
         goto decode;
 
@@ -552,7 +552,7 @@ inline namespace kernel
         *  (x . s) e (%store-variadic (i . j) . c) d => (x' . s) e c d
         *
         * ------------------------------------------------------------------- */
-        cdr(list_tail(list_ref(e, caadr(c)), cdadr(c))).store(car(s));
+        cdr(list_tail(list_ref(e, caadr(c)), cdadr(c))) = car(s);
         c = cddr(c);
         goto decode;
 

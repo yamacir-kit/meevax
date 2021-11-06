@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_SIMPLE_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_SIMPLE_POINTER_HPP
 
-#include <cassert>
 #include <cstddef>
 #include <memory>
 #include <utility>
@@ -50,10 +49,10 @@ inline namespace memory
       : data { sp.get() }
     {}
 
-    template <typename... Ts>
-    auto operator =(Ts&&... xs) noexcept -> decltype(auto)
+    auto operator =(simple_pointer const& x) noexcept -> auto &
     {
-      return store(std::forward<decltype(xs)>(xs)...);
+      data = x.get();
+      return *this;
     }
 
     auto operator ->() const noexcept
@@ -83,13 +82,11 @@ inline namespace memory
 
     constexpr auto load() const noexcept -> const_reference
     {
-      assert(data);
       return *data;
     }
 
     constexpr auto load() noexcept -> reference
     {
-      assert(data);
       return *data;
     }
 
@@ -97,24 +94,16 @@ inline namespace memory
     {
       return data = p;
     }
-
-    auto store(simple_pointer const& x) noexcept -> auto &
-    {
-      data = x.get();
-      return *this;
-    }
   };
 
   template <typename T, typename U>
-  constexpr auto operator ==(simple_pointer<T> const& x,
-                             simple_pointer<U> const& y)
+  constexpr auto operator ==(simple_pointer<T> const& x, simple_pointer<U> const& y)
   {
     return x.get() == y.get();
   }
 
   template <typename T, typename U>
-  constexpr auto operator !=(simple_pointer<T> const& x,
-                             simple_pointer<U> const& y)
+  constexpr auto operator !=(simple_pointer<T> const& x, simple_pointer<U> const& y)
   {
     return x.get() != y.get();
   }
