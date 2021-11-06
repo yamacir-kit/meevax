@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_DEALLOCATOR_HPP
 #define INCLUDED_MEEVAX_MEMORY_DEALLOCATOR_HPP
 
+#include <type_traits>
+
 namespace meevax
 {
 inline namespace memory
@@ -28,7 +30,14 @@ inline namespace memory
 
     static void deallocate(void * const p)
     {
-      delete static_cast<T const* const>(p);
+      if constexpr (std::is_pointer<T>::value)
+      {
+        delete static_cast<T>(p);
+      }
+      else
+      {
+        delete static_cast<T const* const>(p);
+      }
     }
   };
 } // namespace memory

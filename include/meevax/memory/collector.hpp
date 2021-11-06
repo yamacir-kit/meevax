@@ -52,39 +52,30 @@ inline namespace memory
     protected:
       explicit constexpr object() = default;
 
-      explicit object(void * const derived, deallocator<void>::signature const deallocate)
+      template <typename Pointer>
+      explicit object(Pointer const p)
       {
-        if (auto const lock = std::unique_lock(resource); derived and lock)
+        if (p)
         {
-          objects.try_emplace(this, collector::reset(derived, deallocate));
+          auto const lock = std::unique_lock(resource);
+          objects.try_emplace(this, collector::reset(p, deallocator<Pointer>::deallocate));
         }
       }
-
-      template <typename Pointer>
-      explicit object(Pointer const derived)
-        : object { derived, deallocator<typename std::pointer_traits<Pointer>::element_type>::deallocate }
-      {}
 
       ~object()
       {
-        if (auto const lock = std::unique_lock(resource); lock)
-        {
-          objects.erase(this);
-        }
-      }
-
-      void reset(void * const derived, deallocator<void>::signature const deallocate)
-      {
-        if (auto const lock = std::unique_lock(resource); derived and lock)
-        {
-          objects.insert_or_assign(this, collector::reset(derived, deallocate));
-        }
+        auto const lock = std::unique_lock(resource);
+        objects.erase(this);
       }
 
       template <typename Pointer>
-      void reset(Pointer const derived)
+      void reset(Pointer const p)
       {
-        reset(derived, deallocator<typename std::pointer_traits<Pointer>::element_type>::deallocate);
+        if (p)
+        {
+          auto const lock = std::unique_lock(resource);
+          objects.insert_or_assign(this, collector::reset(p, deallocator<Pointer>::deallocate));
+        }
       }
     };
 
@@ -117,33 +108,33 @@ inline namespace memory
 
     ~collector();
 
-           auto operator =(collector &&) -> collector & = delete;
+    auto operator =(collector &&) -> collector & = delete;
 
-           auto operator =(collector const&) -> collector & = delete;
+    auto operator =(collector const&) -> collector & = delete;
 
-           auto allocate(std::size_t const) -> void *;
+    auto allocate(std::size_t const) -> void *;
 
-           auto clear() -> void;
+    auto clear() -> void;
 
-           auto collect() -> std::size_t;
+    auto collect() -> std::size_t;
 
-           auto count() const noexcept -> std::size_t;
+    auto count() const noexcept -> std::size_t;
 
-           auto deallocate(void * const, std::size_t const = 0) -> void;
+    auto deallocate(void * const, std::size_t const = 0) -> void;
 
-           auto mark() -> void;
+    auto mark() -> void;
 
-           auto overflow() const noexcept -> bool;
+    auto overflow() const noexcept -> bool;
 
     static auto region_of(void * const) -> decltype(regions)::iterator;
 
     static auto reset(void * const, deallocator<void>::signature const) -> region *;
 
-           void reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max());
+    auto reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max()) -> void;
 
-           void sweep();
+    auto sweep() -> void;
 
-           void traverse(region * const);
+    auto traverse(region * const) -> void;
   } static gc;
 } // namespace memory
 } // namespace meevax
