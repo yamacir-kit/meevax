@@ -19,7 +19,7 @@
 
 #include <gmp.h>
 
-#include <meevax/functional/greatest_common_divisor.hpp>
+#include <meevax/functional/arithmetic_operation.hpp>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
