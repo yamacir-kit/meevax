@@ -19,6 +19,8 @@
 
 #include <meevax/memory/literal.hpp>
 #include <meevax/utility/pointer_to.hpp>
+#include <meevax/utility/reference_of.hpp>
+#include <type_traits>
 
 namespace meevax
 {
@@ -70,6 +72,14 @@ class pool_allocator
 public:
   using value_type = T;
 
+  using pointer = pointer_to<value_type>;
+
+  using const_pointer = const_pointer_to<value_type>;
+
+  using reference = lvalue_reference_of<value_type>;
+
+  using const_reference = const_lvalue_reference_of<value_type>;
+
   template <typename U>
   struct rebind
   {
@@ -97,7 +107,7 @@ public:
   {
     if (recycled_chunk)
     {
-      return reinterpret_cast<pointer_to<value_type>>(std::exchange(recycled_chunk, recycled_chunk->next));
+      return reinterpret_cast<pointer>(std::exchange(recycled_chunk, recycled_chunk->next));
     }
 
     if (not (*fresh_chunks).remaining())
@@ -108,20 +118,10 @@ public:
     return (*fresh_chunks).pop();
   }
 
-  auto deallocate(pointer_to<value_type> p, std::size_t = 1) -> void
+  auto deallocate(pointer p, std::size_t = 1) -> void
   {
     reinterpret_cast<pointer_to<chunk>>(p)->next = recycled_chunk;
     recycled_chunk = reinterpret_cast<pointer_to<chunk>>(p);
-  }
-
-  auto construct(pointer_to<value_type> p, value_type const& value) -> void
-  {
-    new (p) T(value);
-  }
-
-  auto destroy(pointer_to<value_type> p) -> void
-  {
-    (*p).~T();
   }
 };
 } // namespace memory
