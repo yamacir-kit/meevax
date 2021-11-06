@@ -338,7 +338,7 @@ inline namespace kernel
         *  s e (%expand <syntactic-continuation> . c) d  => s e c' d
         *
         * ------------------------------------------------------------------- */
-        c.load().swap(append(cadr(c).template as<syntactic_continuation>().apply(body), cddr(c)).load());
+        std::swap(c.as<pair>(), append(cadr(c).template as<syntactic_continuation>().apply(body), cddr(c)).template as<pair>());
         goto decode;
 
       case mnemonic::select: /* ------------------------------------------------

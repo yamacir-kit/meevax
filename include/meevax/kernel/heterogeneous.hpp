@@ -80,7 +80,6 @@ inline namespace kernel
   public:
     using Pointer<Top>::Pointer;
     using Pointer<Top>::get;
-    using Pointer<Top>::load;
 
     template <typename Bound, typename... Ts, REQUIRES(std::is_compound<Bound>)>
     static auto allocate(Ts&&... xs)
@@ -122,7 +121,7 @@ inline namespace kernel
 
     inline auto compare(heterogeneous const& rhs) const -> bool
     {
-      return type() == rhs.type() and load().compare(rhs);
+      return type() == rhs.type() and get()->compare(rhs);
     }
 
     template <typename U>
@@ -146,14 +145,14 @@ inline namespace kernel
 
     inline auto type() const -> std::type_info const&
     {
-      return *this ? load().type() : typeid(null);
+      return *this ? get()->type() : typeid(null);
     }
   };
 
   template <template <typename...> typename Pointer, typename Top>
   auto operator <<(std::ostream & os, heterogeneous<Pointer, Top> const& datum) -> std::ostream &
   {
-    return (datum.template is<null>() ? os << magenta << "()" : datum.load().write(os)) << reset;
+    return (datum.template is<null>() ? os << magenta << "()" : datum->write(os)) << reset;
   }
 } // namespace kernel
 } // namespace meevax

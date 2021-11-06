@@ -30,9 +30,9 @@ inline namespace memory
   {
     using value_type = T;
 
-    using reference = typename std::add_lvalue_reference<value_type>::type;
+    using reference = value_type &;
 
-    using const_reference = typename std::add_const<reference>::type;
+    using const_reference = value_type const&;
 
     using pointer = value_type *;
 
@@ -60,14 +60,9 @@ inline namespace memory
       return get();
     }
 
-    auto operator *() const noexcept -> const_reference
+    constexpr auto operator *() const noexcept -> reference
     {
-      return load();
-    }
-
-    auto operator *() noexcept -> reference
-    {
-      return load();
+      return *data;
     }
 
     explicit constexpr operator bool() const noexcept
@@ -78,16 +73,6 @@ inline namespace memory
     constexpr auto get() const noexcept -> pointer
     {
       return data;
-    }
-
-    constexpr auto load() const noexcept -> const_reference
-    {
-      return *data;
-    }
-
-    constexpr auto load() noexcept -> reference
-    {
-      return *data;
     }
 
     auto reset(pointer const p = nullptr) noexcept -> pointer
