@@ -338,7 +338,7 @@ inline namespace kernel
         *  s e (%expand <syntactic-continuation> . c) d  => s e c' d
         *
         * ------------------------------------------------------------------- */
-        c.load().swap(append(cadr(c).template as<syntactic_continuation>().apply(body), cddr(c)).load());
+        std::swap(c.as<pair>(), append(cadr(c).template as<syntactic_continuation>().apply(body), cddr(c)).template as<pair>());
         goto decode;
 
       case mnemonic::select: /* ------------------------------------------------
@@ -533,7 +533,7 @@ inline namespace kernel
         }
         else
         {
-          cdr(binding).store(car(s));
+          cdr(binding) = car(s);
         }
         c = cddr(c);
         goto decode;
@@ -543,7 +543,7 @@ inline namespace kernel
         *  (x . s) e (%store-relative (i . j) . c) d => (x' . s) e c d
         *
         * ------------------------------------------------------------------- */
-        car(list_tail(list_ref(e, caadr(c)), cdadr(c))).store(car(s));
+        car(list_tail(list_ref(e, caadr(c)), cdadr(c))) = car(s);
         c = cddr(c);
         goto decode;
 
@@ -552,7 +552,7 @@ inline namespace kernel
         *  (x . s) e (%store-variadic (i . j) . c) d => (x' . s) e c d
         *
         * ------------------------------------------------------------------- */
-        cdr(list_tail(list_ref(e, caadr(c)), cdadr(c))).store(car(s));
+        cdr(list_tail(list_ref(e, caadr(c)), cdadr(c))) = car(s);
         c = cddr(c);
         goto decode;
 

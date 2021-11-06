@@ -14,23 +14,21 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_POOL_ALLOCATOR_HPP
-#define INCLUDED_MEEVAX_MEMORY_POOL_ALLOCATOR_HPP
+#ifndef INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
+#define INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
 
-#include <cstddef>
 #include <meevax/memory/literal.hpp>
-#include <meevax/memory/pointer.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-template <typename T, auto Capacity = 1024>
-class pool_allocator
+template <typename T, auto Capacity = 1_KiB>
+class simple_allocator
 {
   struct chunk
   {
-    pointer<chunk> next;
+    chunk * next;
   };
 
   class chunks
@@ -42,9 +40,9 @@ class pool_allocator
     std::size_t size = Capacity;
 
   public:
-    const_pointer<chunks> next;
+    chunks * const next;
 
-    explicit constexpr chunks(pointer<chunks> next = nullptr)
+    explicit constexpr chunks(chunks * next = nullptr)
       : next { next }
     {}
 
@@ -60,36 +58,44 @@ class pool_allocator
 
     auto pop()
     {
-      return reinterpret_cast<pointer<value_type>>(std::addressof(data[chunk_size * --size]));
+      return reinterpret_cast<pointer>(std::addressof(data[chunk_size * --size]));
     }
   };
 
-  pointer<chunk> recycled_chunk = nullptr;
+  chunk * recycled_chunk = nullptr;
 
-  pointer<chunks> fresh_chunks;
+  chunks * fresh_chunks;
 
 public:
   using value_type = T;
 
+  using pointer = value_type *;
+
+  using const_pointer = value_type const*;
+
+  using reference = value_type &;
+
+  using const_reference = value_type const&;
+
   template <typename U>
   struct rebind
   {
-    using other = pool_allocator<U, Capacity>;
+    using other = simple_allocator<U, Capacity>;
   };
 
-  explicit pool_allocator()
+  explicit simple_allocator()
     : fresh_chunks { new chunks() }
   {}
 
-  pool_allocator(pool_allocator &&) = delete;
+  simple_allocator(simple_allocator &&) = delete;
 
-  pool_allocator(pool_allocator const&) = delete;
+  simple_allocator(simple_allocator const&) = delete;
 
-  auto operator =(pool_allocator &&) -> pool_allocator & = delete;
+  auto operator =(simple_allocator &&) -> simple_allocator & = delete;
 
-  auto operator =(pool_allocator const&) -> pool_allocator & = delete;
+  auto operator =(simple_allocator const&) -> simple_allocator & = delete;
 
-  ~pool_allocator()
+  ~simple_allocator()
   {
     delete fresh_chunks;
   }
@@ -98,7 +104,7 @@ public:
   {
     if (recycled_chunk)
     {
-      return reinterpret_cast<pointer<value_type>>(std::exchange(recycled_chunk, recycled_chunk->next));
+      return reinterpret_cast<pointer>(std::exchange(recycled_chunk, recycled_chunk->next));
     }
 
     if (not (*fresh_chunks).remaining())
@@ -109,23 +115,13 @@ public:
     return (*fresh_chunks).pop();
   }
 
-  auto deallocate(pointer<value_type> p, std::size_t = 1) -> void
+  auto deallocate(pointer p, std::size_t = 1) -> void
   {
-    reinterpret_cast<pointer<chunk>>(p)->next = recycled_chunk;
-    recycled_chunk = reinterpret_cast<pointer<chunk>>(p);
-  }
-
-  auto construct(pointer<value_type> p, value_type const& value) -> void
-  {
-    new (p) T(value);
-  }
-
-  auto destroy(pointer<value_type> p) -> void
-  {
-    (*p).~T();
+    reinterpret_cast<chunk *>(p)->next = recycled_chunk;
+    recycled_chunk = reinterpret_cast<chunk *>(p);
   }
 };
 } // namespace memory
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_MEMORY_POOL_ALLOCATOR_HPP
+#endif // INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP

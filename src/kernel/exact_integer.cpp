@@ -173,12 +173,12 @@ inline namespace kernel
 
   auto exact_integer::string(int radix) const -> std::string
   {
-    auto deallocate = [](pointer<char> data)
+    auto deallocate = [](char * data)
     {
-      using gmp_free_function = void (*)(pointer<void>, std::size_t);
+      using gmp_free_function = void (*)(void *, std::size_t);
       gmp_free_function current_free_function;
       mp_get_memory_functions(nullptr, nullptr, &current_free_function);
-      std::invoke(current_free_function, static_cast<pointer<void>>(data), std::strlen(data) + 1);
+      std::invoke(current_free_function, static_cast<void *>(data), std::strlen(data) + 1);
     };
 
     std::unique_ptr<char, decltype(deallocate)> result { mpz_get_str(nullptr, radix, value), deallocate };
