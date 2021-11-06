@@ -47,13 +47,13 @@ inline namespace memory
   public:
     using is_always_equal = std::true_type;
 
-    struct object
+    struct interior
     {
     protected:
-      explicit constexpr object() = default;
+      explicit constexpr interior() = default;
 
       template <typename Pointer>
-      explicit object(Pointer const p)
+      explicit interior(Pointer const p)
       {
         if (p)
         {
@@ -62,7 +62,7 @@ inline namespace memory
         }
       }
 
-      ~object()
+      ~interior()
       {
         auto const lock = std::unique_lock(resource);
         objects.erase(this);
@@ -89,10 +89,10 @@ inline namespace memory
     > regions;
 
     static inline std::map<
-      object * const,
+      interior * const,
       region *,
-      std::less<object * const>,
-      simple_allocator<std::pair<object * const, region *>>
+      std::less<interior * const>,
+      simple_allocator<std::pair<interior * const, region *>>
     > objects;
 
     static inline std::size_t allocation;

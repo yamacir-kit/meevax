@@ -217,8 +217,8 @@ inline namespace memory
     {
       the_region->mark();
 
-      const auto lower = objects.lower_bound(reinterpret_cast<object *>(the_region->lower_bound()));
-      const auto upper = objects.lower_bound(reinterpret_cast<object *>(the_region->upper_bound()));
+      const auto lower = objects.lower_bound(reinterpret_cast<interior *>(the_region->lower_bound()));
+      const auto upper = objects.lower_bound(reinterpret_cast<interior *>(the_region->upper_bound()));
 
       for (auto iter = lower; iter != upper; ++iter)
       {

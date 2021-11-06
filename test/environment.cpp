@@ -30,7 +30,7 @@ auto main() -> int
   environment::symbols.clear();
 
   gc.collect();
-  gc.collect();
+  gc.collect(); // for vector type
 
   assert(environment::symbols.empty());
   assert(gc_count == gc.count());

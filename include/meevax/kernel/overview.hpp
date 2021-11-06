@@ -47,7 +47,7 @@ inline namespace kernel
 
   using                         object = heterogeneous<gc_pointer, pair>;
   using                   let = object;
-  using       reference = let      &;
+  using       reference = let &;
   using const_reference = let const&;
 
   using null = std::nullptr_t;
