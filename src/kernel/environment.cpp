@@ -194,7 +194,7 @@ inline namespace kernel
     }
     else
     {
-      throw file_error(make<string>(string_append(__FILE__, ":", __LINE__, ":", __func__)), unit);
+      throw file_error(make<string>(cat, __FILE__, ":", __LINE__, ":", __func__));
     }
   }
 

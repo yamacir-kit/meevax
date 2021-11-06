@@ -23,6 +23,13 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto cat = [](auto&&... xs)
+  {
+    std::stringstream ss;
+    (ss << ... << xs);
+    return ss.str();
+  };
+
   struct string : public std::vector<character>
   {
     using std::vector<character>::vector; // make-string
@@ -32,6 +39,11 @@ inline namespace kernel
     explicit string(std::istream &&);
 
     explicit string(std::string const&);
+
+    template <typename... Ts>
+    explicit string(decltype(cat), Ts&&... xs)
+      : string { cat(std::forward<decltype(xs)>(xs)...) }
+    {}
 
     auto list(size_type, size_type) const -> object;
 

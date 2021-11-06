@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
 
 #include <meevax/memory/gc_pointer.hpp>
-#include <meevax/string/append.hpp>
 #include <meevax/type_traits/requires.hpp>
 
 #define NIL /* nothing */
