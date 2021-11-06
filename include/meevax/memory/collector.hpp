@@ -25,8 +25,8 @@
 #include <new>
 #include <set>
 
-#include <meevax/memory/pool_allocator.hpp>
 #include <meevax/memory/region.hpp>
+#include <meevax/memory/simple_allocator.hpp>
 #include <meevax/string/header.hpp>
 
 namespace meevax
@@ -95,13 +95,13 @@ inline namespace memory
       pointer_to<object>,
       pointer_to<region>,
       std::less<pointer_to<object>>,
-      pool_allocator<std::pair<const_pointer_to<object>, pointer_to<region>>>
+      simple_allocator<std::pair<const_pointer_to<object>, pointer_to<region>>>
     > objects;
 
     static inline std::set<
       pointer_to<region>,
       std::less<pointer_to<region>>,
-      pool_allocator<pointer_to<region>>
+      simple_allocator<pointer_to<region>>
     > regions;
 
     static inline std::size_t allocation;

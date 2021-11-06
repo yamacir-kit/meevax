@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_POOL_ALLOCATOR_HPP
-#define INCLUDED_MEEVAX_MEMORY_POOL_ALLOCATOR_HPP
+#ifndef INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
+#define INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
 
 #include <meevax/memory/literal.hpp>
 #include <meevax/utility/pointer_to.hpp>
@@ -27,7 +27,7 @@ namespace meevax
 inline namespace memory
 {
 template <typename T, auto Capacity = 1024>
-class pool_allocator
+class simple_allocator
 {
   struct chunk
   {
@@ -72,33 +72,29 @@ class pool_allocator
 public:
   using value_type = T;
 
-  using pointer = pointer_to<value_type>;
-
+  using       pointer =       pointer_to<value_type>;
   using const_pointer = const_pointer_to<value_type>;
 
-  using reference = lvalue_reference_of<value_type>;
-
+  using       reference =       lvalue_reference_of<value_type>;
   using const_reference = const_lvalue_reference_of<value_type>;
 
   template <typename U>
   struct rebind
   {
-    using other = pool_allocator<U, Capacity>;
+    using other = simple_allocator<U, Capacity>;
   };
 
-  explicit pool_allocator()
+  explicit simple_allocator()
     : fresh_chunks { new chunks() }
   {}
 
-  pool_allocator(pool_allocator &&) = delete;
+  simple_allocator(      rvalue_reference_of<simple_allocator>) = delete;
+  simple_allocator(const_lvalue_reference_of<simple_allocator>) = delete;
 
-  pool_allocator(pool_allocator const&) = delete;
+  auto operator =(      rvalue_reference_of<simple_allocator>) -> lvalue_reference_of<simple_allocator> = delete;
+  auto operator =(const_lvalue_reference_of<simple_allocator>) -> lvalue_reference_of<simple_allocator> = delete;
 
-  auto operator =(pool_allocator &&) -> pool_allocator & = delete;
-
-  auto operator =(pool_allocator const&) -> pool_allocator & = delete;
-
-  ~pool_allocator()
+  ~simple_allocator()
   {
     delete fresh_chunks;
   }
@@ -127,4 +123,4 @@ public:
 } // namespace memory
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_MEMORY_POOL_ALLOCATOR_HPP
+#endif // INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
