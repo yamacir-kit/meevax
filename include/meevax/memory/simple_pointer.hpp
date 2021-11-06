@@ -22,8 +22,6 @@
 #include <memory>
 #include <utility>
 
-#include <meevax/utility/pointer_to.hpp>
-
 namespace meevax
 {
 inline namespace memory
@@ -37,9 +35,9 @@ inline namespace memory
 
     using const_reference = typename std::add_const<reference>::type;
 
-    using pointer = pointer_to<value_type>;
+    using pointer = value_type *;
 
-    using const_pointer = const_pointer_to<value_type>;
+    using const_pointer = value_type const*;
 
     pointer data;
 

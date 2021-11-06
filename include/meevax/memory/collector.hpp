@@ -52,7 +52,7 @@ inline namespace memory
     protected:
       explicit constexpr object() = default;
 
-      explicit object(const_void_pointer derived, deallocator<void>::signature const deallocate)
+      explicit object(void * const derived, deallocator<void>::signature const deallocate)
       {
         if (auto const lock = std::unique_lock(resource); derived and lock)
         {
@@ -73,7 +73,7 @@ inline namespace memory
         }
       }
 
-      void reset(const_void_pointer derived, deallocator<void>::signature const deallocate)
+      void reset(void * const derived, deallocator<void>::signature const deallocate)
       {
         if (auto const lock = std::unique_lock(resource); derived and lock)
         {
@@ -92,9 +92,9 @@ inline namespace memory
     static inline std::mutex resource;
 
     static inline std::set<
-      pointer_to<region>,
-      std::less<pointer_to<region>>,
-      simple_allocator<pointer_to<region>>
+      region *,
+      std::less<region *>,
+      simple_allocator<region *>
     > regions;
 
     static inline std::map<
@@ -121,7 +121,7 @@ inline namespace memory
 
            auto operator =(collector const&) -> collector & = delete;
 
-           auto allocate(std::size_t const) -> void_pointer;
+           auto allocate(std::size_t const) -> void *;
 
            auto clear() -> void;
 
@@ -129,27 +129,27 @@ inline namespace memory
 
            auto count() const noexcept -> std::size_t;
 
-           auto deallocate(const_void_pointer, std::size_t const = 0) -> void;
+           auto deallocate(void * const, std::size_t const = 0) -> void;
 
            auto mark() -> void;
 
            auto overflow() const noexcept -> bool;
 
-    static auto region_of(const_void_pointer) -> decltype(regions)::iterator;
+    static auto region_of(void * const) -> decltype(regions)::iterator;
 
-    static auto reset(const_void_pointer, deallocator<void>::signature const) -> pointer_to<region>;
+    static auto reset(void * const, deallocator<void>::signature const) -> region *;
 
            void reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max());
 
            void sweep();
 
-           void traverse(pointer_to<region> const);
+           void traverse(region * const);
   } static gc;
 } // namespace memory
 } // namespace meevax
 
-auto operator new(std::size_t const, meevax::collector &) -> meevax::void_pointer;
+auto operator new(std::size_t const, meevax::collector &) -> void *;
 
-void operator delete(meevax::const_void_pointer, meevax::collector &) noexcept;
+void operator delete(void * const, meevax::collector &) noexcept;
 
 #endif // INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP

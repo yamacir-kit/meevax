@@ -18,18 +18,17 @@
 #define INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
 
 #include <meevax/memory/literal.hpp>
-#include <meevax/utility/pointer_to.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-template <typename T, auto Capacity = 1024>
+template <typename T, auto Capacity = 1_KiB>
 class simple_allocator
 {
   struct chunk
   {
-    pointer_to<chunk> next;
+    chunk * next;
   };
 
   class chunks
@@ -41,9 +40,9 @@ class simple_allocator
     std::size_t size = Capacity;
 
   public:
-    const_pointer_to<chunks> next;
+    chunks * const next;
 
-    explicit constexpr chunks(pointer_to<chunks> next = nullptr)
+    explicit constexpr chunks(chunks * next = nullptr)
       : next { next }
     {}
 
@@ -59,13 +58,13 @@ class simple_allocator
 
     auto pop()
     {
-      return reinterpret_cast<pointer_to<value_type>>(std::addressof(data[chunk_size * --size]));
+      return reinterpret_cast<pointer>(std::addressof(data[chunk_size * --size]));
     }
   };
 
-  pointer_to<chunk> recycled_chunk = nullptr;
+  chunk * recycled_chunk = nullptr;
 
-  pointer_to<chunks> fresh_chunks;
+  chunks * fresh_chunks;
 
 public:
   using value_type = T;
@@ -118,8 +117,8 @@ public:
 
   auto deallocate(pointer p, std::size_t = 1) -> void
   {
-    reinterpret_cast<pointer_to<chunk>>(p)->next = recycled_chunk;
-    recycled_chunk = reinterpret_cast<pointer_to<chunk>>(p);
+    reinterpret_cast<chunk *>(p)->next = recycled_chunk;
+    recycled_chunk = reinterpret_cast<chunk *>(p);
   }
 };
 } // namespace memory

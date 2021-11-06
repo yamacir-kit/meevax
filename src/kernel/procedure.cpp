@@ -38,9 +38,9 @@ inline namespace kernel
     , apply { dlsym(name, dlopen(libfoo_so)) }
   {}
 
-  auto procedure::dlopen(std::string const& libfoo_so) -> void_pointer
+  auto procedure::dlopen(std::string const& libfoo_so) -> void *
   {
-    auto dlclose = [](const_void_pointer handle)
+    auto dlclose = [](void * const handle)
     {
       if (handle and ::dlclose(handle))
       {
@@ -76,7 +76,7 @@ inline namespace kernel
     }
   }
 
-  auto procedure::dlsym(std::string const& name, const_void_pointer handle) -> signature
+  auto procedure::dlsym(std::string const& name, void * const handle) -> signature
   {
     if (auto address = ::dlsym(handle, name.c_str()); address)
     {

@@ -20,13 +20,11 @@
 #include <string>
 #include <typeinfo>
 
-#include <meevax/utility/pointer_to.hpp>
-
 namespace meevax
 {
 inline namespace utility
 {
-  auto demangle(const_pointer_to<const char> name) -> std::string;
+  auto demangle(char const* const name) -> std::string;
 
   auto demangle(std::type_info const&) -> std::string;
 } // namespace utility
