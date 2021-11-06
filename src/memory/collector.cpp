@@ -115,7 +115,7 @@ inline namespace memory
     return std::size(regions);
   }
 
-  void collector::deallocate(void_pointer const data, std::size_t const)
+  void collector::deallocate(const_void_pointer data, std::size_t const)
   {
     try
     {
@@ -148,7 +148,7 @@ inline namespace memory
     return threshold < allocation;
   }
 
-  auto collector::region_of(void_pointer const interior) -> decltype(collector::regions)::iterator
+  auto collector::region_of(const_void_pointer interior) -> decltype(collector::regions)::iterator
   {
     region dummy { interior, 0 };
 
@@ -162,7 +162,7 @@ inline namespace memory
     }
   }
 
-  auto collector::reset(void_pointer const derived, deallocator<void>::signature const deallocate) -> pointer_to<region>
+  auto collector::reset(const_void_pointer derived, deallocator<void>::signature const deallocate) -> pointer_to<region>
   {
     if (auto const lock = std::unique_lock(resource); lock and derived)
     {
@@ -193,7 +193,7 @@ inline namespace memory
     {
       assert(*iter);
 
-      if (pointer_to<region> region = *iter; not region->marked())
+      if (auto region = *iter; not region->marked())
       {
         if (region->assigned())
         {

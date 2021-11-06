@@ -63,6 +63,11 @@ inline namespace memory
       return lower_bound() + size;
     }
   };
+
+  inline auto operator <(region const& x, region const& y)
+  {
+    return x.upper_bound() < y.lower_bound();
+  }
 } // namespace memory
 } // namespace meevax
 
@@ -71,10 +76,10 @@ namespace std
   template <>
   struct less<meevax::pointer_to<meevax::region>>
   {
-    bool operator ()(meevax::const_pointer_to<meevax::region> x,
+    auto operator ()(meevax::const_pointer_to<meevax::region> x,
                      meevax::const_pointer_to<meevax::region> y) const
     {
-      return (*x).upper_bound() <= (*y).lower_bound();
+      return *x < *y;
     }
   };
 } // namespace std

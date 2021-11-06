@@ -91,18 +91,18 @@ inline namespace memory
   private:
     static inline std::mutex resource;
 
+    static inline std::set<
+      pointer_to<region>,
+      std::less<pointer_to<region>>,
+      simple_allocator<pointer_to<region>>
+    > regions;
+
     static inline std::map<
       pointer_to<object>,
       pointer_to<region>,
       std::less<pointer_to<object>>,
       simple_allocator<std::pair<const_pointer_to<object>, pointer_to<region>>>
     > objects;
-
-    static inline std::set<
-      pointer_to<region>,
-      std::less<pointer_to<region>>,
-      simple_allocator<pointer_to<region>>
-    > regions;
 
     static inline std::size_t allocation;
 

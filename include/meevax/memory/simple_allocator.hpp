@@ -20,7 +20,6 @@
 #include <meevax/memory/literal.hpp>
 #include <meevax/utility/pointer_to.hpp>
 #include <meevax/utility/reference_of.hpp>
-#include <type_traits>
 
 namespace meevax
 {
