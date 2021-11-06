@@ -19,7 +19,6 @@
 
 #include <meevax/memory/literal.hpp>
 #include <meevax/utility/pointer_to.hpp>
-#include <meevax/utility/reference_of.hpp>
 
 namespace meevax
 {
@@ -71,11 +70,13 @@ class simple_allocator
 public:
   using value_type = T;
 
-  using       pointer =       pointer_to<value_type>;
-  using const_pointer = const_pointer_to<value_type>;
+  using pointer = value_type *;
 
-  using       reference =       lvalue_reference_of<value_type>;
-  using const_reference = const_lvalue_reference_of<value_type>;
+  using const_pointer = value_type const*;
+
+  using reference = value_type &;
+
+  using const_reference = value_type const&;
 
   template <typename U>
   struct rebind
@@ -87,11 +88,13 @@ public:
     : fresh_chunks { new chunks() }
   {}
 
-  simple_allocator(      rvalue_reference_of<simple_allocator>) = delete;
-  simple_allocator(const_lvalue_reference_of<simple_allocator>) = delete;
+  simple_allocator(simple_allocator &&) = delete;
 
-  auto operator =(      rvalue_reference_of<simple_allocator>) -> lvalue_reference_of<simple_allocator> = delete;
-  auto operator =(const_lvalue_reference_of<simple_allocator>) -> lvalue_reference_of<simple_allocator> = delete;
+  simple_allocator(simple_allocator const&) = delete;
+
+  auto operator =(simple_allocator &&) -> simple_allocator & = delete;
+
+  auto operator =(simple_allocator const&) -> simple_allocator & = delete;
 
   ~simple_allocator()
   {
