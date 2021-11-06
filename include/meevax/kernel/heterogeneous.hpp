@@ -102,7 +102,7 @@ inline namespace kernel
     template <typename U>
     inline auto as() const -> U &
     {
-      if (auto data = dynamic_cast<pointer<U>>(get()); data)
+      if (auto data = dynamic_cast<pointer_to<U>>(get()); data)
       {
         return *data;
       }
@@ -141,7 +141,7 @@ inline namespace kernel
     template <typename U>
     inline auto is_also() const
     {
-      return dynamic_cast<pointer<U>>(get()) != nullptr;
+      return dynamic_cast<pointer_to<U>>(get()) != nullptr;
     }
 
     inline auto type() const -> std::type_info const&

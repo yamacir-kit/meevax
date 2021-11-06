@@ -38,9 +38,9 @@ inline namespace kernel
 
     explicit procedure(std::string const&, std::string const&);
 
-    static auto dlopen(std::string const&) -> pointer<void>;
+    static auto dlopen(std::string const&) -> void_pointer;
 
-    static auto dlsym(std::string const&, const_pointer<void>) -> signature;
+    static auto dlsym(std::string const&, const_void_pointer) -> signature;
   };
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;

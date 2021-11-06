@@ -47,7 +47,7 @@ inline namespace memory
       return store(another);
     }
 
-    void reset(const_pointer<T> data = nullptr)
+    void reset(const_pointer_to<T> data = nullptr)
     {
       collector::object::reset(simple_pointer<T>::reset(data));
     }

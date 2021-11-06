@@ -20,7 +20,7 @@ namespace meevax
 {
 inline namespace memory
 {
-  region::region(pointer<void> const base, std::size_t const size)
+  region::region(void_pointer const base, std::size_t const size)
     : base { base }
     , size { size }
   {}
@@ -43,7 +43,7 @@ inline namespace memory
     return lower_bound() <= k and k < upper_bound();
   }
 
-  auto region::contains(pointer<void> const derived) const noexcept -> bool
+  auto region::contains(void_pointer const derived) const noexcept -> bool
   {
     return contains(reinterpret_cast<std::uintptr_t>(derived));
   }
@@ -58,7 +58,7 @@ inline namespace memory
     reset(nullptr, nullptr);
   }
 
-  auto region::reset(pointer<void> const x, deallocator<void>::signature const f) noexcept -> pointer<region>
+  auto region::reset(void_pointer const x, deallocator<void>::signature const f) noexcept -> pointer_to<region>
   {
     if (not assigned())
     {

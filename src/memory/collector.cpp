@@ -57,7 +57,7 @@ inline namespace memory
     }
   }
 
-  auto collector::allocate(std::size_t const size) -> pointer<void>
+  auto collector::allocate(std::size_t const size) -> void_pointer
   {
     if (auto data = ::operator new(size); data)
     {
@@ -84,7 +84,7 @@ inline namespace memory
     {
       assert(*iter);
 
-      if (pointer<region> region = *iter; region->assigned())
+      if (pointer_to<region> region = *iter; region->assigned())
       {
         delete region;
         iter = regions.erase(iter);
@@ -115,7 +115,7 @@ inline namespace memory
     return std::size(regions);
   }
 
-  void collector::deallocate(pointer<void> const data, std::size_t const)
+  void collector::deallocate(void_pointer const data, std::size_t const)
   {
     try
     {
@@ -148,7 +148,7 @@ inline namespace memory
     return threshold < allocation;
   }
 
-  auto collector::region_of(pointer<void> const interior) -> decltype(collector::regions)::iterator
+  auto collector::region_of(void_pointer const interior) -> decltype(collector::regions)::iterator
   {
     region dummy { interior, 0 };
 
@@ -162,7 +162,7 @@ inline namespace memory
     }
   }
 
-  auto collector::reset(pointer<void> const derived, deallocator<void>::signature const deallocate) -> pointer<region>
+  auto collector::reset(void_pointer const derived, deallocator<void>::signature const deallocate) -> pointer_to<region>
   {
     if (auto const lock = std::unique_lock(resource); lock and derived)
     {
@@ -193,7 +193,7 @@ inline namespace memory
     {
       assert(*iter);
 
-      if (pointer<region> region = *iter; not region->marked())
+      if (pointer_to<region> region = *iter; not region->marked())
       {
         if (region->assigned())
         {
@@ -211,14 +211,14 @@ inline namespace memory
     }
   }
 
-  void collector::traverse(pointer<region> const the_region)
+  void collector::traverse(pointer_to<region> const the_region)
   {
     if (the_region and not the_region->marked())
     {
       the_region->mark();
 
-      const auto lower = objects.lower_bound(reinterpret_cast<pointer<object>>(the_region->lower_bound()));
-      const auto upper = objects.lower_bound(reinterpret_cast<pointer<object>>(the_region->upper_bound()));
+      const auto lower = objects.lower_bound(reinterpret_cast<pointer_to<object>>(the_region->lower_bound()));
+      const auto upper = objects.lower_bound(reinterpret_cast<pointer_to<object>>(the_region->upper_bound()));
 
       for (auto iter = lower; iter != upper; ++iter)
       {
@@ -229,12 +229,12 @@ inline namespace memory
 } // namespace memory
 } // namespace meevax
 
-auto operator new(std::size_t const size, meevax::collector & gc) -> meevax::pointer<void>
+auto operator new(std::size_t const size, meevax::collector & gc) -> meevax::void_pointer
 {
   return gc.allocate(size);
 }
 
-void operator delete(meevax::pointer<void> const data, meevax::collector & gc) noexcept
+void operator delete(meevax::void_pointer const data, meevax::collector & gc) noexcept
 {
   gc.deallocate(data);
 }

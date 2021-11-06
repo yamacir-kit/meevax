@@ -17,9 +17,8 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_POOL_ALLOCATOR_HPP
 #define INCLUDED_MEEVAX_MEMORY_POOL_ALLOCATOR_HPP
 
-#include <cstddef>
 #include <meevax/memory/literal.hpp>
-#include <meevax/memory/pointer.hpp>
+#include <meevax/utility/pointer_to.hpp>
 
 namespace meevax
 {
@@ -30,7 +29,7 @@ class pool_allocator
 {
   struct chunk
   {
-    pointer<chunk> next;
+    pointer_to<chunk> next;
   };
 
   class chunks
@@ -42,9 +41,9 @@ class pool_allocator
     std::size_t size = Capacity;
 
   public:
-    const_pointer<chunks> next;
+    const_pointer_to<chunks> next;
 
-    explicit constexpr chunks(pointer<chunks> next = nullptr)
+    explicit constexpr chunks(pointer_to<chunks> next = nullptr)
       : next { next }
     {}
 
@@ -60,13 +59,13 @@ class pool_allocator
 
     auto pop()
     {
-      return reinterpret_cast<pointer<value_type>>(std::addressof(data[chunk_size * --size]));
+      return reinterpret_cast<pointer_to<value_type>>(std::addressof(data[chunk_size * --size]));
     }
   };
 
-  pointer<chunk> recycled_chunk = nullptr;
+  pointer_to<chunk> recycled_chunk = nullptr;
 
-  pointer<chunks> fresh_chunks;
+  pointer_to<chunks> fresh_chunks;
 
 public:
   using value_type = T;
@@ -98,7 +97,7 @@ public:
   {
     if (recycled_chunk)
     {
-      return reinterpret_cast<pointer<value_type>>(std::exchange(recycled_chunk, recycled_chunk->next));
+      return reinterpret_cast<pointer_to<value_type>>(std::exchange(recycled_chunk, recycled_chunk->next));
     }
 
     if (not (*fresh_chunks).remaining())
@@ -109,18 +108,18 @@ public:
     return (*fresh_chunks).pop();
   }
 
-  auto deallocate(pointer<value_type> p, std::size_t = 1) -> void
+  auto deallocate(pointer_to<value_type> p, std::size_t = 1) -> void
   {
-    reinterpret_cast<pointer<chunk>>(p)->next = recycled_chunk;
-    recycled_chunk = reinterpret_cast<pointer<chunk>>(p);
+    reinterpret_cast<pointer_to<chunk>>(p)->next = recycled_chunk;
+    recycled_chunk = reinterpret_cast<pointer_to<chunk>>(p);
   }
 
-  auto construct(pointer<value_type> p, value_type const& value) -> void
+  auto construct(pointer_to<value_type> p, value_type const& value) -> void
   {
     new (p) T(value);
   }
 
-  auto destroy(pointer<value_type> p) -> void
+  auto destroy(pointer_to<value_type> p) -> void
   {
     (*p).~T();
   }
