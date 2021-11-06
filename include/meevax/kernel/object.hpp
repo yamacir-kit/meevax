@@ -26,14 +26,12 @@ inline namespace kernel
   template <typename T>
   struct top
   {
-    using let = heterogeneous<cell, T>;
-
     virtual auto type() const noexcept -> std::type_info const&
     {
       return typeid(T);
     }
 
-    virtual auto compare(let const& x) const -> bool
+    virtual auto compare(heterogeneous<gc_pointer, T> const& x) const -> bool
     {
       if constexpr (is_equality_comparable<T>::value)
       {

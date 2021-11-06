@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
 #define INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
 
-#include <meevax/memory/cell.hpp>
+#include <meevax/memory/gc_pointer.hpp>
 #include <meevax/string/append.hpp>
 #include <meevax/type_traits/requires.hpp>
 
@@ -45,7 +45,7 @@ inline namespace kernel
   template <template <typename...> typename Pointer, typename T>
   class heterogeneous;
 
-  using                         object = heterogeneous<cell, pair>;
+  using                         object = heterogeneous<gc_pointer, pair>;
   using                   let = object;
   using       reference = let      &;
   using const_reference = let const&;
