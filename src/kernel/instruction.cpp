@@ -42,6 +42,7 @@ inline namespace kernel
       case mnemonic::load_relative:     return "load-relative";
       case mnemonic::load_variadic:     return "load-variadic";
       case mnemonic::recursive_call:    return "recursive-call";
+      case mnemonic::recursive_expand:  return "recursive-expand";
       case mnemonic::return_:           return "return";
       case mnemonic::select:            return "select";
       case mnemonic::stop:              return "stop";
@@ -109,6 +110,7 @@ inline namespace kernel
       case mnemonic::load_constant:
       case mnemonic::load_relative:
       case mnemonic::load_variadic:
+      case mnemonic::recursive_expand:
       case mnemonic::store_absolute:
       case mnemonic::store_relative:
       case mnemonic::store_variadic:

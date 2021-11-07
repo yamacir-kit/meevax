@@ -40,6 +40,7 @@ inline namespace kernel
     load_relative,     // a.k.a LDL
     load_variadic,     //
     recursive_call,    // a.k.a RAP
+    recursive_expand,  //
     return_,           // a.k.a RTN
     select,            // a.k.a SEL
     stop,              //
