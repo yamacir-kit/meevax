@@ -17,12 +17,9 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_SIMPLE_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_SIMPLE_POINTER_HPP
 
-#include <cassert>
 #include <cstddef>
 #include <memory>
 #include <utility>
-
-#include <meevax/memory/pointer.hpp>
 
 namespace meevax
 {
@@ -33,13 +30,13 @@ inline namespace memory
   {
     using value_type = T;
 
-    using reference = typename std::add_lvalue_reference<value_type>::type;
+    using reference = value_type &;
 
-    using const_reference = typename std::add_const<reference>::type;
+    using const_reference = value_type const&;
 
-    using pointer = typename std::add_pointer<value_type>::type;
+    using pointer = value_type *;
 
-    using const_pointer = typename std::add_const<pointer>::type;
+    using const_pointer = value_type const*;
 
     pointer data;
 
@@ -52,10 +49,10 @@ inline namespace memory
       : data { sp.get() }
     {}
 
-    template <typename... Ts>
-    auto operator =(Ts&&... xs) noexcept -> decltype(auto)
+    auto operator =(simple_pointer const& x) noexcept -> auto &
     {
-      return store(std::forward<decltype(xs)>(xs)...);
+      data = x.get();
+      return *this;
     }
 
     auto operator ->() const noexcept
@@ -63,14 +60,9 @@ inline namespace memory
       return get();
     }
 
-    auto operator *() const noexcept -> const_reference
+    constexpr auto operator *() const noexcept -> reference
     {
-      return load();
-    }
-
-    auto operator *() noexcept -> reference
-    {
-      return load();
+      return *data;
     }
 
     explicit constexpr operator bool() const noexcept
@@ -83,40 +75,20 @@ inline namespace memory
       return data;
     }
 
-    constexpr auto load() const noexcept -> const_reference
-    {
-      assert(data);
-      return *data;
-    }
-
-    constexpr auto load() noexcept -> reference
-    {
-      assert(data);
-      return *data;
-    }
-
     auto reset(pointer const p = nullptr) noexcept -> pointer
     {
       return data = p;
     }
-
-    auto store(simple_pointer const& x) noexcept -> auto &
-    {
-      data = x.get();
-      return *this;
-    }
   };
 
   template <typename T, typename U>
-  constexpr auto operator ==(simple_pointer<T> const& x,
-                             simple_pointer<U> const& y)
+  constexpr auto operator ==(simple_pointer<T> const& x, simple_pointer<U> const& y)
   {
     return x.get() == y.get();
   }
 
   template <typename T, typename U>
-  constexpr auto operator !=(simple_pointer<T> const& x,
-                             simple_pointer<U> const& y)
+  constexpr auto operator !=(simple_pointer<T> const& x, simple_pointer<U> const& y)
   {
     return x.get() != y.get();
   }

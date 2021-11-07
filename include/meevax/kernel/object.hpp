@@ -26,14 +26,12 @@ inline namespace kernel
   template <typename T>
   struct top
   {
-    using let = heterogeneous<cell, T>;
-
     virtual auto type() const noexcept -> std::type_info const&
     {
       return typeid(T);
     }
 
-    virtual auto compare(let const& x) const -> bool
+    virtual auto compare(heterogeneous<gc_pointer, T> const& x) const -> bool
     {
       if constexpr (is_equality_comparable<T>::value)
       {
@@ -52,81 +50,10 @@ inline namespace kernel
       }
     }
 
-    virtual auto is_nan() const -> bool
-    {
-      return delay<is_nan_t>().yield<bool>(static_cast<T const&>(*this));
-    }
-
     virtual auto write(std::ostream & os) const -> std::ostream &
     {
       return delay<write_t>().yield<std::ostream &>(os, static_cast<T const&>(*this));
     }
-
-    #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                               \
-    virtual auto operator SYMBOL(let const& x) const -> RESULT                 \
-    {                                                                          \
-      return delay<FUNCTOR>().yield<RESULT>(static_cast<T const&>(*this), x);  \
-    }                                                                          \
-    static_assert(true)
-
-    BOILERPLATE(+, let, addition);
-    BOILERPLATE(-, let, subtraction);
-    BOILERPLATE(*, let, multiplication);
-    BOILERPLATE(/, let, division);
-    BOILERPLATE(%, let, modulo);
-
-    BOILERPLATE(!=, bool, std::not_equal_to <void>);
-    BOILERPLATE(<,  bool, std::less         <void>);
-    BOILERPLATE(<=, bool, std::less_equal   <void>);
-    BOILERPLATE(==, bool, std::equal_to     <void>);
-    BOILERPLATE(>,  bool, std::greater      <void>);
-    BOILERPLATE(>=, bool, std::greater_equal<void>);
-
-    #undef BOILERPLATE
-
-    #define DEFINE(NAME)                                                       \
-    virtual auto NAME() const -> let                                           \
-    {                                                                          \
-      return delay<NAME##_t>().yield<let>(static_cast<T const&>(*this));       \
-    }                                                                          \
-    static_assert(true)
-
-    DEFINE(exact);
-    DEFINE(inexact);
-
-    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
-    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
-    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
-
-    DEFINE(floor);
-    DEFINE(ceil);
-    DEFINE(trunc);
-    DEFINE(round);
-
-    #undef DEFINE
-
-    #define DEFINE(NAME)                                                       \
-    virtual auto NAME(let const& x) const -> let                               \
-    {                                                                          \
-      return delay<NAME##_t>().yield<let>(static_cast<T const&>(*this), x);    \
-    }                                                                          \
-    static_assert(true)
-
-    DEFINE(atan2);
-    DEFINE(pow);
-
-    #undef DEFINE
-
-    #define PREDICATE(NAME)                                                    \
-    virtual auto NAME() const -> bool                                          \
-    {                                                                          \
-      return delay<NAME##_t>().yield<bool>(static_cast<T const&>(*this));      \
-    }                                                                          \
-    static_assert(true)
-
-    PREDICATE(is_integer);
-
-    #undef PREDICATE
   };
 
   template <typename T, typename... Ts>

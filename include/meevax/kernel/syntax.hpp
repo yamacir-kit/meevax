@@ -27,7 +27,7 @@
     [[maybe_unused]] environment & current_environment,                        \
     [[maybe_unused]] const_reference expression,                               \
     [[maybe_unused]] const_reference frames,                                   \
-    [[maybe_unused]] const_reference continuation) -> object
+    [[maybe_unused]] const_reference current_continuation) -> object
 
 namespace meevax
 {

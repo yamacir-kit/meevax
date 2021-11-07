@@ -14,23 +14,28 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_FUNCTIONAL_SUBTRACTION_HPP
-#define INCLUDED_MEEVAX_FUNCTIONAL_SUBTRACTION_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_PROFILER_HPP
+#define INCLUDED_MEEVAX_KERNEL_PROFILER_HPP
 
-#include <functional>
-#include <ostream>
+#include <typeindex>
+#include <unordered_map>
 
 namespace meevax
 {
-inline namespace functional
+inline namespace kernel
 {
-  struct subtraction : public std::minus<void>
-  {};
+  struct topic
+  {
+    std::size_t allocation = 0;
+  };
 
-  auto operator <<(std::ostream &, subtraction const&) -> std::ostream &;
+  struct profiler : public std::unordered_map<std::type_index, topic>
+  {
+    ~profiler();
+  };
 
-  constexpr subtraction subtract, sub;
-} // namespace functional
+  auto current_profiler() -> profiler &;
+} // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_FUNCTIONAL_SUBTRACTION_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_PROFILER_HPP

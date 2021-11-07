@@ -17,14 +17,15 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_COMPLEX_HPP
 #define INCLUDED_MEEVAX_KERNEL_COMPLEX_HPP
 
+#include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct complex
-    : public virtual pair
+  struct complex : public number
+                 , public virtual pair
   {
     using pair::pair;
 
@@ -36,22 +37,47 @@ inline namespace kernel
 
     auto imag() noexcept -> reference;
 
-    // friend auto operator +(const complex& lhs, const complex& rhs)
-    // {
-    //   return
-    //     make<complex>(
-    //       lhs.real() + rhs.real(),
-    //       lhs.imag() + rhs.imag());
-    // }
-    //
-    // template <typename T>
-    // friend auto operator +(const complex& lhs, T&& rhs)
-    // {
-    //   return
-    //     make<complex>(
-    //       lhs.real() + rhs,
-    //       lhs.imag());
-    // }
+    #define DEFINE(NAME)                                                       \
+    auto NAME() const -> object override                                       \
+    {                                                                          \
+      return unspecified_object;                                               \
+    }                                                                          \
+    static_assert(true)
+
+    DEFINE(exact); DEFINE(inexact);
+
+    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
+    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
+    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
+
+    DEFINE(floor); DEFINE(ceil); DEFINE(trunc); DEFINE(round);
+
+    #undef DEFINE
+
+    #define DEFINE(NAME)                                                       \
+    auto NAME(const_reference) const -> object override                        \
+    {                                                                          \
+      return unspecified_object;                                               \
+    }                                                                          \
+    static_assert(true)
+
+    DEFINE(atan2);
+    DEFINE(pow);
+
+    #undef DEFINE
+
+    auto operator + (const_reference) const -> object override { return unspecified_object; }
+    auto operator - (const_reference) const -> object override { return unspecified_object; }
+    auto operator * (const_reference) const -> object override { return unspecified_object; }
+    auto operator / (const_reference) const -> object override { return unspecified_object; }
+    auto operator % (const_reference) const -> object override { return unspecified_object; }
+
+    auto operator ==(const_reference) const -> bool override { return false; };
+    auto operator !=(const_reference) const -> bool override { return false; };
+    auto operator < (const_reference) const -> bool override { return false; };
+    auto operator <=(const_reference) const -> bool override { return false; };
+    auto operator > (const_reference) const -> bool override { return false; };
+    auto operator >=(const_reference) const -> bool override { return false; };
   };
 
   auto operator <<(std::ostream &, complex const&) -> std::ostream &;

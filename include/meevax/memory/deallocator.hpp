@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_DEALLOCATOR_HPP
 #define INCLUDED_MEEVAX_MEMORY_DEALLOCATOR_HPP
 
-#include <meevax/memory/pointer.hpp>
+#include <type_traits>
 
 namespace meevax
 {
@@ -26,11 +26,19 @@ inline namespace memory
   template <typename T>
   struct deallocator
   {
-    using signature = void (*)(pointer<void> const);
+    using signature = void (*)(void const* const);
 
-    static void deallocate(pointer<void> const p)
+    static void deallocate(void const* const p)
     {
-      delete static_cast<const pointer<const T>>(p);
+      if constexpr (std::is_pointer<T>::value)
+      {
+        using element_type = typename std::pointer_traits<T>::element_type;
+        delete static_cast<element_type const* const>(p);
+      }
+      else
+      {
+        delete static_cast<T const* const>(p);
+      }
     }
   };
 } // namespace memory

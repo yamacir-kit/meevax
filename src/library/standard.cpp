@@ -97,11 +97,11 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("number?",   [](let const& xs) { return is_number  (car(xs)) ? t : f; });
-    define<procedure>("complex?",  [](let const& xs) { return is_complex (car(xs)) ? t : f; });
-    define<procedure>("real?",     [](let const& xs) { return is_real    (car(xs)) ? t : f; });
-    define<procedure>("rational?", [](let const& xs) { return is_rational(car(xs)) ? t : f; });
-    define<procedure>("integer?",  [](let const& xs) { return car(xs).is_integer() ? t : f; });
+    define<procedure>("number?",   [](let const& xs) { return car(xs).is_also<number>() ? t : f; });
+    define<procedure>("complex?",  [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_complex () ? t : f; });
+    define<procedure>("real?",     [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_real    () ? t : f; });
+    define<procedure>("rational?", [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_rational() ? t : f; });
+    define<procedure>("integer?",  [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_integer () ? t : f; });
 
     define<procedure>("%complex?",     is<complex     >());
     define<procedure>("ratio?",        is<ratio       >());
@@ -159,11 +159,12 @@ namespace meevax
       return std::adjacent_find(                                               \
                std::begin(xs), std::end(xs), [](let const& a, let const& b)    \
                {                                                               \
-                 return not COMPARE(a.load(), b);                              \
+                 return not COMPARE(a.as<number>(), b);                        \
                }) == std::end(xs) ? t : f;                                     \
     })
 
     DEFINE(= , std::equal_to     <void>());
+    DEFINE(!=, std::not_equal_to <void>());
     DEFINE(< , std::less         <void>());
     DEFINE(<=, std::less_equal   <void>());
     DEFINE(> , std::greater      <void>());
@@ -180,8 +181,8 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("+", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e0, add); });
-    define<procedure>("*", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e1, mul); });
+    define<procedure>("+", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e0, [](let const& a, let const& b) { return a.as<number>() + b; }); });
+    define<procedure>("*", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e1, [](let const& a, let const& b) { return a.as<number>() * b; }); });
 
     /* -------------------------------------------------------------------------
      *
@@ -210,10 +211,15 @@ namespace meevax
         throw invalid_application(intern(SYMBOL) | xs);                        \
                                                                                \
       case 1:                                                                  \
-        return FUNCTION(BASIS, car(xs));                                       \
+        return FUNCTION(BASIS.as<number>(), car(xs));                          \
                                                                                \
       default:                                                                 \
-        return std::accumulate(std::next(std::begin(xs)), std::end(xs), car(xs), FUNCTION); \
+        return std::accumulate(                                                \
+                 std::next(std::begin(xs)), std::end(xs), car(xs),             \
+                 [](let const& a, let const& b)                                \
+                 {                                                             \
+                   return FUNCTION(a.as<number>(), b);                         \
+                 });                                                           \
       }                                                                        \
     })
 
@@ -239,25 +245,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("floor", [](let const& xs)
-    {
-      return car(xs).floor();
-    });
-
-    define<procedure>("ceiling", [](let const& xs)
-    {
-      return car(xs).ceil();
-    });
-
-    define<procedure>("truncate", [](let const& xs)
-    {
-      return car(xs).trunc();
-    });
-
-    define<procedure>("round", [](let const& xs)
-    {
-      return car(xs).round();
-    });
+    define<procedure>("floor",    [](let const& xs) { return car(xs).as<number>().floor(); });
+    define<procedure>("ceiling",  [](let const& xs) { return car(xs).as<number>().ceil();  });
+    define<procedure>("truncate", [](let const& xs) { return car(xs).as<number>().trunc(); });
+    define<procedure>("round",    [](let const& xs) { return car(xs).as<number>().round(); });
 
     /* -------------------------------------------------------------------------
      *
@@ -274,7 +265,7 @@ namespace meevax
 
     define<procedure>("expt", [](let const& xs)
     {
-      return car(xs).pow(cadr(xs));
+      return car(xs).as<number>().pow(cadr(xs));
     });
 
     /* -------------------------------------------------------------------------
@@ -313,15 +304,8 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("exact", [](auto&& xs)
-    {
-      return car(xs).exact();
-    });
-
-    define<procedure>("inexact", [](auto&& xs)
-    {
-      return car(xs).inexact();
-    });
+    define<procedure>(  "exact", [](let const& xs) { return car(xs).as<number>().exact  (); });
+    define<procedure>("inexact", [](let const& xs) { return car(xs).as<number>().inexact(); });
 
     /* -------------------------------------------------------------------------
      *
@@ -852,7 +836,7 @@ namespace meevax
       switch (length(xs))
       {
       case 1:
-        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), unspecified);
+        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), unspecified_object);
 
       case 2:
         return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), cadr(xs));
@@ -997,22 +981,22 @@ namespace meevax
 
     // define<procedure>("string->vector", [](auto&& xs)
     // {
-    //   return unspecified;
+    //   return unspecified_object;
     // });
 
     // define<procedure>("vector-copy", [](auto&& xs)
     // {
-    //   return unspecified;
+    //   return unspecified_object;
     // });
 
     // define<procedure>("vector-copy!", [](auto&& xs)
     // {
-    //   return unspecified;
+    //   return unspecified_object;
     // });
 
     // define<procedure>("vector-append", [](auto&& xs)
     // {
-    //   return unspecified;
+    //   return unspecified_object;
     // });
 
     /* -------------------------------------------------------------------------
@@ -1046,7 +1030,7 @@ namespace meevax
         throw invalid_application(intern("vector-fill!") | xs);
       }
 
-      return unspecified;
+      return unspecified_object;
     });
 
     /* -------------------------------------------------------------------------
@@ -1076,10 +1060,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("default-exception-handler", [](let const& xs)
+    define<procedure>("default-exception-handler", [](let const& xs) -> object
     {
       throw car(xs);
-      return unspecified;
     });
 
     /* -------------------------------------------------------------------------
@@ -1249,7 +1232,7 @@ namespace meevax
         x.as<std::ifstream>().close();
       }
 
-      return unspecified;
+      return unspecified_object;
     });
 
     define<procedure>("close-output-port", [](let const& xs)
@@ -1259,7 +1242,7 @@ namespace meevax
         x.as<std::ofstream>().close();
       }
 
-      return unspecified;
+      return unspecified_object;
     });
 
     /* -------------------------------------------------------------------------
@@ -1482,7 +1465,7 @@ namespace meevax
     define<procedure>("put-char", [](let const& xs)
     {
       cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
-      return unspecified;
+      return unspecified_object;
     });
 
     /* -------------------------------------------------------------------------
@@ -1512,7 +1495,7 @@ namespace meevax
         throw invalid_application(intern("write-string") | xs);
       }
 
-      return unspecified;
+      return unspecified_object;
     });
 
     /* -------------------------------------------------------------------------
@@ -1528,7 +1511,7 @@ namespace meevax
     define<procedure>("%flush-output-port", [](let const& xs)
     {
       car(xs).as<std::ostream>() << std::flush;
-      return unspecified;
+      return unspecified_object;
     });
 
     /* -------------------------------------------------------------------------
@@ -1672,6 +1655,36 @@ namespace meevax
   {
     /* -------------------------------------------------------------------------
      *
+     *  (finite? z)                                   inexact library procedure
+     *
+     *  The finite? procedure returns #t on all real numbers except +inf.0,
+     *  -inf.0, and +nan.0, and on complex numbers if their real and imaginary
+     *  parts are both finite. Otherwise it returns #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("finite?", [](let const& xs)
+    {
+      return car(xs).as<number>().is_finite() ? t : f;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (infinite? z)                                 inexact library procedure
+     *
+     *  The infinite? procedure returns #t on the real numbers +inf.0 and
+     *  -inf.0, and on complex numbers if their real or imaginary parts or both
+     *  are infinite. Otherwise it returns #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("infinite?", [](let const& xs)
+    {
+      return car(xs).as<number>().is_infinite() ? t : f;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
      *  (nan? z)                                      inexact library procedure
      *
      *  The nan? procedure returns #t on +nan.0, and on complex numbers if
@@ -1680,50 +1693,50 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("nan?", [](auto&& xs)
+    define<procedure>("nan?", [](let const& xs)
     {
-      return car(xs).is_nan() ? t : f;
+      return car(xs).is_also<number>() and car(xs).as<number>().is_nan() ? t : f;
     });
 
-    define<procedure>("exp",    [](let const& xs) { return car(xs).exp();  });
-    define<procedure>("sqrt",   [](let const& xs) { return car(xs).sqrt(); });
+    define<procedure>("exp",    [](let const& xs) { return car(xs).as<number>().exp();  });
+    define<procedure>("sqrt",   [](let const& xs) { return car(xs).as<number>().sqrt(); });
 
     define<procedure>("log", [](let const& xs)
     {
       switch (length(xs))
       {
       case 1:
-        return car(xs).log();
+        return car(xs).as<number>().log();
 
       case 2:
-        return car(xs).log() / cadr(xs).log();
+        return car(xs).as<number>().log().as<number>() / cadr(xs).as<number>().log();
 
       default:
         throw invalid_application(intern("log") | xs);
       }
     });
 
-    define<procedure>("sin",    [](let const& xs) { return car(xs).sin();   });
-    define<procedure>("cos",    [](let const& xs) { return car(xs).cos();   });
-    define<procedure>("tan",    [](let const& xs) { return car(xs).tan();   });
-    define<procedure>("asin",   [](let const& xs) { return car(xs).asin();  });
-    define<procedure>("acos",   [](let const& xs) { return car(xs).acos();  });
-    define<procedure>("sinh",   [](let const& xs) { return car(xs).sinh();  });
-    define<procedure>("cosh",   [](let const& xs) { return car(xs).cosh();  });
-    define<procedure>("tanh",   [](let const& xs) { return car(xs).tanh();  });
-    define<procedure>("asinh",  [](let const& xs) { return car(xs).asinh(); });
-    define<procedure>("acosh",  [](let const& xs) { return car(xs).acosh(); });
-    define<procedure>("atanh",  [](let const& xs) { return car(xs).atanh(); });
+    define<procedure>("sin",    [](let const& xs) { return car(xs).as<number>().sin();   });
+    define<procedure>("cos",    [](let const& xs) { return car(xs).as<number>().cos();   });
+    define<procedure>("tan",    [](let const& xs) { return car(xs).as<number>().tan();   });
+    define<procedure>("asin",   [](let const& xs) { return car(xs).as<number>().asin();  });
+    define<procedure>("acos",   [](let const& xs) { return car(xs).as<number>().acos();  });
+    define<procedure>("sinh",   [](let const& xs) { return car(xs).as<number>().sinh();  });
+    define<procedure>("cosh",   [](let const& xs) { return car(xs).as<number>().cosh();  });
+    define<procedure>("tanh",   [](let const& xs) { return car(xs).as<number>().tanh();  });
+    define<procedure>("asinh",  [](let const& xs) { return car(xs).as<number>().asinh(); });
+    define<procedure>("acosh",  [](let const& xs) { return car(xs).as<number>().acosh(); });
+    define<procedure>("atanh",  [](let const& xs) { return car(xs).as<number>().atanh(); });
 
     define<procedure>("atan", [](let const& xs)
     {
       switch (length(xs))
       {
       case 1:
-        return car(xs).atan();
+        return car(xs).as<number>().atan();
 
       case 2:
-        return car(xs).atan2(cadr(xs));
+        return car(xs).as<number>().atan2(cadr(xs));
 
       default:
         throw invalid_application(intern("atan") | xs);
@@ -1876,7 +1889,7 @@ namespace meevax
     define<procedure>("%write-simple", [this](let const& xs)
     {
       write(cadr(xs), car(xs));
-      return unspecified;
+      return unspecified_object;
     });
   }
 

@@ -23,19 +23,19 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct unspecified_t
+  struct unspecified
   {};
 
-  auto operator <<(std::ostream &, unspecified_t const&) -> std::ostream &;
+  auto operator <<(std::ostream &, unspecified const&) -> std::ostream &;
 
-  extern let const unspecified;
+  extern let const unspecified_object;
 
-  struct undefined_t
+  struct undefined
   {};
 
-  auto operator <<(std::ostream &, undefined_t const&) -> std::ostream &;
+  auto operator <<(std::ostream &, undefined const&) -> std::ostream &;
 
-  extern let const undefined;
+  extern let const undefined_object;
 } // namespace kernel
 } // namespace meevax
 

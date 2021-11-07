@@ -17,8 +17,8 @@ auto main() -> int
   assert(eos_object.is<eos>());
   assert(f.is<boolean>());
   assert(t.is<boolean>());
-  assert(undefined.is<undefined_t>());
-  assert(unspecified.is<unspecified_t>());
+  assert(undefined_object.is<undefined>());
+  assert(unspecified_object.is<unspecified>());
 
   const auto gc_count = gc.count();
   assert(gc_count == constants.size() + specials_count);
@@ -30,7 +30,7 @@ auto main() -> int
   environment::symbols.clear();
 
   gc.collect();
-  gc.collect();
+  gc.collect(); // for vector type
 
   assert(environment::symbols.empty());
   assert(gc_count == gc.count());

@@ -68,11 +68,10 @@ inline namespace kernel
             return debug = t;
           }),
 
-          std::make_pair('h', [this](auto&&...)
+          std::make_pair('h', [this](auto&&...) -> object
           {
             display_help();
             throw exit_status::success;
-            return unspecified;
           }),
 
           std::make_pair('i', [this](auto&&...)
@@ -80,11 +79,10 @@ inline namespace kernel
             return interactive = t;
           }),
 
-          std::make_pair('v', [this](auto&&...)
+          std::make_pair('v', [this](auto&&...) -> object
           {
             display_version();
             throw exit_status::success;
-            return unspecified;
           }),
         }
 
@@ -92,7 +90,7 @@ inline namespace kernel
         {
           std::make_pair('e', [this](const_reference x)
           {
-            return print(evaluate(x)), unspecified;
+            return print(evaluate(x)), unspecified_object;
           }),
 
           std::make_pair('l', [this](const_reference x)
@@ -102,7 +100,7 @@ inline namespace kernel
 
           std::make_pair('w', [this](const_reference x)
           {
-            return print(x), unspecified;
+            return print(x), unspecified_object;
           }),
         }
 
@@ -118,11 +116,10 @@ inline namespace kernel
             return debug = t;
           }),
 
-          std::make_pair("help", [this](auto&&...)
+          std::make_pair("help", [this](auto&&...) -> object
           {
             display_help();
             throw exit_status::success;
-            return unspecified;
           }),
 
           std::make_pair("interactive", [this](auto&&...)
@@ -140,13 +137,12 @@ inline namespace kernel
             return verbose = t;
           }),
 
-          std::make_pair("version", [this](auto&&...)
+          std::make_pair("version", [this](auto&&...) -> object
           {
             display_version();
             print();
             display_license();
             throw exit_status::success;
-            return unspecified;
           }),
         }
 
@@ -154,7 +150,7 @@ inline namespace kernel
         {
           std::make_pair("evaluate", [this](const_reference x)
           {
-            return print(evaluate(x)), unspecified;
+            return print(evaluate(x)), unspecified_object;
           }),
 
           std::make_pair("load", [this](const_reference x)
@@ -169,7 +165,7 @@ inline namespace kernel
 
           std::make_pair("write", [this](const_reference x)
           {
-            return print(x), unspecified;
+            return print(x), unspecified_object;
           }),
         }
     {}
@@ -218,7 +214,7 @@ inline namespace kernel
               }
               else
               {
-                throw error(make<string>(string_append("option -", name, " requires an argument")));
+                throw error(make<string>(cat, "option -", name, " requires an argument"));
               }
             }
             else if (auto iter = short_options.find(*current_short_option); iter != std::end(short_options))
@@ -227,7 +223,7 @@ inline namespace kernel
             }
             else
             {
-              throw error(make<string>(string_append("unknown short-option -", *current_short_option)));
+              throw error(make<string>(cat, "unknown short-option -", *current_short_option));
             }
           }
         }
@@ -245,7 +241,7 @@ inline namespace kernel
             }
             else
             {
-              throw error(make<string>(string_append("option --", current_long_option, " requires an argument")));
+              throw error(make<string>(cat, "option --", current_long_option, " requires an argument"));
             }
           }
           else if (auto iter = long_options.find(current_long_option); iter != std::end(long_options))
@@ -254,7 +250,7 @@ inline namespace kernel
           }
           else
           {
-            throw error(make<string>(string_append("unknown long-option: ", *current_option)));
+            throw error(make<string>(cat, "unknown long-option: ", *current_option));
           }
         }
         else
@@ -262,7 +258,7 @@ inline namespace kernel
           return load(*current_option);
         }
 
-        return unspecified;
+        return unspecified_object;
       }();
     }
 

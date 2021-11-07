@@ -17,12 +17,12 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
 #define INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
 
-#include <meevax/functional/identity.hpp>
-#include <meevax/memory/cell.hpp>
-#include <meevax/string/append.hpp>
+#include <meevax/memory/gc_pointer.hpp>
 #include <meevax/type_traits/requires.hpp>
 
 #define NIL /* nothing */
+
+#define PROFILE_ALLOCATION false
 
 namespace meevax
 {
@@ -44,15 +44,52 @@ inline namespace kernel
   template <template <typename...> typename Pointer, typename T>
   class heterogeneous;
 
-  using                         object = heterogeneous<cell, pair>;
+  using                         object = heterogeneous<gc_pointer, pair>;
   using                   let = object;
-  using       reference = let      &;
+  using       reference = let &;
   using const_reference = let const&;
 
   using null = std::nullptr_t;
 
-  template <typename... Ts>
-  using define [[deprecated]] = typename identity<Ts...>::type;
+  struct number
+  {
+    #define DEFINE(NAME) virtual auto NAME() const -> object = 0
+
+    DEFINE(exact); DEFINE(inexact);
+
+    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
+    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
+    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
+
+    DEFINE(floor); DEFINE(ceil); DEFINE(trunc); DEFINE(round);
+
+    #undef DEFINE
+
+    virtual auto atan2(const_reference) const -> object = 0;
+    virtual auto pow  (const_reference) const -> object = 0;
+
+    virtual auto is_complex () const -> bool { return true ; }
+    virtual auto is_real    () const -> bool { return false; }
+    virtual auto is_rational() const -> bool { return false; }
+    virtual auto is_integer () const -> bool { return false; }
+
+    virtual auto is_finite  () const -> bool { return true ; }
+    virtual auto is_infinite() const -> bool { return false; }
+    virtual auto is_nan     () const -> bool { return false; }
+
+    virtual auto operator + (const_reference) const -> object = 0;
+    virtual auto operator - (const_reference) const -> object = 0;
+    virtual auto operator * (const_reference) const -> object = 0;
+    virtual auto operator / (const_reference) const -> object = 0;
+    virtual auto operator % (const_reference) const -> object = 0;
+
+    virtual auto operator ==(const_reference) const -> bool = 0;
+    virtual auto operator !=(const_reference) const -> bool = 0;
+    virtual auto operator < (const_reference) const -> bool = 0;
+    virtual auto operator <=(const_reference) const -> bool = 0;
+    virtual auto operator > (const_reference) const -> bool = 0;
+    virtual auto operator >=(const_reference) const -> bool = 0;
+  };
 
   [[noreturn]]
   auto raise(std::string const&) -> void; // error.hpp

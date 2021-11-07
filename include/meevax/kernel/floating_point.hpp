@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 #define INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 
+#include <cmath>
+
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ratio.hpp>
@@ -26,7 +28,8 @@ namespace meevax
 inline namespace kernel
 {
   template <typename T>
-  struct floating_point : public std::numeric_limits<T>
+  struct floating_point : public number
+                        , public std::numeric_limits<T>
   {
     using value_type = T;
 
@@ -44,7 +47,7 @@ inline namespace kernel
       throw read_error(make<string>("not a decimal"), make<string>(token));
     }
 
-    auto exact() const -> object
+    auto exact() const -> object override
     {
       /* ---- R7RS 6.2.6 (exact z) ---------------------------------------------
        *
@@ -59,9 +62,39 @@ inline namespace kernel
       return ratio(value).simple();
     }
 
-    auto is_integer() const noexcept
+    auto is_complex() const noexcept -> bool override
+    {
+      return true;
+    }
+
+    auto is_real() const noexcept -> bool override
+    {
+      return true;
+    }
+
+    auto is_rational() const noexcept -> bool override
+    {
+      return not is_nan() and is_finite();
+    }
+
+    auto is_integer() const noexcept -> bool override
     {
       return value == std::trunc(value);
+    }
+
+    auto is_finite() const -> bool override
+    {
+      return not std::isinf(value);
+    }
+
+    auto is_infinite() const -> bool override
+    {
+      return std::isinf(value);
+    }
+
+    auto is_nan() const -> bool override
+    {
+      return std::isnan(value);
     }
 
     // TODO TEMPLATE SPECIALIZATION to<std::string>()
@@ -70,13 +103,13 @@ inline namespace kernel
       return lexical_cast<std::string>(value);
     }
 
-    auto inexact() const noexcept
+    auto inexact() const -> object override
     {
       return make(floating_point<double>(value));
     }
 
     #define DEFINE(NAME)                                                       \
-    auto NAME() const                                                          \
+    auto NAME() const -> object override                                       \
     {                                                                          \
       return make(floating_point(std::NAME(value)));                           \
     }                                                                          \
@@ -94,9 +127,9 @@ inline namespace kernel
     #undef DEFINE
 
     #define DEFINE(NAME)                                                       \
-    auto NAME(const_reference x) const                                         \
+    auto NAME(const_reference x) const -> object override                      \
     {                                                                          \
-      return make(floating_point(std::NAME(value, x.inexact().as<double_float>()))); \
+      return make(floating_point(std::NAME(value, x.as<number>().inexact().as<double_float>()))); \
     }                                                                          \
     static_assert(true)
 
@@ -107,6 +140,19 @@ inline namespace kernel
 
     constexpr operator value_type() const noexcept { return value; }
     constexpr operator value_type()       noexcept { return value; }
+
+    auto operator + (const_reference) const -> object override;
+    auto operator - (const_reference) const -> object override;
+    auto operator * (const_reference) const -> object override;
+    auto operator / (const_reference) const -> object override;
+    auto operator % (const_reference) const -> object override;
+
+    auto operator ==(const_reference) const -> bool override;
+    auto operator !=(const_reference) const -> bool override;
+    auto operator < (const_reference) const -> bool override;
+    auto operator <=(const_reference) const -> bool override;
+    auto operator > (const_reference) const -> bool override;
+    auto operator >=(const_reference) const -> bool override;
   };
 
   template <typename T>

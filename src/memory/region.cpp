@@ -20,14 +20,17 @@ namespace meevax
 {
 inline namespace memory
 {
-  region::region(pointer<void> const base, std::size_t const size)
+  region::region(void const* const base, std::size_t const size)
     : base { base }
     , size { size }
   {}
 
   region::~region()
   {
-    release();
+    if (size)
+    {
+      release();
+    }
   }
 
   auto region::assigned() const noexcept -> bool
@@ -40,14 +43,9 @@ inline namespace memory
     return lower_bound() <= k and k < upper_bound();
   }
 
-  auto region::contains(pointer<void> const derived) const noexcept -> bool
+  auto region::contains(void const* const derived) const noexcept -> bool
   {
     return contains(reinterpret_cast<std::uintptr_t>(derived));
-  }
-
-  auto region::lower_bound() const noexcept -> std::uintptr_t
-  {
-    return reinterpret_cast<std::uintptr_t>(base);
   }
 
   auto region::release() -> void
@@ -55,27 +53,15 @@ inline namespace memory
     if (assigned())
     {
       deallocate(derived);
+      reset();
     }
-
-    reset(nullptr, nullptr);
-
-    size = 0;
   }
 
-  auto region::reset(pointer<void> const x, deallocator<void>::signature const f) noexcept -> pointer<region>
+  auto region::reset(void const* const x, deallocator<void>::signature const f) noexcept -> region *
   {
-    if (not assigned())
-    {
-      derived = x;
-      deallocate = f;
-    }
-
+    derived = x;
+    deallocate = f;
     return this;
-  }
-
-  auto region::upper_bound() const noexcept -> std::uintptr_t
-  {
-    return lower_bound() + size;
   }
 } // namespace memory
 } // namespace meevax

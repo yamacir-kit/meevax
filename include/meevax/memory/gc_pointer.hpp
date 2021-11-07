@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_CELL_HPP
-#define INCLUDED_MEEVAX_MEMORY_CELL_HPP
+#ifndef INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
+#define INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 
 #include <meevax/memory/collector.hpp>
 #include <meevax/memory/simple_pointer.hpp>
@@ -25,47 +25,42 @@ namespace meevax
 inline namespace memory
 {
   template <typename T>
-  struct cell
+  struct gc_pointer
     : public simple_pointer<T>
-    , private collector::object
+    , private collector::interior
   {
-    explicit cell(std::nullptr_t = nullptr)
+    explicit gc_pointer(std::nullptr_t = nullptr)
     {}
 
-    explicit cell(simple_pointer<T> const& datum)
+    explicit gc_pointer(simple_pointer<T> const& datum)
       : simple_pointer<T> { datum }
-      , collector::object { simple_pointer<T>::get() }
+      , collector::interior { datum.get() }
     {}
 
-    explicit cell(cell const& datum)
+    explicit gc_pointer(gc_pointer const& datum)
       : simple_pointer<T> { datum.get() }
-      , collector::object { simple_pointer<T>::get() }
+      , collector::interior { datum.get() }
     {}
 
-    auto operator =(cell const& another) -> auto &
+    auto operator =(gc_pointer const& p) -> auto &
     {
-      return store(another);
-    }
-
-    void reset(const_pointer<T> data = nullptr)
-    {
-      collector::object::reset(simple_pointer<T>::reset(data));
-    }
-
-    auto store(cell const& another) -> auto &
-    {
-      reset(another.get());
+      reset(p.get());
       return *this;
     }
 
-    void swap(cell & another)
+    void reset(T * const data = nullptr)
+    {
+      collector::interior::reset(simple_pointer<T>::reset(data));
+    }
+
+    void swap(gc_pointer & p)
     {
       auto const copy = simple_pointer<T>::get();
-      reset(another.get());
-      another.reset(copy);
+      reset(p.get());
+      p.reset(copy);
     }
   };
 } // namespace memory
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_MEMORY_CELL_HPP
+#endif // INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP

@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
 
-#include <cstddef>
 #include <iterator> // std::begin, std::end, std::distance
 
 #include <meevax/kernel/pair.hpp>
@@ -26,7 +25,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct homoiconic_iterator : public std::reference_wrapper<const object>
+  struct iterator : public std::reference_wrapper<const object>
   {
     using iterator_category = std::forward_iterator_tag;
 
@@ -42,36 +41,36 @@ inline namespace kernel
 
     using size_type = std::size_t;
 
-    homoiconic_iterator(const_reference);
+    iterator(const_reference);
 
     auto operator *() const -> const_reference;
 
     auto operator ->() const -> pointer;
 
-    auto operator ++() -> homoiconic_iterator &;
+    auto operator ++() -> iterator &;
 
-    auto operator ++(int) -> homoiconic_iterator;
+    auto operator ++(int) -> iterator;
 
     explicit operator bool() const;
 
     auto unwrap() const noexcept -> const_reference;
   };
 
-  auto operator ==(homoiconic_iterator const&, homoiconic_iterator const&) noexcept -> bool;
+  auto operator ==(iterator const&, iterator const&) noexcept -> bool;
 
-  auto operator !=(homoiconic_iterator const&, homoiconic_iterator const&) noexcept -> bool;
+  auto operator !=(iterator const&, iterator const&) noexcept -> bool;
 } // namespace kernel
 } // namespace meevax
 
 namespace std
 {
-  auto begin(meevax::const_reference) -> meevax::homoiconic_iterator;
+  auto begin(meevax::const_reference) -> meevax::iterator;
 
-  auto cbegin(meevax::const_reference) -> meevax::homoiconic_iterator;
+  auto cbegin(meevax::const_reference) -> meevax::iterator;
 
-  auto cend(meevax::const_reference) -> meevax::homoiconic_iterator const&;
+  auto cend(meevax::const_reference) -> meevax::iterator const&;
 
-  auto end(meevax::const_reference) -> meevax::homoiconic_iterator const&;
+  auto end(meevax::const_reference) -> meevax::iterator const&;
 } // namespace std
 
 #endif // INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP

@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <cstddef>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/posix/vt10x.hpp>
@@ -26,29 +27,29 @@ inline namespace kernel
   {
     switch (value)
     {
-      case mnemonic::CALL:              return "CALL";
-      case mnemonic::CONS:              return "CONS";
-      case mnemonic::DEFINE:            return "DEFINE";
-      case mnemonic::DROP:              return "DROP";
-      case mnemonic::DUMMY:             return "DUMMY";
-      case mnemonic::FORK:              return "FORK";
-      case mnemonic::JOIN:              return "JOIN";
-      case mnemonic::LET_SYNTAX:        return "LET_SYNTAX";
-      case mnemonic::LOAD_ABSOLUTE:     return "LOAD_ABSOLUTE";
-      case mnemonic::LOAD_CLOSURE:      return "LOAD_CLOSURE";
-      case mnemonic::LOAD_CONSTANT:     return "LOAD_CONSTANT";
-      case mnemonic::LOAD_CONTINUATION: return "LOAD_CONTINUATION";
-      case mnemonic::LOAD_RELATIVE:     return "LOAD_RELATIVE";
-      case mnemonic::LOAD_VARIADIC:     return "LOAD_VARIADIC";
-      case mnemonic::RECURSIVE_CALL:    return "RECURSIVE_CALL";
-      case mnemonic::RETURN:            return "RETURN";
-      case mnemonic::SELECT:            return "SELECT";
-      case mnemonic::STOP:              return "STOP";
-      case mnemonic::STORE_ABSOLUTE:    return "STORE_ABSOLUTE";
-      case mnemonic::STORE_RELATIVE:    return "STORE_RELATIVE";
-      case mnemonic::STORE_VARIADIC:    return "STORE_VARIADIC";
-      case mnemonic::TAIL_CALL:         return "TAIL_CALL";
-      case mnemonic::TAIL_SELECT:       return "TAIL_SELECT";
+      case mnemonic::call:              return "call";
+      case mnemonic::cons:              return "cons";
+      case mnemonic::define:            return "define";
+      case mnemonic::drop:              return "drop";
+      case mnemonic::expand:            return "expand";
+      case mnemonic::extend:            return "extend";
+      case mnemonic::fork:              return "fork";
+      case mnemonic::join:              return "join";
+      case mnemonic::load_absolute:     return "load-absolute";
+      case mnemonic::load_closure:      return "load-closure";
+      case mnemonic::load_constant:     return "load-constant";
+      case mnemonic::load_continuation: return "load-continuation";
+      case mnemonic::load_relative:     return "load-relative";
+      case mnemonic::load_variadic:     return "load-variadic";
+      case mnemonic::recursive_call:    return "recursive-call";
+      case mnemonic::return_:           return "return";
+      case mnemonic::select:            return "select";
+      case mnemonic::stop:              return "stop";
+      case mnemonic::store_absolute:    return "store-absolute";
+      case mnemonic::store_relative:    return "store-relative";
+      case mnemonic::store_variadic:    return "store-variadic";
+      case mnemonic::tail_call:         return "tail-call";
+      case mnemonic::tail_select:       return "tail-select";
 
       default:
         throw std::logic_error(__func__);
@@ -57,20 +58,21 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, instruction const& datum) -> std::ostream &
   {
-    return os << underline << static_cast<std::string>(datum) << reset;
+    return os << '%' << static_cast<std::string>(datum);
   }
 
-  auto disassemble(std::ostream & os, const_reference c, std::size_t depth) -> std::ostream &
+  auto disassemble(std::ostream & os, const_reference c, std::size_t depth) -> void
   {
-    assert(0 < depth);
+    depth = std::clamp(depth, std::numeric_limits<std::size_t>::min(),
+                              std::numeric_limits<std::size_t>::max());
 
-    static std::size_t index = 0;
+    static std::size_t offset = 0;
 
-    index = (depth == 1 ? 0 : index + 1);
+    offset = (depth == 1 ? 0 : offset + 1);
 
     for (auto iter = std::cbegin(c); iter != std::cend(c); ++iter)
     {
-      os << faint << "; " << std::setw(4) << std::right << std::to_string(index) << "  " << reset;
+      os << faint << "; " << std::setw(4) << std::right << std::to_string(offset) << "  " << reset;
 
       if (iter == c)
       {
@@ -83,62 +85,56 @@ inline namespace kernel
 
       switch ((*iter).as<instruction>().value)
       {
-      case mnemonic::CALL:
-      case mnemonic::CONS:
-      case mnemonic::DROP:
-      case mnemonic::DUMMY:
-      case mnemonic::JOIN:
-      case mnemonic::RECURSIVE_CALL:
-      case mnemonic::TAIL_CALL:
+      case mnemonic::call:
+      case mnemonic::cons:
+      case mnemonic::drop:
+      case mnemonic::extend:
+      case mnemonic::join:
+      case mnemonic::recursive_call:
+      case mnemonic::tail_call:
         os << *iter << "\n";
-        ++index;
+        ++offset;
         break;
 
-      case mnemonic::RETURN:
-      case mnemonic::STOP:
-        os << *iter << magenta << "\t)\n" << reset;
-        ++index;
+      case mnemonic::return_:
+      case mnemonic::stop:
+        os << *iter << magenta << ")\n" << reset;
+        ++offset;
         break;
 
-      case mnemonic::FORK:
-      case mnemonic::LET_SYNTAX:
-      case mnemonic::LOAD_CONSTANT:
-      case mnemonic::LOAD_RELATIVE:
-      case mnemonic::LOAD_VARIADIC:
-      case mnemonic::STORE_RELATIVE:
-      case mnemonic::STORE_VARIADIC:
+      case mnemonic::define:
+      case mnemonic::expand:
+      case mnemonic::fork:
+      case mnemonic::load_absolute:
+      case mnemonic::load_constant:
+      case mnemonic::load_relative:
+      case mnemonic::load_variadic:
+      case mnemonic::store_absolute:
+      case mnemonic::store_relative:
+      case mnemonic::store_variadic:
         os << *iter << " " << *++iter << "\n";
-        index += 2;
+        offset += 2;
         break;
 
-      case mnemonic::DEFINE:
-      case mnemonic::LOAD_ABSOLUTE:
-      case mnemonic::STORE_ABSOLUTE:
-        os << *iter << " " << car(*++iter) << "\n";
-        index += 2;
-        break;
-
-      case mnemonic::LOAD_CLOSURE:
-      case mnemonic::LOAD_CONTINUATION:
+      case mnemonic::load_closure:
+      case mnemonic::load_continuation:
         os << *iter << "\n";
         disassemble(os, *++iter, depth + 1);
-        ++index;
+        ++offset;
         break;
 
-      case mnemonic::SELECT:
-      case mnemonic::TAIL_SELECT:
+      case mnemonic::select:
+      case mnemonic::tail_select:
         os << *iter << "\n";
         disassemble(os, *++iter, depth + 1);
         disassemble(os, *++iter, depth + 1);
-        ++index;
+        ++offset;
         break;
 
       default:
         assert(false);
       }
     }
-
-    return os;
   }
 
   static_assert(std::is_pod<instruction>::value);

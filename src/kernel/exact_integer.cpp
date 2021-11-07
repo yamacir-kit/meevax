@@ -33,9 +33,14 @@ inline namespace kernel
     mpz_init(value);
   }
 
-  exact_integer::exact_integer(exact_integer const& rhs) noexcept
+  exact_integer::exact_integer(value_type given) noexcept
   {
-    mpz_init_set(value, rhs.value);
+    mpz_init_set(value, given);
+  }
+
+  exact_integer::exact_integer(exact_integer const& given) noexcept
+  {
+    mpz_init_set(value, given.value);
   }
 
   exact_integer::exact_integer(exact_integer && rhs) noexcept
@@ -161,19 +166,19 @@ inline namespace kernel
     return make<double_float>(static_cast<double>(*this));
   }
 
-  auto exact_integer::is_integer() noexcept -> bool
+  auto exact_integer::is_integer() const -> bool
   {
     return true;
   }
 
   auto exact_integer::string(int radix) const -> std::string
   {
-    auto deallocate = [](pointer<char> data)
+    auto deallocate = [](char * data)
     {
-      using gmp_free_function = void (*)(pointer<void>, std::size_t);
+      using gmp_free_function = void (*)(void *, std::size_t);
       gmp_free_function current_free_function;
       mp_get_memory_functions(nullptr, nullptr, &current_free_function);
-      std::invoke(current_free_function, static_cast<pointer<void>>(data), std::strlen(data) + 1);
+      std::invoke(current_free_function, static_cast<void *>(data), std::strlen(data) + 1);
     };
 
     std::unique_ptr<char, decltype(deallocate)> result { mpz_get_str(nullptr, radix, value), deallocate };
@@ -227,7 +232,10 @@ inline namespace kernel
   #define DEFINE(NAME)                                                         \
   auto exact_integer::NAME(const_reference x) const -> object                  \
   {                                                                            \
-    if (const double_float n { std::NAME(static_cast<double>(*this), x.inexact().as<double_float>()) }; n.is_integer()) \
+    if (const double_float n {                                                 \
+          std::NAME(static_cast<double>(*this),                                \
+                    x.as<number>().inexact().as<double_float>())               \
+        }; n.is_integer())                                                     \
     {                                                                          \
       return make<exact_integer>(n.value);                                     \
     }                                                                          \

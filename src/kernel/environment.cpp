@@ -172,7 +172,7 @@ inline namespace kernel
         evaluate(e);
       }
 
-      return unspecified;
+      return unspecified_object;
     }
     else
     {
@@ -194,13 +194,13 @@ inline namespace kernel
     }
     else
     {
-      throw file_error(make<string>(string_append(__FILE__, ":", __LINE__, ":", __func__)), unit);
+      throw file_error(make<string>(cat, __FILE__, ":", __LINE__, ":", __func__));
     }
   }
 
   auto environment::macroexpand(const_reference keyword, const_reference form) -> object
   {
-    push(d, s, e, cons(make<instruction>(mnemonic::STOP), c)); // XXX ???
+    push(d, s, e, cons(make<instruction>(mnemonic::stop), c)); // XXX ???
 
     s = unit;
     e = cons(cons(keyword, cdr(form)), dynamic_environment());
