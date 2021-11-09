@@ -4,6 +4,11 @@
 
 (define fork/csc fork-with-current-syntactic-continuation)
 
+(define import
+  (fork/csc
+    (lambda (import . import-sets)
+      (list quote (cons 'import import-sets)))))
+
 (define define-syntax
   (fork/csc
     (lambda (define-syntax keyword . transformer)
