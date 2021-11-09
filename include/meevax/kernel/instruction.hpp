@@ -29,18 +29,18 @@ inline namespace kernel
     cons,              //
     define,            //
     drop,              //
-    expand,            //
     extend,            // a.k.a DUM
     fork,              //
     join,              //
+    let_syntax,        //
+    letrec,            // a.k.a RAP
+    letrec_syntax,     //
     load_absolute,     // a.k.a LDG
     load_closure,      // a.k.a LDF
     load_constant,     // a.k.a LDC
     load_continuation, //
     load_relative,     // a.k.a LDL
     load_variadic,     //
-    recursive_call,    // a.k.a RAP
-    recursive_expand,  //
     return_,           // a.k.a RTN
     select,            // a.k.a SEL
     stop,              //
@@ -54,6 +54,8 @@ inline namespace kernel
   struct instruction
   {
     const mnemonic value;
+
+    // TODO explicit instruction(std::string const&);
 
     explicit operator std::string() const;
   };

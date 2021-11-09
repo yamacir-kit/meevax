@@ -31,18 +31,18 @@ inline namespace kernel
       case mnemonic::cons:              return "cons";
       case mnemonic::define:            return "define";
       case mnemonic::drop:              return "drop";
-      case mnemonic::expand:            return "expand";
       case mnemonic::extend:            return "extend";
       case mnemonic::fork:              return "fork";
       case mnemonic::join:              return "join";
+      case mnemonic::let_syntax:        return "let-syntax";
+      case mnemonic::letrec:            return "letrec";
+      case mnemonic::letrec_syntax:     return "letrec-syntax";
       case mnemonic::load_absolute:     return "load-absolute";
       case mnemonic::load_closure:      return "load-closure";
       case mnemonic::load_constant:     return "load-constant";
       case mnemonic::load_continuation: return "load-continuation";
       case mnemonic::load_relative:     return "load-relative";
       case mnemonic::load_variadic:     return "load-variadic";
-      case mnemonic::recursive_call:    return "recursive-call";
-      case mnemonic::recursive_expand:  return "recursive-expand";
       case mnemonic::return_:           return "return";
       case mnemonic::select:            return "select";
       case mnemonic::stop:              return "stop";
@@ -91,7 +91,7 @@ inline namespace kernel
       case mnemonic::drop:
       case mnemonic::extend:
       case mnemonic::join:
-      case mnemonic::recursive_call:
+      case mnemonic::letrec:
       case mnemonic::tail_call:
         os << *iter << "\n";
         ++offset;
@@ -104,13 +104,13 @@ inline namespace kernel
         break;
 
       case mnemonic::define:
-      case mnemonic::expand:
       case mnemonic::fork:
+      case mnemonic::let_syntax:
+      case mnemonic::letrec_syntax:
       case mnemonic::load_absolute:
       case mnemonic::load_constant:
       case mnemonic::load_relative:
       case mnemonic::load_variadic:
-      case mnemonic::recursive_expand:
       case mnemonic::store_absolute:
       case mnemonic::store_relative:
       case mnemonic::store_variadic:
