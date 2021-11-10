@@ -106,13 +106,15 @@ public:
     {
       return reinterpret_cast<pointer>(std::exchange(recycled_chunk, recycled_chunk->next));
     }
-
-    if (not (*fresh_chunks).remaining())
+    else
     {
-      fresh_chunks = new chunks(fresh_chunks);
-    }
+      if (not (*fresh_chunks).remaining())
+      {
+        fresh_chunks = new chunks(fresh_chunks);
+      }
 
-    return (*fresh_chunks).pop();
+      return (*fresh_chunks).pop();
+    }
   }
 
   auto deallocate(pointer p, std::size_t = 1) -> void
