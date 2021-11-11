@@ -341,12 +341,6 @@ inline namespace kernel
         std::swap(c.as<pair>(), append(cadr(c).template as<syntactic_continuation>().apply(body), cddr(c)).template as<pair>());
         goto decode;
 
-      case mnemonic::letrec_syntax: /* -----------------------------------------
-        *
-        *
-        * ------------------------------------------------------------------- */
-        goto decode;
-
       case mnemonic::select: /* ------------------------------------------------
         *
         *  (<boolean> . s) e (%select c1 c2 . c) d => s e c' (c . d)
@@ -498,7 +492,7 @@ inline namespace kernel
         s = unit;
         goto decode;
 
-      case mnemonic::return_: /* ------------------------------------------------
+      case mnemonic::return_: /* -----------------------------------------------
         *
         *  (x . s)  e (%return . c) (s' e' c' . d) => (x . s') e' c' d
         *
@@ -898,11 +892,12 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return cons(make<instruction>(mnemonic::fork), make<syntactic_continuation>(current_context,
-                                                                                  current_environment,
-                                                                                  car(expression),
-                                                                                  frames,
-                                                                                  current_continuation),
+      return cons(make<instruction>(mnemonic::fork),
+                  make<syntactic_continuation>(current_context,
+                                               current_environment,
+                                               car(expression),
+                                               frames,
+                                               current_continuation),
                   current_continuation);
     }
 
@@ -1038,29 +1033,6 @@ inline namespace kernel
                                  frames,
                                  cons(make<instruction>(mnemonic::letrec),
                                       current_continuation))));
-    }
-
-    static SYNTAX(letrec_syntax) /* --------------------------------------------
-    *
-    *  (letrec-syntax <bindings> <body>)                                 syntax
-    *
-    *  Syntax: Same as for let-syntax.
-    *
-    *  Semantics: The <body> is expanded in the syntactic environment obtained
-    *  by extending the syntactic environment of the letrec-syntax expression
-    *  with macros whose keywords are the <keyword>s, bound to the specified
-    *  transformers. Each binding of a <keyword> has the <transformer spec>s as
-    *  well as the <body> within its region, so the transformers can transcribe
-    *  expressions into uses of the macros introduced by the letrec-syntax
-    *  expression.
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      auto const& [bindings, body] = unpair(expression);
-
-      auto const& [keywords, transformers] = unzip2(bindings);
-
-      std::exit(EXIT_SUCCESS);
     }
 
     static SYNTAX(literal) /* --------------------------------------------------

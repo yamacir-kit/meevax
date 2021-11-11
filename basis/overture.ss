@@ -39,6 +39,8 @@
 
 (define (unspecified) (if #f #f))
 
+(define-syntax letrec-syntax let-syntax)
+
 (define-syntax (cond . clauses)
   (if (null? clauses)
       (unspecified)
