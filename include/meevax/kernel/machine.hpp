@@ -476,9 +476,9 @@ inline namespace kernel
         }
         goto decode;
 
-      case mnemonic::extend: /* -------------------------------------------------
+      case mnemonic::dummy: /* -------------------------------------------------
         *
-        *  s e (%extend . c) d => s (<null> . e) c d
+        *  s e (%dummy . c) d => s (<null> . e) c d
         *
         * ------------------------------------------------------------------- */
         e = cons(unit, e);
@@ -1067,7 +1067,7 @@ inline namespace kernel
 
       auto const& [variables, inits] = unzip2(bindings);
 
-      return cons(make<instruction>(mnemonic::extend),
+      return cons(make<instruction>(mnemonic::dummy),
                   operand(context::none,
                           current_environment,
                           inits,

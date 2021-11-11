@@ -31,7 +31,7 @@ inline namespace kernel
       case mnemonic::cons:              return "cons";
       case mnemonic::define:            return "define";
       case mnemonic::drop:              return "drop";
-      case mnemonic::extend:            return "extend";
+      case mnemonic::dummy:             return "dummy";
       case mnemonic::fork:              return "fork";
       case mnemonic::join:              return "join";
       case mnemonic::let_syntax:        return "let-syntax";
@@ -89,7 +89,7 @@ inline namespace kernel
       case mnemonic::call:
       case mnemonic::cons:
       case mnemonic::drop:
-      case mnemonic::extend:
+      case mnemonic::dummy:
       case mnemonic::join:
       case mnemonic::letrec:
       case mnemonic::tail_call:

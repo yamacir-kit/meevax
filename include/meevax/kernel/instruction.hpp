@@ -29,7 +29,7 @@ inline namespace kernel
     cons,              //
     define,            //
     drop,              //
-    extend,            // a.k.a DUM
+    dummy,             // a.k.a DUM
     fork,              //
     join,              //
     let_syntax,        //
