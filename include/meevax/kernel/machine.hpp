@@ -338,6 +338,13 @@ inline namespace kernel
         *  s e (%let-syntax <syntactic-continuation> . c) d  => s e c' d
         *
         * ------------------------------------------------------------------- */
+        [[fallthrough]];
+
+      case mnemonic::letrec_syntax: /* -----------------------------------------
+        *
+        *  s e (%letrec-syntax <syntactic-continuation> . c) d  => s e c' d
+        *
+        * ------------------------------------------------------------------- */
         std::swap(c.as<pair>(), append(cadr(c).template as<syntactic_continuation>().apply(body), cddr(c)).template as<pair>());
         goto decode;
 
@@ -967,7 +974,45 @@ inline namespace kernel
                            identifiers);
       }
 
-      return cons(make<instruction>(mnemonic::let_syntax),
+      return cons(make<instruction>(mnemonic::letrec_syntax),
+                  make<syntactic_continuation>(current_context,
+                                               current_environment,
+                                               cdr(expression),
+                                               cons(reverse(identifiers), frames),
+                                               current_continuation),
+                  current_continuation);
+    }
+
+    static SYNTAX(letrec_syntax) /* --------------------------------------------
+    *
+    *  (letrec-syntax <bingings> <body>)                                 syntax
+    *
+    *  Syntax: Same as for let-syntax.
+    *
+    *  Semantics: The <body> is expanded in the syntactic environment obtained
+    *  by extending the syntactic environment of the letrec-syntax expression
+    *  with macros whose keywords are the <keywords>s, bound to the specified
+    *  transformers. Each binding of a <keywords> has the <transformer spec>s
+    *  as well as the <body> within its region, so the transformers can
+    *  transcribe expressions into uses of the macros introduced by the
+    *  letrec-syntax expression.
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      let identifiers = list();
+
+      for (let const& binding : car(expression))
+      {
+        identifiers = cons(make<keyword>(car(binding),
+                                         make<syntactic_continuation>(current_context,
+                                                                      current_environment,
+                                                                      cadr(binding),
+                                                                      frames,
+                                                                      current_continuation)),
+                           identifiers);
+      }
+
+      return cons(make<instruction>(mnemonic::letrec_syntax),
                   make<syntactic_continuation>(current_context,
                                                current_environment,
                                                cdr(expression),
