@@ -961,24 +961,21 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      let identifiers = list();
-
-      for (let const& binding : car(expression))
+      auto make_keyword = [&](let const& binding)
       {
-        identifiers = cons(make<keyword>(car(binding),
-                                         make<syntactic_continuation>(current_context,
-                                                                      current_environment,
-                                                                      cadr(binding),
-                                                                      frames,
-                                                                      current_continuation)),
-                           identifiers);
-      }
+        return make<keyword>(car(binding),
+                             make<syntactic_continuation>(current_context,
+                                                          current_environment,
+                                                          cadr(binding),
+                                                          frames,
+                                                          current_continuation));
+      };
 
-      return cons(make<instruction>(mnemonic::letrec_syntax),
+      return cons(make<instruction>(mnemonic::let_syntax),
                   make<syntactic_continuation>(current_context,
                                                current_environment,
                                                cdr(expression),
-                                               cons(reverse(identifiers), frames),
+                                               cons(map(make_keyword, car(expression)), frames),
                                                current_continuation),
                   current_continuation);
     }
@@ -999,24 +996,25 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      let identifiers = list();
+      let extended_frames = cons(unit, frames);
 
-      for (let const& binding : car(expression))
+      auto make_keyword = [&](let const& binding)
       {
-        identifiers = cons(make<keyword>(car(binding),
-                                         make<syntactic_continuation>(current_context,
-                                                                      current_environment,
-                                                                      cadr(binding),
-                                                                      frames,
-                                                                      current_continuation)),
-                           identifiers);
-      }
+        return make<keyword>(car(binding),
+                             make<syntactic_continuation>(current_context,
+                                                          current_environment,
+                                                          cadr(binding),
+                                                          extended_frames,
+                                                          current_continuation));
+      };
+
+      car(extended_frames) = map(make_keyword, car(expression));
 
       return cons(make<instruction>(mnemonic::letrec_syntax),
                   make<syntactic_continuation>(current_context,
                                                current_environment,
                                                cdr(expression),
-                                               cons(reverse(identifiers), frames),
+                                               extended_frames,
                                                current_continuation),
                   current_continuation);
     }

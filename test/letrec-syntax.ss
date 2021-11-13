@@ -17,7 +17,7 @@
                                               (cadr form)
                                               (cons (rename 'my-and) (cddr form))
                                               #f)))))))
-  (check (my-and #f #f #t #f) => #f))
+  (check (my-and #t #t #f #t) => #f))
 
 (letrec-syntax ((my-or (er-macro-transformer
                          (lambda (form rename compare)
@@ -28,7 +28,7 @@
                                              (list (rename 'if)
                                                    (rename 'test)
                                                    (rename 'test)
-                                                   (cons (rename 'or) (cddr form))))))))))
+                                                   (cons (rename 'my-or) (cddr form))))))))))
   (let ((x #f)
         (y 7)
         (temp 8)
