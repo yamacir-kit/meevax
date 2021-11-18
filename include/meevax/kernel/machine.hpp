@@ -184,31 +184,26 @@ inline namespace kernel
         }
         else if (let const& identifier = rename(applicant, frames, std::as_const(current_environment)); identifier.is<keyword>())
         {
-          if (let & macro = cdr(identifier); macro.is<syntactic_continuation>())
+          let & macro = identifier.as<keyword>().binding();
+
+          if (macro.is<syntactic_continuation>())
           {
             macro = current_environment.fork(
                       continuation(current_environment.s,
                                    current_environment.e,
                                    macro,
                                    current_environment.d)).template as<environment>().form();
-            return compile(context::none,
-                           current_environment,
-                           macro.as<environment>().macroexpand(macro, expression),
-                           frames,
-                           current_continuation);
           }
-          else
-          {
-            return compile(context::none,
-                           current_environment,
-                           macro.as<environment>().macroexpand(macro, expression),
-                           frames,
-                           current_continuation);
-          }
+
+          return compile(context::none,
+                         current_environment,
+                         macro.as<environment>().macroexpand(macro, expression),
+                         frames,
+                         current_continuation);
         }
         else if (identifier.is<absolute>())
         {
-          if (let const& applicant = cdr(identifier); applicant.is_also<syntax>())
+          if (let const& applicant = identifier.as<absolute>().binding(); applicant.is_also<syntax>())
           {
             return applicant.as<syntax>().transform(current_context,
                                                     current_environment,

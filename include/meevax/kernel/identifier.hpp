@@ -32,6 +32,9 @@ inline namespace kernel
     virtual auto is_free() const -> bool = 0;
 
     auto symbol() const -> const_reference;
+
+    auto binding()       ->       reference;
+    auto binding() const -> const_reference;
   };
 
   auto operator <<(std::ostream &, identifier const&) -> std::ostream &;
