@@ -166,23 +166,7 @@ inline namespace kernel
       *
       * ------------------------------------------------------------------ */
       {
-        if (let const& applicant = car(expression); applicant.is_also<syntax>())
-        {
-          return applicant.as<syntax>().transform(current_context,
-                                                  current_environment,
-                                                  cdr(expression),
-                                                  frames,
-                                                  current_continuation);
-        }
-        else if (applicant.is<environment>())
-        {
-          return compile(context::none,
-                         current_environment,
-                         applicant.as<environment>().macroexpand(applicant, expression),
-                         frames,
-                         current_continuation);
-        }
-        else if (let const& identifier = rename(applicant, frames, std::as_const(current_environment)); identifier.is<keyword>())
+        if (let const& identifier = rename(car(expression), frames, std::as_const(current_environment)); identifier.is<keyword>())
         {
           let & macro = identifier.as<keyword>().binding();
 
@@ -201,36 +185,35 @@ inline namespace kernel
                          frames,
                          current_continuation);
         }
-        else if (identifier.is<absolute>())
+        else if (let const& applicant = identifier.is<absolute>() ? identifier.as<absolute>().binding() : car(expression); applicant.is_also<syntax>())
         {
-          if (let const& applicant = identifier.as<absolute>().binding(); applicant.is_also<syntax>())
-          {
-            return applicant.as<syntax>().transform(current_context,
-                                                    current_environment,
-                                                    cdr(expression),
-                                                    frames,
-                                                    current_continuation);
-          }
-          else if (applicant.is<environment>())
-          {
-            return compile(context::none,
-                           current_environment,
-                           applicant.as<environment>().macroexpand(applicant, expression),
-                           frames,
-                           current_continuation);
-          }
+          return applicant.as<syntax>().transform(current_context,
+                                                  current_environment,
+                                                  cdr(expression),
+                                                  frames,
+                                                  current_continuation);
         }
-
-        return operand(context::none,
-                       current_environment,
-                       cdr(expression),
-                       frames,
-                       compile(context::none,
-                               current_environment,
-                               car(expression),
-                               frames,
-                               cons(make<instruction>(current_context & context::tail ? mnemonic::tail_call : mnemonic::call),
-                                    current_continuation)));
+        else if (applicant.is<environment>())
+        {
+          return compile(context::none,
+                         current_environment,
+                         applicant.as<environment>().macroexpand(applicant, expression),
+                         frames,
+                         current_continuation);
+        }
+        else
+        {
+          return operand(context::none,
+                         current_environment,
+                         cdr(expression),
+                         frames,
+                         compile(context::none,
+                                 current_environment,
+                                 car(expression),
+                                 frames,
+                                 cons(make<instruction>(current_context & context::tail ? mnemonic::tail_call : mnemonic::call),
+                                      current_continuation)));
+        }
       }
     }
 
