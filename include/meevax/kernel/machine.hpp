@@ -129,6 +129,41 @@ inline namespace kernel
                       current_continuation);
         }
       }
+      else if (let const& identifier = rename(car(expression), frames, std::as_const(current_environment)); identifier.is<keyword>())
+      {
+        let & macro = identifier.as<keyword>().binding();
+
+        if (macro.is<syntactic_continuation>())
+        {
+          macro = current_environment.fork(
+                    continuation(current_environment.s,
+                                 current_environment.e,
+                                 macro,
+                                 current_environment.d)).template as<environment>().form();
+        }
+
+        return compile(context::none,
+                       current_environment,
+                       macro.as<environment>().macroexpand(macro, expression),
+                       frames,
+                       current_continuation);
+      }
+      else if (let const& applicant = identifier.is<absolute>() ? identifier.as<absolute>().binding() : car(expression); applicant.is_also<syntax>())
+      {
+        return applicant.as<syntax>().transform(current_context,
+                                                current_environment,
+                                                cdr(expression),
+                                                frames,
+                                                current_continuation);
+      }
+      else if (applicant.is<environment>())
+      {
+        return compile(context::none,
+                       current_environment,
+                       applicant.as<environment>().macroexpand(applicant, expression),
+                       frames,
+                       current_continuation);
+      }
       else /* ------------------------------------------------------------------
       *
       *  (<operator> <operand 1> ...)                                    syntax
@@ -166,54 +201,16 @@ inline namespace kernel
       *
       * ------------------------------------------------------------------ */
       {
-        if (let const& identifier = rename(car(expression), frames, std::as_const(current_environment)); identifier.is<keyword>())
-        {
-          let & macro = identifier.as<keyword>().binding();
-
-          if (macro.is<syntactic_continuation>())
-          {
-            macro = current_environment.fork(
-                      continuation(current_environment.s,
-                                   current_environment.e,
-                                   macro,
-                                   current_environment.d)).template as<environment>().form();
-          }
-
-          return compile(context::none,
-                         current_environment,
-                         macro.as<environment>().macroexpand(macro, expression),
-                         frames,
-                         current_continuation);
-        }
-        else if (let const& applicant = identifier.is<absolute>() ? identifier.as<absolute>().binding() : car(expression); applicant.is_also<syntax>())
-        {
-          return applicant.as<syntax>().transform(current_context,
-                                                  current_environment,
-                                                  cdr(expression),
-                                                  frames,
-                                                  current_continuation);
-        }
-        else if (applicant.is<environment>())
-        {
-          return compile(context::none,
-                         current_environment,
-                         applicant.as<environment>().macroexpand(applicant, expression),
-                         frames,
-                         current_continuation);
-        }
-        else
-        {
-          return operand(context::none,
-                         current_environment,
-                         cdr(expression),
-                         frames,
-                         compile(context::none,
-                                 current_environment,
-                                 car(expression),
-                                 frames,
-                                 cons(make<instruction>(current_context & context::tail ? mnemonic::tail_call : mnemonic::call),
-                                      current_continuation)));
-        }
+        return operand(context::none,
+                       current_environment,
+                       cdr(expression),
+                       frames,
+                       compile(context::none,
+                               current_environment,
+                               car(expression),
+                               frames,
+                               cons(make<instruction>(current_context & context::tail ? mnemonic::tail_call : mnemonic::call),
+                                    current_continuation)));
       }
     }
 
