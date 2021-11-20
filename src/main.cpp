@@ -15,6 +15,7 @@
 */
 
 #include <meevax/library/standard.hpp>
+#include <meevax/string/repeat.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int
 {
@@ -26,10 +27,18 @@ auto main(int const argc, char const* const* const argv) -> int
 
     main.configure(argc, argv);
 
+    if (main.is_interactive_mode())
+    {
+      main.display_version();
+      main.print();
+      main.print(features());
+    }
+
     while (main.is_interactive_mode() and main.char_ready())
     {
+      main.print(horizontal_rule());
       main.write(standard_output, main.current_prompt());
-      main.write(standard_output, main.evaluate(main.read()), "\n");
+      main.print(main.evaluate(main.read()));
     }
 
     return underlying_cast(exit_status::success);

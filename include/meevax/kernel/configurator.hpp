@@ -140,8 +140,6 @@ inline namespace kernel
           std::make_pair("version", [this](auto&&...) -> object
           {
             display_version();
-            print();
-            display_license();
             throw exit_status::success;
           }),
         }
@@ -269,24 +267,7 @@ inline namespace kernel
 
     auto display_version() const -> void
     {
-      print("Meevax Lisp System, version ", version());
-    }
-
-    auto display_license() const -> void
-    {
-      print("   Copyright 2018-2021 Tatsuya Yamasaki.");
-      print();
-      print("   Licensed under the Apache License, Version 2.0 (the \"License\");");
-      print("   you may not use this file except in compliance with the License.");
-      print("   You may obtain a copy of the License at");
-      print();
-      print("       http://www.apache.org/licenses/LICENSE-2.0");
-      print();
-      print("   Unless required by applicable law or agreed to in writing, software");
-      print("   distributed under the License is distributed on an \"AS IS\" BASIS,");
-      print("   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.");
-      print("   See the License for the specific language governing permissions and");
-      print("   limitations under the License.");
+      print("Meevax Lisp ", version());
     }
 
     auto display_help() const -> void
