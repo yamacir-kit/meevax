@@ -29,12 +29,19 @@ inline namespace kernel
     return car(*this);
   }
 
-  auto identifier::binding()       ->       reference { return cdr(*this); }
-  auto identifier::binding() const -> const_reference { return cdr(*this); }
-
   auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &
   {
     return os << underline << datum.symbol() << reset;
+  }
+
+  auto absolute::binding() -> reference
+  {
+    return cdr(*this);
+  }
+
+  auto absolute::binding() const -> const_reference
+  {
+    return cdr(*this);
   }
 
   auto absolute::is_bound() const -> bool
