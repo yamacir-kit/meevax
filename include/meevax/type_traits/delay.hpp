@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_TYPE_TRAITS_DELAY_HPP
 #define INCLUDED_MEEVAX_TYPE_TRAITS_DELAY_HPP
 
-#include <meevax/kernel/overview.hpp>
+#include <meevax/kernel/overview.hpp> // for raise
 #include <meevax/utility/demangle.hpp>
 
 namespace meevax
@@ -117,21 +117,6 @@ inline namespace type_traits
     static constexpr auto yield(T&& x, U&& y) -> decltype(auto)
     {
       return select_2<T, U>().template apply<R>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
-    }
-  };
-
-  struct write_t
-  {
-    template <typename T, typename... Ts>
-    constexpr auto operator ()(T&& x, Ts&&... xs) const -> T &
-    {
-      return (x << ... << xs);
-    }
-
-    template <typename T>
-    auto operator ()(T&& x, std::string const& datum) const -> T &
-    {
-      return x << "#" << std::quoted(datum);
     }
   };
 } // namespace type_traits

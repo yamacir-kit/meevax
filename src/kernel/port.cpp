@@ -14,7 +14,6 @@
    limitations under the License.
 */
 
-#include <iomanip>
 #include <ios>
 
 #include <meevax/kernel/port.hpp>

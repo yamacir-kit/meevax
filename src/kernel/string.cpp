@@ -14,8 +14,6 @@
    limitations under the License.
 */
 
-#include <iomanip> // std::uppercase
-
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
