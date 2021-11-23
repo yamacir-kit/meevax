@@ -67,16 +67,6 @@ inline namespace kernel
     }
   }
 
-  auto environment::form() const noexcept -> const_reference
-  {
-    return first;
-  }
-
-  auto environment::form() noexcept -> reference
-  {
-    return first;
-  }
-
   auto environment::global() const noexcept -> const_reference
   {
     return second;

@@ -180,10 +180,10 @@ inline namespace kernel
           macro = make<transformer>(
                     make<continuation>(current_environment.s,
                                        current_environment.e,
-                                       macro,
+                                       macro, // = syntactic_continuation now
                                        current_environment.d),
                     current_environment.global()
-                    ).template as<transformer>().form();
+                    ).template as<transformer>().first; // DIRTY HACK!
         }
 
         return compile(context::none,
@@ -344,9 +344,7 @@ inline namespace kernel
         *  s e (%fork <syntactic-continuation> . c) d => (<transformer> . s) e c d
         *
         * ------------------------------------------------------------------- */
-        s = make<transformer>(make<continuation>(s, e, cadr(c), d),
-                              static_cast<environment const&>(*this).global())
-          | s;
+        s = make<transformer>(make<continuation>(s, e, cadr(c), d), static_cast<environment const&>(*this).global()) | s;
         c = cddr(c);
         goto decode;
 
