@@ -246,13 +246,13 @@ inline namespace kernel
 
   auto environment::rename(const_reference variable, const_reference frames) -> object
   {
-    if (let const& identifier = notate(variable, frames); identifier.is<null>())
+    if (let const& identifier = notate(variable, frames); if_(identifier))
     {
-      return rename(variable);
+      return identifier;
     }
     else
     {
-      return identifier;
+      return rename(variable);
     }
   }
 
@@ -263,13 +263,13 @@ inline namespace kernel
 
   auto environment::rename(const_reference variable, const_reference frames) const -> object
   {
-    if (let const& identifier = notate(variable, frames); identifier.is<null>())
+    if (let const& identifier = notate(variable, frames); if_(identifier))
     {
-      return rename(variable); // NOTE: In the const version, rename does not extend the global-environment.
+      return identifier;
     }
     else
     {
-      return identifier;
+      return rename(variable); // NOTE: In the const version, rename does not extend the global-environment.
     }
   }
 

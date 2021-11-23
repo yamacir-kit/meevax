@@ -89,7 +89,7 @@ inline namespace kernel
       }
     }
 
-    return unit;
+    return f;
   }
 } // namespace kernel
 } // namespace meevax
