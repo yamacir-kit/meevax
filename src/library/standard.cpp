@@ -1981,15 +1981,15 @@ namespace meevax
       }
     });
 
-    define<procedure>("environment?", is<environment>());
+    define<procedure>("transformer?", is<transformer>());
 
     define<procedure>("r6rs:identifier?", is<absolute>());
 
     define<procedure>("macroexpand-1", [this](let const& xs)
     {
-      if (let const& macro = (*this)[caar(xs)]; macro.is<environment>())
+      if (let const& macro = (*this)[caar(xs)]; macro.is<transformer>())
       {
-        return macro.as<environment>().macroexpand(macro, car(xs));
+        return macro.as<transformer>().macroexpand(macro, car(xs));
       }
       else
       {
