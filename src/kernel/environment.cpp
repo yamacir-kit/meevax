@@ -94,25 +94,11 @@ inline namespace kernel
     }
   }
 
-  auto environment::form() const noexcept -> const_reference
-  {
-    return car(*this);
-  }
+  auto environment::form() const noexcept -> const_reference { return car(*this); }
+  auto environment::form()       noexcept ->       reference { return car(*this); }
 
-  auto environment::form() noexcept -> reference
-  {
-    return const_cast<reference>(std::as_const(*this).form());
-  }
-
-  auto environment::global() const noexcept -> const_reference
-  {
-    return cdr(*this);
-  }
-
-  auto environment::global() noexcept -> reference
-  {
-    return const_cast<reference>(std::as_const(*this).global());
-  }
+  auto environment::global() const noexcept -> const_reference { return cdr(*this); }
+  auto environment::global()       noexcept ->       reference { return cdr(*this); }
 
   auto environment::import() -> void
   {

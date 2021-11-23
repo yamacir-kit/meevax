@@ -30,12 +30,10 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename Environment>
+  template <typename environment>
   class machine // TR-SECD machine.
   {
-    friend Environment;
-
-    using environment = Environment; // HACK
+    friend environment;
 
     machine()
     {}
