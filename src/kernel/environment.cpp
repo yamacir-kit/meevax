@@ -244,9 +244,33 @@ inline namespace kernel
     }
   }
 
+  auto environment::rename(const_reference variable, const_reference frames) -> object
+  {
+    if (let const& identifier = notate(variable, frames); identifier.is<null>())
+    {
+      return rename(variable);
+    }
+    else
+    {
+      return identifier;
+    }
+  }
+
   auto environment::rename(const_reference variable) const -> const_reference
   {
     return assq(variable, global());
+  }
+
+  auto environment::rename(const_reference variable, const_reference frames) const -> object
+  {
+    if (let const& identifier = notate(variable, frames); identifier.is<null>())
+    {
+      return rename(variable); // NOTE: In the const version, rename does not extend the global-environment.
+    }
+    else
+    {
+      return identifier;
+    }
   }
 
   auto operator >>(std::istream & is, environment & datum) -> std::istream &

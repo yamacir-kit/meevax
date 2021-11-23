@@ -111,7 +111,7 @@ inline namespace kernel
       {
         if (expression.is<symbol>() or expression.is_also<identifier>())
         {
-          if (let const& identifier = rename(expression, frames, current_environment); identifier.is<absolute>())
+          if (let const& identifier = current_environment.rename(expression, frames); identifier.is<absolute>())
           {
             return cons(make<instruction>(mnemonic::load_absolute), identifier,
                         current_continuation);
@@ -129,7 +129,7 @@ inline namespace kernel
                       current_continuation);
         }
       }
-      else if (let const& identifier = rename(car(expression), frames, std::as_const(current_environment)); identifier.is<keyword>())
+      else if (let const& identifier = std::as_const(current_environment).rename(car(expression), frames); identifier.is<keyword>())
       {
         let & macro = identifier.as<keyword>().binding();
 
@@ -555,30 +555,6 @@ inline namespace kernel
       return module;
     }
 
-    static auto rename(const_reference variable, const_reference frames, environment & current_environment) -> object
-    {
-      if (let const& identifier = notate(variable, frames); identifier.is<null>())
-      {
-        return current_environment.rename(variable);
-      }
-      else
-      {
-        return identifier;
-      }
-    }
-
-    static auto rename(const_reference variable, const_reference frames, environment const& current_environment) -> object
-    {
-      if (let const& identifier = notate(variable, frames); identifier.is<null>())
-      {
-        return current_environment.rename(variable); // NOTE: In the const version, rename does not extend the global-environment.
-      }
-      else
-      {
-        return identifier;
-      }
-    }
-
   protected:
     static SYNTAX(assignment) /* -----------------------------------------------
     *
@@ -596,7 +572,7 @@ inline namespace kernel
       {
         throw syntax_error(make<string>("set!"), expression);
       }
-      else if (let const& identifier = rename(car(expression), frames, current_environment); identifier.is<absolute>())
+      else if (let const& identifier = current_environment.rename(car(expression), frames); identifier.is<absolute>())
       {
         return compile(context::none,
                        current_environment,
@@ -623,7 +599,7 @@ inline namespace kernel
       {
         if (form.is<pair>())
         {
-          if (let const& identifier = rename(car(form), frames, std::as_const(current_environment)); identifier.is<absolute>())
+          if (let const& identifier = std::as_const(current_environment).rename(car(form), frames); identifier.is<absolute>())
           {
             if (let const& callee = cdr(identifier); callee.is<syntax>())
             {

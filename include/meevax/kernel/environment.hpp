@@ -105,8 +105,13 @@ inline namespace kernel
 
     auto macroexpand(const_reference, const_reference) -> object;
 
-    auto rename(const_reference)       -> const_reference;
+    auto rename(const_reference) -> const_reference;
+
+    auto rename(const_reference, const_reference) -> object;
+
     auto rename(const_reference) const -> const_reference;
+
+    auto rename(const_reference, const_reference) const -> object;
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;
