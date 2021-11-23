@@ -26,7 +26,7 @@ inline namespace kernel
     return first;
   }
 
-  auto closure::d() const -> const_reference
+  auto closure::e() const -> const_reference
   {
     return second;
   }

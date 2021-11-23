@@ -46,9 +46,6 @@ inline namespace kernel
 
     struct transformer : public environment
     {
-      using environment::execute;
-      using environment::form;
-
       using environment::s;
       using environment::e;
       using environment::c;
@@ -76,7 +73,7 @@ inline namespace kernel
         c = k.c().template as<syntactic_continuation>().apply(current_compiler);
         d = k.d();
 
-        form() = execute();
+        spec() = environment::execute();
 
         // assert(form().is<closure>());
       }
@@ -86,15 +83,20 @@ inline namespace kernel
         push(d, s, e, cons(make<instruction>(mnemonic::stop), c)); // XXX ???
 
         s = unit;
-        e = cons(keyword, cdr(form)) | spec().d();
-        c = spec().c();
+        e = cons(keyword, cdr(form)) | spec().template as<closure>().e();
+        c =                            spec().template as<closure>().c();
 
-        return execute();
+        return environment::execute();
       }
 
-      auto spec() const -> closure const&
+      auto spec() -> reference
       {
-        return environment::form().template as<closure>();
+        return environment::first;
+      }
+
+      auto spec() const -> const_reference
+      {
+        return environment::first;
       }
     };
 

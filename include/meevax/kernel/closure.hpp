@@ -30,7 +30,7 @@ inline namespace kernel
 
     auto c() const -> const_reference;
 
-    auto d() const -> const_reference;
+    auto e() const -> const_reference;
   };
 
   auto operator <<(std::ostream &, closure const&) -> std::ostream &;
