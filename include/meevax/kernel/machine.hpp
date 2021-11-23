@@ -145,10 +145,11 @@ inline namespace kernel
         if (macro.is<syntactic_continuation>())
         {
           macro = current_environment.fork(
-                    continuation(current_environment.s,
-                                 current_environment.e,
-                                 macro,
-                                 current_environment.d)).template as<transformer>().form();
+                    make<continuation>(current_environment.s,
+                                       current_environment.e,
+                                       macro,
+                                       current_environment.d)
+                    ).template as<transformer>().form();
         }
 
         return compile(context::none,
@@ -309,7 +310,7 @@ inline namespace kernel
         *  s e (%fork <syntactic-continuation> . c) d => (<transformer> . s) e c d
         *
         * ------------------------------------------------------------------- */
-        s = cons(fork(continuation(s, e, cadr(c), d)), s);
+        s = fork(make<continuation>(s, e, cadr(c), d)) | s;
         c = cddr(c);
         goto decode;
 
@@ -554,12 +555,12 @@ inline namespace kernel
       }
     }
 
-    inline auto fork(continuation const& k) const -> object
+    inline auto fork(const_reference k) const -> object
     {
       let const macro = make<transformer>(unit, static_cast<environment const&>(*this).global());
 
       macro.as<transformer>().import();
-      macro.as<transformer>().build(k);
+      macro.as<transformer>().build(k.as<continuation>());
 
       return macro;
     }
