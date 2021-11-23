@@ -103,8 +103,6 @@ inline namespace kernel
 
     auto load(const_reference) -> object;
 
-    auto macroexpand(const_reference, const_reference) -> object;
-
     auto rename(const_reference) -> const_reference;
 
     auto rename(const_reference, const_reference) -> object;

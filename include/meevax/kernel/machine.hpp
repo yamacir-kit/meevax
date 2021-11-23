@@ -46,17 +46,28 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
-    /* ---- NOTE ---------------------------------------------------------------
-     *
-     *  global-environment: g = environment::global()
-     *
-     *  lexical-environment: e
-     *
-     *  dynamic-environment: d = (s e c ...)
-     *
-     *  syntactic-environment: (e . g) when define-syntax invoked
-     *
-     * ---------------------------------------------------------------------- */
+    struct transformer : public environment
+    {
+      using environment::current_expression;
+      using environment::dynamic_environment;
+      using environment::execute;
+
+      using environment::s;
+      using environment::e;
+      using environment::c;
+      using environment::d;
+
+      auto macroexpand(const_reference keyword, const_reference form) -> object
+      {
+        push(d, s, e, cons(make<instruction>(mnemonic::stop), c)); // XXX ???
+
+        s = unit;
+        e = cons(cons(keyword, cdr(form)), dynamic_environment());
+        c = current_expression();
+
+        return execute();
+      }
+    };
 
   public:
     /* ---- R7RS 4. Expressions ------------------------------------------------
@@ -139,12 +150,12 @@ inline namespace kernel
                     continuation(current_environment.s,
                                  current_environment.e,
                                  macro,
-                                 current_environment.d)).template as<environment>().form();
+                                 current_environment.d)).template as<transformer>().form();
         }
 
         return compile(context::none,
                        current_environment,
-                       macro.as<environment>().macroexpand(macro, expression),
+                       macro.as<transformer>().macroexpand(macro, expression),
                        frames,
                        current_continuation);
       }
@@ -156,11 +167,11 @@ inline namespace kernel
                                                 frames,
                                                 current_continuation);
       }
-      else if (applicant.is<environment>())
+      else if (applicant.is<transformer>())
       {
         return compile(context::none,
                        current_environment,
-                       applicant.as<environment>().macroexpand(applicant, expression),
+                       applicant.as<transformer>().macroexpand(applicant, expression),
                        frames,
                        current_continuation);
       }
@@ -297,7 +308,7 @@ inline namespace kernel
 
       case mnemonic::fork: /* --------------------------------------------------
         *
-        *  s e (%fork <syntactic-continuation> . c) d => (<program> . s) e c d
+        *  s e (%fork <syntactic-continuation> . c) d => (<transformer> . s) e c d
         *
         * ------------------------------------------------------------------- */
         s = cons(fork(continuation(s, e, cadr(c), d)), s);
@@ -547,12 +558,12 @@ inline namespace kernel
 
     inline auto fork(continuation const& k) const -> object
     {
-      let const module = make<environment>(unit, static_cast<environment const&>(*this).global());
+      let const macro = make<transformer>(unit, static_cast<environment const&>(*this).global());
 
-      module.as<environment>().import();
-      module.as<environment>().build(k);
+      macro.as<transformer>().import();
+      macro.as<transformer>().build(k);
 
-      return module;
+      return macro;
     }
 
   protected:
