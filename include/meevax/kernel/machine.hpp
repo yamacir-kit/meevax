@@ -46,6 +46,7 @@ inline namespace kernel
 
     struct transformer : public environment
     {
+      using environment::build;
       using environment::current_expression;
       using environment::dynamic_environment;
       using environment::execute;
@@ -54,6 +55,13 @@ inline namespace kernel
       using environment::e;
       using environment::c;
       using environment::d;
+
+      template <typename... Ts>
+      explicit transformer(Ts&&... xs)
+        : environment { std::forward<decltype(xs)>(xs)... }
+      {
+        build(car(*this).template as<continuation>());
+      }
 
       auto macroexpand(const_reference keyword, const_reference form) -> object
       {
@@ -144,11 +152,12 @@ inline namespace kernel
 
         if (macro.is<syntactic_continuation>())
         {
-          macro = current_environment.fork(
+          macro = make<transformer>(
                     make<continuation>(current_environment.s,
                                        current_environment.e,
                                        macro,
-                                       current_environment.d)
+                                       current_environment.d),
+                    current_environment.global()
                     ).template as<transformer>().form();
         }
 
@@ -310,7 +319,9 @@ inline namespace kernel
         *  s e (%fork <syntactic-continuation> . c) d => (<transformer> . s) e c d
         *
         * ------------------------------------------------------------------- */
-        s = fork(make<continuation>(s, e, cadr(c), d)) | s;
+        s = make<transformer>(make<continuation>(s, e, cadr(c), d),
+                              static_cast<environment const&>(*this).global())
+          | s;
         c = cddr(c);
         goto decode;
 
@@ -553,16 +564,6 @@ inline namespace kernel
         c = cdr(c);
         return pop(s); // return car(s);
       }
-    }
-
-    inline auto fork(const_reference k) const -> object
-    {
-      let const macro = make<transformer>(unit, static_cast<environment const&>(*this).global());
-
-      macro.as<transformer>().import();
-      macro.as<transformer>().build(k.as<continuation>());
-
-      return macro;
     }
 
   protected:
