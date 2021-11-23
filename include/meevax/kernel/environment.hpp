@@ -68,8 +68,6 @@ inline namespace kernel
 
     auto operator [](std::string const&) -> const_reference;
 
-    auto build(continuation const&) -> void; // NOTE: Only fork() may call this function.
-
     auto current_expression() const -> const_reference;
 
     auto define(const_reference, const_reference) -> const_reference;

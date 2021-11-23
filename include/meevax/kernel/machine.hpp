@@ -46,21 +46,41 @@ inline namespace kernel
 
     struct transformer : public environment
     {
-      using environment::build;
       using environment::current_expression;
       using environment::dynamic_environment;
       using environment::execute;
+      using environment::form;
 
       using environment::s;
       using environment::e;
       using environment::c;
       using environment::d;
 
-      template <typename... Ts>
-      explicit transformer(Ts&&... xs)
-        : environment { std::forward<decltype(xs)>(xs)... }
+      explicit transformer() /* ------------------------------------------------
+      *
+      *  Since the base class environment inherits from pair, all arguments
+      *  given to make<transformer> are forwarded directly to the virtual base
+      *  class pair. After that, the constructor of the base class environment
+      *  is called to set up the environment. This constructor is called after
+      *  them.
+      *
+      * --------------------------------------------------------------------- */
       {
-        build(car(*this).template as<continuation>());
+        auto const k = car(*this).template as<continuation>();
+
+        auto current_compiler = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
+        {
+          return compile(context::outermost, *this, expression, frames);
+        };
+
+        s = k.s();
+        e = k.e();
+        c = k.c().template as<syntactic_continuation>().apply(current_compiler);
+        d = k.d();
+
+        form() = execute();
+
+        // assert(form().is<closure>());
       }
 
       auto macroexpand(const_reference keyword, const_reference form) -> object

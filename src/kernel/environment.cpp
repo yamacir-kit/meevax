@@ -31,23 +31,6 @@ inline namespace kernel
     return (*this)[intern(name)];
   }
 
-  auto environment::build(continuation const& k) -> void
-  {
-    auto current_compiler = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
-    {
-      return compile(context::outermost, *this, expression, frames);
-    };
-
-    s = k.s();
-    e = k.e();
-    c = k.c().as<syntactic_continuation>().apply(current_compiler);
-    d = k.d();
-
-    form() = execute();
-
-    // assert(form().is<closure>());
-  }
-
   auto environment::current_expression() const -> const_reference
   {
     return car(form());
