@@ -21,12 +21,19 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto closure::c() const -> const_reference
+  {
+    return first;
+  }
+
+  auto closure::d() const -> const_reference
+  {
+    return second;
+  }
+
   auto operator <<(std::ostream & port, const closure& datum) -> std::ostream &
   {
-    return port << magenta << "#,("
-                << green << "closure" << reset
-                << faint << " #;" << &datum << reset
-                << magenta << ")" << reset;
+    return port << magenta << "#,(" << green << "closure" << reset << faint << " #;" << &datum << reset << magenta << ")" << reset;
   }
 } // namespace kernel
 } // namespace meevax

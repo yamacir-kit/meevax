@@ -46,8 +46,6 @@ inline namespace kernel
 
     struct transformer : public environment
     {
-      using environment::current_expression;
-      using environment::dynamic_environment;
       using environment::execute;
       using environment::form;
 
@@ -88,10 +86,15 @@ inline namespace kernel
         push(d, s, e, cons(make<instruction>(mnemonic::stop), c)); // XXX ???
 
         s = unit;
-        e = cons(cons(keyword, cdr(form)), dynamic_environment());
-        c = current_expression();
+        e = cons(keyword, cdr(form)) | spec().d();
+        c = spec().c();
 
         return execute();
+      }
+
+      auto spec() const -> closure const&
+      {
+        return environment::form().template as<closure>();
       }
     };
 

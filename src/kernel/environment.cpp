@@ -23,17 +23,12 @@ inline namespace kernel
 {
   auto environment::operator [](const_reference name) -> const_reference
   {
-    return cdr(rename(name));
+    return rename(name).as<absolute>().binding();
   }
 
   auto environment::operator [](std::string const& name) -> const_reference
   {
     return (*this)[intern(name)];
-  }
-
-  auto environment::current_expression() const -> const_reference
-  {
-    return car(form());
   }
 
   auto environment::define(const_reference name, const_reference value) -> const_reference
@@ -46,11 +41,6 @@ inline namespace kernel
   auto environment::define(std::string const& name, const_reference value) -> const_reference
   {
     return define(intern(name), value);
-  }
-
-  auto environment::dynamic_environment() const -> const_reference
-  {
-    return cdr(form());
   }
 
   auto environment::evaluate(const_reference expression) -> object
@@ -77,11 +67,11 @@ inline namespace kernel
     }
   }
 
-  auto environment::form() const noexcept -> const_reference { return car(*this); }
-  auto environment::form()       noexcept ->       reference { return car(*this); }
+  auto environment::form() const noexcept -> const_reference { return first; }
+  auto environment::form()       noexcept ->       reference { return first; }
 
-  auto environment::global() const noexcept -> const_reference { return cdr(*this); }
-  auto environment::global()       noexcept ->       reference { return cdr(*this); }
+  auto environment::global() const noexcept -> const_reference { return second; }
+  auto environment::global()       noexcept ->       reference { return second; }
 
   auto environment::import() -> void
   {
@@ -236,16 +226,12 @@ inline namespace kernel
     datum.print("environment::operator >>(std::istream &, environment &)");
     datum.print("read new expression => ", datum.read(is));
 
-    // sk.print("program == ", sk.program(), "current_expression is ", sk.current_expression());
-
     return is;
   }
 
   auto operator <<(std::ostream & os, environment & datum) -> std::ostream &
   {
-    // TODO
-    // Evaluate current_expression, and write the evaluation to ostream.
-
+    // TODO Evaluate datum.first, and write the evaluation to ostream.
     return datum.write(os, "environment::operator <<(std::ostream &, environment &)\n");
   }
 
