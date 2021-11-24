@@ -29,8 +29,8 @@ inline namespace kernel
     mpq_init(value);
     mpq_set_d(value, x);
 
-    std::get<0>(*this) = make<exact_integer>(mpq_numref(value));
-    std::get<1>(*this) = make<exact_integer>(mpq_denref(value));
+    numerator() = make<exact_integer>(mpq_numref(value));
+    denominator() = make<exact_integer>(mpq_denref(value));
 
     mpq_clear(value);
   }
@@ -41,13 +41,13 @@ inline namespace kernel
 
     if (std::smatch result; std::regex_match(token, result, pattern))
     {
-      auto numerator = exact_integer(result.str(1), radix);
+      auto n = exact_integer(result.str(1), radix);
 
-      car(*this) = make(numerator);
+      numerator() = make(n);
 
-      auto denominator = exact_integer(result.str(2), radix);
+      auto d = exact_integer(result.str(2), radix);
 
-      cdr(*this) = make(denominator);
+      denominator() = make(d);
     }
     else
     {
@@ -60,36 +60,46 @@ inline namespace kernel
     return simple();
   }
 
-  auto ratio::denominator() const -> exact_integer const&
+  auto ratio::denominator() const -> const_reference
   {
-    return cdr(*this).as<exact_integer>();
+    return second;
+  }
+
+  auto ratio::denominator() -> reference
+  {
+    return second;
   }
 
   auto ratio::inexact() const -> object
   {
-    return make<double_float>(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>());
+    return make<double_float>(numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>());
   }
 
   auto ratio::invert() const -> ratio
   {
-    return ratio(cdr(*this), car(*this));
+    return ratio(denominator(), numerator());
   }
 
   auto ratio::is_integer() const -> bool
   {
-    return denominator() == 1;
+    return denominator().as<exact_integer>() == 1;
   }
 
-  auto ratio::numerator() const -> exact_integer const&
+  auto ratio::numerator() const -> const_reference
   {
-    return car(*this).as<exact_integer>();
+    return first;
+  }
+
+  auto ratio::numerator() -> reference
+  {
+    return first;
   }
 
   auto ratio::reduce() const -> ratio
   {
-    if (auto const d = exact_integer(gcd, numerator(), denominator()); d != 1)
+    if (auto const d = exact_integer(gcd, numerator().as<exact_integer>(), denominator().as<exact_integer>()); d != 1)
     {
-      return ratio(make<exact_integer>(div, numerator(), d), make<exact_integer>(div, denominator(), d));
+      return ratio(make<exact_integer>(div, numerator().as<exact_integer>(), d), make<exact_integer>(div, denominator().as<exact_integer>(), d));
     }
     else
     {
@@ -113,7 +123,7 @@ inline namespace kernel
   auto ratio::NAME() const -> object                                           \
   {                                                                            \
     if (const double_float x {                                                 \
-          std::NAME(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>()) \
+          std::NAME(numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>()) \
         }; x.is_integer())                                                     \
     {                                                                          \
       return make<exact_integer>(x.value);                                     \
@@ -140,7 +150,7 @@ inline namespace kernel
   auto ratio::NAME(const_reference x) const -> object                          \
   {                                                                            \
     if (const double_float n {                                                 \
-          std::NAME(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>(), \
+          std::NAME(numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>(), \
                     x.as<number>().inexact().as<double_float>())               \
         }; n.is_integer())                                                     \
     {                                                                          \
