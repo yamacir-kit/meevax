@@ -24,22 +24,22 @@ inline namespace kernel
 {
   auto complex::real() const noexcept -> const_reference
   {
-    return car(*this);
+    return first;
   }
 
   auto complex::real() noexcept -> reference
   {
-    return const_cast<reference>(std::as_const(*this).real());
+    return first;
   }
 
   auto complex::imag() const noexcept -> const_reference
   {
-    return cdr(*this);
+    return second;
   }
 
   auto complex::imag() noexcept -> reference
   {
-    return const_cast<reference>(std::as_const(*this).imag());
+    return second;
   }
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &

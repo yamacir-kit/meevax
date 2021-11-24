@@ -61,7 +61,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        auto const k = car(*this).template as<continuation>();
+        auto const k = environment::first.template as<continuation>();
 
         auto current_compiler = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
         {
