@@ -32,21 +32,9 @@ inline namespace kernel
                     , public reader      <environment>
                     , public writer      <environment>
   {
-    /* ---- NOTE ---------------------------------------------------------------
-     *
-     *  If this class is constructed as make<environment>(...) then the
-     *  heterogeneous::binder will have forwarded all constructor arguments to
-     *  the virtual base class pair in advance, and this constructor will be
-     *  called without any arguments.
-     *
-     *  (See the heterogeneous::binder::binder for details)
-     *
-     * ---------------------------------------------------------------------- */
     using pair::pair;
 
   public:
-    let datum = unit;
-
     using configurator::is_debug_mode;
     using configurator::is_trace_mode;
     using configurator::is_verbose_mode;

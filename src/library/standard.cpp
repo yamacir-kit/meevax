@@ -1938,17 +1938,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("unwrap-syntax", [](let const& xs)
-    {
-      if (let const& x = car(xs); x.is<environment>())
-      {
-        return car(xs).as<environment>().datum;
-      }
-      else
-      {
-        return x;
-      }
-    });
+    // TODO
 
     /* -------------------------------------------------------------------------
      *

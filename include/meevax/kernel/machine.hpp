@@ -61,7 +61,9 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        auto const k = environment::first.template as<continuation>();
+        assert(spec().template is<continuation>());
+
+        auto const& k = spec().template as<continuation>();
 
         auto current_compiler = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
         {
