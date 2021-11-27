@@ -91,6 +91,23 @@ inline namespace kernel
     virtual auto operator >=(const_reference) const -> bool = 0;
   };
 
+  #define DEFINE(SYMBOL)                                                       \
+  template <template <typename...> typename Pointer, typename Top>             \
+  auto operator SYMBOL(heterogeneous<Pointer, Top> const& x,                   \
+                       heterogeneous<Pointer, Top> const& y) -> decltype(auto) \
+  {                                                                            \
+    return x.template as<number>() SYMBOL y;                                   \
+  }                                                                            \
+  static_assert(true)
+
+  DEFINE(+);
+  DEFINE(-);
+  DEFINE(*);
+  DEFINE(/);
+  DEFINE(%);
+
+  #undef DEFINE
+
   [[noreturn]]
   auto raise(std::string const&) -> void; // error.hpp
 } // namespace kernel

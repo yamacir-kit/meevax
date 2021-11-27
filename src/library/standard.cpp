@@ -182,8 +182,8 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("+", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e0, [](let const& a, let const& b) { return a.as<number>() + b; }); });
-    define<procedure>("*", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e1, [](let const& a, let const& b) { return a.as<number>() * b; }); });
+    define<procedure>("+", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e0, [](let const& a, let const& b) { return a + b; }); });
+    define<procedure>("*", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e1, [](let const& a, let const& b) { return a * b; }); });
 
     /* -------------------------------------------------------------------------
      *
@@ -212,14 +212,14 @@ namespace meevax
         throw invalid_application(intern(SYMBOL) | xs);                        \
                                                                                \
       case 1:                                                                  \
-        return FUNCTION(BASIS.as<number>(), car(xs));                          \
+        return FUNCTION(BASIS, car(xs));                                       \
                                                                                \
       default:                                                                 \
         return std::accumulate(                                                \
                  std::next(std::begin(xs)), std::end(xs), car(xs),             \
                  [](let const& a, let const& b)                                \
                  {                                                             \
-                   return FUNCTION(a.as<number>(), b);                         \
+                   return FUNCTION(a, b);                                      \
                  });                                                           \
       }                                                                        \
     })
@@ -1710,7 +1710,7 @@ namespace meevax
         return car(xs).as<number>().log();
 
       case 2:
-        return car(xs).as<number>().log().as<number>() / cadr(xs).as<number>().log();
+        return car(xs).as<number>().log() / cadr(xs).as<number>().log();
 
       default:
         throw invalid_application(intern("log") | xs);
@@ -1938,17 +1938,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("unwrap-syntax", [](let const& xs)
-    {
-      if (let const& x = car(xs); x.is<environment>())
-      {
-        return car(xs).as<environment>().datum;
-      }
-      else
-      {
-        return x;
-      }
-    });
+    // TODO
 
     /* -------------------------------------------------------------------------
      *
@@ -1981,15 +1971,15 @@ namespace meevax
       }
     });
 
-    define<procedure>("environment?", is<environment>());
+    define<procedure>("transformer?", is<transformer>());
 
     define<procedure>("r6rs:identifier?", is<absolute>());
 
     define<procedure>("macroexpand-1", [this](let const& xs)
     {
-      if (let const& macro = (*this)[caar(xs)]; macro.is<environment>())
+      if (let const& macro = (*this)[caar(xs)]; macro.is<transformer>())
       {
-        return macro.as<environment>().macroexpand(macro, car(xs));
+        return macro.as<transformer>().macroexpand(macro, car(xs));
       }
       else
       {

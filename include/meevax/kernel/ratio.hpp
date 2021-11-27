@@ -36,7 +36,9 @@ inline namespace kernel
 
     auto inexact() const -> object override;
 
-    auto denominator() const -> exact_integer const&;
+    auto denominator() const -> const_reference;
+
+    auto denominator() -> reference;
 
     auto invert() const -> ratio;
 
@@ -48,7 +50,9 @@ inline namespace kernel
 
     auto is_integer() const -> bool override;
 
-    auto numerator() const -> exact_integer const&;
+    auto numerator() const -> const_reference;
+
+    auto numerator() -> reference;
 
     auto reduce() const -> ratio;
 

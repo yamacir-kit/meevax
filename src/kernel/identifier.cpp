@@ -26,7 +26,7 @@ inline namespace kernel
 {
   auto identifier::symbol() const -> const_reference
   {
-    return car(*this);
+    return first;
   }
 
   auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &
@@ -36,12 +36,12 @@ inline namespace kernel
 
   auto absolute::binding() -> reference
   {
-    return cdr(*this);
+    return second;
   }
 
   auto absolute::binding() const -> const_reference
   {
-    return cdr(*this);
+    return second;
   }
 
   auto absolute::is_bound() const -> bool
@@ -51,7 +51,8 @@ inline namespace kernel
 
   auto absolute::is_free() const -> bool
   {
-    return cdr(*this).is<absolute>() and cdr(*this).as<absolute>() == *this; // NOTE: See environment::locate
+    // NOTE: See environment::locate
+    return binding().is<absolute>() and binding().as<absolute>() == *this;
   }
 
   auto relative::is_bound() const -> bool
@@ -89,7 +90,7 @@ inline namespace kernel
       }
     }
 
-    return unit;
+    return f;
   }
 } // namespace kernel
 } // namespace meevax

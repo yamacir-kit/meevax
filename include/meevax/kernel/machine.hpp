@@ -30,12 +30,10 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename Environment>
+  template <typename environment>
   class machine // TR-SECD machine.
   {
-    friend Environment;
-
-    using environment = Environment; // HACK
+    friend environment;
 
     machine()
     {}
@@ -46,17 +44,63 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
-    /* ---- NOTE ---------------------------------------------------------------
-     *
-     *  global-environment: g = environment::global()
-     *
-     *  lexical-environment: e
-     *
-     *  dynamic-environment: d = (s e c ...)
-     *
-     *  syntactic-environment: (e . g) when define-syntax invoked
-     *
-     * ---------------------------------------------------------------------- */
+    struct transformer : public environment
+    {
+      using environment::s;
+      using environment::e;
+      using environment::c;
+      using environment::d;
+
+      explicit transformer() /* ------------------------------------------------
+      *
+      *  Since the base class environment inherits from pair, all arguments
+      *  given to make<transformer> are forwarded directly to the virtual base
+      *  class pair. After that, the constructor of the base class environment
+      *  is called to set up the environment. This constructor is called after
+      *  them.
+      *
+      * --------------------------------------------------------------------- */
+      {
+        assert(spec().template is<continuation>());
+
+        auto const& k = spec().template as<continuation>();
+
+        auto current_compiler = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
+        {
+          return compile(context::outermost, *this, expression, frames);
+        };
+
+        s = k.s();
+        e = k.e();
+        c = k.c().template as<syntactic_continuation>().apply(current_compiler);
+        d = k.d();
+
+        spec() = environment::execute();
+
+        // assert(form().is<closure>());
+      }
+
+      auto macroexpand(const_reference keyword, const_reference form) -> object
+      {
+        push(d, s, e, cons(make<instruction>(mnemonic::stop), c)); // XXX ???
+
+        s = unit;
+        e = cons(keyword, cdr(form)) | spec().template as<closure>().e();
+        c =                            spec().template as<closure>().c();
+
+        return environment::execute();
+      }
+
+      auto spec() -> reference
+      {
+        return environment::first;
+      }
+
+      auto spec() const -> const_reference
+      {
+        return environment::first;
+      }
+    };
 
   public:
     /* ---- R7RS 4. Expressions ------------------------------------------------
@@ -111,7 +155,7 @@ inline namespace kernel
       {
         if (expression.is<symbol>() or expression.is_also<identifier>())
         {
-          if (let const& identifier = rename(expression, frames, current_environment); identifier.is<absolute>())
+          if (let const& identifier = current_environment.rename(expression, frames); identifier.is<absolute>())
           {
             return cons(make<instruction>(mnemonic::load_absolute), identifier,
                         current_continuation);
@@ -129,22 +173,24 @@ inline namespace kernel
                       current_continuation);
         }
       }
-      else if (let const& identifier = rename(car(expression), frames, std::as_const(current_environment)); identifier.is<keyword>())
+      else if (let const& identifier = std::as_const(current_environment).rename(car(expression), frames); identifier.is<keyword>())
       {
         let & macro = identifier.as<keyword>().binding();
 
         if (macro.is<syntactic_continuation>())
         {
-          macro = current_environment.fork(
-                    continuation(current_environment.s,
-                                 current_environment.e,
-                                 macro,
-                                 current_environment.d)).template as<environment>().form();
+          macro = make<transformer>(
+                    make<continuation>(current_environment.s,
+                                       current_environment.e,
+                                       macro, // = syntactic_continuation now
+                                       current_environment.d),
+                    current_environment.global()
+                    ).template as<transformer>().first; // DIRTY HACK!
         }
 
         return compile(context::none,
                        current_environment,
-                       macro.as<environment>().macroexpand(macro, expression),
+                       macro.as<transformer>().macroexpand(macro, expression),
                        frames,
                        current_continuation);
       }
@@ -156,11 +202,11 @@ inline namespace kernel
                                                 frames,
                                                 current_continuation);
       }
-      else if (applicant.is<environment>())
+      else if (applicant.is<transformer>())
       {
         return compile(context::none,
                        current_environment,
-                       applicant.as<environment>().macroexpand(applicant, expression),
+                       applicant.as<transformer>().macroexpand(applicant, expression),
                        frames,
                        current_continuation);
       }
@@ -297,10 +343,10 @@ inline namespace kernel
 
       case mnemonic::fork: /* --------------------------------------------------
         *
-        *  s e (%fork <syntactic-continuation> . c) d => (<program> . s) e c d
+        *  s e (%fork <syntactic-continuation> . c) d => (<transformer> . s) e c d
         *
         * ------------------------------------------------------------------- */
-        s = cons(fork(continuation(s, e, cadr(c), d)), s);
+        s = make<transformer>(make<continuation>(s, e, cadr(c), d), static_cast<environment const&>(*this).global()) | s;
         c = cddr(c);
         goto decode;
 
@@ -545,40 +591,6 @@ inline namespace kernel
       }
     }
 
-    inline auto fork(continuation const& k) const -> object
-    {
-      let const module = make<environment>(unit, static_cast<environment const&>(*this).global());
-
-      module.as<environment>().import();
-      module.as<environment>().build(k);
-
-      return module;
-    }
-
-    static auto rename(const_reference variable, const_reference frames, environment & current_environment) -> object
-    {
-      if (let const& identifier = notate(variable, frames); identifier.is<null>())
-      {
-        return current_environment.rename(variable);
-      }
-      else
-      {
-        return identifier;
-      }
-    }
-
-    static auto rename(const_reference variable, const_reference frames, environment const& current_environment) -> object
-    {
-      if (let const& identifier = notate(variable, frames); identifier.is<null>())
-      {
-        return current_environment.rename(variable); // NOTE: In the const version, rename does not extend the global-environment.
-      }
-      else
-      {
-        return identifier;
-      }
-    }
-
   protected:
     static SYNTAX(assignment) /* -----------------------------------------------
     *
@@ -596,7 +608,7 @@ inline namespace kernel
       {
         throw syntax_error(make<string>("set!"), expression);
       }
-      else if (let const& identifier = rename(car(expression), frames, current_environment); identifier.is<absolute>())
+      else if (let const& identifier = current_environment.rename(car(expression), frames); identifier.is<absolute>())
       {
         return compile(context::none,
                        current_environment,
@@ -623,7 +635,7 @@ inline namespace kernel
       {
         if (form.is<pair>())
         {
-          if (let const& identifier = rename(car(form), frames, std::as_const(current_environment)); identifier.is<absolute>())
+          if (let const& identifier = std::as_const(current_environment).rename(car(form), frames); identifier.is<absolute>())
           {
             if (let const& callee = cdr(identifier); callee.is<syntax>())
             {

@@ -27,6 +27,10 @@ inline namespace kernel
     : public virtual pair
   {
     using pair::pair;
+
+    auto c() const -> const_reference;
+
+    auto e() const -> const_reference;
   };
 
   auto operator <<(std::ostream &, closure const&) -> std::ostream &;

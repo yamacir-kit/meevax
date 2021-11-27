@@ -32,21 +32,9 @@ inline namespace kernel
                     , public reader      <environment>
                     , public writer      <environment>
   {
-    /* ---- NOTE ---------------------------------------------------------------
-     *
-     *  If this class is constructed as make<environment>(...) then the
-     *  heterogeneous::binder will have forwarded all constructor arguments to
-     *  the virtual base class pair in advance, and this constructor will be
-     *  called without any arguments.
-     *
-     *  (See the heterogeneous::binder::binder for details)
-     *
-     * ---------------------------------------------------------------------- */
     using pair::pair;
 
   public:
-    let datum = unit;
-
     using configurator::is_debug_mode;
     using configurator::is_trace_mode;
     using configurator::is_verbose_mode;
@@ -68,10 +56,6 @@ inline namespace kernel
 
     auto operator [](std::string const&) -> const_reference;
 
-    auto build(continuation const&) -> void; // NOTE: Only fork() may call this function.
-
-    auto current_expression() const -> const_reference;
-
     auto define(const_reference, const_reference) -> const_reference;
 
     auto define(std::string const&, const_reference) -> const_reference;
@@ -82,31 +66,30 @@ inline namespace kernel
       return define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
-    auto dynamic_environment() const -> const_reference;
-
     auto evaluate(const_reference) -> object;
 
     auto execute() -> object;
 
-    auto form()       noexcept ->       reference;
-    auto form() const noexcept -> const_reference;
+    auto global() noexcept -> reference;
 
-    auto global()       noexcept ->       reference;
     auto global() const noexcept -> const_reference;
-
-    auto import() -> void;
 
     template <typename T>
     auto import(T) -> void;
+
+    auto import() -> void;
 
     auto load(std::string const&) -> object;
 
     auto load(const_reference) -> object;
 
-    auto macroexpand(const_reference, const_reference) -> object;
+    auto rename(const_reference) -> const_reference;
 
-    auto rename(const_reference)       -> const_reference;
+    auto rename(const_reference, const_reference) -> object;
+
     auto rename(const_reference) const -> const_reference;
+
+    auto rename(const_reference, const_reference) const -> object;
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;
