@@ -77,16 +77,15 @@ inline namespace kernel
 
         spec() = environment::execute();
 
-        // assert(form().is<closure>());
+        environment::stop();
       }
 
       auto macroexpand(const_reference keyword, const_reference form) -> object
       {
-        push(d, s, e, cons(make<instruction>(mnemonic::stop), c)); // XXX ???
-
-        s = unit;
-        e = cons(keyword, cdr(form)) | spec().template as<closure>().e();
+        d = cons(s, e, c, d);
         c =                            spec().template as<closure>().c();
+        e = cons(keyword, cdr(form)) | spec().template as<closure>().e();
+        s = unit;
 
         return environment::execute();
       }
@@ -583,12 +582,19 @@ inline namespace kernel
       default: // ERROR
       case mnemonic::stop: /* --------------------------------------------------
         *
-        *  (x . s) e (%stop . c) d => s e c d
+        *  (x . s) e (%stop . c) d => s e (%stop . c) d
         *
         * ------------------------------------------------------------------- */
-        c = cdr(c);
         return pop(s); // return car(s);
       }
+    }
+
+    inline auto stop() -> void
+    {
+      s = unit;
+      e = unit;
+      c = list(make<instruction>(mnemonic::stop));
+      d = unit;
     }
 
   protected:
