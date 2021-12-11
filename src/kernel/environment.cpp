@@ -45,14 +45,34 @@ inline namespace kernel
 
   auto environment::evaluate(const_reference expression) -> object
   {
+    let s_ = s,
+        e_ = e,
+        c_ = c,
+        d_ = d;
+
+    d = cons(s, e, make<instruction>(mnemonic::stop) | c, d);
     c = compile(context::none, *this, expression);
+    e = unit;
+    s = unit;
 
     if (is_debug_mode())
     {
       disassemble(debug_port().as<std::ostream>(), c);
     }
 
-    return execute();
+    let const result = execute();
+
+    // PRINT(s);
+    // PRINT(e);
+    // PRINT(c);
+    // PRINT(d);
+
+    s = s_;
+    e = e_;
+    c = c_;
+    d = d_;
+
+    return result;
   }
 
   auto environment::execute() -> object

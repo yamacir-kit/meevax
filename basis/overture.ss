@@ -26,16 +26,10 @@
 (define (current-environment-specifier)
   (fork/csc identity))
 
-(define (current-evaluator)
-  ((lambda (e)
-     (lambda (x)
-       (eval x e)))
-   (current-environment-specifier)))
-
 (define (er-macro-transformer transform)
   (fork/csc
     (lambda form
-      (transform form (current-evaluator) free-identifier=?))))
+      (transform form (lambda (x) (eval x (car form))) free-identifier=?))))
 
 (define (unspecified) (if #f #f))
 
