@@ -80,7 +80,22 @@ inline namespace kernel
         environment::stop();
       }
 
-      auto macroexpand(const_reference keyword, const_reference form) -> object
+      auto macroexpand(const_reference keyword, const_reference form) /* -------
+      *
+      *  <Transformer-spec> is implemented as a closure. Since closure::c is
+      *  terminated by the return instruction, it is necessary to put a stop
+      *  instruction in the dump register (this stop instruction is preset by
+      *  the constructor of the transformer).
+      *
+      *  transformer::macroexpand is never called recursively. This is because
+      *  in the normal macro expansion performed by machine::compile, control
+      *  is returned to machine::compile each time the macro is expanded one
+      *  step. As an exception, there are cases where this transformer is given
+      *  to the eval procedure as an <environment-spacifier>, but there is no
+      *  problem because the stack control at that time is performed by
+      *  environment::evaluate.
+      *
+      * --------------------------------------------------------------------- */
       {
         d = cons(s, e, c, d);
         c =                            spec().template as<closure>().c();
@@ -184,7 +199,7 @@ inline namespace kernel
                                        macro, // = syntactic_continuation now
                                        current_environment.d),
                     current_environment.global()
-                    ).template as<transformer>().first; // DIRTY HACK!
+                    ).template as<transformer>().spec(); // DIRTY HACK!
         }
 
         return compile(context::none,

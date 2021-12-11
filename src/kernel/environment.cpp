@@ -43,14 +43,17 @@ inline namespace kernel
     return define(intern(name), value);
   }
 
-  auto environment::evaluate(const_reference expression) -> object
+  auto environment::evaluate(const_reference expression) -> object /* ----------
+  *
+  *  Since this member function can be called from various contexts, it is
+  *  necessary to save the register. In particular, note that the
+  *  er-macro-transformer's rename procedure is implemented as an eval with the
+  *  macro transformer object as the environment-specifier, so this member
+  *  function overrides the VM of the transformer during macro expansion.
+  *
+  * ------------------------------------------------------------------------- */
   {
-    let s_ = s,
-        e_ = e,
-        c_ = c,
-        d_ = d;
-
-    d = cons(s, e, make<instruction>(mnemonic::stop) | c, d);
+    d = cons(s, e, c, d);
     c = compile(context::none, *this, expression);
     e = unit;
     s = unit;
@@ -62,15 +65,9 @@ inline namespace kernel
 
     let const result = execute();
 
-    // PRINT(s);
-    // PRINT(e);
-    // PRINT(c);
-    // PRINT(d);
-
-    s = s_;
-    e = e_;
-    c = c_;
-    d = d_;
+    s = pop(d);
+    e = pop(d);
+    c = pop(d);
 
     return result;
   }

@@ -94,7 +94,8 @@ inline namespace kernel
 
   auto operator >>(std::istream &, environment &) -> std::istream &;
 
-  auto operator <<(std::ostream &, environment      &) -> std::ostream &;
+  auto operator <<(std::ostream &, environment &) -> std::ostream &;
+
   auto operator <<(std::ostream &, environment const&) -> std::ostream &;
 
   extern template class configurator<environment>;
