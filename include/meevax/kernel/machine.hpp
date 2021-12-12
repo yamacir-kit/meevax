@@ -51,6 +51,8 @@ inline namespace kernel
       using environment::c;
       using environment::d;
 
+      let const expression;
+
       explicit transformer() /* ------------------------------------------------
       *
       *  Since the base class environment inherits from pair, all arguments
@@ -60,9 +62,8 @@ inline namespace kernel
       *  them.
       *
       * --------------------------------------------------------------------- */
+        : expression { spec().template as<continuation>().c().template as<syntactic_continuation>().expression }
       {
-        assert(spec().template is<continuation>());
-
         auto const& k = spec().template as<continuation>();
 
         auto current_compiler = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
@@ -113,6 +114,11 @@ inline namespace kernel
       auto spec() const -> const_reference
       {
         return environment::first;
+      }
+
+      friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
+      {
+        return os << "#,(fork/csc " << datum.expression << ")";
       }
     };
 
