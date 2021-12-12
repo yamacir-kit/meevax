@@ -78,7 +78,7 @@ inline namespace kernel
 
         spec() = environment::execute();
 
-        environment::stop();
+        environment::machine::reset();
       }
 
       auto macroexpand(const_reference keyword, const_reference form) /* -------
@@ -286,10 +286,10 @@ inline namespace kernel
     decode:
       if constexpr (Option & option::trace)
       {
-        std::cerr << faint << "; s = " << reset << s << "\n"
-                  << faint << "; e = " << reset << e << "\n"
-                  << faint << "; c = " << reset << c << "\n"
-                  << faint << "; d = " << reset << d << "\n" << std::endl;
+        std::cerr << faint << "; s = " << posix::reset << s << "\n"
+                  << faint << "; e = " << posix::reset << e << "\n"
+                  << faint << "; c = " << posix::reset << c << "\n"
+                  << faint << "; d = " << posix::reset << d << "\n" << std::endl;
       }
 
       switch (car(c).template as<instruction>().value)
@@ -610,7 +610,7 @@ inline namespace kernel
       }
     }
 
-    inline auto stop() -> void
+    inline auto reset() -> void
     {
       s = unit;
       e = unit;
