@@ -66,19 +66,19 @@ inline namespace kernel
       {
         auto const& k = spec().template as<continuation>();
 
-        auto current_compiler = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
+        auto override_compilation = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
         {
           return compile(context::outermost, *this, expression, frames);
         };
 
         s = k.s();
         e = k.e();
-        c = k.c().template as<syntactic_continuation>().apply(current_compiler);
+        c = k.c().template as<syntactic_continuation>().apply(override_compilation);
         d = k.d();
 
         spec() = environment::execute();
 
-        environment::machine::reset();
+        environment::reset();
       }
 
       auto macroexpand(const_reference keyword, const_reference form) /* -------
