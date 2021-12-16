@@ -51,6 +51,8 @@ inline namespace kernel
       using environment::c;
       using environment::d;
 
+      let const expression;
+
       explicit transformer() /* ------------------------------------------------
       *
       *  Since the base class environment inherits from pair, all arguments
@@ -60,24 +62,23 @@ inline namespace kernel
       *  them.
       *
       * --------------------------------------------------------------------- */
+        : expression { spec().template as<continuation>().c().template as<syntactic_continuation>().expression }
       {
-        assert(spec().template is<continuation>());
-
         auto const& k = spec().template as<continuation>();
 
-        auto current_compiler = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
+        auto override_compilation = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
         {
           return compile(context::outermost, *this, expression, frames);
         };
 
         s = k.s();
         e = k.e();
-        c = k.c().template as<syntactic_continuation>().apply(current_compiler);
+        c = k.c().template as<syntactic_continuation>().apply(override_compilation);
         d = k.d();
 
         spec() = environment::execute();
 
-        environment::stop();
+        environment::reset();
       }
 
       auto macroexpand(const_reference keyword, const_reference form) /* -------
@@ -113,6 +114,11 @@ inline namespace kernel
       auto spec() const -> const_reference
       {
         return environment::first;
+      }
+
+      friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
+      {
+        return os << "#,(fork/csc " << datum.expression << ")";
       }
     };
 
@@ -280,10 +286,10 @@ inline namespace kernel
     decode:
       if constexpr (Option & option::trace)
       {
-        std::cerr << faint << "; s = " << reset << s << "\n"
-                  << faint << "; e = " << reset << e << "\n"
-                  << faint << "; c = " << reset << c << "\n"
-                  << faint << "; d = " << reset << d << "\n" << std::endl;
+        std::cerr << faint << "; s = " << posix::reset << s << "\n"
+                  << faint << "; e = " << posix::reset << e << "\n"
+                  << faint << "; c = " << posix::reset << c << "\n"
+                  << faint << "; d = " << posix::reset << d << "\n" << std::endl;
       }
 
       switch (car(c).template as<instruction>().value)
@@ -604,7 +610,7 @@ inline namespace kernel
       }
     }
 
-    inline auto stop() -> void
+    inline auto reset() -> void
     {
       s = unit;
       e = unit;
