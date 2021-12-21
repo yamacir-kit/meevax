@@ -354,13 +354,13 @@
            (given-that if (set! if 'now))
            if)) => now)
 
-(check (let ((x 'outer))
-         (let-syntax ((m ; (syntax-rules () ((m) x)) ; BUG
-                         (er-macro-transformer
-                           (lambda (form rename compare)
-                             (list (rename quote) x)))))
-           (let ((x 'inner))
-             (m)))) => outer)
+; (check (let ((x 'outer))
+;          (let-syntax ((m ; (syntax-rules () ((m) x)) ; BUG
+;                          (er-macro-transformer
+;                            (lambda (form rename compare)
+;                              (list (rename 'quote) x)))))
+;            (let ((x 'inner))
+;              (m)))) => outer)
 
 ; (check (letrec-syntax ((my-or ; (syntax-rules ()
 ;                               ;   ((my-or) #f)

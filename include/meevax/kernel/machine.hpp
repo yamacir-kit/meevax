@@ -195,18 +195,7 @@ inline namespace kernel
       }
       else if (let const& identifier = std::as_const(current_environment).rename(car(expression), frames); identifier.is<keyword>())
       {
-        let & macro = identifier.as<keyword>().binding();
-
-        if (macro.is<syntactic_continuation>())
-        {
-          macro = make<transformer>(
-                    make<continuation>(current_environment.s,
-                                       current_environment.e,
-                                       macro, // = syntactic_continuation now
-                                       current_environment.d),
-                    current_environment.global()
-                    ).template as<transformer>().spec(); // DIRTY HACK!
-        }
+        let const& macro = identifier.as<keyword>().binding();
 
         return compile(context::none,
                        current_environment,
@@ -973,21 +962,41 @@ inline namespace kernel
     {
       auto make_keyword = [&](let const& binding)
       {
+        let const current_syntactic_continuation
+          = make<syntactic_continuation>(current_context,
+                                         current_environment,
+                                         cadr(binding),
+                                         frames,
+                                         current_continuation);
+
+        let const macro_transformer
+          = make<transformer>(
+              make<continuation>(unit,
+                                 unit,
+                                 current_syntactic_continuation,
+                                 unit),
+              current_environment.global()
+              ).template as<transformer>().spec(); // DIRTY HACK!
+
         return make<keyword>(car(binding),
-                             make<syntactic_continuation>(current_context,
-                                                          current_environment,
-                                                          cadr(binding),
-                                                          frames,
-                                                          current_continuation));
+                             // current_syntactic_continuation
+                             macro_transformer
+                             );
       };
 
-      return cons(make<instruction>(mnemonic::let_syntax),
-                  make<syntactic_continuation>(current_context,
-                                               current_environment,
-                                               cdr(expression),
-                                               cons(map(make_keyword, car(expression)), frames),
-                                               current_continuation),
+      return body(current_context,
+                  current_environment,
+                  cdr(expression),
+                  cons(map(make_keyword, car(expression)), frames),
                   current_continuation);
+
+      // return cons(make<instruction>(mnemonic::let_syntax),
+      //             make<syntactic_continuation>(current_context,
+      //                                          current_environment,
+      //                                          cdr(expression),
+      //                                          cons(map(make_keyword, car(expression)), frames),
+      //                                          current_continuation),
+      //             current_continuation);
     }
 
     static SYNTAX(letrec_syntax) /* --------------------------------------------
