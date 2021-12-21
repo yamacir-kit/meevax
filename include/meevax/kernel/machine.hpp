@@ -359,13 +359,6 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::let_syntax: /* --------------------------------------------
-        *
-        *  s e (%let-syntax <syntactic-continuation> . c) d  => s e c' d
-        *
-        * ------------------------------------------------------------------- */
-        [[fallthrough]];
-
       case mnemonic::letrec_syntax: /* -----------------------------------------
         *
         *  s e (%letrec-syntax <syntactic-continuation> . c) d  => s e c' d
@@ -978,10 +971,7 @@ inline namespace kernel
               current_environment.global()
               ).template as<transformer>().spec(); // DIRTY HACK!
 
-        return make<keyword>(car(binding),
-                             // current_syntactic_continuation
-                             macro_transformer
-                             );
+        return make<keyword>(car(binding), macro_transformer);
       };
 
       return body(current_context,
@@ -989,14 +979,6 @@ inline namespace kernel
                   cdr(expression),
                   cons(map(make_keyword, car(expression)), frames),
                   current_continuation);
-
-      // return cons(make<instruction>(mnemonic::let_syntax),
-      //             make<syntactic_continuation>(current_context,
-      //                                          current_environment,
-      //                                          cdr(expression),
-      //                                          cons(map(make_keyword, car(expression)), frames),
-      //                                          current_continuation),
-      //             current_continuation);
     }
 
     static SYNTAX(letrec_syntax) /* --------------------------------------------
