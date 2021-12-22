@@ -359,14 +359,6 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::letrec_syntax: /* -----------------------------------------
-        *
-        *  s e (%letrec-syntax <syntactic-continuation> . c) d  => s e c' d
-        *
-        * ------------------------------------------------------------------- */
-        std::swap(c.as<pair>(), append(cadr(c).template as<syntactic_continuation>().apply(body), cddr(c)).template as<pair>());
-        goto decode;
-
       case mnemonic::select: /* ------------------------------------------------
         *
         *  (<boolean> . s) e (%select c1 c2 . c) d => s e c' (c . d)
@@ -1001,22 +993,31 @@ inline namespace kernel
 
       auto make_keyword = [&](let const& binding)
       {
-        return make<keyword>(car(binding),
-                             make<syntactic_continuation>(current_context,
-                                                          current_environment,
-                                                          cadr(binding),
-                                                          extended_frames,
-                                                          current_continuation));
+        let const current_syntactic_continuation
+          = make<syntactic_continuation>(current_context,
+                                         current_environment,
+                                         cadr(binding),
+                                         extended_frames,
+                                         current_continuation);
+
+        let const macro_transformer
+          = make<transformer>(
+              make<continuation>(unit,
+                                 unit,
+                                 current_syntactic_continuation,
+                                 unit),
+              current_environment.global()
+              ).template as<transformer>().spec(); // DIRTY HACK!
+
+        return make<keyword>(car(binding), macro_transformer);
       };
 
       car(extended_frames) = map(make_keyword, car(expression));
 
-      return cons(make<instruction>(mnemonic::letrec_syntax),
-                  make<syntactic_continuation>(current_context,
-                                               current_environment,
-                                               cdr(expression),
-                                               extended_frames,
-                                               current_continuation),
+      return body(current_context,
+                  current_environment,
+                  cdr(expression),
+                  extended_frames,
                   current_continuation);
     }
 
