@@ -30,13 +30,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_B
 
 # ---- Configure ---------------------------------------------------------------
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md
-                 ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
-endif()
-
-string(TIMESTAMP ${PROJECT_NAME}_BUILD_DATE "%Y/%m/%d-%H:%M:%S")
-
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   execute_process(COMMAND git rev-parse HEAD
                   COMMAND tr -d "\n"
@@ -52,10 +45,8 @@ else()
   set(${PROJECT_NAME}_BYTE_ORDER "little-endian")
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp
-                 ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
-endif()
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 
 # ---- Convert Basis-Library Sources to Binary ---------------------------------
 
@@ -99,8 +90,8 @@ target_link_libraries(kernel PRIVATE stdc++fs
 
 set_target_properties(
   kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
-                    VERSION ${PROJECT_VERSION}
-                    SOVERSION ${PROJECT_VERSION_MAJOR})
+                    VERSION     ${PROJECT_VERSION}
+                    SOVERSION   ${PROJECT_VERSION_MAJOR})
 
 # ---- Target shell ------------------------------------------------------------
 

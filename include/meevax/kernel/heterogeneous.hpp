@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
 #include <meevax/functional/compose.hpp>
+#include <meevax/iostream/write.hpp>
 #include <meevax/kernel/profiler.hpp>
 #include <meevax/posix/vt10x.hpp>
 #include <meevax/type_traits/delay.hpp>
@@ -68,7 +69,7 @@ inline namespace kernel
 
       auto write(std::ostream & os) const -> std::ostream & override
       {
-        return delay<write_t>().yield<decltype(os)>(os, static_cast<Bound const&>(*this));
+        return delay<iostream::write>().yield<decltype(os)>(os, static_cast<Bound const&>(*this));
       }
     };
 

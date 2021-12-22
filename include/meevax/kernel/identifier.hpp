@@ -40,6 +40,10 @@ inline namespace kernel
   {
     using identifier::identifier;
 
+    auto binding() -> reference;
+
+    auto binding() const -> const_reference;
+
     auto is_bound() const -> bool override;
 
     auto is_free() const -> bool override;

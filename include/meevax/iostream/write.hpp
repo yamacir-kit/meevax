@@ -14,27 +14,24 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_CLOSURE_HPP
-#define INCLUDED_MEEVAX_KERNEL_CLOSURE_HPP
+#ifndef INCLUDED_MEEVAX_IOSTREAM_WRITE_HPP
+#define INCLUDED_MEEVAX_IOSTREAM_WRITE_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <iostream>
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace iostream
 {
-  struct closure
-    : public virtual pair
+  struct write
   {
-    using pair::pair;
-
-    auto c() const -> const_reference;
-
-    auto e() const -> const_reference;
+    template <typename... Ts>
+    constexpr auto operator ()(std::ostream & os, Ts&&... xs) const -> std::ostream &
+    {
+      return (os << ... << xs);
+    }
   };
-
-  auto operator <<(std::ostream &, closure const&) -> std::ostream &;
-} // namespace kernel
+} // namespace iostream
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_CLOSURE_HPP
+#endif // INCLUDED_MEEVAX_IOSTREAM_WRITE_HPP

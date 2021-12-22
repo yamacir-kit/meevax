@@ -14,27 +14,26 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_CLOSURE_HPP
-#define INCLUDED_MEEVAX_KERNEL_CLOSURE_HPP
+#ifndef INCLUDED_MEEVAX_STRING_REPEAT_HPP
+#define INCLUDED_MEEVAX_STRING_REPEAT_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <sstream>
+#include <string>
 
 namespace meevax
 {
-inline namespace kernel
-{
-  struct closure
-    : public virtual pair
+  auto repeat(std::string const& s, std::size_t size)
   {
-    using pair::pair;
+    std::ostringstream oss;
+    std::fill_n(std::ostream_iterator<std::string>(oss), size, s);
+    return oss.str();
+  }
 
-    auto c() const -> const_reference;
-
-    auto e() const -> const_reference;
-  };
-
-  auto operator <<(std::ostream &, closure const&) -> std::ostream &;
-} // namespace kernel
+  auto horizontal_rule() -> auto const&
+  {
+    static auto const result = repeat(u8"\u2500", 80);
+    return result;
+  }
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_CLOSURE_HPP
+#endif // INCLUDED_MEEVAX_STRING_REPEAT_HPP

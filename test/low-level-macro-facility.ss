@@ -23,7 +23,7 @@
   (er-macro-transformer
     (lambda (form rename compare)
 
-      (check (environment? (rename 'let)) => #t)
+      (check (transformer? (rename 'let)) => #t)
       (check (identifier? (rename 'value)) => #t)
 
       (let ((a (cadr form))

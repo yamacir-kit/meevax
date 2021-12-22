@@ -1,5 +1,6 @@
 (define-syntax (er-macro-transformer expression)
-  (define evaluate (current-evaluator))
+  (define (evaluate x)
+    (eval x er-macro-transformer))
   (define transform (evaluate expression))
   (fork/csc
     (lambda form
