@@ -9,7 +9,10 @@ make()
   cmake --build "$2" --target "$1"
 }
 
-sudo apt remove --yes meevax
+if dpkg -s meevax
+then
+  sudo apt remove --yes meevax
+fi
 
 make safe-install.deb "$root/build"
 
