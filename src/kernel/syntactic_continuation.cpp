@@ -14,26 +14,16 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/closure.hpp>
+#include <meevax/kernel/syntactic_continuation.hpp>
 #include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto closure::c() const -> const_reference
+  auto operator <<(std::ostream & os, syntactic_continuation const& datum) -> std::ostream &
   {
-    return first;
-  }
-
-  auto closure::e() const -> const_reference
-  {
-    return second;
-  }
-
-  auto operator <<(std::ostream & os, const closure& datum) -> std::ostream &
-  {
-    return os << magenta << "#,(" << green << "closure" << reset << faint << " #;" << &datum << reset << magenta << ")" << reset;
+    return os << magenta << "#,(" << blue << "fork/csc " << reset << datum.expression << magenta << ")" << reset;
   }
 } // namespace kernel
 } // namespace meevax

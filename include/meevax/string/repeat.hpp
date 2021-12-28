@@ -14,26 +14,26 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/closure.hpp>
-#include <meevax/posix/vt10x.hpp>
+#ifndef INCLUDED_MEEVAX_STRING_REPEAT_HPP
+#define INCLUDED_MEEVAX_STRING_REPEAT_HPP
+
+#include <sstream>
+#include <string>
 
 namespace meevax
 {
-inline namespace kernel
-{
-  auto closure::c() const -> const_reference
+  auto repeat(std::string const& s, std::size_t size)
   {
-    return first;
+    std::ostringstream oss;
+    std::fill_n(std::ostream_iterator<std::string>(oss), size, s);
+    return oss.str();
   }
 
-  auto closure::e() const -> const_reference
+  auto horizontal_rule() -> auto const&
   {
-    return second;
+    static auto const result = repeat(u8"\u2500", 80);
+    return result;
   }
-
-  auto operator <<(std::ostream & os, const closure& datum) -> std::ostream &
-  {
-    return os << magenta << "#,(" << green << "closure" << reset << faint << " #;" << &datum << reset << magenta << ")" << reset;
-  }
-} // namespace kernel
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_STRING_REPEAT_HPP

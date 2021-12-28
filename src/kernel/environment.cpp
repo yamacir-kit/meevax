@@ -23,34 +23,12 @@ inline namespace kernel
 {
   auto environment::operator [](const_reference name) -> const_reference
   {
-    return cdr(rename(name));
+    return rename(name).as<absolute>().binding();
   }
 
   auto environment::operator [](std::string const& name) -> const_reference
   {
     return (*this)[intern(name)];
-  }
-
-  auto environment::build(continuation const& k) -> void
-  {
-    auto current_compiler = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
-    {
-      return compile(context::outermost, *this, expression, frames);
-    };
-
-    s = k.s();
-    e = k.e();
-    c = k.c().as<syntactic_continuation>().apply(current_compiler);
-    d = k.d();
-
-    form() = execute();
-
-    // assert(form().is<closure>());
-  }
-
-  auto environment::current_expression() const -> const_reference
-  {
-    return car(form());
   }
 
   auto environment::define(const_reference name, const_reference value) -> const_reference
@@ -65,21 +43,33 @@ inline namespace kernel
     return define(intern(name), value);
   }
 
-  auto environment::dynamic_environment() const -> const_reference
+  auto environment::evaluate(const_reference expression) -> object /* ----------
+  *
+  *  Since this member function can be called from various contexts, it is
+  *  necessary to save the register. In particular, note that the
+  *  er-macro-transformer's rename procedure is implemented as an eval with the
+  *  macro transformer object as the environment-specifier, so this member
+  *  function overrides the VM of the transformer during macro expansion.
+  *
+  * ------------------------------------------------------------------------- */
   {
-    return cdr(form());
-  }
-
-  auto environment::evaluate(const_reference expression) -> object
-  {
+    d = cons(s, e, c, d);
     c = compile(context::none, *this, expression);
+    e = unit;
+    s = unit;
 
     if (is_debug_mode())
     {
       disassemble(debug_port().as<std::ostream>(), c);
     }
 
-    return execute();
+    let const result = execute();
+
+    s = pop(d);
+    e = pop(d);
+    c = pop(d);
+
+    return result;
   }
 
   auto environment::execute() -> object
@@ -94,24 +84,14 @@ inline namespace kernel
     }
   }
 
-  auto environment::form() const noexcept -> const_reference
-  {
-    return car(*this);
-  }
-
-  auto environment::form() noexcept -> reference
-  {
-    return const_cast<reference>(std::as_const(*this).form());
-  }
-
   auto environment::global() const noexcept -> const_reference
   {
-    return cdr(*this);
+    return second;
   }
 
   auto environment::global() noexcept -> reference
   {
-    return const_cast<reference>(std::as_const(*this).global());
+    return second;
   }
 
   auto environment::import() -> void
@@ -198,17 +178,6 @@ inline namespace kernel
     }
   }
 
-  auto environment::macroexpand(const_reference keyword, const_reference form) -> object
-  {
-    push(d, s, e, cons(make<instruction>(mnemonic::stop), c)); // XXX ???
-
-    s = unit;
-    e = cons(cons(keyword, cdr(form)), dynamic_environment());
-    c = current_expression();
-
-    return execute();
-  }
-
   auto environment::rename(const_reference variable) -> const_reference
   {
     if (let const& binding = assq(variable, global()); if_(binding))
@@ -244,9 +213,33 @@ inline namespace kernel
     }
   }
 
+  auto environment::rename(const_reference variable, const_reference frames) -> object
+  {
+    if (let const& identifier = notate(variable, frames); if_(identifier))
+    {
+      return identifier;
+    }
+    else
+    {
+      return rename(variable);
+    }
+  }
+
   auto environment::rename(const_reference variable) const -> const_reference
   {
     return assq(variable, global());
+  }
+
+  auto environment::rename(const_reference variable, const_reference frames) const -> object
+  {
+    if (let const& identifier = notate(variable, frames); if_(identifier))
+    {
+      return identifier;
+    }
+    else
+    {
+      return rename(variable); // NOTE: In the const version, rename does not extend the global-environment.
+    }
   }
 
   auto operator >>(std::istream & is, environment & datum) -> std::istream &
@@ -254,16 +247,12 @@ inline namespace kernel
     datum.print("environment::operator >>(std::istream &, environment &)");
     datum.print("read new expression => ", datum.read(is));
 
-    // sk.print("program == ", sk.program(), "current_expression is ", sk.current_expression());
-
     return is;
   }
 
   auto operator <<(std::ostream & os, environment & datum) -> std::ostream &
   {
-    // TODO
-    // Evaluate current_expression, and write the evaluation to ostream.
-
+    // TODO Evaluate datum.first, and write the evaluation to ostream.
     return datum.write(os, "environment::operator <<(std::ostream &, environment &)\n");
   }
 

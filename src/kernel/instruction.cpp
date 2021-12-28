@@ -31,17 +31,16 @@ inline namespace kernel
       case mnemonic::cons:              return "cons";
       case mnemonic::define:            return "define";
       case mnemonic::drop:              return "drop";
-      case mnemonic::expand:            return "expand";
-      case mnemonic::extend:            return "extend";
+      case mnemonic::dummy:             return "dummy";
       case mnemonic::fork:              return "fork";
       case mnemonic::join:              return "join";
+      case mnemonic::letrec:            return "letrec";
       case mnemonic::load_absolute:     return "load-absolute";
       case mnemonic::load_closure:      return "load-closure";
       case mnemonic::load_constant:     return "load-constant";
       case mnemonic::load_continuation: return "load-continuation";
       case mnemonic::load_relative:     return "load-relative";
       case mnemonic::load_variadic:     return "load-variadic";
-      case mnemonic::recursive_call:    return "recursive-call";
       case mnemonic::return_:           return "return";
       case mnemonic::select:            return "select";
       case mnemonic::stop:              return "stop";
@@ -88,9 +87,9 @@ inline namespace kernel
       case mnemonic::call:
       case mnemonic::cons:
       case mnemonic::drop:
-      case mnemonic::extend:
+      case mnemonic::dummy:
       case mnemonic::join:
-      case mnemonic::recursive_call:
+      case mnemonic::letrec:
       case mnemonic::tail_call:
         os << *iter << "\n";
         ++offset;
@@ -103,7 +102,6 @@ inline namespace kernel
         break;
 
       case mnemonic::define:
-      case mnemonic::expand:
       case mnemonic::fork:
       case mnemonic::load_absolute:
       case mnemonic::load_constant:

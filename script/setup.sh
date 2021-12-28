@@ -22,9 +22,9 @@ else
   for each in "$@"
   do
     case "$each" in
-      -a | --all      ) ( required && optional ) | xargs sudo apt install ;;
-      -o | --optional ) (             optional ) | xargs sudo apt install ;;
-      -r | --required ) ( required             ) | xargs sudo apt install ;;
+      -a | --all      ) ( required && optional ) | xargs sudo apt install --yes ;;
+      -o | --optional ) (             optional ) | xargs sudo apt install --yes ;;
+      -r | --required ) ( required             ) | xargs sudo apt install --yes ;;
     esac
   done
 fi

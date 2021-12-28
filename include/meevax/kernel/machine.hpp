@@ -24,18 +24,17 @@
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/option.hpp>
 #include <meevax/kernel/stack.hpp>
+#include <meevax/kernel/syntactic_continuation.hpp>
 #include <meevax/kernel/syntactic_procedure.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  template <typename Environment>
+  template <typename environment>
   class machine // TR-SECD machine.
   {
-    friend Environment;
-
-    using environment = Environment; // HACK
+    friend environment;
 
     machine()
     {}
@@ -46,17 +45,83 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
-    /* ---- NOTE ---------------------------------------------------------------
-     *
-     *  global-environment: g = environment::global()
-     *
-     *  lexical-environment: e
-     *
-     *  dynamic-environment: d = (s e c ...)
-     *
-     *  syntactic-environment: (e . g) when define-syntax invoked
-     *
-     * ---------------------------------------------------------------------- */
+    struct transformer : public environment
+    {
+      using environment::s;
+      using environment::e;
+      using environment::c;
+      using environment::d;
+
+      let const expression;
+
+      explicit transformer() /* ------------------------------------------------
+      *
+      *  Since the base class environment inherits from pair, all arguments
+      *  given to make<transformer> are forwarded directly to the virtual base
+      *  class pair. After that, the constructor of the base class environment
+      *  is called to set up the environment. This constructor is called after
+      *  them.
+      *
+      * --------------------------------------------------------------------- */
+        : expression { spec().template as<continuation>().c().template as<syntactic_continuation>().expression }
+      {
+        auto const& k = spec().template as<continuation>();
+
+        auto override_compilation = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
+        {
+          return compile(context::outermost, *this, expression, frames);
+        };
+
+        s = k.s();
+        e = k.e();
+        c = k.c().template as<syntactic_continuation>().apply(override_compilation);
+        d = k.d();
+
+        spec() = environment::execute();
+
+        environment::reset();
+      }
+
+      auto macroexpand(const_reference keyword, const_reference form) /* -------
+      *
+      *  <Transformer-spec> is implemented as a closure. Since closure::c is
+      *  terminated by the return instruction, it is necessary to put a stop
+      *  instruction in the dump register (this stop instruction is preset by
+      *  the constructor of the transformer).
+      *
+      *  transformer::macroexpand is never called recursively. This is because
+      *  in the normal macro expansion performed by machine::compile, control
+      *  is returned to machine::compile each time the macro is expanded one
+      *  step. As an exception, there are cases where this transformer is given
+      *  to the eval procedure as an <environment-spacifier>, but there is no
+      *  problem because the stack control at that time is performed by
+      *  environment::evaluate.
+      *
+      * --------------------------------------------------------------------- */
+      {
+        d = cons(s, e, c, d);
+        c =                            spec().template as<closure>().c();
+        e = cons(keyword, cdr(form)) | spec().template as<closure>().e();
+        s = unit;
+
+        return environment::execute();
+      }
+
+      auto spec() -> reference
+      {
+        return environment::first;
+      }
+
+      auto spec() const -> const_reference
+      {
+        return environment::first;
+      }
+
+      friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
+      {
+        return os << "#,(fork/csc " << datum.expression << ")";
+      }
+    };
 
   public:
     /* ---- R7RS 4. Expressions ------------------------------------------------
@@ -111,7 +176,7 @@ inline namespace kernel
       {
         if (expression.is<symbol>() or expression.is_also<identifier>())
         {
-          if (let const& identifier = rename(expression, frames, current_environment); identifier.is<absolute>())
+          if (let const& identifier = current_environment.rename(expression, frames); identifier.is<absolute>())
           {
             return cons(make<instruction>(mnemonic::load_absolute), identifier,
                         current_continuation);
@@ -129,107 +194,69 @@ inline namespace kernel
                       current_continuation);
         }
       }
-      else // is (applicant . arguments)
+      else if (let const& identifier = std::as_const(current_environment).rename(car(expression), frames); identifier.is<keyword>())
       {
-        if (let const& applicant = car(expression); applicant.is_also<syntax>())
-        {
-          return applicant.as<syntax>().transform(current_context,
-                                                  current_environment,
-                                                  cdr(expression),
-                                                  frames,
-                                                  current_continuation);
-        }
-        else if (applicant.is<environment>())
-        {
-          return compile(context::none,
-                         current_environment,
-                         applicant.as<environment>().macroexpand(applicant, expression),
-                         frames,
-                         current_continuation);
-        }
-        else if (let const& identifier = rename(applicant, frames, std::as_const(current_environment)); identifier.is<keyword>())
-        {
-          if (let & macro = cdr(identifier); macro.is<syntactic_continuation>())
-          {
-            macro = current_environment.fork(
-                      continuation(current_environment.s,
-                                   current_environment.e,
-                                   macro,
-                                   current_environment.d)).template as<environment>().form();
-            return compile(context::none,
-                           current_environment,
-                           macro.as<environment>().macroexpand(macro, expression),
-                           frames,
-                           current_continuation);
-          }
-          else
-          {
-            return compile(context::none,
-                           current_environment,
-                           macro.as<environment>().macroexpand(macro, expression),
-                           frames,
-                           current_continuation);
-          }
-        }
-        else if (identifier.is<absolute>())
-        {
-          if (let const& applicant = cdr(identifier); applicant.is_also<syntax>())
-          {
-            return applicant.as<syntax>().transform(current_context,
-                                                    current_environment,
-                                                    cdr(expression),
-                                                    frames,
-                                                    current_continuation);
-          }
-          else if (applicant.is<environment>())
-          {
-            return compile(context::none,
-                           current_environment,
-                           applicant.as<environment>().macroexpand(applicant, expression),
-                           frames,
-                           current_continuation);
-          }
-        }
+        let const& macro = identifier.as<keyword>().binding();
 
-        /* ---- R7RS 4.1.3. Procedure calls ------------------------------------
-         *
-         *  (<operator> <operand 1> ...)                                 syntax
-         *
-         *  A procedure call is written by enclosing in parentheses an
-         *  expression for the procedure to be called followed by expressions
-         *  for the arguments to be passed to it. The operator and operand
-         *  expressions are evaluated (in an unspecified order) and the
-         *  resulting procedure is passed the resulting arguments.
-         *
-         *  The procedures in this document are available as the values of
-         *  variables exported by the standard libraries. For example, the
-         *  addition and multiplication procedures in the above examples are
-         *  the values of the variables + and * in the base library. New
-         *  procedures are created by evaluating lambda expressions (see
-         *  section 4.1.4).
-         *
-         *  Procedure calls can return any number of values (see values in
-         *  section 6.10). Most of the procedures defined in this report return
-         *  one value or, for procedures such as apply, pass on the values
-         *  returned by a call to one of their arguments. Exceptions are noted
-         *  in the individual descriptions.
-         *
-         *  Note: In contrast to other dialects of Lisp, the order of
-         *  evaluation is unspecified, and the operator expression and the
-         *  operand expressions are always evaluated with the same evaluation
-         *  rules.
-         *
-         *  Note: Although the order of evaluation is otherwise unspecified,
-         *  the effect of any concurrent evaluation of the operator and operand
-         *  expressions is constrained to be consistent with some sequential
-         *  order of evaluation. The order of evaluation may be chosen
-         *  differently for each procedure call.
-         *
-         *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
-         *  expression evaluating to itself. In Scheme, it is an error.
-         *
-         * ------------------------------------------------------------------ */
-
+        return compile(context::none,
+                       current_environment,
+                       macro.as<transformer>().macroexpand(macro, expression),
+                       frames,
+                       current_continuation);
+      }
+      else if (let const& applicant = identifier.is<absolute>() ? identifier.as<absolute>().binding() : car(expression); applicant.is_also<syntax>())
+      {
+        return applicant.as<syntax>().transform(current_context,
+                                                current_environment,
+                                                cdr(expression),
+                                                frames,
+                                                current_continuation);
+      }
+      else if (applicant.is<transformer>())
+      {
+        return compile(context::none,
+                       current_environment,
+                       applicant.as<transformer>().macroexpand(applicant, expression),
+                       frames,
+                       current_continuation);
+      }
+      else /* ------------------------------------------------------------------
+      *
+      *  (<operator> <operand 1> ...)                                    syntax
+      *
+      *  A procedure call is written by enclosing in parentheses an expression
+      *  for the procedure to be called followed by expressions for the
+      *  arguments to be passed to it. The operator and operand expressions are
+      *  evaluated (in an unspecified order) and the resulting procedure is
+      *  passed the resulting arguments.
+      *
+      *  The procedures in this document are available as the values of
+      *  variables exported by the standard libraries. For example, the
+      *  addition and multiplication procedures in the above examples are the
+      *  values of the variables + and * in the base library. New procedures
+      *  are created by evaluating lambda expressions (see section 4.1.4).
+      *
+      *  Procedure calls can return any number of values (see values in section
+      *  6.10). Most of the procedures defined in this report return one value
+      *  or, for procedures such as apply, pass on the values returned by a
+      *  call to one of their arguments. Exceptions are noted in the individual
+      *  descriptions.
+      *
+      *  Note: In contrast to other dialects of Lisp, the order of evaluation
+      *  is unspecified, and the operator expression and the operand
+      *  expressions are always evaluated with the same evaluation rules.
+      *
+      *  Note: Although the order of evaluation is otherwise unspecified, the
+      *  effect of any concurrent evaluation of the operator and operand
+      *  expressions is constrained to be consistent with some sequential order
+      *  of evaluation. The order of evaluation may be chosen differently for
+      *  each procedure call.
+      *
+      *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
+      *  expression evaluating to itself. In Scheme, it is an error.
+      *
+      * ------------------------------------------------------------------ */
+      {
         return operand(context::none,
                        current_environment,
                        cdr(expression),
@@ -249,10 +276,10 @@ inline namespace kernel
     decode:
       if constexpr (Option & option::trace)
       {
-        std::cerr << faint << "; s = " << reset << s << "\n"
-                  << faint << "; e = " << reset << e << "\n"
-                  << faint << "; c = " << reset << c << "\n"
-                  << faint << "; d = " << reset << d << "\n" << std::endl;
+        std::cerr << faint << "; s = " << posix::reset << s << "\n"
+                  << faint << "; e = " << posix::reset << e << "\n"
+                  << faint << "; c = " << posix::reset << c << "\n"
+                  << faint << "; d = " << posix::reset << d << "\n" << std::endl;
       }
 
       switch (car(c).template as<instruction>().value)
@@ -326,19 +353,11 @@ inline namespace kernel
 
       case mnemonic::fork: /* --------------------------------------------------
         *
-        *  s e (%fork <syntactic-continuation> . c) d => (<program> . s) e c d
+        *  s e (%fork <syntactic-continuation> . c) d => (<transformer> . s) e c d
         *
         * ------------------------------------------------------------------- */
-        s = cons(fork(continuation(s, e, cadr(c), d)), s);
+        s = make<transformer>(make<continuation>(s, e, cadr(c), d), static_cast<environment const&>(*this).global()) | s;
         c = cddr(c);
-        goto decode;
-
-      case mnemonic::expand: /* ------------------------------------------------
-        *
-        *  s e (%expand <syntactic-continuation> . c) d  => s e c' d
-        *
-        * ------------------------------------------------------------------- */
-        std::swap(c.as<pair>(), append(cadr(c).template as<syntactic_continuation>().apply(body), cddr(c)).template as<pair>());
         goto decode;
 
       case mnemonic::select: /* ------------------------------------------------
@@ -469,18 +488,18 @@ inline namespace kernel
         }
         goto decode;
 
-      case mnemonic::extend: /* -------------------------------------------------
+      case mnemonic::dummy: /* -------------------------------------------------
         *
-        *  s e (%extend . c) d => s (<null> . e) c d
+        *  s e (%dummy . c) d => s (<null> . e) c d
         *
         * ------------------------------------------------------------------- */
         e = cons(unit, e);
         c = cdr(c);
         goto decode;
 
-      case mnemonic::recursive_call: /* ----------------------------------------
+      case mnemonic::letrec: /* ------------------------------------------------
         *
-        *  (<closure> xs . s) (<unit> . e) (%recursive-call . c) d => () (set-car! e' xs) c' (s e c . d)
+        *  (<closure> xs . s) (<unit> . e) (%letrec . c) d => () (set-car! e' xs) c' (s e c . d)
         *
         *  where <closure> = (c' . e')
         *
@@ -492,7 +511,7 @@ inline namespace kernel
         s = unit;
         goto decode;
 
-      case mnemonic::return_: /* ------------------------------------------------
+      case mnemonic::return_: /* -----------------------------------------------
         *
         *  (x . s)  e (%return . c) (s' e' c' . d) => (x . s') e' c' d
         *
@@ -559,46 +578,19 @@ inline namespace kernel
       default: // ERROR
       case mnemonic::stop: /* --------------------------------------------------
         *
-        *  (x . s) e (%stop . c) d => s e c d
+        *  (x . s) e (%stop . c) d => s e (%stop . c) d
         *
         * ------------------------------------------------------------------- */
-        c = cdr(c);
         return pop(s); // return car(s);
       }
     }
 
-    inline auto fork(continuation const& k) const -> object
+    inline auto reset() -> void
     {
-      let const module = make<environment>(unit, static_cast<environment const&>(*this).global());
-
-      module.as<environment>().import();
-      module.as<environment>().build(k);
-
-      return module;
-    }
-
-    static auto rename(const_reference variable, const_reference frames, environment & current_environment) -> object
-    {
-      if (let const& identifier = notate(variable, frames); identifier.is<null>())
-      {
-        return current_environment.rename(variable);
-      }
-      else
-      {
-        return identifier;
-      }
-    }
-
-    static auto rename(const_reference variable, const_reference frames, environment const& current_environment) -> object
-    {
-      if (let const& identifier = notate(variable, frames); identifier.is<null>())
-      {
-        return current_environment.rename(variable); // NOTE: In the const version, rename does not extend the global-environment.
-      }
-      else
-      {
-        return identifier;
-      }
+      s = unit;
+      e = unit;
+      c = list(make<instruction>(mnemonic::stop));
+      d = unit;
     }
 
   protected:
@@ -618,7 +610,7 @@ inline namespace kernel
       {
         throw syntax_error(make<string>("set!"), expression);
       }
-      else if (let const& identifier = rename(car(expression), frames, current_environment); identifier.is<absolute>())
+      else if (let const& identifier = current_environment.rename(car(expression), frames); identifier.is<absolute>())
       {
         return compile(context::none,
                        current_environment,
@@ -645,7 +637,7 @@ inline namespace kernel
       {
         if (form.is<pair>())
         {
-          if (let const& identifier = rename(car(form), frames, std::as_const(current_environment)); identifier.is<absolute>())
+          if (let const& identifier = std::as_const(current_environment).rename(car(form), frames); identifier.is<absolute>())
           {
             if (let const& callee = cdr(identifier); callee.is<syntax>())
             {
@@ -892,11 +884,12 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return cons(make<instruction>(mnemonic::fork), make<syntactic_continuation>(current_context,
-                                                                                  current_environment,
-                                                                                  car(expression),
-                                                                                  frames,
-                                                                                  current_continuation),
+      return cons(make<instruction>(mnemonic::fork),
+                  make<syntactic_continuation>(current_context,
+                                               current_environment,
+                                               car(expression),
+                                               frames,
+                                               current_continuation),
                   current_continuation);
     }
 
@@ -953,25 +946,79 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      let identifiers = list();
-
-      for (let const& binding : car(expression))
+      auto make_keyword = [&](let const& binding)
       {
-        identifiers = cons(make<keyword>(car(binding),
-                                         make<syntactic_continuation>(current_context,
-                                                                      current_environment,
-                                                                      cadr(binding),
-                                                                      frames,
-                                                                      current_continuation)),
-                           identifiers);
-      }
+        let const current_syntactic_continuation
+          = make<syntactic_continuation>(current_context,
+                                         current_environment,
+                                         cadr(binding),
+                                         frames,
+                                         current_continuation);
 
-      return cons(make<instruction>(mnemonic::expand),
-                  make<syntactic_continuation>(current_context,
-                                               current_environment,
-                                               cdr(expression),
-                                               cons(reverse(identifiers), frames),
-                                               current_continuation),
+        let const macro_transformer
+          = make<transformer>(
+              make<continuation>(unit,
+                                 unit,
+                                 current_syntactic_continuation,
+                                 unit),
+              current_environment.global()
+              ).template as<transformer>().spec(); // DIRTY HACK!
+
+        return make<keyword>(car(binding), macro_transformer);
+      };
+
+      return body(current_context,
+                  current_environment,
+                  cdr(expression),
+                  cons(map(make_keyword, car(expression)), frames),
+                  current_continuation);
+    }
+
+    static SYNTAX(letrec_syntax) /* --------------------------------------------
+    *
+    *  (letrec-syntax <bingings> <body>)                                 syntax
+    *
+    *  Syntax: Same as for let-syntax.
+    *
+    *  Semantics: The <body> is expanded in the syntactic environment obtained
+    *  by extending the syntactic environment of the letrec-syntax expression
+    *  with macros whose keywords are the <keywords>s, bound to the specified
+    *  transformers. Each binding of a <keywords> has the <transformer spec>s
+    *  as well as the <body> within its region, so the transformers can
+    *  transcribe expressions into uses of the macros introduced by the
+    *  letrec-syntax expression.
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      let extended_frames = cons(unit, frames);
+
+      auto make_keyword = [&](let const& binding)
+      {
+        let const current_syntactic_continuation
+          = make<syntactic_continuation>(current_context,
+                                         current_environment,
+                                         cadr(binding),
+                                         extended_frames,
+                                         current_continuation);
+
+        let const macro_transformer
+          = make<transformer>(
+              make<continuation>(unit,
+                                 unit,
+                                 current_syntactic_continuation,
+                                 unit),
+              current_environment.global()
+              ).template as<transformer>().spec(); // DIRTY HACK!
+
+        return make<keyword>(car(binding), macro_transformer);
+      };
+
+      car(extended_frames) = map(make_keyword, car(expression));
+
+      return body(current_context,
+                  current_environment,
+                  cdr(expression),
+                  extended_frames,
                   current_continuation);
     }
 
@@ -1021,7 +1068,7 @@ inline namespace kernel
 
       auto const& [variables, inits] = unzip2(bindings);
 
-      return cons(make<instruction>(mnemonic::extend),
+      return cons(make<instruction>(mnemonic::dummy),
                   operand(context::none,
                           current_environment,
                           inits,
@@ -1030,7 +1077,7 @@ inline namespace kernel
                                  current_environment,
                                  cons(variables, body),
                                  frames,
-                                 cons(make<instruction>(mnemonic::recursive_call),
+                                 cons(make<instruction>(mnemonic::letrec),
                                       current_continuation))));
     }
 

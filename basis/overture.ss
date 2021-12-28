@@ -4,6 +4,11 @@
 
 (define fork/csc fork-with-current-syntactic-continuation)
 
+(define import
+  (fork/csc
+    (lambda (import . import-sets)
+      (list quote (cons 'import import-sets)))))
+
 (define define-syntax
   (fork/csc
     (lambda (define-syntax keyword . transformer)
@@ -21,16 +26,10 @@
 (define (current-environment-specifier)
   (fork/csc identity))
 
-(define (current-evaluator)
-  ((lambda (e)
-     (lambda (x)
-       (eval x e)))
-   (current-environment-specifier)))
-
 (define (er-macro-transformer transform)
   (fork/csc
     (lambda form
-      (transform form (current-evaluator) free-identifier=?))))
+      (transform form (lambda (x) (eval x (car form))) free-identifier=?))))
 
 (define (unspecified) (if #f #f))
 

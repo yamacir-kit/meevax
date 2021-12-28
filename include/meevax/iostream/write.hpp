@@ -14,26 +14,24 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/closure.hpp>
-#include <meevax/posix/vt10x.hpp>
+#ifndef INCLUDED_MEEVAX_IOSTREAM_WRITE_HPP
+#define INCLUDED_MEEVAX_IOSTREAM_WRITE_HPP
+
+#include <iostream>
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace iostream
 {
-  auto closure::c() const -> const_reference
+  struct write
   {
-    return first;
-  }
-
-  auto closure::e() const -> const_reference
-  {
-    return second;
-  }
-
-  auto operator <<(std::ostream & os, const closure& datum) -> std::ostream &
-  {
-    return os << magenta << "#,(" << green << "closure" << reset << faint << " #;" << &datum << reset << magenta << ")" << reset;
-  }
-} // namespace kernel
+    template <typename... Ts>
+    constexpr auto operator ()(std::ostream & os, Ts&&... xs) const -> std::ostream &
+    {
+      return (os << ... << xs);
+    }
+  };
+} // namespace iostream
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_IOSTREAM_WRITE_HPP

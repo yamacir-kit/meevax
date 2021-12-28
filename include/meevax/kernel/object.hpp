@@ -52,7 +52,7 @@ inline namespace kernel
 
     virtual auto write(std::ostream & os) const -> std::ostream &
     {
-      return delay<write_t>().yield<std::ostream &>(os, static_cast<T const&>(*this));
+      return delay<iostream::write>().yield<std::ostream &>(os, static_cast<T const&>(*this));
     }
   };
 

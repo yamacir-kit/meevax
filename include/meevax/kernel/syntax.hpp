@@ -33,35 +33,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct syntactic_continuation
-  {
-    const context preserved_context;
-
-    const std::reference_wrapper<environment> preserved_environment;
-
-    let const expression;
-
-    let const frames;
-
-    let const continuation;
-
-    auto apply(std::function<SYNTAX()> const& compile) -> decltype(auto)
-    {
-      return compile(preserved_context, preserved_environment, expression, frames, continuation);
-    }
-
-    template <typename... Ts>
-    inline auto operator ()(Ts&&... xs) -> decltype(auto)
-    {
-      return apply(std::forward<decltype(xs)>(xs)...);
-    }
-
-    friend auto operator <<(std::ostream & os, syntactic_continuation const& datum) -> std::ostream &
-    {
-      return os << "#,(fork/csc " << datum.expression << ")";
-    }
-  };
-
   struct syntax : public description
   {
     using signature = SYNTAX((*));

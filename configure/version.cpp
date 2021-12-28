@@ -59,7 +59,6 @@ inline namespace kernel
   auto features() -> const_reference
   {
     let static const features = list(
-      // STANDARD FEATURE IDENTIFIERS
       make<symbol>("r4rs"),
       make<symbol>("exact-closed"),
       // make<symbol>("exact-complex"),
@@ -72,18 +71,7 @@ inline namespace kernel
       // TODO C memory model flags.
       make<symbol>("${${PROJECT_NAME}_BYTE_ORDER}"),
       make<symbol>("${PROJECT_NAME}"), // The name of this implementation.
-      make<symbol>("${PROJECT_NAME}-${PROJECT_VERSION}"), // The name and version of this implementation.
-
-      // SUPPORTED SRFIS
-      make<symbol>("srfi-5"),
-      make<symbol>("srfi-6"),
-      make<symbol>("srfi-8"),
-      make<symbol>("srfi-10"),
-      make<symbol>("srfi-62"),
-      make<symbol>("srfi-87"),
-
-      // SUPPORTED OPTIMIZATIONS
-      make<symbol>("tail-call-optimization")
+      make<symbol>("${PROJECT_NAME}-${PROJECT_VERSION}") // The name and version of this implementation.
       );
 
     return features;

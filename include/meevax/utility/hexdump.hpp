@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_UTILITY_HEXDUMP
 #define INCLUDED_MEEVAX_UTILITY_HEXDUMP
 
-#include <functional> // std::invoke
 #include <iomanip> // std::hex,
 #include <iostream> // std::ostream
 #include <vector> // std::vector
@@ -39,10 +38,10 @@ inline namespace utility
     {}
 
     // TODO UPDATE WITH STD::ENDIAN (C++20)
-    std::ostream& operator()(std::ostream& os) const
+    auto operator()(std::ostream & os) const -> std::ostream &
     {
-      for (auto iter {std::rbegin(data)}; iter != std::rend(data); ++iter) // little endian
-      // for (auto iter {std::begin(data)}; iter != std::end(data); ++iter) // big endian
+      for (auto iter = std::rbegin(data); iter != std::rend(data); ++iter) // little endian
+      // for (auto iter = std::begin(data); iter != std::end(data); ++iter) // big endian
       {
         os << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned int>(*iter) << " ";
       }
@@ -52,13 +51,9 @@ inline namespace utility
   };
 
   template <typename T>
-  std::ostream& operator<<(std::ostream& os, const hexdump<T>& hexdump)
+  auto operator <<(std::ostream & os, hexdump<T> const& hexdump) -> std::ostream &
   {
-    #if __cpp_lib_invoke
-    return std::invoke(hexdump, os);
-    #else
     return hexdump(os);
-    #endif
   }
 } // namespace utility
 } // namespace meevax
