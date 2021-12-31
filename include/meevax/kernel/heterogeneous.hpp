@@ -21,7 +21,6 @@
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/write.hpp>
 #include <meevax/kernel/profiler.hpp>
-#include <meevax/posix/vt10x.hpp>
 #include <meevax/type_traits/delay.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/utility/module.hpp>
