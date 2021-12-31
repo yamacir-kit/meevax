@@ -16,7 +16,6 @@
 
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/equivalence.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {

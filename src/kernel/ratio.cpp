@@ -17,7 +17,6 @@
 #include <regex>
 
 #include <meevax/kernel/number.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {

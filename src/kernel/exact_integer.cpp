@@ -19,7 +19,6 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/floating_point.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {

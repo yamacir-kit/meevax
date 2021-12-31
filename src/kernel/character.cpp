@@ -17,7 +17,6 @@
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/miscellaneous.hpp> // for eof
-#include <meevax/posix/vt10x.hpp> // for cyan
 
 namespace meevax
 {
