@@ -30,7 +30,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &
   {
-    return os << underline << datum.symbol() << reset;
+    return os << underline(datum.symbol());
   }
 
   auto absolute::binding() -> reference

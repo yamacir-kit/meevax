@@ -257,10 +257,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &
   {
-    return os << magenta("#,(")
-              << green("environment ")
-              << faint << "#;" << &datum << reset
-              << magenta(")");
+    return os << magenta("#,(") << green("environment ") << faint("#;", &datum) << magenta(")");
   }
 
   template class configurator<environment>;

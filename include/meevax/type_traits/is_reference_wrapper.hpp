@@ -14,20 +14,25 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/continuation.hpp>
+#ifndef INCLUDED_MEEVAX_TYPE_TRAITS_IS_REFERENCE_WRAPPER_HPP
+#define INCLUDED_MEEVAX_TYPE_TRAITS_IS_REFERENCE_WRAPPER_HPP
+
+#include <type_traits>
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace type_traits
 {
-  auto continuation::s() const -> const_reference { return   car(*this); }
-  auto continuation::e() const -> const_reference { return  cadr(*this); }
-  auto continuation::c() const -> const_reference { return caddr(*this); }
-  auto continuation::d() const -> const_reference { return cdddr(*this); }
+  template <typename T>
+  struct is_reference_wrapper
+    : public std::false_type
+  {};
 
-  auto operator <<(std::ostream & os, continuation const& datum) -> std::ostream &
-  {
-    return os << magenta("#,(") << green("continuation ") << faint(";#", std::addressof(datum)) << magenta(")");
-  }
-} // namespace kernel
+  template <typename T>
+  struct is_reference_wrapper<std::reference_wrapper<T>>
+    : public std::true_type
+  {};
+} // namespace type_traits
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_TYPE_TRAITS_IS_REFERENCE_WRAPPER_HPP

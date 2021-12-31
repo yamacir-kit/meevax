@@ -69,7 +69,7 @@ inline namespace kernel
 
     for (auto iter = std::cbegin(c); iter != std::cend(c); ++iter)
     {
-      os << faint << "; " << std::setw(4) << std::right << std::to_string(offset) << "  " << reset;
+      os << faint("; ", std::setw(4), std::right, std::to_string(offset), "  ");
 
       if (iter == c)
       {

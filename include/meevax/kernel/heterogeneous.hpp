@@ -149,7 +149,7 @@ inline namespace kernel
   template <template <typename...> typename Pointer, typename Top>
   auto operator <<(std::ostream & os, heterogeneous<Pointer, Top> const& datum) -> std::ostream &
   {
-    return (datum.template is<null>() ? os << magenta("()") : datum->write(os)) << reset;
+    return datum.template is<null>() ? os << magenta("()") : datum->write(os);
   }
 } // namespace kernel
 } // namespace meevax

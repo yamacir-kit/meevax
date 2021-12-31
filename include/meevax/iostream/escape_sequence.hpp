@@ -17,11 +17,10 @@
 #ifndef INCLUDED_MEEVAX_IOSTREAM_ESCAPE_SEQUENCE_HPP
 #define INCLUDED_MEEVAX_IOSTREAM_ESCAPE_SEQUENCE_HPP
 
-#include <functional> // std::reference_wrapper
-#include <type_traits>
-#include <utility> // std::tuple
+#include <tuple>
 
 #include <meevax/iostream/is_console.hpp>
+#include <meevax/utility/unwrap_reference_wrapper.hpp>
 
 namespace meevax
 {
@@ -34,9 +33,9 @@ inline namespace iostream
 
     std::tuple<
       typename std::conditional<
-        std::is_scalar<typename std::decay<Ts>::type>::value or not std::is_reference<Ts>::value,
+        not std::is_reference<Ts>::value or std::is_scalar<typename std::remove_reference<Ts>::type>::value,
         typename std::decay<Ts>::type,
-        std::reference_wrapper<typename std::decay<Ts>::type>
+        std::reference_wrapper<typename std::remove_reference<Ts>::type>
       >::type...
     > references;
 
@@ -50,7 +49,7 @@ inline namespace iostream
     {
       auto print = [&](auto&& ... xs) -> std::ostream &
       {
-        return (os << ... << xs);
+        return (os << ... << unwrap_reference_wrapper(xs));
       };
 
       if (is_console(os))
@@ -75,6 +74,15 @@ inline namespace iostream
   {                                                                            \
     return escape_sequence(COMMAND, std::forward<decltype(xs)>(xs)...); \
   }
+
+  DEFINE("1m", bold);
+  DEFINE("2m", faint);
+  DEFINE("3m", italic); // Not widely supported. Sometimes treated as inverse.
+  DEFINE("4m", underline);
+  DEFINE("5m", slow_blink); // Less than 150 per minite.
+  DEFINE("6m", rapid_blink); // More than 150 per minite. Not widely supported.
+  DEFINE("7m", reverse);
+  DEFINE("8m", conceal); // Not widely supported.
 
   inline namespace foreground
   {

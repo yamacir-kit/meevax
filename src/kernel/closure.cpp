@@ -32,7 +32,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, const closure& datum) -> std::ostream &
   {
-    return os << magenta("#,(") << green("closure") << faint << " #;" << &datum << reset << magenta(")");
+    return os << magenta("#,(") << green("closure ") << faint("#;", &datum) << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

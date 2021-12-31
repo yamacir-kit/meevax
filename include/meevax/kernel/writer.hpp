@@ -39,7 +39,7 @@ inline namespace kernel
     template <typename... Ts>
     auto write(std::ostream & os, Ts&&... xs) const -> std::ostream &
     {
-      return (os << ... << xs) << reset;
+      return (os << ... << xs);
     }
 
     template <typename... Ts>

@@ -22,14 +22,14 @@ inline namespace kernel
 {
   auto operator <<(std::ostream & os, unspecified const&) -> std::ostream &
   {
-    return os << faint << "#;unspecified" << reset;
+    return os << faint("#;unspecified");
   }
 
   let const unspecified_object = make<unspecified>();
 
   auto operator <<(std::ostream & os, undefined const&) -> std::ostream &
   {
-    return os << faint << "#;undefined" << reset;
+    return os << faint("#;undefined");
   }
 
   let const undefined_object = make<undefined>();

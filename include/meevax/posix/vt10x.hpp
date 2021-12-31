@@ -64,16 +64,16 @@ inline namespace posix
     return escape_sequence(os, CODE);                                          \
   }
 
-  DEFINE_ESCAPE_SEQUENCE("0m", reset);
-  DEFINE_ESCAPE_SEQUENCE("1m", bold);
-  DEFINE_ESCAPE_SEQUENCE("2m", faint);
-  DEFINE_ESCAPE_SEQUENCE("3m", italic); // Not widely supported. Sometimes treated as inverse.
-  DEFINE_ESCAPE_SEQUENCE("4m", underline);
-  DEFINE_ESCAPE_SEQUENCE("5m", slow_blink); // Less than 150 per minite.
-  DEFINE_ESCAPE_SEQUENCE("6m", rapid_blink); // More than 150 per minite. Not widely supported.
-  DEFINE_ESCAPE_SEQUENCE("7m", reverse);
-  DEFINE_ESCAPE_SEQUENCE("8m", conceal); // Not widely supported.
-
+  // DEFINE_ESCAPE_SEQUENCE("0m", reset);
+  // DEFINE_ESCAPE_SEQUENCE("1m", bold);
+  // DEFINE_ESCAPE_SEQUENCE("2m", faint);
+  // DEFINE_ESCAPE_SEQUENCE("3m", italic); // Not widely supported. Sometimes treated as inverse.
+  // DEFINE_ESCAPE_SEQUENCE("4m", underline);
+  // DEFINE_ESCAPE_SEQUENCE("5m", slow_blink); // Less than 150 per minite.
+  // DEFINE_ESCAPE_SEQUENCE("6m", rapid_blink); // More than 150 per minite. Not widely supported.
+  // DEFINE_ESCAPE_SEQUENCE("7m", reverse);
+  // DEFINE_ESCAPE_SEQUENCE("8m", conceal); // Not widely supported.
+  //
   // inline namespace foreground
   // {
   //   DEFINE_ESCAPE_SEQUENCE("30m", black);
