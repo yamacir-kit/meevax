@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_POSIX_VT102_HPP
 #define INCLUDED_MEEVAX_POSIX_VT102_HPP
 
-#include <meevax/posix/is_tty.hpp>
+#include <meevax/iostream/is_console.hpp>
 
 namespace meevax
 {
@@ -28,7 +28,7 @@ inline namespace posix
   template <typename... Ts>
   auto escape_sequence(std::ostream& os, Ts&&... xs) -> decltype(auto)
   {
-    return is_tty(os) ? os << csi, (os << ... << xs) : os;
+    return is_console(os) ? os << csi, (os << ... << xs) : os;
   }
 
   struct cursor_move

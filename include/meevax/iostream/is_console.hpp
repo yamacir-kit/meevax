@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_POSIX_IS_TTY_HPP
-#define INCLUDED_MEEVAX_POSIX_IS_TTY_HPP
+#ifndef INCLUDED_MEEVAX_IOSTREAM_IS_CONSOLE_HPP
+#define INCLUDED_MEEVAX_IOSTREAM_IS_CONSOLE_HPP
 
 #include <iostream>
 
@@ -23,18 +23,18 @@
 
 namespace meevax
 {
-inline namespace posix
+inline namespace iostream
 {
-  auto is_tty = [](std::ostream& os)
+  auto is_console = [](std::ostream & os)
   {
     if (os.rdbuf() == std::cout.rdbuf())
     {
-      static const auto result { static_cast<bool>(::isatty(STDOUT_FILENO)) };
+      static auto const result = static_cast<bool>(::isatty(STDOUT_FILENO));
       return result;
     }
     else if (os.rdbuf() == std::cerr.rdbuf())
     {
-      static const auto result { static_cast<bool>(::isatty(STDERR_FILENO)) };
+      static auto const result = static_cast<bool>(::isatty(STDERR_FILENO));
       return result;
     }
     else
@@ -42,7 +42,7 @@ inline namespace posix
       return false;
     }
   };
-} // namespace posix
+} // namespace iostream
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_POSIX_IS_TTY_HPP
+#endif // INCLUDED_MEEVAX_IOSTREAM_IS_CONSOLE_HPP
