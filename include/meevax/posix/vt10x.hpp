@@ -51,10 +51,10 @@ inline namespace posix
     {}                                                                         \
   }
 
-  DEFINE_CURSOR_MOVE('A', up);
-  DEFINE_CURSOR_MOVE('B', down);
-  DEFINE_CURSOR_MOVE('C', forward);
-  DEFINE_CURSOR_MOVE('D', backward);
+  // DEFINE_CURSOR_MOVE('A', up);
+  // DEFINE_CURSOR_MOVE('B', down);
+  // DEFINE_CURSOR_MOVE('C', forward);
+  // DEFINE_CURSOR_MOVE('D', backward);
 
   #undef DEFINE_CURSOR_MOVE
 
@@ -74,32 +74,32 @@ inline namespace posix
   DEFINE_ESCAPE_SEQUENCE("7m", reverse);
   DEFINE_ESCAPE_SEQUENCE("8m", conceal); // Not widely supported.
 
-  inline namespace foreground
-  {
-    DEFINE_ESCAPE_SEQUENCE("30m", black);
-    // DEFINE_ESCAPE_SEQUENCE("31m", red);
-    DEFINE_ESCAPE_SEQUENCE("32m", green);
-    DEFINE_ESCAPE_SEQUENCE("33m", yellow);
-    DEFINE_ESCAPE_SEQUENCE("34m", blue);
-    // DEFINE_ESCAPE_SEQUENCE("35m", magenta);
-    DEFINE_ESCAPE_SEQUENCE("36m", cyan);
-    DEFINE_ESCAPE_SEQUENCE("37m", white);
-  }
-
-  namespace background
-  {
-    DEFINE_ESCAPE_SEQUENCE("40m", black);
-    DEFINE_ESCAPE_SEQUENCE("41m", red);
-    DEFINE_ESCAPE_SEQUENCE("42m", green);
-    DEFINE_ESCAPE_SEQUENCE("43m", yellow);
-    DEFINE_ESCAPE_SEQUENCE("44m", blue);
-    DEFINE_ESCAPE_SEQUENCE("45m", magenta);
-    DEFINE_ESCAPE_SEQUENCE("46m", cyan);
-    DEFINE_ESCAPE_SEQUENCE("47m", white);
-  }
-
-  DEFINE_ESCAPE_SEQUENCE("?25h", show_cursor);
-  DEFINE_ESCAPE_SEQUENCE("?25l", hide_cursor);
+  // inline namespace foreground
+  // {
+  //   DEFINE_ESCAPE_SEQUENCE("30m", black);
+  //   DEFINE_ESCAPE_SEQUENCE("31m", red);
+  //   DEFINE_ESCAPE_SEQUENCE("32m", green);
+  //   DEFINE_ESCAPE_SEQUENCE("33m", yellow);
+  //   DEFINE_ESCAPE_SEQUENCE("34m", blue);
+  //   DEFINE_ESCAPE_SEQUENCE("35m", magenta);
+  //   DEFINE_ESCAPE_SEQUENCE("36m", cyan);
+  //   DEFINE_ESCAPE_SEQUENCE("37m", white);
+  // }
+  //
+  // namespace background
+  // {
+  //   DEFINE_ESCAPE_SEQUENCE("40m", black);
+  //   DEFINE_ESCAPE_SEQUENCE("41m", red);
+  //   DEFINE_ESCAPE_SEQUENCE("42m", green);
+  //   DEFINE_ESCAPE_SEQUENCE("43m", yellow);
+  //   DEFINE_ESCAPE_SEQUENCE("44m", blue);
+  //   DEFINE_ESCAPE_SEQUENCE("45m", magenta);
+  //   DEFINE_ESCAPE_SEQUENCE("46m", cyan);
+  //   DEFINE_ESCAPE_SEQUENCE("47m", white);
+  // }
+  //
+  // DEFINE_ESCAPE_SEQUENCE("?25h", show_cursor);
+  // DEFINE_ESCAPE_SEQUENCE("?25l", hide_cursor);
 
   #undef DEFINE_ESCAPE_SEQUENCE
 } // namespace posix

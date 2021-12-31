@@ -315,7 +315,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, exact_integer const& datum) -> std::ostream &
   {
-    return os << cyan << static_cast<std::string>(datum) << reset;
+    return os << cyan(static_cast<std::string>(datum));
   }
 } // namespace kernel
 } // namespace meevax

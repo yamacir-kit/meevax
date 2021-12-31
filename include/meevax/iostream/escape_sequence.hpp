@@ -34,14 +34,15 @@ inline namespace iostream
 
     std::tuple<
       typename std::conditional<
-        std::is_scalar<typename std::decay<Ts>::type>::value,
+        std::is_scalar<typename std::decay<Ts>::type>::value or not std::is_reference<Ts>::value,
         typename std::decay<Ts>::type,
         std::reference_wrapper<typename std::decay<Ts>::type>
       >::type...
     > references;
 
-    explicit constexpr escape_sequence(char const* command, Ts&&... xs)
-      : command { command }
+    template <typename T>
+    explicit constexpr escape_sequence(T&& x, Ts&&... xs)
+      : command { std::forward<decltype(x)>(x) }
       , references { std::forward<decltype(xs)>(xs)... }
     {}
 
@@ -66,8 +67,8 @@ inline namespace iostream
     }
   };
 
-  template <typename... Ts>
-  escape_sequence(char const*, Ts&&...) -> escape_sequence<Ts...>;
+  template <typename T, typename... Ts>
+  escape_sequence(T&&, Ts&&...) -> escape_sequence<Ts...>;
 
   #define DEFINE(COMMAND, NAME)                                                \
   auto NAME = [](auto&&... xs)                                                 \
@@ -77,26 +78,26 @@ inline namespace iostream
 
   inline namespace foreground
   {
-    // DEFINE("30m", black);
+    DEFINE("30m", black);
     DEFINE("31m", red);
-    // DEFINE("32m", green);
-    // DEFINE("33m", yellow);
-    // DEFINE("34m", blue);
+    DEFINE("32m", green);
+    DEFINE("33m", yellow);
+    DEFINE("34m", blue);
     DEFINE("35m", magenta);
-    // DEFINE("36m", cyan);
-    // DEFINE("37m", white);
+    DEFINE("36m", cyan);
+    DEFINE("37m", white);
   }
 
   namespace background
   {
-    // DEFINE("40m", black);
-    // DEFINE("41m", red);
-    // DEFINE("42m", green);
-    // DEFINE("43m", yellow);
-    // DEFINE("44m", blue);
-    // DEFINE("45m", magenta);
-    // DEFINE("46m", cyan);
-    // DEFINE("47m", white);
+    DEFINE("40m", black);
+    DEFINE("41m", red);
+    DEFINE("42m", green);
+    DEFINE("43m", yellow);
+    DEFINE("44m", blue);
+    DEFINE("45m", magenta);
+    DEFINE("46m", cyan);
+    DEFINE("47m", white);
   }
 
   #undef DEFINE

@@ -132,7 +132,7 @@ inline namespace kernel
         case '|':  return os << red("\\|");
 
         default:
-          return os << cyan << static_cast<char>(c.codepoint);
+          return os << cyan(static_cast<char>(c.codepoint));
         }
       }
       else
@@ -141,14 +141,14 @@ inline namespace kernel
       }
     };
 
-    os << cyan << "\"";
+    os << cyan("\"");
 
     for (auto const& each : datum)
     {
       write(each);
     }
 
-    return os << cyan << "\"" << reset;
+    return os << cyan("\"");
   }
 } // namespace kernel
 } // namespace meevax

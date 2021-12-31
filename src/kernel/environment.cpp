@@ -258,8 +258,8 @@ inline namespace kernel
   auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &
   {
     return os << magenta("#,(")
-              << green << "environment" << reset
-              << faint << " #;" << &datum << reset
+              << green("environment ")
+              << faint << "#;" << &datum << reset
               << magenta(")");
   }
 

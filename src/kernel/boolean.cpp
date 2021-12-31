@@ -23,7 +23,7 @@ inline namespace kernel
 {
   auto operator <<(std::ostream & os, boolean const& datum) -> std::ostream &
   {
-    return os << cyan << "#" << std::boolalpha << datum.value << reset;
+    return os << cyan("#", std::boolalpha, datum.value);
   }
 
   let const t = make<boolean>(true);

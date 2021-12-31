@@ -89,7 +89,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, procedure const& datum) -> std::ostream &
   {
-    return os << magenta("#,(") << green << "procedure " << reset << datum.name << magenta(")");
+    return os << magenta("#,(") << green("procedure") << " " << datum.name << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

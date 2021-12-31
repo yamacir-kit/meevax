@@ -22,7 +22,7 @@ inline namespace kernel
 {
   auto operator <<(std::ostream & os, syntactic_continuation const& datum) -> std::ostream &
   {
-    return os << magenta("#,(") << blue << "fork/csc " << reset << datum.expression << magenta(")");
+    return os << magenta("#,(") << blue("fork/csc ") << datum.expression << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

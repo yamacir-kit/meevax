@@ -52,7 +52,7 @@ inline namespace kernel
                                                                                \
   auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
   {                                                                            \
-    return os << magenta("#,(") << green << "open-" NAME " " << datum.name << magenta(")"); \
+    return os << magenta("#,(") << green("open-" NAME) << " " << datum.name << magenta(")"); \
   }                                                                            \
   static_assert(true)
 
@@ -65,7 +65,7 @@ inline namespace kernel
   #define DEFINE(TYPENAME, NAME)                                               \
   auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
   {                                                                            \
-    return os << magenta("#,(") << green << "open-" NAME " " << string(datum.str()) << magenta(")"); \
+    return os << magenta("#,(") << green("open-" NAME) << " " << string(datum.str()) << magenta(")"); \
   }                                                                            \
   static_assert(true)
 
