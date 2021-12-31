@@ -18,6 +18,8 @@
 #define INCLUDED_MEEVAX_IOSTREAM_ESCAPE_SEQUENCE_HPP
 
 #include <functional> // std::reference_wrapper
+#include <type_traits>
+#include <utility> // std::tuple
 
 #include <meevax/iostream/is_console.hpp>
 
@@ -25,42 +27,79 @@ namespace meevax
 {
 inline namespace iostream
 {
-  template <typename T>
+  template <typename... Ts>
   struct escape_sequence
   {
     char const* command;
 
-    std::reference_wrapper<T> datum;
+    std::tuple<
+      typename std::conditional<
+        std::is_scalar<typename std::decay<Ts>::type>::value,
+        typename std::decay<Ts>::type,
+        std::reference_wrapper<typename std::decay<Ts>::type>
+      >::type...
+    > references;
 
-    explicit constexpr escape_sequence(char const* command, T&& datum)
+    explicit constexpr escape_sequence(char const* command, Ts&&... xs)
       : command { command }
-      , datum { std::cref(std::forward<decltype(datum)>(datum)) }
+      , references { std::forward<decltype(xs)>(xs)... }
     {}
+
+    friend auto operator <<(std::ostream & os, escape_sequence const& sequence) -> std::ostream &
+    {
+      auto print = [&](auto&& ... xs) -> std::ostream &
+      {
+        return (os << ... << xs);
+      };
+
+      if (is_console(os))
+      {
+        os << "\x1b[" << sequence.command;
+        std::apply(print, sequence.references);
+        return os << "\x1b[0m";
+      }
+      else
+      {
+        std::apply(print, sequence.references);
+        return os;
+      }
+    }
   };
 
-  template <>
-  struct escape_sequence<char const*>
-  {
-    char const* command;
+  template <typename... Ts>
+  escape_sequence(char const*, Ts&&...) -> escape_sequence<Ts...>;
 
-    char const* datum;
-
-    explicit constexpr escape_sequence(char const* command, char const* datum)
-      : command { command }
-      , datum { std::forward<decltype(datum)>(datum) }
-    {}
-  };
-
-  template <typename T>
-  auto operator <<(std::ostream & os, escape_sequence<T> const& sequence) -> std::ostream &
-  {
-    return is_console(os) ? os << "\x1b[" << sequence.command << sequence.datum << "\x1b[0m" : os << sequence.datum;
+  #define DEFINE(COMMAND, NAME)                                                \
+  auto NAME = [](auto&&... xs)                                                 \
+  {                                                                            \
+    return escape_sequence(COMMAND, std::forward<decltype(xs)>(xs)...); \
   }
 
-  auto magenta = [](auto&& datum)
+  inline namespace foreground
   {
-    return escape_sequence<typename std::decay<decltype(datum)>::type>("35m", std::forward<decltype(datum)>(datum));
-  };
+    // DEFINE("30m", black);
+    DEFINE("31m", red);
+    // DEFINE("32m", green);
+    // DEFINE("33m", yellow);
+    // DEFINE("34m", blue);
+    DEFINE("35m", magenta);
+    // DEFINE("36m", cyan);
+    // DEFINE("37m", white);
+  }
+
+  namespace background
+  {
+    // DEFINE("40m", black);
+    // DEFINE("41m", red);
+    // DEFINE("42m", green);
+    // DEFINE("43m", yellow);
+    // DEFINE("44m", blue);
+    // DEFINE("45m", magenta);
+    // DEFINE("46m", cyan);
+    // DEFINE("47m", white);
+  }
+
+  #undef DEFINE
 } // namespace iostream
 } // namespace meevax
 

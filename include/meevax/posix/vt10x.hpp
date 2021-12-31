@@ -77,7 +77,7 @@ inline namespace posix
   inline namespace foreground
   {
     DEFINE_ESCAPE_SEQUENCE("30m", black);
-    DEFINE_ESCAPE_SEQUENCE("31m", red);
+    // DEFINE_ESCAPE_SEQUENCE("31m", red);
     DEFINE_ESCAPE_SEQUENCE("32m", green);
     DEFINE_ESCAPE_SEQUENCE("33m", yellow);
     DEFINE_ESCAPE_SEQUENCE("34m", blue);
