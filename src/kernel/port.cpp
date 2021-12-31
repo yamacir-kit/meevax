@@ -18,7 +18,6 @@
 
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/reader.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
@@ -34,7 +33,7 @@ inline namespace kernel
                                                                                \
   auto operator <<(std::ostream & os, standard_##NAME##_port const&) -> std::ostream & \
   {                                                                            \
-    return os << magenta << "#,(" << reset << "standard-" #NAME "-port" << magenta << ")" << reset; \
+    return os << magenta("#,(") << "standard-" #NAME "-port" << magenta(")");  \
   }                                                                            \
                                                                                \
   let const standard_##NAME = make<standard_##NAME##_port>()
@@ -53,7 +52,7 @@ inline namespace kernel
                                                                                \
   auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
   {                                                                            \
-    return os << magenta << "#,(" << green << "open-" NAME " " << datum.name << magenta << ")" << reset; \
+    return os << magenta("#,(") << green << "open-" NAME " " << datum.name << magenta(")"); \
   }                                                                            \
   static_assert(true)
 
@@ -66,7 +65,7 @@ inline namespace kernel
   #define DEFINE(TYPENAME, NAME)                                               \
   auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
   {                                                                            \
-    return os << magenta << "#,(" << green << "open-" NAME " " << string(datum.str()) << magenta << ")" << reset; \
+    return os << magenta("#,(") << green << "open-" NAME " " << string(datum.str()) << magenta(")"); \
   }                                                                            \
   static_assert(true)
 

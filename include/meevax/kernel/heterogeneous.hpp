@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
 #include <meevax/functional/compose.hpp>
+#include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/write.hpp>
 #include <meevax/kernel/profiler.hpp>
 #include <meevax/posix/vt10x.hpp>
@@ -148,7 +149,7 @@ inline namespace kernel
   template <template <typename...> typename Pointer, typename Top>
   auto operator <<(std::ostream & os, heterogeneous<Pointer, Top> const& datum) -> std::ostream &
   {
-    return (datum.template is<null>() ? os << magenta << "()" : datum->write(os)) << reset;
+    return (datum.template is<null>() ? os << magenta("()") : datum->write(os)) << reset;
   }
 } // namespace kernel
 } // namespace meevax

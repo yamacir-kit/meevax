@@ -15,7 +15,6 @@
 */
 
 #include <meevax/kernel/syntax.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
@@ -28,7 +27,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, syntax const& datum) -> std::ostream &
   {
-    return os << magenta << "#,(" << green << "syntax" << reset << " " << datum.name << magenta << ")" << reset;
+    return os << magenta("#,(") << green << "syntax" << reset << " " << datum.name << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

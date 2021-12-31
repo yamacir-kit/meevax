@@ -15,7 +15,6 @@
 */
 
 #include <meevax/kernel/environment.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
@@ -258,10 +257,10 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &
   {
-    return os << magenta << "#,("
+    return os << magenta("#,(")
               << green << "environment" << reset
               << faint << " #;" << &datum << reset
-              << magenta << ")" << reset;
+              << magenta(")");
   }
 
   template class configurator<environment>;

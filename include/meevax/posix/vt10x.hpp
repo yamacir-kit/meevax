@@ -81,7 +81,7 @@ inline namespace posix
     DEFINE_ESCAPE_SEQUENCE("32m", green);
     DEFINE_ESCAPE_SEQUENCE("33m", yellow);
     DEFINE_ESCAPE_SEQUENCE("34m", blue);
-    DEFINE_ESCAPE_SEQUENCE("35m", magenta);
+    // DEFINE_ESCAPE_SEQUENCE("35m", magenta);
     DEFINE_ESCAPE_SEQUENCE("36m", cyan);
     DEFINE_ESCAPE_SEQUENCE("37m", white);
   }

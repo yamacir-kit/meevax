@@ -24,7 +24,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, pair const& pare) -> std::ostream &
   {
-    os << magenta << "(" << reset << car(pare);
+    os << magenta("(") << car(pare);
 
     for (let rest = cdr(pare); rest; rest = cdr(rest))
     {
@@ -34,12 +34,12 @@ inline namespace kernel
       }
       else // iter is the last element of dotted-list.
       {
-        os << magenta << " . " << reset << rest;
+        os << magenta(" . ") << rest;
         break;
       }
     }
 
-    return os << magenta << ")" << reset;
+    return os << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

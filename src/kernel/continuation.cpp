@@ -15,8 +15,6 @@
 */
 
 #include <meevax/kernel/continuation.hpp>
-#include <meevax/posix/vt10x.hpp>
-#include <memory>
 
 namespace meevax
 {
@@ -29,7 +27,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, continuation const& datum) -> std::ostream &
   {
-    return os << magenta << "#,(" << green << "continuation" << reset << faint << " ;#" << std::addressof(datum) << reset << magenta << ")" << reset;
+    return os << magenta("#,(") << green << "continuation" << reset << faint << " ;#" << std::addressof(datum) << reset << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax
