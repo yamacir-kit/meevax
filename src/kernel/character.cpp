@@ -17,7 +17,6 @@
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/miscellaneous.hpp> // for eof
-#include <meevax/posix/vt10x.hpp> // for cyan
 
 namespace meevax
 {
@@ -112,22 +111,22 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, character const& datum) -> std::ostream &
   {
-    os << cyan << "#\\";
+    os << cyan("#\\");
 
     switch (datum.codepoint)
     {
-    case 0x00: return os << "null"      << reset;
-    case 0x07: return os << "alarm"     << reset;
-    case 0x08: return os << "backspace" << reset;
-    case 0x09: return os << "tab"       << reset;
-    case 0x0A: return os << "newline"   << reset;
-    case 0x0D: return os << "return"    << reset;
-    case 0x1B: return os << "escape"    << reset;
-    case 0x20: return os << "space"     << reset;
-    case 0x7F: return os << "delete"    << reset;
+    case 0x00: return os << cyan("null"     );
+    case 0x07: return os << cyan("alarm"    );
+    case 0x08: return os << cyan("backspace");
+    case 0x09: return os << cyan("tab"      );
+    case 0x0A: return os << cyan("newline"  );
+    case 0x0D: return os << cyan("return"   );
+    case 0x1B: return os << cyan("escape"   );
+    case 0x20: return os << cyan("space"    );
+    case 0x7F: return os << cyan("delete"   );
 
     default:
-      return os << static_cast<std::string>(datum) << reset;
+      return os << cyan(static_cast<std::string>(datum));
     }
   }
 

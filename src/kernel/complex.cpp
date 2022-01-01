@@ -16,7 +16,6 @@
 
 #include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/number.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
@@ -44,7 +43,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &
   {
-    return os << cyan << z.real() << (e0.as<number>() < z.imag() ? '+' : '-') << z.imag() << "i" << reset;
+    return os << z.real() << cyan(e0.as<number>() < z.imag() ? '+' : '-') << z.imag() << cyan("i");
   }
 } // namespace kernel
 } // namespace meevax

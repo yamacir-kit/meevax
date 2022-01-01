@@ -15,7 +15,6 @@
 */
 
 #include <meevax/kernel/syntactic_continuation.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
@@ -23,7 +22,7 @@ inline namespace kernel
 {
   auto operator <<(std::ostream & os, syntactic_continuation const& datum) -> std::ostream &
   {
-    return os << magenta << "#,(" << blue << "fork/csc " << reset << datum.expression << magenta << ")" << reset;
+    return os << magenta("#,(") << blue("fork/csc ") << datum.expression << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

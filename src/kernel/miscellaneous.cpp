@@ -15,7 +15,6 @@
 */
 
 #include <meevax/kernel/miscellaneous.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
@@ -25,14 +24,14 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, eof const&) -> std::ostream &
   {
-    return os << magenta << "#,(" << green << "eof-object" << magenta << ")" << reset;
+    return os << magenta("#,(") << green("eof-object") << magenta(")");
   }
 
   let const eos_object = make<eos>();
 
   auto operator <<(std::ostream & os, eos const&) -> std::ostream &
   {
-    return os << magenta << "#,(" << green << "eos-object" << magenta << ")" << reset;
+    return os << magenta("#,(") << green("eos-object") << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

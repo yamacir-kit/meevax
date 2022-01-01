@@ -19,7 +19,6 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/floating_point.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
@@ -316,7 +315,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, exact_integer const& datum) -> std::ostream &
   {
-    return os << cyan << static_cast<std::string>(datum) << reset;
+    return os << cyan(static_cast<std::string>(datum));
   }
 } // namespace kernel
 } // namespace meevax

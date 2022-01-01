@@ -14,10 +14,8 @@
    limitations under the License.
 */
 
-#include <cstddef>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/list.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
@@ -71,11 +69,11 @@ inline namespace kernel
 
     for (auto iter = std::cbegin(c); iter != std::cend(c); ++iter)
     {
-      os << faint << "; " << std::setw(4) << std::right << std::to_string(offset) << "  " << reset;
+      os << faint("; ", std::setw(4), std::right, std::to_string(offset), "  ");
 
       if (iter == c)
       {
-        os << std::string(4 * (depth - 1), ' ') << magenta << "(   " << reset;
+        os << std::string(4 * (depth - 1), ' ') << magenta("(   ");
       }
       else
       {
@@ -97,7 +95,7 @@ inline namespace kernel
 
       case mnemonic::return_:
       case mnemonic::stop:
-        os << *iter << magenta << ")\n" << reset;
+        os << *iter << magenta(")\n");
         ++offset;
         break;
 

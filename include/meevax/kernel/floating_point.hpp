@@ -160,15 +160,15 @@ inline namespace kernel
   {
     if (std::isnan(rhs))
     {
-      return os << cyan << "+nan.0" << reset;
+      return os << cyan("+nan.0");
     }
     else if (std::isinf(rhs))
     {
-      return os << cyan << (0 < rhs.value ? '+' : '-') << "inf.0" << reset;
+      return os << cyan(0 < rhs.value ? '+' : '-', "inf.0");
     }
     else
     {
-      return os << cyan << std::fixed << rhs.value << reset;
+      return os << cyan(std::fixed, rhs.value);
     }
   }
 } // namespace kernel

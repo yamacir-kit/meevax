@@ -119,7 +119,7 @@ inline namespace kernel
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
       {
-        return os << "#,(fork/csc " << datum.expression << ")";
+        return os << magenta("#,(") << blue("fork/csc ") << datum.expression << magenta(")");
       }
     };
 
@@ -276,10 +276,10 @@ inline namespace kernel
     decode:
       if constexpr (Option & option::trace)
       {
-        std::cerr << faint << "; s = " << posix::reset << s << "\n"
-                  << faint << "; e = " << posix::reset << e << "\n"
-                  << faint << "; c = " << posix::reset << c << "\n"
-                  << faint << "; d = " << posix::reset << d << "\n" << std::endl;
+        std::cerr << faint("; s = ") << s << "\n"
+                  << faint("; e = ") << e << "\n"
+                  << faint("; c = ") << c << "\n"
+                  << faint("; d = ") << d << "\n" << std::endl;
       }
 
       switch (car(c).template as<instruction>().value)

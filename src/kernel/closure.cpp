@@ -15,7 +15,6 @@
 */
 
 #include <meevax/kernel/closure.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
@@ -33,7 +32,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, const closure& datum) -> std::ostream &
   {
-    return os << magenta << "#,(" << green << "closure" << reset << faint << " #;" << &datum << reset << magenta << ")" << reset;
+    return os << magenta("#,(") << green("closure ") << faint("#;", &datum) << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

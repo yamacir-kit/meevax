@@ -17,7 +17,6 @@
 #include <regex>
 
 #include <meevax/kernel/number.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
@@ -170,7 +169,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &
   {
-    return os << cyan << car(datum) << cyan << "/" << cyan << cdr(datum) << reset;
+    return os << datum.numerator() << cyan("/") << datum.denominator();
   }
 } // namespace kernel
 } // namespace meevax

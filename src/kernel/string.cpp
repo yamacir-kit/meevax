@@ -122,33 +122,33 @@ inline namespace kernel
       {
         switch (c.codepoint)
         {
-        case '\a': return os << red << "\\a";
-        case '\b': return os << red << "\\b";
-        case '\t': return os << red << "\\t";
-        case '\n': return os << red << "\\n";
-        case '\r': return os << red << "\\r";
-        case '\"': return os << red << "\\\"";
-        case '\\': return os << red << "\\\\";
-        case '|':  return os << red << "\\|";
+        case '\a': return os << red("\\a");
+        case '\b': return os << red("\\b");
+        case '\t': return os << red("\\t");
+        case '\n': return os << red("\\n");
+        case '\r': return os << red("\\r");
+        case '\"': return os << red("\\\"");
+        case '\\': return os << red("\\\\");
+        case '|':  return os << red("\\|");
 
         default:
-          return os << cyan << static_cast<char>(c.codepoint);
+          return os << cyan(static_cast<char>(c.codepoint));
         }
       }
       else
       {
-        return os << red << "\\x" << std::hex << std::uppercase << c.codepoint << ";";
+        return os << red("\\x", std::hex, std::uppercase, c.codepoint, ";");
       }
     };
 
-    os << cyan << "\"";
+    os << cyan("\"");
 
     for (auto const& each : datum)
     {
       write(each);
     }
 
-    return os << cyan << "\"" << reset;
+    return os << cyan("\"");
   }
 } // namespace kernel
 } // namespace meevax

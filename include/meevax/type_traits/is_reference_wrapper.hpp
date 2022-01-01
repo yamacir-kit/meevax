@@ -14,15 +14,25 @@
    limitations under the License.
 */
 
-#include <meevax/posix/vt10x.hpp>
+#ifndef INCLUDED_MEEVAX_TYPE_TRAITS_IS_REFERENCE_WRAPPER_HPP
+#define INCLUDED_MEEVAX_TYPE_TRAITS_IS_REFERENCE_WRAPPER_HPP
+
+#include <type_traits>
 
 namespace meevax
 {
-inline namespace posix
+inline namespace type_traits
 {
-  auto operator <<(std::ostream& port, const cursor_move& datum) -> decltype(port)
-  {
-    return escape_sequence(port, datum.value, datum.code);
-  }
-} // namespace posix
+  template <typename T>
+  struct is_reference_wrapper
+    : public std::false_type
+  {};
+
+  template <typename T>
+  struct is_reference_wrapper<std::reference_wrapper<T>>
+    : public std::true_type
+  {};
+} // namespace type_traits
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_TYPE_TRAITS_IS_REFERENCE_WRAPPER_HPP

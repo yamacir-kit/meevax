@@ -19,7 +19,6 @@
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/vector.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
@@ -91,7 +90,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, vector const& datum) -> std::ostream &
   {
-    return os << magenta << "#(" << reset << for_each(datum) << magenta << ")" << reset;
+    return os << magenta("#(") << for_each(datum) << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

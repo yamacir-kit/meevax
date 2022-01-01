@@ -22,7 +22,6 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/procedure.hpp>
-#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
@@ -90,7 +89,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, procedure const& datum) -> std::ostream &
   {
-    return os << magenta << "#,(" << green << "procedure " << reset << datum.name << magenta << ")" << reset;
+    return os << magenta("#,(") << green("procedure") << " " << datum.name << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax
