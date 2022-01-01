@@ -19,8 +19,9 @@
 
 #include <tuple>
 
+#include <meevax/functional/curry.hpp>
 #include <meevax/iostream/is_console.hpp>
-#include <meevax/utility/unwrap_reference_wrapper.hpp>
+#include <meevax/iostream/write.hpp>
 
 namespace meevax
 {
@@ -47,20 +48,15 @@ inline namespace iostream
 
     friend auto operator <<(std::ostream & os, escape_sequence const& sequence) -> std::ostream &
     {
-      auto print = [&](auto&& ... xs) -> std::ostream &
-      {
-        return (os << ... << unwrap_reference_wrapper(xs));
-      };
-
       if (is_console(os))
       {
         os << "\x1b[" << sequence.command;
-        std::apply(print, sequence.references);
+        std::apply(curry(write)(os), sequence.references);
         return os << "\x1b[0m";
       }
       else
       {
-        std::apply(print, sequence.references);
+        std::apply(curry(write)(os), sequence.references);
         return os;
       }
     }
