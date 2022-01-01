@@ -119,7 +119,7 @@ inline namespace kernel
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
       {
-        return os << "#,(fork/csc " << datum.expression << ")";
+        return os << magenta("#,(") << blue("fork/csc ") << datum.expression << magenta(")");
       }
     };
 
