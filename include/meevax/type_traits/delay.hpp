@@ -30,26 +30,6 @@ inline namespace type_traits
     static inline F invoke {};
 
     template <typename T, typename = void>
-    struct viable_1
-      : public std::false_type
-    {};
-
-    template <typename T>
-    struct viable_1<T, std::void_t<decltype(std::invoke(std::declval<F>(), std::declval<T>()))>>
-      : public std::true_type
-    {};
-
-    template <typename T, typename U, typename = void>
-    struct viable_2
-      : public std::false_type
-    {};
-
-    template <typename T, typename U>
-    struct viable_2<T, U, std::void_t<decltype(std::invoke(std::declval<F>(), std::declval<T>(), std::declval<U>()))>>
-      : public std::true_type
-    {};
-
-    template <typename T, typename = void>
     struct select_1
     {
       template <typename R>
@@ -69,7 +49,7 @@ inline namespace type_traits
     };
 
     template <typename T>
-    struct select_1<T, typename std::enable_if<viable_1<T>::value>::type>
+    struct select_1<T, typename std::enable_if<std::is_invocable<F, T>::value>::type>
     {
       template <typename R>
       static constexpr auto apply(T&& x) -> R
@@ -98,7 +78,7 @@ inline namespace type_traits
     };
 
     template <typename T, typename U>
-    struct select_2<T, U, typename std::enable_if<viable_2<T, U>::value>::type>
+    struct select_2<T, U, typename std::enable_if<std::is_invocable<F, T, U>::value>::type>
     {
       template <typename R>
       static constexpr auto apply(T&& x, U&& y) -> R
