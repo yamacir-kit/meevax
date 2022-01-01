@@ -19,6 +19,7 @@
 
 #include <meevax/memory/gc_pointer.hpp>
 #include <meevax/type_traits/requires.hpp>
+#include <meevax/utility/demangle.hpp>
 
 #define NIL /* nothing */
 

@@ -20,8 +20,8 @@
 #include <meevax/functional/compose.hpp>
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/write.hpp>
+#include <meevax/kernel/overview.hpp>
 #include <meevax/kernel/profiler.hpp>
-#include <meevax/type_traits/delay.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/utility/module.hpp>
 
@@ -69,7 +69,7 @@ inline namespace kernel
 
       auto write(std::ostream & os) const -> std::ostream & override
       {
-        return delay<iostream::write>().yield<decltype(os)>(os, static_cast<Bound const&>(*this));
+        return os << static_cast<Bound const&>(*this);
       }
     };
 

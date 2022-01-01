@@ -26,11 +26,6 @@ inline namespace kernel
   template <typename T>
   struct top
   {
-    virtual auto type() const noexcept -> std::type_info const&
-    {
-      return typeid(T);
-    }
-
     virtual auto compare(heterogeneous<gc_pointer, T> const& x) const -> bool
     {
       if constexpr (is_equality_comparable<T>::value)
@@ -50,9 +45,14 @@ inline namespace kernel
       }
     }
 
+    virtual auto type() const noexcept -> std::type_info const&
+    {
+      return typeid(T);
+    }
+
     virtual auto write(std::ostream & os) const -> std::ostream &
     {
-      return delay<iostream::write>().yield<std::ostream &>(os, static_cast<T const&>(*this));
+      return os << static_cast<T const&>(*this);
     }
   };
 
