@@ -27,76 +27,27 @@ inline namespace type_traits
   template <typename F>
   struct delay
   {
-    static inline F invoke {};
+    static inline F f {};
 
-    template <typename T, typename = void>
-    struct select_1
+    template <typename R, typename... Ts>
+    static constexpr auto yield(Ts&&... xs) -> decltype(auto)
     {
-      template <typename R>
-      static auto apply(T&&) -> R
+      if constexpr (std::is_invocable<F, Ts...>::value)
       {
-        if constexpr (std::is_same<R, bool>::value)
-        {
-          return false;
-        }
-        else
-        {
-          std::stringstream ss {};
-          ss << "no viable operation " << demangle(typeid(F)) << " with " << demangle(typeid(T));
-          raise(ss.str());
-        }
+        return std::invoke(f, std::forward<decltype(xs)>(xs)...);
       }
-    };
-
-    template <typename T>
-    struct select_1<T, typename std::enable_if<std::is_invocable<F, T>::value>::type>
-    {
-      template <typename R>
-      static constexpr auto apply(T&& x) -> R
+      else if constexpr (std::is_same<R, bool>::value)
       {
-        return invoke(std::forward<decltype(x)>(x));
+        return false;
       }
-    };
-
-    template <typename T, typename U, typename = void>
-    struct select_2
-    {
-      template <typename R>
-      static auto apply(T&&, U&&) -> R
+      else
       {
-        if constexpr (std::is_same<R, bool>::value)
-        {
-          return false;
-        }
-        else
-        {
-          std::stringstream ss {};
-          ss << "no viable operation " << demangle(typeid(F)) << " with " << demangle(typeid(T)) << " and " << demangle(typeid(U));
-          raise(ss.str());
-        }
+        std::stringstream message {};
+        message << "no viable operation (" << demangle(typeid(F));
+        (message << ... << (" " + demangle(typeid(Ts))));
+        message << ")";
+        raise(message.str());
       }
-    };
-
-    template <typename T, typename U>
-    struct select_2<T, U, typename std::enable_if<std::is_invocable<F, T, U>::value>::type>
-    {
-      template <typename R>
-      static constexpr auto apply(T&& x, U&& y) -> R
-      {
-        return invoke(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
-      }
-    };
-
-    template <typename R, typename T>
-    static constexpr auto yield(T&& x) -> decltype(auto)
-    {
-      return select_1<T>().template apply<R>(std::forward<decltype(x)>(x));
-    }
-
-    template <typename R, typename T, typename U>
-    static constexpr auto yield(T&& x, U&& y) -> decltype(auto)
-    {
-      return select_2<T, U>().template apply<R>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
     }
   };
 } // namespace type_traits
