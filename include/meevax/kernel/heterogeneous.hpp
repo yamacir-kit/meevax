@@ -138,13 +138,12 @@ inline namespace kernel
     {
       return *this ? get()->type() : typeid(null);
     }
-  };
 
-  template <template <typename...> typename Pointer, typename Top>
-  auto operator <<(std::ostream & os, heterogeneous<Pointer, Top> const& datum) -> std::ostream &
-  {
-    return datum.template is<null>() ? os << magenta("()") : datum->write(os);
-  }
+    friend auto operator <<(std::ostream & os, heterogeneous const& datum) -> std::ostream &
+    {
+      return datum.template is<null>() ? os << magenta("()") : datum->write(os);
+    }
+  };
 } // namespace kernel
 } // namespace meevax
 
