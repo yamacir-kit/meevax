@@ -84,14 +84,9 @@ inline namespace kernel
       current_profiler()[typeid(typename std::decay<Bound>::type)].allocation++;
       #endif
 
-      if constexpr (std::is_same<Bound, Top>::value)
-      {
-        return static_cast<heterogeneous>(new (gc) Top(std::forward<decltype(xs)>(xs)...));
-      }
-      else
-      {
-        return static_cast<heterogeneous>(new (gc) binder<Bound>(std::forward<decltype(xs)>(xs)...));
-      }
+      return static_cast<heterogeneous>(
+        new (gc) typename std::conditional<std::is_same<Bound, Top>::value, Top, binder<Bound>>::type(
+          std::forward<decltype(xs)>(xs)...));
     }
 
     template <typename U>
