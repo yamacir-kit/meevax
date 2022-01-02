@@ -19,17 +19,15 @@
 
 #include <iostream>
 
+#include <meevax/utility/unwrap_reference_wrapper.hpp>
+
 namespace meevax
 {
 inline namespace iostream
 {
-  struct write
+  auto write = [](std::ostream & os, auto&&... xs) -> std::ostream &
   {
-    template <typename... Ts>
-    constexpr auto operator ()(std::ostream & os, Ts&&... xs) const -> std::ostream &
-    {
-      return (os << ... << xs);
-    }
+    return (os << ... << unwrap_reference_wrapper(xs));
   };
 } // namespace iostream
 } // namespace meevax

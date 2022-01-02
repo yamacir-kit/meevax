@@ -20,8 +20,8 @@
 #include <meevax/functional/compose.hpp>
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/write.hpp>
+#include <meevax/kernel/overview.hpp>
 #include <meevax/kernel/profiler.hpp>
-#include <meevax/type_traits/delay.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/utility/module.hpp>
 
@@ -69,7 +69,7 @@ inline namespace kernel
 
       auto write(std::ostream & os) const -> std::ostream & override
       {
-        return delay<iostream::write>().yield<decltype(os)>(os, static_cast<Bound const&>(*this));
+        return os << static_cast<Bound const&>(*this);
       }
     };
 
@@ -84,14 +84,9 @@ inline namespace kernel
       current_profiler()[typeid(typename std::decay<Bound>::type)].allocation++;
       #endif
 
-      if constexpr (std::is_same<Bound, Top>::value)
-      {
-        return static_cast<heterogeneous>(new (gc) Top(std::forward<decltype(xs)>(xs)...));
-      }
-      else
-      {
-        return static_cast<heterogeneous>(new (gc) binder<Bound>(std::forward<decltype(xs)>(xs)...));
-      }
+      return static_cast<heterogeneous>(
+        new (gc) typename std::conditional<std::is_same<Bound, Top>::value, Top, binder<Bound>>::type(
+          std::forward<decltype(xs)>(xs)...));
     }
 
     template <typename U>
@@ -143,13 +138,12 @@ inline namespace kernel
     {
       return *this ? get()->type() : typeid(null);
     }
-  };
 
-  template <template <typename...> typename Pointer, typename Top>
-  auto operator <<(std::ostream & os, heterogeneous<Pointer, Top> const& datum) -> std::ostream &
-  {
-    return datum.template is<null>() ? os << magenta("()") : datum->write(os);
-  }
+    friend auto operator <<(std::ostream & os, heterogeneous const& datum) -> std::ostream &
+    {
+      return datum.template is<null>() ? os << magenta("()") : datum->write(os);
+    }
+  };
 } // namespace kernel
 } // namespace meevax
 
