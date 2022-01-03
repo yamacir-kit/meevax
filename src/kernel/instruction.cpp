@@ -26,6 +26,7 @@ inline namespace kernel
     switch (value)
     {
       case mnemonic::call:              return "call";
+      case mnemonic::compile:           return "compile";
       case mnemonic::cons:              return "cons";
       case mnemonic::define:            return "define";
       case mnemonic::drop:              return "drop";
@@ -99,6 +100,7 @@ inline namespace kernel
         ++offset;
         break;
 
+      case mnemonic::compile:
       case mnemonic::define:
       case mnemonic::fork:
       case mnemonic::load_absolute:

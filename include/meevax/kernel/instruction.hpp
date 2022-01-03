@@ -26,6 +26,7 @@ inline namespace kernel
   enum class mnemonic : std::uint8_t
   {
     call,              // a.k.a APP
+    compile,           //
     cons,              //
     define,            //
     drop,              //

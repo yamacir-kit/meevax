@@ -196,11 +196,30 @@ inline namespace kernel
       }
       else if (let const& identifier = std::as_const(current_environment).rename(car(expression), frames); identifier.is<keyword>())
       {
-        let const& macro = identifier.as<keyword>().binding();
+        let & binding = identifier.as<keyword>().binding();
+
+        if (binding.is<syntactic_continuation>())
+        {
+          auto env = environment();
+
+          env.global() = current_environment.global();
+
+          auto override_compilation = [&](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
+          {
+            return env.compile(context::outermost, env, expression, frames);
+          };
+
+          env.s = current_environment.s;
+          env.e = current_environment.e;
+          env.c = binding.as<syntactic_continuation>().apply(override_compilation);
+          env.d = current_environment.d;
+
+          binding = env.execute();
+        }
 
         return compile(context::none,
                        current_environment,
-                       macro.as<transformer>().macroexpand(macro, expression),
+                       binding.as<transformer>().macroexpand(binding, expression),
                        frames,
                        current_continuation);
       }
@@ -399,6 +418,14 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         cdadr(c) = car(s);
         c = cddr(c);
+        goto decode;
+
+      case mnemonic::compile: /* -----------------------------------------------
+        *
+        *  s e (%compile <syntactic-continuation> . c) d  => s e c' d
+        *
+        * ------------------------------------------------------------------- */
+        std::swap(c.as<pair>(), append(cadr(c).template as<syntactic_continuation>().apply(body), cddr(c)).template as<pair>());
         goto decode;
 
       case mnemonic::call:
@@ -955,22 +982,30 @@ inline namespace kernel
                                          frames,
                                          current_continuation);
 
-        let const macro_transformer
-          = make<transformer>(
-              make<continuation>(unit,
-                                 unit,
-                                 current_syntactic_continuation,
-                                 unit),
-              current_environment.global()
-              ).template as<transformer>().spec(); // DIRTY HACK!
+        // let const macro_transformer
+        //   = make<transformer>(
+        //       make<continuation>(unit,
+        //                          unit,
+        //                          current_syntactic_continuation,
+        //                          unit),
+        //       current_environment.global()
+        //       ).template as<transformer>().spec(); // DIRTY HACK!
 
-        return make<keyword>(car(binding), macro_transformer);
+        return make<keyword>(car(binding), current_syntactic_continuation);
       };
 
-      return body(current_context,
-                  current_environment,
-                  cdr(expression),
-                  cons(map(make_keyword, car(expression)), frames),
+      // return body(current_context,
+      //             current_environment,
+      //             cdr(expression),
+      //             cons(map(make_keyword, car(expression)), frames),
+      //             current_continuation);
+
+      return cons(make<instruction>(mnemonic::compile),
+                  make<syntactic_continuation>(current_context,
+                                               current_environment,
+                                               cdr(expression),
+                                               cons(map(make_keyword, car(expression)), frames),
+                                               current_continuation),
                   current_continuation);
     }
 
@@ -1064,9 +1099,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      auto const& [bindings, body] = unpair(expression);
-
-      auto const& [variables, inits] = unzip2(bindings);
+      auto const& [variables, inits] = unzip2(car(expression));
 
       return cons(make<instruction>(mnemonic::dummy),
                   operand(context::none,
@@ -1075,7 +1108,7 @@ inline namespace kernel
                           cons(variables, frames),
                           lambda(context::none,
                                  current_environment,
-                                 cons(variables, body),
+                                 cons(variables, cdr(expression)),
                                  frames,
                                  cons(make<instruction>(mnemonic::letrec),
                                       current_continuation))));
