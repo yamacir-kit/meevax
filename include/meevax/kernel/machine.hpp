@@ -67,14 +67,15 @@ inline namespace kernel
       {
         auto const& k = spec().template as<continuation>();
 
-        auto override_compilation = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
-        {
-          return compile(context::outermost, *this, expression, frames);
-        };
+        // auto override_compilation = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
+        // {
+        //   return compile(context::outermost, *this, expression, frames);
+        // };
 
         s = k.s();
         e = k.e();
-        c = k.c().template as<syntactic_continuation>().apply(override_compilation);
+        // c = k.c().template as<syntactic_continuation>().apply(override_compilation);
+        c = k.c().template as<syntactic_continuation>().continue_on(*this);
         d = k.d();
 
         spec() = environment::execute();
@@ -204,14 +205,14 @@ inline namespace kernel
 
           env.global() = current_environment.global();
 
-          auto override_compilation = [&](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
-          {
-            return env.compile(context::outermost, env, expression, frames);
-          };
+          // auto override_compilation = [&](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
+          // {
+          //   return env.compile(context::outermost, env, expression, frames);
+          // };
 
           env.s = current_environment.s;
           env.e = current_environment.e;
-          env.c = binding.as<syntactic_continuation>().apply(override_compilation);
+          env.c = binding.as<syntactic_continuation>().continue_on(env);
           env.d = current_environment.d;
 
           binding = env.execute();

@@ -25,9 +25,9 @@ inline namespace kernel
 {
   struct syntactic_continuation
   {
-    const context preserved_context;
+    context const preserved_context;
 
-    const std::reference_wrapper<environment> preserved_environment;
+    std::reference_wrapper<environment> const preserved_environment;
 
     let const expression;
 
@@ -39,6 +39,15 @@ inline namespace kernel
     auto apply(Compiler const& compile) -> decltype(auto)
     {
       return compile(preserved_context, preserved_environment, expression, frames, continuation);
+    }
+
+    template <typename Environment>
+    auto continue_on(Environment & current_environment)
+    {
+      return Environment::compile(context::outermost,
+                                  current_environment,
+                                  expression,
+                                  frames);
     }
   };
 
