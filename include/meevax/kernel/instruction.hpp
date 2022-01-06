@@ -26,7 +26,6 @@ inline namespace kernel
   enum class mnemonic : std::uint8_t
   {
     call,              // a.k.a APP
-    compile,           //
     cons,              //
     define,            //
     drop,              //
@@ -40,6 +39,7 @@ inline namespace kernel
     load_continuation, //
     load_relative,     // a.k.a LDL
     load_variadic,     //
+    reflect,           //
     return_,           // a.k.a RTN
     select,            // a.k.a SEL
     stop,              //

@@ -420,9 +420,9 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::compile: /* -----------------------------------------------
+      case mnemonic::reflect: /* -----------------------------------------------
         *
-        *  s e (%compile <syntactic-continuation> . c) d  => s e c' d
+        *  s e (%reflect <syntactic-continuation> . c) d  => s e c' d
         *
         * ------------------------------------------------------------------- */
         std::swap(c.as<pair>(), append(cadr(c).template as<syntactic_continuation>().apply(body), cddr(c)).template as<pair>());
@@ -1000,7 +1000,7 @@ inline namespace kernel
       //             cons(map(make_keyword, car(expression)), frames),
       //             current_continuation);
 
-      return cons(make<instruction>(mnemonic::compile),
+      return cons(make<instruction>(mnemonic::reflect),
                   make<syntactic_continuation>(current_context,
                                                current_environment,
                                                cdr(expression),

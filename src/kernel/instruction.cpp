@@ -26,7 +26,6 @@ inline namespace kernel
     switch (value)
     {
       case mnemonic::call:              return "call";
-      case mnemonic::compile:           return "compile";
       case mnemonic::cons:              return "cons";
       case mnemonic::define:            return "define";
       case mnemonic::drop:              return "drop";
@@ -40,6 +39,7 @@ inline namespace kernel
       case mnemonic::load_continuation: return "load-continuation";
       case mnemonic::load_relative:     return "load-relative";
       case mnemonic::load_variadic:     return "load-variadic";
+      case mnemonic::reflect:           return "reflect";
       case mnemonic::return_:           return "return";
       case mnemonic::select:            return "select";
       case mnemonic::stop:              return "stop";
@@ -100,13 +100,13 @@ inline namespace kernel
         ++offset;
         break;
 
-      case mnemonic::compile:
       case mnemonic::define:
       case mnemonic::fork:
       case mnemonic::load_absolute:
       case mnemonic::load_constant:
       case mnemonic::load_relative:
       case mnemonic::load_variadic:
+      case mnemonic::reflect:
       case mnemonic::store_absolute:
       case mnemonic::store_relative:
       case mnemonic::store_variadic:
