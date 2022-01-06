@@ -67,14 +67,8 @@ inline namespace kernel
       {
         auto const& k = spec().template as<continuation>();
 
-        // auto override_compilation = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
-        // {
-        //   return compile(context::outermost, *this, expression, frames);
-        // };
-
         s = k.s();
         e = k.e();
-        // c = k.c().template as<syntactic_continuation>().apply(override_compilation);
         c = k.c().template as<syntactic_continuation>().continue_on(*this);
         d = k.d();
 
@@ -199,20 +193,15 @@ inline namespace kernel
       {
         let & binding = identifier.as<keyword>().binding();
 
-        if (binding.is<syntactic_continuation>())
+        if (not binding.is<transformer>())
         {
           auto env = environment();
 
           env.global() = current_environment.global();
 
-          // auto override_compilation = [&](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
-          // {
-          //   return env.compile(context::outermost, env, expression, frames);
-          // };
-
           env.s = current_environment.s;
           env.e = current_environment.e;
-          env.c = binding.as<syntactic_continuation>().continue_on(env);
+          env.c = binding;
           env.d = current_environment.d;
 
           binding = env.execute();
@@ -976,23 +965,29 @@ inline namespace kernel
     {
       auto make_keyword = [&](let const& binding)
       {
-        let const current_syntactic_continuation
-          = make<syntactic_continuation>(current_context,
-                                         current_environment,
-                                         cadr(binding),
-                                         frames,
-                                         current_continuation);
+        // let const current_syntactic_continuation
+        //   = make<syntactic_continuation>(current_context,
+        //                                  current_environment,
+        //                                  cadr(binding),
+        //                                  frames,
+        //                                  current_continuation);
+        //
+        // // let const macro_transformer
+        // //   = make<transformer>(
+        // //       make<continuation>(unit,
+        // //                          unit,
+        // //                          current_syntactic_continuation,
+        // //                          unit),
+        // //       current_environment.global()
+        // //       ).template as<transformer>().spec(); // DIRTY HACK!
+        //
+        // return make<keyword>(car(binding), current_syntactic_continuation);
 
-        // let const macro_transformer
-        //   = make<transformer>(
-        //       make<continuation>(unit,
-        //                          unit,
-        //                          current_syntactic_continuation,
-        //                          unit),
-        //       current_environment.global()
-        //       ).template as<transformer>().spec(); // DIRTY HACK!
-
-        return make<keyword>(car(binding), current_syntactic_continuation);
+        return make<keyword>(car(binding),
+                             compile(context::outermost,
+                                     current_environment,
+                                     cadr(binding),
+                                     frames));
       };
 
       // return body(current_context,
