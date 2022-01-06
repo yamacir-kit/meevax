@@ -25,9 +25,9 @@ inline namespace kernel
 {
   struct syntactic_continuation
   {
-    const context preserved_context;
+    context const preserved_context;
 
-    const std::reference_wrapper<environment> preserved_environment;
+    std::reference_wrapper<environment> const preserved_environment;
 
     let const expression;
 

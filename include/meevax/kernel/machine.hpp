@@ -52,8 +52,6 @@ inline namespace kernel
       using environment::c;
       using environment::d;
 
-      let const expression;
-
       explicit transformer() /* ------------------------------------------------
       *
       *  Since the base class environment inherits from pair, all arguments
@@ -63,18 +61,12 @@ inline namespace kernel
       *  them.
       *
       * --------------------------------------------------------------------- */
-        : expression { spec().template as<continuation>().c().template as<syntactic_continuation>().expression }
       {
         auto const& k = spec().template as<continuation>();
 
-        auto override_compilation = [this](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
-        {
-          return compile(context::outermost, *this, expression, frames);
-        };
-
         s = k.s();
         e = k.e();
-        c = k.c().template as<syntactic_continuation>().apply(override_compilation);
+        c = k.c();
         d = k.d();
 
         spec() = environment::execute();
@@ -119,7 +111,8 @@ inline namespace kernel
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
       {
-        return os << magenta("#,(") << blue("fork/csc ") << datum.expression << magenta(")");
+        // return os << magenta("#,(") << blue("fork/csc ") << datum.expression << magenta(")");
+        return os << datum.spec();
       }
     };
 
@@ -198,20 +191,15 @@ inline namespace kernel
       {
         let & binding = identifier.as<keyword>().binding();
 
-        if (binding.is<syntactic_continuation>())
+        if (not binding.is<transformer>())
         {
           auto env = environment();
 
           env.global() = current_environment.global();
 
-          auto override_compilation = [&](auto&&, auto&&, auto&& expression, auto&& frames, auto&&)
-          {
-            return env.compile(context::outermost, env, expression, frames);
-          };
-
           env.s = current_environment.s;
           env.e = current_environment.e;
-          env.c = binding.as<syntactic_continuation>().apply(override_compilation);
+          env.c = binding;
           env.d = current_environment.d;
 
           binding = env.execute();
@@ -372,7 +360,7 @@ inline namespace kernel
 
       case mnemonic::fork: /* --------------------------------------------------
         *
-        *  s e (%fork <syntactic-continuation> . c) d => (<transformer> . s) e c d
+        *  s e (%fork c' . c) d => (<transformer> . s) e c d
         *
         * ------------------------------------------------------------------- */
         s = make<transformer>(make<continuation>(s, e, cadr(c), d), static_cast<environment const&>(*this).global()) | s;
@@ -912,11 +900,10 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       return cons(make<instruction>(mnemonic::fork),
-                  make<syntactic_continuation>(current_context,
-                                               current_environment,
-                                               car(expression),
-                                               frames,
-                                               current_continuation),
+                  compile(context::outermost,
+                          current_environment,
+                          car(expression),
+                          frames),
                   current_continuation);
     }
 
@@ -975,30 +962,12 @@ inline namespace kernel
     {
       auto make_keyword = [&](let const& binding)
       {
-        let const current_syntactic_continuation
-          = make<syntactic_continuation>(current_context,
-                                         current_environment,
-                                         cadr(binding),
-                                         frames,
-                                         current_continuation);
-
-        // let const macro_transformer
-        //   = make<transformer>(
-        //       make<continuation>(unit,
-        //                          unit,
-        //                          current_syntactic_continuation,
-        //                          unit),
-        //       current_environment.global()
-        //       ).template as<transformer>().spec(); // DIRTY HACK!
-
-        return make<keyword>(car(binding), current_syntactic_continuation);
+        return make<keyword>(car(binding),
+                             compile(context::outermost,
+                                     current_environment,
+                                     cadr(binding),
+                                     frames));
       };
-
-      // return body(current_context,
-      //             current_environment,
-      //             cdr(expression),
-      //             cons(map(make_keyword, car(expression)), frames),
-      //             current_continuation);
 
       return cons(make<instruction>(mnemonic::reflect),
                   make<syntactic_continuation>(current_context,
@@ -1029,18 +998,14 @@ inline namespace kernel
 
       auto make_keyword = [&](let const& binding)
       {
-        let const current_syntactic_continuation
-          = make<syntactic_continuation>(current_context,
-                                         current_environment,
-                                         cadr(binding),
-                                         extended_frames,
-                                         current_continuation);
-
         let const macro_transformer
           = make<transformer>(
               make<continuation>(unit,
                                  unit,
-                                 current_syntactic_continuation,
+                                 compile(context::outermost,
+                                         current_environment,
+                                         cadr(binding),
+                                         extended_frames),
                                  unit),
               current_environment.global()
               ).template as<transformer>().spec(); // DIRTY HACK!
