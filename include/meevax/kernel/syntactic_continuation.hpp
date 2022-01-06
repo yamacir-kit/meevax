@@ -40,15 +40,6 @@ inline namespace kernel
     {
       return compile(preserved_context, preserved_environment, expression, frames, continuation);
     }
-
-    template <typename Environment>
-    auto continue_on(Environment & current_environment)
-    {
-      return Environment::compile(context::outermost,
-                                  current_environment,
-                                  expression,
-                                  frames);
-    }
   };
 
   auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
