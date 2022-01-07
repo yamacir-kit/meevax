@@ -998,19 +998,11 @@ inline namespace kernel
 
       auto make_keyword = [&](let const& binding)
       {
-        let const macro_transformer
-          = make<transformer>(
-              make<continuation>(unit,
-                                 unit,
-                                 compile(context::outermost,
-                                         current_environment,
-                                         cadr(binding),
-                                         extended_frames),
-                                 unit),
-              current_environment.global()
-              ).template as<transformer>().spec(); // DIRTY HACK!
-
-        return make<keyword>(car(binding), macro_transformer);
+        return make<keyword>(car(binding),
+                             compile(context::outermost,
+                                     current_environment,
+                                     cadr(binding),
+                                     extended_frames));
       };
 
       car(extended_frames) = map(make_keyword, car(expression));
