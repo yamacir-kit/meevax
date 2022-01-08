@@ -30,7 +30,6 @@ inline namespace kernel
       case mnemonic::define:            return "define";
       case mnemonic::drop:              return "drop";
       case mnemonic::dummy:             return "dummy";
-      case mnemonic::fork:              return "fork";
       case mnemonic::join:              return "join";
       case mnemonic::letrec:            return "letrec";
       case mnemonic::load_absolute:     return "load-absolute";
@@ -38,6 +37,7 @@ inline namespace kernel
       case mnemonic::load_constant:     return "load-constant";
       case mnemonic::load_continuation: return "load-continuation";
       case mnemonic::load_relative:     return "load-relative";
+      case mnemonic::load_transformer:  return "load-transformer";
       case mnemonic::load_variadic:     return "load-variadic";
       case mnemonic::reflect:           return "reflect";
       case mnemonic::return_:           return "return";
@@ -101,10 +101,10 @@ inline namespace kernel
         break;
 
       case mnemonic::define:
-      case mnemonic::fork:
       case mnemonic::load_absolute:
       case mnemonic::load_constant:
       case mnemonic::load_relative:
+      case mnemonic::load_transformer:
       case mnemonic::load_variadic:
       case mnemonic::reflect:
       case mnemonic::store_absolute:

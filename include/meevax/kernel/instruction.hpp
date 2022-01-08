@@ -30,7 +30,6 @@ inline namespace kernel
     define,            //
     drop,              //
     dummy,             // a.k.a DUM
-    fork,              //
     join,              //
     letrec,            // a.k.a RAP
     load_absolute,     // a.k.a LDG
@@ -38,6 +37,7 @@ inline namespace kernel
     load_constant,     // a.k.a LDC
     load_continuation, //
     load_relative,     // a.k.a LDL
+    load_transformer,  //
     load_variadic,     //
     reflect,           //
     return_,           // a.k.a RTN

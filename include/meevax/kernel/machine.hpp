@@ -358,12 +358,12 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::fork: /* --------------------------------------------------
+      case mnemonic::load_transformer: /* --------------------------------------
         *
-        *  s e (%fork c' . c) d => (<transformer> . s) e c d
+        *  s e (%load-transformer c1 . c2) d => (<transformer> . s) e c2 d
         *
         * ------------------------------------------------------------------- */
-        s = make<transformer>(make<continuation>(s, e, cadr(c), d), static_cast<environment const&>(*this).global()) | s;
+        s = cons(make<transformer>(make<continuation>(s, e, cadr(c), d), static_cast<environment const&>(*this).global()), s);
         c = cddr(c);
         goto decode;
 
@@ -899,7 +899,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return cons(make<instruction>(mnemonic::fork),
+      return cons(make<instruction>(mnemonic::load_transformer),
                   compile(context::outermost,
                           current_environment,
                           car(expression),
