@@ -111,7 +111,7 @@ inline namespace kernel
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
       {
-        // return os << magenta("#,(") << blue("fork/csc ") << datum.expression << magenta(")");
+        // return os << magenta("#,(") << blue("macro-transformer ") << datum.expression << magenta(")");
         return os << datum.spec();
       }
     };
@@ -889,13 +889,9 @@ inline namespace kernel
       }
     }
 
-    static SYNTAX(fork_csc) /* -------------------------------------------------
+    static SYNTAX(macro_transformer) /* ----------------------------------------
     *
-    *  (fork-with-current-syntactic-continuation <program>)              syntax
-    *
-    *  Semantics: The syntax fork-with-current-syntactic-continuation packages
-    *  the given <program> definition and the continuation of the current
-    *  compilation as a "subprogram".
+    *  (macro-transformer <lambda expression>)                           syntax
     *
     * ----------------------------------------------------------------------- */
     {

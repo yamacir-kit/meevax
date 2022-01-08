@@ -74,7 +74,7 @@
 
 
 (define swap!
-  (fork/csc
+  (macro-transformer
     (lambda (swap! x y)
       (let ((z (string->symbol)))
         `(,let ((,z ,x))
@@ -82,7 +82,7 @@
            (,set! ,y ,z))))))
 
 (define swap!
-  (fork/csc
+  (macro-transformer
     (lambda (swap! x y)
       `(,let ((,value ,x))
          (,set! ,x ,y)
@@ -94,7 +94,7 @@
      (,set! ,y ,value)))
 
 (define loop
-  (fork/csc
+  (macro-transformer
     (lambda form
      `(,call/cc
         (,lambda (exit)

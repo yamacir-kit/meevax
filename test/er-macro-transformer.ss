@@ -2,7 +2,7 @@
   (define (evaluate x)
     (eval x er-macro-transformer))
   (define transform (evaluate expression))
-  (fork/csc
+  (macro-transformer
     (lambda form
       (transform form evaluate free-identifier=?))))
 

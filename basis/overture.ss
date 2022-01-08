@@ -2,32 +2,30 @@
 
 (define (list . xs) xs)
 
-(define fork/csc fork-with-current-syntactic-continuation)
-
 (define import
-  (fork/csc
+  (macro-transformer
     (lambda (import . import-sets)
       (list quote (cons 'import import-sets)))))
 
 (define define-syntax
-  (fork/csc
+  (macro-transformer
     (lambda (define-syntax keyword . transformer)
       (if (pair? keyword)
           (list define (car keyword)
-            (list fork/csc
+            (list macro-transformer
               (list lambda keyword . transformer)))
           (list define keyword . transformer)))))
 
 (define-syntax (syntax datum)
   (if (pair? datum)
-      (list fork/csc (list lambda '() datum))
-      (eval datum (fork/csc identity))))
+      (list macro-transformer (list lambda '() datum))
+      (eval datum (macro-transformer identity))))
 
 (define (current-environment-specifier)
-  (fork/csc identity))
+  (macro-transformer identity))
 
 (define (er-macro-transformer transform)
-  (fork/csc
+  (macro-transformer
     (lambda form
       (transform form (lambda (x) (eval x (car form))) free-identifier=?))))
 

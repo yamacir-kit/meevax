@@ -421,5 +421,5 @@ parameterize ; is defined in srfi-39.ss
 ; TODO jiffies-per-second
 
 (define interaction-environment
-  (let ((e (fork/csc identity)))
+  (let ((e (macro-transformer identity)))
     (lambda () e)))
