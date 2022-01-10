@@ -40,7 +40,6 @@ inline namespace kernel
       case mnemonic::load_continuation: return "load-continuation";
       case mnemonic::load_relative:     return "load-relative";
       case mnemonic::load_variadic:     return "load-variadic";
-      case mnemonic::reflect:           return "reflect";
       case mnemonic::return_:           return "return";
       case mnemonic::select:            return "select";
       case mnemonic::stop:              return "stop";
@@ -108,7 +107,6 @@ inline namespace kernel
       case mnemonic::load_constant:
       case mnemonic::load_relative:
       case mnemonic::load_variadic:
-      case mnemonic::reflect:
       case mnemonic::store_absolute:
       case mnemonic::store_relative:
       case mnemonic::store_variadic:

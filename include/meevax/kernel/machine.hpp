@@ -415,14 +415,6 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::reflect: /* -----------------------------------------------
-        *
-        *  s e (%reflect <syntactic-continuation> . c) d  => s e c' d
-        *
-        * ------------------------------------------------------------------- */
-        std::swap(c.as<pair>(), append(cadr(c).template as<syntactic_continuation>().apply(body), cddr(c)).template as<pair>());
-        goto decode;
-
       case mnemonic::let_syntax: /* --------------------------------------------
         *
         *  (<transformer> . s) e (%let_syntax . c) d => s e c' d
@@ -984,20 +976,29 @@ inline namespace kernel
                                      frames));
       };
 
+      // auto const [keywords, transformer_specs] = unzip2(car(expression));
+
       /*
          (let-syntax <bindings> <body>)
 
          => ((fork/csc (lambda <keyword>s <body>))
              <transformer-spec>s)
       */
-      return fork_csc(current_context,
+      return
+      //        operand(context::none,
+      //                current_environment,
+      //                transformer_specs,
+      //                frames,
+             fork_csc(current_context,
                       current_environment,
                       list(cons(make<syntax>("lambda", lambda),
                                 map(make_keyword, car(expression)),
                                 cdr(expression))),
                       frames,
                       cons(make<instruction>(mnemonic::let_syntax),
-                           current_continuation));
+                           current_continuation))
+               // )
+               ;
     }
 
     static SYNTAX(letrec_syntax) /* --------------------------------------------
