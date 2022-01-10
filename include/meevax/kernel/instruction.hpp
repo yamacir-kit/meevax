@@ -32,6 +32,7 @@ inline namespace kernel
     dummy,             // a.k.a DUM
     fork,              //
     join,              //
+    let_syntax,        //
     letrec,            // a.k.a RAP
     load_absolute,     // a.k.a LDG
     load_closure,      // a.k.a LDF

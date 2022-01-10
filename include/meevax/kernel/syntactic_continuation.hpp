@@ -57,11 +57,6 @@ inline namespace kernel
     {
       return second;
     }
-
-    friend auto operator <<(std::ostream & os, simple_syntactic_continuation const& datum) -> std::ostream &
-    {
-      return os << magenta("#,(") << blue("fork/csc ") << datum.expression() << magenta(")");
-    }
   };
 } // namespace kernel
 } // namespace meevax

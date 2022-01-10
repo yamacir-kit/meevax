@@ -39,6 +39,8 @@ inline namespace kernel
     machine()
     {}
 
+    IMPORT(environment, global, const);
+
   protected:
     let s, // stack (holding intermediate results and return address)
         e, // environment (giving values to symbols)
@@ -368,7 +370,7 @@ inline namespace kernel
         *  s e (%fork c1 . c2) d => (<transformer> . s) e c2 d
         *
         * ------------------------------------------------------------------- */
-        s = make<transformer>(make<continuation>(s, e, cadr(c), d), static_cast<environment const&>(*this).global()) | s;
+        s = cons(make<transformer>(make<continuation>(s, e, cadr(c), d), global()), s);
         c = cddr(c);
         goto decode;
 
@@ -419,6 +421,17 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         std::swap(c.as<pair>(), append(cadr(c).template as<syntactic_continuation>().apply(body), cddr(c)).template as<pair>());
+        goto decode;
+
+      case mnemonic::let_syntax: /* --------------------------------------------
+        *
+        *  (<transformer> . s) e (%let_syntax . c) d => s e c' d
+        *
+        * ------------------------------------------------------------------- */
+        std::swap(c.as<pair>(),
+                  append(car(s).template as<transformer>().spec().template as<closure>().c(),
+                         cdr(c)
+                         ).template as<pair>());
         goto decode;
 
       case mnemonic::call:
@@ -971,13 +984,18 @@ inline namespace kernel
                                      frames));
       };
 
-      return cons(make<instruction>(mnemonic::reflect),
-                  make<syntactic_continuation>(current_context,
-                                               current_environment,
-                                               cdr(expression),
-                                               cons(map(make_keyword, car(expression)), frames),
-                                               current_continuation),
-                  current_continuation);
+      /*
+         (let-syntax <bindings> <body>)
+
+         => ((fork/csc (lambda <keyword>s <body>))
+             <transformer-spec>s)
+      */
+      return fork_csc(current_context,
+                      current_environment,
+                      list(cons(make<syntax>("lambda", lambda), unit, cdr(expression))),
+                      cons(map(make_keyword, car(expression)), frames),
+                      cons(make<instruction>(mnemonic::let_syntax),
+                           current_continuation));
     }
 
     static SYNTAX(letrec_syntax) /* --------------------------------------------
