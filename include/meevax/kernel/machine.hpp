@@ -992,8 +992,10 @@ inline namespace kernel
       */
       return fork_csc(current_context,
                       current_environment,
-                      list(cons(make<syntax>("lambda", lambda), unit, cdr(expression))),
-                      cons(map(make_keyword, car(expression)), frames),
+                      list(cons(make<syntax>("lambda", lambda),
+                                map(make_keyword, car(expression)),
+                                cdr(expression))),
+                      frames,
                       cons(make<instruction>(mnemonic::let_syntax),
                            current_continuation));
     }
