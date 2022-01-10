@@ -52,6 +52,8 @@ inline namespace kernel
       using environment::c;
       using environment::d;
 
+      let const expression;
+
       explicit transformer() /* ------------------------------------------------
       *
       *  Since the base class environment inherits from pair, all arguments
@@ -61,12 +63,16 @@ inline namespace kernel
       *  them.
       *
       * --------------------------------------------------------------------- */
+        : expression { spec().template as<continuation>().c().template as<simple_syntactic_continuation>().expression() }
       {
         auto const& k = spec().template as<continuation>();
 
         s = k.s();
         e = k.e();
-        c = k.c();
+        c = compile(context::outermost,
+                    *this,
+                    k.c().template as<simple_syntactic_continuation>().expression(),
+                    k.c().template as<simple_syntactic_continuation>().frames());
         d = k.d();
 
         spec() = environment::execute();
@@ -111,8 +117,7 @@ inline namespace kernel
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
       {
-        // return os << magenta("#,(") << blue("fork/csc ") << datum.expression << magenta(")");
-        return os << datum.spec();
+        return os << magenta("#,(") << green("fork/csc ") << datum.expression << magenta(")");
       }
     };
 
@@ -360,7 +365,7 @@ inline namespace kernel
 
       case mnemonic::fork: /* --------------------------------------------------
         *
-        *  s e (%fork c' . c) d => (<transformer> . s) e c d
+        *  s e (%fork c1 . c2) d => (<transformer> . s) e c2 d
         *
         * ------------------------------------------------------------------- */
         s = make<transformer>(make<continuation>(s, e, cadr(c), d), static_cast<environment const&>(*this).global()) | s;
@@ -900,10 +905,7 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       return cons(make<instruction>(mnemonic::fork),
-                  compile(context::outermost,
-                          current_environment,
-                          car(expression),
-                          frames),
+                  make<simple_syntactic_continuation>(car(expression), frames),
                   current_continuation);
     }
 

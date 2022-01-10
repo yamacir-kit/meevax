@@ -43,6 +43,26 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
+
+  struct simple_syntactic_continuation : public virtual pair
+  {
+    using pair::pair;
+
+    auto expression() const -> const_reference
+    {
+      return first;
+    }
+
+    auto frames() const -> const_reference
+    {
+      return second;
+    }
+
+    friend auto operator <<(std::ostream & os, simple_syntactic_continuation const& datum) -> std::ostream &
+    {
+      return os << magenta("#,(") << blue("fork/csc ") << datum.expression() << magenta(")");
+    }
+  };
 } // namespace kernel
 } // namespace meevax
 
