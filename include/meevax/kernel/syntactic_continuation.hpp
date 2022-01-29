@@ -23,28 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct syntactic_continuation
-  {
-    context const preserved_context;
-
-    std::reference_wrapper<environment> const preserved_environment;
-
-    let const expression;
-
-    let const frames;
-
-    let const continuation;
-
-    template <typename Compiler>
-    auto apply(Compiler const& compile) -> decltype(auto)
-    {
-      return compile(preserved_context, preserved_environment, expression, frames, continuation);
-    }
-  };
-
-  auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
-
-  struct simple_syntactic_continuation : public virtual pair
+  struct syntactic_continuation : public virtual pair
   {
     using pair::pair;
 
@@ -58,6 +37,8 @@ inline namespace kernel
       return second;
     }
   };
+
+  auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

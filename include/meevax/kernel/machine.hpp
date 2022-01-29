@@ -65,7 +65,7 @@ inline namespace kernel
       *  them.
       *
       * --------------------------------------------------------------------- */
-        : expression { spec().template as<continuation>().c().template as<simple_syntactic_continuation>().expression() }
+        : expression { spec().template as<continuation>().c().template as<syntactic_continuation>().expression() }
       {
         auto const& k = spec().template as<continuation>();
 
@@ -73,8 +73,8 @@ inline namespace kernel
         e = k.e();
         c = compile(context::outermost,
                     *this,
-                    k.c().template as<simple_syntactic_continuation>().expression(),
-                    k.c().template as<simple_syntactic_continuation>().frames());
+                    k.c().template as<syntactic_continuation>().expression(),
+                    k.c().template as<syntactic_continuation>().frames());
         d = k.d();
 
         spec() = environment::execute();
@@ -400,6 +400,7 @@ inline namespace kernel
         *  s e (%join) (c . d) => s e c d
         *
         * ------------------------------------------------------------------- */
+        assert(cdr(c).is<null>());
         c = car(d);
         d = cdr(d);
         goto decode;
@@ -910,7 +911,7 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       return cons(make<instruction>(mnemonic::fork),
-                  make<simple_syntactic_continuation>(car(expression), frames),
+                  make<syntactic_continuation>(car(expression), frames),
                   current_continuation);
     }
 
