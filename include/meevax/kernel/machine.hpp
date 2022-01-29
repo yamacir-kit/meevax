@@ -418,13 +418,16 @@ inline namespace kernel
 
       case mnemonic::let_syntax: /* --------------------------------------------
         *
-        *  (<transformer> . s) e (%let_syntax . c) d => s e c' d
+        *  s e (%let_syntax <syntactic-continuation> . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
         std::swap(c.as<pair>(),
-                  append(car(s).template as<transformer>().spec().template as<closure>().c(),
-                         cdr(c)
-                         ).template as<pair>());
+                  body(context::none,
+                       static_cast<environment &>(*this),
+                       cadr(c).as<syntactic_continuation>().expression(),
+                       cadr(c).as<syntactic_continuation>().frames(),
+                       cddr(c)
+                      ).template as<pair>());
         goto decode;
 
       case mnemonic::call:
@@ -977,29 +980,11 @@ inline namespace kernel
                                      frames));
       };
 
-      // auto const [keywords, transformer_specs] = unzip2(car(expression));
+      auto const [bindings, body]  = unpair(expression);
 
-      /*
-         (let-syntax <bindings> <body>)
-
-         => ((fork/csc (lambda <keyword>s <body>))
-             <transformer-spec>s)
-      */
-      return
-      //        operand(context::none,
-      //                current_environment,
-      //                transformer_specs,
-      //                frames,
-             fork_csc(current_context,
-                      current_environment,
-                      list(cons(make<syntax>("lambda", lambda),
-                                map(make_keyword, car(expression)),
-                                cdr(expression))),
-                      frames,
-                      cons(make<instruction>(mnemonic::let_syntax),
-                           current_continuation))
-               // )
-               ;
+      return cons(make<instruction>(mnemonic::let_syntax),
+                  make<syntactic_continuation>(body, cons(map(make_keyword, bindings)), frames),
+                  current_continuation);
     }
 
     static SYNTAX(letrec_syntax) /* --------------------------------------------
@@ -1089,7 +1074,7 @@ inline namespace kernel
                           cons(variables, frames),
                           lambda(context::none,
                                  current_environment,
-                                 cons(variables, cdr(expression)),
+                                 cons(variables, cdr(expression)), // (<formals> <body>)
                                  frames,
                                  cons(make<instruction>(mnemonic::letrec),
                                       current_continuation))));
