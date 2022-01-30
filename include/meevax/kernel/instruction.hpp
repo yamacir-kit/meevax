@@ -34,6 +34,7 @@ inline namespace kernel
     join,              //
     let_syntax,        //
     letrec,            // a.k.a RAP
+    letrec_syntax,     //
     load_absolute,     // a.k.a LDG
     load_closure,      // a.k.a LDF
     load_constant,     // a.k.a LDC

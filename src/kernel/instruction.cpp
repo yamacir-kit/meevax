@@ -34,6 +34,7 @@ inline namespace kernel
       case mnemonic::join:              return "join";
       case mnemonic::let_syntax:        return "let-syntax";
       case mnemonic::letrec:            return "letrec";
+      case mnemonic::letrec_syntax:     return "letrec-syntax";
       case mnemonic::load_absolute:     return "load-absolute";
       case mnemonic::load_closure:      return "load-closure";
       case mnemonic::load_constant:     return "load-constant";
@@ -88,7 +89,6 @@ inline namespace kernel
       case mnemonic::drop:
       case mnemonic::dummy:
       case mnemonic::join:
-      case mnemonic::let_syntax:
       case mnemonic::letrec:
       case mnemonic::tail_call:
         os << *iter << "\n";
@@ -103,6 +103,8 @@ inline namespace kernel
 
       case mnemonic::define:
       case mnemonic::fork:
+      case mnemonic::let_syntax:
+      case mnemonic::letrec_syntax:
       case mnemonic::load_absolute:
       case mnemonic::load_constant:
       case mnemonic::load_relative:

@@ -54,7 +54,7 @@ inline namespace kernel
       using environment::c;
       using environment::d;
 
-      let const expression;
+      syntactic_continuation const sk;
 
       explicit transformer() /* ------------------------------------------------
       *
@@ -65,16 +65,13 @@ inline namespace kernel
       *  them.
       *
       * --------------------------------------------------------------------- */
-        : expression { spec().template as<continuation>().c().template as<syntactic_continuation>().expression() }
+        : sk { spec().template as<continuation>().c().template as<syntactic_continuation>() }
       {
         auto const& k = spec().template as<continuation>();
 
         s = k.s();
         e = k.e();
-        c = compile(context::outermost,
-                    *this,
-                    k.c().template as<syntactic_continuation>().expression(),
-                    k.c().template as<syntactic_continuation>().frames());
+        c = compile(context::outermost, *this, sk.expression(), sk.frames());
         d = k.d();
 
         spec() = environment::execute();
@@ -119,7 +116,7 @@ inline namespace kernel
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
       {
-        return os << magenta("#,(") << green("fork/csc ") << datum.expression << magenta(")");
+        return os << magenta("#,(") << green("fork/csc ") << datum.sk.expression() << magenta(")");
       }
     };
 
@@ -198,7 +195,7 @@ inline namespace kernel
       {
         let & binding = identifier.as<keyword>().binding();
 
-        if (not binding.is<transformer>())
+        if (not binding.is<transformer>()) // DIRTY HACK
         {
           auto env = environment();
 
@@ -416,6 +413,9 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
+      case mnemonic::letrec_syntax:
+        [[fallthrough]];
+
       case mnemonic::let_syntax: /* --------------------------------------------
         *
         *  s e (%let_syntax <syntactic-continuation> . c) d => s e c' d
@@ -424,8 +424,8 @@ inline namespace kernel
         std::swap(c.as<pair>(),
                   body(context::none,
                        static_cast<environment &>(*this),
-                       cadr(c).as<syntactic_continuation>().expression(),
-                       cadr(c).as<syntactic_continuation>().frames(),
+                       cadr(c).template as<syntactic_continuation>().expression(),
+                       cadr(c).template as<syntactic_continuation>().frames(),
                        cddr(c)
                       ).template as<pair>());
         goto decode;
@@ -1003,23 +1003,22 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      let extended_frames = cons(unit, frames);
+      let keywords = map([](let const& binding)
+                         {
+                           return make<keyword>(car(binding), cadr(binding));
+                         },
+                         car(expression));
 
-      auto make_keyword = [&](let const& binding)
+      for (let const& k : keywords)
       {
-        return make<keyword>(car(binding),
-                             compile(context::outermost,
-                                     current_environment,
-                                     cadr(binding),
-                                     extended_frames));
-      };
+        k.as<keyword>().binding() = compile(context::outermost,
+                                            current_environment,
+                                            k.as<keyword>().binding(),
+                                            cons(keywords, frames));
+      }
 
-      car(extended_frames) = map(make_keyword, car(expression));
-
-      return body(current_context,
-                  current_environment,
-                  cdr(expression),
-                  extended_frames,
+      return cons(make<instruction>(mnemonic::letrec_syntax),
+                  make<syntactic_continuation>(cdr(expression), cons(keywords, frames)),
                   current_continuation);
     }
 
