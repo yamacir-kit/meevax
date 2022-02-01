@@ -768,7 +768,7 @@ inline namespace kernel
                           cons(make<instruction>(mnemonic::call), current_continuation)));
     }
 
-    static SYNTAX(conditional) /* ----------------------------------------------
+    static SYNTAX(if_) /* ------------------------------------------------------
     *
     *  (if <test> <consequent> <alternate>)                              syntax
     *  (if <test> <consequent>)                                          syntax
@@ -900,6 +900,82 @@ inline namespace kernel
       else
       {
         throw syntax_error(make<string>("definition cannot appear in this syntactic-context"));
+      }
+    }
+
+    static SYNTAX(define_syntax) /* --------------------------------------------
+    *
+    *  Syntax definitions have this form:
+    *
+    *      (define-syntax <keyword> <transformer spec>)
+    *
+    *  <Keyword> is an identifier, and the <transformer spec> is an instance of
+    *  syntax-rules. Like variable definitions, syntax definitions can appear
+    *  at the outermost level or nested within a body.
+    *
+    *  If the define-syntax occurs at the outermost level, then the global
+    *  syntactic environment is extended by binding the <keyword> to the
+    *  specified transformer, but previous expansions of any global binding for
+    *  <keyword> remain unchanged. Otherwise, it is an internal syntax
+    *  definition, and is local to the <body> in which it is defined. Any use
+    *  of a syntax keyword before its corresponding definition is an error. In
+    *  particular, a use that precedes an inner definition will not apply an
+    *  outer definition.
+    *
+    *      (let ((x 1) (y 2))
+    *        (define-syntax swap!
+    *          (syntax-rules ()
+    *            ((swap! a b)
+    *             (let ((tmp a))
+    *               (set! a b)
+    *               (set! b tmp)))))
+    *        (swap! x y)
+    *        (list x y)) => (2 1)
+    *
+    *  Macros can expand into definitions in any context that permits them.
+    *  However, it is an error for a definition to define an identifier whose
+    *  binding has to be known in order to determine the meaning of the
+    *  definition itself, or of any preceding definition that belongs to the
+    *  same group of internal definitions. Similarly, it is an error for an
+    *  internal definition to define an identifier whose binding has to be
+    *  known in order to determine the boundary between the internal
+    *  definitions and the expressions of the body it belongs to. For example,
+    *  the following are errors:
+    *
+    *      (define define 3)
+    *
+    *      (begin (define begin list))
+    *
+    *      (let-syntax ((foo (syntax-rules ()
+    *                          ((foo (proc args ...) body ...)
+    *                           (define proc
+    *                             (lambda (args ...) body ...))))))
+    *        (let ((x 3))
+    *          (foo (plus x y) (+ x y))
+    *          (define foo x)
+    *          (plus foo x)))
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      if (car(expression).is<pair>()) // (define-syntax (<keyword> . xs) <body>)
+      {
+        return define(current_context,
+                      current_environment,
+                      list(caar(expression),
+                           list(make<syntax>("fork/csc", fork_csc),
+                                cons(make<syntax>("lambda", lambda), expression)
+                               )
+                        ),
+                      frames,
+                      current_continuation);
+      }
+      else
+      {
+        return define(current_context,
+                      current_environment,
+                      expression,
+                      frames,
+                      current_continuation);
       }
     }
 
