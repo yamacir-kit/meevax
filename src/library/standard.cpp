@@ -1804,7 +1804,7 @@ namespace meevax
       case 1:
         if (let const& x = car(xs); x.is<boolean>())
         {
-          throw if_(x) ? exit_status::success : exit_status::failure;
+          throw select(x) ? exit_status::success : exit_status::failure;
         }
         else if (x.is<exact_integer>())
         {

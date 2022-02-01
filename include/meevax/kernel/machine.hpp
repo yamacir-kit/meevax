@@ -388,7 +388,7 @@ inline namespace kernel
         *  where c' = (if <boolean> c1 c2)
         *
         * ------------------------------------------------------------------- */
-        c = if_(car(s)) ? cadr(c) : caddr(c);
+        c = select(car(s)) ? cadr(c) : caddr(c);
         s = cdr(s);
         goto decode;
 
