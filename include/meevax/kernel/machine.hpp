@@ -623,7 +623,7 @@ inline namespace kernel
     }
 
   protected:
-    static SYNTAX(assignment) /* -----------------------------------------------
+    static SYNTAX(set) /* ------------------------------------------------------
     *
     *  (set! <variable> <expression>)                                    syntax
     *
@@ -732,7 +732,7 @@ inline namespace kernel
                        current_environment,
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs),
-                                 append(map(curry(cons)(make<syntax>("set!", assignment)), binding_specs), body)),
+                                 append(map(curry(cons)(make<syntax>("set!", set)), binding_specs), body)),
                             make_list(length(binding_specs), undefined_object)),
                        frames,
                        current_continuation);
@@ -744,11 +744,11 @@ inline namespace kernel
                        car(expression),
                        frames,
                        cons(make<instruction>(mnemonic::drop),
-                            sequence(current_context,
-                                     current_environment,
-                                     cdr(expression),
-                                     frames,
-                                     current_continuation)));
+                            begin(current_context,
+                                  current_environment,
+                                  cdr(expression),
+                                  frames,
+                                  current_continuation)));
       }
     }
 
@@ -851,7 +851,7 @@ inline namespace kernel
                              cons(make<instruction>(mnemonic::cons), current_continuation)));
     }
 
-    static SYNTAX(definition) /* -----------------------------------------------
+    static SYNTAX(define) /* ---------------------------------------------------
     *
     *  A variable definition binds one or more identifiers and specifies an
     *  initial value for each of them. The simplest kind of variable definition
@@ -1079,7 +1079,7 @@ inline namespace kernel
                                       current_continuation))));
     }
 
-    static SYNTAX(literal) /* --------------------------------------------------
+    static SYNTAX(quote) /* ----------------------------------------------------
     *
     *  (quote <datum>)                                                   syntax
     *
@@ -1125,7 +1125,7 @@ inline namespace kernel
       }
     }
 
-    static SYNTAX(sequence) /* -------------------------------------------------
+    static SYNTAX(begin) /* ----------------------------------------------------
     *
     *  Both of Scheme's sequencing constructs are named begin, but the two
     *  have slightly different forms and uses:
@@ -1168,11 +1168,11 @@ inline namespace kernel
                          car(expression),
                          frames,
                          cons(make<instruction>(mnemonic::drop),
-                              sequence(context::outermost,
-                                       current_environment,
-                                       cdr(expression),
-                                       frames,
-                                       current_continuation)));
+                              begin(context::outermost,
+                                    current_environment,
+                                    cdr(expression),
+                                    frames,
+                                    current_continuation)));
         }
       }
       else
@@ -1192,11 +1192,11 @@ inline namespace kernel
                          car(expression), // head expression
                          frames,
                          cons(make<instruction>(mnemonic::drop), // pop result of head expression
-                              sequence(context::none,
-                                       current_environment,
-                                       cdr(expression), // rest expressions
-                                       frames,
-                                       current_continuation)));
+                              begin(context::none,
+                                    current_environment,
+                                    cdr(expression), // rest expressions
+                                    frames,
+                                    current_continuation)));
         }
       }
     }

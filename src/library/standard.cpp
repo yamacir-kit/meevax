@@ -23,17 +23,17 @@ namespace meevax
   template <>
   auto environment::import(standard::base_t) -> void
   {
-    define<syntax>("begin", sequence);
+    define<syntax>("begin", machine::begin);
     define<syntax>("call-with-current-continuation!", call_with_current_continuation);
-    define<syntax>("define", definition);
+    define<syntax>("define", machine::define);
     define<syntax>("fork-with-current-syntactic-continuation", fork_csc);
     define<syntax>("if", conditional);
     define<syntax>("lambda", lambda);
     define<syntax>("let-syntax", let_syntax);
     define<syntax>("letrec", letrec);
     define<syntax>("letrec-syntax", letrec_syntax);
-    define<syntax>("quote", literal);
-    define<syntax>("set!", assignment);
+    define<syntax>("quote", quote);
+    define<syntax>("set!", set);
 
     /* -------------------------------------------------------------------------
      *
