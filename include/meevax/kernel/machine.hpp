@@ -443,25 +443,24 @@ inline namespace kernel
           env.c = unit;
           env.d = d;
 
-          auto const definitions = car(cadr(c).as<syntactic_continuation>().expression());
+          auto const transformer_specs = car(cadr(c).template as<syntactic_continuation>().expression());
 
-          for (let const& definition : definitions)
+          for (let const& transformer_spec : transformer_specs)
           {
             env.c = compile(context::outermost,
                             env,
-                            definition,
-                            cadr(c).as<syntactic_continuation>().frames());
+                            cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
+                            cadr(c).template as<syntactic_continuation>().frames());
             env.execute();
           }
 
           std::swap(c.as<pair>(),
                     body(context::outermost,
                          env,
-                         cdr(cadr(c).as<syntactic_continuation>().expression()),
-                         cadr(c).as<syntactic_continuation>().frames(),
+                         cdr(cadr(c).template as<syntactic_continuation>().expression()),
+                         cadr(c).template as<syntactic_continuation>().frames(),
                          cddr(c)
-                        ).template as<pair>()
-                   );
+                        ).template as<pair>());
         }();
         goto decode;
 
@@ -1114,16 +1113,8 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      auto cons_define_syntax = [](let const& binding)
-      {
-        return cons(make<syntax>("define-syntax", define_syntax), binding);
-      };
-
-      let const definitions = map(cons_define_syntax, car(expression));
-
       return cons(make<instruction>(mnemonic::letrec_syntax),
-                  make<syntactic_continuation>(cons(definitions, cdr(expression)),
-                                               frames),
+                  make<syntactic_continuation>(expression, frames),
                   current_continuation);
     }
 
