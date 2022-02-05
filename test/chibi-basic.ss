@@ -187,19 +187,19 @@
     (or #f tmp))
   => 4)
 
-; (check
-;   (letrec-syntax
-;     ((myor
-;        (er-macro-transformer
-;          (lambda (expr rename compare)
-;            (if (null? (cdr expr))
-;                #f
-;                (list (rename 'let) (list (list (rename 'tmp) (cadr expr)))
-;                      (list (rename 'if) (rename 'tmp)
-;                            (rename 'tmp)
-;                            (cons (rename 'myor) (cddr expr)))))))))
-;     (let ((tmp 5)) (myor #f tmp)))
-;   => 5)
+(check
+  (letrec-syntax
+    ((myor
+       (er-macro-transformer
+         (lambda (expr rename compare)
+           (if (null? (cdr expr))
+               #f
+               (list (rename 'let) (list (list (rename 'tmp) (cadr expr)))
+                     (list (rename 'if) (rename 'tmp)
+                           (rename 'tmp)
+                           (cons (rename 'myor) (cddr expr)))))))))
+    (let ((tmp 5)) (myor #f tmp)))
+  => 5)
 
 (define-syntax myor
   (er-macro-transformer
@@ -210,10 +210,9 @@
                       (rename 'tmp)
                       (cons (rename 'myor) (cddr expr))))))))
 
-; (check
-;   (let ((tmp 6))
-;     (myor #f tmp))
-;   => 6)
+(check
+  (let ((tmp 6))
+    (myor #f tmp)) => 6)
 
 ; (check
 ;   (let ((x 'outer))
@@ -260,21 +259,21 @@
 ;          (let ((it 6)) it)
 ;          3))
 ;   => 6)
-;
-; (check
-;   (letrec-syntax
-;     ((myor
-;        (er-macro-transformer
-;          (lambda (expr rename compare)
-;            (if (null? (cdr expr))
-;                #f
-;                (list (rename 'let) (list (list (rename 'it) (cadr expr)))
-;                      (list (rename 'if) (rename 'it)
-;                            (rename 'it)
-;                            (cons (rename 'myor) (cddr expr)))))))))
-;     (let ((it 7)) (myor #f it)))
-;   => 7)
-;
+
+(check
+  (letrec-syntax
+    ((myor
+       (er-macro-transformer
+         (lambda (expr rename compare)
+           (if (null? (cdr expr))
+               #f
+               (list (rename 'let) (list (list (rename 'it) (cadr expr)))
+                     (list (rename 'if) (rename 'it)
+                           (rename 'it)
+                           (cons (rename 'myor) (cddr expr)))))))))
+    (let ((it 7)) (myor #f it)))
+  => 7)
+
 ; (define-syntax define-foo
 ;   (sc-macro-transformer
 ;     (lambda (form environment)

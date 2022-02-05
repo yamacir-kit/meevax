@@ -413,9 +413,6 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::letrec_syntax:
-        [[fallthrough]];
-
       case mnemonic::let_syntax: /* --------------------------------------------
         *
         *  s e (%let_syntax <syntactic-continuation> . c) d => s e c' d
@@ -428,6 +425,44 @@ inline namespace kernel
                        cadr(c).template as<syntactic_continuation>().frames(),
                        cddr(c)
                       ).template as<pair>());
+        goto decode;
+
+      case mnemonic::letrec_syntax: /* -----------------------------------------
+        *
+        *  s e (%letrec-syntax <syntactic-continuation> . c) d => s e c' d
+        *
+        * ------------------------------------------------------------------- */
+        [&]()
+        {
+          auto env = environment();
+
+          env.global() = global();
+
+          env.s = s;
+          env.e = e;
+          env.c = unit;
+          env.d = d;
+
+          auto const definitions = car(cadr(c).as<syntactic_continuation>().expression());
+
+          for (let const& definition : definitions)
+          {
+            env.c = compile(context::outermost,
+                            env,
+                            definition,
+                            cadr(c).as<syntactic_continuation>().frames());
+            env.execute();
+          }
+
+          std::swap(c.as<pair>(),
+                    body(context::outermost,
+                         env,
+                         cdr(cadr(c).as<syntactic_continuation>().expression()),
+                         cadr(c).as<syntactic_continuation>().frames(),
+                         cddr(c)
+                        ).template as<pair>()
+                   );
+        }();
         goto decode;
 
       case mnemonic::call:
@@ -1059,7 +1094,7 @@ inline namespace kernel
       auto const [bindings, body]  = unpair(expression);
 
       return cons(make<instruction>(mnemonic::let_syntax),
-                  make<syntactic_continuation>(body, cons(map(make_keyword, bindings)), frames),
+                  make<syntactic_continuation>(body, cons(map(make_keyword, bindings), frames)),
                   current_continuation);
     }
 
@@ -1079,22 +1114,16 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      let keywords = map([](let const& binding)
-                         {
-                           return make<keyword>(car(binding), cadr(binding));
-                         },
-                         car(expression));
-
-      for (let const& k : keywords)
+      auto cons_define_syntax = [](let const& binding)
       {
-        k.as<keyword>().binding() = compile(context::outermost,
-                                            current_environment,
-                                            k.as<keyword>().binding(),
-                                            cons(keywords, frames));
-      }
+        return cons(make<syntax>("define-syntax", define_syntax), binding);
+      };
+
+      let const definitions = map(cons_define_syntax, car(expression));
 
       return cons(make<instruction>(mnemonic::letrec_syntax),
-                  make<syntactic_continuation>(cdr(expression), cons(keywords, frames)),
+                  make<syntactic_continuation>(cons(definitions, cdr(expression)),
+                                               frames),
                   current_continuation);
     }
 
