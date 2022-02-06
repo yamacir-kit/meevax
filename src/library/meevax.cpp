@@ -16,12 +16,12 @@
 
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/basis.hpp>
-#include <meevax/library/standard.hpp>
+#include <meevax/kernel/environment.hpp>
 
 namespace meevax
 {
   template <>
-  auto environment::import(standard::base_t) -> void
+  auto environment::import(decltype("(meevax base)"_s)) -> void
   {
     define<syntax>("begin", machine::begin);
     define<syntax>("call-with-current-continuation!", call_with_current_continuation);
@@ -1537,7 +1537,7 @@ namespace meevax
   }
 
   template <>
-  auto environment::import(standard::character_t) -> void
+  auto environment::import(decltype("(meevax character)"_s)) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1583,7 +1583,7 @@ namespace meevax
   }
 
   template <>
-  auto environment::import(standard::cxr_t) -> void
+  auto environment::import(decltype("(meevax cxr)"_s)) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1632,7 +1632,7 @@ namespace meevax
   }
 
   template <>
-  auto environment::import(standard::evaluate_t) -> void
+  auto environment::import(decltype("(meevax evaluate)"_s)) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1653,7 +1653,7 @@ namespace meevax
   }
 
   template <>
-  auto environment::import(standard::inexact_t) -> void
+  auto environment::import(decltype("(meevax inexact)"_s)) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1747,7 +1747,7 @@ namespace meevax
   }
 
   template <>
-  auto environment::import(standard::load_t) -> void
+  auto environment::import(decltype("(meevax load)"_s)) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1779,7 +1779,7 @@ namespace meevax
   }
 
   template <>
-  auto environment::import(standard::process_context_t) -> void
+  auto environment::import(decltype("(meevax process-context)"_s)) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1820,7 +1820,7 @@ namespace meevax
   }
 
   template <>
-  auto environment::import(standard::read_t) -> void
+  auto environment::import(decltype("(meevax read)"_s)) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1875,7 +1875,7 @@ namespace meevax
   }
 
   template <>
-  auto environment::import(standard::write_t) -> void
+  auto environment::import(decltype("(meevax write)"_s)) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1896,7 +1896,7 @@ namespace meevax
   }
 
   template <>
-  auto environment::import(standard::experimental_t) -> void
+  auto environment::import(decltype("(meevax experimental)"_s)) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -2055,7 +2055,7 @@ namespace meevax
   }
 
   template <>
-  auto environment::import(standard::srfis_t) -> void
+  auto environment::import(decltype("(meevax srfis)"_s)) -> void
   {
     std::vector<string_view> const codes {
       overture,
@@ -2083,18 +2083,18 @@ namespace meevax
   }
 
   template <>
-  auto environment::import(standard::interaction_environment_t) -> void
+  auto environment::import(decltype("(meevax interaction-environment)"_s)) -> void
   {
-    import(standard::base);
-    import(standard::character);
-    import(standard::cxr);
-    import(standard::evaluate);
-    import(standard::inexact);
-    import(standard::load);
-    import(standard::process_context);
-    import(standard::read);
-    import(standard::write);
-    import(standard::experimental);
-    import(standard::srfis);
+    import("(meevax base)"_s);
+    import("(meevax character)"_s);
+    import("(meevax cxr)"_s);
+    import("(meevax evaluate)"_s);
+    import("(meevax inexact)"_s);
+    import("(meevax load)"_s);
+    import("(meevax process-context)"_s);
+    import("(meevax read)"_s);
+    import("(meevax write)"_s);
+    import("(meevax experimental)"_s);
+    import("(meevax srfis)"_s);
   }
 } // namespace meevax

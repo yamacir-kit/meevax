@@ -21,6 +21,7 @@
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/writer.hpp>
+#include <meevax/utility/integer_sequence.hpp>
 
 namespace meevax
 {
@@ -46,7 +47,11 @@ inline namespace kernel
     using writer::debug_port;
     using writer::write;
 
-    template <typename... Ts>
+    explicit environment(environment &&) = default;
+
+    explicit environment(environment const&) = default;
+
+    template <typename... Ts, REQUIRES(is_integer_sequence<Ts>...)>
     explicit environment(Ts&&... xs)
     {
       import(), (import(xs), ...);
@@ -70,12 +75,14 @@ inline namespace kernel
 
     auto execute() -> object;
 
+    auto execute(const_reference) -> object;
+
     auto global() noexcept -> reference;
 
     auto global() const noexcept -> const_reference;
 
-    template <typename T>
-    auto import(T) -> void;
+    template <typename T, T... xs>
+    auto import(std::integer_sequence<T, xs...>) -> void;
 
     auto import() -> void;
 

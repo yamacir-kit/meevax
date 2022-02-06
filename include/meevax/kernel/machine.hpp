@@ -197,16 +197,7 @@ inline namespace kernel
 
         if (not binding.is<transformer>()) // DIRTY HACK
         {
-          auto env = environment();
-
-          env.global() = current_environment.global();
-
-          env.s = current_environment.s;
-          env.e = current_environment.e;
-          env.c = binding;
-          env.d = current_environment.d;
-
-          binding = env.execute();
+          binding = environment(current_environment).execute(binding);
         }
 
         return compile(context::none,
@@ -432,35 +423,27 @@ inline namespace kernel
         *  s e (%letrec-syntax <syntactic-continuation> . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
-        [&]()
+        [&]() // DIRTY HACK!!!
         {
-          auto env = environment();
+          auto env = environment(static_cast<environment const&>(*this));
 
-          env.global() = global();
-
-          env.s = s;
-          env.e = e;
-          env.c = unit;
-          env.d = d;
-
-          auto const transformer_specs = car(cadr(c).template as<syntactic_continuation>().expression());
+          auto const [transformer_specs, body] = unpair(cadr(c).template as<syntactic_continuation>().expression());
 
           for (let const& transformer_spec : transformer_specs)
           {
-            env.c = compile(context::outermost,
-                            env,
-                            cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
-                            cadr(c).template as<syntactic_continuation>().frames());
-            env.execute();
+            env.execute(compile(context::outermost,
+                                env,
+                                cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
+                                cadr(c).template as<syntactic_continuation>().frames()));
           }
 
           std::swap(c.as<pair>(),
-                    body(context::outermost,
-                         env,
-                         cdr(cadr(c).template as<syntactic_continuation>().expression()),
-                         cadr(c).template as<syntactic_continuation>().frames(),
-                         cddr(c)
-                        ).template as<pair>());
+                    machine::body(context::outermost,
+                                  env,
+                                  body,
+                                  cadr(c).template as<syntactic_continuation>().frames(),
+                                  cddr(c)
+                                 ).template as<pair>());
         }();
         goto decode;
 
