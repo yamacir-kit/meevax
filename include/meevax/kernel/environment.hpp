@@ -21,26 +21,12 @@
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/writer.hpp>
+#include <meevax/utility/integer_sequence.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  template <typename T, T... xs>
-  constexpr auto operator ""_s() -> std::integer_sequence<T, xs...>
-  {
-    return {};
-  }
-
-  template <typename T>
-  struct is_integer_sequence : public std::false_type
-  {};
-
-  template <typename T, T... xs>
-  struct is_integer_sequence<std::integer_sequence<T, xs...>>
-    : public std::true_type
-  {};
-
   class environment : public virtual pair
                     , public configurator<environment>
                     , public machine     <environment>
