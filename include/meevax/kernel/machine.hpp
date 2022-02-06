@@ -197,14 +197,9 @@ inline namespace kernel
 
         if (not binding.is<transformer>()) // DIRTY HACK
         {
-          auto env = environment();
+          auto env = environment(current_environment);
 
-          env.global() = current_environment.global();
-
-          env.s = current_environment.s;
-          env.e = current_environment.e;
           env.c = binding;
-          env.d = current_environment.d;
 
           binding = env.execute();
         }
@@ -434,14 +429,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         [&]() // DIRTY HACK!!!
         {
-          auto env = environment();
-
-          env.global() = global();
-
-          env.s = s;
-          env.e = e;
-          env.c = unit;
-          env.d = d;
+          auto env = environment(static_cast<environment const&>(*this));
 
           auto const [transformer_specs, body] = unpair(cadr(c).template as<syntactic_continuation>().expression());
 

@@ -47,6 +47,10 @@ inline namespace kernel
     using writer::debug_port;
     using writer::write;
 
+    explicit environment(environment &&) = default;
+
+    explicit environment(environment const&) = default;
+
     template <typename... Ts, REQUIRES(is_integer_sequence<Ts>...)>
     explicit environment(Ts&&... xs)
     {
