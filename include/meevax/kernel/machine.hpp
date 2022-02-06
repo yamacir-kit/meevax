@@ -197,16 +197,7 @@ inline namespace kernel
 
         if (not binding.is<transformer>()) // DIRTY HACK
         {
-          auto env = environment();
-
-          env.global() = current_environment.global();
-
-          env.s = current_environment.s;
-          env.e = current_environment.e;
-          env.c = binding;
-          env.d = current_environment.d;
-
-          binding = env.execute();
+          binding = environment(current_environment).execute(binding);
         }
 
         return compile(context::none,
@@ -388,7 +379,7 @@ inline namespace kernel
         *  where c' = (if <boolean> c1 c2)
         *
         * ------------------------------------------------------------------- */
-        c = if_(car(s)) ? cadr(c) : caddr(c);
+        c = select(car(s)) ? cadr(c) : caddr(c);
         s = cdr(s);
         goto decode;
 
@@ -413,9 +404,6 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::letrec_syntax:
-        [[fallthrough]];
-
       case mnemonic::let_syntax: /* --------------------------------------------
         *
         *  s e (%let_syntax <syntactic-continuation> . c) d => s e c' d
@@ -428,6 +416,35 @@ inline namespace kernel
                        cadr(c).template as<syntactic_continuation>().frames(),
                        cddr(c)
                       ).template as<pair>());
+        goto decode;
+
+      case mnemonic::letrec_syntax: /* -----------------------------------------
+        *
+        *  s e (%letrec-syntax <syntactic-continuation> . c) d => s e c' d
+        *
+        * ------------------------------------------------------------------- */
+        [&]() // DIRTY HACK!!!
+        {
+          auto env = environment(static_cast<environment const&>(*this));
+
+          auto const [transformer_specs, body] = unpair(cadr(c).template as<syntactic_continuation>().expression());
+
+          for (let const& transformer_spec : transformer_specs)
+          {
+            env.execute(compile(context::outermost,
+                                env,
+                                cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
+                                cadr(c).template as<syntactic_continuation>().frames()));
+          }
+
+          std::swap(c.as<pair>(),
+                    machine::body(context::outermost,
+                                  env,
+                                  body,
+                                  cadr(c).template as<syntactic_continuation>().frames(),
+                                  cddr(c)
+                                 ).template as<pair>());
+        }();
         goto decode;
 
       case mnemonic::call:
@@ -623,7 +640,7 @@ inline namespace kernel
     }
 
   protected:
-    static SYNTAX(assignment) /* -----------------------------------------------
+    static SYNTAX(set) /* ------------------------------------------------------
     *
     *  (set! <variable> <expression>)                                    syntax
     *
@@ -732,7 +749,7 @@ inline namespace kernel
                        current_environment,
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs),
-                                 append(map(curry(cons)(make<syntax>("set!", assignment)), binding_specs), body)),
+                                 append(map(curry(cons)(make<syntax>("set!", set)), binding_specs), body)),
                             make_list(length(binding_specs), undefined_object)),
                        frames,
                        current_continuation);
@@ -744,11 +761,11 @@ inline namespace kernel
                        car(expression),
                        frames,
                        cons(make<instruction>(mnemonic::drop),
-                            sequence(current_context,
-                                     current_environment,
-                                     cdr(expression),
-                                     frames,
-                                     current_continuation)));
+                            begin(current_context,
+                                  current_environment,
+                                  cdr(expression),
+                                  frames,
+                                  current_continuation)));
       }
     }
 
@@ -768,7 +785,7 @@ inline namespace kernel
                           cons(make<instruction>(mnemonic::call), current_continuation)));
     }
 
-    static SYNTAX(conditional) /* ----------------------------------------------
+    static SYNTAX(if_) /* ------------------------------------------------------
     *
     *  (if <test> <consequent> <alternate>)                              syntax
     *  (if <test> <consequent>)                                          syntax
@@ -851,7 +868,7 @@ inline namespace kernel
                              cons(make<instruction>(mnemonic::cons), current_continuation)));
     }
 
-    static SYNTAX(definition) /* -----------------------------------------------
+    static SYNTAX(define) /* ---------------------------------------------------
     *
     *  A variable definition binds one or more identifiers and specifies an
     *  initial value for each of them. The simplest kind of variable definition
@@ -900,6 +917,82 @@ inline namespace kernel
       else
       {
         throw syntax_error(make<string>("definition cannot appear in this syntactic-context"));
+      }
+    }
+
+    static SYNTAX(define_syntax) /* --------------------------------------------
+    *
+    *  Syntax definitions have this form:
+    *
+    *      (define-syntax <keyword> <transformer spec>)
+    *
+    *  <Keyword> is an identifier, and the <transformer spec> is an instance of
+    *  syntax-rules. Like variable definitions, syntax definitions can appear
+    *  at the outermost level or nested within a body.
+    *
+    *  If the define-syntax occurs at the outermost level, then the global
+    *  syntactic environment is extended by binding the <keyword> to the
+    *  specified transformer, but previous expansions of any global binding for
+    *  <keyword> remain unchanged. Otherwise, it is an internal syntax
+    *  definition, and is local to the <body> in which it is defined. Any use
+    *  of a syntax keyword before its corresponding definition is an error. In
+    *  particular, a use that precedes an inner definition will not apply an
+    *  outer definition.
+    *
+    *      (let ((x 1) (y 2))
+    *        (define-syntax swap!
+    *          (syntax-rules ()
+    *            ((swap! a b)
+    *             (let ((tmp a))
+    *               (set! a b)
+    *               (set! b tmp)))))
+    *        (swap! x y)
+    *        (list x y)) => (2 1)
+    *
+    *  Macros can expand into definitions in any context that permits them.
+    *  However, it is an error for a definition to define an identifier whose
+    *  binding has to be known in order to determine the meaning of the
+    *  definition itself, or of any preceding definition that belongs to the
+    *  same group of internal definitions. Similarly, it is an error for an
+    *  internal definition to define an identifier whose binding has to be
+    *  known in order to determine the boundary between the internal
+    *  definitions and the expressions of the body it belongs to. For example,
+    *  the following are errors:
+    *
+    *      (define define 3)
+    *
+    *      (begin (define begin list))
+    *
+    *      (let-syntax ((foo (syntax-rules ()
+    *                          ((foo (proc args ...) body ...)
+    *                           (define proc
+    *                             (lambda (args ...) body ...))))))
+    *        (let ((x 3))
+    *          (foo (plus x y) (+ x y))
+    *          (define foo x)
+    *          (plus foo x)))
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      if (car(expression).is<pair>()) // (define-syntax (<keyword> . xs) <body>)
+      {
+        return define(current_context,
+                      current_environment,
+                      list(caar(expression),
+                           list(make<syntax>("fork/csc", fork_csc),
+                                cons(make<syntax>("lambda", lambda), expression)
+                               )
+                        ),
+                      frames,
+                      current_continuation);
+      }
+      else
+      {
+        return define(current_context,
+                      current_environment,
+                      expression,
+                      frames,
+                      current_continuation);
       }
     }
 
@@ -983,7 +1076,7 @@ inline namespace kernel
       auto const [bindings, body]  = unpair(expression);
 
       return cons(make<instruction>(mnemonic::let_syntax),
-                  make<syntactic_continuation>(body, cons(map(make_keyword, bindings)), frames),
+                  make<syntactic_continuation>(body, cons(map(make_keyword, bindings), frames)),
                   current_continuation);
     }
 
@@ -1003,22 +1096,8 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      let keywords = map([](let const& binding)
-                         {
-                           return make<keyword>(car(binding), cadr(binding));
-                         },
-                         car(expression));
-
-      for (let const& k : keywords)
-      {
-        k.as<keyword>().binding() = compile(context::outermost,
-                                            current_environment,
-                                            k.as<keyword>().binding(),
-                                            cons(keywords, frames));
-      }
-
       return cons(make<instruction>(mnemonic::letrec_syntax),
-                  make<syntactic_continuation>(cdr(expression), cons(keywords, frames)),
+                  make<syntactic_continuation>(expression, frames),
                   current_continuation);
     }
 
@@ -1079,7 +1158,7 @@ inline namespace kernel
                                       current_continuation))));
     }
 
-    static SYNTAX(literal) /* --------------------------------------------------
+    static SYNTAX(quote) /* ----------------------------------------------------
     *
     *  (quote <datum>)                                                   syntax
     *
@@ -1125,7 +1204,7 @@ inline namespace kernel
       }
     }
 
-    static SYNTAX(sequence) /* -------------------------------------------------
+    static SYNTAX(begin) /* ----------------------------------------------------
     *
     *  Both of Scheme's sequencing constructs are named begin, but the two
     *  have slightly different forms and uses:
@@ -1168,11 +1247,11 @@ inline namespace kernel
                          car(expression),
                          frames,
                          cons(make<instruction>(mnemonic::drop),
-                              sequence(context::outermost,
-                                       current_environment,
-                                       cdr(expression),
-                                       frames,
-                                       current_continuation)));
+                              begin(context::outermost,
+                                    current_environment,
+                                    cdr(expression),
+                                    frames,
+                                    current_continuation)));
         }
       }
       else
@@ -1192,11 +1271,11 @@ inline namespace kernel
                          car(expression), // head expression
                          frames,
                          cons(make<instruction>(mnemonic::drop), // pop result of head expression
-                              sequence(context::none,
-                                       current_environment,
-                                       cdr(expression), // rest expressions
-                                       frames,
-                                       current_continuation)));
+                              begin(context::none,
+                                    current_environment,
+                                    cdr(expression), // rest expressions
+                                    frames,
+                                    current_continuation)));
         }
       }
     }

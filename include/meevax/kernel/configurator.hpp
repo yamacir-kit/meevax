@@ -293,7 +293,7 @@ inline namespace kernel
     #define BOILERPLATE(NAME)                                                  \
     auto is_##NAME##_mode() const -> bool                                      \
     {                                                                          \
-      return if_(NAME);                                                        \
+      return select(NAME);                                                     \
     }                                                                          \
     static_assert(true)
 

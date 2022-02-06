@@ -83,6 +83,12 @@ inline namespace kernel
     }
   }
 
+  auto environment::execute(const_reference code) -> object
+  {
+    c = code;
+    return execute();
+  }
+
   auto environment::global() const noexcept -> const_reference
   {
     return second;
@@ -179,7 +185,7 @@ inline namespace kernel
 
   auto environment::rename(const_reference variable) -> const_reference
   {
-    if (let const& binding = assq(variable, global()); if_(binding))
+    if (let const& binding = assq(variable, global()); select(binding))
     {
       return binding;
     }
@@ -214,7 +220,7 @@ inline namespace kernel
 
   auto environment::rename(const_reference variable, const_reference frames) -> object
   {
-    if (let const& identifier = notate(variable, frames); if_(identifier))
+    if (let const& identifier = notate(variable, frames); select(identifier))
     {
       return identifier;
     }
@@ -231,7 +237,7 @@ inline namespace kernel
 
   auto environment::rename(const_reference variable, const_reference frames) const -> object
   {
-    if (let const& identifier = notate(variable, frames); if_(identifier))
+    if (let const& identifier = notate(variable, frames); select(identifier))
     {
       return identifier;
     }

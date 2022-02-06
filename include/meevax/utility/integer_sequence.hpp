@@ -14,24 +14,31 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/equivalence.hpp>
+#ifndef INCLUDED_MEEVAX_UTILITY_INTEGER_SEQUENCE_HPP
+#define INCLUDED_MEEVAX_UTILITY_INTEGER_SEQUENCE_HPP
+
+#include <type_traits>
+#include <utility>
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace utility
 {
-  auto operator <<(std::ostream & os, boolean const& datum) -> std::ostream &
+  template <typename T, T... xs>
+  constexpr auto operator ""_s() -> std::integer_sequence<T, xs...>
   {
-    return os << cyan("#", std::boolalpha, datum.value);
+    return {};
   }
 
-  let const t = make<boolean>(true);
-  let const f = make<boolean>(false);
+  template <typename T>
+  struct is_integer_sequence : public std::false_type
+  {};
 
-  auto select(const_reference x) -> bool
-  {
-    return not eq(x, f) or not eqv(x, f);
-  }
-} // namespace kernel
+  template <typename T, T... xs>
+  struct is_integer_sequence<std::integer_sequence<T, xs...>>
+    : public std::true_type
+  {};
+} // namespace utility
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_UTILITY_INTEGER_SEQUENCE_HPP
