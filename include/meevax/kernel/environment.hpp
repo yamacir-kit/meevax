@@ -26,6 +26,21 @@ namespace meevax
 {
 inline namespace kernel
 {
+  template <typename T, T... xs>
+  constexpr auto operator ""_s() -> std::integer_sequence<T, xs...>
+  {
+    return {};
+  }
+
+  template <typename T>
+  struct is_integer_sequence : public std::false_type
+  {};
+
+  template <typename T, T... xs>
+  struct is_integer_sequence<std::integer_sequence<T, xs...>>
+    : public std::true_type
+  {};
+
   class environment : public virtual pair
                     , public configurator<environment>
                     , public machine     <environment>
@@ -46,7 +61,7 @@ inline namespace kernel
     using writer::debug_port;
     using writer::write;
 
-    template <typename... Ts>
+    template <typename... Ts, REQUIRES(is_integer_sequence<Ts>...)>
     explicit environment(Ts&&... xs)
     {
       import(), (import(xs), ...);
@@ -74,8 +89,8 @@ inline namespace kernel
 
     auto global() const noexcept -> const_reference;
 
-    template <typename T>
-    auto import(T) -> void;
+    template <typename T, T... xs>
+    auto import(std::integer_sequence<T, xs...>) -> void;
 
     auto import() -> void;
 

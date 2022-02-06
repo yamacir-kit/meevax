@@ -24,7 +24,7 @@ auto main() -> int
   assert(gc_count == constants.size() + specials_count);
 
   {
-    auto root = environment(standard::interaction_environment);
+    auto root = environment("(standard interaction-environment)"_s);
   }
 
   environment::symbols.clear();

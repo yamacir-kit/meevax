@@ -432,7 +432,7 @@ inline namespace kernel
         *  s e (%letrec-syntax <syntactic-continuation> . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
-        [&]()
+        [&]() // DIRTY HACK!!!
         {
           auto env = environment();
 
@@ -443,7 +443,7 @@ inline namespace kernel
           env.c = unit;
           env.d = d;
 
-          auto const transformer_specs = car(cadr(c).template as<syntactic_continuation>().expression());
+          auto const [transformer_specs, body] = unpair(cadr(c).template as<syntactic_continuation>().expression());
 
           for (let const& transformer_spec : transformer_specs)
           {
@@ -455,12 +455,12 @@ inline namespace kernel
           }
 
           std::swap(c.as<pair>(),
-                    body(context::outermost,
-                         env,
-                         cdr(cadr(c).template as<syntactic_continuation>().expression()),
-                         cadr(c).template as<syntactic_continuation>().frames(),
-                         cddr(c)
-                        ).template as<pair>());
+                    machine::body(context::outermost,
+                                  env,
+                                  body,
+                                  cadr(c).template as<syntactic_continuation>().frames(),
+                                  cddr(c)
+                                 ).template as<pair>());
         }();
         goto decode;
 

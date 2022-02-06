@@ -21,40 +21,6 @@
 
 namespace meevax
 {
-  #define DEFINE_LIBRARY(NAME)                                                 \
-  namespace standard                                                           \
-  {                                                                            \
-    struct NAME##_t                                                            \
-    {                                                                          \
-      explicit NAME##_t() = default;                                           \
-    }                                                                          \
-    inline constexpr NAME {};                                                  \
-  }                                                                            \
-                                                                               \
-  template <>                                                                  \
-  auto environment::import(standard::NAME##_t) -> void
-
-  DEFINE_LIBRARY(base);
-  // DEFINE_LIBRARY(case_lambda);
-  DEFINE_LIBRARY(character);
-  // DEFINE_LIBRARY(complex);
-  DEFINE_LIBRARY(cxr);
-  DEFINE_LIBRARY(evaluate);
-  // DEFINE_LIBRARY(file);
-  DEFINE_LIBRARY(inexact);
-  // DEFINE_LIBRARY(lazy);
-  DEFINE_LIBRARY(load);
-  DEFINE_LIBRARY(process_context);
-  // DEFINE_LIBRARY(r5rs);
-  DEFINE_LIBRARY(read);
-  // DEFINE_LIBRARY(repl);
-  // DEFINE_LIBRARY(time);
-  DEFINE_LIBRARY(write);
-
-  DEFINE_LIBRARY(experimental);
-  DEFINE_LIBRARY(srfis);
-
-  DEFINE_LIBRARY(interaction_environment);
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_STANDARD_HPP
