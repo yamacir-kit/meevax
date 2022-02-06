@@ -23,7 +23,7 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    auto main = environment("(standard interaction-environment)"_s);
+    auto main = environment("(meevax interaction-environment)"_s);
 
     main.configure(argc, argv);
 
