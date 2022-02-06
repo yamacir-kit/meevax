@@ -75,6 +75,8 @@ inline namespace kernel
 
     auto execute() -> object;
 
+    auto execute(const_reference) -> object;
+
     auto global() noexcept -> reference;
 
     auto global() const noexcept -> const_reference;

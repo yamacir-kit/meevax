@@ -83,6 +83,12 @@ inline namespace kernel
     }
   }
 
+  auto environment::execute(const_reference code) -> object
+  {
+    c = code;
+    return execute();
+  }
+
   auto environment::global() const noexcept -> const_reference
   {
     return second;

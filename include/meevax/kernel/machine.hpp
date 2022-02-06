@@ -197,11 +197,7 @@ inline namespace kernel
 
         if (not binding.is<transformer>()) // DIRTY HACK
         {
-          auto env = environment(current_environment);
-
-          env.c = binding;
-
-          binding = env.execute();
+          binding = environment(current_environment).execute(binding);
         }
 
         return compile(context::none,
@@ -435,11 +431,10 @@ inline namespace kernel
 
           for (let const& transformer_spec : transformer_specs)
           {
-            env.c = compile(context::outermost,
-                            env,
-                            cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
-                            cadr(c).template as<syntactic_continuation>().frames());
-            env.execute();
+            env.execute(compile(context::outermost,
+                                env,
+                                cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
+                                cadr(c).template as<syntactic_continuation>().frames()));
           }
 
           std::swap(c.as<pair>(),
