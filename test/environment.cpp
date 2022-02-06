@@ -1,7 +1,7 @@
 #undef NDEBUG
 
 #include <cassert>
-#include <meevax/library/standard.hpp>
+#include <meevax/kernel/environment.hpp>
 
 auto main() -> int
 {
@@ -24,7 +24,7 @@ auto main() -> int
   assert(gc_count == constants.size() + specials_count);
 
   {
-    auto root = environment(standard::interaction_environment);
+    auto root = environment("(meevax interaction-environment)"_s);
   }
 
   environment::symbols.clear();

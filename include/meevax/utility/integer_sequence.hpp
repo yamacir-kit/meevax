@@ -14,32 +14,31 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
-#define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
+#ifndef INCLUDED_MEEVAX_UTILITY_INTEGER_SEQUENCE_HPP
+#define INCLUDED_MEEVAX_UTILITY_INTEGER_SEQUENCE_HPP
 
-#include <meevax/kernel/syntax.hpp>
+#include <type_traits>
+#include <utility>
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace utility
 {
-  struct syntactic_continuation : public virtual pair
+  template <typename T, T... xs>
+  constexpr auto operator ""_s() -> std::integer_sequence<T, xs...>
   {
-    using pair::pair;
+    return {};
+  }
 
-    auto expression() const -> const_reference
-    {
-      return first;
-    }
+  template <typename T>
+  struct is_integer_sequence : public std::false_type
+  {};
 
-    auto frames() const -> const_reference
-    {
-      return second;
-    }
-  };
-
-  auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
-} // namespace kernel
+  template <typename T, T... xs>
+  struct is_integer_sequence<std::integer_sequence<T, xs...>>
+    : public std::true_type
+  {};
+} // namespace utility
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
+#endif // INCLUDED_MEEVAX_UTILITY_INTEGER_SEQUENCE_HPP

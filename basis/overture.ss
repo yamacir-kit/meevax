@@ -9,15 +9,6 @@
     (lambda (import . import-sets)
       (list quote (cons 'import import-sets)))))
 
-(define define-syntax
-  (fork/csc
-    (lambda (define-syntax keyword . transformer)
-      (if (pair? keyword)
-          (list define (car keyword)
-            (list fork/csc
-              (list lambda keyword . transformer)))
-          (list define keyword . transformer)))))
-
 (define-syntax (syntax datum)
   (if (pair? datum)
       (list fork/csc (list lambda '() datum))

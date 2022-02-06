@@ -1,8 +1,7 @@
 #undef NDEBUG
 
 #include <cassert>
-
-#include <meevax/library/standard.hpp>
+#include <meevax/kernel/environment.hpp>
 
 auto main() -> int
 {

@@ -71,6 +71,7 @@ inline namespace iostream
     return escape_sequence(COMMAND, std::forward<decltype(xs)>(xs)...); \
   }
 
+  DEFINE("0m", normal);
   DEFINE("1m", bold);
   DEFINE("2m", faint);
   DEFINE("3m", italic); // Not widely supported. Sometimes treated as inverse.
