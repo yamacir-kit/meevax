@@ -56,6 +56,8 @@ inline namespace kernel
 
       syntactic_continuation const sk;
 
+      let const spec;
+
       explicit transformer() /* ------------------------------------------------
       *
       *  Since the base class environment inherits from pair, all arguments
@@ -65,10 +67,9 @@ inline namespace kernel
       *  them.
       *
       * --------------------------------------------------------------------- */
-        : sk { spec().template as<continuation>().c().template as<syntactic_continuation>() }
+        : sk   {       environment::first.template as<continuation>().c().template as<syntactic_continuation>() }
+        , spec { build(environment::first.template as<continuation>()) }
       {
-        spec() = build(spec().template as<continuation>());
-
         environment::reset();
       }
 
@@ -103,21 +104,11 @@ inline namespace kernel
       * --------------------------------------------------------------------- */
       {
         d = cons(s, e, c, d);
-        c =                            spec().template as<closure>().c();
-        e = cons(keyword, cdr(form)) | spec().template as<closure>().e();
+        c =                            spec.template as<closure>().c();
+        e = cons(keyword, cdr(form)) | spec.template as<closure>().e();
         s = unit;
 
         return environment::execute();
-      }
-
-      auto spec() -> reference
-      {
-        return environment::first;
-      }
-
-      auto spec() const -> const_reference
-      {
-        return environment::first;
       }
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
