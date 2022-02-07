@@ -257,7 +257,6 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, environment & datum) -> std::ostream &
   {
-    // TODO Evaluate datum.first, and write the evaluation to ostream.
     return datum.write(os, "environment::operator <<(std::ostream &, environment &)\n");
   }
 

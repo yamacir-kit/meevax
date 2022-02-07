@@ -67,16 +67,22 @@ inline namespace kernel
       * --------------------------------------------------------------------- */
         : sk { spec().template as<continuation>().c().template as<syntactic_continuation>() }
       {
-        auto const& k = spec().template as<continuation>();
-
-        s = k.s();
-        e = k.e();
-        c = compile(context::outermost, *this, sk.expression(), sk.frames());
-        d = k.d();
-
-        spec() = environment::execute();
+        spec() = build(spec().template as<continuation>());
 
         environment::reset();
+      }
+
+      auto build(continuation const& k) -> object
+      {
+        s = k.s();
+        e = k.e();
+        c = compile(context::outermost,
+                    *this,
+                    k.c().template as<syntactic_continuation>().expression(),
+                    k.c().template as<syntactic_continuation>().frames());
+        d = k.d();
+
+        return environment::execute();
       }
 
       auto macroexpand(const_reference keyword, const_reference form) /* -------
