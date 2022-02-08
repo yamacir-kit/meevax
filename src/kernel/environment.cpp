@@ -53,7 +53,7 @@ inline namespace kernel
   * ------------------------------------------------------------------------- */
   {
     d = cons(s, e, c, d);
-    c = compile(context::none, *this, expression);
+    c = compile(context::none, *this, expression, local());
     e = unit;
     s = unit;
 
@@ -181,6 +181,16 @@ inline namespace kernel
     {
       throw file_error(make<string>(cat, __FILE__, ":", __LINE__, ":", __func__));
     }
+  }
+
+  auto environment::local() const noexcept -> const_reference
+  {
+    return first;
+  }
+
+  auto environment::local() noexcept -> reference
+  {
+    return first;
   }
 
   auto environment::rename(const_reference variable) -> const_reference

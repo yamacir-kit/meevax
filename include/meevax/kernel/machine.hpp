@@ -70,6 +70,7 @@ inline namespace kernel
         : sk   {       environment::first.template as<continuation>().c().template as<syntactic_continuation>() }
         , spec { build(environment::first.template as<continuation>()) }
       {
+        environment::local() = sk.frames();
         environment::reset();
       }
 

@@ -90,6 +90,10 @@ inline namespace kernel
 
     auto load(const_reference) -> object;
 
+    auto local() const noexcept -> const_reference;
+
+    auto local() noexcept -> reference;
+
     auto rename(const_reference) -> const_reference;
 
     auto rename(const_reference, const_reference) -> object;
