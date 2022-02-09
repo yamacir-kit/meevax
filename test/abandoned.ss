@@ -72,27 +72,6 @@
 (let ((s "abcde")) (check (begin (string-fill! s #\x 1) s) => "axxxx"))
 (let ((s "abcde")) (check (begin (string-fill! s #\x 1 4) s) => "axxxe"))
 
-
-(define swap!
-  (fork/csc
-    (lambda (swap! x y)
-      (let ((z (string->symbol)))
-        `(,let ((,z ,x))
-           (,set! ,x ,y)
-           (,set! ,y ,z))))))
-
-(define swap!
-  (fork/csc
-    (lambda (swap! x y)
-      `(,let ((,value ,x))
-         (,set! ,x ,y)
-         (,set! ,y ,value)))))
-
-(define-syntax (swap! x y)
-  `(,let ((,value ,x))
-     (,set! ,x ,y)
-     (,set! ,y ,value)))
-
 (define loop
   (fork/csc
     (lambda form

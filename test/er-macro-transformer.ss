@@ -1,10 +1,38 @@
-(define-syntax (er-macro-transformer expression)
-  (define (evaluate x)
-    (eval x er-macro-transformer))
-  (define transform (evaluate expression))
+(define swap!
   (fork/csc
-    (lambda form
-      (transform form evaluate free-identifier=?))))
+    (lambda (swap! x y)
+      `(,let ((,value ,x))
+         (,set! ,x ,y)
+         (,set! ,y ,value)))))
+
+(define x 1)
+
+(define y 2)
+
+(check (cons x y) => (1 . 2))
+
+(swap! x y)
+
+(check (cons x y) => (2 . 1))
+
+; ------------------------------------------------------------------------------
+
+(define-syntax (swap! x y)
+  `(,let ((,value ,x))
+     (,set! ,x ,y)
+     (,set! ,y ,value)))
+
+(define x 1)
+
+(define y 2)
+
+(check (cons x y) => (1 . 2))
+
+(swap! x y)
+
+(check (cons x y) => (2 . 1))
+
+; ------------------------------------------------------------------------------
 
 (define swap!
   (er-macro-transformer
@@ -16,11 +44,16 @@
           (,(rename 'set!) ,b ,(rename 'x)))))))
 
 (define x 1)
+
 (define y 2)
 
 (check (cons x y) => (1 . 2))
+
 (swap! x y)
+
 (check (cons x y) => (2 . 1))
+
+; ------------------------------------------------------------------------------
 
 (check-report)
 
