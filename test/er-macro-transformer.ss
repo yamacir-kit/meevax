@@ -1,9 +1,9 @@
 (define swap!
   (fork/csc
-    (lambda (swap! x y)
-      `(,let ((,value ,x))
-         (,set! ,x ,y)
-         (,set! ,y ,value)))))
+    (lambda (swap! a b)
+      `(,let ((,x ,a))
+         (,set! ,a ,b)
+         (,set! ,b ,x)))))
 
 (define x 1)
 
@@ -17,10 +17,10 @@
 
 ; ------------------------------------------------------------------------------
 
-(define-syntax (swap! x y)
-  `(,let ((,value ,x))
-     (,set! ,x ,y)
-     (,set! ,y ,value)))
+(define-syntax (swap! a b)
+  `(,let ((,x ,a))
+     (,set! ,a ,b)
+     (,set! ,b ,x)))
 
 (define x 1)
 

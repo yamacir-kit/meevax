@@ -70,7 +70,6 @@ inline namespace kernel
         : sk   {       environment::first.template as<continuation>().c().template as<syntactic_continuation>() }
         , spec { build(environment::first.template as<continuation>()) }
       {
-        environment::local() = sk.frames();
         environment::reset();
       }
 
@@ -972,25 +971,31 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (car(expression).is<pair>()) // (define-syntax (<keyword> . xs) <body>)
+      if (frames.is<null>() or (current_context & context::outermost))
       {
-        return define(current_context,
-                      current_environment,
-                      list(caar(expression),
-                           list(make<syntax>("fork/csc", fork_csc),
-                                cons(make<syntax>("lambda", lambda), expression)
-                               )
-                        ),
-                      frames,
-                      current_continuation);
+        if (car(expression).is<pair>()) // (define-syntax (<keyword> . <formals>) <body>)
+        {
+          return compile(context::none,
+                         current_environment,
+                         list(make<syntax>("fork/csc", fork_csc),
+                              cons(make<syntax>("lambda", lambda), expression)),
+                         frames,
+                         cons(make<instruction>(mnemonic::define), current_environment.rename(caar(expression)),
+                              current_continuation));
+        }
+        else // (define-syntax x ...)
+        {
+          return compile(context::none,
+                         current_environment,
+                         cdr(expression) ? cadr(expression) : throw syntax_error(make<string>("define-syntax: no <transformer sprc> specified")),
+                         frames,
+                         cons(make<instruction>(mnemonic::define), current_environment.rename(car(expression)),
+                              current_continuation));
+        }
       }
       else
       {
-        return define(current_context,
-                      current_environment,
-                      expression,
-                      frames,
-                      current_continuation);
+        throw syntax_error(make<string>("definition cannot appear in this syntactic-context"));
       }
     }
 
