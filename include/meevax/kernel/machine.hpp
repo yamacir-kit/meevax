@@ -401,6 +401,28 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
+      case mnemonic::define_syntax: /* -----------------------------------------
+        *
+        *  (<transformer> . s) e (%define-syntax (<frames> . <identifier>) . c) d => (<transformer> . s) e c d
+        *
+        *  where <identifier> = (<symbol> . x := <transformer>)
+        *
+        * ------------------------------------------------------------------- */
+        [&]()
+        {
+          let const& frames = caadr(c);
+
+          let const& identifier = cdadr(c);
+
+          assert(car(s).template is<transformer>());
+
+          identifier.as<absolute>().binding() = car(s);
+          identifier.as<absolute>().binding().as<transformer>().local() = frames;
+
+          c = cddr(c);
+        }();
+        goto decode;
+
       case mnemonic::let_syntax: /* --------------------------------------------
         *
         *  s e (%let_syntax <syntactic-continuation> . c) d => s e c' d
@@ -980,7 +1002,7 @@ inline namespace kernel
                          list(make<syntax>("fork/csc", fork_csc),
                               cons(make<syntax>("lambda", lambda), expression)),
                          frames,
-                         cons(make<instruction>(mnemonic::define), current_environment.rename(caar(expression)),
+                         cons(make<instruction>(mnemonic::define_syntax), cons(frames, current_environment.rename(caar(expression))),
                               current_continuation));
         }
         else // (define-syntax x ...)
@@ -989,7 +1011,7 @@ inline namespace kernel
                          current_environment,
                          cdr(expression) ? cadr(expression) : throw syntax_error(make<string>("define-syntax: no <transformer sprc> specified")),
                          frames,
-                         cons(make<instruction>(mnemonic::define), current_environment.rename(car(expression)),
+                         cons(make<instruction>(mnemonic::define_syntax), cons(frames, current_environment.rename(car(expression))),
                               current_continuation));
         }
       }

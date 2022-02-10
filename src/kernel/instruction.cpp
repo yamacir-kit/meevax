@@ -28,6 +28,7 @@ inline namespace kernel
       case mnemonic::call:              return "call";
       case mnemonic::cons:              return "cons";
       case mnemonic::define:            return "define";
+      case mnemonic::define_syntax:     return "define-syntax";
       case mnemonic::drop:              return "drop";
       case mnemonic::dummy:             return "dummy";
       case mnemonic::fork:              return "fork";
@@ -102,6 +103,7 @@ inline namespace kernel
         break;
 
       case mnemonic::define:
+      case mnemonic::define_syntax:
       case mnemonic::fork:
       case mnemonic::let_syntax:
       case mnemonic::letrec_syntax:

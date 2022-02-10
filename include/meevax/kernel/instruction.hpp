@@ -28,6 +28,7 @@ inline namespace kernel
     call,              // a.k.a APP
     cons,              //
     define,            //
+    define_syntax,     //
     drop,              //
     dummy,             // a.k.a DUM
     fork,              //

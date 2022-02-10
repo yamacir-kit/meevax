@@ -1,4 +1,4 @@
-(define swap!
+(define-syntax swap!
   (fork/csc
     (lambda (swap! a b)
       `(,let ((,x ,a))
@@ -34,7 +34,7 @@
 
 ; ------------------------------------------------------------------------------
 
-(define swap!
+(define-syntax swap!
   (er-macro-transformer
     (lambda (form rename compare)
       (let ((a (cadr form))
