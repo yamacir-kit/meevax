@@ -54,8 +54,6 @@ inline namespace kernel
       using environment::c;
       using environment::d;
 
-      syntactic_continuation const sk;
-
       let const spec;
 
       explicit transformer() /* ------------------------------------------------
@@ -67,9 +65,10 @@ inline namespace kernel
       *  them.
       *
       * --------------------------------------------------------------------- */
-        : sk   {       environment::first.template as<continuation>().c().template as<syntactic_continuation>() }
-        , spec { build(environment::first.template as<continuation>()) }
+        : spec { build(environment::first.template as<continuation>()) }
       {
+        assert(spec.template is<closure>());
+
         environment::reset();
       }
 
@@ -86,34 +85,58 @@ inline namespace kernel
         return environment::execute();
       }
 
-      auto macroexpand(const_reference keyword, const_reference form) /* -------
+      template <typename... Ts>
+      auto macroexpand(Ts&&... xs) /* ------------------------------------------
       *
-      *  <Transformer-spec> is implemented as a closure. Since closure::c is
-      *  terminated by the return instruction, it is necessary to put a stop
+      *  Scheme programs can define and use new derived expression types,
+      *  called macros. Program-defined expression types have the syntax
+      *
+      *      (<keyword> <datum>...)
+      *
+      *  where <keyword> is an identifier that uniquely determines the
+      *  expression type. This identifier is called the syntactic keyword, or
+      *  simply keyword, of the macro. The number of the <datum>s, and their
+      *  syntax, depends on the expression type.
+      *
+      *  Each instance of a macro is called a use of the macro. The set of
+      *  rules that specifies how a use of a macro is transcribed into a more
+      *  primitive expression is called the transformer of the macro.
+      *
+      *  NOTE: <Transformer-spec> is implemented as a closure. Since closure::c
+      *  is terminated by the return instruction, it is necessary to put a stop
       *  instruction in the dump register (this stop instruction is preset by
       *  the constructor of the transformer).
       *
-      *  transformer::macroexpand is never called recursively. This is because
-      *  in the normal macro expansion performed by machine::compile, control
-      *  is returned to machine::compile each time the macro is expanded one
-      *  step. As an exception, there are cases where this transformer is given
-      *  to the eval procedure as an <environment-spacifier>, but there is no
-      *  problem because the stack control at that time is performed by
-      *  environment::evaluate.
+      *  NOTE: transformer::macroexpand is never called recursively. This is
+      *  because in the normal macro expansion performed by machine::compile,
+      *  control is returned to machine::compile each time the macro is
+      *  expanded one step. As an exception, there are cases where this
+      *  transformer is given to the eval procedure as an
+      *  <environment-spacifier>, but there is no problem because the stack
+      *  control at that time is performed by environment::evaluate.
       *
       * --------------------------------------------------------------------- */
       {
-        d = cons(s, e, c, d);
-        c =                            spec.template as<closure>().c();
-        e = cons(keyword, cdr(form)) | spec.template as<closure>().e();
-        s = unit;
+        assert(spec.template is<closure>());
+
+        assert(d.template is<null>());
+        assert(c.template is<pair>());
+        assert(e.template is<null>());
+        assert(s.template is<null>());
+
+        assert(car(c).template is<instruction>());
+        assert(car(c).template as<instruction>().value == mnemonic::stop);
+        assert(cdr(c).template is<null>());
+
+        s = list(spec, cons(std::forward<decltype(xs)>(xs)...));
+        c = cons(make<instruction>(mnemonic::call), c);
 
         return environment::execute();
       }
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
       {
-        return os << magenta("#,(") << green("fork/csc ") << datum.sk.expression() << magenta(")");
+        return os << magenta("#,(") << green("fork/csc ") << faint("#;", &datum) << magenta(")");
       }
     };
 
@@ -194,7 +217,7 @@ inline namespace kernel
 
         return compile(context::none,
                        current_environment,
-                       identifier.as<keyword>().binding().as<transformer>().macroexpand(identifier.as<keyword>().binding(), expression),
+                       identifier.as<keyword>().binding().as<transformer>().macroexpand(identifier.as<keyword>().binding(), cdr(expression)),
                        frames,
                        current_continuation);
       }
@@ -210,7 +233,7 @@ inline namespace kernel
       {
         return compile(context::none,
                        current_environment,
-                       applicant.as<transformer>().macroexpand(applicant, expression),
+                       applicant.as<transformer>().macroexpand(applicant, cdr(expression)),
                        frames,
                        current_continuation);
       }
@@ -501,8 +524,8 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         {
           d = cons(cddr(s), e, cdr(c), d);
-          c = car(callee);
-          e = cons(cadr(s), cdr(callee));
+          c =               callee.as<closure>().c();
+          e = cons(cadr(s), callee.as<closure>().e());
           s = unit;
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
@@ -544,8 +567,8 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
-          c = car(callee);
-          e = cons(cadr(s), cdr(callee));
+          c =               callee.as<closure>().c();
+          e = cons(cadr(s), callee.as<closure>().e());
           s = unit;
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
