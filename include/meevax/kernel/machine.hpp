@@ -190,16 +190,11 @@ inline namespace kernel
       }
       else if (let const& identifier = std::as_const(current_environment).rename(car(expression), frames); identifier.is<keyword>())
       {
-        let & binding = identifier.as<keyword>().binding();
-
-        if (not binding.is<transformer>()) // DIRTY HACK
-        {
-          binding = environment(current_environment).execute(binding);
-        }
+        assert(identifier.as<keyword>().binding().is<transformer>());
 
         return compile(context::none,
                        current_environment,
-                       binding.as<transformer>().macroexpand(binding, expression),
+                       identifier.as<keyword>().binding().as<transformer>().macroexpand(identifier.as<keyword>().binding(), expression),
                        frames,
                        current_continuation);
       }
@@ -428,6 +423,36 @@ inline namespace kernel
         *  s e (%let_syntax <syntactic-continuation> . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
+        [&]()
+        {
+          // PRINT(cadr(c).template is<syntactic_continuation>());
+
+          // let const& expression = cadr(c).template as<syntactic_continuation>().expression();
+          // PRINT(expression);
+
+          let const& frames = cadr(c).template as<syntactic_continuation>().frames();
+          // PRINT(frames);
+
+          // PRINT(car(frames));
+          // PRINT(cdr(frames));
+
+          for (let const& keyword_ : car(frames))
+          {
+            // PRINT(keyword_);
+            // PRINT(keyword_.is<keyword>());
+
+            let & binding = keyword_.as<keyword>().binding();
+
+            binding = environment(static_cast<environment const&>(*this)).execute(binding);
+
+            // PRINT(binding.is<transformer>());
+            // PRINT(binding.as<transformer>().spec);
+            // PRINT(binding.as<transformer>().spec.template as<closure>().c());
+            // PRINT(binding.as<transformer>().spec.template as<closure>().e());
+            // PRINT(binding.as<transformer>().local().template is<continuation>());
+          }
+        }();
+
         std::swap(c.as<pair>(),
                   body(context::none,
                        static_cast<environment &>(*this),
