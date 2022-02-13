@@ -144,16 +144,10 @@ inline namespace kernel
 
   auto environment::load(std::string const& s) -> object
   {
-    write(debug_port(), header(__func__), "open ", s, " => ");
-
     if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
     {
-      write(debug_port(), t, "\n");
-
       for (let e = read(port); e != eof_object; e = read(port))
       {
-        write(debug_port(), header(__func__), e, "\n");
-
         evaluate(e);
       }
 
@@ -161,25 +155,7 @@ inline namespace kernel
     }
     else
     {
-      write(debug_port(), f, "\n");
-
       throw file_error(make<string>("failed to open file: " + s));
-    }
-  }
-
-  auto environment::load(const_reference x) -> object
-  {
-    if (x.is<symbol>())
-    {
-      return load(x.as<symbol>());
-    }
-    else if (x.is<string>())
-    {
-      return load(x.as<string>());
-    }
-    else
-    {
-      throw file_error(make<string>(cat, __FILE__, ":", __LINE__, ":", __func__));
     }
   }
 

@@ -88,8 +88,6 @@ inline namespace kernel
 
     auto load(std::string const&) -> object;
 
-    auto load(const_reference) -> object;
-
     auto local() const noexcept -> const_reference;
 
     auto local() noexcept -> reference;

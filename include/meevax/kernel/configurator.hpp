@@ -95,7 +95,7 @@ inline namespace kernel
 
           std::make_pair('l', [this](const_reference x)
           {
-            return load(x);
+            return load(x.as<string>());
           }),
 
           std::make_pair('w', [this](const_reference x)
@@ -153,7 +153,7 @@ inline namespace kernel
 
           std::make_pair("load", [this](const_reference x)
           {
-            return load(x);
+            return load(x.as<string>());
           }),
 
           std::make_pair("prompt", [this](const_reference x)
