@@ -30,13 +30,17 @@ inline namespace kernel
 {
   auto unwrap = [](auto&& x) -> decltype(auto)
   {
-    using decayed_type = typename std::decay<decltype(x)>::type;
+    using type = typename std::decay<decltype(x)>::type;
 
-    if constexpr (std::is_same<decayed_type, iterator>::value)
+    if constexpr (std::is_same<typename std::remove_reference<decltype(x)>::type, iterator>::value)
     {
-      return *x.unwrap();
+      return *static_cast<object &>(x);
     }
-    else if constexpr (std::is_same<decayed_type, object>::value)
+    else if constexpr (std::is_same<typename std::remove_reference<decltype(x)>::type, const iterator>::value)
+    {
+      return *static_cast<object const&>(x);
+    }
+    else if constexpr (std::is_same<type, object>::value)
     {
       return *x;
     }
