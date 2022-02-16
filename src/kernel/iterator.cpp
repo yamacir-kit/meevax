@@ -27,7 +27,7 @@ inline namespace kernel
 
   auto iterator::operator ->() const -> iterator::pointer
   {
-    return *this;
+    return std::addressof(car(*this));
   }
 
   auto iterator::operator ++() -> iterator &

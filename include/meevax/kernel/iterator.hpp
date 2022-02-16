@@ -35,7 +35,7 @@ inline namespace kernel
 
     using const_reference = meevax::const_reference;
 
-    using pointer = meevax::const_reference; // homoiconicity
+    using pointer = typename std::add_pointer<object>::type;
 
     using difference_type = std::ptrdiff_t;
 
