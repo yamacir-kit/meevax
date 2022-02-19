@@ -54,7 +54,7 @@ inline namespace kernel
       using environment::c;
       using environment::d;
 
-      let const spec;
+      let spec;
 
       explicit transformer() /* ------------------------------------------------
       *
@@ -65,24 +65,24 @@ inline namespace kernel
       *  them.
       *
       * --------------------------------------------------------------------- */
-        : spec { build(environment::first.template as<continuation>()) }
+        // : spec { build(environment::first.template as<continuation>()) }
       {
-        assert(spec.template is<closure>());
+        // assert(spec.template is<closure>());
 
         environment::reset();
       }
 
-      auto build(continuation const& k) -> object
+      auto build(environment const& base) -> object
       {
-        s = k.s();
-        e = k.e();
+        s = base.s;
+        e = base.e;
         c = compile(context::outermost,
                     *this,
-                    k.c().template as<syntactic_continuation>().expression(),
-                    k.c().template as<syntactic_continuation>().frames());
-        d = k.d();
+                    cadr(base.c).template as<syntactic_continuation>().expression(),
+                    cadr(base.c).template as<syntactic_continuation>().frames());
+        d = base.d;
 
-        return environment::execute();
+        return spec = environment::execute();
       }
 
       template <typename... Ts>
@@ -373,7 +373,10 @@ inline namespace kernel
         *  s e (%fork c1 . c2) d => (<transformer> . s) e c2 d
         *
         * ------------------------------------------------------------------- */
-        s = cons(make<transformer>(make<continuation>(s, e, cadr(c), d), global()), s);
+        // make<continuation>(s, e, cadr(c), d), global()
+        s = cons(make<transformer>(static_cast<environment const&>(*this)), s);
+        // car(s).template as<transformer>().build(continuation(s, e, cadr(c), d));
+        car(s).template as<transformer>().build(static_cast<environment const&>(*this));
         c = cddr(c);
         goto decode;
 
@@ -428,14 +431,13 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         [&]()
         {
-          let const& frames = caadr(c);
+          // let const& frames = caadr(c);
 
           let const& identifier = cdadr(c);
 
           assert(car(s).template is<transformer>());
 
           identifier.as<absolute>().binding() = car(s);
-          identifier.as<absolute>().binding().as<transformer>().local() = frames;
 
           c = cddr(c);
         }();
@@ -472,7 +474,6 @@ inline namespace kernel
             // PRINT(binding.as<transformer>().spec);
             // PRINT(binding.as<transformer>().spec.template as<closure>().c());
             // PRINT(binding.as<transformer>().spec.template as<closure>().e());
-            // PRINT(binding.as<transformer>().local().template is<continuation>());
           }
         }();
 
