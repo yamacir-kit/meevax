@@ -40,6 +40,7 @@ inline namespace kernel
     {}
 
     IMPORT(environment, global, const);
+    IMPORT(environment, local, );
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -69,10 +70,10 @@ inline namespace kernel
       {
         // assert(spec.template is<closure>());
 
-        environment::reset();
+        // environment::reset();
       }
 
-      auto build(environment const& base) -> object
+      auto build(environment const& base) -> void
       {
         s = base.s;
         e = base.e;
@@ -82,7 +83,9 @@ inline namespace kernel
                     cadr(base.c).template as<syntactic_continuation>().frames());
         d = base.d;
 
-        return spec = environment::execute();
+        spec = environment::execute();
+
+        environment::reset();
       }
 
       template <typename... Ts>
@@ -119,6 +122,10 @@ inline namespace kernel
       {
         assert(spec.template is<closure>());
 
+        PRINT(s);
+        PRINT(e);
+        PRINT(c);
+        PRINT(d);
         assert(d.template is<null>());
         assert(c.template is<pair>());
         assert(e.template is<null>());
@@ -373,9 +380,7 @@ inline namespace kernel
         *  s e (%fork c1 . c2) d => (<transformer> . s) e c2 d
         *
         * ------------------------------------------------------------------- */
-        // make<continuation>(s, e, cadr(c), d), global()
-        s = cons(make<transformer>(static_cast<environment const&>(*this)), s);
-        // car(s).template as<transformer>().build(continuation(s, e, cadr(c), d));
+        s = cons(make<transformer>(local(), global()), s);
         car(s).template as<transformer>().build(static_cast<environment const&>(*this));
         c = cddr(c);
         goto decode;
