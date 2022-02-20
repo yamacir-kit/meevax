@@ -173,9 +173,9 @@ auto main() -> int
   {
     auto module = environment();
 
-    module.define<procedure>("vector", [](auto&&... xs)
+    module.define<procedure>("vector", [](let const& xs, auto&&)
     {
-      return make<vector>(for_each_in, std::forward<decltype(xs)>(xs)...);
+      return make<vector>(for_each_in, xs);
     });
 
     module.evaluate(module.read("(vector 1 2 3)"));

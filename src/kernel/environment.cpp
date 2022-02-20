@@ -101,7 +101,7 @@ inline namespace kernel
 
   auto environment::import() -> void
   {
-    define<procedure>("free-identifier=?", [](let const& xs)
+    define<procedure>("free-identifier=?", [](let const& xs, auto&&)
     {
       if (let const& a = car(xs); a.is<symbol>() or a.is_also<identifier>())
       {
@@ -134,12 +134,12 @@ inline namespace kernel
       return f;
     });
 
-    define<procedure>("set-batch!",       [this](let const& xs) { return batch       = car(xs); });
-    define<procedure>("set-debug!",       [this](let const& xs) { return debug       = car(xs); });
-    define<procedure>("set-interactive!", [this](let const& xs) { return interactive = car(xs); });
-    define<procedure>("set-prompt!",      [this](let const& xs) { return prompt      = car(xs); });
-    define<procedure>("set-trace!",       [this](let const& xs) { return trace       = car(xs); });
-    define<procedure>("set-verbose!",     [this](let const& xs) { return verbose     = car(xs); });
+    define<procedure>("set-batch!",       [this](let const& xs, auto&&) { return batch       = car(xs); });
+    define<procedure>("set-debug!",       [this](let const& xs, auto&&) { return debug       = car(xs); });
+    define<procedure>("set-interactive!", [this](let const& xs, auto&&) { return interactive = car(xs); });
+    define<procedure>("set-prompt!",      [this](let const& xs, auto&&) { return prompt      = car(xs); });
+    define<procedure>("set-trace!",       [this](let const& xs, auto&&) { return trace       = car(xs); });
+    define<procedure>("set-verbose!",     [this](let const& xs, auto&&) { return verbose     = car(xs); });
   }
 
   auto environment::load(std::string const& s) -> object

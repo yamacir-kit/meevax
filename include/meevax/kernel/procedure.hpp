@@ -24,7 +24,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  #define PROCEDURE(...) meevax::object __VA_ARGS__(meevax::const_reference xs)
+  #define PROCEDURE(...) meevax::object __VA_ARGS__(meevax::const_reference xs, environment &)
 
   struct procedure : public description
   {
@@ -48,7 +48,7 @@ inline namespace kernel
   template <typename T>
   struct is
   {
-    auto operator ()(const_reference xs) const -> const_reference
+    auto operator ()(const_reference xs, environment const&) const -> const_reference
     {
       auto is_T = [](const_reference x)
       {

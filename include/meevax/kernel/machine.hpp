@@ -66,12 +66,7 @@ inline namespace kernel
       *  them.
       *
       * --------------------------------------------------------------------- */
-        // : spec { build(environment::first.template as<continuation>()) }
-      {
-        // assert(spec.template is<closure>());
-
-        // environment::reset();
-      }
+      {}
 
       auto build(environment const& base) -> void
       {
@@ -122,10 +117,6 @@ inline namespace kernel
       {
         assert(spec.template is<closure>());
 
-        PRINT(s);
-        PRINT(e);
-        PRINT(c);
-        PRINT(d);
         assert(d.template is<null>());
         assert(c.template is<pair>());
         assert(e.template is<null>());
@@ -136,7 +127,7 @@ inline namespace kernel
         assert(cdr(c).template is<null>());
 
         s = list(spec, cons(std::forward<decltype(xs)>(xs)...));
-        c = cons(make<instruction>(mnemonic::call), c);
+        c = cons(make<instruction>(mnemonic::call), environment::local(), c);
 
         return environment::execute();
       }
@@ -289,7 +280,7 @@ inline namespace kernel
                                current_environment,
                                car(expression),
                                frames,
-                               cons(make<instruction>(current_context & context::tail ? mnemonic::tail_call : mnemonic::call),
+                               cons(make<instruction>(current_context & context::tail ? mnemonic::tail_call : mnemonic::call), frames,
                                     current_continuation)));
       }
     }
@@ -523,27 +514,28 @@ inline namespace kernel
       case mnemonic::call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
-        *  (<closure> xs . s) e (%call . c) d => () (xs . e') c' (s e c . d)
+        *  (<closure> xs . s) e (%call <scope> . c) d => () (xs . e') c' (s e c . d)
         *
         *  where <closure> = (c' . e')
         *
         * ------------------------------------------------------------------- */
         {
-          d = cons(cddr(s), e, cdr(c), d);
+          d = cons(cddr(s), e, cddr(c), d);
           c =               callee.as<closure>().c();
           e = cons(cadr(s), callee.as<closure>().e());
           s = unit;
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
         *
-        *  (<procedure> xs . s) e (%call . c) d => (x . s) e c d
+        *  (<procedure> xs . s) e (%call <scope> . c) d => (x . s) e c d
         *
         *  where x = procedure(xs)
         *
         * ------------------------------------------------------------------- */
         {
-          s = callee.as<procedure>().apply(cadr(s)) | cddr(s);
-          c = cdr(c);
+          s = cons(callee.as<procedure>().apply(cadr(s), static_cast<environment &>(*this)),
+                   cddr(s));
+          c = cddr(c);
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
@@ -567,7 +559,7 @@ inline namespace kernel
       case mnemonic::tail_call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
-        *  (<closure> xs . s) e (%tail-call . c) d => () (xs . e') c' d
+        *  (<closure> xs . s) e (%tail-call <scope> . c) d => () (xs . e') c' d
         *
         *  where <closure> = (c' . e')
         *
@@ -579,18 +571,19 @@ inline namespace kernel
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
         *
-        *  (<procedure> xs . s) e (%call . c) d => (x . s) e c d
+        *  (<procedure> xs . s) e (%call <scope> . c) d => (x . s) e c d
         *
         *  where x = procedure(xs)
         *
         * ------------------------------------------------------------------- */
         {
-          s = callee.as<procedure>().apply(cadr(s)) | cddr(s);
-          c = cdr(c);
+          s = cons(callee.as<procedure>().apply(cadr(s), static_cast<environment &>(*this)),
+                   cddr(s));
+          c = cddr(c);
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
-        *  (<continuation> xs . s)  e (%call . c) d => (xs . s') e' c' d'
+        *  (<continuation> xs . s)  e (%call <scope> . c) d => (xs . s') e' c' d'
         *
         *  where <continuation> = (s' e' c' . 'd)
         *
@@ -855,7 +848,8 @@ inline namespace kernel
                           current_environment,
                           car(expression),
                           frames,
-                          cons(make<instruction>(mnemonic::call), current_continuation)));
+                          cons(make<instruction>(mnemonic::call), frames,
+                               current_continuation)));
     }
 
     static SYNTAX(if_) /* ------------------------------------------------------
