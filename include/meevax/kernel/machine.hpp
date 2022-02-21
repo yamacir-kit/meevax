@@ -407,6 +407,7 @@ inline namespace kernel
         d = cdr(d);
         goto decode;
 
+      case mnemonic::define_syntax:
       case mnemonic::define: /* ------------------------------------------------
         *
         *  (x' . s) e (%define <identifier> . c) d => (x' . s) e c d
@@ -414,29 +415,8 @@ inline namespace kernel
         *  where <identifier> = (<symbol> . x := x')
         *
         * ------------------------------------------------------------------- */
-        cdadr(c) = car(s);
+        cadr(c).as<absolute>().binding() = car(s);
         c = cddr(c);
-        goto decode;
-
-      case mnemonic::define_syntax: /* -----------------------------------------
-        *
-        *  (<transformer> . s) e (%define-syntax (<frames> . <identifier>) . c) d => (<transformer> . s) e c d
-        *
-        *  where <identifier> = (<symbol> . x := <transformer>)
-        *
-        * ------------------------------------------------------------------- */
-        [&]()
-        {
-          // let const& frames = caadr(c);
-
-          let const& identifier = cdadr(c);
-
-          assert(car(s).template is<transformer>());
-
-          identifier.as<absolute>().binding() = car(s);
-
-          c = cddr(c);
-        }();
         goto decode;
 
       case mnemonic::let_syntax: /* --------------------------------------------
@@ -1039,31 +1019,52 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (frames.is<null>() or (current_context & context::outermost))
+      // if (frames.is<null>() or (current_context & context::outermost))
+      // {
+      //   if (car(expression).is<pair>()) // (define-syntax (<keyword> . <formals>) <body>)
+      //   {
+      //     return compile(context::none,
+      //                    current_environment,
+      //                    list(make<syntax>("fork/csc", fork_csc),
+      //                         cons(make<syntax>("lambda", lambda), expression)),
+      //                    frames,
+      //                    cons(make<instruction>(mnemonic::define_syntax), cons(frames, current_environment.rename(caar(expression))),
+      //                         current_continuation));
+      //   }
+      //   else // (define-syntax x ...)
+      //   {
+      //     return compile(context::none,
+      //                    current_environment,
+      //                    cdr(expression) ? cadr(expression) : throw syntax_error(make<string>("define-syntax: no <transformer sprc> specified")),
+      //                    frames,
+      //                    cons(make<instruction>(mnemonic::define_syntax), cons(frames, current_environment.rename(car(expression))),
+      //                         current_continuation));
+      //   }
+      // }
+      // else
+      // {
+      //   throw syntax_error(make<string>("definition cannot appear in this syntactic-context"));
+      // }
+
+      if (car(expression).is<pair>()) // (define-syntax (<keyword> . xs) <body>)
       {
-        if (car(expression).is<pair>()) // (define-syntax (<keyword> . <formals>) <body>)
-        {
-          return compile(context::none,
-                         current_environment,
-                         list(make<syntax>("fork/csc", fork_csc),
-                              cons(make<syntax>("lambda", lambda), expression)),
-                         frames,
-                         cons(make<instruction>(mnemonic::define_syntax), cons(frames, current_environment.rename(caar(expression))),
-                              current_continuation));
-        }
-        else // (define-syntax x ...)
-        {
-          return compile(context::none,
-                         current_environment,
-                         cdr(expression) ? cadr(expression) : throw syntax_error(make<string>("define-syntax: no <transformer sprc> specified")),
-                         frames,
-                         cons(make<instruction>(mnemonic::define_syntax), cons(frames, current_environment.rename(car(expression))),
-                              current_continuation));
-        }
+        return define(current_context,
+                      current_environment,
+                      list(caar(expression),
+                           list(make<syntax>("fork/csc", fork_csc),
+                                cons(make<syntax>("lambda", lambda), expression)
+                               )
+                        ),
+                      frames,
+                      current_continuation);
       }
       else
       {
-        throw syntax_error(make<string>("definition cannot appear in this syntactic-context"));
+        return define(current_context,
+                      current_environment,
+                      expression,
+                      frames,
+                      current_continuation);
       }
     }
 
