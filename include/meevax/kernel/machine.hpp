@@ -191,17 +191,10 @@ inline namespace kernel
       {
         if (expression.is<symbol>() or expression.is_also<identifier>())
         {
-          if (let const& identifier = current_environment.rename(expression, frames); identifier.is<absolute>())
-          {
-            return cons(make<instruction>(mnemonic::load_absolute), identifier,
-                        current_continuation);
-          }
-          else
-          {
-            return cons(identifier.is<relative>() ? make<instruction>(mnemonic::load_relative)
-                                                  : make<instruction>(mnemonic::load_variadic), cdr(identifier),
-                        current_continuation);
-          }
+          let const& renamed = current_environment.rename(expression, frames);
+
+          return cons(make<instruction>(renamed.as<identifier>().corresponding_mnemonic()), renamed,
+                      current_continuation);
         }
         else // is <self-evaluating>
         {
@@ -301,26 +294,31 @@ inline namespace kernel
       {
       case mnemonic::load_relative: /* -----------------------------------------
         *
-        *  s  e (%load-relative (i . j) . c) d => (x . s) e c d
+        *  s  e (%load-relative <relative-identifier> . c) d => (x . s) e c d
         *
-        *  where x = (list-ref (list-ref E i) j)
+        *  where <relative identifier> = (<symbol> . (i . j))
         *
-        *    i = (caadr c)
-        *    j = (cdadr c)
+        *        x = (list-ref (list-ref E i) j)
         *
         * ------------------------------------------------------------------- */
-        s = cons(list_ref(list_ref(e, caadr(c)), cdadr(c)), s);
+        s = cons(list_ref(list_ref(e, cadr(cadr(c).template as<relative>())),
+                          cddr(cadr(c).template as<relative>())),
+                 s);
         c = cddr(c);
         goto decode;
 
       case mnemonic::load_variadic: /* -----------------------------------------
         *
-        *  s  e (%load-variadic (i . j) . c) d => (x . s) e c d
+        *  s  e (%load-variadic <variadic-identifier> . c) d => (x . s) e c d
         *
-        *  where x = (list-tail (list-ref E i) j)
+        *  where <variadic identifier> = (<symbol> . (i . j))
+        *
+        *        x = (list-tail (list-ref E i) j)
         *
         * ------------------------------------------------------------------- */
-        s = cons(list_tail(list_ref(e, caadr(c)), cdadr(c)), s);
+        s = cons(list_tail(list_ref(e, cadr(cadr(c).template as<variadic>())),
+                           cddr(cadr(c).template as<variadic>())),
+                 s);
         c = cddr(c);
         goto decode;
 
@@ -415,7 +413,7 @@ inline namespace kernel
         *  where <identifier> = (<symbol> . x := x')
         *
         * ------------------------------------------------------------------- */
-        cadr(c).as<absolute>().binding() = car(s);
+        cadr(c).template as<absolute>().binding() = car(s);
         c = cddr(c);
         goto decode;
 
@@ -1250,6 +1248,23 @@ inline namespace kernel
     *  set-car! or string-set!.
     *
     * ----------------------------------------------------------------------- */
+    {
+      return cons(make<instruction>(mnemonic::load_constant), car(expression),
+                  current_continuation);
+
+      // if (car(expression).is_also<identifier>())
+      // {
+      //   return cons(make<instruction>(car(expression).as<identifier>().corresponding_mnemonic()), car(expression),
+      //               current_continuation);
+      // }
+      // else
+      // {
+      //   return cons(make<instruction>(mnemonic::load_constant), car(expression),
+      //               current_continuation);
+      // }
+    }
+
+    static SYNTAX(quote_syntax)
     {
       return cons(make<instruction>(mnemonic::load_constant), car(expression),
                   current_continuation);

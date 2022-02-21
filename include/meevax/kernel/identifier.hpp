@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 #define INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 
+#include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
@@ -26,6 +27,8 @@ inline namespace kernel
   struct identifier : public virtual pair
   {
     using pair::pair;
+
+    virtual auto corresponding_mnemonic() const -> mnemonic = 0;
 
     virtual auto is_bound() const -> bool = 0;
 
@@ -39,6 +42,8 @@ inline namespace kernel
   struct absolute : public identifier
   {
     using identifier::identifier;
+
+    auto corresponding_mnemonic() const -> mnemonic override;
 
     auto binding() -> reference;
 
@@ -58,6 +63,8 @@ inline namespace kernel
   {
     using identifier::identifier;
 
+    auto corresponding_mnemonic() const -> mnemonic override;
+
     auto is_bound() const -> bool override;
 
     auto is_free() const -> bool override;
@@ -66,6 +73,8 @@ inline namespace kernel
   struct variadic : public relative // de_bruijn_index
   {
     using relative::relative;
+
+    auto corresponding_mnemonic() const -> mnemonic override;
   };
 
   auto notate(const_reference, const_reference) -> object;

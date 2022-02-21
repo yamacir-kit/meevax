@@ -33,6 +33,11 @@ inline namespace kernel
     return os << underline(datum.symbol());
   }
 
+  auto absolute::corresponding_mnemonic() const -> mnemonic
+  {
+    return mnemonic::load_absolute;
+  }
+
   auto absolute::binding() -> reference
   {
     return second;
@@ -54,6 +59,11 @@ inline namespace kernel
     return binding().is<absolute>() and binding().as<absolute>() == *this;
   }
 
+  auto relative::corresponding_mnemonic() const -> mnemonic
+  {
+    return mnemonic::load_relative;
+  }
+
   auto relative::is_bound() const -> bool
   {
     return not is_free();
@@ -62,6 +72,11 @@ inline namespace kernel
   auto relative::is_free() const -> bool
   {
     return false;
+  }
+
+  auto variadic::corresponding_mnemonic() const -> mnemonic
+  {
+    return mnemonic::load_variadic;
   }
 
   auto notate(const_reference variable, const_reference frames) -> object

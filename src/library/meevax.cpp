@@ -34,6 +34,7 @@ namespace meevax
     define<syntax>("letrec", letrec);
     define<syntax>("letrec-syntax", letrec_syntax);
     define<syntax>("quote", quote);
+    define<syntax>("quote-syntax", quote_syntax);
     define<syntax>("set!", set);
 
     /* -------------------------------------------------------------------------
