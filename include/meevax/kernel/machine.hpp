@@ -301,9 +301,7 @@ inline namespace kernel
         *        x = (list-ref (list-ref E i) j)
         *
         * ------------------------------------------------------------------- */
-        s = cons(list_ref(list_ref(e, cadr(cadr(c).template as<relative>())),
-                          cddr(cadr(c).template as<relative>())),
-                 s);
+        s = cons(cadr(c).template as<relative>().strip(e), s);
         c = cddr(c);
         goto decode;
 
@@ -316,9 +314,7 @@ inline namespace kernel
         *        x = (list-tail (list-ref E i) j)
         *
         * ------------------------------------------------------------------- */
-        s = cons(list_tail(list_ref(e, cadr(cadr(c).template as<variadic>())),
-                           cddr(cadr(c).template as<variadic>())),
-                 s);
+        s = cons(cadr(c).template as<variadic>().strip(e), s);
         c = cddr(c);
         goto decode;
 

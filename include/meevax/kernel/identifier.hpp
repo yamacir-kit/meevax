@@ -68,6 +68,8 @@ inline namespace kernel
     auto is_bound() const -> bool override;
 
     auto is_free() const -> bool override;
+
+    virtual auto strip(const_reference) const -> object;
   };
 
   struct variadic : public relative // de_bruijn_index
@@ -75,6 +77,8 @@ inline namespace kernel
     using relative::relative;
 
     auto corresponding_mnemonic() const -> mnemonic override;
+
+    auto strip(const_reference) const -> object override;
   };
 
   auto notate(const_reference, const_reference) -> object;

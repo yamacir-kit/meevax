@@ -74,9 +74,19 @@ inline namespace kernel
     return false;
   }
 
+  auto relative::strip(const_reference e) const -> object
+  {
+    return list_ref(list_ref(e, car(second)), cdr(second));
+  }
+
   auto variadic::corresponding_mnemonic() const -> mnemonic
   {
     return mnemonic::load_variadic;
+  }
+
+  auto variadic::strip(const_reference e) const -> object
+  {
+    return list_tail(list_ref(e, car(second)), cdr(second));
   }
 
   auto notate(const_reference variable, const_reference frames) -> object
