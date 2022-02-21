@@ -1249,19 +1249,16 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return cons(make<instruction>(mnemonic::load_constant), car(expression),
-                  current_continuation);
-
-      // if (car(expression).is_also<identifier>())
-      // {
-      //   return cons(make<instruction>(car(expression).as<identifier>().corresponding_mnemonic()), car(expression),
-      //               current_continuation);
-      // }
-      // else
-      // {
-      //   return cons(make<instruction>(mnemonic::load_constant), car(expression),
-      //               current_continuation);
-      // }
+      if (car(expression).is_also<identifier>())
+      {
+        return cons(make<instruction>(car(expression).as<identifier>().corresponding_mnemonic()), car(expression),
+                    current_continuation);
+      }
+      else
+      {
+        return cons(make<instruction>(mnemonic::load_constant), car(expression),
+                    current_continuation);
+      }
     }
 
     static SYNTAX(quote_syntax)
