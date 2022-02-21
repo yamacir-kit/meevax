@@ -193,11 +193,6 @@
           #f)
       (any-2+ f (cons x xs))))
 
-(define-syntax (letrec* bindings . body)
-  ((lambda (definitions)
-     `((,lambda () ,@definitions ,@body)) )
-   (map (lambda (x) (cons define x)) bindings)))
-
 (define-syntax (let bindings . body)
   (if (identifier? bindings)
       `(,letrec ((,bindings (,lambda ,(map car (car body)) ,@(cdr body))))
@@ -209,6 +204,9 @@
           (null? (cdr bindings)))
       `(,let (,(car bindings)) ,@body)
       `(,let (,(car bindings)) (,let* ,(cdr bindings) ,@body))))
+
+(define-syntax (letrec* bindings . body)
+  `(,let () ,@(map (lambda (x) (cons define x)) bindings) ,@body))
 
 (define (member o x . c) ; for case
   (let ((compare (if (pair? c) (car c) equal?)))
