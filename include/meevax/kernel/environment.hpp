@@ -92,11 +92,7 @@ inline namespace kernel
 
     auto local() noexcept -> reference;
 
-    auto rename(const_reference) -> const_reference;
-
     auto rename(const_reference, const_reference) -> object;
-
-    auto rename(const_reference) const -> const_reference;
 
     auto rename(const_reference, const_reference) const -> object;
   };

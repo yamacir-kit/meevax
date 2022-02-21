@@ -940,7 +940,7 @@ inline namespace kernel
                          current_environment,
                          cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
                          frames,
-                         cons(make<instruction>(mnemonic::define), current_environment.rename(caar(expression)),
+                         cons(make<instruction>(mnemonic::define), current_environment.rename(caar(expression), frames),
                               current_continuation));
         }
         else // (define x ...)
@@ -949,7 +949,7 @@ inline namespace kernel
                          current_environment,
                          cdr(expression) ? cadr(expression) : unspecified_object,
                          frames,
-                         cons(make<instruction>(mnemonic::define), current_environment.rename(car(expression)),
+                         cons(make<instruction>(mnemonic::define), current_environment.rename(car(expression), frames),
                               current_continuation));
         }
       }

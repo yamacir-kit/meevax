@@ -22,7 +22,7 @@ inline namespace kernel
 {
   auto environment::operator [](const_reference name) -> const_reference
   {
-    return rename(name).as<absolute>().binding();
+    return rename(name, local()).as<absolute>().binding();
   }
 
   auto environment::operator [](std::string const& name) -> const_reference
@@ -169,9 +169,13 @@ inline namespace kernel
     return first;
   }
 
-  auto environment::rename(const_reference variable) -> const_reference
+  auto environment::rename(const_reference variable, const_reference frames) -> object
   {
-    if (let const& binding = assq(variable, global()); select(binding))
+    if (let const& identifier = notate(variable, frames); select(identifier))
+    {
+      return identifier;
+    }
+    else if (let const& binding = assq(variable, global()); select(binding))
     {
       return binding;
     }
@@ -204,23 +208,6 @@ inline namespace kernel
     }
   }
 
-  auto environment::rename(const_reference variable, const_reference frames) -> object
-  {
-    if (let const& identifier = notate(variable, frames); select(identifier))
-    {
-      return identifier;
-    }
-    else
-    {
-      return rename(variable);
-    }
-  }
-
-  auto environment::rename(const_reference variable) const -> const_reference
-  {
-    return assq(variable, global());
-  }
-
   auto environment::rename(const_reference variable, const_reference frames) const -> object
   {
     if (let const& identifier = notate(variable, frames); select(identifier))
@@ -229,7 +216,7 @@ inline namespace kernel
     }
     else
     {
-      return rename(variable); // NOTE: In the const version, rename does not extend the global-environment.
+      return assq(variable, global());
     }
   }
 

@@ -44,12 +44,12 @@ inline namespace kernel
     }
   };
 
-  auto car = [](auto&& x) noexcept -> decltype(auto)
+  auto car = [](auto&& x) -> decltype(auto)
   {
     return std::get<0>(unwrap(std::forward<decltype(x)>(x)));
   };
 
-  auto cdr = [](auto&& x) noexcept -> decltype(auto)
+  auto cdr = [](auto&& x) -> decltype(auto)
   {
     return std::get<1>(unwrap(std::forward<decltype(x)>(x)));
   };
