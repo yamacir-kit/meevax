@@ -101,39 +101,6 @@ inline namespace kernel
 
   auto environment::import() -> void
   {
-    define<procedure>("free-identifier=?", [](let const& xs, auto&&)
-    {
-      if (let const& a = car(xs); a.is<symbol>() or a.is_also<identifier>())
-      {
-        if (let const& b = cadr(xs); b.is<symbol>() or b.is_also<identifier>())
-        {
-          if (let const& id1 = a.is_also<identifier>() ? a.as<identifier>().symbol() : a)
-          {
-            if (let const& id2 = b.is_also<identifier>() ? b.as<identifier>().symbol() : b)
-            {
-              return id1 == id2 ? t : f;
-            }
-          }
-        }
-      }
-
-      // if (let const& a = car(xs); a.is<symbol>() or a.is_also<identifier>())
-      // {
-      //   if (let const& b = cadr(xs); b.is<symbol>() or b.is_also<identifier>())
-      //   {
-      //     if (auto const& id1 = a.is_also<identifier>() ? a.as<identifier>() : locate(a).as<identifier>(); id1.is_free())
-      //     {
-      //       if (auto const& id2 = b.is_also<identifier>() ? b.as<identifier>() : locate(b).as<identifier>(); id2.is_free())
-      //       {
-      //         return id1 == id2 ? t : f;
-      //       }
-      //     }
-      //   }
-      // }
-
-      return f;
-    });
-
     define<procedure>("set-batch!",       [this](let const& xs, auto&&) { return batch       = car(xs); });
     define<procedure>("set-debug!",       [this](let const& xs, auto&&) { return debug       = car(xs); });
     define<procedure>("set-interactive!", [this](let const& xs, auto&&) { return interactive = car(xs); });

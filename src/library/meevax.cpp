@@ -1916,8 +1916,7 @@ namespace meevax
 
     define<procedure>("identifier?", [](let const& xs, auto&&)
     {
-      let const& x = car(xs);
-      return x.is_also<identifier>() or x.is<symbol>() ? t : f;
+      return is_renamable(car(xs)) ? t : f;
     });
 
     /* -------------------------------------------------------------------------
@@ -1941,6 +1940,27 @@ namespace meevax
      * ---------------------------------------------------------------------- */
 
     // TODO
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (free-identifier=? id1 id2)                                   procedure
+     *
+     *  Returns #t if the original occurrences of id 1 and id 2 have the same
+     *  binding, otherwise returns #f. free-identifier=? is used to look for a
+     *  literal identifier in the argument to a transformer, such as else in a
+     *  cond clause. A macro definition for syntax-rules would use
+     *  free-identifier=? to look for literals in the input.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("free-identifier=?", [](let const& xs, environment & current)
+    {
+      let const& a =  car(xs).is<symbol>() ? current.rename( car(xs), current.local()) :  car(xs);
+      let const& b = cadr(xs).is<symbol>() ? current.rename(cadr(xs), current.local()) : cadr(xs);
+
+      return a.is<absolute>() and a.as<absolute>().is_free() and
+             b.is<absolute>() and b.as<absolute>().is_free() and a == b ? t : f;
+    });
 
     /* -------------------------------------------------------------------------
      *
