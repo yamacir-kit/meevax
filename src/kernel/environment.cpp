@@ -167,33 +167,24 @@ inline namespace kernel
     {
       return binding;
     }
-    else
+    else /* --------------------------------------------------------------------
+    *
+    *  At the outermost level of a program, a definition
+    *
+    *      (define <variable> <expression>)
+    *
+    *  has essentially the same effect as the assignment expression
+    *
+    *      (set! <variable> <expression>)
+    *
+    *  if <variable> is bound to a non-syntax value. However, if <variable> is
+    *  not bound, or is a syntactic keyword, then the definition will bind
+    *  <variable> to a new location before performing the assignment, whereas
+    *  it would be an error to perform a set! on an unbound variable.
+    *
+    * ----------------------------------------------------------------------- */
     {
-      /* -----------------------------------------------------------------------
-       *
-       *  At the outermost level of a program, a definition
-       *
-       *      (define <variable> <expression>)
-       *
-       *  has essentially the same effect as the assignment expression
-       *
-       *      (set! <variable> <expression>)
-       *
-       *  if <variable> is bound to a non-syntax value. However, if <variable>
-       *  is not bound, or is a syntactic keyword, then the definition will
-       *  bind <variable> to a new location before performing the assignment,
-       *  whereas it would be an error to perform a set! on an unbound variable.
-       *
-       * -------------------------------------------------------------------- */
-      assert(is_renamable(variable));
-
-      let const id = make<absolute>(variable);
-
-      id.as<absolute>().binding() = id; // NOTE: Identifier is self-evaluate if is unbound.
-
-      global() = cons(id, global());
-
-      return car(global());
+      return car(global() = cons(generate_free_identifier(variable), global()));
     }
   }
 

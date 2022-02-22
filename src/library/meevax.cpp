@@ -1960,6 +1960,26 @@ namespace meevax
 
     /* -------------------------------------------------------------------------
      *
+     *  (bound-identifier=? id1 id2)                                  procedure
+     *
+     *  Returns #t if a binding for one of the two identifiers id 1 and id 2
+     *  would shadow free references to the other, otherwise returns #f. Two
+     *  identifiers can be free-identifier=? without being bound-identifier=?
+     *  if they were introduced at different stages in the expansion process.
+     *  Bound-identifier=? can be used, for example, to detect duplicate
+     *  identifiers in bound-variable lists. A macro definition of syntax-rules
+     *  would use bound-identifier=? to look for pattern variables from the
+     *  input pattern in the output template.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("bound-identifier=?", [](let const& xs, environment & currently)
+    {
+      return currently.is_same_bound_identifier(car(xs), cadr(xs)) ? t : f;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
      *  (identifier->symbol id)                                       procedure
      *
      *  Returns a symbol representing the original name of id.

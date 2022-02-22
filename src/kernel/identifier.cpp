@@ -55,8 +55,8 @@ inline namespace kernel
 
   auto absolute::is_free() const -> bool
   {
-    // NOTE: See environment::locate
-    return binding().is<absolute>() and binding().as<absolute>() == *this;
+    // NOTE: See environment::generate_free_identifier
+    return binding().is<absolute>() and std::addressof(binding().as<absolute>()) == this;
   }
 
   auto relative::corresponding_mnemonic() const -> mnemonic
@@ -95,7 +95,11 @@ inline namespace kernel
     {
       for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
       {
-        if (inner.is<pair>() and eq(*inner, variable))
+        if (inner.is<pair>() and (*inner).is<keyword>() and eq((*inner).as<keyword>().symbol(), variable))
+        {
+          return *inner;
+        }
+        else if (inner.is<pair>() and eq(*inner, variable))
         {
           return make<relative>(variable,
                                 cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
@@ -106,10 +110,6 @@ inline namespace kernel
           return make<variadic>(variable,
                                 cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
                                      make<exact_integer>(std::distance(std::begin(*outer), inner))));
-        }
-        else if (inner.is<pair>() and (*inner).is<keyword>() and eq((*inner).as<keyword>().symbol(), variable))
-        {
-          return *inner;
         }
       }
     }
