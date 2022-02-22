@@ -169,13 +169,21 @@ inline namespace kernel
     return first;
   }
 
-  auto environment::rename(const_reference variable, const_reference frames) -> object
+  auto environment::rename(const_reference variable, const_reference frames) const -> object
   {
     if (let const& identifier = notate(variable, frames); select(identifier))
     {
       return identifier;
     }
-    else if (let const& binding = assq(variable, global()); select(binding))
+    else
+    {
+      return assq(variable, global());
+    }
+  }
+
+  auto environment::rename(const_reference variable, const_reference frames) -> object
+  {
+    if (let const& binding = std::as_const(*this).rename(variable, frames); select(binding))
     {
       return binding;
     }
@@ -205,18 +213,6 @@ inline namespace kernel
       global() = cons(id, global());
 
       return car(global());
-    }
-  }
-
-  auto environment::rename(const_reference variable, const_reference frames) const -> object
-  {
-    if (let const& identifier = notate(variable, frames); select(identifier))
-    {
-      return identifier;
-    }
-    else
-    {
-      return assq(variable, global());
     }
   }
 
