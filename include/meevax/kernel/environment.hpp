@@ -77,6 +77,15 @@ inline namespace kernel
 
     auto execute(const_reference) -> object;
 
+    auto is_same_free_identifier(const_reference x, const_reference y)
+    {
+      let const& renamed_x = x.is<symbol>() ? rename(x, local()) : x;
+      let const& renamed_y = y.is<symbol>() ? rename(y, local()) : y;
+
+      return renamed_x.is<absolute>() and renamed_x.as<absolute>().is_free() and
+             renamed_y.is<absolute>() and renamed_y.as<absolute>().is_free() and eq(renamed_x, renamed_y);
+    }
+
     auto global() noexcept -> reference;
 
     auto global() const noexcept -> const_reference;

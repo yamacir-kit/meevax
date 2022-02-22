@@ -1953,13 +1953,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("free-identifier=?", [](let const& xs, environment & current)
+    define<procedure>("free-identifier=?", [](let const& xs, environment & currently)
     {
-      let const& a =  car(xs).is<symbol>() ? current.rename( car(xs), current.local()) :  car(xs);
-      let const& b = cadr(xs).is<symbol>() ? current.rename(cadr(xs), current.local()) : cadr(xs);
-
-      return a.is<absolute>() and a.as<absolute>().is_free() and
-             b.is<absolute>() and b.as<absolute>().is_free() and a == b ? t : f;
+      return currently.is_same_free_identifier(car(xs), cadr(xs)) ? t : f;
     });
 
     /* -------------------------------------------------------------------------
@@ -2022,16 +2018,6 @@ namespace meevax
       return standard_output;
     });
 
-    define<procedure>("gc-collect", [](auto&&...)
-    {
-      return make<exact_integer>(gc.collect());
-    });
-
-    define<procedure>("gc-count", [](auto&&...)
-    {
-      return make<exact_integer>(gc.count());
-    });
-
     define<procedure>("ieee-float?", [](auto&&...)
     {
       return std::numeric_limits<double>::is_iec559 ? t : f;
@@ -2076,6 +2062,20 @@ namespace meevax
   }
 
   template <>
+  auto environment::import(decltype("(meevax garbage-collector)"_s)) -> void
+  {
+    define<procedure>("gc-collect", [](auto&&...)
+    {
+      return make<exact_integer>(gc.collect());
+    });
+
+    define<procedure>("gc-count", [](auto&&...)
+    {
+      return make<exact_integer>(gc.count());
+    });
+  }
+
+  template <>
   auto environment::import(decltype("(meevax srfis)"_s)) -> void
   {
     std::vector<string_view> const codes {
@@ -2115,7 +2115,9 @@ namespace meevax
     import("(meevax process-context)"_s);
     import("(meevax read)"_s);
     import("(meevax write)"_s);
+
     import("(meevax experimental)"_s);
+    import("(meevax garbage-collector)"_s);
     import("(meevax srfis)"_s);
   }
 } // namespace meevax
