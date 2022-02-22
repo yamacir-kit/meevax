@@ -86,6 +86,8 @@ inline namespace kernel
 
     auto import() -> void;
 
+    static auto is_renamable(const_reference) -> bool;
+
     auto load(std::string const&) -> object;
 
     auto local() const noexcept -> const_reference;

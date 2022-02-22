@@ -142,6 +142,11 @@ inline namespace kernel
     define<procedure>("set-verbose!",     [this](let const& xs, auto&&) { return verbose     = car(xs); });
   }
 
+  auto environment::is_renamable(const_reference x) -> bool
+  {
+    return x.is<symbol>() or x.is_also<absolute>();
+  }
+
   auto environment::load(std::string const& s) -> object
   {
     if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
@@ -171,7 +176,11 @@ inline namespace kernel
 
   auto environment::rename(const_reference variable, const_reference frames) const -> object
   {
-    if (let const& identifier = notate(variable, frames); select(identifier))
+    if (not is_renamable(variable))
+    {
+      return f;
+    }
+    else if (let const& identifier = notate(variable, frames); select(identifier))
     {
       return identifier;
     }
@@ -183,6 +192,10 @@ inline namespace kernel
 
   auto environment::rename(const_reference variable, const_reference frames) -> object
   {
+    if (not is_renamable(variable))
+    {
+      return f;
+    }
     if (let const& binding = std::as_const(*this).rename(variable, frames); select(binding))
     {
       return binding;
@@ -205,10 +218,11 @@ inline namespace kernel
        *  whereas it would be an error to perform a set! on an unbound variable.
        *
        * -------------------------------------------------------------------- */
+      assert(is_renamable(variable));
 
       let const id = make<absolute>(variable);
 
-      cdr(id) = id; // NOTE: Identifier is self-evaluate if is unbound.
+      id.as<absolute>().binding() = id; // NOTE: Identifier is self-evaluate if is unbound.
 
       global() = cons(id, global());
 
