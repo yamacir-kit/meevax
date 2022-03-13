@@ -41,7 +41,7 @@ inline namespace kernel
   {
     using identifier::identifier;
 
-    auto corresponding_mnemonic() const -> mnemonic override;
+    auto mnemonic() const -> meevax::mnemonic override;
 
     auto binding() -> reference;
 

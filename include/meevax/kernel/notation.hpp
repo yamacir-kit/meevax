@@ -29,14 +29,14 @@ inline namespace kernel
   {
     using pair::pair;
 
-    virtual auto corresponding_mnemonic() const -> mnemonic = 0;
+    virtual auto mnemonic() const -> mnemonic = 0;
   };
 
   struct relative : public notation // de_bruijn_index
   {
     using notation::notation;
 
-    auto corresponding_mnemonic() const -> mnemonic override
+    auto mnemonic() const -> meevax::mnemonic override
     {
       return mnemonic::load_relative;
     }
@@ -61,7 +61,7 @@ inline namespace kernel
   {
     using relative::relative;
 
-    auto corresponding_mnemonic() const -> mnemonic override
+    auto mnemonic() const -> meevax::mnemonic override
     {
       return mnemonic::load_variadic;
     }
