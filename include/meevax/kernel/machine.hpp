@@ -193,7 +193,7 @@ inline namespace kernel
         {
           let const& renamed = current_environment.rename(expression, frames);
 
-          return cons(make<instruction>(renamed.as<identifier>().corresponding_mnemonic()), renamed,
+          return cons(make<instruction>(renamed.as<notation>().corresponding_mnemonic()), renamed,
                       current_continuation);
         }
         else // is <self-evaluating>
@@ -1245,16 +1245,16 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (car(expression).is_also<identifier>())
-      {
-        return cons(make<instruction>(car(expression).as<identifier>().corresponding_mnemonic()), car(expression),
-                    current_continuation);
-      }
-      else
-      {
+      // if (car(expression).is_also<identifier>())
+      // {
+      //   return cons(make<instruction>(car(expression).as<identifier>().corresponding_mnemonic()), car(expression),
+      //               current_continuation);
+      // }
+      // else
+      // {
         return cons(make<instruction>(mnemonic::load_constant), car(expression),
                     current_continuation);
-      }
+      // }
     }
 
     static SYNTAX(quote_syntax)

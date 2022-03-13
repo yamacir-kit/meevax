@@ -28,8 +28,6 @@ inline namespace kernel
   {
     using pair::pair;
 
-    virtual auto corresponding_mnemonic() const -> mnemonic = 0;
-
     virtual auto is_bound() const -> bool = 0;
 
     virtual auto is_free() const -> bool = 0;
@@ -39,7 +37,25 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, identifier const&) -> std::ostream &;
 
+  struct notation : public virtual pair
+  {
+    using pair::pair;
+
+    virtual auto corresponding_mnemonic() const -> mnemonic = 0;
+
+    auto i() const -> const_reference
+    {
+      return first;
+    }
+
+    auto j() const -> const_reference
+    {
+      return second;
+    }
+  };
+
   struct absolute : public identifier
+                  , public notation
   {
     using identifier::identifier;
 
@@ -59,15 +75,11 @@ inline namespace kernel
     using absolute::absolute;
   };
 
-  struct relative : public identifier // de_bruijn_index
+  struct relative : public notation // de_bruijn_index
   {
-    using identifier::identifier;
+    using notation::notation;
 
     auto corresponding_mnemonic() const -> mnemonic override;
-
-    auto is_bound() const -> bool override;
-
-    auto is_free() const -> bool override;
 
     virtual auto strip(const_reference) const -> object;
   };

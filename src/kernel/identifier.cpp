@@ -64,16 +64,6 @@ inline namespace kernel
     return mnemonic::load_relative;
   }
 
-  auto relative::is_bound() const -> bool
-  {
-    return not is_free();
-  }
-
-  auto relative::is_free() const -> bool
-  {
-    return false;
-  }
-
   auto relative::strip(const_reference e) const -> object
   {
     return list_ref(list_ref(e, car(second)), cdr(second));
