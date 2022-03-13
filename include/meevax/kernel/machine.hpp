@@ -292,29 +292,36 @@ inline namespace kernel
 
       switch (car(c).template as<instruction>().value)
       {
+      case mnemonic::load_absolute: /* -----------------------------------------
+        *
+        *  s e (%load-absolute <absolute notation> . c) d => (x . s) e c d
+        *
+        *  where <absolute> = (<symbol> . <object>)
+        *
+        * ------------------------------------------------------------------- */
+        [[fallthrough]];
+
       case mnemonic::load_relative: /* -----------------------------------------
         *
-        *  s  e (%load-relative <relative-identifier> . c) d => (x . s) e c d
+        *  s  e (%load-relative <relative notation> . c) d => (x . s) e c d
         *
-        *  where <relative identifier> = (<symbol> . (i . j))
+        *  where <relative notation> = (<symbol> i . j)
         *
         *        x = (list-ref (list-ref E i) j)
         *
         * ------------------------------------------------------------------- */
-        s = cons(cadr(c).template as<relative>().strip(e), s);
-        c = cddr(c);
-        goto decode;
+        [[fallthrough]];
 
       case mnemonic::load_variadic: /* -----------------------------------------
         *
-        *  s  e (%load-variadic <variadic-identifier> . c) d => (x . s) e c d
+        *  s  e (%load-variadic <variadic notation> . c) d => (x . s) e c d
         *
-        *  where <variadic identifier> = (<symbol> . (i . j))
+        *  where <variadic notation> = (<symbol> i . j)
         *
         *        x = (list-tail (list-ref E i) j)
         *
         * ------------------------------------------------------------------- */
-        s = cons(cadr(c).template as<variadic>().strip(e), s);
+        s = cons(cadr(c).template as<notation>().load(e), s);
         c = cddr(c);
         goto decode;
 
@@ -324,17 +331,6 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         s = cons(cadr(c), s);
-        c = cddr(c);
-        goto decode;
-
-      case mnemonic::load_absolute: /* -----------------------------------------
-        *
-        *  s e (%load-absolute <identifier> . c) d => (x . s) e c d
-        *
-        *  where <identifier> = (<symbol> . x)
-        *
-        * ------------------------------------------------------------------- */
-        s = cons(cdadr(c), s);
         c = cddr(c);
         goto decode;
 

@@ -29,12 +29,19 @@ inline namespace kernel
   {
     using pair::pair;
 
+    virtual auto load(const_reference) const -> object = 0;
+
     virtual auto mnemonic() const -> mnemonic = 0;
   };
 
   struct relative : public notation // de_bruijn_index
   {
     using notation::notation;
+
+    auto load(const_reference e) const -> object override
+    {
+      return list_ref(list_ref(e, m()), n());
+    }
 
     auto mnemonic() const -> meevax::mnemonic override
     {
@@ -50,25 +57,20 @@ inline namespace kernel
     {
       return cdr(second);
     }
-
-    virtual auto strip(const_reference e) const -> object
-    {
-      return list_ref(list_ref(e, m()), n());
-    }
   };
 
   struct variadic : public relative // de_bruijn_index
   {
     using relative::relative;
 
+    auto load(const_reference e) const -> object override
+    {
+      return list_tail(list_ref(e, m()), n());
+    }
+
     auto mnemonic() const -> meevax::mnemonic override
     {
       return mnemonic::load_variadic;
-    }
-
-    auto strip(const_reference e) const -> object override
-    {
-      return list_tail(list_ref(e, m()), n());
     }
   };
 } // namespace kernel

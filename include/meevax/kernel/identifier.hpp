@@ -41,6 +41,11 @@ inline namespace kernel
   {
     using identifier::identifier;
 
+    auto load(const_reference) const -> object override
+    {
+      return second;
+    }
+
     auto mnemonic() const -> meevax::mnemonic override;
 
     auto binding() -> reference;
