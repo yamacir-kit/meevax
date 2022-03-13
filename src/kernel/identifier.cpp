@@ -16,7 +16,6 @@
 
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identifier.hpp>
-#include <meevax/kernel/list.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax
@@ -57,26 +56,6 @@ inline namespace kernel
   {
     // NOTE: See environment::generate_free_identifier
     return binding().is<absolute>() and std::addressof(binding().as<absolute>()) == this;
-  }
-
-  auto relative::corresponding_mnemonic() const -> mnemonic
-  {
-    return mnemonic::load_relative;
-  }
-
-  auto relative::strip(const_reference e) const -> object
-  {
-    return list_ref(list_ref(e, car(second)), cdr(second));
-  }
-
-  auto variadic::corresponding_mnemonic() const -> mnemonic
-  {
-    return mnemonic::load_variadic;
-  }
-
-  auto variadic::strip(const_reference e) const -> object
-  {
-    return list_tail(list_ref(e, car(second)), cdr(second));
   }
 
   auto notate(const_reference variable, const_reference frames) -> object
