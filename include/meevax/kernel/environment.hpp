@@ -125,9 +125,19 @@ inline namespace kernel
 
     auto local() noexcept -> reference;
 
-    auto rename(const_reference, const_reference) -> object;
+    auto notate(const_reference, const_reference) -> object;
 
-    auto rename(const_reference, const_reference) const -> object;
+    auto notate(const_reference, const_reference) const -> object;
+
+    auto rename(const_reference symbol, const_reference syntactic_environment) -> object
+    {
+      return notate(symbol, syntactic_environment);
+    }
+
+    auto rename(const_reference symbol, const_reference syntactic_environment) const -> object
+    {
+      return notate(symbol, syntactic_environment);
+    }
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;

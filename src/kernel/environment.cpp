@@ -22,7 +22,7 @@ inline namespace kernel
 {
   auto environment::operator [](const_reference name) -> const_reference
   {
-    return rename(name, local()).as<absolute>().binding();
+    return notate(name, local()).as<absolute>().binding();
   }
 
   auto environment::operator [](std::string const& name) -> const_reference
@@ -141,13 +141,13 @@ inline namespace kernel
     return first;
   }
 
-  auto environment::rename(const_reference variable, const_reference frames) const -> object
+  auto environment::notate(const_reference variable, const_reference frames) const -> object
   {
     if (not is_renamable(variable))
     {
       return f;
     }
-    else if (let const& identifier = notate(variable, frames); select(identifier))
+    else if (let const& identifier = meevax::notate(variable, frames); select(identifier))
     {
       return identifier;
     }
@@ -157,13 +157,13 @@ inline namespace kernel
     }
   }
 
-  auto environment::rename(const_reference variable, const_reference frames) -> object
+  auto environment::notate(const_reference variable, const_reference frames) -> object
   {
     if (not is_renamable(variable))
     {
       return f;
     }
-    if (let const& binding = std::as_const(*this).rename(variable, frames); select(binding))
+    if (let const& binding = std::as_const(*this).notate(variable, frames); select(binding))
     {
       return binding;
     }

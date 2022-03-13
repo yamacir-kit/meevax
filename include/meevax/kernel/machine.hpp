@@ -189,11 +189,11 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        if (expression.is<symbol>() or expression.is_also<identifier>())
+        if (expression.is<symbol>() or expression.is_also<notation>())
         {
-          let const& renamed = current_environment.rename(expression, frames);
+          let const& n = current_environment.notate(expression, frames);
 
-          return cons(make<instruction>(renamed.as<notation>().mnemonic()), renamed,
+          return cons(make<instruction>(n.as<notation>().mnemonic()), n,
                       current_continuation);
         }
         else // is <self-evaluating>
@@ -202,17 +202,17 @@ inline namespace kernel
                       current_continuation);
         }
       }
-      else if (let const& identifier = std::as_const(current_environment).rename(car(expression), frames); identifier.is<keyword>())
+      else if (let const& notation = std::as_const(current_environment).notate(car(expression), frames); notation.is<keyword>())
       {
-        assert(identifier.as<keyword>().binding().is<transformer>());
+        assert(notation.as<keyword>().binding().is<transformer>());
 
         return compile(context::none,
                        current_environment,
-                       identifier.as<keyword>().binding().as<transformer>().macroexpand(identifier.as<keyword>().binding(), cdr(expression)),
+                       notation.as<keyword>().binding().as<transformer>().macroexpand(notation.as<keyword>().binding(), cdr(expression)),
                        frames,
                        current_continuation);
       }
-      else if (let const& applicant = identifier.is<absolute>() ? identifier.as<absolute>().binding() : car(expression); applicant.is_also<syntax>())
+      else if (let const& applicant = notation.is<absolute>() ? notation.as<absolute>().binding() : car(expression); applicant.is_also<syntax>())
       {
         return applicant.as<syntax>().transform(current_context,
                                                 current_environment,
@@ -400,9 +400,9 @@ inline namespace kernel
       case mnemonic::define_syntax:
       case mnemonic::define: /* ------------------------------------------------
         *
-        *  (x' . s) e (%define <identifier> . c) d => (x' . s) e c d
+        *  (x' . s) e (%define <notation> . c) d => (x' . s) e c d
         *
-        *  where <identifier> = (<symbol> . x := x')
+        *  where <notation> = (<symbol> . x := x')
         *
         * ------------------------------------------------------------------- */
         cadr(c).template as<absolute>().binding() = car(s);
@@ -621,9 +621,9 @@ inline namespace kernel
 
       case mnemonic::store_absolute: /* ----------------------------------------
         *
-        *  (x . s) e (%store-absolute <identifier> . c) d => (x' . s) e c d
+        *  (x . s) e (%store-absolute <notation> . c) d => (x' . s) e c d
         *
-        *  where <identifier> = (<symbol> . x')
+        *  where <notation> = (<symbol> . x')
         *
         * ------------------------------------------------------------------- */
         if (let const& binding = cadr(c); cdr(binding).is<null>())
@@ -690,13 +690,13 @@ inline namespace kernel
       {
         throw syntax_error(make<string>("set!"), expression);
       }
-      else if (let const& identifier = current_environment.rename(car(expression), frames); identifier.is<absolute>())
+      else if (let const& notation = current_environment.notate(car(expression), frames); notation.is<absolute>())
       {
         return compile(context::none,
                        current_environment,
                        cadr(expression),
                        frames,
-                       cons(make<instruction>(mnemonic::store_absolute), identifier,
+                       cons(make<instruction>(mnemonic::store_absolute), notation,
                             current_continuation));
       }
       else
@@ -705,8 +705,8 @@ inline namespace kernel
                        current_environment,
                        cadr(expression),
                        frames,
-                       cons(identifier.is<relative>() ? make<instruction>(mnemonic::store_relative)
-                                                      : make<instruction>(mnemonic::store_variadic), cdr(identifier), // De Bruijn index
+                       cons(notation.is<relative>() ? make<instruction>(mnemonic::store_relative)
+                                                    : make<instruction>(mnemonic::store_variadic), cdr(notation), // De Bruijn index
                             current_continuation));
       }
     }
@@ -717,9 +717,9 @@ inline namespace kernel
       {
         if (form.is<pair>())
         {
-          if (let const& identifier = std::as_const(current_environment).rename(car(form), frames); identifier.is<absolute>())
+          if (let const& notation = std::as_const(current_environment).notate(car(form), frames); notation.is<absolute>())
           {
-            if (let const& callee = cdr(identifier); callee.is<syntax>())
+            if (let const& callee = notation.as<absolute>().binding(); callee.is<syntax>())
             {
               return callee.as<syntax>().name == "define";
             }
@@ -936,7 +936,7 @@ inline namespace kernel
                          current_environment,
                          cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
                          frames,
-                         cons(make<instruction>(mnemonic::define), current_environment.rename(caar(expression), frames),
+                         cons(make<instruction>(mnemonic::define), current_environment.notate(caar(expression), frames),
                               current_continuation));
         }
         else // (define x ...)
@@ -945,7 +945,7 @@ inline namespace kernel
                          current_environment,
                          cdr(expression) ? cadr(expression) : unspecified_object,
                          frames,
-                         cons(make<instruction>(mnemonic::define), current_environment.rename(car(expression), frames),
+                         cons(make<instruction>(mnemonic::define), current_environment.notate(car(expression), frames),
                               current_continuation));
         }
       }
@@ -1018,7 +1018,7 @@ inline namespace kernel
       //                    list(make<syntax>("fork/csc", fork_csc),
       //                         cons(make<syntax>("lambda", lambda), expression)),
       //                    frames,
-      //                    cons(make<instruction>(mnemonic::define_syntax), cons(frames, current_environment.rename(caar(expression))),
+      //                    cons(make<instruction>(mnemonic::define_syntax), cons(frames, current_environment.notate(caar(expression))),
       //                         current_continuation));
       //   }
       //   else // (define-syntax x ...)
@@ -1027,7 +1027,7 @@ inline namespace kernel
       //                    current_environment,
       //                    cdr(expression) ? cadr(expression) : throw syntax_error(make<string>("define-syntax: no <transformer sprc> specified")),
       //                    frames,
-      //                    cons(make<instruction>(mnemonic::define_syntax), cons(frames, current_environment.rename(car(expression))),
+      //                    cons(make<instruction>(mnemonic::define_syntax), cons(frames, current_environment.notate(car(expression))),
       //                         current_continuation));
       //   }
       // }
