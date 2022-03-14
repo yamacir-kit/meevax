@@ -111,7 +111,7 @@ inline namespace kernel
 
   auto environment::is_renamable(const_reference x) -> bool
   {
-    return x.is<symbol>() or x.is_also<absolute>();
+    return x.is<symbol>() or x.is_also<absolute>() or x.is<syntactic_closure>();
   }
 
   auto environment::load(std::string const& s) -> object

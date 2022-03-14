@@ -189,7 +189,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        if (expression.is<symbol>() or expression.is_also<notation>())
+        if (expression.is<symbol>() or expression.is_also<absolute>())
         {
           let const& n = current_environment.notate(expression, frames);
 

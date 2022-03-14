@@ -32,11 +32,6 @@ inline namespace kernel
     return os << underline(datum.symbol());
   }
 
-  auto absolute::mnemonic() const -> meevax::mnemonic
-  {
-    return mnemonic::load_absolute;
-  }
-
   auto absolute::binding() -> reference
   {
     return second;

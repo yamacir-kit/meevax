@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct identifier : public virtual pair
+  struct [[deprecated]] identifier : public virtual pair
   {
     using pair::pair;
 
@@ -46,7 +46,10 @@ inline namespace kernel
       return second;
     }
 
-    auto mnemonic() const -> meevax::mnemonic override;
+    auto mnemonic() const -> meevax::mnemonic override
+    {
+      return mnemonic::load_absolute;
+    }
 
     auto binding() -> reference;
 
@@ -60,6 +63,31 @@ inline namespace kernel
   struct keyword : public absolute
   {
     using absolute::absolute;
+  };
+
+  struct syntactic_closure : public virtual pair // (<notation> . e)
+  {
+    using pair::pair;
+
+    auto symbol() const -> const_reference
+    {
+      return car(first);
+    }
+
+    auto strip()
+    {
+      return first.as<notation>().load(second);
+    }
+
+    auto is_bound() const -> bool
+    {
+      return not is_free();
+    }
+
+    auto is_free() const -> bool
+    {
+      return first.is<absolute>() and first.as<absolute>().is_free();
+    }
   };
 
   auto notate(const_reference, const_reference) -> object;

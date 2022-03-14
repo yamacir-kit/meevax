@@ -1994,9 +1994,9 @@ namespace meevax
       switch (length(xs))
       {
       case 1:
-        if (let const& x = car(xs); x.is_also<identifier>())
+        if (let const& x = car(xs); x.is_also<syntactic_closure>())
         {
-          return x.as<identifier>().symbol();
+          return x.as<syntactic_closure>().symbol();
         }
         else if (x.is<symbol>())
         {
