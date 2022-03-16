@@ -193,7 +193,7 @@ inline namespace kernel
         {
           let const& n = current_environment.notate(expression, frames);
 
-          return cons(make<instruction>(n.as<notation>().mnemonic()), n,
+          return cons(n.as<notation>().make_load_instruction(), n,
                       current_continuation);
         }
         else // is <self-evaluating>
@@ -1232,7 +1232,7 @@ inline namespace kernel
     {
       // if (car(expression).is_also<identifier>())
       // {
-      //   return cons(make<instruction>(car(expression).as<identifier>().mnemonic()), car(expression),
+      //   return cons(car(expression).as<identifier>().make_load_instruction(), car(expression),
       //               current_continuation);
       // }
       // else

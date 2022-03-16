@@ -37,7 +37,7 @@ inline namespace kernel
       return const_cast<reference>(std::as_const(*this).strip(e));
     }
 
-    virtual auto mnemonic() const -> mnemonic = 0;
+    virtual auto make_load_instruction() const -> object = 0;
 
     virtual auto symbol() const -> const_reference
     {
@@ -60,9 +60,9 @@ inline namespace kernel
       return second;
     }
 
-    auto mnemonic() const -> meevax::mnemonic override
+    auto make_load_instruction() const -> object override
     {
-      return mnemonic::load_absolute;
+      return make<instruction>(mnemonic::load_absolute);
     }
 
     auto is_bound() const -> bool
@@ -91,9 +91,9 @@ inline namespace kernel
       return list_ref(list_ref(e, car(second)), cdr(second));
     }
 
-    auto mnemonic() const -> meevax::mnemonic override
+    auto make_load_instruction() const -> object override
     {
-      return mnemonic::load_relative;
+      return make<instruction>(mnemonic::load_relative);
     }
   };
 
@@ -106,9 +106,9 @@ inline namespace kernel
       return list_tail(list_ref(e, car(second)), cdr(second));
     }
 
-    auto mnemonic() const -> meevax::mnemonic override
+    auto make_load_instruction() const -> object override
     {
-      return mnemonic::load_variadic;
+      return make<instruction>(mnemonic::load_variadic);
     }
   };
 } // namespace kernel
