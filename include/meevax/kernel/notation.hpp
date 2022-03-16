@@ -39,6 +39,8 @@ inline namespace kernel
 
     virtual auto make_load_instruction() const -> object = 0;
 
+    virtual auto make_store_instruction() const -> object = 0;
+
     virtual auto symbol() const -> const_reference
     {
       assert(first.is<meevax::symbol>());
@@ -63,6 +65,11 @@ inline namespace kernel
     auto make_load_instruction() const -> object override
     {
       return make<instruction>(mnemonic::load_absolute);
+    }
+
+    auto make_store_instruction() const -> object override
+    {
+      return make<instruction>(mnemonic::store_absolute);
     }
 
     auto is_bound() const -> bool
@@ -95,6 +102,11 @@ inline namespace kernel
     {
       return make<instruction>(mnemonic::load_relative);
     }
+
+    auto make_store_instruction() const -> object override
+    {
+      return make<instruction>(mnemonic::store_relative);
+    }
   };
 
   struct variadic : public relative // de_bruijn_index
@@ -109,6 +121,11 @@ inline namespace kernel
     auto make_load_instruction() const -> object override
     {
       return make<instruction>(mnemonic::load_variadic);
+    }
+
+    auto make_store_instruction() const -> object override
+    {
+      return make<instruction>(mnemonic::store_variadic);
     }
   };
 } // namespace kernel

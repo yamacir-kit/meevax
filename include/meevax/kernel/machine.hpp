@@ -675,29 +675,14 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (expression.is<null>())
-      {
-        throw syntax_error(make<string>("set!"), expression);
-      }
-      else if (let const& notation = current_environment.notate(car(expression), frames); notation.is<absolute>())
-      {
-        return compile(context::none,
-                       current_environment,
-                       cadr(expression),
-                       frames,
-                       cons(make<instruction>(mnemonic::store_absolute), notation,
-                            current_continuation));
-      }
-      else
-      {
-        return compile(context::none,
-                       current_environment,
-                       cadr(expression),
-                       frames,
-                       cons(notation.is<relative>() ? make<instruction>(mnemonic::store_relative)
-                                                    : make<instruction>(mnemonic::store_variadic), notation, // de Bruijn index
-                            current_continuation));
-      }
+      let const& notation = current_environment.notate(car(expression), frames);
+
+      return compile(context::none,
+                     current_environment,
+                     cadr(expression),
+                     frames,
+                     cons(notation.as<meevax::notation>().make_store_instruction(), notation,
+                          current_continuation));
     }
 
     static SYNTAX(body)
