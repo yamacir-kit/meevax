@@ -30,16 +30,16 @@ inline namespace kernel
   {
     using pair::pair;
 
+    virtual auto make_load_instruction() const -> object = 0;
+
+    virtual auto make_store_instruction() const -> object = 0;
+
     virtual auto strip(const_reference) const -> const_reference = 0;
 
     virtual auto strip(const_reference e) -> reference
     {
       return const_cast<reference>(std::as_const(*this).strip(e));
     }
-
-    virtual auto make_load_instruction() const -> object = 0;
-
-    virtual auto make_store_instruction() const -> object = 0;
 
     virtual auto symbol() const -> const_reference
     {
@@ -52,14 +52,15 @@ inline namespace kernel
   {
     using notation::notation;
 
-    auto strip(const_reference = unit) const -> const_reference override
+    auto is_bound() const -> bool
     {
-      return second;
+      return not is_free();
     }
 
-    auto strip(const_reference = unit) -> reference override
+    auto is_free() const -> bool
     {
-      return second;
+      // NOTE: See environment::generate_free_identifier
+      return strip().is<absolute>() and std::addressof(strip().as<absolute>()) == this;
     }
 
     auto make_load_instruction() const -> object override
@@ -72,15 +73,14 @@ inline namespace kernel
       return make<instruction>(mnemonic::store_absolute);
     }
 
-    auto is_bound() const -> bool
+    auto strip(const_reference = unit) const -> const_reference override
     {
-      return not is_free();
+      return second;
     }
 
-    auto is_free() const -> bool
+    auto strip(const_reference = unit) -> reference override
     {
-      // NOTE: See environment::generate_free_identifier
-      return strip().is<absolute>() and std::addressof(strip().as<absolute>()) == this;
+      return second;
     }
   };
 
@@ -93,11 +93,6 @@ inline namespace kernel
   {
     using notation::notation;
 
-    auto strip(const_reference e) const -> const_reference override
-    {
-      return list_ref(list_ref(e, car(second)), cdr(second));
-    }
-
     auto make_load_instruction() const -> object override
     {
       return make<instruction>(mnemonic::load_relative);
@@ -107,16 +102,16 @@ inline namespace kernel
     {
       return make<instruction>(mnemonic::store_relative);
     }
+
+    auto strip(const_reference e) const -> const_reference override
+    {
+      return list_ref(list_ref(e, car(second)), cdr(second));
+    }
   };
 
   struct variadic : public relative // de_bruijn_index
   {
     using relative::relative;
-
-    auto strip(const_reference e) const -> const_reference override
-    {
-      return list_tail(list_ref(e, car(second)), cdr(second));
-    }
 
     auto make_load_instruction() const -> object override
     {
@@ -126,6 +121,11 @@ inline namespace kernel
     auto make_store_instruction() const -> object override
     {
       return make<instruction>(mnemonic::store_variadic);
+    }
+
+    auto strip(const_reference e) const -> const_reference override
+    {
+      return list_tail(list_ref(e, car(second)), cdr(second));
     }
   };
 } // namespace kernel
