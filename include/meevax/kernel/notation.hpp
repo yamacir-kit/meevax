@@ -30,11 +30,11 @@ inline namespace kernel
   {
     using pair::pair;
 
-    virtual auto load(const_reference) const -> const_reference = 0;
+    virtual auto strip(const_reference) const -> const_reference = 0;
 
-    virtual auto load(const_reference e) -> reference
+    virtual auto strip(const_reference e) -> reference
     {
-      return const_cast<reference>(std::as_const(*this).load(e));
+      return const_cast<reference>(std::as_const(*this).strip(e));
     }
 
     virtual auto mnemonic() const -> mnemonic = 0;
@@ -50,7 +50,7 @@ inline namespace kernel
   {
     using notation::notation;
 
-    auto load(const_reference) const -> const_reference override
+    auto strip(const_reference) const -> const_reference override
     {
       return second;
     }
@@ -91,7 +91,7 @@ inline namespace kernel
   {
     using notation::notation;
 
-    auto load(const_reference e) const -> const_reference override
+    auto strip(const_reference e) const -> const_reference override
     {
       return list_ref(list_ref(e, m()), n());
     }
@@ -116,7 +116,7 @@ inline namespace kernel
   {
     using relative::relative;
 
-    auto load(const_reference e) const -> const_reference override
+    auto strip(const_reference e) const -> const_reference override
     {
       return list_tail(list_ref(e, m()), n());
     }

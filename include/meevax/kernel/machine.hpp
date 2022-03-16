@@ -321,7 +321,7 @@ inline namespace kernel
         *        x = (list-tail (list-ref E i) j)
         *
         * ------------------------------------------------------------------- */
-        s = cons(cadr(c).template as<notation>().load(e), s);
+        s = cons(cadr(c).template as<notation>().strip(e), s);
         c = cddr(c);
         goto decode;
 

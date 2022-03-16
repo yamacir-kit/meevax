@@ -35,7 +35,7 @@ inline namespace kernel
 
     auto strip()
     {
-      return first.as<notation>().load(second);
+      return first.as<notation>().strip(second);
     }
 
     auto is_bound() const -> bool
