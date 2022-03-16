@@ -23,23 +23,14 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct [[deprecated]] identifier : public virtual pair
+  struct absolute : public notation
   {
-    using pair::pair;
+    using notation::notation;
 
-    virtual auto is_bound() const -> bool = 0;
-
-    virtual auto is_free() const -> bool = 0;
-
-    auto symbol() const -> const_reference;
-  };
-
-  auto operator <<(std::ostream &, identifier const&) -> std::ostream &;
-
-  struct absolute : public identifier
-                  , public notation
-  {
-    using identifier::identifier;
+    auto symbol() const -> const_reference
+    {
+      return first;
+    }
 
     auto load(const_reference) const -> object override
     {
@@ -55,9 +46,9 @@ inline namespace kernel
 
     auto binding() const -> const_reference;
 
-    auto is_bound() const -> bool override;
+    auto is_bound() const -> bool;
 
-    auto is_free() const -> bool override;
+    auto is_free() const -> bool;
   };
 
   struct keyword : public absolute

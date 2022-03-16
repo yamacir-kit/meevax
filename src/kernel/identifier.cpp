@@ -22,16 +22,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto identifier::symbol() const -> const_reference
-  {
-    return first;
-  }
-
-  auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &
-  {
-    return os << underline(datum.symbol());
-  }
-
   auto absolute::binding() -> reference
   {
     return second;

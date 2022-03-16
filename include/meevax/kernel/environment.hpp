@@ -82,8 +82,8 @@ inline namespace kernel
       let const& renamed_x = x.is<symbol>() ? rename(x, local()) : x;
       let const& renamed_y = y.is<symbol>() ? rename(y, local()) : y;
 
-      return renamed_x.is_also<identifier>() and renamed_x.as<identifier>().is_bound() and
-             renamed_y.is_also<identifier>() and renamed_y.as<identifier>().is_bound() and eq(renamed_x, renamed_y);
+      return renamed_x.is_also<absolute>() and renamed_x.as<absolute>().is_bound() and
+             renamed_y.is_also<absolute>() and renamed_y.as<absolute>().is_bound() and eq(renamed_x, renamed_y);
     };
 
     auto is_same_free_identifier(const_reference x, const_reference y) -> bool
@@ -91,8 +91,8 @@ inline namespace kernel
       let const& renamed_x = x.is<symbol>() ? rename(x, local()) : x;
       let const& renamed_y = y.is<symbol>() ? rename(y, local()) : y;
 
-      return renamed_x.is_also<identifier>() and renamed_x.as<identifier>().is_free() and
-             renamed_y.is_also<identifier>() and renamed_y.as<identifier>().is_free() and eq(renamed_x, renamed_y);
+      return renamed_x.is_also<absolute>() and renamed_x.as<absolute>().is_free() and
+             renamed_y.is_also<absolute>() and renamed_y.as<absolute>().is_free() and eq(renamed_x, renamed_y);
     }
 
     auto generate_free_identifier(const_reference x) -> object
