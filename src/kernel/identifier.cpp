@@ -22,27 +22,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto absolute::binding() -> reference
-  {
-    return second;
-  }
-
-  auto absolute::binding() const -> const_reference
-  {
-    return second;
-  }
-
-  auto absolute::is_bound() const -> bool
-  {
-    return not is_free();
-  }
-
-  auto absolute::is_free() const -> bool
-  {
-    // NOTE: See environment::generate_free_identifier
-    return binding().is<absolute>() and std::addressof(binding().as<absolute>()) == this;
-  }
-
   auto notate(const_reference variable, const_reference frames) -> object
   {
     for (auto outer = std::begin(frames); outer != std::end(frames); ++outer)

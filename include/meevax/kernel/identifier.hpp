@@ -23,39 +23,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct absolute : public notation
-  {
-    using notation::notation;
-
-    auto symbol() const -> const_reference
-    {
-      return first;
-    }
-
-    auto load(const_reference) const -> object override
-    {
-      return second;
-    }
-
-    auto mnemonic() const -> meevax::mnemonic override
-    {
-      return mnemonic::load_absolute;
-    }
-
-    auto binding() -> reference;
-
-    auto binding() const -> const_reference;
-
-    auto is_bound() const -> bool;
-
-    auto is_free() const -> bool;
-  };
-
-  struct keyword : public absolute
-  {
-    using absolute::absolute;
-  };
-
   struct syntactic_closure : public virtual pair // (<notation> . e)
   {
     using pair::pair;

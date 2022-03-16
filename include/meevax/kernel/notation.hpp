@@ -34,6 +34,52 @@ inline namespace kernel
     virtual auto mnemonic() const -> mnemonic = 0;
   };
 
+  struct absolute : public notation
+  {
+    using notation::notation;
+
+    auto symbol() const -> const_reference
+    {
+      return first;
+    }
+
+    auto load(const_reference) const -> object override
+    {
+      return second;
+    }
+
+    auto mnemonic() const -> meevax::mnemonic override
+    {
+      return mnemonic::load_absolute;
+    }
+
+    auto binding() -> reference
+    {
+      return second;
+    }
+
+    auto binding() const -> const_reference
+    {
+      return second;
+    }
+
+    auto is_bound() const -> bool
+    {
+      return not is_free();
+    }
+
+    auto is_free() const -> bool
+    {
+      // NOTE: See environment::generate_free_identifier
+      return binding().is<absolute>() and std::addressof(binding().as<absolute>()) == this;
+    }
+  };
+
+  struct keyword : public absolute
+  {
+    using absolute::absolute;
+  };
+
   struct relative : public notation // de_bruijn_index
   {
     using notation::notation;
