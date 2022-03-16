@@ -626,18 +626,14 @@ inline namespace kernel
         *  where <absolute notation> = (<symbol> . x:=x')
         *
         * ------------------------------------------------------------------- */
-        cadr(c).template as<notation>().strip(e) = car(s);
-        c = cddr(c);
-        goto decode;
+        [[fallthrough]];
 
       case mnemonic::store_relative: /* ----------------------------------------
         *
         *  (x . s) e (%store-relative <relative notation> . c) d => (x' . s) e c d
         *
         * ------------------------------------------------------------------- */
-        cadr(c).template as<notation>().strip(e) = car(s);
-        c = cddr(c);
-        goto decode;
+        [[fallthrough]];
 
       case mnemonic::store_variadic: /* ----------------------------------------
         *
