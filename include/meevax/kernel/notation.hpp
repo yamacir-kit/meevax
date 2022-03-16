@@ -20,6 +20,7 @@
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/symbol.hpp>
 
 namespace meevax
 {
@@ -29,21 +30,27 @@ inline namespace kernel
   {
     using pair::pair;
 
-    virtual auto load(const_reference) const -> object = 0;
+    virtual auto load(const_reference) const -> const_reference = 0;
+
+    virtual auto load(const_reference e) -> reference
+    {
+      return const_cast<reference>(std::as_const(*this).load(e));
+    }
 
     virtual auto mnemonic() const -> mnemonic = 0;
+
+    virtual auto symbol() const -> const_reference
+    {
+      assert(first.is<meevax::symbol>());
+      return first;
+    }
   };
 
   struct absolute : public notation
   {
     using notation::notation;
 
-    auto symbol() const -> const_reference
-    {
-      return first;
-    }
-
-    auto load(const_reference) const -> object override
+    auto load(const_reference) const -> const_reference override
     {
       return second;
     }
@@ -84,7 +91,7 @@ inline namespace kernel
   {
     using notation::notation;
 
-    auto load(const_reference e) const -> object override
+    auto load(const_reference e) const -> const_reference override
     {
       return list_ref(list_ref(e, m()), n());
     }
@@ -109,7 +116,7 @@ inline namespace kernel
   {
     using relative::relative;
 
-    auto load(const_reference e) const -> object override
+    auto load(const_reference e) const -> const_reference override
     {
       return list_tail(list_ref(e, m()), n());
     }

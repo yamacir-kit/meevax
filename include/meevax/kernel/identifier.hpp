@@ -29,7 +29,8 @@ inline namespace kernel
 
     auto symbol() const -> const_reference
     {
-      return car(first);
+      assert(first.is<notation>());
+      return first.as<notation>().symbol();
     }
 
     auto strip()
