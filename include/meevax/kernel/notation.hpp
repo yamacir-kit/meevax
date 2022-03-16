@@ -82,7 +82,7 @@ inline namespace kernel
     using absolute::absolute;
   };
 
-  struct relative : public notation // de_bruijn_index
+  struct relative : public notation // (<symbol> . <de Bruijn index>)
   {
     using notation::notation;
 

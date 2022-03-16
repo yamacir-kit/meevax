@@ -166,7 +166,7 @@ inline namespace kernel
   };
 
   template <typename T>
-  auto list_tail(T&& x, std::size_t const k) -> const_reference
+  auto list_tail(T&& x, std::size_t const k) -> T
   {
     return 0 < k ? list_tail(cdr(x), k - 1) : x;
   }

@@ -296,7 +296,7 @@ inline namespace kernel
         *
         *  s e (%load-absolute <absolute notation> . c) d => (x . s) e c d
         *
-        *  where <absolute> = (<symbol> . <object>)
+        *  where <absolute notation> = (<symbol> . x)
         *
         * ------------------------------------------------------------------- */
         [[fallthrough]];
@@ -307,7 +307,7 @@ inline namespace kernel
         *
         *  where <relative notation> = (<symbol> i . j)
         *
-        *        x = (list-ref (list-ref E i) j)
+        *        x = (list-ref (list-ref e i) j)
         *
         * ------------------------------------------------------------------- */
         [[fallthrough]];
@@ -318,7 +318,7 @@ inline namespace kernel
         *
         *  where <variadic notation> = (<symbol> i . j)
         *
-        *        x = (list-tail (list-ref E i) j)
+        *        x = (list-tail (list-ref e i) j)
         *
         * ------------------------------------------------------------------- */
         s = cons(cadr(c).template as<notation>().strip(e), s);
@@ -621,37 +621,30 @@ inline namespace kernel
 
       case mnemonic::store_absolute: /* ----------------------------------------
         *
-        *  (x . s) e (%store-absolute <notation> . c) d => (x' . s) e c d
+        *  (x' . s) e (%store-absolute <absolute notation> . c) d => (x' . s) e c d
         *
-        *  where <notation> = (<symbol> . x')
+        *  where <absolute notation> = (<symbol> . x:=x')
         *
         * ------------------------------------------------------------------- */
-        if (let const& binding = cadr(c); cdr(binding).is<null>())
-        {
-          cdr(binding) = car(s);
-        }
-        else
-        {
-          cdr(binding) = car(s);
-        }
+        cadr(c).template as<notation>().strip(e) = car(s);
         c = cddr(c);
         goto decode;
 
       case mnemonic::store_relative: /* ----------------------------------------
         *
-        *  (x . s) e (%store-relative (i . j) . c) d => (x' . s) e c d
+        *  (x . s) e (%store-relative <relative notation> . c) d => (x' . s) e c d
         *
         * ------------------------------------------------------------------- */
-        car(list_tail(list_ref(e, caadr(c)), cdadr(c))) = car(s);
+        cadr(c).template as<notation>().strip(e) = car(s);
         c = cddr(c);
         goto decode;
 
       case mnemonic::store_variadic: /* ----------------------------------------
         *
-        *  (x . s) e (%store-variadic (i . j) . c) d => (x' . s) e c d
+        *  (x . s) e (%store-variadic <variadic notation> . c) d => (x' . s) e c d
         *
         * ------------------------------------------------------------------- */
-        cdr(list_tail(list_ref(e, caadr(c)), cdadr(c))) = car(s);
+        cadr(c).template as<notation>().strip(e) = car(s);
         c = cddr(c);
         goto decode;
 
@@ -706,7 +699,7 @@ inline namespace kernel
                        cadr(expression),
                        frames,
                        cons(notation.is<relative>() ? make<instruction>(mnemonic::store_relative)
-                                                    : make<instruction>(mnemonic::store_variadic), cdr(notation), // De Bruijn index
+                                                    : make<instruction>(mnemonic::store_variadic), notation, // de Bruijn index
                             current_continuation));
       }
     }
