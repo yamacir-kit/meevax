@@ -88,22 +88,12 @@ inline namespace kernel
 
     auto strip(const_reference e) const -> const_reference override
     {
-      return list_ref(list_ref(e, m()), n());
+      return list_ref(list_ref(e, car(second)), cdr(second));
     }
 
     auto mnemonic() const -> meevax::mnemonic override
     {
       return mnemonic::load_relative;
-    }
-
-    auto m() const -> const_reference
-    {
-      return car(second);
-    }
-
-    auto n() const -> const_reference
-    {
-      return cdr(second);
     }
   };
 
@@ -113,7 +103,7 @@ inline namespace kernel
 
     auto strip(const_reference e) const -> const_reference override
     {
-      return list_tail(list_ref(e, m()), n());
+      return list_tail(list_ref(e, car(second)), cdr(second));
     }
 
     auto mnemonic() const -> meevax::mnemonic override

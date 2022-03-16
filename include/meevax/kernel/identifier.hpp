@@ -35,6 +35,7 @@ inline namespace kernel
 
     auto strip()
     {
+      assert(first.is<notation>());
       return first.as<notation>().strip(second);
     }
 
@@ -45,6 +46,7 @@ inline namespace kernel
 
     auto is_free() const -> bool
     {
+      assert(first.is<notation>());
       return first.is<absolute>() and first.as<absolute>().is_free();
     }
   };
