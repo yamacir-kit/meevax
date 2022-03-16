@@ -204,15 +204,15 @@ inline namespace kernel
       }
       else if (let const& notation = std::as_const(current_environment).notate(car(expression), frames); notation.is<keyword>())
       {
-        assert(notation.as<keyword>().binding().is<transformer>());
+        assert(notation.as<keyword>().strip().is<transformer>());
 
         return compile(context::none,
                        current_environment,
-                       notation.as<keyword>().binding().as<transformer>().macroexpand(notation.as<keyword>().binding(), cdr(expression)),
+                       notation.as<keyword>().strip().as<transformer>().macroexpand(notation.as<keyword>().strip(), cdr(expression)),
                        frames,
                        current_continuation);
       }
-      else if (let const& applicant = notation.is<absolute>() ? notation.as<absolute>().binding() : car(expression); applicant.is_also<syntax>())
+      else if (let const& applicant = notation.is<absolute>() ? notation.as<absolute>().strip() : car(expression); applicant.is_also<syntax>())
       {
         return applicant.as<syntax>().transform(current_context,
                                                 current_environment,
@@ -405,7 +405,7 @@ inline namespace kernel
         *  where <notation> = (<symbol> . x := x')
         *
         * ------------------------------------------------------------------- */
-        cadr(c).template as<absolute>().binding() = car(s);
+        cadr(c).template as<absolute>().strip() = car(s);
         c = cddr(c);
         goto decode;
 
@@ -432,7 +432,7 @@ inline namespace kernel
             // PRINT(keyword_);
             // PRINT(keyword_.is<keyword>());
 
-            let & binding = keyword_.as<keyword>().binding();
+            let & binding = keyword_.as<keyword>().strip();
 
             binding = environment(static_cast<environment const&>(*this)).execute(binding);
 
@@ -719,7 +719,7 @@ inline namespace kernel
         {
           if (let const& notation = std::as_const(current_environment).notate(car(form), frames); notation.is<absolute>())
           {
-            if (let const& callee = notation.as<absolute>().binding(); callee.is<syntax>())
+            if (let const& callee = notation.as<absolute>().strip(); callee.is<syntax>())
             {
               return callee.as<syntax>().name == "define";
             }

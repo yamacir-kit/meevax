@@ -50,7 +50,12 @@ inline namespace kernel
   {
     using notation::notation;
 
-    auto strip(const_reference) const -> const_reference override
+    auto strip(const_reference = unit) const -> const_reference override
+    {
+      return second;
+    }
+
+    auto strip(const_reference = unit) -> reference override
     {
       return second;
     }
@@ -58,16 +63,6 @@ inline namespace kernel
     auto mnemonic() const -> meevax::mnemonic override
     {
       return mnemonic::load_absolute;
-    }
-
-    auto binding() -> reference
-    {
-      return second;
-    }
-
-    auto binding() const -> const_reference
-    {
-      return second;
     }
 
     auto is_bound() const -> bool
@@ -78,7 +73,7 @@ inline namespace kernel
     auto is_free() const -> bool
     {
       // NOTE: See environment::generate_free_identifier
-      return binding().is<absolute>() and std::addressof(binding().as<absolute>()) == this;
+      return strip().is<absolute>() and std::addressof(strip().as<absolute>()) == this;
     }
   };
 
