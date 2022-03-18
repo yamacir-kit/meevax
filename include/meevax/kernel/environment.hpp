@@ -97,7 +97,7 @@ inline namespace kernel
 
     auto reserve(const_reference x) -> const_reference
     {
-      assert(is_renamable(x));
+      assert(is_identifier(x));
 
       let const result = make<absolute>(x);
 
@@ -124,7 +124,7 @@ inline namespace kernel
 
     auto import() -> void;
 
-    static auto is_renamable(const_reference) -> bool;
+    static auto is_identifier(const_reference) -> bool;
 
     auto load(std::string const&) -> object;
 

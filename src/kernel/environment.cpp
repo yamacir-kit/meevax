@@ -32,7 +32,7 @@ inline namespace kernel
 
   auto environment::define(const_reference name, const_reference value) -> void
   {
-    assert(name.is<symbol>());
+    assert(is_identifier(name));
 
     global() = make<absolute>(name, value) | global();
   }
@@ -109,7 +109,7 @@ inline namespace kernel
     define<procedure>("set-verbose!",     [this](let const& xs, auto&&) { return verbose     = car(xs); });
   }
 
-  auto environment::is_renamable(const_reference x) -> bool
+  auto environment::is_identifier(const_reference x) -> bool
   {
     return x.is<symbol>() or x.is_also<absolute>() or x.is<syntactic_closure>();
   }
@@ -143,13 +143,13 @@ inline namespace kernel
 
   auto environment::notate(const_reference variable, const_reference syntactic_environment) const -> object
   {
-    if (not is_renamable(variable))
+    if (not is_identifier(variable))
     {
       return f;
     }
-    else if (let const& identifier = meevax::notate(variable, syntactic_environment); select(identifier))
+    else if (let const& notation = meevax::notate(variable, syntactic_environment); select(notation))
     {
-      return identifier;
+      return notation;
     }
     else
     {
@@ -159,13 +159,13 @@ inline namespace kernel
 
   auto environment::notate(const_reference variable, const_reference syntactic_environment) -> object
   {
-    if (not is_renamable(variable))
+    if (not is_identifier(variable))
     {
       return f;
     }
-    if (let const& binding = std::as_const(*this).notate(variable, syntactic_environment); select(binding))
+    if (let const& notation = std::as_const(*this).notate(variable, syntactic_environment); select(notation))
     {
-      return binding;
+      return notation;
     }
     else /* --------------------------------------------------------------------
     *
