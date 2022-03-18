@@ -34,7 +34,7 @@ inline namespace kernel
   {
     assert(is_identifier(name));
 
-    global() = make<absolute>(name, value) | global();
+    global_environment() = make<absolute>(name, value) | global_environment();
   }
 
   auto environment::define(std::string const& name, const_reference value) -> void
@@ -89,12 +89,12 @@ inline namespace kernel
     return execute();
   }
 
-  auto environment::global() const noexcept -> const_reference
+  auto environment::global_environment() const noexcept -> const_reference
   {
     return second;
   }
 
-  auto environment::global() noexcept -> reference
+  auto environment::global_environment() noexcept -> reference
   {
     return second;
   }
@@ -153,7 +153,7 @@ inline namespace kernel
     }
     else
     {
-      return assq(variable, global());
+      return assq(variable, global_environment());
     }
   }
 

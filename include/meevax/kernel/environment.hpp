@@ -105,9 +105,9 @@ inline namespace kernel
 
       assert(result.as<absolute>().is_free());
 
-      global() = cons(result, global());
+      global_environment() = cons(result, global_environment());
 
-      return car(global());
+      return car(global_environment());
     }
 
     auto generate_free_identifier(const_reference x) -> object
@@ -115,9 +115,9 @@ inline namespace kernel
       return make<syntactic_closure>(reserve(x), e);
     }
 
-    auto global() noexcept -> reference;
+    auto global_environment() noexcept -> reference;
 
-    auto global() const noexcept -> const_reference;
+    auto global_environment() const noexcept -> const_reference;
 
     template <typename T, T... xs>
     auto import(std::integer_sequence<T, xs...>) -> void;
