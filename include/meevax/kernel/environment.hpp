@@ -95,7 +95,7 @@ inline namespace kernel
              renamed_y.is_also<absolute>() and renamed_y.as<absolute>().is_free() and eq(renamed_x, renamed_y);
     }
 
-    auto generate_free_identifier(const_reference x) -> object
+    auto reserve(const_reference x) -> const_reference
     {
       assert(is_renamable(x));
 
@@ -105,7 +105,14 @@ inline namespace kernel
 
       assert(result.as<absolute>().is_free());
 
-      return result;
+      global() = cons(result, global());
+
+      return car(global());
+    }
+
+    auto generate_free_identifier(const_reference x) -> object
+    {
+      return make<syntactic_closure>(reserve(x), global());
     }
 
     auto global() noexcept -> reference;

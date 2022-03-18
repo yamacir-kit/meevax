@@ -184,7 +184,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return car(global() = cons(generate_free_identifier(variable), global()));
+      return reserve(variable);
     }
   }
 
