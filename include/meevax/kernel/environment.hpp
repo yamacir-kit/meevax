@@ -79,8 +79,8 @@ inline namespace kernel
 
     auto is_same_bound_identifier(const_reference x, const_reference y) const -> bool
     {
-      let const& renamed_x = x.is<symbol>() ? rename(x, local()) : x;
-      let const& renamed_y = y.is<symbol>() ? rename(y, local()) : y;
+      let const& renamed_x = x.is<symbol>() ? rename(x, syntactic_environment()) : x;
+      let const& renamed_y = y.is<symbol>() ? rename(y, syntactic_environment()) : y;
 
       return renamed_x.is_also<absolute>() and renamed_x.as<absolute>().is_bound() and
              renamed_y.is_also<absolute>() and renamed_y.as<absolute>().is_bound() and eq(renamed_x, renamed_y);
@@ -88,8 +88,8 @@ inline namespace kernel
 
     auto is_same_free_identifier(const_reference x, const_reference y) -> bool
     {
-      let const& renamed_x = x.is<symbol>() ? rename(x, local()) : x;
-      let const& renamed_y = y.is<symbol>() ? rename(y, local()) : y;
+      let const& renamed_x = x.is<symbol>() ? rename(x, syntactic_environment()) : x;
+      let const& renamed_y = y.is<symbol>() ? rename(y, syntactic_environment()) : y;
 
       return renamed_x.is_also<absolute>() and renamed_x.as<absolute>().is_free() and
              renamed_y.is_also<absolute>() and renamed_y.as<absolute>().is_free() and eq(renamed_x, renamed_y);
@@ -128,9 +128,9 @@ inline namespace kernel
 
     auto load(std::string const&) -> object;
 
-    auto local() const noexcept -> const_reference;
+    auto syntactic_environment() const noexcept -> const_reference;
 
-    auto local() noexcept -> reference;
+    auto syntactic_environment() noexcept -> reference;
 
     auto notate(const_reference, const_reference) -> object;
 

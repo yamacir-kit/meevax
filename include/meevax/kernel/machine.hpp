@@ -40,7 +40,7 @@ inline namespace kernel
     {}
 
     IMPORT(environment, global, const);
-    IMPORT(environment, local, );
+    IMPORT(environment, syntactic_environment, );
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -361,7 +361,7 @@ inline namespace kernel
         *  s e (%fork c1 . c2) d => (<transformer> . s) e c2 d
         *
         * ------------------------------------------------------------------- */
-        s = cons(make<transformer>(local(), global()), s);
+        s = cons(make<transformer>(syntactic_environment(), global()), s);
         car(s).template as<transformer>().build(static_cast<environment const&>(*this));
         c = cddr(c);
         goto decode;

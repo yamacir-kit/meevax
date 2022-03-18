@@ -1916,7 +1916,7 @@ namespace meevax
 
     define<procedure>("identifier?", [](let const& xs, auto&&)
     {
-      return is_renamable(car(xs)) ? t : f;
+      return is_identifier(car(xs)) ? t : f;
     });
 
     /* -------------------------------------------------------------------------

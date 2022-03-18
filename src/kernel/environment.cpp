@@ -22,7 +22,7 @@ inline namespace kernel
 {
   auto environment::operator [](const_reference name) -> const_reference
   {
-    return notate(name, local()).as<absolute>().strip();
+    return notate(name, syntactic_environment()).as<absolute>().strip();
   }
 
   auto environment::operator [](std::string const& name) -> const_reference
@@ -53,7 +53,7 @@ inline namespace kernel
   * ------------------------------------------------------------------------- */
   {
     d = cons(s, e, c, d);
-    c = compile(context::none, *this, expression, local());
+    c = compile(context::none, *this, expression, syntactic_environment());
     e = unit;
     s = unit;
 
@@ -131,12 +131,12 @@ inline namespace kernel
     }
   }
 
-  auto environment::local() const noexcept -> const_reference
+  auto environment::syntactic_environment() const noexcept -> const_reference
   {
     return first;
   }
 
-  auto environment::local() noexcept -> reference
+  auto environment::syntactic_environment() noexcept -> reference
   {
     return first;
   }
