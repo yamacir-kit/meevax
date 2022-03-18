@@ -29,12 +29,13 @@ inline namespace kernel
 
     auto symbol() const -> const_reference
     {
-      assert(first.is<notation>());
+      assert(first.is_also<notation>());
       return first.as<notation>().symbol();
     }
 
     auto strip()
     {
+      assert(first.is_also<notation>());
       return first.as<notation>().strip(second);
     }
 
@@ -45,6 +46,7 @@ inline namespace kernel
 
     auto is_free() const -> bool
     {
+      assert(first.is_also<notation>());
       return first.is<absolute>() and first.as<absolute>().is_free();
     }
   };

@@ -30,14 +30,16 @@ inline namespace kernel
   {
     using pair::pair;
 
+    virtual auto make_load_instruction() const -> object = 0;
+
+    virtual auto make_store_instruction() const -> object = 0;
+
     virtual auto strip(const_reference) const -> const_reference = 0;
 
     virtual auto strip(const_reference e) -> reference
     {
       return const_cast<reference>(std::as_const(*this).strip(e));
     }
-
-    virtual auto mnemonic() const -> mnemonic = 0;
 
     virtual auto symbol() const -> const_reference
     {
@@ -50,26 +52,6 @@ inline namespace kernel
   {
     using notation::notation;
 
-    auto strip(const_reference) const -> const_reference override
-    {
-      return second;
-    }
-
-    auto mnemonic() const -> meevax::mnemonic override
-    {
-      return mnemonic::load_absolute;
-    }
-
-    auto binding() -> reference
-    {
-      return second;
-    }
-
-    auto binding() const -> const_reference
-    {
-      return second;
-    }
-
     auto is_bound() const -> bool
     {
       return not is_free();
@@ -78,7 +60,27 @@ inline namespace kernel
     auto is_free() const -> bool
     {
       // NOTE: See environment::generate_free_identifier
-      return binding().is<absolute>() and std::addressof(binding().as<absolute>()) == this;
+      return strip().is<absolute>() and std::addressof(strip().as<absolute>()) == this;
+    }
+
+    auto make_load_instruction() const -> object override
+    {
+      return make<instruction>(mnemonic::load_absolute);
+    }
+
+    auto make_store_instruction() const -> object override
+    {
+      return make<instruction>(mnemonic::store_absolute);
+    }
+
+    auto strip(const_reference = unit) const -> const_reference override
+    {
+      return second;
+    }
+
+    auto strip(const_reference = unit) -> reference override
+    {
+      return second;
     }
   };
 
@@ -87,28 +89,23 @@ inline namespace kernel
     using absolute::absolute;
   };
 
-  struct relative : public notation // de_bruijn_index
+  struct relative : public notation // (<symbol> . <de Bruijn index>)
   {
     using notation::notation;
 
+    auto make_load_instruction() const -> object override
+    {
+      return make<instruction>(mnemonic::load_relative);
+    }
+
+    auto make_store_instruction() const -> object override
+    {
+      return make<instruction>(mnemonic::store_relative);
+    }
+
     auto strip(const_reference e) const -> const_reference override
     {
-      return list_ref(list_ref(e, m()), n());
-    }
-
-    auto mnemonic() const -> meevax::mnemonic override
-    {
-      return mnemonic::load_relative;
-    }
-
-    auto m() const -> const_reference
-    {
-      return car(second);
-    }
-
-    auto n() const -> const_reference
-    {
-      return cdr(second);
+      return list_ref(list_ref(e, car(second)), cdr(second));
     }
   };
 
@@ -116,14 +113,19 @@ inline namespace kernel
   {
     using relative::relative;
 
-    auto strip(const_reference e) const -> const_reference override
+    auto make_load_instruction() const -> object override
     {
-      return list_tail(list_ref(e, m()), n());
+      return make<instruction>(mnemonic::load_variadic);
     }
 
-    auto mnemonic() const -> meevax::mnemonic override
+    auto make_store_instruction() const -> object override
     {
-      return mnemonic::load_variadic;
+      return make<instruction>(mnemonic::store_variadic);
+    }
+
+    auto strip(const_reference e) const -> const_reference override
+    {
+      return list_tail(list_ref(e, car(second)), cdr(second));
     }
   };
 } // namespace kernel

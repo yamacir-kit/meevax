@@ -22,7 +22,7 @@ inline namespace kernel
 {
   auto environment::operator [](const_reference name) -> const_reference
   {
-    return notate(name, local()).as<absolute>().binding();
+    return notate(name, local()).as<absolute>().strip();
   }
 
   auto environment::operator [](std::string const& name) -> const_reference

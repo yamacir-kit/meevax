@@ -193,7 +193,7 @@ inline namespace kernel
         {
           let const& n = current_environment.notate(expression, frames);
 
-          return cons(make<instruction>(n.as<notation>().mnemonic()), n,
+          return cons(n.as<notation>().make_load_instruction(), n,
                       current_continuation);
         }
         else // is <self-evaluating>
@@ -204,15 +204,15 @@ inline namespace kernel
       }
       else if (let const& notation = std::as_const(current_environment).notate(car(expression), frames); notation.is<keyword>())
       {
-        assert(notation.as<keyword>().binding().is<transformer>());
+        assert(notation.as<keyword>().strip().is<transformer>());
 
         return compile(context::none,
                        current_environment,
-                       notation.as<keyword>().binding().as<transformer>().macroexpand(notation.as<keyword>().binding(), cdr(expression)),
+                       notation.as<keyword>().strip().as<transformer>().macroexpand(notation.as<keyword>().strip(), cdr(expression)),
                        frames,
                        current_continuation);
       }
-      else if (let const& applicant = notation.is<absolute>() ? notation.as<absolute>().binding() : car(expression); applicant.is_also<syntax>())
+      else if (let const& applicant = notation.is<absolute>() ? notation.as<absolute>().strip() : car(expression); applicant.is_also<syntax>())
       {
         return applicant.as<syntax>().transform(current_context,
                                                 current_environment,
@@ -296,7 +296,7 @@ inline namespace kernel
         *
         *  s e (%load-absolute <absolute notation> . c) d => (x . s) e c d
         *
-        *  where <absolute> = (<symbol> . <object>)
+        *  where <absolute notation> = (<symbol> . x)
         *
         * ------------------------------------------------------------------- */
         [[fallthrough]];
@@ -307,7 +307,7 @@ inline namespace kernel
         *
         *  where <relative notation> = (<symbol> i . j)
         *
-        *        x = (list-ref (list-ref E i) j)
+        *        x = (list-ref (list-ref e i) j)
         *
         * ------------------------------------------------------------------- */
         [[fallthrough]];
@@ -318,7 +318,7 @@ inline namespace kernel
         *
         *  where <variadic notation> = (<symbol> i . j)
         *
-        *        x = (list-tail (list-ref E i) j)
+        *        x = (list-tail (list-ref e i) j)
         *
         * ------------------------------------------------------------------- */
         s = cons(cadr(c).template as<notation>().strip(e), s);
@@ -405,7 +405,7 @@ inline namespace kernel
         *  where <notation> = (<symbol> . x := x')
         *
         * ------------------------------------------------------------------- */
-        cadr(c).template as<absolute>().binding() = car(s);
+        cadr(c).template as<absolute>().strip() = car(s);
         c = cddr(c);
         goto decode;
 
@@ -432,7 +432,7 @@ inline namespace kernel
             // PRINT(keyword_);
             // PRINT(keyword_.is<keyword>());
 
-            let & binding = keyword_.as<keyword>().binding();
+            let & binding = keyword_.as<keyword>().strip();
 
             binding = environment(static_cast<environment const&>(*this)).execute(binding);
 
@@ -621,37 +621,26 @@ inline namespace kernel
 
       case mnemonic::store_absolute: /* ----------------------------------------
         *
-        *  (x . s) e (%store-absolute <notation> . c) d => (x' . s) e c d
+        *  (x' . s) e (%store-absolute <absolute notation> . c) d => (x' . s) e c d
         *
-        *  where <notation> = (<symbol> . x')
+        *  where <absolute notation> = (<symbol> . x:=x')
         *
         * ------------------------------------------------------------------- */
-        if (let const& binding = cadr(c); cdr(binding).is<null>())
-        {
-          cdr(binding) = car(s);
-        }
-        else
-        {
-          cdr(binding) = car(s);
-        }
-        c = cddr(c);
-        goto decode;
+        [[fallthrough]];
 
       case mnemonic::store_relative: /* ----------------------------------------
         *
-        *  (x . s) e (%store-relative (i . j) . c) d => (x' . s) e c d
+        *  (x . s) e (%store-relative <relative notation> . c) d => (x' . s) e c d
         *
         * ------------------------------------------------------------------- */
-        car(list_tail(list_ref(e, caadr(c)), cdadr(c))) = car(s);
-        c = cddr(c);
-        goto decode;
+        [[fallthrough]];
 
       case mnemonic::store_variadic: /* ----------------------------------------
         *
-        *  (x . s) e (%store-variadic (i . j) . c) d => (x' . s) e c d
+        *  (x . s) e (%store-variadic <variadic notation> . c) d => (x' . s) e c d
         *
         * ------------------------------------------------------------------- */
-        cdr(list_tail(list_ref(e, caadr(c)), cdadr(c))) = car(s);
+        cadr(c).template as<notation>().strip(e) = car(s);
         c = cddr(c);
         goto decode;
 
@@ -686,29 +675,14 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (expression.is<null>())
-      {
-        throw syntax_error(make<string>("set!"), expression);
-      }
-      else if (let const& notation = current_environment.notate(car(expression), frames); notation.is<absolute>())
-      {
-        return compile(context::none,
-                       current_environment,
-                       cadr(expression),
-                       frames,
-                       cons(make<instruction>(mnemonic::store_absolute), notation,
-                            current_continuation));
-      }
-      else
-      {
-        return compile(context::none,
-                       current_environment,
-                       cadr(expression),
-                       frames,
-                       cons(notation.is<relative>() ? make<instruction>(mnemonic::store_relative)
-                                                    : make<instruction>(mnemonic::store_variadic), cdr(notation), // De Bruijn index
-                            current_continuation));
-      }
+      let const& notation = current_environment.notate(car(expression), frames);
+
+      return compile(context::none,
+                     current_environment,
+                     cadr(expression),
+                     frames,
+                     cons(notation.as<meevax::notation>().make_store_instruction(), notation,
+                          current_continuation));
     }
 
     static SYNTAX(body)
@@ -719,7 +693,7 @@ inline namespace kernel
         {
           if (let const& notation = std::as_const(current_environment).notate(car(form), frames); notation.is<absolute>())
           {
-            if (let const& callee = notation.as<absolute>().binding(); callee.is<syntax>())
+            if (let const& callee = notation.as<absolute>().strip(); callee.is<syntax>())
             {
               return callee.as<syntax>().name == "define";
             }
@@ -1243,7 +1217,7 @@ inline namespace kernel
     {
       // if (car(expression).is_also<identifier>())
       // {
-      //   return cons(make<instruction>(car(expression).as<identifier>().mnemonic()), car(expression),
+      //   return cons(car(expression).as<identifier>().make_load_instruction(), car(expression),
       //               current_continuation);
       // }
       // else

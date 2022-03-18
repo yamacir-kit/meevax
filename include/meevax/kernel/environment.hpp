@@ -101,7 +101,7 @@ inline namespace kernel
 
       let const result = make<absolute>(x);
 
-      result.as<absolute>().binding() = result; // NOTE: Identifier is self-evaluate if is free-identifier.
+      result.as<absolute>().strip() = result; // NOTE: Identifier is self-evaluate if is free-identifier.
 
       assert(result.as<absolute>().is_free());
 
