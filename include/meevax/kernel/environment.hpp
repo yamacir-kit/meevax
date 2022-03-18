@@ -61,14 +61,14 @@ inline namespace kernel
 
     auto operator [](std::string const&) -> const_reference;
 
-    auto define(const_reference, const_reference) -> const_reference;
+    auto define(const_reference, const_reference) -> void;
 
-    auto define(std::string const&, const_reference) -> const_reference;
+    auto define(std::string const&, const_reference) -> void;
 
     template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs) -> const_reference
+    auto define(std::string const& name, Ts&&... xs) -> void
     {
-      return define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
+      define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
     auto evaluate(const_reference) -> object;
@@ -112,7 +112,7 @@ inline namespace kernel
 
     auto generate_free_identifier(const_reference x) -> object
     {
-      return make<syntactic_closure>(reserve(x), global());
+      return make<syntactic_closure>(reserve(x), e);
     }
 
     auto global() noexcept -> reference;

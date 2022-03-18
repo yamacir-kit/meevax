@@ -30,16 +30,16 @@ inline namespace kernel
     return (*this)[intern(name)];
   }
 
-  auto environment::define(const_reference name, const_reference value) -> const_reference
+  auto environment::define(const_reference name, const_reference value) -> void
   {
     assert(name.is<symbol>());
 
-    return global() = make<absolute>(name, value) | global();
+    global() = make<absolute>(name, value) | global();
   }
 
-  auto environment::define(std::string const& name, const_reference value) -> const_reference
+  auto environment::define(std::string const& name, const_reference value) -> void
   {
-    return define(intern(name), value);
+    define(intern(name), value);
   }
 
   auto environment::evaluate(const_reference expression) -> object /* ----------
