@@ -141,13 +141,13 @@ inline namespace kernel
     return first;
   }
 
-  auto environment::notate(const_reference variable, const_reference frames) const -> object
+  auto environment::notate(const_reference variable, const_reference syntactic_environment) const -> object
   {
     if (not is_renamable(variable))
     {
       return f;
     }
-    else if (let const& identifier = meevax::notate(variable, frames); select(identifier))
+    else if (let const& identifier = meevax::notate(variable, syntactic_environment); select(identifier))
     {
       return identifier;
     }
@@ -157,13 +157,13 @@ inline namespace kernel
     }
   }
 
-  auto environment::notate(const_reference variable, const_reference frames) -> object
+  auto environment::notate(const_reference variable, const_reference syntactic_environment) -> object
   {
     if (not is_renamable(variable))
     {
       return f;
     }
-    if (let const& binding = std::as_const(*this).notate(variable, frames); select(binding))
+    if (let const& binding = std::as_const(*this).notate(variable, syntactic_environment); select(binding))
     {
       return binding;
     }

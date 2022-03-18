@@ -22,9 +22,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto notate(const_reference variable, const_reference frames) -> object
+  auto notate(const_reference variable, const_reference syntactic_environment) -> object
   {
-    for (auto outer = std::begin(frames); outer != std::end(frames); ++outer)
+    for (auto outer = std::begin(syntactic_environment); outer != std::end(syntactic_environment); ++outer)
     {
       for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
       {
@@ -35,13 +35,13 @@ inline namespace kernel
         else if (inner.is<pair>() and eq(*inner, variable))
         {
           return make<relative>(variable,
-                                cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
+                                cons(make<exact_integer>(std::distance(std::begin(syntactic_environment), outer)),
                                      make<exact_integer>(std::distance(std::begin(*outer), inner))));
         }
         else if (inner.is<symbol>() and eq(inner, variable))
         {
           return make<variadic>(variable,
-                                cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
+                                cons(make<exact_integer>(std::distance(std::begin(syntactic_environment), outer)),
                                      make<exact_integer>(std::distance(std::begin(*outer), inner))));
         }
       }

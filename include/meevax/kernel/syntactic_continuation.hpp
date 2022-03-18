@@ -32,7 +32,7 @@ inline namespace kernel
       return first;
     }
 
-    auto frames() const -> const_reference
+    auto syntactic_environment() const -> const_reference
     {
       return second;
     }
