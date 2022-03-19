@@ -163,11 +163,11 @@ inline namespace kernel
     static auto compile(
       context const current_context,
       environment & current_environment,
-      const_reference expression,
+      const_reference current_expression,
       const_reference current_syntactic_environment = unit,
       const_reference current_continuation = list(make<instruction>(mnemonic::stop))) -> object
     {
-      if (expression.is<null>()) /* --------------------------------------------
+      if (current_expression.is<null>()) /* ------------------------------------
       *
       *  (<operator> <operand 1> ...)                                    syntax
       *
@@ -178,7 +178,7 @@ inline namespace kernel
       {
         return cons(make<instruction>(mnemonic::load_constant), unit, current_continuation);
       }
-      else if (not expression.is<pair>()) /* -----------------------------------
+      else if (not current_expression.is<pair>()) /* -----------------------------------
       *
       *  <variable>                                                      syntax
       *
@@ -189,34 +189,35 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        if (expression.is<symbol>() or expression.is_also<absolute>())
+        if (current_expression.is<symbol>() or current_expression.is_also<absolute>())
         {
-          let const& n = current_environment.notate(expression, current_syntactic_environment);
+          let const& n = current_environment.notate(current_expression,
+                                                    current_syntactic_environment);
 
           return cons(n.as<notation>().make_load_instruction(), n,
                       current_continuation);
         }
         else // is <self-evaluating>
         {
-          return cons(make<instruction>(mnemonic::load_constant), expression,
+          return cons(make<instruction>(mnemonic::load_constant), current_expression,
                       current_continuation);
         }
       }
-      else if (let const& notation = std::as_const(current_environment).notate(car(expression), current_syntactic_environment); notation.is<keyword>())
+      else if (let const& notation = std::as_const(current_environment).notate(car(current_expression), current_syntactic_environment); notation.is<keyword>())
       {
         assert(notation.as<keyword>().strip().is<transformer>());
 
         return compile(context::none,
                        current_environment,
-                       notation.as<keyword>().strip().as<transformer>().macroexpand(notation.as<keyword>().strip(), cdr(expression)),
+                       notation.as<keyword>().strip().as<transformer>().macroexpand(notation.as<keyword>().strip(), cdr(current_expression)),
                        current_syntactic_environment,
                        current_continuation);
       }
-      else if (let const& applicant = notation.is<absolute>() ? notation.as<absolute>().strip() : car(expression); applicant.is_also<syntax>())
+      else if (let const& applicant = notation.is<absolute>() ? notation.as<absolute>().strip() : car(current_expression); applicant.is_also<syntax>())
       {
         return applicant.as<syntax>().transform(current_context,
                                                 current_environment,
-                                                cdr(expression),
+                                                cdr(current_expression),
                                                 current_syntactic_environment,
                                                 current_continuation);
       }
@@ -224,7 +225,7 @@ inline namespace kernel
       {
         return compile(context::none,
                        current_environment,
-                       applicant.as<transformer>().macroexpand(applicant, cdr(expression)),
+                       applicant.as<transformer>().macroexpand(applicant, cdr(current_expression)),
                        current_syntactic_environment,
                        current_continuation);
       }
@@ -267,11 +268,11 @@ inline namespace kernel
       {
         return operand(context::none,
                        current_environment,
-                       cdr(expression),
+                       cdr(current_expression),
                        current_syntactic_environment,
                        compile(context::none,
                                current_environment,
-                               car(expression),
+                               car(current_expression),
                                current_syntactic_environment,
                                cons(make<instruction>(current_context & context::tail ? mnemonic::tail_call : mnemonic::call),
                                     current_continuation)));
@@ -675,11 +676,11 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      let const& notation = current_environment.notate(car(expression), current_syntactic_environment);
+      let const& notation = current_environment.notate(car(current_expression), current_syntactic_environment);
 
       return compile(context::none,
                      current_environment,
-                     cadr(expression),
+                     cadr(current_expression),
                      current_syntactic_environment,
                      cons(notation.as<meevax::notation>().make_store_instruction(), notation,
                           current_continuation));
@@ -736,15 +737,15 @@ inline namespace kernel
 
          where <body> = <definition>* <expression>* <tail expression>
       */
-      if (cdr(expression).is<null>()) // is tail-sequence
+      if (cdr(current_expression).is<null>()) // is tail-sequence
       {
         return compile(current_context | context::tail,
                        current_environment,
-                       car(expression),
+                       car(current_expression),
                        current_syntactic_environment,
                        current_continuation);
       }
-      else if (auto const& [binding_specs, body] = sweep(expression); binding_specs)
+      else if (auto const& [binding_specs, body] = sweep(current_expression); binding_specs)
       {
         /*
            (letrec* <binding specs> <body>)
@@ -766,12 +767,12 @@ inline namespace kernel
       {
         return compile(current_context,
                        current_environment,
-                       car(expression),
+                       car(current_expression),
                        current_syntactic_environment,
                        cons(make<instruction>(mnemonic::drop),
                             begin(current_context,
                                   current_environment,
-                                  cdr(expression),
+                                  cdr(current_expression),
                                   current_syntactic_environment,
                                   current_continuation)));
       }
@@ -788,7 +789,7 @@ inline namespace kernel
                   current_continuation,
                   compile(current_context,
                           current_environment,
-                          car(expression),
+                          car(current_expression),
                           current_syntactic_environment,
                           cons(make<instruction>(mnemonic::call),
                                current_continuation)));
@@ -815,15 +816,15 @@ inline namespace kernel
         auto consequent =
           compile(context::tail,
                   current_environment,
-                  cadr(expression),
+                  cadr(current_expression),
                   current_syntactic_environment,
                   list(make<instruction>(mnemonic::return_)));
 
         auto alternate =
-          cddr(expression)
+          cddr(current_expression)
             ? compile(context::tail,
                       current_environment,
-                      caddr(expression),
+                      caddr(current_expression),
                       current_syntactic_environment,
                       list(make<instruction>(mnemonic::return_)))
             : list(make<instruction>(mnemonic::load_constant), unspecified_object,
@@ -831,7 +832,7 @@ inline namespace kernel
 
         return compile(context::none,
                        current_environment,
-                       car(expression), // <test>
+                       car(current_expression), // <test>
                        current_syntactic_environment,
                        cons(make<instruction>(mnemonic::tail_select), consequent, alternate,
                             cdr(current_continuation)));
@@ -841,15 +842,15 @@ inline namespace kernel
         auto consequent =
           compile(context::none,
                   current_environment,
-                  cadr(expression),
+                  cadr(current_expression),
                   current_syntactic_environment,
                   list(make<instruction>(mnemonic::join)));
 
         auto alternate =
-          cddr(expression)
+          cddr(current_expression)
             ? compile(context::none,
                       current_environment,
-                      caddr(expression),
+                      caddr(current_expression),
                       current_syntactic_environment,
                       list(make<instruction>(mnemonic::join)))
             : list(make<instruction>(mnemonic::load_constant), unspecified_object,
@@ -857,7 +858,7 @@ inline namespace kernel
 
         return compile(context::none,
                        current_environment,
-                       car(expression), // <test>
+                       car(current_expression), // <test>
                        current_syntactic_environment,
                        cons(make<instruction>(mnemonic::select), consequent, alternate,
                             current_continuation));
@@ -868,11 +869,11 @@ inline namespace kernel
     {
       return compile(context::none,
                      current_environment,
-                     cadr(expression),
+                     cadr(current_expression),
                      current_syntactic_environment,
                      compile(context::none,
                              current_environment,
-                             car(expression),
+                             car(current_expression),
                              current_syntactic_environment,
                              cons(make<instruction>(mnemonic::cons), current_continuation)));
     }
@@ -904,22 +905,22 @@ inline namespace kernel
     {
       if (current_syntactic_environment.is<null>() or (current_context & context::outermost))
       {
-        if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
+        if (car(current_expression).is<pair>()) // (define (f . <formals>) <body>)
         {
           return compile(context::none,
                          current_environment,
-                         cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
+                         cons(make<syntax>("lambda", lambda), cdar(current_expression), cdr(current_expression)),
                          current_syntactic_environment,
-                         cons(make<instruction>(mnemonic::define), current_environment.notate(caar(expression), current_syntactic_environment),
+                         cons(make<instruction>(mnemonic::define), current_environment.notate(caar(current_expression), current_syntactic_environment),
                               current_continuation));
         }
         else // (define x ...)
         {
           return compile(context::none,
                          current_environment,
-                         cdr(expression) ? cadr(expression) : unspecified_object,
+                         cdr(current_expression) ? cadr(current_expression) : unspecified_object,
                          current_syntactic_environment,
-                         cons(make<instruction>(mnemonic::define), current_environment.notate(car(expression), current_syntactic_environment),
+                         cons(make<instruction>(mnemonic::define), current_environment.notate(car(current_expression), current_syntactic_environment),
                               current_continuation));
         }
       }
@@ -985,23 +986,23 @@ inline namespace kernel
     {
       // if (current_syntactic_environment.is<null>() or (current_context & context::outermost))
       // {
-      //   if (car(expression).is<pair>()) // (define-syntax (<keyword> . <formals>) <body>)
+      //   if (car(current_expression).is<pair>()) // (define-syntax (<keyword> . <formals>) <body>)
       //   {
       //     return compile(context::none,
       //                    current_environment,
       //                    list(make<syntax>("fork/csc", fork_csc),
-      //                         cons(make<syntax>("lambda", lambda), expression)),
+      //                         cons(make<syntax>("lambda", lambda), current_expression)),
       //                    current_syntactic_environment,
-      //                    cons(make<instruction>(mnemonic::define_syntax), cons(current_syntactic_environment, current_environment.notate(caar(expression))),
+      //                    cons(make<instruction>(mnemonic::define_syntax), cons(current_syntactic_environment, current_environment.notate(caar(current_expression))),
       //                         current_continuation));
       //   }
       //   else // (define-syntax x ...)
       //   {
       //     return compile(context::none,
       //                    current_environment,
-      //                    cdr(expression) ? cadr(expression) : throw syntax_error(make<string>("define-syntax: no <transformer sprc> specified")),
+      //                    cdr(current_expression) ? cadr(current_expression) : throw syntax_error(make<string>("define-syntax: no <transformer sprc> specified")),
       //                    current_syntactic_environment,
-      //                    cons(make<instruction>(mnemonic::define_syntax), cons(current_syntactic_environment, current_environment.notate(car(expression))),
+      //                    cons(make<instruction>(mnemonic::define_syntax), cons(current_syntactic_environment, current_environment.notate(car(current_expression))),
       //                         current_continuation));
       //   }
       // }
@@ -1010,13 +1011,13 @@ inline namespace kernel
       //   throw syntax_error(make<string>("definition cannot appear in this syntactic-context"));
       // }
 
-      if (car(expression).is<pair>()) // (define-syntax (<keyword> . xs) <body>)
+      if (car(current_expression).is<pair>()) // (define-syntax (<keyword> . xs) <body>)
       {
         return define(current_context,
                       current_environment,
-                      list(caar(expression),
+                      list(caar(current_expression),
                            list(make<syntax>("fork/csc", fork_csc),
-                                cons(make<syntax>("lambda", lambda), expression)
+                                cons(make<syntax>("lambda", lambda), current_expression)
                                )
                         ),
                       current_syntactic_environment,
@@ -1026,7 +1027,7 @@ inline namespace kernel
       {
         return define(current_context,
                       current_environment,
-                      expression,
+                      current_expression,
                       current_syntactic_environment,
                       current_continuation);
       }
@@ -1043,7 +1044,7 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       return cons(make<instruction>(mnemonic::fork),
-                  make<syntactic_continuation>(car(expression), current_syntactic_environment),
+                  make<syntactic_continuation>(car(current_expression), current_syntactic_environment),
                   current_continuation);
     }
 
@@ -1074,8 +1075,8 @@ inline namespace kernel
       return cons(make<instruction>(mnemonic::load_closure),
                   body(current_context,
                        current_environment,
-                       cdr(expression),
-                       cons(car(expression), current_syntactic_environment), // Extend lexical environment.
+                       cdr(current_expression),
+                       cons(car(current_expression), current_syntactic_environment), // Extend lexical environment.
                        list(make<instruction>(mnemonic::return_))),
                   current_continuation);
     }
@@ -1109,7 +1110,7 @@ inline namespace kernel
                                      current_syntactic_environment));
       };
 
-      auto const [bindings, body]  = unpair(expression);
+      auto const [bindings, body]  = unpair(current_expression);
 
       return cons(make<instruction>(mnemonic::let_syntax),
                   make<syntactic_continuation>(body, cons(map(make_keyword, bindings), current_syntactic_environment)),
@@ -1133,7 +1134,7 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       return cons(make<instruction>(mnemonic::letrec_syntax),
-                  make<syntactic_continuation>(expression, current_syntactic_environment),
+                  make<syntactic_continuation>(current_expression, current_syntactic_environment),
                   current_continuation);
     }
 
@@ -1179,7 +1180,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      auto const& [variables, inits] = unzip2(car(expression));
+      auto const& [variables, inits] = unzip2(car(current_expression));
 
       return cons(make<instruction>(mnemonic::dummy),
                   operand(context::none,
@@ -1188,7 +1189,7 @@ inline namespace kernel
                           cons(variables, current_syntactic_environment),
                           lambda(context::none,
                                  current_environment,
-                                 cons(variables, cdr(expression)), // (<formals> <body>)
+                                 cons(variables, cdr(current_expression)), // (<formals> <body>)
                                  current_syntactic_environment,
                                  cons(make<instruction>(mnemonic::letrec),
                                       current_continuation))));
@@ -1215,35 +1216,35 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      // if (car(expression).is_also<identifier>())
+      // if (car(current_expression).is_also<identifier>())
       // {
-      //   return cons(car(expression).as<identifier>().make_load_instruction(), car(expression),
+      //   return cons(car(current_expression).as<identifier>().make_load_instruction(), car(current_expression),
       //               current_continuation);
       // }
       // else
       // {
-        return cons(make<instruction>(mnemonic::load_constant), car(expression),
+        return cons(make<instruction>(mnemonic::load_constant), car(current_expression),
                     current_continuation);
       // }
     }
 
     static SYNTAX(quote_syntax)
     {
-      return cons(make<instruction>(mnemonic::load_constant), car(expression),
+      return cons(make<instruction>(mnemonic::load_constant), car(current_expression),
                   current_continuation);
     }
 
     static SYNTAX(operand)
     {
-      if (expression.is<pair>())
+      if (current_expression.is<pair>())
       {
         return operand(context::none,
                        current_environment,
-                       cdr(expression),
+                       cdr(current_expression),
                        current_syntactic_environment,
                        compile(context::none,
                                current_environment,
-                               car(expression),
+                               car(current_expression),
                                current_syntactic_environment,
                                cons(make<instruction>(mnemonic::cons),
                                     current_continuation)));
@@ -1252,7 +1253,7 @@ inline namespace kernel
       {
         return compile(context::none,
                        current_environment,
-                       expression,
+                       current_expression,
                        current_syntactic_environment,
                        current_continuation);
       }
@@ -1286,11 +1287,11 @@ inline namespace kernel
     {
       if (current_context & context::outermost)
       {
-        if (cdr(expression).is<null>())
+        if (cdr(current_expression).is<null>())
         {
           return compile(current_context,
                          current_environment,
-                         car(expression),
+                         car(current_expression),
                          current_syntactic_environment,
                          current_continuation);
         }
@@ -1298,23 +1299,23 @@ inline namespace kernel
         {
           return compile(context::outermost,
                          current_environment,
-                         car(expression),
+                         car(current_expression),
                          current_syntactic_environment,
                          cons(make<instruction>(mnemonic::drop),
                               begin(context::outermost,
                                     current_environment,
-                                    cdr(expression),
+                                    cdr(current_expression),
                                     current_syntactic_environment,
                                     current_continuation)));
         }
       }
       else
       {
-        if (cdr(expression).is<null>()) // is tail sequence
+        if (cdr(current_expression).is<null>()) // is tail sequence
         {
           return compile(current_context,
                          current_environment,
-                         car(expression),
+                         car(current_expression),
                          current_syntactic_environment,
                          current_continuation);
         }
@@ -1322,12 +1323,12 @@ inline namespace kernel
         {
           return compile(context::none,
                          current_environment,
-                         car(expression), // head expression
+                         car(current_expression), // head expression
                          current_syntactic_environment,
                          cons(make<instruction>(mnemonic::drop), // pop result of head expression
                               begin(context::none,
                                     current_environment,
-                                    cdr(expression), // rest expressions
+                                    cdr(current_expression), // rest expressions
                                     current_syntactic_environment,
                                     current_continuation)));
         }
