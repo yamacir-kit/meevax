@@ -79,8 +79,8 @@ inline namespace kernel
 
     auto is_same_bound_identifier(const_reference x, const_reference y) const -> bool
     {
-      let const& renamed_x = x.is<symbol>() ? rename(x, syntactic_environment()) : x;
-      let const& renamed_y = y.is<symbol>() ? rename(y, syntactic_environment()) : y;
+      let const& renamed_x = x.is<symbol>() ? notate(x, syntactic_environment()) : x;
+      let const& renamed_y = y.is<symbol>() ? notate(y, syntactic_environment()) : y;
 
       return renamed_x.is_also<absolute>() and renamed_x.as<absolute>().is_bound() and
              renamed_y.is_also<absolute>() and renamed_y.as<absolute>().is_bound() and eq(renamed_x, renamed_y);
@@ -88,8 +88,8 @@ inline namespace kernel
 
     auto is_same_free_identifier(const_reference x, const_reference y) -> bool
     {
-      let const& renamed_x = x.is<symbol>() ? rename(x, syntactic_environment()) : x;
-      let const& renamed_y = y.is<symbol>() ? rename(y, syntactic_environment()) : y;
+      let const& renamed_x = x.is<symbol>() ? notate(x, syntactic_environment()) : x;
+      let const& renamed_y = y.is<symbol>() ? notate(y, syntactic_environment()) : y;
 
       return renamed_x.is_also<absolute>() and renamed_x.as<absolute>().is_free() and
              renamed_y.is_also<absolute>() and renamed_y.as<absolute>().is_free() and eq(renamed_x, renamed_y);
@@ -136,14 +136,16 @@ inline namespace kernel
 
     auto notate(const_reference, const_reference) const -> object;
 
-    auto rename(const_reference symbol, const_reference syntactic_environment) -> object
+    template <typename... Ts>
+    auto rename(Ts&&... xs)
     {
-      return notate(symbol, syntactic_environment);
+      return make<syntactic_closure>(notate(std::forward<decltype(xs)>(xs)...), e);
     }
 
-    auto rename(const_reference symbol, const_reference syntactic_environment) const -> object
+    template <typename... Ts>
+    auto rename(Ts&&... xs) const
     {
-      return notate(symbol, syntactic_environment);
+      return make<syntactic_closure>(notate(std::forward<decltype(xs)>(xs)...), e);
     }
   };
 

@@ -1899,6 +1899,12 @@ namespace meevax
   template <>
   auto environment::import(decltype("(meevax experimental)"_s)) -> void
   {
+    define<procedure>("identifier", [](let const& xs, auto & environment)
+    {
+      assert(car(xs).is<symbol>());
+      return environment.rename(car(xs), environment.syntactic_environment());
+    });
+
     /* -------------------------------------------------------------------------
      *
      *  (identifier? syntax-object)                                   procedure
