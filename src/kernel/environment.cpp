@@ -147,7 +147,7 @@ inline namespace kernel
     {
       return f;
     }
-    else if (let const& notation = meevax::notate(variable, syntactic_environment); select(notation))
+    else if (let const& notation = machine::notate(variable, syntactic_environment); select(notation))
     {
       return notation;
     }

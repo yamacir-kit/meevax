@@ -655,6 +655,34 @@ inline namespace kernel
       }
     }
 
+    static auto notate(const_reference variable, const_reference syntactic_environment) -> object
+    {
+      for (auto outer = std::begin(syntactic_environment); outer != std::end(syntactic_environment); ++outer)
+      {
+        for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
+        {
+          if (inner.is<pair>() and (*inner).is<keyword>() and eq((*inner).as<keyword>().symbol(), variable))
+          {
+            return *inner;
+          }
+          else if (inner.is<pair>() and eq(*inner, variable))
+          {
+            return make<relative>(variable,
+                                  cons(make<exact_integer>(std::distance(std::begin(syntactic_environment), outer)),
+                                       make<exact_integer>(std::distance(std::begin(*outer), inner))));
+          }
+          else if (inner.is<symbol>() and eq(inner, variable))
+          {
+            return make<variadic>(variable,
+                                  cons(make<exact_integer>(std::distance(std::begin(syntactic_environment), outer)),
+                                       make<exact_integer>(std::distance(std::begin(*outer), inner))));
+          }
+        }
+      }
+
+      return f;
+    }
+
     inline auto reset() -> void
     {
       s = unit;

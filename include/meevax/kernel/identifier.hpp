@@ -50,8 +50,6 @@ inline namespace kernel
       return first.is<absolute>() and first.as<absolute>().is_free();
     }
   };
-
-  auto notate(const_reference, const_reference) -> object;
 } // namespace kernel
 } // namespace meevax
 
