@@ -89,7 +89,7 @@ inline namespace kernel
     using absolute::absolute;
   };
 
-  struct relative : public notation // (<symbol> . <de Bruijn index>)
+  struct relative : public notation // (<symbol> . <de Bruijn index>) = (<symbol> <integer> . <integer>)
   {
     using notation::notation;
 
@@ -109,7 +109,7 @@ inline namespace kernel
     }
   };
 
-  struct variadic : public relative // de_bruijn_index
+  struct variadic : public relative // (<symbol> . <de Bruijn index>) = (<symbol> <integer> . <integer>)
   {
     using relative::relative;
 

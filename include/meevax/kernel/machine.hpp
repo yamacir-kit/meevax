@@ -667,15 +667,21 @@ inline namespace kernel
           }
           else if (inner.is<pair>() and eq(*inner, variable))
           {
+            // NOTE: A class that inherits from pair behaves as if it were `cons*` when given three or more arguments.
+            static_assert(std::is_base_of<pair, relative>::value);
+
             return make<relative>(variable,
-                                  cons(make<exact_integer>(std::distance(std::begin(syntactic_environment), outer)),
-                                       make<exact_integer>(std::distance(std::begin(*outer), inner))));
+                                  make<exact_integer>(std::distance(std::begin(syntactic_environment), outer)),
+                                  make<exact_integer>(std::distance(std::begin(*outer), inner)));
           }
           else if (inner.is<symbol>() and eq(inner, variable))
           {
+            // NOTE: A class that inherits from pair behaves as if it were `cons*` when given three or more arguments.
+            static_assert(std::is_base_of<pair, variadic>::value);
+
             return make<variadic>(variable,
-                                  cons(make<exact_integer>(std::distance(std::begin(syntactic_environment), outer)),
-                                       make<exact_integer>(std::distance(std::begin(*outer), inner))));
+                                  make<exact_integer>(std::distance(std::begin(syntactic_environment), outer)),
+                                  make<exact_integer>(std::distance(std::begin(*outer), inner)));
           }
         }
       }
