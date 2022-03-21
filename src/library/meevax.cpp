@@ -1899,6 +1899,12 @@ namespace meevax
   template <>
   auto environment::import(decltype("(meevax experimental)"_s)) -> void
   {
+    define<procedure>("identifier", [](let const& xs, auto & environment)
+    {
+      assert(car(xs).is<symbol>());
+      return environment.rename(car(xs), environment.syntactic_environment());
+    });
+
     /* -------------------------------------------------------------------------
      *
      *  (identifier? syntax-object)                                   procedure
@@ -1916,7 +1922,7 @@ namespace meevax
 
     define<procedure>("identifier?", [](let const& xs, auto&&)
     {
-      return is_renamable(car(xs)) ? t : f;
+      return is_identifier(car(xs)) ? t : f;
     });
 
     /* -------------------------------------------------------------------------
@@ -1994,9 +2000,9 @@ namespace meevax
       switch (length(xs))
       {
       case 1:
-        if (let const& x = car(xs); x.is_also<identifier>())
+        if (let const& x = car(xs); x.is_also<syntactic_closure>())
         {
-          return x.as<identifier>().symbol();
+          return x.as<syntactic_closure>().symbol();
         }
         else if (x.is<symbol>())
         {

@@ -17,68 +17,38 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 #define INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 
-#include <meevax/kernel/instruction.hpp>
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/notation.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct identifier : public virtual pair
+  struct syntactic_closure : public virtual pair // (<notation> . e)
   {
     using pair::pair;
 
-    virtual auto corresponding_mnemonic() const -> mnemonic = 0;
+    auto symbol() const -> const_reference
+    {
+      assert(first.is_also<notation>());
+      return first.as<notation>().symbol();
+    }
 
-    virtual auto is_bound() const -> bool = 0;
+    auto strip()
+    {
+      assert(first.is_also<notation>());
+      return first.as<notation>().strip(second);
+    }
 
-    virtual auto is_free() const -> bool = 0;
+    auto is_bound() const -> bool
+    {
+      return not is_free();
+    }
 
-    auto symbol() const -> const_reference;
-  };
-
-  auto operator <<(std::ostream &, identifier const&) -> std::ostream &;
-
-  struct absolute : public identifier
-  {
-    using identifier::identifier;
-
-    auto corresponding_mnemonic() const -> mnemonic override;
-
-    auto binding() -> reference;
-
-    auto binding() const -> const_reference;
-
-    auto is_bound() const -> bool override;
-
-    auto is_free() const -> bool override;
-  };
-
-  struct keyword : public absolute
-  {
-    using absolute::absolute;
-  };
-
-  struct relative : public identifier // de_bruijn_index
-  {
-    using identifier::identifier;
-
-    auto corresponding_mnemonic() const -> mnemonic override;
-
-    auto is_bound() const -> bool override;
-
-    auto is_free() const -> bool override;
-
-    virtual auto strip(const_reference) const -> object;
-  };
-
-  struct variadic : public relative // de_bruijn_index
-  {
-    using relative::relative;
-
-    auto corresponding_mnemonic() const -> mnemonic override;
-
-    auto strip(const_reference) const -> object override;
+    auto is_free() const -> bool
+    {
+      assert(first.is_also<notation>());
+      return first.is<absolute>() and first.as<absolute>().is_free();
+    }
   };
 
   auto notate(const_reference, const_reference) -> object;

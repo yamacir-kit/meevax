@@ -22,7 +22,7 @@ inline namespace kernel
 {
   auto environment::operator [](const_reference name) -> const_reference
   {
-    return rename(name, local()).as<absolute>().binding();
+    return notate(name, syntactic_environment()).as<absolute>().strip();
   }
 
   auto environment::operator [](std::string const& name) -> const_reference
@@ -30,16 +30,16 @@ inline namespace kernel
     return (*this)[intern(name)];
   }
 
-  auto environment::define(const_reference name, const_reference value) -> const_reference
+  auto environment::define(const_reference name, const_reference value) -> void
   {
-    assert(name.is<symbol>());
+    assert(is_identifier(name));
 
-    return global() = make<absolute>(name, value) | global();
+    global_environment() = make<absolute>(name, value) | global_environment();
   }
 
-  auto environment::define(std::string const& name, const_reference value) -> const_reference
+  auto environment::define(std::string const& name, const_reference value) -> void
   {
-    return define(intern(name), value);
+    define(intern(name), value);
   }
 
   auto environment::evaluate(const_reference expression) -> object /* ----------
@@ -53,7 +53,7 @@ inline namespace kernel
   * ------------------------------------------------------------------------- */
   {
     d = cons(s, e, c, d);
-    c = compile(context::none, *this, expression, local());
+    c = compile(context::none, *this, expression, syntactic_environment());
     e = unit;
     s = unit;
 
@@ -89,12 +89,12 @@ inline namespace kernel
     return execute();
   }
 
-  auto environment::global() const noexcept -> const_reference
+  auto environment::global_environment() const noexcept -> const_reference
   {
     return second;
   }
 
-  auto environment::global() noexcept -> reference
+  auto environment::global_environment() noexcept -> reference
   {
     return second;
   }
@@ -109,9 +109,9 @@ inline namespace kernel
     define<procedure>("set-verbose!",     [this](let const& xs, auto&&) { return verbose     = car(xs); });
   }
 
-  auto environment::is_renamable(const_reference x) -> bool
+  auto environment::is_identifier(const_reference x) -> bool
   {
-    return x.is<symbol>() or x.is_also<absolute>();
+    return x.is<symbol>() or x.is_also<absolute>() or x.is<syntactic_closure>();
   }
 
   auto environment::load(std::string const& s) -> object
@@ -131,41 +131,41 @@ inline namespace kernel
     }
   }
 
-  auto environment::local() const noexcept -> const_reference
+  auto environment::syntactic_environment() const noexcept -> const_reference
   {
     return first;
   }
 
-  auto environment::local() noexcept -> reference
+  auto environment::syntactic_environment() noexcept -> reference
   {
     return first;
   }
 
-  auto environment::rename(const_reference variable, const_reference frames) const -> object
+  auto environment::notate(const_reference variable, const_reference syntactic_environment) const -> object
   {
-    if (not is_renamable(variable))
+    if (not is_identifier(variable))
     {
       return f;
     }
-    else if (let const& identifier = notate(variable, frames); select(identifier))
+    else if (let const& notation = meevax::notate(variable, syntactic_environment); select(notation))
     {
-      return identifier;
+      return notation;
     }
     else
     {
-      return assq(variable, global());
+      return assq(variable, global_environment());
     }
   }
 
-  auto environment::rename(const_reference variable, const_reference frames) -> object
+  auto environment::notate(const_reference variable, const_reference syntactic_environment) -> object
   {
-    if (not is_renamable(variable))
+    if (not is_identifier(variable))
     {
       return f;
     }
-    if (let const& binding = std::as_const(*this).rename(variable, frames); select(binding))
+    if (let const& notation = std::as_const(*this).notate(variable, syntactic_environment); select(notation))
     {
-      return binding;
+      return notation;
     }
     else /* --------------------------------------------------------------------
     *
@@ -184,7 +184,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return car(global() = cons(generate_free_identifier(variable), global()));
+      return reserve(variable);
     }
   }
 

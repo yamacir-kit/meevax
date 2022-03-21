@@ -16,82 +16,15 @@
 
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identifier.hpp>
-#include <meevax/kernel/list.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto identifier::symbol() const -> const_reference
+  auto notate(const_reference variable, const_reference syntactic_environment) -> object
   {
-    return first;
-  }
-
-  auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &
-  {
-    return os << underline(datum.symbol());
-  }
-
-  auto absolute::corresponding_mnemonic() const -> mnemonic
-  {
-    return mnemonic::load_absolute;
-  }
-
-  auto absolute::binding() -> reference
-  {
-    return second;
-  }
-
-  auto absolute::binding() const -> const_reference
-  {
-    return second;
-  }
-
-  auto absolute::is_bound() const -> bool
-  {
-    return not is_free();
-  }
-
-  auto absolute::is_free() const -> bool
-  {
-    // NOTE: See environment::generate_free_identifier
-    return binding().is<absolute>() and std::addressof(binding().as<absolute>()) == this;
-  }
-
-  auto relative::corresponding_mnemonic() const -> mnemonic
-  {
-    return mnemonic::load_relative;
-  }
-
-  auto relative::is_bound() const -> bool
-  {
-    return not is_free();
-  }
-
-  auto relative::is_free() const -> bool
-  {
-    return false;
-  }
-
-  auto relative::strip(const_reference e) const -> object
-  {
-    return list_ref(list_ref(e, car(second)), cdr(second));
-  }
-
-  auto variadic::corresponding_mnemonic() const -> mnemonic
-  {
-    return mnemonic::load_variadic;
-  }
-
-  auto variadic::strip(const_reference e) const -> object
-  {
-    return list_tail(list_ref(e, car(second)), cdr(second));
-  }
-
-  auto notate(const_reference variable, const_reference frames) -> object
-  {
-    for (auto outer = std::begin(frames); outer != std::end(frames); ++outer)
+    for (auto outer = std::begin(syntactic_environment); outer != std::end(syntactic_environment); ++outer)
     {
       for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
       {
@@ -102,13 +35,13 @@ inline namespace kernel
         else if (inner.is<pair>() and eq(*inner, variable))
         {
           return make<relative>(variable,
-                                cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
+                                cons(make<exact_integer>(std::distance(std::begin(syntactic_environment), outer)),
                                      make<exact_integer>(std::distance(std::begin(*outer), inner))));
         }
         else if (inner.is<symbol>() and eq(inner, variable))
         {
           return make<variadic>(variable,
-                                cons(make<exact_integer>(std::distance(std::begin(frames), outer)),
+                                cons(make<exact_integer>(std::distance(std::begin(syntactic_environment), outer)),
                                      make<exact_integer>(std::distance(std::begin(*outer), inner))));
         }
       }
