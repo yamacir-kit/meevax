@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
-#define INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
+#define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
 
 #include <meevax/kernel/notation.hpp>
 
@@ -53,4 +53,4 @@ inline namespace kernel
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
