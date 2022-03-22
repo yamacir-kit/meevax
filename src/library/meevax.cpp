@@ -405,7 +405,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<syntactic_procedure>("cons", cons_, [](let const& xs, auto&&)
+    define<instruction_level_procedure>("cons", cons_, [](let const& xs, auto&&)
     {
       return cons(car(xs), cadr(xs));
     });

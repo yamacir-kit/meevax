@@ -21,11 +21,11 @@
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/instruction.hpp>
+#include <meevax/kernel/instruction_level_procedure.hpp>
 #include <meevax/kernel/option.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntactic_closure.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
-#include <meevax/kernel/syntactic_procedure.hpp>
 
 namespace meevax
 {
