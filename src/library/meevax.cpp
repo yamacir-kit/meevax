@@ -2000,7 +2000,7 @@ namespace meevax
       switch (length(xs))
       {
       case 1:
-        if (let const& x = car(xs); x.is_also<syntactic_closure>())
+        if (let const& x = car(xs); x.is<syntactic_closure>())
         {
           return x.as<syntactic_closure>().symbol();
         }
