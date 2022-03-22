@@ -899,7 +899,7 @@ inline namespace kernel
       }
     }
 
-    static SYNTAX(construction)
+    static SYNTAX(cons_)
     {
       return compile(context::none,
                      current_environment,
