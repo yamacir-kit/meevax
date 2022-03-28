@@ -405,7 +405,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<syntactic_procedure>("cons", construction, [](let const& xs, auto&&)
+    define<instruction_level_procedure>("cons", cons_, [](let const& xs, auto&&)
     {
       return cons(car(xs), cadr(xs));
     });
@@ -2000,7 +2000,7 @@ namespace meevax
       switch (length(xs))
       {
       case 1:
-        if (let const& x = car(xs); x.is_also<syntactic_closure>())
+        if (let const& x = car(xs); x.is<syntactic_closure>())
         {
           return x.as<syntactic_closure>().symbol();
         }
