@@ -22,7 +22,7 @@ inline namespace kernel
 {
   auto environment::operator [](const_reference name) -> const_reference
   {
-    return rename(name).as<absolute>().binding();
+    return notate(name, syntactic_environment()).as<absolute>().strip();
   }
 
   auto environment::operator [](std::string const& name) -> const_reference
@@ -30,16 +30,16 @@ inline namespace kernel
     return (*this)[intern(name)];
   }
 
-  auto environment::define(const_reference name, const_reference value) -> const_reference
+  auto environment::define(const_reference name, const_reference value) -> void
   {
-    assert(name.is<symbol>());
+    assert(is_identifier(name));
 
-    return global() = make<absolute>(name, value) | global();
+    global_environment() = make<absolute>(name, value) | global_environment();
   }
 
-  auto environment::define(std::string const& name, const_reference value) -> const_reference
+  auto environment::define(std::string const& name, const_reference value) -> void
   {
-    return define(intern(name), value);
+    define(intern(name), value);
   }
 
   auto environment::evaluate(const_reference expression) -> object /* ----------
@@ -53,7 +53,7 @@ inline namespace kernel
   * ------------------------------------------------------------------------- */
   {
     d = cons(s, e, c, d);
-    c = compile(context::none, *this, expression, local());
+    c = compile(context::none, *this, expression, syntactic_environment());
     e = unit;
     s = unit;
 
@@ -89,57 +89,29 @@ inline namespace kernel
     return execute();
   }
 
-  auto environment::global() const noexcept -> const_reference
+  auto environment::global_environment() const noexcept -> const_reference
   {
     return second;
   }
 
-  auto environment::global() noexcept -> reference
+  auto environment::global_environment() noexcept -> reference
   {
     return second;
   }
 
   auto environment::import() -> void
   {
-    define<procedure>("free-identifier=?", [](let const& xs)
-    {
-      if (let const& a = car(xs); a.is<symbol>() or a.is_also<identifier>())
-      {
-        if (let const& b = cadr(xs); b.is<symbol>() or b.is_also<identifier>())
-        {
-          if (let const& id1 = a.is_also<identifier>() ? a.as<identifier>().symbol() : a)
-          {
-            if (let const& id2 = b.is_also<identifier>() ? b.as<identifier>().symbol() : b)
-            {
-              return id1 == id2 ? t : f;
-            }
-          }
-        }
-      }
+    define<procedure>("set-batch!",       [this](let const& xs, auto&&) { return batch       = car(xs); });
+    define<procedure>("set-debug!",       [this](let const& xs, auto&&) { return debug       = car(xs); });
+    define<procedure>("set-interactive!", [this](let const& xs, auto&&) { return interactive = car(xs); });
+    define<procedure>("set-prompt!",      [this](let const& xs, auto&&) { return prompt      = car(xs); });
+    define<procedure>("set-trace!",       [this](let const& xs, auto&&) { return trace       = car(xs); });
+    define<procedure>("set-verbose!",     [this](let const& xs, auto&&) { return verbose     = car(xs); });
+  }
 
-      // if (let const& a = car(xs); a.is<symbol>() or a.is_also<identifier>())
-      // {
-      //   if (let const& b = cadr(xs); b.is<symbol>() or b.is_also<identifier>())
-      //   {
-      //     if (auto const& id1 = a.is_also<identifier>() ? a.as<identifier>() : locate(a).as<identifier>(); id1.is_free())
-      //     {
-      //       if (auto const& id2 = b.is_also<identifier>() ? b.as<identifier>() : locate(b).as<identifier>(); id2.is_free())
-      //       {
-      //         return id1 == id2 ? t : f;
-      //       }
-      //     }
-      //   }
-      // }
-
-      return f;
-    });
-
-    define<procedure>("set-batch!",       [this](let const& xs) { return batch       = car(xs); });
-    define<procedure>("set-debug!",       [this](let const& xs) { return debug       = car(xs); });
-    define<procedure>("set-interactive!", [this](let const& xs) { return interactive = car(xs); });
-    define<procedure>("set-prompt!",      [this](let const& xs) { return prompt      = car(xs); });
-    define<procedure>("set-trace!",       [this](let const& xs) { return trace       = car(xs); });
-    define<procedure>("set-verbose!",     [this](let const& xs) { return verbose     = car(xs); });
+  auto environment::is_identifier(const_reference x) -> bool
+  {
+    return x.is<symbol>() or x.is_also<absolute>() or x.is<syntactic_closure>();
   }
 
   auto environment::load(std::string const& s) -> object
@@ -159,77 +131,60 @@ inline namespace kernel
     }
   }
 
-  auto environment::local() const noexcept -> const_reference
+  auto environment::syntactic_environment() const noexcept -> const_reference
   {
     return first;
   }
 
-  auto environment::local() noexcept -> reference
+  auto environment::syntactic_environment() noexcept -> reference
   {
     return first;
   }
 
-  auto environment::rename(const_reference variable) -> const_reference
+  auto environment::notate(const_reference variable, const_reference syntactic_environment) const -> object
   {
-    if (let const& binding = assq(variable, global()); select(binding))
+    if (not is_identifier(variable))
     {
-      return binding;
+      return f;
+    }
+    else if (let const& notation = machine::notate(variable, syntactic_environment); select(notation))
+    {
+      return notation;
     }
     else
     {
-      /* -----------------------------------------------------------------------
-       *
-       *  At the outermost level of a program, a definition
-       *
-       *      (define <variable> <expression>)
-       *
-       *  has essentially the same effect as the assignment expression
-       *
-       *      (set! <variable> <expression>)
-       *
-       *  if <variable> is bound to a non-syntax value. However, if <variable>
-       *  is not bound, or is a syntactic keyword, then the definition will
-       *  bind <variable> to a new location before performing the assignment,
-       *  whereas it would be an error to perform a set! on an unbound variable.
-       *
-       * -------------------------------------------------------------------- */
-
-      let const id = make<absolute>(variable);
-
-      cdr(id) = id; // NOTE: Identifier is self-evaluate if is unbound.
-
-      global() = cons(id, global());
-
-      return car(global());
+      return assq(variable, global_environment());
     }
   }
 
-  auto environment::rename(const_reference variable, const_reference frames) -> object
+  auto environment::notate(const_reference variable, const_reference syntactic_environment) -> object
   {
-    if (let const& identifier = notate(variable, frames); select(identifier))
+    if (not is_identifier(variable))
     {
-      return identifier;
+      return f;
     }
-    else
+    if (let const& notation = std::as_const(*this).notate(variable, syntactic_environment); select(notation))
     {
-      return rename(variable);
+      return notation;
     }
-  }
-
-  auto environment::rename(const_reference variable) const -> const_reference
-  {
-    return assq(variable, global());
-  }
-
-  auto environment::rename(const_reference variable, const_reference frames) const -> object
-  {
-    if (let const& identifier = notate(variable, frames); select(identifier))
+    else /* --------------------------------------------------------------------
+    *
+    *  At the outermost level of a program, a definition
+    *
+    *      (define <variable> <expression>)
+    *
+    *  has essentially the same effect as the assignment expression
+    *
+    *      (set! <variable> <expression>)
+    *
+    *  if <variable> is bound to a non-syntax value. However, if <variable> is
+    *  not bound, or is a syntactic keyword, then the definition will bind
+    *  <variable> to a new location before performing the assignment, whereas
+    *  it would be an error to perform a set! on an unbound variable.
+    *
+    * ----------------------------------------------------------------------- */
     {
-      return identifier;
-    }
-    else
-    {
-      return rename(variable); // NOTE: In the const version, rename does not extend the global-environment.
+      return reserve(variable);
     }
   }
 

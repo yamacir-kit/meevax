@@ -14,32 +14,43 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
-#define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
+#define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
 
-#include <meevax/kernel/syntax.hpp>
+#include <meevax/kernel/notation.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct syntactic_continuation : public virtual pair
+  struct syntactic_closure : public virtual pair // (<notation> . e)
   {
     using pair::pair;
 
-    auto expression() const -> const_reference
+    auto symbol() const -> const_reference
     {
-      return first;
+      assert(first.is_also<notation>());
+      return first.as<notation>().symbol();
     }
 
-    auto syntactic_environment() const -> const_reference
+    auto strip()
     {
-      return second;
+      assert(first.is_also<notation>());
+      return first.as<notation>().strip(second);
+    }
+
+    auto is_bound() const -> bool
+    {
+      return not is_free();
+    }
+
+    auto is_free() const -> bool
+    {
+      assert(first.is_also<notation>());
+      return first.is<absolute>() and first.as<absolute>().is_free();
     }
   };
-
-  auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP

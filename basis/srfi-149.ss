@@ -36,7 +36,7 @@
 (define (cons-source kar kdr source)
   (cons kar kdr))
 
-(define syntax-quote quote)
+(define syntax-quote quote-syntax)
 
 (define strip-syntactic-closures identity)
 
