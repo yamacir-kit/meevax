@@ -48,16 +48,12 @@ inline namespace kernel
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
 
   template <typename T>
-  struct is
+  struct type_predicate
   {
-    auto operator ()(const_reference xs, const_reference, environment const&) const -> const_reference
+    template <typename... Ts>
+    auto operator ()(const_reference xs, Ts&&...) const -> const_reference
     {
-      auto is_T = [](const_reference x)
-      {
-        return x.is<T>();
-      };
-
-      return std::all_of(std::begin(xs), std::end(xs), is_T) ? t : f;
+      return car(xs).is<T>() ? t : f;
     }
   };
 } // namespace kernel

@@ -106,10 +106,10 @@ namespace meevax
     define<procedure>("rational?", [](let const& xs, auto&&...) { return car(xs).is_also<number>() and car(xs).as<number>().is_rational() ? t : f; });
     define<procedure>("integer?",  [](let const& xs, auto&&...) { return car(xs).is_also<number>() and car(xs).as<number>().is_integer () ? t : f; });
 
-    define<procedure>("%complex?",     is<complex     >());
-    define<procedure>("ratio?",        is<ratio       >());
-    define<procedure>("single-float?", is<single_float>());
-    define<procedure>("double-float?", is<double_float>());
+    define<procedure>("%complex?",     type_predicate<complex     >());
+    define<procedure>("ratio?",        type_predicate<ratio       >());
+    define<procedure>("single-float?", type_predicate<single_float>());
+    define<procedure>("double-float?", type_predicate<double_float>());
 
     /* -------------------------------------------------------------------------
      *
@@ -119,7 +119,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("exact-integer?", is<exact_integer>());
+    define<procedure>("exact-integer?", type_predicate<exact_integer>());
 
     /* -------------------------------------------------------------------------
      *
@@ -393,7 +393,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("pair?", is<pair>());
+    define<procedure>("pair?", type_predicate<pair>());
 
     /* -------------------------------------------------------------------------
      *
@@ -484,7 +484,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("symbol?", is<symbol>());
+    define<procedure>("symbol?", type_predicate<symbol>());
 
     /* -------------------------------------------------------------------------
      *
@@ -524,7 +524,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("char?", is<character>());
+    define<procedure>("char?", type_predicate<character>());
 
     /* -------------------------------------------------------------------------
      *
@@ -575,7 +575,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string?", is<string>());
+    define<procedure>("string?", type_predicate<string>());
 
     /* -------------------------------------------------------------------------
      *
@@ -821,7 +821,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("vector?", is<vector>());
+    define<procedure>("vector?", type_predicate<vector>());
 
     /* -------------------------------------------------------------------------
      *
@@ -1044,11 +1044,11 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("closure?", is<closure>());
+    define<procedure>("closure?", type_predicate<closure>());
 
-    define<procedure>("continuation?", is<continuation>());
+    define<procedure>("continuation?", type_predicate<continuation>());
 
-    define<procedure>("foreign-function?", is<procedure>());
+    define<procedure>("foreign-function?", type_predicate<procedure>());
 
     /* -------------------------------------------------------------------------
      *
@@ -1100,10 +1100,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>(       "error?", is<       error>());
-    define<procedure>(  "read-error?", is<  read_error>());
-    define<procedure>(  "file-error?", is<  file_error>());
-    define<procedure>("syntax-error?", is<syntax_error>());
+    define<procedure>(       "error?", type_predicate<       error>());
+    define<procedure>(  "read-error?", type_predicate<  read_error>());
+    define<procedure>(  "file-error?", type_predicate<  file_error>());
+    define<procedure>("syntax-error?", type_predicate<syntax_error>());
 
     /* -------------------------------------------------------------------------
      *
@@ -1390,7 +1390,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("eof-object?", is<eof>());
+    define<procedure>("eof-object?", type_predicate<eof>());
 
     /* -------------------------------------------------------------------------
      *
@@ -2064,9 +2064,9 @@ namespace meevax
       }
     });
 
-    define<procedure>("transformer?", is<transformer>());
+    define<procedure>("transformer?", type_predicate<transformer>());
 
-    define<procedure>("r6rs:identifier?", is<absolute>());
+    define<procedure>("r6rs:identifier?", type_predicate<absolute>());
 
     define<procedure>("macroexpand-1", [this](let const& xs, auto&&...)
     {
