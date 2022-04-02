@@ -61,6 +61,8 @@ inline namespace kernel
 
     auto operator [](std::string const&) -> const_reference;
 
+    auto apply(const_reference, const_reference) -> object;
+
     auto define(const_reference, const_reference) -> void;
 
     auto define(std::string const&, const_reference) -> void;
@@ -105,7 +107,7 @@ inline namespace kernel
 
       assert(result.as<absolute>().is_free());
 
-      global_environment() = cons(result, global_environment());
+      global_environment() = result | global_environment();
 
       return car(global_environment());
     }

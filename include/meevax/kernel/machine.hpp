@@ -125,10 +125,7 @@ inline namespace kernel
         assert(car(c).template as<instruction>().value == mnemonic::stop);
         assert(cdr(c).template is<null>());
 
-        s = list(spec, form);
-        c = cons(make<instruction>(mnemonic::call), c);
-
-        return environment::execute();
+        return environment::apply(spec, form);
       }
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
@@ -165,12 +162,7 @@ inline namespace kernel
           return eqv(car(xs), cadr(xs)) ? t : f;
         });
 
-        expander.s = list(transform,
-                          list(form, rename, compare));
-        expander.c = list(make<instruction>(mnemonic::call),
-                          make<instruction>(mnemonic::stop));
-
-        return expander.execute();
+        return expander.apply(transform, list(form, rename, compare));
       }
 
       friend auto operator <<(std::ostream & os, er_macro_transformer const& datum) -> std::ostream &

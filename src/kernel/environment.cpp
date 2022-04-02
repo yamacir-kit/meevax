@@ -30,6 +30,24 @@ inline namespace kernel
     return (*this)[intern(name)];
   }
 
+  auto environment::apply(const_reference f, const_reference xs) -> object
+  {
+    auto dump = std::make_tuple(std::exchange(s, list(f, xs)),
+                                std::exchange(e, unit),
+                                std::exchange(c, list(make<instruction>(mnemonic::call),
+                                                      make<instruction>(mnemonic::stop))),
+                                std::exchange(d, unit));
+
+    let const result = execute();
+
+    s = std::get<0>(dump);
+    e = std::get<1>(dump);
+    c = std::get<2>(dump);
+    d = std::get<3>(dump);
+
+    return result;
+  }
+
   auto environment::define(const_reference name, const_reference value) -> void
   {
     assert(is_identifier(name));
@@ -52,10 +70,10 @@ inline namespace kernel
   *
   * ------------------------------------------------------------------------- */
   {
-    d = cons(s, e, c, d);
-    c = compile(context::none, *this, expression, syntactic_environment());
-    e = unit;
-    s = unit;
+    auto dump = std::make_tuple(std::exchange(s, unit),
+                                std::exchange(e, unit),
+                                std::exchange(c, compile(context::none, *this, expression, syntactic_environment())),
+                                std::exchange(d, unit));
 
     if (is_debug_mode())
     {
@@ -64,9 +82,10 @@ inline namespace kernel
 
     let const result = execute();
 
-    s = pop(d);
-    e = pop(d);
-    c = pop(d);
+    s = std::get<0>(dump);
+    e = std::get<1>(dump);
+    c = std::get<2>(dump);
+    d = std::get<3>(dump);
 
     return result;
   }
