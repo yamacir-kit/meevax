@@ -30,19 +30,19 @@ inline namespace kernel
 
   struct procedure : public description
   {
-    using signature = PROCEDURE((*));
+    using function_pointer_type = PROCEDURE((*));
 
-    using applicable = std::function<PROCEDURE()>;
+    using function_type = std::function<PROCEDURE()>;
 
-    applicable call;
+    function_type call;
 
-    explicit procedure(std::string const&, applicable const&);
+    explicit procedure(std::string const&, function_type const&);
 
     explicit procedure(std::string const&, std::string const&);
 
     static auto dlopen(std::string const&) -> void *;
 
-    static auto dlsym(std::string const&, void * const) -> signature;
+    static auto dlsym(std::string const&, void * const) -> function_pointer_type;
   };
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;

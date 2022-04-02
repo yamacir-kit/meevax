@@ -39,7 +39,7 @@ inline namespace kernel
     IMPORT(environment, read, NIL);
 
     template <typename Key>
-    using dispatcher = std::unordered_map<Key, procedure::applicable>;
+    using dispatcher = std::unordered_map<Key, procedure::function_type>;
 
     const dispatcher<char> short_options, short_options_with_arguments;
 
