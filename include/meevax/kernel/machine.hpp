@@ -83,8 +83,7 @@ inline namespace kernel
         environment::reset();
       }
 
-      template <typename... Ts>
-      auto macroexpand(Ts&&... xs) /* ------------------------------------------
+      auto macroexpand(let const& form) /* -------------------------------------
       *
       *  Scheme programs can define and use new derived expression types,
       *  called macros. Program-defined expression types have the syntax
@@ -126,7 +125,7 @@ inline namespace kernel
         assert(car(c).template as<instruction>().value == mnemonic::stop);
         assert(cdr(c).template is<null>());
 
-        s = list(spec, cons(std::forward<decltype(xs)>(xs)...));
+        s = list(spec, form);
         c = cons(make<instruction>(mnemonic::call), c);
 
         return environment::execute();
@@ -251,7 +250,7 @@ inline namespace kernel
 
         return compile(context::none,
                        current_environment,
-                       notation.as<keyword>().strip().as<transformer>().macroexpand(notation.as<keyword>().strip(), cdr(current_expression)),
+                       notation.as<keyword>().strip().as<transformer>().macroexpand(cons(notation.as<keyword>().strip(), cdr(current_expression))),
                        current_syntactic_environment,
                        current_continuation);
       }
@@ -267,7 +266,7 @@ inline namespace kernel
       {
         return compile(context::none,
                        current_environment,
-                       applicant.as<transformer>().macroexpand(applicant, cdr(current_expression)),
+                       applicant.as<transformer>().macroexpand(cons(applicant, cdr(current_expression))),
                        current_syntactic_environment,
                        current_continuation);
       }
