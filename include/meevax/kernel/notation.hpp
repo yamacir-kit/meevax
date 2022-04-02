@@ -46,6 +46,11 @@ inline namespace kernel
       assert(first.is<meevax::symbol>());
       return first;
     }
+
+    friend auto operator <<(std::ostream & os, notation const& datum) -> std::ostream &
+    {
+      return os << "#,(notation " << datum.symbol() << ")";
+    }
   };
 
   struct absolute : public notation

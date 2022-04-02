@@ -1899,6 +1899,16 @@ namespace meevax
   template <>
   auto environment::import(decltype("(meevax experimental)"_s)) -> void
   {
+    define<procedure>("%er-macro-transformer", [](let const& xs, auto & current_environment)
+    {
+      return make<er_macro_transformer>(car(xs), current_environment);
+    });
+
+    define<procedure>("er-macro-transformer?", [](let const& xs, auto&&)
+    {
+      return car(xs).is<er_macro_transformer>() ? t : f;
+    });
+
     define<procedure>("identifier", [](let const& xs, auto & environment)
     {
       assert(car(xs).is<symbol>());

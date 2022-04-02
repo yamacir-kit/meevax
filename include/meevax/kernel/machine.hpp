@@ -138,6 +138,48 @@ inline namespace kernel
       }
     };
 
+    struct er_macro_transformer // explicit-renaming
+    {
+      let const transform;
+
+      environment expander;
+
+      explicit er_macro_transformer(let const& transform, environment const& current_environment)
+        : transform { transform }
+        , expander { current_environment }
+      {
+        assert(transform.is<closure>());
+
+        expander.reset();
+      }
+
+      auto expand(let const& form, environment & receiver)
+      {
+        auto rename = make<procedure>("rename", [](let const& xs, auto&& expander)
+        {
+          // return expander.rename(car(xs), expander.syntactic_environment());
+          return expander.evaluate(car(xs));
+        });
+
+        auto compare = make<procedure>("compare", [](let const& xs, auto&&)
+        {
+          return eqv(car(xs), cadr(xs)) ? t : f;
+        });
+
+        expander.s = list(transform,
+                          list(form, rename, compare));
+        expander.c = list(make<instruction>(mnemonic::call),
+                          make<instruction>(mnemonic::stop));
+
+        return expander.execute();
+      }
+
+      friend auto operator <<(std::ostream & os, er_macro_transformer const& datum) -> std::ostream &
+      {
+        return os << magenta("#,(") << green("er-macro-transformer ") << faint("#;", &datum) << magenta(")");
+      }
+    };
+
   public:
     /* ---- R7RS 4. Expressions ------------------------------------------------
      *
@@ -226,6 +268,15 @@ inline namespace kernel
         return compile(context::none,
                        current_environment,
                        applicant.as<transformer>().macroexpand(applicant, cdr(current_expression)),
+                       current_syntactic_environment,
+                       current_continuation);
+      }
+      else if (applicant.is<er_macro_transformer>())
+      {
+        return compile(context::none,
+                       current_environment,
+                       applicant.as<er_macro_transformer>().expand(current_expression,
+                                                                   current_environment),
                        current_syntactic_environment,
                        current_continuation);
       }
