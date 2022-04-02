@@ -2066,11 +2066,11 @@ namespace meevax
 
     define<procedure>("transformer?", type_predicate<transformer>());
 
-    define<procedure>("macroexpand-1", [this](let const& xs, auto&&...)
+    define<procedure>("macroexpand-1", [](let const& xs, let const& current_syntactic_environment, environment & current_environment)
     {
-      if (let const& macro = (*this)[caar(xs)]; macro.is<transformer>())
+      if (let const& macro = current_environment.rename(caar(xs), current_syntactic_environment).as<syntactic_closure>().strip(); macro.is<transformer>())
       {
-        return macro.as<transformer>().expand(cons(macro, car(xs)));
+        return macro.as<transformer>().expand(cons(macro, cdar(xs)));
       }
       else
       {
