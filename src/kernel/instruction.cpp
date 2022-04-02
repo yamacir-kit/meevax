@@ -90,13 +90,9 @@ inline namespace kernel
       case mnemonic::dummy:
       case mnemonic::join:
       case mnemonic::letrec:
-        os << *iter << "\n";
-        ++offset;
-        break;
-
       case mnemonic::return_:
       case mnemonic::stop:
-        os << *iter << magenta(")\n");
+        os << *iter << "\n";
         ++offset;
         break;
 
@@ -121,20 +117,17 @@ inline namespace kernel
       case mnemonic::load_closure:
       case mnemonic::load_continuation:
         os << *iter << "\n";
-        disassemble(os, *++iter, depth + 1);
         ++offset;
+        disassemble(os, *++iter, depth + 1);
         break;
 
       case mnemonic::select:
       case mnemonic::tail_select:
         os << *iter << "\n";
-        disassemble(os, *++iter, depth + 1);
-        disassemble(os, *++iter, depth + 1);
         ++offset;
+        disassemble(os, *++iter, depth + 1);
+        disassemble(os, *++iter, depth + 1);
         break;
-
-      default:
-        assert(false);
       }
     }
   }
