@@ -34,7 +34,7 @@ inline namespace kernel
 
     using applicable = std::function<PROCEDURE()>;
 
-    applicable apply;
+    applicable call;
 
     explicit procedure(std::string const&, applicable const&);
 

@@ -29,12 +29,12 @@ inline namespace kernel
 {
   procedure::procedure(std::string const& name, applicable const& applicable)
     : description { name }
-    , apply { applicable }
+    , call { applicable }
   {}
 
   procedure::procedure(std::string const& name, std::string const& libfoo_so)
     : description { name }
-    , apply { dlsym(name, dlopen(libfoo_so)) }
+    , call { dlsym(name, dlopen(libfoo_so)) }
   {}
 
   auto procedure::dlopen(std::string const& libfoo_so) -> void *
