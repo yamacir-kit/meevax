@@ -48,39 +48,23 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
-    struct transformer : public environment
+    struct transformer
     {
-      using environment::s;
-      using environment::e;
-      using environment::c;
-      using environment::d;
-
       let spec;
 
-      explicit transformer() /* ------------------------------------------------
-      *
-      *  Since the base class environment inherits from pair, all arguments
-      *  given to make<transformer> are forwarded directly to the virtual base
-      *  class pair. After that, the constructor of the base class environment
-      *  is called to set up the environment. This constructor is called after
-      *  them.
-      *
-      * --------------------------------------------------------------------- */
-      {}
+      environment expander;
 
-      auto build(environment const& base) -> void
+      explicit transformer(environment const& current_environment)
+        : expander { current_environment }
       {
-        s = base.s;
-        e = base.e;
-        c = compile(context::outermost,
-                    *this,
-                    cadr(base.c).template as<syntactic_continuation>().expression(),
-                    cadr(base.c).template as<syntactic_continuation>().syntactic_environment());
-        d = base.d;
+        expander.c = compile(context::outermost,
+                             expander,
+                             cadr(expander.c).template as<syntactic_continuation>().expression(),
+                             cadr(expander.c).template as<syntactic_continuation>().syntactic_environment());
 
-        spec = environment::execute();
+        spec = expander.execute();
 
-        environment::reset();
+        expander.reset();
       }
 
       auto expand(let const& form) /* ------------------------------------------
@@ -116,16 +100,16 @@ inline namespace kernel
       {
         assert(spec.template is<closure>());
 
-        assert(d.template is<null>());
-        assert(c.template is<pair>());
-        assert(e.template is<null>());
-        assert(s.template is<null>());
+        assert(expander.d.template is<null>());
+        assert(expander.c.template is<pair>());
+        assert(expander.e.template is<null>());
+        assert(expander.s.template is<null>());
 
-        assert(car(c).template is<instruction>());
-        assert(car(c).template as<instruction>().value == mnemonic::stop);
-        assert(cdr(c).template is<null>());
+        assert(car(expander.c).template is<instruction>());
+        assert(car(expander.c).template as<instruction>().value == mnemonic::stop);
+        assert(cdr(expander.c).template is<null>());
 
-        return environment::apply(spec, form);
+        return expander.apply(spec, form);
       }
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
@@ -149,7 +133,7 @@ inline namespace kernel
         expander.reset();
       }
 
-      auto expand(let const& form, environment & receiver)
+      auto expand(let const& form, environment &)
       {
         auto rename = make<procedure>("rename", [](let const& xs, auto&& expander)
         {
@@ -404,8 +388,7 @@ inline namespace kernel
         *  s e (%fork c1 . c2) d => (<transformer> . s) e c2 d
         *
         * ------------------------------------------------------------------- */
-        s = cons(make<transformer>(syntactic_environment(), global_environment()), s);
-        car(s).template as<transformer>().build(static_cast<environment const&>(*this));
+        s = cons(make<transformer>(static_cast<environment const&>(*this)), s);
         c = cddr(c);
         goto decode;
 

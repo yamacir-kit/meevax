@@ -1649,7 +1649,7 @@ namespace meevax
 
     define<procedure>("eval", [](let const& xs, auto&&)
     {
-      return cadr(xs).as<environment>().evaluate(car(xs));
+      return cadr(xs).as<transformer>().expander.evaluate(car(xs)); // DIRTY HACK!
     });
   }
 
