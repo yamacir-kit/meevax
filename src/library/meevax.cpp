@@ -2066,8 +2066,6 @@ namespace meevax
 
     define<procedure>("transformer?", type_predicate<transformer>());
 
-    define<procedure>("r6rs:identifier?", type_predicate<absolute>());
-
     define<procedure>("macroexpand-1", [this](let const& xs, auto&&...)
     {
       if (let const& macro = (*this)[caar(xs)]; macro.is<transformer>())

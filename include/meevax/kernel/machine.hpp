@@ -417,7 +417,7 @@ inline namespace kernel
         *  s e (%join) (c . d) => s e c d
         *
         * ------------------------------------------------------------------- */
-        assert(cdr(c).is<null>());
+        assert(cdr(c).template is<null>());
         c = car(d);
         d = cdr(d);
         goto decode;
