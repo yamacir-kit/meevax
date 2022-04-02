@@ -34,7 +34,7 @@ inline namespace kernel
   {
     auto dump = std::make_tuple(std::exchange(s, list(f, xs)),
                                 std::exchange(e, unit),
-                                std::exchange(c, list(make<instruction>(mnemonic::call),
+                                std::exchange(c, list(make<instruction>(mnemonic::call), syntactic_environment(),
                                                       make<instruction>(mnemonic::stop))),
                                 std::exchange(d, unit));
 
@@ -120,12 +120,12 @@ inline namespace kernel
 
   auto environment::import() -> void
   {
-    define<procedure>("set-batch!",       [this](let const& xs, auto&&) { return batch       = car(xs); });
-    define<procedure>("set-debug!",       [this](let const& xs, auto&&) { return debug       = car(xs); });
-    define<procedure>("set-interactive!", [this](let const& xs, auto&&) { return interactive = car(xs); });
-    define<procedure>("set-prompt!",      [this](let const& xs, auto&&) { return prompt      = car(xs); });
-    define<procedure>("set-trace!",       [this](let const& xs, auto&&) { return trace       = car(xs); });
-    define<procedure>("set-verbose!",     [this](let const& xs, auto&&) { return verbose     = car(xs); });
+    define<procedure>("set-batch!",       [this](let const& xs, auto&&...) { return batch       = car(xs); });
+    define<procedure>("set-debug!",       [this](let const& xs, auto&&...) { return debug       = car(xs); });
+    define<procedure>("set-interactive!", [this](let const& xs, auto&&...) { return interactive = car(xs); });
+    define<procedure>("set-prompt!",      [this](let const& xs, auto&&...) { return prompt      = car(xs); });
+    define<procedure>("set-trace!",       [this](let const& xs, auto&&...) { return trace       = car(xs); });
+    define<procedure>("set-verbose!",     [this](let const& xs, auto&&...) { return verbose     = car(xs); });
   }
 
   auto environment::is_identifier(const_reference x) -> bool

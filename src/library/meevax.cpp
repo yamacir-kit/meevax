@@ -49,7 +49,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("eqv?", [](let const& xs, auto &&) // TODO Rename to value=?
+    define<procedure>("eqv?", [](let const& xs, auto&&...) // TODO Rename to value=?
     {
       return eqv(car(xs), cadr(xs)) ? t : f;
     });
@@ -73,7 +73,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("eq?", [](auto&& xs, auto &&) // TODO Rename to reference=?
+    define<procedure>("eq?", [](auto&& xs, auto&&...) // TODO Rename to reference=?
     {
       return eq(car(xs), cadr(xs)) ? t : f;
     });
@@ -100,11 +100,11 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("number?",   [](let const& xs, auto&&) { return car(xs).is_also<number>() ? t : f; });
-    define<procedure>("complex?",  [](let const& xs, auto&&) { return car(xs).is_also<number>() and car(xs).as<number>().is_complex () ? t : f; });
-    define<procedure>("real?",     [](let const& xs, auto&&) { return car(xs).is_also<number>() and car(xs).as<number>().is_real    () ? t : f; });
-    define<procedure>("rational?", [](let const& xs, auto&&) { return car(xs).is_also<number>() and car(xs).as<number>().is_rational() ? t : f; });
-    define<procedure>("integer?",  [](let const& xs, auto&&) { return car(xs).is_also<number>() and car(xs).as<number>().is_integer () ? t : f; });
+    define<procedure>("number?",   [](let const& xs, auto&&...) { return car(xs).is_also<number>() ? t : f; });
+    define<procedure>("complex?",  [](let const& xs, auto&&...) { return car(xs).is_also<number>() and car(xs).as<number>().is_complex () ? t : f; });
+    define<procedure>("real?",     [](let const& xs, auto&&...) { return car(xs).is_also<number>() and car(xs).as<number>().is_real    () ? t : f; });
+    define<procedure>("rational?", [](let const& xs, auto&&...) { return car(xs).is_also<number>() and car(xs).as<number>().is_rational() ? t : f; });
+    define<procedure>("integer?",  [](let const& xs, auto&&...) { return car(xs).is_also<number>() and car(xs).as<number>().is_integer () ? t : f; });
 
     define<procedure>("%complex?",     is<complex     >());
     define<procedure>("ratio?",        is<ratio       >());
@@ -157,7 +157,7 @@ namespace meevax
      * ---------------------------------------------------------------------- */
 
     #define DEFINE(SYMBOL, COMPARE)                                            \
-    define<procedure>(#SYMBOL, [](let const& xs, auto &&)                      \
+    define<procedure>(#SYMBOL, [](let const& xs, auto&&...)                    \
     {                                                                          \
       return std::adjacent_find(                                               \
                std::begin(xs), std::end(xs), [](let const& a, let const& b)    \
@@ -184,8 +184,8 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("+", [](let const& xs, auto&&) { return std::accumulate(std::begin(xs), std::end(xs), e0, [](let const& a, let const& b) { return a + b; }); });
-    define<procedure>("*", [](let const& xs, auto&&) { return std::accumulate(std::begin(xs), std::end(xs), e1, [](let const& a, let const& b) { return a * b; }); });
+    define<procedure>("+", [](let const& xs, auto&&...) { return std::accumulate(std::begin(xs), std::end(xs), e0, [](let const& a, let const& b) { return a + b; }); });
+    define<procedure>("*", [](let const& xs, auto&&...) { return std::accumulate(std::begin(xs), std::end(xs), e1, [](let const& a, let const& b) { return a * b; }); });
 
     /* -------------------------------------------------------------------------
      *
@@ -206,7 +206,7 @@ namespace meevax
      * ---------------------------------------------------------------------- */
 
     #define DEFINE(SYMBOL, FUNCTION, BASIS)                                    \
-    define<procedure>(SYMBOL, [](let const& xs, auto&&)                        \
+    define<procedure>(SYMBOL, [](let const& xs, auto&&...)                     \
     {                                                                          \
       switch (length(xs))                                                      \
       {                                                                        \
@@ -248,10 +248,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("floor",    [](let const& xs, auto&&) { return car(xs).as<number>().floor(); });
-    define<procedure>("ceiling",  [](let const& xs, auto&&) { return car(xs).as<number>().ceil();  });
-    define<procedure>("truncate", [](let const& xs, auto&&) { return car(xs).as<number>().trunc(); });
-    define<procedure>("round",    [](let const& xs, auto&&) { return car(xs).as<number>().round(); });
+    define<procedure>("floor",    [](let const& xs, auto&&...) { return car(xs).as<number>().floor(); });
+    define<procedure>("ceiling",  [](let const& xs, auto&&...) { return car(xs).as<number>().ceil();  });
+    define<procedure>("truncate", [](let const& xs, auto&&...) { return car(xs).as<number>().trunc(); });
+    define<procedure>("round",    [](let const& xs, auto&&...) { return car(xs).as<number>().round(); });
 
     /* -------------------------------------------------------------------------
      *
@@ -266,7 +266,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("expt", [](let const& xs, auto&&)
+    define<procedure>("expt", [](let const& xs, auto&&...)
     {
       return car(xs).as<number>().pow(cadr(xs));
     });
@@ -307,8 +307,8 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>(  "exact", [](let const& xs, auto&&) { return car(xs).as<number>().exact  (); });
-    define<procedure>("inexact", [](let const& xs, auto&&) { return car(xs).as<number>().inexact(); });
+    define<procedure>(  "exact", [](let const& xs, auto&&...) { return car(xs).as<number>().exact  (); });
+    define<procedure>("inexact", [](let const& xs, auto&&...) { return car(xs).as<number>().inexact(); });
 
     /* -------------------------------------------------------------------------
      *
@@ -347,7 +347,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("number->string", [](auto&& xs, auto&&)
+    define<procedure>("number->string", [](auto&& xs, auto&&...)
     {
       return make<string>(lexical_cast<std::string>(car(xs)));
     });
@@ -369,7 +369,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string->number", [](let const& xs, auto&&)
+    define<procedure>("string->number", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -405,7 +405,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<instruction_level_procedure>("cons", cons_, [](let const& xs, auto&&)
+    define<instruction_level_procedure>("cons", cons_, [](let const& xs, auto&&...)
     {
       return cons(car(xs), cadr(xs));
     });
@@ -424,8 +424,8 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("car", [](let const& xs, auto&&) { return caar(xs); });
-    define<procedure>("cdr", [](let const& xs, auto&&) { return cdar(xs); });
+    define<procedure>("car", [](let const& xs, auto&&...) { return caar(xs); });
+    define<procedure>("cdr", [](let const& xs, auto&&...) { return cdar(xs); });
 
     /* -------------------------------------------------------------------------
      *
@@ -439,8 +439,8 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("set-car!", [](auto&& xs, auto&&) { return caar(xs) = cadr(xs); });
-    define<procedure>("set-cdr!", [](auto&& xs, auto&&) { return cdar(xs) = cadr(xs); });
+    define<procedure>("set-car!", [](auto&& xs, auto&&...) { return caar(xs) = cadr(xs); });
+    define<procedure>("set-cdr!", [](auto&& xs, auto&&...) { return cdar(xs) = cadr(xs); });
 
     /* -------------------------------------------------------------------------
      *
@@ -458,10 +458,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("caar", [](let const& xs, auto&&) { return caar(car(xs)); });
-    define<procedure>("cadr", [](let const& xs, auto&&) { return cadr(car(xs)); });
-    define<procedure>("cdar", [](let const& xs, auto&&) { return cdar(car(xs)); });
-    define<procedure>("cddr", [](let const& xs, auto&&) { return cddr(car(xs)); });
+    define<procedure>("caar", [](let const& xs, auto&&...) { return caar(car(xs)); });
+    define<procedure>("cadr", [](let const& xs, auto&&...) { return cadr(car(xs)); });
+    define<procedure>("cdar", [](let const& xs, auto&&...) { return cdar(car(xs)); });
+    define<procedure>("cddr", [](let const& xs, auto&&...) { return cddr(car(xs)); });
 
     /* -------------------------------------------------------------------------
      *
@@ -471,7 +471,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("null?", [](let const& xs, auto&&)
+    define<procedure>("null?", [](let const& xs, auto&&...)
     {
       return car(xs).is<null>() ? t : f;
     });
@@ -496,7 +496,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("symbol->string", [](let const& xs, auto&&)
+    define<procedure>("symbol->string", [](let const& xs, auto&&...)
     {
       return make<string>(car(xs).as<symbol>());
     });
@@ -511,7 +511,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string->symbol", [](let const& xs, auto&&)
+    define<procedure>("string->symbol", [](let const& xs, auto&&...)
     {
       return intern(car(xs).as<string>());
     });
@@ -543,7 +543,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("char->integer", [](let const& xs, auto&&)
+    define<procedure>("char->integer", [](let const& xs, auto&&...)
     {
       if (xs.is<pair>() and car(xs).is<character>())
       {
@@ -555,7 +555,7 @@ namespace meevax
       }
     });
 
-    define<procedure>("integer->char", [](let const& xs, auto&&)
+    define<procedure>("integer->char", [](let const& xs, auto&&...)
     {
       if (xs.is<pair>() and car(xs).is<exact_integer>())
       {
@@ -588,7 +588,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("make-string", [](let const& xs, auto&&)
+    define<procedure>("make-string", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -611,7 +611,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string-length", [](let const& xs, auto&&)
+    define<procedure>("string-length", [](let const& xs, auto&&...)
     {
       return make<exact_integer>(car(xs).as<string>().size());
     });
@@ -626,7 +626,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string-ref", [](let const& xs, auto&&)
+    define<procedure>("string-ref", [](let const& xs, auto&&...)
     {
       return make(car(xs).as<string>().at(static_cast<string::size_type>(cadr(xs).as<exact_integer>())));
     });
@@ -649,7 +649,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string-set!", [](let const& xs, auto&&)
+    define<procedure>("string-set!", [](let const& xs, auto&&...)
     {
       car(xs).as<string>().at(static_cast<string::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs).as<character>();
       return car(xs);
@@ -691,7 +691,7 @@ namespace meevax
      * ---------------------------------------------------------------------- */
 
     #define STRING_COMPARE(OPERATOR)                                           \
-    [](let const& xs, auto&&)                                                  \
+    [](let const& xs, auto&&...)                                               \
     {                                                                          \
       for (let const& each : cdr(xs))                                          \
       {                                                                        \
@@ -725,7 +725,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string-append", [](let const& xs, auto&&)
+    define<procedure>("string-append", [](let const& xs, auto&&...)
     {
       string result;
 
@@ -754,7 +754,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string->list", [](let const& xs, auto&&)
+    define<procedure>("string->list", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -772,7 +772,7 @@ namespace meevax
       }
     });
 
-    define<procedure>("list->string", [](let const& xs, auto&&)
+    define<procedure>("list->string", [](let const& xs, auto&&...)
     {
       string s;
 
@@ -795,7 +795,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string-copy", [](let const& xs, auto&&)
+    define<procedure>("string-copy", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -834,7 +834,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("make-vector", [](let const& xs, auto&&)
+    define<procedure>("make-vector", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -858,7 +858,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("vector", [](let const& xs, auto&&)
+    define<procedure>("vector", [](let const& xs, auto&&...)
     {
       return make<vector>(for_each_in, xs);
     });
@@ -871,7 +871,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("vector-length", [](let const& xs, auto&&)
+    define<procedure>("vector-length", [](let const& xs, auto&&...)
     {
       return make<exact_integer>(car(xs).as<vector>().size());
     });
@@ -885,7 +885,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("vector-ref", [](let const& xs, auto&&)
+    define<procedure>("vector-ref", [](let const& xs, auto&&...)
     {
       return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
     });
@@ -899,7 +899,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("vector-set!", [](let const& xs, auto&&)
+    define<procedure>("vector-set!", [](let const& xs, auto&&...)
     {
       return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs);
     });
@@ -919,7 +919,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("vector->list", [](let const& xs, auto&&)
+    define<procedure>("vector->list", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -937,7 +937,7 @@ namespace meevax
       }
     });
 
-    define<procedure>("list->vector", [](let const& xs, auto&&)
+    define<procedure>("list->vector", [](let const& xs, auto&&...)
     {
       return make<vector>(for_each_in, car(xs));
     });
@@ -964,7 +964,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("vector->string", [](let const& xs, auto&&)
+    define<procedure>("vector->string", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -1013,7 +1013,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("vector-fill!", [](let const& xs, auto&&)
+    define<procedure>("vector-fill!", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -1063,7 +1063,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("default-exception-handler", [](let const& xs, auto&&) -> object
+    define<procedure>("default-exception-handler", [](let const& xs, auto&&...) -> object
     {
       throw car(xs);
     });
@@ -1084,7 +1084,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("make-error", [](let const& xs, auto&&)
+    define<procedure>("make-error", [](let const& xs, auto&&...)
     {
       return make<error>(car(xs), cdr(xs));
     });
@@ -1119,11 +1119,11 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>(  "input-port?", [](let const& xs, auto&&) { return car(xs).is_also<std::istream>() ? t : f; });
-    define<procedure>( "output-port?", [](let const& xs, auto&&) { return car(xs).is_also<std::ostream>() ? t : f; });
-    define<procedure>( "binary-port?", [](let const&   , auto&&) { return                                       f; });
-    define<procedure>("textual-port?", [](let const& xs, auto&&) { return car(xs).is_also<std::ios    >() ? t : f; });
-    define<procedure>(        "port?", [](let const& xs, auto&&) { return car(xs).is_also<std::ios    >() ? t : f; });
+    define<procedure>(  "input-port?", [](let const& xs, auto&&...) { return car(xs).is_also<std::istream>() ? t : f; });
+    define<procedure>( "output-port?", [](let const& xs, auto&&...) { return car(xs).is_also<std::ostream>() ? t : f; });
+    define<procedure>( "binary-port?", [](let const&   , auto&&...) { return                                       f; });
+    define<procedure>("textual-port?", [](let const& xs, auto&&...) { return car(xs).is_also<std::ios    >() ? t : f; });
+    define<procedure>(        "port?", [](let const& xs, auto&&...) { return car(xs).is_also<std::ios    >() ? t : f; });
 
     /* -------------------------------------------------------------------------
      *
@@ -1135,7 +1135,7 @@ namespace meevax
      *
      * --------------------------------------------------------------------- */
 
-    define<procedure>("input-port-open?", [](let const& xs, auto&&)
+    define<procedure>("input-port-open?", [](let const& xs, auto&&...)
     {
       if (let const& x = car(xs); x.is_also<std::ifstream>())
       {
@@ -1147,7 +1147,7 @@ namespace meevax
       }
     });
 
-    define<procedure>("output-port-open?", [](let const& xs, auto&&)
+    define<procedure>("output-port-open?", [](let const& xs, auto&&...)
     {
       if (let const& x = car(xs); x.is_also<std::ofstream>())
       {
@@ -1188,7 +1188,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("open-input-file", [](let const& xs, auto&&)
+    define<procedure>("open-input-file", [](let const& xs, auto&&...)
     {
       return make<input_file_port>(car(xs).as<string>());
     });
@@ -1206,7 +1206,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("open-output-file", [](let const& xs, auto&&)
+    define<procedure>("open-output-file", [](let const& xs, auto&&...)
     {
       return make<output_file_port>(car(xs).as<string>());
     });
@@ -1228,7 +1228,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("close-input-port", [](let const& xs, auto&&)
+    define<procedure>("close-input-port", [](let const& xs, auto&&...)
     {
       if (let const& x = car(xs); x.is_also<std::ifstream>())
       {
@@ -1238,7 +1238,7 @@ namespace meevax
       return unspecified_object;
     });
 
-    define<procedure>("close-output-port", [](let const& xs, auto&&)
+    define<procedure>("close-output-port", [](let const& xs, auto&&...)
     {
       if (let const& x = car(xs); x.is_also<std::ofstream>())
       {
@@ -1258,7 +1258,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("open-input-string", [](let const& xs, auto&&)
+    define<procedure>("open-input-string", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -1282,7 +1282,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("open-output-string", [](let const& xs, auto&&)
+    define<procedure>("open-output-string", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -1309,7 +1309,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("get-output-string", [](let const& xs, auto&&)
+    define<procedure>("get-output-string", [](let const& xs, auto&&...)
     {
       return make<string>(car(xs).as<std::ostringstream>().str());
     });
@@ -1325,7 +1325,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%read-char", [](let const& xs, auto&&)
+    define<procedure>("%read-char", [](let const& xs, auto&&...)
     {
       try
       {
@@ -1360,7 +1360,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%peek-char", [](let const& xs, auto&&)
+    define<procedure>("%peek-char", [](let const& xs, auto&&...)
     {
       try
       {
@@ -1425,7 +1425,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%char-ready?", [](let const& xs, auto&&)
+    define<procedure>("%char-ready?", [](let const& xs, auto&&...)
     {
       return car(xs).as<std::istream>() ? t : f;
     });
@@ -1442,7 +1442,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%read-string", [](let const& xs, auto&&)
+    define<procedure>("%read-string", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -1465,7 +1465,7 @@ namespace meevax
      *
      * --------------------------------------------------------------------- */
 
-    define<procedure>("put-char", [](let const& xs, auto&&)
+    define<procedure>("put-char", [](let const& xs, auto&&...)
     {
       cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
       return unspecified_object;
@@ -1483,7 +1483,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("put-string", [](let const& xs, auto&&)
+    define<procedure>("put-string", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -1511,7 +1511,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%flush-output-port", [](let const& xs, auto&&)
+    define<procedure>("%flush-output-port", [](let const& xs, auto&&...)
     {
       car(xs).as<std::ostream>() << std::flush;
       return unspecified_object;
@@ -1550,7 +1550,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("digit-value", [](let const& xs, auto&&)
+    define<procedure>("digit-value", [](let const& xs, auto&&...)
     {
       if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
       {
@@ -1605,31 +1605,31 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("caaar", [](let const& xs, auto&&) { return caaar(car(xs)); });
-    define<procedure>("caadr", [](let const& xs, auto&&) { return caadr(car(xs)); });
-    define<procedure>("cadar", [](let const& xs, auto&&) { return cadar(car(xs)); });
-    define<procedure>("caddr", [](let const& xs, auto&&) { return caddr(car(xs)); });
-    define<procedure>("cdaar", [](let const& xs, auto&&) { return cdaar(car(xs)); });
-    define<procedure>("cdadr", [](let const& xs, auto&&) { return cdadr(car(xs)); });
-    define<procedure>("cddar", [](let const& xs, auto&&) { return cddar(car(xs)); });
-    define<procedure>("cdddr", [](let const& xs, auto&&) { return cdddr(car(xs)); });
+    define<procedure>("caaar", [](let const& xs, auto&&...) { return caaar(car(xs)); });
+    define<procedure>("caadr", [](let const& xs, auto&&...) { return caadr(car(xs)); });
+    define<procedure>("cadar", [](let const& xs, auto&&...) { return cadar(car(xs)); });
+    define<procedure>("caddr", [](let const& xs, auto&&...) { return caddr(car(xs)); });
+    define<procedure>("cdaar", [](let const& xs, auto&&...) { return cdaar(car(xs)); });
+    define<procedure>("cdadr", [](let const& xs, auto&&...) { return cdadr(car(xs)); });
+    define<procedure>("cddar", [](let const& xs, auto&&...) { return cddar(car(xs)); });
+    define<procedure>("cdddr", [](let const& xs, auto&&...) { return cdddr(car(xs)); });
 
-    define<procedure>("caaaar", [](let const& xs, auto&&) { return caaaar(car(xs)); });
-    define<procedure>("caaadr", [](let const& xs, auto&&) { return caaadr(car(xs)); });
-    define<procedure>("caadar", [](let const& xs, auto&&) { return caadar(car(xs)); });
-    define<procedure>("caaddr", [](let const& xs, auto&&) { return caaddr(car(xs)); });
-    define<procedure>("cadaar", [](let const& xs, auto&&) { return cadaar(car(xs)); });
-    define<procedure>("cadadr", [](let const& xs, auto&&) { return cadadr(car(xs)); });
-    define<procedure>("caddar", [](let const& xs, auto&&) { return caddar(car(xs)); });
-    define<procedure>("cadddr", [](let const& xs, auto&&) { return cadddr(car(xs)); });
-    define<procedure>("cdaaar", [](let const& xs, auto&&) { return cdaaar(car(xs)); });
-    define<procedure>("cdaadr", [](let const& xs, auto&&) { return cdaadr(car(xs)); });
-    define<procedure>("cdadar", [](let const& xs, auto&&) { return cdadar(car(xs)); });
-    define<procedure>("cdaddr", [](let const& xs, auto&&) { return cdaddr(car(xs)); });
-    define<procedure>("cddaar", [](let const& xs, auto&&) { return cddaar(car(xs)); });
-    define<procedure>("cddadr", [](let const& xs, auto&&) { return cddadr(car(xs)); });
-    define<procedure>("cdddar", [](let const& xs, auto&&) { return cdddar(car(xs)); });
-    define<procedure>("cddddr", [](let const& xs, auto&&) { return cddddr(car(xs)); });
+    define<procedure>("caaaar", [](let const& xs, auto&&...) { return caaaar(car(xs)); });
+    define<procedure>("caaadr", [](let const& xs, auto&&...) { return caaadr(car(xs)); });
+    define<procedure>("caadar", [](let const& xs, auto&&...) { return caadar(car(xs)); });
+    define<procedure>("caaddr", [](let const& xs, auto&&...) { return caaddr(car(xs)); });
+    define<procedure>("cadaar", [](let const& xs, auto&&...) { return cadaar(car(xs)); });
+    define<procedure>("cadadr", [](let const& xs, auto&&...) { return cadadr(car(xs)); });
+    define<procedure>("caddar", [](let const& xs, auto&&...) { return caddar(car(xs)); });
+    define<procedure>("cadddr", [](let const& xs, auto&&...) { return cadddr(car(xs)); });
+    define<procedure>("cdaaar", [](let const& xs, auto&&...) { return cdaaar(car(xs)); });
+    define<procedure>("cdaadr", [](let const& xs, auto&&...) { return cdaadr(car(xs)); });
+    define<procedure>("cdadar", [](let const& xs, auto&&...) { return cdadar(car(xs)); });
+    define<procedure>("cdaddr", [](let const& xs, auto&&...) { return cdaddr(car(xs)); });
+    define<procedure>("cddaar", [](let const& xs, auto&&...) { return cddaar(car(xs)); });
+    define<procedure>("cddadr", [](let const& xs, auto&&...) { return cddadr(car(xs)); });
+    define<procedure>("cdddar", [](let const& xs, auto&&...) { return cdddar(car(xs)); });
+    define<procedure>("cddddr", [](let const& xs, auto&&...) { return cddddr(car(xs)); });
   }
 
   template <>
@@ -1647,7 +1647,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("eval", [](let const& xs, auto&&)
+    define<procedure>("eval", [](let const& xs, auto&&...)
     {
       return cadr(xs).as<transformer>().expander.evaluate(car(xs)); // DIRTY HACK!
     });
@@ -1666,7 +1666,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("finite?", [](let const& xs, auto&&)
+    define<procedure>("finite?", [](let const& xs, auto&&...)
     {
       return car(xs).as<number>().is_finite() ? t : f;
     });
@@ -1681,7 +1681,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("infinite?", [](let const& xs, auto&&)
+    define<procedure>("infinite?", [](let const& xs, auto&&...)
     {
       return car(xs).as<number>().is_infinite() ? t : f;
     });
@@ -1696,15 +1696,15 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("nan?", [](let const& xs, auto&&)
+    define<procedure>("nan?", [](let const& xs, auto&&...)
     {
       return car(xs).is_also<number>() and car(xs).as<number>().is_nan() ? t : f;
     });
 
-    define<procedure>("exp",    [](let const& xs, auto&&) { return car(xs).as<number>().exp();  });
-    define<procedure>("sqrt",   [](let const& xs, auto&&) { return car(xs).as<number>().sqrt(); });
+    define<procedure>("exp",    [](let const& xs, auto&&...) { return car(xs).as<number>().exp();  });
+    define<procedure>("sqrt",   [](let const& xs, auto&&...) { return car(xs).as<number>().sqrt(); });
 
-    define<procedure>("log", [](let const& xs, auto&&)
+    define<procedure>("log", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -1719,19 +1719,19 @@ namespace meevax
       }
     });
 
-    define<procedure>("sin",    [](let const& xs, auto&&) { return car(xs).as<number>().sin();   });
-    define<procedure>("cos",    [](let const& xs, auto&&) { return car(xs).as<number>().cos();   });
-    define<procedure>("tan",    [](let const& xs, auto&&) { return car(xs).as<number>().tan();   });
-    define<procedure>("asin",   [](let const& xs, auto&&) { return car(xs).as<number>().asin();  });
-    define<procedure>("acos",   [](let const& xs, auto&&) { return car(xs).as<number>().acos();  });
-    define<procedure>("sinh",   [](let const& xs, auto&&) { return car(xs).as<number>().sinh();  });
-    define<procedure>("cosh",   [](let const& xs, auto&&) { return car(xs).as<number>().cosh();  });
-    define<procedure>("tanh",   [](let const& xs, auto&&) { return car(xs).as<number>().tanh();  });
-    define<procedure>("asinh",  [](let const& xs, auto&&) { return car(xs).as<number>().asinh(); });
-    define<procedure>("acosh",  [](let const& xs, auto&&) { return car(xs).as<number>().acosh(); });
-    define<procedure>("atanh",  [](let const& xs, auto&&) { return car(xs).as<number>().atanh(); });
+    define<procedure>("sin",    [](let const& xs, auto&&...) { return car(xs).as<number>().sin();   });
+    define<procedure>("cos",    [](let const& xs, auto&&...) { return car(xs).as<number>().cos();   });
+    define<procedure>("tan",    [](let const& xs, auto&&...) { return car(xs).as<number>().tan();   });
+    define<procedure>("asin",   [](let const& xs, auto&&...) { return car(xs).as<number>().asin();  });
+    define<procedure>("acos",   [](let const& xs, auto&&...) { return car(xs).as<number>().acos();  });
+    define<procedure>("sinh",   [](let const& xs, auto&&...) { return car(xs).as<number>().sinh();  });
+    define<procedure>("cosh",   [](let const& xs, auto&&...) { return car(xs).as<number>().cosh();  });
+    define<procedure>("tanh",   [](let const& xs, auto&&...) { return car(xs).as<number>().tanh();  });
+    define<procedure>("asinh",  [](let const& xs, auto&&...) { return car(xs).as<number>().asinh(); });
+    define<procedure>("acosh",  [](let const& xs, auto&&...) { return car(xs).as<number>().acosh(); });
+    define<procedure>("atanh",  [](let const& xs, auto&&...) { return car(xs).as<number>().atanh(); });
 
-    define<procedure>("atan", [](let const& xs, auto&&)
+    define<procedure>("atan", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -1773,7 +1773,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("load", [this](let const& xs, auto&&)
+    define<procedure>("load", [this](let const& xs, auto&&...)
     {
       return load(car(xs).as<string>());
     });
@@ -1796,7 +1796,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("emergency-exit", [](let const& xs, auto&&) -> object
+    define<procedure>("emergency-exit", [](let const& xs, auto&&...) -> object
     {
       switch (length(xs))
       {
@@ -1848,7 +1848,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%read", [this](let const& xs, auto&&)
+    define<procedure>("%read", [this](let const& xs, auto&&...)
     {
       try
       {
@@ -1889,7 +1889,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%write-simple", [this](let const& xs, auto&&)
+    define<procedure>("%write-simple", [this](let const& xs, auto&&...)
     {
       write(cadr(xs), car(xs));
       return unspecified_object;
@@ -1899,20 +1899,22 @@ namespace meevax
   template <>
   auto environment::import(decltype("(meevax experimental)"_s)) -> void
   {
-    define<procedure>("%er-macro-transformer", [](let const& xs, auto & current_environment)
+    define<procedure>("%er-macro-transformer", [](let const& xs, let const&, environment & current_environment)
     {
       return make<er_macro_transformer>(car(xs), current_environment);
     });
 
-    define<procedure>("er-macro-transformer?", [](let const& xs, auto&&)
+    define<procedure>("er-macro-transformer?", [](let const& xs, auto&&...)
     {
       return car(xs).is<er_macro_transformer>() ? t : f;
     });
 
-    define<procedure>("identifier", [](let const& xs, auto & environment)
+    define<procedure>("identifier", [](let const& xs,
+                                       let const& current_syntactic_environment,
+                                       auto & environment)
     {
       assert(car(xs).is<symbol>());
-      return environment.rename(car(xs), environment.syntactic_environment());
+      return environment.rename(car(xs), current_syntactic_environment);
     });
 
     /* -------------------------------------------------------------------------
@@ -1930,7 +1932,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("identifier?", [](let const& xs, auto&&)
+    define<procedure>("identifier?", [](let const& xs, auto&&...)
     {
       return is_identifier(car(xs)) ? t : f;
     });
@@ -1969,9 +1971,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("free-identifier=?", [](let const& xs, environment & currently)
+    define<procedure>("free-identifier=?", [](let const& xs, let const&, auto && current_environment)
     {
-      return currently.is_same_free_identifier(car(xs), cadr(xs)) ? t : f;
+      return current_environment.is_same_free_identifier(car(xs), cadr(xs)) ? t : f;
     });
 
     /* -------------------------------------------------------------------------
@@ -1989,9 +1991,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("bound-identifier=?", [](let const& xs, environment & currently)
+    define<procedure>("bound-identifier=?", [](let const& xs, let const&, auto && current_environment)
     {
-      return currently.is_same_bound_identifier(car(xs), cadr(xs)) ? t : f;
+      return current_environment.is_same_bound_identifier(car(xs), cadr(xs)) ? t : f;
     });
 
     /* -------------------------------------------------------------------------
@@ -2005,7 +2007,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("identifier->symbol", [](let const& xs, auto&&)
+    define<procedure>("identifier->symbol", [](let const& xs, auto&&...)
     {
       switch (length(xs))
       {
@@ -2047,15 +2049,15 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("generate-identifier", [](let const& xs, environment & current)
+    define<procedure>("generate-identifier", [](let const& xs, let const&, auto && current_environment)
     {
       switch (length(xs))
       {
       case 0:
-        return current.generate_free_identifier(make<symbol>());
+        return current_environment.generate_free_identifier(make<symbol>());
 
       case 1:
-        return current.generate_free_identifier(car(xs));
+        return current_environment.generate_free_identifier(car(xs));
 
       default:
         throw invalid_application(intern("generate-identifier") | xs);
@@ -2066,7 +2068,7 @@ namespace meevax
 
     define<procedure>("r6rs:identifier?", is<absolute>());
 
-    define<procedure>("macroexpand-1", [this](let const& xs, auto&&)
+    define<procedure>("macroexpand-1", [this](let const& xs, auto&&...)
     {
       if (let const& macro = (*this)[caar(xs)]; macro.is<transformer>())
       {
@@ -2078,7 +2080,7 @@ namespace meevax
       }
     });
 
-    define<procedure>("disassemble", [](let const& xs, auto&&)
+    define<procedure>("disassemble", [](let const& xs, auto&&...)
     {
       if (0 < length(xs))
       {
@@ -2096,7 +2098,7 @@ namespace meevax
       return std::numeric_limits<double>::is_iec559 ? t : f;
     });
 
-    define<procedure>("print", [](let const& xs, auto&&)
+    define<procedure>("print", [](let const& xs, auto&&...)
     {
       for (let const& x : xs)
       {
@@ -2121,12 +2123,12 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("foreign-function", [](let const& xs, auto&&)
+    define<procedure>("foreign-function", [](let const& xs, auto&&...)
     {
       return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
     });
 
-    define<procedure>("type-of", [](let const& xs, auto&&)
+    define<procedure>("type-of", [](let const& xs, auto&&...)
     {
       std::cout << car(xs).type().name() << std::endl;
 

@@ -135,13 +135,13 @@ inline namespace kernel
 
       auto expand(let const& form, environment &)
       {
-        auto rename = make<procedure>("rename", [](let const& xs, auto&& expander)
+        auto rename = make<procedure>("rename", [](let const& xs, auto&&, auto&& expander)
         {
           // return expander.rename(car(xs), expander.syntactic_environment());
           return expander.evaluate(car(xs));
         });
 
-        auto compare = make<procedure>("compare", [](let const& xs, auto&&)
+        auto compare = make<procedure>("compare", [](let const& xs, let const&, environment &)
         {
           return eqv(car(xs), cadr(xs)) ? t : f;
         });
@@ -250,8 +250,7 @@ inline namespace kernel
       {
         return compile(context::none,
                        current_environment,
-                       applicant.as<er_macro_transformer>().expand(current_expression,
-                                                                   current_environment),
+                       applicant.as<er_macro_transformer>().expand(current_expression, current_environment),
                        current_syntactic_environment,
                        current_continuation);
       }
@@ -300,7 +299,7 @@ inline namespace kernel
                                current_environment,
                                car(current_expression),
                                current_syntactic_environment,
-                               cons(make<instruction>(current_context & context::tail ? mnemonic::tail_call : mnemonic::call),
+                               cons(make<instruction>(current_context & context::tail ? mnemonic::tail_call : mnemonic::call), current_syntactic_environment,
                                     current_continuation)));
       }
     }
@@ -510,31 +509,31 @@ inline namespace kernel
       case mnemonic::call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
-        *  (<closure> xs . s) e (%call . c) d => () (xs . e') c' (s e c . d)
+        *  (<closure> xs . s) e (%call <syntactic-environment> . c) d => () (xs . e') c' (s e c . d)
         *
         *  where <closure> = (c' . e')
         *
         * ------------------------------------------------------------------- */
         {
-          d = cons(cddr(s), e, cdr(c), d);
+          d = cons(cddr(s), e, cddr(c), d);
           c =               callee.as<closure>().c();
           e = cons(cadr(s), callee.as<closure>().e());
           s = unit;
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
         *
-        *  (<procedure> xs . s) e (%call . c) d => (x . s) e c d
+        *  (<procedure> xs . s) e (%call <syntactic-environment> . c) d => (x . s) e c d
         *
         *  where x = procedure(xs)
         *
         * ------------------------------------------------------------------- */
         {
-          s = cons(callee.as<procedure>().apply(cadr(s), static_cast<environment &>(*this)), cddr(s));
-          c = cdr(c);
+          s = cons(callee.as<procedure>().apply(cadr(s), cadr(c), static_cast<environment &>(*this)), cddr(s));
+          c = cddr(c);
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
-        *  (<continuation> xs . s) e (%call . c) d => (xs . s') e' c' d'
+        *  (<continuation> xs . s) e (%call <syntactic-environment> . c) d => (xs . s') e' c' d'
         *
         *  where <continuation> = (s' e' c' . 'd)
         *
@@ -554,7 +553,7 @@ inline namespace kernel
       case mnemonic::tail_call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
-        *  (<closure> xs . s) e (%tail-call . c) d => () (xs . e') c' d
+        *  (<closure> xs . s) e (%tail-call <syntactic-environment> . c) d => () (xs . e') c' d
         *
         *  where <closure> = (c' . e')
         *
@@ -566,18 +565,18 @@ inline namespace kernel
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
         *
-        *  (<procedure> xs . s) e (%tail-call . c) d => (x . s) e c d
+        *  (<procedure> xs . s) e (%tail-call <syntactic-environment> . c) d => (x . s) e c d
         *
         *  where x = procedure(xs)
         *
         * ------------------------------------------------------------------- */
         {
-          s = cons(callee.as<procedure>().apply(cadr(s), static_cast<environment &>(*this)), cddr(s));
-          c = cdr(c);
+          s = cons(callee.as<procedure>().apply(cadr(s), cadr(c), static_cast<environment &>(*this)), cddr(s));
+          c = cddr(c);
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
-        *  (<continuation> xs . s)  e (%tail-call . c) d => (xs . s') e' c' d'
+        *  (<continuation> xs . s)  e (%tail-call <syntactic-environment> . c) d => (xs . s') e' c' d'
         *
         *  where <continuation> = (s' e' c' . 'd)
         *
@@ -850,7 +849,7 @@ inline namespace kernel
                           current_environment,
                           car(current_expression),
                           current_syntactic_environment,
-                          cons(make<instruction>(mnemonic::call),
+                          cons(make<instruction>(mnemonic::call), current_syntactic_environment,
                                current_continuation)));
     }
 

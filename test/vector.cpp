@@ -173,7 +173,7 @@ auto main() -> int
   {
     auto module = environment();
 
-    module.define<procedure>("vector", [](let const& xs, auto&&)
+    module.define<procedure>("vector", [](let const& xs, auto&&...)
     {
       return make<vector>(for_each_in, xs);
     });
