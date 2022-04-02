@@ -83,7 +83,7 @@ inline namespace kernel
         environment::reset();
       }
 
-      auto macroexpand(let const& form) /* -------------------------------------
+      auto expand(let const& form) /* ------------------------------------------
       *
       *  Scheme programs can define and use new derived expression types,
       *  called macros. Program-defined expression types have the syntax
@@ -104,13 +104,13 @@ inline namespace kernel
       *  instruction in the dump register (this stop instruction is preset by
       *  the constructor of the transformer).
       *
-      *  NOTE: transformer::macroexpand is never called recursively. This is
-      *  because in the normal macro expansion performed by machine::compile,
-      *  control is returned to machine::compile each time the macro is
-      *  expanded one step. As an exception, there are cases where this
-      *  transformer is given to the eval procedure as an
-      *  <environment-spacifier>, but there is no problem because the stack
-      *  control at that time is performed by environment::evaluate.
+      *  NOTE: transformer::expand is never called recursively. This is because
+      *  in the normal macro expansion performed by machine::compile, control
+      *  is returned to machine::compile each time the macro is expanded one
+      *  step. As an exception, there are cases where this transformer is given
+      *  to the eval procedure as an <environment-spacifier>, but there is no
+      *  problem because the stack control at that time is performed by
+      *  environment::evaluate.
       *
       * --------------------------------------------------------------------- */
       {
@@ -242,7 +242,7 @@ inline namespace kernel
 
         return compile(context::none,
                        current_environment,
-                       notation.as<keyword>().strip().as<transformer>().macroexpand(cons(notation.as<keyword>().strip(), cdr(current_expression))),
+                       notation.as<keyword>().strip().as<transformer>().expand(cons(notation.as<keyword>().strip(), cdr(current_expression))),
                        current_syntactic_environment,
                        current_continuation);
       }
@@ -258,7 +258,7 @@ inline namespace kernel
       {
         return compile(context::none,
                        current_environment,
-                       applicant.as<transformer>().macroexpand(cons(applicant, cdr(current_expression))),
+                       applicant.as<transformer>().expand(cons(applicant, cdr(current_expression))),
                        current_syntactic_environment,
                        current_continuation);
       }

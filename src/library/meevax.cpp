@@ -2070,7 +2070,7 @@ namespace meevax
     {
       if (let const& macro = (*this)[caar(xs)]; macro.is<transformer>())
       {
-        return macro.as<transformer>().macroexpand(cons(macro, car(xs)));
+        return macro.as<transformer>().expand(cons(macro, car(xs)));
       }
       else
       {
