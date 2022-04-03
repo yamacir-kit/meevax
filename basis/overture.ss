@@ -9,13 +9,6 @@
     (lambda (import . import-sets)
       (list quote (cons 'import import-sets)))))
 
-(define-syntax syntax
-  (hygienic-macro-transformer
-    (lambda (syntax datum)
-      (if (pair? datum)
-          (list fork/csc (list lambda '() datum))
-          (eval datum (fork/csc identity))))))
-
 (define (current-environment-specifier)
   (fork/csc identity))
 
