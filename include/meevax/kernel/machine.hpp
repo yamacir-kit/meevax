@@ -48,13 +48,13 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
-    struct transformer
+    struct hygienic_macro_transformer
     {
       let spec;
 
       environment expander;
 
-      explicit transformer(environment const& current_environment)
+      explicit hygienic_macro_transformer(environment const& current_environment)
         : expander { current_environment }
       {
         expander.c = compile(context::outermost,
@@ -112,7 +112,7 @@ inline namespace kernel
         return expander.apply(spec, form);
       }
 
-      friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
+      friend auto operator <<(std::ostream & os, hygienic_macro_transformer const& datum) -> std::ostream &
       {
         return os << magenta("#,(") << green("fork/csc ") << faint("#;", &datum) << magenta(")");
       }
@@ -222,11 +222,11 @@ inline namespace kernel
       }
       else if (let const& notation = std::as_const(current_environment).notate(car(current_expression), current_syntactic_environment); notation.is<keyword>())
       {
-        assert(notation.as<keyword>().strip().is<transformer>());
+        assert(notation.as<keyword>().strip().is<hygienic_macro_transformer>());
 
         return compile(context::none,
                        current_environment,
-                       notation.as<keyword>().strip().as<transformer>().expand(cons(notation.as<keyword>().strip(), cdr(current_expression))),
+                       notation.as<keyword>().strip().as<hygienic_macro_transformer>().expand(cons(notation.as<keyword>().strip(), cdr(current_expression))),
                        current_syntactic_environment,
                        current_continuation);
       }
@@ -238,11 +238,11 @@ inline namespace kernel
                                                 current_syntactic_environment,
                                                 current_continuation);
       }
-      else if (applicant.is<transformer>())
+      else if (applicant.is<hygienic_macro_transformer>())
       {
         return compile(context::none,
                        current_environment,
-                       applicant.as<transformer>().expand(cons(applicant, cdr(current_expression))),
+                       applicant.as<hygienic_macro_transformer>().expand(cons(applicant, cdr(current_expression))),
                        current_syntactic_environment,
                        current_continuation);
       }
@@ -387,7 +387,7 @@ inline namespace kernel
         *  s e (%fork c1 . c2) d => (<transformer> . s) e c2 d
         *
         * ------------------------------------------------------------------- */
-        s = cons(make<transformer>(static_cast<environment const&>(*this)), s);
+        s = cons(make<hygienic_macro_transformer>(static_cast<environment const&>(*this)), s);
         c = cddr(c);
         goto decode;
 
@@ -441,30 +441,13 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         [&]()
         {
-          // PRINT(cadr(c).template is<syntactic_continuation>());
-
-          // let const& expression = cadr(c).template as<syntactic_continuation>().expression();
-          // PRINT(expression);
-
           let const& syntactic_environment = cadr(c).template as<syntactic_continuation>().syntactic_environment();
-          // PRINT(syntactic_environment);
-
-          // PRINT(car(syntactic_environment));
-          // PRINT(cdr(syntactic_environment));
 
           for (let const& keyword_ : car(syntactic_environment))
           {
-            // PRINT(keyword_);
-            // PRINT(keyword_.is<keyword>());
-
             let & binding = keyword_.as<keyword>().strip();
 
             binding = environment(static_cast<environment const&>(*this)).execute(binding);
-
-            // PRINT(binding.is<transformer>());
-            // PRINT(binding.as<transformer>().spec);
-            // PRINT(binding.as<transformer>().spec.template as<closure>().c());
-            // PRINT(binding.as<transformer>().spec.template as<closure>().e());
           }
         }();
 

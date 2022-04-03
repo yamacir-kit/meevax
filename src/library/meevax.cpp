@@ -1649,7 +1649,7 @@ namespace meevax
 
     define<procedure>("eval", [](let const& xs, auto&&...)
     {
-      return cadr(xs).as<transformer>().expander.evaluate(car(xs)); // DIRTY HACK!
+      return cadr(xs).as<hygienic_macro_transformer>().expander.evaluate(car(xs)); // DIRTY HACK!
     });
   }
 
@@ -2064,13 +2064,13 @@ namespace meevax
       }
     });
 
-    define<procedure>("transformer?", type_predicate<transformer>());
+    define<procedure>("transformer?", type_predicate<hygienic_macro_transformer>());
 
     define<procedure>("macroexpand-1", [](let const& xs, let const& current_syntactic_environment, environment & current_environment)
     {
-      if (let const& macro = current_environment.rename(caar(xs), current_syntactic_environment).as<syntactic_closure>().strip(); macro.is<transformer>())
+      if (let const& macro = current_environment.rename(caar(xs), current_syntactic_environment).as<syntactic_closure>().strip(); macro.is<hygienic_macro_transformer>())
       {
-        return macro.as<transformer>().expand(cons(macro, cdar(xs)));
+        return macro.as<hygienic_macro_transformer>().expand(cons(macro, cdar(xs)));
       }
       else
       {
