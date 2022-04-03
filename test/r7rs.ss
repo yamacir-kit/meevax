@@ -1197,10 +1197,6 @@
 
 (check (eval '(+ 1 2 3) (current-environment-specifier)) => 6)
 
-(define-syntax (increment x . n)
-  (let ((n (if (pair? n) (car n) 1)))
-    `(,begin (,set! ,x (,+ ,x ,n)) ,x)))
-
 ; ------------------------------------------------------------------------------
 
 (check-report)

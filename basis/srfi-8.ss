@@ -12,8 +12,10 @@
 ;          (,(rename 'lambda) () ,(caddr form))
 ;          (,(rename 'lambda) ,(cadr form) ,@(cdddr form))))))
 
-(define-syntax (receive parameters expression . body)
-  (define (list . xs) xs)
-  (list call-with-values
-        (list lambda '() expression)
-        (list lambda parameters . body)))
+(define-syntax receive
+  (hygienic-macro-transformer
+    (lambda (receive parameters expression . body)
+      (define (list . xs) xs)
+      (list call-with-values
+            (list lambda '() expression)
+            (list lambda parameters . body)))))

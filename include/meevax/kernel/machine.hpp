@@ -70,6 +70,21 @@ inline namespace kernel
         expander.reset();
       }
 
+      explicit hygienic_macro_transformer(const_reference transform,
+                                          const_reference current_syntactic_environment,
+                                          environment const& current_environment)
+        : transform { transform }
+        , expander { current_environment }
+      {
+        assert(transform.is<closure>());
+
+        expander.syntactic_environment() = current_syntactic_environment;
+
+        expander.s = unit;
+        expander.c = list(make<instruction>(mnemonic::stop));
+        expander.d = unit;
+      }
+
       auto expand(let const& form) /* ------------------------------------------
       *
       *  Scheme programs can define and use new derived expression types,

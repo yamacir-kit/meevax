@@ -9,10 +9,12 @@
     (lambda (import . import-sets)
       (list quote (cons 'import import-sets)))))
 
-(define-syntax (syntax datum)
-  (if (pair? datum)
-      (list fork/csc (list lambda '() datum))
-      (eval datum (fork/csc identity))))
+(define-syntax syntax
+  (hygienic-macro-transformer
+    (lambda (syntax datum)
+      (if (pair? datum)
+          (list fork/csc (list lambda '() datum))
+          (eval datum (fork/csc identity))))))
 
 (define (current-environment-specifier)
   (fork/csc identity))
@@ -24,42 +26,48 @@
 
 (define (unspecified) (if #f #f))
 
-(define-syntax (cond . clauses)
-  (if (null? clauses)
-      (unspecified)
-      ((lambda (clause)
-         (if (free-identifier=? else (car clause))
-             (if (pair? (cdr clauses))
-                 (error "else clause must be at the end of cond clause" clauses)
-                 (cons begin (cdr clause)))
-             (if (if (null? (cdr clause)) #t
-                     (free-identifier=? => (cadr clause)))
-                 (list (list lambda (list result)
-                             (list if result
-                                   (if (null? (cdr clause)) result
-                                       (list (car (cddr clause)) result))
-                                   (cons cond (cdr clauses))))
-                       (car clause))
-                 (list if (car clause)
-                          (cons begin (cdr clause))
-                          (cons cond (cdr clauses))))))
-       (car clauses))))
+(define-syntax cond
+  (hygienic-macro-transformer
+    (lambda (cond . clauses)
+      (if (null? clauses)
+          (unspecified)
+          ((lambda (clause)
+             (if (free-identifier=? else (car clause))
+                 (if (pair? (cdr clauses))
+                     (error "else clause must be at the end of cond clause" clauses)
+                     (cons begin (cdr clause)))
+                 (if (if (null? (cdr clause)) #t
+                         (free-identifier=? => (cadr clause)))
+                     (list (list lambda (list result)
+                                 (list if result
+                                       (if (null? (cdr clause)) result
+                                           (list (car (cddr clause)) result))
+                                       (cons cond (cdr clauses))))
+                           (car clause))
+                     (list if (car clause)
+                              (cons begin (cdr clause))
+                              (cons cond (cdr clauses))))))
+           (car clauses))))))
 
-(define-syntax (and . tests)
-  (cond ((null? tests))
-        ((null? (cdr tests)) (car tests))
-        (else (list if (car tests)
-                    (cons and (cdr tests))
-                    #f))))
+(define-syntax and
+  (hygienic-macro-transformer
+    (lambda (and . tests)
+      (cond ((null? tests))
+            ((null? (cdr tests)) (car tests))
+            (else (list if (car tests)
+                        (cons and (cdr tests))
+                        #f))))))
 
-(define-syntax (or . tests)
-  (cond ((null? tests) #f)
-        ((null? (cdr tests)) (car tests))
-        (else (list (list lambda (list result)
-                          (list if result
-                                result
-                                (cons or (cdr tests))))
-                    (car tests)))))
+(define-syntax or
+  (hygienic-macro-transformer
+    (lambda (or . tests)
+      (cond ((null? tests) #f)
+            ((null? (cdr tests)) (car tests))
+            (else (list (list lambda (list result)
+                              (list if result
+                                    result
+                                    (cons or (cdr tests))))
+                        (car tests)))))))
 
 (define (append-2 x y)
   (if (null? x) y
@@ -83,53 +91,51 @@
                      (car xs)))
        (reverse xs))))
 
-(define-syntax (quasiquote template)
-  (define (expand x depth)
-    (cond
-      ((pair? x)
-       (cond
-
-         ((free-identifier=? unquote (car x))
-          (if (<= depth 0)
-              (cadr x)
-              (list list (list quote 'unquote) (expand (cadr x) (- depth 1)))))
-
-         ((free-identifier=? unquote-splicing (car x))
-          (if (<= depth 0)
-              (list cons (expand (car x) depth)
-                         (expand (cdr x) depth))
-              (list list (list quote 'unquote-splicing)
-                         (expand (cadr x) (- depth 1)))))
-
-         ((free-identifier=? quasiquote (car x))
-          (list list (list quote 'quasiquote)
-                     (expand (cadr x) (+ depth 1))))
-
-         ((and (<= depth 0)
-               (pair? (car x))
-               (free-identifier=? unquote-splicing (caar x)))
-          (if (null? (cdr x))
-              (cadr (car x))
-              (list append (cadr (car x)) (expand (cdr x) depth))))
-
-         (else (list cons (expand (car x) depth)
-                          (expand (cdr x) depth)))))
-
-      ((vector? x)
-       (list list->vector (expand (vector->list x) depth)))
-
-      ((or (identifier? x)
-           (null? x))
-       (list quote x))
-
-      (else x)))
-
-  (expand template 0))
+(define-syntax quasiquote
+  (hygienic-macro-transformer
+    (lambda (quasiquote template)
+      (define (expand x depth)
+        (cond ((pair? x)
+               (cond ((free-identifier=? unquote (car x))
+                      (if (<= depth 0)
+                          (cadr x)
+                          (list list (list quote 'unquote) (expand (cadr x) (- depth 1)))))
+                     ((free-identifier=? unquote-splicing (car x))
+                      (if (<= depth 0)
+                          (list cons (expand (car x) depth)
+                                     (expand (cdr x) depth))
+                          (list list (list quote 'unquote-splicing)
+                                     (expand (cadr x) (- depth 1)))))
+                     ((free-identifier=? quasiquote (car x))
+                      (list list (list quote 'quasiquote)
+                                 (expand (cadr x) (+ depth 1))))
+                     ((and (<= depth 0)
+                           (pair? (car x))
+                           (free-identifier=? unquote-splicing (caar x)))
+                      (if (null? (cdr x))
+                          (cadr (car x))
+                          (list append (cadr (car x)) (expand (cdr x) depth))))
+                     (else (list cons (expand (car x) depth)
+                                      (expand (cdr x) depth)))))
+              ((vector? x)
+               (list list->vector (expand (vector->list x) depth)))
+              ((or (identifier? x)
+                   (null? x))
+               (list quote x))
+              (else x)))
+      (expand template 0))))
 
 (define (not x) (if x #f #t))
 
-(define-syntax (when   test . body) `(,if       ,test  (,begin ,@body))) ; TODO MOVE INTO (scheme base)
-(define-syntax (unless test . body) `(,if (,not ,test) (,begin ,@body))) ; TODO MOVE INTO (scheme base)
+(define-syntax when
+  (hygienic-macro-transformer
+    (lambda (when test . body)
+      `(,if ,test (,begin ,@body)))))
+
+(define-syntax unless
+  (hygienic-macro-transformer
+    (lambda (unless test . body)
+      `(,if (,not ,test) (,begin ,@body)))))
 
 (define (map f x . xs) ; map-unorder
   (define (map-1 f x xs)
@@ -193,20 +199,26 @@
           #f)
       (any-2+ f (cons x xs))))
 
-(define-syntax (let bindings . body)
-  (if (identifier? bindings)
-      `(,letrec ((,bindings (,lambda ,(map car (car body)) ,@(cdr body))))
-         (,bindings ,@(map cadr (car body))))
-      `((,lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))
+(define-syntax let
+  (hygienic-macro-transformer
+    (lambda (let bindings . body)
+      (if (identifier? bindings)
+          `(,letrec ((,bindings (,lambda ,(map car (car body)) ,@(cdr body))))
+             (,bindings ,@(map cadr (car body))))
+          `((,lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))))
 
-(define-syntax (let* bindings . body)
-  (if (or (null? bindings)
-          (null? (cdr bindings)))
-      `(,let (,(car bindings)) ,@body)
-      `(,let (,(car bindings)) (,let* ,(cdr bindings) ,@body))))
+(define-syntax let*
+  (hygienic-macro-transformer
+    (lambda (let* bindings . body)
+      (if (or (null? bindings)
+              (null? (cdr bindings)))
+          `(,let (,(car bindings)) ,@body)
+          `(,let (,(car bindings)) (,let* ,(cdr bindings) ,@body))))))
 
-(define-syntax (letrec* bindings . body)
-  `(,let () ,@(map (lambda (x) (cons define x)) bindings) ,@body))
+(define-syntax letrec*
+  (hygienic-macro-transformer
+    (lambda (letrec* bindings . body)
+      `(,let () ,@(map (lambda (x) (cons define x)) bindings) ,@body))))
 
 (define (member o x . c) ; for case
   (let ((compare (if (pair? c) (car c) equal?)))
@@ -218,46 +230,44 @@
 (define (memq o x) (member o x eq?))
 (define (memv o x) (member o x eqv?))
 
-(define-syntax (case key . clauses)
-  (define (body expressions)
-    (cond
-      ((null? expressions) result)
-      ((free-identifier=? => (car expressions)) `(,(cadr expressions) ,result))
-      (else `(,begin ,@expressions))))
+(define-syntax case
+  (hygienic-macro-transformer
+    (lambda (case key . clauses)
+      (define (body expressions)
+        (cond ((null? expressions) result)
+              ((free-identifier=? => (car expressions)) `(,(cadr expressions) ,result))
+              (else `(,begin ,@expressions))))
+      (define (each-clause clauses)
+        (cond ((null? clauses) (unspecified))
+              ((free-identifier=? else (caar clauses))
+               (body (cdar clauses)))
+              ((and (pair? (caar clauses))
+                    (null? (cdr (caar clauses))))
+               `(,if (,eqv? ,result (,quote ,(car (caar clauses))))
+                     ,(body (cdar clauses))
+                     ,(each-clause (cdr clauses))))
+              (else `(,if (,memv ,result (,quote ,(caar clauses)))
+                          ,(body (cdar clauses))
+                          ,(each-clause (cdr clauses))))))
+      `(,let ((,result ,key)) ,(each-clause clauses)))))
 
-  (define (each-clause clauses)
-    (cond
-      ((null? clauses) (unspecified))
-      ((free-identifier=? else (caar clauses))
-       (body (cdar clauses)))
-      ((and (pair? (caar clauses))
-            (null? (cdr (caar clauses))))
-       `(,if (,eqv? ,result (,quote ,(car (caar clauses))))
-             ,(body (cdar clauses))
-             ,(each-clause (cdr clauses))))
-      (else
-        `(,if (,memv ,result (,quote ,(caar clauses)))
-              ,(body (cdar clauses))
-              ,(each-clause (cdr clauses))))))
-
-  `(,let ((,result ,key)) ,(each-clause clauses)))
-
-(define-syntax (do variables test . commands)
-  (let ((body
-          `(,begin ,@commands
-                   (,rec ,@(map (lambda (x)
-                                  (if (pair? (cddr x))
-                                      (car (cddr x))
-                                      (car x)))
-                                variables)))))
-    `(,let ,rec ,(map (lambda (x)
-                        (list (car x)
-                              (cadr x)))
-                      variables)
-           ,(if (null? (cdr test))
-                `(,let ((,result ,(car test)))
-                       (,if ,result ,result ,body))
-                `(,if ,(car test) (,begin ,@(cdr test)) ,body)))))
+(define-syntax do
+  (hygienic-macro-transformer
+    (lambda (do variables test . commands)
+      (let ((body `(,begin ,@commands
+                           (,rec ,@(map (lambda (x)
+                                          (if (pair? (cddr x))
+                                              (car (cddr x))
+                                              (car x)))
+                                        variables)))))
+        `(,let ,rec ,(map (lambda (x)
+                            (list (car x)
+                                  (cadr x)))
+                          variables)
+               ,(if (null? (cdr test))
+                    `(,let ((,result ,(car test)))
+                           (,if ,result ,result ,body))
+                    `(,if ,(car test) (,begin ,@(cdr test)) ,body)))))))
 
 ; ---- 6.1. Equivalence predicates ---------------------------------------------
 

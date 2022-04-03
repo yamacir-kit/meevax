@@ -141,13 +141,15 @@
 ;          (let-values "bind"
 ;                      bindings (tmp ... (a x)) body))))))
 
-(define-syntax (let-values bindings . body)
-  (if (null? bindings)
-      (list let '() . body)
-      (list call-with-values
-            (list lambda () (cadar bindings))
-            (list lambda (caar bindings)
-                  (list let-values (cdr bindings) . body)))))
+(define-syntax let-values
+  (hygienic-macro-transformer
+    (lambda (let-values bindings . body)
+      (if (null? bindings)
+          (list let '() . body)
+          (list call-with-values
+                (list lambda () (cadar bindings))
+                (list lambda (caar bindings)
+                      (list let-values (cdr bindings) . body)))))))
 
 ; (define-syntax let*-values
 ;   (syntax-rules ()
@@ -159,11 +161,13 @@
 ;                  (let*-values (binding1 ...)
 ;                               body0 body1 ...)))))
 
-(define-syntax (let*-values bindings . body)
-  (if (null? bindings)
-      (list let '() . body)
-      (list let-values (list (car bindings))
-            (list let*-values (cdr bindings) . body))))
+(define-syntax let*-values
+  (hygienic-macro-transformer
+    (lambda (let*-values bindings . body)
+      (if (null? bindings)
+          (list let '() . body)
+          (list let-values (list (car bindings))
+                (list let*-values (cdr bindings) . body))))))
 
 ; ---- 4.2.3. Sequencing -------------------------------------------------------
 

@@ -17,10 +17,12 @@
 
 ; ------------------------------------------------------------------------------
 
-(define-syntax (swap! a b)
-  `(,let ((,x ,a))
-     (,set! ,a ,b)
-     (,set! ,b ,x)))
+(define-syntax swap!
+  (hygienic-macro-transformer
+    (lambda (swap! a b)
+      `(,let ((,x ,a))
+         (,set! ,a ,b)
+         (,set! ,b ,x)))))
 
 (define x 1)
 

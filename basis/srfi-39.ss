@@ -74,8 +74,10 @@
 ;            (list ,@(map cadr bindings))
 ;            (lambda () ,@body))))))
 
-(define-syntax (parameterize bindings . body)
-  `(,dynamic-bind
-     (,list ,@(map  car bindings))
-     (,list ,@(map cadr bindings))
-     (,lambda () ,@body)))
+(define-syntax parameterize
+  (hygienic-macro-transformer
+    (lambda (parameterize bindings . body)
+      `(,dynamic-bind
+         (,list ,@(map  car bindings))
+         (,list ,@(map cadr bindings))
+         (,lambda () ,@body)))))

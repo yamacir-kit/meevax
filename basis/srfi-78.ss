@@ -177,15 +177,15 @@
 ;      (if (>= check:mode 1)
 ;          (check:proc 'expr (lambda () expr) equal expected)))))
 
-(define-syntax (check expr rule expected)
-  (cond ((free-identifier=? => rule)
-         `(,check ,expr (,=> ,equal?) ,expected))
-
-        ((free-identifier=? => (car rule))
-         (if (<= 1 check:mode)
-             `(,check:proc ',expr (,lambda () ,expr) ,(cadr rule) ',expected)))
-
-        (else (unspecified))))
+(define-syntax check
+  (hygienic-macro-transformer
+    (lambda (check expr rule expected)
+      (cond ((free-identifier=? => rule)
+             `(,check ,expr (,=> ,equal?) ,expected))
+            ((free-identifier=? => (car rule))
+             (if (<= 1 check:mode)
+                 `(,check:proc ',expr (,lambda () ,expr) ,(cadr rule) ',expected)))
+            (else (unspecified))))))
 
 ; -- parametric checks --
 
