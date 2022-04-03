@@ -705,29 +705,22 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    #define STRING_COMPARE(OPERATOR)                                           \
+    #define STRING_COMPARE(COMPARE)                                            \
     [](let const& xs, auto&&...)                                               \
     {                                                                          \
-      for (let const& each : cdr(xs))                                          \
-      {                                                                        \
-        if (car(xs).as<const string>() OPERATOR each.as<const string>())       \
-        {                                                                      \
-          continue;                                                            \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-          return f;                                                            \
-        }                                                                      \
-      }                                                                        \
-                                                                               \
-      return t;                                                                \
+      return std::adjacent_find(                                               \
+               std::begin(xs), std::end(xs), [](let const& a, let const& b)    \
+               {                                                               \
+                 return not COMPARE(a.as_const<string>(),                      \
+                                    b.as_const<string>());                     \
+               }) == std::end(xs);                                             \
     }
 
-    define<procedure>("string=?",  STRING_COMPARE(==));
-    define<procedure>("string<?",  STRING_COMPARE(< ));
-    define<procedure>("string>?",  STRING_COMPARE(> ));
-    define<procedure>("string<=?", STRING_COMPARE(<=));
-    define<procedure>("string>=?", STRING_COMPARE(>=));
+    define<predicate>("string=?",  STRING_COMPARE(std::equal_to     <void>()));
+    define<predicate>("string<?",  STRING_COMPARE(std::less         <void>()));
+    define<predicate>("string<=?", STRING_COMPARE(std::less_equal   <void>()));
+    define<predicate>("string>?",  STRING_COMPARE(std::greater      <void>()));
+    define<predicate>("string>=?", STRING_COMPARE(std::greater_equal<void>()));
 
     #undef STRING_COMPARE
 
