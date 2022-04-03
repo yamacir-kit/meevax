@@ -417,7 +417,7 @@ inline namespace kernel
         *  s e (%join) (c . d) => s e c d
         *
         * ------------------------------------------------------------------- */
-        assert(cdr(c).is<null>());
+        assert(cdr(c).template is<null>());
         c = car(d);
         d = cdr(d);
         goto decode;
@@ -528,7 +528,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
-          s = cons(callee.as<procedure>().apply(cadr(s), cadr(c), static_cast<environment &>(*this)), cddr(s));
+          s = cons(callee.as<procedure>().call(cadr(s), cadr(c), static_cast<environment &>(*this)), cddr(s));
           c = cddr(c);
         }
         else if (callee.is<continuation>()) /* ---------------------------------
@@ -571,7 +571,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
-          s = cons(callee.as<procedure>().apply(cadr(s), cadr(c), static_cast<environment &>(*this)), cddr(s));
+          s = cons(callee.as<procedure>().call(cadr(s), cadr(c), static_cast<environment &>(*this)), cddr(s));
           c = cddr(c);
         }
         else if (callee.is<continuation>()) /* ---------------------------------

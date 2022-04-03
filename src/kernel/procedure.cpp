@@ -27,14 +27,14 @@ namespace meevax
 {
 inline namespace kernel
 {
-  procedure::procedure(std::string const& name, applicable const& applicable)
+  procedure::procedure(std::string const& name, function_type const& call)
     : description { name }
-    , apply { applicable }
+    , call { call }
   {}
 
   procedure::procedure(std::string const& name, std::string const& libfoo_so)
     : description { name }
-    , apply { dlsym(name, dlopen(libfoo_so)) }
+    , call { dlsym(name, dlopen(libfoo_so)) }
   {}
 
   auto procedure::dlopen(std::string const& libfoo_so) -> void *
@@ -75,11 +75,11 @@ inline namespace kernel
     }
   }
 
-  auto procedure::dlsym(std::string const& name, void * const handle) -> signature
+  auto procedure::dlsym(std::string const& name, void * const handle) -> function_pointer_type
   {
     if (auto address = ::dlsym(handle, name.c_str()); address)
     {
-      return reinterpret_cast<signature>(address);
+      return reinterpret_cast<function_pointer_type>(address);
     }
     else
     {
