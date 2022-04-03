@@ -232,11 +232,11 @@ inline namespace kernel
       }
       else if (let const& applicant = notation.is<absolute>() ? notation.as<absolute>().strip() : car(current_expression); applicant.is_also<syntax>())
       {
-        return applicant.as<syntax>().transform(current_context,
-                                                current_environment,
-                                                cdr(current_expression),
-                                                current_syntactic_environment,
-                                                current_continuation);
+        return applicant.as<syntax>().compile(current_context,
+                                              current_environment,
+                                              cdr(current_expression),
+                                              current_syntactic_environment,
+                                              current_continuation);
       }
       else if (applicant.is<hygienic_macro_transformer>())
       {

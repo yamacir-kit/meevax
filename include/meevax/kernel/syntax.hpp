@@ -35,13 +35,13 @@ inline namespace kernel
 {
   struct syntax : public description
   {
-    using signature = SYNTAX((*));
+    using function_pointer_type = SYNTAX((*));
 
-    using transformer = std::function<SYNTAX()>;
+    using function_type = std::function<SYNTAX()>;
 
-    transformer transform;
+    function_type compile;
 
-    explicit syntax(std::string const&, transformer const&);
+    explicit syntax(std::string const&, function_type const&);
   };
 
   auto operator <<(std::ostream &, syntax const&) -> std::ostream &;
