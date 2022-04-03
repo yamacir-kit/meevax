@@ -48,9 +48,12 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
-    struct hygienic_macro_transformer
+    struct macro_transformer
+    {};
+
+    struct hygienic_macro_transformer : public macro_transformer
     {
-      let spec;
+      let transform;
 
       environment expander;
 
@@ -62,7 +65,7 @@ inline namespace kernel
                              cadr(expander.c).template as<syntactic_continuation>().expression(),
                              cadr(expander.c).template as<syntactic_continuation>().syntactic_environment());
 
-        spec = expander.execute();
+        transform = expander.execute();
 
         expander.reset();
       }
@@ -98,7 +101,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        assert(spec.template is<closure>());
+        assert(transform.template is<closure>());
 
         assert(expander.d.template is<null>());
         assert(expander.c.template is<pair>());
@@ -109,7 +112,7 @@ inline namespace kernel
         assert(car(expander.c).template as<instruction>().value == mnemonic::stop);
         assert(cdr(expander.c).template is<null>());
 
-        return expander.apply(spec, form);
+        return expander.apply(transform, form);
       }
 
       friend auto operator <<(std::ostream & os, hygienic_macro_transformer const& datum) -> std::ostream &
@@ -118,7 +121,7 @@ inline namespace kernel
       }
     };
 
-    struct er_macro_transformer // explicit-renaming
+    struct er_macro_transformer : public macro_transformer
     {
       let const transform;
 
@@ -141,9 +144,9 @@ inline namespace kernel
           return expander.evaluate(car(xs));
         });
 
-        auto compare = make<procedure>("compare", [](let const& xs, let const&, environment &)
+        auto compare = make<predicate>("compare", [](let const& xs, let const&, environment &)
         {
-          return eqv(car(xs), cadr(xs)) ? t : f;
+          return eqv(car(xs), cadr(xs));
         });
 
         return expander.apply(transform, list(form, rename, compare));
