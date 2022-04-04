@@ -31,7 +31,6 @@ inline namespace kernel
     define_syntax,     //
     drop,              //
     dummy,             // a.k.a DUM
-    fork,              //
     join,              //
     let_syntax,        //
     letrec,            // a.k.a RAP

@@ -66,19 +66,6 @@ inline namespace kernel
 
       using macro_transformer::expander;
 
-      explicit hygienic_macro_transformer(environment const& current_environment)
-        : macro_transformer { current_environment.syntactic_environment(), current_environment }
-      {
-        expander.c = compile(context::outermost,
-                             expander,
-                             cadr(expander.c).template as<syntactic_continuation>().expression(),
-                             cadr(expander.c).template as<syntactic_continuation>().syntactic_environment());
-
-        transform = expander.execute();
-
-        expander.reset();
-      }
-
       explicit hygienic_macro_transformer(const_reference transform,
                                           const_reference current_syntactic_environment,
                                           environment const& current_environment)
@@ -406,15 +393,6 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         s = cons(list(make<continuation>(s, e, cadr(c), d)), s);
-        c = cddr(c);
-        goto decode;
-
-      case mnemonic::fork: /* --------------------------------------------------
-        *
-        *  s e (%fork c1 . c2) d => (<transformer> . s) e c2 d
-        *
-        * ------------------------------------------------------------------- */
-        s = cons(make<hygienic_macro_transformer>(static_cast<environment const&>(*this)), s);
         c = cddr(c);
         goto decode;
 
@@ -1058,21 +1036,6 @@ inline namespace kernel
                      current_syntactic_environment,
                      cons(make<instruction>(mnemonic::define_syntax), current_environment.notate(car(current_expression), current_syntactic_environment),
                           current_continuation));
-    }
-
-    static SYNTAX(fork_csc) /* -------------------------------------------------
-    *
-    *  (fork-with-current-syntactic-continuation <program>)              syntax
-    *
-    *  Semantics: The syntax fork-with-current-syntactic-continuation packages
-    *  the given <program> definition and the continuation of the current
-    *  compilation as a "subprogram".
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      return cons(make<instruction>(mnemonic::fork),
-                  make<syntactic_continuation>(car(current_expression), current_syntactic_environment),
-                  current_continuation);
     }
 
     static SYNTAX(lambda) /* ---------------------------------------------------

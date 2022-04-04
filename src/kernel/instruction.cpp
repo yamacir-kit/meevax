@@ -31,7 +31,6 @@ inline namespace kernel
       case mnemonic::define_syntax:     return "define-syntax";
       case mnemonic::drop:              return "drop";
       case mnemonic::dummy:             return "dummy";
-      case mnemonic::fork:              return "fork";
       case mnemonic::join:              return "join";
       case mnemonic::let_syntax:        return "let-syntax";
       case mnemonic::letrec:            return "letrec";
@@ -99,7 +98,6 @@ inline namespace kernel
       case mnemonic::call:
       case mnemonic::define:
       case mnemonic::define_syntax:
-      case mnemonic::fork:
       case mnemonic::let_syntax:
       case mnemonic::letrec_syntax:
       case mnemonic::load_absolute:

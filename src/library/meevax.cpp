@@ -27,7 +27,6 @@ namespace meevax
     define<syntax>("call-with-current-continuation!", call_with_current_continuation);
     define<syntax>("define", machine::define);
     define<syntax>("define-syntax", define_syntax);
-    define<syntax>("fork-with-current-syntactic-continuation", fork_csc);
     define<syntax>("if", if_);
     define<syntax>("lambda", lambda);
     define<syntax>("let-syntax", let_syntax);
