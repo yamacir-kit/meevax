@@ -2091,7 +2091,7 @@ namespace meevax
 
     define<predicate>("transformer?", [](let const& xs, auto&&...)
     {
-      return car(xs).is_also<macro_transformer>();
+      return car(xs).is_also<transformer>();
     });
 
     define<procedure>("macroexpand-1", [](let const& xs, let const& current_syntactic_environment, environment & current_environment)

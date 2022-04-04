@@ -48,15 +48,15 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
-    struct macro_transformer
+    struct transformer
     {
       let const transform;
 
       environment expander;
 
-      explicit macro_transformer(const_reference transform,
-                                 const_reference current_syntactic_environment,
-                                 environment const& current_environment)
+      explicit transformer(const_reference transform,
+                           const_reference current_syntactic_environment,
+                           environment const& current_environment)
         : transform { transform }
         , expander { current_environment }
       {
@@ -98,11 +98,11 @@ inline namespace kernel
       * --------------------------------------------------------------------- */
     };
 
-    struct hygienic_macro_transformer : public macro_transformer
+    struct hygienic_macro_transformer : public transformer
     {
-      using macro_transformer::expander;
-      using macro_transformer::macro_transformer;
-      using macro_transformer::transform;
+      using transformer::expander;
+      using transformer::transformer;
+      using transformer::transform;
 
       auto expand(const_reference form) -> object override
       {
@@ -115,11 +115,11 @@ inline namespace kernel
       }
     };
 
-    struct er_macro_transformer : public macro_transformer
+    struct er_macro_transformer : public transformer
     {
-      using macro_transformer::expander;
-      using macro_transformer::macro_transformer;
-      using macro_transformer::transform;
+      using transformer::expander;
+      using transformer::transformer;
+      using transformer::transform;
 
       auto expand(const_reference form) -> object override
       {
