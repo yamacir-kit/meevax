@@ -72,14 +72,14 @@
 (let ((s "abcde")) (check (begin (string-fill! s #\x 1) s) => "axxxx"))
 (let ((s "abcde")) (check (begin (string-fill! s #\x 1 4) s) => "axxxe"))
 
-(define loop
-  (fork/csc
-    (lambda form
-     `(,call/cc
-        (,lambda (exit)
-          (,let ,rec ()
-           ,(cadr form)
-            (,rec)))) )))
+(define-syntax loop
+  (er-macro-transformer
+    (lambda (form rename compare)
+      `(,(rename 'call/cc)
+         (,(rename 'lambda) (exit)
+           (,(rename 'let) ,(rename 'rec) ()
+             ,(cadr form)
+             (,(rename 'rec))))))))
 
 (define f
   (lambda ()

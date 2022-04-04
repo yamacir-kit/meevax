@@ -139,7 +139,7 @@ inline namespace kernel
 
       friend auto operator <<(std::ostream & os, hygienic_macro_transformer const& datum) -> std::ostream &
       {
-        return os << magenta("#,(") << green("fork/csc ") << faint("#;", &datum) << magenta(")");
+        return os << magenta("#,(") << green("hygienic-macro-transformer ") << faint("#;", &datum) << magenta(")");
       }
     };
 
@@ -1052,53 +1052,12 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      // if (current_syntactic_environment.is<null>() or (current_context & context::outermost))
-      // {
-      //   if (car(current_expression).is<pair>()) // (define-syntax (<keyword> . <formals>) <body>)
-      //   {
-      //     return compile(context::none,
-      //                    current_environment,
-      //                    list(make<syntax>("fork/csc", fork_csc),
-      //                         cons(make<syntax>("lambda", lambda), current_expression)),
-      //                    current_syntactic_environment,
-      //                    cons(make<instruction>(mnemonic::define_syntax), cons(current_syntactic_environment, current_environment.notate(caar(current_expression))),
-      //                         current_continuation));
-      //   }
-      //   else // (define-syntax x ...)
-      //   {
-      //     return compile(context::none,
-      //                    current_environment,
-      //                    cdr(current_expression) ? cadr(current_expression) : throw syntax_error(make<string>("define-syntax: no <transformer sprc> specified")),
-      //                    current_syntactic_environment,
-      //                    cons(make<instruction>(mnemonic::define_syntax), cons(current_syntactic_environment, current_environment.notate(car(current_expression))),
-      //                         current_continuation));
-      //   }
-      // }
-      // else
-      // {
-      //   throw syntax_error(make<string>("definition cannot appear in this syntactic-context"));
-      // }
-
-      if (car(current_expression).is<pair>()) // (define-syntax (<keyword> . xs) <body>)
-      {
-        return define(current_context,
-                      current_environment,
-                      list(caar(current_expression),
-                           list(make<syntax>("fork/csc", fork_csc),
-                                cons(make<syntax>("lambda", lambda), current_expression)
-                               )
-                        ),
-                      current_syntactic_environment,
-                      current_continuation);
-      }
-      else
-      {
-        return define(current_context,
-                      current_environment,
-                      current_expression,
-                      current_syntactic_environment,
-                      current_continuation);
-      }
+      return compile(context::none,
+                     current_environment,
+                     cdr(current_expression) ? cadr(current_expression) : unspecified_object,
+                     current_syntactic_environment,
+                     cons(make<instruction>(mnemonic::define_syntax), current_environment.notate(car(current_expression), current_syntactic_environment),
+                          current_continuation));
     }
 
     static SYNTAX(fork_csc) /* -------------------------------------------------

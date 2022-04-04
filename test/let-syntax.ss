@@ -43,14 +43,6 @@
 ; ------------------------------------------------------------------------------
 
 ; (check (let ((x 'outer))
-;          (let-syntax ((m (fork/csc
-;                            (lambda (this) x))))
-;            (let ((x 'inner))
-;              (m)))) => outer)
-
-; ------------------------------------------------------------------------------
-
-; (check (let ((x 'outer))
 ;          (let-syntax ((m (er-macro-transformer
 ;                            (lambda (form rename compare)
 ;                              (rename 'x)))))

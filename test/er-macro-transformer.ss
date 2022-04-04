@@ -1,23 +1,4 @@
 (define-syntax swap!
-  (fork/csc
-    (lambda (swap! a b)
-      `(,let ((,x ,a))
-         (,set! ,a ,b)
-         (,set! ,b ,x)))))
-
-(define x 1)
-
-(define y 2)
-
-(check (cons x y) => (1 . 2))
-
-(swap! x y)
-
-(check (cons x y) => (2 . 1))
-
-; ------------------------------------------------------------------------------
-
-(define-syntax swap!
   (hygienic-macro-transformer
     (lambda (swap! a b)
       `(,let ((,x ,a))

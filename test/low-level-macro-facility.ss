@@ -5,7 +5,7 @@
 ; (define hygienic-x (syntax x))
 
 (define rename
-  (let ((e (fork/csc identity)))
+  (let ((e (hygienic-macro-transformer list)))
     (lambda (x)
       (eval x e))))
 

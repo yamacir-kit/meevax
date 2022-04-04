@@ -2,18 +2,16 @@
 
 (define (list . xs) xs)
 
-(define fork/csc fork-with-current-syntactic-continuation)
-
-(define import
-  (fork/csc
+(define-syntax import
+  (hygienic-macro-transformer
     (lambda (import . import-sets)
       (list quote (cons 'import import-sets)))))
 
 (define (current-environment-specifier)
-  (fork/csc identity))
+  (hygienic-macro-transformer identity))
 
 (define (er-macro-transformer transform)
-  (fork/csc
+  (hygienic-macro-transformer
     (lambda form
       (transform form (lambda (x) (eval x (car form))) free-identifier=?))))
 

@@ -423,7 +423,3 @@ parameterize ; is defined in srfi-39.ss
 ; TODO current-second
 ; TODO current-jiffy
 ; TODO jiffies-per-second
-
-(define interaction-environment
-  (let ((e (fork/csc identity)))
-    (lambda () e)))
