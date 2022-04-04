@@ -50,34 +50,28 @@ inline namespace kernel
 
     struct macro_transformer
     {
+      let const transform;
+
       environment expander;
 
-      explicit macro_transformer(const_reference current_syntactic_environment,
+      explicit macro_transformer(const_reference transform,
+                                 const_reference current_syntactic_environment,
                                  environment const& current_environment)
-        : expander { current_environment }
+        : transform { transform }
+        , expander { current_environment }
       {
+        assert(transform.is<closure>());
+
         expander.syntactic_environment() = current_syntactic_environment;
+        expander.reset();
       }
     };
 
     struct hygienic_macro_transformer : public macro_transformer
     {
-      let transform;
-
       using macro_transformer::expander;
-
-      explicit hygienic_macro_transformer(const_reference transform,
-                                          const_reference current_syntactic_environment,
-                                          environment const& current_environment)
-        : macro_transformer { current_syntactic_environment, current_environment }
-        , transform { transform }
-      {
-        assert(transform.is<closure>());
-
-        expander.s = unit;
-        expander.c = list(make<instruction>(mnemonic::stop));
-        expander.d = unit;
-      }
+      using macro_transformer::macro_transformer;
+      using macro_transformer::transform;
 
       auto expand(let const& form) /* ------------------------------------------
       *
@@ -132,20 +126,9 @@ inline namespace kernel
 
     struct er_macro_transformer : public macro_transformer
     {
-      let const transform;
-
       using macro_transformer::expander;
-
-      explicit er_macro_transformer(const_reference transform,
-                                    const_reference current_syntactic_environment,
-                                    environment const& current_environment)
-        : macro_transformer { current_syntactic_environment, current_environment }
-        , transform { transform }
-      {
-        assert(transform.is<closure>());
-
-        expander.reset();
-      }
+      using macro_transformer::macro_transformer;
+      using macro_transformer::transform;
 
       auto expand(let const& form, environment &)
       {
