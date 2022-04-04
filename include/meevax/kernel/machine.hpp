@@ -65,15 +65,8 @@ inline namespace kernel
         expander.syntactic_environment() = current_syntactic_environment;
         expander.reset();
       }
-    };
 
-    struct hygienic_macro_transformer : public macro_transformer
-    {
-      using macro_transformer::expander;
-      using macro_transformer::macro_transformer;
-      using macro_transformer::transform;
-
-      auto expand(let const& form) /* ------------------------------------------
+      virtual auto expand(const_reference) -> object = 0; /* -------------------
       *
       *  Scheme programs can define and use new derived expression types,
       *  called macros. Program-defined expression types have the syntax
@@ -103,18 +96,16 @@ inline namespace kernel
       *  environment::evaluate.
       *
       * --------------------------------------------------------------------- */
+    };
+
+    struct hygienic_macro_transformer : public macro_transformer
+    {
+      using macro_transformer::expander;
+      using macro_transformer::macro_transformer;
+      using macro_transformer::transform;
+
+      auto expand(const_reference form) -> object override
       {
-        assert(transform.template is<closure>());
-
-        assert(expander.d.template is<null>());
-        assert(expander.c.template is<pair>());
-        assert(expander.e.template is<null>());
-        assert(expander.s.template is<null>());
-
-        assert(car(expander.c).template is<instruction>());
-        assert(car(expander.c).template as<instruction>().value == mnemonic::stop);
-        assert(cdr(expander.c).template is<null>());
-
         return expander.apply(transform, form);
       }
 
@@ -130,7 +121,7 @@ inline namespace kernel
       using macro_transformer::macro_transformer;
       using macro_transformer::transform;
 
-      auto expand(let const& form, environment &)
+      auto expand(const_reference form) -> object override
       {
         auto rename = make<procedure>("rename", [](let const& xs, auto&&, auto&& expander)
         {
@@ -247,7 +238,7 @@ inline namespace kernel
       {
         return compile(context::none,
                        current_environment,
-                       applicant.as<er_macro_transformer>().expand(current_expression, current_environment),
+                       applicant.as<er_macro_transformer>().expand(current_expression),
                        current_syntactic_environment,
                        current_continuation);
       }
