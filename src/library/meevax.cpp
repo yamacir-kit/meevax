@@ -1927,9 +1927,9 @@ namespace meevax
       return make<hygienic_macro_transformer>(car(xs), current_syntactic_environment, current_environment);
     });
 
-    define<procedure>("%er-macro-transformer", [](let const& xs, let const&, environment & current_environment)
+    define<procedure>("%er-macro-transformer", [](let const& xs, auto&& current_syntactic_environment, auto&& current_environment)
     {
-      return make<er_macro_transformer>(car(xs), current_environment);
+      return make<er_macro_transformer>(car(xs), current_syntactic_environment, current_environment);
     });
 
     define<predicate>("er-macro-transformer?", [](let const& xs, auto&&...)

@@ -49,16 +49,25 @@ inline namespace kernel
         d; // dump (s e c . d)
 
     struct macro_transformer
-    {};
+    {
+      environment expander;
+
+      explicit macro_transformer(const_reference current_syntactic_environment,
+                                 environment const& current_environment)
+        : expander { current_environment }
+      {
+        expander.syntactic_environment() = current_syntactic_environment;
+      }
+    };
 
     struct hygienic_macro_transformer : public macro_transformer
     {
       let transform;
 
-      environment expander;
+      using macro_transformer::expander;
 
       explicit hygienic_macro_transformer(environment const& current_environment)
-        : expander { current_environment }
+        : macro_transformer { current_environment.syntactic_environment(), current_environment }
       {
         expander.c = compile(context::outermost,
                              expander,
@@ -73,12 +82,10 @@ inline namespace kernel
       explicit hygienic_macro_transformer(const_reference transform,
                                           const_reference current_syntactic_environment,
                                           environment const& current_environment)
-        : transform { transform }
-        , expander { current_environment }
+        : macro_transformer { current_syntactic_environment, current_environment }
+        , transform { transform }
       {
         assert(transform.is<closure>());
-
-        expander.syntactic_environment() = current_syntactic_environment;
 
         expander.s = unit;
         expander.c = list(make<instruction>(mnemonic::stop));
@@ -140,11 +147,13 @@ inline namespace kernel
     {
       let const transform;
 
-      environment expander;
+      using macro_transformer::expander;
 
-      explicit er_macro_transformer(let const& transform, environment const& current_environment)
-        : transform { transform }
-        , expander { current_environment }
+      explicit er_macro_transformer(const_reference transform,
+                                    const_reference current_syntactic_environment,
+                                    environment const& current_environment)
+        : macro_transformer { current_syntactic_environment, current_environment }
+        , transform { transform }
       {
         assert(transform.is<closure>());
 
