@@ -10,10 +10,10 @@
            (+ a 2))))
   (set! result (cons (f 0) result))
 
-  (let-syntax ((f (er-macro-transformer
+  (let-syntax ((f (%er-macro-transformer
                     (lambda (form rename compare)
                       `(,(rename '+) ,(cadr form) 3))))
-               (g (er-macro-transformer
+               (g (%er-macro-transformer
                     (lambda (form rename compare)
                       '()))))
     (set! result (cons (f 0) result))
@@ -29,7 +29,7 @@
 
 (define (double-y)
   (let ((+y (lambda (x) (+ x y))))
-    (let-syntax ((macro (er-macro-transformer
+    (let-syntax ((macro (%er-macro-transformer
                           (lambda (form rename compare)
                             `(,(rename '+) ,(cadr form) ,(+y 0))))))
       (macro y))))
@@ -43,7 +43,7 @@
 ; ------------------------------------------------------------------------------
 
 ; (check (let ((x 'outer))
-;          (let-syntax ((m (er-macro-transformer
+;          (let-syntax ((m (%er-macro-transformer
 ;                            (lambda (form rename compare)
 ;                              (rename 'x)))))
 ;            (let ((x 'inner))
@@ -51,7 +51,7 @@
 ;
 ; (define result
 ;   (let ((x 'outer))
-;     (let-syntax ((m (er-macro-transformer
+;     (let-syntax ((m (%er-macro-transformer
 ;                       (lambda (form rename compare)
 ;                         (rename 'x)))))
 ;       (let ((x 'inner))

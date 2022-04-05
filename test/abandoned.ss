@@ -15,7 +15,6 @@
 
 
 (check (string=? (make-string 3) "") => #f)
-(check (string=? (make-string 3) "   ") => #t)
 (check (string=? (make-string 3 #\a) "aaa") => #t)
 
 (check (string=? (string) "") => #t)
@@ -73,7 +72,7 @@
 (let ((s "abcde")) (check (begin (string-fill! s #\x 1 4) s) => "axxxe"))
 
 (define-syntax loop
-  (er-macro-transformer
+  (%er-macro-transformer
     (lambda (form rename compare)
       `(,(rename 'call/cc)
          (,(rename 'lambda) (exit)
@@ -116,3 +115,9 @@
 ;           (let loop ()
 ;            ,(make-syntactic-closure environment '(exit) (cadr form))
 ;             (loop)))))))
+
+; ------------------------------------------------------------------------------
+
+(check-report)
+
+(exit (check-passed? check:correct))

@@ -356,7 +356,7 @@
 
 (check (let ((x 'outer))
          (let-syntax ((m ; (syntax-rules () ((m) x)) ; BUG
-                         (er-macro-transformer
+                         (%er-macro-transformer
                            (lambda (form rename compare)
                              (list (rename 'quote) x)))))
            (let ((x 'inner))
@@ -368,7 +368,7 @@
                               ;   ((my-or e1 e2 ...)
                               ;    (let ((temp e1))
                               ;      (if temp temp (my-or e2 ...)))))
-                              (er-macro-transformer
+                              (%er-macro-transformer
                                 (lambda (form rename compare)
                                   (cond ((null? (cdr form)) #f)
                                         ((null? (cddr form)) (cadr form))

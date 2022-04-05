@@ -129,9 +129,9 @@ inline namespace kernel
           return expander.evaluate(car(xs));
         });
 
-        auto compare = make<predicate>("compare", [](let const& xs, let const&, environment &)
+        auto compare = make<predicate>("compare", [](let const& xs, let const&, environment & expander)
         {
-          return eqv(car(xs), cadr(xs));
+          return expander.is_same_free_identifier(car(xs), cadr(xs));
         });
 
         return expander.apply(transform, list(form, rename, compare));
@@ -210,11 +210,11 @@ inline namespace kernel
       }
       else if (let const& notation = std::as_const(current_environment).notate(car(current_expression), current_syntactic_environment); notation.is<keyword>())
       {
-        assert(notation.as<keyword>().strip().is<hygienic_macro_transformer>());
+        assert(notation.as<keyword>().strip().is_also<transformer>());
 
         return compile(context::none,
                        current_environment,
-                       notation.as<keyword>().strip().as<hygienic_macro_transformer>().expand(cons(notation.as<keyword>().strip(), cdr(current_expression))),
+                       notation.as<keyword>().strip().as<transformer>().expand(cons(notation.as<keyword>().strip(), cdr(current_expression))),
                        current_syntactic_environment,
                        current_continuation);
       }
@@ -226,19 +226,11 @@ inline namespace kernel
                                               current_syntactic_environment,
                                               current_continuation);
       }
-      else if (applicant.is<hygienic_macro_transformer>())
+      else if (applicant.is_also<transformer>())
       {
         return compile(context::none,
                        current_environment,
-                       applicant.as<hygienic_macro_transformer>().expand(cons(applicant, cdr(current_expression))),
-                       current_syntactic_environment,
-                       current_continuation);
-      }
-      else if (applicant.is<er_macro_transformer>())
-      {
-        return compile(context::none,
-                       current_environment,
-                       applicant.as<er_macro_transformer>().expand(current_expression),
+                       applicant.as<transformer>().expand(cons(applicant, cdr(current_expression))),
                        current_syntactic_environment,
                        current_continuation);
       }
