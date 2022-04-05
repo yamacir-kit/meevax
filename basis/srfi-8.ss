@@ -14,7 +14,7 @@
 
 (define-syntax receive
   (hygienic-macro-transformer
-    (lambda (receive parameters expression . body)
+    (lambda (parameters expression . body)
       (define (list . xs) xs)
       (list call-with-values
             (list lambda '() expression)

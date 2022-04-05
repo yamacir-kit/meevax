@@ -1,6 +1,6 @@
 (define-syntax swap!
   (hygienic-macro-transformer
-    (lambda (swap! a b)
+    (lambda (a b)
       `(,let ((,x ,a))
          (,set! ,a ,b)
          (,set! ,b ,x)))))

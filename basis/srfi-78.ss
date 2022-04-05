@@ -179,7 +179,7 @@
 
 (define-syntax check
   (hygienic-macro-transformer
-    (lambda (check expr rule expected)
+    (lambda (expr rule expected)
       (cond ((free-identifier=? => rule)
              `(,check ,expr (,=> ,equal?) ,expected))
             ((free-identifier=? => (car rule))

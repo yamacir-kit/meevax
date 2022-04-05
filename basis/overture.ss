@@ -4,17 +4,14 @@
 
 (define-syntax import
   (hygienic-macro-transformer
-    (lambda (import . import-sets)
+    (lambda import-sets
       (list quote (cons 'import import-sets)))))
-
-(define (current-environment-specifier)
-  (hygienic-macro-transformer identity))
 
 (define (unspecified) (if #f #f))
 
 (define-syntax cond
   (hygienic-macro-transformer
-    (lambda (cond . clauses)
+    (lambda clauses
       (if (null? clauses)
           (unspecified)
           ((lambda (clause)
@@ -37,7 +34,7 @@
 
 (define-syntax and
   (hygienic-macro-transformer
-    (lambda (and . tests)
+    (lambda tests
       (cond ((null? tests))
             ((null? (cdr tests)) (car tests))
             (else (list if (car tests)
@@ -46,7 +43,7 @@
 
 (define-syntax or
   (hygienic-macro-transformer
-    (lambda (or . tests)
+    (lambda tests
       (cond ((null? tests) #f)
             ((null? (cdr tests)) (car tests))
             (else (list (list lambda (list result)
@@ -79,7 +76,7 @@
 
 (define-syntax quasiquote
   (hygienic-macro-transformer
-    (lambda (quasiquote template)
+    (lambda (template)
       (define (expand x depth)
         (cond ((pair? x)
                (cond ((free-identifier=? unquote (car x))
@@ -115,12 +112,12 @@
 
 (define-syntax when
   (hygienic-macro-transformer
-    (lambda (when test . body)
+    (lambda (test . body)
       `(,if ,test (,begin ,@body)))))
 
 (define-syntax unless
   (hygienic-macro-transformer
-    (lambda (unless test . body)
+    (lambda (test . body)
       `(,if (,not ,test) (,begin ,@body)))))
 
 (define (map f x . xs) ; map-unorder
@@ -187,7 +184,7 @@
 
 (define-syntax let
   (hygienic-macro-transformer
-    (lambda (let bindings . body)
+    (lambda (bindings . body)
       (if (identifier? bindings)
           `(,letrec ((,bindings (,lambda ,(map car (car body)) ,@(cdr body))))
              (,bindings ,@(map cadr (car body))))
@@ -195,7 +192,7 @@
 
 (define-syntax let*
   (hygienic-macro-transformer
-    (lambda (let* bindings . body)
+    (lambda (bindings . body)
       (if (or (null? bindings)
               (null? (cdr bindings)))
           `(,let (,(car bindings)) ,@body)
@@ -203,7 +200,7 @@
 
 (define-syntax letrec*
   (hygienic-macro-transformer
-    (lambda (letrec* bindings . body)
+    (lambda (bindings . body)
       `(,let () ,@(map (lambda (x) (cons define x)) bindings) ,@body))))
 
 (define (member o x . c) ; for case
@@ -218,7 +215,7 @@
 
 (define-syntax case
   (hygienic-macro-transformer
-    (lambda (case key . clauses)
+    (lambda (key . clauses)
       (define (body expressions)
         (cond ((null? expressions) result)
               ((free-identifier=? => (car expressions)) `(,(cadr expressions) ,result))
@@ -239,7 +236,7 @@
 
 (define-syntax do
   (hygienic-macro-transformer
-    (lambda (do variables test . commands)
+    (lambda (variables test . commands)
       (let ((body `(,begin ,@commands
                            (,rec ,@(map (lambda (x)
                                           (if (pair? (cddr x))

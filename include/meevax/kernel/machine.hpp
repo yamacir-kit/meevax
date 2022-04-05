@@ -106,7 +106,7 @@ inline namespace kernel
 
       auto expand(const_reference form) -> object override
       {
-        return expander.apply(transform, form);
+        return expander.apply(transform, cdr(form));
       }
 
       friend auto operator <<(std::ostream & os, hygienic_macro_transformer const& datum) -> std::ostream &
@@ -214,7 +214,7 @@ inline namespace kernel
 
         return compile(context::none,
                        current_environment,
-                       notation.as<keyword>().strip().as<transformer>().expand(cons(notation.as<keyword>().strip(), cdr(current_expression))),
+                       notation.as<keyword>().strip().as<transformer>().expand(current_expression),
                        current_syntactic_environment,
                        current_continuation);
       }
@@ -230,7 +230,7 @@ inline namespace kernel
       {
         return compile(context::none,
                        current_environment,
-                       applicant.as<transformer>().expand(cons(applicant, cdr(current_expression))),
+                       applicant.as<transformer>().expand(current_expression),
                        current_syntactic_environment,
                        current_continuation);
       }

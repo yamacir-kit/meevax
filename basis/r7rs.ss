@@ -143,7 +143,7 @@
 
 (define-syntax let-values
   (hygienic-macro-transformer
-    (lambda (let-values bindings . body)
+    (lambda (bindings . body)
       (if (null? bindings)
           (list let '() . body)
           (list call-with-values
@@ -163,7 +163,7 @@
 
 (define-syntax let*-values
   (hygienic-macro-transformer
-    (lambda (let*-values bindings . body)
+    (lambda (bindings . body)
       (if (null? bindings)
           (list let '() . body)
           (list let-values (list (car bindings))

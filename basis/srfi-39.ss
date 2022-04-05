@@ -76,7 +76,7 @@
 
 (define-syntax parameterize
   (hygienic-macro-transformer
-    (lambda (parameterize bindings . body)
+    (lambda (bindings . body)
       `(,dynamic-bind
          (,list ,@(map  car bindings))
          (,list ,@(map cadr bindings))

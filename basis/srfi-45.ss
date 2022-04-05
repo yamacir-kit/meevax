@@ -26,12 +26,12 @@
 
 (define-syntax lazy
   (hygienic-macro-transformer
-    (lambda (lazy expression)
+    (lambda (expression)
       (list promise #f (list lambda '() expression)))))
 
 (define-syntax delay
   (hygienic-macro-transformer
-    (lambda (delay expression)
+    (lambda (expression)
       (list lazy (list promise #t expression)))))
 
 (define (make-promise x)
