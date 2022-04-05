@@ -10,11 +10,6 @@
 (define (current-environment-specifier)
   (hygienic-macro-transformer identity))
 
-(define (er-macro-transformer transform)
-  (hygienic-macro-transformer
-    (lambda form
-      (transform form (lambda (x) (eval x (car form))) free-identifier=?))))
-
 (define (unspecified) (if #f #f))
 
 (define-syntax cond

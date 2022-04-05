@@ -20,7 +20,7 @@
 ;      (,set! ,y ,value)))
 
 (define-syntax swap!
-  (%er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (check (transformer? (rename 'let)) => #t)
       (check (identifier? (rename 'value)) => #t)

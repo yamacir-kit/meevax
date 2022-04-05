@@ -268,6 +268,6 @@
                           #f)))))))))
 
 (define-syntax syntax-rules
-  (%er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (syntax-rules-transformer form rename compare))))

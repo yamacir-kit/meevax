@@ -65,7 +65,7 @@
   (set! dynamic-env-local new-env))
 
 ; (define-syntax parameterize
-;   (%er-macro-transformer
+;   (er-macro-transformer
 ;     (lambda (form rename compare)
 ;       (let* ((bindings (cadr form))
 ;              (body (cddr form)))

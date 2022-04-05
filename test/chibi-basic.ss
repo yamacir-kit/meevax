@@ -190,7 +190,7 @@
 (check
   (letrec-syntax
     ((myor
-       (%er-macro-transformer
+       (er-macro-transformer
          (lambda (expr rename compare)
            (if (null? (cdr expr))
                #f
@@ -202,7 +202,7 @@
   => 5)
 
 (define-syntax myor
-  (%er-macro-transformer
+  (er-macro-transformer
     (lambda (expr rename compare)
       (if (null? (cdr expr)) #f
           (list (rename 'let) (list (list (rename 'tmp) (cadr expr)))
@@ -263,7 +263,7 @@
 (check
   (letrec-syntax
     ((myor
-       (%er-macro-transformer
+       (er-macro-transformer
          (lambda (expr rename compare)
            (if (null? (cdr expr))
                #f
