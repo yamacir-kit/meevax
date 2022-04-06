@@ -88,10 +88,10 @@ target_link_libraries(kernel PRIVATE stdc++fs
                              PRIVATE ${CMAKE_DL_LIBS}
                              PUBLIC gmp)
 
-set_target_properties(
-  kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
-                    VERSION     ${PROJECT_VERSION}
-                    SOVERSION   ${PROJECT_VERSION_MAJOR})
+set_target_properties(kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
+                                        VERSION     ${PROJECT_VERSION}
+                                        SOVERSION   ${PROJECT_VERSION_MAJOR}
+                                        LINK_FLAGS_RELEASE -s)
 
 # ---- Target shell ------------------------------------------------------------
 
@@ -99,7 +99,8 @@ add_executable(shell ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 target_link_libraries(shell PRIVATE kernel)
 
-set_target_properties(shell PROPERTIES OUTPUT_NAME ${PROJECT_NAME}) # Rename shell => meevax
+set_target_properties(shell PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename shell => meevax
+                                       LINK_FLAGS_RELEASE -s)
 
 # ---- CMake Package -----------------------------------------------------------
 
@@ -165,6 +166,7 @@ endmacro()
 check(abandoned)
 check(chibi-basic)
 check(er-macro-transformer)
+check(identifier)
 check(internal-definition)
 check(let-syntax)
 check(letrec-syntax)

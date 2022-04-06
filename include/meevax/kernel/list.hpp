@@ -30,15 +30,13 @@ inline namespace kernel
 {
   auto unwrap = [](auto&& x) -> decltype(auto)
   {
-    using decayed_type = typename std::decay<decltype(x)>::type;
+    static_assert(std::is_convertible<iterator, object>::value);
 
-    if constexpr (std::is_same<decayed_type, iterator>::value)
+    using type = typename std::decay<decltype(x)>::type;
+
+    if constexpr (std::is_convertible<type, object>::value)
     {
-      return *x.unwrap();
-    }
-    else if constexpr (std::is_same<decayed_type, object>::value)
-    {
-      return *x;
+      return x.template as<pair>();
     }
     else
     {
@@ -46,12 +44,12 @@ inline namespace kernel
     }
   };
 
-  auto car = [](auto&& x) noexcept -> decltype(auto)
+  auto car = [](auto&& x) -> decltype(auto)
   {
     return std::get<0>(unwrap(std::forward<decltype(x)>(x)));
   };
 
-  auto cdr = [](auto&& x) noexcept -> decltype(auto)
+  auto cdr = [](auto&& x) -> decltype(auto)
   {
     return std::get<1>(unwrap(std::forward<decltype(x)>(x)));
   };
@@ -167,17 +165,25 @@ inline namespace kernel
     return std::forward_as_tuple(car(x), cdr(x));
   };
 
-  auto list_tail = [](auto&& x, auto&& k) -> decltype(auto)
+  template <typename T>
+  auto list_tail(T&& x, std::size_t const k) -> T
   {
-    if constexpr (std::is_same<typename std::decay<decltype(k)>::type, object>::value)
-    {
-      return std::next(std::cbegin(std::forward<decltype(x)>(x)), static_cast<std::size_t>(k.template as<exact_integer>()));
-    }
-    else
-    {
-      return std::next(std::cbegin(std::forward<decltype(x)>(x)), std::forward<decltype(k)>(k));
-    }
-  };
+    return 0 < k ? list_tail(cdr(x), k - 1) : x;
+  }
+
+  template <typename T>
+  auto list_tail(T&& x, const_reference k) -> decltype(auto)
+  {
+    assert(k.is<exact_integer>());
+    return list_tail(std::forward<decltype(x)>(x), static_cast<std::size_t>(k.as<exact_integer>()));
+  }
+
+  // auto list_tail = [](reference x, const_reference k) -> decltype(auto)
+  // {
+  //   assert(x.is<null>() or x.is<pair>());
+  //   assert(k.is<exact_integer>());
+  //   return std::next(std::cbegin(x), static_cast<std::size_t>(k.template as<exact_integer>()));
+  // };
 
   auto list_ref = [](auto&&... xs) constexpr -> decltype(auto)
   {

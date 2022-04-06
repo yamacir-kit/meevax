@@ -61,14 +61,16 @@ inline namespace kernel
 
     auto operator [](std::string const&) -> const_reference;
 
-    auto define(const_reference, const_reference) -> const_reference;
+    auto apply(const_reference, const_reference) -> object;
 
-    auto define(std::string const&, const_reference) -> const_reference;
+    auto define(const_reference, const_reference) -> void;
+
+    auto define(std::string const&, const_reference) -> void;
 
     template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs) -> const_reference
+    auto define(std::string const& name, Ts&&... xs) -> void
     {
-      return define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
+      define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
     auto evaluate(const_reference) -> object;
@@ -77,30 +79,76 @@ inline namespace kernel
 
     auto execute(const_reference) -> object;
 
-    auto global() noexcept -> reference;
+    auto is_same_bound_identifier(const_reference x, const_reference y) const -> bool
+    {
+      let const& renamed_x = x.is<symbol>() ? notate(x, syntactic_environment()) : x;
+      let const& renamed_y = y.is<symbol>() ? notate(y, syntactic_environment()) : y;
 
-    auto global() const noexcept -> const_reference;
+      return renamed_x.is_also<absolute>() and renamed_x.as<absolute>().is_bound() and
+             renamed_y.is_also<absolute>() and renamed_y.as<absolute>().is_bound() and eq(renamed_x, renamed_y);
+    };
+
+    auto is_same_free_identifier(const_reference x, const_reference y) -> bool
+    {
+      let const& renamed_x = x.is<symbol>() ? notate(x, syntactic_environment()) : x;
+      let const& renamed_y = y.is<symbol>() ? notate(y, syntactic_environment()) : y;
+
+      return renamed_x.is_also<absolute>() and renamed_x.as<absolute>().is_free() and
+             renamed_y.is_also<absolute>() and renamed_y.as<absolute>().is_free() and eq(renamed_x, renamed_y);
+    }
+
+    auto reserve(const_reference x) -> const_reference
+    {
+      assert(is_identifier(x));
+
+      let const result = make<absolute>(x);
+
+      result.as<absolute>().strip() = result; // NOTE: Identifier is self-evaluate if is free-identifier.
+
+      assert(result.as<absolute>().is_free());
+
+      global_environment() = result | global_environment();
+
+      return car(global_environment());
+    }
+
+    auto generate_free_identifier(const_reference x) -> object
+    {
+      return make<syntactic_closure>(reserve(x), e);
+    }
+
+    auto global_environment() noexcept -> reference;
+
+    auto global_environment() const noexcept -> const_reference;
 
     template <typename T, T... xs>
     auto import(std::integer_sequence<T, xs...>) -> void;
 
     auto import() -> void;
 
+    static auto is_identifier(const_reference) -> bool;
+
     auto load(std::string const&) -> object;
 
-    auto load(const_reference) -> object;
+    auto syntactic_environment() const noexcept -> const_reference;
 
-    auto local() const noexcept -> const_reference;
+    auto syntactic_environment() noexcept -> reference;
 
-    auto local() noexcept -> reference;
+    auto notate(const_reference, const_reference) -> object;
 
-    auto rename(const_reference) -> const_reference;
+    auto notate(const_reference, const_reference) const -> object;
 
-    auto rename(const_reference, const_reference) -> object;
+    template <typename... Ts>
+    auto rename(Ts&&... xs)
+    {
+      return make<syntactic_closure>(notate(std::forward<decltype(xs)>(xs)...), e);
+    }
 
-    auto rename(const_reference) const -> const_reference;
-
-    auto rename(const_reference, const_reference) const -> object;
+    template <typename... Ts>
+    auto rename(Ts&&... xs) const
+    {
+      return make<syntactic_closure>(notate(std::forward<decltype(xs)>(xs)...), e);
+    }
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;

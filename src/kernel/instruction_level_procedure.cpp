@@ -14,13 +14,13 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/syntactic_procedure.hpp>
+#include <meevax/kernel/instruction_level_procedure.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(std::ostream & os, syntactic_procedure const& datum) -> std::ostream &
+  auto operator <<(std::ostream & os, instruction_level_procedure const& datum) -> std::ostream &
   {
     return os << static_cast<procedure const&>(datum);
   }

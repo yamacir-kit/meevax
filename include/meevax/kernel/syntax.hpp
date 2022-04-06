@@ -23,10 +23,10 @@
 
 #define SYNTAX(NAME)                                                           \
   auto NAME(                                                                   \
-    [[maybe_unused]] context const current_context,                            \
-    [[maybe_unused]] environment & current_environment,                        \
-    [[maybe_unused]] const_reference expression,                               \
-    [[maybe_unused]] const_reference frames,                                   \
+    [[maybe_unused]] context const   current_context,                          \
+    [[maybe_unused]] environment &   current_environment,                      \
+    [[maybe_unused]] const_reference current_expression,                       \
+    [[maybe_unused]] const_reference current_syntactic_environment,            \
     [[maybe_unused]] const_reference current_continuation) -> object
 
 namespace meevax
@@ -35,13 +35,13 @@ inline namespace kernel
 {
   struct syntax : public description
   {
-    using signature = SYNTAX((*));
+    using function_pointer_type = SYNTAX((*));
 
-    using transformer = std::function<SYNTAX()>;
+    using function_type = std::function<SYNTAX()>;
 
-    transformer transform;
+    function_type compile;
 
-    explicit syntax(std::string const&, transformer const&);
+    explicit syntax(std::string const&, function_type const&);
   };
 
   auto operator <<(std::ostream &, syntax const&) -> std::ostream &;

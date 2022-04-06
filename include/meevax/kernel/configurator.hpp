@@ -28,18 +28,18 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename Environment>
+  template <typename environment>
   class configurator
   {
-    friend Environment;
+    friend environment;
 
-    IMPORT(Environment, evaluate, NIL);
-    IMPORT(Environment, load, NIL);
-    IMPORT(Environment, print, const);
-    IMPORT(Environment, read, NIL);
+    IMPORT(environment, evaluate, NIL);
+    IMPORT(environment, load, NIL);
+    IMPORT(environment, print, const);
+    IMPORT(environment, read, NIL);
 
     template <typename Key>
-    using dispatcher = std::unordered_map<Key, procedure::applicable>;
+    using dispatcher = std::unordered_map<Key, procedure::function_type>;
 
     const dispatcher<char> short_options, short_options_with_arguments;
 
@@ -88,17 +88,17 @@ inline namespace kernel
 
       , short_options_with_arguments
         {
-          std::make_pair('e', [this](const_reference x)
+          std::make_pair('e', [this](const_reference x, auto&&...)
           {
             return print(evaluate(x)), unspecified_object;
           }),
 
-          std::make_pair('l', [this](const_reference x)
+          std::make_pair('l', [this](const_reference x, auto&&...)
           {
-            return load(x);
+            return load(x.as<string>());
           }),
 
-          std::make_pair('w', [this](const_reference x)
+          std::make_pair('w', [this](const_reference x, auto&&...)
           {
             return print(x), unspecified_object;
           }),
@@ -146,22 +146,22 @@ inline namespace kernel
 
       , long_options_with_arguments
         {
-          std::make_pair("evaluate", [this](const_reference x)
+          std::make_pair("evaluate", [this](const_reference x, auto&&...)
           {
             return print(evaluate(x)), unspecified_object;
           }),
 
-          std::make_pair("load", [this](const_reference x)
+          std::make_pair("load", [this](const_reference x, auto&&...)
           {
-            return load(x);
+            return load(x.as<string>());
           }),
 
-          std::make_pair("prompt", [this](const_reference x)
+          std::make_pair("prompt", [this](const_reference x, auto&&...)
           {
             return prompt = x;
           }),
 
-          std::make_pair("write", [this](const_reference x)
+          std::make_pair("write", [this](const_reference x, auto&&...)
           {
             return print(x), unspecified_object;
           }),
@@ -204,11 +204,15 @@ inline namespace kernel
             {
               if (auto const& [name, perform] = *iter; std::next(current_short_option) != std::end(current_short_options))
               {
-                return perform(read(std::string(std::next(current_short_option), std::end(current_short_options))));
+                return perform(read(std::string(std::next(current_short_option), std::end(current_short_options))),
+                               static_cast<environment &>(*this).syntactic_environment(),
+                               static_cast<environment &>(*this));
               }
               else if (++current_option != std::end(args) and not std::regex_match(*current_option, analysis, pattern))
               {
-                return perform(read(*current_option));
+                return perform(read(*current_option),
+                               static_cast<environment &>(*this).syntactic_environment(),
+                               static_cast<environment &>(*this));
               }
               else
               {
@@ -217,7 +221,9 @@ inline namespace kernel
             }
             else if (auto iter = short_options.find(*current_short_option); iter != std::end(short_options))
             {
-              cdr(*iter)(unit);
+              cdr(*iter)(unit,
+                         static_cast<environment &>(*this).syntactic_environment(),
+                         static_cast<environment &>(*this));
             }
             else
             {
@@ -231,11 +237,15 @@ inline namespace kernel
           {
             if (analysis.length(2)) // argument part
             {
-              return cdr(*iter)(read(analysis.str(3)));
+              return cdr(*iter)(read(analysis.str(3)),
+                                static_cast<environment &>(*this).syntactic_environment(),
+                                static_cast<environment &>(*this));
             }
             else if (++current_option != std::end(args) and not std::regex_match(*current_option, analysis, pattern))
             {
-              return cdr(*iter)(read(*current_option));
+              return cdr(*iter)(read(*current_option),
+                                static_cast<environment &>(*this).syntactic_environment(),
+                                static_cast<environment &>(*this));
             }
             else
             {
@@ -244,7 +254,9 @@ inline namespace kernel
           }
           else if (auto iter = long_options.find(current_long_option); iter != std::end(long_options))
           {
-            return cdr(*iter)(unit);
+            return cdr(*iter)(unit,
+                              static_cast<environment &>(*this).syntactic_environment(),
+                              static_cast<environment &>(*this));
           }
           else
           {

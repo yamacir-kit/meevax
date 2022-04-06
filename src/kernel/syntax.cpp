@@ -20,9 +20,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  syntax::syntax(std::string const& name, transformer const& transform)
+  syntax::syntax(std::string const& name, function_type const& compile)
     : description { name }
-    , transform { transform  }
+    , compile { compile  }
   {}
 
   auto operator <<(std::ostream & os, syntax const& datum) -> std::ostream &

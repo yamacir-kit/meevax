@@ -5,7 +5,7 @@
 ; (define hygienic-x (syntax x))
 
 (define rename
-  (let ((e (fork/csc identity)))
+  (let ((e (hygienic-macro-transformer list)))
     (lambda (x)
       (eval x e))))
 
@@ -22,10 +22,8 @@
 (define-syntax swap!
   (er-macro-transformer
     (lambda (form rename compare)
-
       (check (transformer? (rename 'let)) => #t)
       (check (identifier? (rename 'value)) => #t)
-
       (let ((a (cadr form))
             (b (caddr form)))
         `(,(rename 'let) ((,(rename 'value) ,a))

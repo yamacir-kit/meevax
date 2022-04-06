@@ -24,39 +24,35 @@ namespace meevax
 {
 inline namespace kernel
 {
-  #define PROCEDURE(...) meevax::object __VA_ARGS__(meevax::const_reference xs)
+  #define PROCEDURE(...) meevax::object __VA_ARGS__(meevax::const_reference xs, \
+                                                    meevax::const_reference,    \
+                                                    environment &)
 
   struct procedure : public description
   {
-    using signature = PROCEDURE((*));
+    using function_pointer_type = PROCEDURE((*));
 
-    using applicable = std::function<PROCEDURE()>;
+    using function_type = std::function<PROCEDURE()>;
 
-    applicable apply;
+    function_type call;
 
-    explicit procedure(std::string const&, applicable const&);
+    explicit procedure(std::string const&, function_type const&);
 
     explicit procedure(std::string const&, std::string const&);
 
     static auto dlopen(std::string const&) -> void *;
 
-    static auto dlsym(std::string const&, void * const) -> signature;
+    static auto dlsym(std::string const&, void * const) -> function_pointer_type;
   };
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
 
-  template <typename T>
-  struct is
+  struct predicate : public procedure
   {
-    auto operator ()(const_reference xs) const -> const_reference
-    {
-      auto is_T = [](const_reference x)
-      {
-        return x.is<T>();
-      };
-
-      return std::all_of(std::begin(xs), std::end(xs), is_T) ? t : f;
-    }
+    template <typename Callable>
+    explicit predicate(std::string const& name, Callable && call)
+      : procedure { name, [call](auto&&... xs) { return call(std::forward<decltype(xs)>(xs)...) ? t : f; } }
+    {}
   };
 } // namespace kernel
 } // namespace meevax
