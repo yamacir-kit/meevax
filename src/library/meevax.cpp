@@ -1936,12 +1936,6 @@ namespace meevax
       return car(xs).is<er_macro_transformer>();
     });
 
-    define<procedure>("identifier", [](let const& xs, let const& current_syntactic_environment, auto&& current_environment)
-    {
-      assert(car(xs).is<symbol>());
-      return current_environment.rename(car(xs), current_syntactic_environment);
-    });
-
     /* -------------------------------------------------------------------------
      *
      *  (identifier? syntax-object)                                   procedure
@@ -2037,11 +2031,7 @@ namespace meevax
       switch (length(xs))
       {
       case 1:
-        if (let const& x = car(xs); x.is<syntactic_closure>())
-        {
-          return x.as<syntactic_closure>().symbol();
-        }
-        else if (x.is<symbol>())
+        if (let const& x = car(xs); x.is<symbol>())
         {
           return x;
         }
@@ -2096,7 +2086,7 @@ namespace meevax
 
     define<procedure>("macroexpand-1", [](let const& xs, let const& current_syntactic_environment, environment & current_environment)
     {
-      if (let const& macro = current_environment.rename(caar(xs), current_syntactic_environment).as<syntactic_closure>().strip(); macro.is_also<transformer>())
+      if (let const& macro = current_environment.notate(caar(xs), current_syntactic_environment).as<notation>().strip(current_environment.e); macro.is_also<transformer>())
       {
         return macro.as<transformer>().expand(car(xs));
       }

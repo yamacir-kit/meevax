@@ -130,7 +130,7 @@ inline namespace kernel
 
   auto environment::is_identifier(const_reference x) -> bool
   {
-    return x.is<symbol>() or x.is_also<absolute>() or x.is<syntactic_closure>();
+    return x.is<symbol>() or x.is_also<absolute>();
   }
 
   auto environment::load(std::string const& s) -> object

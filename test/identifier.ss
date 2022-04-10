@@ -2,7 +2,7 @@
 
 ; ------------------------------------------------------------------------------
 
-(check (identifier? (identifier 'value)) => #t)
+; (check (identifier? (identifier 'value)) => #t)
 
 (check (identifier? 'value) => #t)
 
@@ -10,7 +10,7 @@
 
 ; ------------------------------------------------------------------------------
 
-(check (identifier->symbol (identifier 'value)) => value)
+; (check (identifier->symbol (identifier 'value)) => value)
 
 (check-report)
 

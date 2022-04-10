@@ -114,7 +114,7 @@ inline namespace kernel
 
     auto generate_free_identifier(const_reference x) -> object
     {
-      return make<syntactic_closure>(reserve(x), e);
+      return x; // TODO
     }
 
     auto global_environment() noexcept -> reference;
@@ -137,18 +137,6 @@ inline namespace kernel
     auto notate(const_reference, const_reference) -> object;
 
     auto notate(const_reference, const_reference) const -> object;
-
-    template <typename... Ts>
-    auto rename(Ts&&... xs)
-    {
-      return make<syntactic_closure>(notate(std::forward<decltype(xs)>(xs)...), e);
-    }
-
-    template <typename... Ts>
-    auto rename(Ts&&... xs) const
-    {
-      return make<syntactic_closure>(notate(std::forward<decltype(xs)>(xs)...), e);
-    }
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;
