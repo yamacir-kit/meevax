@@ -66,7 +66,7 @@ inline namespace kernel
         expander.reset();
       }
 
-      virtual auto expand(const_reference) -> object = 0; /* -------------------
+      virtual auto expand(const_reference, const_reference) -> object = 0; /* --
       *
       *  Scheme programs can define and use new derived expression types,
       *  called macros. Program-defined expression types have the syntax
@@ -104,7 +104,7 @@ inline namespace kernel
       using transformer::expression;
       using transformer::transformer;
 
-      auto expand(const_reference form) -> object override
+      auto expand(const_reference form, const_reference) -> object override
       {
         return expander.apply(expression, cdr(form));
       }
@@ -121,9 +121,9 @@ inline namespace kernel
       using transformer::expression;
       using transformer::transformer;
 
-      auto expand(const_reference form) -> object override
+      auto expand(const_reference form, const_reference current_syntactic_environment) -> object override
       {
-        return expander.apply(expression, list(form, unit, unit));
+        return expander.apply(expression, list(form, current_syntactic_environment, expander.syntactic_environment()));
       }
 
       friend auto operator <<(std::ostream & os, generic_macro_transformer const& datum) -> std::ostream &
@@ -138,7 +138,7 @@ inline namespace kernel
       using transformer::expression;
       using transformer::transformer;
 
-      auto expand(const_reference form) -> object override
+      auto expand(const_reference form, const_reference) -> object override
       {
         auto rename = make<procedure>("rename", [](let const& xs, auto&&, auto&& expander)
         {
@@ -231,7 +231,7 @@ inline namespace kernel
 
         return compile(context::none,
                        current_environment,
-                       notation.as<keyword>().strip().as<transformer>().expand(current_expression),
+                       notation.as<keyword>().strip().as<transformer>().expand(current_expression, current_syntactic_environment),
                        current_syntactic_environment,
                        current_continuation);
       }
@@ -247,7 +247,7 @@ inline namespace kernel
       {
         return compile(context::none,
                        current_environment,
-                       applicant.as<transformer>().expand(current_expression),
+                       applicant.as<transformer>().expand(current_expression, current_syntactic_environment),
                        current_syntactic_environment,
                        current_continuation);
       }

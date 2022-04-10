@@ -2088,7 +2088,7 @@ namespace meevax
     {
       if (let const& macro = current_environment.notate(caar(xs), current_syntactic_environment).as<notation>().strip(current_environment.e); macro.is_also<transformer>())
       {
-        return macro.as<transformer>().expand(car(xs));
+        return macro.as<transformer>().expand(car(xs), current_syntactic_environment);
       }
       else
       {
