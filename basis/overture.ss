@@ -2,6 +2,8 @@
 
 (define (list . xs) xs)
 
+(define define-syntax define)
+
 (define-syntax import
   (hygienic-macro-transformer
     (lambda import-sets

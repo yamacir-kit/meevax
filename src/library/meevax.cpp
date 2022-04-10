@@ -26,7 +26,7 @@ namespace meevax
     define<syntax>("begin", machine::begin);
     define<syntax>("call-with-current-continuation!", call_with_current_continuation);
     define<syntax>("define", machine::define);
-    define<syntax>("define-syntax", define_syntax);
+    define<syntax>("%define-syntax", define_syntax);
     define<syntax>("if", if_);
     define<syntax>("lambda", lambda);
     define<syntax>("let-syntax", let_syntax);
