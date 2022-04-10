@@ -115,6 +115,23 @@ inline namespace kernel
       }
     };
 
+    struct generic_macro_transformer : public transformer
+    {
+      using transformer::expander;
+      using transformer::expression;
+      using transformer::transformer;
+
+      auto expand(const_reference form) -> object override
+      {
+        return expander.apply(expression, list(form, unit, unit));
+      }
+
+      friend auto operator <<(std::ostream & os, generic_macro_transformer const& datum) -> std::ostream &
+      {
+        return os << magenta("#,(") << green("generic-macro-transformer ") << faint("#;", &datum) << magenta(")");
+      }
+    };
+
     struct er_macro_transformer : public transformer
     {
       using transformer::expander;
@@ -393,7 +410,6 @@ inline namespace kernel
         d = cdr(d);
         goto decode;
 
-      case mnemonic::define_syntax:
       case mnemonic::define: /* ------------------------------------------------
         *
         *  (x' . s) e (%define <notation> . c) d => (x' . s) e c d
@@ -402,6 +418,18 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         cadr(c).template as<absolute>().strip() = car(s);
+        c = cddr(c);
+        goto decode;
+
+      case mnemonic::define_syntax: /* -----------------------------------------
+        *
+        *  (<closure> . s) e (%define <notation> . c) d => (x' . s) e c d
+        *
+        *  where <notation> = (<symbol> . x := <transformer>)
+        *
+        * ------------------------------------------------------------------- */
+        assert(car(s).template is<closure>());
+        cadr(c).template as<absolute>().strip() = make<generic_macro_transformer>(car(s), unit, static_cast<environment const&>(*this));
         c = cddr(c);
         goto decode;
 
@@ -446,7 +474,7 @@ inline namespace kernel
           {
             env.execute(compile(context::outermost,
                                 env,
-                                cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
+                                cons(make<syntax>("define-syntax", define), transformer_spec),
                                 cadr(c).template as<syntactic_continuation>().syntactic_environment()));
           }
 
