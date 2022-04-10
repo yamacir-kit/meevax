@@ -50,19 +50,19 @@ inline namespace kernel
 
     struct transformer
     {
-      let const transform;
+      let const expression;
 
       environment expander;
 
-      explicit transformer(const_reference transform,
-                           const_reference current_syntactic_environment,
+      explicit transformer(const_reference expression,
+                           const_reference syntactic_environment,
                            environment const& current_environment)
-        : transform { transform }
+        : expression { expression }
         , expander { current_environment }
       {
-        assert(transform.is<closure>());
+        assert(expression.is<closure>());
 
-        expander.syntactic_environment() = current_syntactic_environment;
+        expander.syntactic_environment() = syntactic_environment;
         expander.reset();
       }
 
@@ -101,12 +101,12 @@ inline namespace kernel
     struct hygienic_macro_transformer : public transformer
     {
       using transformer::expander;
+      using transformer::expression;
       using transformer::transformer;
-      using transformer::transform;
 
       auto expand(const_reference form) -> object override
       {
-        return expander.apply(transform, cdr(form));
+        return expander.apply(expression, cdr(form));
       }
 
       friend auto operator <<(std::ostream & os, hygienic_macro_transformer const& datum) -> std::ostream &
@@ -118,8 +118,8 @@ inline namespace kernel
     struct er_macro_transformer : public transformer
     {
       using transformer::expander;
+      using transformer::expression;
       using transformer::transformer;
-      using transformer::transform;
 
       auto expand(const_reference form) -> object override
       {
@@ -134,7 +134,7 @@ inline namespace kernel
           return expander.is_same_free_identifier(car(xs), cadr(xs));
         });
 
-        return expander.apply(transform, list(form, rename, compare));
+        return expander.apply(expression, list(form, rename, compare));
       }
 
       friend auto operator <<(std::ostream & os, er_macro_transformer const& datum) -> std::ostream &
