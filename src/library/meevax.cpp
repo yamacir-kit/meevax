@@ -1671,7 +1671,7 @@ namespace meevax
 
     define<procedure>("eval", [](let const& xs, auto&&...)
     {
-      return cadr(xs).as<transformer>().expander.evaluate(car(xs)); // DIRTY HACK!
+      return cadr(xs).as<transformer>().mac_env.as<environment>().evaluate(car(xs)); // DIRTY HACK!
     });
   }
 
@@ -1923,12 +1923,23 @@ namespace meevax
   {
     define<procedure>("hygienic-macro-transformer", [](let const& xs, auto&& current_syntactic_environment, auto&& current_environment)
     {
-      return make<hygienic_macro_transformer>(car(xs), current_syntactic_environment, current_environment);
+      return make<hygienic_macro_transformer>(car(xs), current_environment.fork(current_syntactic_environment));
+    });
+
+    define<procedure>("make-syntactic-closure", [](let const& xs, auto&&...)
+    {
+      // PRINT(car(xs)); // syntactic-environment
+      // PRINT(cadr(xs)); // free-variables
+      // PRINT(caddr(xs)); // expression
+      //
+      // return make<syntactic_closure>(environment, car(xs), cadr(xs), caddr(xs));
+
+      return caddr(xs);
     });
 
     define<procedure>("er-macro-transformer", [](let const& xs, auto&& current_syntactic_environment, auto&& current_environment)
     {
-      return make<er_macro_transformer>(car(xs), current_syntactic_environment, current_environment);
+      return make<er_macro_transformer>(car(xs), current_environment.fork(current_syntactic_environment));
     });
 
     define<predicate>("er-macro-transformer?", [](let const& xs, auto&&...)

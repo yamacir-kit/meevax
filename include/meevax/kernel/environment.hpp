@@ -79,7 +79,7 @@ inline namespace kernel
 
     auto execute(const_reference) -> object;
 
-    auto fork(const_reference syntactic_environment)
+    auto fork(const_reference syntactic_environment) const
     {
       let const copy = make<environment>(*this);
       copy.as<environment>().syntactic_environment() = syntactic_environment;

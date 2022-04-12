@@ -52,18 +52,13 @@ inline namespace kernel
     {
       let const expression;
 
-      environment expander;
+      let const mac_env;
 
-      explicit transformer(const_reference expression,
-                           const_reference syntactic_environment,
-                           environment const& current_environment)
+      explicit transformer(const_reference expression, const_reference mac_env)
         : expression { expression }
-        , expander { current_environment }
+        , mac_env { mac_env }
       {
         assert(expression.is<closure>());
-
-        expander.syntactic_environment() = syntactic_environment;
-        expander.reset();
       }
 
       virtual auto expand(const_reference, const_reference) -> object = 0; /* --
@@ -100,13 +95,13 @@ inline namespace kernel
 
     struct hygienic_macro_transformer : public transformer
     {
-      using transformer::expander;
       using transformer::expression;
+      using transformer::mac_env;
       using transformer::transformer;
 
       auto expand(const_reference form, const_reference) -> object override
       {
-        return expander.apply(expression, cdr(form));
+        return mac_env.template as<environment>().apply(expression, cdr(form));
       }
 
       friend auto operator <<(std::ostream & os, hygienic_macro_transformer const& datum) -> std::ostream &
@@ -117,13 +112,13 @@ inline namespace kernel
 
     struct generic_macro_transformer : public transformer
     {
-      using transformer::expander;
       using transformer::expression;
+      using transformer::mac_env;
       using transformer::transformer;
 
-      auto expand(const_reference form, const_reference current_syntactic_environment) -> object override
+      auto expand(const_reference form, const_reference use_env) -> object override
       {
-        return expander.apply(expression, list(form, current_syntactic_environment, expander.syntactic_environment()));
+        return mac_env.template as<environment>().apply(expression, list(form, use_env, mac_env));
       }
 
       friend auto operator <<(std::ostream & os, generic_macro_transformer const& datum) -> std::ostream &
@@ -134,8 +129,8 @@ inline namespace kernel
 
     struct er_macro_transformer : public transformer
     {
-      using transformer::expander;
       using transformer::expression;
+      using transformer::mac_env;
       using transformer::transformer;
 
       auto expand(const_reference form, const_reference) -> object override
@@ -151,7 +146,7 @@ inline namespace kernel
           return expander.is_same_free_identifier(car(xs), cadr(xs));
         });
 
-        return expander.apply(expression, list(form, rename, compare));
+        return mac_env.template as<environment>().apply(expression, list(form, rename, compare));
       }
 
       friend auto operator <<(std::ostream & os, er_macro_transformer const& datum) -> std::ostream &
@@ -431,7 +426,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         assert(car(s).template is<closure>());
-        cadr(c).template as<absolute>().strip() = make<generic_macro_transformer>(car(s), unit, static_cast<environment const&>(*this));
+        cadr(c).template as<absolute>().strip() = make<generic_macro_transformer>(car(s), static_cast<environment const&>(*this).fork(unit));
         c = cddr(c);
         goto decode;
 
