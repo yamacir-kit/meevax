@@ -79,6 +79,13 @@ inline namespace kernel
 
     auto execute(const_reference) -> object;
 
+    auto fork(const_reference syntactic_environment)
+    {
+      let const copy = make<environment>(*this);
+      copy.as<environment>().syntactic_environment() = syntactic_environment;
+      return copy;
+    }
+
     auto is_same_bound_identifier(const_reference x, const_reference y) const -> bool
     {
       let const& renamed_x = x.is<symbol>() ? notate(x, syntactic_environment()) : x;

@@ -231,7 +231,8 @@ inline namespace kernel
 
         return compile(context::none,
                        current_environment,
-                       notation.as<keyword>().strip().as<transformer>().expand(current_expression, current_syntactic_environment),
+                       notation.as<keyword>().strip().as<transformer>().expand(current_expression,
+                                                                               current_environment.fork(current_syntactic_environment)),
                        current_syntactic_environment,
                        current_continuation);
       }
@@ -247,7 +248,8 @@ inline namespace kernel
       {
         return compile(context::none,
                        current_environment,
-                       applicant.as<transformer>().expand(current_expression, current_syntactic_environment),
+                       applicant.as<transformer>().expand(current_expression,
+                                                          current_environment.fork(current_syntactic_environment)),
                        current_syntactic_environment,
                        current_continuation);
       }
