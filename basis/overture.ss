@@ -11,6 +11,16 @@
 
 (define (unspecified) (if #f #f))
 
+(define (experimental:er-macro-transformer f)
+  (lambda (form use-env mac-env)
+    (define (rename x)
+      (make-syntactic-closure mac-env '() x))
+    (define (compare x y)
+      (define (identifier=? e1 x e2 y)
+        (eqv? x y))
+      (identifier=? use-env x use-env y))
+    (f form rename compare)))
+
 (define-syntax cond
   (hygienic-macro-transformer
     (lambda clauses
@@ -34,13 +44,16 @@
                               (cons cond (cdr clauses))))))
            (car clauses))))))
 
-(define-syntax and
-  (hygienic-macro-transformer
-    (lambda tests
-      (cond ((null? tests))
-            ((null? (cdr tests)) (car tests))
-            (else (list if (car tests)
-                        (cons and (cdr tests))
+(experimental:define-syntax and
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
+      (cond ((null? (cdr form)))
+            ((null? (cddr form))
+             (cadr form))
+            (else (list (rename 'if)
+                        (cadr form)
+                        (cons (rename 'and)
+                              (cddr form))
                         #f))))))
 
 (define-syntax or

@@ -2,7 +2,7 @@
   (lambda (form use-env mac-env)
     (apply f (cdr form))))
 
-(%define-syntax swap!
+(experimental:define-syntax swap!
   (simple-macro-transformer
     (lambda (a b)
       `(let ((value ,a))
@@ -29,7 +29,7 @@
   (lambda (form use-env mac-env)
     (make-syntactic-closure mac-env '() (f form use-env))))
 
-(%define-syntax swap!
+(experimental:define-syntax swap!
   (sc-macro-transformer
     (lambda (form use-env)
       (let ((a (make-syntactic-closure use-env '() (cadr form)))
@@ -63,7 +63,7 @@
   (lambda (form use-env mac-env)
     (make-syntactic-closure use-env '() (f form mac-env))))
 
-(%define-syntax swap!
+(experimental:define-syntax swap!
   (rsc-macro-transformer
     (lambda (form mac-env)
       (let ((a (cadr form))
@@ -74,6 +74,39 @@
         `(,LET ((,VALUE ,a))
            (,SET! ,a ,b)
            (,SET! ,b ,VALUE))))))
+
+(check (transformer? swap!) => #t)
+
+(define x 1)
+
+(define y 2)
+
+(check (cons x y) => (1 . 2))
+
+; (print (macroexpand-1 '(swap! x y)))
+
+(let ((a     'non-hygienic!)
+      (b     'non-hygienic!)
+      (let   'non-hygienic!)
+      (set!  'non-hygienic!)
+      (value 'non-hygienic!))
+  (swap! x y))
+
+(check (cons x y) => (2 . 1))
+
+; ------------------------------------------------------------------------------
+
+(experimental:define-syntax swap!
+  (experimental:er-macro-transformer
+    (lambda (form rename compare?)
+      (let ((a (cadr form))
+            (b (caddr form))
+            (LET   (rename 'let))
+            (VALUE (rename 'value))
+            (SET!  (rename 'set!)))
+        `(,LET ((,VALUE ,a))
+          (,SET! ,a ,b)
+          (,SET! ,b ,VALUE))))))
 
 (check (transformer? swap!) => #t)
 
