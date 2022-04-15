@@ -178,6 +178,7 @@ check(r5rs)
 check(r7rs)
 check(sicp-1)
 check(srfi-8)
+check(transformer)
 
 file(GLOB ${PROJECT_NAME}_TEST_CXX ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
 foreach(FILEPATH IN LISTS ${PROJECT_NAME}_TEST_CXX)

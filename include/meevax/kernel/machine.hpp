@@ -127,6 +127,25 @@ inline namespace kernel
       }
     };
 
+    struct syntactic_closure
+    {
+      let const enclosure;
+
+      let const free_variables;
+
+      let const expression;
+
+      auto notate()
+      {
+        return enclosure.as<environment>().notate(expression, enclosure.as<environment>().syntactic_environment());
+      }
+
+      friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
+      {
+        return os << magenta("#,(") << blue("make-syntactic-closure ") << datum.enclosure << " " << magenta("'") << datum.free_variables << " " << magenta("'") << datum.expression << magenta(")");
+      }
+    };
+
     struct er_macro_transformer : public transformer
     {
       using transformer::expression;
@@ -213,6 +232,22 @@ inline namespace kernel
 
           return cons(n.as<notation>().make_load_instruction(), n,
                       current_continuation);
+        }
+        else if (current_expression.is<syntactic_closure>())
+        {
+          if (let const& n = std::as_const(current_environment).notate(current_expression, current_syntactic_environment); select(n))
+          {
+            return cons(n.as<notation>().make_load_instruction(), n,
+                        current_continuation);
+          }
+          else
+          {
+            return compile(current_context,
+                           current_expression.as<syntactic_closure>().enclosure.template as<environment>(),
+                           current_expression.as<syntactic_closure>().expression,
+                           current_expression.as<syntactic_closure>().enclosure.template as<environment>().syntactic_environment(),
+                           current_continuation);
+          }
         }
         else // is <self-evaluating>
         {
@@ -689,7 +724,7 @@ inline namespace kernel
         }
       }
 
-      return f;
+      return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().notate() : f;
     }
 
     inline auto reset() -> void

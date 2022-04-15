@@ -1928,13 +1928,7 @@ namespace meevax
 
     define<procedure>("make-syntactic-closure", [](let const& xs, auto&&...)
     {
-      // PRINT(car(xs)); // syntactic-environment
-      // PRINT(cadr(xs)); // free-variables
-      // PRINT(caddr(xs)); // expression
-      //
-      // return make<syntactic_closure>(environment, car(xs), cadr(xs), caddr(xs));
-
-      return caddr(xs);
+      return make<syntactic_closure>(car(xs), cadr(xs), caddr(xs));
     });
 
     define<procedure>("er-macro-transformer", [](let const& xs, auto&& current_syntactic_environment, auto&& current_environment)
