@@ -1,5 +1,5 @@
-(define-syntax swap!
-  (hygienic-macro-transformer
+(experimental:define-syntax swap!
+  (traditional-macro-transformer
     (lambda (a b)
       `(,let ((,x ,a))
          (,set! ,a ,b)

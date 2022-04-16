@@ -71,14 +71,12 @@
 (let ((s "abcde")) (check (begin (string-fill! s #\x 1) s) => "axxxx"))
 (let ((s "abcde")) (check (begin (string-fill! s #\x 1 4) s) => "axxxe"))
 
-(define-syntax loop
-  (er-macro-transformer
+(experimental:define-syntax loop
+  (experimental:er-macro-transformer
     (lambda (form rename compare)
       `(,(rename 'call/cc)
          (,(rename 'lambda) (exit)
-           (,(rename 'let) ,(rename 'rec) ()
-             ,(cadr form)
-             (,(rename 'rec))))))))
+           (,(rename 'let) ,(rename 'rec) () ,(cadr form) (,(rename 'rec))))))))
 
 (define f
   (lambda ()
@@ -97,15 +95,6 @@
                  (exit 42))
           (begin (display x)
                  (set! x (+ x 1)) )))))
-
-; (define-syntax loop
-;   (non-hygienic-macro-transformer
-;     (lambda (form)
-;      `(call-with-current-continuation
-;         (lambda (exit)
-;           (let loop ()
-;             ,form
-;             (loop)))))))
 
 ; (define-syntax loop
 ;   (sc-macro-transformer

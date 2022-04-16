@@ -1,9 +1,5 @@
-(define (simple-macro-transformer f)
-  (lambda (form use-env mac-env)
-    (apply f (cdr form))))
-
 (experimental:define-syntax swap!
-  (simple-macro-transformer
+  (traditional-macro-transformer
     (lambda (a b)
       `(let ((value ,a))
          (set! ,a ,b)
@@ -24,10 +20,6 @@
 (check (cons x y) => (2 . 1))
 
 ; ; ------------------------------------------------------------------------------
-
-(define (sc-macro-transformer f)
-  (lambda (form use-env mac-env)
-    (make-syntactic-closure mac-env '() (f form use-env))))
 
 (experimental:define-syntax swap!
   (sc-macro-transformer
@@ -58,10 +50,6 @@
 (check (cons x y) => (2 . 1))
 
 ; ------------------------------------------------------------------------------
-
-(define (rsc-macro-transformer f)
-  (lambda (form use-env mac-env)
-    (make-syntactic-closure use-env '() (f form mac-env))))
 
 (experimental:define-syntax swap!
   (rsc-macro-transformer

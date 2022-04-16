@@ -2,14 +2,21 @@
 
 (define (list . xs) xs)
 
-(define define-syntax define)
-
-(define-syntax import
-  (hygienic-macro-transformer
-    (lambda import-sets
-      (list quote (cons 'import import-sets)))))
-
 (define (unspecified) (if #f #f))
+
+; ------------------------------------------------------------------------------
+
+(define (traditional-macro-transformer f)
+  (lambda (form use-env mac-env)
+    (apply f (cdr form))))
+
+(define (sc-macro-transformer f)
+  (lambda (form use-env mac-env)
+    (make-syntactic-closure mac-env '() (f form use-env))))
+
+(define (rsc-macro-transformer f)
+  (lambda (form use-env mac-env)
+    (make-syntactic-closure use-env '() (f form mac-env))))
 
 (define (experimental:er-macro-transformer f)
   (lambda (form use-env mac-env)
@@ -20,6 +27,15 @@
         (eqv? x y))
       (identifier=? use-env x use-env y))
     (f form rename compare)))
+
+(define define-syntax define)
+
+(experimental:define-syntax import
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
+      (list (rename 'quote) (cons 'import (cdr form))))))
+
+; ------------------------------------------------------------------------------
 
 (define-syntax cond
   (hygienic-macro-transformer
@@ -56,16 +72,21 @@
                               (cddr form))
                         #f))))))
 
-(define-syntax or
-  (hygienic-macro-transformer
-    (lambda tests
-      (cond ((null? tests) #f)
-            ((null? (cdr tests)) (car tests))
-            (else (list (list lambda (list result)
-                              (list if result
-                                    result
-                                    (cons or (cdr tests))))
-                        (car tests)))))))
+(experimental:define-syntax or
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
+      (define RESULT (rename 'result))
+      (cond ((null? (cdr form)) #f)
+            ((null? (cddr form))
+             (cadr form))
+            (else (list (list (rename 'lambda)
+                              (list RESULT)
+                              (list (rename 'if)
+                                    RESULT
+                                    RESULT
+                                    (cons (rename 'or)
+                                          (cddr form))))
+                        (cadr form)))))))
 
 (define (append-2 x y)
   (if (null? x) y
@@ -125,15 +146,17 @@
 
 (define (not x) (if x #f #t))
 
-(define-syntax when
-  (hygienic-macro-transformer
-    (lambda (test . body)
-      `(,if ,test (,begin ,@body)))))
+(experimental:define-syntax when
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
+      `(,(rename 'if) ,(cadr form)
+                      (,(rename 'begin) ,@(cddr form))))))
 
-(define-syntax unless
-  (hygienic-macro-transformer
-    (lambda (test . body)
-      `(,if (,not ,test) (,begin ,@body)))))
+(experimental:define-syntax unless
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
+      `(,(rename 'if) (,(rename 'not) ,(cadr form))
+                      (,(rename 'begin) ,@(cddr form))))))
 
 (define (map f x . xs) ; map-unorder
   (define (map-1 f x xs)
@@ -205,18 +228,21 @@
              (,bindings ,@(map cadr (car body))))
           `((,lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))))
 
-(define-syntax let*
-  (hygienic-macro-transformer
-    (lambda (bindings . body)
-      (if (or (null? bindings)
-              (null? (cdr bindings)))
-          `(,let (,(car bindings)) ,@body)
-          `(,let (,(car bindings)) (,let* ,(cdr bindings) ,@body))))))
+(experimental:define-syntax let*
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
+      (if (null? (cadr form))
+          `(,(rename 'let) () ,@(cddr form))
+          `(,(rename 'let) (,(caadr form))
+                           (,(rename 'let*) ,(cdadr form)
+                                            ,@(cddr form)))))))
 
-(define-syntax letrec*
-  (hygienic-macro-transformer
-    (lambda (bindings . body)
-      `(,let () ,@(map (lambda (x) (cons define x)) bindings) ,@body))))
+(experimental:define-syntax letrec*
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
+      `(,(rename 'let) ,@(map (lambda (x) (cons (rename 'define) x))
+                              (cadr form))
+                       ,@(cddr form)))))
 
 (define (member o x . c) ; for case
   (let ((compare (if (pair? c) (car c) equal?)))
