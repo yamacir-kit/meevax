@@ -1921,11 +1921,6 @@ namespace meevax
   template <>
   auto environment::import(decltype("(meevax experimental)"_s)) -> void
   {
-    define<procedure>("hygienic-macro-transformer", [](let const& xs, auto&& current_syntactic_environment, auto&& current_environment)
-    {
-      return make<hygienic_macro_transformer>(car(xs), current_environment.fork(current_syntactic_environment));
-    });
-
     define<procedure>("make-syntactic-closure", [](let const& xs, auto&&...)
     {
       return make<syntactic_closure>(car(xs), cadr(xs), caddr(xs));

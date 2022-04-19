@@ -93,23 +93,6 @@ inline namespace kernel
       * --------------------------------------------------------------------- */
     };
 
-    struct hygienic_macro_transformer : public transformer
-    {
-      using transformer::expression;
-      using transformer::mac_env;
-      using transformer::transformer;
-
-      auto expand(const_reference form, const_reference) -> object override
-      {
-        return mac_env.template as<environment>().apply(expression, cdr(form));
-      }
-
-      friend auto operator <<(std::ostream & os, hygienic_macro_transformer const& datum) -> std::ostream &
-      {
-        return os << magenta("#,(") << green("hygienic-macro-transformer ") << faint("#;", &datum) << magenta(")");
-      }
-    };
-
     struct generic_macro_transformer : public transformer
     {
       using transformer::expression;
