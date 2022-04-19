@@ -1941,15 +1941,15 @@ namespace meevax
                  ry = y.is<syntactic_closure>() ? y : make<syntactic_closure>(e2, unit, y);
 
       let const& n1 = rx.as<syntactic_closure>().notate();
-      PRINT(n1);
+      // PRINT(n1);
 
       let const& n2 = ry.as<syntactic_closure>().notate();
-      PRINT(n2);
+      // PRINT(n2);
 
       auto const result = eqv(n1, n2);
 
-      LINE();
-      PRINT(result);
+      // LINE();
+      // PRINT(result);
 
       return result;
     });

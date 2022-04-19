@@ -64,16 +64,6 @@
 (define (dynamic-env-local-set! new-env)
   (set! dynamic-env-local new-env))
 
-; (define-syntax parameterize
-;   (er-macro-transformer
-;     (lambda (form rename compare)
-;       (let* ((bindings (cadr form))
-;              (body (cddr form)))
-;         `(dynamic-bind
-;            (list ,@(map  car bindings))
-;            (list ,@(map cadr bindings))
-;            (lambda () ,@body))))))
-
 (experimental:define-syntax parameterize
   (experimental:er-macro-transformer
     (lambda (form rename compare)
