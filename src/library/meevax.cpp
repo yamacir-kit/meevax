@@ -1931,6 +1931,34 @@ namespace meevax
       return make<syntactic_closure>(car(xs), cadr(xs), caddr(xs));
     });
 
+    define<predicate>("syntactic-closure?", [](let const& xs, auto&&...)
+    {
+      return car(xs).is<syntactic_closure>();
+    });
+
+    define<predicate>("identifier=?", [](let const& xs, auto&&...)
+    {
+      let const& e1 = car(xs),
+                 x = cadr(xs),
+                 rx = x.is<syntactic_closure>() ? x : make<syntactic_closure>(e1, unit, x),
+                 e2 = caddr(xs),
+                 y = cadddr(xs),
+                 ry = y.is<syntactic_closure>() ? y : make<syntactic_closure>(e2, unit, y);
+
+      let const& n1 = rx.as<syntactic_closure>().notate();
+      PRINT(n1);
+
+      let const& n2 = ry.as<syntactic_closure>().notate();
+      PRINT(n2);
+
+      auto const result = eqv(n1, n2);
+
+      LINE();
+      PRINT(result);
+
+      return result;
+    });
+
     define<procedure>("er-macro-transformer", [](let const& xs, auto&& current_syntactic_environment, auto&& current_environment)
     {
       return make<er_macro_transformer>(car(xs), current_environment.fork(current_syntactic_environment));

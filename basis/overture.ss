@@ -37,28 +37,31 @@
 
 ; ------------------------------------------------------------------------------
 
-(define-syntax cond
-  (hygienic-macro-transformer
-    (lambda clauses
-      (if (null? clauses)
+(experimental:define-syntax cond
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
+      (if (null? (cdr form))
           (unspecified)
           ((lambda (clause)
              (if (free-identifier=? else (car clause))
-                 (if (pair? (cdr clauses))
-                     (error "else clause must be at the end of cond clause" clauses)
-                     (cons begin (cdr clause)))
+                 (cons (rename 'begin) (cdr clause))
                  (if (if (null? (cdr clause)) #t
                          (free-identifier=? => (cadr clause)))
-                     (list (list lambda (list result)
-                                 (list if result
-                                       (if (null? (cdr clause)) result
-                                           (list (car (cddr clause)) result))
-                                       (cons cond (cdr clauses))))
+                     (list (list (rename 'lambda)
+                                 (list result)
+                                 (list (rename 'if)
+                                       result
+                                       (if (null? (cdr clause))
+                                           result
+                                           (list (caddr clause)
+                                                 result))
+                                       (cons (rename 'cond) (cddr form))))
                            (car clause))
-                     (list if (car clause)
-                              (cons begin (cdr clause))
-                              (cons cond (cdr clauses))))))
-           (car clauses))))))
+                     (list (rename 'if)
+                           (car clause)
+                           (cons (rename 'begin) (cdr clause))
+                           (cons (rename 'cond) (cddr form))))))
+           (cadr form))))))
 
 (experimental:define-syntax and
   (experimental:er-macro-transformer
@@ -110,39 +113,48 @@
                      (car xs)))
        (reverse xs))))
 
-(define-syntax quasiquote
-  (hygienic-macro-transformer
-    (lambda (template)
+(experimental:define-syntax quasiquote
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
       (define (expand x depth)
         (cond ((pair? x)
                (cond ((free-identifier=? unquote (car x))
                       (if (<= depth 0)
                           (cadr x)
-                          (list list (list quote 'unquote) (expand (cadr x) (- depth 1)))))
+                          (list (rename 'list)
+                                (list (rename 'quote) 'unquote)
+                                (expand (cadr x) (- depth 1)))))
                      ((free-identifier=? unquote-splicing (car x))
                       (if (<= depth 0)
-                          (list cons (expand (car x) depth)
-                                     (expand (cdr x) depth))
-                          (list list (list quote 'unquote-splicing)
-                                     (expand (cadr x) (- depth 1)))))
+                          (list (rename 'cons)
+                                (expand (car x) depth)
+                                (expand (cdr x) depth))
+                          (list (rename 'list)
+                                (list (rename 'quote) 'unquote-splicing)
+                                (expand (cadr x) (- depth 1)))))
                      ((free-identifier=? quasiquote (car x))
-                      (list list (list quote 'quasiquote)
-                                 (expand (cadr x) (+ depth 1))))
+                      (list (rename 'list)
+                            (list (rename 'quote) 'quasiquote)
+                            (expand (cadr x) (+ depth 1))))
                      ((and (<= depth 0)
                            (pair? (car x))
                            (free-identifier=? unquote-splicing (caar x)))
                       (if (null? (cdr x))
-                          (cadr (car x))
-                          (list append (cadr (car x)) (expand (cdr x) depth))))
-                     (else (list cons (expand (car x) depth)
-                                      (expand (cdr x) depth)))))
+                          (cadar x)
+                          (list (rename 'append)
+                                (cadar x)
+                                (expand (cdr x) depth))))
+                     (else (list (rename 'cons)
+                                 (expand (car x) depth)
+                                 (expand (cdr x) depth)))))
               ((vector? x)
-               (list list->vector (expand (vector->list x) depth)))
+               (list (rename 'list->vector)
+                     (expand (vector->list x) depth)))
               ((or (identifier? x)
                    (null? x))
-               (list quote x))
+               (list (rename 'quote) x))
               (else x)))
-      (expand template 0))))
+      (expand (cadr form) 0))))
 
 (define (not x) (if x #f #t))
 
@@ -220,13 +232,16 @@
           #f)
       (any-2+ f (cons x xs))))
 
-(define-syntax let
-  (hygienic-macro-transformer
-    (lambda (bindings . body)
-      (if (identifier? bindings)
-          `(,letrec ((,bindings (,lambda ,(map car (car body)) ,@(cdr body))))
-             (,bindings ,@(map cadr (car body))))
-          `((,lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))))
+(experimental:define-syntax let
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
+      (if (identifier? (cadr form))
+          `(,(rename 'letrec) ((,(cadr form)
+                                 (,(rename 'lambda) ,(map car (caddr form)) ,@(cdddr form))))
+                              (,(cadr form) ,@(map cadr (caddr form))))
+          `((,(rename 'lambda) ,(map car (cadr form)) ,@(cddr form))
+            ,@(map cadr (cadr form)))))))
+
 
 (experimental:define-syntax let*
   (experimental:er-macro-transformer
@@ -254,44 +269,49 @@
 (define (memq o x) (member o x eq?))
 (define (memv o x) (member o x eqv?))
 
-(define-syntax case
-  (hygienic-macro-transformer
-    (lambda (key . clauses)
-      (define (body expressions)
-        (cond ((null? expressions) result)
-              ((free-identifier=? => (car expressions)) `(,(cadr expressions) ,result))
-              (else `(,begin ,@expressions))))
+(experimental:define-syntax case
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
+      (define (body xs)
+        (cond ((null? xs) result)
+              ((free-identifier=? => (car xs)) `(,(cadr xs) ,result))
+              (else `(,(rename 'begin) ,@xs))))
       (define (each-clause clauses)
-        (cond ((null? clauses) (unspecified))
+        (cond ((null? clauses)
+               (unspecified))
               ((free-identifier=? else (caar clauses))
                (body (cdar clauses)))
               ((and (pair? (caar clauses))
                     (null? (cdr (caar clauses))))
-               `(,if (,eqv? ,result (,quote ,(car (caar clauses))))
-                     ,(body (cdar clauses))
+               `(,(rename 'if) (,(rename 'eqv?) ,result (,(rename 'quote) ,(caaar clauses)))
+                               ,(body (cdar clauses))
                      ,(each-clause (cdr clauses))))
-              (else `(,if (,memv ,result (,quote ,(caar clauses)))
-                          ,(body (cdar clauses))
-                          ,(each-clause (cdr clauses))))))
-      `(,let ((,result ,key)) ,(each-clause clauses)))))
+              (else `(,(rename 'if) (,(rename 'memv) ,result (,(rename 'quote) ,(caar clauses)))
+                                    ,(body (cdar clauses))
+                                    ,(each-clause (cdr clauses))))))
+      `(,(rename 'let) ((,result ,(cadr form))) ,(each-clause (cddr form))))))
 
-(define-syntax do
-  (hygienic-macro-transformer
-    (lambda (variables test . commands)
-      (let ((body `(,begin ,@commands
-                           (,rec ,@(map (lambda (x)
-                                          (if (pair? (cddr x))
-                                              (car (cddr x))
-                                              (car x)))
-                                        variables)))))
-        `(,let ,rec ,(map (lambda (x)
-                            (list (car x)
-                                  (cadr x)))
-                          variables)
-               ,(if (null? (cdr test))
-                    `(,let ((,result ,(car test)))
-                           (,if ,result ,result ,body))
-                    `(,if ,(car test) (,begin ,@(cdr test)) ,body)))))))
+(experimental:define-syntax do
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
+      (let ((body `(,(rename 'begin) ,(cdddr form)
+                                     (,rec ,@(map (lambda (x)
+                                                    (if (pair? (cddr x))
+                                                        (caddr x)
+                                                        (car x)))
+                                                  (cadr form))))))
+        `(,(rename 'let) ,rec ,(map (lambda (x)
+                                      (list (car x)
+                                            (cadr x)))
+                                    (cadr form))
+                         ,(if (null? (cdaddr form))
+                              `(,(rename 'let) ((,result ,(caaddr form)))
+                                               (,(rename 'if) ,result
+                                                              ,result
+                                                              ,body))
+                              `(,(rename 'if) ,(caaddr form)
+                                              (,(rename 'begin) ,@(cdaddr form))
+                                              ,body)))))))
 
 ; ---- 6.1. Equivalence predicates ---------------------------------------------
 
