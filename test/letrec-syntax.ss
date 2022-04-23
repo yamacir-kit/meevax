@@ -2,7 +2,7 @@
         (scheme base)
         (srfi 78))
 
-(letrec-syntax ((my-and (er-macro-transformer
+(letrec-syntax ((my-and (experimental:er-macro-transformer
                           (lambda (form rename compare)
                             (cond ((null? (cdr form)) #t)
                                   ((null? (cddr form)) (cadr form))
@@ -12,7 +12,7 @@
                                               #f)))))))
   (check (my-and #t #t #f #t) => #f))
 
-(letrec-syntax ((my-or (er-macro-transformer
+(letrec-syntax ((my-or (experimental:er-macro-transformer
                          (lambda (form rename compare)
                            (cond ((null? (cdr form)) #f)
                                  ((null? (cddr form)) (cadr form))

@@ -450,7 +450,7 @@ inline namespace kernel
 
       case mnemonic::let_syntax: /* --------------------------------------------
         *
-        *  s e (%let_syntax <syntactic-continuation> . c) d => s e c' d
+        *  s e (%let-syntax <syntactic-continuation> . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
         [&]()
@@ -461,7 +461,9 @@ inline namespace kernel
           {
             let & binding = keyword_.as<keyword>().strip();
 
-            binding = environment(static_cast<environment const&>(*this)).execute(binding);
+            let const& f = environment(static_cast<environment const&>(*this)).execute(binding);
+
+            binding = make<generic_macro_transformer>(f, static_cast<environment const&>(*this).fork(unit));
           }
         }();
 
@@ -472,6 +474,7 @@ inline namespace kernel
                        cadr(c).template as<syntactic_continuation>().syntactic_environment(),
                        cddr(c)
                       ).template as<pair>());
+
         goto decode;
 
       case mnemonic::letrec_syntax: /* -----------------------------------------
@@ -489,7 +492,7 @@ inline namespace kernel
           {
             env.execute(compile(context::outermost,
                                 env,
-                                cons(make<syntax>("define-syntax", define), transformer_spec),
+                                cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
                                 cadr(c).template as<syntactic_continuation>().syntactic_environment()));
           }
 
@@ -1112,7 +1115,9 @@ inline namespace kernel
       auto const [bindings, body]  = unpair(current_expression);
 
       return cons(make<instruction>(mnemonic::let_syntax),
-                  make<syntactic_continuation>(body, cons(map(make_keyword, bindings), current_syntactic_environment)),
+                  make<syntactic_continuation>(body,
+                                               cons(map(make_keyword, bindings),
+                                                    current_syntactic_environment)),
                   current_continuation);
     }
 

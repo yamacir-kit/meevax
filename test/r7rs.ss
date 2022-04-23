@@ -345,20 +345,20 @@
 
 ; ---- 4.3.1. Binding constructs for syntactic keywords ------------------------
 
-(check (let-syntax ((given-that (syntax-rules ()
-                                  ((given-that test stmt1 stmt2 ...)
-                                   (if test
-                                       (begin stmt1
-                                              stmt2 ...))))))
-         (let ((if #t))
-           (given-that if (set! if 'now))
-           if)) => now)
+; (check (let-syntax ((given-that (syntax-rules ()
+;                                   ((given-that test stmt1 stmt2 ...)
+;                                    (if test
+;                                        (begin stmt1
+;                                               stmt2 ...))))))
+;          (let ((if #t))
+;            (given-that if (set! if 'now))
+;            if)) => now)
 
 (check (let ((x 'outer))
          (let-syntax ((m ; (syntax-rules () ((m) x)) ; BUG
-                         (er-macro-transformer
-                           (lambda (form rename compare)
-                             (list (rename 'quote) x)))))
+                        (experimental:er-macro-transformer
+                          (lambda (form rename compare)
+                            (list (rename 'quote) x)))))
            (let ((x 'inner))
              (m)))) => outer)
 
@@ -368,7 +368,7 @@
                               ;   ((my-or e1 e2 ...)
                               ;    (let ((temp e1))
                               ;      (if temp temp (my-or e2 ...)))))
-                              (er-macro-transformer
+                              (experimental:er-macro-transformer
                                 (lambda (form rename compare)
                                   (cond ((null? (cdr form)) #f)
                                         ((null? (cddr form)) (cadr form))
