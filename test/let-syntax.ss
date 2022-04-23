@@ -9,13 +9,12 @@
 (let ((f (lambda (a)
            (+ a 2))))
   (set! result (cons (f 0) result))
-
-  (let-syntax ((f (er-macro-transformer
-                    (lambda (form rename compare)
-                      `(,(rename '+) ,(cadr form) 3))))
-               (g (er-macro-transformer
-                    (lambda (form rename compare)
-                      '()))))
+  (experimental:let-syntax ((f (experimental:er-macro-transformer
+                                 (lambda (form rename compare)
+                                   `(,(rename '+) ,(cadr form) 3))))
+                            (g (experimental:er-macro-transformer
+                                 (lambda (form rename compare)
+                                   '()))))
     (set! result (cons (f 0) result))
     (let ((f (lambda (a)
                (+ a 4))))
@@ -29,9 +28,9 @@
 
 (define (double-y)
   (let ((+y (lambda (x) (+ x y))))
-    (let-syntax ((macro (er-macro-transformer
-                          (lambda (form rename compare)
-                            `(,(rename '+) ,(cadr form) ,(+y 0))))))
+    (experimental:let-syntax ((macro (experimental:er-macro-transformer
+                                       (lambda (form rename compare)
+                                         `(,(rename '+) ,(cadr form) ,(+y 0))))))
       (macro y))))
 
 (check (double-y) => 200)
