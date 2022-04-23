@@ -33,7 +33,6 @@ inline namespace kernel
     dummy,             // a.k.a DUM
     join,              //
     let_syntax,        //
-    let_syntax_,       // EXPERIMENTAL
     letrec,            // a.k.a RAP
     letrec_syntax,     //
     load_absolute,     // a.k.a LDG

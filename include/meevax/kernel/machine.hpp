@@ -461,32 +461,6 @@ inline namespace kernel
           {
             let & binding = keyword_.as<keyword>().strip();
 
-            binding = environment(static_cast<environment const&>(*this)).execute(binding);
-          }
-        }();
-
-        std::swap(c.as<pair>(),
-                  body(context::none,
-                       static_cast<environment &>(*this),
-                       cadr(c).template as<syntactic_continuation>().expression(),
-                       cadr(c).template as<syntactic_continuation>().syntactic_environment(),
-                       cddr(c)
-                      ).template as<pair>());
-        goto decode;
-
-      case mnemonic::let_syntax_: /* -------------------------------------------
-        *
-        *  s e (%experimental:let-syntax <syntactic-continuation> . c) d => s e c' d
-        *
-        * ------------------------------------------------------------------- */
-        [&]()
-        {
-          let const& syntactic_environment = cadr(c).template as<syntactic_continuation>().syntactic_environment();
-
-          for (let const& keyword_ : car(syntactic_environment))
-          {
-            let & binding = keyword_.as<keyword>().strip();
-
             let const& f = environment(static_cast<environment const&>(*this)).execute(binding);
 
             binding = make<generic_macro_transformer>(f, static_cast<environment const&>(*this).fork(unit));
@@ -1141,24 +1115,6 @@ inline namespace kernel
       auto const [bindings, body]  = unpair(current_expression);
 
       return cons(make<instruction>(mnemonic::let_syntax),
-                  make<syntactic_continuation>(body, cons(map(make_keyword, bindings), current_syntactic_environment)),
-                  current_continuation);
-    }
-
-    static SYNTAX(let_syntax_)
-    {
-      auto make_keyword = [&](let const& binding)
-      {
-        return make<keyword>(car(binding),
-                             compile(context::outermost,
-                                     current_environment,
-                                     cadr(binding),
-                                     current_syntactic_environment));
-      };
-
-      auto const [bindings, body]  = unpair(current_expression);
-
-      return cons(make<instruction>(mnemonic::let_syntax_),
                   make<syntactic_continuation>(body,
                                                cons(map(make_keyword, bindings),
                                                     current_syntactic_environment)),

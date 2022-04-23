@@ -30,7 +30,6 @@ namespace meevax
     define<syntax>("if", if_);
     define<syntax>("lambda", lambda);
     define<syntax>("let-syntax", let_syntax);
-    define<syntax>("experimental:let-syntax", let_syntax_);
     define<syntax>("letrec", letrec);
     define<syntax>("letrec-syntax", letrec_syntax);
     define<syntax>("quote", quote);
