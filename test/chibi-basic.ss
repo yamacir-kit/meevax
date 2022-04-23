@@ -190,7 +190,7 @@
 (check
   (letrec-syntax
     ((myor
-       (er-macro-transformer
+       (experimental:er-macro-transformer
          (lambda (expr rename compare)
            (if (null? (cdr expr))
                #f
@@ -263,7 +263,7 @@
 (check
   (letrec-syntax
     ((myor
-       (er-macro-transformer
+       (experimental:er-macro-transformer
          (lambda (expr rename compare)
            (if (null? (cdr expr))
                #f

@@ -368,7 +368,7 @@
                               ;   ((my-or e1 e2 ...)
                               ;    (let ((temp e1))
                               ;      (if temp temp (my-or e2 ...)))))
-                              (er-macro-transformer
+                              (experimental:er-macro-transformer
                                 (lambda (form rename compare)
                                   (cond ((null? (cdr form)) #f)
                                         ((null? (cddr form)) (cadr form))

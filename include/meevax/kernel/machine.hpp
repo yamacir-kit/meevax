@@ -450,7 +450,7 @@ inline namespace kernel
 
       case mnemonic::let_syntax: /* --------------------------------------------
         *
-        *  s e (%let_syntax <syntactic-continuation> . c) d => s e c' d
+        *  s e (%let-syntax <syntactic-continuation> . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
         [&]()
@@ -492,7 +492,7 @@ inline namespace kernel
           {
             env.execute(compile(context::outermost,
                                 env,
-                                cons(make<syntax>("define-syntax", define), transformer_spec),
+                                cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
                                 cadr(c).template as<syntactic_continuation>().syntactic_environment()));
           }
 
