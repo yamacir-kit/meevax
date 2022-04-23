@@ -33,6 +33,7 @@ inline namespace kernel
       case mnemonic::dummy:             return "dummy";
       case mnemonic::join:              return "join";
       case mnemonic::let_syntax:        return "let-syntax";
+      case mnemonic::let_syntax_:       return "experimental:let-syntax";
       case mnemonic::letrec:            return "letrec";
       case mnemonic::letrec_syntax:     return "letrec-syntax";
       case mnemonic::load_absolute:     return "load-absolute";
@@ -99,6 +100,7 @@ inline namespace kernel
       case mnemonic::define:
       case mnemonic::define_syntax:
       case mnemonic::let_syntax:
+      case mnemonic::let_syntax_:
       case mnemonic::letrec_syntax:
       case mnemonic::load_absolute:
       case mnemonic::load_constant:
