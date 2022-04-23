@@ -17,8 +17,8 @@
 
 ; ------------------------------------------------------------------------------
 
-(define-syntax swap!
-  (er-macro-transformer
+(experimental:define-syntax swap!
+  (experimental:er-macro-transformer
     (lambda (form rename compare)
       (let ((a (cadr form))
             (b (caddr form)))
@@ -26,7 +26,7 @@
           (,(rename 'set!) ,a ,b)
           (,(rename 'set!) ,b ,(rename 'x)))))))
 
-(check (er-macro-transformer? swap!) => #t)
+(check (transformer? swap!) => #t)
 
 (define x 1)
 

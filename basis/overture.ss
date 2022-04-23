@@ -264,7 +264,8 @@
 (experimental:define-syntax letrec*
   (experimental:er-macro-transformer
     (lambda (form rename compare)
-      `(,(rename 'let) ,@(map (lambda (x) (cons (rename 'define) x))
+      `(,(rename 'let) ()
+                       ,@(map (lambda (x) (cons (rename 'define) x))
                               (cadr form))
                        ,@(cddr form)))))
 
@@ -306,7 +307,7 @@
 (experimental:define-syntax do
   (experimental:er-macro-transformer
     (lambda (form rename compare)
-      (let ((body `(,(rename 'begin) ,(cdddr form)
+      (let ((body `(,(rename 'begin) ,@(cdddr form)
                                      (,(rename 'rec) ,@(map (lambda (x)
                                                               (if (pair? (cddr x))
                                                                   (caddr x)
@@ -317,9 +318,9 @@
                                                       (cadr x)))
                                               (cadr form))
                          ,(if (null? (cdaddr form))
-                              `(,(rename 'let) ((,(rename 'result) ,(caaddr form)))
-                                               (,(rename 'if) ,(rename 'result)
-                                                              ,(rename 'result)
+                              `(,(rename 'let) ((,(rename 'it) ,(caaddr form)))
+                                               (,(rename 'if) ,(rename 'it)
+                                                              ,(rename 'it)
                                                               ,body))
                               `(,(rename 'if) ,(caaddr form)
                                               (,(rename 'begin) ,@(cdaddr form))
