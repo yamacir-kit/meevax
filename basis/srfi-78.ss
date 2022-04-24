@@ -180,9 +180,9 @@
 (experimental:define-syntax check
   (experimental:er-macro-transformer
     (lambda (form rename compare)
-      (cond ((free-identifier=? => (caddr form))
-             `(,(rename 'check) ,(cadr form) (,=> ,(rename 'equal?)) ,(cadddr form)))
-            ((free-identifier=? => (caaddr form))
+      (cond ((compare (rename '=>) (caddr form))
+             `(,(rename 'check) ,(cadr form) (,(rename '=>) ,(rename 'equal?)) ,(cadddr form)))
+            ((compare (rename '=>) (caaddr form))
              (if (<= 1 check:mode)
                  `(,(rename 'check:proc) ',(cadr form)
                                          (,(rename 'lambda) () ,(cadr form))
