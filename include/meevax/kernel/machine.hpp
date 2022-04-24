@@ -1220,16 +1220,16 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      // if (car(current_expression).is_also<identifier>())
-      // {
-      //   return cons(car(current_expression).as<identifier>().make_load_instruction(), car(current_expression),
-      //               current_continuation);
-      // }
-      // else
-      // {
+      if (car(current_expression).is<syntactic_closure>())
+      {
+        return cons(make<instruction>(mnemonic::load_constant), car(current_expression).as<syntactic_closure>().expression,
+                    current_continuation);
+      }
+      else
+      {
         return cons(make<instruction>(mnemonic::load_constant), car(current_expression),
                     current_continuation);
-      // }
+      }
     }
 
     static SYNTAX(quote_syntax)
