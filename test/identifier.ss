@@ -1,11 +1,3 @@
-(define (experimental:er-macro-transformer f)
-  (lambda (form use-env mac-env)
-    (define (rename x)
-      (make-syntactic-closure mac-env '() x))
-    (define (compare x y)
-      (identifier=? use-env x use-env y))
-    (f form rename compare)))
-
 (define value 42)
 
 ; ------------------------------------------------------------------------------

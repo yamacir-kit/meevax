@@ -35,7 +35,10 @@
             (begin (set! rename:list (alist-cons x (make-syntactic-closure mac-env '() x) rename:list))
                    (cdar rename:list)))))
     (define (compare x y)
-      (identifier=? use-env x use-env y))
+      (free-identifier=? (if (syntactic-closure? x) x
+                             (make-syntactic-closure use-env '() x))
+                         (if (syntactic-closure? y) y
+                             (make-syntactic-closure use-env '() y))))
     (f form rename compare)))
 
 (define define-syntax define)

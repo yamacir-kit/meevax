@@ -1931,58 +1931,6 @@ namespace meevax
       return car(xs).is<syntactic_closure>();
     });
 
-    define<predicate>("identifier=?", [](let const& xs, auto&&...)
-    {
-      let const& e1 = car(xs),
-                 x = cadr(xs),
-                 rx = x.is<syntactic_closure>() ? x : make<syntactic_closure>(e1, unit, x),
-                 e2 = caddr(xs),
-                 y = cadddr(xs),
-                 ry = y.is<syntactic_closure>() ? y : make<syntactic_closure>(e2, unit, y);
-
-      auto is_same_free_identifier = [](let const& x, let const& y)
-      {
-        // std::cout << "; ---- free-identifier=? -------------------------------------------------------" << std::endl;
-        // std::cout << "; x = " << x << std::endl;
-        // std::cout << "; y = " << y << std::endl;
-
-        let const& x_notation = x.as<syntactic_closure>().notate();
-        // std::cout << "; x notation is " << x_notation << std::endl;
-        // std::cout << ";            is absolute? " << std::boolalpha << x_notation.is<absolute>() << std::endl;
-        // std::cout << ";            is relative? " << std::boolalpha << x_notation.is<relative>() << std::endl;
-        // std::cout << ";            is variadic? " << std::boolalpha << x_notation.is<variadic>() << std::endl;
-
-        auto x_is_free = x_notation.is<absolute>() and
-                         x_notation.as<absolute>().is_free();
-        // std::cout << ";            is free? " << std::boolalpha << x_is_free << std::endl;
-
-        let const& y_notation = y.as<syntactic_closure>().notate();
-        // std::cout << "; y notation is " << y_notation << std::endl;
-        // std::cout << ";            is absolute? " << std::boolalpha << y_notation.is<absolute>() << std::endl;
-        // std::cout << ";            is relative? " << std::boolalpha << y_notation.is<relative>() << std::endl;
-        // std::cout << ";            is variadic? " << std::boolalpha << y_notation.is<variadic>() << std::endl;
-
-        auto y_is_free = y_notation.is<absolute>() and
-                         y_notation.as<absolute>().is_free();
-        // std::cout << ";            is free? " << std::boolalpha << y_is_free << std::endl;
-
-        auto is_same_notation = eq(x_notation, y_notation);
-        // std::cout << "; is same notation? = " << std::boolalpha << is_same_notation << std::endl;
-
-        auto both_free = x_is_free and y_is_free;
-        // std::cout << "; both free? = " << std::boolalpha << both_free << std::endl;
-
-        auto both_same_unbound = both_free and
-                                 eqv(x.as<syntactic_closure>().expression,
-                                     y.as<syntactic_closure>().expression);
-        // std::cout << "; both same unbound? = " << std::boolalpha << both_same_unbound << std::endl;
-
-        return is_same_notation or both_same_unbound;
-      };
-
-      return is_same_free_identifier(rx, ry);
-    });
-
     define<procedure>("er-macro-transformer", [](let const& xs, auto&& current_syntactic_environment, auto&& current_environment)
     {
       return make<er_macro_transformer>(car(xs), current_environment.fork(current_syntactic_environment));
@@ -2047,10 +1995,50 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    // define<predicate>("free-identifier=?", [](let const& xs, let const&, auto && current_environment)
-    // {
-    //   return current_environment.is_same_free_identifier(car(xs), cadr(xs));
-    // });
+    define<predicate>("free-identifier=?", [](let const& xs, auto&&...)
+    {
+      auto is_same_free_identifier = [](let const& x, let const& y)
+      {
+        // std::cout << "; ---- free-identifier=? -------------------------------------------------------" << std::endl;
+        // std::cout << "; x = " << x << std::endl;
+        // std::cout << "; y = " << y << std::endl;
+
+        let const& x_notation = x.as<syntactic_closure>().notate();
+        // std::cout << "; x notation is " << x_notation << std::endl;
+        // std::cout << ";            is absolute? " << std::boolalpha << x_notation.is<absolute>() << std::endl;
+        // std::cout << ";            is relative? " << std::boolalpha << x_notation.is<relative>() << std::endl;
+        // std::cout << ";            is variadic? " << std::boolalpha << x_notation.is<variadic>() << std::endl;
+
+        auto x_is_free = x_notation.is<absolute>() and
+                         x_notation.as<absolute>().is_free();
+        // std::cout << ";            is free? " << std::boolalpha << x_is_free << std::endl;
+
+        let const& y_notation = y.as<syntactic_closure>().notate();
+        // std::cout << "; y notation is " << y_notation << std::endl;
+        // std::cout << ";            is absolute? " << std::boolalpha << y_notation.is<absolute>() << std::endl;
+        // std::cout << ";            is relative? " << std::boolalpha << y_notation.is<relative>() << std::endl;
+        // std::cout << ";            is variadic? " << std::boolalpha << y_notation.is<variadic>() << std::endl;
+
+        auto y_is_free = y_notation.is<absolute>() and
+                         y_notation.as<absolute>().is_free();
+        // std::cout << ";            is free? " << std::boolalpha << y_is_free << std::endl;
+
+        auto is_same_notation = eq(x_notation, y_notation);
+        // std::cout << "; is same notation? = " << std::boolalpha << is_same_notation << std::endl;
+
+        auto both_free = x_is_free and y_is_free;
+        // std::cout << "; both free? = " << std::boolalpha << both_free << std::endl;
+
+        auto both_same_unbound = both_free and
+                                 eqv(x.as<syntactic_closure>().expression,
+                                     y.as<syntactic_closure>().expression);
+        // std::cout << "; both same unbound? = " << std::boolalpha << both_same_unbound << std::endl;
+
+        return is_same_notation or both_same_unbound;
+      };
+
+      return is_same_free_identifier(car(xs), cadr(xs));
+    });
 
     /* -------------------------------------------------------------------------
      *
