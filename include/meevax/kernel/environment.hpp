@@ -101,11 +101,6 @@ inline namespace kernel
       return car(global_environment());
     }
 
-    auto generate_free_identifier(const_reference x) -> object
-    {
-      return x; // TODO
-    }
-
     auto global_environment() noexcept -> reference;
 
     auto global_environment() const noexcept -> const_reference;
