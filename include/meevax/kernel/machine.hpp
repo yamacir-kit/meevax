@@ -129,34 +129,6 @@ inline namespace kernel
       }
     };
 
-    struct er_macro_transformer : public transformer
-    {
-      using transformer::expression;
-      using transformer::mac_env;
-      using transformer::transformer;
-
-      auto expand(const_reference form, const_reference) -> object override
-      {
-        auto rename = make<procedure>("rename", [](let const& xs, auto&&, auto&& expander)
-        {
-          // return expander.rename(car(xs), expander.syntactic_environment());
-          return expander.evaluate(car(xs));
-        });
-
-        auto compare = make<predicate>("compare", [](let const& xs, let const&, environment & expander)
-        {
-          return expander.is_same_free_identifier(car(xs), cadr(xs));
-        });
-
-        return mac_env.template as<environment>().apply(expression, list(form, rename, compare));
-      }
-
-      friend auto operator <<(std::ostream & os, er_macro_transformer const& datum) -> std::ostream &
-      {
-        return os << magenta("#,(") << green("er-macro-transformer ") << faint("#;", &datum) << magenta(")");
-      }
-    };
-
   public:
     /* ---- R7RS 4. Expressions ------------------------------------------------
      *

@@ -1931,16 +1931,6 @@ namespace meevax
       return car(xs).is<syntactic_closure>();
     });
 
-    define<procedure>("er-macro-transformer", [](let const& xs, auto&& current_syntactic_environment, auto&& current_environment)
-    {
-      return make<er_macro_transformer>(car(xs), current_environment.fork(current_syntactic_environment));
-    });
-
-    define<predicate>("er-macro-transformer?", [](let const& xs, auto&&...)
-    {
-      return car(xs).is<er_macro_transformer>();
-    });
-
     /* -------------------------------------------------------------------------
      *
      *  (identifier? syntax-object)                                   procedure

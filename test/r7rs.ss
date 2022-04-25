@@ -387,10 +387,10 @@
 
 ; ---- 4.3.2. Pattern language -------------------------------------------------
 
-(define-syntax be-like-begin
+(experimental:define-syntax be-like-begin
   (syntax-rules ()
     ((be-like-begin name)
-     (define-syntax name
+     (experimental:define-syntax name
        (syntax-rules ()
          ((name expr (... ...))
           (begin expr (... ...))))))))
@@ -399,8 +399,8 @@
 
 (check (sequence 1 2 3 4) => 4)
 
-; (check (let ((=> #f))
-;          (cond (#t => 'ok))) => ok)
+(check (let ((=> #f))
+         (cond (#t => 'ok))) => ok)
 
 ; (define-syntax simple-let
 ;   (syntax-rules ()
