@@ -2047,7 +2047,7 @@ namespace meevax
 
     // define<predicate>("bound-identifier=?", [](let const& xs, let const&, auto && current_environment)
     // {
-    //   return current_environment.is_same_bound_identifier(car(xs), cadr(xs));
+    //   return f;
     // });
 
     /* -------------------------------------------------------------------------
