@@ -61,7 +61,7 @@ inline namespace kernel
         assert(expression.is<closure>());
       }
 
-      virtual auto expand(const_reference, const_reference) -> object = 0; /* --
+      auto expand(const_reference form, const_reference use_env) /* ------------
       *
       *  Scheme programs can define and use new derived expression types,
       *  called macros. Program-defined expression types have the syntax
@@ -91,22 +91,13 @@ inline namespace kernel
       *  environment::evaluate.
       *
       * --------------------------------------------------------------------- */
-    };
-
-    struct generic_macro_transformer : public transformer
-    {
-      using transformer::expression;
-      using transformer::mac_env;
-      using transformer::transformer;
-
-      auto expand(const_reference form, const_reference use_env) -> object override
       {
         return mac_env.template as<environment>().apply(expression, list(form, use_env, mac_env));
       }
 
-      friend auto operator <<(std::ostream & os, generic_macro_transformer const& datum) -> std::ostream &
+      friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
       {
-        return os << magenta("#,(") << green("generic-macro-transformer ") << faint("#;", &datum) << magenta(")");
+        return os << magenta("#,(") << green("transformer ") << faint("#;", &datum) << magenta(")");
       }
     };
 
@@ -180,7 +171,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        if (current_expression.is<symbol>() or current_expression.is_also<absolute>())
+        if (current_expression.is<symbol>())
         {
           let const& n = current_environment.notate(current_expression,
                                                     current_syntactic_environment);
@@ -416,7 +407,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         assert(car(s).template is<closure>());
-        cadr(c).template as<absolute>().strip() = make<generic_macro_transformer>(car(s), static_cast<environment const&>(*this).fork(unit));
+        cadr(c).template as<absolute>().strip() = make<transformer>(car(s), static_cast<environment const&>(*this).fork(unit));
         c = cddr(c);
         goto decode;
 
@@ -435,7 +426,7 @@ inline namespace kernel
 
             let const& f = environment(static_cast<environment const&>(*this)).execute(binding);
 
-            binding = make<generic_macro_transformer>(f, static_cast<environment const&>(*this).fork(unit));
+            binding = make<transformer>(f, static_cast<environment const&>(*this).fork(unit));
           }
         }();
 
