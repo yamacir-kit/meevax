@@ -2119,11 +2119,11 @@ namespace meevax
       return car(xs).is_also<transformer>();
     });
 
-    define<procedure>("macroexpand-1", [](let const& xs, let const& current_syntactic_environment, environment & current_environment)
+    define<procedure>("macroexpand-1", [](let const& xs, let const& current_scope, environment & current_environment)
     {
-      if (let const& macro = current_environment.notate(caar(xs), current_syntactic_environment).as<notation>().strip(current_environment.e); macro.is_also<transformer>())
+      if (let const& macro = current_environment.notate(caar(xs), current_scope).as<notation>().strip(current_environment.e); macro.is_also<transformer>())
       {
-        return macro.as<transformer>().expand(car(xs), current_environment.fork(current_syntactic_environment));
+        return macro.as<transformer>().expand(car(xs), current_environment.fork(current_scope));
       }
       else
       {

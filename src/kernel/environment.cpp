@@ -22,7 +22,7 @@ inline namespace kernel
 {
   auto environment::operator [](const_reference name) -> const_reference
   {
-    return notate(name, syntactic_environment()).as<absolute>().strip();
+    return notate(name, scope()).as<absolute>().strip();
   }
 
   auto environment::operator [](std::string const& name) -> const_reference
@@ -34,7 +34,7 @@ inline namespace kernel
   {
     auto dump = std::make_tuple(std::exchange(s, list(f, xs)),
                                 std::exchange(e, unit),
-                                std::exchange(c, list(make<instruction>(mnemonic::call), syntactic_environment(),
+                                std::exchange(c, list(make<instruction>(mnemonic::call), scope(),
                                                       make<instruction>(mnemonic::stop))),
                                 std::exchange(d, unit));
 
@@ -72,7 +72,7 @@ inline namespace kernel
   {
     auto dump = std::make_tuple(std::exchange(s, unit),
                                 std::exchange(e, unit),
-                                std::exchange(c, compile(context::none, *this, expression, syntactic_environment())),
+                                std::exchange(c, compile(context::none, *this, expression, scope())),
                                 std::exchange(d, unit));
 
     if (is_debug_mode())
@@ -150,23 +150,23 @@ inline namespace kernel
     }
   }
 
-  auto environment::syntactic_environment() const noexcept -> const_reference
+  auto environment::scope() const noexcept -> const_reference
   {
     return first;
   }
 
-  auto environment::syntactic_environment() noexcept -> reference
+  auto environment::scope() noexcept -> reference
   {
     return first;
   }
 
-  auto environment::notate(const_reference variable, const_reference syntactic_environment) const -> object
+  auto environment::notate(const_reference variable, const_reference scope) const -> object
   {
     if (not is_identifier(variable))
     {
       return f;
     }
-    else if (let const& notation = machine::notate(variable, syntactic_environment); select(notation))
+    else if (let const& notation = machine::notate(variable, scope); select(notation))
     {
       return notation;
     }
@@ -176,13 +176,13 @@ inline namespace kernel
     }
   }
 
-  auto environment::notate(const_reference variable, const_reference syntactic_environment) -> object
+  auto environment::notate(const_reference variable, const_reference scope) -> object
   {
     if (not is_identifier(variable))
     {
       return f;
     }
-    if (let const& notation = std::as_const(*this).notate(variable, syntactic_environment); select(notation))
+    if (let const& notation = std::as_const(*this).notate(variable, scope); select(notation))
     {
       return notation;
     }

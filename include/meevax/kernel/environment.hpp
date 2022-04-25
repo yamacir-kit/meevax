@@ -79,10 +79,10 @@ inline namespace kernel
 
     auto execute(const_reference) -> object;
 
-    auto fork(const_reference syntactic_environment) const
+    auto fork(const_reference scope) const
     {
       let const copy = make<environment>(*this);
-      copy.as<environment>().syntactic_environment() = syntactic_environment;
+      copy.as<environment>().scope() = scope;
       return copy;
     }
 
@@ -119,9 +119,9 @@ inline namespace kernel
 
     auto load(std::string const&) -> object;
 
-    auto syntactic_environment() const noexcept -> const_reference;
+    auto scope() const noexcept -> const_reference;
 
-    auto syntactic_environment() noexcept -> reference;
+    auto scope() noexcept -> reference;
 
     auto notate(const_reference, const_reference) -> object;
 
