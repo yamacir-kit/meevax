@@ -50,23 +50,18 @@ inline namespace kernel
 
     struct transformer
     {
-      let const transform;
+      let const expression;
 
-      environment expander;
+      let const mac_env;
 
-      explicit transformer(const_reference transform,
-                           const_reference current_syntactic_environment,
-                           environment const& current_environment)
-        : transform { transform }
-        , expander { current_environment }
+      explicit transformer(const_reference expression, const_reference mac_env)
+        : expression { expression }
+        , mac_env { mac_env }
       {
-        assert(transform.is<closure>());
-
-        expander.syntactic_environment() = current_syntactic_environment;
-        expander.reset();
+        assert(expression.is<closure>());
       }
 
-      virtual auto expand(const_reference) -> object = 0; /* -------------------
+      virtual auto expand(const_reference, const_reference) -> object = 0; /* --
       *
       *  Scheme programs can define and use new derived expression types,
       *  called macros. Program-defined expression types have the syntax
@@ -98,30 +93,49 @@ inline namespace kernel
       * --------------------------------------------------------------------- */
     };
 
-    struct hygienic_macro_transformer : public transformer
+    struct generic_macro_transformer : public transformer
     {
-      using transformer::expander;
+      using transformer::expression;
+      using transformer::mac_env;
       using transformer::transformer;
-      using transformer::transform;
 
-      auto expand(const_reference form) -> object override
+      auto expand(const_reference form, const_reference use_env) -> object override
       {
-        return expander.apply(transform, cdr(form));
+        return mac_env.template as<environment>().apply(expression, list(form, use_env, mac_env));
       }
 
-      friend auto operator <<(std::ostream & os, hygienic_macro_transformer const& datum) -> std::ostream &
+      friend auto operator <<(std::ostream & os, generic_macro_transformer const& datum) -> std::ostream &
       {
-        return os << magenta("#,(") << green("hygienic-macro-transformer ") << faint("#;", &datum) << magenta(")");
+        return os << magenta("#,(") << green("generic-macro-transformer ") << faint("#;", &datum) << magenta(")");
+      }
+    };
+
+    struct syntactic_closure
+    {
+      let const enclosure;
+
+      let const free_variables;
+
+      let const expression;
+
+      auto notate()
+      {
+        return enclosure.as<environment>().notate(expression, enclosure.as<environment>().syntactic_environment());
+      }
+
+      friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
+      {
+        return os << magenta("#,(") << blue("make-syntactic-closure ") << datum.enclosure << " " << magenta("'") << datum.free_variables << " " << magenta("'") << datum.expression << magenta(")");
       }
     };
 
     struct er_macro_transformer : public transformer
     {
-      using transformer::expander;
+      using transformer::expression;
+      using transformer::mac_env;
       using transformer::transformer;
-      using transformer::transform;
 
-      auto expand(const_reference form) -> object override
+      auto expand(const_reference form, const_reference) -> object override
       {
         auto rename = make<procedure>("rename", [](let const& xs, auto&&, auto&& expander)
         {
@@ -134,7 +148,7 @@ inline namespace kernel
           return expander.is_same_free_identifier(car(xs), cadr(xs));
         });
 
-        return expander.apply(transform, list(form, rename, compare));
+        return mac_env.template as<environment>().apply(expression, list(form, rename, compare));
       }
 
       friend auto operator <<(std::ostream & os, er_macro_transformer const& datum) -> std::ostream &
@@ -202,6 +216,22 @@ inline namespace kernel
           return cons(n.as<notation>().make_load_instruction(), n,
                       current_continuation);
         }
+        else if (current_expression.is<syntactic_closure>())
+        {
+          if (let const& n = std::as_const(current_environment).notate(current_expression, current_syntactic_environment); select(n))
+          {
+            return cons(n.as<notation>().make_load_instruction(), n,
+                        current_continuation);
+          }
+          else
+          {
+            return compile(current_context,
+                           current_expression.as<syntactic_closure>().enclosure.template as<environment>(),
+                           current_expression.as<syntactic_closure>().expression,
+                           current_expression.as<syntactic_closure>().enclosure.template as<environment>().syntactic_environment(),
+                           current_continuation);
+          }
+        }
         else // is <self-evaluating>
         {
           return cons(make<instruction>(mnemonic::load_constant), current_expression,
@@ -214,7 +244,8 @@ inline namespace kernel
 
         return compile(context::none,
                        current_environment,
-                       notation.as<keyword>().strip().as<transformer>().expand(current_expression),
+                       notation.as<keyword>().strip().as<transformer>().expand(current_expression,
+                                                                               current_environment.fork(current_syntactic_environment)),
                        current_syntactic_environment,
                        current_continuation);
       }
@@ -230,7 +261,8 @@ inline namespace kernel
       {
         return compile(context::none,
                        current_environment,
-                       applicant.as<transformer>().expand(current_expression),
+                       applicant.as<transformer>().expand(current_expression,
+                                                          current_environment.fork(current_syntactic_environment)),
                        current_syntactic_environment,
                        current_continuation);
       }
@@ -393,7 +425,6 @@ inline namespace kernel
         d = cdr(d);
         goto decode;
 
-      case mnemonic::define_syntax:
       case mnemonic::define: /* ------------------------------------------------
         *
         *  (x' . s) e (%define <notation> . c) d => (x' . s) e c d
@@ -405,9 +436,21 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
+      case mnemonic::define_syntax: /* -----------------------------------------
+        *
+        *  (<closure> . s) e (%define <notation> . c) d => (x' . s) e c d
+        *
+        *  where <notation> = (<symbol> . x := <transformer>)
+        *
+        * ------------------------------------------------------------------- */
+        assert(car(s).template is<closure>());
+        cadr(c).template as<absolute>().strip() = make<generic_macro_transformer>(car(s), static_cast<environment const&>(*this).fork(unit));
+        c = cddr(c);
+        goto decode;
+
       case mnemonic::let_syntax: /* --------------------------------------------
         *
-        *  s e (%let_syntax <syntactic-continuation> . c) d => s e c' d
+        *  s e (%let-syntax <syntactic-continuation> . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
         [&]()
@@ -418,7 +461,9 @@ inline namespace kernel
           {
             let & binding = keyword_.as<keyword>().strip();
 
-            binding = environment(static_cast<environment const&>(*this)).execute(binding);
+            let const& f = environment(static_cast<environment const&>(*this)).execute(binding);
+
+            binding = make<generic_macro_transformer>(f, static_cast<environment const&>(*this).fork(unit));
           }
         }();
 
@@ -429,6 +474,7 @@ inline namespace kernel
                        cadr(c).template as<syntactic_continuation>().syntactic_environment(),
                        cddr(c)
                       ).template as<pair>());
+
         goto decode;
 
       case mnemonic::letrec_syntax: /* -----------------------------------------
@@ -664,7 +710,7 @@ inline namespace kernel
         }
       }
 
-      return f;
+      return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().notate() : f;
     }
 
     inline auto reset() -> void
@@ -1069,7 +1115,9 @@ inline namespace kernel
       auto const [bindings, body]  = unpair(current_expression);
 
       return cons(make<instruction>(mnemonic::let_syntax),
-                  make<syntactic_continuation>(body, cons(map(make_keyword, bindings), current_syntactic_environment)),
+                  make<syntactic_continuation>(body,
+                                               cons(map(make_keyword, bindings),
+                                                    current_syntactic_environment)),
                   current_continuation);
     }
 
@@ -1172,16 +1220,16 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      // if (car(current_expression).is_also<identifier>())
-      // {
-      //   return cons(car(current_expression).as<identifier>().make_load_instruction(), car(current_expression),
-      //               current_continuation);
-      // }
-      // else
-      // {
+      if (car(current_expression).is<syntactic_closure>())
+      {
+        return cons(make<instruction>(mnemonic::load_constant), car(current_expression).as<syntactic_closure>().expression,
+                    current_continuation);
+      }
+      else
+      {
         return cons(make<instruction>(mnemonic::load_constant), car(current_expression),
                     current_continuation);
-      // }
+      }
     }
 
     static SYNTAX(quote_syntax)

@@ -267,7 +267,7 @@
                                 (list (rename 'strip-syntactic-closures) _expr))
                           #f)))))))))
 
-(define-syntax syntax-rules
-  (er-macro-transformer
+(experimental:define-syntax syntax-rules
+  (experimental:er-macro-transformer
     (lambda (form rename compare)
       (syntax-rules-transformer form rename compare))))

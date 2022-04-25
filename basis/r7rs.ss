@@ -141,15 +141,16 @@
 ;          (let-values "bind"
 ;                      bindings (tmp ... (a x)) body))))))
 
-(define-syntax let-values
-  (hygienic-macro-transformer
-    (lambda (bindings . body)
-      (if (null? bindings)
-          (list let '() . body)
-          (list call-with-values
-                (list lambda () (cadar bindings))
-                (list lambda (caar bindings)
-                      (list let-values (cdr bindings) . body)))))))
+(experimental:define-syntax let-values
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
+      (if (null? (cadr form))
+          `(,(rename 'let) () ,@(cddr form))
+          `(,(rename 'call-with-values)
+             (,(rename 'lambda) () ,(cadar (cadr form)))
+             (,(rename 'lambda) ,(caar (cadr form))
+                                (,(rename 'let-values) ,(cdr (cadr form))
+                                                       ,@(cddr form))))))))
 
 ; (define-syntax let*-values
 ;   (syntax-rules ()
@@ -161,13 +162,14 @@
 ;                  (let*-values (binding1 ...)
 ;                               body0 body1 ...)))))
 
-(define-syntax let*-values
-  (hygienic-macro-transformer
-    (lambda (bindings . body)
-      (if (null? bindings)
-          (list let '() . body)
-          (list let-values (list (car bindings))
-                (list let*-values (cdr bindings) . body))))))
+(experimental:define-syntax let*-values
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
+      (if (null? (cadr form))
+          `(,(rename 'let) () ,@(cddr form))
+          `(,(rename 'let-values) (,(caadr form))
+                                  (,(rename 'let*-values) ,(cdadr form)
+                                                          ,@(cddr form)))))))
 
 ; ---- 4.2.3. Sequencing -------------------------------------------------------
 

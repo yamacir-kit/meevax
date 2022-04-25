@@ -79,6 +79,14 @@ inline namespace kernel
 
     auto execute(const_reference) -> object;
 
+    auto fork(const_reference syntactic_environment) const
+    {
+      let const copy = make<environment>(*this);
+      copy.as<environment>().syntactic_environment() = syntactic_environment;
+      return copy;
+    }
+
+    [[deprecated]]
     auto is_same_bound_identifier(const_reference x, const_reference y) const -> bool
     {
       let const& renamed_x = x.is<symbol>() ? notate(x, syntactic_environment()) : x;
@@ -88,6 +96,7 @@ inline namespace kernel
              renamed_y.is_also<absolute>() and renamed_y.as<absolute>().is_bound() and eq(renamed_x, renamed_y);
     };
 
+    [[deprecated]]
     auto is_same_free_identifier(const_reference x, const_reference y) -> bool
     {
       let const& renamed_x = x.is<symbol>() ? notate(x, syntactic_environment()) : x;
