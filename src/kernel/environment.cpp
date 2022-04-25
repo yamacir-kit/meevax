@@ -34,7 +34,7 @@ inline namespace kernel
   {
     auto dump = std::make_tuple(std::exchange(s, list(f, xs)),
                                 std::exchange(e, unit),
-                                std::exchange(c, list(make<instruction>(mnemonic::call), scope(),
+                                std::exchange(c, list(make<instruction>(mnemonic::call),
                                                       make<instruction>(mnemonic::stop))),
                                 std::exchange(d, unit));
 

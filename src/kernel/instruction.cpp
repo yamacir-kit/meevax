@@ -84,6 +84,7 @@ inline namespace kernel
 
       switch ((*iter).as<instruction>().value)
       {
+      case mnemonic::call:
       case mnemonic::cons:
       case mnemonic::drop:
       case mnemonic::dummy:
@@ -91,11 +92,11 @@ inline namespace kernel
       case mnemonic::letrec:
       case mnemonic::return_:
       case mnemonic::stop:
+      case mnemonic::tail_call:
         os << *iter << "\n";
         ++offset;
         break;
 
-      case mnemonic::call:
       case mnemonic::define:
       case mnemonic::define_syntax:
       case mnemonic::let_syntax:
@@ -107,7 +108,6 @@ inline namespace kernel
       case mnemonic::store_absolute:
       case mnemonic::store_relative:
       case mnemonic::store_variadic:
-      case mnemonic::tail_call:
         os << *iter << " " << *++iter << "\n";
         offset += 2;
         break;

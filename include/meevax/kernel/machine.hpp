@@ -272,7 +272,7 @@ inline namespace kernel
                                current_environment,
                                car(current_expression),
                                current_scope,
-                               cons(make<instruction>(current_context & context::tail ? mnemonic::tail_call : mnemonic::call), current_scope,
+                               cons(make<instruction>(current_context & context::tail ? mnemonic::tail_call : mnemonic::call),
                                     current_continuation)));
       }
     }
@@ -468,31 +468,31 @@ inline namespace kernel
       case mnemonic::call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
-        *  (<closure> xs . s) e (%call <syntactic-environment> . c) d => () (xs . e') c' (s e c . d)
+        *  (<closure> xs . s) e (%call . c) d => () (xs . e') c' (s e c . d)
         *
         *  where <closure> = (c' . e')
         *
         * ------------------------------------------------------------------- */
         {
-          d = cons(cddr(s), e, cddr(c), d);
+          d = cons(cddr(s), e, cdr(c), d);
           c =               callee.as<closure>().c();
           e = cons(cadr(s), callee.as<closure>().e());
           s = unit;
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
         *
-        *  (<procedure> xs . s) e (%call <syntactic-environment> . c) d => (x . s) e c d
+        *  (<procedure> xs . s) e (%call . c) d => (x . s) e c d
         *
         *  where x = procedure(xs)
         *
         * ------------------------------------------------------------------- */
         {
-          s = cons(callee.as<procedure>().call(cadr(s), cadr(c), static_cast<environment &>(*this)), cddr(s));
-          c = cddr(c);
+          s = cons(callee.as<procedure>().call(cadr(s)), cddr(s));
+          c = cdr(c);
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
-        *  (<continuation> xs . s) e (%call <syntactic-environment> . c) d => (xs . s') e' c' d'
+        *  (<continuation> xs . s) e (%call . c) d => (xs . s') e' c' d'
         *
         *  where <continuation> = (s' e' c' . 'd)
         *
@@ -512,7 +512,7 @@ inline namespace kernel
       case mnemonic::tail_call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
-        *  (<closure> xs . s) e (%tail-call <syntactic-environment> . c) d => () (xs . e') c' d
+        *  (<closure> xs . s) e (%tail-call . c) d => () (xs . e') c' d
         *
         *  where <closure> = (c' . e')
         *
@@ -524,18 +524,18 @@ inline namespace kernel
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
         *
-        *  (<procedure> xs . s) e (%tail-call <syntactic-environment> . c) d => (x . s) e c d
+        *  (<procedure> xs . s) e (%tail-call . c) d => (x . s) e c d
         *
         *  where x = procedure(xs)
         *
         * ------------------------------------------------------------------- */
         {
-          s = cons(callee.as<procedure>().call(cadr(s), cadr(c), static_cast<environment &>(*this)), cddr(s));
-          c = cddr(c);
+          s = cons(callee.as<procedure>().call(cadr(s)), cddr(s));
+          c = cdr(c);
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
-        *  (<continuation> xs . s)  e (%tail-call <syntactic-environment> . c) d => (xs . s') e' c' d'
+        *  (<continuation> xs . s)  e (%tail-call . c) d => (xs . s') e' c' d'
         *
         *  where <continuation> = (s' e' c' . 'd)
         *
@@ -808,7 +808,7 @@ inline namespace kernel
                           current_environment,
                           car(current_expression),
                           current_scope,
-                          cons(make<instruction>(mnemonic::call), current_scope,
+                          cons(make<instruction>(mnemonic::call),
                                current_continuation)));
     }
 

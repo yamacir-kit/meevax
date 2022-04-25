@@ -204,15 +204,11 @@ inline namespace kernel
             {
               if (auto const& [name, perform] = *iter; std::next(current_short_option) != std::end(current_short_options))
               {
-                return perform(read(std::string(std::next(current_short_option), std::end(current_short_options))),
-                               static_cast<environment &>(*this).scope(),
-                               static_cast<environment &>(*this));
+                return perform(read(std::string(std::next(current_short_option), std::end(current_short_options))));
               }
               else if (++current_option != std::end(args) and not std::regex_match(*current_option, analysis, pattern))
               {
-                return perform(read(*current_option),
-                               static_cast<environment &>(*this).scope(),
-                               static_cast<environment &>(*this));
+                return perform(read(*current_option));
               }
               else
               {
@@ -221,9 +217,7 @@ inline namespace kernel
             }
             else if (auto iter = short_options.find(*current_short_option); iter != std::end(short_options))
             {
-              cdr(*iter)(unit,
-                         static_cast<environment &>(*this).scope(),
-                         static_cast<environment &>(*this));
+              cdr(*iter)(unit);
             }
             else
             {
@@ -237,15 +231,11 @@ inline namespace kernel
           {
             if (analysis.length(2)) // argument part
             {
-              return cdr(*iter)(read(analysis.str(3)),
-                                static_cast<environment &>(*this).scope(),
-                                static_cast<environment &>(*this));
+              return cdr(*iter)(read(analysis.str(3)));
             }
             else if (++current_option != std::end(args) and not std::regex_match(*current_option, analysis, pattern))
             {
-              return cdr(*iter)(read(*current_option),
-                                static_cast<environment &>(*this).scope(),
-                                static_cast<environment &>(*this));
+              return cdr(*iter)(read(*current_option));
             }
             else
             {
@@ -254,9 +244,7 @@ inline namespace kernel
           }
           else if (auto iter = long_options.find(current_long_option); iter != std::end(long_options))
           {
-            return cdr(*iter)(unit,
-                              static_cast<environment &>(*this).scope(),
-                              static_cast<environment &>(*this));
+            return cdr(*iter)(unit);
           }
           else
           {
