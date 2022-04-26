@@ -32,7 +32,7 @@ inline namespace kernel
       return first;
     }
 
-    auto frames() const -> const_reference
+    auto scope() const -> const_reference
     {
       return second;
     }

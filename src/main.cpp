@@ -30,7 +30,6 @@ auto main(int const argc, char const* const* const argv) -> int
     if (main.is_interactive_mode())
     {
       main.display_version();
-      main.print();
       main.print(features());
     }
 

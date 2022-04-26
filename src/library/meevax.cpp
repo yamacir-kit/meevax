@@ -26,14 +26,14 @@ namespace meevax
     define<syntax>("begin", machine::begin);
     define<syntax>("call-with-current-continuation!", call_with_current_continuation);
     define<syntax>("define", machine::define);
-    define<syntax>("define-syntax", define_syntax);
-    define<syntax>("fork-with-current-syntactic-continuation", fork_csc);
+    define<syntax>("experimental:define-syntax", define_syntax);
     define<syntax>("if", if_);
     define<syntax>("lambda", lambda);
     define<syntax>("let-syntax", let_syntax);
     define<syntax>("letrec", letrec);
     define<syntax>("letrec-syntax", letrec_syntax);
     define<syntax>("quote", quote);
+    define<syntax>("quote-syntax", quote_syntax);
     define<syntax>("set!", set);
 
     /* -------------------------------------------------------------------------
@@ -48,9 +48,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("eqv?", [](let const& xs) // TODO Rename to value=?
+    define<predicate>("eqv?", [](let const& xs) // TODO Rename to value=?
     {
-      return eqv(car(xs), cadr(xs)) ? t : f;
+      return eqv(car(xs), cadr(xs));
     });
 
     /* -------------------------------------------------------------------------
@@ -72,9 +72,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("eq?", [](auto&& xs) // TODO Rename to reference=?
+    define<predicate>("eq?", [](auto&& xs) // TODO Rename to reference=?
     {
-      return eq(car(xs), cadr(xs)) ? t : f;
+      return eq(car(xs), cadr(xs));
     });
 
     /* -------------------------------------------------------------------------
@@ -99,16 +99,16 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("number?",   [](let const& xs) { return car(xs).is_also<number>() ? t : f; });
-    define<procedure>("complex?",  [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_complex () ? t : f; });
-    define<procedure>("real?",     [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_real    () ? t : f; });
-    define<procedure>("rational?", [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_rational() ? t : f; });
-    define<procedure>("integer?",  [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_integer () ? t : f; });
+    define<predicate>("number?",   [](let const& xs) { return car(xs).is_also<number>(); });
+    define<predicate>("complex?",  [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_complex (); });
+    define<predicate>("real?",     [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_real    (); });
+    define<predicate>("rational?", [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_rational(); });
+    define<predicate>("integer?",  [](let const& xs) { return car(xs).is_also<number>() and car(xs).as<number>().is_integer (); });
 
-    define<procedure>("%complex?",     is<complex     >());
-    define<procedure>("ratio?",        is<ratio       >());
-    define<procedure>("single-float?", is<single_float>());
-    define<procedure>("double-float?", is<double_float>());
+    define<predicate>("%complex?",     [](let const& xs) { return car(xs).is<complex     >(); });
+    define<predicate>("ratio?",        [](let const& xs) { return car(xs).is<ratio       >(); });
+    define<predicate>("single-float?", [](let const& xs) { return car(xs).is<single_float>(); });
+    define<predicate>("double-float?", [](let const& xs) { return car(xs).is<double_float>(); });
 
     /* -------------------------------------------------------------------------
      *
@@ -118,7 +118,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("exact-integer?", is<exact_integer>());
+    define<predicate>("exact-integer?", [](let const& xs)
+    {
+      return car(xs).is<exact_integer>();
+    });
 
     /* -------------------------------------------------------------------------
      *
@@ -156,13 +159,13 @@ namespace meevax
      * ---------------------------------------------------------------------- */
 
     #define DEFINE(SYMBOL, COMPARE)                                            \
-    define<procedure>(#SYMBOL, [](let const& xs)                               \
+    define<predicate>(#SYMBOL, [](let const& xs)                               \
     {                                                                          \
       return std::adjacent_find(                                               \
                std::begin(xs), std::end(xs), [](let const& a, let const& b)    \
                {                                                               \
                  return not COMPARE(a.as<number>(), b);                        \
-               }) == std::end(xs) ? t : f;                                     \
+               }) == std::end(xs);                                             \
     })
 
     DEFINE(= , std::equal_to     <void>());
@@ -392,7 +395,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("pair?", is<pair>());
+    define<predicate>("pair?", [](let const& xs)
+    {
+      return car(xs).is<pair>();
+    });
 
     /* -------------------------------------------------------------------------
      *
@@ -404,7 +410,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<syntactic_procedure>("cons", construction, [](let const& xs)
+    define<instruction_level_procedure>("cons", cons_, [](let const& xs)
     {
       return cons(car(xs), cadr(xs));
     });
@@ -470,9 +476,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("null?", [](let const& xs)
+    define<predicate>("null?", [](let const& xs)
     {
-      return car(xs).is<null>() ? t : f;
+      return car(xs).is<null>();
     });
 
     /* -------------------------------------------------------------------------
@@ -483,7 +489,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("symbol?", is<symbol>());
+    define<predicate>("symbol?", [](let const& xs)
+    {
+      return car(xs).is<symbol>();
+    });
 
     /* -------------------------------------------------------------------------
      *
@@ -523,7 +532,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("char?", is<character>());
+    define<predicate>("char?", [](let const& xs)
+    {
+      return car(xs).is<character>();
+    });
 
     /* -------------------------------------------------------------------------
      *
@@ -574,7 +586,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string?", is<string>());
+    define<predicate>("string?", [](let const& xs)
+    {
+      return car(xs).is<string>();
+    });
 
     /* -------------------------------------------------------------------------
      *
@@ -689,29 +704,22 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    #define STRING_COMPARE(OPERATOR)                                           \
+    #define STRING_COMPARE(COMPARE)                                            \
     [](let const& xs)                                                          \
     {                                                                          \
-      for (let const& each : cdr(xs))                                          \
-      {                                                                        \
-        if (car(xs).as<const string>() OPERATOR each.as<const string>())       \
-        {                                                                      \
-          continue;                                                            \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-          return f;                                                            \
-        }                                                                      \
-      }                                                                        \
-                                                                               \
-      return t;                                                                \
+      return std::adjacent_find(                                               \
+               std::begin(xs), std::end(xs), [](let const& a, let const& b)    \
+               {                                                               \
+                 return not COMPARE(a.as_const<string>(),                      \
+                                    b.as_const<string>());                     \
+               }) == std::end(xs);                                             \
     }
 
-    define<procedure>("string=?",  STRING_COMPARE(==));
-    define<procedure>("string<?",  STRING_COMPARE(< ));
-    define<procedure>("string>?",  STRING_COMPARE(> ));
-    define<procedure>("string<=?", STRING_COMPARE(<=));
-    define<procedure>("string>=?", STRING_COMPARE(>=));
+    define<predicate>("string=?",  STRING_COMPARE(std::equal_to     <void>()));
+    define<predicate>("string<?",  STRING_COMPARE(std::less         <void>()));
+    define<predicate>("string<=?", STRING_COMPARE(std::less_equal   <void>()));
+    define<predicate>("string>?",  STRING_COMPARE(std::greater      <void>()));
+    define<predicate>("string>=?", STRING_COMPARE(std::greater_equal<void>()));
 
     #undef STRING_COMPARE
 
@@ -820,7 +828,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("vector?", is<vector>());
+    define<predicate>("vector?", [](let const& xs)
+    {
+      return car(xs).is<vector>();
+    });
 
     /* -------------------------------------------------------------------------
      *
@@ -857,9 +868,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("vector", [](auto&&... xs)
+    define<procedure>("vector", [](let const& xs)
     {
-      return make<vector>(for_each_in, std::forward<decltype(xs)>(xs)...);
+      return make<vector>(for_each_in, xs);
     });
 
     /* -------------------------------------------------------------------------
@@ -1043,11 +1054,20 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("closure?", is<closure>());
+    define<predicate>("closure?", [](let const& xs)
+    {
+      return car(xs).is<closure>();
+    });
 
-    define<procedure>("continuation?", is<continuation>());
+    define<predicate>("continuation?", [](let const& xs)
+    {
+      return car(xs).is<continuation>();
+    });
 
-    define<procedure>("foreign-function?", is<procedure>());
+    define<predicate>("foreign-function?", [](let const& xs)
+    {
+      return car(xs).is<procedure>();
+    });
 
     /* -------------------------------------------------------------------------
      *
@@ -1099,10 +1119,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>(       "error?", is<       error>());
-    define<procedure>(  "read-error?", is<  read_error>());
-    define<procedure>(  "file-error?", is<  file_error>());
-    define<procedure>("syntax-error?", is<syntax_error>());
+    define<predicate>(       "error?", [](let const& xs) { return car(xs).is<       error>(); });
+    define<predicate>(  "read-error?", [](let const& xs) { return car(xs).is<  read_error>(); });
+    define<predicate>(  "file-error?", [](let const& xs) { return car(xs).is<  file_error>(); });
+    define<predicate>("syntax-error?", [](let const& xs) { return car(xs).is<syntax_error>(); });
 
     /* -------------------------------------------------------------------------
      *
@@ -1118,11 +1138,11 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>(  "input-port?", [](let const& xs) { return car(xs).is_also<std::istream>() ? t : f; });
-    define<procedure>( "output-port?", [](let const& xs) { return car(xs).is_also<std::ostream>() ? t : f; });
-    define<procedure>( "binary-port?", [](let const&   ) { return                                       f; });
-    define<procedure>("textual-port?", [](let const& xs) { return car(xs).is_also<std::ios    >() ? t : f; });
-    define<procedure>(        "port?", [](let const& xs) { return car(xs).is_also<std::ios    >() ? t : f; });
+    define<predicate>(  "input-port?", [](let const& xs) { return car(xs).is_also<std::istream>(); });
+    define<predicate>( "output-port?", [](let const& xs) { return car(xs).is_also<std::ostream>(); });
+    define<predicate>( "binary-port?", [](let const&   ) { return false;                           });
+    define<predicate>("textual-port?", [](let const& xs) { return car(xs).is_also<std::ios    >(); });
+    define<predicate>(        "port?", [](let const& xs) { return car(xs).is_also<std::ios    >(); });
 
     /* -------------------------------------------------------------------------
      *
@@ -1134,27 +1154,27 @@ namespace meevax
      *
      * --------------------------------------------------------------------- */
 
-    define<procedure>("input-port-open?", [](let const& xs)
+    define<predicate>("input-port-open?", [](let const& xs)
     {
       if (let const& x = car(xs); x.is_also<std::ifstream>())
       {
-        return x.as<std::ifstream>().is_open() ? t : f;
+        return x.as<std::ifstream>().is_open();
       }
       else
       {
-        return x.is_also<std::istream>() ? t : f;
+        return x.is_also<std::istream>();
       }
     });
 
-    define<procedure>("output-port-open?", [](let const& xs)
+    define<predicate>("output-port-open?", [](let const& xs)
     {
       if (let const& x = car(xs); x.is_also<std::ofstream>())
       {
-        return x.as<std::ofstream>().is_open() ? t : f;
+        return x.as<std::ofstream>().is_open();
       }
       else
       {
-        return x.is_also<std::ostream>() ? t : f;
+        return x.is_also<std::ostream>();
       }
     });
 
@@ -1171,9 +1191,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("standard-input-port",  [](auto&&) { return standard_input;  });
-    define<procedure>("standard-output-port", [](auto&&) { return standard_output; });
-    define<procedure>("standard-error-port",  [](auto&&) { return standard_error;  });
+    define<procedure>("standard-input-port",  [](auto&&...) { return standard_input;  });
+    define<procedure>("standard-output-port", [](auto&&...) { return standard_output; });
+    define<procedure>("standard-error-port",  [](auto&&...) { return standard_error;  });
 
     /* -------------------------------------------------------------------------
      *
@@ -1389,7 +1409,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("eof-object?", is<eof>());
+    define<predicate>("eof-object?", [](let const& xs)
+    {
+      return car(xs).is<eof>();
+    });
 
     /* -------------------------------------------------------------------------
      *
@@ -1399,7 +1422,7 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("eof-object", [](auto&&)
+    define<procedure>("eof-object", [](auto&&...)
     {
       return eof_object;
     });
@@ -1424,9 +1447,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%char-ready?", [](let const& xs)
+    define<predicate>("%char-ready?", [](let const& xs)
     {
-      return car(xs).as<std::istream>() ? t : f;
+      return static_cast<bool>(car(xs).as<std::istream>());
     });
 
     /* -------------------------------------------------------------------------
@@ -1648,7 +1671,7 @@ namespace meevax
 
     define<procedure>("eval", [](let const& xs)
     {
-      return cadr(xs).as<environment>().evaluate(car(xs));
+      return cadr(xs).as<transformer>().mac_env.as<environment>().evaluate(car(xs)); // DIRTY HACK!
     });
   }
 
@@ -1665,9 +1688,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("finite?", [](let const& xs)
+    define<predicate>("finite?", [](let const& xs)
     {
-      return car(xs).as<number>().is_finite() ? t : f;
+      return car(xs).as<number>().is_finite();
     });
 
     /* -------------------------------------------------------------------------
@@ -1680,9 +1703,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("infinite?", [](let const& xs)
+    define<predicate>("infinite?", [](let const& xs)
     {
-      return car(xs).as<number>().is_infinite() ? t : f;
+      return car(xs).as<number>().is_infinite();
     });
 
     /* -------------------------------------------------------------------------
@@ -1695,9 +1718,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("nan?", [](let const& xs)
+    define<predicate>("nan?", [](let const& xs)
     {
-      return car(xs).is_also<number>() and car(xs).as<number>().is_nan() ? t : f;
+      return car(xs).is_also<number>() and car(xs).as<number>().is_nan();
     });
 
     define<procedure>("exp",    [](let const& xs) { return car(xs).as<number>().exp();  });
@@ -1898,6 +1921,16 @@ namespace meevax
   template <>
   auto environment::import(decltype("(meevax experimental)"_s)) -> void
   {
+    define<procedure>("make-syntactic-closure", [](let const& xs)
+    {
+      return make<syntactic_closure>(car(xs), cadr(xs), caddr(xs));
+    });
+
+    define<predicate>("syntactic-closure?", [](let const& xs)
+    {
+      return car(xs).is<syntactic_closure>();
+    });
+
     /* -------------------------------------------------------------------------
      *
      *  (identifier? syntax-object)                                   procedure
@@ -1913,10 +1946,9 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("identifier?", [](let const& xs)
+    define<predicate>("identifier?", [](let const& xs)
     {
-      let const& x = car(xs);
-      return x.is_also<identifier>() or x.is<symbol>() ? t : f;
+      return is_identifier(car(xs));
     });
 
     /* -------------------------------------------------------------------------
@@ -1943,6 +1975,83 @@ namespace meevax
 
     /* -------------------------------------------------------------------------
      *
+     *  (free-identifier=? id1 id2)                                   procedure
+     *
+     *  Returns #t if the original occurrences of id 1 and id 2 have the same
+     *  binding, otherwise returns #f. free-identifier=? is used to look for a
+     *  literal identifier in the argument to a transformer, such as else in a
+     *  cond clause. A macro definition for syntax-rules would use
+     *  free-identifier=? to look for literals in the input.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<predicate>("free-identifier=?", [](let const& xs)
+    {
+      auto is_same_free_identifier = [](let const& x, let const& y)
+      {
+        // std::cout << "; ---- free-identifier=? -------------------------------------------------------" << std::endl;
+        // std::cout << "; x = " << x << std::endl;
+        // std::cout << "; y = " << y << std::endl;
+
+        let const& x_notation = x.as<syntactic_closure>().notate();
+        // std::cout << "; x notation is " << x_notation << std::endl;
+        // std::cout << ";            is absolute? " << std::boolalpha << x_notation.is<absolute>() << std::endl;
+        // std::cout << ";            is relative? " << std::boolalpha << x_notation.is<relative>() << std::endl;
+        // std::cout << ";            is variadic? " << std::boolalpha << x_notation.is<variadic>() << std::endl;
+
+        auto x_is_free = x_notation.is<absolute>() and
+                         x_notation.as<absolute>().is_free();
+        // std::cout << ";            is free? " << std::boolalpha << x_is_free << std::endl;
+
+        let const& y_notation = y.as<syntactic_closure>().notate();
+        // std::cout << "; y notation is " << y_notation << std::endl;
+        // std::cout << ";            is absolute? " << std::boolalpha << y_notation.is<absolute>() << std::endl;
+        // std::cout << ";            is relative? " << std::boolalpha << y_notation.is<relative>() << std::endl;
+        // std::cout << ";            is variadic? " << std::boolalpha << y_notation.is<variadic>() << std::endl;
+
+        auto y_is_free = y_notation.is<absolute>() and
+                         y_notation.as<absolute>().is_free();
+        // std::cout << ";            is free? " << std::boolalpha << y_is_free << std::endl;
+
+        auto is_same_notation = eq(x_notation, y_notation);
+        // std::cout << "; is same notation? = " << std::boolalpha << is_same_notation << std::endl;
+
+        auto both_free = x_is_free and y_is_free;
+        // std::cout << "; both free? = " << std::boolalpha << both_free << std::endl;
+
+        auto both_same_unbound = both_free and
+                                 eqv(x.as<syntactic_closure>().expression,
+                                     y.as<syntactic_closure>().expression);
+        // std::cout << "; both same unbound? = " << std::boolalpha << both_same_unbound << std::endl;
+
+        return is_same_notation or both_same_unbound;
+      };
+
+      return is_same_free_identifier(car(xs), cadr(xs));
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (bound-identifier=? id1 id2)                                  procedure
+     *
+     *  Returns #t if a binding for one of the two identifiers id 1 and id 2
+     *  would shadow free references to the other, otherwise returns #f. Two
+     *  identifiers can be free-identifier=? without being bound-identifier=?
+     *  if they were introduced at different stages in the expansion process.
+     *  Bound-identifier=? can be used, for example, to detect duplicate
+     *  identifiers in bound-variable lists. A macro definition of syntax-rules
+     *  would use bound-identifier=? to look for pattern variables from the
+     *  input pattern in the output template.
+     *
+     * ---------------------------------------------------------------------- */
+
+    // define<predicate>("bound-identifier=?", [](let const& xs)
+    // {
+    //   return f;
+    // });
+
+    /* -------------------------------------------------------------------------
+     *
      *  (identifier->symbol id)                                       procedure
      *
      *  Returns a symbol representing the original name of id.
@@ -1957,11 +2066,7 @@ namespace meevax
       switch (length(xs))
       {
       case 1:
-        if (let const& x = car(xs); x.is_also<identifier>())
-        {
-          return x.as<identifier>().symbol();
-        }
-        else if (x.is<symbol>())
+        if (let const& x = car(xs); x.is<symbol>())
         {
           return x;
         }
@@ -1972,20 +2077,9 @@ namespace meevax
       }
     });
 
-    define<procedure>("transformer?", is<transformer>());
-
-    define<procedure>("r6rs:identifier?", is<absolute>());
-
-    define<procedure>("macroexpand-1", [this](let const& xs)
+    define<predicate>("transformer?", [](let const& xs)
     {
-      if (let const& macro = (*this)[caar(xs)]; macro.is<transformer>())
-      {
-        return macro.as<transformer>().macroexpand(macro, car(xs));
-      }
-      else
-      {
-        throw error(make<string>("not a macro"), caar(xs));
-      }
+      return car(xs).is_also<transformer>();
     });
 
     define<procedure>("disassemble", [](let const& xs)
@@ -2001,19 +2095,9 @@ namespace meevax
       return standard_output;
     });
 
-    define<procedure>("gc-collect", [](auto&&)
+    define<predicate>("ieee-float?", [](auto&&...)
     {
-      return make<exact_integer>(gc.collect());
-    });
-
-    define<procedure>("gc-count", [](auto&&)
-    {
-      return make<exact_integer>(gc.count());
-    });
-
-    define<procedure>("ieee-float?", [](auto&&)
-    {
-      return std::numeric_limits<double>::is_iec559 ? t : f;
+      return std::numeric_limits<double>::is_iec559;
     });
 
     define<procedure>("print", [](let const& xs)
@@ -2046,11 +2130,25 @@ namespace meevax
       return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
     });
 
-    define<procedure>("type-of", [](auto&& xs)
+    define<procedure>("type-of", [](let const& xs)
     {
       std::cout << car(xs).type().name() << std::endl;
 
       return standard_output;
+    });
+  }
+
+  template <>
+  auto environment::import(decltype("(meevax garbage-collector)"_s)) -> void
+  {
+    define<procedure>("gc-collect", [](auto&&...)
+    {
+      return make<exact_integer>(gc.collect());
+    });
+
+    define<procedure>("gc-count", [](auto&&...)
+    {
+      return make<exact_integer>(gc.count());
     });
   }
 
@@ -2094,7 +2192,9 @@ namespace meevax
     import("(meevax process-context)"_s);
     import("(meevax read)"_s);
     import("(meevax write)"_s);
+
     import("(meevax experimental)"_s);
+    import("(meevax garbage-collector)"_s);
     import("(meevax srfis)"_s);
   }
 } // namespace meevax

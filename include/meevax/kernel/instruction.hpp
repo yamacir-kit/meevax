@@ -28,9 +28,9 @@ inline namespace kernel
     call,              // a.k.a APP
     cons,              //
     define,            //
+    define_syntax,     //
     drop,              //
     dummy,             // a.k.a DUM
-    fork,              //
     join,              //
     let_syntax,        //
     letrec,            // a.k.a RAP
