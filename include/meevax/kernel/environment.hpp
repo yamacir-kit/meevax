@@ -116,9 +116,9 @@ inline namespace kernel
 
     auto scope() noexcept -> reference;
 
-    auto notate(const_reference, const_reference) -> object;
+    auto identify(const_reference, const_reference) -> object;
 
-    auto notate(const_reference, const_reference) const -> object;
+    auto identify(const_reference, const_reference) const -> object;
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;

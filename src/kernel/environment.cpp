@@ -22,7 +22,7 @@ inline namespace kernel
 {
   auto environment::operator [](const_reference name) -> const_reference
   {
-    return notate(name, scope()).as<absolute>().strip();
+    return identify(name, scope()).as<absolute>().strip();
   }
 
   auto environment::operator [](std::string const& name) -> const_reference
@@ -160,15 +160,15 @@ inline namespace kernel
     return first;
   }
 
-  auto environment::notate(const_reference variable, const_reference scope) const -> object
+  auto environment::identify(const_reference variable, const_reference scope) const -> object
   {
     if (not is_identifier(variable))
     {
       return f;
     }
-    else if (let const& notation = machine::notate(variable, scope); select(notation))
+    else if (let const& identity = machine::identify(variable, scope); select(identity))
     {
-      return notation;
+      return identity;
     }
     else
     {
@@ -176,15 +176,15 @@ inline namespace kernel
     }
   }
 
-  auto environment::notate(const_reference variable, const_reference scope) -> object
+  auto environment::identify(const_reference variable, const_reference scope) -> object
   {
     if (not is_identifier(variable))
     {
       return f;
     }
-    if (let const& notation = std::as_const(*this).notate(variable, scope); select(notation))
+    if (let const& identity = std::as_const(*this).identify(variable, scope); select(identity))
     {
-      return notation;
+      return identity;
     }
     else /* --------------------------------------------------------------------
     *

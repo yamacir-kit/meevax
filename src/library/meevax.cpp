@@ -1971,28 +1971,28 @@ namespace meevax
         // std::cout << "; x = " << x << std::endl;
         // std::cout << "; y = " << y << std::endl;
 
-        let const& x_notation = x.as<syntactic_closure>().notate();
-        // std::cout << "; x notation is " << x_notation << std::endl;
-        // std::cout << ";            is absolute? " << std::boolalpha << x_notation.is<absolute>() << std::endl;
-        // std::cout << ";            is relative? " << std::boolalpha << x_notation.is<relative>() << std::endl;
-        // std::cout << ";            is variadic? " << std::boolalpha << x_notation.is<variadic>() << std::endl;
+        let const& identity_of_x = x.as<syntactic_closure>().identify();
+        // std::cout << "; x identity is " << identity_of_x << std::endl;
+        // std::cout << ";            is absolute? " << std::boolalpha << identity_of_x.is<absolute>() << std::endl;
+        // std::cout << ";            is relative? " << std::boolalpha << identity_of_x.is<relative>() << std::endl;
+        // std::cout << ";            is variadic? " << std::boolalpha << identity_of_x.is<variadic>() << std::endl;
 
-        auto x_is_free = x_notation.is<absolute>() and
-                         x_notation.as<absolute>().is_free();
+        auto x_is_free = identity_of_x.is<absolute>() and
+                         identity_of_x.as<absolute>().is_free();
         // std::cout << ";            is free? " << std::boolalpha << x_is_free << std::endl;
 
-        let const& y_notation = y.as<syntactic_closure>().notate();
-        // std::cout << "; y notation is " << y_notation << std::endl;
-        // std::cout << ";            is absolute? " << std::boolalpha << y_notation.is<absolute>() << std::endl;
-        // std::cout << ";            is relative? " << std::boolalpha << y_notation.is<relative>() << std::endl;
-        // std::cout << ";            is variadic? " << std::boolalpha << y_notation.is<variadic>() << std::endl;
+        let const& identity_of_y = y.as<syntactic_closure>().identify();
+        // std::cout << "; y identity is " << identity_of_y << std::endl;
+        // std::cout << ";            is absolute? " << std::boolalpha << identity_of_y.is<absolute>() << std::endl;
+        // std::cout << ";            is relative? " << std::boolalpha << identity_of_y.is<relative>() << std::endl;
+        // std::cout << ";            is variadic? " << std::boolalpha << identity_of_y.is<variadic>() << std::endl;
 
-        auto y_is_free = y_notation.is<absolute>() and
-                         y_notation.as<absolute>().is_free();
+        auto y_is_free = identity_of_y.is<absolute>() and
+                         identity_of_y.as<absolute>().is_free();
         // std::cout << ";            is free? " << std::boolalpha << y_is_free << std::endl;
 
-        auto is_same_notation = eq(x_notation, y_notation);
-        // std::cout << "; is same notation? = " << std::boolalpha << is_same_notation << std::endl;
+        auto is_same_identity = eq(identity_of_x, identity_of_y);
+        // std::cout << "; is same identity? = " << std::boolalpha << is_same_identity << std::endl;
 
         auto both_free = x_is_free and y_is_free;
         // std::cout << "; both free? = " << std::boolalpha << both_free << std::endl;
@@ -2002,7 +2002,7 @@ namespace meevax
                                      y.as<syntactic_closure>().expression);
         // std::cout << "; both same unbound? = " << std::boolalpha << both_same_unbound << std::endl;
 
-        return is_same_notation or both_same_unbound;
+        return is_same_identity or both_same_unbound;
       };
 
       return is_same_free_identifier(car(xs), cadr(xs));

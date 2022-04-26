@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_NOTATION_HPP
-#define INCLUDED_MEEVAX_KERNEL_NOTATION_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_IDENTITY_HPP
+#define INCLUDED_MEEVAX_KERNEL_IDENTITY_HPP
 
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/instruction.hpp>
@@ -27,7 +27,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct notation : public virtual pair
+  struct identity : public virtual pair
   {
     using pair::pair;
 
@@ -48,15 +48,15 @@ inline namespace kernel
       return first;
     }
 
-    friend auto operator <<(std::ostream & os, notation const& datum) -> std::ostream &
+    friend auto operator <<(std::ostream & os, identity const& datum) -> std::ostream &
     {
       return os << magenta("#,(") << blue("identity ") << datum.symbol() << magenta(")");
     }
   };
 
-  struct absolute : public notation
+  struct absolute : public identity
   {
-    using notation::notation;
+    using identity::identity;
 
     auto is_bound() const -> bool
     {
@@ -94,9 +94,9 @@ inline namespace kernel
     using absolute::absolute;
   };
 
-  struct relative : public notation // (<symbol> . <de Bruijn index>) = (<symbol> <integer> . <integer>)
+  struct relative : public identity // (<symbol> . <de Bruijn index>) = (<symbol> <integer> . <integer>)
   {
-    using notation::notation;
+    using identity::identity;
 
     auto make_load_instruction() const -> object override
     {
@@ -136,4 +136,4 @@ inline namespace kernel
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_NOTATION_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_IDENTITY_HPP

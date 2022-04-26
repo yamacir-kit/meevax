@@ -20,9 +20,9 @@
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/ghost.hpp>
+#include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/instruction_level_procedure.hpp>
-#include <meevax/kernel/notation.hpp>
 #include <meevax/kernel/option.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
@@ -109,9 +109,9 @@ inline namespace kernel
 
       let const expression;
 
-      auto notate()
+      auto identify()
       {
-        return enclosure.as<environment>().notate(expression, enclosure.as<environment>().scope());
+        return enclosure.as<environment>().identify(expression, enclosure.as<environment>().scope());
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
@@ -173,16 +173,16 @@ inline namespace kernel
       {
         if (current_expression.is<symbol>())
         {
-          let const& n = current_environment.notate(current_expression, current_scope);
+          let const& id = current_environment.identify(current_expression, current_scope);
 
-          return cons(n.as<notation>().make_load_instruction(), n,
+          return cons(id.as<identity>().make_load_instruction(), id,
                       current_continuation);
         }
         else if (current_expression.is<syntactic_closure>())
         {
-          if (let const& n = std::as_const(current_environment).notate(current_expression, current_scope); select(n))
+          if (let const& id = std::as_const(current_environment).identify(current_expression, current_scope); select(id))
           {
-            return cons(n.as<notation>().make_load_instruction(), n,
+            return cons(id.as<identity>().make_load_instruction(), id,
                         current_continuation);
           }
           else
@@ -200,17 +200,17 @@ inline namespace kernel
                       current_continuation);
         }
       }
-      else if (let const& notation = std::as_const(current_environment).notate(car(current_expression), current_scope); notation.is<keyword>())
+      else if (let const& id = std::as_const(current_environment).identify(car(current_expression), current_scope); id.is<keyword>())
       {
-        assert(notation.as<keyword>().strip().is_also<transformer>());
+        assert(id.as<keyword>().strip().is_also<transformer>());
 
         return compile(context::none,
                        current_environment,
-                       notation.as<keyword>().strip().as<transformer>().expand(current_expression, current_environment.fork(current_scope)),
+                       id.as<keyword>().strip().as<transformer>().expand(current_expression, current_environment.fork(current_scope)),
                        current_scope,
                        current_continuation);
       }
-      else if (let const& applicant = notation.is<absolute>() ? notation.as<absolute>().strip() : car(current_expression); applicant.is_also<syntax>())
+      else if (let const& applicant = id.is<absolute>() ? id.as<absolute>().strip() : car(current_expression); applicant.is_also<syntax>())
       {
         return applicant.as<syntax>().compile(current_context,
                                               current_environment,
@@ -293,18 +293,18 @@ inline namespace kernel
       {
       case mnemonic::load_absolute: /* -----------------------------------------
         *
-        *  s e (%load-absolute <absolute notation> . c) d => (x . s) e c d
+        *  s e (%load-absolute <absolute identity> . c) d => (x . s) e c d
         *
-        *  where <absolute notation> = (<symbol> . x)
+        *  where <absolute identity> = (<symbol> . x)
         *
         * ------------------------------------------------------------------- */
         [[fallthrough]];
 
       case mnemonic::load_relative: /* -----------------------------------------
         *
-        *  s  e (%load-relative <relative notation> . c) d => (x . s) e c d
+        *  s  e (%load-relative <relative identity> . c) d => (x . s) e c d
         *
-        *  where <relative notation> = (<symbol> i . j)
+        *  where <relative identity> = (<symbol> i . j)
         *
         *        x = (list-ref (list-ref e i) j)
         *
@@ -313,14 +313,14 @@ inline namespace kernel
 
       case mnemonic::load_variadic: /* -----------------------------------------
         *
-        *  s  e (%load-variadic <variadic notation> . c) d => (x . s) e c d
+        *  s  e (%load-variadic <variadic identity> . c) d => (x . s) e c d
         *
-        *  where <variadic notation> = (<symbol> i . j)
+        *  where <variadic identity> = (<symbol> i . j)
         *
         *        x = (list-tail (list-ref e i) j)
         *
         * ------------------------------------------------------------------- */
-        s = cons(cadr(c).template as<notation>().strip(e), s);
+        s = cons(cadr(c).template as<identity>().strip(e), s);
         c = cddr(c);
         goto decode;
 
@@ -388,9 +388,9 @@ inline namespace kernel
 
       case mnemonic::define: /* ------------------------------------------------
         *
-        *  (x' . s) e (%define <notation> . c) d => (x' . s) e c d
+        *  (x' . s) e (%define <identity> . c) d => (x' . s) e c d
         *
-        *  where <notation> = (<symbol> . x := x')
+        *  where <identity> = (<symbol> . x := x')
         *
         * ------------------------------------------------------------------- */
         cadr(c).template as<absolute>().strip() = car(s);
@@ -399,9 +399,9 @@ inline namespace kernel
 
       case mnemonic::define_syntax: /* -----------------------------------------
         *
-        *  (<closure> . s) e (%define <notation> . c) d => (x' . s) e c d
+        *  (<closure> . s) e (%define <identity> . c) d => (x' . s) e c d
         *
-        *  where <notation> = (<symbol> . x := <transformer>)
+        *  where <identity> = (<symbol> . x := <transformer>)
         *
         * ------------------------------------------------------------------- */
         assert(car(s).template is<closure>());
@@ -605,26 +605,26 @@ inline namespace kernel
 
       case mnemonic::store_absolute: /* ----------------------------------------
         *
-        *  (x' . s) e (%store-absolute <absolute notation> . c) d => (x' . s) e c d
+        *  (x . s) e (%store-absolute <absolute identity> . c) d => (x . s) e c d
         *
-        *  where <absolute notation> = (<symbol> . x:=x')
+        *  where <absolute identity> = (<symbol> . <object>:=x)
         *
         * ------------------------------------------------------------------- */
         [[fallthrough]];
 
       case mnemonic::store_relative: /* ----------------------------------------
         *
-        *  (x . s) e (%store-relative <relative notation> . c) d => (x' . s) e c d
+        *  (x . s) e (%store-relative <relative identity> . c) d => (x . s) e c d
         *
         * ------------------------------------------------------------------- */
         [[fallthrough]];
 
       case mnemonic::store_variadic: /* ----------------------------------------
         *
-        *  (x . s) e (%store-variadic <variadic notation> . c) d => (x' . s) e c d
+        *  (x . s) e (%store-variadic <variadic identity> . c) d => (x . s) e c d
         *
         * ------------------------------------------------------------------- */
-        cadr(c).template as<notation>().strip(e) = car(s);
+        cadr(c).template as<identity>().strip(e) = car(s);
         c = cddr(c);
         goto decode;
 
@@ -638,7 +638,7 @@ inline namespace kernel
       }
     }
 
-    static auto notate(const_reference variable, const_reference scope) -> object
+    static auto identify(const_reference variable, const_reference scope) -> object
     {
       for (auto outer = std::begin(scope); outer != std::end(scope); ++outer)
       {
@@ -669,7 +669,7 @@ inline namespace kernel
         }
       }
 
-      return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().notate() : f;
+      return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().identify() : f;
     }
 
     inline auto reset() -> void
@@ -693,13 +693,13 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      let const& notation = current_environment.notate(car(current_expression), current_scope);
+      let const& id = current_environment.identify(car(current_expression), current_scope);
 
       return compile(context::none,
                      current_environment,
                      cadr(current_expression),
                      current_scope,
-                     cons(notation.as<meevax::notation>().make_store_instruction(), notation,
+                     cons(id.as<identity>().make_store_instruction(), id,
                           current_continuation));
     }
 
@@ -709,9 +709,9 @@ inline namespace kernel
       {
         if (form.is<pair>())
         {
-          if (let const& notation = std::as_const(current_environment).notate(car(form), current_scope); notation.is<absolute>())
+          if (let const& id = std::as_const(current_environment).identify(car(form), current_scope); id.is<absolute>())
           {
-            if (let const& callee = notation.as<absolute>().strip(); callee.is<syntax>())
+            if (let const& callee = id.as<absolute>().strip(); callee.is<syntax>())
             {
               return callee.as<syntax>().name == "define";
             }
@@ -928,7 +928,7 @@ inline namespace kernel
                          current_environment,
                          cons(make<syntax>("lambda", lambda), cdar(current_expression), cdr(current_expression)),
                          current_scope,
-                         cons(make<instruction>(mnemonic::define), current_environment.notate(caar(current_expression), current_scope),
+                         cons(make<instruction>(mnemonic::define), current_environment.identify(caar(current_expression), current_scope),
                               current_continuation));
         }
         else // (define x ...)
@@ -937,7 +937,7 @@ inline namespace kernel
                          current_environment,
                          cdr(current_expression) ? cadr(current_expression) : unspecified_object,
                          current_scope,
-                         cons(make<instruction>(mnemonic::define), current_environment.notate(car(current_expression), current_scope),
+                         cons(make<instruction>(mnemonic::define), current_environment.identify(car(current_expression), current_scope),
                               current_continuation));
         }
       }
@@ -1003,9 +1003,9 @@ inline namespace kernel
     {
       return compile(context::none,
                      current_environment,
-                     cdr(current_expression) ? cadr(current_expression) : unspecified_object,
+                     cdr(current_expression) ? cadr(current_expression) : undefined,
                      current_scope,
-                     cons(make<instruction>(mnemonic::define_syntax), current_environment.notate(car(current_expression), current_scope),
+                     cons(make<instruction>(mnemonic::define_syntax), current_environment.identify(car(current_expression), current_scope),
                           current_continuation));
     }
 
