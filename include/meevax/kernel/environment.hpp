@@ -63,14 +63,14 @@ inline namespace kernel
 
     auto apply(const_reference, const_reference) -> object;
 
-    auto define(const_reference, const_reference) -> void;
+    auto define(const_reference, const_reference = undefined) -> void;
 
-    auto define(std::string const&, const_reference) -> void;
+    auto define(std::string const&, const_reference = undefined) -> void;
 
     template <typename T, typename... Ts>
     auto define(std::string const& name, Ts&&... xs) -> void
     {
-      define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
+      define(name, make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
     auto evaluate(const_reference) -> object;
@@ -84,19 +84,6 @@ inline namespace kernel
       let const copy = make<environment>(*this);
       copy.as<environment>().scope() = scope;
       return copy;
-    }
-
-    auto reserve(const_reference x) -> const_reference
-    {
-      assert(is_identifier(x));
-
-      let const result = make<absolute>(x, undefined);
-
-      assert(result.as<absolute>().is_free());
-
-      global_environment() = result | global_environment();
-
-      return car(global_environment());
     }
 
     auto global_environment() noexcept -> reference;

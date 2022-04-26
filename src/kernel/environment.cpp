@@ -182,9 +182,9 @@ inline namespace kernel
     {
       return f;
     }
-    if (let const& identity = std::as_const(*this).identify(variable, scope); select(identity))
+    if (let const& id = std::as_const(*this).identify(variable, scope); select(id))
     {
-      return identity;
+      return id;
     }
     else /* --------------------------------------------------------------------
     *
@@ -203,7 +203,9 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return reserve(variable);
+      define(variable);
+
+      return car(global_environment());
     }
   }
 
