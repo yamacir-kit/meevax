@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NOTATION_HPP
 #define INCLUDED_MEEVAX_KERNEL_NOTATION_HPP
 
+#include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/pair.hpp>
@@ -49,7 +50,7 @@ inline namespace kernel
 
     friend auto operator <<(std::ostream & os, notation const& datum) -> std::ostream &
     {
-      return os << "#,(notation " << datum.symbol() << ")";
+      return os << magenta("#,(") << blue("identity ") << datum.symbol() << magenta(")");
     }
   };
 
@@ -64,8 +65,7 @@ inline namespace kernel
 
     auto is_free() const -> bool
     {
-      // NOTE: See environment::generate_free_identifier
-      return strip().is<absolute>() and std::addressof(strip().as<absolute>()) == this;
+      return strip().is<undefined>();
     }
 
     auto make_load_instruction() const -> object override
