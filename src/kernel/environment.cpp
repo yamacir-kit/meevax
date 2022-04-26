@@ -128,11 +128,6 @@ inline namespace kernel
     define<procedure>("set-verbose!",     [this](let const& xs, auto&&...) { return verbose     = car(xs); });
   }
 
-  auto environment::is_identifier(const_reference x) -> bool
-  {
-    return x.is<symbol>() or x.is<syntactic_closure>();
-  }
-
   auto environment::load(std::string const& s) -> object
   {
     if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())

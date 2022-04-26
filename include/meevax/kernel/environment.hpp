@@ -95,8 +95,6 @@ inline namespace kernel
 
     auto import() -> void;
 
-    static auto is_identifier(const_reference) -> bool;
-
     auto load(std::string const&) -> object;
 
     auto scope() const noexcept -> const_reference;
