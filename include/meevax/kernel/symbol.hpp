@@ -24,13 +24,21 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct symbol : public std::string
-                , public identifier
+  struct symbol : public identifier
   {
+    using value_type = std::string;
+
+    value_type const value;
+
     template <typename... Ts>
-    explicit constexpr symbol(Ts&&... xs)
-      : std::string { std::forward<decltype(xs)>(xs)... }
+    explicit symbol(Ts&&... xs)
+      : value { std::forward<decltype(xs)>(xs)... }
     {}
+
+    operator std::string() const noexcept
+    {
+      return value;
+    }
   };
 
   auto operator <<(std::ostream &, symbol const&) -> std::ostream &;

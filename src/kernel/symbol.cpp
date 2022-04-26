@@ -22,7 +22,7 @@ inline namespace kernel
 {
   auto operator <<(std::ostream & os, symbol const& datum) -> std::ostream &
   {
-    return os << (datum.empty() ? "||" : datum.c_str());
+    return os << (datum.value.empty() ? "||" : datum.value);
   }
 } // namespace kernel
 } // namespace meevax
