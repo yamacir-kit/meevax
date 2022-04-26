@@ -1948,7 +1948,7 @@ namespace meevax
 
     define<predicate>("identifier?", [](let const& xs)
     {
-      return is_identifier(car(xs));
+      return car(xs).is_also<identifier>();
     });
 
     /* -------------------------------------------------------------------------

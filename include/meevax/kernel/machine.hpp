@@ -98,13 +98,20 @@ inline namespace kernel
       }
     };
 
-    struct syntactic_closure
+    struct syntactic_closure : public identifier
     {
       let const enclosure;
 
-      let const free_variables;
+      let const free_variables = unit;
 
       let const expression;
+
+      explicit syntactic_closure(let const& syntactic_environment,
+                                 let const&,
+                                 let const& expression)
+        : enclosure { syntactic_environment }
+        , expression { expression }
+      {}
 
       auto identify()
       {

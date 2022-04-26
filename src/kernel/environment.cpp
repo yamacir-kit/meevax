@@ -50,7 +50,7 @@ inline namespace kernel
 
   auto environment::define(const_reference name, const_reference value) -> void
   {
-    assert(is_identifier(name));
+    assert(name.is_also<identifier>());
 
     global() = make<absolute>(name, value) | global();
   }
@@ -162,7 +162,7 @@ inline namespace kernel
 
   auto environment::identify(const_reference variable, const_reference scope) const -> object
   {
-    if (not is_identifier(variable))
+    if (not variable.is_also<identifier>())
     {
       return f;
     }
@@ -178,7 +178,7 @@ inline namespace kernel
 
   auto environment::identify(const_reference variable, const_reference scope) -> object
   {
-    if (not is_identifier(variable))
+    if (not variable.is_also<identifier>())
     {
       return f;
     }

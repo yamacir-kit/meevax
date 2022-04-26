@@ -14,27 +14,16 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
-#define INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
-
-#include <meevax/kernel/identifier.hpp>
-#include <meevax/kernel/pair.hpp>
+#ifndef INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
+#define INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct symbol : public std::string
-                , public identifier
-  {
-    template <typename... Ts>
-    explicit constexpr symbol(Ts&&... xs)
-      : std::string { std::forward<decltype(xs)>(xs)... }
-    {}
-  };
-
-  auto operator <<(std::ostream &, symbol const&) -> std::ostream &;
+  struct identifier
+  {};
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
