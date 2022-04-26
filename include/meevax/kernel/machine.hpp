@@ -39,9 +39,6 @@ inline namespace kernel
     machine()
     {}
 
-    IMPORT(environment, global_environment, const);
-    IMPORT(environment, scope, );
-
   protected:
     let s, // stack (holding intermediate results and return address)
         e, // environment (giving values to symbols)
