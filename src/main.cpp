@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2021 Tatsuya Yamasaki.
+   Copyright 2018-2022 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ auto main(int const argc, char const* const* const argv) -> int
     if (main.is_interactive_mode())
     {
       main.display_version();
-      main.print();
       main.print(features());
     }
 

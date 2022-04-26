@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2021 Tatsuya Yamasaki.
+   Copyright 2018-2022 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_PROCEDURE_HPP
-#define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_PROCEDURE_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_INSTRUCTION_LEVEL_PROCEDURE_HPP
+#define INCLUDED_MEEVAX_KERNEL_INSTRUCTION_LEVEL_PROCEDURE_HPP
 
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/syntax.hpp>
@@ -24,18 +24,18 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct syntactic_procedure : public syntax
-                             , public procedure
+  struct instruction_level_procedure : public syntax
+                                     , public procedure
   {
     template <typename F, typename G>
-    explicit syntactic_procedure(std::string const& name, F&& f, G&& g)
+    explicit instruction_level_procedure(std::string const& name, F&& f, G&& g)
       : syntax    { name, std::forward<decltype(f)>(f) }
       , procedure { name, std::forward<decltype(g)>(g) }
     {}
   };
 
-  auto operator <<(std::ostream &, syntactic_procedure const&) -> std::ostream &;
+  auto operator <<(std::ostream &, instruction_level_procedure const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_PROCEDURE_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_INSTRUCTION_LEVEL_PROCEDURE_HPP

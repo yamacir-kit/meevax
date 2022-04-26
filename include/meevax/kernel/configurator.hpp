@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2021 Tatsuya Yamasaki.
+   Copyright 2018-2022 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -28,18 +28,18 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename Environment>
+  template <typename environment>
   class configurator
   {
-    friend Environment;
+    friend environment;
 
-    IMPORT(Environment, evaluate, NIL);
-    IMPORT(Environment, load, NIL);
-    IMPORT(Environment, print, const);
-    IMPORT(Environment, read, NIL);
+    IMPORT(environment, evaluate, NIL);
+    IMPORT(environment, load, NIL);
+    IMPORT(environment, print, const);
+    IMPORT(environment, read, NIL);
 
     template <typename Key>
-    using dispatcher = std::unordered_map<Key, procedure::applicable>;
+    using dispatcher = std::unordered_map<Key, procedure::function_type>;
 
     const dispatcher<char> short_options, short_options_with_arguments;
 
@@ -88,17 +88,17 @@ inline namespace kernel
 
       , short_options_with_arguments
         {
-          std::make_pair('e', [this](const_reference x)
+          std::make_pair('e', [this](const_reference x, auto&&...)
           {
             return print(evaluate(x)), unspecified_object;
           }),
 
-          std::make_pair('l', [this](const_reference x)
+          std::make_pair('l', [this](const_reference x, auto&&...)
           {
-            return load(x);
+            return load(x.as<string>());
           }),
 
-          std::make_pair('w', [this](const_reference x)
+          std::make_pair('w', [this](const_reference x, auto&&...)
           {
             return print(x), unspecified_object;
           }),
@@ -146,22 +146,22 @@ inline namespace kernel
 
       , long_options_with_arguments
         {
-          std::make_pair("evaluate", [this](const_reference x)
+          std::make_pair("evaluate", [this](const_reference x, auto&&...)
           {
             return print(evaluate(x)), unspecified_object;
           }),
 
-          std::make_pair("load", [this](const_reference x)
+          std::make_pair("load", [this](const_reference x, auto&&...)
           {
-            return load(x);
+            return load(x.as<string>());
           }),
 
-          std::make_pair("prompt", [this](const_reference x)
+          std::make_pair("prompt", [this](const_reference x, auto&&...)
           {
             return prompt = x;
           }),
 
-          std::make_pair("write", [this](const_reference x)
+          std::make_pair("write", [this](const_reference x, auto&&...)
           {
             return print(x), unspecified_object;
           }),

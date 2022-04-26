@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2021 Tatsuya Yamasaki.
+   Copyright 2018-2022 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -61,14 +61,16 @@ inline namespace kernel
 
     auto operator [](std::string const&) -> const_reference;
 
-    auto define(const_reference, const_reference) -> const_reference;
+    auto apply(const_reference, const_reference) -> object;
 
-    auto define(std::string const&, const_reference) -> const_reference;
+    auto define(const_reference, const_reference) -> void;
+
+    auto define(std::string const&, const_reference) -> void;
 
     template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs) -> const_reference
+    auto define(std::string const& name, Ts&&... xs) -> void
     {
-      return define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
+      define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
     auto evaluate(const_reference) -> object;
@@ -77,26 +79,48 @@ inline namespace kernel
 
     auto execute(const_reference) -> object;
 
-    auto global() noexcept -> reference;
+    auto fork(const_reference scope) const
+    {
+      let const copy = make<environment>(*this);
+      copy.as<environment>().scope() = scope;
+      return copy;
+    }
 
-    auto global() const noexcept -> const_reference;
+    auto reserve(const_reference x) -> const_reference
+    {
+      assert(is_identifier(x));
+
+      let const result = make<absolute>(x);
+
+      result.as<absolute>().strip() = result; // NOTE: Identifier is self-evaluate if is free-identifier.
+
+      assert(result.as<absolute>().is_free());
+
+      global_environment() = result | global_environment();
+
+      return car(global_environment());
+    }
+
+    auto global_environment() noexcept -> reference;
+
+    auto global_environment() const noexcept -> const_reference;
 
     template <typename T, T... xs>
     auto import(std::integer_sequence<T, xs...>) -> void;
 
     auto import() -> void;
 
+    static auto is_identifier(const_reference) -> bool;
+
     auto load(std::string const&) -> object;
 
-    auto load(const_reference) -> object;
+    auto scope() const noexcept -> const_reference;
 
-    auto rename(const_reference) -> const_reference;
+    auto scope() noexcept -> reference;
 
-    auto rename(const_reference, const_reference) -> object;
+    auto notate(const_reference, const_reference) -> object;
 
-    auto rename(const_reference) const -> const_reference;
-
-    auto rename(const_reference, const_reference) const -> object;
+    auto notate(const_reference, const_reference) const -> object;
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;

@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2021 Tatsuya Yamasaki.
+   Copyright 2018-2022 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,10 +20,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  iterator::iterator(const_reference x)
-    : std::reference_wrapper<object const> { std::cref(x) }
-  {}
-
   auto iterator::operator *() const -> iterator::const_reference
   {
     return car(*this);
@@ -31,12 +27,13 @@ inline namespace kernel
 
   auto iterator::operator ->() const -> iterator::pointer
   {
-    return unwrap();
+    return std::addressof(car(*this));
   }
 
   auto iterator::operator ++() -> iterator &
   {
-    return *this = cdr(*this);
+    static_cast<object &>(*this) = cdr(*this);
+    return *this;
   }
 
   auto iterator::operator ++(int) -> iterator
@@ -44,16 +41,6 @@ inline namespace kernel
     auto copy = *this;
     operator ++();
     return copy;
-  }
-
-  iterator::operator bool() const
-  {
-    return static_cast<bool>(unwrap());
-  }
-
-  auto iterator::unwrap() const noexcept -> const_reference
-  {
-    return get();
   }
 
   auto operator ==(iterator const& lhs, iterator const& rhs) noexcept -> bool
@@ -72,12 +59,12 @@ namespace std
 {
   auto begin(meevax::const_reference x) -> meevax::iterator
   {
-    return cbegin(x);
+    return meevax::iterator(x);
   }
 
   auto cbegin(meevax::const_reference x) -> meevax::iterator
   {
-    return x;
+    return meevax::iterator(x);
   }
 
   auto cend(meevax::const_reference) -> meevax::iterator const&
@@ -88,7 +75,7 @@ namespace std
 
   auto end(meevax::const_reference) -> meevax::iterator const&
   {
-    static meevax::iterator const cend { meevax::unit };
-    return cend;
+    static meevax::iterator const end { meevax::unit };
+    return end;
   }
 } // namespace std

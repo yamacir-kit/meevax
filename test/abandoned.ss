@@ -15,7 +15,6 @@
 
 
 (check (string=? (make-string 3) "") => #f)
-(check (string=? (make-string 3) "   ") => #t)
 (check (string=? (make-string 3 #\a) "aaa") => #t)
 
 (check (string=? (string) "") => #t)
@@ -72,35 +71,12 @@
 (let ((s "abcde")) (check (begin (string-fill! s #\x 1) s) => "axxxx"))
 (let ((s "abcde")) (check (begin (string-fill! s #\x 1 4) s) => "axxxe"))
 
-
-(define swap!
-  (fork/csc
-    (lambda (swap! x y)
-      (let ((z (string->symbol)))
-        `(,let ((,z ,x))
-           (,set! ,x ,y)
-           (,set! ,y ,z))))))
-
-(define swap!
-  (fork/csc
-    (lambda (swap! x y)
-      `(,let ((,value ,x))
-         (,set! ,x ,y)
-         (,set! ,y ,value)))))
-
-(define-syntax (swap! x y)
-  `(,let ((,value ,x))
-     (,set! ,x ,y)
-     (,set! ,y ,value)))
-
-(define loop
-  (fork/csc
-    (lambda form
-     `(,call/cc
-        (,lambda (exit)
-          (,let ,rec ()
-           ,(cadr form)
-            (,rec)))) )))
+(experimental:define-syntax loop
+  (experimental:er-macro-transformer
+    (lambda (form rename compare)
+      `(,(rename 'call/cc)
+         (,(rename 'lambda) (exit)
+           (,(rename 'let) ,(rename 'rec) () ,(cadr form) (,(rename 'rec))))))))
 
 (define f
   (lambda ()
@@ -121,15 +97,6 @@
                  (set! x (+ x 1)) )))))
 
 ; (define-syntax loop
-;   (non-hygienic-macro-transformer
-;     (lambda (form)
-;      `(call-with-current-continuation
-;         (lambda (exit)
-;           (let loop ()
-;             ,form
-;             (loop)))))))
-
-; (define-syntax loop
 ;   (sc-macro-transformer
 ;     (lambda (form environment)
 ;      `(call-with-current-continuation
@@ -137,3 +104,9 @@
 ;           (let loop ()
 ;            ,(make-syntactic-closure environment '(exit) (cadr form))
 ;             (loop)))))))
+
+; ------------------------------------------------------------------------------
+
+(check-report)
+
+(exit (check-passed? check:correct))

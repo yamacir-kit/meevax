@@ -38,5 +38,23 @@ auto main() -> int
   assert(caddr(x) == c);
   assert(cadddr(x) == a);
 
+  {
+    let x = list(a, b, c);
+
+    for (auto iter = std::begin(x); iter != std::end(x); ++iter)
+    {
+      assert((*iter).template is<symbol>());
+    }
+  }
+
+  {
+    let x = list(a, b, c);
+
+    for (auto iter = std::begin(x); iter != std::end(x); ++iter)
+    {
+      assert(iter->template is<symbol>());
+    }
+  }
+
   return EXIT_SUCCESS;
 }

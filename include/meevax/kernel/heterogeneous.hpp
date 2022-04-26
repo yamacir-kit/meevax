@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2021 Tatsuya Yamasaki.
+   Copyright 2018-2022 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -118,14 +118,7 @@ inline namespace kernel
     template <typename U>
     inline auto is() const
     {
-      if constexpr (std::is_null_pointer<typename std::decay<U>::type>::value)
-      {
-        return not static_cast<bool>(*this);
-      }
-      else
-      {
-        return type() == typeid(typename std::decay<U>::type);
-      }
+      return type() == typeid(typename std::decay<U>::type);
     }
 
     template <typename U>

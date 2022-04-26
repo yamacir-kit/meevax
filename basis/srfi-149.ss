@@ -36,14 +36,14 @@
 (define (cons-source kar kdr source)
   (cons kar kdr))
 
-(define syntax-quote quote)
+(define syntax-quote quote-syntax)
 
 (define strip-syntactic-closures identity)
 
 (define (syntax-rules-transformer expr rename compare)
   (let ((ellipsis-specified? (identifier? (cadr expr)))
         (count 0)
-        (_er-macro-transformer (rename 'er-macro-transformer))
+        (_er-macro-transformer (rename 'experimental:er-macro-transformer))
         (_lambda (rename 'lambda))      (_let (rename 'let))
         (_begin (rename 'begin))        (_if (rename 'if))
         (_and (rename 'and))            (_or (rename 'or))
@@ -267,7 +267,7 @@
                                 (list (rename 'strip-syntactic-closures) _expr))
                           #f)))))))))
 
-(define-syntax syntax-rules
-  (er-macro-transformer
+(experimental:define-syntax syntax-rules
+  (experimental:er-macro-transformer
     (lambda (form rename compare)
       (syntax-rules-transformer form rename compare))))

@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2021 Tatsuya Yamasaki.
+   Copyright 2018-2022 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -28,9 +28,9 @@ inline namespace kernel
     call,              // a.k.a APP
     cons,              //
     define,            //
+    define_syntax,     //
     drop,              //
     dummy,             // a.k.a DUM
-    fork,              //
     join,              //
     let_syntax,        //
     letrec,            // a.k.a RAP

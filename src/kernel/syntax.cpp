@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2021 Tatsuya Yamasaki.
+   Copyright 2018-2022 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  syntax::syntax(std::string const& name, transformer const& transform)
+  syntax::syntax(std::string const& name, function_type const& compile)
     : description { name }
-    , transform { transform  }
+    , compile { compile  }
   {}
 
   auto operator <<(std::ostream & os, syntax const& datum) -> std::ostream &

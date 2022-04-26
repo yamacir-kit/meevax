@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2021 Tatsuya Yamasaki.
+   Copyright 2018-2022 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -28,9 +28,9 @@ inline namespace kernel
       case mnemonic::call:              return "call";
       case mnemonic::cons:              return "cons";
       case mnemonic::define:            return "define";
+      case mnemonic::define_syntax:     return "define-syntax";
       case mnemonic::drop:              return "drop";
       case mnemonic::dummy:             return "dummy";
-      case mnemonic::fork:              return "fork";
       case mnemonic::join:              return "join";
       case mnemonic::let_syntax:        return "let-syntax";
       case mnemonic::letrec:            return "letrec";
@@ -90,19 +90,15 @@ inline namespace kernel
       case mnemonic::dummy:
       case mnemonic::join:
       case mnemonic::letrec:
+      case mnemonic::return_:
+      case mnemonic::stop:
       case mnemonic::tail_call:
         os << *iter << "\n";
         ++offset;
         break;
 
-      case mnemonic::return_:
-      case mnemonic::stop:
-        os << *iter << magenta(")\n");
-        ++offset;
-        break;
-
       case mnemonic::define:
-      case mnemonic::fork:
+      case mnemonic::define_syntax:
       case mnemonic::let_syntax:
       case mnemonic::letrec_syntax:
       case mnemonic::load_absolute:
@@ -119,20 +115,17 @@ inline namespace kernel
       case mnemonic::load_closure:
       case mnemonic::load_continuation:
         os << *iter << "\n";
-        disassemble(os, *++iter, depth + 1);
         ++offset;
+        disassemble(os, *++iter, depth + 1);
         break;
 
       case mnemonic::select:
       case mnemonic::tail_select:
         os << *iter << "\n";
-        disassemble(os, *++iter, depth + 1);
-        disassemble(os, *++iter, depth + 1);
         ++offset;
+        disassemble(os, *++iter, depth + 1);
+        disassemble(os, *++iter, depth + 1);
         break;
-
-      default:
-        assert(false);
       }
     }
   }
