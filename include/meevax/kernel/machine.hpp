@@ -776,7 +776,7 @@ inline namespace kernel
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs),
                                  append(map(curry(cons)(make<syntax>("set!", set)), binding_specs), body)),
-                            make_list(length(binding_specs), undefined_object)),
+                            make_list(length(binding_specs), undefined)),
                        current_scope,
                        current_continuation);
       }

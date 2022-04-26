@@ -65,7 +65,7 @@ inline namespace kernel
 
     auto is_free() const -> bool
     {
-      return strip().is<undefined>();
+      return strip().is<unbound>();
     }
 
     auto make_load_instruction() const -> object override

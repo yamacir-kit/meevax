@@ -30,12 +30,12 @@ inline namespace kernel
 
   extern let const unspecified_object;
 
-  struct undefined
+  struct unbound
   {};
 
-  auto operator <<(std::ostream &, undefined const&) -> std::ostream &;
+  auto operator <<(std::ostream &, unbound const&) -> std::ostream &;
 
-  extern let const undefined_object;
+  extern let const undefined;
 } // namespace kernel
 } // namespace meevax
 

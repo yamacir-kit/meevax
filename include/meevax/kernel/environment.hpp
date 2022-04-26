@@ -90,7 +90,7 @@ inline namespace kernel
     {
       assert(is_identifier(x));
 
-      let const result = make<absolute>(x, undefined_object);
+      let const result = make<absolute>(x, undefined);
 
       assert(result.as<absolute>().is_free());
 
