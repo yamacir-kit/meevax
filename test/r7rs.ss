@@ -387,10 +387,10 @@
 
 ; ---- 4.3.2. Pattern language -------------------------------------------------
 
-(experimental:define-syntax be-like-begin
+(define-syntax be-like-begin
   (syntax-rules ()
     ((be-like-begin name)
-     (experimental:define-syntax name
+     (define-syntax name
        (syntax-rules ()
          ((name expr (... ...))
           (begin expr (... ...))))))))

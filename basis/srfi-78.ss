@@ -177,7 +177,7 @@
 ;      (if (>= check:mode 1)
 ;          (check:proc 'expr (lambda () expr) equal expected)))))
 
-(experimental:define-syntax check
+(define-syntax check
   (experimental:er-macro-transformer
     (lambda (form rename compare)
       (cond ((compare (rename '=>) (caddr form))

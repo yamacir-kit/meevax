@@ -24,12 +24,12 @@
                 (promise-merge! new promise))
         (force promise))))
 
-(experimental:define-syntax lazy
+(define-syntax lazy
   (experimental:er-macro-transformer
     (lambda (form rename compare)
       `(,(rename 'promise) #f (,(rename 'lambda) () ,(cadr form))))))
 
-(experimental:define-syntax delay
+(define-syntax delay
   (experimental:er-macro-transformer
     (lambda (form rename compare)
       `(,(rename 'lazy) (,(rename 'promise) #t ,(cadr form))))))

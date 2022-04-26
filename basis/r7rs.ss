@@ -1,6 +1,6 @@
 ; ---- 4.2.1. Conditionals -----------------------------------------------------
 
-(experimental:define-syntax cond
+(define-syntax cond
   (syntax-rules (else =>)
     ((cond (else result1 result2 ...))
      (begin result1 result2 ...))
@@ -26,7 +26,7 @@
          (begin result1 result2 ...)
          (cond clause1 clause2 ...)))))
 
-(experimental:define-syntax case ; errata version
+(define-syntax case ; errata version
   (syntax-rules (else =>)
     ((case (key ...)
        clauses ...)
@@ -59,14 +59,14 @@
          (begin result1 result2 ...)
          (case key clause clauses ...)))))
 
-(experimental:define-syntax and
+(define-syntax and
   (syntax-rules ()
     ((and) #t)
     ((and test) test)
     ((and test1 test2 ...)
      (if test1 (and test2 ...) #f))))
 
-(experimental:define-syntax or
+(define-syntax or
   (syntax-rules ()
     ((or) #f)
     ((or test) test)
@@ -74,13 +74,13 @@
      (let ((x test1))
        (if x x (or test2 ...))))))
 
-(experimental:define-syntax when
+(define-syntax when
   (syntax-rules ()
     ((when test result1 result2 ...)
      (if test
          (begin result1 result2 ...)))))
 
-(experimental:define-syntax unless
+(define-syntax unless
   (syntax-rules ()
     ((unless test result1 result2 ...)
      (if (not test)
@@ -88,14 +88,14 @@
 
 ; ---- 4.2.2. Binding constructs -----------------------------------------------
 
-(experimental:define-syntax let
+(define-syntax let
   (syntax-rules ()
     ((let ((name val) ...) body1 body2 ...)
      ((lambda (name ...) body1 body2 ...) val ...))
     ((let tag ((name val) ...) body1 body2 ...)
      ((letrec ((tag (lambda (name ...) body1 body2 ...))) tag) val ...))))
 
-(experimental:define-syntax let*
+(define-syntax let*
   (syntax-rules ()
     ((let* () body1 body2 ...)
      (let () body1 body2 ...))
@@ -103,7 +103,7 @@
      (let ((name1 val1))
        (let* ((name2 val2) ...) body1 body2 ...)))))
 
-(experimental:define-syntax letrec*
+(define-syntax letrec*
   (syntax-rules ()
     ((letrec* ((var1 init1) ...) body1 body2 ...)
      (let ((var1 <undefined>) ...)
@@ -141,7 +141,7 @@
 ;          (let-values "bind"
 ;                      bindings (tmp ... (a x)) body))))))
 
-(experimental:define-syntax let-values
+(define-syntax let-values
   (experimental:er-macro-transformer
     (lambda (form rename compare)
       (if (null? (cadr form))
@@ -162,7 +162,7 @@
 ;                  (let*-values (binding1 ...)
 ;                               body0 body1 ...)))))
 
-(experimental:define-syntax let*-values
+(define-syntax let*-values
   (experimental:er-macro-transformer
     (lambda (form rename compare)
       (if (null? (cadr form))
@@ -175,7 +175,7 @@
 
 ; ---- 4.2.4. Iteration --------------------------------------------------------
 
-(experimental:define-syntax do
+(define-syntax do
   (syntax-rules ()
     ((do ((var init step ...) ...)
        (test expr ...)
@@ -202,7 +202,7 @@
 
 delay ; is defined in srfi-45.ss
 
-(define-syntax delay-force lazy) ; lazy is defined in srfi-45.ss
+(define delay-force lazy) ; lazy is defined in srfi-45.ss
 
 force ; is defined in srfi-45.ss
 
@@ -218,7 +218,7 @@ parameterize ; is defined in srfi-39.ss
 
 ; ---- 4.2.7. Exception handling -----------------------------------------------
 
-(experimental:define-syntax guard
+(define-syntax guard
   (syntax-rules ()
     ((guard (var clause ...) e1 e2 ...)
      ((call/cc
@@ -243,7 +243,7 @@ parameterize ; is defined in srfi-39.ss
                     (lambda ()
                       (apply values args)))))))))))))
 
-(experimental:define-syntax guard-aux
+(define-syntax guard-aux
   (syntax-rules (else =>)
     ((guard-aux reraise (else result1 result2 ...))
      (begin result1 result2 ...))

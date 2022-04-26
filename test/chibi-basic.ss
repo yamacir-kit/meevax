@@ -201,7 +201,7 @@
     (let ((tmp 5)) (myor #f tmp)))
   => 5)
 
-(experimental:define-syntax myor
+(define-syntax myor
   (experimental:er-macro-transformer
     (lambda (expr rename compare)
       (if (null? (cdr expr)) #f
