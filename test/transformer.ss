@@ -85,7 +85,7 @@
 ; ------------------------------------------------------------------------------
 
 (define-syntax swap!
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare?)
       (let ((a (cadr form))
             (b (caddr form))

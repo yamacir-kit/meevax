@@ -65,7 +65,7 @@
   (set! dynamic-env-local new-env))
 
 (define-syntax parameterize
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       `(,(rename 'dynamic-bind) (,(rename 'list) ,@(map  car (cadr form)))
                                 (,(rename 'list) ,@(map cadr (cadr form)))

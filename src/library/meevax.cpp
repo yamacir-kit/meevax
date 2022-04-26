@@ -1953,28 +1953,6 @@ namespace meevax
 
     /* -------------------------------------------------------------------------
      *
-     *  (unwrap-syntax syntax-object)                                 procedure
-     *
-     *  If syntax-object is an identifier, then it is returned unchanged.
-     *  Otherwise unwrap-syntax converts the outermost structure of
-     *  syntax-object into a data object whose external representation is the
-     *  same as that of syntax-object. The result is either an identifier, a
-     *  pair whose car and cdr are syntax objects, a vector whose elements are
-     *  syntax objects, an empty list, a string, a boolean, a character, or a
-     *  number.
-     *
-     *    (identifier? (unwrap-syntax (syntax x))) => #t
-     *
-     *    (identifier? (car (unwrap-syntax (syntax (x))))) => #t
-     *
-     *    (unwrap-syntax (cdr (unwrap-syntax (syntax (x))))) => ()
-     *
-     * ---------------------------------------------------------------------- */
-
-    // TODO
-
-    /* -------------------------------------------------------------------------
-     *
      *  (free-identifier=? id1 id2)                                   procedure
      *
      *  Returns #t if the original occurrences of id 1 and id 2 have the same

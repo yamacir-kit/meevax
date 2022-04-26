@@ -3,7 +3,7 @@
 ; ------------------------------------------------------------------------------
 
 (define-syntax er-macro-transformer:rename
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (rename (cadr form)))))
 
@@ -21,7 +21,7 @@
 ; ------------------------------------------------------------------------------
 
 (define-syntax er-macro-transformer:compare
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (let ((x (cadr form))
             (y (rename x)))

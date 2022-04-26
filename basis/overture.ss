@@ -18,7 +18,7 @@
   (lambda (form use-env mac-env)
     (make-syntactic-closure use-env '() (f form mac-env))))
 
-(define (experimental:er-macro-transformer f)
+(define (er-macro-transformer f)
   (lambda (form use-env mac-env)
     (define rename:list (list))
     (define (rename x)
@@ -42,14 +42,14 @@
     (f form rename compare)))
 
 (define-syntax import
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (list (rename 'quote) (cons 'import (cdr form))))))
 
 ; ------------------------------------------------------------------------------
 
 (define-syntax cond
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (if (null? (cdr form))
           (unspecified)
@@ -75,7 +75,7 @@
            (cadr form))))))
 
 (define-syntax and
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (cond ((null? (cdr form)))
             ((null? (cddr form))
@@ -87,7 +87,7 @@
                         #f))))))
 
 (define-syntax or
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (cond ((null? (cdr form)) #f)
             ((null? (cddr form))
@@ -124,7 +124,7 @@
        (reverse xs))))
 
 (define-syntax quasiquote
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (define (expand x depth)
         (cond ((pair? x)
@@ -169,13 +169,13 @@
 (define (not x) (if x #f #t))
 
 (define-syntax when
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       `(,(rename 'if) ,(cadr form)
                       (,(rename 'begin) ,@(cddr form))))))
 
 (define-syntax unless
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       `(,(rename 'if) (,(rename 'not) ,(cadr form))
                       (,(rename 'begin) ,@(cddr form))))))
@@ -243,7 +243,7 @@
       (any-2+ f (cons x xs))))
 
 (define-syntax let
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (if (identifier? (cadr form))
           `(,(rename 'letrec) ((,(cadr form)
@@ -254,7 +254,7 @@
 
 
 (define-syntax let*
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (if (null? (cadr form))
           `(,(rename 'let) () ,@(cddr form))
@@ -263,7 +263,7 @@
                                             ,@(cddr form)))))))
 
 (define-syntax letrec*
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       `(,(rename 'let) ()
                        ,@(map (lambda (x) (cons (rename 'define) x))
@@ -281,7 +281,7 @@
 (define (memv o x) (member o x eqv?))
 
 (define-syntax case
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (define (body xs)
         (cond ((null? xs) (rename 'result))
@@ -306,7 +306,7 @@
                        ,(each-clause (cddr form))))))
 
 (define-syntax do
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (let ((body `(,(rename 'begin) ,@(cdddr form)
                                      (,(rename 'rec) ,@(map (lambda (x)

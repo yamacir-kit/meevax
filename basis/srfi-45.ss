@@ -25,12 +25,12 @@
         (force promise))))
 
 (define-syntax lazy
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       `(,(rename 'promise) #f (,(rename 'lambda) () ,(cadr form))))))
 
 (define-syntax delay
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       `(,(rename 'lazy) (,(rename 'promise) #t ,(cadr form))))))
 

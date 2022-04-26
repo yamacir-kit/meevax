@@ -142,7 +142,7 @@
 ;                      bindings (tmp ... (a x)) body))))))
 
 (define-syntax let-values
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (if (null? (cadr form))
           `(,(rename 'let) () ,@(cddr form))
@@ -163,7 +163,7 @@
 ;                               body0 body1 ...)))))
 
 (define-syntax let*-values
-  (experimental:er-macro-transformer
+  (er-macro-transformer
     (lambda (form rename compare)
       (if (null? (cadr form))
           `(,(rename 'let) () ,@(cddr form))
