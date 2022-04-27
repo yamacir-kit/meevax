@@ -86,16 +86,14 @@ inline namespace kernel
       return copy;
     }
 
-    auto global_environment() noexcept -> reference;
+    auto global() noexcept -> reference;
 
-    auto global_environment() const noexcept -> const_reference;
+    auto global() const noexcept -> const_reference;
 
     template <typename T, T... xs>
     auto import(std::integer_sequence<T, xs...>) -> void;
 
     auto import() -> void;
-
-    static auto is_identifier(const_reference) -> bool;
 
     auto load(std::string const&) -> object;
 

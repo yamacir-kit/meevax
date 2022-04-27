@@ -50,9 +50,9 @@ inline namespace kernel
 
   auto environment::define(const_reference name, const_reference value) -> void
   {
-    assert(is_identifier(name));
+    assert(name.is_also<identifier>());
 
-    global_environment() = make<absolute>(name, value) | global_environment();
+    global() = make<absolute>(name, value) | global();
   }
 
   auto environment::define(std::string const& name, const_reference value) -> void
@@ -108,12 +108,12 @@ inline namespace kernel
     return execute();
   }
 
-  auto environment::global_environment() const noexcept -> const_reference
+  auto environment::global() const noexcept -> const_reference
   {
     return second;
   }
 
-  auto environment::global_environment() noexcept -> reference
+  auto environment::global() noexcept -> reference
   {
     return second;
   }
@@ -126,11 +126,6 @@ inline namespace kernel
     define<procedure>("set-prompt!",      [this](let const& xs, auto&&...) { return prompt      = car(xs); });
     define<procedure>("set-trace!",       [this](let const& xs, auto&&...) { return trace       = car(xs); });
     define<procedure>("set-verbose!",     [this](let const& xs, auto&&...) { return verbose     = car(xs); });
-  }
-
-  auto environment::is_identifier(const_reference x) -> bool
-  {
-    return x.is<symbol>() or x.is<syntactic_closure>();
   }
 
   auto environment::load(std::string const& s) -> object
@@ -162,7 +157,7 @@ inline namespace kernel
 
   auto environment::identify(const_reference variable, const_reference scope) const -> object
   {
-    if (not is_identifier(variable))
+    if (not variable.is_also<identifier>())
     {
       return f;
     }
@@ -172,13 +167,13 @@ inline namespace kernel
     }
     else
     {
-      return assq(variable, global_environment());
+      return assq(variable, global());
     }
   }
 
   auto environment::identify(const_reference variable, const_reference scope) -> object
   {
-    if (not is_identifier(variable))
+    if (not variable.is_also<identifier>())
     {
       return f;
     }
@@ -205,7 +200,7 @@ inline namespace kernel
     {
       define(variable);
 
-      return car(global_environment());
+      return car(global());
     }
   }
 
