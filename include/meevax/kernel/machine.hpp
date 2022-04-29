@@ -106,16 +106,24 @@ inline namespace kernel
 
       let const expression;
 
+      let const identity;
+
       explicit syntactic_closure(let const& syntactic_environment,
-                                 let const&,
+                                 let const&, // Currently ignored
                                  let const& expression)
         : enclosure { syntactic_environment }
         , expression { expression }
+        , identity { identify() }
       {}
 
       auto identify()
       {
         return enclosure.as<environment>().identify(expression, enclosure.as<environment>().scope());
+      }
+
+      friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
+      {
+        return eqv(x.identity, y.identity);
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &

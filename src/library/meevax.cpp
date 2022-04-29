@@ -1963,50 +1963,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<predicate>("free-identifier=?", [](let const& xs)
-    {
-      auto is_same_free_identifier = [](let const& x, let const& y)
-      {
-        // std::cout << "; ---- free-identifier=? -------------------------------------------------------" << std::endl;
-        // std::cout << "; x = " << x << std::endl;
-        // std::cout << "; y = " << y << std::endl;
-
-        let const& identity_of_x = x.as<syntactic_closure>().identify();
-        // std::cout << "; x identity is " << identity_of_x << std::endl;
-        // std::cout << ";            is absolute? " << std::boolalpha << identity_of_x.is<absolute>() << std::endl;
-        // std::cout << ";            is relative? " << std::boolalpha << identity_of_x.is<relative>() << std::endl;
-        // std::cout << ";            is variadic? " << std::boolalpha << identity_of_x.is<variadic>() << std::endl;
-
-        auto x_is_free = identity_of_x.is_also<identity>() and
-                         identity_of_x.as<identity>().is_free();
-        // std::cout << ";            is free? " << std::boolalpha << x_is_free << std::endl;
-
-        let const& identity_of_y = y.as<syntactic_closure>().identify();
-        // std::cout << "; y identity is " << identity_of_y << std::endl;
-        // std::cout << ";            is absolute? " << std::boolalpha << identity_of_y.is<absolute>() << std::endl;
-        // std::cout << ";            is relative? " << std::boolalpha << identity_of_y.is<relative>() << std::endl;
-        // std::cout << ";            is variadic? " << std::boolalpha << identity_of_y.is<variadic>() << std::endl;
-
-        auto y_is_free = identity_of_y.is_also<identity>() and
-                         identity_of_y.as<identity>().is_free();
-        // std::cout << ";            is free? " << std::boolalpha << y_is_free << std::endl;
-
-        auto is_same_identity = eq(identity_of_x, identity_of_y);
-        // std::cout << "; is same identity? = " << std::boolalpha << is_same_identity << std::endl;
-
-        auto both_free = x_is_free and y_is_free;
-        // std::cout << "; both free? = " << std::boolalpha << both_free << std::endl;
-
-        auto both_same_unbound = both_free and
-                                 eqv(x.as<syntactic_closure>().expression,
-                                     y.as<syntactic_closure>().expression);
-        // std::cout << "; both same unbound? = " << std::boolalpha << both_same_unbound << std::endl;
-
-        return is_same_identity or both_same_unbound;
-      };
-
-      return is_same_free_identifier(car(xs), cadr(xs));
-    });
+    // define<predicate>("free-identifier=?", [](let const& xs)
+    // {
+    //   return f;
+    // });
 
     /* -------------------------------------------------------------------------
      *
