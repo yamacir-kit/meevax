@@ -17,11 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_IDENTITY_HPP
 #define INCLUDED_MEEVAX_KERNEL_IDENTITY_HPP
 
-#include <meevax/kernel/ghost.hpp>
-#include <meevax/kernel/instruction.hpp>
-#include <meevax/kernel/list.hpp>
 #include <meevax/kernel/pair.hpp>
-#include <meevax/kernel/symbol.hpp>
 
 namespace meevax
 {
@@ -35,62 +31,34 @@ inline namespace kernel
 
     virtual auto is_free() const -> bool = 0;
 
+    virtual auto load(const_reference e) -> reference;
+
+    virtual auto load(const_reference) const -> const_reference = 0;
+
     virtual auto make_load_instruction() const -> object = 0;
 
     virtual auto make_store_instruction() const -> object = 0;
 
-    virtual auto load(const_reference) const -> const_reference = 0;
-
-    virtual auto load(const_reference e) -> reference
-    {
-      return const_cast<reference>(std::as_const(*this).load(e));
-    }
-
-    virtual auto symbol() const -> const_reference
-    {
-      assert(first.is<meevax::symbol>());
-      return first;
-    }
-
-    friend auto operator <<(std::ostream & os, identity const& datum) -> std::ostream &
-    {
-      return os << magenta("#,(") << blue("identity ") << datum.symbol() << magenta(")");
-    }
+    virtual auto symbol() const -> const_reference;
   };
+
+  auto operator <<(std::ostream & os, identity const& datum) -> std::ostream &;
 
   struct absolute : public identity
   {
     using identity::identity;
 
-    auto is_bound() const -> bool override
-    {
-      return not is_free();
-    }
+    auto is_bound() const -> bool override;
 
-    auto is_free() const -> bool override
-    {
-      return load().is<unbound>();
-    }
+    auto is_free() const -> bool override;
 
-    auto make_load_instruction() const -> object override
-    {
-      return make<instruction>(mnemonic::load_absolute);
-    }
+    auto load(const_reference = unit) -> reference override;
 
-    auto make_store_instruction() const -> object override
-    {
-      return make<instruction>(mnemonic::store_absolute);
-    }
+    auto load(const_reference = unit) const -> const_reference override;
 
-    auto load(const_reference = unit) const -> const_reference override
-    {
-      return second;
-    }
+    auto make_load_instruction() const -> object override;
 
-    auto load(const_reference = unit) -> reference override
-    {
-      return second;
-    }
+    auto make_store_instruction() const -> object override;
   };
 
   struct keyword : public absolute
@@ -102,50 +70,26 @@ inline namespace kernel
   {
     using identity::identity;
 
-    auto is_bound() const -> bool override
-    {
-      return true;
-    }
+    auto is_bound() const -> bool override;
 
-    auto is_free() const -> bool override
-    {
-      return false;
-    }
+    auto is_free() const -> bool override;
 
-    auto make_load_instruction() const -> object override
-    {
-      return make<instruction>(mnemonic::load_relative);
-    }
+    auto load(const_reference) const -> const_reference override;
 
-    auto make_store_instruction() const -> object override
-    {
-      return make<instruction>(mnemonic::store_relative);
-    }
+    auto make_load_instruction() const -> object override;
 
-    auto load(const_reference e) const -> const_reference override
-    {
-      return list_ref(list_ref(e, car(second)), cdr(second));
-    }
+    auto make_store_instruction() const -> object override;
   };
 
   struct variadic : public relative // (<symbol> . <de Bruijn index>) = (<symbol> <integer> . <integer>)
   {
     using relative::relative;
 
-    auto make_load_instruction() const -> object override
-    {
-      return make<instruction>(mnemonic::load_variadic);
-    }
+    auto load(const_reference e) const -> const_reference override;
 
-    auto make_store_instruction() const -> object override
-    {
-      return make<instruction>(mnemonic::store_variadic);
-    }
+    auto make_load_instruction() const -> object override;
 
-    auto load(const_reference e) const -> const_reference override
-    {
-      return list_tail(list_ref(e, car(second)), cdr(second));
-    }
+    auto make_store_instruction() const -> object override;
   };
 } // namespace kernel
 } // namespace meevax
