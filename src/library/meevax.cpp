@@ -1977,8 +1977,8 @@ namespace meevax
         // std::cout << ";            is relative? " << std::boolalpha << identity_of_x.is<relative>() << std::endl;
         // std::cout << ";            is variadic? " << std::boolalpha << identity_of_x.is<variadic>() << std::endl;
 
-        auto x_is_free = identity_of_x.is<absolute>() and
-                         identity_of_x.as<absolute>().is_free();
+        auto x_is_free = identity_of_x.is_also<identity>() and
+                         identity_of_x.as<identity>().is_free();
         // std::cout << ";            is free? " << std::boolalpha << x_is_free << std::endl;
 
         let const& identity_of_y = y.as<syntactic_closure>().identify();
@@ -1987,8 +1987,8 @@ namespace meevax
         // std::cout << ";            is relative? " << std::boolalpha << identity_of_y.is<relative>() << std::endl;
         // std::cout << ";            is variadic? " << std::boolalpha << identity_of_y.is<variadic>() << std::endl;
 
-        auto y_is_free = identity_of_y.is<absolute>() and
-                         identity_of_y.as<absolute>().is_free();
+        auto y_is_free = identity_of_y.is_also<identity>() and
+                         identity_of_y.as<identity>().is_free();
         // std::cout << ";            is free? " << std::boolalpha << y_is_free << std::endl;
 
         auto is_same_identity = eq(identity_of_x, identity_of_y);
