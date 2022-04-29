@@ -60,14 +60,6 @@ inline namespace kernel
     auto make_load_instruction() const -> object override;
 
     auto make_store_instruction() const -> object override;
-
-    friend auto operator ==(absolute const& x, absolute const& y) -> bool
-    {
-      return x.is_free() and
-             y.is_free() and
-             eq(x.symbol(),
-                y.symbol());
-    }
   };
 
   struct keyword : public absolute
@@ -88,12 +80,9 @@ inline namespace kernel
     auto make_load_instruction() const -> object override;
 
     auto make_store_instruction() const -> object override;
-
-    friend auto operator ==(relative const&, relative const&) -> bool
-    {
-      return false;
-    }
   };
+
+  auto operator ==(relative const&, relative const&) -> bool;
 
   struct variadic : public relative // (<symbol> . <de Bruijn index>) = (<symbol> <integer> . <integer>)
   {

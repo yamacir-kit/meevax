@@ -95,6 +95,11 @@ inline namespace kernel
     return make<instruction>(mnemonic::store_relative);
   }
 
+  auto operator ==(relative const&, relative const&) -> bool
+  {
+    return false; // No viable comparison.
+  }
+
   auto variadic::load(const_reference e) const -> const_reference
   {
     return list_tail(list_ref(e, car(second)), cdr(second));
