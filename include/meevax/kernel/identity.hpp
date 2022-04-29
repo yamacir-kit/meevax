@@ -39,11 +39,11 @@ inline namespace kernel
 
     virtual auto make_store_instruction() const -> object = 0;
 
-    virtual auto strip(const_reference) const -> const_reference = 0;
+    virtual auto load(const_reference) const -> const_reference = 0;
 
-    virtual auto strip(const_reference e) -> reference
+    virtual auto load(const_reference e) -> reference
     {
-      return const_cast<reference>(std::as_const(*this).strip(e));
+      return const_cast<reference>(std::as_const(*this).load(e));
     }
 
     virtual auto symbol() const -> const_reference
@@ -69,7 +69,7 @@ inline namespace kernel
 
     auto is_free() const -> bool override
     {
-      return strip().is<unbound>();
+      return load().is<unbound>();
     }
 
     auto make_load_instruction() const -> object override
@@ -82,12 +82,12 @@ inline namespace kernel
       return make<instruction>(mnemonic::store_absolute);
     }
 
-    auto strip(const_reference = unit) const -> const_reference override
+    auto load(const_reference = unit) const -> const_reference override
     {
       return second;
     }
 
-    auto strip(const_reference = unit) -> reference override
+    auto load(const_reference = unit) -> reference override
     {
       return second;
     }
@@ -122,7 +122,7 @@ inline namespace kernel
       return make<instruction>(mnemonic::store_relative);
     }
 
-    auto strip(const_reference e) const -> const_reference override
+    auto load(const_reference e) const -> const_reference override
     {
       return list_ref(list_ref(e, car(second)), cdr(second));
     }
@@ -142,7 +142,7 @@ inline namespace kernel
       return make<instruction>(mnemonic::store_variadic);
     }
 
-    auto strip(const_reference e) const -> const_reference override
+    auto load(const_reference e) const -> const_reference override
     {
       return list_tail(list_ref(e, car(second)), cdr(second));
     }

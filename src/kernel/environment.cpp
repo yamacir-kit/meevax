@@ -22,7 +22,7 @@ inline namespace kernel
 {
   auto environment::operator [](const_reference name) -> const_reference
   {
-    return identify(name, scope()).as<absolute>().strip();
+    return identify(name, scope()).as<absolute>().load();
   }
 
   auto environment::operator [](std::string const& name) -> const_reference

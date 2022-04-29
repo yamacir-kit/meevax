@@ -206,15 +206,15 @@ inline namespace kernel
       }
       else if (let const& id = std::as_const(current_environment).identify(car(current_expression), current_scope); id.is<keyword>())
       {
-        assert(id.as<keyword>().strip().is_also<transformer>());
+        assert(id.as<keyword>().load().is_also<transformer>());
 
         return compile(context::none,
                        current_environment,
-                       id.as<keyword>().strip().as<transformer>().expand(current_expression, current_environment.fork(current_scope)),
+                       id.as<keyword>().load().as<transformer>().expand(current_expression, current_environment.fork(current_scope)),
                        current_scope,
                        current_continuation);
       }
-      else if (let const& applicant = id.is<absolute>() ? id.as<absolute>().strip() : car(current_expression); applicant.is_also<syntax>())
+      else if (let const& applicant = id.is<absolute>() ? id.as<absolute>().load() : car(current_expression); applicant.is_also<syntax>())
       {
         return applicant.as<syntax>().compile(current_context,
                                               current_environment,
@@ -324,7 +324,7 @@ inline namespace kernel
         *        x = (list-tail (list-ref e i) j)
         *
         * ------------------------------------------------------------------- */
-        s = cons(cadr(c).template as<identity>().strip(e), s);
+        s = cons(cadr(c).template as<identity>().load(e), s);
         c = cddr(c);
         goto decode;
 
@@ -397,7 +397,7 @@ inline namespace kernel
         *  where <identity> = (<symbol> . x := x')
         *
         * ------------------------------------------------------------------- */
-        cadr(c).template as<absolute>().strip() = car(s);
+        cadr(c).template as<absolute>().load() = car(s);
         c = cddr(c);
         goto decode;
 
@@ -409,7 +409,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         assert(car(s).template is<closure>());
-        cadr(c).template as<absolute>().strip() = make<transformer>(car(s), static_cast<environment const&>(*this).fork(unit));
+        cadr(c).template as<absolute>().load() = make<transformer>(car(s), static_cast<environment const&>(*this).fork(unit));
         c = cddr(c);
         goto decode;
 
@@ -422,7 +422,7 @@ inline namespace kernel
         {
           for (let const& keyword_ : car(cadr(c).template as<syntactic_continuation>().scope()))
           {
-            let & binding = keyword_.as<keyword>().strip();
+            let & binding = keyword_.as<keyword>().load();
 
             let const& f = environment(static_cast<environment const&>(*this)).execute(binding);
 
@@ -628,7 +628,7 @@ inline namespace kernel
         *  (x . s) e (%store-variadic <variadic identity> . c) d => (x . s) e c d
         *
         * ------------------------------------------------------------------- */
-        cadr(c).template as<identity>().strip(e) = car(s);
+        cadr(c).template as<identity>().load(e) = car(s);
         c = cddr(c);
         goto decode;
 
@@ -715,7 +715,7 @@ inline namespace kernel
         {
           if (let const& id = std::as_const(current_environment).identify(car(form), current_scope); id.is<absolute>())
           {
-            if (let const& callee = id.as<absolute>().strip(); callee.is<syntax>())
+            if (let const& callee = id.as<absolute>().load(); callee.is<syntax>())
             {
               return callee.as<syntax>().name == "define";
             }
