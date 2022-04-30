@@ -22,7 +22,7 @@ inline namespace kernel
 {
   auto environment::operator [](const_reference name) -> const_reference
   {
-    return notate(name, scope()).as<absolute>().strip();
+    return identify(name, scope()).as<absolute>().load();
   }
 
   auto environment::operator [](std::string const& name) -> const_reference
@@ -50,9 +50,9 @@ inline namespace kernel
 
   auto environment::define(const_reference name, const_reference value) -> void
   {
-    assert(is_identifier(name));
+    assert(name.is_also<identifier>());
 
-    global_environment() = make<absolute>(name, value) | global_environment();
+    global() = make<absolute>(name, value) | global();
   }
 
   auto environment::define(std::string const& name, const_reference value) -> void
@@ -108,12 +108,12 @@ inline namespace kernel
     return execute();
   }
 
-  auto environment::global_environment() const noexcept -> const_reference
+  auto environment::global() const noexcept -> const_reference
   {
     return second;
   }
 
-  auto environment::global_environment() noexcept -> reference
+  auto environment::global() noexcept -> reference
   {
     return second;
   }
@@ -126,11 +126,6 @@ inline namespace kernel
     define<procedure>("set-prompt!",      [this](let const& xs, auto&&...) { return prompt      = car(xs); });
     define<procedure>("set-trace!",       [this](let const& xs, auto&&...) { return trace       = car(xs); });
     define<procedure>("set-verbose!",     [this](let const& xs, auto&&...) { return verbose     = car(xs); });
-  }
-
-  auto environment::is_identifier(const_reference x) -> bool
-  {
-    return x.is<symbol>() or x.is<syntactic_closure>();
   }
 
   auto environment::load(std::string const& s) -> object
@@ -160,31 +155,31 @@ inline namespace kernel
     return first;
   }
 
-  auto environment::notate(const_reference variable, const_reference scope) const -> object
+  auto environment::identify(const_reference variable, const_reference scope) const -> object
   {
-    if (not is_identifier(variable))
+    if (not variable.is_also<identifier>())
     {
       return f;
     }
-    else if (let const& notation = machine::notate(variable, scope); select(notation))
+    else if (let const& identity = machine::identify(variable, scope); select(identity))
     {
-      return notation;
+      return identity;
     }
     else
     {
-      return assq(variable, global_environment());
+      return assq(variable, global());
     }
   }
 
-  auto environment::notate(const_reference variable, const_reference scope) -> object
+  auto environment::identify(const_reference variable, const_reference scope) -> object
   {
-    if (not is_identifier(variable))
+    if (not variable.is_also<identifier>())
     {
       return f;
     }
-    if (let const& notation = std::as_const(*this).notate(variable, scope); select(notation))
+    if (let const& id = std::as_const(*this).identify(variable, scope); select(id))
     {
-      return notation;
+      return id;
     }
     else /* --------------------------------------------------------------------
     *
@@ -203,7 +198,9 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return reserve(variable);
+      define(variable);
+
+      return car(global());
     }
   }
 
