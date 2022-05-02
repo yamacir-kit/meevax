@@ -6,7 +6,7 @@ on:
 jobs:
   Ubuntu:
     runs-on: ${{ matrix.system }}
-    timeout-minutes: 240
+    timeout-minutes: 360
     env:
       CXX: ${{ matrix.compiler }}
     strategy:
