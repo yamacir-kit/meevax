@@ -202,50 +202,50 @@
 
 (check `#(10 5 ,(sqrt 4) ,@(map sqrt '(16 9)) 8) => #(10 5 2 4 3 8))
 
-; (check `(a `(b ,(+ 1 2) ,(foo ,(+ 1 3) d) e) f) => (a `(b ,(+ 1 2) ,(foo 4 d) e) f)) ; ERROR
+(check `(a `(b ,(+ 1 2) ,(foo ,(+ 1 3) d) e) f) => (a `(b ,(+ 1 2) ,(foo 4 d) e) f))
 
-; (check (let ((name1 'x)
-;              (name2 'y))
-;          `(a `(b ,,name1 ,'mname2 d) e)) => (a `(b ,x ,'y d) e)) ; ERROR
+(check (let ((name1 'x)
+             (name2 'y))
+         `(a `(b ,,name1 ,',name2 d) e)) => (a `(b ,x ,'y d) e))
 
 ; ---- 4.3.1 -------------------------------------------------------------------
 
-; (check (let-syntax ((when (syntax-rules ()
-;                             ((when test stmt1 stmt2 ...)
-;                              (if test
-;                                  (begin stmt1
-;                                         stmt2 ...))))))
-;          (let ((if #t))
-;            (when if (set! if 'now))
-;            if)) => now)
+(check (let-syntax ((when (syntax-rules ()
+                            ((when test stmt1 stmt2 ...)
+                             (if test
+                                 (begin stmt1
+                                        stmt2 ...))))))
+         (let ((if #t))
+           (when if (set! if 'now))
+           if)) => now)
 
-; (check (let ((x 'outer))
-;          (let-syntax ((m (syntax-rules () ((m) x))))
-;            (let ((x 'inner))
-;              (m)))) => outer) ; ERROR
+(check (let ((x 'outer))
+         (let-syntax ((m (syntax-rules () ((m) x))))
+           (let ((x 'inner))
+             (m)))) => outer)
 
-; (check (letrec-syntax ((my-or (syntax-rules ()
-;                                 ((my-or) #f)
-;                                 ((my-or e) e)
-;                                 ((my-or e1 e2 ...)
-;                                  (let ((temp e1))
-;                                    (if temp
-;                                        temp
-;                                        (my-or e2 ...)))))))
-;          (let ((x #f)
-;                (y 7)
-;                (temp 8)
-;                (let odd?)
-;                (if even?))
-;            (my-or x
-;                   (let temp)
-;                   (if y)
-;                   y))) => 7)
+(check (letrec-syntax ((my-or (syntax-rules ()
+                                ((my-or) #f)
+                                ((my-or e) e)
+                                ((my-or e1 e2 ...)
+                                 (let ((temp e1))
+                                   (if temp
+                                       temp
+                                       (my-or e2 ...)))))))
+         (let ((x #f)
+               (y 7)
+               (temp 8)
+               (let odd?)
+               (if even?))
+           (my-or x
+                  (let temp)
+                  (if y)
+                  y))) => 7)
 
 ; ---- 4.3.2 -------------------------------------------------------------------
 
-; (check (let ((=> #f))
-;          (cond (#t => 'ok))) => ok) ; ERROR
+(check (let ((=> #f))
+         (cond (#t => 'ok))) => ok)
 
 ; ---- 5.2.1 -------------------------------------------------------------------
 

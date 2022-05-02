@@ -79,6 +79,11 @@ inline namespace kernel
 
     auto execute(const_reference) -> object;
 
+    auto fork() const
+    {
+      return make<environment>(*this);
+    }
+
     auto fork(const_reference scope) const // DIRTY HACK!!!
     {
       let const copy = make<environment>(*this);

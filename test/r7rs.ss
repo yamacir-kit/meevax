@@ -355,29 +355,16 @@
 ;            if)) => now)
 
 (check (let ((x 'outer))
-         (let-syntax ((m ; (syntax-rules () ((m) x)) ; BUG
-                        (er-macro-transformer
-                          (lambda (form rename compare)
-                            (list (rename 'quote) x)))))
+         (let-syntax ((m (syntax-rules () ((m) x))))
            (let ((x 'inner))
              (m)))) => outer)
 
-(check (letrec-syntax ((my-or ; (syntax-rules ()
-                              ;   ((my-or) #f)
-                              ;   ((my-or e) e)
-                              ;   ((my-or e1 e2 ...)
-                              ;    (let ((temp e1))
-                              ;      (if temp temp (my-or e2 ...)))))
-                              (er-macro-transformer
-                                (lambda (form rename compare)
-                                  (cond ((null? (cdr form)) #f)
-                                        ((null? (cddr form)) (cadr form))
-                                        (else (list (rename 'let)
-                                                    (list (list (rename 'test) (cadr form)))
-                                                    (list (rename 'if)
-                                                          (rename 'test)
-                                                          (rename 'test)
-                                                          (cons (rename 'my-or) (cddr form))))))))))
+(check (letrec-syntax ((my-or (syntax-rules ()
+                                ((my-or) #f)
+                                ((my-or e) e)
+                                ((my-or e1 e2 ...)
+                                 (let ((temp e1))
+                                   (if temp temp (my-or e2 ...)))))))
          (let ((x #f)
                (y 7)
                (temp 8)
@@ -404,9 +391,9 @@
 
 ; (define-syntax simple-let
 ;   (syntax-rules ()
-;     (((head ... ((x . y) val) . tail) body1 body2 ...)
+;     ((_ (head ... ((x . y) val) . tail) body1 body2 ...)
 ;      (syntax-error "expected an identifier but got" (x . y)))
-;     ((((name val) ...) body1 body2 ...)
+;     ((_ ((name val) ...) body1 body2 ...)
 ;      ((lambda (name ...) body1 body2 ...) val ...))))
 
 ; ---- 5.3.1. Top level definitions --------------------------------------------

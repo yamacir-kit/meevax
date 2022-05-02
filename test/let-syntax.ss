@@ -41,23 +41,23 @@
 
 ; ------------------------------------------------------------------------------
 
-; (check (let ((x 'outer))
-;          (let-syntax ((m (er-macro-transformer
-;                            (lambda (form rename compare)
-;                              (rename 'x)))))
-;            (let ((x 'inner))
-;              (m)))) => outer)
-;
-; (define result
-;   (let ((x 'outer))
-;     (let-syntax ((m (er-macro-transformer
-;                       (lambda (form rename compare)
-;                         (rename 'x)))))
-;       (let ((x 'inner))
-;         (m)))))
-;
-; (check result => outer)
+(check (let ((x 'outer))
+         (let-syntax ((m (er-macro-transformer
+                           (lambda (form rename compare)
+                             (rename 'x)))))
+           (let ((x 'inner))
+             (m)))) => outer)
 
-(check-report)
+(define result
+  (let ((x 'outer))
+    (let-syntax ((m (er-macro-transformer
+                      (lambda (form rename compare)
+                        (rename 'x)))))
+      (let ((x 'inner))
+        (m)))))
+
+(check result => outer)
+
+; (check-report)
 
 (exit (check-passed? check:correct))

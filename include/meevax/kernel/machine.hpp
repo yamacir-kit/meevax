@@ -100,7 +100,7 @@ inline namespace kernel
 
     struct syntactic_closure : public identifier
     {
-      let const enclosure;
+      let const syntactic_environment;
 
       let const free_variables = unit;
 
@@ -111,14 +111,14 @@ inline namespace kernel
       explicit syntactic_closure(let const& syntactic_environment,
                                  let const&, // Currently ignored
                                  let const& expression)
-        : enclosure { syntactic_environment }
+        : syntactic_environment { syntactic_environment }
         , expression { expression }
         , identity { identify() }
       {}
 
       auto identify()
       {
-        return enclosure.as<environment>().identify(expression, enclosure.as<environment>().scope());
+        return syntactic_environment.as<environment>().identify(expression, syntactic_environment.as<environment>().scope());
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -128,7 +128,7 @@ inline namespace kernel
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
       {
-        return os << magenta("#,(") << blue("make-syntactic-closure ") << datum.enclosure << " " << magenta("'") << datum.free_variables << " " << magenta("'") << datum.expression << magenta(")");
+        return os << magenta("#,(") << blue("make-syntactic-closure ") << datum.syntactic_environment << " " << magenta("'") << datum.free_variables << " " << magenta("'") << datum.expression << magenta(")");
       }
     };
 
@@ -200,9 +200,9 @@ inline namespace kernel
           else
           {
             return compile(current_context,
-                           current_expression.as<syntactic_closure>().enclosure.template as<environment>(),
+                           current_expression.as<syntactic_closure>().syntactic_environment.template as<environment>(),
                            current_expression.as<syntactic_closure>().expression,
-                           current_expression.as<syntactic_closure>().enclosure.template as<environment>().scope(),
+                           current_expression.as<syntactic_closure>().syntactic_environment.template as<environment>().scope(),
                            current_continuation);
           }
         }
@@ -417,7 +417,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         assert(car(s).template is<closure>());
-        cadr(c).template as<absolute>().load() = make<transformer>(car(s), static_cast<environment const&>(*this).fork(unit));
+        cadr(c).template as<absolute>().load() = make<transformer>(car(s), static_cast<environment const&>(*this).fork());
         c = cddr(c);
         goto decode;
 
@@ -434,7 +434,7 @@ inline namespace kernel
 
             let const& f = environment(static_cast<environment const&>(*this)).execute(binding);
 
-            binding = make<transformer>(f, static_cast<environment const&>(*this).fork(unit));
+            binding = make<transformer>(f, static_cast<environment const&>(*this).fork(cadr(c).template as<syntactic_continuation>().scope()));
           }
         }();
 
@@ -455,21 +455,22 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         [&]() // DIRTY HACK!!!
         {
-          auto env = environment(static_cast<environment const&>(*this));
+          let const syntactic_environment
+            = static_cast<environment const&>(*this).fork(cadr(c).template as<syntactic_continuation>().scope());
 
           auto const [transformer_specs, body] = unpair(cadr(c).template as<syntactic_continuation>().expression());
 
           for (let const& transformer_spec : transformer_specs)
           {
-            env.execute(compile(context::outermost,
-                                env,
-                                cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
-                                cadr(c).template as<syntactic_continuation>().scope()));
+            syntactic_environment.as<environment>().execute(compile(context::outermost,
+                                                                    syntactic_environment.as<environment>(),
+                                                                    cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
+                                                                    cadr(c).template as<syntactic_continuation>().scope()));
           }
 
           std::swap(c.as<pair>(),
                     machine::body(context::outermost,
-                                  env,
+                                  syntactic_environment.as<environment>(),
                                   body,
                                   cadr(c).template as<syntactic_continuation>().scope(),
                                   cddr(c)
