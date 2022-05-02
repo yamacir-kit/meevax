@@ -61,11 +61,23 @@ inline namespace kernel
 
     explicit environment(master_t);
 
-    template <typename... Ts, REQUIRES(is_integer_sequence<Ts>...)>
+    template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
     explicit environment(Ts&&... xs)
       : environment { master }
     {
-      import(), (import(xs), ...);
+      auto import = [](auto&& x)
+      {
+        std::cout << x << std::endl;
+      };
+
+      (import(xs), ...);
+
+      define<procedure>("set-batch!",       [this](let const& xs, auto&&...) { return batch       = car(xs); });
+      define<procedure>("set-debug!",       [this](let const& xs, auto&&...) { return debug       = car(xs); });
+      define<procedure>("set-interactive!", [this](let const& xs, auto&&...) { return interactive = car(xs); });
+      define<procedure>("set-prompt!",      [this](let const& xs, auto&&...) { return prompt      = car(xs); });
+      define<procedure>("set-trace!",       [this](let const& xs, auto&&...) { return trace       = car(xs); });
+      define<procedure>("set-verbose!",     [this](let const& xs, auto&&...) { return verbose     = car(xs); });
     }
 
     auto operator [](const_reference) -> const_reference;
@@ -105,8 +117,6 @@ inline namespace kernel
     auto global() noexcept -> reference;
 
     auto global() const noexcept -> const_reference;
-
-    auto import() -> void;
 
     auto load(std::string const&) -> object;
 
