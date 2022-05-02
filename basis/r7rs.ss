@@ -28,8 +28,7 @@
 
 (define-syntax case ; errata version
   (syntax-rules (else =>)
-    ((case (key ...)
-       clauses ...)
+    ((case (key ...) clauses ...)
      (let ((atom-key (key ...)))
        (case atom-key clauses ...)))
     ((case key
@@ -42,19 +41,14 @@
        ((atoms ...) => result))
      (if (memv key '(atoms ...))
          (result key)))
-    ((case key
-       ((atoms ...) => result)
-       clause clauses ...)
+    ((case key ((atoms ...) => result) clause clauses ...)
      (if (memv key '(atoms ...))
          (result key)
          (case key clause clauses ...)))
-    ((case key
-       ((atoms ...) result1 result2 ...))
+    ((case key ((atoms ...) result1 result2 ...))
      (if (memv key '(atoms ...))
          (begin result1 result2 ...)))
-    ((case key
-       ((atoms ...) result1 result2 ...)
-       clause clauses ...)
+    ((case key ((atoms ...) result1 result2 ...) clause clauses ...)
      (if (memv key '(atoms ...))
          (begin result1 result2 ...)
          (case key clause clauses ...)))))
@@ -111,65 +105,56 @@
        ...
        (let () body1 body2 ...)))))
 
-; (define-syntax let-values
-;   (syntax-rules ()
-;     ((let-values (binding ...) body0 body1 ...)
-;      (let-values "bind"
-;                  (binding ...) () (begin body0 body1 ...)))
-;     ((let-values "bind" () tmps body)
-;      (let tmps body))
-;     ((let-values "bind" ((b0 e0)
-;                          binding ...) tmps body)
-;      (let-values "mktmp" b0 e0 ()
-;                  (binding ...) tmps body))
-;     ((let-values "mktmp" () e0 args
-;                  bindings tmps body)
-;      (call-with-values
-;        (lambda () e0)
-;        (lambda args
-;          (let-values "bind"
-;                      bindings tmps body))))
-;     ((let-values "mktmp" (a . b) e0 (arg ...)
-;                  bindings (tmp ...) body)
-;      (let-values "mktmp" b e0 (arg ... x)
-;                  bindings (tmp ... (a x)) body))
-;     ((let-values "mktmp" a e0 (arg ...)
-;                  bindings (tmp ...) body)
-;      (call-with-values
-;        (lambda () e0)
-;        (lambda (arg ... . x)
-;          (let-values "bind"
-;                      bindings (tmp ... (a x)) body))))))
-
 (define-syntax let-values
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (if (null? (cadr form))
-          `(,(rename 'let) () ,@(cddr form))
-          `(,(rename 'call-with-values)
-             (,(rename 'lambda) () ,(cadar (cadr form)))
-             (,(rename 'lambda) ,(caar (cadr form))
-                                (,(rename 'let-values) ,(cdr (cadr form))
-                                                       ,@(cddr form))))))))
+  (syntax-rules ()
+    ((let-values (binding ...) body0 body1 ...)
+     (let-values "bind" (binding ...) () (begin body0 body1 ...)))
+    ((let-values "bind" () tmps body)
+     (let tmps body))
+    ((let-values "bind" ((b0 e0) binding ...) tmps body)
+     (let-values "mktmp" b0 e0 () (binding ...) tmps body))
+    ((let-values "mktmp" () e0 args bindings tmps body)
+     (call-with-values
+       (lambda () e0)
+       (lambda args
+         (let-values "bind" bindings tmps body))))
+    ((let-values "mktmp" (a . b) e0 (arg ...) bindings (tmp ...) body)
+     (let-values "mktmp" b e0 (arg ... x) bindings (tmp ... (a x)) body))
+    ((let-values "mktmp" a e0 (arg ...) bindings (tmp ...) body)
+     (call-with-values
+       (lambda () e0)
+       (lambda (arg ... . x)
+         (let-values "bind" bindings (tmp ... (a x)) body))))))
 
-; (define-syntax let*-values
-;   (syntax-rules ()
-;     ((let*-values () body0 body1 ...)
-;      (let () body0 body1 ...))
-;     ((let*-values (binding0 binding1 ...)
-;                   body0 body1 ...)
-;      (let-values (binding0)
-;                  (let*-values (binding1 ...)
-;                               body0 body1 ...)))))
+; (define-syntax let-values
+;   (er-macro-transformer
+;     (lambda (form rename compare)
+;       (if (null? (cadr form))
+;           `(,(rename 'let) () ,@(cddr form))
+;           `(,(rename 'call-with-values)
+;              (,(rename 'lambda) () ,(cadar (cadr form)))
+;              (,(rename 'lambda) ,(caar (cadr form))
+;                                 (,(rename 'let-values) ,(cdr (cadr form))
+;                                                        ,@(cddr form))))))))
 
 (define-syntax let*-values
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (if (null? (cadr form))
-          `(,(rename 'let) () ,@(cddr form))
-          `(,(rename 'let-values) (,(caadr form))
-                                  (,(rename 'let*-values) ,(cdadr form)
-                                                          ,@(cddr form)))))))
+  (syntax-rules ()
+    ((let*-values () body0 body1 ...)
+     (let () body0 body1 ...))
+    ((let*-values (binding0 binding1 ...)
+                  body0 body1 ...)
+     (let-values (binding0)
+                 (let*-values (binding1 ...)
+                              body0 body1 ...)))))
+
+; (define-syntax let*-values
+;   (er-macro-transformer
+;     (lambda (form rename compare)
+;       (if (null? (cadr form))
+;           `(,(rename 'let) () ,@(cddr form))
+;           `(,(rename 'let-values) (,(caadr form))
+;                                   (,(rename 'let*-values) ,(cdadr form)
+;                                                           ,@(cddr form)))))))
 
 ; ---- 4.2.3. Sequencing -------------------------------------------------------
 

@@ -658,11 +658,10 @@
 ;     (apply consumer xs)))
 
 (define (call-with-values producer consumer)
-  ((lambda (vs)
+  (let ((vs (producer)))
      (if (values? vs)
          (apply consumer (cdr vs))
-         (consumer vs)))
-   (producer)))
+         (consumer vs))))
 
 ; ---- 6.11. Exceptions --------------------------------------------------------
 
