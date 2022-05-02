@@ -21,7 +21,6 @@
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/writer.hpp>
-#include <meevax/utility/integer_sequence.hpp>
 
 namespace meevax
 {
