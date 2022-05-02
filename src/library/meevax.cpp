@@ -26,7 +26,7 @@ namespace meevax
     define<syntax>("begin", machine::begin);
     define<syntax>("call-with-current-continuation!", call_with_current_continuation);
     define<syntax>("define", machine::define);
-    define<syntax>("experimental:define-syntax", define_syntax);
+    define<syntax>("define-syntax", define_syntax);
     define<syntax>("if", if_);
     define<syntax>("lambda", lambda);
     define<syntax>("let-syntax", let_syntax);
@@ -1948,30 +1948,8 @@ namespace meevax
 
     define<predicate>("identifier?", [](let const& xs)
     {
-      return is_identifier(car(xs));
+      return car(xs).is_also<identifier>();
     });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (unwrap-syntax syntax-object)                                 procedure
-     *
-     *  If syntax-object is an identifier, then it is returned unchanged.
-     *  Otherwise unwrap-syntax converts the outermost structure of
-     *  syntax-object into a data object whose external representation is the
-     *  same as that of syntax-object. The result is either an identifier, a
-     *  pair whose car and cdr are syntax objects, a vector whose elements are
-     *  syntax objects, an empty list, a string, a boolean, a character, or a
-     *  number.
-     *
-     *    (identifier? (unwrap-syntax (syntax x))) => #t
-     *
-     *    (identifier? (car (unwrap-syntax (syntax (x))))) => #t
-     *
-     *    (unwrap-syntax (cdr (unwrap-syntax (syntax (x))))) => ()
-     *
-     * ---------------------------------------------------------------------- */
-
-    // TODO
 
     /* -------------------------------------------------------------------------
      *
@@ -1985,50 +1963,10 @@ namespace meevax
      *
      * ---------------------------------------------------------------------- */
 
-    define<predicate>("free-identifier=?", [](let const& xs)
-    {
-      auto is_same_free_identifier = [](let const& x, let const& y)
-      {
-        // std::cout << "; ---- free-identifier=? -------------------------------------------------------" << std::endl;
-        // std::cout << "; x = " << x << std::endl;
-        // std::cout << "; y = " << y << std::endl;
-
-        let const& x_notation = x.as<syntactic_closure>().notate();
-        // std::cout << "; x notation is " << x_notation << std::endl;
-        // std::cout << ";            is absolute? " << std::boolalpha << x_notation.is<absolute>() << std::endl;
-        // std::cout << ";            is relative? " << std::boolalpha << x_notation.is<relative>() << std::endl;
-        // std::cout << ";            is variadic? " << std::boolalpha << x_notation.is<variadic>() << std::endl;
-
-        auto x_is_free = x_notation.is<absolute>() and
-                         x_notation.as<absolute>().is_free();
-        // std::cout << ";            is free? " << std::boolalpha << x_is_free << std::endl;
-
-        let const& y_notation = y.as<syntactic_closure>().notate();
-        // std::cout << "; y notation is " << y_notation << std::endl;
-        // std::cout << ";            is absolute? " << std::boolalpha << y_notation.is<absolute>() << std::endl;
-        // std::cout << ";            is relative? " << std::boolalpha << y_notation.is<relative>() << std::endl;
-        // std::cout << ";            is variadic? " << std::boolalpha << y_notation.is<variadic>() << std::endl;
-
-        auto y_is_free = y_notation.is<absolute>() and
-                         y_notation.as<absolute>().is_free();
-        // std::cout << ";            is free? " << std::boolalpha << y_is_free << std::endl;
-
-        auto is_same_notation = eq(x_notation, y_notation);
-        // std::cout << "; is same notation? = " << std::boolalpha << is_same_notation << std::endl;
-
-        auto both_free = x_is_free and y_is_free;
-        // std::cout << "; both free? = " << std::boolalpha << both_free << std::endl;
-
-        auto both_same_unbound = both_free and
-                                 eqv(x.as<syntactic_closure>().expression,
-                                     y.as<syntactic_closure>().expression);
-        // std::cout << "; both same unbound? = " << std::boolalpha << both_same_unbound << std::endl;
-
-        return is_same_notation or both_same_unbound;
-      };
-
-      return is_same_free_identifier(car(xs), cadr(xs));
-    });
+    // define<predicate>("free-identifier=?", [](let const& xs)
+    // {
+    //   return f;
+    // });
 
     /* -------------------------------------------------------------------------
      *

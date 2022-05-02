@@ -71,8 +71,8 @@
 (let ((s "abcde")) (check (begin (string-fill! s #\x 1) s) => "axxxx"))
 (let ((s "abcde")) (check (begin (string-fill! s #\x 1 4) s) => "axxxe"))
 
-(experimental:define-syntax loop
-  (experimental:er-macro-transformer
+(define-syntax loop
+  (er-macro-transformer
     (lambda (form rename compare)
       `(,(rename 'call/cc)
          (,(rename 'lambda) (exit)

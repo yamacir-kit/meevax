@@ -63,14 +63,14 @@ inline namespace kernel
 
     auto apply(const_reference, const_reference) -> object;
 
-    auto define(const_reference, const_reference) -> void;
+    auto define(const_reference, const_reference = undefined) -> void;
 
-    auto define(std::string const&, const_reference) -> void;
+    auto define(std::string const&, const_reference = undefined) -> void;
 
     template <typename T, typename... Ts>
     auto define(std::string const& name, Ts&&... xs) -> void
     {
-      define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
+      define(name, make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
     auto evaluate(const_reference) -> object;
@@ -79,38 +79,26 @@ inline namespace kernel
 
     auto execute(const_reference) -> object;
 
-    auto fork(const_reference scope) const
+    auto fork() const
+    {
+      return make<environment>(*this);
+    }
+
+    auto fork(const_reference scope) const // DIRTY HACK!!!
     {
       let const copy = make<environment>(*this);
       copy.as<environment>().scope() = scope;
       return copy;
     }
 
-    auto reserve(const_reference x) -> const_reference
-    {
-      assert(is_identifier(x));
+    auto global() noexcept -> reference;
 
-      let const result = make<absolute>(x);
-
-      result.as<absolute>().strip() = result; // NOTE: Identifier is self-evaluate if is free-identifier.
-
-      assert(result.as<absolute>().is_free());
-
-      global_environment() = result | global_environment();
-
-      return car(global_environment());
-    }
-
-    auto global_environment() noexcept -> reference;
-
-    auto global_environment() const noexcept -> const_reference;
+    auto global() const noexcept -> const_reference;
 
     template <typename T, T... xs>
     auto import(std::integer_sequence<T, xs...>) -> void;
 
     auto import() -> void;
-
-    static auto is_identifier(const_reference) -> bool;
 
     auto load(std::string const&) -> object;
 
@@ -118,9 +106,9 @@ inline namespace kernel
 
     auto scope() noexcept -> reference;
 
-    auto notate(const_reference, const_reference) -> object;
+    auto identify(const_reference, const_reference) -> object;
 
-    auto notate(const_reference, const_reference) const -> object;
+    auto identify(const_reference, const_reference) const -> object;
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;

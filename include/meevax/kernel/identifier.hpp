@@ -14,15 +14,16 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/symbol.hpp>
+#ifndef INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
+#define INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(std::ostream & os, symbol const& datum) -> std::ostream &
-  {
-    return os << (datum.value.empty() ? "||" : datum.value);
-  }
+  struct identifier
+  {};
 } // namespace kernel
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP

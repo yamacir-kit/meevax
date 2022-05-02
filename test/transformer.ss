@@ -1,4 +1,4 @@
-(experimental:define-syntax swap!
+(define-syntax swap!
   (traditional-macro-transformer
     (lambda (a b)
       `(let ((value ,a))
@@ -21,7 +21,7 @@
 
 ; ; ------------------------------------------------------------------------------
 
-(experimental:define-syntax swap!
+(define-syntax swap!
   (sc-macro-transformer
     (lambda (form use-env)
       (let ((a (make-syntactic-closure use-env '() (cadr form)))
@@ -51,7 +51,7 @@
 
 ; ------------------------------------------------------------------------------
 
-(experimental:define-syntax swap!
+(define-syntax swap!
   (rsc-macro-transformer
     (lambda (form mac-env)
       (let ((a (cadr form))
@@ -84,8 +84,8 @@
 
 ; ------------------------------------------------------------------------------
 
-(experimental:define-syntax swap!
-  (experimental:er-macro-transformer
+(define-syntax swap!
+  (er-macro-transformer
     (lambda (form rename compare?)
       (let ((a (cadr form))
             (b (caddr form))

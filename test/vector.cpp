@@ -93,26 +93,26 @@ auto main() -> int
 
     assert(v.is<vector>());
     assert(v.as<vector>().size() == 3);
-    assert(v.as<vector>()[0].as<symbol>() == "a");
-    assert(v.as<vector>()[1].as<symbol>() == "b");
-    assert(v.as<vector>()[2].as<symbol>() == "c");
+    assert(v.as<vector>()[0].as<symbol>().value == "a");
+    assert(v.as<vector>()[1].as<symbol>().value == "b");
+    assert(v.as<vector>()[2].as<symbol>().value == "c");
 
     gc.collect();
 
     assert(v.is<vector>());
     assert(v.as<vector>().size() == 3);
-    assert(v.as<vector>()[0].as<symbol>() == "a");
-    assert(v.as<vector>()[1].as<symbol>() == "b");
-    assert(v.as<vector>()[2].as<symbol>() == "c");
+    assert(v.as<vector>()[0].as<symbol>().value == "a");
+    assert(v.as<vector>()[1].as<symbol>().value == "b");
+    assert(v.as<vector>()[2].as<symbol>().value == "c");
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
     assert(v.as<vector>().size() == 3);
-    assert(v.as<vector>()[0].as<symbol>() == "a");
-    assert(v.as<vector>()[1].as<symbol>() == "b");
-    assert(v.as<vector>()[2].as<symbol>() == "c");
+    assert(v.as<vector>()[0].as<symbol>().value == "a");
+    assert(v.as<vector>()[1].as<symbol>().value == "b");
+    assert(v.as<vector>()[2].as<symbol>().value == "c");
     assert(gc.count() == gc_count + 4);
 
     v.as<vector>().clear();

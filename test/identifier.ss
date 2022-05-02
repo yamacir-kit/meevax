@@ -2,8 +2,8 @@
 
 ; ------------------------------------------------------------------------------
 
-(experimental:define-syntax er-macro-transformer:rename
-  (experimental:er-macro-transformer
+(define-syntax er-macro-transformer:rename
+  (er-macro-transformer
     (lambda (form rename compare)
       (rename (cadr form)))))
 
@@ -20,8 +20,32 @@
 
 ; ------------------------------------------------------------------------------
 
-(experimental:define-syntax er-macro-transformer:compare
-  (experimental:er-macro-transformer
+(define-syntax er-macro-transformer:rename-1
+  (er-macro-transformer
+    (lambda (form rename compare)
+      (cons (rename (cadr form))
+            (cddr form)))))
+
+(check (+ 1 2 3 4) => 10)
+
+(check (er-macro-transformer:rename-1 + 1 2 3 4) => 10)
+
+; ------------------------------------------------------------------------------
+
+(define-syntax %car
+  (er-macro-transformer
+    (lambda (form rename compare)
+      (cons (rename 'car)
+            (cdr form)))))
+
+(check (car '(a b)) => a)
+
+(check (%car '(a b)) => a)
+
+; ------------------------------------------------------------------------------
+
+(define-syntax er-macro-transformer:compare
+  (er-macro-transformer
     (lambda (form rename compare)
       (let ((x (cadr form))
             (y (rename x)))

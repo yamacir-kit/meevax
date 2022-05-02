@@ -43,7 +43,7 @@
 (define (syntax-rules-transformer expr rename compare)
   (let ((ellipsis-specified? (identifier? (cadr expr)))
         (count 0)
-        (_er-macro-transformer (rename 'experimental:er-macro-transformer))
+        (_er-macro-transformer (rename 'er-macro-transformer))
         (_lambda (rename 'lambda))      (_let (rename 'let))
         (_begin (rename 'begin))        (_if (rename 'if))
         (_and (rename 'and))            (_or (rename 'or))
@@ -267,7 +267,7 @@
                                 (list (rename 'strip-syntactic-closures) _expr))
                           #f)))))))))
 
-(experimental:define-syntax syntax-rules
-  (experimental:er-macro-transformer
+(define-syntax syntax-rules
+  (er-macro-transformer
     (lambda (form rename compare)
       (syntax-rules-transformer form rename compare))))

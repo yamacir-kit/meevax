@@ -17,7 +17,7 @@ auto main() -> int
   assert(eos_object.is<eos>());
   assert(f.is<boolean>());
   assert(t.is<boolean>());
-  assert(undefined_object.is<undefined>());
+  assert(undefined.is<unbound>());
   assert(unspecified_object.is<unspecified>());
 
   const auto gc_count = gc.count();

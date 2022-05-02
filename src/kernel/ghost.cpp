@@ -27,11 +27,11 @@ inline namespace kernel
 
   let const unspecified_object = make<unspecified>();
 
-  auto operator <<(std::ostream & os, undefined const&) -> std::ostream &
+  auto operator <<(std::ostream & os, unbound const&) -> std::ostream &
   {
-    return os << faint("#;undefined");
+    return os << faint("#;unbound");
   }
 
-  let const undefined_object = make<undefined>();
+  let const undefined = make<unbound>();
 } // namespace kernel
 } // namespace meevax

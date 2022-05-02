@@ -5,8 +5,8 @@
 ;        (lambda () expression)
 ;        (lambda parameters . body)))))
 
-(experimental:define-syntax receive
-  (experimental:er-macro-transformer
+(define-syntax receive
+  (er-macro-transformer
     (lambda (form rename compare)
       `(,(rename 'call-with-values)
          (,(rename 'lambda) () ,(caddr form))
