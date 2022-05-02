@@ -20,8 +20,7 @@
 
 namespace meevax
 {
-  template <>
-  auto environment::import(decltype("(meevax base)"_s)) -> void
+  environment::environment(master_t)
   {
     define<syntax>("begin", machine::begin);
     define<syntax>("call-with-current-continuation!", call_with_current_continuation);
@@ -1557,11 +1556,7 @@ namespace meevax
     {
       return features();
     });
-  }
 
-  template <>
-  auto environment::import(decltype("(meevax character)"_s)) -> void
-  {
     /* -------------------------------------------------------------------------
      *
      *  (digit-value char)                               char library procedure
@@ -1603,11 +1598,7 @@ namespace meevax
      *  arguments before invoking the corresponding procedures without "-ci".
      *
      * ---------------------------------------------------------------------- */
-  }
 
-  template <>
-  auto environment::import(decltype("(meevax cxr)"_s)) -> void
-  {
     /* -------------------------------------------------------------------------
      *
      *  (caaar pair)                                      cxr library procedure
@@ -1652,11 +1643,7 @@ namespace meevax
     define<procedure>("cddadr", [](let const& xs) { return cddadr(car(xs)); });
     define<procedure>("cdddar", [](let const& xs) { return cdddar(car(xs)); });
     define<procedure>("cddddr", [](let const& xs) { return cddddr(car(xs)); });
-  }
 
-  template <>
-  auto environment::import(decltype("(meevax evaluate)"_s)) -> void
-  {
     /* -------------------------------------------------------------------------
      *
      *  (eval expr-or-def environment-specifier)         eval library procedure
@@ -1673,11 +1660,7 @@ namespace meevax
     {
       return cadr(xs).as<transformer>().mac_env.as<environment>().evaluate(car(xs)); // DIRTY HACK!
     });
-  }
 
-  template <>
-  auto environment::import(decltype("(meevax inexact)"_s)) -> void
-  {
     /* -------------------------------------------------------------------------
      *
      *  (finite? z)                                   inexact library procedure
@@ -1767,11 +1750,7 @@ namespace meevax
         throw invalid_application(intern("atan") | xs);
       }
     });
-  }
 
-  template <>
-  auto environment::import(decltype("(meevax load)"_s)) -> void
-  {
     /* -------------------------------------------------------------------------
      *
      *  (load filename)                                  load library procedure
@@ -1799,11 +1778,7 @@ namespace meevax
     {
       return load(car(xs).as<string>());
     });
-  }
 
-  template <>
-  auto environment::import(decltype("(meevax process-context)"_s)) -> void
-  {
     /* -------------------------------------------------------------------------
      *
      *  (emergency-exit)                      process-context library procedure
@@ -1840,11 +1815,7 @@ namespace meevax
         throw invalid_application(intern("emergency-exit") | xs);
       }
     });
-  }
 
-  template <>
-  auto environment::import(decltype("(meevax read)"_s)) -> void
-  {
     /* -------------------------------------------------------------------------
      *
      *  (read)                                           read library procedure
@@ -1895,11 +1866,7 @@ namespace meevax
         return make(error);
       }
     });
-  }
 
-  template <>
-  auto environment::import(decltype("(meevax write)"_s)) -> void
-  {
     /* -------------------------------------------------------------------------
      *
      *  (write-simple obj)                              write library procedure
@@ -1916,11 +1883,7 @@ namespace meevax
       write(cadr(xs), car(xs));
       return unspecified_object;
     });
-  }
 
-  template <>
-  auto environment::import(decltype("(meevax experimental)"_s)) -> void
-  {
     define<procedure>("make-syntactic-closure", [](let const& xs)
     {
       return make<syntactic_closure>(car(xs), cadr(xs), caddr(xs));
@@ -2074,11 +2037,7 @@ namespace meevax
 
       return standard_output;
     });
-  }
 
-  template <>
-  auto environment::import(decltype("(meevax garbage-collector)"_s)) -> void
-  {
     define<procedure>("gc-collect", [](auto&&...)
     {
       return make<exact_integer>(gc.collect());
@@ -2088,11 +2047,7 @@ namespace meevax
     {
       return make<exact_integer>(gc.count());
     });
-  }
 
-  template <>
-  auto environment::import(decltype("(meevax srfis)"_s)) -> void
-  {
     std::vector<string_view> const codes {
       overture,
       srfi_8,
@@ -2116,23 +2071,5 @@ namespace meevax
         evaluate(e);
       }
     }
-  }
-
-  template <>
-  auto environment::import(decltype("(meevax interaction-environment)"_s)) -> void
-  {
-    import("(meevax base)"_s);
-    import("(meevax character)"_s);
-    import("(meevax cxr)"_s);
-    import("(meevax evaluate)"_s);
-    import("(meevax inexact)"_s);
-    import("(meevax load)"_s);
-    import("(meevax process-context)"_s);
-    import("(meevax read)"_s);
-    import("(meevax write)"_s);
-
-    import("(meevax experimental)"_s);
-    import("(meevax garbage-collector)"_s);
-    import("(meevax srfis)"_s);
   }
 } // namespace meevax

@@ -27,6 +27,14 @@ namespace meevax
 {
 inline namespace kernel
 {
+  inline namespace experimental
+  {
+    struct master_t
+    {
+      explicit master_t() = default;
+    } constexpr master;
+  } // namespace experimental
+
   class environment : public virtual pair
                     , public configurator<environment>
                     , public machine     <environment>
@@ -51,8 +59,11 @@ inline namespace kernel
 
     explicit environment(environment const&) = default;
 
+    explicit environment(master_t);
+
     template <typename... Ts, REQUIRES(is_integer_sequence<Ts>...)>
     explicit environment(Ts&&... xs)
+      : environment { master }
     {
       import(), (import(xs), ...);
     }
@@ -79,7 +90,7 @@ inline namespace kernel
 
     auto execute(const_reference) -> object;
 
-    auto fork() const
+    auto fork() const -> object
     {
       return make<environment>(*this);
     }
@@ -94,9 +105,6 @@ inline namespace kernel
     auto global() noexcept -> reference;
 
     auto global() const noexcept -> const_reference;
-
-    template <typename T, T... xs>
-    auto import(std::integer_sequence<T, xs...>) -> void;
 
     auto import() -> void;
 
