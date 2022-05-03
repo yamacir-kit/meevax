@@ -22,6 +22,8 @@ namespace meevax
 {
   environment::environment(master_t)
   {
+    import("(scheme cxr)");
+
     define<syntax>("begin", machine::begin);
     define<syntax>("call-with-current-continuation!", call_with_current_continuation);
     define<syntax>("define", machine::define);
@@ -1601,51 +1603,6 @@ namespace meevax
 
     /* -------------------------------------------------------------------------
      *
-     *  (caaar pair)                                      cxr library procedure
-     *  (caadr pair)                                      cxr library procedure
-     *       .                                                           .
-     *       .                                                           .
-     *       .                                                           .
-     *  (cdddar pair)                                     cxr library procedure
-     *  (cddddr pair)                                     cxr library procedure
-     *
-     *  These twenty-four procedures are further compositions of car and cdr on
-     *  the same principles. For example, caddr could be defined by
-     *
-     *      (define caddr (lambda (x) (car (cdr (cdr x))))).
-     *
-     *  Arbitrary compositions up to four deep are provided.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("caaar", [](let const& xs) { return caaar(car(xs)); });
-    define<procedure>("caadr", [](let const& xs) { return caadr(car(xs)); });
-    define<procedure>("cadar", [](let const& xs) { return cadar(car(xs)); });
-    define<procedure>("caddr", [](let const& xs) { return caddr(car(xs)); });
-    define<procedure>("cdaar", [](let const& xs) { return cdaar(car(xs)); });
-    define<procedure>("cdadr", [](let const& xs) { return cdadr(car(xs)); });
-    define<procedure>("cddar", [](let const& xs) { return cddar(car(xs)); });
-    define<procedure>("cdddr", [](let const& xs) { return cdddr(car(xs)); });
-
-    define<procedure>("caaaar", [](let const& xs) { return caaaar(car(xs)); });
-    define<procedure>("caaadr", [](let const& xs) { return caaadr(car(xs)); });
-    define<procedure>("caadar", [](let const& xs) { return caadar(car(xs)); });
-    define<procedure>("caaddr", [](let const& xs) { return caaddr(car(xs)); });
-    define<procedure>("cadaar", [](let const& xs) { return cadaar(car(xs)); });
-    define<procedure>("cadadr", [](let const& xs) { return cadadr(car(xs)); });
-    define<procedure>("caddar", [](let const& xs) { return caddar(car(xs)); });
-    define<procedure>("cadddr", [](let const& xs) { return cadddr(car(xs)); });
-    define<procedure>("cdaaar", [](let const& xs) { return cdaaar(car(xs)); });
-    define<procedure>("cdaadr", [](let const& xs) { return cdaadr(car(xs)); });
-    define<procedure>("cdadar", [](let const& xs) { return cdadar(car(xs)); });
-    define<procedure>("cdaddr", [](let const& xs) { return cdaddr(car(xs)); });
-    define<procedure>("cddaar", [](let const& xs) { return cddaar(car(xs)); });
-    define<procedure>("cddadr", [](let const& xs) { return cddadr(car(xs)); });
-    define<procedure>("cdddar", [](let const& xs) { return cdddar(car(xs)); });
-    define<procedure>("cddddr", [](let const& xs) { return cddddr(car(xs)); });
-
-    /* -------------------------------------------------------------------------
-     *
      *  (eval expr-or-def environment-specifier)         eval library procedure
      *
      *  If expr-or-def is an expression, it is evaluated in the specified
@@ -2018,17 +1975,6 @@ namespace meevax
       std::cout << std::endl;
 
       return standard_output;
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (foreign-function lib*.so function-name)                      procedure
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("foreign-function", [](let const& xs)
-    {
-      return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
     });
 
     define<procedure>("type-of", [](let const& xs)

@@ -1,3 +1,5 @@
+(import (meevax foreign-function-interface))
+
 (define dummy-procedure (foreign-function "build/libexample.so" "dummy_procedure"))
 
 (check (foreign-function? dummy-procedure) => #t)

@@ -1,7 +1,7 @@
 #undef NDEBUG
 
 #include <cassert>
-#include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/library.hpp>
 
 auto main() -> int
 {
@@ -24,10 +24,13 @@ auto main() -> int
   assert(gc_count == constants.size() + specials_count);
 
   {
+    bootstrap();
+
     auto root = environment(master);
   }
 
   environment::symbols.clear();
+  libraries.clear();
 
   gc.collect();
   gc.collect(); // for vector type
