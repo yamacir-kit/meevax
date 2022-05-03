@@ -24,9 +24,7 @@ auto main() -> int
   assert(gc_count == constants.size() + specials_count);
 
   {
-    auto root = environment("(scheme base)",
-                            "(scheme char)"
-                            );
+    auto root = environment();
   }
 
   environment::symbols.clear();

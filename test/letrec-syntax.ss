@@ -1,7 +1,3 @@
-(import (gauche base)
-        (scheme base)
-        (srfi 78))
-
 (letrec-syntax ((my-and (er-macro-transformer
                           (lambda (form rename compare)
                             (cond ((null? (cdr form)) #t)

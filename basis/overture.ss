@@ -41,11 +41,6 @@
                 (make-syntactic-closure use-env '() y))))
     (f form rename compare)))
 
-(define-syntax import
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (list (rename 'quote) (cons 'import (cdr form))))))
-
 ; ------------------------------------------------------------------------------
 
 (define-syntax cond

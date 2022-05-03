@@ -32,6 +32,11 @@ inline namespace kernel
     {
       explicit master_t() = default;
     } constexpr master;
+
+    struct empty_t
+    {
+      explicit empty_t() = default;
+    } constexpr empty;
   } // namespace experimental
 
   class environment : public virtual pair
@@ -58,17 +63,15 @@ inline namespace kernel
 
     explicit environment(environment const&) = default;
 
-    explicit environment(master_t);
+    explicit environment(empty_t) // FOR MIGRATION
+    {}
+
+    explicit environment(master_t); // FOR MIGRATION
 
     template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
     explicit environment(Ts&&... xs)
       : environment { master }
     {
-      auto import = [](auto&& x)
-      {
-        std::cout << x << std::endl;
-      };
-
       (import(xs), ...);
 
       define<procedure>("set-batch!",       [this](let const& xs, auto&&...) { return batch       = car(xs); });
@@ -87,10 +90,10 @@ inline namespace kernel
 
     auto define(const_reference, const_reference = undefined) -> void;
 
-    auto define(std::string const&, const_reference = undefined) -> void;
+    auto define(symbol::value_type const&, const_reference = undefined) -> void;
 
     template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs) -> void
+    auto define(symbol::value_type const& name, Ts&&... xs) -> void
     {
       define(name, make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
@@ -116,6 +119,10 @@ inline namespace kernel
     auto global() noexcept -> reference;
 
     auto global() const noexcept -> const_reference;
+
+    auto import(const_reference) -> void;
+
+    auto import(std::string const&) -> void;
 
     auto load(std::string const&) -> object;
 
