@@ -126,9 +126,6 @@ inline namespace kernel
 
   auto environment::import(const_reference import_set) -> void
   {
-    // libraries.at(library_name).define_exported_bindings_to(*this);
-    // PRINT(import_set);
-
     if (car(import_set).as<symbol>().value == "only")
     {
     }
@@ -145,11 +142,6 @@ inline namespace kernel
     {
       libraries.at(lexical_cast<std::string>(import_set)).export_to(*this);
     }
-  }
-
-  auto environment::import(std::string const& s) -> void
-  {
-    import(read(s));
   }
 
   auto environment::load(std::string const& s) -> object

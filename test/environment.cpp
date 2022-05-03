@@ -24,7 +24,7 @@ auto main() -> int
   assert(gc_count == constants.size() + specials_count);
 
   {
-    auto root = environment();
+    auto root = environment(master);
   }
 
   environment::symbols.clear();

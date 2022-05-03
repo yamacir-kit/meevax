@@ -122,7 +122,11 @@ inline namespace kernel
 
     auto import(const_reference) -> void;
 
-    auto import(std::string const&) -> void;
+    template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
+    auto import(Ts&&... xs) -> void
+    {
+      (import(read(xs)), ...);
+    }
 
     auto load(std::string const&) -> object;
 

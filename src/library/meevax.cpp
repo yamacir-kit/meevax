@@ -2038,16 +2038,6 @@ namespace meevax
       return standard_output;
     });
 
-    define<procedure>("gc-collect", [](auto&&...)
-    {
-      return make<exact_integer>(gc.collect());
-    });
-
-    define<procedure>("gc-count", [](auto&&...)
-    {
-      return make<exact_integer>(gc.count());
-    });
-
     std::vector<string_view> const codes {
       overture,
       srfi_8,

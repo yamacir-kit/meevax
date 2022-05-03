@@ -25,7 +25,8 @@ auto main(int const argc, char const* const* const argv) -> int
   {
     bootstrap();
 
-    auto main = environment("(meevax test)",
+    auto main = environment("(scheme base)",
+                            // "(meevax gc)",
                             "(only (meevax foo) a b)",
                             "(except (meevax foo) a)",
                             "(prefix (meevax foo) foo-)",

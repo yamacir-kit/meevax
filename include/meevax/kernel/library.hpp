@@ -62,13 +62,16 @@ inline namespace kernel
       export_specs.push_back(export_spec);
     }
 
-    auto export_(std::string const& s) -> void
+    template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
+    auto export_(Ts&&... xs) -> void
     {
-      export_(read(s));
+      (export_(read(xs)), ...);
     }
 
     auto export_to(environment & destination)
     {
+      std::cout << "; importing " << export_specs.size() << " definitions." << std::endl;
+
       for (let const& export_spec : export_specs)
       {
         if (export_spec.is<pair>() and car(export_spec).is<symbol>()
@@ -78,7 +81,7 @@ inline namespace kernel
         else
         {
           assert(export_spec.is_also<identifier>());
-
+          std::cout << ";   " << export_spec << std::endl;
           destination.define(export_spec, (*this)[export_spec]);
         }
       }

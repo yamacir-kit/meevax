@@ -32,15 +32,19 @@ inline namespace kernel
     {
     });
 
-    define_library("(meevax test)", [](library & library)
+    define_library("(meevax gc)", [](library & meevax_gc)
     {
-      library.define<procedure>("test-print", [](let const& xs)
+      meevax_gc.define<procedure>("gc-collect", [](auto&&...)
       {
-        std::cout << "; Procedure test-print received " << xs << std::endl;
-        return unit;
+        return make<exact_integer>(gc.collect());
       });
 
-      library.export_("test-print");
+      meevax_gc.define<procedure>("gc-count", [](auto&&...)
+      {
+        return make<exact_integer>(gc.count());
+      });
+
+      meevax_gc.export_("gc-collect", "gc-count");
     });
 
     define_library("(meevax foo)", [](library & library)
