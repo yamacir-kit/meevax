@@ -35,27 +35,40 @@ inline namespace kernel
       declare(*this);
     }
 
-    explicit library(const_reference declaration)
+    explicit library(const_reference declarations)
       : environment { empty }
     {
-      for (let const& expression : declaration)
+      for (let const& declaration : declarations)
       {
-        if (expression.is<pair>() and car(expression).is<symbol>()
-                                  and car(expression).as<symbol>().value == "export")
-        {
-          for (let const& export_spec : cdr(expression))
-          {
-            export_(export_spec);
-          }
-        }
-        else
-        {
-          evaluate(expression);
-        }
+        declare(declaration);
       }
     }
 
     static auto boot() -> void;
+
+    auto declare(const_reference declaration) -> void
+    {
+      if (declaration.is<pair>() and car(declaration).is<symbol>()
+                                 and car(declaration).as<symbol>().value == "export")
+      {
+        for (let const& export_spec : cdr(declaration))
+        {
+          export_(export_spec);
+        }
+      }
+      else if (declaration.is<pair>() and car(declaration).is<symbol>()
+                                      and car(declaration).as<symbol>().value == "begin")
+      {
+        for (let const& command_or_definition : declaration)
+        {
+          declare(command_or_definition);
+        }
+      }
+      else
+      {
+        evaluate(declaration); // Non-standard extension.
+      }
+    }
 
     auto export_(const_reference export_spec) -> void
     {

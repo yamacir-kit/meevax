@@ -1,12 +1,15 @@
 (define-library (srfi 211 syntactic-closures)
   (import (meevax macro)
           (meevax syntax))
+
   (begin (define (sc-macro-transformer f)
            (lambda (form use-env mac-env)
              (make-syntactic-closure mac-env '() (f form use-env))))
+
          (define (rsc-macro-transformer f)
            (lambda (form use-env mac-env)
              (make-syntactic-closure use-env '() (f form mac-env)))))
+
   (export sc-macro-transformer
           rsc-macro-transformer
           make-syntactic-closure
@@ -18,7 +21,9 @@
           (meevax macro)
           (meevax pair)
           (meevax syntax))
+
   (begin (define (list . xs) xs)
+
          (define (er-macro-transformer f)
            (lambda (form use-env mac-env)
              (define rename:list (list))
@@ -30,9 +35,9 @@
                                         (assq x (cdr alist))))))
                         (alist-cons (lambda (key x alist)
                                       (cons (cons key x) alist))))
-                 (define cell (assq x rename:list))
-                 (if cell
-                     (cdr cell)
+                 (define key/value (assq x rename:list))
+                 (if key/value
+                     (cdr key/value)
                      (begin (set! rename:list (alist-cons x (make-syntactic-closure mac-env '() x) rename:list))
                             (cdar rename:list)))))
              (define (compare x y)
@@ -41,14 +46,75 @@
                      (if (syntactic-closure? y) y
                          (make-syntactic-closure use-env '() y))))
              (f form rename compare))))
+
   (export er-macro-transformer
           identifier?))
 
 (define-library (scheme base)
-  (import (meevax control)
+  (import (srfi 211 explicit-renaming)
+          (meevax control)
+          (meevax equivalence)
+          (meevax list)
+          (meevax pair)
           (meevax syntax)
           )
   (begin (define (list . xs) xs)
+
+         (define (unspecified) (if #f #f))
+
+         (define-syntax cond
+           (er-macro-transformer
+             (lambda (form rename compare)
+               (if (null? (cdr form))
+                   (unspecified)
+                   ((lambda (clause)
+                      (if (compare (rename 'else) (car clause))
+                          (cons (rename 'begin) (cdr clause))
+                          (if (if (null? (cdr clause)) #t
+                                  (compare (rename '=>) (cadr clause)))
+                              (list (list (rename 'lambda)
+                                          (list (rename 'result))
+                                          (list (rename 'if)
+                                                (rename 'result)
+                                                (if (null? (cdr clause))
+                                                    (rename 'result)
+                                                    (list (caddr clause)
+                                                          (rename 'result)))
+                                                (cons (rename 'cond) (cddr form))))
+                                    (car clause))
+                              (list (rename 'if)
+                                    (car clause)
+                                    (cons (rename 'begin) (cdr clause))
+                                    (cons (rename 'cond) (cddr form))))))
+                    (cadr form))))))
+
+         (define-syntax and
+           (er-macro-transformer
+             (lambda (form rename compare)
+               (cond ((null? (cdr form)))
+                     ((null? (cddr form))
+                      (cadr form))
+                     (else (list (rename 'if)
+                                 (cadr form)
+                                 (cons (rename 'and)
+                                       (cddr form))
+                                 #f))))))
+
+         (define-syntax or
+           (er-macro-transformer
+             (lambda (form rename compare)
+               (cond ((null? (cdr form)) #f)
+                     ((null? (cddr form))
+                      (cadr form))
+                     (else (list (list (rename 'lambda)
+                                       (list (rename 'result))
+                                       (list (rename 'if)
+                                             (rename 'result)
+                                             (rename 'result)
+                                             (cons (rename 'or)
+                                                   (cddr form))))
+                                 (cadr form)))))))
+
          )
   (export ; *
           ; +
@@ -63,7 +129,7 @@
           ; >=
           ; _
           ; abs
-          ; and
+          and
           ; append
           ; apply
           ; assoc
@@ -105,7 +171,7 @@
           ; close-output-port
           ; close-port
           ; complex?
-          ; cond
+          cond
           ; cond-expand
           ; cons
           ; current-error-port
@@ -198,7 +264,7 @@
           ; open-input-string
           ; open-output-bytevector
           ; open-output-string
-          ; or
+          or
           ; output-port-open?
           ; output-port?
           ; pair?
@@ -305,59 +371,6 @@
     (apply f (cdr form))))
 
 ; ------------------------------------------------------------------------------
-
-(define-syntax cond
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (if (null? (cdr form))
-          (unspecified)
-          ((lambda (clause)
-             (if (compare (rename 'else) (car clause))
-                 (cons (rename 'begin) (cdr clause))
-                 (if (if (null? (cdr clause)) #t
-                         (compare (rename '=>) (cadr clause)))
-                     (list (list (rename 'lambda)
-                                 (list (rename 'result))
-                                 (list (rename 'if)
-                                       (rename 'result)
-                                       (if (null? (cdr clause))
-                                           (rename 'result)
-                                           (list (caddr clause)
-                                                 (rename 'result)))
-                                       (cons (rename 'cond) (cddr form))))
-                           (car clause))
-                     (list (rename 'if)
-                           (car clause)
-                           (cons (rename 'begin) (cdr clause))
-                           (cons (rename 'cond) (cddr form))))))
-           (cadr form))))))
-
-(define-syntax and
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (cond ((null? (cdr form)))
-            ((null? (cddr form))
-             (cadr form))
-            (else (list (rename 'if)
-                        (cadr form)
-                        (cons (rename 'and)
-                              (cddr form))
-                        #f))))))
-
-(define-syntax or
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (cond ((null? (cdr form)) #f)
-            ((null? (cddr form))
-             (cadr form))
-            (else (list (list (rename 'lambda)
-                              (list (rename 'result))
-                              (list (rename 'if)
-                                    (rename 'result)
-                                    (rename 'result)
-                                    (cons (rename 'or)
-                                          (cddr form))))
-                        (cadr form)))))))
 
 (define (append-2 x y)
   (if (null? x) y
