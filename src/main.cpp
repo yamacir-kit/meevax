@@ -23,9 +23,9 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    bootstrap();
+    library::boot();
 
-    auto main = environment("(scheme base)",
+    auto main = environment(
                             // "(meevax gc)",
                             "(only (meevax foo) a b)",
                             "(except (meevax foo) a)",

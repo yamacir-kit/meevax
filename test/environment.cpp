@@ -24,7 +24,7 @@ auto main() -> int
   assert(gc_count == constants.size() + specials_count);
 
   {
-    bootstrap();
+    library::boot();
 
     auto root = environment(master);
   }

@@ -35,7 +35,7 @@ inline namespace kernel
       declare(*this);
     }
 
-    explicit library(std::string const& declaration)
+    explicit library(std::string declaration) // This copy is intended.
       : environment { empty }
     {
       auto port = std::stringstream(declaration);
@@ -56,6 +56,8 @@ inline namespace kernel
         }
       }
     }
+
+    static auto boot() -> void;
 
     auto export_(const_reference export_spec) -> void
     {
@@ -91,6 +93,37 @@ inline namespace kernel
     {
       return os << library.global();
     }
+
+    #define DEFINE_BASIS_LIBRARY(NAME)                                         \
+    struct NAME##_library_t                                                    \
+    {                                                                          \
+      explicit NAME##_library_t() = default;                                   \
+    }                                                                          \
+    static constexpr NAME##_library {};                                        \
+                                                                               \
+    explicit library(NAME##_library_t)
+
+    DEFINE_BASIS_LIBRARY(character);
+    DEFINE_BASIS_LIBRARY(context);
+    DEFINE_BASIS_LIBRARY(control);
+    DEFINE_BASIS_LIBRARY(equivalence);
+    DEFINE_BASIS_LIBRARY(evaluate);
+    DEFINE_BASIS_LIBRARY(exception);
+    DEFINE_BASIS_LIBRARY(experimental);
+    DEFINE_BASIS_LIBRARY(inexact);
+    DEFINE_BASIS_LIBRARY(list);
+    DEFINE_BASIS_LIBRARY(macro);
+    DEFINE_BASIS_LIBRARY(number);
+    DEFINE_BASIS_LIBRARY(pair);
+    DEFINE_BASIS_LIBRARY(port);
+    DEFINE_BASIS_LIBRARY(read);
+    DEFINE_BASIS_LIBRARY(string);
+    DEFINE_BASIS_LIBRARY(symbol);
+    DEFINE_BASIS_LIBRARY(syntax);
+    DEFINE_BASIS_LIBRARY(vector);
+    DEFINE_BASIS_LIBRARY(write);
+
+    #undef DEFINE_BASIS_LIBRARY
   };
 
   extern std::map<std::string, library> libraries;
@@ -101,8 +134,6 @@ inline namespace kernel
     std::cout << "; (define-library " << name << " ...)" << std::endl;
     return libraries.emplace(name, std::forward<decltype(xs)>(xs)...);
   }
-
-  auto bootstrap() -> void;
 } // namespace kernel
 } // namespace meevax
 
