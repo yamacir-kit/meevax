@@ -55,12 +55,14 @@
           (meevax control)
           (meevax equivalence)
           (meevax list)
+          (meevax number)
           (meevax pair)
           (meevax syntax)
+          (meevax vector)
           )
-  (begin (define (list . xs) xs)
+  (begin (define (unspecified) (if #f #f))
 
-         (define (unspecified) (if #f #f))
+         (define (list . xs) xs)
 
          (define-syntax cond
            (er-macro-transformer
@@ -116,17 +118,17 @@
                                  (cadr form)))))))
 
          )
-  (export ; *
-          ; +
-          ; -
+  (export *
+          +
+          -
           ; ...
-          ; /
-          ; <
-          ; <=
-          ; =
+          /
+          <
+          <=
+          =
           ; =>
-          ; >
-          ; >=
+          >
+          >=
           ; _
           ; abs
           and
@@ -147,18 +149,18 @@
           ; bytevector-u8-ref
           ; bytevector-u8-set!
           ; bytevector?
-          ; caar
-          ; cadr
+          caar
+          cadr
           ; call-with-current-continuation
           ; call-with-port
           ; call-with-values
           ; call/cc
-          ; car
+          car
           ; case
-          ; cdar
-          ; cddr
-          ; cdr
-          ; ceiling
+          cdar
+          cddr
+          cdr
+          ceiling
           ; char->integer
           ; char-ready?
           ; char<=?
@@ -170,10 +172,10 @@
           ; close-input-port
           ; close-output-port
           ; close-port
-          ; complex?
+          complex?
           cond
           ; cond-expand
-          ; cons
+          cons
           ; current-error-port
           ; current-input-port
           ; current-output-port
@@ -187,22 +189,22 @@
           ; else
           ; eof-object
           ; eof-object?
-          ; eq?
+          eq?
           ; equal?
-          ; eqv?
+          eqv?
           ; error
           ; error-object-irritants
           ; error-object-message
           ; error-object?
           ; even?
-          ; exact
+          exact
           ; exact-integer-sqrt
-          ; exact-integer?
+          exact-integer?
           ; exact?
-          ; expt
+          expt
           ; features
           ; file-error?
-          ; floor
+          floor
           ; floor-quotient
           ; floor-remainder
           ; floor/
@@ -215,12 +217,12 @@
           ; if
           ; include
           ; include-ci
-          ; inexact
+          inexact
           ; inexact?
           ; input-port-open?
           ; input-port?
-          ; integer->char
-          ; integer?
+          integer->char
+          integer?
           ; lambda
           ; lcm
           ; length
@@ -233,8 +235,8 @@
           ; letrec*
           ; letrec-syntax
           list
-          ; list->string
-          ; list->vector
+          list->string
+          list->vector
           ; list-copy
           ; list-ref
           ; list-set!
@@ -255,9 +257,9 @@
           ; negative?
           ; newline
           ; not
-          ; null?
-          ; number->string
-          ; number?
+          null?
+          number->string
+          number?
           ; numerator
           ; odd?
           ; open-input-bytevector
@@ -267,7 +269,7 @@
           or
           ; output-port-open?
           ; output-port?
-          ; pair?
+          pair?
           ; parameterize
           ; peek-char
           ; peek-u8
@@ -279,7 +281,7 @@
           ; quotient
           ; raise
           ; raise-continuable
-          ; rational?
+          rational?
           ; rationalize
           ; read-bytevector
           ; read-bytevector!
@@ -288,13 +290,13 @@
           ; read-line
           ; read-string
           ; read-u8
-          ; real?
+          real?
           ; remainder
           ; reverse
-          ; round
+          round
           ; set!
-          ; set-car!
-          ; set-cdr!
+          set-car!
+          set-cdr!
           ; square
           ; string
           ; string->list
@@ -324,7 +326,7 @@
           ; syntax-error
           ; syntax-rules
           ; textual-port?
-          ; truncate
+          truncate
           ; truncate-quotient
           ; truncate-remainder
           ; truncate/
@@ -357,7 +359,17 @@
           )
   )
 
+(define-library (scheme cxr)
+  (import (meevax pair))
+  (export caaar caadr cadar caddr
+          cdaar cdadr cddar cdddr
+          caaaar caaadr caadar caaddr
+          cadaar cadadr caddar cadddr
+          cdaaar cdaadr cdadar cdaddr
+          cddaar cddadr cdddar cddddr))
+
 (import (scheme base)
+        (scheme cxr)
         (srfi 211 explicit-renaming)
         (srfi 211 syntactic-closures)
         )
@@ -382,17 +394,16 @@
       (append-2 (reverse (cdr x))
                 (list (car x)))))
 
-(define (append . xs) ; redefine
-  (define (append-aux x xs)
-    (if (null? x) xs
-        (append-aux (cdr xs)
-                    (append-2 (car x) xs))))
-
-  (if (null? xs) '()
-      ((lambda (xs)
-         (append-aux (cdr xs)
-                     (car xs)))
-       (reverse xs))))
+(define (append . xs)
+  (letrec ((append-aux (lambda (x xs)
+                         (if (null? x) xs
+                             (append-aux (cdr xs)
+                                         (append-2 (car x) xs))))))
+    (if (null? xs) '()
+        ((lambda (xs)
+           (append-aux (cdr xs)
+                       (car xs)))
+         (reverse xs)))))
 
 (define-syntax quasiquote
   (er-macro-transformer

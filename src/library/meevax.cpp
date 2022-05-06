@@ -25,15 +25,12 @@ namespace meevax
     import("(meevax character)");
     import("(meevax context)");
     import("(meevax control)");
-    import("(meevax equivalence)");
     import("(meevax evaluate)");
     import("(meevax exception)");
     import("(meevax experimental)");
     import("(meevax inexact)");
-    import("(meevax list)");
     import("(meevax macro)");
     import("(meevax number)");
-    import("(meevax pair)");
     import("(meevax port)");
     import("(meevax read)");
     import("(meevax string)");
