@@ -1,6 +1,13 @@
-(define (identity x) x)
+(define-library (scheme base)
+  (import (meevax syntax))
 
-(define (list . xs) xs)
+  (define (list . xs) xs)
+
+  (export list
+          )
+  )
+
+(import (scheme base))
 
 (define (unspecified) (if #f #f))
 

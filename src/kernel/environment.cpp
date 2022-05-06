@@ -73,6 +73,12 @@ inline namespace kernel
 
       return unspecified_object;
     }
+    else if (expression.is<pair>() and car(expression).is<symbol>()
+                                   and car(expression).as<symbol>().value == "define-library")
+    {
+      define_library(lexical_cast<std::string>(cadr(expression)), cddr(expression));
+      return cadr(expression);
+    }
     else
     {
       auto dump = std::make_tuple(std::exchange(s, unit),

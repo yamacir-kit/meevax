@@ -35,12 +35,10 @@ inline namespace kernel
       declare(*this);
     }
 
-    explicit library(std::string declaration) // This copy is intended.
+    explicit library(const_reference declaration)
       : environment { empty }
     {
-      auto port = std::stringstream(declaration);
-
-      for (let expression = read(port); expression != eof_object; expression = read(port))
+      for (let const& expression : declaration)
       {
         if (expression.is<pair>() and car(expression).is<symbol>()
                                   and car(expression).as<symbol>().value == "export")
