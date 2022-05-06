@@ -64,7 +64,13 @@ inline namespace kernel
   auto environment::evaluate(const_reference expression) -> object
   {
     if (expression.is<pair>() and car(expression).is<symbol>()
-                              and car(expression).as<symbol>().value == "import")
+                              and car(expression).as<symbol>().value == "define-library")
+    {
+      define_library(lexical_cast<std::string>(cadr(expression)), cddr(expression));
+      return cadr(expression);
+    }
+    else if (expression.is<pair>() and car(expression).is<symbol>()
+                                   and car(expression).as<symbol>().value == "import")
     {
       for (let const& import_set : cdr(expression))
       {
@@ -72,12 +78,6 @@ inline namespace kernel
       }
 
       return unspecified_object;
-    }
-    else if (expression.is<pair>() and car(expression).is<symbol>()
-                                   and car(expression).as<symbol>().value == "define-library")
-    {
-      define_library(lexical_cast<std::string>(cadr(expression)), cddr(expression));
-      return cadr(expression);
     }
     else
     {

@@ -1,13 +1,300 @@
+(define-library (srfi 211 syntactic-closures)
+  (import (meevax macro)
+          (meevax syntax))
+  (begin (define (sc-macro-transformer f)
+           (lambda (form use-env mac-env)
+             (make-syntactic-closure mac-env '() (f form use-env))))
+         (define (rsc-macro-transformer f)
+           (lambda (form use-env mac-env)
+             (make-syntactic-closure use-env '() (f form mac-env)))))
+  (export sc-macro-transformer
+          rsc-macro-transformer
+          make-syntactic-closure
+          identifier?))
+
+(define-library (srfi 211 explicit-renaming)
+  (import (meevax equivalence)
+          (meevax list)
+          (meevax macro)
+          (meevax pair)
+          (meevax syntax))
+  (begin (define (list . xs) xs)
+         (define (er-macro-transformer f)
+           (lambda (form use-env mac-env)
+             (define rename:list (list))
+             (define (rename x)
+               (letrec ((assq (lambda (x alist)
+                                (if (null? alist) #f
+                                    (if (eq? x (caar alist))
+                                        (car alist)
+                                        (assq x (cdr alist))))))
+                        (alist-cons (lambda (key x alist)
+                                      (cons (cons key x) alist))))
+                 (define cell (assq x rename:list))
+                 (if cell
+                     (cdr cell)
+                     (begin (set! rename:list (alist-cons x (make-syntactic-closure mac-env '() x) rename:list))
+                            (cdar rename:list)))))
+             (define (compare x y)
+               (eqv? (if (syntactic-closure? x) x
+                         (make-syntactic-closure use-env '() x))
+                     (if (syntactic-closure? y) y
+                         (make-syntactic-closure use-env '() y))))
+             (f form rename compare))))
+  (export er-macro-transformer
+          identifier?))
+
 (define-library (scheme base)
-  (import (meevax syntax))
-
-  (define (list . xs) xs)
-
-  (export list
+  (import (meevax control)
+          (meevax syntax)
+          )
+  (begin (define (list . xs) xs)
+         )
+  (export ; *
+          ; +
+          ; -
+          ; ...
+          ; /
+          ; <
+          ; <=
+          ; =
+          ; =>
+          ; >
+          ; >=
+          ; _
+          ; abs
+          ; and
+          ; append
+          ; apply
+          ; assoc
+          ; assq
+          ; assv
+          ; begin
+          ; binary-port?
+          ; boolean=?
+          ; boolean?
+          ; bytevector
+          ; bytevector-append
+          ; bytevector-copy
+          ; bytevector-copy!
+          ; bytevector-length
+          ; bytevector-u8-ref
+          ; bytevector-u8-set!
+          ; bytevector?
+          ; caar
+          ; cadr
+          ; call-with-current-continuation
+          ; call-with-port
+          ; call-with-values
+          ; call/cc
+          ; car
+          ; case
+          ; cdar
+          ; cddr
+          ; cdr
+          ; ceiling
+          ; char->integer
+          ; char-ready?
+          ; char<=?
+          ; char<?
+          ; char=?
+          ; char>=?
+          ; char>?
+          ; char?
+          ; close-input-port
+          ; close-output-port
+          ; close-port
+          ; complex?
+          ; cond
+          ; cond-expand
+          ; cons
+          ; current-error-port
+          ; current-input-port
+          ; current-output-port
+          ; define
+          ; define-record-type
+          ; define-syntax
+          ; define-values
+          ; denominator
+          ; do
+          ; dynamic-wind
+          ; else
+          ; eof-object
+          ; eof-object?
+          ; eq?
+          ; equal?
+          ; eqv?
+          ; error
+          ; error-object-irritants
+          ; error-object-message
+          ; error-object?
+          ; even?
+          ; exact
+          ; exact-integer-sqrt
+          ; exact-integer?
+          ; exact?
+          ; expt
+          ; features
+          ; file-error?
+          ; floor
+          ; floor-quotient
+          ; floor-remainder
+          ; floor/
+          ; flush-output-port
+          ; for-each
+          ; gcd
+          ; get-output-bytevector
+          ; get-output-string
+          ; guard
+          ; if
+          ; include
+          ; include-ci
+          ; inexact
+          ; inexact?
+          ; input-port-open?
+          ; input-port?
+          ; integer->char
+          ; integer?
+          ; lambda
+          ; lcm
+          ; length
+          ; let
+          ; let*
+          ; let*-values
+          ; let-syntax
+          ; let-values
+          ; letrec
+          ; letrec*
+          ; letrec-syntax
+          list
+          ; list->string
+          ; list->vector
+          ; list-copy
+          ; list-ref
+          ; list-set!
+          ; list-tail
+          ; list?
+          ; make-bytevector
+          ; make-list
+          ; make-parameter
+          ; make-string
+          ; make-vector
+          ; map
+          ; max
+          ; member
+          ; memq
+          ; memv
+          ; min
+          ; modulo
+          ; negative?
+          ; newline
+          ; not
+          ; null?
+          ; number->string
+          ; number?
+          ; numerator
+          ; odd?
+          ; open-input-bytevector
+          ; open-input-string
+          ; open-output-bytevector
+          ; open-output-string
+          ; or
+          ; output-port-open?
+          ; output-port?
+          ; pair?
+          ; parameterize
+          ; peek-char
+          ; peek-u8
+          ; port?
+          ; positive?
+          ; procedure?
+          ; quasiquote
+          ; quote
+          ; quotient
+          ; raise
+          ; raise-continuable
+          ; rational?
+          ; rationalize
+          ; read-bytevector
+          ; read-bytevector!
+          ; read-char
+          ; read-error?
+          ; read-line
+          ; read-string
+          ; read-u8
+          ; real?
+          ; remainder
+          ; reverse
+          ; round
+          ; set!
+          ; set-car!
+          ; set-cdr!
+          ; square
+          ; string
+          ; string->list
+          ; string->number
+          ; string->symbol
+          ; string->utf8
+          ; string->vector
+          ; string-append
+          ; string-copy
+          ; string-copy!
+          ; string-fill!
+          ; string-for-each
+          ; string-length
+          ; string-map
+          ; string-ref
+          ; string-set!
+          ; string<=?
+          ; string<?
+          ; string=?
+          ; string>=?
+          ; string>?
+          ; string?
+          ; substring
+          ; symbol->string
+          ; symbol=?
+          ; symbol?
+          ; syntax-error
+          ; syntax-rules
+          ; textual-port?
+          ; truncate
+          ; truncate-quotient
+          ; truncate-remainder
+          ; truncate/
+          ; u8-ready?
+          ; unless
+          ; unquote
+          ; unquote-splicing
+          ; utf8->string
+          ; values
+          ; vector
+          ; vector->list
+          ; vector->string
+          ; vector-append
+          ; vector-copy
+          ; vector-copy!
+          ; vector-fill!
+          ; vector-for-each
+          ; vector-length
+          ; vector-map
+          ; vector-ref
+          ; vector-set!
+          ; vector?
+          ; when
+          ; with-exception-handler
+          ; write-bytevector
+          ; write-char
+          ; write-string
+          ; write-u8
+          ; zero?
           )
   )
 
-(import (scheme base))
+(import (scheme base)
+        (srfi 211 explicit-renaming)
+        (srfi 211 syntactic-closures)
+        )
 
 (define (unspecified) (if #f #f))
 
@@ -16,37 +303,6 @@
 (define (traditional-macro-transformer f)
   (lambda (form use-env mac-env)
     (apply f (cdr form))))
-
-(define (sc-macro-transformer f)
-  (lambda (form use-env mac-env)
-    (make-syntactic-closure mac-env '() (f form use-env))))
-
-(define (rsc-macro-transformer f)
-  (lambda (form use-env mac-env)
-    (make-syntactic-closure use-env '() (f form mac-env))))
-
-(define (er-macro-transformer f)
-  (lambda (form use-env mac-env)
-    (define rename:list (list))
-    (define (rename x)
-      (letrec ((assq (lambda (x alist)
-                       (if (null? alist) #f
-                           (if (eq? x (caar alist))
-                               (car alist)
-                               (assq x (cdr alist))))))
-               (alist-cons (lambda (key x alist)
-                             (cons (cons key x) alist))))
-        (define cell (assq x rename:list))
-        (if cell
-            (cdr cell)
-            (begin (set! rename:list (alist-cons x (make-syntactic-closure mac-env '() x) rename:list))
-                   (cdar rename:list)))))
-    (define (compare x y)
-      (eqv? (if (syntactic-closure? x) x
-                (make-syntactic-closure use-env '() x))
-            (if (syntactic-closure? y) y
-                (make-syntactic-closure use-env '() y))))
-    (f form rename compare)))
 
 ; ------------------------------------------------------------------------------
 

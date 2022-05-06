@@ -25,13 +25,7 @@ auto main(int const argc, char const* const* const argv) -> int
   {
     library::boot();
 
-    auto main = environment(
-                            // "(meevax gc)",
-                            "(only (meevax foo) a b)",
-                            "(except (meevax foo) a)",
-                            "(prefix (meevax foo) foo-)",
-                            "(rename (meevax foo) (a f))"
-                            );
+    auto main = environment(master);
 
     main.configure(argc, argv);
 
