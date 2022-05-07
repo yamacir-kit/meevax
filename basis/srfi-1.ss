@@ -304,13 +304,17 @@
                     (cons (cadddr  elt) d)
                     (cons (car (cddddr  elt)) e)))))))
 
-(define (append . lists)
-  (if (pair? lists)
-      (let recur ((list1 (car lists)) (lists (cdr lists)))
-        (if (pair? lists)
-            (let ((tail (recur (car lists) (cdr lists))))
-              (fold-right cons tail list1)) ; Append LIST1 & TAIL.
-            list1))
+(define (append . xs)
+  (if (pair? xs)
+      (letrec ((append (lambda (x xs)
+                         (if (pair? xs)
+                             ((lambda (tail)
+                                (fold-right cons tail x))
+                              (append (car xs)
+                                      (cdr xs)))
+                             x))))
+        (append (car xs)
+                (cdr xs)))
       '()))
 
 (define (append! . lists)
@@ -356,19 +360,27 @@
 
 ; Return (map cdr lists).
 ; However, if any element of LISTS is empty, just abort and return '().
-(define (%cdrs lists)
+(define (%cdrs xs)
   (call-with-current-continuation!
     (lambda (abort)
-      (let recur ((lists lists))
-        (if (pair? lists)
-            (let ((lis (car lists)))
-              (if (null-list? lis) (abort '())
-                  (cons (cdr lis) (recur (cdr lists)))))
-            '())))))
+      (letrec ((recur (lambda (xs)
+                        (if (pair? xs)
+                            ((lambda (x)
+                               (if (null-list? x)
+                                   (abort '())
+                                   (cons (cdr x)
+                                         (recur (cdr xs)))))
+                             (car xs))
+                            '()))))
+        (recur xs)))))
 
 (define (%cars+ lists last-elt) ; (append! (map car lists) (list last-elt))
-  (let recur ((lists lists))
-    (if (pair? lists) (cons (caar lists) (recur (cdr lists))) (list last-elt))))
+  (letrec ((recur (lambda (lists)
+                    (if (pair? lists)
+                        (cons (caar lists)
+                              (recur (cdr lists)))
+                        (list last-elt)))))
+    (recur lists)))
 
 (define (%cars+cdrs lists)
   (call-with-current-continuation!
@@ -444,16 +456,20 @@
         (if (null-list? lis) ans
             (lp (cdr lis) (kons (car lis) ans))))))
 
-(define (fold-right kons knil lis1 . lists)
-  (if (pair? lists)
-      (let recur ((lists (cons lis1 lists)))
-        (let ((cdrs (%cdrs lists)))
-          (if (null? cdrs) knil
-              (apply kons (%cars+ lists (recur cdrs))))))
-      (let recur ((lis lis1))
-        (if (null-list? lis) knil
-            (let ((head (car lis)))
-              (kons head (recur (cdr lis))))))))
+(define (fold-right f knil x . xs)
+  (if (pair? xs)
+      (letrec ((recur (lambda (lists)
+                        ((lambda (cdrs)
+                           (if (null? cdrs) knil
+                               (apply f (%cars+ lists (recur cdrs)))))
+                         (%cdrs lists)))))
+        (recur (cons x xs)))
+      (letrec ((recur (lambda (x)
+                        (if (null-list? x) knil
+                            ((lambda (head)
+                               (f head (recur (cdr x))))
+                             (car x))))))
+        (recur x))))
 
 (define (pair-fold-right f zero lis1 . lists)
   (if (pair? lists)
@@ -824,7 +840,8 @@
         (and (not (null-list? lis))
              (if (pred (car lis)) n (lp (cdr lis) (+ n 1)))))))
 
-(define (reverse lis) (fold cons '() lis))
+(define (reverse xs)
+  (fold cons '() xs))
 
 (define (reverse! lis)
   (let lp ((lis lis) (ans '()))

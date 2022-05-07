@@ -83,8 +83,6 @@ inline namespace kernel
 
     auto export_to(environment & destination)
     {
-      std::cout << "; importing " << export_specs.size() << " definitions." << std::endl;
-
       for (let const& export_spec : export_specs)
       {
         if (export_spec.is<pair>() and car(export_spec).is<symbol>()
@@ -94,7 +92,6 @@ inline namespace kernel
         else
         {
           assert(export_spec.is_also<identifier>());
-          std::cout << ";   " << export_spec << std::endl;
           destination.define(export_spec, (*this)[export_spec]);
         }
       }
@@ -142,7 +139,6 @@ inline namespace kernel
   template <typename... Ts>
   auto define_library(std::string const& name, Ts&&... xs)
   {
-    std::cout << "; (define-library " << name << " ...)" << std::endl;
     return libraries.emplace(name, std::forward<decltype(xs)>(xs)...);
   }
 } // namespace kernel

@@ -22,11 +22,9 @@
           (meevax pair)
           (meevax syntax))
 
-  (begin (define (list . xs) xs)
-
-         (define (er-macro-transformer f)
+  (begin (define (er-macro-transformer f)
            (lambda (form use-env mac-env)
-             (define rename:list (list))
+             (define renames '())
              (define (rename x)
                (letrec ((assq (lambda (x alist)
                                 (if (null? alist) #f
@@ -35,11 +33,11 @@
                                         (assq x (cdr alist))))))
                         (alist-cons (lambda (key x alist)
                                       (cons (cons key x) alist))))
-                 (define key/value (assq x rename:list))
+                 (define key/value (assq x renames))
                  (if key/value
                      (cdr key/value)
-                     (begin (set! rename:list (alist-cons x (make-syntactic-closure mac-env '() x) rename:list))
-                            (cdar rename:list)))))
+                     (begin (set! renames (alist-cons x (make-syntactic-closure mac-env '() x) renames))
+                            (cdar renames)))))
              (define (compare x y)
                (eqv? (if (syntactic-closure? x) x
                          (make-syntactic-closure use-env '() x))
