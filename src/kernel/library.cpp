@@ -298,6 +298,11 @@ inline namespace kernel
       return car(xs).is<null>();
     });
 
+    define<procedure>("append", [](let const& xs)
+    {
+      return std::accumulate(std::begin(xs), std::end(xs), unit, append2);
+    });
+
     define<procedure>("list->string", [](let const& xs)
     {
       string s;
@@ -316,6 +321,7 @@ inline namespace kernel
     });
 
     export_("null?",
+            "append",
             "list->string",
             "list->vector");
   }

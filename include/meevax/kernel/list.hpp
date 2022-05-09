@@ -197,7 +197,7 @@ inline namespace kernel
     return std::distance(std::cbegin(x), std::cend(x));
   };
 
-  auto append(const_reference, const_reference) -> object;
+  auto append2(const_reference, const_reference) -> object;
 
   auto reverse(const_reference) -> object;
 

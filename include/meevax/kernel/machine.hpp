@@ -788,7 +788,7 @@ inline namespace kernel
                        current_environment,
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs),
-                                 append(map(curry(cons)(make<syntax>("set!", set)), binding_specs), body)),
+                                 append2(map(curry(cons)(make<syntax>("set!", set)), binding_specs), body)),
                             make_list(length(binding_specs), undefined)),
                        current_scope,
                        current_continuation);

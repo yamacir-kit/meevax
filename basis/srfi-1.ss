@@ -14,13 +14,15 @@
 
 ; list
 
-(define (xcons x y) (cons y x))
+(define (xcons x y)
+  (cons y x))
 
 (define (tree-copy x)
-  (let rec ((x x))
-    (if (not (pair? x)) x
-        (cons (rec (car x))
-              (rec (cdr x))))))
+  (letrec ((tree-copy (lambda (x)
+                        (if (not (pair? x)) x
+                            (cons (tree-copy (car x))
+                                  (tree-copy (cdr x)))))))
+    (tree-copy x)))
 
 (define (make-list len . maybe-elt)
   (let ((elt (cond ((null? maybe-elt) #f) ; Default value
@@ -304,18 +306,18 @@
                     (cons (cadddr  elt) d)
                     (cons (car (cddddr  elt)) e)))))))
 
-(define (append . xs)
-  (if (pair? xs)
-      (letrec ((append (lambda (x xs)
-                         (if (pair? xs)
-                             ((lambda (tail)
-                                (fold-right cons tail x))
-                              (append (car xs)
-                                      (cdr xs)))
-                             x))))
-        (append (car xs)
-                (cdr xs)))
-      '()))
+; (define (append . xs)
+;   (if (pair? xs)
+;       (letrec ((append (lambda (x xs)
+;                          (if (pair? xs)
+;                              ((lambda (tail)
+;                                 (fold-right cons tail x))
+;                               (append (car xs)
+;                                       (cdr xs)))
+;                              x))))
+;         (append (car xs)
+;                 (cdr xs)))
+;       '()))
 
 (define (append! . lists)
   (let lp ((lists lists) (prev '())) ; First, scan through lists looking for a non-empty one.
