@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <functional>
 #include <meevax/kernel/library.hpp>
 
 namespace meevax
@@ -89,8 +90,8 @@ inline namespace kernel
 
     #undef DEFINE
 
-    define<procedure>("+", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e0, [](let const& a, let const& b) { return a + b; }); });
-    define<procedure>("*", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e1, [](let const& a, let const& b) { return a * b; }); });
+    define<procedure>("+", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e0, std::plus<void>()); });
+    define<procedure>("*", [](let const& xs) { return std::accumulate(std::begin(xs), std::end(xs), e1, std::multiplies<void>()); });
 
     #define DEFINE(SYMBOL, FUNCTION, BASIS)                                    \
     define<procedure>(SYMBOL, [](let const& xs)                                \

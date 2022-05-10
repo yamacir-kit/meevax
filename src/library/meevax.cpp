@@ -33,10 +33,7 @@ namespace meevax
     import("(meevax number)");
     import("(meevax port)");
     import("(meevax read)");
-    import("(meevax string)");
-    import("(meevax symbol)");
-    import("(meevax syntax)");
-    import("(meevax vector)");
+    import("(meevax syntax)"); // quote-syntax
     import("(meevax write)");
 
     define<procedure>("features", [](auto&&...)

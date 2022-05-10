@@ -584,7 +584,7 @@
                   (x (f (car lis))))
               (cons x (recur tail)))))))
 
-(define map map-in-order)
+; (define map map-in-order)
 
 (define (filter pred lis)
   (let recur ((lis lis))
@@ -842,8 +842,8 @@
         (and (not (null-list? lis))
              (if (pred (car lis)) n (lp (cdr lis) (+ n 1)))))))
 
-(define (reverse xs)
-  (fold cons '() xs))
+; (define (reverse xs)
+;   (fold cons '() xs))
 
 (define (reverse! lis)
   (let lp ((lis lis) (ans '()))

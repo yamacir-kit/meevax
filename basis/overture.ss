@@ -50,11 +50,14 @@
 
 (define-library (scheme base)
   (import (srfi 211 explicit-renaming)
+          (meevax character)
           (meevax control)
           (meevax equivalence)
           (meevax list)
           (meevax number)
           (meevax pair)
+          (meevax string)
+          (meevax symbol)
           (meevax syntax)
           (meevax vector)
           )
@@ -115,6 +118,481 @@
                                                    (cddr form))))
                                  (cadr form)))))))
 
+         (define-syntax quasiquote
+           (er-macro-transformer
+             (lambda (form rename compare)
+               (define (expand x depth)
+                 (cond ((pair? x)
+                        (cond ((compare (rename 'unquote) (car x))
+                               (if (<= depth 0)
+                                   (cadr x)
+                                   (list (rename 'list)
+                                         (list (rename 'quote) 'unquote)
+                                         (expand (cadr x) (- depth 1)))))
+                              ((compare (rename 'unquote-splicing) (car x))
+                               (if (<= depth 0)
+                                   (list (rename 'cons)
+                                         (expand (car x) depth)
+                                         (expand (cdr x) depth))
+                                   (list (rename 'list)
+                                         (list (rename 'quote) 'unquote-splicing)
+                                         (expand (cadr x) (- depth 1)))))
+                              ((compare (rename 'quasiquote) (car x))
+                               (list (rename 'list)
+                                     (list (rename 'quote) 'quasiquote)
+                                     (expand (cadr x) (+ depth 1))))
+                              ((and (<= depth 0)
+                                    (pair? (car x))
+                                    (compare (rename 'unquote-splicing) (caar x)))
+                               (if (null? (cdr x))
+                                   (cadar x)
+                                   (list (rename 'append)
+                                         (cadar x)
+                                         (expand (cdr x) depth))))
+                              (else (list (rename 'cons)
+                                          (expand (car x) depth)
+                                          (expand (cdr x) depth)))))
+                       ((vector? x)
+                        (list (rename 'list->vector)
+                              (expand (vector->list x) depth)))
+                       ((or (identifier? x)
+                            (null? x))
+                        (list (rename 'quote) x))
+                       (else x)))
+               (expand (cadr form) 0))))
+
+         (define-syntax when
+           (er-macro-transformer
+             (lambda (form rename compare)
+               `(,(rename 'if) ,(cadr form)
+                               (,(rename 'begin) ,@(cddr form))))))
+
+         (define (not x) (if x #f #t))
+
+         (define-syntax unless
+           (er-macro-transformer
+             (lambda (form rename compare)
+               `(,(rename 'if) (,(rename 'not) ,(cadr form))
+                               (,(rename 'begin) ,@(cddr form))))))
+
+         (define (reverse xs)
+           (if (null? xs) '()
+               (append (reverse (cdr xs))
+                       (list (car xs)))))
+
+         (define (map f x . xs)
+           (define (map-1 f x stack)
+             (if (pair? x)
+                 (map-1 f
+                        (cdr x)
+                        (cons (f (car x)) stack))
+                 (reverse stack)))
+           (if (null? xs)
+               (map-1 f x '())
+               (letrec ((map (lambda (f xs stack)
+                               (if (every pair? xs)
+                                   (map f
+                                        (map-1 cdr xs '())
+                                        (cons (apply f (map-1 car xs '())) stack))
+                                   (reverse stack)))))
+                 (map f (cons x xs) '()))))
+
+         (define (apply f x . xs)
+           (define (apply-1 f xs) (f . xs))
+           (if (null? xs)
+               (apply-1 f x)
+               ((lambda (rxs)
+                  (apply-1 f
+                           (append (reverse (cdr rxs))
+                                   (car rxs))))
+                (reverse (cons x xs)))))
+
+         (define (every f x . xs)
+           (define (every-1 f x)
+             (if (null? (cdr x))
+                 (f (car x))
+                 (if (f (car x))
+                     (every-1 f (cdr x))
+                     #f)))
+           (if (null? xs)
+               (if (pair? x)
+                   (every-1 f x)
+                   #t)
+               (not (apply any
+                           (lambda xs
+                             (not (apply f xs)))
+                           x xs))))
+
+         (define (any f x . xs)
+           (define (any-1 f x)
+             (if (pair? (cdr x))
+                 ((lambda (result)
+                    (if result result (any-1 f (cdr x))))
+                  (f (car x)))
+                 (f (car x))))
+           (define (any-2+ f xs)
+             (if (every pair? xs)
+                 ((lambda (result)
+                    (if result result (any-2+ f (map cdr xs))))
+                  (apply f (map car xs)))
+                 #f))
+           (if (null? xs)
+               (if (pair? x)
+                   (any-1 f x)
+                   #f)
+               (any-2+ f (cons x xs))))
+
+         (define-syntax let
+           (er-macro-transformer
+             (lambda (form rename compare)
+               (if (identifier? (cadr form))
+                   `(,(rename 'letrec) ((,(cadr form)
+                                          (,(rename 'lambda) ,(map car (caddr form)) ,@(cdddr form))))
+                                       (,(cadr form) ,@(map cadr (caddr form))))
+                   `((,(rename 'lambda) ,(map car (cadr form)) ,@(cddr form))
+                     ,@(map cadr (cadr form)))))))
+
+
+         (define-syntax let*
+           (er-macro-transformer
+             (lambda (form rename compare)
+               (if (null? (cadr form))
+                   `(,(rename 'let) () ,@(cddr form))
+                   `(,(rename 'let) (,(caadr form))
+                                    (,(rename 'let*) ,(cdadr form)
+                                                     ,@(cddr form)))))))
+
+         (define-syntax letrec*
+           (er-macro-transformer
+             (lambda (form rename compare)
+               `(,(rename 'let) ()
+                                ,@(map (lambda (x) (cons (rename 'define) x))
+                                       (cadr form))
+                                ,@(cddr form)))))
+
+         (define (member o x . c) ; for case
+           (let ((compare (if (pair? c) (car c) equal?)))
+             (let member ((x x))
+               (and (pair? x)
+                    (if (compare o (car x)) x
+                        (member (cdr x)))))))
+
+         (define (memq o x)
+           (member o x eq?))
+
+         (define (memv o x)
+           (member o x eqv?))
+
+         (define-syntax case
+           (er-macro-transformer
+             (lambda (form rename compare)
+               (define (body xs)
+                 (cond ((null? xs) (rename 'result))
+                       ((compare (rename '=>) (car xs)) `(,(cadr xs) ,(rename 'result)))
+                       (else `(,(rename 'begin) ,@xs))))
+               (define (each-clause clauses)
+                 (cond ((null? clauses)
+                        (unspecified))
+                       ((compare (rename 'else) (caar clauses))
+                        (body (cdar clauses)))
+                       ((and (pair? (caar clauses))
+                             (null? (cdaar clauses)))
+                        `(,(rename 'if) (,(rename 'eqv?) ,(rename 'result)
+                                                         (,(rename 'quote) ,(caaar clauses)))
+                                        ,(body (cdar clauses))
+                                        ,(each-clause (cdr clauses))))
+                       (else `(,(rename 'if) (,(rename 'memv) ,(rename 'result)
+                                                              (,(rename 'quote) ,(caar clauses)))
+                                             ,(body (cdar clauses))
+                                             ,(each-clause (cdr clauses))))))
+               `(,(rename 'let) ((,(rename 'result) ,(cadr form)))
+                                ,(each-clause (cddr form))))))
+
+         (define-syntax do
+           (er-macro-transformer
+             (lambda (form rename compare)
+               (let ((body `(,(rename 'begin) ,@(cdddr form)
+                                              (,(rename 'rec) ,@(map (lambda (x)
+                                                                       (if (pair? (cddr x))
+                                                                           (caddr x)
+                                                                           (car x)))
+                                                                     (cadr form))))))
+                 `(,(rename 'let) ,(rename 'rec) ,(map (lambda (x)
+                                                         (list (car x)
+                                                               (cadr x)))
+                                                       (cadr form))
+                                  ,(if (null? (cdaddr form))
+                                       `(,(rename 'let) ((,(rename 'it) ,(caaddr form)))
+                                                        (,(rename 'if) ,(rename 'it)
+                                                                       ,(rename 'it)
+                                                                       ,body))
+                                       `(,(rename 'if) ,(caaddr form)
+                                                       (,(rename 'begin) ,@(cdaddr form))
+                                                       ,body)))))))
+
+         (define (equal? x y) ; structure=?
+           (if (and (pair? x)
+                    (pair? y))
+               (and (equal? (car x)
+                            (car y))
+                    (equal? (cdr x)
+                            (cdr y)))
+               (eqv? x y)))
+
+         (define (exact? z)
+           (define (exact-complex? x)
+             (and (%complex? x)
+                  (exact? (real-part x))
+                  (exact? (imag-part x))))
+           (or (exact-complex? z)
+               (ratio? z)
+               (exact-integer? z)))
+
+         (define (inexact? z)
+           (define (inexact-complex? x)
+             (and (%complex? x)
+                  (or (inexact? (real-part x))
+                      (inexact? (imag-part x)))))
+           (define (floating-point? z)
+             (or (single-float? z)
+                 (double-float? z)))
+           (or (inexact-complex? z)
+               (floating-point? z)))
+
+         (define (zero? n)
+           (= n 0))
+
+         (define (positive? n)
+           (> n 0))
+
+         (define (negative? n)
+           (< n 0))
+
+         (define (odd? n)
+           (not (even? n)))
+
+         (define (even? n)
+           (= (remainder n 2) 0))
+
+         (define (max x . xs)
+           (define (max-aux x xs)
+             (if (null? xs)
+                 (inexact x)
+                 (max-aux (if (< x (car xs)) (car xs) x)
+                          (cdr xs))))
+           (if (inexact? x)
+               (max-aux x xs)
+               (let rec ((x x) (xs xs))
+                 (cond ((null? xs) x)
+                       ((inexact? (car xs)) (max-aux x xs))
+                       (else (rec (if (< x (car xs)) (car xs) x)
+                                  (cdr xs)))))))
+
+         (define (min x . xs)
+           (define (min-aux x xs)
+             (if (null? xs)
+                 (inexact x)
+                 (min-aux (if (< (car xs) x) (car xs) x)
+                          (cdr xs))))
+           (if (inexact? x)
+               (min-aux x xs)
+               (let rec ((x x) (xs xs))
+                 (cond ((null? xs) x)
+                       ((inexact? (car xs)) (min-aux x xs))
+                       (else (rec (if (< (car xs) x) (car xs) x)
+                                  (cdr xs)))))))
+
+         (define (abs n)
+           (if (< n 0) (- n) n))
+
+         (define (floor-quotient x y)
+           (floor (/ x y)))
+
+         (define (floor-remainder x y)
+           (% (+ y (% x y)) y))
+
+         (define (floor/ x y)
+           (values (floor-quotient x y)
+                   (floor-remainder x y)))
+
+         (define (truncate-quotient x y)
+           (truncate (/ x y)))
+
+         (define truncate-remainder %)
+
+         (define (truncate/ x y)
+           (values (truncate-quotient x y)
+                   (truncate-remainder x y)))
+
+         (define quotient truncate-quotient)
+
+         (define remainder truncate-remainder)
+
+         (define modulo floor-remainder)
+
+         (define (gcd . xs) ; from Chibi-Scheme lib/init7.scm
+           (define (gcd-2 a b)
+             (if (zero? b)
+                 (abs a)
+                 (gcd b (remainder a b))))
+           (if (null? xs) 0
+               (let rec ((n  (car xs))
+                         (ns (cdr xs)))
+                 (if (null? ns) n
+                     (rec (gcd-2 n (car ns)) (cdr ns))))))
+
+         (define (lcm . xs) ; from Chibi-Scheme lib/init7.scm
+           (define (lcm-2 a b)
+             (abs (quotient (* a b) (gcd a b))))
+           (if (null? xs) 1
+               (let rec ((n  (car xs))
+                         (ns (cdr xs)))
+                 (if (null? ns) n
+                     (rec (lcm-2 n (car ns)) (cdr ns))))))
+
+         (define (numerator x)
+           (cond ((ratio? x) (car x))
+                 ((exact? x) x)
+                 (else (inexact (numerator (exact x))))))
+
+         (define (denominator x)
+           (cond ((exact? x) (if (ratio? x) (cdr x) 1))
+                 ((integer? x) 1.0)
+                 (else (inexact (denominator (exact x))))))
+
+         (define (rationalize x e) ; from Chibi-Scheme lib/scheme/extras.scm (https://ml.cddddr.org/scheme/msg01498.html)
+           (define (sr x y return)
+             (let ((fx (floor x))
+                   (fy (floor y)))
+               (cond ((>= fx x) (return fx 1))
+                     ((= fx fy) (sr (/ (- y fy))
+                                    (/ (- x fx))
+                                    (lambda (n d)
+                                      (return (+ d (* fx n)) n))))
+                     (else (return (+ fx 1) 1)))))
+           (let ((return (if (negative? x)
+                             (lambda (num den)
+                               (/ (- num) den))
+                             /))
+                 (x (abs x))
+                 (e (abs e)))
+             (sr (- x e) (+ x e) return)))
+
+         (define (square z) (* z z))
+
+         (define (boolean? x)
+           (or (eqv? x #t)
+               (eqv? x #f)))
+
+         (define boolean=? eqv?)
+
+         (define symbol=? eqv?)
+
+         (define (char-compare x xs compare)
+           (let rec ((compare compare)
+                     (lhs (char->integer x))
+                     (xs xs))
+             (if (null? xs) #t
+                 (let ((rhs (char->integer (car xs))))
+                   (and (compare lhs rhs)
+                        (rec compare rhs (cdr xs)))))))
+
+         (define (char=? x . xs)
+           (char-compare x xs =))
+
+         (define (char<? x . xs)
+           (char-compare x xs <))
+
+         (define (char>? x . xs)
+           (char-compare x xs >))
+
+         (define (char<=? x . xs)
+           (char-compare x xs <=))
+
+         (define (char>=? x . xs)
+           (char-compare x xs >=))
+
+         (define (string . xs)
+           (list->string xs))
+
+         (define substring string-copy)
+
+         (define (string-fill! s c . o)
+           (let ((start (if (and (pair? o)
+                                 (exact-integer? (car o)))
+                            (car o)
+                            0))
+                 (end (if (and (pair? o)
+                               (pair? (cdr o))
+                               (exact-integer? (cadr o)))
+                          (cadr o)
+                          (string-length s))))
+             (let rec ((k (- end 1)))
+               (if (<= start k)
+                   (begin (string-set! s k c)
+                          (rec (- k 1)))))))
+
+         (define (procedure? x)
+           (or (closure? x)
+               (continuation? x)
+               (foreign-function? x)))
+
+         (define %current-dynamic-extents '()) ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
+
+         (define (dynamic-wind before thunk after)
+           (before)
+           (set! %current-dynamic-extents (cons (cons before after) %current-dynamic-extents))
+           ((lambda (result) ; TODO let-values
+              (set! %current-dynamic-extents (cdr %current-dynamic-extents))
+              (after)
+              result) ; TODO (apply values result)
+            (thunk)))
+
+         (define (call-with-current-continuation procedure)
+           (define (windup! from to)
+             (set! %current-dynamic-extents from)
+             (cond ((eq? from to))
+                   ((null? from) (windup! from (cdr to)) ((caar to)))
+                   ((null? to) ((cdar from)) (windup! (cdr from) to))
+                   (else ((cdar from)) (windup! (cdr from) (cdr to)) ((caar to))))
+             (set! %current-dynamic-extents to))
+           (let ((current-dynamic-extents %current-dynamic-extents))
+             (call-with-current-continuation! (lambda (k1)
+                                                (procedure (lambda (k2)
+                                                             (windup! %current-dynamic-extents current-dynamic-extents)
+                                                             (k1 k2)))))))
+
+         (define call/cc call-with-current-continuation)
+
+         ; (define values
+         ;   (lambda xs
+         ;     (call-with-current-continuation
+         ;       (lambda (cc)
+         ;         (apply cc xs)))))
+
+         (define <values> (list 'values)) ; Magic Token Trick
+
+         (define (values? x)
+           (if (pair? x)
+               (eq? (car x) <values>)
+               #f))
+
+         (define (values . xs)
+           (if (if (null? xs) #f
+                   (null? (cdr xs)))
+               (car xs)
+               (cons <values> xs)))
+
+         ; (define (call-with-values producer consumer)
+         ;   (let-values ((xs (producer)))
+         ;     (apply consumer xs)))
+
+         (define (call-with-values producer consumer)
+           (let ((vs (producer)))
+             (if (values? vs)
+                 (apply consumer (cdr vs))
+                 (consumer vs))))
+
          )
   (export *
           +
@@ -128,17 +606,17 @@
           >
           >=
           ; _
-          ; abs
+          abs
           and
           append
-          ; apply
+          apply
           ; assoc
           ; assq
           ; assv
-          ; begin
+          begin
           ; binary-port?
-          ; boolean=?
-          ; boolean?
+          boolean=?
+          boolean?
           ; bytevector
           ; bytevector-append
           ; bytevector-copy
@@ -149,24 +627,24 @@
           ; bytevector?
           caar
           cadr
-          ; call-with-current-continuation
+          call-with-current-continuation
           ; call-with-port
-          ; call-with-values
-          ; call/cc
+          call-with-values
+          call/cc
           car
-          ; case
+          case
           cdar
           cddr
           cdr
           ceiling
-          ; char->integer
+          char->integer
           ; char-ready?
-          ; char<=?
-          ; char<?
-          ; char=?
-          ; char>=?
-          ; char>?
-          ; char?
+          char<=?
+          char<?
+          char=?
+          char>=?
+          char>?
+          char?
           ; close-input-port
           ; close-output-port
           ; close-port
@@ -177,61 +655,61 @@
           ; current-error-port
           ; current-input-port
           ; current-output-port
-          ; define
+          define
           ; define-record-type
-          ; define-syntax
+          define-syntax
           ; define-values
-          ; denominator
-          ; do
-          ; dynamic-wind
+          denominator
+          do
+          dynamic-wind
           ; else
           ; eof-object
           ; eof-object?
           eq?
-          ; equal?
+          equal?
           eqv?
           ; error
           ; error-object-irritants
           ; error-object-message
           ; error-object?
-          ; even?
+          even?
           exact
           ; exact-integer-sqrt
           exact-integer?
-          ; exact?
+          exact?
           expt
           ; features
           ; file-error?
           floor
-          ; floor-quotient
-          ; floor-remainder
-          ; floor/
+          floor-quotient
+          floor-remainder
+          floor/
           ; flush-output-port
           ; for-each
-          ; gcd
+          gcd
           ; get-output-bytevector
           ; get-output-string
           ; guard
-          ; if
+          if
           ; include
           ; include-ci
           inexact
-          ; inexact?
+          inexact?
           ; input-port-open?
           ; input-port?
           integer->char
           integer?
-          ; lambda
-          ; lcm
+          lambda
+          lcm
           ; length
-          ; let
-          ; let*
+          let
+          let*
           ; let*-values
-          ; let-syntax
+          let-syntax
           ; let-values
-          ; letrec
-          ; letrec*
-          ; letrec-syntax
+          letrec
+          letrec*
+          letrec-syntax
           list
           list->string
           list->vector
@@ -243,23 +721,23 @@
           ; make-bytevector
           ; make-list
           ; make-parameter
-          ; make-string
-          ; make-vector
-          ; map
-          ; max
-          ; member
-          ; memq
-          ; memv
-          ; min
-          ; modulo
-          ; negative?
+          make-string
+          make-vector
+          map
+          max
+          member
+          memq
+          memv
+          min
+          modulo
+          negative?
           ; newline
-          ; not
+          not
           null?
           number->string
           number?
-          ; numerator
-          ; odd?
+          numerator
+          odd?
           ; open-input-bytevector
           ; open-input-string
           ; open-output-bytevector
@@ -272,15 +750,15 @@
           ; peek-char
           ; peek-u8
           ; port?
-          ; positive?
-          ; procedure?
-          ; quasiquote
-          ; quote
-          ; quotient
+          positive?
+          procedure?
+          quasiquote
+          quote
+          quotient
           ; raise
           ; raise-continuable
           rational?
-          ; rationalize
+          rationalize
           ; read-bytevector
           ; read-bytevector!
           ; read-char
@@ -289,71 +767,71 @@
           ; read-string
           ; read-u8
           real?
-          ; remainder
-          ; reverse
+          remainder
+          reverse
           round
-          ; set!
+          set!
           set-car!
           set-cdr!
-          ; square
-          ; string
-          ; string->list
-          ; string->number
-          ; string->symbol
+          square
+          string
+          string->list
+          string->number
+          string->symbol
           ; string->utf8
           ; string->vector
-          ; string-append
-          ; string-copy
+          string-append
+          string-copy
           ; string-copy!
-          ; string-fill!
+          string-fill!
           ; string-for-each
-          ; string-length
+          string-length
           ; string-map
-          ; string-ref
-          ; string-set!
-          ; string<=?
-          ; string<?
-          ; string=?
-          ; string>=?
-          ; string>?
-          ; string?
-          ; substring
-          ; symbol->string
+          string-ref
+          string-set!
+          string<=?
+          string<?
+          string=?
+          string>=?
+          string>?
+          string?
+          substring
+          symbol->string
           ; symbol=?
-          ; symbol?
+          symbol?
           ; syntax-error
           ; syntax-rules
           ; textual-port?
           truncate
-          ; truncate-quotient
-          ; truncate-remainder
-          ; truncate/
+          truncate-quotient
+          truncate-remainder
+          truncate/
           ; u8-ready?
-          ; unless
+          unless
           ; unquote
           ; unquote-splicing
           ; utf8->string
-          ; values
-          ; vector
-          ; vector->list
-          ; vector->string
+          values
+          vector
+          vector->list
+          vector->string
           ; vector-append
           ; vector-copy
           ; vector-copy!
-          ; vector-fill!
+          vector-fill!
           ; vector-for-each
-          ; vector-length
+          vector-length
           ; vector-map
-          ; vector-ref
-          ; vector-set!
-          ; vector?
-          ; when
+          vector-ref
+          vector-set!
+          vector?
+          when
           ; with-exception-handler
           ; write-bytevector
           ; write-char
           ; write-string
           ; write-u8
-          ; zero?
+          zero?
           )
   )
 
@@ -382,357 +860,6 @@
 
 ; ------------------------------------------------------------------------------
 
-(define-syntax quasiquote
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (define (expand x depth)
-        (cond ((pair? x)
-               (cond ((compare (rename 'unquote) (car x))
-                      (if (<= depth 0)
-                          (cadr x)
-                          (list (rename 'list)
-                                (list (rename 'quote) 'unquote)
-                                (expand (cadr x) (- depth 1)))))
-                     ((compare (rename 'unquote-splicing) (car x))
-                      (if (<= depth 0)
-                          (list (rename 'cons)
-                                (expand (car x) depth)
-                                (expand (cdr x) depth))
-                          (list (rename 'list)
-                                (list (rename 'quote) 'unquote-splicing)
-                                (expand (cadr x) (- depth 1)))))
-                     ((compare (rename 'quasiquote) (car x))
-                      (list (rename 'list)
-                            (list (rename 'quote) 'quasiquote)
-                            (expand (cadr x) (+ depth 1))))
-                     ((and (<= depth 0)
-                           (pair? (car x))
-                           (compare (rename 'unquote-splicing) (caar x)))
-                      (if (null? (cdr x))
-                          (cadar x)
-                          (list (rename 'append)
-                                (cadar x)
-                                (expand (cdr x) depth))))
-                     (else (list (rename 'cons)
-                                 (expand (car x) depth)
-                                 (expand (cdr x) depth)))))
-              ((vector? x)
-               (list (rename 'list->vector)
-                     (expand (vector->list x) depth)))
-              ((or (identifier? x)
-                   (null? x))
-               (list (rename 'quote) x))
-              (else x)))
-      (expand (cadr form) 0))))
-
-(define (not x) (if x #f #t))
-
-(define-syntax when
-  (er-macro-transformer
-    (lambda (form rename compare)
-      `(,(rename 'if) ,(cadr form)
-                      (,(rename 'begin) ,@(cddr form))))))
-
-(define-syntax unless
-  (er-macro-transformer
-    (lambda (form rename compare)
-      `(,(rename 'if) (,(rename 'not) ,(cadr form))
-                      (,(rename 'begin) ,@(cddr form))))))
-
-(define (reverse x)
-  (if (null? x) '()
-      (append (reverse (cdr x))
-              (list (car x)))))
-
-(define (map f x . xs) ; map-unorder
-  (define (map-1 f x xs)
-    (if (pair? x)
-        (map-1 f
-               (cdr x)
-               (cons (f (car x)) xs))
-        (reverse xs)))
-  (define (map-2+ f xs xss)
-    (if (every pair? xs)
-        (map-2+ f
-                (map-1 cdr xs '())
-                (cons (apply f (map-1 car xs '())) xss))
-        (reverse xss)))
-  (if (null? xs)
-      (map-1  f       x     '())
-      (map-2+ f (cons x xs) '())))
-
-(define (apply f x . xs) ; for map
-  (define (apply-1 f xs) (f . xs))
-  (if (null? xs)
-      (apply-1 f x)
-      ((lambda (rxs)
-         (apply-1 f
-                  (append (reverse (cdr rxs))
-                          (car rxs))))
-       (reverse (cons x xs)))))
-
-(define (every f x . xs) ; from SRFI-1 for map
-  (define (every-1 f x)
-    (if (null? (cdr x))
-        (f (car x))
-        (if (f (car x))
-            (every-1 f (cdr x))
-            #f)))
-  (if (null? xs)
-      (if (pair? x)
-          (every-1 f x)
-          #t)
-      (not (apply any
-                  (lambda xs
-                    (not (apply f xs)))
-                  x xs))))
-
-(define (any f x . xs) ; from SRFI-1 for every
-  (define (any-1 f x)
-    (if (pair? (cdr x))
-        ((lambda (result)
-           (if result result (any-1 f (cdr x))))
-         (f (car x)))
-        (f (car x))))
-  (define (any-2+ f xs)
-    (if (every pair? xs)
-        ((lambda (result)
-           (if result result (any-2+ f (map cdr xs))))
-         (apply f (map car xs)))
-        #f))
-  (if (null? xs)
-      (if (pair? x)
-          (any-1 f x)
-          #f)
-      (any-2+ f (cons x xs))))
-
-(define-syntax let
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (if (identifier? (cadr form))
-          `(,(rename 'letrec) ((,(cadr form)
-                                 (,(rename 'lambda) ,(map car (caddr form)) ,@(cdddr form))))
-                              (,(cadr form) ,@(map cadr (caddr form))))
-          `((,(rename 'lambda) ,(map car (cadr form)) ,@(cddr form))
-            ,@(map cadr (cadr form)))))))
-
-
-(define-syntax let*
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (if (null? (cadr form))
-          `(,(rename 'let) () ,@(cddr form))
-          `(,(rename 'let) (,(caadr form))
-                           (,(rename 'let*) ,(cdadr form)
-                                            ,@(cddr form)))))))
-
-(define-syntax letrec*
-  (er-macro-transformer
-    (lambda (form rename compare)
-      `(,(rename 'let) ()
-                       ,@(map (lambda (x) (cons (rename 'define) x))
-                              (cadr form))
-                       ,@(cddr form)))))
-
-(define (member o x . c) ; for case
-  (let ((compare (if (pair? c) (car c) equal?)))
-    (let member ((x x))
-      (and (pair? x)
-           (if (compare o (car x)) x
-               (member (cdr x)))))))
-
-(define (memq o x) (member o x eq?))
-(define (memv o x) (member o x eqv?))
-
-(define-syntax case
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (define (body xs)
-        (cond ((null? xs) (rename 'result))
-              ((compare (rename '=>) (car xs)) `(,(cadr xs) ,(rename 'result)))
-              (else `(,(rename 'begin) ,@xs))))
-      (define (each-clause clauses)
-        (cond ((null? clauses)
-               (unspecified))
-              ((compare (rename 'else) (caar clauses))
-               (body (cdar clauses)))
-              ((and (pair? (caar clauses))
-                    (null? (cdaar clauses)))
-               `(,(rename 'if) (,(rename 'eqv?) ,(rename 'result)
-                                                (,(rename 'quote) ,(caaar clauses)))
-                               ,(body (cdar clauses))
-                               ,(each-clause (cdr clauses))))
-              (else `(,(rename 'if) (,(rename 'memv) ,(rename 'result)
-                                                     (,(rename 'quote) ,(caar clauses)))
-                                    ,(body (cdar clauses))
-                                    ,(each-clause (cdr clauses))))))
-      `(,(rename 'let) ((,(rename 'result) ,(cadr form)))
-                       ,(each-clause (cddr form))))))
-
-(define-syntax do
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (let ((body `(,(rename 'begin) ,@(cdddr form)
-                                     (,(rename 'rec) ,@(map (lambda (x)
-                                                              (if (pair? (cddr x))
-                                                                  (caddr x)
-                                                                  (car x)))
-                                                            (cadr form))))))
-        `(,(rename 'let) ,(rename 'rec) ,(map (lambda (x)
-                                                (list (car x)
-                                                      (cadr x)))
-                                              (cadr form))
-                         ,(if (null? (cdaddr form))
-                              `(,(rename 'let) ((,(rename 'it) ,(caaddr form)))
-                                               (,(rename 'if) ,(rename 'it)
-                                                              ,(rename 'it)
-                                                              ,body))
-                              `(,(rename 'if) ,(caaddr form)
-                                              (,(rename 'begin) ,@(cdaddr form))
-                                              ,body)))))))
-
-; ---- 6.1. Equivalence predicates ---------------------------------------------
-
-(define (equal? x y) ; structure=?
-  (if (and (pair? x)
-           (pair? y))
-      (and (equal? (car x)
-                   (car y))
-           (equal? (cdr x)
-                   (cdr y)))
-      (eqv? x y)))
-
-; ---- 6.2. Numbers ------------------------------------------------------------
-
-(define (exact? z)
-  (define (exact-complex? x)
-    (and (%complex? x)
-         (exact? (real-part x))
-         (exact? (imag-part x))))
-  (or (exact-complex? z)
-      (ratio? z)
-      (exact-integer? z)))
-
-(define (inexact? z)
-  (define (inexact-complex? x)
-    (and (%complex? x)
-         (or (inexact? (real-part x))
-             (inexact? (imag-part x)))))
-  (define (floating-point? z)
-    (or (single-float? z)
-        (double-float? z)))
-  (or (inexact-complex? z)
-      (floating-point? z)))
-
-(define (zero?     n) (= n 0))
-(define (positive? n) (> n 0))
-(define (negative? n) (< n 0))
-(define (odd?      n) (not (even? n)))
-(define (even?     n) (= (remainder n 2) 0))
-
-(define (max x . xs)
-  (define (max-aux x xs)
-    (if (null? xs)
-        (inexact x)
-        (max-aux (if (< x (car xs)) (car xs) x)
-                 (cdr xs))))
-  (if (inexact? x)
-      (max-aux x xs)
-      (let rec ((x x) (xs xs))
-        (cond ((null? xs) x)
-              ((inexact? (car xs)) (max-aux x xs))
-              (else (rec (if (< x (car xs)) (car xs) x)
-                         (cdr xs)))))))
-
-(define (min x . xs)
-  (define (min-aux x xs)
-    (if (null? xs)
-        (inexact x)
-        (min-aux (if (< (car xs) x) (car xs) x)
-                 (cdr xs))))
-  (if (inexact? x)
-      (min-aux x xs)
-      (let rec ((x x) (xs xs))
-        (cond ((null? xs) x)
-              ((inexact? (car xs)) (min-aux x xs))
-              (else (rec (if (< (car xs) x) (car xs) x)
-                         (cdr xs)))))))
-
-(define (abs n)
-  (if (< n 0) (- n) n))
-
-(define (floor-quotient x y) (floor (/ x y)))
-
-(define (floor-remainder x y) (% (+ y (% x y)) y))
-
-(define (floor/ x y)
-  (values (floor-quotient x y)
-          (floor-remainder x y)))
-
-(define (truncate-quotient x y) (truncate (/ x y)))
-
-(define truncate-remainder %)
-
-(define (truncate/ x y)
-  (values (truncate-quotient x y)
-          (truncate-remainder x y)))
-
-(define quotient truncate-quotient)
-
-(define remainder truncate-remainder)
-
-(define modulo floor-remainder)
-
-(define (gcd . xs) ; from Chibi-Scheme lib/init7.scm
-  (define (gcd-2 a b)
-    (if (zero? b)
-        (abs a)
-        (gcd b (remainder a b))))
-  (if (null? xs) 0
-      (let rec ((n  (car xs))
-                (ns (cdr xs)))
-        (if (null? ns) n
-            (rec (gcd-2 n (car ns)) (cdr ns))))))
-
-(define (lcm . xs) ; from Chibi-Scheme lib/init7.scm
-  (define (lcm-2 a b)
-    (abs (quotient (* a b) (gcd a b))))
-  (if (null? xs) 1
-      (let rec ((n  (car xs))
-                (ns (cdr xs)))
-        (if (null? ns) n
-            (rec (lcm-2 n (car ns)) (cdr ns))))))
-
-(define (numerator x)
-  (cond ((ratio? x) (car x))
-        ((exact? x) x)
-        (else (inexact (numerator (exact x))))))
-
-(define (denominator x)
-  (cond ((exact? x) (if (ratio? x) (cdr x) 1))
-        ((integer? x) 1.0)
-        (else (inexact (denominator (exact x))))))
-
-(define (rationalize x e) ; from Chibi-Scheme lib/scheme/extras.scm (https://ml.cddddr.org/scheme/msg01498.html)
-  (define (sr x y return)
-    (let ((fx (floor x))
-          (fy (floor y)))
-      (cond ((>= fx x) (return fx 1))
-            ((= fx fy) (sr (/ (- y fy))
-                           (/ (- x fx))
-                           (lambda (n d)
-                             (return (+ d (* fx n)) n))))
-            (else (return (+ fx 1) 1)))))
-  (let ((return (if (negative? x)
-                    (lambda (num den)
-                      (/ (- num) den))
-                    /))
-        (x (abs x))
-        (e (abs e)))
-    (sr (- x e) (+ x e) return)))
-
-(define (square z) (* z z))
-
 (define (make-rectangular x y) (+ x (* y (sqrt -1))))
 
 (define (make-polar radius phi)
@@ -752,37 +879,6 @@
 
 (define inexact->exact exact)
 (define exact->inexact inexact)
-
-; ---- 6.3. Booleans -----------------------------------------------------------
-
-(define (boolean? x)
-  (or (eqv? x #t)
-      (eqv? x #f)))
-
-(define boolean=? eqv?)
-
-; ---- 6.4. Pairs and lists ----------------------------------------------------
-
-; ---- 6.5 Symbols -------------------------------------------------------------
-
-(define symbol=? eqv?)
-
-; ---- 6.6 Characters ----------------------------------------------------------
-
-(define (char-compare x xs compare)
-  (let rec ((compare compare)
-            (lhs (char->integer x))
-            (xs xs))
-    (if (null? xs) #t
-        (let ((rhs (char->integer (car xs))))
-          (and (compare lhs rhs)
-               (rec compare rhs (cdr xs)))))))
-
-(define (char=?  x . xs) (char-compare x xs =))
-(define (char<?  x . xs) (char-compare x xs <))
-(define (char>?  x . xs) (char-compare x xs >))
-(define (char<=? x . xs) (char-compare x xs <=))
-(define (char>=? x . xs) (char-compare x xs >=))
 
 (define (char-ci-compare x xs compare)
   (let rec ((compare compare)
@@ -833,99 +929,11 @@
   (if (char-upper-case? c) c
       (integer->char (- (char->integer c) 32))))
 
-; ---- 6.7 Strings -------------------------------------------------------------
-
-(define (string . xs) (list->string xs))
-
 (define (string-ci=?  . xs) (apply string=?  (map string-foldcase xs)))
 (define (string-ci<?  . xs) (apply string<?  (map string-foldcase xs)))
 (define (string-ci>?  . xs) (apply string>?  (map string-foldcase xs)))
 (define (string-ci<=? . xs) (apply string<=? (map string-foldcase xs)))
 (define (string-ci>=? . xs) (apply string>=? (map string-foldcase xs)))
-
-(define substring string-copy)
-
-(define (string-fill! s c . o)
-  (let ((start (if (and (pair? o)
-                        (exact-integer? (car o)))
-                   (car o)
-                   0))
-        (end (if (and (pair? o)
-                      (pair? (cdr o))
-                      (exact-integer? (cadr o)))
-                 (cadr o)
-                 (string-length s))))
-    (let rec ((k (- end 1)))
-      (if (<= start k)
-          (begin (string-set! s k c)
-                 (rec (- k 1)))))))
-
-; ---- 6.8. Vectors ------------------------------------------------------------
-
-; ---- 6.9. Bytevectors --------------------------------------------------------
-
-; ---- 6.10. Control features --------------------------------------------------
-
-(define (procedure? x)
-  (or (closure? x)
-      (continuation? x)
-      (foreign-function? x)))
-
-(define %current-dynamic-extents '()) ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
-
-(define (dynamic-wind before thunk after)
-  (before)
-  (set! %current-dynamic-extents (cons (cons before after) %current-dynamic-extents))
-  ((lambda (result) ; TODO let-values
-     (set! %current-dynamic-extents (cdr %current-dynamic-extents))
-     (after)
-     result) ; TODO (apply values result)
-   (thunk)))
-
-(define (call-with-current-continuation procedure)
-  (define (windup! from to)
-    (set! %current-dynamic-extents from)
-    (cond ((eq? from to))
-          ((null? from) (windup! from (cdr to)) ((caar to)))
-          ((null? to) ((cdar from)) (windup! (cdr from) to))
-          (else ((cdar from)) (windup! (cdr from) (cdr to)) ((caar to))))
-    (set! %current-dynamic-extents to))
-  (let ((current-dynamic-extents %current-dynamic-extents))
-    (call-with-current-continuation! (lambda (k1)
-                                       (procedure (lambda (k2)
-                                                    (windup! %current-dynamic-extents current-dynamic-extents)
-                                                    (k1 k2)))))))
-
-(define call/cc call-with-current-continuation)
-
-; (define values
-;   (lambda xs
-;     (call-with-current-continuation
-;       (lambda (cc)
-;         (apply cc xs)))))
-
-(define <values> (list 'values)) ; Magic Token Trick
-
-(define (values? x)
-  (if (pair? x)
-      (eq? (car x) <values>)
-      #f))
-
-(define (values . xs)
-  (if (if (null? xs) #f
-          (null? (cdr xs)))
-      (car xs)
-      (cons <values> xs)))
-
-; (define (call-with-values producer consumer)
-;   (let-values ((xs (producer)))
-;     (apply consumer xs)))
-
-(define (call-with-values producer consumer)
-  (let ((vs (producer)))
-     (if (values? vs)
-         (apply consumer (cdr vs))
-         (consumer vs))))
 
 ; ---- 6.11. Exceptions --------------------------------------------------------
 
