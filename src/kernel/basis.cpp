@@ -44,6 +44,7 @@ inline namespace kernel                                                        \
 
 DEFINE_BINARY(overture);
 DEFINE_BINARY(r4rs);
+DEFINE_BINARY(r4rs_essential);
 DEFINE_BINARY(r5rs);
 DEFINE_BINARY(r7rs);
 DEFINE_BINARY(srfi_1);

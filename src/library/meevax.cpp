@@ -48,9 +48,10 @@ namespace meevax
 
     std::vector<string_view> const codes {
       srfi_211,
-      r4rs, // -----------------------------------------------------------------
-      srfi_45,
-      r5rs, // -----------------------------------------------------------------
+      r4rs_essential,
+      srfi_45, // (scheme lazy)
+      r4rs,
+      r5rs,
       overture,
       srfi_8,
       srfi_1,
@@ -59,7 +60,7 @@ namespace meevax
       srfi_39,
       srfi_78,
       srfi_149,
-      r7rs, // -----------------------------------------------------------------
+      r7rs,
     };
 
     for (auto const& code : codes)

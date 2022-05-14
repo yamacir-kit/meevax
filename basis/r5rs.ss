@@ -1,14 +1,7 @@
 (define-library (scheme r5rs)
   (import (meevax evaluate)
-          (meevax inexact)
-          (meevax number) ; for exact-integer?
-          (meevax port) ; for read-ready?
-          (meevax string) ; for string-copy
           (meevax syntax) ; for let-syntax letrec-syntax
-          (meevax vector) ; for vector-fill!
-          (scheme r4rs essential)
-          (srfi 45)
-          (srfi 211 explicit-renaming)
+          (scheme r4rs)
           )
 
   (export quote lambda if set! cond case and or let let* letrec begin do delay
@@ -43,112 +36,7 @@
           peek-char eof-object? char-ready? write display newline write-char
           load)
 
-  (begin (define-syntax let*
-           (er-macro-transformer
-             (lambda (form rename compare)
-               (if (null? (cadr form))
-                   `(,(rename 'let) () ,@(cddr form))
-                   `(,(rename 'let) (,(caadr form))
-                                    (,(rename 'let*) ,(cdadr form)
-                                                     ,@(cddr form)))))))
-
-         (define-syntax do
-           (er-macro-transformer
-             (lambda (form rename compare)
-               (let ((body `(,(rename 'begin) ,@(cdddr form)
-                                              (,(rename 'rec) ,@(map (lambda (x)
-                                                                       (if (pair? (cddr x))
-                                                                           (caddr x)
-                                                                           (car x)))
-                                                                     (cadr form))))))
-                 `(,(rename 'let) ,(rename 'rec) ,(map (lambda (x)
-                                                         (list (car x)
-                                                               (cadr x)))
-                                                       (cadr form))
-                                  ,(if (null? (cdaddr form))
-                                       `(,(rename 'let) ((,(rename 'it) ,(caaddr form)))
-                                                        (,(rename 'if) ,(rename 'it)
-                                                                       ,(rename 'it)
-                                                                       ,body))
-                                       `(,(rename 'if) ,(caaddr form)
-                                                       (,(rename 'begin) ,@(cdaddr form))
-                                                       ,body)))))))
-
-         (define (numerator x)
-           (cond ((ratio? x) (car x))
-                 ((exact? x) x)
-                 (else (inexact (numerator (exact x))))))
-
-         (define (denominator x)
-           (cond ((exact? x) (if (ratio? x) (cdr x) 1))
-                 ((integer? x) 1.0)
-                 (else (inexact (denominator (exact x))))))
-
-         (define (rationalize x e) ; from Chibi-Scheme lib/scheme/extras.scm (https://ml.cddddr.org/scheme/msg01498.html)
-           (define (sr x y return)
-             (let ((fx (floor x))
-                   (fy (floor y)))
-               (cond ((>= fx x) (return fx 1))
-                     ((= fx fy) (sr (/ (- y fy))
-                                    (/ (- x fx))
-                                    (lambda (n d)
-                                      (return (+ d (* fx n)) n))))
-                     (else (return (+ fx 1) 1)))))
-           (let ((return (if (negative? x)
-                             (lambda (num den)
-                               (/ (- num) den))
-                             /))
-                 (x (abs x))
-                 (e (abs e)))
-             (sr (- x e) (+ x e) return)))
-
-         (define (make-rectangular x y)
-           (+ x (* y (sqrt -1))))
-
-         (define (make-polar radius phi)
-           (make-rectangular (* radius (cos phi))
-                             (* radius (sin phi))))
-
-         (define (real-part z)
-           (if (%complex? z) (car z) z))
-
-         (define (imag-part z)
-           (if (%complex? z) (cdr z) 0))
-
-         (define (magnitude z)
-           (sqrt (+ (square (real-part z))
-                    (square (imag-part z)))))
-
-         (define (angle z)
-           (atan (imag-part z)
-                 (real-part z)))
-
-         (define exact->inexact inexact)
-
-         (define inexact->exact exact)
-
-         (define (list-tail x k)
-           (let list-tail ((x x)
-                           (k k))
-             (if (zero? k) x
-                 (list-tail (cdr x)
-                            (- k 1)))))
-
-         (define (string-fill! s c . o)
-           (let ((start (if (and (pair? o)
-                                 (exact-integer? (car o)))
-                            (car o)
-                            0))
-                 (end (if (and (pair? o)
-                               (pair? (cdr o))
-                               (exact-integer? (cadr o)))
-                          (cadr o)
-                          (string-length s))))
-             (let rec ((k (- end 1)))
-               (if (<= start k)
-                   (begin (string-set! s k c)
-                          (rec (- k 1)))))))
-
+  (begin
          ; (define values
          ;   (lambda xs
          ;     (call-with-current-continuation
@@ -202,11 +90,6 @@
                                                 (procedure (lambda (k2)
                                                              (windup! %current-dynamic-extents current-dynamic-extents)
                                                              (k1 k2)))))))
-
-         (define (char-ready? . port)
-           (read-ready? (if (pair? port)
-                            (car port)
-                            (current-input-port))))
 
          )
   )
