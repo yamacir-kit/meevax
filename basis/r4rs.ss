@@ -865,7 +865,7 @@
           map
           for-each
           ; force ; inessential
-          call-with-current-continuation! ; A version that does not consider dynamic-wind.
+          call-with-current-continuation! ; call/cc! does not consider dynamic-wind.
           call-with-input-file ; r7rs incompatible (values unsupported)
           call-with-output-file ; r7rs incompatible (values unsupported)
           input-port?

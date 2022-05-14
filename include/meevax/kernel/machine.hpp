@@ -333,6 +333,10 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         s = cons(cadr(c).template as<identity>().load(e), s);
+        if (car(s).is<unbound>())
+        {
+          std::cout << "warning: " << cadr(c) << " is unbound." << std::endl;
+        }
         c = cddr(c);
         goto decode;
 

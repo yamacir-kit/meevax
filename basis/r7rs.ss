@@ -185,6 +185,15 @@
 
 ; ---- 4.2.5. Delayed evaluation -----------------------------------------------
 
+(define-library (scheme lazy) ; TEMPORARY
+  (import (scheme r4rs)
+          (srfi 45))
+  (export delay delay-force force make-promise promise?)
+  (begin (define make-promise eager)
+         (define delay-force lazy)))
+
+(import (scheme lazy))
+
 ; ---- 4.2.6. Dynamic bindings -------------------------------------------------
 
 make-parameter ; is defined in srfi-39.ss
