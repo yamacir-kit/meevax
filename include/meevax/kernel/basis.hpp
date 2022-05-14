@@ -31,6 +31,7 @@ inline namespace kernel
 
   extern string_view const overture;
   extern string_view const r4rs;
+  extern string_view const r5rs;
   extern string_view const r7rs;
   extern string_view const srfi_1;
   extern string_view const srfi_8;

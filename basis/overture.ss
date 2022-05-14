@@ -2,7 +2,8 @@
   (import (meevax character) ; for digit-value
           (meevax number) ; for exact-integer?
           (meevax syntax) ; for quote-syntax
-          (scheme r4rs)
+          (meevax vector) ; for vector->string
+          (scheme r5rs)
           (srfi 211 explicit-renaming)
           )
   (begin (define (unspecified) (if #f #f))
@@ -57,61 +58,7 @@
 
          (define symbol=? eqv?)
 
-         (define %current-dynamic-extents '()) ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
-
-         (define (dynamic-wind before thunk after)
-           (before)
-           (set! %current-dynamic-extents (cons (cons before after) %current-dynamic-extents))
-           ((lambda (result) ; TODO let-values
-              (set! %current-dynamic-extents (cdr %current-dynamic-extents))
-              (after)
-              result) ; TODO (apply values result)
-            (thunk)))
-
-         (define (call-with-current-continuation procedure)
-           (define (windup! from to)
-             (set! %current-dynamic-extents from)
-             (cond ((eq? from to))
-                   ((null? from) (windup! from (cdr to)) ((caar to)))
-                   ((null? to) ((cdar from)) (windup! (cdr from) to))
-                   (else ((cdar from)) (windup! (cdr from) (cdr to)) ((caar to))))
-             (set! %current-dynamic-extents to))
-           (let ((current-dynamic-extents %current-dynamic-extents))
-             (call-with-current-continuation! (lambda (k1)
-                                                (procedure (lambda (k2)
-                                                             (windup! %current-dynamic-extents current-dynamic-extents)
-                                                             (k1 k2)))))))
-
          (define call/cc call-with-current-continuation)
-
-         ; (define values
-         ;   (lambda xs
-         ;     (call-with-current-continuation
-         ;       (lambda (cc)
-         ;         (apply cc xs)))))
-
-         (define <values> (list 'values)) ; Magic Token Trick
-
-         (define (values? x)
-           (if (pair? x)
-               (eq? (car x) <values>)
-               #f))
-
-         (define (values . xs)
-           (if (if (null? xs) #f
-                   (null? (cdr xs)))
-               (car xs)
-               (cons <values> xs)))
-
-         ; (define (call-with-values producer consumer)
-         ;   (let-values ((xs (producer)))
-         ;     (apply consumer xs)))
-
-         (define (call-with-values producer consumer)
-           (let ((vs (producer)))
-             (if (values? vs)
-                 (apply consumer (cdr vs))
-                 (consumer vs))))
 
          )
   (export *
@@ -364,7 +311,7 @@
           cdaaar cdaadr cdadar cdaddr
           cddaar cddadr cdddar cddddr))
 
-(import (scheme r4rs)
+(import (scheme r5rs)
         (scheme base)
         (scheme cxr)
         (srfi 211 explicit-renaming)
@@ -408,10 +355,10 @@
         ((output-port? x) (close-output-port x))
         (else (unspecified))))
 
-(define (read        . x) (%read        (if (pair? x) (car x) (current-input-port))))
-(define (read-char   . x) (%read-char   (if (pair? x) (car x) (current-input-port))))
-(define (peek-char   . x) (%peek-char   (if (pair? x) (car x) (current-input-port))))
-(define (char-ready? . x) (%char-ready? (if (pair? x) (car x) (current-input-port))))
+(define (read        . x) (%read       (if (pair? x) (car x) (current-input-port))))
+(define (read-char   . x) (%read-char  (if (pair? x) (car x) (current-input-port))))
+(define (peek-char   . x) (%peek-char  (if (pair? x) (car x) (current-input-port))))
+(define (char-ready? . x) (read-ready? (if (pair? x) (car x) (current-input-port))))
 
 (define (write-simple x . port) (%write-simple x (if (pair? port) (car port) (current-output-port))))
 (define (write-char   x . port) (put-char      x (if (pair? port) (car port) (current-output-port))))

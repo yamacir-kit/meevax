@@ -810,7 +810,7 @@ inline namespace kernel
       return eof_object;
     });
 
-    define<predicate>("%char-ready?", [](let const& xs)
+    define<predicate>("read-ready?", [](let const& xs)
     {
       return static_cast<bool>(car(xs).as<std::istream>());
     });
@@ -878,7 +878,7 @@ inline namespace kernel
             "%peek-char",
             "eof-object?",
             "eof-object",
-            "%char-ready?",
+            "read-ready?",
             "%read-string",
             "put-char",
             "put-string",

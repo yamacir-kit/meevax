@@ -2,7 +2,6 @@
   (import (meevax character)
           (meevax control)
           (meevax equivalence)
-          (meevax inexact)
           (meevax list)
           (meevax number)
           (meevax pair)
@@ -181,7 +180,7 @@
                    #f)
                (any-2+ f (cons x xs))))
 
-         (define-syntax let
+         (define-syntax let ; named-let inessential
            (er-macro-transformer
              (lambda (form rename compare)
                (if (identifier? (cadr form))
@@ -190,37 +189,6 @@
                                        (,(cadr form) ,@(map cadr (caddr form))))
                    `((,(rename 'lambda) ,(map car (cadr form)) ,@(cddr form))
                      ,@(map cadr (cadr form)))))))
-
-         (define-syntax let*
-           (er-macro-transformer
-             (lambda (form rename compare)
-               (if (null? (cadr form))
-                   `(,(rename 'let) () ,@(cddr form))
-                   `(,(rename 'let) (,(caadr form))
-                                    (,(rename 'let*) ,(cdadr form)
-                                                     ,@(cddr form)))))))
-
-         (define-syntax do
-           (er-macro-transformer
-             (lambda (form rename compare)
-               (let ((body `(,(rename 'begin) ,@(cdddr form)
-                                              (,(rename 'rec) ,@(map (lambda (x)
-                                                                       (if (pair? (cddr x))
-                                                                           (caddr x)
-                                                                           (car x)))
-                                                                     (cadr form))))))
-                 `(,(rename 'let) ,(rename 'rec) ,(map (lambda (x)
-                                                         (list (car x)
-                                                               (cadr x)))
-                                                       (cadr form))
-                                  ,(if (null? (cdaddr form))
-                                       `(,(rename 'let) ((,(rename 'it) ,(caaddr form)))
-                                                        (,(rename 'if) ,(rename 'it)
-                                                                       ,(rename 'it)
-                                                                       ,body))
-                                       `(,(rename 'if) ,(caaddr form)
-                                                       (,(rename 'begin) ,@(cdaddr form))
-                                                       ,body)))))))
 
          (define (not x)
            (if x #f #t))
@@ -259,7 +227,7 @@
                          (+ k 1))
                  k)))
 
-         (define (list-tail x k)
+         (define (list-tail x k) ; inessential
            (let list-tail ((x x)
                            (k k))
              (if (zero? k) x
@@ -417,59 +385,6 @@
                  (if (null? ns) n
                      (rec (lcm-2 n (car ns)) (cdr ns))))))
 
-         (define (numerator x)
-           (cond ((ratio? x) (car x))
-                 ((exact? x) x)
-                 (else (inexact (numerator (exact x))))))
-
-         (define (denominator x)
-           (cond ((exact? x) (if (ratio? x) (cdr x) 1))
-                 ((integer? x) 1.0)
-                 (else (inexact (denominator (exact x))))))
-
-         (define (rationalize x e) ; from Chibi-Scheme lib/scheme/extras.scm (https://ml.cddddr.org/scheme/msg01498.html)
-           (define (sr x y return)
-             (let ((fx (floor x))
-                   (fy (floor y)))
-               (cond ((>= fx x) (return fx 1))
-                     ((= fx fy) (sr (/ (- y fy))
-                                    (/ (- x fx))
-                                    (lambda (n d)
-                                      (return (+ d (* fx n)) n))))
-                     (else (return (+ fx 1) 1)))))
-           (let ((return (if (negative? x)
-                             (lambda (num den)
-                               (/ (- num) den))
-                             /))
-                 (x (abs x))
-                 (e (abs e)))
-             (sr (- x e) (+ x e) return)))
-
-         (define (make-rectangular x y)
-           (+ x (* y (sqrt -1))))
-
-         (define (make-polar radius phi)
-           (make-rectangular (* radius (cos phi))
-                             (* radius (sin phi))))
-
-         (define (real-part z)
-           (if (%complex? z) (car z) z))
-
-         (define (imag-part z)
-           (if (%complex? z) (cdr z) 0))
-
-         (define (magnitude z)
-           (sqrt (+ (square (real-part z))
-                    (square (imag-part z)))))
-
-         (define (angle z)
-           (atan (imag-part z)
-                 (real-part z)))
-
-         (define inexact->exact exact)
-
-         (define exact->inexact inexact)
-
          (define (char-compare x xs compare)
            (let rec ((compare compare)
                      (lhs (char->integer x))
@@ -587,21 +502,6 @@
 
          (define substring string-copy)
 
-         (define (string-fill! s c . o)
-           (let ((start (if (and (pair? o)
-                                 (exact-integer? (car o)))
-                            (car o)
-                            0))
-                 (end (if (and (pair? o)
-                               (pair? (cdr o))
-                               (exact-integer? (cadr o)))
-                          (cadr o)
-                          (string-length s))))
-             (let rec ((k (- end 1)))
-               (if (<= start k)
-                   (begin (string-set! s k c)
-                          (rec (- k 1)))))))
-
          (define (procedure? x)
            (or (closure? x)
                (continuation? x)
@@ -617,23 +517,23 @@
                (begin (apply map f x xs)
                       (if #f #f))))
 
-         (define (call-with-input-file path f)
+         (define (call-with-input-file path f) ; r7rs incompatible (values unsupported)
            (define (call-with-input-port port f)
              (let ((result (f port)))
                (close-input-port port)
                result))
            (call-with-input-port (open-input-file path) f))
 
-         (define (call-with-output-file path f)
+         (define (call-with-output-file path f) ; r7rs incompatible (values unsupported)
            (define (call-with-output-port port f)
              (let ((result (f port)))
                (close-output-port port)
                result))
            (call-with-output-port (open-output-file path) f))
 
-         (define current-input-port standard-input-port)
+         (define current-input-port standard-input-port)  ; r7rs incompatible (current-input-port is standard input)
 
-         (define current-output-port standard-output-port)
+         (define current-output-port standard-output-port)  ; r7rs incompatible (current-output-port is standard output)
 
          (define (read . port)
            (%read (if (pair? port)
@@ -650,11 +550,6 @@
                            (car port)
                            (current-input-port))))
 
-         (define (char-ready? . port)
-           (%char-ready? (if (pair? port)
-                             (car port)
-                             (current-input-port))))
-
          (define (write x . port)
            (%write-simple x (if (pair? port)
                                 (car port)
@@ -665,7 +560,7 @@
                            (car port)
                            (current-output-port))))
 
-         (define (write-string string . xs)
+         (define (write-string string . xs) ; TODO REMOVE!
            (case (length xs)
              ((0)  (put-string string (current-output-port)))
              ((1)  (put-string string (car xs)))
@@ -689,11 +584,11 @@
           case
           and
           or
-          let ; named-let inessential
-          let* ; inessential
+          let
+          ; let* ; inessential
           letrec
           begin
-          do ; inessential
+          ; do ; inessential
           ; delay ; inessential
           quasiquote
           define
@@ -782,31 +677,31 @@
           modulo
           gcd
           lcm
-          numerator ; inessential
-          denominator ; inessential
+          ; numerator ; inessential
+          ; denominator ; inessential
           floor
           ceiling
           truncate
           round
-          rationalize ; inessential
-          exp ; inessential
-          log ; inessential
-          sin ; inessential
-          cos ; inessential
-          tan ; inessential
-          asin ; inessential
-          acos ; inessential
-          atan ; inessential
-          sqrt ; inessential
-          expt ; inessential
-          make-rectangular ; inessential
-          make-polar ; inessential
-          real-part ; inessential
-          imag-part ; inessential
-          magnitude ; inessential
-          angle ; inessential
-          exact->inexact ; inessential
-          inexact->exact ; inessential
+          ; rationalize ; inessential
+          ; exp ; inessential
+          ; log ; inessential
+          ; sin ; inessential
+          ; cos ; inessential
+          ; tan ; inessential
+          ; asin ; inessential
+          ; acos ; inessential
+          ; atan ; inessential
+          ; sqrt ; inessential
+          ; expt ; inessential
+          ; make-rectangular ; inessential
+          ; make-polar ; inessential
+          ; real-part ; inessential
+          ; imag-part ; inessential
+          ; magnitude ; inessential
+          ; angle ; inessential
+          ; exact->inexact ; inessential
+          ; inexact->exact ; inessential
           number->string
           string->number
           char?
@@ -849,8 +744,8 @@
           string-append
           string->list
           list->string
-          string-copy ; inessential
-          string-fill! ; inessential
+          ; string-copy ; inessential
+          ; string-fill! ; inessential
           vector?
           make-vector
           vector
@@ -859,19 +754,19 @@
           vector-set!
           vector->list
           list->vector
-          vector-fill! ; inessential
+          ; vector-fill! ; inessential
           procedure?
           apply
           map
           for-each
           ; force ; inessential
-          call-with-current-continuation! ; call/cc! does not consider dynamic-wind.
-          call-with-input-file ; r7rs incompatible (values unsupported)
-          call-with-output-file ; r7rs incompatible (values unsupported)
+          call-with-current-continuation!
+          call-with-input-file
+          call-with-output-file
           input-port?
           output-port?
-          current-input-port ; r7rs incompatible (current-input-port is standard input)
-          current-output-port ; r7rs incompatible (current-output-port is standard output)
+          current-input-port
+          current-output-port
           ; with-input-from-file ; inessential
           ; with-output-to-file ; inessential
           open-input-file
@@ -882,11 +777,11 @@
           read-char
           peek-char
           eof-object?
-          char-ready? ; inessential
+          ; char-ready? ; inessential
           write
           display
           newline
           write-char
-          ; load
+          load
           )
   )

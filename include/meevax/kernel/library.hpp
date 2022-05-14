@@ -89,10 +89,13 @@ inline namespace kernel
                                    and car(export_spec).as<symbol>().value == "rename")
         {
         }
+        else if (let const& binding = (*this)[export_spec]; binding.is<unbound>())
+        {
+          std::cout << "; warning: " << export_spec << " is exported but undefined." << std::endl;
+        }
         else
         {
-          assert(export_spec.is_also<identifier>());
-          destination.define(export_spec, (*this)[export_spec]);
+          destination.define(export_spec, binding);
         }
       }
     }

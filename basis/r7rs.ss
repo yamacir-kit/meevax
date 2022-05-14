@@ -185,7 +185,7 @@
 
 ; ---- 4.2.5. Delayed evaluation -----------------------------------------------
 
-(define-library (scheme lazy) ; TEMPORARY
+(define-library (scheme lazy)
   (import (scheme r4rs)
           (srfi 45))
   (export delay delay-force force make-promise promise?)
