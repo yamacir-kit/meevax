@@ -48,6 +48,7 @@ namespace meevax
 
     std::vector<string_view> const codes {
       srfi_211,
+      r4rs,
       overture,
       srfi_8,
       srfi_1,
