@@ -1,5 +1,5 @@
 (define-library (scheme r5rs)
-  (import
+  (import (meevax evaluate)
           (meevax inexact)
           (meevax number) ; for exact-integer?
           (meevax port) ; for read-ready?
