@@ -2,6 +2,7 @@
   (import (meevax evaluate)
           (meevax syntax) ; for let-syntax letrec-syntax
           (scheme r4rs)
+          (srfi 149)
           )
 
   (export quote lambda if set! cond case and or let let* letrec begin do delay
