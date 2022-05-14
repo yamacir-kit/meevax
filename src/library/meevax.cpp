@@ -51,6 +51,7 @@ namespace meevax
       r4rs_essential,
       srfi_45, // (scheme lazy)
       r4rs,
+      srfi_149,
       r5rs,
       overture,
       srfi_8,
@@ -59,7 +60,6 @@ namespace meevax
       srfi_34,
       srfi_39,
       srfi_78,
-      srfi_149,
       r7rs,
     };
 
