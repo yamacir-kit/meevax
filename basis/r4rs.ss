@@ -1,4 +1,4 @@
-(define-library (scheme r4rs)
+(define-library (scheme r4rs essential)
   (import (meevax character)
           (meevax control)
           (meevax equivalence)
@@ -12,6 +12,30 @@
           (meevax vector)
           (meevax write)
           (srfi 211 explicit-renaming))
+
+  (export quote lambda if set! cond case and or let letrec begin quasiquote
+          define not boolean? eqv? eq? equal? pair? cons car cdr set-car!
+          set-cdr! caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar
+          cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar
+          cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr null? list? list
+          length append reverse list-ref memq memv member assq assv assoc
+          symbol? symbol->string string->symbol number? complex? real? rational?
+          integer? exact? inexact? = < > <= >= zero? positive? negative? odd?
+          even? max min + * - / abs quotient remainder modulo gcd lcm floor
+          ceiling truncate round number->string string->number char? char=?
+          char<? char>? char<=? char>=? char-ci=? char-ci<? char-ci>? char-ci<=?
+          char-ci>=? char-alphabetic? char-numeric? char-whitespace?
+          char-upper-case? char-lower-case? char->integer integer->char
+          char-upcase char-downcase string? make-string string string-length
+          string-ref string-set! string=? string<? string>? string<=? string>=?
+          string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?
+          substring string-append string->list list->string vector? make-vector
+          vector vector-length vector-ref vector-set! vector->list list->vector
+          procedure? apply map for-each call-with-current-continuation!
+          call-with-input-file call-with-output-file input-port? output-port?
+          current-input-port current-output-port open-input-file
+          open-output-file close-input-port close-output-port read read-char
+          peek-char eof-object? write display newline write-char load)
 
   (begin (define (unspecified) (if #f #f))
 
@@ -227,15 +251,13 @@
                          (+ k 1))
                  k)))
 
-         (define (list-tail x k) ; inessential
-           (let list-tail ((x x)
-                           (k k))
-             (if (zero? k) x
-                 (list-tail (cdr x)
-                            (- k 1)))))
-
          (define (list-ref x k)
-           (car (list-tail x k)))
+           (let list-ref ((x x)
+                          (k k))
+             (if (zero? k)
+                 (car x)
+                 (list-ref (cdr x)
+                           (- k 1)))))
 
          (define (member o x . c)
            (let ((compare (if (pair? c) (car c) equal?)))
@@ -575,213 +597,4 @@
            (apply write-char #\newline port))
 
          )
-
-  (export quote
-          lambda
-          if
-          set!
-          cond
-          case
-          and
-          or
-          let
-          ; let* ; inessential
-          letrec
-          begin
-          ; do ; inessential
-          ; delay ; inessential
-          quasiquote
-          define
-          not
-          boolean?
-          eqv?
-          eq?
-          equal?
-          pair?
-          cons
-          car
-          cdr
-          set-car!
-          set-cdr!
-          caar
-          cadr
-          cdar
-          cddr
-          caaar
-          caadr
-          cadar
-          caddr
-          cdaar
-          cdadr
-          cddar
-          cdddr
-          caaaar
-          caaadr
-          caadar
-          caaddr
-          cadaar
-          cadadr
-          caddar
-          cadddr
-          cdaaar
-          cdaadr
-          cdadar
-          cdaddr
-          cddaar
-          cddadr
-          cdddar
-          cddddr
-          null?
-          list?
-          list
-          length
-          append
-          reverse
-          list-tail ; inessential
-          list-ref
-          memq
-          memv
-          member
-          assq
-          assv
-          assoc
-          symbol?
-          symbol->string
-          string->symbol
-          number?
-          complex?
-          real?
-          rational?
-          integer?
-          exact?
-          inexact?
-          =
-          <
-          >
-          <=
-          >=
-          zero?
-          positive?
-          negative?
-          odd?
-          even?
-          max
-          min
-          +
-          *
-          -
-          /
-          abs
-          quotient
-          remainder
-          modulo
-          gcd
-          lcm
-          ; numerator ; inessential
-          ; denominator ; inessential
-          floor
-          ceiling
-          truncate
-          round
-          ; rationalize ; inessential
-          ; exp ; inessential
-          ; log ; inessential
-          ; sin ; inessential
-          ; cos ; inessential
-          ; tan ; inessential
-          ; asin ; inessential
-          ; acos ; inessential
-          ; atan ; inessential
-          ; sqrt ; inessential
-          ; expt ; inessential
-          ; make-rectangular ; inessential
-          ; make-polar ; inessential
-          ; real-part ; inessential
-          ; imag-part ; inessential
-          ; magnitude ; inessential
-          ; angle ; inessential
-          ; exact->inexact ; inessential
-          ; inexact->exact ; inessential
-          number->string
-          string->number
-          char?
-          char=?
-          char<?
-          char>?
-          char<=?
-          char>=?
-          char-ci=?
-          char-ci<?
-          char-ci>?
-          char-ci<=?
-          char-ci>=?
-          char-alphabetic?
-          char-numeric?
-          char-whitespace?
-          char-upper-case?
-          char-lower-case?
-          char->integer
-          integer->char
-          char-upcase
-          char-downcase
-          string?
-          make-string
-          string
-          string-length
-          string-ref
-          string-set!
-          string=?
-          string<?
-          string>?
-          string<=?
-          string>=?
-          string-ci=?
-          string-ci<?
-          string-ci>?
-          string-ci<=?
-          string-ci>=?
-          substring
-          string-append
-          string->list
-          list->string
-          ; string-copy ; inessential
-          ; string-fill! ; inessential
-          vector?
-          make-vector
-          vector
-          vector-length
-          vector-ref
-          vector-set!
-          vector->list
-          list->vector
-          ; vector-fill! ; inessential
-          procedure?
-          apply
-          map
-          for-each
-          ; force ; inessential
-          call-with-current-continuation!
-          call-with-input-file
-          call-with-output-file
-          input-port?
-          output-port?
-          current-input-port
-          current-output-port
-          ; with-input-from-file ; inessential
-          ; with-output-to-file ; inessential
-          open-input-file
-          open-output-file
-          close-input-port
-          close-output-port
-          read
-          read-char
-          peek-char
-          eof-object?
-          ; char-ready? ; inessential
-          write
-          display
-          newline
-          write-char
-          load
-          )
   )

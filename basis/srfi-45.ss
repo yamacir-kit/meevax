@@ -1,5 +1,5 @@
 (define-library (srfi 45) ; Based on r7rs reference implementation.
-  (import (scheme r4rs)
+  (import (scheme r4rs essential)
           (meevax syntax) ; for define-syntax
           (srfi 211 explicit-renaming))
 

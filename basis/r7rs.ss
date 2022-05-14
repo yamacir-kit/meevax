@@ -186,7 +186,7 @@
 ; ---- 4.2.5. Delayed evaluation -----------------------------------------------
 
 (define-library (scheme lazy)
-  (import (scheme r4rs)
+  (import (scheme r4rs essential)
           (srfi 45))
   (export delay delay-force force make-promise promise?)
   (begin (define make-promise eager)

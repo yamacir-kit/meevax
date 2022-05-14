@@ -6,7 +6,7 @@
           (meevax string) ; for string-copy
           (meevax syntax) ; for let-syntax letrec-syntax
           (meevax vector) ; for vector-fill!
-          (scheme r4rs)
+          (scheme r4rs essential)
           (srfi 45)
           (srfi 211 explicit-renaming)
           )
@@ -126,6 +126,13 @@
          (define exact->inexact inexact)
 
          (define inexact->exact exact)
+
+         (define (list-tail x k)
+           (let list-tail ((x x)
+                           (k k))
+             (if (zero? k) x
+                 (list-tail (cdr x)
+                            (- k 1)))))
 
          (define (string-fill! s c . o)
            (let ((start (if (and (pair? o)
