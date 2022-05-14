@@ -185,16 +185,6 @@
 
 ; ---- 4.2.5. Delayed evaluation -----------------------------------------------
 
-delay ; is defined in srfi-45.ss
-
-(define delay-force lazy) ; lazy is defined in srfi-45.ss
-
-force ; is defined in srfi-45.ss
-
-promise? ; is defined in srfi-45.ss
-
-make-promise ; is defined in srfi-45.ss
-
 ; ---- 4.2.6. Dynamic bindings -------------------------------------------------
 
 make-parameter ; is defined in srfi-39.ss
@@ -274,10 +264,6 @@ parameterize ; is defined in srfi-39.ss
 ; ---- 6.3. Booleans -----------------------------------------------------------
 
 ; ---- 6.4. Pairs and lists ----------------------------------------------------
-
-(define list-tail drop) ; from SRFI-1
-
-(define (list-set! x k object) (set-car! (list-tail x k) object))
 
 ; ---- 6.5 Symbols -------------------------------------------------------------
 

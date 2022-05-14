@@ -48,19 +48,80 @@
   (export er-macro-transformer
           identifier?))
 
-(define-library (scheme base)
-  (import (srfi 211 explicit-renaming)
-          (meevax character)
+(define-library (scheme lazy)
+  (import
+          (meevax equivalence)
+          (meevax pair)
+          (meevax syntax)
+          (srfi 211 explicit-renaming)
+          )
+
+  (begin (define (list . xs) xs)
+
+         (define (not x)
+           (if x #f #t)))
+
+  (begin (define <promise> (list 'promise))
+
+         (define (promise done? value)
+           (cons <promise> (cons done? value)))
+
+         (define (promise? x)
+           (if (pair? x)
+               (eq? <promise> (car x))
+               #f))
+
+         (define promise-done? cadr)
+
+         (define promise-value cddr)
+
+         (define (promise-update! new old)
+           (set-car! (cdr old) (promise-done? new))
+           (set-cdr! (cdr old) (promise-value new))
+           (set-car! new (cdr old)))
+
+         (define (force promise)
+           (if (promise-done? promise)
+               (promise-value promise)
+               ((lambda (promise*)
+                  (if (not (promise-done? promise))
+                      (promise-update! promise* promise))
+                  (force promise))
+                ((promise-value promise)))))
+
+         (define-syntax delay-force
+           (er-macro-transformer
+             (lambda (form rename compare)
+               (list (rename 'promise) #f (list (rename 'lambda) '() (cadr form))))))
+
+         (define-syntax delay
+           (er-macro-transformer
+             (lambda (form rename compare)
+               (list (rename 'delay-force) (list (rename 'promise) #t (cadr form))))))
+
+         (define (make-promise x)
+           (if (promise? x) x
+               (delay x)))
+         )
+
+  (export delay delay-force force make-promise promise?))
+
+(define-library (scheme r4rs)
+  (import (meevax character)
           (meevax control)
           (meevax equivalence)
+          (meevax inexact)
           (meevax list)
           (meevax number)
           (meevax pair)
+          (meevax port)
           (meevax string)
           (meevax symbol)
           (meevax syntax)
           (meevax vector)
-          )
+          (meevax write)
+          (srfi 211 explicit-renaming))
+
   (begin (define (unspecified) (if #f #f))
 
          (define (list . xs) xs)
@@ -161,20 +222,6 @@
                        (else x)))
                (expand (cadr form) 0))))
 
-         (define-syntax when
-           (er-macro-transformer
-             (lambda (form rename compare)
-               `(,(rename 'if) ,(cadr form)
-                               (,(rename 'begin) ,@(cddr form))))))
-
-         (define (not x) (if x #f #t))
-
-         (define-syntax unless
-           (er-macro-transformer
-             (lambda (form rename compare)
-               `(,(rename 'if) (,(rename 'not) ,(cadr form))
-                               (,(rename 'begin) ,@(cddr form))))))
-
          (define (reverse xs)
            (if (null? xs) '()
                (append (reverse (cdr xs))
@@ -207,7 +254,7 @@
                                    (car rxs))))
                 (reverse (cons x xs)))))
 
-         (define (every f x . xs)
+         (define (every f x . xs) ; TODO REMOVE
            (define (every-1 f x)
              (if (null? (cdr x))
                  (f (car x))
@@ -223,7 +270,7 @@
                              (not (apply f xs)))
                            x xs))))
 
-         (define (any f x . xs)
+         (define (any f x . xs) ; TODO REMOVE
            (define (any-1 f x)
              (if (pair? (cdr x))
                  ((lambda (result)
@@ -252,7 +299,6 @@
                    `((,(rename 'lambda) ,(map car (cadr form)) ,@(cddr form))
                      ,@(map cadr (cadr form)))))))
 
-
          (define-syntax let*
            (er-macro-transformer
              (lambda (form rename compare)
@@ -262,15 +308,76 @@
                                     (,(rename 'let*) ,(cdadr form)
                                                      ,@(cddr form)))))))
 
-         (define-syntax letrec*
+         (define-syntax do
            (er-macro-transformer
              (lambda (form rename compare)
-               `(,(rename 'let) ()
-                                ,@(map (lambda (x) (cons (rename 'define) x))
-                                       (cadr form))
-                                ,@(cddr form)))))
+               (let ((body `(,(rename 'begin) ,@(cdddr form)
+                                              (,(rename 'rec) ,@(map (lambda (x)
+                                                                       (if (pair? (cddr x))
+                                                                           (caddr x)
+                                                                           (car x)))
+                                                                     (cadr form))))))
+                 `(,(rename 'let) ,(rename 'rec) ,(map (lambda (x)
+                                                         (list (car x)
+                                                               (cadr x)))
+                                                       (cadr form))
+                                  ,(if (null? (cdaddr form))
+                                       `(,(rename 'let) ((,(rename 'it) ,(caaddr form)))
+                                                        (,(rename 'if) ,(rename 'it)
+                                                                       ,(rename 'it)
+                                                                       ,body))
+                                       `(,(rename 'if) ,(caaddr form)
+                                                       (,(rename 'begin) ,@(cdaddr form))
+                                                       ,body)))))))
 
-         (define (member o x . c) ; for case
+         (define (not x)
+           (if x #f #t))
+
+         (define (boolean? x)
+           (or (eqv? x #t)
+               (eqv? x #f)))
+
+         (define (equal? x y)
+           (if (and (pair? x)
+                    (pair? y))
+               (and (equal? (car x)
+                            (car y))
+                    (equal? (cdr x)
+                            (cdr y)))
+               (eqv? x y)))
+
+         (define (list? x)
+           (let list? ((x x)
+                       (lag x))
+             (if (pair? x)
+                 (let ((x (cdr x)))
+                   (if (pair? x)
+                       (let ((x (cdr x))
+                             (lag (cdr lag)))
+                         (and (not (eq? x lag))
+                              (list? x lag)))
+                       (null? x)))
+                 (null? x))))
+
+         (define (length x)
+           (let length ((x x)
+                        (k 0))
+             (if (pair? x)
+                 (length (cdr x)
+                         (+ k 1))
+                 k)))
+
+         (define (list-tail x k)
+           (let list-tail ((x x)
+                           (k k))
+             (if (zero? k) x
+                 (list-tail (cdr x)
+                            (- k 1)))))
+
+         (define (list-ref x k)
+           (car (list-tail x k)))
+
+         (define (member o x . c)
            (let ((compare (if (pair? c) (car c) equal?)))
              (let member ((x x))
                (and (pair? x)
@@ -308,36 +415,21 @@
                `(,(rename 'let) ((,(rename 'result) ,(cadr form)))
                                 ,(each-clause (cddr form))))))
 
-         (define-syntax do
-           (er-macro-transformer
-             (lambda (form rename compare)
-               (let ((body `(,(rename 'begin) ,@(cdddr form)
-                                              (,(rename 'rec) ,@(map (lambda (x)
-                                                                       (if (pair? (cddr x))
-                                                                           (caddr x)
-                                                                           (car x)))
-                                                                     (cadr form))))))
-                 `(,(rename 'let) ,(rename 'rec) ,(map (lambda (x)
-                                                         (list (car x)
-                                                               (cadr x)))
-                                                       (cadr form))
-                                  ,(if (null? (cdaddr form))
-                                       `(,(rename 'let) ((,(rename 'it) ,(caaddr form)))
-                                                        (,(rename 'if) ,(rename 'it)
-                                                                       ,(rename 'it)
-                                                                       ,body))
-                                       `(,(rename 'if) ,(caaddr form)
-                                                       (,(rename 'begin) ,@(cdaddr form))
-                                                       ,body)))))))
+         (define (assoc key alist . compare)
+           (let ((compare (if (pair? compare)
+                              (car compare)
+                              equal?)))
+             (let assoc ((alist alist))
+               (if (null? alist) #f
+                   (if (compare key (caar alist))
+                       (car alist)
+                       (assoc (cdr alist)))))))
 
-         (define (equal? x y) ; structure=?
-           (if (and (pair? x)
-                    (pair? y))
-               (and (equal? (car x)
-                            (car y))
-                    (equal? (cdr x)
-                            (cdr y)))
-               (eqv? x y)))
+         (define (assq key alist)
+           (assoc key alist eq?))
+
+         (define (assv key alist)
+           (assoc key alist eqv?))
 
          (define (exact? z)
            (define (exact-complex? x)
@@ -405,32 +497,15 @@
          (define (abs n)
            (if (< n 0) (- n) n))
 
-         (define (floor-quotient x y)
-           (floor (/ x y)))
-
-         (define (floor-remainder x y)
-           (% (+ y (% x y)) y))
-
-         (define (floor/ x y)
-           (values (floor-quotient x y)
-                   (floor-remainder x y)))
-
-         (define (truncate-quotient x y)
+         (define (quotient x y)
            (truncate (/ x y)))
 
-         (define truncate-remainder %)
+         (define remainder %)
 
-         (define (truncate/ x y)
-           (values (truncate-quotient x y)
-                   (truncate-remainder x y)))
+         (define (modulo x y)
+           (% (+ y (% x y)) y))
 
-         (define quotient truncate-quotient)
-
-         (define remainder truncate-remainder)
-
-         (define modulo floor-remainder)
-
-         (define (gcd . xs) ; from Chibi-Scheme lib/init7.scm
+         (define (gcd . xs)
            (define (gcd-2 a b)
              (if (zero? b)
                  (abs a)
@@ -441,7 +516,7 @@
                  (if (null? ns) n
                      (rec (gcd-2 n (car ns)) (cdr ns))))))
 
-         (define (lcm . xs) ; from Chibi-Scheme lib/init7.scm
+         (define (lcm . xs)
            (define (lcm-2 a b)
              (abs (quotient (* a b) (gcd a b))))
            (if (null? xs) 1
@@ -478,15 +553,30 @@
                  (e (abs e)))
              (sr (- x e) (+ x e) return)))
 
-         (define (square z) (* z z))
+         (define (make-rectangular x y)
+           (+ x (* y (sqrt -1))))
 
-         (define (boolean? x)
-           (or (eqv? x #t)
-               (eqv? x #f)))
+         (define (make-polar radius phi)
+           (make-rectangular (* radius (cos phi))
+                             (* radius (sin phi))))
 
-         (define boolean=? eqv?)
+         (define (real-part z)
+           (if (%complex? z) (car z) z))
 
-         (define symbol=? eqv?)
+         (define (imag-part z)
+           (if (%complex? z) (cdr z) 0))
+
+         (define (magnitude z)
+           (sqrt (+ (square (real-part z))
+                    (square (imag-part z)))))
+
+         (define (angle z)
+           (atan (imag-part z)
+                 (real-part z)))
+
+         (define inexact->exact exact)
+
+         (define exact->inexact inexact)
 
          (define (char-compare x xs compare)
            (let rec ((compare compare)
@@ -512,8 +602,96 @@
          (define (char>=? x . xs)
            (char-compare x xs >=))
 
+         (define (char-ci-compare x xs compare)
+           (let rec ((compare compare)
+                     (lhs (char->integer (char-downcase x)))
+                     (xs xs))
+             (if (null? xs) #t
+                 (let ((rhs (char->integer (char-downcase (car xs)))))
+                   (and (compare lhs rhs)
+                        (rec compare rhs (cdr xs)))))))
+
+         (define (char-ci=? x . xs)
+           (char-ci-compare x xs =))
+
+         (define (char-ci<? x . xs)
+           (char-ci-compare x xs <))
+
+         (define (char-ci>? x . xs)
+           (char-ci-compare x xs >))
+
+         (define (char-ci<=? x . xs)
+           (char-ci-compare x xs <=))
+
+         (define (char-ci>=? x . xs)
+           (char-ci-compare x xs >=))
+
+         (define (char-alphabetic? x)
+           (<= #,(char->integer #\a)
+               (char->integer (char-downcase x))
+               #,(char->integer #\z)))
+
+         (define (char-numeric? x)
+           (<= #,(char->integer #\0)
+               (char->integer x)
+               #,(char->integer #\9)))
+
+         (define (char-whitespace? x)
+           (or (eqv? x #\space)
+               (eqv? x #\tab)
+               (eqv? x #\newline)
+               (eqv? x #\return)))
+
+         (define (char-upper-case? x)
+           (<= #,(char->integer #\A)
+               (char->integer x)
+               #,(char->integer #\Z)))
+
+         (define (char-lower-case? x)
+           (<= #,(char->integer #\a)
+               (char->integer x)
+               #,(char->integer #\z)))
+
+         (define (char-downcase c)
+           (if (char-lower-case? c) c
+               (integer->char (+ (char->integer c) 32))))
+
+         (define (char-upcase c)
+           (if (char-upper-case? c) c
+               (integer->char (- (char->integer c) 32))))
+
          (define (string . xs)
            (list->string xs))
+
+         (define (string-map f x . xs) ; r7rs
+           (define (string-map-1 x)
+             (list->string
+               (map f (string->list x))))
+           (define (string-map-n xs)
+             (map list->string
+                  (map (lambda (c) (map f c))
+                       (map string->list xs))))
+           (if (null? xs)
+               (string-map-1 x)
+               (string-map-n (cons x xs))))
+
+         (define (string-foldcase s) ; r7rs
+           (string-map char-downcase s))
+
+         (define (string-ci=? . xs)
+           (apply string=? (map string-foldcase xs)))
+
+         (define (string-ci<? . xs)
+           (apply string<? (map string-foldcase xs)))
+
+         (define (string-ci>? . xs)
+           (apply string>? (map string-foldcase xs)))
+
+         (define (string-ci<=? . xs)
+           (apply string<=? (map string-foldcase xs)))
+
+         (define (string-ci>=? . xs)
+           (apply string>=? (map string-foldcase xs)))
 
          (define substring string-copy)
 
@@ -536,6 +714,349 @@
            (or (closure? x)
                (continuation? x)
                (foreign-function? x)))
+
+         (define (for-each f x . xs)
+           (if (null? xs)
+               (letrec ((for-each (lambda (f x)
+                                    (if (pair? x)
+                                        (begin (f (car x))
+                                               (for-each f (cdr x)))))))
+                 (for-each f x))
+               (begin (apply map f x xs)
+                      (if #f #f))))
+
+         (define (call-with-input-file path f)
+           (define (call-with-input-port port f)
+             (let ((result (f port)))
+               (close-input-port port)
+               result))
+           (call-with-input-port (open-input-file path) f))
+
+         (define (call-with-output-file path f)
+           (define (call-with-output-port port f)
+             (let ((result (f port)))
+               (close-output-port port)
+               result))
+           (call-with-output-port (open-output-file path) f))
+
+         (define current-input-port standard-input-port)
+
+         (define current-output-port standard-output-port)
+
+         (define (read . port)
+           (%read (if (pair? port)
+                      (car port)
+                      (current-input-port))))
+
+         (define (read-char . port)
+           (%read-char (if (pair? port)
+                           (car port)
+                           (current-input-port))))
+
+         (define (peek-char . port)
+           (%peek-char (if (pair? port)
+                           (car port)
+                           (current-input-port))))
+
+         (define (char-ready? . port)
+           (%char-ready? (if (pair? port)
+                             (car port)
+                             (current-input-port))))
+
+         (define (write x . port)
+           (%write-simple x (if (pair? port)
+                                (car port)
+                                (current-output-port))))
+
+         (define (write-char x . port)
+           (put-char x (if (pair? port)
+                           (car port)
+                           (current-output-port))))
+
+         (define (write-string string . xs)
+           (case (length xs)
+             ((0)  (put-string string (current-output-port)))
+             ((1)  (put-string string (car xs)))
+             (else (put-string (apply string-copy string (cadr xs)) (car xs)))))
+
+         (define (display datum . port)
+           (cond ((char?   datum) (apply write-char    datum port))
+                 ((string? datum) (apply write-string  datum port))
+                 (else            (apply write         datum port))))
+
+         (define (newline . port)
+           (apply write-char #\newline port))
+
+         )
+
+  (export quote
+          lambda
+          if
+          set!
+          cond
+          case
+          and
+          or
+          let ; named-let inessential
+          let* ; inessential
+          letrec
+          begin
+          do ; inessential
+          ; delay ; inessential
+          quasiquote
+          define
+          not
+          boolean?
+          eqv?
+          eq?
+          equal?
+          pair?
+          cons
+          car
+          cdr
+          set-car!
+          set-cdr!
+          caar
+          cadr
+          cdar
+          cddr
+          caaar
+          caadr
+          cadar
+          caddr
+          cdaar
+          cdadr
+          cddar
+          cdddr
+          caaaar
+          caaadr
+          caadar
+          caaddr
+          cadaar
+          cadadr
+          caddar
+          cadddr
+          cdaaar
+          cdaadr
+          cdadar
+          cdaddr
+          cddaar
+          cddadr
+          cdddar
+          cddddr
+          null?
+          list?
+          list
+          length
+          append
+          reverse
+          list-tail ; inessential
+          list-ref
+          memq
+          memv
+          member
+          assq
+          assv
+          assoc
+          symbol?
+          symbol->string
+          string->symbol
+          number?
+          complex?
+          real?
+          rational?
+          integer?
+          exact?
+          inexact?
+          =
+          <
+          >
+          <=
+          >=
+          zero?
+          positive?
+          negative?
+          odd?
+          even?
+          max
+          min
+          +
+          *
+          -
+          /
+          abs
+          quotient
+          remainder
+          modulo
+          gcd
+          lcm
+          numerator ; inessential
+          denominator ; inessential
+          floor
+          ceiling
+          truncate
+          round
+          rationalize ; inessential
+          exp ; inessential
+          log ; inessential
+          sin ; inessential
+          cos ; inessential
+          tan ; inessential
+          asin ; inessential
+          acos ; inessential
+          atan ; inessential
+          sqrt ; inessential
+          expt ; inessential
+          make-rectangular ; inessential
+          make-polar ; inessential
+          real-part ; inessential
+          imag-part ; inessential
+          magnitude ; inessential
+          angle ; inessential
+          exact->inexact ; inessential
+          inexact->exact ; inessential
+          number->string
+          string->number
+          char?
+          char=?
+          char<?
+          char>?
+          char<=?
+          char>=?
+          char-ci=?
+          char-ci<?
+          char-ci>?
+          char-ci<=?
+          char-ci>=?
+          char-alphabetic?
+          char-numeric?
+          char-whitespace?
+          char-upper-case?
+          char-lower-case?
+          char->integer
+          integer->char
+          char-upcase
+          char-downcase
+          string?
+          make-string
+          string
+          string-length
+          string-ref
+          string-set!
+          string=?
+          string<?
+          string>?
+          string<=?
+          string>=?
+          string-ci=?
+          string-ci<?
+          string-ci>?
+          string-ci<=?
+          string-ci>=?
+          substring
+          string-append
+          string->list
+          list->string
+          string-copy ; inessential
+          string-fill! ; inessential
+          vector?
+          make-vector
+          vector
+          vector-length
+          vector-ref
+          vector-set!
+          vector->list
+          list->vector
+          vector-fill! ; inessential
+          procedure?
+          apply
+          map
+          for-each
+          ; force ; inessential
+          call-with-current-continuation! ; A version that does not consider dynamic-wind.
+          call-with-input-file ; r7rs incompatible (values unsupported)
+          call-with-output-file ; r7rs incompatible (values unsupported)
+          input-port?
+          output-port?
+          current-input-port ; r7rs incompatible (current-input-port is standard input)
+          current-output-port ; r7rs incompatible (current-output-port is standard output)
+          ; with-input-from-file ; inessential
+          ; with-output-to-file ; inessential
+          open-input-file
+          open-output-file
+          close-input-port
+          close-output-port
+          read
+          read-char
+          peek-char
+          eof-object?
+          char-ready? ; inessential
+          write
+          display
+          newline
+          write-char
+          ; load
+          )
+  )
+
+(define-library (scheme base)
+  (import (meevax character) ; for digit-value
+          (meevax number) ; for exact-integer?
+          (meevax syntax) ; for quote-syntax
+          (scheme r4rs)
+          (srfi 211 explicit-renaming)
+          )
+  (begin (define (unspecified) (if #f #f))
+
+         (define-syntax when
+           (er-macro-transformer
+             (lambda (form rename compare)
+               `(,(rename 'if) ,(cadr form)
+                               (,(rename 'begin) ,@(cddr form))))))
+
+         (define-syntax unless
+           (er-macro-transformer
+             (lambda (form rename compare)
+               `(,(rename 'if) (,(rename 'not) ,(cadr form))
+                               (,(rename 'begin) ,@(cddr form))))))
+
+         (define-syntax letrec*
+           (er-macro-transformer
+             (lambda (form rename compare)
+               `(,(rename 'let) ()
+                                ,@(map (lambda (x) (cons (rename 'define) x))
+                                       (cadr form))
+                                ,@(cddr form)))))
+
+         (define (floor-quotient x y)
+           (floor (/ x y)))
+
+         (define floor-remainder modulo)
+
+         (define (floor/ x y)
+           (values (floor-quotient x y)
+                   (floor-remainder x y)))
+
+         (define truncate-quotient quotient)
+
+         (define truncate-remainder remainder)
+
+         (define (truncate/ x y)
+           (values (truncate-quotient x y)
+                   (truncate-remainder x y)))
+
+         (define (square z) (* z z))
+
+         (define inexact exact->inexact)
+
+         (define exact inexact->exact)
+
+         (define boolean=? eqv?)
+
+         (define (list-set! x k object)
+           (set-car! (list-tail x k) object))
+
+         (define symbol=? eqv?)
 
          (define %current-dynamic-extents '()) ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
 
@@ -610,9 +1131,9 @@
           and
           append
           apply
-          ; assoc
-          ; assq
-          ; assv
+          assoc
+          assq
+          assv
           begin
           ; binary-port?
           boolean=?
@@ -685,7 +1206,7 @@
           floor-remainder
           floor/
           ; flush-output-port
-          ; for-each
+          for-each
           gcd
           ; get-output-bytevector
           ; get-output-string
@@ -701,7 +1222,7 @@
           integer?
           lambda
           lcm
-          ; length
+          length
           let
           let*
           ; let*-values
@@ -714,10 +1235,10 @@
           list->string
           list->vector
           ; list-copy
-          ; list-ref
-          ; list-set!
-          ; list-tail
-          ; list?
+          list-ref
+          list-set!
+          list-tail
+          list?
           ; make-bytevector
           ; make-list
           ; make-parameter
@@ -844,7 +1365,8 @@
           cdaaar cdaadr cdadar cdaddr
           cddaar cddadr cdddar cddddr))
 
-(import (scheme base)
+(import (scheme r4rs)
+        (scheme base)
         (scheme cxr)
         (srfi 211 explicit-renaming)
         (srfi 211 syntactic-closures)
@@ -852,88 +1374,9 @@
 
 (define (unspecified) (if #f #f))
 
-; ------------------------------------------------------------------------------
-
 (define (traditional-macro-transformer f)
   (lambda (form use-env mac-env)
     (apply f (cdr form))))
-
-; ------------------------------------------------------------------------------
-
-(define (make-rectangular x y) (+ x (* y (sqrt -1))))
-
-(define (make-polar radius phi)
-  (make-rectangular (* radius (cos phi))
-                    (* radius (sin phi))))
-
-(define (real-part z) (if (%complex? z) (car z) z))
-(define (imag-part z) (if (%complex? z) (cdr z) 0))
-
-(define (magnitude z)
-  (sqrt (+ (square (real-part z))
-           (square (imag-part z)))))
-
-(define (angle z)
-  (atan (imag-part z)
-        (real-part z)))
-
-(define inexact->exact exact)
-(define exact->inexact inexact)
-
-(define (char-ci-compare x xs compare)
-  (let rec ((compare compare)
-            (lhs (char->integer (char-downcase x)))
-            (xs xs))
-    (if (null? xs) #t
-        (let ((rhs (char->integer (char-downcase (car xs)))))
-          (and (compare lhs rhs)
-               (rec compare rhs (cdr xs)))))))
-
-(define (char-ci=?  x . xs) (char-ci-compare x xs =))
-(define (char-ci<?  x . xs) (char-ci-compare x xs <))
-(define (char-ci>?  x . xs) (char-ci-compare x xs >))
-(define (char-ci<=? x . xs) (char-ci-compare x xs <=))
-(define (char-ci>=? x . xs) (char-ci-compare x xs >=))
-
-(define (char-alphabetic? x)
-  (<= #,(char->integer #\a)
-        (char->integer (char-downcase x))
-      #,(char->integer #\z)))
-
-(define (char-numeric? x)
-  (<= #,(char->integer #\0)
-        (char->integer x)
-      #,(char->integer #\9)))
-
-(define (char-whitespace? x)
-  (or (eqv? x #\space)
-      (eqv? x #\tab)
-      (eqv? x #\newline)
-      (eqv? x #\return)))
-
-(define (char-upper-case? x)
-  (<= #,(char->integer #\A)
-        (char->integer x)
-      #,(char->integer #\Z)))
-
-(define (char-lower-case? x)
-  (<= #,(char->integer #\a)
-        (char->integer x)
-      #,(char->integer #\z)))
-
-(define (char-downcase c)
-  (if (char-lower-case? c) c
-      (integer->char (+ (char->integer c) 32))))
-
-(define (char-upcase c)
-  (if (char-upper-case? c) c
-      (integer->char (- (char->integer c) 32))))
-
-(define (string-ci=?  . xs) (apply string=?  (map string-foldcase xs)))
-(define (string-ci<?  . xs) (apply string<?  (map string-foldcase xs)))
-(define (string-ci>?  . xs) (apply string>?  (map string-foldcase xs)))
-(define (string-ci<=? . xs) (apply string<=? (map string-foldcase xs)))
-(define (string-ci>=? . xs) (apply string>=? (map string-foldcase xs)))
 
 ; ---- 6.11. Exceptions --------------------------------------------------------
 
@@ -960,12 +1403,6 @@
   (let ((result (procedure port)))
     (close-port port)
     result))
-
-(define (call-with-input-file path procedure)
-  (call-with-port (open-input-file path) procedure))
-
-(define (call-with-output-file path procedure)
-  (call-with-port (open-output-file path) procedure))
 
 (define (close-port x)
   (cond ((input-port? x) (close-input-port x))

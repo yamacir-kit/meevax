@@ -77,7 +77,7 @@
               (null? x)))
         (null? x))))
 
-(define list? proper-list?)
+; (define list? proper-list?)
 
 (define (dotted-list? x)
   (let rec ((x x) (lag x))
@@ -126,11 +126,11 @@
                              (lp2 (cdr pair-a)
                                   (cdr pair-b)))))))))))
 
-(define (length x)
-  (let rec ((x x) (len 0))
-    (if (pair? x)
-        (rec (cdr x) (+ len 1))
-        len)))
+; (define (length x)
+;   (let rec ((x x) (len 0))
+;     (if (pair? x)
+;         (rec (cdr x) (+ len 1))
+;         len)))
 
 (define (length+ x) ; Returns #f if X is circular.
   (let rec ((x x) (lag x) (len 0))
@@ -243,7 +243,7 @@
               (begin (set-cdr! lag '()) x)))
         '())))
 
-(define (list-ref x k) (car (drop x k)))
+; (define (list-ref x k) (car (drop x k)))
 
 (define (split-at x k)
   (let recur ((lis x) (k k))
@@ -523,15 +523,15 @@
               (if (null-list? rest) vals
                   (appender vals (recur (car rest) (cdr rest)))))))))
 
-(define (for-each f x . xs)
-  (define (for-each f x)
-    (if (pair? x)
-        (begin (f (car x))
-               (for-each f (cdr x)))))
-  (if (null? xs)
-      (for-each f x)
-      (begin (apply map f x xs)
-             (if #f #f))))
+; (define (for-each f x . xs)
+;   (define (for-each f x)
+;     (if (pair? x)
+;         (begin (f (car x))
+;                (for-each f (cdr x)))))
+;   (if (null? xs)
+;       (for-each f x)
+;       (begin (apply map f x xs)
+;              (if #f #f))))
 
 (define (pair-for-each proc lis1 . lists)
   (if (pair? lists)
@@ -721,12 +721,12 @@
                  (new-tail (recur (delete! x tail elt=))))
             (if (eq? tail new-tail) lis (cons x new-tail)))))))
 
-(define (assoc x lis . maybe-=)
-  (let ((= (if (pair? maybe-=) (car maybe-=) equal?)))
-    (find (lambda (entry) (= x (car entry))) lis)))
-
-(define (assq key alist) (assoc key alist eq?))
-(define (assv key alist) (assoc key alist eqv?))
+; (define (assoc x lis . maybe-=)
+;   (let ((= (if (pair? maybe-=) (car maybe-=) equal?)))
+;     (find (lambda (entry) (= x (car entry))) lis)))
+;
+; (define (assq key alist) (assoc key alist eq?))
+; (define (assv key alist) (assoc key alist eqv?))
 
 (define (alist-cons key datum alist)
   (cons (cons key datum) alist))
