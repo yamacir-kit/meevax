@@ -144,6 +144,26 @@
                    (begin (string-set! s k c)
                           (rec (- k 1)))))))
 
+         (define %current-input-port standard-input-port)
+
+         (define (current-input-port) %current-input-port)
+
+         (define %current-output-port standard-output-port)
+
+         (define (current-output-port) %current-output-port)
+
+         (define (with-input-from-file path thunk)
+           (let ((previous-input-port (current-input-port)))
+             (set! %current-input-port (open-input-file path))
+             (thunk)
+             (set! %current-input-port previous-input-port)))
+
+         (define (with-output-to-file path thunk)
+           (let ((previous-output-port (current-output-port)))
+             (set! %current-output-port (open-output-file path))
+             (thunk)
+             (set! %current-output-port previous-output-port)))
+
          (define (char-ready? . port)
            (read-ready? (if (pair? port)
                             (car port)
