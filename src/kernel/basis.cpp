@@ -43,6 +43,9 @@ inline namespace kernel                                                        \
 } static_assert(true)
 
 DEFINE_BINARY(overture);
+DEFINE_BINARY(r4rs);
+DEFINE_BINARY(r4rs_essential);
+DEFINE_BINARY(r5rs);
 DEFINE_BINARY(r7rs);
 DEFINE_BINARY(srfi_1);
 DEFINE_BINARY(srfi_8);
@@ -52,3 +55,4 @@ DEFINE_BINARY(srfi_39);
 DEFINE_BINARY(srfi_45);
 DEFINE_BINARY(srfi_78);
 DEFINE_BINARY(srfi_149);
+DEFINE_BINARY(srfi_211);

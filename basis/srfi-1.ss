@@ -14,13 +14,15 @@
 
 ; list
 
-(define (xcons x y) (cons y x))
+(define (xcons x y)
+  (cons y x))
 
 (define (tree-copy x)
-  (let rec ((x x))
-    (if (not (pair? x)) x
-        (cons (rec (car x))
-              (rec (cdr x))))))
+  (letrec ((tree-copy (lambda (x)
+                        (if (not (pair? x)) x
+                            (cons (tree-copy (car x))
+                                  (tree-copy (cdr x)))))))
+    (tree-copy x)))
 
 (define (make-list len . maybe-elt)
   (let ((elt (cond ((null? maybe-elt) #f) ; Default value
@@ -75,7 +77,7 @@
               (null? x)))
         (null? x))))
 
-(define list? proper-list?)
+; (define list? proper-list?)
 
 (define (dotted-list? x)
   (let rec ((x x) (lag x))
@@ -124,11 +126,11 @@
                              (lp2 (cdr pair-a)
                                   (cdr pair-b)))))))))))
 
-(define (length x)
-  (let rec ((x x) (len 0))
-    (if (pair? x)
-        (rec (cdr x) (+ len 1))
-        len)))
+; (define (length x)
+;   (let rec ((x x) (len 0))
+;     (if (pair? x)
+;         (rec (cdr x) (+ len 1))
+;         len)))
 
 (define (length+ x) ; Returns #f if X is circular.
   (let rec ((x x) (lag x) (len 0))
@@ -241,7 +243,7 @@
               (begin (set-cdr! lag '()) x)))
         '())))
 
-(define (list-ref x k) (car (drop x k)))
+; (define (list-ref x k) (car (drop x k)))
 
 (define (split-at x k)
   (let recur ((lis x) (k k))
@@ -304,14 +306,18 @@
                     (cons (cadddr  elt) d)
                     (cons (car (cddddr  elt)) e)))))))
 
-(define (append . lists)
-  (if (pair? lists)
-      (let recur ((list1 (car lists)) (lists (cdr lists)))
-        (if (pair? lists)
-            (let ((tail (recur (car lists) (cdr lists))))
-              (fold-right cons tail list1)) ; Append LIST1 & TAIL.
-            list1))
-      '()))
+; (define (append . xs)
+;   (if (pair? xs)
+;       (letrec ((append (lambda (x xs)
+;                          (if (pair? xs)
+;                              ((lambda (tail)
+;                                 (fold-right cons tail x))
+;                               (append (car xs)
+;                                       (cdr xs)))
+;                              x))))
+;         (append (car xs)
+;                 (cdr xs)))
+;       '()))
 
 (define (append! . lists)
   (let lp ((lists lists) (prev '())) ; First, scan through lists looking for a non-empty one.
@@ -356,19 +362,27 @@
 
 ; Return (map cdr lists).
 ; However, if any element of LISTS is empty, just abort and return '().
-(define (%cdrs lists)
+(define (%cdrs xs)
   (call-with-current-continuation!
     (lambda (abort)
-      (let recur ((lists lists))
-        (if (pair? lists)
-            (let ((lis (car lists)))
-              (if (null-list? lis) (abort '())
-                  (cons (cdr lis) (recur (cdr lists)))))
-            '())))))
+      (letrec ((recur (lambda (xs)
+                        (if (pair? xs)
+                            ((lambda (x)
+                               (if (null-list? x)
+                                   (abort '())
+                                   (cons (cdr x)
+                                         (recur (cdr xs)))))
+                             (car xs))
+                            '()))))
+        (recur xs)))))
 
 (define (%cars+ lists last-elt) ; (append! (map car lists) (list last-elt))
-  (let recur ((lists lists))
-    (if (pair? lists) (cons (caar lists) (recur (cdr lists))) (list last-elt))))
+  (letrec ((recur (lambda (lists)
+                    (if (pair? lists)
+                        (cons (caar lists)
+                              (recur (cdr lists)))
+                        (list last-elt)))))
+    (recur lists)))
 
 (define (%cars+cdrs lists)
   (call-with-current-continuation!
@@ -444,16 +458,20 @@
         (if (null-list? lis) ans
             (lp (cdr lis) (kons (car lis) ans))))))
 
-(define (fold-right kons knil lis1 . lists)
-  (if (pair? lists)
-      (let recur ((lists (cons lis1 lists)))
-        (let ((cdrs (%cdrs lists)))
-          (if (null? cdrs) knil
-              (apply kons (%cars+ lists (recur cdrs))))))
-      (let recur ((lis lis1))
-        (if (null-list? lis) knil
-            (let ((head (car lis)))
-              (kons head (recur (cdr lis))))))))
+(define (fold-right f knil x . xs)
+  (if (pair? xs)
+      (letrec ((recur (lambda (lists)
+                        ((lambda (cdrs)
+                           (if (null? cdrs) knil
+                               (apply f (%cars+ lists (recur cdrs)))))
+                         (%cdrs lists)))))
+        (recur (cons x xs)))
+      (letrec ((recur (lambda (x)
+                        (if (null-list? x) knil
+                            ((lambda (head)
+                               (f head (recur (cdr x))))
+                             (car x))))))
+        (recur x))))
 
 (define (pair-fold-right f zero lis1 . lists)
   (if (pair? lists)
@@ -505,15 +523,15 @@
               (if (null-list? rest) vals
                   (appender vals (recur (car rest) (cdr rest)))))))))
 
-(define (for-each f x . xs)
-  (define (for-each f x)
-    (if (pair? x)
-        (begin (f (car x))
-               (for-each f (cdr x)))))
-  (if (null? xs)
-      (for-each f x)
-      (begin (apply map f x xs)
-             (if #f #f))))
+; (define (for-each f x . xs)
+;   (define (for-each f x)
+;     (if (pair? x)
+;         (begin (f (car x))
+;                (for-each f (cdr x)))))
+;   (if (null? xs)
+;       (for-each f x)
+;       (begin (apply map f x xs)
+;              (if #f #f))))
 
 (define (pair-for-each proc lis1 . lists)
   (if (pair? lists)
@@ -566,7 +584,7 @@
                   (x (f (car lis))))
               (cons x (recur tail)))))))
 
-(define map map-in-order)
+; (define map map-in-order)
 
 (define (filter pred lis)
   (let recur ((lis lis))
@@ -703,12 +721,12 @@
                  (new-tail (recur (delete! x tail elt=))))
             (if (eq? tail new-tail) lis (cons x new-tail)))))))
 
-(define (assoc x lis . maybe-=)
-  (let ((= (if (pair? maybe-=) (car maybe-=) equal?)))
-    (find (lambda (entry) (= x (car entry))) lis)))
-
-(define (assq key alist) (assoc key alist eq?))
-(define (assv key alist) (assoc key alist eqv?))
+; (define (assoc x lis . maybe-=)
+;   (let ((= (if (pair? maybe-=) (car maybe-=) equal?)))
+;     (find (lambda (entry) (= x (car entry))) lis)))
+;
+; (define (assq key alist) (assoc key alist eq?))
+; (define (assv key alist) (assoc key alist eqv?))
 
 (define (alist-cons key datum alist)
   (cons (cons key datum) alist))
@@ -824,7 +842,8 @@
         (and (not (null-list? lis))
              (if (pred (car lis)) n (lp (cdr lis) (+ n 1)))))))
 
-(define (reverse lis) (fold cons '() lis))
+; (define (reverse xs)
+;   (fold cons '() xs))
 
 (define (reverse! lis)
   (let lp ((lis lis) (ans '()))

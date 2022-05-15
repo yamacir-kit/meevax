@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/library.hpp>
 #include <meevax/string/repeat.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int
@@ -23,6 +23,8 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
+    library::boot();
+
     auto main = environment(master);
 
     main.configure(argc, argv);

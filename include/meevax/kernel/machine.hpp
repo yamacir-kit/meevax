@@ -333,6 +333,10 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         s = cons(cadr(c).template as<identity>().load(e), s);
+        if (car(s).template is<unbound>())
+        {
+          std::cout << "; warning: " << cadr(c) << " is unbound." << std::endl;
+        }
         c = cddr(c);
         goto decode;
 
@@ -788,7 +792,7 @@ inline namespace kernel
                        current_environment,
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs),
-                                 append(map(curry(cons)(make<syntax>("set!", set)), binding_specs), body)),
+                                 append2(map(curry(cons)(make<syntax>("set!", set)), binding_specs), body)),
                             make_list(length(binding_specs), undefined)),
                        current_scope,
                        current_continuation);
