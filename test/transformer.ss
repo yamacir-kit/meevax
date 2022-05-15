@@ -1,3 +1,7 @@
+(define (traditional-macro-transformer f)
+  (lambda (form use-env mac-env)
+    (apply f (cdr form))))
+
 (define-syntax swap!
   (traditional-macro-transformer
     (lambda (a b)

@@ -1,9 +1,27 @@
 (define-library (scheme base)
-  (import (meevax character) ; for digit-value
-          (meevax number) ; for exact-integer?
-          (meevax syntax) ; for quote-syntax
-          (meevax vector) ; for vector->string
+  (import (only (meevax exception) error? read-error? file-error? syntax-error?)
+          (only (meevax number) exact-integer?)
+          (only (meevax vector) vector->string)
+          (only (meevax port)
+                binary-port?
+                textual-port?
+                port?
+                input-port-open?
+                output-port-open?
+                standard-input-port
+                standard-output-port
+                standard-error-port
+                eof-object
+                %read-char
+                %peek-char
+                read-ready?
+                put-char
+                put-string
+                %flush-output-port
+                )
           (scheme r5rs)
+          (srfi 23) ; Error reporting mechanism
+          (srfi 34) ; Exception Handling for Programs
           (srfi 39) ; Parameter objects
           (srfi 211 explicit-renaming)
           )
@@ -33,13 +51,13 @@
           do
           make-parameter
           parameterize
-          ; guard
+          guard
           quasiquote
           ; unquote
           ; unquote-splicing
           let-syntax
           letrec-syntax
-          ; syntax-rules
+          syntax-rules
           ; _
           ; ...
           ; syntax-error
@@ -188,7 +206,7 @@
           procedure?
           apply
           map
-          ; string-map
+          string-map
           ; vector-map
           for-each
           ; string-for-each
@@ -198,53 +216,53 @@
           values
           call-with-values
           dynamic-wind
-          ; with-exception-handler
-          ; raise
-          ; raise-continuable
-          ; error
-          ; error-object?
-          ; error-object-message
-          ; error-object-irritants
-          ; read-error?
-          ; file-error?
-          ; call-with-port
-          ; input-port?
-          ; output-port?
-          ; textual-port?
-          ; binary-port?
-          ; port?
-          ; input-port-open?
-          ; output-port-open?
-          ; current-input-port
-          ; current-output-port
-          ; current-error-port
-          ; close-port
-          ; close-input-port
-          ; close-output-port
+          with-exception-handler
+          raise
+          raise-continuable
+          error
+          error-object?
+          (rename car error-object-message)
+          (rename cdr error-object-irritants)
+          read-error?
+          file-error?
+          call-with-port
+          input-port?
+          output-port?
+          textual-port?
+          binary-port?
+          port?
+          input-port-open?
+          output-port-open?
+          current-input-port
+          current-output-port
+          current-error-port
+          close-port
+          close-input-port
+          close-output-port
           ; open-input-string
           ; open-output-string
           ; get-output-string
           ; open-input-bytevector
           ; open-output-bytevector
           ; get-output-bytevector
-          ; read-char
-          ; peek-char
+          read-char
+          peek-char
           ; read-line
-          ; eof-object?
-          ; eof-object
-          ; char-ready?
+          eof-object?
+          eof-object
+          char-ready?
           ; read-string
           ; read-u8
           ; peek-u8
           ; u8-ready?
           ; read-bytevector
           ; read-bytevector!
-          ; newline
-          ; write-char
-          ; write-string
+          newline
+          write-char
+          write-string
           ; write-u8
           ; write-bytevector
-          ; flush-output-port
+          flush-output-port
           ; features
           )
 
@@ -300,19 +318,112 @@
 
          (define symbol=? eqv?)
 
+         (define (string-map f x . xs)
+           (define (string-map-1 x)
+             (list->string
+               (map f (string->list x))))
+           (define (string-map-n xs)
+             (map list->string
+                  (map (lambda (c) (map f c))
+                       (map string->list xs))))
+           (if (null? xs)
+               (string-map-1 x)
+               (string-map-n (cons x xs))))
+
          (define call/cc call-with-current-continuation)
+
+         (define (error-object? x)
+           (or (error? x)
+               (read-error? x)
+               (file-error? x)
+               (syntax-error? x)))
+
+         ; (define (call-with-port port procedure)
+         ;   (let-values ((results (procedure port)))
+         ;     (close-port port)
+         ;     (apply values results)))
+
+         (define (call-with-port port procedure)
+           (let ((result (procedure port)))
+             (close-port port)
+             result))
+
+         (define current-input-port
+           (make-parameter (standard-input-port)
+             (lambda (x)
+               (cond ((not (input-port? x))
+                      (error "current-input-port: not input-port" x))
+                     ((not (input-port-open? x))
+                      (error "current-input-port: not input-port-open" x))
+                     (else x)))))
+
+         (define current-output-port
+           (make-parameter (standard-output-port)
+             (lambda (x)
+               (cond ((not (output-port? x))
+                      (error "current-output-port: not output-port" x))
+                     ((not (output-port-open? x))
+                      (error "current-output-port: not output-port-open" x))
+                     (else x)))))
+
+         (define current-error-port
+           (make-parameter (standard-error-port)
+             (lambda (x)
+               (cond ((not (output-port? x))
+                      (error "current-error-port: not output-port" x))
+                     ((not (output-port-open? x))
+                      (error "current-error-port: not output-port-open" x))
+                     (else x)))))
+
+         (define (close-port x)
+           (cond ((input-port? x) (close-input-port x))
+                 ((output-port? x) (close-output-port x))
+                 (else (unspecified))))
+
+         (define (read-char . x)
+           (%read-char (if (pair? x)
+                           (car x)
+                           (current-input-port))))
+
+         (define (peek-char . x)
+           (%peek-char (if (pair? x)
+                           (car x)
+                           (current-input-port))))
+
+         (define (char-ready? . x)
+           (read-ready? (if (pair? x)
+                            (car x)
+                            (current-input-port))))
+
+         (define (write-char x . port)
+           (put-char x (if (pair? port)
+                           (car port)
+                           (current-output-port))))
+
+         (define (write-string string . xs)
+           (case (length xs)
+             ((0)  (put-string string (current-output-port)))
+             ((1)  (put-string string (car xs)))
+             (else (put-string (apply string-copy string (cadr xs)) (car xs)))))
+
+         (define (newline . port)
+           (apply write-char #\newline port))
+
+         (define (flush-output-port . port)
+           (%flush-output-port (if (pair? port)
+                                   (car port)
+                                   (current-output-port))))
 
          )
   )
 
-(define-library (scheme delay)
+(define-library (scheme lazy)
+  (import (srfi 45))
   (export delay
-          delay-force
+          (rename lazy delay-force)
           force
           promise?
-          make-promise
-          )
-  )
+          (rename eager make-promise)))
 
 (define-library (scheme case-lambda)
   (export case-lambda
@@ -372,6 +483,27 @@
           cddddr))
 
 (define-library (scheme char)
+  (import (only (meevax character) digit-value)
+          (only (scheme r5rs)
+                char-ci=?
+                char-ci<?
+                char-ci>?
+                char-ci<=?
+                char-ci>=?
+                char-alphabetic?
+                char-numeric?
+                char-whitespace?
+                char-upper-case?
+                char-lower-case?
+                char-upcase
+                char-downcase
+                string-ci=?
+                string-ci<?
+                string-ci>?
+                string-ci<=?
+                string-ci>=?)
+          (only (scheme base) define string-map))
+
   (export char-ci=?
           char-ci<?
           char-ci>?
@@ -385,7 +517,7 @@
           digit-value
           char-upcase
           char-downcase
-          char-foldcase
+          (rename char-downcase char-foldcase)
           string-ci=?
           string-ci<?
           string-ci>?
@@ -393,9 +525,16 @@
           string-ci>=?
           string-upcase
           string-downcase
-          string-foldcase
-          )
-  )
+          string-foldcase)
+
+  (begin (define (string-upcase x)
+           (string-map char-upcase x))
+
+         (define (string-downcase x)
+           (string-map char-downcase x))
+
+         (define (string-foldcase x)
+           (string-map char-foldcase x))))
 
 (define-library (scheme eval)
   (export environment
@@ -404,29 +543,63 @@
   )
 
 (define-library (scheme file)
+  (import (only (meevax port) open-input-file open-output-file)
+          (only (scheme r5rs) call-with-input-file call-with-output-file)
+          (only (scheme base) define parameterize current-input-port current-output-port)
+          )
   (export call-with-input-file
           call-with-output-file
           with-input-from-file
           with-output-to-file
           open-input-file
-          open-binary-input-file
+          ; open-binary-input-file
           open-output-file
-          open-binary-output-file
-          file-exists?
-          delete-file
+          ; open-binary-output-file
+          ; file-exists?
+          ; delete-file
           )
+  (begin (define (with-input-from-file path thunk)
+           (parameterize ((current-input-port (open-input-file path)))
+             (thunk)))
+
+         (define (with-output-to-file path thunk)
+           (parameterize ((current-output-port (open-output-file path)))
+             (thunk)))
+         )
   )
 
 (define-library (scheme read)
+  (import (meevax read)
+          (scheme base))
   (export read)
-  )
+  (begin (define (read . x)
+           (%read (if (pair? x)
+                      (car x)
+                      (current-input-port))))))
 
 (define-library (scheme write)
+  (import (scheme base)
+          (only (meevax write) %write-simple)
+          (only (meevax port) put-char)
+          )
   (export write
-          write-shared
+          ; write-shared
           write-simple
           display
           )
+  (begin (define (write-simple x . port)
+           (%write-simple x (if (pair? port)
+                                (car port)
+                                (current-output-port))))
+
+         (define write write-simple) ; DUMMY
+
+         (define (display datum . port)
+           (cond ((char?   datum) (apply write-char   datum port))
+                 ((string? datum) (apply write-string datum port))
+                 (else            (apply write        datum port))))
+
+    )
   )
 
 (define-library (scheme load)
@@ -452,73 +625,14 @@
 
 (import (scheme r5rs)
         (scheme base)
+        (scheme char)
         (scheme cxr)
+        (scheme file)
+        (scheme lazy)
+        (scheme read)
+        (scheme write)
         (srfi 211 explicit-renaming)
         (srfi 211 syntactic-closures)
         )
 
 (define (unspecified) (if #f #f))
-
-(define (traditional-macro-transformer f)
-  (lambda (form use-env mac-env)
-    (apply f (cdr form))))
-
-; ---- 6.11. Exceptions --------------------------------------------------------
-
-(define (error-object? x)
-  (or (error? x)
-      (read-error? x)
-      (file-error? x)
-      (syntax-error? x)))
-
-(define error-object-message car)
-
-(define error-object-irritants cdr)
-
-; ---- 6.12. Environments and evaluation ---------------------------------------
-
-; ---- 6.13. Input and output --------------------------------------------------
-
-; (define (call-with-port port procedure)
-;   (let-values ((results (procedure port)))
-;     (close-port port)
-;     (apply values results)))
-
-(define (call-with-port port procedure)
-  (let ((result (procedure port)))
-    (close-port port)
-    result))
-
-(define (close-port x)
-  (cond ((input-port? x) (close-input-port x))
-        ((output-port? x) (close-output-port x))
-        (else (unspecified))))
-
-(define (read        . x) (%read       (if (pair? x) (car x) (current-input-port))))
-(define (read-char   . x) (%read-char  (if (pair? x) (car x) (current-input-port))))
-(define (peek-char   . x) (%peek-char  (if (pair? x) (car x) (current-input-port))))
-(define (char-ready? . x) (read-ready? (if (pair? x) (car x) (current-input-port))))
-
-(define (write-simple x . port) (%write-simple x (if (pair? port) (car port) (current-output-port))))
-(define (write-char   x . port) (put-char      x (if (pair? port) (car port) (current-output-port))))
-
-(define write write-simple)
-
-(define (display datum . port)
-  (cond ((char?   datum) (apply write-char    datum port))
-        ((string? datum) (apply write-string  datum port))
-        (else            (apply write         datum port))))
-
-(define (newline . port)
-  (apply write-char #\newline port))
-
-(define (write-string string . xs)
-  (case (length xs)
-    ((0)  (put-string string (current-output-port)))
-    ((1)  (put-string string (car xs)))
-    (else (put-string (apply string-copy string (cadr xs)) (car xs)))))
-
-(define (flush-output-port . port)
-  (%flush-output-port (if (pair? port)
-                          (car port)
-                          (current-output-port))))
