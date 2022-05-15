@@ -130,19 +130,44 @@ inline namespace kernel
     return second;
   }
 
-  auto environment::import(const_reference import_set) -> void
+  auto resolve_import_set(const_reference import_set) -> object
   {
-    if (auto iter = libraries.find(lexical_cast<std::string>(import_set)); iter != std::end(libraries))
+    if (car(import_set).as<symbol>().value == "only")
     {
-      for (let const& binding : std::get<1>(*iter).resolve_export_specs())
+      let const exported_bindings = resolve_import_set(cadr(import_set));
+
+      let filtered_bindings = unit;
+
+      for (let const& identifier : cddr(import_set))
       {
-        define(binding.as<absolute>().symbol(),
-               binding.as<absolute>().load());
+        if (let const& binding = assq(identifier, exported_bindings); select(binding))
+        {
+          filtered_bindings = cons(binding, filtered_bindings);
+        }
+        else
+        {
+          std::cout << error(make<string>("no such identifier"), identifier);
+        }
       }
+
+      return filtered_bindings;
+    }
+    else if (auto iter = libraries.find(lexical_cast<std::string>(import_set)); iter != std::end(libraries))
+    {
+      return std::get<1>(*iter).resolve_export_specs();
     }
     else
     {
       throw error(make<string>("no such library"), import_set);
+    }
+  }
+
+  auto environment::import(const_reference import_set) -> void
+  {
+    for (let const& binding : resolve_import_set(import_set))
+    {
+      define(binding.as<absolute>().symbol(),
+             binding.as<absolute>().load());
     }
 
     // if (car(import_set).as<symbol>().value == "only")

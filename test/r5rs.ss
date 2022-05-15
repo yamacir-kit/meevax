@@ -866,8 +866,8 @@
 
 (check (eval '(* 7 3) (scheme-report-environment 5)) => 21)
 
-; (check (let ((f (eval '(lambda (f x) (f x x)) (null-environment 5))))
-;          (f + 10)) => 20) ; ERROR
+(check (let ((f (eval '(lambda (f x) (f x x)) (null-environment 5))))
+         (f + 10)) => 20)
 
 ; ---- EXAMPLE -----------------------------------------------------------------
 

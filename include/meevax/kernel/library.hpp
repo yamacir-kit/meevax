@@ -90,11 +90,9 @@ inline namespace kernel
         if (export_spec.is<pair>() and car(export_spec).is<symbol>()
                                    and car(export_spec).as<symbol>().value == "rename")
         {
-          PRINT(export_spec);
-
           if (let const& binding = identify(cadr(export_spec), unit); binding.as<identity>().is_free())
           {
-            std::cout << make<error>(make<string>("exported but undefined"), cadr(export_spec)) << std::endl;
+            std::cout << error(make<string>("exported but undefined"), cadr(export_spec)) << std::endl;
           }
           else
           {
@@ -105,7 +103,7 @@ inline namespace kernel
         {
           if (let const& binding = identify(export_spec, unit); binding.as<identity>().is_free())
           {
-            std::cout << make<error>(make<string>("exported but undefined"), export_spec) << std::endl;
+            std::cout << error(make<string>("exported but undefined"), export_spec) << std::endl;
           }
           else
           {
@@ -115,26 +113,6 @@ inline namespace kernel
       }
 
       return bindings;
-    }
-
-    [[deprecated]]
-    auto export_to(environment & destination)
-    {
-      for (let const& export_spec : export_specs)
-      {
-        if (export_spec.is<pair>() and car(export_spec).is<symbol>()
-                                   and car(export_spec).as<symbol>().value == "rename")
-        {
-        }
-        else if (let const& binding = (*this)[export_spec]; binding.is<unbound>())
-        {
-          std::cout << "; warning: " << export_spec << " is exported but undefined." << std::endl;
-        }
-        else
-        {
-          destination.define(export_spec, binding);
-        }
-      }
     }
 
     friend auto operator <<(std::ostream & os, library const& library) -> std::ostream &
