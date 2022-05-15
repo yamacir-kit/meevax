@@ -59,7 +59,7 @@ inline namespace kernel
       else if (declaration.is<pair>() and car(declaration).is<symbol>()
                                       and car(declaration).as<symbol>().value == "begin")
       {
-        for (let const& command_or_definition : declaration)
+        for (let const& command_or_definition : cdr(declaration))
         {
           declare(command_or_definition);
         }
