@@ -6,6 +6,247 @@
           (scheme r5rs)
           (srfi 211 explicit-renaming)
           )
+
+  (export quote
+          lambda
+          if
+          set!
+          ; include
+          ; include-ci
+          cond
+          ; else
+          ; =>
+          case
+          and
+          or
+          when
+          unless
+          ; cond-expand
+          let
+          let*
+          letrec
+          letrec*
+          ; let-values
+          ; let*-values
+          begin
+          do
+          ; make-parameter
+          ; parameterize
+          ; guard
+          quasiquote
+          ; unquote
+          ; unquote-splicing
+          let-syntax
+          letrec-syntax
+          ; syntax-rules
+          ; _
+          ; ...
+          ; syntax-error
+          define
+          ; define-values
+          define-syntax
+          ; define-record-type
+          eqv?
+          eq?
+          equal?
+          number?
+          complex?
+          real?
+          rational?
+          integer?
+          exact?
+          inexact?
+          exact-integer?
+          =
+          <
+          >
+          <=
+          >=
+          zero?
+          positive?
+          negative?
+          odd?
+          even?
+          max
+          min
+          +
+          *
+          -
+          /
+          abs
+          floor/
+          floor-quotient
+          floor-remainder
+          truncate/
+          truncate-quotient
+          truncate-remainder
+          quotient
+          remainder
+          modulo
+          gcd
+          lcm
+          numerator
+          denominator
+          floor
+          ceiling
+          truncate
+          round
+          rationalize
+          square
+          ; exact-integer-sqrt
+          expt
+          inexact
+          exact
+          number->string
+          string->number
+          not
+          boolean?
+          boolean=?
+          pair?
+          cons
+          car
+          cdr
+          set-car!
+          set-cdr!
+          caar
+          cadr
+          cdar
+          cddr
+          null?
+          list?
+          ; make-list
+          list
+          length
+          append
+          reverse
+          list-tail
+          list-ref
+          list-set!
+          memq
+          memv
+          member
+          assq
+          assv
+          assoc
+          ; list-copy
+          symbol?
+          ; symbol=?
+          symbol->string
+          string->symbol
+          char?
+          char=?
+          char<?
+          char>?
+          char<=?
+          char>=?
+          char->integer
+          integer->char
+          string?
+          make-string
+          string
+          string-length
+          string-ref
+          string-set!
+          string=?
+          string>?
+          string<?
+          string<=?
+          string>=?
+          substring
+          string-append
+          string->list
+          list->string
+          string-copy
+          ; string-copy!
+          string-fill!
+          vector?
+          make-vector
+          vector
+          vector-length
+          vector-ref
+          vector-set!
+          vector->list
+          list->vector
+          vector->string
+          ; string->vector
+          ; vector-copy
+          ; vector-copy!
+          ; vector-append
+          vector-fill!
+          ; bytevector?
+          ; make-bytevector
+          ; bytevector
+          ; bytevector-length
+          ; bytevector-u8-ref
+          ; bytevector-u8-set!
+          ; bytevector-copy
+          ; bytevector-copy!
+          ; bytevector-append
+          ; utf8->string
+          ; string->utf8
+          procedure?
+          apply
+          map
+          ; string-map
+          ; vector-map
+          for-each
+          ; string-for-each
+          ; vector-for-each
+          call-with-current-continuation
+          call/cc
+          values
+          call-with-values
+          dynamic-wind
+          ; with-exception-handler
+          ; raise
+          ; raise-continuable
+          ; error
+          ; error-object?
+          ; error-object-message
+          ; error-object-irritants
+          ; read-error?
+          ; file-error?
+          ; call-with-port
+          ; input-port?
+          ; output-port?
+          ; textual-port?
+          ; binary-port?
+          ; port?
+          ; input-port-open?
+          ; output-port-open?
+          ; current-input-port
+          ; current-output-port
+          ; current-error-port
+          ; close-port
+          ; close-input-port
+          ; close-output-port
+          ; open-input-string
+          ; open-output-string
+          ; get-output-string
+          ; open-input-bytevector
+          ; open-output-bytevector
+          ; get-output-bytevector
+          ; read-char
+          ; peek-char
+          ; read-line
+          ; eof-object?
+          ; eof-object
+          ; char-ready?
+          ; read-string
+          ; read-u8
+          ; peek-u8
+          ; u8-ready?
+          ; read-bytevector
+          ; read-bytevector!
+          ; newline
+          ; write-char
+          ; write-string
+          ; write-u8
+          ; write-bytevector
+          ; flush-output-port
+          ; features
+          )
+
   (begin (define (unspecified) (if #f #f))
 
          (define-syntax when
@@ -61,255 +302,152 @@
          (define call/cc call-with-current-continuation)
 
          )
-  (export *
-          +
-          -
-          ; ...
-          /
-          <
-          <=
-          =
-          ; =>
-          >
-          >=
-          ; _
-          abs
-          and
-          append
-          apply
-          assoc
-          assq
-          assv
-          begin
-          ; binary-port?
-          boolean=?
-          boolean?
-          ; bytevector
-          ; bytevector-append
-          ; bytevector-copy
-          ; bytevector-copy!
-          ; bytevector-length
-          ; bytevector-u8-ref
-          ; bytevector-u8-set!
-          ; bytevector?
-          caar
-          cadr
-          call-with-current-continuation
-          ; call-with-port
-          call-with-values
-          call/cc
-          car
-          case
-          cdar
-          cddr
-          cdr
-          ceiling
-          char->integer
-          ; char-ready?
-          char<=?
-          char<?
-          char=?
-          char>=?
-          char>?
-          char?
-          ; close-input-port
-          ; close-output-port
-          ; close-port
-          complex?
-          cond
-          ; cond-expand
-          cons
-          ; current-error-port
-          ; current-input-port
-          ; current-output-port
-          define
-          ; define-record-type
-          define-syntax
-          ; define-values
-          denominator
-          do
-          dynamic-wind
-          ; else
-          ; eof-object
-          ; eof-object?
-          eq?
-          equal?
-          eqv?
-          ; error
-          ; error-object-irritants
-          ; error-object-message
-          ; error-object?
-          even?
-          exact
-          ; exact-integer-sqrt
-          exact-integer?
-          exact?
-          expt
-          ; features
-          ; file-error?
-          floor
-          floor-quotient
-          floor-remainder
-          floor/
-          ; flush-output-port
-          for-each
-          gcd
-          ; get-output-bytevector
-          ; get-output-string
-          ; guard
-          if
-          ; include
-          ; include-ci
-          inexact
-          inexact?
-          ; input-port-open?
-          ; input-port?
-          integer->char
-          integer?
-          lambda
-          lcm
-          length
-          let
-          let*
-          ; let*-values
-          let-syntax
-          ; let-values
-          letrec
-          letrec*
-          letrec-syntax
-          list
-          list->string
-          list->vector
-          ; list-copy
-          list-ref
-          list-set!
-          list-tail
-          list?
-          ; make-bytevector
-          ; make-list
-          ; make-parameter
-          make-string
-          make-vector
-          map
-          max
-          member
-          memq
-          memv
-          min
-          modulo
-          negative?
-          ; newline
-          not
-          null?
-          number->string
-          number?
-          numerator
-          odd?
-          ; open-input-bytevector
-          ; open-input-string
-          ; open-output-bytevector
-          ; open-output-string
-          or
-          ; output-port-open?
-          ; output-port?
-          pair?
-          ; parameterize
-          ; peek-char
-          ; peek-u8
-          ; port?
-          positive?
-          procedure?
-          quasiquote
-          quote
-          quotient
-          ; raise
-          ; raise-continuable
-          rational?
-          rationalize
-          ; read-bytevector
-          ; read-bytevector!
-          ; read-char
-          ; read-error?
-          ; read-line
-          ; read-string
-          ; read-u8
-          real?
-          remainder
-          reverse
-          round
-          set!
-          set-car!
-          set-cdr!
-          square
-          string
-          string->list
-          string->number
-          string->symbol
-          ; string->utf8
-          ; string->vector
-          string-append
-          string-copy
-          ; string-copy!
-          string-fill!
-          ; string-for-each
-          string-length
-          ; string-map
-          string-ref
-          string-set!
-          string<=?
-          string<?
-          string=?
-          string>=?
-          string>?
-          string?
-          substring
-          symbol->string
-          ; symbol=?
-          symbol?
-          ; syntax-error
-          ; syntax-rules
-          ; textual-port?
-          truncate
-          truncate-quotient
-          truncate-remainder
-          truncate/
-          ; u8-ready?
-          unless
-          ; unquote
-          ; unquote-splicing
-          ; utf8->string
-          values
-          vector
-          vector->list
-          vector->string
-          ; vector-append
-          ; vector-copy
-          ; vector-copy!
-          vector-fill!
-          ; vector-for-each
-          vector-length
-          ; vector-map
-          vector-ref
-          vector-set!
-          vector?
-          when
-          ; with-exception-handler
-          ; write-bytevector
-          ; write-char
-          ; write-string
-          ; write-u8
-          zero?
+  )
+
+(define-library (scheme delay)
+  (export delay
+          delay-force
+          force
+          promise?
+          make-promise
+          )
+  )
+
+(define-library (scheme case-lambda)
+  (export case-lambda
+          )
+  )
+
+(define-library (scheme inexact)
+  (export finite?
+          infinite?
+          nan?
+          exp
+          log
+          sin
+          cos
+          tan
+          asin
+          acos
+          atan
+          sqrt
+          )
+  )
+
+(define-library (scheme complex)
+  (export make-rectangular
+          make-polar
+          real-part
+          imag-part
+          angle
           )
   )
 
 (define-library (scheme cxr)
   (import (meevax pair))
-  (export caaar caadr cadar caddr
-          cdaar cdadr cddar cdddr
-          caaaar caaadr caadar caaddr
-          cadaar cadadr caddar cadddr
-          cdaaar cdaadr cdadar cdaddr
-          cddaar cddadr cdddar cddddr))
+  (export caaar
+          caadr
+          cadar
+          caddr
+          cdaar
+          cdadr
+          cddar
+          cdddr
+          caaaar
+          caaadr
+          caadar
+          caaddr
+          cadaar
+          cadadr
+          caddar
+          cadddr
+          cdaaar
+          cdaadr
+          cdadar
+          cdaddr
+          cddaar
+          cddadr
+          cdddar
+          cddddr))
+
+(define-library (scheme char)
+  (export char-ci=?
+          char-ci<?
+          char-ci>?
+          char-ci<=?
+          char-ci>=?
+          char-alphabetic?
+          char-numeric?
+          char-whitespace?
+          char-upper-case?
+          char-lower-case?
+          digit-value
+          char-upcase
+          char-downcase
+          char-foldcase
+          string-ci=?
+          string-ci<?
+          string-ci>?
+          string-ci<=?
+          string-ci>=?
+          string-upcase
+          string-downcase
+          string-foldcase
+          )
+  )
+
+(define-library (scheme eval)
+  (export environment
+          eval
+          )
+  )
+
+(define-library (scheme file)
+  (export call-with-input-file
+          call-with-output-file
+          with-input-from-file
+          with-output-to-file
+          open-input-file
+          open-binary-input-file
+          open-output-file
+          open-binary-output-file
+          file-exists?
+          delete-file
+          )
+  )
+
+(define-library (scheme read)
+  (export read)
+  )
+
+(define-library (scheme write)
+  (export write
+          write-shared
+          write-simple
+          display
+          )
+  )
+
+(define-library (scheme load)
+  (export load
+          )
+  )
+
+(define-library (scheme process-context)
+  (export command-line
+          exit
+          emergency-exit
+          get-environment-variable
+          get-environment-variables
+          )
+  )
+
+(define-library (scheme time)
+  (export current-second
+          current-jiffy
+          jiffies-per-second
+          )
+  )
 
 (import (scheme r5rs)
         (scheme base)
