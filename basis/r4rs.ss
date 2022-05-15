@@ -20,23 +20,24 @@
           negative? odd? even? max min + * - / abs quotient remainder modulo
           gcd lcm numerator denominator floor ceiling truncate round rationalize
           exp log sin cos tan asin acos atan sqrt expt make-rectangular
-          make-polar real-part imag-part magnitude angle exact->inexact
-          inexact->exact number->string string->number char? char=? char<?
-          char>? char<=? char>=? char-ci=? char-ci<? char-ci>? char-ci<=?
-          char-ci>=? char-alphabetic? char-numeric? char-whitespace?
-          char-upper-case? char-lower-case? char->integer integer->char
-          char-upcase char-downcase string? make-string string string-length
-          string-ref string-set! string=? string<? string>? string<=? string>=?
-          string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?
-          substring string-append string->list list->string string-copy
-          string-fill! vector? make-vector vector vector-length vector-ref
-          vector-set! vector->list list->vector vector-fill! procedure? apply
-          map for-each force call-with-current-continuation!
-          call-with-input-file call-with-output-file input-port? output-port?
-          current-input-port current-output-port with-input-from-file
-          with-output-to-file open-input-file open-output-file close-input-port
-          close-output-port read read-char peek-char eof-object? char-ready?
-          write display newline write-char load)
+          make-polar real-part imag-part magnitude angle
+          (rename inexact exact->inexact) (rename exact inexact->exact)
+          number->string string->number char? char=? char<? char>? char<=?
+          char>=? char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=?
+          char-alphabetic? char-numeric? char-whitespace? char-upper-case?
+          char-lower-case? char->integer integer->char char-upcase
+          char-downcase string? make-string string string-length string-ref
+          string-set! string=? string<? string>? string<=? string>=? string-ci=?
+          string-ci<? string-ci>? string-ci<=? string-ci>=? substring
+          string-append string->list list->string string-copy string-fill!
+          vector? make-vector vector vector-length vector-ref vector-set!
+          vector->list list->vector vector-fill! procedure? apply map for-each
+          force call-with-current-continuation! call-with-input-file
+          call-with-output-file input-port? output-port? current-input-port
+          current-output-port with-input-from-file with-output-to-file
+          open-input-file open-output-file close-input-port close-output-port
+          read read-char peek-char eof-object? char-ready? write display newline
+          write-char load)
 
   (begin (define-syntax let*
            (er-macro-transformer
@@ -118,9 +119,9 @@
            (atan (imag-part z)
                  (real-part z)))
 
-         (define exact->inexact inexact)
-
-         (define inexact->exact exact)
+         ; (define exact->inexact inexact)
+         ;
+         ; (define inexact->exact exact)
 
          (define (list-tail x k)
            (let list-tail ((x x)

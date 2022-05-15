@@ -132,26 +132,39 @@ inline namespace kernel
 
   auto environment::import(const_reference import_set) -> void
   {
-    if (car(import_set).as<symbol>().value == "only")
+    if (auto iter = libraries.find(lexical_cast<std::string>(import_set)); iter != std::end(libraries))
     {
-    }
-    else if (car(import_set).as<symbol>().value == "except")
-    {
-    }
-    else if (car(import_set).as<symbol>().value == "prefix")
-    {
-    }
-    else if (car(import_set).as<symbol>().value == "rename")
-    {
-    }
-    else if (auto iter = libraries.find(lexical_cast<std::string>(import_set)); iter != std::end(libraries))
-    {
-      std::get<1>(*iter).export_to(*this);
+      for (let const& binding : std::get<1>(*iter).resolve_export_specs())
+      {
+        define(binding.as<absolute>().symbol(),
+               binding.as<absolute>().load());
+      }
     }
     else
     {
       throw error(make<string>("no such library"), import_set);
     }
+
+    // if (car(import_set).as<symbol>().value == "only")
+    // {
+    // }
+    // else if (car(import_set).as<symbol>().value == "except")
+    // {
+    // }
+    // else if (car(import_set).as<symbol>().value == "prefix")
+    // {
+    // }
+    // else if (car(import_set).as<symbol>().value == "rename")
+    // {
+    // }
+    // else if (auto iter = libraries.find(lexical_cast<std::string>(import_set)); iter != std::end(libraries))
+    // {
+    //   std::get<1>(*iter).export_to(*this);
+    // }
+    // else
+    // {
+    //   throw error(make<string>("no such library"), import_set);
+    // }
   }
 
   auto environment::load(std::string const& s) -> object
