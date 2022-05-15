@@ -49,7 +49,7 @@ namespace meevax
     std::vector<string_view> const codes {
       srfi_211,
       r4rs_essential,
-      srfi_45, // (scheme lazy)
+      srfi_45,
       r4rs,
       srfi_149,
       r5rs,

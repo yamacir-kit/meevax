@@ -50,6 +50,23 @@ inline namespace kernel
             "set!");
   }
 
+  library::library(environment_library_t)
+  {
+    define<procedure>("environment", [](let const& xs)
+    {
+      let const e = make<environment>();
+
+      for (let const& x : xs)
+      {
+        e.as<environment>().import(x);
+      }
+
+      return e;
+    });
+
+    export_("environment");
+  }
+
   library::library(equivalence_library_t)
   {
     define<predicate>("eq?",  [](let const& xs) { return eq (car(xs), cadr(xs)); });
@@ -889,7 +906,7 @@ inline namespace kernel
   {
     define<procedure>("eval", [](let const& xs)
     {
-      return cadr(xs).as<transformer>().mac_env.as<environment>().evaluate(car(xs)); // DIRTY HACK!
+      return cadr(xs).as<environment>().evaluate(car(xs));
     });
 
     export_("eval");
@@ -1065,6 +1082,7 @@ inline namespace kernel
     define_library("(meevax character)", character_library);
     define_library("(meevax context)", context_library);
     define_library("(meevax control)", control_library);
+    define_library("(meevax environment)", environment_library);
     define_library("(meevax equivalence)", equivalence_library);
     define_library("(meevax evaluate)", evaluate_library);
     define_library("(meevax exception)", exception_library);

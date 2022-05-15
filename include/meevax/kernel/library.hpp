@@ -117,6 +117,7 @@ inline namespace kernel
     DEFINE_BASIS_LIBRARY(character);
     DEFINE_BASIS_LIBRARY(context);
     DEFINE_BASIS_LIBRARY(control);
+    DEFINE_BASIS_LIBRARY(environment);
     DEFINE_BASIS_LIBRARY(equivalence);
     DEFINE_BASIS_LIBRARY(evaluate);
     DEFINE_BASIS_LIBRARY(exception);

@@ -1,9 +1,9 @@
 (define-library (scheme r5rs)
-  (import (meevax evaluate)
+  (import (meevax environment)
+          (meevax evaluate)
           (meevax syntax) ; for let-syntax letrec-syntax
           (scheme r4rs)
-          (srfi 149)
-          )
+          (srfi 149))
 
   (export quote lambda if set! cond case and or let let* letrec begin do delay
           quasiquote let-syntax letrec-syntax syntax-rules define define-syntax
@@ -37,8 +37,7 @@
           peek-char eof-object? char-ready? write display newline write-char
           load)
 
-  (begin
-         ; (define values
+  (begin ; (define values
          ;   (lambda xs
          ;     (call-with-current-continuation
          ;       (lambda (cc)
@@ -92,5 +91,13 @@
                                                              (windup! %current-dynamic-extents current-dynamic-extents)
                                                              (k1 k2)))))))
 
+         (define (scheme-report-environment version)
+           (environment `(scheme ,(string->symbol (string-append "r" (number->string version) "rs")))))
+
+         (define (null-environment version)
+           (environment `(only `(scheme ,(string->symbol (string-append "r" (number->string version) "rs")))
+                               quote lambda if set! cond case and or let let*
+                               letrec begin do delay quasiquote let-syntax
+                               letrec-syntax syntax-rules define define-syntax)))
          )
   )

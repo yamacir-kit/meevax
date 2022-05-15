@@ -144,9 +144,13 @@ inline namespace kernel
     else if (car(import_set).as<symbol>().value == "rename")
     {
     }
-    else // <library name>
+    else if (auto iter = libraries.find(lexical_cast<std::string>(import_set)); iter != std::end(libraries))
     {
-      libraries.at(lexical_cast<std::string>(import_set)).export_to(*this);
+      std::get<1>(*iter).export_to(*this);
+    }
+    else
+    {
+      throw error(make<string>("no such library"), import_set);
     }
   }
 
