@@ -53,12 +53,12 @@ namespace meevax
       r4rs,
       srfi_149,
       r5rs,
+      srfi_39,
       overture,
       srfi_8,
       srfi_1,
       srfi_23,
       srfi_34,
-      srfi_39,
       srfi_78,
       r7rs,
     };

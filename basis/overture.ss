@@ -4,6 +4,7 @@
           (meevax syntax) ; for quote-syntax
           (meevax vector) ; for vector->string
           (scheme r5rs)
+          (srfi 39) ; Parameter objects
           (srfi 211 explicit-renaming)
           )
 
@@ -30,8 +31,8 @@
           ; let*-values
           begin
           do
-          ; make-parameter
-          ; parameterize
+          make-parameter
+          parameterize
           ; guard
           quasiquote
           ; unquote

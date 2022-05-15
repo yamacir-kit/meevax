@@ -77,5 +77,3 @@
                `(,(rename 'dynamic-bind) (,(rename 'list) ,@(map  car (cadr form)))
                                          (,(rename 'list) ,@(map cadr (cadr form)))
                                          (,(rename 'lambda) () ,@(cddr form))))))))
-
-(import (srfi 39)) ; TEMPORARY
