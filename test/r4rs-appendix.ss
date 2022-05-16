@@ -1,4 +1,5 @@
-(import (srfi 78)
+(import (scheme process-context)
+        (srfi 78)
         (srfi 211 syntactic-closures)
         (srfi 211 explicit-renaming))
 

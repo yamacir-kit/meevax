@@ -1,4 +1,5 @@
-(import (srfi 78))
+(import (scheme process-context)
+        (srfi 78))
 
 ; ---- 1.3.4 -------------------------------------------------------------------
 
@@ -108,7 +109,7 @@
 
 (check (case (car '(c d))
          ((a) 'a)
-         ((b) 'b)) => #,(unspecified))
+         ((b) 'b)) => #,(if #f #f))
 
 (check (case (car '(c d))
          ((a e i o u) 'vowel)
@@ -165,7 +166,7 @@
               (+ x 1)) => 6)
 
 (check (begin (display "4 plus 1 equals ")
-              (display (+ 4 1))) => #,(unspecified))
+              (display (+ 4 1))) => #,(if #f #f))
 
 ; ---- 4.2.4 -------------------------------------------------------------------
 

@@ -1,4 +1,5 @@
-(import (srfi 8)
+(import (scheme process-context)
+        (srfi 8)
         (srfi 78))
 
 (check

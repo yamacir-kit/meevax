@@ -1,4 +1,5 @@
-(import (srfi 78))
+(import (scheme process-context)
+        (srfi 78))
 
 (define a 100)
 (define b 200)

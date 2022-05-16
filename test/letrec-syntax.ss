@@ -1,4 +1,5 @@
-(import (srfi 78)
+(import (scheme process-context)
+        (srfi 78)
         (srfi 211 explicit-renaming))
 
 (letrec-syntax ((my-and (er-macro-transformer

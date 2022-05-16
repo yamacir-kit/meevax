@@ -2,6 +2,7 @@
         (scheme char)
         (scheme file)
         (scheme lazy)
+        (scheme process-context)
         (scheme read)
         (scheme write)
         (srfi 78)
@@ -124,7 +125,7 @@
          ((1 4 6 8 9) 'composite)) => composite)
 (check (case (car '(c d))
          ((a) 'a)
-         ((b) 'b)) => #,(unspecified))
+         ((b) 'b)) => #,(if #f #f))
 (check (case (car '(c d))
          ((a e i o u) 'vowel)
          ((w y) 'semivowel)
@@ -205,7 +206,7 @@
 
 (check
   (begin (display "4 plus 1 equals ")
-         (display (+ 4 1))) => #,(unspecified))
+         (display (+ 4 1))) => #,(if #f #f))
 
 ; ---- 4.2.4. Iteration --------------------------------------------------------
 
