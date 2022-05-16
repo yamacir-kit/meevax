@@ -1,4 +1,6 @@
-(import (srfi 78))
+(import (srfi 78)
+        (srfi 211 syntactic-closures)
+        (srfi 211 explicit-renaming))
 
 ; (check (symbol? (syntax x)) => #f)
 

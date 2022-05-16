@@ -1,4 +1,11 @@
-(import (srfi 78))
+(import
+        (scheme char)
+        (scheme file)
+        (scheme lazy)
+        (scheme read)
+        (scheme write)
+        (srfi 78)
+        )
 
 ; ---- 2.1. Identifiers --------------------------------------------------------
 

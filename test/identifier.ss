@@ -1,5 +1,6 @@
 (import (meevax macro)
-        (srfi 78))
+        (srfi 78)
+        (srfi 211 explicit-renaming))
 
 (define value 42)
 

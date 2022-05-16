@@ -425,10 +425,7 @@
          (define (flush-output-port . port)
            (%flush-output-port (if (pair? port)
                                    (car port)
-                                   (current-output-port))))
-
-         )
-  )
+                                   (current-output-port))))))
 
 (define-library (scheme lazy)
   (import (srfi 45))
@@ -638,14 +635,6 @@
 
 (import (scheme r5rs)
         (scheme base)
-        (scheme char)
-        (scheme cxr)
-        (scheme file)
-        (scheme lazy)
-        (scheme read)
-        (scheme write)
-        (srfi 211 explicit-renaming)
-        (srfi 211 syntactic-closures)
         )
 
 (define (unspecified) (if #f #f))

@@ -1,4 +1,5 @@
-(import (srfi 78))
+(import (srfi 78)
+        (srfi 211 explicit-renaming))
 
 ; ---- Chibi-Scheme's Basic Tests ----------------------------------------------
 ;

@@ -1,4 +1,5 @@
-(import (srfi 78))
+(import (srfi 78)
+        (srfi 211 explicit-renaming))
 
 (letrec-syntax ((my-and (er-macro-transformer
                           (lambda (form rename compare)

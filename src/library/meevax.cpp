@@ -50,9 +50,9 @@ namespace meevax
       srfi_23, // Error reporting mechanism
       srfi_39, // Parameter objects
       overture,
-      srfi_8,  // receive: Binding to multiple values
-      srfi_1,
       r7rs,
+      srfi_8,  // receive: Binding to multiple values
+      srfi_1,  // List Library
       srfi_78, // Lightweight testing
     };
 

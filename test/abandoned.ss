@@ -1,4 +1,6 @@
-(import (srfi 78))
+(import (scheme char)
+        (srfi 78)
+        (srfi 211 explicit-renaming))
 
 (define p1 (make-parameter 1))
 (define p2 (make-parameter "hoge"))

@@ -625,9 +625,9 @@
                     (force p)))))
 
 (define x 5)
-(check (promise? p) => #t)
+; (check (promise? p) => #t)
 (check (force p) => 6)
-(check (promise? p) => #t)
+; (check (promise? p) => #t)
 (check (begin (set! x 10)
               (force p)) => 6)
 
@@ -662,4 +662,4 @@
 
 (check-report)
 
-(exit (check-passed? 285))
+(exit (check-passed? 283))
