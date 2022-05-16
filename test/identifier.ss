@@ -1,3 +1,5 @@
+(import (srfi 78))
+
 (define value 42)
 
 ; ------------------------------------------------------------------------------
@@ -72,4 +74,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 25))

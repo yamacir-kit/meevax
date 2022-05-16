@@ -1,3 +1,5 @@
+(import (srfi 78))
+
 (define a 100)
 (define b 200)
 
@@ -17,4 +19,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 5))

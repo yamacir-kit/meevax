@@ -1,3 +1,5 @@
+(import (srfi 78))
+
 ; (check (symbol? (syntax x)) => #f)
 
 ; (check
@@ -195,4 +197,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 1))

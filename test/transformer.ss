@@ -1,3 +1,5 @@
+(import (srfi 78))
+
 (define (traditional-macro-transformer f)
   (lambda (form use-env mac-env)
     (apply f (cdr form))))
@@ -123,4 +125,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 12))

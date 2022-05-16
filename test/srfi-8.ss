@@ -1,3 +1,5 @@
+(import (srfi 78))
+
 (check
   (call-with-values (lambda () (values 4 5))
                     (lambda (a b) b))
@@ -23,4 +25,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 5))

@@ -32,9 +32,7 @@ namespace meevax
     import("(meevax macro)");
     import("(meevax number)");
     import("(meevax port)");
-    import("(meevax read)");
     import("(meevax syntax)"); // quote-syntax
-    import("(meevax write)");
 
     define<procedure>("features", [](auto&&...)
     {
@@ -55,12 +53,12 @@ namespace meevax
       r5rs,
       srfi_34, // Exception Handling for Programs
       srfi_23, // Error reporting mechanism
-      srfi_39,
+      srfi_39, // Parameter objects
       overture,
       srfi_8,
       srfi_1,
-      srfi_78,
       r7rs,
+      srfi_78, // Lightweight testing
     };
 
     for (auto const& code : codes)

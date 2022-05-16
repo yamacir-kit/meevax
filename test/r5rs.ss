@@ -1,3 +1,5 @@
+(import (srfi 78))
+
 ; ---- 1.3.4 -------------------------------------------------------------------
 
 (check (* 5 8) => 40)
@@ -950,4 +952,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 290))

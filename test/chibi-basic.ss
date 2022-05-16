@@ -1,3 +1,5 @@
+(import (srfi 78))
+
 ; ---- Chibi-Scheme's Basic Tests ----------------------------------------------
 ;
 ; NOTE
@@ -287,4 +289,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 29))

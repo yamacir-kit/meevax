@@ -1,3 +1,5 @@
+(import (srfi 78))
+
 (define p1 (make-parameter 1))
 (define p2 (make-parameter "hoge"))
 
@@ -7,8 +9,8 @@
 
 (parameterize ((p1 42)
                (p2 "fuga"))
-  (print "p1 = " (p1)) (newline)
-  (print "p2 = " (p2)) (newline)
+  (display "p1 = ") (display (p1)) (newline)
+  (display "p2 = ") (display (p2)) (newline)
   (check (p1) => 42)
   (check (p2) => "fuga")
   (list (p1) (p2)))
@@ -109,4 +111,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 38))

@@ -1,3 +1,5 @@
+(import (srfi 78))
+
 (check (* 5 8) => 40)
 
 ;;; The FACT procedure computes the factorial
@@ -660,4 +662,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 285))

@@ -1,4 +1,5 @@
-; (import (scheme base))
+(import (scheme base)
+        (srfi 78))
 
 (define result (list))
 
@@ -58,6 +59,6 @@
 
 (check result => outer)
 
-; (check-report)
+(check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 5))

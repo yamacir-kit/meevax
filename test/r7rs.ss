@@ -1,3 +1,5 @@
+(import (srfi 78))
+
 ; ---- 2.1. Identifiers --------------------------------------------------------
 
 (check (symbol? '...) => #t)
@@ -1188,4 +1190,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 367))
