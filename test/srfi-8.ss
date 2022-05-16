@@ -1,4 +1,5 @@
-(import (srfi 78))
+(import (srfi 8)
+        (srfi 78))
 
 (check
   (call-with-values (lambda () (values 4 5))

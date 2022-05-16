@@ -133,7 +133,7 @@
           cddr
           null?
           list?
-          ; make-list
+          make-list
           list
           length
           append
@@ -147,7 +147,7 @@
           assq
           assv
           assoc
-          ; list-copy
+          list-copy
           symbol?
           ; symbol=?
           symbol->string
@@ -313,8 +313,21 @@
 
          (define boolean=? eqv?)
 
+         (define (make-list k . x)
+           (let ((x (if (pair? x) (car x) #f)))
+             (do ((i k (- i 1))
+                  (xs '() (cons x xs)))
+                 ((<= i 0) xs))))
+
          (define (list-set! x k object)
            (set-car! (list-tail x k) object))
+
+         (define (list-copy x)
+           (let list-copy ((x x))
+             (if (pair? x)
+                 (cons (car x)
+                       (list-copy (cdr x)))
+                 x)))
 
          (define symbol=? eqv?)
 
