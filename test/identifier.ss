@@ -1,4 +1,5 @@
-(import (srfi 78))
+(import (meevax macro)
+        (srfi 78))
 
 (define value 42)
 

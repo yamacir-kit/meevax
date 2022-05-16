@@ -1,4 +1,5 @@
-(import (srfi 78))
+(import (only (meevax macro) transformer?)
+        (srfi 78))
 
 (define (traditional-macro-transformer f)
   (lambda (form use-env mac-env)

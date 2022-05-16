@@ -25,14 +25,9 @@ namespace meevax
     import("(meevax character)");
     import("(meevax context)");
     import("(meevax control)");
-    import("(meevax evaluate)");
-    import("(meevax exception)");
-    import("(meevax experimental)");
     import("(meevax inexact)");
-    import("(meevax macro)");
     import("(meevax number)");
     import("(meevax port)");
-    import("(meevax syntax)"); // quote-syntax
 
     define<procedure>("features", [](auto&&...)
     {
@@ -55,7 +50,7 @@ namespace meevax
       srfi_23, // Error reporting mechanism
       srfi_39, // Parameter objects
       overture,
-      srfi_8,
+      srfi_8,  // receive: Binding to multiple values
       srfi_1,
       r7rs,
       srfi_78, // Lightweight testing

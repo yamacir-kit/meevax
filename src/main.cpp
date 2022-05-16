@@ -38,7 +38,7 @@ auto main(int const argc, char const* const* const argv) -> int
     while (main.is_interactive_mode() and main.char_ready())
     {
       main.print(horizontal_rule());
-      main.write(standard_output, main.current_prompt());
+      main.write(standard_output, length(main.global()), "/", main.current_prompt());
       main.print(main.evaluate(main.read()));
     }
 
