@@ -34,6 +34,7 @@ inline namespace kernel
   extern string_view const r5rs;
   extern string_view const r7rs;
   extern string_view const srfi_1;
+  extern string_view const srfi_6;
   extern string_view const srfi_8;
   extern string_view const srfi_23;
   extern string_view const srfi_34;

@@ -20,6 +20,7 @@
                 %flush-output-port
                 )
           (scheme r5rs)
+          (srfi  6) ; Basic String Ports
           (srfi 23) ; Error reporting mechanism
           (srfi 34) ; Exception Handling for Programs
           (srfi 39) ; Parameter objects
@@ -120,7 +121,7 @@
           string->number
           not
           boolean?
-          boolean=?
+          (rename eqv? boolean=?)
           pair?
           cons
           car
@@ -149,7 +150,7 @@
           assoc
           list-copy
           symbol?
-          ; symbol=?
+          (rename eqv? symbol=?)
           symbol->string
           string->symbol
           char?
@@ -212,7 +213,7 @@
           ; string-for-each
           ; vector-for-each
           call-with-current-continuation
-          call/cc
+          (rename call-with-current-continuation call/cc)
           values
           call-with-values
           dynamic-wind
@@ -239,9 +240,9 @@
           close-port
           close-input-port
           close-output-port
-          ; open-input-string
-          ; open-output-string
-          ; get-output-string
+          open-input-string
+          open-output-string
+          get-output-string
           ; open-input-bytevector
           ; open-output-bytevector
           ; get-output-bytevector
@@ -311,8 +312,6 @@
 
          (define exact inexact->exact)
 
-         (define boolean=? eqv?)
-
          (define (make-list k . x)
            (let ((x (if (pair? x) (car x) #f)))
              (do ((i k (- i 1))
@@ -329,8 +328,6 @@
                        (list-copy (cdr x)))
                  x)))
 
-         (define symbol=? eqv?)
-
          (define (string-map f x . xs)
            (define (string-map-1 x)
              (list->string
@@ -342,8 +339,6 @@
            (if (null? xs)
                (string-map-1 x)
                (string-map-n (cons x xs))))
-
-         (define call/cc call-with-current-continuation)
 
          (define (error-object? x)
            (or (error? x)

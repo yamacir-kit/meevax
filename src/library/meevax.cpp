@@ -27,7 +27,7 @@ namespace meevax
     import("(meevax control)");
     import("(meevax inexact)");
     import("(meevax number)");
-    import("(meevax port)");
+    // import("(meevax port)");
 
     define<procedure>("features", [](auto&&...)
     {
@@ -46,6 +46,7 @@ namespace meevax
       r4rs,
       srfi_149,
       r5rs,
+      srfi_6,  // Basic String Ports
       srfi_34, // Exception Handling for Programs
       srfi_23, // Error reporting mechanism
       srfi_39, // Parameter objects
