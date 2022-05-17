@@ -1,4 +1,4 @@
-(import (meevax foreign-function-interface)
+(import (meevax foreign-function)
         (scheme base)
         (only (scheme process-context) exit)
         (srfi 78))

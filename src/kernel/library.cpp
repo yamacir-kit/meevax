@@ -64,7 +64,13 @@ inline namespace kernel
       return e;
     });
 
+    define<procedure>("load", [](let const& xs)
+    {
+      return car(xs).as<environment>().load(cadr(xs).as<string>());
+    });
+
     export_("environment");
+    export_("load");
   }
 
   library::library(equivalence_library_t)
@@ -654,13 +660,18 @@ inline namespace kernel
 
   library::library(control_library_t)
   {
-    define<predicate>("closure?",          [](let const& xs) { return car(xs).is<closure     >(); });
-    define<predicate>("continuation?",     [](let const& xs) { return car(xs).is<continuation>(); });
-    define<predicate>("foreign-function?", [](let const& xs) { return car(xs).is<procedure   >(); });
+    define<predicate>("closure?", [](let const& xs)
+    {
+      return car(xs).is<closure>();
+    });
 
-    export_("closure?",
-            "continuation?",
-            "foreign-function?");
+    define<predicate>("continuation?", [](let const& xs)
+    {
+      return car(xs).is<continuation>();
+    });
+
+    export_("closure?");
+    export_("continuation?");
   }
 
   library::library(exception_library_t)
@@ -1100,46 +1111,45 @@ inline namespace kernel
     define_library("(meevax vector)", vector_library);
     define_library("(meevax write)", write_library);
 
-    define_library("(meevax gc)", [](library & meevax_gc)
+    define_library("(meevax foreign-function)", [](library & library)
     {
-      meevax_gc.define<procedure>("gc-collect", [](auto&&...)
-      {
-        return make<exact_integer>(gc.collect());
-      });
-
-      meevax_gc.define<procedure>("gc-count", [](auto&&...)
-      {
-        return make<exact_integer>(gc.count());
-      });
-
-      meevax_gc.export_("gc-collect", "gc-count");
-    });
-
-    define_library("(meevax foreign-function-interface)", [](library & meevax_ffi)
-    {
-      meevax_ffi.define<procedure>("foreign-function", [](let const& xs)
+      library.define<procedure>("foreign-function", [](let const& xs)
       {
         return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
       });
 
-      meevax_ffi.export_("foreign-function");
-    });
-
-    define_library("(meevax foo)", [](library & library)
-    {
-      library.export_("a");
-      library.export_("b");
-      library.export_("c");
-
-      library.define<procedure>("a", [](let const&)
+      library.define<predicate>("foreign-function?", [](let const& xs)
       {
-        LINE();
-        return unit;
+        return car(xs).is<procedure>();
       });
 
-      library.define("b", make<exact_integer>(42));
+      library.export_("foreign-function");
+      library.export_("foreign-function?");
+    });
 
-      library.define("c", make<symbol>("dummy"));
+    define_library("(meevax garbage-collector)", [](library & library)
+    {
+      library.define<procedure>("gc-collect", [](auto&&...)
+      {
+        return make<exact_integer>(gc.collect());
+      });
+
+      library.define<procedure>("gc-count", [](auto&&...)
+      {
+        return make<exact_integer>(gc.count());
+      });
+
+      library.export_("gc-collect", "gc-count");
+    });
+
+    define_library("(meevax version)", [](library & library)
+    {
+      library.define<procedure>("features", [](auto&&...)
+      {
+        return features();
+      });
+
+      library.export_("features");
     });
   }
 } // namespace kernel

@@ -22,23 +22,6 @@ namespace meevax
 {
   environment::environment(master_t)
   {
-    import("(meevax character)");
-    import("(meevax context)");
-    import("(meevax control)");
-    import("(meevax inexact)");
-    import("(meevax number)");
-    // import("(meevax port)");
-
-    define<procedure>("features", [](auto&&...)
-    {
-      return features();
-    });
-
-    define<procedure>("load", [this](let const& xs)
-    {
-      return load(car(xs).as<string>());
-    });
-
     std::vector<string_view> const codes {
       srfi_211,
       r4rs_essential,

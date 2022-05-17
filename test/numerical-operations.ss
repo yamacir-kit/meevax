@@ -1,4 +1,5 @@
 (import (scheme base)
+        (scheme inexact)
         (scheme process-context)
         (srfi 78))
 

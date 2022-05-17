@@ -146,7 +146,7 @@ inline namespace kernel
         }
         else
         {
-          std::cout << error(make<string>("no such identifier"), identifier);
+          throw error(make<string>("no such identifier"), identifier);
         }
       }
 

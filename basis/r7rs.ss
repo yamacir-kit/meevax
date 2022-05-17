@@ -19,6 +19,7 @@
                 put-string
                 %flush-output-port
                 )
+          (meevax version)
           (scheme r5rs)
           (srfi  6) ; Basic String Ports
           (srfi 23) ; Error reporting mechanism
@@ -264,8 +265,7 @@
           ; write-u8
           ; write-bytevector
           flush-output-port
-          ; features
-          )
+          features)
 
   (begin (define (unspecified) (if #f #f))
 
@@ -614,6 +614,8 @@
   )
 
 (define-library (scheme inexact)
+  (import (only (meevax inexact) finite? infinite? nan?)
+          (only (scheme r5rs) exp log sin cos tan asin acos atan sqrt))
   (export finite?
           infinite?
           nan?
@@ -625,9 +627,7 @@
           asin
           acos
           atan
-          sqrt
-          )
-  )
+          sqrt))
 
 (define-library (scheme complex)
   (export make-rectangular

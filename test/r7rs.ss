@@ -1,6 +1,7 @@
 (import (scheme base)
         (scheme char)
         (scheme file)
+        (scheme inexact)
         (scheme lazy)
         (scheme process-context)
         (scheme read)

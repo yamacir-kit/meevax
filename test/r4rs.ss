@@ -418,7 +418,7 @@
 (check (list-ref '(a b c d) 2) => c)
 (check
   (list-ref '(a b c d)
-             (exact (round 1.8))) => c)
+             (inexact->exact (round 1.8))) => c)
 
 (check (memq 'a '(a b c)) => (a b c))
 (check (memq 'b '(a b c)) => (b c))
