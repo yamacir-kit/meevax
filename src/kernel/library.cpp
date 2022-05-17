@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <functional>
+#include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/library.hpp>
 
 namespace meevax
@@ -69,7 +69,13 @@ inline namespace kernel
       return car(xs).as<environment>().load(cadr(xs).as<string>());
     });
 
+    define<procedure>("interaction-environment", [](auto&&...)
+    {
+      return unspecified_object;
+    });
+
     export_("environment");
+    export_("interaction-environment");
     export_("load");
   }
 
@@ -1088,7 +1094,7 @@ inline namespace kernel
 
   std::map<std::string, library> libraries {};
 
-  auto library::boot() -> void
+  auto library::boot_meevax_libraries() -> void
   {
     define_library("(meevax character)", character_library);
     define_library("(meevax context)", context_library);
@@ -1151,6 +1157,39 @@ inline namespace kernel
 
       library.export_("features");
     });
+  }
+
+  auto library::boot_scheme_libraries() -> void
+  {
+    std::vector<string_view> const codes {
+      srfi_211,
+      r4rs_essential,
+      srfi_45,
+      r4rs,
+      srfi_149,
+      r5rs,
+      srfi_6,  // Basic String Ports
+      srfi_34, // Exception Handling for Programs
+      srfi_23, // Error reporting mechanism
+      srfi_39, // Parameter objects
+      r7rs,
+      srfi_8,  // receive: Binding to multiple values
+      srfi_1,  // List Library
+      srfi_78, // Lightweight testing
+    };
+
+    auto sandbox = environment();
+
+    for (auto const& code : codes)
+    {
+      // NOTE: Since read performs a putback operation on a given stream, it must be copied and used.
+      auto port = std::stringstream(std::string(code));
+
+      for (let e = sandbox.read(port); e != eof_object; e = sandbox.read(port))
+      {
+        sandbox.evaluate(e);
+      }
+    }
   }
 } // namespace kernel
 } // namespace meevax

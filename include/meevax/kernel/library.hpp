@@ -44,7 +44,9 @@ inline namespace kernel
       }
     }
 
-    static auto boot() -> void;
+    static auto boot_meevax_libraries() -> void;
+
+    static auto boot_scheme_libraries() -> void;
 
     auto declare(const_reference declaration) -> void
     {

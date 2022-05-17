@@ -20,34 +20,34 @@
 
 namespace meevax
 {
-  environment::environment(master_t)
-  {
-    std::vector<string_view> const codes {
-      srfi_211,
-      r4rs_essential,
-      srfi_45,
-      r4rs,
-      srfi_149,
-      r5rs,
-      srfi_6,  // Basic String Ports
-      srfi_34, // Exception Handling for Programs
-      srfi_23, // Error reporting mechanism
-      srfi_39, // Parameter objects
-      r7rs,
-      srfi_8,  // receive: Binding to multiple values
-      srfi_1,  // List Library
-      srfi_78, // Lightweight testing
-    };
-
-    for (auto const& code : codes)
-    {
-      // NOTE: Since read performs a putback operation on a given stream, it must be copied and used.
-      auto port = std::stringstream(std::string(code));
-
-      for (let e = read(port); e != eof_object; e = read(port))
-      {
-        evaluate(e);
-      }
-    }
-  }
+  // environment::environment(master_t)
+  // {
+  //   // std::vector<string_view> const codes {
+  //   //   srfi_211,
+  //   //   r4rs_essential,
+  //   //   srfi_45,
+  //   //   r4rs,
+  //   //   srfi_149,
+  //   //   r5rs,
+  //   //   srfi_6,  // Basic String Ports
+  //   //   srfi_34, // Exception Handling for Programs
+  //   //   srfi_23, // Error reporting mechanism
+  //   //   srfi_39, // Parameter objects
+  //   //   r7rs,
+  //   //   srfi_8,  // receive: Binding to multiple values
+  //   //   srfi_1,  // List Library
+  //   //   srfi_78, // Lightweight testing
+  //   // };
+  //   //
+  //   // for (auto const& code : codes)
+  //   // {
+  //   //   // NOTE: Since read performs a putback operation on a given stream, it must be copied and used.
+  //   //   auto port = std::stringstream(std::string(code));
+  //   //
+  //   //   for (let e = read(port); e != eof_object; e = read(port))
+  //   //   {
+  //   //     evaluate(e);
+  //   //   }
+  //   // }
+  // }
 } // namespace meevax
