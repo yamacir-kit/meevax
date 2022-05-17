@@ -1,5 +1,7 @@
-(import (scheme char)
+(import (scheme base)
+        (scheme char)
         (scheme process-context)
+        (scheme write)
         (srfi 78)
         (srfi 211 explicit-renaming))
 

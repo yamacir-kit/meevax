@@ -1,4 +1,5 @@
-(import (scheme process-context)
+(import (scheme r5rs)
+        (only (scheme process-context) exit)
         (srfi 78))
 
 ; ---- 1.3.4 -------------------------------------------------------------------

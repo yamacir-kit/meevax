@@ -1,5 +1,6 @@
 (import (meevax foreign-function-interface)
-        (scheme process-context)
+        (scheme base)
+        (only (scheme process-context) exit)
         (srfi 78))
 
 (define dummy-procedure (foreign-function "build/libexample.so" "dummy_procedure"))

@@ -29,7 +29,6 @@ inline namespace kernel
   using string_view = std::experimental::string_view;
   #endif
 
-  extern string_view const overture;
   extern string_view const r4rs;
   extern string_view const r4rs_essential;
   extern string_view const r5rs;

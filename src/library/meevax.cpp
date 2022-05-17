@@ -49,7 +49,6 @@ namespace meevax
       srfi_34, // Exception Handling for Programs
       srfi_23, // Error reporting mechanism
       srfi_39, // Parameter objects
-      overture,
       r7rs,
       srfi_8,  // receive: Binding to multiple values
       srfi_1,  // List Library

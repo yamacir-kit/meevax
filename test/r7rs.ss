@@ -1,4 +1,4 @@
-(import
+(import (scheme base)
         (scheme char)
         (scheme file)
         (scheme lazy)
@@ -752,8 +752,7 @@
 (check (round 7/2) => 4) ; exact
 (check (round 7) => 7)
 
-(check (rationalize
-         (inexact->exact .3) 1/10) => 1/3) ; exact
+(check (rationalize (exact .3) 1/10) => 1/3) ; exact
 (check (rationalize .3  1/10) => #,(/ 1.0 3.0)) ; inexact
 
 (check (square 42) => 1764)
@@ -960,8 +959,7 @@
 
 (check (vector-ref '#(1 1 2 3 5 8 13 21) 5) => 8)
 (check (vector-ref '#(1 1 2 3 5 8 13 21)
-                   (inexact->exact
-                     (round (* 2 (acos -1))))) => 13)
+                   (exact (round (* 2 (acos -1))))) => 13)
 
 (check (let ((vec (vector 0 '(2 2 2 2) "Anna")))
          (vector-set! vec 1 '("Sue" "Sue")) vec) => #(0 ("Sue" "Sue") "Anna"))

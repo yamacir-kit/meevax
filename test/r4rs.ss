@@ -1,5 +1,8 @@
-(import (scheme process-context)
+(import (scheme r4rs)
+        (scheme process-context)
         (srfi 78))
+
+(define call-with-current-continuation call-with-current-continuation!) ; TEMPORARY
 
 (check (* 5 8) => 40)
 

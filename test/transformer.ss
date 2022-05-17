@@ -1,4 +1,6 @@
 (import (only (meevax macro) transformer?)
+        (scheme base)
+        (scheme cxr)
         (scheme process-context)
         (srfi 78)
         (srfi 211 syntactic-closures)

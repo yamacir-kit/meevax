@@ -1,4 +1,5 @@
-(import (scheme process-context)
+(import (scheme base)
+        (scheme process-context)
         (srfi 78))
 
 ; ---- Section 1.1.1 -----------------------------------------------------------
