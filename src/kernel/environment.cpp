@@ -49,6 +49,47 @@ inline namespace kernel
     return result;
   }
 
+  auto resolve_import_set(const_reference import_set) -> object
+  {
+    if (car(import_set).as<symbol>().value == "only")
+    {
+      let const exported_bindings = resolve_import_set(cadr(import_set));
+
+      let filtered_bindings = unit;
+
+      for (let const& identifier : cddr(import_set))
+      {
+        if (let const& binding = assq(identifier, exported_bindings); select(binding))
+        {
+          filtered_bindings = cons(binding, filtered_bindings);
+        }
+        else
+        {
+          throw error(make<string>("no such identifier"), identifier);
+        }
+      }
+
+      return filtered_bindings;
+    }
+    else if (auto iter = libraries.find(lexical_cast<std::string>(import_set)); iter != std::end(libraries))
+    {
+      return std::get<1>(*iter).resolve_export_specs();
+    }
+    else
+    {
+      throw error(make<string>("no such library"), import_set);
+    }
+  }
+
+  auto environment::declare_import(const_reference import_set) -> void
+  {
+    for (let const& binding : resolve_import_set(import_set))
+    {
+      define(binding.as<absolute>().symbol(),
+             binding.as<absolute>().load());
+    }
+  }
+
   auto environment::define(const_reference name, const_reference value) -> void
   {
     assert(name.is_also<identifier>());
@@ -74,7 +115,7 @@ inline namespace kernel
     {
       for (let const& import_set : cdr(expression))
       {
-        import(import_set);
+        declare_import(import_set);
       }
 
       return unspecified_object;
@@ -128,47 +169,6 @@ inline namespace kernel
   auto environment::global() noexcept -> reference
   {
     return second;
-  }
-
-  auto resolve_import_set(const_reference import_set) -> object
-  {
-    if (car(import_set).as<symbol>().value == "only")
-    {
-      let const exported_bindings = resolve_import_set(cadr(import_set));
-
-      let filtered_bindings = unit;
-
-      for (let const& identifier : cddr(import_set))
-      {
-        if (let const& binding = assq(identifier, exported_bindings); select(binding))
-        {
-          filtered_bindings = cons(binding, filtered_bindings);
-        }
-        else
-        {
-          throw error(make<string>("no such identifier"), identifier);
-        }
-      }
-
-      return filtered_bindings;
-    }
-    else if (auto iter = libraries.find(lexical_cast<std::string>(import_set)); iter != std::end(libraries))
-    {
-      return std::get<1>(*iter).resolve_export_specs();
-    }
-    else
-    {
-      throw error(make<string>("no such library"), import_set);
-    }
-  }
-
-  auto environment::import(const_reference import_set) -> void
-  {
-    for (let const& binding : resolve_import_set(import_set))
-    {
-      define(binding.as<absolute>().symbol(),
-             binding.as<absolute>().load());
-    }
   }
 
   auto environment::load(std::string const& s) -> object

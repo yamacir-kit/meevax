@@ -112,6 +112,4 @@
            (environment `(only (scheme ,(string->symbol (string-append "r" (number->string version) "rs")))
                                quote lambda if set! cond case and or let let*
                                letrec begin do delay quasiquote let-syntax
-                               letrec-syntax syntax-rules define define-syntax)))
-         )
-  )
+                               letrec-syntax syntax-rules define define-syntax)))))

@@ -58,7 +58,7 @@ inline namespace kernel
 
       for (let const& x : xs)
       {
-        e.as<environment>().import(x);
+        e.as<environment>().declare_import(x);
       }
 
       return e;

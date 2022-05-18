@@ -81,6 +81,14 @@ inline namespace kernel
 
     auto apply(const_reference, const_reference) -> object;
 
+    auto declare_import(const_reference) -> void;
+
+    template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
+    auto declare_import(Ts&&... xs) -> void
+    {
+      (declare_import(read(xs)), ...);
+    }
+
     auto define(const_reference, const_reference = undefined) -> void;
 
     auto define(symbol::value_type const&, const_reference = undefined) -> void;
@@ -112,14 +120,6 @@ inline namespace kernel
     auto global() noexcept -> reference;
 
     auto global() const noexcept -> const_reference;
-
-    auto import(const_reference) -> void;
-
-    template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
-    auto import(Ts&&... xs) -> void
-    {
-      (import(read(xs)), ...);
-    }
 
     auto load(std::string const&) -> object;
 
