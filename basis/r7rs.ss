@@ -791,7 +791,7 @@
 
 (define-library (scheme process-context)
   (import (meevax context)
-          (meevax continuation)
+          (scheme r5rs continuation)
           )
   (export ; command-line
           exit

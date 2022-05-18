@@ -1,4 +1,4 @@
-(define-library (meevax continuation)
+(define-library (scheme r5rs continuation)
   (import (meevax context)
           (meevax syntax)
           (scheme r4rs essential))
@@ -37,11 +37,11 @@
            (apply emergency-exit normally?))))
 
 (define-library (scheme r5rs)
-  (import (meevax continuation)
-          (meevax environment)
+  (import (meevax environment)
           (meevax evaluate)
           (meevax syntax) ; for let-syntax letrec-syntax
           (scheme r4rs)
+          (scheme r5rs continuation)
           (srfi 149))
 
   (export quote lambda if set! cond case and or let let* letrec begin do delay
