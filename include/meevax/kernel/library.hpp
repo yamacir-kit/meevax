@@ -24,6 +24,8 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto interaction_environment() -> const_reference;
+
   struct library : public environment
   {
     std::vector<object> export_specs;
@@ -42,9 +44,7 @@ inline namespace kernel
       }
     }
 
-    static auto boot_meevax_libraries() -> void;
-
-    static auto boot_scheme_libraries() -> void;
+    static auto boot() -> void;
 
     auto declare(const_reference declaration) -> void
     {

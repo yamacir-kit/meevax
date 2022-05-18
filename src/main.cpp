@@ -23,18 +23,9 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    let interaction_environment = make<environment>();
+    library::boot();
 
-    auto&& main = interaction_environment.as<environment>();
-
-    library::boot_meevax_libraries();
-
-    libraries.at("(meevax environment)").define<procedure>("interaction-environment", [&](auto&&...)
-    {
-      return interaction_environment;
-    });
-
-    library::boot_scheme_libraries();
+    auto&& main = interaction_environment().as<environment>();
 
     main.configure(argc, argv);
 

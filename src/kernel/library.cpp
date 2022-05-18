@@ -21,6 +21,12 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto interaction_environment() -> const_reference
+  {
+    let static const interaction_environment = make<environment>();
+    return interaction_environment;
+  }
+
   library::library(syntax_library_t)
   {
     define<syntax>("begin", machine::begin);
@@ -71,7 +77,7 @@ inline namespace kernel
 
     define<procedure>("interaction-environment", [](auto&&...)
     {
-      return unspecified_object;
+      return interaction_environment();
     });
 
     declare_export("environment");
@@ -1083,7 +1089,7 @@ inline namespace kernel
 
   std::map<std::string, library> libraries {};
 
-  auto library::boot_meevax_libraries() -> void
+  auto library::boot() -> void
   {
     define_library("(meevax character)", character_library);
     define_library("(meevax context)", context_library);
@@ -1146,10 +1152,7 @@ inline namespace kernel
 
       library.declare_export("features");
     });
-  }
 
-  auto library::boot_scheme_libraries() -> void
-  {
     std::vector<string_view> const codes {
       srfi_211,
       r4rs_essential,
