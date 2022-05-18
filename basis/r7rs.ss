@@ -666,7 +666,7 @@
           cddddr))
 
 (define-library (scheme char)
-  (import (only (meevax character) digit-value)
+  (import (only (meevax character) char-codepoint)
           (only (scheme r5rs)
                 char-ci=?
                 char-ci<?
@@ -697,7 +697,7 @@
           char-whitespace?
           char-upper-case?
           char-lower-case?
-          digit-value
+          (rename char-codepoint digit-value)
           char-upcase
           char-downcase
           (rename char-downcase char-foldcase)

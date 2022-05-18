@@ -55,7 +55,7 @@ inline namespace kernel
       {
         for (let const& export_spec : cdr(declaration))
         {
-          export_(export_spec);
+          declare_export(export_spec);
         }
       }
       else if (declaration.is<pair>() and car(declaration).is<symbol>()
@@ -72,15 +72,15 @@ inline namespace kernel
       }
     }
 
-    auto export_(const_reference export_spec) -> void
+    auto declare_export(const_reference export_spec) -> void
     {
       export_specs.push_back(export_spec);
     }
 
     template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
-    auto export_(Ts&&... xs) -> void
+    auto declare_export(Ts&&... xs) -> void
     {
-      (export_(read(xs)), ...);
+      (declare_export(read(xs)), ...);
     }
 
     auto resolve_export_specs()

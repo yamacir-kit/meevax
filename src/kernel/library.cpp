@@ -36,18 +36,18 @@ inline namespace kernel
     define<syntax>("quote-syntax", quote_syntax);
     define<syntax>("set!", set);
 
-    export_("begin",
-            "call-with-current-continuation!",
-            "define",
-            "define-syntax",
-            "if",
-            "lambda",
-            "let-syntax",
-            "letrec",
-            "letrec-syntax",
-            "quote",
-            "quote-syntax",
-            "set!");
+    declare_export("begin");
+    declare_export("call-with-current-continuation!");
+    declare_export("define");
+    declare_export("define-syntax");
+    declare_export("if");
+    declare_export("lambda");
+    declare_export("let-syntax");
+    declare_export("letrec");
+    declare_export("letrec-syntax");
+    declare_export("quote");
+    declare_export("quote-syntax");
+    declare_export("set!");
   }
 
   library::library(environment_library_t)
@@ -74,9 +74,9 @@ inline namespace kernel
       return unspecified_object;
     });
 
-    export_("environment");
-    export_("interaction-environment");
-    export_("%load");
+    declare_export("environment");
+    declare_export("interaction-environment");
+    declare_export("%load");
   }
 
   library::library(equivalence_library_t)
@@ -84,7 +84,8 @@ inline namespace kernel
     define<predicate>("eq?",  [](let const& xs) { return eq (car(xs), cadr(xs)); });
     define<predicate>("eqv?", [](let const& xs) { return eqv(car(xs), cadr(xs)); });
 
-    export_("eq?", "eqv?");
+    declare_export("eq?",
+                   "eqv?");
   }
 
   library::library(number_library_t)
@@ -179,18 +180,27 @@ inline namespace kernel
       return make<string>(lexical_cast<std::string>(car(xs)));
     });
 
-    export_("number?", "complex?", "real?", "rational?", "integer?",
-            "exact-integer?", "%complex?", "ratio?", "single-float?", "double-float?",
-
-            "=", "!=", "<", "<=", ">", ">=", "+", "*", "-", "/", "%",
-
-            "floor", "ceiling", "truncate", "round",
-
-            "expt",
-
-            "exact", "inexact",
-
-            "integer->char", "number->string");
+    declare_export("number?",
+                   "complex?",
+                   "real?",
+                   "rational?",
+                   "integer?",
+                   "exact-integer?",
+                   "%complex?",
+                   "ratio?",
+                   "single-float?",
+                   "double-float?",
+                   "=", "!=", "<", "<=", ">", ">=",
+                   "+", "*", "-", "/", "%",
+                   "floor",
+                   "ceiling",
+                   "truncate",
+                   "round",
+                   "expt",
+                   "exact",
+                   "inexact",
+                   "integer->char",
+                   "number->string");
   }
 
   library::library(inexact_library_t)
@@ -248,11 +258,10 @@ inline namespace kernel
       }
     });
 
-    export_("finite?", "infinite?", "nan?",
-            "exp", "sqrt", "log",
-            "sin", "asin", "sinh", "asinh",
-            "cos", "acos", "cosh", "acosh",
-            "tan", "atan", "tanh", "atanh");
+    declare_export("finite?", "infinite?", "nan?", "exp", "sqrt", "log",
+                   "sin", "asin", "sinh", "asinh",
+                   "cos", "acos", "cosh", "acosh",
+                   "tan", "atan", "tanh", "atanh");
   }
 
   library::library(pair_library_t)
@@ -304,21 +313,23 @@ inline namespace kernel
     define<procedure>("set-car!", [](auto&& xs) { return caar(xs) = cadr(xs); });
     define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
 
-    export_("pair?", "cons",
-
-            "car", "cdr",
-
-            "caar", "cadr", "cdar", "cddr",
-
-            "caaar", "caadr", "cadar", "caddr",
-            "cdaar", "cdadr", "cddar", "cdddr",
-
-            "caaaar", "caaadr", "caadar", "caaddr",
-            "cadaar", "cadadr", "caddar", "cadddr",
-            "cdaaar", "cdaadr", "cdadar", "cdaddr",
-            "cddaar", "cddadr", "cdddar", "cddddr",
-
-            "set-car!", "set-cdr!");
+    declare_export("pair?", "cons", "car", "cdr", "set-car!", "set-cdr!",
+                   "caar", "caaar", "caaaar",
+                   "cadr", "caadr", "caaadr",
+                   "cdar", "cadar", "caadar",
+                   "cddr", "caddr", "caaddr",
+                           "cdaar", "cadaar",
+                           "cdadr", "cadadr",
+                           "cddar", "caddar",
+                           "cdddr", "cadddr",
+                                    "cdaaar",
+                                    "cdaadr",
+                                    "cdadar",
+                                    "cdaddr",
+                                    "cddaar",
+                                    "cddadr",
+                                    "cdddar",
+                                    "cddddr");
   }
 
   library::library(list_library_t)
@@ -350,10 +361,7 @@ inline namespace kernel
       return make<vector>(for_each_in, car(xs));
     });
 
-    export_("null?",
-            "append",
-            "list->string",
-            "list->vector");
+    declare_export("null?", "append", "list->string", "list->vector");
   }
 
   library::library(symbol_library_t)
@@ -368,7 +376,7 @@ inline namespace kernel
       return make<string>(car(xs).as<symbol>());
     });
 
-    export_("symbol?", "symbol->string");
+    declare_export("symbol?", "symbol->string");
   }
 
   library::library(character_library_t)
@@ -390,7 +398,7 @@ inline namespace kernel
       }
     });
 
-    define<procedure>("digit-value", [](let const& xs)
+    define<procedure>("char-codepoint", [](let const& xs)
     {
       if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
       {
@@ -402,10 +410,7 @@ inline namespace kernel
       }
     });
 
-    export_("char?",
-            "char->integer",
-            "digit-value" // TODO => character:codepoint
-            );
+    declare_export("char?", "char->integer", "char-codepoint");
   }
 
   library::library(string_library_t)
@@ -530,24 +535,21 @@ inline namespace kernel
       return intern(car(xs).as<string>());
     });
 
-    export_("string?", "make-string",
-
-            "string-append",
-            "string-copy",
-            "string-length",
-            "string-ref",
-            "string-set!",
-
-            "string=?",
-            "string<?",
-            "string<=?",
-            "string>?",
-            "string>=?",
-
-            "string->list",
-            "string->number",
-            "string->symbol"
-            );
+    declare_export("string?",
+                   "make-string",
+                   "string-append",
+                   "string-copy",
+                   "string-length",
+                   "string-ref",
+                   "string-set!",
+                   "string=?",
+                   "string<?",
+                   "string<=?",
+                   "string>?",
+                   "string>=?",
+                   "string->list",
+                   "string->number",
+                   "string->symbol");
   }
 
   library::library(vector_library_t)
@@ -651,17 +653,15 @@ inline namespace kernel
       }
     });
 
-    export_("vector?",
-
-            "vector", "make-vector",
-
-            "vector-length",
-            "vector-ref",
-            "vector-set!",
-            "vector-fill!",
-
-            "vector->list",
-            "vector->string");
+    declare_export("vector?",
+                   "vector",
+                   "make-vector",
+                   "vector-length",
+                   "vector-ref",
+                   "vector-set!",
+                   "vector-fill!",
+                   "vector->list",
+                   "vector->string");
   }
 
   library::library(control_library_t)
@@ -676,8 +676,8 @@ inline namespace kernel
       return car(xs).is<continuation>();
     });
 
-    export_("closure?");
-    export_("continuation?");
+    declare_export("closure?");
+    declare_export("continuation?");
   }
 
   library::library(exception_library_t)
@@ -697,12 +697,12 @@ inline namespace kernel
     define<predicate>(  "file-error?", [](let const& xs) { return car(xs).is<  file_error>(); });
     define<predicate>("syntax-error?", [](let const& xs) { return car(xs).is<syntax_error>(); });
 
-    export_("default-exception-handler",
-            "make-error",
-            "error?",
-            "read-error?",
-            "file-error?",
-            "syntax-error?");
+    declare_export("default-exception-handler",
+                   "make-error",
+                   "error?",
+                   "read-error?",
+                   "file-error?",
+                   "syntax-error?");
   }
 
   library::library(port_library_t)
@@ -891,32 +891,32 @@ inline namespace kernel
       return unspecified_object;
     });
 
-    export_("input-port?",
-            "output-port?",
-            "binary-port?",
-            "textual-port?",
-            "port?",
-            "input-port-open?",
-            "output-port-open?",
-            "standard-input-port",
-            "standard-output-port",
-            "standard-error-port",
-            "open-input-file",
-            "open-output-file",
-            "close-input-port",
-            "close-output-port",
-            "open-input-string",
-            "open-output-string",
-            "get-output-string",
-            "%read-char",
-            "%peek-char",
-            "eof-object?",
-            "eof-object",
-            "read-ready?",
-            "%read-string",
-            "put-char",
-            "put-string",
-            "%flush-output-port");
+    declare_export("input-port?",
+                   "output-port?",
+                   "binary-port?",
+                   "textual-port?",
+                   "port?",
+                   "input-port-open?",
+                   "output-port-open?",
+                   "standard-input-port",
+                   "standard-output-port",
+                   "standard-error-port",
+                   "open-input-file",
+                   "open-output-file",
+                   "close-input-port",
+                   "close-output-port",
+                   "open-input-string",
+                   "open-output-string",
+                   "get-output-string",
+                   "%read-char",
+                   "%peek-char",
+                   "eof-object?",
+                   "eof-object",
+                   "read-ready?",
+                   "%read-string",
+                   "put-char",
+                   "put-string",
+                   "%flush-output-port");
   }
 
   library::library(evaluate_library_t)
@@ -926,7 +926,7 @@ inline namespace kernel
       return cadr(xs).as<environment>().evaluate(car(xs));
     });
 
-    export_("eval");
+    declare_export("eval");
   }
 
   library::library(read_library_t)
@@ -947,7 +947,7 @@ inline namespace kernel
       }
     });
 
-    export_("%read");
+    declare_export("%read");
   }
 
   library::library(write_library_t)
@@ -977,7 +977,7 @@ inline namespace kernel
       return standard_output;
     });
 
-    export_("%write-simple", "print");
+    declare_export("%write-simple", "print");
   }
 
   library::library(macro_library_t)
@@ -1014,11 +1014,11 @@ inline namespace kernel
       return make<syntactic_closure>(car(xs), cadr(xs), caddr(xs));
     });
 
-    export_("identifier?",
-            "identifier->symbol",
-            "transformer?",
-            "syntactic-closure?",
-            "make-syntactic-closure");
+    declare_export("identifier?",
+                   "identifier->symbol",
+                   "transformer?",
+                   "syntactic-closure?",
+                   "make-syntactic-closure");
   }
 
   library::library(experimental_library_t)
@@ -1048,10 +1048,9 @@ inline namespace kernel
       return std::numeric_limits<double>::is_iec559;
     });
 
-    export_("type-of",
-            "disassemble",
-            "ieee-float?"
-            );
+    declare_export("type-of",
+                   "disassemble",
+                   "ieee-float?");
   }
 
   library::library(context_library_t)
@@ -1079,7 +1078,7 @@ inline namespace kernel
       }
     });
 
-    export_("emergency-exit");
+    declare_export("emergency-exit");
   }
 
   std::map<std::string, library> libraries {};
@@ -1119,8 +1118,8 @@ inline namespace kernel
         return car(xs).is<procedure>();
       });
 
-      library.export_("foreign-function");
-      library.export_("foreign-function?");
+      library.declare_export("foreign-function");
+      library.declare_export("foreign-function?");
     });
 
     define_library("(meevax garbage-collector)", [](library & library)
@@ -1135,7 +1134,7 @@ inline namespace kernel
         return make<exact_integer>(gc.count());
       });
 
-      library.export_("gc-collect", "gc-count");
+      library.declare_export("gc-collect", "gc-count");
     });
 
     define_library("(meevax version)", [](library & library)
@@ -1145,7 +1144,7 @@ inline namespace kernel
         return features();
       });
 
-      library.export_("features");
+      library.declare_export("features");
     });
   }
 
