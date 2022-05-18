@@ -28,11 +28,6 @@ inline namespace kernel
 {
   inline namespace experimental
   {
-    struct master_t
-    {
-      explicit master_t() = default;
-    } constexpr master;
-
     struct empty_t
     {
       explicit empty_t() = default;
@@ -66,11 +61,9 @@ inline namespace kernel
     explicit environment(empty_t) // FOR MIGRATION
     {}
 
-    explicit environment(master_t); // FOR MIGRATION
-
     template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
     explicit environment(Ts&&... xs)
-      : environment { master }
+      : environment { empty }
     {
       (import(xs), ...);
 

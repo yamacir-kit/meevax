@@ -1,4 +1,7 @@
-(import (meevax foreign-function-interface))
+(import (meevax foreign-function)
+        (scheme base)
+        (only (scheme process-context) exit)
+        (srfi 78))
 
 (define dummy-procedure (foreign-function "build/libexample.so" "dummy_procedure"))
 
@@ -10,4 +13,4 @@
 (check (foreign-function? length-of-arguments) => #t)
 (check (length-of-arguments 'hoge 42 #(1 2 3) 3.14) => 4)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 4))

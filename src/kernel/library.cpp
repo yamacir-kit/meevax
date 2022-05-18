@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <functional>
+#include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/library.hpp>
 
 namespace meevax
@@ -64,7 +64,19 @@ inline namespace kernel
       return e;
     });
 
+    define<procedure>("load", [](let const& xs)
+    {
+      return car(xs).as<environment>().load(cadr(xs).as<string>());
+    });
+
+    define<procedure>("interaction-environment", [](auto&&...)
+    {
+      return unspecified_object;
+    });
+
     export_("environment");
+    export_("interaction-environment");
+    export_("load");
   }
 
   library::library(equivalence_library_t)
@@ -654,13 +666,18 @@ inline namespace kernel
 
   library::library(control_library_t)
   {
-    define<predicate>("closure?",          [](let const& xs) { return car(xs).is<closure     >(); });
-    define<predicate>("continuation?",     [](let const& xs) { return car(xs).is<continuation>(); });
-    define<predicate>("foreign-function?", [](let const& xs) { return car(xs).is<procedure   >(); });
+    define<predicate>("closure?", [](let const& xs)
+    {
+      return car(xs).is<closure>();
+    });
 
-    export_("closure?",
-            "continuation?",
-            "foreign-function?");
+    define<predicate>("continuation?", [](let const& xs)
+    {
+      return car(xs).is<continuation>();
+    });
+
+    export_("closure?");
+    export_("continuation?");
   }
 
   library::library(exception_library_t)
@@ -1077,7 +1094,7 @@ inline namespace kernel
 
   std::map<std::string, library> libraries {};
 
-  auto library::boot() -> void
+  auto library::boot_meevax_libraries() -> void
   {
     define_library("(meevax character)", character_library);
     define_library("(meevax context)", context_library);
@@ -1100,47 +1117,79 @@ inline namespace kernel
     define_library("(meevax vector)", vector_library);
     define_library("(meevax write)", write_library);
 
-    define_library("(meevax gc)", [](library & meevax_gc)
+    define_library("(meevax foreign-function)", [](library & library)
     {
-      meevax_gc.define<procedure>("gc-collect", [](auto&&...)
-      {
-        return make<exact_integer>(gc.collect());
-      });
-
-      meevax_gc.define<procedure>("gc-count", [](auto&&...)
-      {
-        return make<exact_integer>(gc.count());
-      });
-
-      meevax_gc.export_("gc-collect", "gc-count");
-    });
-
-    define_library("(meevax foreign-function-interface)", [](library & meevax_ffi)
-    {
-      meevax_ffi.define<procedure>("foreign-function", [](let const& xs)
+      library.define<procedure>("foreign-function", [](let const& xs)
       {
         return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
       });
 
-      meevax_ffi.export_("foreign-function");
-    });
-
-    define_library("(meevax foo)", [](library & library)
-    {
-      library.export_("a");
-      library.export_("b");
-      library.export_("c");
-
-      library.define<procedure>("a", [](let const&)
+      library.define<predicate>("foreign-function?", [](let const& xs)
       {
-        LINE();
-        return unit;
+        return car(xs).is<procedure>();
       });
 
-      library.define("b", make<exact_integer>(42));
-
-      library.define("c", make<symbol>("dummy"));
+      library.export_("foreign-function");
+      library.export_("foreign-function?");
     });
+
+    define_library("(meevax garbage-collector)", [](library & library)
+    {
+      library.define<procedure>("gc-collect", [](auto&&...)
+      {
+        return make<exact_integer>(gc.collect());
+      });
+
+      library.define<procedure>("gc-count", [](auto&&...)
+      {
+        return make<exact_integer>(gc.count());
+      });
+
+      library.export_("gc-collect", "gc-count");
+    });
+
+    define_library("(meevax version)", [](library & library)
+    {
+      library.define<procedure>("features", [](auto&&...)
+      {
+        return features();
+      });
+
+      library.export_("features");
+    });
+  }
+
+  auto library::boot_scheme_libraries() -> void
+  {
+    std::vector<string_view> const codes {
+      srfi_211,
+      r4rs_essential,
+      srfi_45,
+      r4rs,
+      srfi_149,
+      r5rs,
+      srfi_6,  // Basic String Ports
+      srfi_34, // Exception Handling for Programs
+      srfi_23, // Error reporting mechanism
+      srfi_39, // Parameter objects
+      r7rs,
+      srfi_8,  // receive: Binding to multiple values
+      srfi_1,  // List Library
+      srfi_78, // Lightweight testing
+    };
+
+    auto sandbox = environment();
+
+    for (auto const& code : codes)
+    {
+      // NOTE: Since read performs a putback operation on a given stream, it must be copied and used.
+      auto port = std::stringstream(std::string(code));
+
+      for (let e = sandbox.read(port); e != eof_object; e = sandbox.read(port))
+      {
+        sandbox.evaluate(e);
+      }
+    }
   }
 } // namespace kernel
 } // namespace meevax

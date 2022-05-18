@@ -1,5 +1,44 @@
+(define-library (meevax continuation)
+  (import (meevax context)
+          (meevax syntax)
+          (scheme r4rs essential))
+
+  (export call-with-current-continuation dynamic-wind exit)
+
+  (begin (define %current-dynamic-extents '()) ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
+
+         (define (dynamic-wind before thunk after)
+           (before)
+           (set! %current-dynamic-extents (cons (cons before after) %current-dynamic-extents))
+           ((lambda (result) ; TODO let-values
+              (set! %current-dynamic-extents (cdr %current-dynamic-extents))
+              (after)
+              result) ; TODO (apply values result)
+            (thunk)))
+
+         (define (call-with-current-continuation procedure)
+           (define (windup! from to)
+             (set! %current-dynamic-extents from)
+             (cond ((eq? from to))
+                   ((null? from) (windup! from (cdr to)) ((caar to)))
+                   ((null? to) ((cdar from)) (windup! (cdr from) to))
+                   (else ((cdar from)) (windup! (cdr from) (cdr to)) ((caar to))))
+             (set! %current-dynamic-extents to))
+           (let ((current-dynamic-extents %current-dynamic-extents))
+             (call-with-current-continuation! (lambda (k1)
+                                                (procedure (lambda (k2)
+                                                             (windup! %current-dynamic-extents current-dynamic-extents)
+                                                             (k1 k2)))))))
+
+         (define (exit . normally?)
+           (for-each (lambda (before/after)
+                       ((cdr before/after)))
+                     %current-dynamic-extents)
+           (apply emergency-exit normally?))))
+
 (define-library (scheme r5rs)
-  (import (meevax environment)
+  (import (meevax continuation)
+          (meevax environment)
           (meevax evaluate)
           (meevax syntax) ; for let-syntax letrec-syntax
           (scheme r4rs)
@@ -65,31 +104,6 @@
              (if (values? vs)
                  (apply consumer (cdr vs))
                  (consumer vs))))
-
-         (define %current-dynamic-extents '()) ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
-
-         (define (dynamic-wind before thunk after)
-           (before)
-           (set! %current-dynamic-extents (cons (cons before after) %current-dynamic-extents))
-           ((lambda (result) ; TODO let-values
-              (set! %current-dynamic-extents (cdr %current-dynamic-extents))
-              (after)
-              result) ; TODO (apply values result)
-            (thunk)))
-
-         (define (call-with-current-continuation procedure)
-           (define (windup! from to)
-             (set! %current-dynamic-extents from)
-             (cond ((eq? from to))
-                   ((null? from) (windup! from (cdr to)) ((caar to)))
-                   ((null? to) ((cdar from)) (windup! (cdr from) to))
-                   (else ((cdar from)) (windup! (cdr from) (cdr to)) ((caar to))))
-             (set! %current-dynamic-extents to))
-           (let ((current-dynamic-extents %current-dynamic-extents))
-             (call-with-current-continuation! (lambda (k1)
-                                                (procedure (lambda (k2)
-                                                             (windup! %current-dynamic-extents current-dynamic-extents)
-                                                             (k1 k2)))))))
 
          (define (scheme-report-environment version)
            (environment `(scheme ,(string->symbol (string-append "r" (number->string version) "rs")))))

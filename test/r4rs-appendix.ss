@@ -1,3 +1,9 @@
+(import (scheme base)
+        (scheme process-context)
+        (srfi 78)
+        (srfi 211 syntactic-closures)
+        (srfi 211 explicit-renaming))
+
 ; (check (symbol? (syntax x)) => #f)
 
 ; (check
@@ -195,4 +201,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 1))

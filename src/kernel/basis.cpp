@@ -42,12 +42,12 @@ inline namespace kernel                                                        \
 }                                                                              \
 } static_assert(true)
 
-DEFINE_BINARY(overture);
 DEFINE_BINARY(r4rs);
 DEFINE_BINARY(r4rs_essential);
 DEFINE_BINARY(r5rs);
 DEFINE_BINARY(r7rs);
 DEFINE_BINARY(srfi_1);
+DEFINE_BINARY(srfi_6);
 DEFINE_BINARY(srfi_8);
 DEFINE_BINARY(srfi_23);
 DEFINE_BINARY(srfi_34);

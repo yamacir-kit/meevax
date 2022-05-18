@@ -146,7 +146,7 @@ inline namespace kernel
         }
         else
         {
-          std::cout << error(make<string>("no such identifier"), identifier);
+          throw error(make<string>("no such identifier"), identifier);
         }
       }
 
@@ -169,27 +169,6 @@ inline namespace kernel
       define(binding.as<absolute>().symbol(),
              binding.as<absolute>().load());
     }
-
-    // if (car(import_set).as<symbol>().value == "only")
-    // {
-    // }
-    // else if (car(import_set).as<symbol>().value == "except")
-    // {
-    // }
-    // else if (car(import_set).as<symbol>().value == "prefix")
-    // {
-    // }
-    // else if (car(import_set).as<symbol>().value == "rename")
-    // {
-    // }
-    // else if (auto iter = libraries.find(lexical_cast<std::string>(import_set)); iter != std::end(libraries))
-    // {
-    //   std::get<1>(*iter).export_to(*this);
-    // }
-    // else
-    // {
-    //   throw error(make<string>("no such library"), import_set);
-    // }
   }
 
   auto environment::load(std::string const& s) -> object

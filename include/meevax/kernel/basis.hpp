@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
-#define INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_BASIS_HPP
+#define INCLUDED_MEEVAX_KERNEL_BASIS_HPP
 
 #include <string_view>
 
@@ -29,12 +29,12 @@ inline namespace kernel
   using string_view = std::experimental::string_view;
   #endif
 
-  extern string_view const overture;
   extern string_view const r4rs;
   extern string_view const r4rs_essential;
   extern string_view const r5rs;
   extern string_view const r7rs;
   extern string_view const srfi_1;
+  extern string_view const srfi_6;
   extern string_view const srfi_8;
   extern string_view const srfi_23;
   extern string_view const srfi_34;
@@ -46,4 +46,4 @@ inline namespace kernel
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_BASIS_HPP

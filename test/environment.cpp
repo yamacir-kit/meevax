@@ -24,9 +24,11 @@ auto main() -> int
   assert(gc_count == constants.size() + specials_count);
 
   {
-    library::boot();
+    auto interaction_environment = environment();
 
-    auto root = environment(master);
+    library::boot_meevax_libraries();
+
+    library::boot_scheme_libraries();
   }
 
   environment::symbols.clear();

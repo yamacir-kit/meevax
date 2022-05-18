@@ -23,9 +23,18 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    library::boot();
+    let interaction_environment = make<environment>();
 
-    auto main = environment(master);
+    auto&& main = interaction_environment.as<environment>();
+
+    library::boot_meevax_libraries();
+
+    libraries.at("(meevax environment)").define<procedure>("interaction-environment", [&](auto&&...)
+    {
+      return interaction_environment;
+    });
+
+    library::boot_scheme_libraries();
 
     main.configure(argc, argv);
 
@@ -37,8 +46,8 @@ auto main(int const argc, char const* const* const argv) -> int
 
     while (main.is_interactive_mode() and main.char_ready())
     {
-      main.print(horizontal_rule());
-      main.write(standard_output, main.current_prompt());
+      main.print(u8"\u250c", repeat(u8"\u2500", 79));
+      main.write(standard_output, u8"\u2502", length(main.global()), "/", main.current_prompt());
       main.print(main.evaluate(main.read()));
     }
 

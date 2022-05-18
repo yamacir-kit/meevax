@@ -1,3 +1,14 @@
+(import (scheme base)
+        (scheme char)
+        (scheme file)
+        (scheme inexact)
+        (scheme lazy)
+        (scheme process-context)
+        (scheme read)
+        (scheme write)
+        (srfi 78)
+        )
+
 ; ---- 2.1. Identifiers --------------------------------------------------------
 
 (check (symbol? '...) => #t)
@@ -115,7 +126,7 @@
          ((1 4 6 8 9) 'composite)) => composite)
 (check (case (car '(c d))
          ((a) 'a)
-         ((b) 'b)) => #,(unspecified))
+         ((b) 'b)) => #,(if #f #f))
 (check (case (car '(c d))
          ((a e i o u) 'vowel)
          ((w y) 'semivowel)
@@ -196,7 +207,7 @@
 
 (check
   (begin (display "4 plus 1 equals ")
-         (display (+ 4 1))) => #,(unspecified))
+         (display (+ 4 1))) => #,(if #f #f))
 
 ; ---- 4.2.4. Iteration --------------------------------------------------------
 
@@ -742,8 +753,7 @@
 (check (round 7/2) => 4) ; exact
 (check (round 7) => 7)
 
-(check (rationalize
-         (inexact->exact .3) 1/10) => 1/3) ; exact
+(check (rationalize (exact .3) 1/10) => 1/3) ; exact
 (check (rationalize .3  1/10) => #,(/ 1.0 3.0)) ; inexact
 
 (check (square 42) => 1764)
@@ -950,8 +960,7 @@
 
 (check (vector-ref '#(1 1 2 3 5 8 13 21) 5) => 8)
 (check (vector-ref '#(1 1 2 3 5 8 13 21)
-                   (inexact->exact
-                     (round (* 2 (acos -1))))) => 13)
+                   (exact (round (* 2 (acos -1))))) => 13)
 
 (check (let ((vec (vector 0 '(2 2 2 2) "Anna")))
          (vector-set! vec 1 '("Sue" "Sue")) vec) => #(0 ("Sue" "Sue") "Anna"))
@@ -1188,4 +1197,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 367))

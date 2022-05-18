@@ -44,7 +44,9 @@ inline namespace kernel
       }
     }
 
-    static auto boot() -> void;
+    static auto boot_meevax_libraries() -> void;
+
+    static auto boot_scheme_libraries() -> void;
 
     auto declare(const_reference declaration) -> void
     {
@@ -59,7 +61,7 @@ inline namespace kernel
       else if (declaration.is<pair>() and car(declaration).is<symbol>()
                                       and car(declaration).as<symbol>().value == "begin")
       {
-        for (let const& command_or_definition : declaration)
+        for (let const& command_or_definition : cdr(declaration))
         {
           declare(command_or_definition);
         }

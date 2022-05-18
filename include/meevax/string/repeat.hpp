@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_STRING_REPEAT_HPP
 #define INCLUDED_MEEVAX_STRING_REPEAT_HPP
 
+#include <iterator>
 #include <sstream>
 #include <string>
 

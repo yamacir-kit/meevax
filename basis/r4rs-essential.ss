@@ -2,6 +2,8 @@
   (import (meevax character)
           (meevax control)
           (meevax equivalence)
+          (meevax environment)
+          (meevax foreign-function)
           (meevax list)
           (meevax number)
           (meevax pair)
@@ -456,14 +458,14 @@
            (char-ci-compare x xs >=))
 
          (define (char-alphabetic? x)
-           (<= #,(char->integer #\a)
+           (<= (char->integer #\a)
                (char->integer (char-downcase x))
-               #,(char->integer #\z)))
+               (char->integer #\z)))
 
          (define (char-numeric? x)
-           (<= #,(char->integer #\0)
+           (<= (char->integer #\0)
                (char->integer x)
-               #,(char->integer #\9)))
+               (char->integer #\9)))
 
          (define (char-whitespace? x)
            (or (eqv? x #\space)
@@ -472,14 +474,14 @@
                (eqv? x #\return)))
 
          (define (char-upper-case? x)
-           (<= #,(char->integer #\A)
+           (<= (char->integer #\A)
                (char->integer x)
-               #,(char->integer #\Z)))
+               (char->integer #\Z)))
 
          (define (char-lower-case? x)
-           (<= #,(char->integer #\a)
+           (<= (char->integer #\a)
                (char->integer x)
-               #,(char->integer #\z)))
+               (char->integer #\z)))
 
          (define (char-downcase c)
            (if (char-lower-case? c) c

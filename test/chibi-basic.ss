@@ -1,3 +1,8 @@
+(import (scheme base)
+        (scheme process-context)
+        (srfi 78)
+        (srfi 211 explicit-renaming))
+
 ; ---- Chibi-Scheme's Basic Tests ----------------------------------------------
 ;
 ; NOTE
@@ -287,4 +292,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 29))

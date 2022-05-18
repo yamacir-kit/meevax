@@ -1,3 +1,8 @@
+(import (scheme base)
+        (scheme process-context)
+        (srfi 8)
+        (srfi 78))
+
 (check
   (call-with-values (lambda () (values 4 5))
                     (lambda (a b) b))
@@ -23,4 +28,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 5))
