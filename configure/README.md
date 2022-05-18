@@ -131,7 +131,6 @@ Options:
   -h, --help             Display this help text and exit.
   -i, --interactive      Take over control of root environment.
   -l, --load=FILENAME    Same as -e '(load FILENAME)'
-      --prompt=STRING    Same as -e '(set-prompt! STRING)'
   -t, --trace            Display stacks of virtual machine for each steps.
   -v, --version          Display version information and exit.
       --verbose          Display detailed informations.

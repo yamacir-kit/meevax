@@ -83,10 +83,17 @@ inline namespace kernel
 
   auto environment::declare_import(const_reference import_set) -> void
   {
-    for (let const& binding : resolve_import_set(import_set))
+    let const bindings = resolve_import_set(import_set);
+
+    for (let const& binding : bindings)
     {
       define(binding.as<absolute>().symbol(),
              binding.as<absolute>().load());
+    }
+
+    if (is_interactive_mode())
+    {
+      print(faint("; ", length(bindings), " identifiers imported."));
     }
   }
 

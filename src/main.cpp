@@ -38,7 +38,7 @@ auto main(int const argc, char const* const* const argv) -> int
     while (main.is_interactive_mode() and main.char_ready())
     {
       main.print(u8"\u250c", repeat(u8"\u2500", 79));
-      main.write(standard_output, u8"\u2502", length(main.global()), "/", main.current_prompt());
+      main.write(standard_output, u8"\u2502\u03bb> ");
       main.print(main.evaluate(main.read()));
     }
 

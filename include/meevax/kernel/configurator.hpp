@@ -52,8 +52,6 @@ inline namespace kernel
     let trace       = f;
     let verbose     = f;
 
-    let prompt = make<string>(u8"λ> ");
-
   public:
     explicit configurator()
       : short_options
@@ -156,11 +154,6 @@ inline namespace kernel
             return load(x.as<string>());
           }),
 
-          std::make_pair("prompt", [this](const_reference x, auto&&...)
-          {
-            return prompt = x;
-          }),
-
           std::make_pair("write", [this](const_reference x, auto&&...)
           {
             return print(x), unspecified_object;
@@ -260,11 +253,6 @@ inline namespace kernel
       }();
     }
 
-    auto current_prompt() const
-    {
-      return static_cast<std::string>(prompt.as<string>());
-    }
-
     auto display_version() const -> void
     {
       print("Meevax Lisp ", version());
@@ -283,7 +271,6 @@ inline namespace kernel
       print("  -h, --help             Display this help text and exit.");
       print("  -i, --interactive      Take over control of root environment.");
       print("  -l, --load=FILENAME    Same as -e '(load FILENAME)'");
-      print("      --prompt=STRING    Same as -e '(set-prompt! STRING)'");
       print("  -t, --trace            Display stacks of virtual machine for each steps.");
       print("  -v, --version          Display version information and exit.");
       print("      --verbose          Display detailed informations.");
