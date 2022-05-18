@@ -30,13 +30,11 @@ inline namespace kernel
 
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
     explicit library(F&& declare)
-      : environment { empty }
     {
       declare(*this);
     }
 
     explicit library(const_reference declarations)
-      : environment { empty }
     {
       for (let const& declaration : declarations)
       {

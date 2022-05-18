@@ -26,14 +26,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  inline namespace experimental
-  {
-    struct empty_t
-    {
-      explicit empty_t() = default;
-    } constexpr empty;
-  } // namespace experimental
-
   class environment : public virtual pair
                     , public configurator<environment>
                     , public machine     <environment>
@@ -57,9 +49,6 @@ inline namespace kernel
     explicit environment(environment &&) = default;
 
     explicit environment(environment const&) = default;
-
-    explicit environment(empty_t) // FOR MIGRATION
-    {}
 
     template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
     explicit environment(Ts&&... xs)
