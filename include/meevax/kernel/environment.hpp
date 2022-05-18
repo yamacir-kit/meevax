@@ -52,7 +52,6 @@ inline namespace kernel
 
     template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
     explicit environment(Ts&&... xs)
-      : environment { empty }
     {
       (import(xs), ...);
 
