@@ -64,7 +64,7 @@ inline namespace kernel
       return e;
     });
 
-    define<procedure>("load", [](let const& xs)
+    define<procedure>("%load", [](let const& xs)
     {
       return car(xs).as<environment>().load(cadr(xs).as<string>());
     });
@@ -76,7 +76,7 @@ inline namespace kernel
 
     export_("environment");
     export_("interaction-environment");
-    export_("load");
+    export_("%load");
   }
 
   library::library(equivalence_library_t)
@@ -935,17 +935,7 @@ inline namespace kernel
     {
       try
       {
-        switch (length(xs))
-        {
-        case 0:
-          return read(standard_input);
-
-        case 1:
-          return read(car(xs));
-
-        default:
-          throw invalid_application(intern("read") | xs);
-        }
+        return read(car(xs));
       }
       catch (eof const&)
       {

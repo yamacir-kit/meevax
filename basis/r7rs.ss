@@ -786,9 +786,8 @@
   )
 
 (define-library (scheme load)
-  (export load
-          )
-  )
+  (import (only (scheme r5rs) load))
+  (export load))
 
 (define-library (scheme process-context)
   (import (meevax context)
