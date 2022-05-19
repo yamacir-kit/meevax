@@ -15,6 +15,7 @@
 */
 
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/library.hpp>
 
 namespace meevax
 {
@@ -48,6 +49,54 @@ inline namespace kernel
     return result;
   }
 
+  auto resolve_import_set(const_reference import_set) -> object
+  {
+    if (car(import_set).as<symbol>().value == "only")
+    {
+      let const exported_bindings = resolve_import_set(cadr(import_set));
+
+      let filtered_bindings = unit;
+
+      for (let const& identifier : cddr(import_set))
+      {
+        if (let const& binding = assq(identifier, exported_bindings); select(binding))
+        {
+          filtered_bindings = cons(binding, filtered_bindings);
+        }
+        else
+        {
+          throw error(make<string>("no such identifier"), identifier);
+        }
+      }
+
+      return filtered_bindings;
+    }
+    else if (auto iter = libraries.find(lexical_cast<std::string>(import_set)); iter != std::end(libraries))
+    {
+      return std::get<1>(*iter).resolve_export_specs();
+    }
+    else
+    {
+      throw error(make<string>("no such library"), import_set);
+    }
+  }
+
+  auto environment::declare_import(const_reference import_set) -> void
+  {
+    let const bindings = resolve_import_set(import_set);
+
+    for (let const& binding : bindings)
+    {
+      define(binding.as<absolute>().symbol(),
+             binding.as<absolute>().load());
+    }
+
+    if (is_interactive_mode())
+    {
+      print(faint("; ", length(bindings), " identifiers imported."));
+    }
+  }
+
   auto environment::define(const_reference name, const_reference value) -> void
   {
     assert(name.is_also<identifier>());
@@ -60,34 +109,45 @@ inline namespace kernel
     define(intern(name), value);
   }
 
-  auto environment::evaluate(const_reference expression) -> object /* ----------
-  *
-  *  Since this member function can be called from various contexts, it is
-  *  necessary to save the register. In particular, note that the
-  *  er-macro-transformer's rename procedure is implemented as an eval with the
-  *  macro transformer object as the environment-specifier, so this member
-  *  function overrides the VM of the transformer during macro expansion.
-  *
-  * ------------------------------------------------------------------------- */
+  auto environment::evaluate(const_reference expression) -> object
   {
-    auto dump = std::make_tuple(std::exchange(s, unit),
-                                std::exchange(e, unit),
-                                std::exchange(c, compile(context::none, *this, expression, scope())),
-                                std::exchange(d, unit));
-
-    if (is_debug_mode())
+    if (expression.is<pair>() and car(expression).is<symbol>()
+                              and car(expression).as<symbol>().value == "define-library")
     {
-      disassemble(debug_port().as<std::ostream>(), c);
+      define_library(lexical_cast<std::string>(cadr(expression)), cddr(expression));
+      return cadr(expression);
     }
+    else if (expression.is<pair>() and car(expression).is<symbol>()
+                                   and car(expression).as<symbol>().value == "import")
+    {
+      for (let const& import_set : cdr(expression))
+      {
+        declare_import(import_set);
+      }
 
-    let const result = execute();
+      return unspecified_object;
+    }
+    else
+    {
+      auto dump = std::make_tuple(std::exchange(s, unit),
+                                  std::exchange(e, unit),
+                                  std::exchange(c, compile(context::none, *this, expression, scope())),
+                                  std::exchange(d, unit));
 
-    s = std::get<0>(dump);
-    e = std::get<1>(dump);
-    c = std::get<2>(dump);
-    d = std::get<3>(dump);
+      if (is_debug_mode())
+      {
+        disassemble(debug_port().as<std::ostream>(), c);
+      }
 
-    return result;
+      let const result = execute();
+
+      s = std::get<0>(dump);
+      e = std::get<1>(dump);
+      c = std::get<2>(dump);
+      d = std::get<3>(dump);
+
+      return result;
+    }
   }
 
   auto environment::execute() -> object
@@ -116,16 +176,6 @@ inline namespace kernel
   auto environment::global() noexcept -> reference
   {
     return second;
-  }
-
-  auto environment::import() -> void
-  {
-    define<procedure>("set-batch!",       [this](let const& xs, auto&&...) { return batch       = car(xs); });
-    define<procedure>("set-debug!",       [this](let const& xs, auto&&...) { return debug       = car(xs); });
-    define<procedure>("set-interactive!", [this](let const& xs, auto&&...) { return interactive = car(xs); });
-    define<procedure>("set-prompt!",      [this](let const& xs, auto&&...) { return prompt      = car(xs); });
-    define<procedure>("set-trace!",       [this](let const& xs, auto&&...) { return trace       = car(xs); });
-    define<procedure>("set-verbose!",     [this](let const& xs, auto&&...) { return verbose     = car(xs); });
   }
 
   auto environment::load(std::string const& s) -> object

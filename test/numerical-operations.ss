@@ -1,3 +1,8 @@
+(import (scheme base)
+        (scheme inexact)
+        (scheme process-context)
+        (srfi 78))
+
 ; ---- 6.2.6. Numerical operations ---------------------------------------------
 
 (check (rational? 1/3) => #t)
@@ -106,4 +111,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 58))

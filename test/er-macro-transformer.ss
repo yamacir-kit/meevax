@@ -1,3 +1,15 @@
+(import (only (meevax macro) transformer?)
+        (scheme base)
+        (scheme cxr)
+        (scheme process-context)
+        (srfi 78)
+        (srfi 211 explicit-renaming)
+        )
+
+(define (traditional-macro-transformer f)
+  (lambda (form use-env mac-env)
+    (apply f (cdr form))))
+
 (define-syntax swap!
   (traditional-macro-transformer
     (lambda (a b)
@@ -42,4 +54,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 5))

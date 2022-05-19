@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/library.hpp>
 #include <meevax/string/repeat.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int
@@ -23,7 +23,9 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    auto main = environment("(meevax interaction-environment)"_s);
+    library::boot();
+
+    auto&& main = interaction_environment().as<environment>();
 
     main.configure(argc, argv);
 
@@ -35,8 +37,8 @@ auto main(int const argc, char const* const* const argv) -> int
 
     while (main.is_interactive_mode() and main.char_ready())
     {
-      main.print(horizontal_rule());
-      main.write(standard_output, main.current_prompt());
+      main.print(u8"\u250c", repeat(u8"\u2500", 79));
+      main.write(standard_output, u8"\u2502\u03bb> ");
       main.print(main.evaluate(main.read()));
     }
 

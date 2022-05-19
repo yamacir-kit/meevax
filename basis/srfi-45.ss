@@ -1,39 +1,47 @@
-(define promise-tag (list 'promise))
+(define-library (srfi 45) ; Based on r7rs reference implementation.
+  (import (scheme r4rs essential)
+          (meevax syntax) ; for define-syntax
+          (srfi 211 explicit-renaming))
 
-(define (promise done? value-or-generator)
-  (cons (cons done? value-or-generator) promise-tag))
+  (export delay eager force lazy promise?)
 
-(define (promise? x)
-  (and (pair? x)
-       (eq? promise-tag (cdr x))))
+  (begin (define <promise> (list 'promise))
 
-(define promise-done? caar)
-(define promise-value cdar)
-(define promise-generator cdar)
+         (define (promise done? value)
+           (cons <promise> (cons done? value)))
 
-(define (promise-merge! new old)
-  (set-car! (car old) (promise-done? new))
-  (set-cdr! (car old) (promise-value new))
-  (set-car! new (car old)))
+         (define (promise? x)
+           (and (pair? x)
+                (eq? <promise> (car x))))
 
-(define (force promise)
-  (if (promise-done? promise)
-      (promise-value promise)
-      (let ((new ((promise-generator promise))))
-        (unless (promise-done? promise)
-                (promise-merge! new promise))
-        (force promise))))
+         (define promise-done? cadr)
 
-(define-syntax lazy
-  (er-macro-transformer
-    (lambda (form rename compare)
-      `(,(rename 'promise) #f (,(rename 'lambda) () ,(cadr form))))))
+         (define promise-value cddr)
 
-(define-syntax delay
-  (er-macro-transformer
-    (lambda (form rename compare)
-      `(,(rename 'lazy) (,(rename 'promise) #t ,(cadr form))))))
+         (define (promise-update! new old)
+           (set-car! (cdr old) (promise-done? new))
+           (set-cdr! (cdr old) (promise-value new))
+           (set-car! new (cdr old)))
 
-(define (make-promise x)
-  (if (promise? x) x
-      (delay x)))
+         (define (force promise)
+           (if (promise-done? promise)
+               (promise-value promise)
+               ((lambda (promise*)
+                  (if (not (promise-done? promise))
+                      (promise-update! promise* promise))
+                  (force promise))
+                ((promise-value promise)))))
+
+         (define-syntax lazy
+           (er-macro-transformer
+             (lambda (form rename compare)
+               (list (rename 'promise) #f (list (rename 'lambda) '() (cadr form))))))
+
+         (define-syntax delay
+           (er-macro-transformer
+             (lambda (form rename compare)
+               (list (rename 'lazy) (list (rename 'promise) #t (cadr form))))))
+
+         (define (eager x)
+           (if (promise? x) x
+               (delay x)))))

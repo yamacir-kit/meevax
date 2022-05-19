@@ -1,7 +1,7 @@
-; (import (scheme base)
-;         (scheme file)
-;         (scheme read)
-;         (srfi 78))
+(import (scheme base)
+        (scheme file)
+        (scheme read)
+        (srfi 78))
 
 (let ((lambda.ss "/home/yamasa/.meevax/test/lambda.ss"))
   (check (read (open-input-file lambda.ss)) => #\x03bb)

@@ -1,3 +1,9 @@
+(import (meevax macro)
+        (scheme base)
+        (scheme process-context)
+        (srfi 78)
+        (srfi 211 explicit-renaming))
+
 (define value 42)
 
 ; ------------------------------------------------------------------------------
@@ -72,4 +78,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 25))

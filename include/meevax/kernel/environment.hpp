@@ -21,7 +21,6 @@
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/writer.hpp>
-#include <meevax/utility/integer_sequence.hpp>
 
 namespace meevax
 {
@@ -51,10 +50,16 @@ inline namespace kernel
 
     explicit environment(environment const&) = default;
 
-    template <typename... Ts, REQUIRES(is_integer_sequence<Ts>...)>
+    template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
     explicit environment(Ts&&... xs)
     {
-      import(), (import(xs), ...);
+      (import(xs), ...);
+
+      define<procedure>("set-batch!",       [this](let const& xs, auto&&...) { return batch       = car(xs); });
+      define<procedure>("set-debug!",       [this](let const& xs, auto&&...) { return debug       = car(xs); });
+      define<procedure>("set-interactive!", [this](let const& xs, auto&&...) { return interactive = car(xs); });
+      define<procedure>("set-trace!",       [this](let const& xs, auto&&...) { return trace       = car(xs); });
+      define<procedure>("set-verbose!",     [this](let const& xs, auto&&...) { return verbose     = car(xs); });
     }
 
     auto operator [](const_reference) -> const_reference;
@@ -63,12 +68,20 @@ inline namespace kernel
 
     auto apply(const_reference, const_reference) -> object;
 
+    auto declare_import(const_reference) -> void;
+
+    template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
+    auto declare_import(Ts&&... xs) -> void
+    {
+      (declare_import(read(xs)), ...);
+    }
+
     auto define(const_reference, const_reference = undefined) -> void;
 
-    auto define(std::string const&, const_reference = undefined) -> void;
+    auto define(symbol::value_type const&, const_reference = undefined) -> void;
 
     template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs) -> void
+    auto define(symbol::value_type const& name, Ts&&... xs) -> void
     {
       define(name, make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
@@ -79,7 +92,7 @@ inline namespace kernel
 
     auto execute(const_reference) -> object;
 
-    auto fork() const
+    auto fork() const -> object
     {
       return make<environment>(*this);
     }
@@ -94,11 +107,6 @@ inline namespace kernel
     auto global() noexcept -> reference;
 
     auto global() const noexcept -> const_reference;
-
-    template <typename T, T... xs>
-    auto import(std::integer_sequence<T, xs...>) -> void;
-
-    auto import() -> void;
 
     auto load(std::string const&) -> object;
 

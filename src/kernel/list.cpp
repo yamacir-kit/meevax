@@ -25,14 +25,14 @@ inline namespace kernel
     return 0 < size ? car(x) | take(cdr(x), --size) : unit;
   }
 
-  auto append(const_reference x, const_reference y) -> object
+  auto append2(const_reference x, const_reference y) -> object
   {
-    return x.is<null>() ? y : cons(car(x), append(cdr(x), y));
+    return x.is<null>() ? y : cons(car(x), append2(cdr(x), y));
   }
 
   auto reverse(const_reference x) -> object
   {
-    return x ? append(reverse(cdr(x)), list(car(x))) : unit;
+    return x ? append2(reverse(cdr(x)), list(car(x))) : unit;
   }
 
   auto zip(const_reference x, const_reference y) -> object

@@ -1,4 +1,7 @@
-; (import (scheme base))
+(import (scheme base)
+        (scheme process-context)
+        (srfi 78)
+        (srfi 211 explicit-renaming))
 
 (define result (list))
 
@@ -58,6 +61,6 @@
 
 (check result => outer)
 
-; (check-report)
+(check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 5))

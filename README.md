@@ -41,19 +41,22 @@ Subset of R7RS-small.
 
 ### SRFIs
 
-| Number                                                | Name                                                     | Import from | Note       |
-|------------------------------------------------------:|:---------------------------------------------------------|:------------|:-----------|
-|  [ 1](https://srfi.schemers.org/srfi-1/srfi-1.html)   | List Library                                             | built-in    |            |
-|  [ 5](https://srfi.schemers.org/srfi-5/srfi-5.html)   | A compatible let form with signatures and rest arguments | built-in    | R7RS 4.2.4 |
-|  [ 6](https://srfi.schemers.org/srfi-6/srfi-6.html)   | Basic String Ports                                       | built-in    | R7RS 6.13  |
-|  [ 8](https://srfi.schemers.org/srfi-8/srfi-8.html)   | receive: Binding to multiple values                      | built-in    |            |
-|  [10](https://srfi.schemers.org/srfi-10/srfi-10.html) | #, external form                                         | built-in    |            |
-|  [23](https://srfi.schemers.org/srfi-23/srfi-23.html) | Error reporting mechanism                                | built-in    | R7RS 6.11  |
-|  [39](https://srfi.schemers.org/srfi-39/srfi-39.html) | Parameter objects                                        | built-in    | R7RS 4.2.6 |
-|  [45](https://srfi.schemers.org/srfi-45/srfi-45.html) | Primitives for Expressing Iterative Lazy Algorithms      | built-in    | [#296](https://github.com/yamacir-kit/meevax/issues/296)
-|  [62](https://srfi.schemers.org/srfi-62/srfi-62.html) | S-expression comments                                    | built-in    | R7RS 2.2   |
-|  [78](https://srfi.schemers.org/srfi-78/srfi-78.html) | Lightweight testing                                      | built-in    | Except `check-ec`
-|  [87](https://srfi.schemers.org/srfi-87/srfi-87.html) | => in case clauses                                       | built-in    | R7RS 4.2.1 |
+| Number                                                  | Title                                                    | Import from                                                                                                                                                                    | Note       |
+|--------------------------------------------------------:|:---------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------|
+| [  1](https://srfi.schemers.org/srfi-1/srfi-1.html)     | List Library                                             | [`(srfi 1)`](./basis/srfi-1.ss)                                                                                                                                                |            |
+| [  5](https://srfi.schemers.org/srfi-5/srfi-5.html)     | A compatible let form with signatures and rest arguments | [`(scheme r4rs essential)`](./basis/r4rs-essential.ss) <br> [`(scheme r4rs)`](./basis/r4rs.ss) <br> [`(scheme r5rs)`](./basis/r5rs.ss) <br> [`(scheme base)`](./basis/r7rs.ss) | R7RS 4.2.4 |
+| [  6](https://srfi.schemers.org/srfi-6/srfi-6.html)     | Basic String Ports                                       | [`(srfi 6)`](./basis/srfi-6.ss) <br> [`(scheme base)`](./basis/r7rs.ss)                                                                                                        | R7RS 6.13  |
+| [  8](https://srfi.schemers.org/srfi-8/srfi-8.html)     | receive: Binding to multiple values                      | [`(srfi 8)`](./basis/srfi-8.ss)                                                                                                                                                |            |
+| [ 10](https://srfi.schemers.org/srfi-10/srfi-10.html)   | #, external form                                         | built-in                                                                                                                                                                       |            |
+| [ 23](https://srfi.schemers.org/srfi-23/srfi-23.html)   | Error reporting mechanism                                | [`(srfi 23)`](./basis/srfi-23.ss) <br> [`(scheme base)`](./basis/r7rs.ss)                                                                                                      | R7RS 6.11  |
+| [ 34](https://srfi.schemers.org/srfi-34/srfi-34.html)   | Exception Handling for Programs                          | [`(srfi 34)`](./basis/srfi-34.ss) <br> [`(scheme base)`](./basis/r7rs.ss)                                                                                                      | R7RS 6.11  |
+| [ 39](https://srfi.schemers.org/srfi-39/srfi-39.html)   | Parameter objects                                        | [`(srfi 39)`](./basis/srfi-39.ss) <br> [`(scheme base)`](./basis/r7rs.ss)                                                                                                      | R7RS 4.2.6 |
+| [ 45](https://srfi.schemers.org/srfi-45/srfi-45.html)   | Primitives for Expressing Iterative Lazy Algorithms      | [`(srfi 45)`](./basis/srfi-45.ss)                                                                                                                                              | [#296](https://github.com/yamacir-kit/meevax/issues/296)
+| [ 62](https://srfi.schemers.org/srfi-62/srfi-62.html)   | S-expression comments                                    | built-in                                                                                                                                                                       | R7RS 2.2   |
+| [ 78](https://srfi.schemers.org/srfi-78/srfi-78.html)   | Lightweight testing                                      | [`(srfi 78)`](./basis/srfi-78.ss)                                                                                                                                              | Except `check-ec`
+| [ 87](https://srfi.schemers.org/srfi-87/srfi-87.html)   | => in case clauses                                       | [`(scheme r4rs essential)`](./basis/r4rs-essential.ss) <br> [`(scheme r4rs)`](./basis/r4rs.ss) <br> [`(scheme r5rs)`](./basis/r5rs.ss) <br> [`(scheme base)`](./basis/r7rs.ss) | R7RS 4.2.1 |
+| [149](https://srfi.schemers.org/srfi-149/srfi-149.html) | Basic `syntax-rules` template extensions                 | [`(srfi 149)`](./basis/srfi-149.ss) <br> [`(scheme r5rs)`](./basis/r5rs.ss) <br> [`(scheme base)`](./basis/r7rs.ss)                                                            | R7RS 4.3.2 |
+| [211](https://srfi.schemers.org/srfi-211/srfi-211.html) | Scheme Macro Libraries                                   | [`(srfi 211 explicit-renaming)`](./basis/srfi-211.ss)                                                                                                                          |            |
 
 ## Requirements
 
@@ -100,9 +103,9 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name        | Description
 |:-------------------|:--
-| `all` (default)    | Build shared-library `libmeevax.0.3.970.so` and executable `meevax`.
+| `all` (default)    | Build shared-library `libmeevax.0.3.1022.so` and executable `meevax`.
 | `test`             | Test executable `meevax`.
-| `package`          | Generate debian package `meevax_0.3.970_amd64.deb`.
+| `package`          | Generate debian package `meevax_0.3.1022_amd64.deb`.
 | `install`          | Copy files into `/usr/local` __(1)__.
 | `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
 | `safe-install.deb` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
@@ -117,7 +120,7 @@ __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's
 ## Usage
 
 ```
-Meevax Lisp System, version 0.3.970
+Meevax Lisp System, version 0.3.1022
 
 Usage: meevax [OPTION...] [FILE...]
 
@@ -128,7 +131,6 @@ Options:
   -h, --help             Display this help text and exit.
   -i, --interactive      Take over control of root environment.
   -l, --load=FILENAME    Same as -e '(load FILENAME)'
-      --prompt=STRING    Same as -e '(set-prompt! STRING)'
   -t, --trace            Display stacks of virtual machine for each steps.
   -v, --version          Display version information and exit.
       --verbose          Display detailed informations.

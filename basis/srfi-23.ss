@@ -1,4 +1,7 @@
-; (import (srfi 18))
-
-(define (error . xs)
-  (raise (apply make-error xs)))
+(define-library (srfi 23)
+  (import (only (meevax exception) make-error)
+          (only (scheme r5rs) define apply)
+          (only (srfi 34) raise))
+  (export error)
+  (begin (define (error . xs)
+           (raise (apply make-error xs)))))

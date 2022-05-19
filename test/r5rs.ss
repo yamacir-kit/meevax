@@ -1,3 +1,7 @@
+(import (scheme r5rs)
+        (only (scheme process-context) exit)
+        (srfi 78))
+
 ; ---- 1.3.4 -------------------------------------------------------------------
 
 (check (* 5 8) => 40)
@@ -106,7 +110,7 @@
 
 (check (case (car '(c d))
          ((a) 'a)
-         ((b) 'b)) => #,(unspecified))
+         ((b) 'b)) => #,(if #f #f))
 
 (check (case (car '(c d))
          ((a e i o u) 'vowel)
@@ -163,7 +167,7 @@
               (+ x 1)) => 6)
 
 (check (begin (display "4 plus 1 equals ")
-              (display (+ 4 1))) => #,(unspecified))
+              (display (+ 4 1))) => #,(if #f #f))
 
 ; ---- 4.2.4 -------------------------------------------------------------------
 
@@ -804,11 +808,11 @@
 
 (define x 5)
 
-(check (promise? p) => #t)
+; (check (promise? p) => #t)
 
 (check (force p) => 6)
 
-(check (promise? p) => #t)
+; (check (promise? p) => #t)
 
 (check (begin (set! x 10)
               (force p)) => 6)
@@ -864,10 +868,10 @@
 
 ; ---- 6.5 ---------------------------------------------------------------------
 
-; (check (eval '(* 7 3) (scheme-report-environment 5)) => 21) ; ERROR
+(check (eval '(* 7 3) (scheme-report-environment 5)) => 21)
 
-; (check (let ((f (eval '(lambda (f x) (f x x)) (null-environment 5))))
-;          (f + 10)) => 20) ; ERROR
+(check (let ((f (eval '(lambda (f x) (f x x)) (null-environment 5))))
+         (f + 10)) => 20)
 
 ; ---- EXAMPLE -----------------------------------------------------------------
 
@@ -950,4 +954,4 @@
 
 (check-report)
 
-(exit (check-passed? check:correct))
+(exit (check-passed? 288))
