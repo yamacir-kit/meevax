@@ -4,8 +4,11 @@ root="$(git rev-parse --show-toplevel)"
 
 current_version()
 {
-  count="$(git rev-list --count HEAD)"
-  echo "0.3.$((count - 2135))"
+  # count="$(git rev-list --count HEAD)"
+  # echo "0.3.$((count - 2135))"
+
+  count="$(git rev-list --no-merges --count HEAD)"
+  echo "0.4.$((count - 2854))"
 }
 
 update_version()

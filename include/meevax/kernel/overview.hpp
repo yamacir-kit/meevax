@@ -23,7 +23,7 @@
 
 #define NIL /* nothing */
 
-#define PROFILE_ALLOCATION true
+#define PROFILE_ALLOCATION false
 
 namespace meevax
 {
