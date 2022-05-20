@@ -1,7 +1,8 @@
 (import (scheme base)
         (scheme process-context)
         (srfi 78)
-        (srfi 211 explicit-renaming))
+        (srfi 211 explicit-renaming)
+        (srfi 211 syntactic-closures))
 
 (letrec-syntax ((my-and (er-macro-transformer
                           (lambda (form rename compare)
@@ -40,18 +41,32 @@
          (letrec-syntax ((m (er-macro-transformer
                               (lambda (form rename compare)
                                 (rename 'x)))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (er-macro-transformer
+                              (lambda (form rename compare)
+                                (rename 'x)))))
            (let ((x 'x1))
              (let ((x 'x2))
                (let ((x 'x3))
                  (m)))))) => outer)
 
 (check (let ((x 'outer))
-         (letrec-syntax ((m (er-macro-transformer
-                              (lambda (form rename compare)
-                                (rename 'x)))))
+         (letrec-syntax ((m (sc-macro-transformer
+                              (lambda (form use-env)
+                                'x))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (rsc-macro-transformer
+                              (lambda (form mac-env)
+                                (make-syntactic-closure mac-env '() 'x)))))
            (let ((x 'inner))
              (m)))) => outer)
 
 (check-report)
 
-(exit (check-passed? 5))
+(exit (check-passed? 7))
