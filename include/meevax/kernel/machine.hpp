@@ -39,6 +39,8 @@ inline namespace kernel
     machine()
     {}
 
+    IMPORT(environment, fork, const);
+
   protected:
     let s, // stack (holding intermediate results and return address)
         e, // environment (giving values to symbols)
@@ -449,7 +451,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         assert(car(s).template is<closure>());
-        cadr(c).template as<absolute>().load() = make<transformer>(car(s), static_cast<environment const&>(*this).fork());
+        cadr(c).template as<absolute>().load() = make<transformer>(car(s), fork());
         c = cddr(c);
         goto decode;
 
@@ -466,7 +468,7 @@ inline namespace kernel
 
             let const& f = environment(static_cast<environment const&>(*this)).execute(binding);
 
-            binding = make<transformer>(f, static_cast<environment const&>(*this).fork(cdr(cadr(c).template as<syntactic_continuation>().scope())));
+            binding = make<transformer>(f, fork(cdr(cadr(c).template as<syntactic_continuation>().scope())));
           }
         }();
 
@@ -489,8 +491,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         [&]() // DIRTY HACK!!!
         {
-          let const expander
-            = static_cast<environment const&>(*this).fork(cadr(c).template as<syntactic_continuation>().scope());
+          let const expander = fork(cadr(c).template as<syntactic_continuation>().scope());
 
           auto const [transformer_specs, body] = unpair(cadr(c).template as<syntactic_continuation>().expression());
 
