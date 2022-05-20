@@ -30,13 +30,28 @@
         (if even?))
     (check (my-or x (let temp) (if y) y) => 7)))
 
-; (check (let ((x 'outer))
-;          (letrec-syntax ((m (er-macro-transformer
-;                               (lambda (form rename compare)
-;                                 (rename 'x)))))
-;            (let ((x 'inner))
-;              (m)))) => outer)
+(check (let ((x 'outer))
+         (letrec-syntax ((m (er-macro-transformer
+                              (lambda (form rename compare)
+                                (rename 'x)))))
+           (m))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (er-macro-transformer
+                              (lambda (form rename compare)
+                                (rename 'x)))))
+           (let ((x 'x1))
+             (let ((x 'x2))
+               (let ((x 'x3))
+                 (m)))))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (er-macro-transformer
+                              (lambda (form rename compare)
+                                (rename 'x)))))
+           (let ((x 'inner))
+             (m)))) => outer)
 
 (check-report)
 
-(exit (check-passed? 2))
+(exit (check-passed? 5))

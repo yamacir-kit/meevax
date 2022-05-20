@@ -113,12 +113,31 @@ inline namespace kernel
                                  let const& expression)
         : syntactic_environment { syntactic_environment }
         , expression { expression }
-        , identity { identify() }
+        , identity { syntactic_environment.as<environment>().identify(expression, syntactic_environment.as<environment>().scope()) }
       {}
 
-      auto identify()
+      auto identify_with_offset(const_reference use_env_scope)
       {
-        return syntactic_environment.as<environment>().identify(expression, syntactic_environment.as<environment>().scope());
+        if (identity.is<relative>())
+        {
+          let const& mac_env_scope = syntactic_environment.as<environment>().scope();
+          auto offset = make<exact_integer>(length(use_env_scope) - length(mac_env_scope));
+          return make<relative>(car(identity),
+                                cadr(identity).template as<exact_integer>() + offset,
+                                cddr(identity));
+        }
+        else if (identity.is<variadic>())
+        {
+          let const& mac_env_scope = syntactic_environment.as<environment>().scope();
+          auto offset = make<exact_integer>(length(use_env_scope) - length(mac_env_scope));
+          return make<variadic>(car(identity),
+                                cadr(identity).template as<exact_integer>() + offset,
+                                cddr(identity));
+        }
+        else
+        {
+          return identity;
+        }
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -197,7 +216,7 @@ inline namespace kernel
             return cons(id.as<identity>().make_load_instruction(), id,
                         current_continuation);
           }
-          else
+          else // The syntactic-closure encloses procedure call.
           {
             return compile(current_context,
                            current_expression.as<syntactic_closure>().syntactic_environment.template as<environment>(),
@@ -438,9 +457,11 @@ inline namespace kernel
 
             let const& f = environment(static_cast<environment const&>(*this)).execute(binding);
 
-            binding = make<transformer>(f, static_cast<environment const&>(*this).fork(cadr(c).template as<syntactic_continuation>().scope()));
+            binding = make<transformer>(f, static_cast<environment const&>(*this).fork(cdr(cadr(c).template as<syntactic_continuation>().scope())));
           }
         }();
+
+        e = cons(unit, e); // dummy environment
 
         std::swap(c.as<pair>(),
                   body(context::none,
@@ -459,22 +480,22 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         [&]() // DIRTY HACK!!!
         {
-          let const syntactic_environment
+          let const expander
             = static_cast<environment const&>(*this).fork(cadr(c).template as<syntactic_continuation>().scope());
 
           auto const [transformer_specs, body] = unpair(cadr(c).template as<syntactic_continuation>().expression());
 
           for (let const& transformer_spec : transformer_specs)
           {
-            syntactic_environment.as<environment>().execute(compile(context::outermost,
-                                                                    syntactic_environment.as<environment>(),
-                                                                    cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
-                                                                    cadr(c).template as<syntactic_continuation>().scope()));
+            expander.as<environment>().execute(compile(context::outermost,
+                                                       expander.as<environment>(),
+                                                       cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
+                                                       cadr(c).template as<syntactic_continuation>().scope()));
           }
 
           std::swap(c.as<pair>(),
                     machine::body(context::outermost,
-                                  syntactic_environment.as<environment>(),
+                                  expander.as<environment>(),
                                   body,
                                   cadr(c).template as<syntactic_continuation>().scope(),
                                   cddr(c)
@@ -686,7 +707,7 @@ inline namespace kernel
         }
       }
 
-      return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().identify() : f;
+      return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().identify_with_offset(scope) : f;
     }
 
     inline auto reset() -> void
