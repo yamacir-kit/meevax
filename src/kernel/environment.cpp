@@ -31,24 +31,6 @@ inline namespace kernel
     return (*this)[intern(name)];
   }
 
-  auto environment::apply(const_reference f, const_reference xs) -> object
-  {
-    auto dump = std::make_tuple(std::exchange(s, list(f, xs)),
-                                std::exchange(e, unit),
-                                std::exchange(c, list(make<instruction>(mnemonic::call),
-                                                      make<instruction>(mnemonic::stop))),
-                                std::exchange(d, unit));
-
-    let const result = execute();
-
-    s = std::get<0>(dump);
-    e = std::get<1>(dump);
-    c = std::get<2>(dump);
-    d = std::get<3>(dump);
-
-    return result;
-  }
-
   auto resolve_import_set(const_reference import_set) -> object
   {
     if (car(import_set).as<symbol>().value == "only")

@@ -26,6 +26,7 @@
 #include <meevax/kernel/option.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
+#include <meevax/kernel/syntactic_environment.hpp>
 
 namespace meevax
 {
@@ -38,6 +39,8 @@ inline namespace kernel
 
     machine()
     {}
+
+    IMPORT(environment, global, const);
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -89,7 +92,16 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        return mac_env.template as<environment>().apply(expression, list(form, use_env, mac_env));
+        auto expander = environment(mac_env.as<environment>().scope(),
+                                    mac_env.as<environment>().global());
+
+        expander.s = list(expression, list(form, use_env, mac_env));
+        expander.e = unit;
+        expander.c = list(make<instruction>(mnemonic::call),
+                          make<instruction>(mnemonic::stop));
+        expander.d = unit;
+
+        return expander.execute();
       }
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
@@ -216,7 +228,7 @@ inline namespace kernel
             return cons(id.as<identity>().make_load_instruction(), id,
                         current_continuation);
           }
-          else // The syntactic-closure encloses procedure call.
+          else
           {
             let mac_env_scope = current_expression.as<syntactic_closure>().syntactic_environment.template as<environment>().scope();
 
@@ -246,7 +258,8 @@ inline namespace kernel
 
         return compile(context::none,
                        current_environment,
-                       id.as<keyword>().load().as<transformer>().expand(current_expression, current_environment.fork(current_scope)),
+                       id.as<keyword>().load().as<transformer>().expand(current_expression,
+                                                                        current_environment.fork(current_scope)),
                        current_scope,
                        current_continuation);
       }

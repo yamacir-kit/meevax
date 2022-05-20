@@ -26,13 +26,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  class environment : public virtual pair
+  class environment : public syntactic_environment
                     , public configurator<environment>
                     , public machine     <environment>
                     , public reader      <environment>
                     , public writer      <environment>
   {
-    using pair::pair;
+    using syntactic_environment::syntactic_environment;
 
   public:
     using configurator::is_debug_mode;
@@ -55,18 +55,16 @@ inline namespace kernel
     {
       (import(xs), ...);
 
-      define<procedure>("set-batch!",       [this](let const& xs, auto&&...) { return batch       = car(xs); });
-      define<procedure>("set-debug!",       [this](let const& xs, auto&&...) { return debug       = car(xs); });
-      define<procedure>("set-interactive!", [this](let const& xs, auto&&...) { return interactive = car(xs); });
-      define<procedure>("set-trace!",       [this](let const& xs, auto&&...) { return trace       = car(xs); });
-      define<procedure>("set-verbose!",     [this](let const& xs, auto&&...) { return verbose     = car(xs); });
+      // define<procedure>("set-batch!",       [this](let const& xs, auto&&...) { return batch       = car(xs); });
+      // define<procedure>("set-debug!",       [this](let const& xs, auto&&...) { return debug       = car(xs); });
+      // define<procedure>("set-interactive!", [this](let const& xs, auto&&...) { return interactive = car(xs); });
+      // define<procedure>("set-trace!",       [this](let const& xs, auto&&...) { return trace       = car(xs); });
+      // define<procedure>("set-verbose!",     [this](let const& xs, auto&&...) { return verbose     = car(xs); });
     }
 
     auto operator [](const_reference) -> const_reference;
 
     auto operator [](std::string const&) -> const_reference;
-
-    auto apply(const_reference, const_reference) -> object;
 
     auto declare_import(const_reference) -> void;
 
@@ -92,11 +90,13 @@ inline namespace kernel
 
     auto execute(const_reference) -> object;
 
+    [[deprecated]]
     auto fork() const -> object
     {
       return make<environment>(*this);
     }
 
+    [[deprecated]]
     auto fork(const_reference scope) const // DIRTY HACK!!!
     {
       let const copy = make<environment>(*this);
