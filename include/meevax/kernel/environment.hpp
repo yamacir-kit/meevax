@@ -26,13 +26,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  class environment : public syntactic_environment
+  class environment : public machine     <environment>::syntactic_environment
                     , public configurator<environment>
                     , public machine     <environment>
                     , public reader      <environment>
                     , public writer      <environment>
   {
-    using syntactic_environment::syntactic_environment;
+    using machine<environment>::syntactic_environment::syntactic_environment;
 
   public:
     using configurator::is_debug_mode;

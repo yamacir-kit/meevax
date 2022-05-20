@@ -26,7 +26,6 @@
 #include <meevax/kernel/option.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
-#include <meevax/kernel/syntactic_environment.hpp>
 
 namespace meevax
 {
@@ -39,8 +38,6 @@ inline namespace kernel
 
     machine()
     {}
-
-    // IMPORT(environment, global, const);
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -160,6 +157,31 @@ inline namespace kernel
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
       {
         return os << magenta("#,(") << blue("make-syntactic-closure ") << datum.syntactic_environment << " " << magenta("'") << datum.free_variables << " " << magenta("'") << datum.expression << magenta(")");
+      }
+    };
+
+    struct syntactic_environment : public virtual pair
+    {
+      using pair::pair;
+
+      auto global() const noexcept -> const_reference
+      {
+        return second;
+      }
+
+      auto global() noexcept -> reference
+      {
+        return second;
+      }
+
+      auto scope() const noexcept -> const_reference
+      {
+        return first;
+      }
+
+      auto scope() noexcept -> reference
+      {
+        return first;
       }
     };
 
