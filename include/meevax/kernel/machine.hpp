@@ -218,10 +218,19 @@ inline namespace kernel
           }
           else // The syntactic-closure encloses procedure call.
           {
+            let mac_env_scope = current_expression.as<syntactic_closure>().syntactic_environment.template as<environment>().scope();
+
+            auto offset = length(current_scope) - length(mac_env_scope);
+
+            for (auto i = 0; i < offset; ++i)
+            {
+              mac_env_scope = cons(unit, mac_env_scope);
+            }
+
             return compile(current_context,
                            current_expression.as<syntactic_closure>().syntactic_environment.template as<environment>(),
                            current_expression.as<syntactic_closure>().expression,
-                           current_expression.as<syntactic_closure>().syntactic_environment.template as<environment>().scope(),
+                           mac_env_scope,
                            current_continuation);
           }
         }
