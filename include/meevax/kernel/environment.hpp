@@ -104,15 +104,7 @@ inline namespace kernel
       return copy;
     }
 
-    auto global() noexcept -> reference;
-
-    auto global() const noexcept -> const_reference;
-
     auto load(std::string const&) -> object;
-
-    auto scope() const noexcept -> const_reference;
-
-    auto scope() noexcept -> reference;
 
     auto identify(const_reference, const_reference) -> object;
 

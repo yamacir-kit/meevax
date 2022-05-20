@@ -40,7 +40,7 @@ inline namespace kernel
     machine()
     {}
 
-    IMPORT(environment, global, const);
+    // IMPORT(environment, global, const);
 
   protected:
     let s, // stack (holding intermediate results and return address)

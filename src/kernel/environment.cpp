@@ -150,16 +150,6 @@ inline namespace kernel
     return execute();
   }
 
-  auto environment::global() const noexcept -> const_reference
-  {
-    return second;
-  }
-
-  auto environment::global() noexcept -> reference
-  {
-    return second;
-  }
-
   auto environment::load(std::string const& s) -> object
   {
     if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
@@ -175,16 +165,6 @@ inline namespace kernel
     {
       throw file_error(make<string>("failed to open file: " + s));
     }
-  }
-
-  auto environment::scope() const noexcept -> const_reference
-  {
-    return first;
-  }
-
-  auto environment::scope() noexcept -> reference
-  {
-    return first;
   }
 
   auto environment::identify(const_reference variable, const_reference scope) const -> object
