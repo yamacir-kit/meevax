@@ -81,7 +81,7 @@ inline namespace kernel
     static auto allocate(Ts&&... xs)
     {
       #if PROFILE_ALLOCATION
-      current_profiler()[typeid(typename std::decay<Bound>::type)].allocation++;
+      current_profiler().by_type[typeid(typename std::decay<Bound>::type)].allocation++;
       #endif
 
       return static_cast<heterogeneous>(
