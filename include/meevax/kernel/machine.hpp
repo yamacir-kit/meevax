@@ -692,11 +692,11 @@ inline namespace kernel
       {
         for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
         {
-          if (inner.is<pair>() and (*inner).is<keyword>() and eq((*inner).as<keyword>().symbol(), variable))
+          if (inner.get().is<pair>() and (*inner).is<keyword>() and eq((*inner).as<keyword>().symbol(), variable))
           {
             return *inner;
           }
-          else if (inner.is<pair>() and eq(*inner, variable))
+          else if (inner.get().is<pair>() and eq(*inner, variable))
           {
             // NOTE: A class that inherits from pair behaves as if it were `cons*` when given three or more arguments.
             static_assert(std::is_base_of<pair, relative>::value);
@@ -705,7 +705,7 @@ inline namespace kernel
                                   make<exact_integer>(std::distance(std::begin(scope), outer)),
                                   make<exact_integer>(std::distance(std::begin(*outer), inner)));
           }
-          else if (inner.is<symbol>() and eq(inner, variable))
+          else if (inner.get().is<symbol>() and eq(inner, variable))
           {
             // NOTE: A class that inherits from pair behaves as if it were `cons*` when given three or more arguments.
             static_assert(std::is_base_of<pair, variadic>::value);
