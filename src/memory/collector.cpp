@@ -27,14 +27,14 @@ inline namespace memory
   {
     if (not reference_count++)
     {
-      objects = {};
-
-      regions = {};
-
-      allocation = 0;
-
-      // threshold = std::numeric_limits<std::size_t>::max();
-      threshold = 8_MiB;
+      // objects = {};
+      //
+      // regions = {};
+      //
+      // allocation = 0;
+      //
+      // // threshold = std::numeric_limits<std::size_t>::max();
+      // threshold = 8_MiB;
     }
   }
 
@@ -68,7 +68,7 @@ inline namespace memory
 
       allocation += size;
 
-      regions.insert(new region(data, size));
+      regions.insert(regions_.new_(data, size));
 
       return data;
     }
@@ -86,7 +86,7 @@ inline namespace memory
 
       if (auto region = *iter; region->assigned())
       {
-        delete region;
+        regions_.delete_(region);
         iter = regions.erase(iter);
       }
       else
@@ -194,7 +194,7 @@ inline namespace memory
       {
         if (region->assigned())
         {
-          delete region;
+          regions_.delete_(region);
           iter = regions.erase(iter);
           continue;
         }

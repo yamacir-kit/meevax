@@ -45,8 +45,6 @@ inline namespace memory
   class collector
   {
   public:
-    using is_always_equal = std::true_type;
-
     struct interior
     {
     protected:
@@ -82,19 +80,21 @@ inline namespace memory
   private:
     static inline std::mutex resource;
 
+    static inline simple_allocator<region> regions_ {};
+
     template <typename T>
     using fast_set = std::set<T, std::less<T>, simple_allocator<T>>;
 
-    static inline fast_set<region *> regions;
+    static inline fast_set<region *> regions {};
 
     template <typename T, typename U>
     using fast_map = std::map<T, U, std::less<T>, simple_allocator<std::pair<T, U>>>;
 
-    static inline fast_map<interior * const, region *> objects;
+    static inline fast_map<interior * const, region *> objects {};
 
-    static inline std::size_t allocation;
+    static inline std::size_t allocation = 0;
 
-    static inline std::size_t threshold;
+    static inline std::size_t threshold = 8_MiB;
 
   public:
     explicit collector();
