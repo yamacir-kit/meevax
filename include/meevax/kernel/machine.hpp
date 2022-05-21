@@ -24,7 +24,6 @@
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/instruction_level_procedure.hpp>
 #include <meevax/kernel/option.hpp>
-#include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
 
 namespace meevax
@@ -628,9 +627,10 @@ inline namespace kernel
         *  (x . s)  e (%return . c) (s' e' c' . d) => (x . s') e' c' d
         *
         * ------------------------------------------------------------------- */
-        s = cons(car(s), pop(d));
-        e = pop(d);
-        c = pop(d);
+        s = cons(car(s), car(d));
+        e = cadr(d);
+        c = caddr(d);
+        d = cdddr(d);
         goto decode;
 
       case mnemonic::cons: /* --------------------------------------------------
@@ -682,7 +682,13 @@ inline namespace kernel
         *  (x . s) e (%stop . c) d => s e (%stop . c) d
         *
         * ------------------------------------------------------------------- */
-        return pop(s); // return car(s);
+        return [this]()
+        {
+          assert(cdr(s).template is<null>());
+          let const x = car(s);
+          s = unit;
+          return x;
+        }();
       }
     }
 
