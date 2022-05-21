@@ -45,28 +45,28 @@ inline namespace memory
 
     auto assigned() const noexcept -> bool;
 
+    auto begin() const noexcept -> std::uintptr_t
+    {
+      return reinterpret_cast<std::uintptr_t>(base);
+    }
+
     auto contains(std::uintptr_t const) const noexcept -> bool;
 
     auto contains(void const* const) const noexcept -> bool;
 
-    auto lower_bound() const noexcept -> std::uintptr_t
+    auto end() const noexcept -> std::uintptr_t
     {
-      return reinterpret_cast<std::uintptr_t>(base);
+      return begin() + size;
     }
 
     auto release() -> void;
 
     auto reset(void const* const = nullptr, deallocator<void>::signature const = nullptr) noexcept -> region *;
-
-    auto upper_bound() const noexcept -> std::uintptr_t
-    {
-      return lower_bound() + size;
-    }
   };
 
   inline auto operator <(region const& x, region const& y)
   {
-    return x.upper_bound() < y.lower_bound();
+    return x.end() < y.begin();
   }
 } // namespace memory
 } // namespace meevax
