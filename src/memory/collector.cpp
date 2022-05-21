@@ -117,15 +117,9 @@ inline namespace memory
 
   auto collector::deallocate(void * const data, std::size_t const) -> void
   {
-    try
-    {
-      if (auto const iter = region_of(data); *iter)
-      {
-        regions.erase(iter);
-      }
-    }
-    catch (...)
-    {}
+    assert(*region_of(data));
+
+    regions.erase(region_of(data));
 
     ::operator delete(data);
   }
@@ -136,7 +130,9 @@ inline namespace memory
 
     for (auto&& [derived, region] : objects)
     {
-      if (region and not region->marked() and region_of(derived) == std::cend(regions))
+      assert(region); // NOTE: objects always hold a valid region pointer.
+
+      if (not region->marked() and region_of(derived) == std::cend(regions))
       {
         traverse(region);
       }
@@ -147,15 +143,17 @@ inline namespace memory
   {
     region dummy { interior, 0 };
 
-    auto invalid = std::cend(regions);
+    assert(interior);
 
-    if (auto iter = regions.lower_bound(std::addressof(dummy)); iter != invalid and (*iter)->contains(interior))
+    auto not_found = std::cend(regions);
+
+    if (auto iter = regions.lower_bound(std::addressof(dummy)); iter != not_found and (*iter)->contains(interior))
     {
       return iter;
     }
     else
     {
-      return invalid;
+      return not_found;
     }
   }
 
@@ -210,14 +208,14 @@ inline namespace memory
     }
   }
 
-  auto collector::traverse(region * const the_region) -> void
+  auto collector::traverse(region * const region) -> void
   {
-    if (the_region and not the_region->marked())
+    if (region and not region->marked())
     {
-      the_region->mark();
+      region->mark();
 
-      const auto lower = objects.lower_bound(reinterpret_cast<interior *>(the_region->begin()));
-      const auto upper = objects.lower_bound(reinterpret_cast<interior *>(the_region->end()));
+      const auto lower = objects.lower_bound(reinterpret_cast<interior *>(region->begin()));
+      const auto upper = objects.lower_bound(reinterpret_cast<interior *>(region->end()));
 
       for (auto iter = lower; iter != upper; ++iter)
       {
