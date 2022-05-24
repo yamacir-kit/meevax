@@ -45,8 +45,6 @@ inline namespace memory
   class collector
   {
   public:
-    using is_always_equal = std::true_type;
-
     struct interior
     {
     protected:
@@ -82,18 +80,17 @@ inline namespace memory
   private:
     static inline std::mutex resource;
 
-    static inline std::set<
-      region *,
-      std::less<region *>,
-      simple_allocator<region *>
-    > regions;
+    static inline simple_allocator<region> region_allocator {};
 
-    static inline std::map<
-      interior * const,
-      region *,
-      std::less<interior * const>,
-      simple_allocator<std::pair<interior * const, region *>>
-    > objects;
+    template <typename T>
+    using set = std::set<T, std::less<T>, simple_allocator<T>>;
+
+    static inline set<region *> regions;
+
+    template <typename T, typename U>
+    using map = std::map<T, U, std::less<T>, simple_allocator<std::pair<T, U>>>;
+
+    static inline map<interior * const, region *> objects;
 
     static inline std::size_t allocation;
 

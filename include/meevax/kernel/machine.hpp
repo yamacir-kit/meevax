@@ -24,7 +24,6 @@
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/instruction_level_procedure.hpp>
 #include <meevax/kernel/option.hpp>
-#include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
 
 namespace meevax
@@ -628,9 +627,10 @@ inline namespace kernel
         *  (x . s)  e (%return . c) (s' e' c' . d) => (x . s') e' c' d
         *
         * ------------------------------------------------------------------- */
-        s = cons(car(s), pop(d));
-        e = pop(d);
-        c = pop(d);
+        s = cons(car(s), car(d));
+        e = cadr(d);
+        c = caddr(d);
+        d = cdddr(d);
         goto decode;
 
       case mnemonic::cons: /* --------------------------------------------------
@@ -682,7 +682,13 @@ inline namespace kernel
         *  (x . s) e (%stop . c) d => s e (%stop . c) d
         *
         * ------------------------------------------------------------------- */
-        return pop(s); // return car(s);
+        return [this]()
+        {
+          assert(cdr(s).template is<null>());
+          let const x = car(s);
+          s = unit;
+          return x;
+        }();
       }
     }
 
@@ -692,11 +698,11 @@ inline namespace kernel
       {
         for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
         {
-          if (inner.is<pair>() and (*inner).is<keyword>() and eq((*inner).as<keyword>().symbol(), variable))
+          if (inner.get().is<pair>() and (*inner).is<keyword>() and eq((*inner).as<keyword>().symbol(), variable))
           {
             return *inner;
           }
-          else if (inner.is<pair>() and eq(*inner, variable))
+          else if (inner.get().is<pair>() and eq(*inner, variable))
           {
             // NOTE: A class that inherits from pair behaves as if it were `cons*` when given three or more arguments.
             static_assert(std::is_base_of<pair, relative>::value);
@@ -705,7 +711,7 @@ inline namespace kernel
                                   make<exact_integer>(std::distance(std::begin(scope), outer)),
                                   make<exact_integer>(std::distance(std::begin(*outer), inner)));
           }
-          else if (inner.is<symbol>() and eq(inner, variable))
+          else if (inner.get().is<symbol>() and eq(inner, variable))
           {
             // NOTE: A class that inherits from pair behaves as if it were `cons*` when given three or more arguments.
             static_assert(std::is_base_of<pair, variadic>::value);

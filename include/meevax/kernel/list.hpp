@@ -30,11 +30,13 @@ inline namespace kernel
 {
   auto unwrap = [](auto&& x) -> decltype(auto)
   {
-    static_assert(std::is_convertible<iterator, object>::value);
-
     using type = typename std::decay<decltype(x)>::type;
 
-    if constexpr (std::is_convertible<type, object>::value)
+    if constexpr (std::is_same<type, iterator>::value)
+    {
+      return x.get().template as<pair>();
+    }
+    else if constexpr (std::is_same<type, object>::value)
     {
       return x.template as<pair>();
     }
@@ -166,7 +168,7 @@ inline namespace kernel
   };
 
   template <typename T>
-  auto list_tail(T&& x, std::size_t const k) -> T
+  auto list_tail(T&& x, std::size_t const k) -> decltype(x)
   {
     return 0 < k ? list_tail(cdr(x), k - 1) : x;
   }

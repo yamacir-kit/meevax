@@ -32,8 +32,7 @@ inline namespace kernel
 
   auto iterator::operator ++() -> iterator &
   {
-    static_cast<object &>(*this) = cdr(*this);
-    return *this;
+    return *this = cdr(*this);
   }
 
   auto iterator::operator ++(int) -> iterator

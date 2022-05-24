@@ -14,11 +14,7 @@
    limitations under the License.
 */
 
-#include <algorithm>
-#include <iomanip>
-#include <iostream>
-#include <numeric>
-#include <vector>
+#include <fstream>
 
 #include <meevax/kernel/profiler.hpp>
 #include <meevax/utility/demangle.hpp>
@@ -27,61 +23,29 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct column : public topic
+  auto sh(std::string const& command)
   {
-    std::string name;
-
-    template <typename... Ts>
-    explicit column(std::type_index const& id, Ts&&... xs)
-      : topic { std::forward<decltype(xs)>(xs)... }
-      , name  { demangle(id.name()) }
-    {}
-  };
+    if (auto status = std::system(command.c_str()); status < 0)
+    {
+      std::exit(EXIT_FAILURE);
+    }
+    else
+    {
+      return WIFEXITED(status);
+    }
+  }
 
   profiler::~profiler()
   {
-    auto make_table = [this]()
+    if (auto file = std::ofstream("/tmp/meevax-profile-by-type.txt"); file)
     {
-      std::vector<column> result;
-
-      for (auto const& [key, value] : *this)
+      for (auto&& [type, topic] : by_type)
       {
-        result.emplace_back(key, value);
+        file << topic.allocation << " " << demangle(type.name()) << "\n";
       }
-
-      return result;
-    };
-
-    auto table = make_table();
-
-    std::sort(std::begin(table), std::end(table), [](auto&& a, auto&& b)
-    {
-      return a.allocation > b.allocation;
-    });
-
-    std::vector<std::size_t> column_width;
-
-    column_width.push_back(std::max_element(std::begin(table), std::end(table), [](auto&& a, auto&& b) { return a.name.length() < b.name.length(); })->name.length());
-    column_width.push_back(12);
-
-    std::cout << std::string(80, '-') << "\n"
-              << std::left  << std::setw(column_width[0]) << "Typename"
-              << std::right << std::setw(column_width[1]) << "Allocations"
-              << "\n"
-              << std::string(80, '-') << "\n";
-
-    for (auto const& each : table)
-    {
-      std::cout << std::left  << std::setw(column_width[0]) << each.name
-                << std::right << std::setw(column_width[1]) << each.allocation
-                << std::endl;
     }
 
-    std::cout << std::string(80, '-') << "\n"
-              << std::left  << std::setw(column_width[0]) << "Total"
-              << std::right << std::setw(column_width[1]) << std::accumulate(std::begin(table), std::end(table), 0, [](auto&& a, auto&& b) { return a + b.allocation; })
-              << "\n"
-              << std::string(80, '-') << "\n";
+    sh("cat /tmp/meevax-profile-by-type.txt | sed 's/meevax::kernel:://g' | sort -rn | column -t");
   }
 
   auto current_profiler() -> profiler &
