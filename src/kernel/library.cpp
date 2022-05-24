@@ -688,7 +688,7 @@ inline namespace kernel
 
   library::library(exception_library_t)
   {
-    define<procedure>("default-exception-handler", [](let const& xs) -> object
+    define<procedure>("throw", [](let const& xs) -> object
     {
       throw car(xs);
     });
@@ -698,12 +698,27 @@ inline namespace kernel
       return make<error>(car(xs), cdr(xs));
     });
 
-    define<predicate>(       "error?", [](let const& xs) { return car(xs).is<       error>(); });
-    define<predicate>(  "read-error?", [](let const& xs) { return car(xs).is<  read_error>(); });
-    define<predicate>(  "file-error?", [](let const& xs) { return car(xs).is<  file_error>(); });
-    define<predicate>("syntax-error?", [](let const& xs) { return car(xs).is<syntax_error>(); });
+    define<predicate>("error?", [](let const& xs)
+    {
+      return car(xs).is<error>();
+    });
 
-    declare_export("default-exception-handler",
+    define<predicate>("read-error?", [](let const& xs)
+    {
+      return car(xs).is<read_error>();
+    });
+
+    define<predicate>("file-error?", [](let const& xs)
+    {
+      return car(xs).is<file_error>();
+    });
+
+    define<predicate>("syntax-error?", [](let const& xs)
+    {
+      return car(xs).is<syntax_error>();
+    });
+
+    declare_export("throw",
                    "make-error",
                    "error?",
                    "read-error?",
