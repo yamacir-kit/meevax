@@ -109,7 +109,7 @@ inline namespace memory
     return before - count();
   }
 
-  auto collector::count() const noexcept -> std::size_t
+  auto collector::count() noexcept -> std::size_t
   {
     return std::size(regions);
   }

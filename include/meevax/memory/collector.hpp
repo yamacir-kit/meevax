@@ -109,27 +109,27 @@ inline namespace memory
 
     auto operator =(collector const&) -> collector & = delete;
 
-    auto allocate(std::size_t const) -> void *;
+    static auto allocate(std::size_t const) -> void *;
 
-    auto clear() -> void;
+    static auto clear() -> void;
 
-    auto collect() -> std::size_t;
+    static auto collect() -> std::size_t;
 
-    auto count() const noexcept -> std::size_t;
+    static auto count() noexcept -> std::size_t;
 
-    auto deallocate(void * const, std::size_t const = 0) -> void;
+    static auto deallocate(void * const, std::size_t const = 0) -> void;
 
-    auto mark() -> void;
+    static auto mark() -> void;
 
     static auto region_of(void const* const) -> decltype(regions)::iterator;
 
     static auto reset(void * const, deallocator<void>::signature const) -> region *;
 
-    auto reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max()) -> void;
+    static auto reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max()) -> void;
 
-    auto sweep() -> void;
+    static auto sweep() -> void;
 
-    auto traverse(region * const) -> void;
+    static auto traverse(region * const) -> void;
   } static gc;
 } // namespace memory
 } // namespace meevax
