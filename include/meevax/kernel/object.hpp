@@ -65,7 +65,7 @@ inline namespace kernel
   template <typename T>
   constexpr auto make(T&& x)
   {
-    return let::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
+    return xvalue::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
 } // namespace kernel
 } // namespace meevax

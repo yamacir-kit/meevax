@@ -197,7 +197,7 @@ inline namespace kernel
       };
     }
 
-    auto integer = [](std::string const& token, auto radix = 10)
+    auto integer = [](std::string const& token, auto radix = 10) -> object
     {
       auto const result = exact_integer(token, radix);
       return make(result);
@@ -208,7 +208,7 @@ inline namespace kernel
       return meevax::ratio(token, radix).simple();
     };
 
-    auto decimal = [](std::string const& token, auto)
+    auto decimal = [](std::string const& token, auto) -> object
     {
       auto const result = double_float(token);
       return make(result);

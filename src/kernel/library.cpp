@@ -836,7 +836,7 @@ inline namespace kernel
       }
     });
 
-    define<procedure>("%peek-char", [](let const& xs)
+    define<procedure>("%peek-char", [](let const& xs) -> object
     {
       try
       {
@@ -952,7 +952,7 @@ inline namespace kernel
 
   library::library(read_library_t)
   {
-    define<procedure>("%read", [this](let const& xs)
+    define<procedure>("%read", [this](let const& xs) -> object
     {
       try
       {
