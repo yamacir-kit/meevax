@@ -404,7 +404,7 @@ inline namespace kernel
       }
     });
 
-    define<procedure>("char-codepoint", [](let const& xs)
+    define<procedure>("char-codepoint", [](let const& xs) -> object
     {
       if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
       {
@@ -820,7 +820,7 @@ inline namespace kernel
       return make<string>(car(xs).as<std::ostringstream>().str());
     });
 
-    define<procedure>("%read-char", [](let const& xs)
+    define<procedure>("%read-char", [](let const& xs) -> object
     {
       try
       {

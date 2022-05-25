@@ -117,12 +117,12 @@ inline namespace kernel
         , identity { syntactic_environment.as<environment>().identify(expression, syntactic_environment.as<environment>().scope()) }
       {}
 
-      auto identify_with_offset(const_reference use_env_scope)
+      auto identify_with_offset(const_reference use_env_scope) -> object
       {
         if (identity.is<relative>())
         {
           let const& mac_env_scope = syntactic_environment.as<environment>().scope();
-          auto offset = make<exact_integer>(length(use_env_scope) - length(mac_env_scope));
+          let offset = make<exact_integer>(length(use_env_scope) - length(mac_env_scope));
           return make<relative>(car(identity),
                                 cadr(identity).template as<exact_integer>() + offset,
                                 cddr(identity));
@@ -130,7 +130,7 @@ inline namespace kernel
         else if (identity.is<variadic>())
         {
           let const& mac_env_scope = syntactic_environment.as<environment>().scope();
-          auto offset = make<exact_integer>(length(use_env_scope) - length(mac_env_scope));
+          let offset = make<exact_integer>(length(use_env_scope) - length(mac_env_scope));
           return make<variadic>(car(identity),
                                 cadr(identity).template as<exact_integer>() + offset,
                                 cddr(identity));
@@ -775,7 +775,7 @@ inline namespace kernel
         return false;
       };
 
-      auto sweep = [&](auto const& form)
+      auto sweep = [&](const_reference form)
       {
         let binding_specs = unit;
 
@@ -796,11 +796,11 @@ inline namespace kernel
           }
           else
           {
-            return std::make_pair(reverse(binding_specs), iter);
+            return std::make_pair(reverse(binding_specs), iter.get());
           }
         }
 
-        return std::make_pair(reverse(binding_specs), std::end(form));
+        return std::make_pair(reverse(binding_specs), unit);
       };
 
       /*
@@ -829,7 +829,12 @@ inline namespace kernel
                        current_environment,
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs),
-                                 append2(map(curry(cons)(make<syntax>("set!", set)), binding_specs), body)),
+                                 append2(map([](const_reference binding_spec)
+                                             {
+                                               return cons(make<syntax>("set!", set), binding_spec);
+                                             },
+                                             binding_specs),
+                                         body)),
                             make_list(length(binding_specs), undefined)),
                        current_scope,
                        current_continuation);

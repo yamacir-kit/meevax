@@ -26,13 +26,13 @@ inline namespace kernel
   template <typename T>
   struct top
   {
-    virtual auto compare(heterogeneous<gc_pointer, T> const& x) const -> bool
+    virtual auto compare(T const* p) const -> bool
     {
       if constexpr (is_equality_comparable<T>::value)
       {
-        if (auto const* address = dynamic_cast<T const*>(x.get()); address)
+        if (p)
         {
-          return *address == static_cast<T const&>(*this);
+          return *p == static_cast<T const&>(*this);
         }
         else
         {
@@ -59,7 +59,7 @@ inline namespace kernel
   template <typename T, typename... Ts>
   constexpr auto make(Ts&&... xs)
   {
-    return let::allocate<T>(std::forward<decltype(xs)>(xs)...); // NOTE: This leaks memory if exception thrown from T's constructor.
+    return xvalue::allocate<T>(std::forward<decltype(xs)>(xs)...); // NOTE: This leaks memory if exception thrown from T's constructor.
   }
 
   template <typename T>

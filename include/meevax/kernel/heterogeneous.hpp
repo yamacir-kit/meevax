@@ -43,13 +43,13 @@ inline namespace kernel
 
       ~binder() override = default;
 
-      auto compare(heterogeneous const& x) const -> bool override
+      auto compare([[maybe_unused]] Top const* top) const -> bool override
       {
         if constexpr (is_equality_comparable<Bound>::value)
         {
-          if (auto const* address = dynamic_cast<Bound const*>(x.get()); address)
+          if (auto const* bound = dynamic_cast<Bound const*>(top); bound)
           {
-            return *address == static_cast<Bound const&>(*this);
+            return *bound == static_cast<Bound const&>(*this);
           }
           else
           {
@@ -76,6 +76,11 @@ inline namespace kernel
   public:
     using Pointer<Top>::Pointer;
     using Pointer<Top>::get;
+
+    template <template <typename...> typename AnotherPointer>
+    heterogeneous(AnotherPointer<Top> && p)
+      : Pointer<Top> { p.release() }
+    {}
 
     template <typename Bound, typename... Ts, REQUIRES(std::is_compound<Bound>)>
     static auto allocate(Ts&&... xs)
@@ -112,7 +117,7 @@ inline namespace kernel
 
     inline auto compare(heterogeneous const& rhs) const -> bool
     {
-      return type() == rhs.type() and get()->compare(rhs);
+      return type() == rhs.type() and get()->compare(rhs.get());
     }
 
     template <typename U>
