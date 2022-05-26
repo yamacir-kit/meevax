@@ -187,11 +187,11 @@ inline namespace kernel
   template <typename T> auto operator > (ratio const& a, floating_point<T> const& b) -> bool { return a.inexact().as<double_float>() >  b; }
   template <typename T> auto operator >=(ratio const& a, floating_point<T> const& b) -> bool { return a.inexact().as<double_float>() >= b; }
 
-  template <typename T> auto floating_point<T>::operator * (const_reference x) const -> object { return apply(mul, *this, x); }
-  template <typename T> auto floating_point<T>::operator + (const_reference x) const -> object { return apply(add, *this, x); }
-  template <typename T> auto floating_point<T>::operator - (const_reference x) const -> object { return apply(sub, *this, x); }
-  template <typename T> auto floating_point<T>::operator / (const_reference x) const -> object { return apply(div, *this, x); }
-  template <typename T> auto floating_point<T>::operator % (const_reference x) const -> object { return apply(mod, *this, x); }
+  template <typename T> auto floating_point<T>::operator * (const_reference x) const -> lvalue { return apply(mul, *this, x); }
+  template <typename T> auto floating_point<T>::operator + (const_reference x) const -> lvalue { return apply(add, *this, x); }
+  template <typename T> auto floating_point<T>::operator - (const_reference x) const -> lvalue { return apply(sub, *this, x); }
+  template <typename T> auto floating_point<T>::operator / (const_reference x) const -> lvalue { return apply(div, *this, x); }
+  template <typename T> auto floating_point<T>::operator % (const_reference x) const -> lvalue { return apply(mod, *this, x); }
   template <typename T> auto floating_point<T>::operator !=(const_reference x) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, x); }
   template <typename T> auto floating_point<T>::operator < (const_reference x) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, x); }
   template <typename T> auto floating_point<T>::operator <=(const_reference x) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, x); }

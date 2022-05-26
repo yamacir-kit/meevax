@@ -60,12 +60,12 @@ inline namespace kernel
     return second;
   }
 
-  auto absolute::make_load_instruction() const -> object
+  auto absolute::make_load_instruction() const -> lvalue
   {
     return make<instruction>(mnemonic::load_absolute);
   }
 
-  auto absolute::make_store_instruction() const -> object
+  auto absolute::make_store_instruction() const -> lvalue
   {
     return make<instruction>(mnemonic::store_absolute);
   }
@@ -85,12 +85,12 @@ inline namespace kernel
     return list_ref(list_ref(e, car(second)), cdr(second));
   }
 
-  auto relative::make_load_instruction() const -> object
+  auto relative::make_load_instruction() const -> lvalue
   {
     return make<instruction>(mnemonic::load_relative);
   }
 
-  auto relative::make_store_instruction() const -> object
+  auto relative::make_store_instruction() const -> lvalue
   {
     return make<instruction>(mnemonic::store_relative);
   }
@@ -105,12 +105,12 @@ inline namespace kernel
     return list_tail(list_ref(e, car(second)), cdr(second));
   }
 
-  auto variadic::make_load_instruction() const -> object
+  auto variadic::make_load_instruction() const -> lvalue
   {
     return make<instruction>(mnemonic::load_variadic);
   }
 
-  auto variadic::make_store_instruction() const -> object
+  auto variadic::make_store_instruction() const -> lvalue
   {
     return make<instruction>(mnemonic::store_variadic);
   }

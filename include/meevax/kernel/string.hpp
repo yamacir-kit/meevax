@@ -45,9 +45,9 @@ inline namespace kernel
       : string { cat(std::forward<decltype(xs)>(xs)...) }
     {}
 
-    auto list(size_type, size_type) const -> object;
+    auto list(size_type, size_type) const -> lvalue;
 
-    auto list(size_type = 0) const -> object;
+    auto list(size_type = 0) const -> lvalue;
 
     operator std::string() const; // write-string (for display)
   };

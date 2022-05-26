@@ -117,7 +117,7 @@ inline namespace kernel
         , identity { syntactic_environment.as<environment>().identify(expression, syntactic_environment.as<environment>().scope()) }
       {}
 
-      auto identify_with_offset(const_reference use_env_scope) -> object
+      auto identify_with_offset(const_reference use_env_scope) -> lvalue
       {
         if (identity.is<relative>())
         {
@@ -179,7 +179,7 @@ inline namespace kernel
       environment & current_environment,
       const_reference current_expression,
       const_reference current_scope = unit,
-      const_reference current_continuation = list(make<instruction>(mnemonic::stop))) -> object
+      const_reference current_continuation = list(make<instruction>(mnemonic::stop))) -> lvalue
     {
       if (current_expression.is<null>()) /* ------------------------------------
       *
@@ -319,7 +319,7 @@ inline namespace kernel
     }
 
     template <auto Option = option::none>
-    inline auto execute() -> object
+    inline auto execute() -> lvalue
     {
     decode:
       if constexpr (Option & option::trace)
@@ -692,7 +692,7 @@ inline namespace kernel
       }
     }
 
-    static auto identify(const_reference variable, const_reference scope) -> object
+    static auto identify(const_reference variable, const_reference scope) -> lvalue
     {
       for (auto outer = std::begin(scope); outer != std::end(scope); ++outer)
       {

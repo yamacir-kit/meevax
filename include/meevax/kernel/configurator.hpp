@@ -66,7 +66,7 @@ inline namespace kernel
             return debug = t;
           }),
 
-          std::make_pair('h', [this](auto&&...) -> object
+          std::make_pair('h', [this](auto&&...) -> lvalue
           {
             display_help();
             throw exit_status::success;
@@ -77,7 +77,7 @@ inline namespace kernel
             return interactive = t;
           }),
 
-          std::make_pair('v', [this](auto&&...) -> object
+          std::make_pair('v', [this](auto&&...) -> lvalue
           {
             display_version();
             throw exit_status::success;
@@ -114,7 +114,7 @@ inline namespace kernel
             return debug = t;
           }),
 
-          std::make_pair("help", [this](auto&&...) -> object
+          std::make_pair("help", [this](auto&&...) -> lvalue
           {
             display_help();
             throw exit_status::success;
@@ -135,7 +135,7 @@ inline namespace kernel
             return verbose = t;
           }),
 
-          std::make_pair("version", [this](auto&&...) -> object
+          std::make_pair("version", [this](auto&&...) -> lvalue
           {
             display_version();
             throw exit_status::success;

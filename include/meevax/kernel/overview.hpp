@@ -47,8 +47,9 @@ inline namespace kernel
 
   using xvalue = heterogeneous<std::unique_ptr, pair>; // expiring value
 
-  using                         object = heterogeneous<gc_pointer, pair>;
-  using                   let = object;
+  using lvalue = heterogeneous<gc_pointer, pair>;
+
+  using                   let = lvalue;
   using       reference = let &;
   using const_reference = let const&;
 
@@ -56,7 +57,7 @@ inline namespace kernel
 
   struct number
   {
-    #define DEFINE(NAME) virtual auto NAME() const -> object = 0
+    #define DEFINE(NAME) virtual auto NAME() const -> lvalue = 0
 
     DEFINE(exact); DEFINE(inexact);
 
@@ -68,8 +69,8 @@ inline namespace kernel
 
     #undef DEFINE
 
-    virtual auto atan2(const_reference) const -> object = 0;
-    virtual auto pow  (const_reference) const -> object = 0;
+    virtual auto atan2(const_reference) const -> lvalue = 0;
+    virtual auto pow  (const_reference) const -> lvalue = 0;
 
     virtual auto is_complex () const -> bool { return true ; }
     virtual auto is_real    () const -> bool { return false; }
@@ -80,11 +81,11 @@ inline namespace kernel
     virtual auto is_infinite() const -> bool { return false; }
     virtual auto is_nan     () const -> bool { return false; }
 
-    virtual auto operator + (const_reference) const -> object = 0;
-    virtual auto operator - (const_reference) const -> object = 0;
-    virtual auto operator * (const_reference) const -> object = 0;
-    virtual auto operator / (const_reference) const -> object = 0;
-    virtual auto operator % (const_reference) const -> object = 0;
+    virtual auto operator + (const_reference) const -> lvalue = 0;
+    virtual auto operator - (const_reference) const -> lvalue = 0;
+    virtual auto operator * (const_reference) const -> lvalue = 0;
+    virtual auto operator / (const_reference) const -> lvalue = 0;
+    virtual auto operator % (const_reference) const -> lvalue = 0;
 
     virtual auto operator ==(const_reference) const -> bool = 0;
     virtual auto operator !=(const_reference) const -> bool = 0;

@@ -24,7 +24,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  #define PROCEDURE(...) meevax::object __VA_ARGS__(meevax::const_reference xs)
+  #define PROCEDURE(...) meevax::lvalue __VA_ARGS__(meevax::const_reference xs)
 
   struct procedure : public description
   {

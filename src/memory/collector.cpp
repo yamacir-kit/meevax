@@ -52,7 +52,6 @@ inline namespace memory
       collect(); // XXX: vector elements
 
       assert(std::size(objects) == 0);
-      assert(std::size(regions) == 0);
     }
   }
 

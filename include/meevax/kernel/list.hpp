@@ -36,7 +36,7 @@ inline namespace kernel
     {
       return x.get().template as<pair>();
     }
-    else if constexpr (std::is_same<type, object>::value)
+    else if constexpr (std::is_same<type, lvalue>::value)
     {
       return x.template as<pair>();
     }
@@ -56,8 +56,8 @@ inline namespace kernel
     return std::get<1>(unwrap(std::forward<decltype(x)>(x)));
   };
 
-  template <typename T, typename U, REQUIRES(std::is_convertible<T, object>,
-                                             std::is_convertible<U, object>)>
+  template <typename T, typename U, REQUIRES(std::is_convertible<T, lvalue>,
+                                             std::is_convertible<U, lvalue>)>
   auto operator |(T&& x, U&& y) -> decltype(auto)
   {
     return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
@@ -104,7 +104,7 @@ inline namespace kernel
 
   auto list_copy = [](auto const& x)
   {
-    auto copy = [](auto&& rec, const_reference x) -> object
+    auto copy = [](auto&& rec, const_reference x) -> lvalue
     {
       if (x.is<pair>())
       {
@@ -192,25 +192,25 @@ inline namespace kernel
     return car(list_tail(std::forward<decltype(xs)>(xs)...));
   };
 
-  auto take(const_reference, std::size_t) -> object;
+  auto take(const_reference, std::size_t) -> lvalue;
 
   auto length = [](auto const& x) constexpr
   {
     return std::distance(std::cbegin(x), std::cend(x));
   };
 
-  auto append2(const_reference, const_reference) -> object;
+  auto append2(const_reference, const_reference) -> lvalue;
 
-  auto reverse(const_reference) -> object;
+  auto reverse(const_reference) -> lvalue;
 
-  auto zip(const_reference, const_reference) -> object;
+  auto zip(const_reference, const_reference) -> lvalue;
 
-  auto unzip1(const_reference xs) -> object;
+  auto unzip1(const_reference xs) -> lvalue;
 
-  auto unzip2(const_reference xs) -> std::tuple<object, object>;
+  auto unzip2(const_reference xs) -> std::tuple<lvalue, lvalue>;
 
   template <typename Function>
-  auto map(Function&& function, const_reference x) -> object
+  auto map(Function&& function, const_reference x) -> lvalue
   {
     return x.is<null>() ? unit : cons(function(car(x)), map(function, cdr(x)));
   }
