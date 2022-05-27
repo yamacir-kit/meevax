@@ -33,25 +33,24 @@ namespace meevax
 {
 inline namespace memory
 {
-  /* ---- Acknowledgement ------------------------------------------------------
-   *
-   *  This mark-and-sweep garbage collector is based on the implementation of
-   *  gc_ptr written by William E. Kempf and posted to CodeProject.
-   *
-   *  - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
-   *  - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
-   *
-   * ------------------------------------------------------------------------ */
-  class collector
+  class collector /* -----------------------------------------------------------
+  *
+  *  This mark-and-sweep garbage collector is based on the implementation of
+  *  gc_ptr written by William E. Kempf and posted to CodeProject.
+  *
+  *  - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
+  *  - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
+  *
+  * ------------------------------------------------------------------------- */
   {
   public:
-    struct interior
+    struct collectable
     {
     protected:
-      explicit constexpr interior() = default;
+      explicit constexpr collectable() = default;
 
       template <typename Pointer>
-      explicit interior(Pointer const p)
+      explicit collectable(Pointer const p)
       {
         if (p)
         {
@@ -60,7 +59,7 @@ inline namespace memory
         }
       }
 
-      ~interior()
+      ~collectable()
       {
         auto const lock = std::unique_lock(resource);
         objects.erase(this);
@@ -90,7 +89,7 @@ inline namespace memory
     template <typename T, typename U>
     using map = std::map<T, U, std::less<T>, simple_allocator<std::pair<T, U>>>;
 
-    static inline map<interior * const, region *> objects;
+    static inline map<collectable * const, region *> objects;
 
     static inline std::size_t allocation;
 

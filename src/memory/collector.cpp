@@ -137,15 +137,15 @@ inline namespace memory
     }
   }
 
-  auto collector::region_of(void const* const interior) -> decltype(collector::regions)::iterator
+  auto collector::region_of(void const* const p) -> decltype(collector::regions)::iterator
   {
-    region dummy { interior, 0 };
+    region dummy { p, 0 };
 
-    assert(interior);
+    assert(p);
 
     auto not_found = std::cend(regions);
 
-    if (auto iter = regions.lower_bound(std::addressof(dummy)); iter != not_found and (*iter)->contains(interior))
+    if (auto iter = regions.lower_bound(std::addressof(dummy)); iter != not_found and (*iter)->contains(p))
     {
       return iter;
     }
@@ -212,8 +212,8 @@ inline namespace memory
     {
       region->mark();
 
-      const auto lower = objects.lower_bound(reinterpret_cast<interior *>(region->begin()));
-      const auto upper = objects.lower_bound(reinterpret_cast<interior *>(region->end()));
+      const auto lower = objects.lower_bound(reinterpret_cast<collectable *>(region->begin()));
+      const auto upper = objects.lower_bound(reinterpret_cast<collectable *>(region->end()));
 
       for (auto iter = lower; iter != upper; ++iter)
       {
