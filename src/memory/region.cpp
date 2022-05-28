@@ -53,7 +53,6 @@ inline namespace memory
     if (assigned())
     {
       deallocate(derived);
-      reset();
     }
   }
 

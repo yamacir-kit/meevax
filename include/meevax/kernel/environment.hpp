@@ -66,7 +66,7 @@ inline namespace kernel
 
     auto operator [](std::string const&) -> const_reference;
 
-    auto apply(const_reference, const_reference) -> object;
+    auto apply(const_reference, const_reference) -> lvalue;
 
     auto declare_import(const_reference) -> void;
 
@@ -86,13 +86,13 @@ inline namespace kernel
       define(name, make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
-    auto evaluate(const_reference) -> object;
+    auto evaluate(const_reference) -> lvalue;
 
-    auto execute() -> object;
+    auto execute() -> lvalue;
 
-    auto execute(const_reference) -> object;
+    auto execute(const_reference) -> lvalue;
 
-    auto fork() const -> object
+    auto fork() const -> lvalue
     {
       return make<environment>(*this);
     }
@@ -108,15 +108,15 @@ inline namespace kernel
 
     auto global() const noexcept -> const_reference;
 
-    auto load(std::string const&) -> object;
+    auto load(std::string const&) -> lvalue;
 
     auto scope() const noexcept -> const_reference;
 
     auto scope() noexcept -> reference;
 
-    auto identify(const_reference, const_reference) -> object;
+    auto identify(const_reference, const_reference) -> lvalue;
 
-    auto identify(const_reference, const_reference) const -> object;
+    auto identify(const_reference, const_reference) const -> lvalue;
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;

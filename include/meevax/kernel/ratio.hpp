@@ -32,9 +32,9 @@ inline namespace kernel
 
     explicit ratio(std::string const&, int = 0);
 
-    auto exact() const -> object override;
+    auto exact() const -> lvalue override;
 
-    auto inexact() const -> object override;
+    auto inexact() const -> lvalue override;
 
     auto denominator() const -> const_reference;
 
@@ -56,9 +56,9 @@ inline namespace kernel
 
     auto reduce() const -> ratio;
 
-    auto simple() const -> object;
+    auto simple() const -> lvalue;
 
-    #define DEFINE(NAME) auto NAME() const -> object override
+    #define DEFINE(NAME) auto NAME() const -> lvalue override
 
     DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
     DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
@@ -71,18 +71,18 @@ inline namespace kernel
 
     #undef DEFINE
 
-    #define DEFINE(NAME) auto NAME(const_reference) const -> object override
+    #define DEFINE(NAME) auto NAME(const_reference) const -> lvalue override
 
     DEFINE(atan2);
     DEFINE(pow);
 
     #undef DEFINE
 
-    auto operator + (const_reference) const -> object override;
-    auto operator - (const_reference) const -> object override;
-    auto operator * (const_reference) const -> object override;
-    auto operator / (const_reference) const -> object override;
-    auto operator % (const_reference) const -> object override;
+    auto operator + (const_reference) const -> lvalue override;
+    auto operator - (const_reference) const -> lvalue override;
+    auto operator * (const_reference) const -> lvalue override;
+    auto operator / (const_reference) const -> lvalue override;
+    auto operator % (const_reference) const -> lvalue override;
 
     auto operator ==(const_reference) const -> bool override;
     auto operator !=(const_reference) const -> bool override;

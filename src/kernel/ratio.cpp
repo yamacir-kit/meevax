@@ -54,7 +54,7 @@ inline namespace kernel
     }
   }
 
-  auto ratio::exact() const -> object
+  auto ratio::exact() const -> lvalue
   {
     return simple();
   }
@@ -69,7 +69,7 @@ inline namespace kernel
     return second;
   }
 
-  auto ratio::inexact() const -> object
+  auto ratio::inexact() const -> lvalue
   {
     return make<double_float>(numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>());
   }
@@ -106,7 +106,7 @@ inline namespace kernel
     }
   }
 
-  auto ratio::simple() const -> object
+  auto ratio::simple() const -> lvalue
   {
     if (auto x = reduce(); x.is_integer())
     {
@@ -119,7 +119,7 @@ inline namespace kernel
   }
 
   #define DEFINE(NAME)                                                         \
-  auto ratio::NAME() const -> object                                           \
+  auto ratio::NAME() const -> lvalue                                           \
   {                                                                            \
     if (const double_float x {                                                 \
           std::NAME(numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>()) \
@@ -146,7 +146,7 @@ inline namespace kernel
   #undef DEFINE
 
   #define DEFINE(NAME)                                                         \
-  auto ratio::NAME(const_reference x) const -> object                          \
+  auto ratio::NAME(const_reference x) const -> lvalue                          \
   {                                                                            \
     if (const double_float n {                                                 \
           std::NAME(numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>(), \

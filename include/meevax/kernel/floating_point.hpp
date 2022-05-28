@@ -47,7 +47,7 @@ inline namespace kernel
       throw read_error(make<string>("not a decimal"), make<string>(token));
     }
 
-    auto exact() const -> object override
+    auto exact() const -> lvalue override
     {
       /* ---- R7RS 6.2.6 (exact z) ---------------------------------------------
        *
@@ -103,13 +103,13 @@ inline namespace kernel
       return lexical_cast<std::string>(value);
     }
 
-    auto inexact() const -> object override
+    auto inexact() const -> lvalue override
     {
       return make(floating_point<double>(value));
     }
 
     #define DEFINE(NAME)                                                       \
-    auto NAME() const -> object override                                       \
+    auto NAME() const -> lvalue override                                       \
     {                                                                          \
       return make(floating_point(std::NAME(value)));                           \
     }                                                                          \
@@ -127,7 +127,7 @@ inline namespace kernel
     #undef DEFINE
 
     #define DEFINE(NAME)                                                       \
-    auto NAME(const_reference x) const -> object override                      \
+    auto NAME(const_reference x) const -> lvalue override                      \
     {                                                                          \
       return make(floating_point(std::NAME(value, x.as<number>().inexact().as<double_float>()))); \
     }                                                                          \
@@ -141,11 +141,11 @@ inline namespace kernel
     constexpr operator value_type() const noexcept { return value; }
     constexpr operator value_type()       noexcept { return value; }
 
-    auto operator + (const_reference) const -> object override;
-    auto operator - (const_reference) const -> object override;
-    auto operator * (const_reference) const -> object override;
-    auto operator / (const_reference) const -> object override;
-    auto operator % (const_reference) const -> object override;
+    auto operator + (const_reference) const -> lvalue override;
+    auto operator - (const_reference) const -> lvalue override;
+    auto operator * (const_reference) const -> lvalue override;
+    auto operator / (const_reference) const -> lvalue override;
+    auto operator % (const_reference) const -> lvalue override;
 
     auto operator ==(const_reference) const -> bool override;
     auto operator !=(const_reference) const -> bool override;

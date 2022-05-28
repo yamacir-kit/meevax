@@ -27,19 +27,19 @@ inline namespace memory
   template <typename T>
   struct gc_pointer
     : public simple_pointer<T>
-    , private collector::interior
+    , private collector::collectable
   {
     explicit gc_pointer(std::nullptr_t = nullptr)
     {}
 
     explicit gc_pointer(simple_pointer<T> const& datum)
       : simple_pointer<T> { datum }
-      , collector::interior { datum.get() }
+      , collector::collectable { datum.get() }
     {}
 
     explicit gc_pointer(gc_pointer const& datum)
       : simple_pointer<T> { datum.get() }
-      , collector::interior { datum.get() }
+      , collector::collectable { datum.get() }
     {}
 
     auto operator =(gc_pointer const& p) -> auto &
@@ -50,7 +50,7 @@ inline namespace memory
 
     void reset(T * const data = nullptr)
     {
-      collector::interior::reset(simple_pointer<T>::reset(data));
+      collector::collectable::reset(simple_pointer<T>::reset(data));
     }
 
     void swap(gc_pointer & p)

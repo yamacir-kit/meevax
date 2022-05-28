@@ -31,7 +31,7 @@ inline namespace kernel
     return (*this)[intern(name)];
   }
 
-  auto environment::apply(const_reference f, const_reference xs) -> object
+  auto environment::apply(const_reference f, const_reference xs) -> lvalue
   {
     auto dump = std::make_tuple(std::exchange(s, list(f, xs)),
                                 std::exchange(e, unit),
@@ -49,7 +49,7 @@ inline namespace kernel
     return result;
   }
 
-  auto resolve_import_set(const_reference import_set) -> object
+  auto resolve_import_set(const_reference import_set) -> lvalue
   {
     if (car(import_set).as<symbol>().value == "only")
     {
@@ -109,7 +109,7 @@ inline namespace kernel
     define(intern(name), value);
   }
 
-  auto environment::evaluate(const_reference expression) -> object
+  auto environment::evaluate(const_reference expression) -> lvalue
   {
     if (expression.is<pair>() and car(expression).is<symbol>()
                               and car(expression).as<symbol>().value == "define-library")
@@ -150,7 +150,7 @@ inline namespace kernel
     }
   }
 
-  auto environment::execute() -> object
+  auto environment::execute() -> lvalue
   {
     if (is_trace_mode())
     {
@@ -162,7 +162,7 @@ inline namespace kernel
     }
   }
 
-  auto environment::execute(const_reference code) -> object
+  auto environment::execute(const_reference code) -> lvalue
   {
     c = code;
     return execute();
@@ -178,7 +178,7 @@ inline namespace kernel
     return second;
   }
 
-  auto environment::load(std::string const& s) -> object
+  auto environment::load(std::string const& s) -> lvalue
   {
     if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
     {
@@ -205,7 +205,7 @@ inline namespace kernel
     return first;
   }
 
-  auto environment::identify(const_reference variable, const_reference scope) const -> object
+  auto environment::identify(const_reference variable, const_reference scope) const -> lvalue
   {
     if (not variable.is_also<identifier>())
     {
@@ -221,7 +221,7 @@ inline namespace kernel
     }
   }
 
-  auto environment::identify(const_reference variable, const_reference scope) -> object
+  auto environment::identify(const_reference variable, const_reference scope) -> lvalue
   {
     if (not variable.is_also<identifier>())
     {
