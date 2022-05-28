@@ -17,91 +17,76 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 
-#include <cmath>
-#include <cstddef>
-#include <cstdint>
-#include <type_traits>
-#include <typeinfo>
+#include <meevax/memory/simple_pointer.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  /* ---- Tagged Pointers --------------------------------------------------- */
-
-  using word = std::uintptr_t;
-
-  /* ---- Linux 64 Bit Address Space -------------------------------------------
-   *
-   * user   0x0000 0000 0000 0000 ~ 0x0000 7FFF FFFF FFFF
-   * kernel 0xFFFF 8000 0000 0000 ~
-   *
-   * ------------------------------------------------------------------------ */
-
-  static_assert(8 <= sizeof(word));
-
-  template <typename T, typename = void>
-  struct is_immediate
-    : public std::false_type
-  {};
-
   template <typename T>
-  struct is_immediate<T,
-    typename std::enable_if<(sizeof(T) <= sizeof(word) / 2)>::type>
-    : public std::true_type
-  {};
-
-
-  /* ---- Tag ------------------------------------------------------------------
-   *
-   * ┌─────┬──────────────────────────────────────────────────────────────────┐
-   * │ Tag │ Purpose                                                          │
-   * ├─────┼──────────────────────────────────────────────────────────────────┤
-   * │ 000 │ T* or std::nullptr_t                                             │
-   * │ 001 │                                                                  │
-   * │ 010 │                                                                  │
-   * │ 011 │                                                                  │
-   * │ 100 │                                                                  │
-   * │ 101 │                                                                  │
-   * │ 110 │                                                                  │
-   * │ 111 │                                                                  │
-   * └─────┴──────────────────────────────────────────────────────────────────┘
-   *
-   * ------------------------------------------------------------------------ */
-
-  constexpr std::uintptr_t mask { 0x07 };
-
-  template <typename T>
-  constexpr auto tag_of(T const* const address)
+  struct tagged_pointer : public simple_pointer<T>
   {
-    return reinterpret_cast<std::uintptr_t>(address) & mask;
-  }
+    using pointer = typename simple_pointer<T>::pointer;
 
-  template <typename T>
-  constexpr auto type_of(T const* const address) -> const std::type_info&
-  {
-    switch (tag_of(address))
+    static_assert(8 <= sizeof(pointer));
+
+    using simple_pointer<T>::simple_pointer;
+
+    constexpr auto operator *() const -> decltype(auto)
     {
-    case 0:
-      return typeid(decltype(address));
+      switch (tag())
+      {
+      case 0b000:
+        return simple_pointer<T>::operator *();
 
-    default:
-      return typeid(void);
+      default:
+        throw std::logic_error("");
+      }
     }
-  }
 
-  // template <typename T>
-  // constexpr auto unbox(T const* const data) -> std::uintptr_t
-  // {
-  //   switch (tag_of(data))
-  //   {
-  //   case tag<std::int32_t>::value:
-  //     return unbox(data);
+    template <typename U>
+    constexpr auto is() const noexcept
+    {
+      if constexpr (std::is_same<std::nullptr_t, typename std::decay<U>::type>::value)
+      {
+        return not simple_pointer<T>::operator bool();
+      }
+      else
+      {
+        return type() == typeid(typename std::decay<U>::type);
+      }
+    }
+
+    constexpr auto tag() const noexcept
+    {
+      return reinterpret_cast<std::uintptr_t>(simple_pointer<T>::get()) & 0b111;
+    }
+
+    constexpr auto type() const noexcept
+    {
+      switch (tag())
+      {
+      case 0b000:
+        return typeid(pointer);
+
+      default:
+        return typeid(void);
+      }
+    }
+  };
+
+  static_assert(tagged_pointer<int>(nullptr).template is<std::nullptr_t>());
+
+  // template <typename T, typename = void>
+  // struct is_immediate
+  //   : public std::false_type
+  // {};
   //
-  //   default:
-  //     throw std::logic_error { "unexpected immediate value" };
-  //   }
-  // }
+  // template <typename T>
+  // struct is_immediate<T,
+  //   typename std::enable_if<(sizeof(T) <= sizeof(word) / 2)>::type>
+  //   : public std::true_type
+  // {};
 } // namespace memory
 } // namespace meevax
 

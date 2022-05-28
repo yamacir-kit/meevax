@@ -28,18 +28,14 @@ inline namespace memory
   template <typename T>
   struct simple_pointer
   {
-    using value_type = T;
+    using element_type = T;
 
-    using reference = value_type &;
+    using pointer = typename std::add_pointer<element_type>::type;
 
-    using const_reference = const reference;
-
-    using pointer = value_type *;
-
-    using const_pointer = const pointer;
-
+  protected:
     pointer data;
 
+  public:
     template <typename Pointer = pointer>
     constexpr simple_pointer(typename std::pointer_traits<Pointer>::pointer data = nullptr)
       : data { static_cast<pointer>(data) }
@@ -49,7 +45,7 @@ inline namespace memory
       : data { sp.get() }
     {}
 
-    auto operator =(simple_pointer const& x) noexcept -> auto &
+    auto operator =(simple_pointer const& x) noexcept -> decltype(auto)
     {
       data = x.get();
       return *this;
@@ -60,7 +56,7 @@ inline namespace memory
       return get();
     }
 
-    constexpr auto operator *() const noexcept -> reference
+    constexpr auto operator *() const noexcept -> decltype(auto)
     {
       return *data;
     }
@@ -70,12 +66,12 @@ inline namespace memory
       return data != nullptr;
     }
 
-    constexpr auto get() const noexcept -> pointer
+    constexpr auto get() const noexcept
     {
       return data;
     }
 
-    auto reset(pointer const p = nullptr) noexcept -> void
+    auto reset(pointer const p = nullptr) noexcept
     {
       data = p;
     }

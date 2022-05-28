@@ -48,7 +48,7 @@ inline namespace memory
       return *this;
     }
 
-    auto reset(typename simple_pointer<T>::const_pointer data = nullptr) -> void
+    auto reset(typename simple_pointer<T>::pointer const data = nullptr) -> void
     {
       simple_pointer<T>::reset(data);
       collector::collectable::reset(data);
