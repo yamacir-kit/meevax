@@ -18,7 +18,7 @@
 #define INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 
 #include <meevax/memory/collector.hpp>
-#include <meevax/memory/simple_pointer.hpp>
+#include <meevax/memory/tagged_pointer.hpp>
 
 namespace meevax
 {
@@ -26,19 +26,19 @@ inline namespace memory
 {
   template <typename T>
   struct gc_pointer
-    : public simple_pointer<T>
+    : public tagged_pointer<T>
     , private collector::collectable
   {
     explicit gc_pointer(std::nullptr_t = nullptr)
     {}
 
-    explicit gc_pointer(simple_pointer<T> const& datum)
-      : simple_pointer<T> { datum }
+    explicit gc_pointer(tagged_pointer<T> const& datum)
+      : tagged_pointer<T> { datum }
       , collector::collectable { datum.get() }
     {}
 
     explicit gc_pointer(gc_pointer const& gcp)
-      : simple_pointer<T> { gcp.get() }
+      : tagged_pointer<T> { gcp.get() }
       , collector::collectable { gcp.context }
     {}
 
@@ -48,21 +48,21 @@ inline namespace memory
       return *this;
     }
 
-    auto reset(typename simple_pointer<T>::pointer const data = nullptr) -> void
+    auto reset(typename tagged_pointer<T>::pointer const data = nullptr) -> void
     {
-      simple_pointer<T>::reset(data);
+      tagged_pointer<T>::reset(data);
       collector::collectable::reset(data);
     }
 
     auto reset(gc_pointer const& gcp) -> void
     {
-      simple_pointer<T>::reset(gcp.get());
+      tagged_pointer<T>::reset(gcp.get());
       collector::collectable::reset(gcp.context);
     }
 
     // auto swap(gc_pointer & p) -> void
     // {
-    //   auto const copy = simple_pointer<T>::get();
+    //   auto const copy = tagged_pointer<T>::get();
     //   reset(p.get());
     //   p.reset(copy);
     // }

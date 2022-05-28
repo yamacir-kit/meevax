@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 
+#include <cstddef>
 #include <meevax/memory/simple_pointer.hpp>
 
 namespace meevax
@@ -45,16 +46,9 @@ inline namespace memory
     }
 
     template <typename U>
-    constexpr auto is() const noexcept
+    auto is() const noexcept
     {
-      if constexpr (std::is_same<std::nullptr_t, typename std::decay<U>::type>::value)
-      {
-        return not simple_pointer<T>::operator bool();
-      }
-      else
-      {
-        return type() == typeid(typename std::decay<U>::type);
-      }
+      return type() == typeid(typename std::decay<U>::type);
     }
 
     constexpr auto tag() const noexcept
@@ -62,31 +56,18 @@ inline namespace memory
       return reinterpret_cast<std::uintptr_t>(simple_pointer<T>::get()) & 0b111;
     }
 
-    constexpr auto type() const noexcept
+    constexpr auto type() const noexcept -> decltype(auto)
     {
       switch (tag())
       {
       case 0b000:
-        return typeid(pointer);
+        return simple_pointer<T>::operator bool() ? typeid(pointer) : typeid(std::nullptr_t);
 
       default:
         return typeid(void);
       }
     }
   };
-
-  static_assert(tagged_pointer<int>(nullptr).template is<std::nullptr_t>());
-
-  // template <typename T, typename = void>
-  // struct is_immediate
-  //   : public std::false_type
-  // {};
-  //
-  // template <typename T>
-  // struct is_immediate<T,
-  //   typename std::enable_if<(sizeof(T) <= sizeof(word) / 2)>::type>
-  //   : public std::true_type
-  // {};
 } // namespace memory
 } // namespace meevax
 
