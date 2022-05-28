@@ -32,11 +32,11 @@ inline namespace memory
 
     using reference = value_type &;
 
-    using const_reference = value_type const&;
+    using const_reference = const reference;
 
     using pointer = value_type *;
 
-    using const_pointer = value_type const*;
+    using const_pointer = const pointer;
 
     pointer data;
 
@@ -55,7 +55,7 @@ inline namespace memory
       return *this;
     }
 
-    auto operator ->() const noexcept
+    constexpr auto operator ->() const noexcept
     {
       return get();
     }
@@ -65,7 +65,7 @@ inline namespace memory
       return *data;
     }
 
-    explicit constexpr operator bool() const noexcept
+    constexpr explicit operator bool() const noexcept
     {
       return data != nullptr;
     }
@@ -75,9 +75,9 @@ inline namespace memory
       return data;
     }
 
-    auto reset(pointer const p = nullptr) noexcept -> pointer
+    auto reset(pointer const p = nullptr) noexcept -> void
     {
-      return data = p;
+      data = p;
     }
   };
 

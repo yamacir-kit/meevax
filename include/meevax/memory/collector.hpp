@@ -47,15 +47,28 @@ inline namespace memory
     struct collectable
     {
     protected:
+      region * context = nullptr;
+
       explicit constexpr collectable() = default;
 
       template <typename Pointer>
       explicit collectable(Pointer const p)
+        : context { collector::reset(p, deallocator<Pointer>::deallocate) }
       {
-        if (p)
+        if (context)
         {
           auto const lock = std::unique_lock(resource);
-          objects.try_emplace(this, collector::reset(p, deallocator<Pointer>::deallocate));
+          objects.try_emplace(this, context);
+        }
+      }
+
+      explicit collectable(region * region)
+        : context { region }
+      {
+        if (context)
+        {
+          auto const lock = std::unique_lock(resource);
+          objects.try_emplace(this, context);
         }
       }
 
@@ -66,12 +79,21 @@ inline namespace memory
       }
 
       template <typename Pointer>
-      void reset(Pointer const p)
+      auto reset(Pointer const p) -> void
       {
-        if (p)
+        if (context = collector::reset(p, deallocator<Pointer>::deallocate))
         {
           auto const lock = std::unique_lock(resource);
-          objects.insert_or_assign(this, collector::reset(p, deallocator<Pointer>::deallocate));
+          objects.insert_or_assign(this, context);
+        }
+      }
+
+      auto reset(region * region) -> void
+      {
+        if (context = region)
+        {
+          auto const lock = std::unique_lock(resource);
+          objects.insert_or_assign(this, context);
         }
       }
     };

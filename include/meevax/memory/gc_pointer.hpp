@@ -37,28 +37,35 @@ inline namespace memory
       , collector::collectable { datum.get() }
     {}
 
-    explicit gc_pointer(gc_pointer const& datum)
-      : simple_pointer<T> { datum.get() }
-      , collector::collectable { datum.get() }
+    explicit gc_pointer(gc_pointer const& gcp)
+      : simple_pointer<T> { gcp.get() }
+      , collector::collectable { gcp.context }
     {}
 
-    auto operator =(gc_pointer const& p) -> auto &
+    auto operator =(gc_pointer const& gcp) -> auto &
     {
-      reset(p.get());
+      reset(gcp);
       return *this;
     }
 
-    void reset(T * const data = nullptr)
+    auto reset(typename simple_pointer<T>::const_pointer data = nullptr) -> void
     {
-      collector::collectable::reset(simple_pointer<T>::reset(data));
+      simple_pointer<T>::reset(data);
+      collector::collectable::reset(data);
     }
 
-    void swap(gc_pointer & p)
+    auto reset(gc_pointer const& gcp) -> void
     {
-      auto const copy = simple_pointer<T>::get();
-      reset(p.get());
-      p.reset(copy);
+      simple_pointer<T>::reset(gcp.get());
+      collector::collectable::reset(gcp.context);
     }
+
+    // auto swap(gc_pointer & p) -> void
+    // {
+    //   auto const copy = simple_pointer<T>::get();
+    //   reset(p.get());
+    //   p.reset(copy);
+    // }
   };
 } // namespace memory
 } // namespace meevax
