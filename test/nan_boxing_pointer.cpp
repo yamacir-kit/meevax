@@ -35,7 +35,7 @@ auto main() -> int
     assert(nbp.type() == typeid(structure *));
     assert(nbp.is<structure *>());
     assert((*nbp).text == "hello, world!");
-    assert((*nbp).value == 42);
+    assert(nbp->value == 42);
   }
 
   {
@@ -46,7 +46,7 @@ auto main() -> int
     assert(nbp.type() == typeid(structure *));
     assert(nbp.is<structure *>());
     assert((*nbp).text == "hello, world!");
-    assert((*nbp).value == 42);
+    assert(nbp->value == 42);
   }
 
   delete p;

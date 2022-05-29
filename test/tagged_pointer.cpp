@@ -1,7 +1,7 @@
 #undef NDEBUG
 
 #include <cassert>
-#include <meevax/kernel/environment.hpp>
+#include <meevax/memory/tagged_pointer.hpp>
 
 struct structure
 {
@@ -24,8 +24,8 @@ auto main() -> int
   {
     tagged_pointer<structure> tp { nullptr };
 
-    assert(tp.type() == typeid(std::nullptr_t));
-    assert(tp.is<std::nullptr_t>());
+    assert(tp.type() == typeid(structure *));
+    assert(tp.is<structure *>());
   }
 
   {
@@ -34,7 +34,7 @@ auto main() -> int
     assert(tp.type() == typeid(structure *));
     assert(tp.is<structure *>());
     assert((*tp).text == "hello, world!");
-    assert((*tp).value == 42);
+    assert(tp->value == 42);
   }
 
   {
@@ -42,7 +42,6 @@ auto main() -> int
 
     assert(tp.type() == typeid(std::uint32_t));
     assert(tp.is<std::uint32_t>());
-    PRINT(tp.as<std::uint32_t>());
     assert(tp.as<std::uint32_t>() == 42);
 
     tp = 3.14f;

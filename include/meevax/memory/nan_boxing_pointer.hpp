@@ -24,13 +24,9 @@ namespace meevax
 inline namespace memory
 {
   template <typename T>
-  struct nan_boxing_pointer
+  struct nan_boxing_pointer : public simple_pointer<T>
   {
-    using element_type = typename std::decay<T>::type;
-
-    using pointer = typename std::add_pointer<element_type>::type;
-
-    pointer data;
+    using pointer = typename simple_pointer<T>::pointer;
 
     static constexpr std::uintptr_t mask_sign         = 0b1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
     static constexpr std::uintptr_t mask_exponent     = 0b0111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
@@ -46,12 +42,10 @@ inline namespace memory
 
     template <typename P = pointer>
     constexpr nan_boxing_pointer(typename std::pointer_traits<P>::pointer data = nullptr)
-      : data {
+      : simple_pointer<T> {
           reinterpret_cast<pointer>(
             signature_pointer | reinterpret_cast<std::uintptr_t>(data)) }
     {}
-
-    constexpr nan_boxing_pointer(nan_boxing_pointer const&) = default;
 
     // constexpr explicit nan_boxing_pointer(std::uint32_t const value)
     //   : simple_pointer<T> {
@@ -61,10 +55,15 @@ inline namespace memory
 
     constexpr auto operator *() const -> decltype(auto)
     {
+      return *operator ->();
+    }
+
+    constexpr auto operator ->() const
+    {
       switch (signature())
       {
       case signature_pointer:
-        return *reinterpret_cast<pointer>(reinterpret_cast<std::uintptr_t>(data) & mask_payload);
+        return reinterpret_cast<pointer>(reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) & mask_payload);
 
       default:
         throw std::logic_error("");
@@ -79,7 +78,7 @@ inline namespace memory
 
     constexpr auto signature() const noexcept
     {
-      return reinterpret_cast<std::uintptr_t>(data) & mask_signature;
+      return reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) & mask_signature;
     }
 
     constexpr auto type() const noexcept -> decltype(auto)

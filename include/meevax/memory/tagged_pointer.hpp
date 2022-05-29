@@ -58,6 +58,18 @@ inline namespace memory
 
     #undef DEFINE
 
+    constexpr auto operator ->() const -> decltype(auto)
+    {
+      switch (tag())
+      {
+      case 0b000:
+        return simple_pointer<T>::operator ->();
+
+      default:
+        throw std::logic_error("");
+      }
+    }
+
     constexpr auto operator *() const -> decltype(auto)
     {
       switch (tag())
@@ -95,7 +107,7 @@ inline namespace memory
       switch (tag())
       {
       case 0b000:
-        return simple_pointer<T>::operator bool() ? typeid(pointer) : typeid(std::nullptr_t);
+        return typeid(pointer);
 
       #define DEFINE(TAG)                                                      \
       case TAG:                                                                \
