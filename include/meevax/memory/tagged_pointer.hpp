@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 
+#include <cstring>
+
 #include <meevax/memory/simple_pointer.hpp>
 
 namespace meevax
@@ -33,19 +35,28 @@ inline namespace memory
 
     using simple_pointer<T>::simple_pointer;
 
-    #define DEFINE_CONSTRUCTOR(TAG)                                            \
+    #define DEFINE(TAG)                                                        \
     explicit constexpr tagged_pointer(T_##TAG const& value)                    \
       : simple_pointer<T> {                                                    \
           reinterpret_cast<pointer>(                                           \
-            reinterpret_cast<std::uint32_t>(value) << 3 | TAG) }               \
+            *reinterpret_cast<std::uintptr_t const*>(&value) << 32 | TAG) }    \
     {}                                                                         \
-    static_assert(true)
+                                                                               \
+    auto operator =(T_##TAG const& value) -> auto &                            \
+    {                                                                          \
+      simple_pointer<T>::data                                                  \
+        = reinterpret_cast<pointer>(                                           \
+            *reinterpret_cast<std::uintptr_t const*>(&value) << 32 | TAG);     \
+      return *this;                                                            \
+    }                                                                          \
+                                                                               \
+    static_assert(sizeof(T_##TAG) <= 8)
 
-    DEFINE_CONSTRUCTOR(0b001);
-    DEFINE_CONSTRUCTOR(0b010);
-    DEFINE_CONSTRUCTOR(0b011);
+    DEFINE(0b001);
+    DEFINE(0b010);
+    DEFINE(0b011);
 
-    #undef DEFINE_CONSTRUCTOR
+    #undef DEFINE
 
     constexpr auto operator *() const -> decltype(auto)
     {
@@ -57,6 +68,15 @@ inline namespace memory
       default:
         throw std::logic_error("");
       }
+    }
+
+    template <typename U>
+    auto as() const
+    {
+      const auto from = reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) >> 32;
+      U to;
+      std::memcpy(&to, &from, sizeof(U));
+      return to;
     }
 
     template <typename U>
@@ -77,14 +97,15 @@ inline namespace memory
       case 0b000:
         return simple_pointer<T>::operator bool() ? typeid(pointer) : typeid(std::nullptr_t);
 
-      case 0b001:
-        return typeid(typename std::decay<T_0b001>::type);
+      #define DEFINE(TAG)                                                      \
+      case TAG:                                                                \
+        return typeid(typename std::decay<T_##TAG>::type)
 
-      case 0b010:
-        return typeid(typename std::decay<T_0b010>::type);
+      DEFINE(0b001);
+      DEFINE(0b010);
+      DEFINE(0b011);
 
-      case 0b011:
-        return typeid(typename std::decay<T_0b011>::type);
+      #undef DEFINE
 
       default:
         return typeid(void);
