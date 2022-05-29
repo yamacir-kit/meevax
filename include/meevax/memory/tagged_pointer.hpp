@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 
 #include <cstring>
+#include <stdexcept>
 
 #include <meevax/memory/simple_pointer.hpp>
 

@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 
+#include <stdexcept>
+
 #include <meevax/memory/simple_pointer.hpp>
 
 namespace meevax
