@@ -37,13 +37,13 @@ inline namespace memory
     using simple_pointer<T>::simple_pointer;
 
     #define DEFINE(TAG)                                                        \
-    explicit constexpr tagged_pointer(T_##TAG const& value)                    \
+    explicit constexpr tagged_pointer(T_##TAG const& value)                     \
       : simple_pointer<T> {                                                    \
           reinterpret_cast<pointer>(                                           \
             *reinterpret_cast<std::uintptr_t const*>(&value) << 32 | TAG) }    \
     {}                                                                         \
                                                                                \
-    auto operator =(T_##TAG const& value) -> auto &                            \
+    auto operator =(T_##TAG const& value) -> auto &                             \
     {                                                                          \
       simple_pointer<T>::data                                                  \
         = reinterpret_cast<pointer>(                                           \
@@ -51,7 +51,7 @@ inline namespace memory
       return *this;                                                            \
     }                                                                          \
                                                                                \
-    static_assert(sizeof(T_##TAG) <= 8)
+    static_assert(sizeof(T_##TAG) <= 4)
 
     DEFINE(0b001);
     DEFINE(0b010);
@@ -87,8 +87,8 @@ inline namespace memory
     auto as() const
     {
       const auto from = reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) >> 32;
-      U to;
-      std::memcpy(&to, &from, sizeof(U));
+      typename std::decay<U>::type to;
+      std::memcpy(&to, &from, sizeof(typename std::decay<U>::type));
       return to;
     }
 
@@ -107,9 +107,6 @@ inline namespace memory
     {
       switch (tag())
       {
-      case 0b000:
-        return typeid(pointer);
-
       #define DEFINE(TAG)                                                      \
       case TAG:                                                                \
         return typeid(typename std::decay<T_##TAG>::type)
@@ -120,8 +117,9 @@ inline namespace memory
 
       #undef DEFINE
 
+      case 0b000:
       default:
-        return typeid(void);
+        return typeid(pointer);
       }
     }
   };

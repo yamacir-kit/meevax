@@ -47,6 +47,45 @@ auto main() -> int
     assert(nbp.is<structure *>());
     assert((*nbp).text == "hello, world!");
     assert(nbp->value == 42);
+
+    nbp = 3.14;
+
+    assert(nbp.type() == typeid(double));
+    assert(nbp.is<double>());
+    assert(nbp.as<double>() == 3.14);
+  }
+
+  {
+    nan_boxing_pointer<structure *> nbp { 3.14 };
+
+    assert(nbp.type() == typeid(double));
+    assert(nbp.is<double>());
+    assert(nbp.as<double>() == 3.14);
+  }
+
+  {
+    nan_boxing_pointer<structure *, std::uint32_t, std::int16_t> nbp { 3.14 };
+
+    assert(nbp.type() == typeid(double));
+    assert(nbp.is<double>());
+    assert(nbp.as<double>() == 3.14);
+
+    nbp = static_cast<std::uint32_t>(42);
+
+    assert(nbp.type() == typeid(std::uint32_t));
+    assert(nbp.is<std::uint32_t>());
+    assert(nbp.as<std::uint32_t>() == 42);
+
+    nbp = static_cast<std::int16_t>(-100);
+
+    PRINT(nbp.get());
+
+    PRINT(nbp.type().name());
+    assert(nbp.type() == typeid(std::int16_t));
+    PRINT(nbp.is<std::int16_t>());
+    assert(nbp.is<std::int16_t>());
+    PRINT(nbp.as<std::int16_t>());
+    assert(nbp.as<std::int16_t>() == -100);
   }
 
   delete p;
