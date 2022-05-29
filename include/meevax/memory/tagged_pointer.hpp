@@ -17,21 +17,35 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 
-#include <cstddef>
 #include <meevax/memory/simple_pointer.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  template <typename T>
+  template <typename T,
+            typename T_0b001 = std::integral_constant<std::uint32_t, 0b001>,
+            typename T_0b010 = std::integral_constant<std::uint32_t, 0b010>,
+            typename T_0b011 = std::integral_constant<std::uint32_t, 0b011>>
   struct tagged_pointer : public simple_pointer<T>
   {
     using pointer = typename simple_pointer<T>::pointer;
 
-    static_assert(8 <= sizeof(pointer));
-
     using simple_pointer<T>::simple_pointer;
+
+    #define DEFINE_CONSTRUCTOR(TAG)                                            \
+    explicit constexpr tagged_pointer(T_##TAG const& value)                    \
+      : simple_pointer<T> {                                                    \
+          reinterpret_cast<pointer>(                                           \
+            reinterpret_cast<std::uint32_t>(value) << 3 | TAG) }               \
+    {}                                                                         \
+    static_assert(true)
+
+    DEFINE_CONSTRUCTOR(0b001);
+    DEFINE_CONSTRUCTOR(0b010);
+    DEFINE_CONSTRUCTOR(0b011);
+
+    #undef DEFINE_CONSTRUCTOR
 
     constexpr auto operator *() const -> decltype(auto)
     {
@@ -53,7 +67,7 @@ inline namespace memory
 
     constexpr auto tag() const noexcept
     {
-      return reinterpret_cast<std::uintptr_t>(simple_pointer<T>::get()) & 0b111;
+      return reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) & 0b111;
     }
 
     constexpr auto type() const noexcept -> decltype(auto)
@@ -62,6 +76,15 @@ inline namespace memory
       {
       case 0b000:
         return simple_pointer<T>::operator bool() ? typeid(pointer) : typeid(std::nullptr_t);
+
+      case 0b001:
+        return typeid(typename std::decay<T_0b001>::type);
+
+      case 0b010:
+        return typeid(typename std::decay<T_0b010>::type);
+
+      case 0b011:
+        return typeid(typename std::decay<T_0b011>::type);
 
       default:
         return typeid(void);

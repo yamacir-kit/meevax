@@ -32,28 +32,18 @@ inline namespace memory
 
     using pointer = typename std::add_pointer<element_type>::type;
 
-  protected:
     pointer data;
 
-  public:
-    template <typename Pointer = pointer>
-    constexpr simple_pointer(typename std::pointer_traits<Pointer>::pointer data = nullptr)
+    template <typename P = pointer>
+    constexpr simple_pointer(typename std::pointer_traits<P>::pointer data = nullptr)
       : data { static_cast<pointer>(data) }
     {}
 
-    constexpr simple_pointer(simple_pointer const& sp)
-      : data { sp.get() }
-    {}
-
-    auto operator =(simple_pointer const& x) noexcept -> decltype(auto)
-    {
-      data = x.get();
-      return *this;
-    }
+    constexpr simple_pointer(simple_pointer const& sp) = default;
 
     constexpr auto operator ->() const noexcept
     {
-      return get();
+      return data;
     }
 
     constexpr auto operator *() const noexcept -> decltype(auto)
