@@ -17,10 +17,11 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 
-#include <stdexcept>
+#include <memory>
+#include <type_traits>
+#include <typeinfo>
 
 #include <meevax/memory/bit_cast.hpp>
-#include <meevax/memory/simple_pointer.hpp>
 #include <meevax/type_traits/integer.hpp>
 
 namespace meevax
@@ -34,9 +35,13 @@ inline namespace memory
             typename T_0b101 = std::integral_constant<std::uint32_t, 0b101>,
             typename T_0b110 = std::integral_constant<std::uint32_t, 0b110>,
             typename T_0b111 = std::integral_constant<std::uint32_t, 0b111>>
-  struct nan_boxing_pointer : public simple_pointer<T>
+  struct nan_boxing_pointer
   {
-    using pointer = typename simple_pointer<T>::pointer;
+    using element_type = typename std::decay<T>::type;
+
+    using pointer = typename std::add_pointer<element_type>::type;
+
+    pointer data;
 
     static constexpr std::uintptr_t mask_sign         = 0b1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
     static constexpr std::uintptr_t mask_exponent     = 0b0111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
@@ -55,41 +60,33 @@ inline namespace memory
     static constexpr std::uintptr_t signature_T_0b110 = 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
     static constexpr std::uintptr_t signature_T_0b111 = 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
 
+    constexpr nan_boxing_pointer(nan_boxing_pointer const&) = default;
+
     template <typename P = pointer>
     constexpr nan_boxing_pointer(typename std::pointer_traits<P>::pointer data = nullptr)
-      : simple_pointer<T> {
-          reinterpret_cast<pointer>(
-            signature_pointer | reinterpret_cast<std::uintptr_t>(data)) }
-    {
-      assert((reinterpret_cast<std::uintptr_t>(data) & ~mask_payload) == 0);
-    }
+      : data { reinterpret_cast<pointer>(signature_pointer | reinterpret_cast<std::uintptr_t>(data)) }
+    {}
 
-    explicit constexpr nan_boxing_pointer(double const& value)
-      : simple_pointer<T> {
-          reinterpret_cast<pointer>(
-            bit_cast<uintN_t<sizeof(double)>>(value)) }
+    constexpr nan_boxing_pointer(double const& value)
+      : data { reinterpret_cast<pointer>(bit_cast<uintN_t<sizeof(double)>>(value)) }
     {}
 
     auto operator =(double const& value) -> auto &
     {
-      simple_pointer<T>::data
-        = reinterpret_cast<pointer>(
-            bit_cast<uintN_t<sizeof(double)>>(value));
+      data = reinterpret_cast<pointer>(bit_cast<uintN_t<sizeof(double)>>(value));
       return *this;
     }
 
     #define DEFINE(TYPE)                                                       \
-    explicit constexpr nan_boxing_pointer(TYPE const& value)                   \
-      : simple_pointer<T> {                                                    \
-          reinterpret_cast<pointer>(                                           \
-            signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value)) }       \
+    constexpr nan_boxing_pointer(TYPE const& value)                            \
+      : data { reinterpret_cast<pointer>(                                      \
+                 signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value)) }  \
     {}                                                                         \
                                                                                \
     auto operator =(TYPE const& value) -> auto &                               \
     {                                                                          \
-      simple_pointer<T>::data                                                  \
-        = reinterpret_cast<pointer>(                                           \
-            signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value));        \
+      data = reinterpret_cast<pointer>(                                        \
+               signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value));     \
       return *this;                                                            \
     }                                                                          \
                                                                                \
@@ -104,21 +101,19 @@ inline namespace memory
 
     #undef DEFINE
 
-    constexpr auto operator *() const -> decltype(auto)
-    {
-      return *operator ->();
-    }
-
     constexpr auto operator ->() const
     {
-      switch (signature())
-      {
-      case signature_pointer:
-        return reinterpret_cast<pointer>(reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) & mask_payload);
+      return get();
+    }
 
-      default:
-        throw std::logic_error("");
-      }
+    constexpr auto operator *() const -> decltype(auto)
+    {
+      return *get();
+    }
+
+    constexpr explicit operator bool() const noexcept
+    {
+      return get() != nullptr;
     }
 
     template <typename U>
@@ -126,13 +121,25 @@ inline namespace memory
     {
       if constexpr (std::is_same<double, typename std::decay<U>::type>::value)
       {
-        return bit_cast<double>(simple_pointer<T>::data);
+        return bit_cast<double>(data);
       }
       else
       {
         return bit_cast<typename std::decay<U>::type>(
                  static_cast<uintN_t<sizeof(typename std::decay<U>::type)>>(
-                   reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) & mask_payload));
+                   reinterpret_cast<std::uintptr_t>(data) & mask_payload));
+      }
+    }
+
+    constexpr auto get() const noexcept -> pointer
+    {
+      switch (signature())
+      {
+      case signature_pointer:
+        return reinterpret_cast<pointer>(reinterpret_cast<std::uintptr_t>(data) & mask_payload);
+
+      default:
+        return nullptr;
       }
     }
 
@@ -142,9 +149,14 @@ inline namespace memory
       return type() == typeid(typename std::decay<U>::type);
     }
 
+    auto reset(pointer const p = nullptr) noexcept
+    {
+      data = reinterpret_cast<pointer>(signature_pointer | reinterpret_cast<std::uintptr_t>(p));
+    }
+
     constexpr auto signature() const noexcept
     {
-      return reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) & mask_signature;
+      return reinterpret_cast<std::uintptr_t>(data) & mask_signature;
     }
 
     constexpr auto type() const noexcept -> decltype(auto)
@@ -172,8 +184,30 @@ inline namespace memory
       }
     }
   };
+
+  template <typename... Ts>
+  constexpr auto operator ==(nan_boxing_pointer<Ts...> const& x,
+                             nan_boxing_pointer<Ts...> const& y)
+  {
+    return x.data == y.data;
+  }
+
+  template <typename... Ts>
+  constexpr auto operator !=(nan_boxing_pointer<Ts...> const& x,
+                             nan_boxing_pointer<Ts...> const& y)
+  {
+    return x.data != y.data;
+  }
 } // namespace memory
 } // namespace meevax
+
+namespace std
+{
+  template <typename... Ts>
+  class hash<meevax::memory::nan_boxing_pointer<Ts...>>
+    : public hash<typename meevax::memory::nan_boxing_pointer<Ts...>::pointer>
+  {};
+}
 
 #endif // INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 
