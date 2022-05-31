@@ -21,6 +21,7 @@
 
 #include <meevax/memory/bit_cast.hpp>
 #include <meevax/memory/simple_pointer.hpp>
+#include <meevax/type_traits/integer.hpp>
 
 namespace meevax
 {
@@ -66,14 +67,14 @@ inline namespace memory
     explicit constexpr nan_boxing_pointer(double const& value)
       : simple_pointer<T> {
           reinterpret_cast<pointer>(
-            *reinterpret_cast<std::uintptr_t const*>(&value)) }
+            bit_cast<uintN_t<sizeof(double)>>(value)) }
     {}
 
     auto operator =(double const& value) -> auto &
     {
       simple_pointer<T>::data
         = reinterpret_cast<pointer>(
-            *reinterpret_cast<std::uintptr_t const*>(&value));
+            bit_cast<uintN_t<sizeof(double)>>(value));
       return *this;
     }
 
@@ -81,14 +82,14 @@ inline namespace memory
     explicit constexpr nan_boxing_pointer(TYPE const& value)                   \
       : simple_pointer<T> {                                                    \
           reinterpret_cast<pointer>(                                           \
-            signature_##TYPE | *reinterpret_cast<std::uint32_t const*>(&value)) } \
+            signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value)) }       \
     {}                                                                         \
                                                                                \
     auto operator =(TYPE const& value) -> auto &                               \
     {                                                                          \
       simple_pointer<T>::data                                                  \
         = reinterpret_cast<pointer>(                                           \
-            signature_##TYPE | *reinterpret_cast<std::uint32_t const*>(&value)); \
+            signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value));        \
       return *this;                                                            \
     }                                                                          \
                                                                                \
@@ -129,10 +130,9 @@ inline namespace memory
       }
       else
       {
-        const auto from = reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) & mask_payload;
-        typename std::decay<U>::type to;
-        std::memcpy(&to, &from, sizeof(typename std::decay<U>::type));
-        return to;
+        return bit_cast<typename std::decay<U>::type>(
+                 static_cast<uintN_t<sizeof(typename std::decay<U>::type)>>(
+                   reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) & mask_payload));
       }
     }
 

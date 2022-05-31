@@ -21,6 +21,7 @@
 
 #include <meevax/memory/bit_cast.hpp>
 #include <meevax/memory/simple_pointer.hpp>
+#include <meevax/type_traits/integer.hpp>
 
 namespace meevax
 {
@@ -40,14 +41,14 @@ inline namespace memory
     explicit constexpr tagged_pointer(T_##TAG const& value)                    \
       : simple_pointer<T> {                                                    \
           reinterpret_cast<pointer>(                                           \
-            *reinterpret_cast<std::uintptr_t const*>(&value) << 32 | TAG) }    \
+            static_cast<std::uintptr_t>(bit_cast<uintN_t<sizeof(T_##TAG)>>(value)) << 32 | TAG) } \
     {}                                                                         \
                                                                                \
     auto operator =(T_##TAG const& value) -> auto &                            \
     {                                                                          \
       simple_pointer<T>::data                                                  \
         = reinterpret_cast<pointer>(                                           \
-            *reinterpret_cast<std::uintptr_t const*>(&value) << 32 | TAG);     \
+            static_cast<std::uintptr_t>(bit_cast<uintN_t<sizeof(T_##TAG)>>(value)) << 32 | TAG); \
       return *this;                                                            \
     }                                                                          \
                                                                                \
@@ -86,10 +87,9 @@ inline namespace memory
     template <typename U>
     auto as() const
     {
-      const auto from = reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) >> 32;
-      typename std::decay<U>::type to;
-      std::memcpy(&to, &from, sizeof(typename std::decay<U>::type));
-      return to;
+      return bit_cast<typename std::decay<U>::type>(
+               static_cast<uintN_t<sizeof(typename std::decay<U>::type)>>(
+                 reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) >> 32));
     }
 
     template <typename U>
