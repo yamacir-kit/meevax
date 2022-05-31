@@ -17,9 +17,9 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 
-#include <cstring>
 #include <stdexcept>
 
+#include <meevax/memory/bit_cast.hpp>
 #include <meevax/memory/simple_pointer.hpp>
 
 namespace meevax
@@ -37,13 +37,13 @@ inline namespace memory
     using simple_pointer<T>::simple_pointer;
 
     #define DEFINE(TAG)                                                        \
-    explicit constexpr tagged_pointer(T_##TAG const& value)                     \
+    explicit constexpr tagged_pointer(T_##TAG const& value)                    \
       : simple_pointer<T> {                                                    \
           reinterpret_cast<pointer>(                                           \
             *reinterpret_cast<std::uintptr_t const*>(&value) << 32 | TAG) }    \
     {}                                                                         \
                                                                                \
-    auto operator =(T_##TAG const& value) -> auto &                             \
+    auto operator =(T_##TAG const& value) -> auto &                            \
     {                                                                          \
       simple_pointer<T>::data                                                  \
         = reinterpret_cast<pointer>(                                           \

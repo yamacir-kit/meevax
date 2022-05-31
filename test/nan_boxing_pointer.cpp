@@ -78,13 +78,8 @@ auto main() -> int
 
     nbp = static_cast<std::int16_t>(-100);
 
-    PRINT(nbp.get());
-
-    PRINT(nbp.type().name());
     assert(nbp.type() == typeid(std::int16_t));
-    PRINT(nbp.is<std::int16_t>());
     assert(nbp.is<std::int16_t>());
-    PRINT(nbp.as<std::int16_t>());
     assert(nbp.as<std::int16_t>() == -100);
   }
 

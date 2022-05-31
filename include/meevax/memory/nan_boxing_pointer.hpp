@@ -17,9 +17,9 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 
-#include <cstring>
 #include <stdexcept>
 
+#include <meevax/memory/bit_cast.hpp>
 #include <meevax/memory/simple_pointer.hpp>
 
 namespace meevax
@@ -125,10 +125,7 @@ inline namespace memory
     {
       if constexpr (std::is_same<double, typename std::decay<U>::type>::value)
       {
-        const auto from = reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data);
-        double to;
-        std::memcpy(&to, &from, sizeof(double));
-        return to;
+        return bit_cast<double>(simple_pointer<T>::data);
       }
       else
       {
