@@ -29,15 +29,15 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <template <typename...> typename Pointer, typename Top>
-  class heterogeneous : public Pointer<Top>
+  template <template <typename...> typename Pointer, typename Top, typename... Ts>
+  class heterogeneous : public Pointer<Top, Ts...>
   {
     template <typename Bound>
     struct binder : public virtual Top
                   , public Bound
     {
-      template <typename... Ts>
-      explicit constexpr binder(Ts&&... xs)
+      template <typename... Us>
+      explicit constexpr binder(Us&&... xs)
         : std::conditional<std::is_base_of<Top, Bound>::value, Top, Bound>::type { std::forward<decltype(xs)>(xs)... }
       {}
 
@@ -74,16 +74,11 @@ inline namespace kernel
     };
 
   public:
-    using Pointer<Top>::Pointer;
-    using Pointer<Top>::get;
+    using Pointer<Top, Ts...>::Pointer;
+    using Pointer<Top, Ts...>::get;
 
-    template <template <typename...> typename AnotherPointer>
-    heterogeneous(AnotherPointer<Top> && p)
-      : Pointer<Top> { p.release() }
-    {}
-
-    template <typename Bound, typename... Ts, REQUIRES(std::is_compound<Bound>)>
-    static auto allocate(Ts&&... xs)
+    template <typename Bound, typename... Us, REQUIRES(std::is_compound<Bound>)>
+    static auto allocate(Us&&... xs)
     {
       #if PROFILE_ALLOCATION
       current_profiler().by_type[typeid(typename std::decay<Bound>::type)].allocation++;

@@ -30,14 +30,7 @@ inline namespace kernel
     {
       if constexpr (is_equality_comparable<T>::value)
       {
-        if (p)
-        {
-          return *p == static_cast<T const&>(*this);
-        }
-        else
-        {
-          return std::is_same<T, null>::value;
-        }
+        return p ? *p == static_cast<T const&>(*this) : std::is_same<T, null>::value;
       }
       else
       {

@@ -24,21 +24,21 @@ namespace meevax
 {
 inline namespace memory
 {
-  template <typename T>
+  template <typename... Ts>
   struct gc_pointer
-    : public nan_boxing_pointer<T>
+    : public nan_boxing_pointer<Ts...>
     , private collector::collectable
   {
     explicit gc_pointer(std::nullptr_t = nullptr)
     {}
 
-    explicit gc_pointer(nan_boxing_pointer<T> const& datum)
-      : nan_boxing_pointer<T> { datum }
+    explicit gc_pointer(nan_boxing_pointer<Ts...> const& datum)
+      : nan_boxing_pointer<Ts...> { datum }
       , collector::collectable { datum.get() }
     {}
 
     explicit gc_pointer(gc_pointer const& gcp)
-      : nan_boxing_pointer<T> { gcp.get() }
+      : nan_boxing_pointer<Ts...> { gcp.get() }
       , collector::collectable { gcp.context }
     {}
 
@@ -48,21 +48,21 @@ inline namespace memory
       return *this;
     }
 
-    auto reset(typename nan_boxing_pointer<T>::pointer const data = nullptr) -> void
+    auto reset(typename nan_boxing_pointer<Ts...>::pointer const data = nullptr) -> void
     {
-      nan_boxing_pointer<T>::reset(data);
+      nan_boxing_pointer<Ts...>::reset(data);
       collector::collectable::reset(data);
     }
 
     auto reset(gc_pointer const& gcp) -> void
     {
-      nan_boxing_pointer<T>::reset(gcp.get());
+      nan_boxing_pointer<Ts...>::reset(gcp.get());
       collector::collectable::reset(gcp.context);
     }
 
     // auto swap(gc_pointer & p) -> void
     // {
-    //   auto const copy = nan_boxing_pointer<T>::get();
+    //   auto const copy = nan_boxing_pointer<Ts...>::get();
     //   reset(p.get());
     //   p.reset(copy);
     // }

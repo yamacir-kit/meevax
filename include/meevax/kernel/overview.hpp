@@ -42,10 +42,10 @@ inline namespace kernel
   using single_float = floating_point<float>;
   using double_float = floating_point<double>; // NOTE: 0.0 is double
 
-  template <template <typename...> typename Pointer, typename T>
+  template <template <typename...> typename, typename, typename...>
   class heterogeneous;
 
-  using lvalue = heterogeneous<gc_pointer, pair>;
+  using lvalue = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float>;
 
   using                   let = lvalue;
   using       reference = let &;
@@ -94,9 +94,9 @@ inline namespace kernel
   };
 
   #define DEFINE(SYMBOL)                                                       \
-  template <template <typename...> typename Pointer, typename Top>             \
-  auto operator SYMBOL(heterogeneous<Pointer, Top> const& x,                   \
-                       heterogeneous<Pointer, Top> const& y) -> decltype(auto) \
+  template <template <typename...> typename P, typename T, typename... Ts>     \
+  auto operator SYMBOL(heterogeneous<P, T, Ts...> const& x,                    \
+                       heterogeneous<P, T, Ts...> const& y) -> decltype(auto)  \
   {                                                                            \
     return x.template as<number>() SYMBOL y;                                   \
   }                                                                            \
