@@ -45,8 +45,6 @@ inline namespace kernel
   template <template <typename...> typename Pointer, typename T>
   class heterogeneous;
 
-  using xvalue = heterogeneous<std::unique_ptr, pair>; // expiring value
-
   using lvalue = heterogeneous<gc_pointer, pair>;
 
   using                   let = lvalue;
