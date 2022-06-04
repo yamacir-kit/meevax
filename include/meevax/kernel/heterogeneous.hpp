@@ -75,7 +75,6 @@ inline namespace kernel
 
   public:
     using Pointer<Top, Ts...>::Pointer;
-    using Pointer<Top, Ts...>::as;
     using Pointer<Top, Ts...>::dereferenceable;
     using Pointer<Top, Ts...>::get;
 
@@ -100,18 +99,25 @@ inline namespace kernel
       }
     }
 
-    template <typename U, REQUIRES(std::is_compound<U>)> // NOTE: If not is_compound, Pointer<Top, Ts...>::as<U> called.
-    inline auto as() const -> U &
+    template <typename U>
+    inline auto as() const -> decltype(auto)
     {
-      if (auto data = dynamic_cast<U *>(get()); data)
+      if constexpr (std::is_compound_v<U>)
       {
-        return *data;
+        if (auto data = dynamic_cast<U *>(get()); data)
+        {
+          return *data;
+        }
+        else
+        {
+          std::stringstream ss {};
+          ss << "no viable conversion from " << demangle(type()) << " to " << demangle(typeid(U));
+          raise(ss.str());
+        }
       }
       else
       {
-        std::stringstream ss {};
-        ss << "no viable conversion from " << demangle(type()) << " to " << demangle(typeid(U));
-        raise(ss.str());
+        return Pointer<Top, Ts...>::template as<U>();
       }
     }
 

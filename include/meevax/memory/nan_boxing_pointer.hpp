@@ -32,7 +32,7 @@ inline namespace memory
 {
   using float64 = double;
 
-  static_assert(std::numeric_limits<float64>::is_iec559);
+  static_assert(std::numeric_limits<float64>::is_iec559 and sizeof(float64) == 8);
 
   template <typename T,
             typename T_0b010 = std::integral_constant<std::uint32_t, 0b010>,
