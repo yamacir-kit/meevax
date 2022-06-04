@@ -41,11 +41,13 @@ inline namespace kernel
     {
       for (auto&& [type, topic] : by_type)
       {
-        file << topic.allocation << " " << demangle(type.name()) << "\n";
+        file << topic.allocation << "\t" << demangle(type.name()) << "\n";
       }
     }
 
-    sh("cat /tmp/meevax-profile-by-type.txt | sed 's/meevax::kernel:://g' | sort -rn | column -t");
+    sh("cat /tmp/meevax-profile-by-type.txt | sed 's/meevax::kernel:://g' \
+                                            | sort -rn \
+                                            | column -t -s'\t'");
   }
 
   auto current_profiler() -> profiler &

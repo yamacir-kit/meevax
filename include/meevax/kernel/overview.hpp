@@ -17,13 +17,14 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
 #define INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
 
+#include <meevax/kernel/mnemonic.hpp>
 #include <meevax/memory/gc_pointer.hpp>
 #include <meevax/type_traits/requires.hpp>
 #include <meevax/utility/demangle.hpp>
 
 #define NIL /* nothing */
 
-#define PROFILE_ALLOCATION false
+#define PROFILE_ALLOCATION true
 
 namespace meevax
 {
@@ -45,7 +46,7 @@ inline namespace kernel
   template <template <typename...> typename, typename, typename...>
   class heterogeneous;
 
-  using lvalue = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float>;
+  using lvalue = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, mnemonic>;
 
   using                   let = lvalue;
   using       reference = let &;

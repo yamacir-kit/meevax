@@ -20,7 +20,7 @@ quotient()
 
 tsv()
 {
-  printf " \tMeevax\tGauche\tChibi\n"
+  printf "script\tMeevax\tGauche\tChibi\n"
 
   for each in $(scripts)
   do

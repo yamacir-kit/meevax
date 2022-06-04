@@ -83,13 +83,14 @@ inline namespace kernel
     {
       #if PROFILE_ALLOCATION
       current_profiler().by_type[typeid(typename std::decay<Bound>::type)].allocation++;
+      current_profiler().by_type[typeid(void)].allocation++;
       #endif
 
       if constexpr (std::is_same_v<Bound, Top>)
       {
         return heterogeneous(new (gc) Top(std::forward<decltype(xs)>(xs)...));
       }
-      else if constexpr (std::is_compound_v<Bound>)
+      else if constexpr (std::is_class_v<Bound>)
       {
         return heterogeneous(new (gc) binder<Bound>(std::forward<decltype(xs)>(xs)...));
       }
@@ -102,7 +103,7 @@ inline namespace kernel
     template <typename U>
     inline auto as() const -> decltype(auto)
     {
-      if constexpr (std::is_compound_v<U>)
+      if constexpr (std::is_class_v<U>)
       {
         if (auto data = dynamic_cast<U *>(get()); data)
         {
@@ -145,7 +146,7 @@ inline namespace kernel
       return type() == typeid(typename std::decay<U>::type);
     }
 
-    template <typename U, REQUIRES(std::is_compound<U>)>
+    template <typename U, REQUIRES(std::is_class<U>)>
     inline auto is_also() const
     {
       return dynamic_cast<U *>(get()) != nullptr;

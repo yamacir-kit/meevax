@@ -14,52 +14,14 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/instruction.hpp>
+#include <meevax/iostream/lexical_cast.hpp>
+#include <meevax/kernel/mnemonic.hpp>
 #include <meevax/kernel/list.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  instruction::operator std::string() const
-  {
-    switch (value)
-    {
-      case mnemonic::call:              return "call";
-      case mnemonic::cons:              return "cons";
-      case mnemonic::define:            return "define";
-      case mnemonic::define_syntax:     return "define-syntax";
-      case mnemonic::drop:              return "drop";
-      case mnemonic::dummy:             return "dummy";
-      case mnemonic::join:              return "join";
-      case mnemonic::let_syntax:        return "let-syntax";
-      case mnemonic::letrec:            return "letrec";
-      case mnemonic::letrec_syntax:     return "letrec-syntax";
-      case mnemonic::load_absolute:     return "load-absolute";
-      case mnemonic::load_closure:      return "load-closure";
-      case mnemonic::load_constant:     return "load-constant";
-      case mnemonic::load_continuation: return "load-continuation";
-      case mnemonic::load_relative:     return "load-relative";
-      case mnemonic::load_variadic:     return "load-variadic";
-      case mnemonic::return_:           return "return";
-      case mnemonic::select:            return "select";
-      case mnemonic::stop:              return "stop";
-      case mnemonic::store_absolute:    return "store-absolute";
-      case mnemonic::store_relative:    return "store-relative";
-      case mnemonic::store_variadic:    return "store-variadic";
-      case mnemonic::tail_call:         return "tail-call";
-      case mnemonic::tail_select:       return "tail-select";
-
-      default:
-        throw std::logic_error(__func__);
-    }
-  }
-
-  auto operator <<(std::ostream & os, instruction const& datum) -> std::ostream &
-  {
-    return os << '%' << static_cast<std::string>(datum);
-  }
-
   auto disassemble(std::ostream & os, const_reference c, std::size_t depth) -> void
   {
     depth = std::clamp(depth, std::numeric_limits<std::size_t>::min(),
@@ -82,7 +44,7 @@ inline namespace kernel
         os << std::string(4 * depth, ' ');
       }
 
-      switch ((*iter).as<instruction>().value)
+      switch ((*iter).as<mnemonic>())
       {
       case mnemonic::call:
       case mnemonic::cons:
@@ -129,9 +91,5 @@ inline namespace kernel
       }
     }
   }
-
-  static_assert(std::is_pod<instruction>::value);
-  static_assert(std::is_standard_layout<instruction>::value);
-  static_assert(std::is_trivial<instruction>::value);
 } // namespace kernel
 } // namespace meevax
