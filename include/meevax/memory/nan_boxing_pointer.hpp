@@ -193,7 +193,7 @@ inline namespace memory
       {
       #define DEFINE(TYPE)                                                     \
       case signature_##TYPE:                                                   \
-        return os << as<TYPE>()
+        return os << yellow(as<TYPE>())
 
       DEFINE(pointer);
       DEFINE(T_0b010);

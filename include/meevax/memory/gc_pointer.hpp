@@ -38,7 +38,7 @@ inline namespace memory
     {}
 
     explicit gc_pointer(gc_pointer const& gcp)
-      : nan_boxing_pointer<Ts...> { gcp.get() }
+      : nan_boxing_pointer<Ts...> { gcp }
       , collector::collectable { gcp.context }
     {}
 

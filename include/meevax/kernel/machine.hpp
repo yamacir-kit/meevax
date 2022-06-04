@@ -122,17 +122,25 @@ inline namespace kernel
         if (identity.is<relative>())
         {
           let const& mac_env_scope = syntactic_environment.as<environment>().scope();
-          let offset = make<exact_integer>(length(use_env_scope) - length(mac_env_scope));
+
+          assert(length(use_env_scope) >= length(mac_env_scope));
+
+          auto offset = static_cast<std::uint32_t>(length(use_env_scope) - length(mac_env_scope));
+
           return make<relative>(car(identity),
-                                cadr(identity).template as<exact_integer>() + offset,
+                                make(cadr(identity).template as<std::uint32_t>() + offset),
                                 cddr(identity));
         }
         else if (identity.is<variadic>())
         {
           let const& mac_env_scope = syntactic_environment.as<environment>().scope();
-          let offset = make<exact_integer>(length(use_env_scope) - length(mac_env_scope));
+
+          assert(length(use_env_scope) >= length(mac_env_scope));
+
+          auto offset = static_cast<std::uint32_t>(length(use_env_scope) - length(mac_env_scope));
+
           return make<variadic>(car(identity),
-                                cadr(identity).template as<exact_integer>() + offset,
+                                make(cadr(identity).template as<std::uint32_t>() + offset),
                                 cddr(identity));
         }
         else
@@ -708,8 +716,8 @@ inline namespace kernel
             static_assert(std::is_base_of<pair, relative>::value);
 
             return make<relative>(variable,
-                                  make<exact_integer>(std::distance(std::begin(scope), outer)),
-                                  make<exact_integer>(std::distance(std::begin(*outer), inner)));
+                                  make(static_cast<std::uint32_t>(std::distance(std::begin(scope), outer))),
+                                  make(static_cast<std::uint32_t>(std::distance(std::begin(*outer), inner))));
           }
           else if (inner.get().is<symbol>() and eq(inner, variable))
           {
@@ -717,8 +725,8 @@ inline namespace kernel
             static_assert(std::is_base_of<pair, variadic>::value);
 
             return make<variadic>(variable,
-                                  make<exact_integer>(std::distance(std::begin(scope), outer)),
-                                  make<exact_integer>(std::distance(std::begin(*outer), inner)));
+                                  make(static_cast<std::uint32_t>(std::distance(std::begin(scope), outer))),
+                                  make(static_cast<std::uint32_t>(std::distance(std::begin(*outer), inner))));
           }
         }
       }

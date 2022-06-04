@@ -82,7 +82,12 @@ inline namespace kernel
 
   auto relative::load(const_reference e) const -> const_reference
   {
-    return list_ref(list_ref(e, car(second)), cdr(second));
+    assert(car(second).template is<std::uint32_t>());
+    assert(cdr(second).template is<std::uint32_t>());
+
+    return list_ref(list_ref(e,
+                             car(second).template as<std::uint32_t>()),
+                    cdr(second).template as<std::uint32_t>());
   }
 
   auto relative::make_load_instruction() const -> lvalue
@@ -102,7 +107,12 @@ inline namespace kernel
 
   auto variadic::load(const_reference e) const -> const_reference
   {
-    return list_tail(list_ref(e, car(second)), cdr(second));
+    assert(car(second).template is<std::uint32_t>());
+    assert(cdr(second).template is<std::uint32_t>());
+
+    return list_tail(list_ref(e,
+                              car(second).template as<std::uint32_t>()),
+                     cdr(second).template as<std::uint32_t>());
   }
 
   auto variadic::make_load_instruction() const -> lvalue

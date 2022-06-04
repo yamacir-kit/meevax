@@ -167,25 +167,11 @@ inline namespace kernel
     return std::forward_as_tuple(car(x), cdr(x));
   };
 
-  template <typename T>
-  auto list_tail(T&& x, std::size_t const k) -> const_reference
+  template <typename T, typename K, REQUIRES(std::is_integral<K>)>
+  auto list_tail(T&& x, K const k) -> const_reference
   {
     return 0 < k ? list_tail(cdr(x), k - 1) : x;
   }
-
-  template <typename T>
-  auto list_tail(T&& x, const_reference k) -> const_reference
-  {
-    assert(k.is<exact_integer>());
-    return list_tail(std::forward<decltype(x)>(x), static_cast<std::size_t>(k.as<exact_integer>()));
-  }
-
-  // auto list_tail = [](reference x, const_reference k) -> decltype(auto)
-  // {
-  //   assert(x.is<null>() or x.is<pair>());
-  //   assert(k.is<exact_integer>());
-  //   return std::next(std::cbegin(x), static_cast<std::size_t>(k.template as<exact_integer>()));
-  // };
 
   auto list_ref = [](auto&&... xs) constexpr -> const_reference
   {
