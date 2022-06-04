@@ -29,7 +29,7 @@ inline namespace memory
     : public nan_boxing_pointer<Ts...>
     , private collector::collectable
   {
-    explicit gc_pointer(std::nullptr_t = nullptr)
+    gc_pointer(std::nullptr_t = nullptr)
     {}
 
     explicit gc_pointer(nan_boxing_pointer<Ts...> const& datum)
@@ -48,24 +48,11 @@ inline namespace memory
       return *this;
     }
 
-    auto reset(typename nan_boxing_pointer<Ts...>::pointer const data = nullptr) -> void
+    auto reset(gc_pointer const& gcp = nullptr) -> void
     {
-      nan_boxing_pointer<Ts...>::reset(data);
-      collector::collectable::reset(data);
-    }
-
-    auto reset(gc_pointer const& gcp) -> void
-    {
-      nan_boxing_pointer<Ts...>::reset(gcp.get());
+      nan_boxing_pointer<Ts...>::operator =(gcp);
       collector::collectable::reset(gcp.context);
     }
-
-    // auto swap(gc_pointer & p) -> void
-    // {
-    //   auto const copy = nan_boxing_pointer<Ts...>::get();
-    //   reset(p.get());
-    //   p.reset(copy);
-    // }
   };
 } // namespace memory
 } // namespace meevax

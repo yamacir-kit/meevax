@@ -1,8 +1,11 @@
 #undef NDEBUG
 
+#include <bitset>
 #include <cassert>
-#include <meevax/memory/nan_boxing_pointer.hpp>
+
+#include <meevax/kernel/environment.hpp>
 #include <meevax/utility/debug.hpp>
+#include <meevax/utility/demangle.hpp>
 
 struct structure
 {
@@ -81,6 +84,45 @@ auto main() -> int
     assert(nbp.type() == typeid(std::int16_t));
     assert(nbp.is<std::int16_t>());
     assert(nbp.as<std::int16_t>() == -100);
+  }
+
+  {
+    let x = make<double>(3.14);
+
+    assert(x.is<double>());
+    assert(x.as<double>() == 3.14);
+
+    x = make<double>(1.23);
+
+    assert(x.is<double>());
+    assert(x.as<double>() == 1.23);
+
+    x = make<std::int32_t>(-42);
+
+    assert(x.is<std::int32_t>());
+    assert(x.as<std::int32_t>() == -42);
+
+    x = make<bool>(true);
+
+    assert(x.is<bool>());
+    assert(x.as<bool>() == true);
+  }
+
+  {
+    let x = make<std::int32_t>(1),
+        y = make<std::int32_t>(1),
+        z = make<std::int32_t>(2);
+
+    assert(x == y);
+    assert(x.compare(y));
+
+    assert(x != z);
+    assert(not x.compare(z));
+  }
+
+  {
+    assert(lexical_cast<std::string>(make<double>(3.14)) == "3.14");
+    assert(lexical_cast<std::string>(make<std::int32_t>(42)) == "42");
   }
 
   delete p;

@@ -75,21 +75,32 @@ inline namespace kernel
 
   public:
     using Pointer<Top, Ts...>::Pointer;
+    using Pointer<Top, Ts...>::as;
+    using Pointer<Top, Ts...>::dereferenceable;
     using Pointer<Top, Ts...>::get;
 
-    template <typename Bound, typename... Us, REQUIRES(std::is_compound<Bound>)>
+    template <typename Bound, typename... Us>
     static auto allocate(Us&&... xs)
     {
       #if PROFILE_ALLOCATION
       current_profiler().by_type[typeid(typename std::decay<Bound>::type)].allocation++;
       #endif
 
-      return static_cast<heterogeneous>(
-        new (gc) typename std::conditional<std::is_same<Bound, Top>::value, Top, binder<Bound>>::type(
-          std::forward<decltype(xs)>(xs)...));
+      if constexpr (std::is_same_v<Bound, Top>)
+      {
+        return heterogeneous(new (gc) Top(std::forward<decltype(xs)>(xs)...));
+      }
+      else if constexpr (std::is_compound_v<Bound>)
+      {
+        return heterogeneous(new (gc) binder<Bound>(std::forward<decltype(xs)>(xs)...));
+      }
+      else
+      {
+        return heterogeneous(std::forward<decltype(xs)>(xs)...);
+      }
     }
 
-    template <typename U>
+    template <typename U, REQUIRES(std::is_compound<U>)> // NOTE: If not is_compound, Pointer<Top, Ts...>::as<U> called.
     inline auto as() const -> U &
     {
       if (auto data = dynamic_cast<U *>(get()); data)
@@ -112,7 +123,14 @@ inline namespace kernel
 
     inline auto compare(heterogeneous const& rhs) const -> bool
     {
-      return type() == rhs.type() and get()->compare(rhs.get());
+      if (dereferenceable())
+      {
+        return *this ? get()->compare(rhs.get()) : not rhs;
+      }
+      else
+      {
+        return Pointer<Top, Ts...>::equivalent_to(rhs);
+      }
     }
 
     template <typename U>
@@ -121,7 +139,7 @@ inline namespace kernel
       return type() == typeid(typename std::decay<U>::type);
     }
 
-    template <typename U>
+    template <typename U, REQUIRES(std::is_compound<U>)>
     inline auto is_also() const
     {
       return dynamic_cast<U *>(get()) != nullptr;
@@ -129,12 +147,26 @@ inline namespace kernel
 
     inline auto type() const -> std::type_info const&
     {
-      return *this ? get()->type() : typeid(null);
+      if (dereferenceable())
+      {
+        return *this ? get()->type() : typeid(null);
+      }
+      else
+      {
+        return Pointer<Top, Ts...>::type();
+      }
     }
 
     friend auto operator <<(std::ostream & os, heterogeneous const& datum) -> std::ostream &
     {
-      return datum.template is<null>() ? os << magenta("()") : datum->write(os);
+      if (datum.dereferenceable())
+      {
+        return not datum ? os << magenta("()") : datum->write(os);
+      }
+      else
+      {
+        return datum.write(os);
+      }
     }
   };
 } // namespace kernel
