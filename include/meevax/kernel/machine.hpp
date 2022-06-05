@@ -338,6 +338,11 @@ inline namespace kernel
                   << faint("; d = ") << d << "\n" << std::endl;
       }
 
+      if constexpr (profiler::count_instruction_fetch)
+      {
+        current_profiler().instruction_fetchs[car(c).template as<mnemonic>()]++;
+      }
+
       switch (car(c).template as<mnemonic>())
       {
       case mnemonic::load_absolute: /* -----------------------------------------

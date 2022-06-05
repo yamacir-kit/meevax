@@ -20,15 +20,20 @@
 #include <typeindex>
 #include <unordered_map>
 
+#include <meevax/kernel/mnemonic.hpp>
+
 namespace meevax
 {
 inline namespace kernel
 {
   struct profiler
   {
-    static constexpr auto count_allocations = false;
+    static constexpr auto count_allocations       = false;
+    static constexpr auto count_instruction_fetch = true;
 
     std::unordered_map<std::type_index, std::size_t> allocation_counts;
+
+    std::unordered_map<mnemonic, std::size_t> instruction_fetchs;
 
     ~profiler();
   };
