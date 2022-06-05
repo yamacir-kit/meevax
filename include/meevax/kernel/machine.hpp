@@ -22,7 +22,7 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/instruction.hpp>
-#include <meevax/kernel/instruction_level_procedure.hpp>
+#include <meevax/kernel/intrinsic.hpp>
 #include <meevax/kernel/option.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
 

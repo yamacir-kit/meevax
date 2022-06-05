@@ -277,7 +277,7 @@ inline namespace kernel
       return car(xs).is<pair>();
     });
 
-    define<instruction_level_procedure>("cons", cons_, [](let const& xs)
+    define<intrinsic>("cons", cons_, [](let const& xs)
     {
       return cons(car(xs), cadr(xs));
     });
