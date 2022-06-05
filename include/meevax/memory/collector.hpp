@@ -53,14 +53,8 @@ inline namespace memory
 
       template <typename Pointer>
       explicit collectable(Pointer const p)
-        : context { collector::reset(p, deallocator<Pointer>::deallocate) }
-      {
-        if (context)
-        {
-          auto const lock = std::unique_lock(resource);
-          objects.try_emplace(this, context);
-        }
-      }
+        : collectable { collector::reset(p, deallocator<Pointer>::deallocate) }
+      {}
 
       explicit collectable(region * region)
         : context { region }
@@ -81,11 +75,7 @@ inline namespace memory
       template <typename Pointer>
       auto reset(Pointer const p) -> void
       {
-        if (context = collector::reset(p, deallocator<Pointer>::deallocate))
-        {
-          auto const lock = std::unique_lock(resource);
-          objects.insert_or_assign(this, context);
-        }
+        reset(collector::reset(p, deallocator<Pointer>::deallocate));
       }
 
       auto reset(region * region) -> void

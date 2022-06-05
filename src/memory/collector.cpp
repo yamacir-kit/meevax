@@ -41,16 +41,9 @@ inline namespace memory
   {
     if (not --reference_count)
     {
-      /* ---- NOTE -------------------------------------------------------------
-       *
-       *  We're using collect instead of clear to check that all objects can be
-       *  collected. If speed is a priority, clear should be used here.
-       *
-       * -------------------------------------------------------------------- */
+      clear();
 
-      collect();
-      collect(); // XXX: vector elements
-
+      assert(std::size(regions) == 0);
       assert(std::size(objects) == 0);
     }
   }
@@ -82,7 +75,7 @@ inline namespace memory
     {
       assert(*iter);
 
-      if (auto region = *iter; region->assigned())
+      if (auto * const region = *iter; region->assigned())
       {
         region_allocator.delete_(region);
         iter = regions.erase(iter);
