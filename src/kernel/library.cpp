@@ -277,7 +277,7 @@ inline namespace kernel
       return car(xs).is<pair>();
     });
 
-    define<instruction_level_procedure>("cons", cons_, [](let const& xs)
+    define<intrinsic>("cons", cons_, [](let const& xs)
     {
       return cons(car(xs), cadr(xs));
     });
@@ -404,7 +404,7 @@ inline namespace kernel
       }
     });
 
-    define<procedure>("char-codepoint", [](let const& xs)
+    define<procedure>("char-codepoint", [](let const& xs) -> lvalue
     {
       if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
       {
@@ -688,7 +688,7 @@ inline namespace kernel
 
   library::library(exception_library_t)
   {
-    define<procedure>("default-exception-handler", [](let const& xs) -> object
+    define<procedure>("throw", [](let const& xs) -> lvalue
     {
       throw car(xs);
     });
@@ -698,12 +698,27 @@ inline namespace kernel
       return make<error>(car(xs), cdr(xs));
     });
 
-    define<predicate>(       "error?", [](let const& xs) { return car(xs).is<       error>(); });
-    define<predicate>(  "read-error?", [](let const& xs) { return car(xs).is<  read_error>(); });
-    define<predicate>(  "file-error?", [](let const& xs) { return car(xs).is<  file_error>(); });
-    define<predicate>("syntax-error?", [](let const& xs) { return car(xs).is<syntax_error>(); });
+    define<predicate>("error?", [](let const& xs)
+    {
+      return car(xs).is<error>();
+    });
 
-    declare_export("default-exception-handler",
+    define<predicate>("read-error?", [](let const& xs)
+    {
+      return car(xs).is<read_error>();
+    });
+
+    define<predicate>("file-error?", [](let const& xs)
+    {
+      return car(xs).is<file_error>();
+    });
+
+    define<predicate>("syntax-error?", [](let const& xs)
+    {
+      return car(xs).is<syntax_error>();
+    });
+
+    declare_export("throw",
                    "make-error",
                    "error?",
                    "read-error?",
@@ -805,7 +820,7 @@ inline namespace kernel
       return make<string>(car(xs).as<std::ostringstream>().str());
     });
 
-    define<procedure>("%read-char", [](let const& xs)
+    define<procedure>("%read-char", [](let const& xs) -> lvalue
     {
       try
       {
@@ -821,7 +836,7 @@ inline namespace kernel
       }
     });
 
-    define<procedure>("%peek-char", [](let const& xs)
+    define<procedure>("%peek-char", [](let const& xs) -> lvalue
     {
       try
       {
@@ -937,7 +952,7 @@ inline namespace kernel
 
   library::library(read_library_t)
   {
-    define<procedure>("%read", [this](let const& xs)
+    define<procedure>("%read", [this](let const& xs) -> lvalue
     {
       try
       {
@@ -1061,7 +1076,7 @@ inline namespace kernel
 
   library::library(context_library_t)
   {
-    define<procedure>("emergency-exit", [](let const& xs) -> object
+    define<procedure>("emergency-exit", [](let const& xs) -> lvalue
     {
       switch (length(xs))
       {

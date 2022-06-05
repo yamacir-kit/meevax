@@ -14,35 +14,15 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_STACK_HPP
-#define INCLUDED_MEEVAX_KERNEL_STACK_HPP
-
-#include <meevax/kernel/list.hpp>
+#include <meevax/kernel/intrinsic.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  template <typename T, typename... Ts>
-  auto push(T&& stack, Ts&&... xs) -> decltype(auto)
+  auto operator <<(std::ostream & os, intrinsic const& datum) -> std::ostream &
   {
-    return stack = cons(std::forward<decltype(xs)>(xs)..., stack);
-  }
-
-  template <std::size_t N, typename T>
-  auto pop(T&& stack) -> decltype(auto)
-  {
-    return stack = std::next(std::begin(stack), N);
-  }
-
-  template <typename T>
-  auto pop(T&& stack)
-  {
-    let const x = car(stack);
-    pop<1>(stack);
-    return x;
+    return os << static_cast<procedure const&>(datum);
   }
 } // namespace kernel
 } // namespace meevax
-
-#endif // INCLUDED_MEEVAX_KERNEL_STACK_HPP

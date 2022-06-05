@@ -85,7 +85,7 @@ inline namespace kernel
 
     auto truncate_quotient(exact_integer const&) const -> exact_integer;
 
-    #define DEFINE(NAME) auto NAME() const -> object override
+    #define DEFINE(NAME) auto NAME() const -> lvalue override
 
     DEFINE(exact); DEFINE(inexact);
 
@@ -97,7 +97,7 @@ inline namespace kernel
 
     #undef DEFINE
 
-    #define DEFINE(NAME) auto NAME(const_reference) const -> object override
+    #define DEFINE(NAME) auto NAME(const_reference) const -> lvalue override
 
     DEFINE(atan2);
     DEFINE(pow);
@@ -118,11 +118,11 @@ inline namespace kernel
 
     explicit operator std::string() const;
 
-    auto operator + (const_reference) const -> object override;
-    auto operator - (const_reference) const -> object override;
-    auto operator * (const_reference) const -> object override;
-    auto operator / (const_reference) const -> object override;
-    auto operator % (const_reference) const -> object override;
+    auto operator + (const_reference) const -> lvalue override;
+    auto operator - (const_reference) const -> lvalue override;
+    auto operator * (const_reference) const -> lvalue override;
+    auto operator / (const_reference) const -> lvalue override;
+    auto operator % (const_reference) const -> lvalue override;
 
     auto operator ==(const_reference) const -> bool override;
     auto operator !=(const_reference) const -> bool override;

@@ -197,7 +197,7 @@ inline namespace kernel
       };
     }
 
-    auto integer = [](std::string const& token, auto radix = 10)
+    auto integer = [](std::string const& token, auto radix = 10) -> lvalue
     {
       auto const result = exact_integer(token, radix);
       return make(result);
@@ -208,7 +208,7 @@ inline namespace kernel
       return meevax::ratio(token, radix).simple();
     };
 
-    auto decimal = [](std::string const& token, auto)
+    auto decimal = [](std::string const& token, auto) -> lvalue
     {
       auto const result = double_float(token);
       return make(result);
@@ -248,7 +248,7 @@ inline namespace kernel
     using char_type = typename std::istream::char_type;
 
   public:
-    static inline std::unordered_map<std::string, object> symbols {};
+    static inline std::unordered_map<std::string, lvalue> symbols {};
 
     inline auto char_ready() const
     {
@@ -271,7 +271,7 @@ inline namespace kernel
       }
     }
 
-    inline auto read(std::istream & is) -> object
+    inline auto read(std::istream & is) -> lvalue
     {
       for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
       {
@@ -427,7 +427,7 @@ inline namespace kernel
       return read(is);
     }
 
-    inline auto read(const_reference x) -> object
+    inline auto read(const_reference x) -> lvalue
     {
       if (x.is_also<std::istream>())
       {
@@ -439,7 +439,7 @@ inline namespace kernel
       }
     }
 
-    inline auto read() -> object
+    inline auto read() -> lvalue
     {
       let const result = read(standard_input);
 
@@ -448,7 +448,7 @@ inline namespace kernel
       return result;
     }
 
-    inline auto read(std::string const& s) -> object
+    inline auto read(std::string const& s) -> lvalue
     {
       return read(std::stringstream(s));
     }

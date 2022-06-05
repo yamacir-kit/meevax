@@ -33,48 +33,57 @@ namespace meevax
 {
 inline namespace memory
 {
-  /* ---- Acknowledgement ------------------------------------------------------
-   *
-   *  This mark-and-sweep garbage collector is based on the implementation of
-   *  gc_ptr written by William E. Kempf and posted to CodeProject.
-   *
-   *  - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
-   *  - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
-   *
-   * ------------------------------------------------------------------------ */
-  class collector
+  class collector /* -----------------------------------------------------------
+  *
+  *  This mark-and-sweep garbage collector is based on the implementation of
+  *  gc_ptr written by William E. Kempf and posted to CodeProject.
+  *
+  *  - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
+  *  - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
+  *
+  * ------------------------------------------------------------------------- */
   {
   public:
-    using is_always_equal = std::true_type;
-
-    struct interior
+    struct collectable
     {
     protected:
-      explicit constexpr interior() = default;
+      region * context = nullptr;
+
+      explicit constexpr collectable() = default;
 
       template <typename Pointer>
-      explicit interior(Pointer const p)
+      explicit collectable(Pointer const p)
+        : collectable { collector::reset(p, deallocator<Pointer>::deallocate) }
+      {}
+
+      explicit collectable(region * region)
+        : context { region }
       {
-        if (p)
+        if (context)
         {
           auto const lock = std::unique_lock(resource);
-          objects.try_emplace(this, collector::reset(p, deallocator<Pointer>::deallocate));
+          objects.try_emplace(this, context);
         }
       }
 
-      ~interior()
+      ~collectable()
       {
         auto const lock = std::unique_lock(resource);
         objects.erase(this);
       }
 
       template <typename Pointer>
-      void reset(Pointer const p)
+      auto reset(Pointer const p) -> void
       {
-        if (p)
+        reset(collector::reset(p, deallocator<Pointer>::deallocate));
+      }
+
+      auto reset(region * region) -> void
+      {
+        if (context = region)
         {
           auto const lock = std::unique_lock(resource);
-          objects.insert_or_assign(this, collector::reset(p, deallocator<Pointer>::deallocate));
+          objects.insert_or_assign(this, context);
         }
       }
     };
@@ -82,18 +91,17 @@ inline namespace memory
   private:
     static inline std::mutex resource;
 
-    static inline std::set<
-      region *,
-      std::less<region *>,
-      simple_allocator<region *>
-    > regions;
+    static inline simple_allocator<region> region_allocator {};
 
-    static inline std::map<
-      interior * const,
-      region *,
-      std::less<interior * const>,
-      simple_allocator<std::pair<interior * const, region *>>
-    > objects;
+    template <typename T>
+    using set = std::set<T, std::less<T>, simple_allocator<T>>;
+
+    static inline set<region *> regions;
+
+    template <typename T, typename U>
+    using map = std::map<T, U, std::less<T>, simple_allocator<std::pair<T, U>>>;
+
+    static inline map<collectable * const, region *> objects;
 
     static inline std::size_t allocation;
 
@@ -112,27 +120,27 @@ inline namespace memory
 
     auto operator =(collector const&) -> collector & = delete;
 
-    auto allocate(std::size_t const) -> void *;
+    static auto allocate(std::size_t const) -> void *;
 
-    auto clear() -> void;
+    static auto clear() -> void;
 
-    auto collect() -> std::size_t;
+    static auto collect() -> std::size_t;
 
-    auto count() const noexcept -> std::size_t;
+    static auto count() noexcept -> std::size_t;
 
-    auto deallocate(void * const, std::size_t const = 0) -> void;
+    static auto deallocate(void * const, std::size_t const = 0) -> void;
 
-    auto mark() -> void;
+    static auto mark() -> void;
 
     static auto region_of(void const* const) -> decltype(regions)::iterator;
 
     static auto reset(void * const, deallocator<void>::signature const) -> region *;
 
-    auto reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max()) -> void;
+    static auto reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max()) -> void;
 
-    auto sweep() -> void;
+    static auto sweep() -> void;
 
-    auto traverse(region * const) -> void;
+    static auto traverse(region * const) -> void;
   } static gc;
 } // namespace memory
 } // namespace meevax

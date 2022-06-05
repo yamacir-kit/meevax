@@ -19,7 +19,7 @@
 ;  IN THE SOFTWARE.
 
 (define-library (srfi 34)
-  (import (only (meevax exception) default-exception-handler)
+  (import (only (meevax exception) throw)
           (scheme r5rs)
           )
 
@@ -29,7 +29,7 @@
           guard
           )
 
-  (begin (define %current-exception-handlers (list default-exception-handler))
+  (begin (define %current-exception-handlers (list throw))
 
          (define (%with-exception-handlers new-handlers thunk)
            (let ((old-handlers %current-exception-handlers))

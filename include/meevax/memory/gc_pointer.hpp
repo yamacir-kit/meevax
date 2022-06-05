@@ -18,46 +18,40 @@
 #define INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 
 #include <meevax/memory/collector.hpp>
-#include <meevax/memory/simple_pointer.hpp>
+#include <meevax/memory/nan_boxing_pointer.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  template <typename T>
+  template <typename... Ts>
   struct gc_pointer
-    : public simple_pointer<T>
-    , private collector::interior
+    : public nan_boxing_pointer<Ts...>
+    , private collector::collectable
   {
-    explicit gc_pointer(std::nullptr_t = nullptr)
+    gc_pointer(std::nullptr_t = nullptr)
     {}
 
-    explicit gc_pointer(simple_pointer<T> const& datum)
-      : simple_pointer<T> { datum }
-      , collector::interior { datum.get() }
+    explicit gc_pointer(nan_boxing_pointer<Ts...> const& datum)
+      : nan_boxing_pointer<Ts...> { datum }
+      , collector::collectable { datum.get() }
     {}
 
-    explicit gc_pointer(gc_pointer const& datum)
-      : simple_pointer<T> { datum.get() }
-      , collector::interior { datum.get() }
+    explicit gc_pointer(gc_pointer const& gcp)
+      : nan_boxing_pointer<Ts...> { gcp }
+      , collector::collectable { gcp.context }
     {}
 
-    auto operator =(gc_pointer const& p) -> auto &
+    auto operator =(gc_pointer const& gcp) -> auto &
     {
-      reset(p.get());
+      reset(gcp);
       return *this;
     }
 
-    void reset(T * const data = nullptr)
+    auto reset(gc_pointer const& gcp = nullptr) -> void
     {
-      collector::interior::reset(simple_pointer<T>::reset(data));
-    }
-
-    void swap(gc_pointer & p)
-    {
-      auto const copy = simple_pointer<T>::get();
-      reset(p.get());
-      p.reset(copy);
+      nan_boxing_pointer<Ts...>::operator =(gcp);
+      collector::collectable::reset(gcp.context);
     }
   };
 } // namespace memory

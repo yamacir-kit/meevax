@@ -30,11 +30,13 @@ inline namespace kernel
 {
   auto unwrap = [](auto&& x) -> decltype(auto)
   {
-    static_assert(std::is_convertible<iterator, object>::value);
-
     using type = typename std::decay<decltype(x)>::type;
 
-    if constexpr (std::is_convertible<type, object>::value)
+    if constexpr (std::is_same<type, iterator>::value)
+    {
+      return x.get().template as<pair>();
+    }
+    else if constexpr (std::is_same<type, lvalue>::value)
     {
       return x.template as<pair>();
     }
@@ -54,8 +56,8 @@ inline namespace kernel
     return std::get<1>(unwrap(std::forward<decltype(x)>(x)));
   };
 
-  template <typename T, typename U, REQUIRES(std::is_convertible<T, object>,
-                                             std::is_convertible<U, object>)>
+  template <typename T, typename U, REQUIRES(std::is_convertible<T, lvalue>,
+                                             std::is_convertible<U, lvalue>)>
   auto operator |(T&& x, U&& y) -> decltype(auto)
   {
     return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
@@ -102,7 +104,7 @@ inline namespace kernel
 
   auto list_copy = [](auto const& x)
   {
-    auto copy = [](auto&& rec, const_reference x) -> object
+    auto copy = [](auto&& rec, const_reference x) -> lvalue
     {
       if (x.is<pair>())
       {
@@ -165,50 +167,36 @@ inline namespace kernel
     return std::forward_as_tuple(car(x), cdr(x));
   };
 
-  template <typename T>
-  auto list_tail(T&& x, std::size_t const k) -> T
+  template <typename T, typename K, REQUIRES(std::is_integral<K>)>
+  auto list_tail(T&& x, K const k) -> const_reference
   {
     return 0 < k ? list_tail(cdr(x), k - 1) : x;
   }
 
-  template <typename T>
-  auto list_tail(T&& x, const_reference k) -> decltype(auto)
-  {
-    assert(k.is<exact_integer>());
-    return list_tail(std::forward<decltype(x)>(x), static_cast<std::size_t>(k.as<exact_integer>()));
-  }
-
-  // auto list_tail = [](reference x, const_reference k) -> decltype(auto)
-  // {
-  //   assert(x.is<null>() or x.is<pair>());
-  //   assert(k.is<exact_integer>());
-  //   return std::next(std::cbegin(x), static_cast<std::size_t>(k.template as<exact_integer>()));
-  // };
-
-  auto list_ref = [](auto&&... xs) constexpr -> decltype(auto)
+  auto list_ref = [](auto&&... xs) constexpr -> const_reference
   {
     return car(list_tail(std::forward<decltype(xs)>(xs)...));
   };
 
-  auto take(const_reference, std::size_t) -> object;
+  auto take(const_reference, std::size_t) -> lvalue;
 
   auto length = [](auto const& x) constexpr
   {
     return std::distance(std::cbegin(x), std::cend(x));
   };
 
-  auto append2(const_reference, const_reference) -> object;
+  auto append2(const_reference, const_reference) -> lvalue;
 
-  auto reverse(const_reference) -> object;
+  auto reverse(const_reference) -> lvalue;
 
-  auto zip(const_reference, const_reference) -> object;
+  auto zip(const_reference, const_reference) -> lvalue;
 
-  auto unzip1(const_reference xs) -> object;
+  auto unzip1(const_reference xs) -> lvalue;
 
-  auto unzip2(const_reference xs) -> std::tuple<object, object>;
+  auto unzip2(const_reference xs) -> std::tuple<lvalue, lvalue>;
 
   template <typename Function>
-  auto map(Function&& function, const_reference x) -> object
+  auto map(Function&& function, const_reference x) -> lvalue
   {
     return x.is<null>() ? unit : cons(function(car(x)), map(function, cdr(x)));
   }

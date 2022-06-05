@@ -28,16 +28,16 @@ inline namespace kernel
   template <typename T>
   using pair_of = std::pair<T, T>;
 
-  struct pair : public pair_of<object>
+  struct pair : public pair_of<lvalue>
               , public top<pair>
   {
     explicit pair(const_reference a = unit, const_reference b = unit)
-      : pair_of<object> { a, b }
+      : pair_of<lvalue> { a, b }
     {}
 
     template <typename... Ts, typename = typename std::enable_if<(1 < sizeof...(Ts))>::type>
     explicit pair(const_reference a, Ts&&... xs)
-      : pair_of<object> { a, make<pair>(std::forward<decltype(xs)>(xs)...) }
+      : pair_of<lvalue> { a, make<pair>(std::forward<decltype(xs)>(xs)...) }
     {}
 
     virtual ~pair() = default;

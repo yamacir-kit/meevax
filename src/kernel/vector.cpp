@@ -16,7 +16,6 @@
 
 #include <meevax/algorithm/for_each.hpp>
 #include <meevax/kernel/error.hpp>
-#include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/vector.hpp>
 

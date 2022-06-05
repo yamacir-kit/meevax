@@ -82,7 +82,7 @@ inline namespace kernel
       return underlying_cast(value);
     }
 
-    catch (const_reference error) // NOTE: default-exception-handler (Terminate the program without running any outstanding dynamic-wind after procedures)
+    catch (const_reference error) // NOTE: procedure `throw` (Terminate the program without running any outstanding dynamic-wind after procedures)
     {
       std::cerr << "; " << error << std::endl;
       return underlying_cast(exit_status::failure);

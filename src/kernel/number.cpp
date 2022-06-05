@@ -20,11 +20,11 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto exact_integer::operator * (const_reference b) const -> object { return apply(mul, *this, b); }
-  auto exact_integer::operator + (const_reference b) const -> object { return apply(add, *this, b); }
-  auto exact_integer::operator - (const_reference b) const -> object { return apply(sub, *this, b); }
-  auto exact_integer::operator / (const_reference b) const -> object { return apply(div, *this, b); }
-  auto exact_integer::operator % (const_reference b) const -> object { return apply(mod, *this, b); }
+  auto exact_integer::operator * (const_reference b) const -> lvalue { return apply(mul, *this, b); }
+  auto exact_integer::operator + (const_reference b) const -> lvalue { return apply(add, *this, b); }
+  auto exact_integer::operator - (const_reference b) const -> lvalue { return apply(sub, *this, b); }
+  auto exact_integer::operator / (const_reference b) const -> lvalue { return apply(div, *this, b); }
+  auto exact_integer::operator % (const_reference b) const -> lvalue { return apply(mod, *this, b); }
   auto exact_integer::operator !=(const_reference b) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, b); }
   auto exact_integer::operator < (const_reference b) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, b); }
   auto exact_integer::operator <=(const_reference b) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, b); }
@@ -56,11 +56,11 @@ inline namespace kernel
   auto operator > (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a >  x.numerator().as<exact_integer>() : false; }
   auto operator >=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a >= x.numerator().as<exact_integer>() : false; }
 
-  auto ratio::operator * (const_reference x) const -> object { return apply(mul, *this, x); }
-  auto ratio::operator + (const_reference x) const -> object { return apply(add, *this, x); }
-  auto ratio::operator - (const_reference x) const -> object { return apply(sub, *this, x); }
-  auto ratio::operator / (const_reference x) const -> object { return apply(div, *this, x); }
-  auto ratio::operator % (const_reference x) const -> object { return apply(mod, *this, x); }
+  auto ratio::operator * (const_reference x) const -> lvalue { return apply(mul, *this, x); }
+  auto ratio::operator + (const_reference x) const -> lvalue { return apply(add, *this, x); }
+  auto ratio::operator - (const_reference x) const -> lvalue { return apply(sub, *this, x); }
+  auto ratio::operator / (const_reference x) const -> lvalue { return apply(div, *this, x); }
+  auto ratio::operator % (const_reference x) const -> lvalue { return apply(mod, *this, x); }
   auto ratio::operator !=(const_reference x) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, x); }
   auto ratio::operator < (const_reference x) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, x); }
   auto ratio::operator <=(const_reference x) const -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, x); }

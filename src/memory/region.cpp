@@ -40,7 +40,7 @@ inline namespace memory
 
   auto region::contains(std::uintptr_t const k) const noexcept -> bool
   {
-    return lower_bound() <= k and k < upper_bound();
+    return begin() <= k and k < end();
   }
 
   auto region::contains(void const* const derived) const noexcept -> bool
@@ -53,7 +53,6 @@ inline namespace memory
     if (assigned())
     {
       deallocate(derived);
-      reset();
     }
   }
 

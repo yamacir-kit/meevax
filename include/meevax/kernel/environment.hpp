@@ -35,9 +35,9 @@ inline namespace kernel
     using pair::pair;
 
   public:
-    using configurator::is_debug_mode;
-    using configurator::is_trace_mode;
-    using configurator::is_verbose_mode;
+    using configurator::debug;
+    using configurator::trace;
+    using configurator::verbose;
 
     using reader::intern;
     using reader::read;
@@ -55,18 +55,18 @@ inline namespace kernel
     {
       (import(xs), ...);
 
-      define<procedure>("set-batch!",       [this](let const& xs, auto&&...) { return batch       = car(xs); });
-      define<procedure>("set-debug!",       [this](let const& xs, auto&&...) { return debug       = car(xs); });
-      define<procedure>("set-interactive!", [this](let const& xs, auto&&...) { return interactive = car(xs); });
-      define<procedure>("set-trace!",       [this](let const& xs, auto&&...) { return trace       = car(xs); });
-      define<procedure>("set-verbose!",     [this](let const& xs, auto&&...) { return verbose     = car(xs); });
+      define<procedure>("set-batch!",       [this](let const& xs, auto&&...) { return batch       = select(car(xs)); });
+      define<procedure>("set-debug!",       [this](let const& xs, auto&&...) { return debug       = select(car(xs)); });
+      define<procedure>("set-interactive!", [this](let const& xs, auto&&...) { return interactive = select(car(xs)); });
+      define<procedure>("set-trace!",       [this](let const& xs, auto&&...) { return trace       = select(car(xs)); });
+      define<procedure>("set-verbose!",     [this](let const& xs, auto&&...) { return verbose     = select(car(xs)); });
     }
 
     auto operator [](const_reference) -> const_reference;
 
     auto operator [](std::string const&) -> const_reference;
 
-    auto apply(const_reference, const_reference) -> object;
+    auto apply(const_reference, const_reference) -> lvalue;
 
     auto declare_import(const_reference) -> void;
 
@@ -86,13 +86,13 @@ inline namespace kernel
       define(name, make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
-    auto evaluate(const_reference) -> object;
+    auto evaluate(const_reference) -> lvalue;
 
-    auto execute() -> object;
+    auto execute() -> lvalue;
 
-    auto execute(const_reference) -> object;
+    auto execute(const_reference) -> lvalue;
 
-    auto fork() const -> object
+    auto fork() const -> lvalue
     {
       return make<environment>(*this);
     }
@@ -108,15 +108,15 @@ inline namespace kernel
 
     auto global() const noexcept -> const_reference;
 
-    auto load(std::string const&) -> object;
+    auto load(std::string const&) -> lvalue;
 
     auto scope() const noexcept -> const_reference;
 
     auto scope() noexcept -> reference;
 
-    auto identify(const_reference, const_reference) -> object;
+    auto identify(const_reference, const_reference) -> lvalue;
 
-    auto identify(const_reference, const_reference) const -> object;
+    auto identify(const_reference, const_reference) const -> lvalue;
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;

@@ -122,6 +122,18 @@ public:
     reinterpret_cast<chunk *>(p)->next = recycled_chunk;
     recycled_chunk = reinterpret_cast<chunk *>(p);
   }
+
+  template <typename... Ts>
+  auto new_(Ts&&... xs)
+  {
+    return ::new (allocate()) T(std::forward<decltype(xs)>(xs)...);
+  }
+
+  auto delete_(pointer p) -> void
+  {
+    (*p).~T();
+    deallocate(p);
+  }
 };
 } // namespace memory
 } // namespace meevax

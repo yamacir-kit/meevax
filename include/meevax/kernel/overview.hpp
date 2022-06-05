@@ -17,13 +17,12 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
 #define INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
 
+#include <meevax/kernel/mnemonic.hpp>
 #include <meevax/memory/gc_pointer.hpp>
 #include <meevax/type_traits/requires.hpp>
 #include <meevax/utility/demangle.hpp>
 
 #define NIL /* nothing */
-
-#define PROFILE_ALLOCATION false
 
 namespace meevax
 {
@@ -42,11 +41,12 @@ inline namespace kernel
   using single_float = floating_point<float>;
   using double_float = floating_point<double>; // NOTE: 0.0 is double
 
-  template <template <typename...> typename Pointer, typename T>
+  template <template <typename...> typename, typename, typename...>
   class heterogeneous;
 
-  using                         object = heterogeneous<gc_pointer, pair>;
-  using                   let = object;
+  using lvalue = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, mnemonic>;
+
+  using                   let = lvalue;
   using       reference = let &;
   using const_reference = let const&;
 
@@ -54,7 +54,7 @@ inline namespace kernel
 
   struct number
   {
-    #define DEFINE(NAME) virtual auto NAME() const -> object = 0
+    #define DEFINE(NAME) virtual auto NAME() const -> lvalue = 0
 
     DEFINE(exact); DEFINE(inexact);
 
@@ -66,8 +66,8 @@ inline namespace kernel
 
     #undef DEFINE
 
-    virtual auto atan2(const_reference) const -> object = 0;
-    virtual auto pow  (const_reference) const -> object = 0;
+    virtual auto atan2(const_reference) const -> lvalue = 0;
+    virtual auto pow  (const_reference) const -> lvalue = 0;
 
     virtual auto is_complex () const -> bool { return true ; }
     virtual auto is_real    () const -> bool { return false; }
@@ -78,11 +78,11 @@ inline namespace kernel
     virtual auto is_infinite() const -> bool { return false; }
     virtual auto is_nan     () const -> bool { return false; }
 
-    virtual auto operator + (const_reference) const -> object = 0;
-    virtual auto operator - (const_reference) const -> object = 0;
-    virtual auto operator * (const_reference) const -> object = 0;
-    virtual auto operator / (const_reference) const -> object = 0;
-    virtual auto operator % (const_reference) const -> object = 0;
+    virtual auto operator + (const_reference) const -> lvalue = 0;
+    virtual auto operator - (const_reference) const -> lvalue = 0;
+    virtual auto operator * (const_reference) const -> lvalue = 0;
+    virtual auto operator / (const_reference) const -> lvalue = 0;
+    virtual auto operator % (const_reference) const -> lvalue = 0;
 
     virtual auto operator ==(const_reference) const -> bool = 0;
     virtual auto operator !=(const_reference) const -> bool = 0;
@@ -93,9 +93,9 @@ inline namespace kernel
   };
 
   #define DEFINE(SYMBOL)                                                       \
-  template <template <typename...> typename Pointer, typename Top>             \
-  auto operator SYMBOL(heterogeneous<Pointer, Top> const& x,                   \
-                       heterogeneous<Pointer, Top> const& y) -> decltype(auto) \
+  template <template <typename...> typename P, typename T, typename... Ts>     \
+  auto operator SYMBOL(heterogeneous<P, T, Ts...> const& x,                    \
+                       heterogeneous<P, T, Ts...> const& y) -> decltype(auto)  \
   {                                                                            \
     return x.template as<number>() SYMBOL y;                                   \
   }                                                                            \

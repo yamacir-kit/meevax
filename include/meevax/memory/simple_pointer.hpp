@@ -28,56 +28,42 @@ inline namespace memory
   template <typename T>
   struct simple_pointer
   {
-    using value_type = T;
+    using element_type = T;
 
-    using reference = value_type &;
-
-    using const_reference = value_type const&;
-
-    using pointer = value_type *;
-
-    using const_pointer = value_type const*;
+    using pointer = typename std::add_pointer<element_type>::type;
 
     pointer data;
 
-    template <typename Pointer = pointer>
-    constexpr simple_pointer(typename std::pointer_traits<Pointer>::pointer data = nullptr)
+    template <typename P = pointer>
+    constexpr simple_pointer(typename std::pointer_traits<P>::pointer data = nullptr)
       : data { static_cast<pointer>(data) }
     {}
 
-    constexpr simple_pointer(simple_pointer const& sp)
-      : data { sp.get() }
-    {}
+    constexpr simple_pointer(simple_pointer const& sp) = default;
 
-    auto operator =(simple_pointer const& x) noexcept -> auto &
-    {
-      data = x.get();
-      return *this;
-    }
-
-    auto operator ->() const noexcept
-    {
-      return get();
-    }
-
-    constexpr auto operator *() const noexcept -> reference
-    {
-      return *data;
-    }
-
-    explicit constexpr operator bool() const noexcept
-    {
-      return data != nullptr;
-    }
-
-    constexpr auto get() const noexcept -> pointer
+    constexpr auto operator ->() const noexcept
     {
       return data;
     }
 
-    auto reset(pointer const p = nullptr) noexcept -> pointer
+    constexpr auto operator *() const noexcept -> decltype(auto)
     {
-      return data = p;
+      return *data;
+    }
+
+    constexpr explicit operator bool() const noexcept
+    {
+      return data != nullptr;
+    }
+
+    constexpr auto get() const noexcept
+    {
+      return data;
+    }
+
+    auto reset(pointer const p = nullptr) noexcept
+    {
+      data = p;
     }
   };
 

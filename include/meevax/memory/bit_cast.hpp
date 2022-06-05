@@ -14,15 +14,30 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/instruction_level_procedure.hpp>
+#ifndef INCLUDED_MEEVAX_MEMORY_BIT_CAST_HPP
+#define INCLUDED_MEEVAX_MEMORY_BIT_CAST_HPP
+
+#include <cstring>
+
+#include <meevax/type_traits/requires.hpp>
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace memory
 {
-  auto operator <<(std::ostream & os, instruction_level_procedure const& datum) -> std::ostream &
+  template <typename To,
+            typename From,
+            REQUIRES(std::bool_constant<sizeof(To) == sizeof(From)>,
+                     std::is_trivially_copyable<To>,
+                     std::is_trivially_copyable<From>,
+                     std::is_trivially_constructible<To>)>
+  auto bit_cast(From const& from) noexcept
   {
-    return os << static_cast<procedure const&>(datum);
+    To to;
+    std::memcpy(&to, &from, sizeof from);
+    return to;
   }
-} // namespace kernel
+} // namespace memory
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_MEMORY_BIT_CAST_HPP
