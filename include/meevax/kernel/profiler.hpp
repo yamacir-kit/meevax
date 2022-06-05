@@ -26,12 +26,9 @@ inline namespace kernel
 {
   struct profiler
   {
-    struct topic
-    {
-      std::size_t allocation = 0;
-    };
+    static constexpr auto count_allocations = false;
 
-    std::unordered_map<std::type_index, topic> by_type;
+    std::unordered_map<std::type_index, std::size_t> allocation_counts;
 
     ~profiler();
   };

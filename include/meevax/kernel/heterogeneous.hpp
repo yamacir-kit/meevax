@@ -81,10 +81,11 @@ inline namespace kernel
     template <typename Bound, typename... Us>
     static auto allocate(Us&&... xs)
     {
-      #if PROFILE_ALLOCATION
-      current_profiler().by_type[typeid(typename std::decay<Bound>::type)].allocation++;
-      current_profiler().by_type[typeid(void)].allocation++;
-      #endif
+      if constexpr (profiler::count_allocations)
+      {
+        current_profiler().allocation_counts[typeid(Bound)]++;
+        current_profiler().allocation_counts[typeid(void)]++;
+      }
 
       if constexpr (std::is_same_v<Bound, Top>)
       {

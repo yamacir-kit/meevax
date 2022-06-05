@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <fstream>
+#include <sstream>
 
 #include <meevax/kernel/profiler.hpp>
 #include <meevax/utility/demangle.hpp>
@@ -37,17 +37,21 @@ inline namespace kernel
 
   profiler::~profiler()
   {
-    if (auto file = std::ofstream("/tmp/meevax-profile-by-type.txt"); file)
+    if (auto ss = std::stringstream(); not std::empty(allocation_counts))
     {
-      for (auto&& [type, topic] : by_type)
+      for (auto&& [type, value] : allocation_counts)
       {
-        file << topic.allocation << "\t" << demangle(type.name()) << "\n";
+        ss << demangle(type.name()) << "\t" << value << "\n";
       }
-    }
 
-    sh("cat /tmp/meevax-profile-by-type.txt | sed 's/meevax::kernel:://g' \
-                                            | sort -rn \
-                                            | column -t -s'\t'");
+      sh("echo \"" + ss.str() + "\" | sed 's/meevax::kernel:://g'              \
+                                    | sort --field-separator='\t'              \
+                                           --key=2                             \
+                                           --numeric-sort                      \
+                                           --reverse                           \
+                                    | echo \"TYPENAME\tALLOCATION COUNT\n$(cat -)\" \
+                                    | column -t -s'\t'");
+    }
   }
 
   auto current_profiler() -> profiler &

@@ -24,8 +24,6 @@
 
 #define NIL /* nothing */
 
-#define PROFILE_ALLOCATION true
-
 namespace meevax
 {
 inline namespace kernel
