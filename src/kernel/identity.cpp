@@ -16,8 +16,8 @@
 
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identity.hpp>
-#include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/mnemonic.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax
@@ -60,14 +60,14 @@ inline namespace kernel
     return second;
   }
 
-  auto absolute::make_load_instruction() const -> lvalue
+  auto absolute::make_load_mnemonic() const -> lvalue
   {
-    return make<instruction>(mnemonic::load_absolute);
+    return make(mnemonic::load_absolute);
   }
 
-  auto absolute::make_store_instruction() const -> lvalue
+  auto absolute::make_store_mnemonic() const -> lvalue
   {
-    return make<instruction>(mnemonic::store_absolute);
+    return make(mnemonic::store_absolute);
   }
 
   auto relative::is_bound() const -> bool
@@ -82,17 +82,22 @@ inline namespace kernel
 
   auto relative::load(const_reference e) const -> const_reference
   {
-    return list_ref(list_ref(e, car(second)), cdr(second));
+    assert(car(second).template is<std::uint32_t>());
+    assert(cdr(second).template is<std::uint32_t>());
+
+    return list_ref(list_ref(e,
+                             car(second).template as<std::uint32_t>()),
+                    cdr(second).template as<std::uint32_t>());
   }
 
-  auto relative::make_load_instruction() const -> lvalue
+  auto relative::make_load_mnemonic() const -> lvalue
   {
-    return make<instruction>(mnemonic::load_relative);
+    return make(mnemonic::load_relative);
   }
 
-  auto relative::make_store_instruction() const -> lvalue
+  auto relative::make_store_mnemonic() const -> lvalue
   {
-    return make<instruction>(mnemonic::store_relative);
+    return make(mnemonic::store_relative);
   }
 
   auto operator ==(relative const&, relative const&) -> bool
@@ -102,17 +107,22 @@ inline namespace kernel
 
   auto variadic::load(const_reference e) const -> const_reference
   {
-    return list_tail(list_ref(e, car(second)), cdr(second));
+    assert(car(second).template is<std::uint32_t>());
+    assert(cdr(second).template is<std::uint32_t>());
+
+    return list_tail(list_ref(e,
+                              car(second).template as<std::uint32_t>()),
+                     cdr(second).template as<std::uint32_t>());
   }
 
-  auto variadic::make_load_instruction() const -> lvalue
+  auto variadic::make_load_mnemonic() const -> lvalue
   {
-    return make<instruction>(mnemonic::load_variadic);
+    return make(mnemonic::load_variadic);
   }
 
-  auto variadic::make_store_instruction() const -> lvalue
+  auto variadic::make_store_mnemonic() const -> lvalue
   {
-    return make<instruction>(mnemonic::store_variadic);
+    return make(mnemonic::store_variadic);
   }
 } // namespace kernel
 } // namespace meevax

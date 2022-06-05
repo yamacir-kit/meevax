@@ -29,15 +29,15 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <template <typename...> typename Pointer, typename Top>
-  class heterogeneous : public Pointer<Top>
+  template <template <typename...> typename Pointer, typename Top, typename... Ts>
+  class heterogeneous : public Pointer<Top, Ts...>
   {
     template <typename Bound>
     struct binder : public virtual Top
                   , public Bound
     {
-      template <typename... Ts>
-      explicit constexpr binder(Ts&&... xs)
+      template <typename... Us>
+      explicit constexpr binder(Us&&... xs)
         : std::conditional<std::is_base_of<Top, Bound>::value, Top, Bound>::type { std::forward<decltype(xs)>(xs)... }
       {}
 
@@ -74,38 +74,51 @@ inline namespace kernel
     };
 
   public:
-    using Pointer<Top>::Pointer;
-    using Pointer<Top>::get;
+    using Pointer<Top, Ts...>::Pointer;
+    using Pointer<Top, Ts...>::dereferenceable;
+    using Pointer<Top, Ts...>::get;
 
-    template <template <typename...> typename AnotherPointer>
-    heterogeneous(AnotherPointer<Top> && p)
-      : Pointer<Top> { p.release() }
-    {}
-
-    template <typename Bound, typename... Ts, REQUIRES(std::is_compound<Bound>)>
-    static auto allocate(Ts&&... xs)
+    template <typename Bound, typename... Us>
+    static auto allocate(Us&&... xs)
     {
       #if PROFILE_ALLOCATION
       current_profiler().by_type[typeid(typename std::decay<Bound>::type)].allocation++;
+      current_profiler().by_type[typeid(void)].allocation++;
       #endif
 
-      return static_cast<heterogeneous>(
-        new (gc) typename std::conditional<std::is_same<Bound, Top>::value, Top, binder<Bound>>::type(
-          std::forward<decltype(xs)>(xs)...));
-    }
-
-    template <typename U>
-    inline auto as() const -> U &
-    {
-      if (auto data = dynamic_cast<U *>(get()); data)
+      if constexpr (std::is_same_v<Bound, Top>)
       {
-        return *data;
+        return heterogeneous(new (gc) Top(std::forward<decltype(xs)>(xs)...));
+      }
+      else if constexpr (std::is_class_v<Bound>)
+      {
+        return heterogeneous(new (gc) binder<Bound>(std::forward<decltype(xs)>(xs)...));
       }
       else
       {
-        std::stringstream ss {};
-        ss << "no viable conversion from " << demangle(type()) << " to " << demangle(typeid(U));
-        raise(ss.str());
+        return heterogeneous(std::forward<decltype(xs)>(xs)...);
+      }
+    }
+
+    template <typename U>
+    inline auto as() const -> decltype(auto)
+    {
+      if constexpr (std::is_class_v<U>)
+      {
+        if (auto data = dynamic_cast<U *>(get()); data)
+        {
+          return *data;
+        }
+        else
+        {
+          std::stringstream ss {};
+          ss << "no viable conversion from " << demangle(type()) << " to " << demangle(typeid(U));
+          raise(ss.str());
+        }
+      }
+      else
+      {
+        return Pointer<Top, Ts...>::template as<U>();
       }
     }
 
@@ -117,7 +130,14 @@ inline namespace kernel
 
     inline auto compare(heterogeneous const& rhs) const -> bool
     {
-      return type() == rhs.type() and get()->compare(rhs.get());
+      if (dereferenceable())
+      {
+        return *this ? get()->compare(rhs.get()) : not rhs;
+      }
+      else
+      {
+        return Pointer<Top, Ts...>::equivalent_to(rhs);
+      }
     }
 
     template <typename U>
@@ -126,7 +146,7 @@ inline namespace kernel
       return type() == typeid(typename std::decay<U>::type);
     }
 
-    template <typename U>
+    template <typename U, REQUIRES(std::is_class<U>)>
     inline auto is_also() const
     {
       return dynamic_cast<U *>(get()) != nullptr;
@@ -134,12 +154,26 @@ inline namespace kernel
 
     inline auto type() const -> std::type_info const&
     {
-      return *this ? get()->type() : typeid(null);
+      if (dereferenceable())
+      {
+        return *this ? get()->type() : typeid(null);
+      }
+      else
+      {
+        return Pointer<Top, Ts...>::type();
+      }
     }
 
     friend auto operator <<(std::ostream & os, heterogeneous const& datum) -> std::ostream &
     {
-      return datum.template is<null>() ? os << magenta("()") : datum->write(os);
+      if (datum.dereferenceable())
+      {
+        return not datum ? os << magenta("()") : datum->write(os);
+      }
+      else
+      {
+        return datum.write(os);
+      }
     }
   };
 } // namespace kernel

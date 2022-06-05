@@ -122,17 +122,25 @@ inline namespace kernel
         if (identity.is<relative>())
         {
           let const& mac_env_scope = syntactic_environment.as<environment>().scope();
-          let offset = make<exact_integer>(length(use_env_scope) - length(mac_env_scope));
+
+          assert(length(use_env_scope) >= length(mac_env_scope));
+
+          auto offset = static_cast<std::uint32_t>(length(use_env_scope) - length(mac_env_scope));
+
           return make<relative>(car(identity),
-                                cadr(identity).template as<exact_integer>() + offset,
+                                make(cadr(identity).template as<std::uint32_t>() + offset),
                                 cddr(identity));
         }
         else if (identity.is<variadic>())
         {
           let const& mac_env_scope = syntactic_environment.as<environment>().scope();
-          let offset = make<exact_integer>(length(use_env_scope) - length(mac_env_scope));
+
+          assert(length(use_env_scope) >= length(mac_env_scope));
+
+          auto offset = static_cast<std::uint32_t>(length(use_env_scope) - length(mac_env_scope));
+
           return make<variadic>(car(identity),
-                                cadr(identity).template as<exact_integer>() + offset,
+                                make(cadr(identity).template as<std::uint32_t>() + offset),
                                 cddr(identity));
         }
         else
@@ -179,7 +187,7 @@ inline namespace kernel
       environment & current_environment,
       const_reference current_expression,
       const_reference current_scope = unit,
-      const_reference current_continuation = list(make<instruction>(mnemonic::stop))) -> lvalue
+      const_reference current_continuation = list(make(mnemonic::stop))) -> lvalue
     {
       if (current_expression.is<null>()) /* ------------------------------------
       *
@@ -190,7 +198,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        return cons(make<instruction>(mnemonic::load_constant), unit, current_continuation);
+        return cons(make(mnemonic::load_constant), unit, current_continuation);
       }
       else if (not current_expression.is<pair>()) /* -----------------------------------
       *
@@ -207,14 +215,14 @@ inline namespace kernel
         {
           let const& id = current_environment.identify(current_expression, current_scope);
 
-          return cons(id.as<identity>().make_load_instruction(), id,
+          return cons(id.as<identity>().make_load_mnemonic(), id,
                       current_continuation);
         }
         else if (current_expression.is<syntactic_closure>())
         {
           if (let const& id = std::as_const(current_environment).identify(current_expression, current_scope); select(id))
           {
-            return cons(id.as<identity>().make_load_instruction(), id,
+            return cons(id.as<identity>().make_load_mnemonic(), id,
                         current_continuation);
           }
           else // The syntactic-closure encloses procedure call.
@@ -237,7 +245,7 @@ inline namespace kernel
         }
         else // is <self-evaluating>
         {
-          return cons(make<instruction>(mnemonic::load_constant), current_expression,
+          return cons(make(mnemonic::load_constant), current_expression,
                       current_continuation);
         }
       }
@@ -313,7 +321,7 @@ inline namespace kernel
                                current_environment,
                                car(current_expression),
                                current_scope,
-                               cons(make<instruction>(current_context & context::tail ? mnemonic::tail_call : mnemonic::call),
+                               cons(make(current_context & context::tail ? mnemonic::tail_call : mnemonic::call),
                                     current_continuation)));
       }
     }
@@ -330,7 +338,7 @@ inline namespace kernel
                   << faint("; d = ") << d << "\n" << std::endl;
       }
 
-      switch (car(c).template as<instruction>().value)
+      switch (car(c).template as<mnemonic>())
       {
       case mnemonic::load_absolute: /* -----------------------------------------
         *
@@ -708,8 +716,8 @@ inline namespace kernel
             static_assert(std::is_base_of<pair, relative>::value);
 
             return make<relative>(variable,
-                                  make<exact_integer>(std::distance(std::begin(scope), outer)),
-                                  make<exact_integer>(std::distance(std::begin(*outer), inner)));
+                                  make(static_cast<std::uint32_t>(std::distance(std::begin(scope), outer))),
+                                  make(static_cast<std::uint32_t>(std::distance(std::begin(*outer), inner))));
           }
           else if (inner.get().is<symbol>() and eq(inner, variable))
           {
@@ -717,8 +725,8 @@ inline namespace kernel
             static_assert(std::is_base_of<pair, variadic>::value);
 
             return make<variadic>(variable,
-                                  make<exact_integer>(std::distance(std::begin(scope), outer)),
-                                  make<exact_integer>(std::distance(std::begin(*outer), inner)));
+                                  make(static_cast<std::uint32_t>(std::distance(std::begin(scope), outer))),
+                                  make(static_cast<std::uint32_t>(std::distance(std::begin(*outer), inner))));
           }
         }
       }
@@ -730,7 +738,7 @@ inline namespace kernel
     {
       s = unit;
       e = unit;
-      c = list(make<instruction>(mnemonic::stop));
+      c = list(make(mnemonic::stop));
       d = unit;
     }
 
@@ -753,7 +761,7 @@ inline namespace kernel
                      current_environment,
                      cadr(current_expression),
                      current_scope,
-                     cons(id.as<identity>().make_store_instruction(), id,
+                     cons(id.as<identity>().make_store_mnemonic(), id,
                           current_continuation));
     }
 
@@ -845,7 +853,7 @@ inline namespace kernel
                        current_environment,
                        car(current_expression),
                        current_scope,
-                       cons(make<instruction>(mnemonic::drop),
+                       cons(make(mnemonic::drop),
                             begin(current_context,
                                   current_environment,
                                   cdr(current_expression),
@@ -861,13 +869,13 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return cons(make<instruction>(mnemonic::load_continuation),
+      return cons(make(mnemonic::load_continuation),
                   current_continuation,
                   compile(current_context,
                           current_environment,
                           car(current_expression),
                           current_scope,
-                          cons(make<instruction>(mnemonic::call),
+                          cons(make(mnemonic::call),
                                current_continuation)));
     }
 
@@ -894,7 +902,7 @@ inline namespace kernel
                   current_environment,
                   cadr(current_expression),
                   current_scope,
-                  list(make<instruction>(mnemonic::return_)));
+                  list(make(mnemonic::return_)));
 
         auto alternate =
           cddr(current_expression)
@@ -902,15 +910,15 @@ inline namespace kernel
                       current_environment,
                       caddr(current_expression),
                       current_scope,
-                      list(make<instruction>(mnemonic::return_)))
-            : list(make<instruction>(mnemonic::load_constant), unspecified_object,
-                   make<instruction>(mnemonic::return_));
+                      list(make(mnemonic::return_)))
+            : list(make(mnemonic::load_constant), unspecified_object,
+                   make(mnemonic::return_));
 
         return compile(context::none,
                        current_environment,
                        car(current_expression), // <test>
                        current_scope,
-                       cons(make<instruction>(mnemonic::tail_select), consequent, alternate,
+                       cons(make(mnemonic::tail_select), consequent, alternate,
                             cdr(current_continuation)));
       }
       else
@@ -920,7 +928,7 @@ inline namespace kernel
                   current_environment,
                   cadr(current_expression),
                   current_scope,
-                  list(make<instruction>(mnemonic::join)));
+                  list(make(mnemonic::join)));
 
         auto alternate =
           cddr(current_expression)
@@ -928,15 +936,15 @@ inline namespace kernel
                       current_environment,
                       caddr(current_expression),
                       current_scope,
-                      list(make<instruction>(mnemonic::join)))
-            : list(make<instruction>(mnemonic::load_constant), unspecified_object,
-                   make<instruction>(mnemonic::join));
+                      list(make(mnemonic::join)))
+            : list(make(mnemonic::load_constant), unspecified_object,
+                   make(mnemonic::join));
 
         return compile(context::none,
                        current_environment,
                        car(current_expression), // <test>
                        current_scope,
-                       cons(make<instruction>(mnemonic::select), consequent, alternate,
+                       cons(make(mnemonic::select), consequent, alternate,
                             current_continuation));
       }
     }
@@ -951,7 +959,7 @@ inline namespace kernel
                              current_environment,
                              car(current_expression),
                              current_scope,
-                             cons(make<instruction>(mnemonic::cons), current_continuation)));
+                             cons(make(mnemonic::cons), current_continuation)));
     }
 
     static SYNTAX(define) /* ---------------------------------------------------
@@ -987,7 +995,7 @@ inline namespace kernel
                          current_environment,
                          cons(make<syntax>("lambda", lambda), cdar(current_expression), cdr(current_expression)),
                          current_scope,
-                         cons(make<instruction>(mnemonic::define), current_environment.identify(caar(current_expression), current_scope),
+                         cons(make(mnemonic::define), current_environment.identify(caar(current_expression), current_scope),
                               current_continuation));
         }
         else // (define x ...)
@@ -996,7 +1004,7 @@ inline namespace kernel
                          current_environment,
                          cdr(current_expression) ? cadr(current_expression) : unspecified_object,
                          current_scope,
-                         cons(make<instruction>(mnemonic::define), current_environment.identify(car(current_expression), current_scope),
+                         cons(make(mnemonic::define), current_environment.identify(car(current_expression), current_scope),
                               current_continuation));
         }
       }
@@ -1064,7 +1072,7 @@ inline namespace kernel
                      current_environment,
                      cdr(current_expression) ? cadr(current_expression) : undefined,
                      current_scope,
-                     cons(make<instruction>(mnemonic::define_syntax), current_environment.identify(car(current_expression), current_scope),
+                     cons(make(mnemonic::define_syntax), current_environment.identify(car(current_expression), current_scope),
                           current_continuation));
     }
 
@@ -1092,12 +1100,12 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return cons(make<instruction>(mnemonic::load_closure),
+      return cons(make(mnemonic::load_closure),
                   body(current_context,
                        current_environment,
                        cdr(current_expression),
                        cons(car(current_expression), current_scope), // Extend lexical scope.
-                       list(make<instruction>(mnemonic::return_))),
+                       list(make(mnemonic::return_))),
                   current_continuation);
     }
 
@@ -1132,7 +1140,7 @@ inline namespace kernel
 
       auto const [bindings, body]  = unpair(current_expression);
 
-      return cons(make<instruction>(mnemonic::let_syntax),
+      return cons(make(mnemonic::let_syntax),
                   make<syntactic_continuation>(body,
                                                cons(map(make_keyword, bindings),
                                                     current_scope)),
@@ -1155,7 +1163,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return cons(make<instruction>(mnemonic::letrec_syntax),
+      return cons(make(mnemonic::letrec_syntax),
                   make<syntactic_continuation>(current_expression, current_scope),
                   current_continuation);
     }
@@ -1204,7 +1212,7 @@ inline namespace kernel
     {
       auto const& [variables, inits] = unzip2(car(current_expression));
 
-      return cons(make<instruction>(mnemonic::dummy),
+      return cons(make(mnemonic::dummy),
                   operand(context::none,
                           current_environment,
                           inits,
@@ -1213,7 +1221,7 @@ inline namespace kernel
                                  current_environment,
                                  cons(variables, cdr(current_expression)), // (<formals> <body>)
                                  current_scope,
-                                 cons(make<instruction>(mnemonic::letrec),
+                                 cons(make(mnemonic::letrec),
                                       current_continuation))));
     }
 
@@ -1240,19 +1248,19 @@ inline namespace kernel
     {
       if (car(current_expression).is<syntactic_closure>())
       {
-        return cons(make<instruction>(mnemonic::load_constant), car(current_expression).as<syntactic_closure>().expression,
+        return cons(make(mnemonic::load_constant), car(current_expression).as<syntactic_closure>().expression,
                     current_continuation);
       }
       else
       {
-        return cons(make<instruction>(mnemonic::load_constant), car(current_expression),
+        return cons(make(mnemonic::load_constant), car(current_expression),
                     current_continuation);
       }
     }
 
     static SYNTAX(quote_syntax)
     {
-      return cons(make<instruction>(mnemonic::load_constant), car(current_expression),
+      return cons(make(mnemonic::load_constant), car(current_expression),
                   current_continuation);
     }
 
@@ -1268,7 +1276,7 @@ inline namespace kernel
                                current_environment,
                                car(current_expression),
                                current_scope,
-                               cons(make<instruction>(mnemonic::cons),
+                               cons(make(mnemonic::cons),
                                     current_continuation)));
       }
       else
@@ -1323,7 +1331,7 @@ inline namespace kernel
                          current_environment,
                          car(current_expression),
                          current_scope,
-                         cons(make<instruction>(mnemonic::drop),
+                         cons(make(mnemonic::drop),
                               begin(context::outermost,
                                     current_environment,
                                     cdr(current_expression),
@@ -1347,7 +1355,7 @@ inline namespace kernel
                          current_environment,
                          car(current_expression), // head expression
                          current_scope,
-                         cons(make<instruction>(mnemonic::drop), // pop result of head expression
+                         cons(make(mnemonic::drop), // pop result of head expression
                               begin(context::none,
                                     current_environment,
                                     cdr(current_expression), // rest expressions

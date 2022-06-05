@@ -17,91 +17,112 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 
-#include <cmath>
-#include <cstddef>
-#include <cstdint>
-#include <type_traits>
-#include <typeinfo>
+#include <stdexcept>
+
+#include <meevax/memory/bit_cast.hpp>
+#include <meevax/memory/simple_pointer.hpp>
+#include <meevax/type_traits/integer.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  /* ---- Tagged Pointers --------------------------------------------------- */
-
-  using word = std::uintptr_t;
-
-  /* ---- Linux 64 Bit Address Space -------------------------------------------
-   *
-   * user   0x0000 0000 0000 0000 ~ 0x0000 7FFF FFFF FFFF
-   * kernel 0xFFFF 8000 0000 0000 ~
-   *
-   * ------------------------------------------------------------------------ */
-
-  static_assert(8 <= sizeof(word));
-
-  template <typename T, typename = void>
-  struct is_immediate
-    : public std::false_type
-  {};
-
-  template <typename T>
-  struct is_immediate<T,
-    typename std::enable_if<(sizeof(T) <= sizeof(word) / 2)>::type>
-    : public std::true_type
-  {};
-
-
-  /* ---- Tag ------------------------------------------------------------------
-   *
-   * ┌─────┬──────────────────────────────────────────────────────────────────┐
-   * │ Tag │ Purpose                                                          │
-   * ├─────┼──────────────────────────────────────────────────────────────────┤
-   * │ 000 │ T* or std::nullptr_t                                             │
-   * │ 001 │                                                                  │
-   * │ 010 │                                                                  │
-   * │ 011 │                                                                  │
-   * │ 100 │                                                                  │
-   * │ 101 │                                                                  │
-   * │ 110 │                                                                  │
-   * │ 111 │                                                                  │
-   * └─────┴──────────────────────────────────────────────────────────────────┘
-   *
-   * ------------------------------------------------------------------------ */
-
-  constexpr std::uintptr_t mask { 0x07 };
-
-  template <typename T>
-  constexpr auto tag_of(T const* const address)
+  template <typename T,
+            typename T_0b001 = std::integral_constant<std::uint32_t, 0b001>,
+            typename T_0b010 = std::integral_constant<std::uint32_t, 0b010>,
+            typename T_0b011 = std::integral_constant<std::uint32_t, 0b011>>
+  struct tagged_pointer : public simple_pointer<T>
   {
-    return reinterpret_cast<std::uintptr_t>(address) & mask;
-  }
+    using pointer = typename simple_pointer<T>::pointer;
 
-  template <typename T>
-  constexpr auto type_of(T const* const address) -> const std::type_info&
-  {
-    switch (tag_of(address))
+    using simple_pointer<T>::simple_pointer;
+
+    #define DEFINE(TAG)                                                        \
+    explicit constexpr tagged_pointer(T_##TAG const& value)                    \
+      : simple_pointer<T> {                                                    \
+          reinterpret_cast<pointer>(                                           \
+            static_cast<std::uintptr_t>(bit_cast<uintN_t<sizeof(T_##TAG)>>(value)) << 32 | TAG) } \
+    {}                                                                         \
+                                                                               \
+    auto operator =(T_##TAG const& value) -> auto &                            \
+    {                                                                          \
+      simple_pointer<T>::data                                                  \
+        = reinterpret_cast<pointer>(                                           \
+            static_cast<std::uintptr_t>(bit_cast<uintN_t<sizeof(T_##TAG)>>(value)) << 32 | TAG); \
+      return *this;                                                            \
+    }                                                                          \
+                                                                               \
+    static_assert(sizeof(T_##TAG) <= 4)
+
+    DEFINE(0b001);
+    DEFINE(0b010);
+    DEFINE(0b011);
+
+    #undef DEFINE
+
+    constexpr auto operator ->() const -> decltype(auto)
     {
-    case 0:
-      return typeid(decltype(address));
+      switch (tag())
+      {
+      case 0b000:
+        return simple_pointer<T>::operator ->();
 
-    default:
-      return typeid(void);
+      default:
+        throw std::logic_error("");
+      }
     }
-  }
 
-  // template <typename T>
-  // constexpr auto unbox(T const* const data) -> std::uintptr_t
-  // {
-  //   switch (tag_of(data))
-  //   {
-  //   case tag<std::int32_t>::value:
-  //     return unbox(data);
-  //
-  //   default:
-  //     throw std::logic_error { "unexpected immediate value" };
-  //   }
-  // }
+    constexpr auto operator *() const -> decltype(auto)
+    {
+      switch (tag())
+      {
+      case 0b000:
+        return simple_pointer<T>::operator *();
+
+      default:
+        throw std::logic_error("");
+      }
+    }
+
+    template <typename U>
+    auto as() const
+    {
+      return bit_cast<typename std::decay<U>::type>(
+               static_cast<uintN_t<sizeof(typename std::decay<U>::type)>>(
+                 reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) >> 32));
+    }
+
+    template <typename U>
+    auto is() const noexcept
+    {
+      return type() == typeid(typename std::decay<U>::type);
+    }
+
+    constexpr auto tag() const noexcept
+    {
+      return reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) & 0b111;
+    }
+
+    constexpr auto type() const noexcept -> decltype(auto)
+    {
+      switch (tag())
+      {
+      #define DEFINE(TAG)                                                      \
+      case TAG:                                                                \
+        return typeid(typename std::decay<T_##TAG>::type)
+
+      DEFINE(0b001);
+      DEFINE(0b010);
+      DEFINE(0b011);
+
+      #undef DEFINE
+
+      case 0b000:
+      default:
+        return typeid(pointer);
+      }
+    }
+  };
 } // namespace memory
 } // namespace meevax
 

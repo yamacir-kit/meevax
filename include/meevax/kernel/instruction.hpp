@@ -18,50 +18,12 @@
 #define INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 
 #include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/mnemonic.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  enum class mnemonic : std::uint8_t
-  {
-    call,              // a.k.a APP
-    cons,              //
-    define,            //
-    define_syntax,     //
-    drop,              //
-    dummy,             // a.k.a DUM
-    join,              //
-    let_syntax,        //
-    letrec,            // a.k.a RAP
-    letrec_syntax,     //
-    load_absolute,     // a.k.a LDG
-    load_closure,      // a.k.a LDF
-    load_constant,     // a.k.a LDC
-    load_continuation, //
-    load_relative,     // a.k.a LDL
-    load_variadic,     //
-    return_,           // a.k.a RTN
-    select,            // a.k.a SEL
-    stop,              //
-    store_absolute,    //
-    store_relative,    //
-    store_variadic,    //
-    tail_call,         //
-    tail_select,       //
-  };
-
-  struct instruction
-  {
-    const mnemonic value;
-
-    // TODO explicit instruction(std::string const&);
-
-    explicit operator std::string() const;
-  };
-
-  auto operator <<(std::ostream &, instruction const&) -> std::ostream &;
-
   auto disassemble(std::ostream &, const_reference, std::size_t = 1) -> void;
 } // namespace kernel
 } // namespace meevax

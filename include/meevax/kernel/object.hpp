@@ -30,14 +30,7 @@ inline namespace kernel
     {
       if constexpr (is_equality_comparable<T>::value)
       {
-        if (p)
-        {
-          return *p == static_cast<T const&>(*this);
-        }
-        else
-        {
-          return std::is_same<T, null>::value;
-        }
+        return p ? *p == static_cast<T const&>(*this) : std::is_same<T, null>::value;
       }
       else
       {
@@ -59,13 +52,13 @@ inline namespace kernel
   template <typename T, typename... Ts>
   constexpr auto make(Ts&&... xs)
   {
-    return xvalue::allocate<T>(std::forward<decltype(xs)>(xs)...); // NOTE: This leaks memory if exception thrown from T's constructor.
+    return lvalue::allocate<T>(std::forward<decltype(xs)>(xs)...); // NOTE: This leaks memory if exception thrown from T's constructor.
   }
 
   template <typename T>
   constexpr auto make(T&& x)
   {
-    return xvalue::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
+    return lvalue::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
 } // namespace kernel
 } // namespace meevax
