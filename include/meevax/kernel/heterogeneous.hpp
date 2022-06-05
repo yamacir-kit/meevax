@@ -105,7 +105,7 @@ inline namespace kernel
     {
       if constexpr (std::is_class_v<U>)
       {
-        if (auto data = dynamic_cast<U *>(get()); data)
+        if (auto data = dynamic_cast<typename std::add_pointer_t<U>>(get()); data)
         {
           return *data;
         }
@@ -123,9 +123,9 @@ inline namespace kernel
     }
 
     template <typename U>
-    inline auto as_const() const -> U const&
+    inline auto as_const() const -> decltype(auto)
     {
-      return as<const U>();
+      return as<typename std::add_const_t<U>>();
     }
 
     inline auto compare(heterogeneous const& rhs) const -> bool

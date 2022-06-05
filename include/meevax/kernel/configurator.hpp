@@ -45,25 +45,24 @@ inline namespace kernel
 
     const dispatcher<std::string> long_options, long_options_with_arguments;
 
-  protected:
-    let batch       = f;
-    let debug       = f;
-    let interactive = f;
-    let trace       = f;
-    let verbose     = f;
-
   public:
+    bool batch       = false;
+    bool debug       = false;
+    bool interactive = false;
+    bool trace       = false;
+    bool verbose     = false;
+
     explicit configurator()
       : short_options
         {
           std::make_pair('b', [this](auto&&...)
           {
-            return batch = t;
+            return make<bool>(batch = true);
           }),
 
           std::make_pair('d', [this](auto&&...)
           {
-            return debug = t;
+            return make<bool>(debug = true);
           }),
 
           std::make_pair('h', [this](auto&&...) -> lvalue
@@ -74,7 +73,7 @@ inline namespace kernel
 
           std::make_pair('i', [this](auto&&...)
           {
-            return interactive = t;
+            return make<bool>(interactive = true);
           }),
 
           std::make_pair('v', [this](auto&&...) -> lvalue
@@ -93,7 +92,7 @@ inline namespace kernel
 
           std::make_pair('l', [this](const_reference x, auto&&...)
           {
-            return load(x.as<string>());
+            return load(x.as_const<string>());
           }),
 
           std::make_pair('w', [this](const_reference x, auto&&...)
@@ -106,12 +105,12 @@ inline namespace kernel
         {
           std::make_pair("batch", [this](auto&&...)
           {
-            return batch = t;
+            return make<bool>(batch = true);
           }),
 
           std::make_pair("debug", [this](auto&&...)
           {
-            return debug = t;
+            return make<bool>(debug = true);
           }),
 
           std::make_pair("help", [this](auto&&...) -> lvalue
@@ -122,17 +121,17 @@ inline namespace kernel
 
           std::make_pair("interactive", [this](auto&&...)
           {
-            return interactive = t;
+            return make<bool>(interactive = true);
           }),
 
           std::make_pair("trace", [this](auto&&...)
           {
-            return trace = t;
+            return make<bool>(trace = true);
           }),
 
           std::make_pair("verbose", [this](auto&&...)
           {
-            return verbose = t;
+            return make<bool>(verbose = true);
           }),
 
           std::make_pair("version", [this](auto&&...) -> lvalue
@@ -151,7 +150,7 @@ inline namespace kernel
 
           std::make_pair("load", [this](const_reference x, auto&&...)
           {
-            return load(x.as<string>());
+            return load(x.as_const<string>());
           }),
 
           std::make_pair("write", [this](const_reference x, auto&&...)
@@ -172,7 +171,7 @@ inline namespace kernel
 
       if (std::empty(args))
       {
-        interactive = t;
+        interactive = true;
       }
       else for (auto current_option = std::begin(args); current_option != std::end(args); ++current_option) [&]()
       {
@@ -180,14 +179,11 @@ inline namespace kernel
 
         std::regex_match(*current_option, analysis, pattern);
 
-        if (is_debug_mode())
-        {
-          std::cout << header("configure") << "analysis[0] = " << analysis[0] << std::endl;
-          std::cout << header("")          << "analysis[1] = " << analysis[1] << std::endl;
-          std::cout << header("")          << "analysis[2] = " << analysis[2] << std::endl;
-          std::cout << header("")          << "analysis[3] = " << analysis[3] << std::endl;
-          std::cout << header("")          << "analysis[4] = " << analysis[4] << std::endl;
-        }
+        // std::cout << header("configure") << "analysis[0] = " << analysis[0] << std::endl;
+        // std::cout << header("")          << "analysis[1] = " << analysis[1] << std::endl;
+        // std::cout << header("")          << "analysis[2] = " << analysis[2] << std::endl;
+        // std::cout << header("")          << "analysis[3] = " << analysis[3] << std::endl;
+        // std::cout << header("")          << "analysis[4] = " << analysis[4] << std::endl;
 
         if (auto const current_short_options = analysis.str(4); not current_short_options.empty())
         {
@@ -276,21 +272,6 @@ inline namespace kernel
       print("      --verbose          Display detailed informations.");
       print("  -w, --write=OBJECT     Same as -e '(write OBJECT)'");
     }
-
-    #define BOILERPLATE(NAME)                                                  \
-    auto is_##NAME##_mode() const -> bool                                      \
-    {                                                                          \
-      return select(NAME);                                                     \
-    }                                                                          \
-    static_assert(true)
-
-    BOILERPLATE(batch);
-    BOILERPLATE(debug);
-    BOILERPLATE(interactive);
-    BOILERPLATE(trace);
-    BOILERPLATE(verbose);
-
-    #undef BOILERPLATE
   };
 } // namespace kernel
 } // namespace meevax

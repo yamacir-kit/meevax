@@ -91,7 +91,7 @@ inline namespace kernel
              binding.as<absolute>().load());
     }
 
-    if (is_interactive_mode())
+    if (interactive)
     {
       print(faint("; ", length(bindings), " identifiers imported."));
     }
@@ -134,7 +134,7 @@ inline namespace kernel
                                   std::exchange(c, compile(context::none, *this, expression, scope())),
                                   std::exchange(d, unit));
 
-      if (is_debug_mode())
+      if (debug)
       {
         disassemble(debug_port().as<std::ostream>(), c);
       }
@@ -152,7 +152,7 @@ inline namespace kernel
 
   auto environment::execute() -> lvalue
   {
-    if (is_trace_mode())
+    if (trace)
     {
       return machine::execute<option::trace>();
     }

@@ -35,9 +35,9 @@ inline namespace kernel
     using pair::pair;
 
   public:
-    using configurator::is_debug_mode;
-    using configurator::is_trace_mode;
-    using configurator::is_verbose_mode;
+    using configurator::debug;
+    using configurator::trace;
+    using configurator::verbose;
 
     using reader::intern;
     using reader::read;

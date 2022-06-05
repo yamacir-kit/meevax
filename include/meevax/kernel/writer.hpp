@@ -31,10 +31,6 @@ inline namespace kernel
     explicit writer()
     {}
 
-    IMPORT(Environment, is_batch_mode,   const);
-    IMPORT(Environment, is_debug_mode,   const);
-    IMPORT(Environment, is_verbose_mode, const);
-
   public:
     template <typename... Ts>
     auto write(std::ostream & os, Ts&&... xs) const -> std::ostream &
@@ -63,12 +59,12 @@ inline namespace kernel
 
     auto verbose_port() const -> const_reference
     {
-      return is_verbose_mode() ? standard_output : null_port();
+      return static_cast<Environment const&>(*this).verbose ? standard_output : null_port();
     }
 
     auto debug_port() const -> const_reference
     {
-      return is_debug_mode() ? standard_error : null_port();
+      return static_cast<Environment const&>(*this).debug ? standard_error : null_port();
     }
   };
 } // namespace kernel

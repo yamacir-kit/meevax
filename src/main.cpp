@@ -29,13 +29,13 @@ auto main(int const argc, char const* const* const argv) -> int
 
     main.configure(argc, argv);
 
-    if (main.is_interactive_mode())
+    if (main.interactive)
     {
       main.display_version();
       main.declare_import("(scheme r5rs)");
     }
 
-    while (main.is_interactive_mode() and main.char_ready())
+    while (main.interactive and main.char_ready())
     {
       main.print(u8"\u250c", repeat(u8"\u2500", 79));
       main.write(standard_output, u8"\u2502\u03bb> ");
