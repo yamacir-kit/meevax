@@ -375,10 +375,6 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         s = cons(cadr(c).template as<identity>().load(e), s);
-        if (car(s).template is<unbound>())
-        {
-          std::cout << "; warning: " << cadr(c) << " is unbound." << std::endl;
-        }
         c = cddr(c);
         goto decode;
 
@@ -902,54 +898,47 @@ inline namespace kernel
     {
       if (current_context & context::tail)
       {
-        auto consequent =
-          compile(context::tail,
-                  current_environment,
-                  cadr(current_expression),
-                  current_scope,
-                  list(make(mnemonic::return_)));
-
-        auto alternate =
-          cddr(current_expression)
-            ? compile(context::tail,
-                      current_environment,
-                      caddr(current_expression),
-                      current_scope,
-                      list(make(mnemonic::return_)))
-            : list(make(mnemonic::load_constant), unspecified_object,
-                   make(mnemonic::return_));
+        assert(lexical_cast<std::string>(current_continuation) == "(return)");
 
         return compile(context::none,
                        current_environment,
                        car(current_expression), // <test>
                        current_scope,
-                       cons(make(mnemonic::tail_select), consequent, alternate,
-                            cdr(current_continuation)));
+                       list(make(mnemonic::tail_select),
+                            compile(context::tail,
+                                    current_environment,
+                                    cadr(current_expression),
+                                    current_scope,
+                                    current_continuation),
+                            cddr(current_expression)
+                              ? compile(context::tail,
+                                        current_environment,
+                                        caddr(current_expression),
+                                        current_scope,
+                                        current_continuation)
+                              : list(make(mnemonic::load_constant), unspecified_object,
+                                     make(mnemonic::return_))));
       }
       else
       {
-        auto consequent =
-          compile(context::none,
-                  current_environment,
-                  cadr(current_expression),
-                  current_scope,
-                  list(make(mnemonic::join)));
-
-        auto alternate =
-          cddr(current_expression)
-            ? compile(context::none,
-                      current_environment,
-                      caddr(current_expression),
-                      current_scope,
-                      list(make(mnemonic::join)))
-            : list(make(mnemonic::load_constant), unspecified_object,
-                   make(mnemonic::join));
-
         return compile(context::none,
                        current_environment,
                        car(current_expression), // <test>
                        current_scope,
-                       cons(make(mnemonic::select), consequent, alternate,
+                       cons(make(mnemonic::select),
+                            compile(context::none,
+                                    current_environment,
+                                    cadr(current_expression),
+                                    current_scope,
+                                    list(make(mnemonic::join))),
+                            cddr(current_expression)
+                              ? compile(context::none,
+                                        current_environment,
+                                        caddr(current_expression),
+                                        current_scope,
+                                        list(make(mnemonic::join)))
+                              : list(make(mnemonic::load_constant), unspecified_object,
+                                     make(mnemonic::join)),
                             current_continuation));
       }
     }
