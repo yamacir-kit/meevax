@@ -468,28 +468,28 @@ inline namespace kernel
         *  s e (%let-syntax <syntactic-continuation> . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
-        [&]()
+        [this]()
         {
-          for (let const& keyword_ : car(cadr(c).template as<syntactic_continuation>().scope()))
+          auto && [current_expression, current_scope] = unpair(cadr(c));
+
+          for (let const& keyword_ : car(current_scope))
           {
             let & binding = keyword_.as<keyword>().load();
 
-            let const& f = environment(static_cast<environment const&>(*this)).execute(binding);
-
-            binding = make<transformer>(f, fork(cdr(cadr(c).template as<syntactic_continuation>().scope())));
+            binding = make<transformer>(environment(static_cast<environment const&>(*this)).execute(binding),
+                                        fork(cdr(current_scope)));
           }
+
+          std::swap(c.as<pair>(),
+                    compile(context(),
+                                static_cast<environment &>(*this),
+                                cons(cons(make<syntax>("lambda", lambda),
+                                          car(current_scope), // <formals>
+                                          current_expression), // <body>
+                                     car(current_scope)),
+                                cdr(current_scope),
+                                cddr(c)).template as<pair>());
         }();
-
-        e = cons(unit, e); // dummy environment
-
-        std::swap(c.as<pair>(),
-                  body(context(),
-                       static_cast<environment &>(*this),
-                       cadr(c).template as<syntactic_continuation>().expression(),
-                       cadr(c).template as<syntactic_continuation>().scope(),
-                       cddr(c)
-                      ).template as<pair>());
-
         goto decode;
 
       case mnemonic::letrec_syntax: /* -----------------------------------------
