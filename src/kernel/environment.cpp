@@ -131,7 +131,7 @@ inline namespace kernel
     {
       auto dump = std::make_tuple(std::exchange(s, unit),
                                   std::exchange(e, unit),
-                                  std::exchange(c, compile(context::none, *this, expression, scope())),
+                                  std::exchange(c, compile(context(), *this, expression, scope())),
                                   std::exchange(d, unit));
 
       if (debug)

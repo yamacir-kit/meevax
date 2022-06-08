@@ -23,23 +23,19 @@ inline namespace kernel
 {
   struct context
   {
-    enum value_type
+    bool is_outermost = false;
+    bool is_tail      = false;
+
+    auto mark_outermost_as(bool value) noexcept -> auto &
     {
-      none,
-      outermost = (1 << 0),
-      tail      = (1 << 1),
-      size,
+      is_outermost = value;
+      return *this;
     }
-    const value;
 
-    template <typename T>
-    constexpr context(T const value) noexcept
-      : value { static_cast<value_type>(value) }
-    {}
-
-    constexpr operator value_type() const noexcept
+    auto mark_tail_as(bool value) noexcept -> auto &
     {
-      return value;
+      is_tail = value;
+      return *this;
     }
   };
 } // namespace kernel

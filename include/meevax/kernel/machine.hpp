@@ -183,8 +183,8 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
     static auto compile(
-      context const current_context,
-      environment & current_environment,
+      context         current_context,
+      environment &   current_environment,
       const_reference current_expression,
       const_reference current_scope = unit,
       const_reference current_continuation = list(make(mnemonic::stop))) -> lvalue
@@ -253,7 +253,7 @@ inline namespace kernel
       {
         assert(id.as<keyword>().load().is_also<transformer>());
 
-        return compile(context::none,
+        return compile(current_context,
                        current_environment,
                        id.as<keyword>().load().as<transformer>().expand(current_expression, current_environment.fork(current_scope)),
                        current_scope,
@@ -269,7 +269,7 @@ inline namespace kernel
       }
       else if (applicant.is_also<transformer>())
       {
-        return compile(context::none,
+        return compile(context(),
                        current_environment,
                        applicant.as<transformer>().expand(current_expression,
                                                           current_environment.fork(current_scope)),
@@ -313,15 +313,15 @@ inline namespace kernel
       *
       * ------------------------------------------------------------------ */
       {
-        return operand(context::none,
+        return operand(context(),
                        current_environment,
                        cdr(current_expression),
                        current_scope,
-                       compile(context::none,
+                       compile(context(),
                                current_environment,
                                car(current_expression),
                                current_scope,
-                               cons(make(current_context & context::tail ? mnemonic::tail_call : mnemonic::call),
+                               cons(make(current_context.is_tail ? mnemonic::tail_call : mnemonic::call),
                                     current_continuation)));
       }
     }
@@ -483,7 +483,7 @@ inline namespace kernel
         e = cons(unit, e); // dummy environment
 
         std::swap(c.as<pair>(),
-                  body(context::none,
+                  body(context(),
                        static_cast<environment &>(*this),
                        cadr(c).template as<syntactic_continuation>().expression(),
                        cadr(c).template as<syntactic_continuation>().scope(),
@@ -505,14 +505,14 @@ inline namespace kernel
 
           for (let const& transformer_spec : transformer_specs)
           {
-            expander.as<environment>().execute(compile(context::outermost,
+            expander.as<environment>().execute(compile(context().mark_outermost_as(true),
                                                        expander.as<environment>(),
                                                        cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
                                                        cadr(c).template as<syntactic_continuation>().scope()));
           }
 
           std::swap(c.as<pair>(),
-                    machine::body(context::outermost,
+                    machine::body(context().mark_outermost_as(true),
                                   expander.as<environment>(),
                                   body,
                                   cadr(c).template as<syntactic_continuation>().scope(),
@@ -758,7 +758,7 @@ inline namespace kernel
     {
       let const& id = current_environment.identify(car(current_expression), current_scope);
 
-      return compile(context::none,
+      return compile(context(),
                      current_environment,
                      cadr(current_expression),
                      current_scope,
@@ -819,7 +819,7 @@ inline namespace kernel
       */
       if (cdr(current_expression).is<null>()) // is tail-sequence
       {
-        return compile(current_context | context::tail,
+        return compile(current_context.mark_tail_as(true),
                        current_environment,
                        car(current_expression),
                        current_scope,
@@ -896,22 +896,22 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (current_context & context::tail)
+      if (current_context.is_tail)
       {
         assert(lexical_cast<std::string>(current_continuation) == "(return)");
 
-        return compile(context::none,
+        return compile(context(),
                        current_environment,
                        car(current_expression), // <test>
                        current_scope,
                        list(make(mnemonic::tail_select),
-                            compile(context::tail,
+                            compile(current_context,
                                     current_environment,
                                     cadr(current_expression),
                                     current_scope,
                                     current_continuation),
                             cddr(current_expression)
-                              ? compile(context::tail,
+                              ? compile(current_context,
                                         current_environment,
                                         caddr(current_expression),
                                         current_scope,
@@ -921,18 +921,18 @@ inline namespace kernel
       }
       else
       {
-        return compile(context::none,
+        return compile(context(),
                        current_environment,
                        car(current_expression), // <test>
                        current_scope,
                        cons(make(mnemonic::select),
-                            compile(context::none,
+                            compile(context(),
                                     current_environment,
                                     cadr(current_expression),
                                     current_scope,
                                     list(make(mnemonic::join))),
                             cddr(current_expression)
-                              ? compile(context::none,
+                              ? compile(context(),
                                         current_environment,
                                         caddr(current_expression),
                                         current_scope,
@@ -945,11 +945,11 @@ inline namespace kernel
 
     static SYNTAX(cons_)
     {
-      return compile(context::none,
+      return compile(context(),
                      current_environment,
                      cadr(current_expression),
                      current_scope,
-                     compile(context::none,
+                     compile(context(),
                              current_environment,
                              car(current_expression),
                              current_scope,
@@ -981,11 +981,11 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (current_scope.is<null>() or (current_context & context::outermost))
+      if (current_scope.is<null>() or current_context.is_outermost)
       {
         if (car(current_expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          return compile(context::none,
+          return compile(context(),
                          current_environment,
                          cons(make<syntax>("lambda", lambda), cdar(current_expression), cdr(current_expression)),
                          current_scope,
@@ -994,7 +994,7 @@ inline namespace kernel
         }
         else // (define x ...)
         {
-          return compile(context::none,
+          return compile(context(),
                          current_environment,
                          cdr(current_expression) ? cadr(current_expression) : unspecified_object,
                          current_scope,
@@ -1062,7 +1062,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return compile(context::none,
+      return compile(context(),
                      current_environment,
                      cdr(current_expression) ? cadr(current_expression) : undefined,
                      current_scope,
@@ -1126,7 +1126,7 @@ inline namespace kernel
       auto make_keyword = [&](let const& binding)
       {
         return make<keyword>(car(binding),
-                             compile(context::outermost,
+                             compile(context(),
                                      current_environment,
                                      cadr(binding),
                                      current_scope));
@@ -1207,11 +1207,11 @@ inline namespace kernel
       auto const& [variables, inits] = unzip2(car(current_expression));
 
       return cons(make(mnemonic::dummy),
-                  operand(context::none,
+                  operand(context(),
                           current_environment,
                           inits,
                           cons(variables, current_scope),
-                          lambda(context::none,
+                          lambda(current_context,
                                  current_environment,
                                  cons(variables, cdr(current_expression)), // (<formals> <body>)
                                  current_scope,
@@ -1262,11 +1262,11 @@ inline namespace kernel
     {
       if (current_expression.is<pair>())
       {
-        return operand(context::none,
+        return operand(context(),
                        current_environment,
                        cdr(current_expression),
                        current_scope,
-                       compile(context::none,
+                       compile(context(),
                                current_environment,
                                car(current_expression),
                                current_scope,
@@ -1275,7 +1275,7 @@ inline namespace kernel
       }
       else
       {
-        return compile(context::none,
+        return compile(context(),
                        current_environment,
                        current_expression,
                        current_scope,
@@ -1309,53 +1309,26 @@ inline namespace kernel
     *
     * ---------------------------------------------------------------------- */
     {
-      if (current_context & context::outermost)
+      if (cdr(current_expression).is<null>()) // is tail sequence
       {
-        if (cdr(current_expression).is<null>())
-        {
-          return compile(current_context,
-                         current_environment,
-                         car(current_expression),
-                         current_scope,
-                         current_continuation);
-        }
-        else
-        {
-          return compile(context::outermost,
-                         current_environment,
-                         car(current_expression),
-                         current_scope,
-                         cons(make(mnemonic::drop),
-                              begin(context::outermost,
-                                    current_environment,
-                                    cdr(current_expression),
-                                    current_scope,
-                                    current_continuation)));
-        }
+        return compile(current_context,
+                       current_environment,
+                       car(current_expression),
+                       current_scope,
+                       current_continuation);
       }
       else
       {
-        if (cdr(current_expression).is<null>()) // is tail sequence
-        {
-          return compile(current_context,
-                         current_environment,
-                         car(current_expression),
-                         current_scope,
-                         current_continuation);
-        }
-        else
-        {
-          return compile(context::none,
-                         current_environment,
-                         car(current_expression), // head expression
-                         current_scope,
-                         cons(make(mnemonic::drop), // pop result of head expression
-                              begin(context::none,
-                                    current_environment,
-                                    cdr(current_expression), // rest expressions
-                                    current_scope,
-                                    current_continuation)));
-        }
+        return compile(current_context.mark_tail_as(false),
+                       current_environment,
+                       car(current_expression), // head expression
+                       current_scope,
+                       cons(make(mnemonic::drop), // pop result of head expression
+                            begin(current_context,
+                                  current_environment,
+                                  cdr(current_expression), // rest expressions
+                                  current_scope,
+                                  current_continuation)));
       }
     }
   };
