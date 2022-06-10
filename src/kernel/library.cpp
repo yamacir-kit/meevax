@@ -1084,7 +1084,7 @@ inline namespace kernel
         throw exit_status::success;
 
       case 1:
-        if (let const& x = car(xs); x.is<boolean>())
+        if (let const& x = car(xs); x.is<bool>())
         {
           throw select(x) ? exit_status::success : exit_status::failure;
         }

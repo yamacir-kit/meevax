@@ -221,8 +221,8 @@
            (if x #f #t))
 
          (define (boolean? x)
-           (or (eqv? x #t)
-               (eqv? x #f)))
+           (or (eq? x #t)
+               (eq? x #f)))
 
          (define (equal? x y)
            (if (and (pair? x)

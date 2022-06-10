@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 
 #include <cstddef>
+#include <iomanip>
 #include <memory>
 #include <ostream>
 #include <type_traits>
@@ -193,7 +194,15 @@ inline namespace memory
       {
       #define DEFINE(TYPE)                                                     \
       case signature_##TYPE:                                                   \
-        return os << yellow(as<TYPE>())
+        if constexpr (std::is_same_v<TYPE, bool>)                              \
+        {                                                                      \
+          return os << std::boolalpha << yellow('#', as<TYPE>());              \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+          return os << yellow(as<TYPE>());                                     \
+        }                                                                      \
+        static_assert(true)
 
       DEFINE(pointer);
       DEFINE(T_0b010);
