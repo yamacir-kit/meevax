@@ -482,13 +482,13 @@ inline namespace kernel
 
           std::swap(c.as<pair>(),
                     compile(context(),
-                                static_cast<environment &>(*this),
-                                cons(cons(make<syntax>("lambda", lambda),
-                                          car(current_scope), // <formals>
-                                          current_expression), // <body>
-                                     car(current_scope)),
-                                cdr(current_scope),
-                                cddr(c)).template as<pair>());
+                            static_cast<environment &>(*this),
+                            cons(cons(make<syntax>("lambda", lambda),
+                                      car(current_scope), // <formals>
+                                      current_expression), // <body>
+                                 car(current_scope)),
+                            cdr(current_scope),
+                            cddr(c)).template as<pair>());
         }();
         goto decode;
 
@@ -497,27 +497,31 @@ inline namespace kernel
         *  s e (%letrec-syntax <syntactic-continuation> . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
-        [&]() // DIRTY HACK!!!
+        [this]() // DIRTY HACK!!!
         {
-          let const expander = fork(cadr(c).template as<syntactic_continuation>().scope());
+          auto && [current_expression, current_scope] = unpair(cadr(c));
 
-          auto const [transformer_specs, body] = unpair(cadr(c).template as<syntactic_continuation>().expression());
+          auto && [transformer_specs, body] = unpair(current_expression);
+
+          let const syntactic_environment = fork(current_scope);
 
           for (let const& transformer_spec : transformer_specs)
           {
-            expander.as<environment>().execute(compile(context().mark_outermost_as(true),
-                                                       expander.as<environment>(),
-                                                       cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
-                                                       cadr(c).template as<syntactic_continuation>().scope()));
+            let const c = compile(context().mark_outermost_as(true),
+                                  syntactic_environment.as<environment>(),
+                                  cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
+                                  current_scope);
+
+            syntactic_environment.as<environment>().execute(c);
           }
 
           std::swap(c.as<pair>(),
-                    machine::body(context().mark_outermost_as(true),
-                                  expander.as<environment>(),
-                                  body,
-                                  cadr(c).template as<syntactic_continuation>().scope(),
-                                  cddr(c)
-                                 ).template as<pair>());
+                    compile(context().mark_outermost_as(true),
+                            syntactic_environment.as<environment>(),
+                            cons(cons(make<syntax>("lambda", lambda), unit, body), unit), // (let () <body>)
+                            current_scope,
+                            cddr(c)
+                           ).template as<pair>());
         }();
         goto decode;
 
