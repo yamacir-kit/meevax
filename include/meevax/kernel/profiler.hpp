@@ -29,7 +29,7 @@ inline namespace kernel
   struct profiler
   {
     static constexpr auto count_allocations       = false;
-    static constexpr auto count_instruction_fetch = true;
+    static constexpr auto count_instruction_fetch = false;
 
     std::unordered_map<std::type_index, std::size_t> allocation_counts;
 

@@ -269,7 +269,7 @@ inline namespace kernel
       }
       else if (applicant.is_also<transformer>())
       {
-        return compile(context(),
+        return compile(current_context,
                        current_environment,
                        applicant.as<transformer>().expand(current_expression,
                                                           current_environment.fork(current_scope)),
