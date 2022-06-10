@@ -507,7 +507,7 @@ inline namespace kernel
 
           for (let const& transformer_spec : transformer_specs)
           {
-            let const c = compile(context().mark_outermost_as(true),
+            let const c = compile(context(),
                                   syntactic_environment.as<environment>(),
                                   cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
                                   current_scope);
@@ -516,7 +516,7 @@ inline namespace kernel
           }
 
           std::swap(c.as<pair>(),
-                    compile(context().mark_outermost_as(true),
+                    compile(context(),
                             syntactic_environment.as<environment>(),
                             cons(cons(make<syntax>("lambda", lambda), unit, body), unit), // (let () <body>)
                             current_scope,
@@ -823,7 +823,7 @@ inline namespace kernel
       */
       if (cdr(current_expression).is<null>()) // is tail-sequence
       {
-        return compile(current_context.mark_tail_as(true),
+        return compile(in_a_tail_context,
                        current_environment,
                        car(current_expression),
                        current_scope,
@@ -985,7 +985,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (current_scope.is<null>() or current_context.is_outermost)
+      if (current_scope.is<null>())
       {
         if (car(current_expression).is<pair>()) // (define (f . <formals>) <body>)
         {
@@ -1323,7 +1323,7 @@ inline namespace kernel
       }
       else
       {
-        return compile(current_context.mark_tail_as(false),
+        return compile(context(),
                        current_environment,
                        car(current_expression), // head expression
                        current_scope,

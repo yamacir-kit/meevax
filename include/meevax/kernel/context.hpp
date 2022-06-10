@@ -23,21 +23,10 @@ inline namespace kernel
 {
   struct context
   {
-    bool is_outermost = false;
-    bool is_tail      = false;
-
-    auto mark_outermost_as(bool value) noexcept -> auto &
-    {
-      is_outermost = value;
-      return *this;
-    }
-
-    auto mark_tail_as(bool value) noexcept -> auto &
-    {
-      is_tail = value;
-      return *this;
-    }
+    bool is_tail = false;
   };
+
+  constexpr auto in_a_tail_context = context { true };
 } // namespace kernel
 } // namespace meevax
 
