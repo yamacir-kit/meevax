@@ -49,7 +49,7 @@ inline namespace kernel
   public:
     static inline auto batch       = false;
     static inline auto debug       = false;
-    static inline auto interactive = false;
+    static inline auto interactive = true;
     static inline auto trace       = false;
     static inline auto verbose     = false;
 
@@ -198,11 +198,7 @@ inline namespace kernel
     {
       static std::regex const pattern { R"(--(\w[-\w]+)(=(.*))?|-([\w]+))" };
 
-      if (std::empty(args))
-      {
-        interactive = true;
-      }
-      else for (auto current_option = std::begin(args); current_option != std::end(args); ++current_option) [&]()
+      for (auto current_option = std::begin(args); current_option != std::end(args); ++current_option) [&]()
       {
         std::smatch analysis {};
 
@@ -214,7 +210,7 @@ inline namespace kernel
         // std::cout << header("")          << "analysis[3] = " << analysis[3] << std::endl;
         // std::cout << header("")          << "analysis[4] = " << analysis[4] << std::endl;
 
-        if (auto const current_short_options = analysis.str(4); not current_short_options.empty())
+        if (auto const& current_short_options = analysis.str(4); not current_short_options.empty())
         {
           for (auto current_short_option = std::cbegin(current_short_options); current_short_option != std::cend(current_short_options); ++current_short_option)
           {
@@ -239,7 +235,8 @@ inline namespace kernel
             }
             else
             {
-              throw error(make<string>(cat, "unknown short-option -", *current_short_option));
+              throw error(make<string>("unknown short-option"),
+                          make<symbol>(*current_short_option));
             }
           }
         }
@@ -266,11 +263,13 @@ inline namespace kernel
           }
           else
           {
-            throw error(make<string>(cat, "unknown long-option: ", *current_option));
+            throw error(make<string>("unknown long-option"),
+                        make<symbol>(*current_option));
           }
         }
         else
         {
+          interactive = false;
           return load(*current_option);
         }
 
