@@ -29,13 +29,6 @@ inline namespace kernel
   let extern const eof_object;
 
   auto operator <<(std::ostream &, eof const&) -> std::ostream &;
-
-  struct eos
-  {};
-
-  let extern const eos_object;
-
-  auto operator <<(std::ostream &, eos const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

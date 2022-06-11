@@ -7,7 +7,7 @@ auto main() -> int
 {
   using namespace meevax;
 
-  const auto specials_count = 10;
+  const auto specials_count = 9;
   {
     assert(standard_error.is<standard_error_port>());
     assert(standard_input.is<standard_input_port>());
@@ -15,7 +15,6 @@ auto main() -> int
     assert(e0.is<exact_integer>());
     assert(e1.is<exact_integer>());
     assert(eof_object.is<eof>());
-    assert(eos_object.is<eos>());
     assert(undefined.is<unbound>());
     assert(unspecified_object.is<unspecified>());
     assert(interaction_environment().is<environment>());
