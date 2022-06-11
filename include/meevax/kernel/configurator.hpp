@@ -53,6 +53,31 @@ inline namespace kernel
     static inline auto trace       = false;
     static inline auto verbose     = false;
 
+    static auto display_version() -> void
+    {
+      print("Meevax Lisp ", version());
+    }
+
+    static auto display_help() -> void
+    {
+      display_version();
+      print();
+      print("Usage: meevax [OPTION...] [FILE...]");
+      print();
+      print("Options:");
+      print("  -b, --batch            Suppress any system output.");
+      print("  -d, --debug            Display detailed informations for developers.");
+      print("  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.");
+      print("  -h, --help             Display this help text and exit.");
+      print("  -i, --interactive      Take over control of root environment.");
+      print("  -l, --load=FILENAME    Same as -e '(load FILENAME)'");
+      print("  -t, --trace            Display stacks of virtual machine for each steps.");
+      print("  -v, --version          Display version information and exit.");
+      print("      --verbose          Display detailed informations.");
+      print("  -w, --write=OBJECT     Same as -e '(write OBJECT)'");
+    }
+
+  private:
     static inline const dispatcher<char> short_options
     {
       std::make_pair('b', [](auto&&...)
@@ -83,6 +108,7 @@ inline namespace kernel
       }),
     };
 
+  public:
     explicit configurator()
       : short_options_with_arguments
         {
@@ -248,30 +274,6 @@ inline namespace kernel
 
         return unspecified_object;
       }();
-    }
-
-    static auto display_version() -> void
-    {
-      print("Meevax Lisp ", version());
-    }
-
-    static auto display_help() -> void
-    {
-      display_version();
-      print();
-      print("Usage: meevax [OPTION...] [FILE...]");
-      print();
-      print("Options:");
-      print("  -b, --batch            Suppress any system output.");
-      print("  -d, --debug            Display detailed informations for developers.");
-      print("  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.");
-      print("  -h, --help             Display this help text and exit.");
-      print("  -i, --interactive      Take over control of root environment.");
-      print("  -l, --load=FILENAME    Same as -e '(load FILENAME)'");
-      print("  -t, --trace            Display stacks of virtual machine for each steps.");
-      print("  -v, --version          Display version information and exit.");
-      print("      --verbose          Display detailed informations.");
-      print("  -w, --write=OBJECT     Same as -e '(write OBJECT)'");
     }
   };
 } // namespace kernel
