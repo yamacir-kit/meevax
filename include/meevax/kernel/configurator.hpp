@@ -43,8 +43,6 @@ inline namespace kernel
     template <typename Key>
     using dispatcher = std::unordered_map<Key, procedure::function_type>;
 
-    const dispatcher<char> short_options_with_arguments;
-
     const dispatcher<std::string> long_options_with_arguments;
 
   public:
@@ -109,6 +107,26 @@ inline namespace kernel
       }),
     };
 
+    static inline const dispatcher<char> short_options_with_arguments
+    {
+      std::make_pair('e', [](const_reference x, auto&&...)
+      {
+        print(interaction_environment().as<environment>().evaluate(x));
+        return unspecified_object;
+      }),
+
+      std::make_pair('l', [](const_reference x, auto&&...)
+      {
+        return interaction_environment().as<environment>().load(x.as_const<symbol>());
+      }),
+
+      std::make_pair('w', [](const_reference x, auto&&...)
+      {
+        print(x);
+        return unspecified_object;
+      }),
+    };
+
     static inline const dispatcher<std::string> long_options
     {
       std::make_pair("batch", [](auto&&...)
@@ -151,26 +169,7 @@ inline namespace kernel
 
   public:
     explicit configurator()
-      : short_options_with_arguments
-        {
-          std::make_pair('e', [](const_reference x, auto&&...)
-          {
-            print(interaction_environment().as<environment>().evaluate(x));
-            return unspecified_object;
-          }),
-
-          std::make_pair('l', [this](const_reference x, auto&&...)
-          {
-            return load(x.as_const<string>());
-          }),
-
-          std::make_pair('w', [this](const_reference x, auto&&...)
-          {
-            return print(x), unspecified_object;
-          }),
-        }
-
-      , long_options_with_arguments
+      : long_options_with_arguments
         {
           std::make_pair("evaluate", [this](const_reference x, auto&&...)
           {
