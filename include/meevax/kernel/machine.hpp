@@ -269,7 +269,7 @@ inline namespace kernel
       }
       else if (applicant.is_also<transformer>())
       {
-        return compile(context(),
+        return compile(current_context,
                        current_environment,
                        applicant.as<transformer>().expand(current_expression,
                                                           current_environment.fork(current_scope)),
@@ -468,28 +468,28 @@ inline namespace kernel
         *  s e (%let-syntax <syntactic-continuation> . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
-        [&]()
+        [this]()
         {
-          for (let const& keyword_ : car(cadr(c).template as<syntactic_continuation>().scope()))
+          auto && [current_expression, current_scope] = unpair(cadr(c));
+
+          for (let const& keyword_ : car(current_scope))
           {
             let & binding = keyword_.as<keyword>().load();
 
-            let const& f = environment(static_cast<environment const&>(*this)).execute(binding);
-
-            binding = make<transformer>(f, fork(cdr(cadr(c).template as<syntactic_continuation>().scope())));
+            binding = make<transformer>(environment(static_cast<environment const&>(*this)).execute(binding),
+                                        fork(cdr(current_scope)));
           }
+
+          std::swap(c.as<pair>(),
+                    compile(context(),
+                            static_cast<environment &>(*this),
+                            cons(cons(make<syntax>("lambda", lambda),
+                                      car(current_scope), // <formals>
+                                      current_expression), // <body>
+                                 car(current_scope)),
+                            cdr(current_scope),
+                            cddr(c)).template as<pair>());
         }();
-
-        e = cons(unit, e); // dummy environment
-
-        std::swap(c.as<pair>(),
-                  body(context(),
-                       static_cast<environment &>(*this),
-                       cadr(c).template as<syntactic_continuation>().expression(),
-                       cadr(c).template as<syntactic_continuation>().scope(),
-                       cddr(c)
-                      ).template as<pair>());
-
         goto decode;
 
       case mnemonic::letrec_syntax: /* -----------------------------------------
@@ -497,27 +497,31 @@ inline namespace kernel
         *  s e (%letrec-syntax <syntactic-continuation> . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
-        [&]() // DIRTY HACK!!!
+        [this]() // DIRTY HACK!!!
         {
-          let const expander = fork(cadr(c).template as<syntactic_continuation>().scope());
+          auto && [current_expression, current_scope] = unpair(cadr(c));
 
-          auto const [transformer_specs, body] = unpair(cadr(c).template as<syntactic_continuation>().expression());
+          auto && [transformer_specs, body] = unpair(current_expression);
+
+          let const syntactic_environment = fork(current_scope);
 
           for (let const& transformer_spec : transformer_specs)
           {
-            expander.as<environment>().execute(compile(context().mark_outermost_as(true),
-                                                       expander.as<environment>(),
-                                                       cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
-                                                       cadr(c).template as<syntactic_continuation>().scope()));
+            let const c = compile(context(),
+                                  syntactic_environment.as<environment>(),
+                                  cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
+                                  current_scope);
+
+            syntactic_environment.as<environment>().execute(c);
           }
 
           std::swap(c.as<pair>(),
-                    machine::body(context().mark_outermost_as(true),
-                                  expander.as<environment>(),
-                                  body,
-                                  cadr(c).template as<syntactic_continuation>().scope(),
-                                  cddr(c)
-                                 ).template as<pair>());
+                    compile(context(),
+                            syntactic_environment.as<environment>(),
+                            cons(cons(make<syntax>("lambda", lambda), unit, body), unit), // (let () <body>)
+                            current_scope,
+                            cddr(c)
+                           ).template as<pair>());
         }();
         goto decode;
 
@@ -819,7 +823,7 @@ inline namespace kernel
       */
       if (cdr(current_expression).is<null>()) // is tail-sequence
       {
-        return compile(current_context.mark_tail_as(true),
+        return compile(in_a_tail_context,
                        current_environment,
                        car(current_expression),
                        current_scope,
@@ -981,7 +985,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (current_scope.is<null>() or current_context.is_outermost)
+      if (current_scope.is<null>())
       {
         if (car(current_expression).is<pair>()) // (define (f . <formals>) <body>)
         {
@@ -1319,7 +1323,7 @@ inline namespace kernel
       }
       else
       {
-        return compile(current_context.mark_tail_as(false),
+        return compile(context(),
                        current_environment,
                        car(current_expression), // head expression
                        current_scope,
