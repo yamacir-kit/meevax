@@ -15,18 +15,13 @@
 */
 
 #include <meevax/kernel/basis.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto interaction_environment() -> const_reference
-  {
-    let static const interaction_environment = make<environment>();
-    return interaction_environment;
-  }
-
   library::library(syntax_library_t)
   {
     define<syntax>("begin", machine::begin);

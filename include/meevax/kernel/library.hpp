@@ -24,8 +24,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto interaction_environment() -> const_reference;
-
   struct library : public environment
   {
     std::vector<lvalue> export_specs;

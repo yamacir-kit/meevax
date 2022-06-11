@@ -21,6 +21,7 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
@@ -152,9 +153,10 @@ inline namespace kernel
     explicit configurator()
       : short_options_with_arguments
         {
-          std::make_pair('e', [this](const_reference x, auto&&...)
+          std::make_pair('e', [](const_reference x, auto&&...)
           {
-            return print(evaluate(x)), unspecified_object;
+            print(interaction_environment().as<environment>().evaluate(x));
+            return unspecified_object;
           }),
 
           std::make_pair('l', [this](const_reference x, auto&&...)
