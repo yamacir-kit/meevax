@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/string/repeat.hpp>
 

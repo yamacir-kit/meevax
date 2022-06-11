@@ -90,11 +90,6 @@ inline namespace kernel
       define(binding.as<absolute>().symbol(),
              binding.as<absolute>().load());
     }
-
-    if (interactive)
-    {
-      print(faint("; ", length(bindings), " identifiers imported."));
-    }
   }
 
   auto environment::define(const_reference name, const_reference value) -> void
@@ -152,14 +147,7 @@ inline namespace kernel
 
   auto environment::execute() -> lvalue
   {
-    if (trace)
-    {
-      return machine::execute<true>();
-    }
-    else
-    {
-      return machine::execute();
-    }
+    return trace ? machine::execute<true>() : machine::execute();
   }
 
   auto environment::execute(const_reference code) -> lvalue

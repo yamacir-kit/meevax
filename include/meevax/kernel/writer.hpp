@@ -33,38 +33,38 @@ inline namespace kernel
 
   public:
     template <typename... Ts>
-    auto write(std::ostream & os, Ts&&... xs) const -> std::ostream &
+    static auto write(std::ostream & os, Ts&&... xs) -> std::ostream &
     {
       return (os << ... << xs);
     }
 
     template <typename... Ts>
-    auto write(const_reference x, Ts&&... xs) const -> decltype(auto)
+    static auto write(const_reference x, Ts&&... xs) -> decltype(auto)
     {
       return write(x.as<std::ostream>(), std::forward<decltype(xs)>(xs)...);
     }
 
     template <typename... Ts>
-    auto print(Ts&&... xs) const -> decltype(auto)
+    static auto print(Ts&&... xs) -> decltype(auto)
     {
       return write(standard_output, std::forward<decltype(xs)>(xs)..., '\n');
     }
 
   public:
-    auto null_port() const -> const_reference
+    static auto null_port() -> const_reference
     {
       let static port = make<output_file_port>("/dev/null");
       return port;
     }
 
-    auto verbose_port() const -> const_reference
+    static auto verbose_port() -> const_reference
     {
-      return static_cast<Environment const&>(*this).verbose ? standard_output : null_port();
+      return Environment::verbose ? standard_output : null_port();
     }
 
-    auto debug_port() const -> const_reference
+    static auto debug_port() -> const_reference
     {
-      return static_cast<Environment const&>(*this).debug ? standard_error : null_port();
+      return Environment::debug ? standard_error : null_port();
     }
   };
 } // namespace kernel
