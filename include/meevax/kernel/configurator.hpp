@@ -44,7 +44,7 @@ inline namespace kernel
 
     const dispatcher<char> short_options_with_arguments;
 
-    const dispatcher<std::string> long_options, long_options_with_arguments;
+    const dispatcher<std::string> long_options_with_arguments;
 
   public:
     static inline auto batch       = false;
@@ -108,6 +108,46 @@ inline namespace kernel
       }),
     };
 
+    static inline const dispatcher<std::string> long_options
+    {
+      std::make_pair("batch", [](auto&&...)
+      {
+        return make<bool>(batch = true);
+      }),
+
+      std::make_pair("debug", [](auto&&...)
+      {
+        return make<bool>(debug = true);
+      }),
+
+      std::make_pair("help", [](auto&&...) -> lvalue
+      {
+        display_help();
+        throw exit_status::success;
+      }),
+
+      std::make_pair("interactive", [](auto&&...)
+      {
+        return make<bool>(interactive = true);
+      }),
+
+      std::make_pair("trace", [](auto&&...)
+      {
+        return make<bool>(trace = true);
+      }),
+
+      std::make_pair("verbose", [](auto&&...)
+      {
+        return make<bool>(verbose = true);
+      }),
+
+      std::make_pair("version", [](auto&&...) -> lvalue
+      {
+        display_version();
+        throw exit_status::success;
+      }),
+    };
+
   public:
     explicit configurator()
       : short_options_with_arguments
@@ -125,46 +165,6 @@ inline namespace kernel
           std::make_pair('w', [this](const_reference x, auto&&...)
           {
             return print(x), unspecified_object;
-          }),
-        }
-
-      , long_options
-        {
-          std::make_pair("batch", [this](auto&&...)
-          {
-            return make<bool>(batch = true);
-          }),
-
-          std::make_pair("debug", [this](auto&&...)
-          {
-            return make<bool>(debug = true);
-          }),
-
-          std::make_pair("help", [this](auto&&...) -> lvalue
-          {
-            display_help();
-            throw exit_status::success;
-          }),
-
-          std::make_pair("interactive", [this](auto&&...)
-          {
-            return make<bool>(interactive = true);
-          }),
-
-          std::make_pair("trace", [this](auto&&...)
-          {
-            return make<bool>(trace = true);
-          }),
-
-          std::make_pair("verbose", [this](auto&&...)
-          {
-            return make<bool>(verbose = true);
-          }),
-
-          std::make_pair("version", [this](auto&&...) -> lvalue
-          {
-            display_version();
-            throw exit_status::success;
           }),
         }
 
