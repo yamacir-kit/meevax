@@ -42,7 +42,7 @@ inline namespace kernel
     template <typename Key>
     using dispatcher = std::unordered_map<Key, procedure::function_type>;
 
-    const dispatcher<char> short_options, short_options_with_arguments;
+    const dispatcher<char> short_options_with_arguments;
 
     const dispatcher<std::string> long_options, long_options_with_arguments;
 
@@ -53,38 +53,38 @@ inline namespace kernel
     static inline auto trace       = false;
     static inline auto verbose     = false;
 
+    static inline const dispatcher<char> short_options
+    {
+      std::make_pair('b', [](auto&&...)
+      {
+        return make<bool>(batch = true);
+      }),
+
+      std::make_pair('d', [](auto&&...)
+      {
+        return make<bool>(debug = true);
+      }),
+
+      std::make_pair('h', [](auto&&...) -> lvalue
+      {
+        configurator::display_help();
+        throw exit_status::success;
+      }),
+
+      std::make_pair('i', [](auto&&...)
+      {
+        return make<bool>(interactive = true);
+      }),
+
+      std::make_pair('v', [](auto&&...) -> lvalue
+      {
+        configurator::display_version();
+        throw exit_status::success;
+      }),
+    };
+
     explicit configurator()
-      : short_options
-        {
-          std::make_pair('b', [this](auto&&...)
-          {
-            return make<bool>(batch = true);
-          }),
-
-          std::make_pair('d', [this](auto&&...)
-          {
-            return make<bool>(debug = true);
-          }),
-
-          std::make_pair('h', [this](auto&&...) -> lvalue
-          {
-            display_help();
-            throw exit_status::success;
-          }),
-
-          std::make_pair('i', [this](auto&&...)
-          {
-            return make<bool>(interactive = true);
-          }),
-
-          std::make_pair('v', [this](auto&&...) -> lvalue
-          {
-            display_version();
-            throw exit_status::success;
-          }),
-        }
-
-      , short_options_with_arguments
+      : short_options_with_arguments
         {
           std::make_pair('e', [this](const_reference x, auto&&...)
           {
@@ -255,7 +255,7 @@ inline namespace kernel
       print("Meevax Lisp ", version());
     }
 
-    auto display_help() const -> void
+    static auto display_help() -> void
     {
       display_version();
       print();
