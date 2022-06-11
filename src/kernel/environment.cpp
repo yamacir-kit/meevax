@@ -154,7 +154,7 @@ inline namespace kernel
   {
     if (trace)
     {
-      return machine::execute<option::trace>();
+      return machine::execute<true>();
     }
     else
     {

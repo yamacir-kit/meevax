@@ -23,7 +23,6 @@
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/intrinsic.hpp>
-#include <meevax/kernel/option.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
 
 namespace meevax
@@ -326,11 +325,11 @@ inline namespace kernel
       }
     }
 
-    template <auto Option = option::none>
+    template <auto trace = false>
     inline auto execute() -> lvalue
     {
     decode:
-      if constexpr (Option & option::trace)
+      if constexpr (trace)
       {
         std::cerr << faint("; s = ") << s << "\n"
                   << faint("; e = ") << e << "\n"
