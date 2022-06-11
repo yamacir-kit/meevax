@@ -29,15 +29,17 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename environment>
+  template <typename Environment>
   class machine // TR-SECD machine.
   {
-    friend environment;
+    friend Environment;
 
     machine()
     {}
 
-    IMPORT(environment, fork, const);
+    IMPORT(Environment, fork, const);
+
+    using environment = Environment;
 
   protected:
     let s, // stack (holding intermediate results and return address)

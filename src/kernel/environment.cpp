@@ -152,14 +152,7 @@ inline namespace kernel
 
   auto environment::execute() -> lvalue
   {
-    if (trace)
-    {
-      return machine::execute<true>();
-    }
-    else
-    {
-      return machine::execute();
-    }
+    return trace ? machine::execute<true>() : machine::execute();
   }
 
   auto environment::execute(const_reference code) -> lvalue

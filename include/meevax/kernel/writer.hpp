@@ -33,19 +33,19 @@ inline namespace kernel
 
   public:
     template <typename... Ts>
-    auto write(std::ostream & os, Ts&&... xs) const -> std::ostream &
+    static auto write(std::ostream & os, Ts&&... xs) -> std::ostream &
     {
       return (os << ... << xs);
     }
 
     template <typename... Ts>
-    auto write(const_reference x, Ts&&... xs) const -> decltype(auto)
+    static auto write(const_reference x, Ts&&... xs) -> decltype(auto)
     {
       return write(x.as<std::ostream>(), std::forward<decltype(xs)>(xs)...);
     }
 
     template <typename... Ts>
-    auto print(Ts&&... xs) const -> decltype(auto)
+    static auto print(Ts&&... xs) -> decltype(auto)
     {
       return write(standard_output, std::forward<decltype(xs)>(xs)..., '\n');
     }

@@ -35,8 +35,9 @@ inline namespace kernel
 
     IMPORT(environment, evaluate, NIL);
     IMPORT(environment, load, NIL);
-    IMPORT(environment, print, const);
     IMPORT(environment, read, NIL);
+
+    USING_STATIC(environment, print);
 
     template <typename Key>
     using dispatcher = std::unordered_map<Key, procedure::function_type>;
@@ -46,11 +47,11 @@ inline namespace kernel
     const dispatcher<std::string> long_options, long_options_with_arguments;
 
   public:
-    bool batch       = false;
-    bool debug       = false;
-    bool interactive = false;
-    bool trace       = false;
-    bool verbose     = false;
+    static inline auto batch       = false;
+    static inline auto debug       = false;
+    static inline auto interactive = false;
+    static inline auto trace       = false;
+    static inline auto verbose     = false;
 
     explicit configurator()
       : short_options
@@ -249,7 +250,7 @@ inline namespace kernel
       }();
     }
 
-    auto display_version() const -> void
+    static auto display_version() -> void
     {
       print("Meevax Lisp ", version());
     }

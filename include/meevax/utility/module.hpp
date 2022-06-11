@@ -30,4 +30,12 @@ static_assert(true)
 
 #define EXPORT(M, SYMBOL) using M::SYMBOL
 
+#define USING_STATIC(TYPE, FUNCTION)                                           \
+template <typename... Ts>                                                      \
+static auto FUNCTION(Ts&&... xs) -> decltype(auto)                             \
+{                                                                              \
+  return TYPE::FUNCTION(std::forward<decltype(xs)>(xs)...);                    \
+}                                                                              \
+static_assert(true)
+
 #endif // INCLUDED_MEEVAX_UTILITY_MODULE_HPP
