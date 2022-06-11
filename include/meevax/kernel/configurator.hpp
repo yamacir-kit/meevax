@@ -34,6 +34,9 @@ inline namespace kernel
   {
     friend environment;
 
+    explicit configurator()
+    {}
+
     IMPORT(environment, evaluate, NIL);
     IMPORT(environment, load, NIL);
     IMPORT(environment, read, NIL);
@@ -42,8 +45,6 @@ inline namespace kernel
 
     template <typename Key>
     using dispatcher = std::unordered_map<Key, procedure::function_type>;
-
-    const dispatcher<std::string> long_options_with_arguments;
 
   public:
     static inline auto batch       = false;
@@ -167,27 +168,27 @@ inline namespace kernel
       }),
     };
 
+    static inline const dispatcher<std::string> long_options_with_arguments
+    {
+      std::make_pair("evaluate", [](const_reference x, auto&&...)
+      {
+        print(interaction_environment().as<environment>().evaluate(x));
+        return unspecified_object;
+      }),
+
+      std::make_pair("load", [](const_reference x, auto&&...)
+      {
+        return interaction_environment().as<environment>().load(x.as_const<string>());
+      }),
+
+      std::make_pair("write", [](const_reference x, auto&&...)
+      {
+        print(x);
+        return unspecified_object;
+      }),
+    };
+
   public:
-    explicit configurator()
-      : long_options_with_arguments
-        {
-          std::make_pair("evaluate", [this](const_reference x, auto&&...)
-          {
-            return print(evaluate(x)), unspecified_object;
-          }),
-
-          std::make_pair("load", [this](const_reference x, auto&&...)
-          {
-            return load(x.as_const<string>());
-          }),
-
-          std::make_pair("write", [this](const_reference x, auto&&...)
-          {
-            return print(x), unspecified_object;
-          }),
-        }
-    {}
-
     auto configure(const int argc, char const* const* const argv)
     {
       return configure({ argv + 1, argv + argc });
