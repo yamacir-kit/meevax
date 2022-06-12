@@ -968,7 +968,7 @@ inline namespace kernel
 
   library::library(write_library_t)
   {
-    define<procedure>("%write-simple", [this](let const& xs)
+    define<procedure>("%write-simple", [](let const& xs)
     {
       write(cadr(xs), car(xs));
       return unspecified_object;

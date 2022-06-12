@@ -72,12 +72,12 @@ inline namespace memory
 
     auto operator =(nan_boxing_pointer const&) -> nan_boxing_pointer & = default;
 
-    constexpr nan_boxing_pointer(std::nullptr_t = nullptr)
+    nan_boxing_pointer(std::nullptr_t = nullptr)
       : nan_boxing_pointer { static_cast<pointer>(nullptr) }
     {}
 
     #define DEFINE(TYPE)                                                       \
-    constexpr nan_boxing_pointer(TYPE const& value) noexcept                   \
+    nan_boxing_pointer(TYPE const& value) noexcept                             \
       : data { reinterpret_cast<pointer>(                                      \
                  signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value)) }  \
     {}                                                                         \
@@ -109,17 +109,17 @@ inline namespace memory
 
     #undef DEFINE
 
-    constexpr auto operator ->() const
+    auto operator ->() const
     {
       return get();
     }
 
-    constexpr auto operator *() const -> decltype(auto)
+    auto operator *() const -> decltype(auto)
     {
       return *get();
     }
 
-    constexpr explicit operator bool() const noexcept
+    explicit operator bool() const noexcept
     {
       return get() != nullptr;
     }
@@ -139,17 +139,17 @@ inline namespace memory
       }
     }
 
-    constexpr auto dereferenceable() const noexcept
+    auto dereferenceable() const noexcept
     {
       return signature() == signature_pointer;
     }
 
-    constexpr auto equivalent_to(nan_boxing_pointer const& nbp) const noexcept
+    auto equivalent_to(nan_boxing_pointer const& nbp) const noexcept
     {
       return data == nbp.data;
     }
 
-    constexpr auto get() const noexcept -> pointer
+    auto get() const noexcept -> pointer
     {
       return dereferenceable() ? reinterpret_cast<pointer>(reinterpret_cast<std::uintptr_t>(data) & mask_payload) : nullptr;
     }
@@ -160,12 +160,12 @@ inline namespace memory
       return type() == typeid(typename std::decay<U>::type);
     }
 
-    constexpr auto signature() const noexcept
+    auto signature() const noexcept
     {
       return reinterpret_cast<std::uintptr_t>(data) & mask_signature;
     }
 
-    constexpr auto type() const noexcept -> decltype(auto)
+    auto type() const noexcept -> decltype(auto)
     {
       switch (signature())
       {
