@@ -133,6 +133,8 @@ inline namespace kernel
 
       c = compile(context(), *this, expression, scope());
 
+      c = optimize(c);
+
       if (debug)
       {
         disassemble(debug_port().as<std::ostream>(), c);

@@ -752,6 +752,90 @@ inline namespace kernel
       return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().identify_with_offset(scope) : f;
     }
 
+    static auto optimize(const_reference c) -> lvalue
+    {
+      if (not c.is<pair>())
+      {
+        return c;
+      }
+      else switch (car(c).template as<mnemonic>())
+      {
+      case mnemonic::call:
+      case mnemonic::cons:
+      case mnemonic::drop:
+      case mnemonic::dummy:
+      case mnemonic::join:
+      case mnemonic::letrec:
+      case mnemonic::return_:
+      case mnemonic::stop:
+      case mnemonic::tail_call:
+        return cons(car(c),
+                    optimize(cdr(c)));
+
+      case mnemonic::define:
+      case mnemonic::define_syntax:
+      case mnemonic::let_syntax:
+      case mnemonic::letrec_syntax:
+      case mnemonic::load_absolute:
+      case mnemonic::load_relative:
+      case mnemonic::load_variadic:
+      case mnemonic::store_absolute:
+      case mnemonic::store_relative:
+      case mnemonic::store_variadic:
+        return cons(car(c),
+                    cadr(c),
+                    optimize(cddr(c)));
+
+      case mnemonic::load_closure:
+      case mnemonic::load_continuation:
+        return cons(car(c),
+                    optimize(cadr(c)),
+                    optimize(cddr(c)));
+
+      case mnemonic::select:
+      case mnemonic::tail_select:
+        return cons(car(c),
+                    optimize(cadr(c)),
+                    optimize(caddr(c)),
+                    optimize(cdddr(c)));
+
+
+      case mnemonic::load_constant: /* -----------------------------------------
+      *
+      *  (load-constant x
+      *   load-constant y
+      *   cons
+      *   ...)
+      *
+      *  => (load-constant (x . y)
+      *      ...)
+      *
+      * --------------------------------------------------------------------- */
+        if (5 <= length(c) and
+            list_ref(c, 0).is<mnemonic>() and
+            list_ref(c, 0).as<mnemonic>() == mnemonic::load_constant and
+            list_ref(c, 2).is<mnemonic>() and
+            list_ref(c, 2).as<mnemonic>() == mnemonic::load_constant and
+            list_ref(c, 4).is<mnemonic>() and
+            list_ref(c, 4).as<mnemonic>() == mnemonic::cons)
+        {
+          return optimize(cons(list_ref(c, 0), cons(list_ref(c, 3),
+                                                    list_ref(c, 1)),
+                               optimize(list_tail(c, 5))));
+        }
+        else
+        {
+          return cons(car(c), cadr(c),
+                      optimize(cddr(c)));
+        }
+
+      default:
+        assert(false);
+        return c;
+      }
+    }
+
+    [[deprecated]]
     inline auto reset() -> void
     {
       s = unit;
