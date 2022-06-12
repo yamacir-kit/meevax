@@ -471,15 +471,22 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         [this]()
         {
-          auto && [current_expression, current_scope] = unpair(cadr(c));
+          auto [current_expression, current_scope] = unpair(cadr(c));
+
+          let const syntactic_environment = fork(cdr(current_scope));
+
+          let const c_ = c;
 
           for (let const& keyword_ : car(current_scope))
           {
             let & binding = keyword_.as<keyword>().load();
 
-            binding = make<transformer>(environment(static_cast<environment const&>(*this)).execute(binding),
-                                        fork(cdr(current_scope)));
+            c = binding;
+
+            binding = make<transformer>(execute(), syntactic_environment);
           }
+
+          c = c_;
 
           std::swap(c.as<pair>(),
                     compile(context(),
@@ -699,8 +706,13 @@ inline namespace kernel
         return [this]()
         {
           assert(cdr(s).template is<null>());
+          assert(cdr(c).template is<null>());
+
           let const x = car(s);
-          s = unit;
+
+          s = cdr(s);
+          c = cdr(c);
+
           return x;
         }();
       }

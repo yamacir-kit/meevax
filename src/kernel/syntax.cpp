@@ -22,7 +22,7 @@ inline namespace kernel
 {
   syntax::syntax(std::string const& name, function_type const& compile)
     : description { name }
-    , compile { compile  }
+    , compile { compile }
   {}
 
   auto operator <<(std::ostream & os, syntax const& datum) -> std::ostream &
