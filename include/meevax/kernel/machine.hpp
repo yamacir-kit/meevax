@@ -769,8 +769,17 @@ inline namespace kernel
       case mnemonic::return_:
       case mnemonic::stop:
       case mnemonic::tail_call:
-        return cons(car(c),
-                    optimize(cdr(c)));
+        return [&]()
+        {
+          if (let const& continuation = optimize(cdr(c)); continuation == cdr(c))
+          {
+            return c;
+          }
+          else
+          {
+            return cons(car(c), continuation);
+          }
+        }();
 
       case mnemonic::define:
       case mnemonic::define_syntax:
@@ -782,22 +791,50 @@ inline namespace kernel
       case mnemonic::store_absolute:
       case mnemonic::store_relative:
       case mnemonic::store_variadic:
-        return cons(car(c),
-                    cadr(c),
-                    optimize(cddr(c)));
+        return [&]()
+        {
+          if (let const& continuation = optimize(cddr(c)); continuation == cddr(c))
+          {
+            return c;
+          }
+          else
+          {
+            return cons(car(c), cadr(c), continuation);
+          }
+        }();
 
       case mnemonic::load_closure:
       case mnemonic::load_continuation:
-        return cons(car(c),
-                    optimize(cadr(c)),
-                    optimize(cddr(c)));
+        return [&]()
+        {
+          if (let const& branch       = optimize(cadr(c)),
+                         continuation = optimize(cddr(c));
+              branch == cadr(c) and continuation == cddr(c))
+          {
+            return c;
+          }
+          else
+          {
+            return cons(car(c), branch, continuation);
+          }
+        }();
 
       case mnemonic::select:
       case mnemonic::tail_select:
-        return cons(car(c),
-                    optimize(cadr(c)),
-                    optimize(caddr(c)),
-                    optimize(cdddr(c)));
+        return [&]()
+        {
+          if (let const& consequent   = optimize(cadr(c)),
+                         alternate    = optimize(caddr(c)),
+                         continuation = optimize(cdddr(c));
+              consequent == cadr(c) and alternate == caddr(c) and continuation == cdddr(c))
+          {
+            return c;
+          }
+          else
+          {
+            return cons(car(c), consequent, alternate, continuation);
+          }
+        }();
 
 
       case mnemonic::load_constant: /* -----------------------------------------
@@ -823,10 +860,13 @@ inline namespace kernel
                                                     list_ref(c, 1)),
                                optimize(list_tail(c, 5))));
         }
+        else if (let const& continuation = optimize(cddr(c)); continuation == cddr(c))
+        {
+          return c;
+        }
         else
         {
-          return cons(car(c), cadr(c),
-                      optimize(cddr(c)));
+          return cons(car(c), cadr(c), continuation);
         }
 
       default:
