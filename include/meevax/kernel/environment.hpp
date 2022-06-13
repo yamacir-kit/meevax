@@ -19,6 +19,7 @@
 
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/machine.hpp>
+#include <meevax/kernel/optimizer.hpp>
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/writer.hpp>
 
@@ -28,9 +29,10 @@ inline namespace kernel
 {
   class environment : public virtual pair
                     , public configurator<environment>
-                    , public machine     <environment>
-                    , public reader      <environment>
-                    , public writer      <environment>
+                    , public machine<environment>
+                    , public optimizer
+                    , public reader<environment>
+                    , public writer<environment>
   {
     using pair::pair;
 
