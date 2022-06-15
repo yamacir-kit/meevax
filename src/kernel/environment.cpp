@@ -33,6 +33,8 @@ inline namespace kernel
 
   auto environment::apply(const_reference f, const_reference xs) -> lvalue
   {
+    assert(f.is<closure>() or f.is<procedure>() or f.is<continuation>());
+
     auto dump = std::make_tuple(std::exchange(s, list(f, xs)),
                                 std::exchange(e, unit),
                                 std::exchange(c, list(make(mnemonic::call),
@@ -124,10 +126,14 @@ inline namespace kernel
     }
     else
     {
-      auto dump = std::make_tuple(std::exchange(s, unit),
-                                  std::exchange(e, unit),
-                                  std::exchange(c, compile(context(), *this, expression, scope())),
-                                  std::exchange(d, unit));
+      assert(s.is<null>());
+      assert(e.is<null>());
+      assert(c.is<null>());
+      assert(d.is<null>());
+
+      c = compile(context(), *this, expression, scope());
+
+      c = optimize(c);
 
       if (debug)
       {
@@ -136,10 +142,10 @@ inline namespace kernel
 
       let const result = execute();
 
-      s = std::get<0>(dump);
-      e = std::get<1>(dump);
-      c = std::get<2>(dump);
-      d = std::get<3>(dump);
+      assert(s.is<null>());
+      assert(e.is<null>());
+      assert(c.is<null>());
+      assert(d.is<null>());
 
       return result;
     }

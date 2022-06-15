@@ -31,7 +31,7 @@ inline namespace kernel
 
   auto identity::symbol() const -> const_reference
   {
-    assert(first.is<meevax::symbol>());
+    assert(first.is_also<identifier>());
     return first;
   }
 

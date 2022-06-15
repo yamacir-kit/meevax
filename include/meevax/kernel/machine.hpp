@@ -471,15 +471,22 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         [this]()
         {
-          auto && [current_expression, current_scope] = unpair(cadr(c));
+          auto [current_expression, current_scope] = unpair(cadr(c));
+
+          let const syntactic_environment = fork(cdr(current_scope));
+
+          let const c_ = c;
 
           for (let const& keyword_ : car(current_scope))
           {
             let & binding = keyword_.as<keyword>().load();
 
-            binding = make<transformer>(environment(static_cast<environment const&>(*this)).execute(binding),
-                                        fork(cdr(current_scope)));
+            c = binding;
+
+            binding = make<transformer>(execute(), syntactic_environment);
           }
+
+          c = c_;
 
           std::swap(c.as<pair>(),
                     compile(context(),
@@ -526,6 +533,22 @@ inline namespace kernel
         }();
         goto decode;
 
+      case mnemonic::tail_call:
+        if (let const& callee = car(s); callee.is<closure>()) /* ---------------
+        *
+        *  (<closure> xs . s) e (%tail-call . c) d => () (xs . e') c' d
+        *
+        *  where <closure> = (c' . e')
+        *
+        * ------------------------------------------------------------------- */
+        {
+          c =               callee.as<closure>().c();
+          e = cons(cadr(s), callee.as<closure>().e());
+          s = unit;
+          goto decode;
+        }
+        [[fallthrough]]; // This is inefficient because the type check occurs twice, but currently the performance difference caused by this is too small.
+
       case mnemonic::call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
@@ -539,6 +562,7 @@ inline namespace kernel
           c =               callee.as<closure>().c();
           e = cons(cadr(s), callee.as<closure>().e());
           s = unit;
+          goto decode;
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
         *
@@ -550,6 +574,7 @@ inline namespace kernel
         {
           s = cons(callee.as<procedure>().call(cadr(s)), cddr(s));
           c = cdr(c);
+          goto decode;
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
@@ -563,55 +588,12 @@ inline namespace kernel
           e =                callee.as<continuation>().e();
           c =                callee.as<continuation>().c();
           d =                callee.as<continuation>().d();
+          goto decode;
         }
         else
         {
           throw error(make<string>("not applicable"), callee);
         }
-        goto decode;
-
-      case mnemonic::tail_call:
-        if (let const& callee = car(s); callee.is<closure>()) /* ---------------
-        *
-        *  (<closure> xs . s) e (%tail-call . c) d => () (xs . e') c' d
-        *
-        *  where <closure> = (c' . e')
-        *
-        * ------------------------------------------------------------------- */
-        {
-          c =               callee.as<closure>().c();
-          e = cons(cadr(s), callee.as<closure>().e());
-          s = unit;
-        }
-        else if (callee.is_also<procedure>()) /* -------------------------------
-        *
-        *  (<procedure> xs . s) e (%tail-call . c) d => (x . s) e c d
-        *
-        *  where x = procedure(xs)
-        *
-        * ------------------------------------------------------------------- */
-        {
-          s = cons(callee.as<procedure>().call(cadr(s)), cddr(s));
-          c = cdr(c);
-        }
-        else if (callee.is<continuation>()) /* ---------------------------------
-        *
-        *  (<continuation> xs . s)  e (%tail-call . c) d => (xs . s') e' c' d'
-        *
-        *  where <continuation> = (s' e' c' . 'd)
-        *
-        * ------------------------------------------------------------------- */
-        {
-          s = cons(caadr(s), callee.as<continuation>().s());
-          e =                callee.as<continuation>().e();
-          c =                callee.as<continuation>().c();
-          d =                callee.as<continuation>().d();
-        }
-        else
-        {
-          throw error(make<string>("not applicable"), callee);
-        }
-        goto decode;
 
       case mnemonic::dummy: /* -------------------------------------------------
         *
@@ -699,8 +681,13 @@ inline namespace kernel
         return [this]()
         {
           assert(cdr(s).template is<null>());
+          assert(cdr(c).template is<null>());
+
           let const x = car(s);
-          s = unit;
+
+          s = cdr(s);
+          c = cdr(c);
+
           return x;
         }();
       }
@@ -740,6 +727,7 @@ inline namespace kernel
       return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().identify_with_offset(scope) : f;
     }
 
+    [[deprecated]]
     inline auto reset() -> void
     {
       s = unit;
