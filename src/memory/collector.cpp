@@ -48,27 +48,6 @@ inline namespace memory
     }
   }
 
-  auto collector::allocate(std::size_t const size) -> void *
-  {
-    if (auto data = ::operator new(size); data)
-    {
-      if (threshold < allocation)
-      {
-        collect();
-      }
-
-      allocation += size;
-
-      regions.insert(region_allocator.new_(data, size));
-
-      return data;
-    }
-    else
-    {
-      throw std::bad_alloc();
-    }
-  }
-
   auto collector::clear() -> void
   {
     for (auto iter = std::begin(regions); iter != std::end(regions); )
@@ -216,13 +195,3 @@ inline namespace memory
   }
 } // namespace memory
 } // namespace meevax
-
-auto operator new(std::size_t const size, meevax::collector & gc) -> void *
-{
-  return gc.allocate(size);
-}
-
-auto operator delete(void * const data, meevax::collector & gc) noexcept -> void
-{
-  gc.deallocate(data);
-}

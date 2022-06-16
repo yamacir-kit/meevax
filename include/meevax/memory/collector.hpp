@@ -120,7 +120,27 @@ inline namespace memory
 
     auto operator =(collector const&) -> collector & = delete;
 
-    static auto allocate(std::size_t const) -> void *;
+    template <typename T, typename... Ts>
+    static auto allocate(Ts&&... xs) -> T *
+    {
+      if (auto data = new T(std::forward<decltype(xs)>(xs)...); data)
+      {
+        if (threshold < allocation)
+        {
+          collect();
+        }
+
+        allocation += sizeof(T);
+
+        regions.insert(region_allocator.new_(data, sizeof(T)));
+
+        return data;
+      }
+      else
+      {
+        throw std::bad_alloc();
+      }
+    }
 
     static auto clear() -> void;
 
@@ -144,9 +164,5 @@ inline namespace memory
   } static gc;
 } // namespace memory
 } // namespace meevax
-
-auto operator new(std::size_t const, meevax::collector &) -> void *;
-
-void operator delete(void * const, meevax::collector &) noexcept;
 
 #endif // INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
