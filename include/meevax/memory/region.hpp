@@ -56,8 +56,6 @@ inline namespace memory
     {
       return begin() + size;
     }
-
-    auto release() -> void;
   };
 
   inline auto operator <(region const& x, region const& y)

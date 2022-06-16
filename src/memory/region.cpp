@@ -30,9 +30,9 @@ inline namespace memory
 
   region::~region()
   {
-    if (size)
+    if (size and deallocate)
     {
-      release();
+      deallocate(base);
     }
   }
 
@@ -44,14 +44,6 @@ inline namespace memory
   auto region::contains(void const* const derived) const noexcept -> bool
   {
     return contains(reinterpret_cast<std::uintptr_t>(derived));
-  }
-
-  auto region::release() -> void
-  {
-    if (deallocate)
-    {
-      deallocate(base);
-    }
   }
 } // namespace memory
 } // namespace meevax
