@@ -23,7 +23,7 @@
 
 #define SYNTAX(NAME)                                                           \
   auto NAME(                                                                   \
-    [[maybe_unused]] context const   current_context,                          \
+    [[maybe_unused]] context         current_context,                          \
     [[maybe_unused]] environment &   current_environment,                      \
     [[maybe_unused]] const_reference current_expression,                       \
     [[maybe_unused]] const_reference current_scope,                            \

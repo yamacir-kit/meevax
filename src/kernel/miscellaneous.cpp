@@ -26,12 +26,5 @@ inline namespace kernel
   {
     return os << magenta("#,(") << green("eof-object") << magenta(")");
   }
-
-  let const eos_object = make<eos>();
-
-  auto operator <<(std::ostream & os, eos const&) -> std::ostream &
-  {
-    return os << magenta("#,(") << green("eos-object") << magenta(")");
-  }
 } // namespace kernel
 } // namespace meevax

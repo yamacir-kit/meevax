@@ -21,17 +21,12 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(std::ostream & os, boolean const& datum) -> std::ostream &
-  {
-    return os << cyan("#", std::boolalpha, datum.value);
-  }
-
-  let const t = make<boolean>(true);
-  let const f = make<boolean>(false);
+  let const t = make<bool>(true);
+  let const f = make<bool>(false);
 
   auto select(const_reference x) -> bool
   {
-    return not eq(x, f) or not eqv(x, f);
+    return not eq(x, f);
   }
 } // namespace kernel
 } // namespace meevax

@@ -15,18 +15,13 @@
 */
 
 #include <meevax/kernel/basis.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto interaction_environment() -> const_reference
-  {
-    let static const interaction_environment = make<environment>();
-    return interaction_environment;
-  }
-
   library::library(syntax_library_t)
   {
     define<syntax>("begin", machine::begin);
@@ -973,7 +968,7 @@ inline namespace kernel
 
   library::library(write_library_t)
   {
-    define<procedure>("%write-simple", [this](let const& xs)
+    define<procedure>("%write-simple", [](let const& xs)
     {
       write(cadr(xs), car(xs));
       return unspecified_object;
@@ -1084,7 +1079,7 @@ inline namespace kernel
         throw exit_status::success;
 
       case 1:
-        if (let const& x = car(xs); x.is<boolean>())
+        if (let const& x = car(xs); x.is<bool>())
         {
           throw select(x) ? exit_status::success : exit_status::failure;
         }

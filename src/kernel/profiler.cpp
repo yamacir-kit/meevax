@@ -52,6 +52,22 @@ inline namespace kernel
                                     | echo \"TYPENAME\tALLOCATION COUNT\n$(cat -)\" \
                                     | column -t -s'\t'");
     }
+
+    if (auto ss = std::stringstream(); not std::empty(instruction_fetchs))
+    {
+      for (auto&& [mnemonic, count] : instruction_fetchs)
+      {
+        ss << mnemonic << "\t" << count << "\n";
+      }
+
+      sh("echo \"" + ss.str() + "\" | sed 's/meevax::kernel:://g'              \
+                                    | sort --field-separator='\t'              \
+                                           --key=2                             \
+                                           --numeric-sort                      \
+                                           --reverse                           \
+                                    | echo \"MNEMONIC\tFETCH COUNT\n$(cat -)\" \
+                                    | column -t -s'\t'");
+    }
   }
 
   auto current_profiler() -> profiler &

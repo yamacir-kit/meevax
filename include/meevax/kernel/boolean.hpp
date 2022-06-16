@@ -23,24 +23,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct boolean
-  {
-    using value_type = bool;
-
-    const value_type value;
-
-    constexpr boolean(value_type const value)
-      : value { value }
-    {}
-
-    constexpr operator value_type() const noexcept
-    {
-      return value;
-    }
-  };
-
-  auto operator <<(std::ostream &, boolean const&) -> std::ostream &;
-
   let extern const t;
   let extern const f;
 

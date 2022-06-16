@@ -14,34 +14,17 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_OPTION_HPP
-#define INCLUDED_MEEVAX_KERNEL_OPTION_HPP
+#include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct option
+  auto interaction_environment() -> const_reference
   {
-    enum value_type
-    {
-      none,
-      trace = (1 << 0),
-      size,
-    }
-    const value;
-
-    template <typename T>
-    constexpr option(T const value) noexcept
-      : value { static_cast<value_type>(value) }
-    {}
-
-    constexpr operator value_type() const noexcept
-    {
-      return value;
-    }
-  };
+    let static const interaction_environment = make<environment>();
+    return interaction_environment;
+  }
 } // namespace kernel
 } // namespace meevax
-
-#endif // INCLUDED_MEEVAX_KERNEL_OPTION_HPP

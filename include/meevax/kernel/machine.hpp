@@ -23,22 +23,23 @@
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/intrinsic.hpp>
-#include <meevax/kernel/option.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  template <typename environment>
+  template <typename Environment>
   class machine // TR-SECD machine.
   {
-    friend environment;
+    friend Environment;
 
     machine()
     {}
 
-    IMPORT(environment, fork, const);
+    IMPORT(Environment, fork, const);
+
+    using environment = Environment;
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -183,8 +184,8 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
     static auto compile(
-      context const current_context,
-      environment & current_environment,
+      context         current_context,
+      environment &   current_environment,
       const_reference current_expression,
       const_reference current_scope = unit,
       const_reference current_continuation = list(make(mnemonic::stop))) -> lvalue
@@ -253,7 +254,7 @@ inline namespace kernel
       {
         assert(id.as<keyword>().load().is_also<transformer>());
 
-        return compile(context::none,
+        return compile(current_context,
                        current_environment,
                        id.as<keyword>().load().as<transformer>().expand(current_expression, current_environment.fork(current_scope)),
                        current_scope,
@@ -269,7 +270,7 @@ inline namespace kernel
       }
       else if (applicant.is_also<transformer>())
       {
-        return compile(context::none,
+        return compile(current_context,
                        current_environment,
                        applicant.as<transformer>().expand(current_expression,
                                                           current_environment.fork(current_scope)),
@@ -313,29 +314,34 @@ inline namespace kernel
       *
       * ------------------------------------------------------------------ */
       {
-        return operand(context::none,
+        return operand(context(),
                        current_environment,
                        cdr(current_expression),
                        current_scope,
-                       compile(context::none,
+                       compile(context(),
                                current_environment,
                                car(current_expression),
                                current_scope,
-                               cons(make(current_context & context::tail ? mnemonic::tail_call : mnemonic::call),
+                               cons(make(current_context.is_tail ? mnemonic::tail_call : mnemonic::call),
                                     current_continuation)));
       }
     }
 
-    template <auto Option = option::none>
+    template <auto trace = false>
     inline auto execute() -> lvalue
     {
     decode:
-      if constexpr (Option & option::trace)
+      if constexpr (trace)
       {
         std::cerr << faint("; s = ") << s << "\n"
                   << faint("; e = ") << e << "\n"
                   << faint("; c = ") << c << "\n"
                   << faint("; d = ") << d << "\n" << std::endl;
+      }
+
+      if constexpr (profiler::count_instruction_fetch)
+      {
+        current_profiler().instruction_fetchs[car(c).template as<mnemonic>()]++;
       }
 
       switch (car(c).template as<mnemonic>())
@@ -370,10 +376,6 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         s = cons(cadr(c).template as<identity>().load(e), s);
-        if (car(s).template is<unbound>())
-        {
-          std::cout << "; warning: " << cadr(c) << " is unbound." << std::endl;
-        }
         c = cddr(c);
         goto decode;
 
@@ -467,28 +469,35 @@ inline namespace kernel
         *  s e (%let-syntax <syntactic-continuation> . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
-        [&]()
+        [this]()
         {
-          for (let const& keyword_ : car(cadr(c).template as<syntactic_continuation>().scope()))
+          auto [current_expression, current_scope] = unpair(cadr(c));
+
+          let const syntactic_environment = fork(cdr(current_scope));
+
+          let const c_ = c;
+
+          for (let const& keyword_ : car(current_scope))
           {
             let & binding = keyword_.as<keyword>().load();
 
-            let const& f = environment(static_cast<environment const&>(*this)).execute(binding);
+            c = binding;
 
-            binding = make<transformer>(f, fork(cdr(cadr(c).template as<syntactic_continuation>().scope())));
+            binding = make<transformer>(execute(), syntactic_environment);
           }
+
+          c = c_;
+
+          std::swap(c.as<pair>(),
+                    compile(context(),
+                            static_cast<environment &>(*this),
+                            cons(cons(make<syntax>("lambda", lambda),
+                                      car(current_scope), // <formals>
+                                      current_expression), // <body>
+                                 car(current_scope)),
+                            cdr(current_scope),
+                            cddr(c)).template as<pair>());
         }();
-
-        e = cons(unit, e); // dummy environment
-
-        std::swap(c.as<pair>(),
-                  body(context::none,
-                       static_cast<environment &>(*this),
-                       cadr(c).template as<syntactic_continuation>().expression(),
-                       cadr(c).template as<syntactic_continuation>().scope(),
-                       cddr(c)
-                      ).template as<pair>());
-
         goto decode;
 
       case mnemonic::letrec_syntax: /* -----------------------------------------
@@ -496,72 +505,32 @@ inline namespace kernel
         *  s e (%letrec-syntax <syntactic-continuation> . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
-        [&]() // DIRTY HACK!!!
+        [this]() // DIRTY HACK!!!
         {
-          let const expander = fork(cadr(c).template as<syntactic_continuation>().scope());
+          auto && [current_expression, current_scope] = unpair(cadr(c));
 
-          auto const [transformer_specs, body] = unpair(cadr(c).template as<syntactic_continuation>().expression());
+          auto && [transformer_specs, body] = unpair(current_expression);
+
+          let const syntactic_environment = fork(current_scope);
 
           for (let const& transformer_spec : transformer_specs)
           {
-            expander.as<environment>().execute(compile(context::outermost,
-                                                       expander.as<environment>(),
-                                                       cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
-                                                       cadr(c).template as<syntactic_continuation>().scope()));
+            let const c = compile(context(),
+                                  syntactic_environment.as<environment>(),
+                                  cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
+                                  current_scope);
+
+            syntactic_environment.as<environment>().execute(c);
           }
 
           std::swap(c.as<pair>(),
-                    machine::body(context::outermost,
-                                  expander.as<environment>(),
-                                  body,
-                                  cadr(c).template as<syntactic_continuation>().scope(),
-                                  cddr(c)
-                                 ).template as<pair>());
+                    compile(context(),
+                            syntactic_environment.as<environment>(),
+                            cons(cons(make<syntax>("lambda", lambda), unit, body), unit), // (let () <body>)
+                            current_scope,
+                            cddr(c)
+                           ).template as<pair>());
         }();
-        goto decode;
-
-      case mnemonic::call:
-        if (let const& callee = car(s); callee.is<closure>()) /* ---------------
-        *
-        *  (<closure> xs . s) e (%call . c) d => () (xs . e') c' (s e c . d)
-        *
-        *  where <closure> = (c' . e')
-        *
-        * ------------------------------------------------------------------- */
-        {
-          d = cons(cddr(s), e, cdr(c), d);
-          c =               callee.as<closure>().c();
-          e = cons(cadr(s), callee.as<closure>().e());
-          s = unit;
-        }
-        else if (callee.is_also<procedure>()) /* -------------------------------
-        *
-        *  (<procedure> xs . s) e (%call . c) d => (x . s) e c d
-        *
-        *  where x = procedure(xs)
-        *
-        * ------------------------------------------------------------------- */
-        {
-          s = cons(callee.as<procedure>().call(cadr(s)), cddr(s));
-          c = cdr(c);
-        }
-        else if (callee.is<continuation>()) /* ---------------------------------
-        *
-        *  (<continuation> xs . s) e (%call . c) d => (xs . s') e' c' d'
-        *
-        *  where <continuation> = (s' e' c' . 'd)
-        *
-        * ------------------------------------------------------------------- */
-        {
-          s = cons(caadr(s), callee.as<continuation>().s());
-          e =                callee.as<continuation>().e();
-          c =                callee.as<continuation>().c();
-          d =                callee.as<continuation>().d();
-        }
-        else
-        {
-          throw error(make<string>("not applicable"), callee);
-        }
         goto decode;
 
       case mnemonic::tail_call:
@@ -576,10 +545,28 @@ inline namespace kernel
           c =               callee.as<closure>().c();
           e = cons(cadr(s), callee.as<closure>().e());
           s = unit;
+          goto decode;
+        }
+        [[fallthrough]]; // This is inefficient because the type check occurs twice, but currently the performance difference caused by this is too small.
+
+      case mnemonic::call:
+        if (let const& callee = car(s); callee.is<closure>()) /* ---------------
+        *
+        *  (<closure> xs . s) e (%call . c) d => () (xs . e') c' (s e c . d)
+        *
+        *  where <closure> = (c' . e')
+        *
+        * ------------------------------------------------------------------- */
+        {
+          d = cons(cddr(s), e, cdr(c), d);
+          c =               callee.as<closure>().c();
+          e = cons(cadr(s), callee.as<closure>().e());
+          s = unit;
+          goto decode;
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
         *
-        *  (<procedure> xs . s) e (%tail-call . c) d => (x . s) e c d
+        *  (<procedure> xs . s) e (%call . c) d => (x . s) e c d
         *
         *  where x = procedure(xs)
         *
@@ -587,10 +574,11 @@ inline namespace kernel
         {
           s = cons(callee.as<procedure>().call(cadr(s)), cddr(s));
           c = cdr(c);
+          goto decode;
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
-        *  (<continuation> xs . s)  e (%tail-call . c) d => (xs . s') e' c' d'
+        *  (<continuation> xs . s) e (%call . c) d => (xs . s') e' c' d'
         *
         *  where <continuation> = (s' e' c' . 'd)
         *
@@ -600,12 +588,12 @@ inline namespace kernel
           e =                callee.as<continuation>().e();
           c =                callee.as<continuation>().c();
           d =                callee.as<continuation>().d();
+          goto decode;
         }
         else
         {
           throw error(make<string>("not applicable"), callee);
         }
-        goto decode;
 
       case mnemonic::dummy: /* -------------------------------------------------
         *
@@ -693,8 +681,13 @@ inline namespace kernel
         return [this]()
         {
           assert(cdr(s).template is<null>());
+          assert(cdr(c).template is<null>());
+
           let const x = car(s);
-          s = unit;
+
+          s = cdr(s);
+          c = cdr(c);
+
           return x;
         }();
       }
@@ -734,6 +727,7 @@ inline namespace kernel
       return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().identify_with_offset(scope) : f;
     }
 
+    [[deprecated]]
     inline auto reset() -> void
     {
       s = unit;
@@ -757,7 +751,7 @@ inline namespace kernel
     {
       let const& id = current_environment.identify(car(current_expression), current_scope);
 
-      return compile(context::none,
+      return compile(context(),
                      current_environment,
                      cadr(current_expression),
                      current_scope,
@@ -818,7 +812,7 @@ inline namespace kernel
       */
       if (cdr(current_expression).is<null>()) // is tail-sequence
       {
-        return compile(current_context | context::tail,
+        return compile(in_a_tail_context,
                        current_environment,
                        car(current_expression),
                        current_scope,
@@ -895,67 +889,60 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (current_context & context::tail)
+      if (current_context.is_tail)
       {
-        auto consequent =
-          compile(context::tail,
-                  current_environment,
-                  cadr(current_expression),
-                  current_scope,
-                  list(make(mnemonic::return_)));
+        assert(lexical_cast<std::string>(current_continuation) == "(return)");
 
-        auto alternate =
-          cddr(current_expression)
-            ? compile(context::tail,
-                      current_environment,
-                      caddr(current_expression),
-                      current_scope,
-                      list(make(mnemonic::return_)))
-            : list(make(mnemonic::load_constant), unspecified_object,
-                   make(mnemonic::return_));
-
-        return compile(context::none,
+        return compile(context(),
                        current_environment,
                        car(current_expression), // <test>
                        current_scope,
-                       cons(make(mnemonic::tail_select), consequent, alternate,
-                            cdr(current_continuation)));
+                       list(make(mnemonic::tail_select),
+                            compile(current_context,
+                                    current_environment,
+                                    cadr(current_expression),
+                                    current_scope,
+                                    current_continuation),
+                            cddr(current_expression)
+                              ? compile(current_context,
+                                        current_environment,
+                                        caddr(current_expression),
+                                        current_scope,
+                                        current_continuation)
+                              : list(make(mnemonic::load_constant), unspecified_object,
+                                     make(mnemonic::return_))));
       }
       else
       {
-        auto consequent =
-          compile(context::none,
-                  current_environment,
-                  cadr(current_expression),
-                  current_scope,
-                  list(make(mnemonic::join)));
-
-        auto alternate =
-          cddr(current_expression)
-            ? compile(context::none,
-                      current_environment,
-                      caddr(current_expression),
-                      current_scope,
-                      list(make(mnemonic::join)))
-            : list(make(mnemonic::load_constant), unspecified_object,
-                   make(mnemonic::join));
-
-        return compile(context::none,
+        return compile(context(),
                        current_environment,
                        car(current_expression), // <test>
                        current_scope,
-                       cons(make(mnemonic::select), consequent, alternate,
+                       cons(make(mnemonic::select),
+                            compile(context(),
+                                    current_environment,
+                                    cadr(current_expression),
+                                    current_scope,
+                                    list(make(mnemonic::join))),
+                            cddr(current_expression)
+                              ? compile(context(),
+                                        current_environment,
+                                        caddr(current_expression),
+                                        current_scope,
+                                        list(make(mnemonic::join)))
+                              : list(make(mnemonic::load_constant), unspecified_object,
+                                     make(mnemonic::join)),
                             current_continuation));
       }
     }
 
     static SYNTAX(cons_)
     {
-      return compile(context::none,
+      return compile(context(),
                      current_environment,
                      cadr(current_expression),
                      current_scope,
-                     compile(context::none,
+                     compile(context(),
                              current_environment,
                              car(current_expression),
                              current_scope,
@@ -987,11 +974,11 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (current_scope.is<null>() or (current_context & context::outermost))
+      if (current_scope.is<null>())
       {
         if (car(current_expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          return compile(context::none,
+          return compile(context(),
                          current_environment,
                          cons(make<syntax>("lambda", lambda), cdar(current_expression), cdr(current_expression)),
                          current_scope,
@@ -1000,7 +987,7 @@ inline namespace kernel
         }
         else // (define x ...)
         {
-          return compile(context::none,
+          return compile(context(),
                          current_environment,
                          cdr(current_expression) ? cadr(current_expression) : unspecified_object,
                          current_scope,
@@ -1068,7 +1055,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return compile(context::none,
+      return compile(context(),
                      current_environment,
                      cdr(current_expression) ? cadr(current_expression) : undefined,
                      current_scope,
@@ -1132,7 +1119,7 @@ inline namespace kernel
       auto make_keyword = [&](let const& binding)
       {
         return make<keyword>(car(binding),
-                             compile(context::outermost,
+                             compile(context(),
                                      current_environment,
                                      cadr(binding),
                                      current_scope));
@@ -1213,11 +1200,11 @@ inline namespace kernel
       auto const& [variables, inits] = unzip2(car(current_expression));
 
       return cons(make(mnemonic::dummy),
-                  operand(context::none,
+                  operand(context(),
                           current_environment,
                           inits,
                           cons(variables, current_scope),
-                          lambda(context::none,
+                          lambda(current_context,
                                  current_environment,
                                  cons(variables, cdr(current_expression)), // (<formals> <body>)
                                  current_scope,
@@ -1268,11 +1255,11 @@ inline namespace kernel
     {
       if (current_expression.is<pair>())
       {
-        return operand(context::none,
+        return operand(context(),
                        current_environment,
                        cdr(current_expression),
                        current_scope,
-                       compile(context::none,
+                       compile(context(),
                                current_environment,
                                car(current_expression),
                                current_scope,
@@ -1281,7 +1268,7 @@ inline namespace kernel
       }
       else
       {
-        return compile(context::none,
+        return compile(context(),
                        current_environment,
                        current_expression,
                        current_scope,
@@ -1315,53 +1302,26 @@ inline namespace kernel
     *
     * ---------------------------------------------------------------------- */
     {
-      if (current_context & context::outermost)
+      if (cdr(current_expression).is<null>()) // is tail sequence
       {
-        if (cdr(current_expression).is<null>())
-        {
-          return compile(current_context,
-                         current_environment,
-                         car(current_expression),
-                         current_scope,
-                         current_continuation);
-        }
-        else
-        {
-          return compile(context::outermost,
-                         current_environment,
-                         car(current_expression),
-                         current_scope,
-                         cons(make(mnemonic::drop),
-                              begin(context::outermost,
-                                    current_environment,
-                                    cdr(current_expression),
-                                    current_scope,
-                                    current_continuation)));
-        }
+        return compile(current_context,
+                       current_environment,
+                       car(current_expression),
+                       current_scope,
+                       current_continuation);
       }
       else
       {
-        if (cdr(current_expression).is<null>()) // is tail sequence
-        {
-          return compile(current_context,
-                         current_environment,
-                         car(current_expression),
-                         current_scope,
-                         current_continuation);
-        }
-        else
-        {
-          return compile(context::none,
-                         current_environment,
-                         car(current_expression), // head expression
-                         current_scope,
-                         cons(make(mnemonic::drop), // pop result of head expression
-                              begin(context::none,
-                                    current_environment,
-                                    cdr(current_expression), // rest expressions
-                                    current_scope,
-                                    current_continuation)));
-        }
+        return compile(context(),
+                       current_environment,
+                       car(current_expression), // head expression
+                       current_scope,
+                       cons(make(mnemonic::drop), // pop result of head expression
+                            begin(current_context,
+                                  current_environment,
+                                  cdr(current_expression), // rest expressions
+                                  current_scope,
+                                  current_continuation)));
       }
     }
   };

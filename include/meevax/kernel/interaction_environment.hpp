@@ -14,20 +14,17 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_CONTEXT_HPP
-#define INCLUDED_MEEVAX_KERNEL_CONTEXT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_INTERACTION_ENVIRONMENT_HPP
+#define INCLUDED_MEEVAX_KERNEL_INTERACTION_ENVIRONMENT_HPP
+
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct context
-  {
-    bool is_tail = false;
-  };
-
-  constexpr auto in_a_tail_context = context { true };
+  auto interaction_environment() -> const_reference;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_CONTEXT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_INTERACTION_ENVIRONMENT_HPP
