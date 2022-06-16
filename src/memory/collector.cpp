@@ -54,7 +54,7 @@ inline namespace memory
     {
       assert(*iter);
 
-      if (auto * const region = *iter; region->assigned())
+      if (auto * const region = *iter; true)
       {
         region_allocator.delete_(region);
         iter = regions.erase(iter);
@@ -111,7 +111,7 @@ inline namespace memory
 
   auto collector::region_of(void const* const p) -> decltype(collector::regions)::iterator
   {
-    region dummy { p, 0 };
+    region dummy { p, 0, };
 
     assert(p);
 
@@ -124,25 +124,6 @@ inline namespace memory
     else
     {
       return not_found;
-    }
-  }
-
-  auto collector::reset(void * const derived, deallocator<void>::signature const deallocate) -> region *
-  {
-    if (derived)
-    {
-      auto const lock = std::unique_lock(resource);
-
-      auto const iter = region_of(derived);
-
-      assert(iter != std::cend(regions));
-      assert(deallocate);
-
-      return (*iter)->reset(derived, deallocate);
-    }
-    else
-    {
-      return nullptr;
     }
   }
 
@@ -162,7 +143,7 @@ inline namespace memory
 
       if (auto region = *iter; not region->marked())
       {
-        if (region->assigned())
+        if (true)
         {
           region_allocator.delete_(region);
           iter = regions.erase(iter);

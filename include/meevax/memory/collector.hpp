@@ -53,7 +53,7 @@ inline namespace memory
 
       template <typename Pointer>
       explicit collectable(Pointer const p)
-        : collectable { collector::reset(p, deallocator<Pointer>::deallocate) }
+        : collectable { p ? *region_of(p) : nullptr }
       {}
 
       explicit collectable(region * region)
@@ -75,7 +75,7 @@ inline namespace memory
       template <typename Pointer>
       auto reset(Pointer const p) -> void
       {
-        reset(collector::reset(p, deallocator<Pointer>::deallocate));
+        reset(p ? *region_of(p) : nullptr);
       }
 
       auto reset(region * region) -> void
@@ -132,7 +132,7 @@ inline namespace memory
 
         allocation += sizeof(T);
 
-        regions.insert(region_allocator.new_(data, sizeof(T)));
+        regions.insert(region_allocator.new_(data, sizeof(T), deallocator<T *>::deallocate));
 
         return data;
       }
@@ -153,8 +153,6 @@ inline namespace memory
     static auto mark() -> void;
 
     static auto region_of(void const* const) -> decltype(regions)::iterator;
-
-    static auto reset(void * const, deallocator<void>::signature const) -> region *;
 
     static auto reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max()) -> void;
 

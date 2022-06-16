@@ -32,18 +32,16 @@ inline namespace memory
   {
     void const* const base;
 
-    const std::size_t size;
+    std::size_t const size;
 
-    void const* derived = nullptr;
-
-    deallocator<void>::signature deallocate = nullptr;
+    deallocator<void>::signature const deallocate;
 
   public:
-    explicit region(void const* const, std::size_t const);
+    explicit region(void const* const,
+                    std::size_t const,
+                    deallocator<void>::signature const = nullptr);
 
     ~region();
-
-    auto assigned() const noexcept -> bool;
 
     auto begin() const noexcept -> std::uintptr_t
     {
@@ -60,8 +58,6 @@ inline namespace memory
     }
 
     auto release() -> void;
-
-    auto reset(void const* const = nullptr, deallocator<void>::signature const = nullptr) noexcept -> region *;
   };
 
   inline auto operator <(region const& x, region const& y)

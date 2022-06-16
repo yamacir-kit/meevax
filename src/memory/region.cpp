@@ -20,9 +20,12 @@ namespace meevax
 {
 inline namespace memory
 {
-  region::region(void const* const base, std::size_t const size)
+  region::region(void const* const base,
+                 std::size_t const size,
+                 deallocator<void>::signature const deallocate)
     : base { base }
     , size { size }
+    , deallocate { deallocate }
   {}
 
   region::~region()
@@ -31,11 +34,6 @@ inline namespace memory
     {
       release();
     }
-  }
-
-  auto region::assigned() const noexcept -> bool
-  {
-    return derived and deallocate;
   }
 
   auto region::contains(std::uintptr_t const k) const noexcept -> bool
@@ -50,17 +48,10 @@ inline namespace memory
 
   auto region::release() -> void
   {
-    if (assigned())
+    if (deallocate)
     {
-      deallocate(derived);
+      deallocate(base);
     }
-  }
-
-  auto region::reset(void const* const x, deallocator<void>::signature const f) noexcept -> region *
-  {
-    derived = x;
-    deallocate = f;
-    return this;
   }
 } // namespace memory
 } // namespace meevax
