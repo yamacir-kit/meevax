@@ -18,6 +18,8 @@
 
 namespace meevax
 {
+inline namespace pretty
+{
   auto header(std::string const& from, std::size_t size) -> std::string
   {
     std::string s = "; ";
@@ -28,4 +30,5 @@ namespace meevax
 
     return s;
   }
+} // namespace pretty
 } // namespace meevax

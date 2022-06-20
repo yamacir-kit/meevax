@@ -21,7 +21,10 @@
 
 namespace meevax
 {
+inline namespace pretty
+{
   auto header(std::string const&, std::size_t = 24) -> std::string;
+} // namespace pretty
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_STRING_HEADER_HPP

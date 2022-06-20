@@ -443,7 +443,7 @@ inline namespace kernel
     {
       let const result = read(standard_input);
 
-      write(debug_port(), header(__func__), result, "\n");
+      write(debug_port(), pretty::header(__func__), result, "\n");
 
       return result;
     }

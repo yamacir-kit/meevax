@@ -29,7 +29,7 @@ inline namespace memory
     {
       objects = {};
 
-      regions = {};
+      headers = {};
 
       allocation = 0;
 
@@ -43,21 +43,21 @@ inline namespace memory
     {
       clear();
 
-      assert(std::size(regions) == 0);
+      assert(std::size(headers) == 0);
       assert(std::size(objects) == 0);
     }
   }
 
   auto collector::clear() -> void
   {
-    for (auto iter = std::begin(regions); iter != std::end(regions); )
+    for (auto iter = std::begin(headers); iter != std::end(headers); )
     {
       assert(*iter);
 
-      if (auto * const region = *iter; true)
+      if (auto * const header = *iter; true)
       {
-        region_allocator.delete_(region);
-        iter = regions.erase(iter);
+        header_allocator.delete_(header);
+        iter = headers.erase(iter);
       }
       else
       {
@@ -82,14 +82,14 @@ inline namespace memory
 
   auto collector::count() noexcept -> std::size_t
   {
-    return std::size(regions);
+    return std::size(headers);
   }
 
   auto collector::deallocate(void * const data, std::size_t const) -> void
   {
-    assert(*region_of(data));
+    assert(*header_of(data));
 
-    regions.erase(region_of(data));
+    headers.erase(header_of(data));
 
     ::operator delete(data);
   }
@@ -98,26 +98,26 @@ inline namespace memory
   {
     marker::toggle();
 
-    for (auto&& [derived, region] : objects)
+    for (auto&& [derived, header] : objects)
     {
-      assert(region); // NOTE: objects always hold a valid region pointer.
+      assert(header); // NOTE: objects always hold a valid header pointer.
 
-      if (not region->marked() and region_of(derived) == std::cend(regions))
+      if (not header->marked() and header_of(derived) == std::cend(headers))
       {
-        traverse(region);
+        traverse(header);
       }
     }
   }
 
-  auto collector::region_of(void const* const p) -> decltype(collector::regions)::iterator
+  auto collector::header_of(void const* const p) -> decltype(collector::headers)::iterator
   {
-    region dummy { p, 0, };
+    header dummy { p, 0, };
 
     assert(p);
 
-    auto not_found = std::cend(regions);
+    auto not_found = std::cend(headers);
 
-    if (auto iter = regions.lower_bound(std::addressof(dummy)); iter != not_found and (*iter)->contains(p))
+    if (auto iter = headers.lower_bound(std::addressof(dummy)); iter != not_found and (*iter)->contains(p))
     {
       return iter;
     }
@@ -137,21 +137,21 @@ inline namespace memory
 
   auto collector::sweep() -> void
   {
-    for (auto iter = std::begin(regions); iter != std::end(regions); )
+    for (auto iter = std::begin(headers); iter != std::end(headers); )
     {
       assert(*iter);
 
-      if (auto region = *iter; not region->marked())
+      if (auto header = *iter; not header->marked())
       {
         if (true)
         {
-          region_allocator.delete_(region);
-          iter = regions.erase(iter);
+          header_allocator.delete_(header);
+          iter = headers.erase(iter);
           continue;
         }
         else
         {
-          region->mark();
+          header->mark();
         }
       }
 
@@ -159,14 +159,14 @@ inline namespace memory
     }
   }
 
-  auto collector::traverse(region * const region) -> void
+  auto collector::traverse(header * const header) -> void
   {
-    if (region and not region->marked())
+    if (header and not header->marked())
     {
-      region->mark();
+      header->mark();
 
-      const auto lower = objects.lower_bound(reinterpret_cast<collectable *>(region->begin()));
-      const auto upper = objects.lower_bound(reinterpret_cast<collectable *>(region->end()));
+      const auto lower = objects.lower_bound(reinterpret_cast<collectable *>(header->begin()));
+      const auto upper = objects.lower_bound(reinterpret_cast<collectable *>(header->end()));
 
       for (auto iter = lower; iter != upper; ++iter)
       {

@@ -25,7 +25,7 @@
 #include <new>
 #include <set>
 
-#include <meevax/memory/region.hpp>
+#include <meevax/memory/header.hpp>
 #include <meevax/memory/simple_allocator.hpp>
 #include <meevax/string/header.hpp>
 
@@ -47,17 +47,17 @@ inline namespace memory
     struct collectable
     {
     protected:
-      region * context = nullptr;
+      header * context = nullptr;
 
       explicit constexpr collectable() = default;
 
       template <typename Pointer>
       explicit collectable(Pointer const p)
-        : collectable { p ? *region_of(p) : nullptr }
+        : collectable { p ? *header_of(p) : nullptr }
       {}
 
-      explicit collectable(region * region)
-        : context { region }
+      explicit collectable(header * header)
+        : context { header }
       {
         if (context)
         {
@@ -75,12 +75,12 @@ inline namespace memory
       template <typename Pointer>
       auto reset(Pointer const p) -> void
       {
-        reset(p ? *region_of(p) : nullptr);
+        reset(p ? *header_of(p) : nullptr);
       }
 
-      auto reset(region * region) -> void
+      auto reset(header * header) -> void
       {
-        if (context = region)
+        if (context = header)
         {
           auto const lock = std::unique_lock(resource);
           objects.insert_or_assign(this, context);
@@ -91,17 +91,17 @@ inline namespace memory
   private:
     static inline std::mutex resource;
 
-    static inline simple_allocator<region> region_allocator {};
+    static inline simple_allocator<header> header_allocator {};
 
     template <typename T>
     using set = std::set<T, std::less<T>, simple_allocator<T>>;
 
-    static inline set<region *> regions;
+    static inline set<header *> headers;
 
     template <typename T, typename U>
     using map = std::map<T, U, std::less<T>, simple_allocator<std::pair<T, U>>>;
 
-    static inline map<collectable * const, region *> objects;
+    static inline map<collectable * const, header *> objects;
 
     static inline std::size_t allocation;
 
@@ -132,7 +132,7 @@ inline namespace memory
 
         allocation += sizeof(T);
 
-        regions.insert(region_allocator.new_(data, sizeof(T), deallocator<T *>::deallocate));
+        headers.insert(header_allocator.new_(data, sizeof(T), deallocator<T *>::deallocate));
 
         return data;
       }
@@ -152,13 +152,13 @@ inline namespace memory
 
     static auto mark() -> void;
 
-    static auto region_of(void const* const) -> decltype(regions)::iterator;
+    static auto header_of(void const* const) -> decltype(headers)::iterator;
 
     static auto reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max()) -> void;
 
     static auto sweep() -> void;
 
-    static auto traverse(region * const) -> void;
+    static auto traverse(header * const) -> void;
   } static gc;
 } // namespace memory
 } // namespace meevax

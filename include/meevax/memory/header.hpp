@@ -28,7 +28,7 @@ namespace meevax
 {
 inline namespace memory
 {
-  class region : public marker
+  class header : public marker
   {
     void const* const base;
 
@@ -37,11 +37,11 @@ inline namespace memory
     deallocator<void>::signature const deallocate;
 
   public:
-    explicit region(void const* const,
+    explicit header(void const* const,
                     std::size_t const,
                     deallocator<void>::signature const = nullptr);
 
-    ~region();
+    ~header();
 
     auto begin() const noexcept -> std::uintptr_t
     {
@@ -58,7 +58,7 @@ inline namespace memory
     }
   };
 
-  inline auto operator <(region const& x, region const& y)
+  inline auto operator <(header const& x, header const& y)
   {
     return x.end() < y.begin();
   }
@@ -68,10 +68,10 @@ inline namespace memory
 namespace std
 {
   template <>
-  struct less<meevax::region *>
+  struct less<meevax::header *>
   {
-    auto operator ()(meevax::region * const x,
-                     meevax::region * const y) const
+    auto operator ()(meevax::header * const x,
+                     meevax::header * const y) const
     {
       return *x < *y;
     }

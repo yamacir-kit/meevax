@@ -14,13 +14,13 @@
    limitations under the License.
 */
 
-#include <meevax/memory/region.hpp>
+#include <meevax/memory/header.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  region::region(void const* const base,
+  header::header(void const* const base,
                  std::size_t const size,
                  deallocator<void>::signature const deallocate)
     : base { base }
@@ -28,7 +28,7 @@ inline namespace memory
     , deallocate { deallocate }
   {}
 
-  region::~region()
+  header::~header()
   {
     if (size and deallocate)
     {
@@ -36,12 +36,12 @@ inline namespace memory
     }
   }
 
-  auto region::contains(std::uintptr_t const k) const noexcept -> bool
+  auto header::contains(std::uintptr_t const k) const noexcept -> bool
   {
     return begin() <= k and k < end();
   }
 
-  auto region::contains(void const* const derived) const noexcept -> bool
+  auto header::contains(void const* const derived) const noexcept -> bool
   {
     return contains(reinterpret_cast<std::uintptr_t>(derived));
   }
