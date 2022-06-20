@@ -68,7 +68,7 @@ inline namespace memory
     static constexpr std::uintptr_t signature_T_0b110 = 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
     static constexpr std::uintptr_t signature_T_0b111 = 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
 
-    constexpr nan_boxing_pointer(nan_boxing_pointer const&) = default;
+    nan_boxing_pointer(nan_boxing_pointer const&) = default;
 
     auto operator =(nan_boxing_pointer const&) -> nan_boxing_pointer & = default;
 
@@ -158,6 +158,11 @@ inline namespace memory
     auto is() const noexcept
     {
       return type() == typeid(typename std::decay<U>::type);
+    }
+
+    auto reset()
+    {
+      reset(nullptr);
     }
 
     auto signature() const noexcept

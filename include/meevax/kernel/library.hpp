@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 #define INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 
+#include <functional>
 #include <meevax/kernel/environment.hpp>
 #include <unordered_map>
 
@@ -73,10 +74,9 @@ inline namespace kernel
       export_specs.push_back(export_spec);
     }
 
-    template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
-    auto declare_export(Ts&&... xs) -> void
+    auto declare_export(std::string const& export_spec) -> void
     {
-      (declare_export(read(xs)), ...);
+      declare_export(read(export_spec));
     }
 
     auto resolve_export_specs()
