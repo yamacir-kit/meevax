@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 
+#include <cstddef>
 #include <meevax/memory/collector.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
 
@@ -29,7 +30,13 @@ inline namespace memory
     : public nan_boxing_pointer<Ts...>
     , private collector::collectable
   {
-    gc_pointer(std::nullptr_t = nullptr)
+    explicit gc_pointer(std::nullptr_t = nullptr)
+    {}
+
+    template <typename T, REQUIRES(std::is_scalar<T>)>
+    explicit gc_pointer(T const& datum)
+      : nan_boxing_pointer<Ts...> { datum }
+      , collector::collectable { nan_boxing_pointer<Ts...>::get() }
     {}
 
     explicit gc_pointer(nan_boxing_pointer<Ts...> const& datum)
@@ -48,10 +55,16 @@ inline namespace memory
       return *this;
     }
 
-    auto reset(gc_pointer const& gcp = nullptr) -> void
+    auto reset(gc_pointer const& gcp) -> void
     {
-      nan_boxing_pointer<Ts...>::operator =(gcp);
+      nan_boxing_pointer<Ts...>::reset(gcp);
       collector::collectable::reset(gcp.context);
+    }
+
+    auto reset(std::nullptr_t = nullptr) -> void
+    {
+      nan_boxing_pointer<Ts...>::reset();
+      collector::collectable::reset();
     }
   };
 } // namespace memory

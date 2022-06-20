@@ -68,16 +68,36 @@ inline namespace memory
     static constexpr std::uintptr_t signature_T_0b110 = 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
     static constexpr std::uintptr_t signature_T_0b111 = 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
 
-    nan_boxing_pointer(nan_boxing_pointer const&) = default;
-
-    auto operator =(nan_boxing_pointer const&) -> nan_boxing_pointer & = default;
-
-    nan_boxing_pointer(std::nullptr_t = nullptr)
+    explicit nan_boxing_pointer(std::nullptr_t = nullptr)
       : nan_boxing_pointer { static_cast<pointer>(nullptr) }
     {}
 
+    auto reset(std::nullptr_t = nullptr)
+    {
+      reset(static_cast<pointer>(nullptr));
+    }
+
+    auto operator =(std::nullptr_t) -> auto &
+    {
+      reset(nullptr);
+      return *this;
+    }
+
+    explicit nan_boxing_pointer(nan_boxing_pointer const&) = default;
+
+    auto reset(nan_boxing_pointer const& value) -> void
+    {
+      data = value.data;
+    }
+
+    auto operator =(nan_boxing_pointer const& nbp) -> auto &
+    {
+      reset(nbp);
+      return *this;
+    }
+
     #define DEFINE(TYPE)                                                       \
-    nan_boxing_pointer(TYPE const& value) noexcept                             \
+    explicit nan_boxing_pointer(TYPE const& value) noexcept                    \
       : data { reinterpret_cast<pointer>(                                      \
                  signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value)) }  \
     {}                                                                         \
@@ -158,11 +178,6 @@ inline namespace memory
     auto is() const noexcept
     {
       return type() == typeid(typename std::decay<U>::type);
-    }
-
-    auto reset()
-    {
-      reset(nullptr);
     }
 
     auto signature() const noexcept

@@ -78,7 +78,7 @@ inline namespace memory
         reset(p ? *header_of(p) : nullptr);
       }
 
-      auto reset(header * header) -> void
+      auto reset(header * header = nullptr) -> void
       {
         if (context = header)
         {
