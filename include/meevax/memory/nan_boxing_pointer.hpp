@@ -77,23 +77,11 @@ inline namespace memory
       reset(static_cast<pointer>(nullptr));
     }
 
-    auto operator =(std::nullptr_t) -> auto &
-    {
-      reset(nullptr);
-      return *this;
-    }
-
     explicit nan_boxing_pointer(nan_boxing_pointer const&) = default;
 
     auto reset(nan_boxing_pointer const& value) -> void
     {
       data = value.data;
-    }
-
-    auto operator =(nan_boxing_pointer const& nbp) -> auto &
-    {
-      reset(nbp);
-      return *this;
     }
 
     #define DEFINE(TYPE)                                                       \
@@ -108,14 +96,8 @@ inline namespace memory
                signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value));     \
     }                                                                          \
                                                                                \
-    auto operator =(TYPE const& value) noexcept -> auto &                      \
-    {                                                                          \
-      reset(value);                                                            \
-      return *this;                                                            \
-    }                                                                          \
-                                                                               \
-    static_assert(std::is_same_v<TYPE, float64> or \
-                  std::is_same_v<TYPE, pointer> or \
+    static_assert(std::is_same_v<TYPE, float64> or                             \
+                  std::is_same_v<TYPE, pointer> or                             \
                   sizeof(TYPE) <= 4)
 
     DEFINE(float64); // 0b000
@@ -128,6 +110,13 @@ inline namespace memory
     DEFINE(T_0b111);
 
     #undef DEFINE
+
+    template <typename... Ts>
+    auto operator =(Ts&&... xs) -> auto &
+    {
+      reset(std::forward<decltype(xs)>(xs)...);
+      return *this;
+    }
 
     auto operator ->() const
     {
