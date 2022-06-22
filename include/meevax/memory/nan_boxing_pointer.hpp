@@ -68,14 +68,10 @@ inline namespace memory
     static constexpr std::uintptr_t signature_T_0b110 = 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
     static constexpr std::uintptr_t signature_T_0b111 = 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
 
-    explicit nan_boxing_pointer(std::nullptr_t = nullptr)
-      : nan_boxing_pointer { static_cast<pointer>(nullptr) }
-    {}
-
-    auto reset(std::nullptr_t = nullptr)
-    {
-      reset(static_cast<pointer>(nullptr));
-    }
+    template <typename U>
+    using is_mimicable = typename std::bool_constant<
+                           std::is_same_v<U, float64> or
+                           std::is_same_v<U, pointer> or sizeof(U) <= 4>;
 
     explicit nan_boxing_pointer(nan_boxing_pointer const&) = default;
 
@@ -84,30 +80,28 @@ inline namespace memory
       data = value.data;
     }
 
-    #define DEFINE(TYPE)                                                       \
-    explicit nan_boxing_pointer(TYPE const& value) noexcept                    \
+    #define DEFINE(TYPE, ...)                                                  \
+    explicit nan_boxing_pointer(TYPE const& value __VA_ARGS__) noexcept        \
       : data { reinterpret_cast<pointer>(                                      \
                  signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value)) }  \
     {}                                                                         \
                                                                                \
-    auto reset(TYPE const& value) noexcept -> void                             \
+    auto reset(TYPE const& value __VA_ARGS__) noexcept -> void                 \
     {                                                                          \
       data = reinterpret_cast<pointer>(                                        \
                signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value));     \
     }                                                                          \
                                                                                \
-    static_assert(std::is_same_v<TYPE, float64> or                             \
-                  std::is_same_v<TYPE, pointer> or                             \
-                  sizeof(TYPE) <= 4)
+    static_assert(is_mimicable<TYPE>::value)
 
-    DEFINE(float64); // 0b000
-    DEFINE(pointer); // 0b001
-    DEFINE(T_0b010);
-    DEFINE(T_0b011);
-    DEFINE(T_0b100);
-    DEFINE(T_0b101);
-    DEFINE(T_0b110);
-    DEFINE(T_0b111);
+    DEFINE(float64,          ); // 0b000
+    DEFINE(pointer, = nullptr); // 0b001
+    DEFINE(T_0b010,          );
+    DEFINE(T_0b011,          );
+    DEFINE(T_0b100,          );
+    DEFINE(T_0b101,          );
+    DEFINE(T_0b110,          );
+    DEFINE(T_0b111,          );
 
     #undef DEFINE
 
