@@ -89,18 +89,16 @@ inline namespace memory
   {
     marker::toggle();
 
-    auto is_root = [](auto&& body)
+    auto is_root = [](auto&& object)
     {
-      return header_of(body) == std::cend(headers);
+      return header_of(object) == std::cend(headers);
     };
 
-    for (auto&& [body, header] : objects)
+    for (auto&& object : objects)
     {
-      assert(header); // NOTE: objects always hold a valid header pointer.
-
-      if (not header->marked() and is_root(body))
+      if (object->header and not object->header->marked() and is_root(object))
       {
-        trace(header);
+        trace(object->header);
       }
     }
   }
@@ -158,7 +156,7 @@ inline namespace memory
 
       for (auto iter = lower; iter != upper; ++iter)
       {
-        trace(iter->second);
+        trace((*iter)->header);
       }
     }
   }

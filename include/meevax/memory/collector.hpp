@@ -46,6 +46,8 @@ inline namespace memory
   public:
     struct collectable
     {
+      friend class collector;
+
     protected:
       memory::header * header = nullptr;
 
@@ -62,7 +64,7 @@ inline namespace memory
         if (header)
         {
           auto const lock = std::unique_lock(resource);
-          objects.try_emplace(this, header);
+          objects.insert(this);
         }
       }
 
@@ -83,7 +85,7 @@ inline namespace memory
         if (header = h)
         {
           auto const lock = std::unique_lock(resource);
-          objects.insert_or_assign(this, header);
+          objects.insert(this);
         }
       }
     };
@@ -98,10 +100,7 @@ inline namespace memory
 
     static inline set<header *> headers;
 
-    template <typename T, typename U>
-    using map = std::map<T, U, std::less<T>, simple_allocator<std::pair<T, U>>>;
-
-    static inline map<collectable * const, header *> objects;
+    static inline set<collectable *> objects;
 
     static inline std::size_t allocation;
 

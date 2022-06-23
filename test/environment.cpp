@@ -40,7 +40,7 @@ auto main() -> int
   gc.collect();
   gc.collect(); // for vector type
 
-  assert(gc_count == gc.count());
+  assert(gc_count - 1 == gc.count()); // -1 is interaction_environment
 
   return EXIT_SUCCESS;
 }
