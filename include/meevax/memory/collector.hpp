@@ -47,7 +47,7 @@ inline namespace memory
     struct collectable
     {
     protected:
-      header * context = nullptr;
+      memory::header * header = nullptr;
 
       explicit constexpr collectable() = default;
 
@@ -56,13 +56,13 @@ inline namespace memory
         : collectable { p ? *header_of(p) : nullptr }
       {}
 
-      explicit collectable(header * header)
-        : context { header }
+      explicit collectable(memory::header * h)
+        : header { h }
       {
-        if (context)
+        if (header)
         {
           auto const lock = std::unique_lock(resource);
-          objects.try_emplace(this, context);
+          objects.try_emplace(this, header);
         }
       }
 
@@ -78,12 +78,12 @@ inline namespace memory
         reset(p ? *header_of(p) : nullptr);
       }
 
-      auto reset(header * header = nullptr) -> void
+      auto reset(memory::header * h = nullptr) -> void
       {
-        if (context = header)
+        if (header = h)
         {
           auto const lock = std::unique_lock(resource);
-          objects.insert_or_assign(this, context);
+          objects.insert_or_assign(this, header);
         }
       }
     };
@@ -121,7 +121,7 @@ inline namespace memory
     auto operator =(collector const&) -> collector & = delete;
 
     template <typename T, typename... Ts>
-    static auto allocate(Ts&&... xs) -> T *
+    static auto allocate(Ts&&... xs)
     {
       if (auto data = new T(std::forward<decltype(xs)>(xs)...); data)
       {
@@ -132,7 +132,7 @@ inline namespace memory
 
         allocation += sizeof(T);
 
-        headers.insert(header_allocator.new_(data, sizeof(T), deallocator<T *>::deallocate));
+        headers.insert(header_allocator.new_(data, sizeof(T), deallocator<T>::deallocate));
 
         return data;
       }
@@ -148,8 +148,6 @@ inline namespace memory
 
     static auto count() noexcept -> std::size_t;
 
-    static auto deallocate(void * const, std::size_t const = 0) -> void;
-
     static auto mark() -> void;
 
     static auto header_of(void const* const) -> decltype(headers)::iterator;
@@ -158,8 +156,9 @@ inline namespace memory
 
     static auto sweep() -> void;
 
-    static auto traverse(header * const) -> void;
-  } static gc;
+    static auto trace(header * const) -> void;
+  }
+  static gc;
 } // namespace memory
 } // namespace meevax
 

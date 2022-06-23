@@ -85,26 +85,22 @@ inline namespace memory
     return std::size(headers);
   }
 
-  auto collector::deallocate(void * const data, std::size_t const) -> void
-  {
-    assert(*header_of(data));
-
-    headers.erase(header_of(data));
-
-    ::operator delete(data);
-  }
-
   auto collector::mark() -> void
   {
     marker::toggle();
 
-    for (auto&& [derived, header] : objects)
+    auto is_root = [](auto&& body)
+    {
+      return header_of(body) == std::cend(headers);
+    };
+
+    for (auto&& [body, header] : objects)
     {
       assert(header); // NOTE: objects always hold a valid header pointer.
 
-      if (not header->marked() and header_of(derived) == std::cend(headers))
+      if (not header->marked() and is_root(body))
       {
-        traverse(header);
+        trace(header);
       }
     }
   }
@@ -115,15 +111,13 @@ inline namespace memory
 
     assert(p);
 
-    auto not_found = std::cend(headers);
-
-    if (auto iter = headers.lower_bound(std::addressof(dummy)); iter != not_found and (*iter)->contains(p))
+    if (auto iter = headers.lower_bound(&dummy); iter != std::end(headers) and (*iter)->contains(p))
     {
       return iter;
     }
     else
     {
-      return not_found;
+      return std::end(headers);
     }
   }
 
@@ -143,23 +137,17 @@ inline namespace memory
 
       if (auto header = *iter; not header->marked())
       {
-        if (true)
-        {
-          header_allocator.delete_(header);
-          iter = headers.erase(iter);
-          continue;
-        }
-        else
-        {
-          header->mark();
-        }
+        header_allocator.delete_(header);
+        iter = headers.erase(iter);
       }
-
-      ++iter;
+      else
+      {
+        ++iter;
+      }
     }
   }
 
-  auto collector::traverse(header * const header) -> void
+  auto collector::trace(header * const header) -> void
   {
     if (header and not header->marked())
     {
@@ -170,7 +158,7 @@ inline namespace memory
 
       for (auto iter = lower; iter != upper; ++iter)
       {
-        traverse(iter->second);
+        trace(iter->second);
       }
     }
   }

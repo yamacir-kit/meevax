@@ -41,12 +41,12 @@ inline namespace memory
 
     explicit gc_pointer(nan_boxing_pointer<Ts...> const& datum)
       : nan_boxing_pointer<Ts...> { datum }
-      , collector::collectable { datum.get() }
+      , collector::collectable { nan_boxing_pointer<Ts...>::get() }
     {}
 
     explicit gc_pointer(gc_pointer const& gcp)
       : nan_boxing_pointer<Ts...> { gcp }
-      , collector::collectable { gcp.context }
+      , collector::collectable { gcp.header }
     {}
 
     auto operator =(gc_pointer const& gcp) -> auto &
@@ -58,7 +58,7 @@ inline namespace memory
     auto reset(gc_pointer const& gcp) -> void
     {
       nan_boxing_pointer<Ts...>::reset(gcp);
-      collector::collectable::reset(gcp.context);
+      collector::collectable::reset(gcp.header);
     }
 
     auto reset(std::nullptr_t = nullptr) -> void
