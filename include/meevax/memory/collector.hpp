@@ -96,13 +96,13 @@ inline namespace memory
     template <typename T>
     using set = std::set<T, std::less<T>, simple_allocator<T>>;
 
-    static inline set<tracer *> tracers;
+    static inline set<tracer *> tracers {};
 
-    static inline set<traceable *> traceables;
+    static inline set<traceable *> traceables {};
 
-    static inline std::size_t allocation;
+    static inline std::size_t allocation = 0;
 
-    static inline std::size_t threshold;
+    static inline std::size_t threshold = 8_MiB;
 
   public:
     explicit collector();
@@ -129,7 +129,9 @@ inline namespace memory
 
         allocation += sizeof(T);
 
-        tracers.insert(new tracer(data, sizeof(T), deallocator<T>::deallocate));
+        [[maybe_unused]] auto [iter, success] = tracers.insert(new tracer(data, sizeof(T), deallocator<T>::deallocate));
+
+        assert(success);
 
         return data;
       }
@@ -147,7 +149,7 @@ inline namespace memory
 
     static auto mark() -> void;
 
-    static auto tracer_of(void const* const) -> decltype(tracers)::iterator;
+    static auto tracer_of(void * const) -> decltype(tracers)::iterator;
 
     static auto reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max()) -> void;
 

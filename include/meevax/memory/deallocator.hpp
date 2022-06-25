@@ -26,19 +26,11 @@ inline namespace memory
   template <typename T>
   struct deallocator
   {
-    using signature = void (*)(void const* const);
+    using signature = void (*)(void *);
 
-    static void deallocate(void const* const p)
+    static void deallocate(void * p)
     {
-      if constexpr (std::is_pointer<T>::value)
-      {
-        using element_type = typename std::pointer_traits<T>::element_type;
-        delete static_cast<element_type const* const>(p);
-      }
-      else
-      {
-        delete static_cast<T const* const>(p);
-      }
+      delete static_cast<T *>(p);
     }
   };
 } // namespace memory

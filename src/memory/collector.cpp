@@ -27,13 +27,6 @@ inline namespace memory
   {
     if (not reference_count++)
     {
-      traceables = {};
-
-      tracers = {};
-
-      allocation = 0;
-
-      threshold = 8_MiB;
     }
   }
 
@@ -54,15 +47,8 @@ inline namespace memory
     {
       assert(*iter);
 
-      if (auto * const tracer = *iter; true)
-      {
-        delete tracer;
-        tracers.erase(iter++);
-      }
-      else
-      {
-        ++iter;
-      }
+      delete *iter;
+      tracers.erase(iter++);
     }
   }
 
@@ -89,21 +75,21 @@ inline namespace memory
   {
     marker::toggle();
 
-    auto is_root = [](auto&& object)
+    auto is_root = [](auto&& traceable)
     {
-      return tracer_of(object) == std::cend(tracers);
+      return tracer_of(traceable) == std::cend(tracers); // If there is no tracer for the traceable, it is a root object.
     };
 
-    for (auto&& object : traceables)
+    for (auto&& traceable : traceables)
     {
-      if (object->tracer and not object->tracer->marked() and is_root(object))
+      if (traceable->tracer and not traceable->tracer->marked() and is_root(traceable))
       {
-        trace(object->tracer);
+        trace(traceable->tracer);
       }
     }
   }
 
-  auto collector::tracer_of(void const* const p) -> decltype(collector::tracers)::iterator
+  auto collector::tracer_of(void * const p) -> decltype(collector::tracers)::iterator
   {
     tracer dummy { p, 0 };
 
@@ -131,11 +117,9 @@ inline namespace memory
   {
     for (auto iter = std::begin(tracers); iter != std::end(tracers); )
     {
-      assert(*iter);
-
-      if (auto tracer = *iter; not tracer->marked())
+      if (not (*iter)->marked())
       {
-        delete tracer;
+        delete *iter;
         tracers.erase(iter++);
       }
       else

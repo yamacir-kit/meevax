@@ -30,14 +30,14 @@ inline namespace memory
 {
   class tracer : public marker
   {
-    void const* const base;
+    void * base;
 
     std::size_t const size;
 
     deallocator<void>::signature const deallocate;
 
   public:
-    explicit tracer(void const* const,
+    explicit tracer(void * const,
                     std::size_t const,
                     deallocator<void>::signature const = nullptr);
 
@@ -60,7 +60,7 @@ inline namespace memory
 
   inline auto operator <(tracer const& x, tracer const& y)
   {
-    return x.end() < y.begin();
+    return x.end() <= y.begin();
   }
 } // namespace memory
 } // namespace meevax
