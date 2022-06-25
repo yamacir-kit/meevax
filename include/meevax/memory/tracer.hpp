@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_REGION_HPP
-#define INCLUDED_MEEVAX_MEMORY_REGION_HPP
+#ifndef INCLUDED_MEEVAX_MEMORY_TRACER_HPP
+#define INCLUDED_MEEVAX_MEMORY_TRACER_HPP
 
 #include <cstdint> // std::uintptr_t
 #include <functional> // std::less
@@ -28,7 +28,7 @@ namespace meevax
 {
 inline namespace memory
 {
-  class header : public marker
+  class tracer : public marker
   {
     void const* const base;
 
@@ -37,11 +37,11 @@ inline namespace memory
     deallocator<void>::signature const deallocate;
 
   public:
-    explicit header(void const* const,
+    explicit tracer(void const* const,
                     std::size_t const,
                     deallocator<void>::signature const = nullptr);
 
-    ~header();
+    ~tracer();
 
     auto begin() const noexcept -> std::uintptr_t
     {
@@ -58,7 +58,7 @@ inline namespace memory
     }
   };
 
-  inline auto operator <(header const& x, header const& y)
+  inline auto operator <(tracer const& x, tracer const& y)
   {
     return x.end() < y.begin();
   }
@@ -68,14 +68,14 @@ inline namespace memory
 namespace std
 {
   template <>
-  struct less<meevax::header *>
+  struct less<meevax::tracer *>
   {
-    auto operator ()(meevax::header * const x,
-                     meevax::header * const y) const
+    auto operator ()(meevax::tracer * const x,
+                     meevax::tracer * const y) const
     {
       return *x < *y;
     }
   };
 } // namespace std
 
-#endif // INCLUDED_MEEVAX_MEMORY_REGION_HPP
+#endif // INCLUDED_MEEVAX_MEMORY_TRACER_HPP

@@ -25,7 +25,7 @@
 #include <new>
 #include <set>
 
-#include <meevax/memory/header.hpp>
+#include <meevax/memory/tracer.hpp>
 #include <meevax/memory/simple_allocator.hpp>
 #include <meevax/string/header.hpp>
 
@@ -44,48 +44,48 @@ inline namespace memory
   * ------------------------------------------------------------------------- */
   {
   public:
-    struct collectable
+    struct traceable
     {
       friend class collector;
 
     protected:
-      memory::header * header = nullptr;
+      memory::tracer * tracer = nullptr;
 
-      explicit constexpr collectable() = default;
+      explicit constexpr traceable() = default;
 
       template <typename Pointer>
-      explicit collectable(Pointer const p)
-        : collectable { p ? *header_of(p) : nullptr }
+      explicit traceable(Pointer const p)
+        : traceable { p ? *tracer_of(p) : nullptr }
       {}
 
-      explicit collectable(memory::header * h)
-        : header { h }
+      explicit traceable(memory::tracer * h)
+        : tracer { h }
       {
-        if (header)
+        if (tracer)
         {
           auto const lock = std::unique_lock(resource);
-          objects.insert(this);
+          traceables.insert(this);
         }
       }
 
-      ~collectable()
+      ~traceable()
       {
         auto const lock = std::unique_lock(resource);
-        objects.erase(this);
+        traceables.erase(this);
       }
 
       template <typename Pointer>
       auto reset(Pointer const p) -> void
       {
-        reset(p ? *header_of(p) : nullptr);
+        reset(p ? *tracer_of(p) : nullptr);
       }
 
-      auto reset(memory::header * h = nullptr) -> void
+      auto reset(memory::tracer * h = nullptr) -> void
       {
-        if (header = h)
+        if (not std::exchange(tracer, h))
         {
           auto const lock = std::unique_lock(resource);
-          objects.insert(this);
+          traceables.insert(this);
         }
       }
     };
@@ -93,14 +93,12 @@ inline namespace memory
   private:
     static inline std::mutex resource;
 
-    static inline simple_allocator<header> header_allocator {};
-
     template <typename T>
     using set = std::set<T, std::less<T>, simple_allocator<T>>;
 
-    static inline set<header *> headers;
+    static inline set<tracer *> tracers;
 
-    static inline set<collectable *> objects;
+    static inline set<traceable *> traceables;
 
     static inline std::size_t allocation;
 
@@ -131,7 +129,7 @@ inline namespace memory
 
         allocation += sizeof(T);
 
-        headers.insert(header_allocator.new_(data, sizeof(T), deallocator<T>::deallocate));
+        tracers.insert(new tracer(data, sizeof(T), deallocator<T>::deallocate));
 
         return data;
       }
@@ -149,13 +147,13 @@ inline namespace memory
 
     static auto mark() -> void;
 
-    static auto header_of(void const* const) -> decltype(headers)::iterator;
+    static auto tracer_of(void const* const) -> decltype(tracers)::iterator;
 
     static auto reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max()) -> void;
 
     static auto sweep() -> void;
 
-    static auto trace(header * const) -> void;
+    static auto trace(tracer * const) -> void;
   }
   static gc;
 } // namespace memory

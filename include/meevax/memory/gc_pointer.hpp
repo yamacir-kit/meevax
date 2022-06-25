@@ -28,7 +28,7 @@ inline namespace memory
   template <typename... Ts>
   struct gc_pointer
     : public nan_boxing_pointer<Ts...>
-    , private collector::collectable
+    , private collector::traceable
   {
     explicit gc_pointer(std::nullptr_t = nullptr)
     {}
@@ -36,17 +36,17 @@ inline namespace memory
     template <typename T, REQUIRES(std::is_scalar<T>)>
     explicit gc_pointer(T const& datum)
       : nan_boxing_pointer<Ts...> { datum }
-      , collector::collectable { nan_boxing_pointer<Ts...>::get() }
+      , collector::traceable { nan_boxing_pointer<Ts...>::get() }
     {}
 
     explicit gc_pointer(nan_boxing_pointer<Ts...> const& datum)
       : nan_boxing_pointer<Ts...> { datum }
-      , collector::collectable { nan_boxing_pointer<Ts...>::get() }
+      , collector::traceable { nan_boxing_pointer<Ts...>::get() }
     {}
 
     explicit gc_pointer(gc_pointer const& gcp)
       : nan_boxing_pointer<Ts...> { gcp }
-      , collector::collectable { gcp.header }
+      , collector::traceable { gcp.tracer }
     {}
 
     auto operator =(gc_pointer const& gcp) -> auto &
@@ -58,13 +58,13 @@ inline namespace memory
     auto reset(gc_pointer const& gcp) -> void
     {
       nan_boxing_pointer<Ts...>::reset(gcp);
-      collector::collectable::reset(gcp.header);
+      collector::traceable::reset(gcp.tracer);
     }
 
     auto reset(std::nullptr_t = nullptr) -> void
     {
       nan_boxing_pointer<Ts...>::reset();
-      collector::collectable::reset();
+      collector::traceable::reset();
     }
   };
 } // namespace memory

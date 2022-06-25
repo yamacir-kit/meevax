@@ -14,13 +14,13 @@
    limitations under the License.
 */
 
-#include <meevax/memory/header.hpp>
+#include <meevax/memory/tracer.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  header::header(void const* const base,
+  tracer::tracer(void const* const base,
                  std::size_t const size,
                  deallocator<void>::signature const deallocate)
     : base { base }
@@ -28,7 +28,7 @@ inline namespace memory
     , deallocate { deallocate }
   {}
 
-  header::~header()
+  tracer::~tracer()
   {
     if (size and deallocate)
     {
@@ -36,12 +36,12 @@ inline namespace memory
     }
   }
 
-  auto header::contains(std::uintptr_t const k) const noexcept -> bool
+  auto tracer::contains(std::uintptr_t const k) const noexcept -> bool
   {
     return begin() <= k and k < end();
   }
 
-  auto header::contains(void const* const derived) const noexcept -> bool
+  auto tracer::contains(void const* const derived) const noexcept -> bool
   {
     return contains(reinterpret_cast<std::uintptr_t>(derived));
   }

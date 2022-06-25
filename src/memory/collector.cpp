@@ -27,9 +27,9 @@ inline namespace memory
   {
     if (not reference_count++)
     {
-      objects = {};
+      traceables = {};
 
-      headers = {};
+      tracers = {};
 
       allocation = 0;
 
@@ -43,21 +43,21 @@ inline namespace memory
     {
       clear();
 
-      assert(std::size(headers) == 0);
-      assert(std::size(objects) == 0);
+      assert(std::size(tracers) == 0);
+      assert(std::size(traceables) == 0);
     }
   }
 
   auto collector::clear() -> void
   {
-    for (auto iter = std::begin(headers); iter != std::end(headers); )
+    for (auto iter = std::begin(tracers); iter != std::end(tracers); )
     {
       assert(*iter);
 
-      if (auto * const header = *iter; true)
+      if (auto * const tracer = *iter; true)
       {
-        header_allocator.delete_(header);
-        iter = headers.erase(iter);
+        delete tracer;
+        tracers.erase(iter++);
       }
       else
       {
@@ -82,7 +82,7 @@ inline namespace memory
 
   auto collector::count() noexcept -> std::size_t
   {
-    return std::size(headers);
+    return std::size(tracers);
   }
 
   auto collector::mark() -> void
@@ -91,31 +91,31 @@ inline namespace memory
 
     auto is_root = [](auto&& object)
     {
-      return header_of(object) == std::cend(headers);
+      return tracer_of(object) == std::cend(tracers);
     };
 
-    for (auto&& object : objects)
+    for (auto&& object : traceables)
     {
-      if (object->header and not object->header->marked() and is_root(object))
+      if (object->tracer and not object->tracer->marked() and is_root(object))
       {
-        trace(object->header);
+        trace(object->tracer);
       }
     }
   }
 
-  auto collector::header_of(void const* const p) -> decltype(collector::headers)::iterator
+  auto collector::tracer_of(void const* const p) -> decltype(collector::tracers)::iterator
   {
-    header dummy { p, 0, };
+    tracer dummy { p, 0 };
 
     assert(p);
 
-    if (auto iter = headers.lower_bound(&dummy); iter != std::end(headers) and (*iter)->contains(p))
+    if (auto iter = tracers.lower_bound(&dummy); iter != std::end(tracers) and (*iter)->contains(p))
     {
       return iter;
     }
     else
     {
-      return std::end(headers);
+      return std::end(tracers);
     }
   }
 
@@ -129,14 +129,14 @@ inline namespace memory
 
   auto collector::sweep() -> void
   {
-    for (auto iter = std::begin(headers); iter != std::end(headers); )
+    for (auto iter = std::begin(tracers); iter != std::end(tracers); )
     {
       assert(*iter);
 
-      if (auto header = *iter; not header->marked())
+      if (auto tracer = *iter; not tracer->marked())
       {
-        header_allocator.delete_(header);
-        iter = headers.erase(iter);
+        delete tracer;
+        tracers.erase(iter++);
       }
       else
       {
@@ -145,18 +145,18 @@ inline namespace memory
     }
   }
 
-  auto collector::trace(header * const header) -> void
+  auto collector::trace(tracer * const tracer) -> void
   {
-    if (header and not header->marked())
+    if (tracer and not tracer->marked())
     {
-      header->mark();
+      tracer->mark();
 
-      const auto lower = objects.lower_bound(reinterpret_cast<collectable *>(header->begin()));
-      const auto upper = objects.lower_bound(reinterpret_cast<collectable *>(header->end()));
+      const auto lower = traceables.lower_bound(reinterpret_cast<traceable *>(tracer->begin()));
+      const auto upper = traceables.lower_bound(reinterpret_cast<traceable *>(tracer->end()));
 
       for (auto iter = lower; iter != upper; ++iter)
       {
-        trace((*iter)->header);
+        trace((*iter)->tracer);
       }
     }
   }
