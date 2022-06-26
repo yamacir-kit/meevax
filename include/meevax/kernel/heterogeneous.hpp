@@ -89,11 +89,11 @@ inline namespace kernel
 
       if constexpr (std::is_same_v<Bound, Top>)
       {
-        return heterogeneous(gc.allocate<Top>(std::forward<decltype(xs)>(xs)...));
+        return heterogeneous(gc.make<Top>(std::forward<decltype(xs)>(xs)...));
       }
       else if constexpr (std::is_class_v<Bound>)
       {
-        return heterogeneous(gc.allocate<binder<Bound>>(std::forward<decltype(xs)>(xs)...));
+        return heterogeneous(gc.make<binder<Bound>>(std::forward<decltype(xs)>(xs)...));
       }
       else
       {

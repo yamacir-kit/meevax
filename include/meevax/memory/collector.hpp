@@ -64,7 +64,7 @@ inline namespace memory
         if (tracer)
         {
           auto const lock = std::unique_lock(resource);
-          traceables.insert(this);
+          traceables.emplace(this);
         }
       }
 
@@ -85,7 +85,7 @@ inline namespace memory
         if (not std::exchange(tracer, h))
         {
           auto const lock = std::unique_lock(resource);
-          traceables.insert(this);
+          traceables.emplace(this);
         }
       }
     };
@@ -118,16 +118,14 @@ inline namespace memory
     auto operator =(collector const&) -> collector & = delete;
 
     template <typename T, typename... Ts>
-    static auto allocate(Ts&&... xs)
+    static auto make(Ts&&... xs)
     {
       if (auto data = new T(std::forward<decltype(xs)>(xs)...); data)
       {
-        if (threshold < allocation)
+        if (allocation += sizeof(T); threshold < allocation)
         {
           collect();
         }
-
-        allocation += sizeof(T);
 
         [[maybe_unused]] auto [iter, success] = tracers.insert(new tracer(data, sizeof(T), deallocator<T>::deallocate));
 
