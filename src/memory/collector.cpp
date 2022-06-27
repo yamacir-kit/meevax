@@ -47,7 +47,7 @@ inline namespace memory
     {
       assert(*iter);
 
-      delete *iter;
+      tracer_source.delete_(*iter);
       tracers.erase(iter++);
     }
   }
@@ -85,7 +85,7 @@ inline namespace memory
       assert(traceable);
       assert(traceable->tracer);
 
-      if (traceable->tracer and not traceable->tracer->marked() and is_root(traceable))
+      if (not traceable->tracer->marked() and is_root(traceable))
       {
         trace(traceable->tracer);
       }
@@ -122,7 +122,7 @@ inline namespace memory
     {
       if (not (*iter)->marked())
       {
-        delete *iter;
+        tracer_source.delete_(*iter);
         tracers.erase(iter++);
       }
       else
@@ -134,7 +134,9 @@ inline namespace memory
 
   auto collector::trace(tracer * const tracer) -> void
   {
-    if (tracer and not tracer->marked())
+    assert(tracer);
+
+    if (not tracer->marked())
     {
       tracer->mark();
 

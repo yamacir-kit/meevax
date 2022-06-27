@@ -73,6 +73,23 @@ inline namespace memory
         }
       }
 
+      auto locate(void * const data)
+      {
+        assert(data);
+
+        if (newest_tracer->contains(data)) // Heuristic-based optimization.
+        {
+          return newest_tracer;
+        }
+        else
+        {
+          auto dummy = memory::tracer(data, 0);
+          auto iter = tracers.lower_bound(&dummy);
+          assert(iter != std::end(tracers));
+          return *iter;
+        }
+      }
+
     protected:
       explicit traceable() = default;
 
@@ -82,7 +99,7 @@ inline namespace memory
 
       template <typename Pointer>
       explicit traceable(Pointer const p)
-        : traceable { p ? *tracer_of(p) : nullptr }
+        : traceable { p ? locate(p) : nullptr }
       {}
 
       ~traceable()
@@ -102,7 +119,7 @@ inline namespace memory
       template <typename Pointer>
       auto reset(Pointer const p) -> void
       {
-        reset(p ? *tracer_of(p) : nullptr);
+        reset(p ? locate(p) : nullptr);
       }
 
       auto reset(traceable const& other) -> void
@@ -113,6 +130,10 @@ inline namespace memory
 
   private:
     static inline std::mutex resource;
+
+    static inline simple_allocator<tracer> tracer_source {};
+
+    static inline tracer * newest_tracer = nullptr;
 
     template <typename T>
     using set = std::set<T, std::less<T>, simple_allocator<T>>;
@@ -148,7 +169,9 @@ inline namespace memory
           collect();
         }
 
-        [[maybe_unused]] auto [iter, success] = tracers.insert(new tracer(data, sizeof(T), deallocator<T>::deallocate));
+        newest_tracer = tracer_source.new_(data, sizeof(T), deallocator<T>::deallocate);
+
+        [[maybe_unused]] auto [iter, success] = tracers.insert(newest_tracer);
 
         assert(success);
 
