@@ -46,7 +46,7 @@ inline namespace memory
 
     explicit gc_pointer(gc_pointer const& gcp)
       : nan_boxing_pointer<Ts...> { gcp }
-      , collector::traceable { gcp.tracer }
+      , collector::traceable { static_cast<collector::traceable const&>(gcp) }
     {}
 
     auto operator =(gc_pointer const& gcp) -> auto &
@@ -58,7 +58,7 @@ inline namespace memory
     auto reset(gc_pointer const& gcp) -> void
     {
       nan_boxing_pointer<Ts...>::reset(gcp);
-      collector::traceable::reset(gcp.tracer);
+      collector::traceable::reset(static_cast<collector::traceable const&>(gcp));
     }
 
     auto reset(std::nullptr_t = nullptr) -> void

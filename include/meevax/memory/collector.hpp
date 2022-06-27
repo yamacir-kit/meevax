@@ -44,22 +44,14 @@ inline namespace memory
   * ------------------------------------------------------------------------- */
   {
   public:
-    struct traceable
+    class traceable
     {
       friend class collector;
 
-    protected:
       memory::tracer * tracer = nullptr;
 
-      explicit constexpr traceable() = default;
-
-      template <typename Pointer>
-      explicit traceable(Pointer const p)
-        : traceable { p ? *tracer_of(p) : nullptr }
-      {}
-
-      explicit traceable(memory::tracer * h)
-        : tracer { h }
+      explicit traceable(memory::tracer * tracer)
+        : tracer { tracer }
       {
         if (tracer)
         {
@@ -68,22 +60,7 @@ inline namespace memory
         }
       }
 
-      ~traceable()
-      {
-        if (tracer)
-        {
-          auto const lock = std::unique_lock(resource);
-          traceables.erase(this);
-        }
-      }
-
-      template <typename Pointer>
-      auto reset(Pointer const p) -> void
-      {
-        reset(p ? *tracer_of(p) : nullptr);
-      }
-
-      auto reset(memory::tracer * after = nullptr) -> void
+      auto reset(memory::tracer * after) -> void
       {
         if (auto before = std::exchange(tracer, after); not before and after)
         {
@@ -94,6 +71,43 @@ inline namespace memory
         {
           traceables.erase(this);
         }
+      }
+
+    protected:
+      explicit traceable() = default;
+
+      explicit traceable(traceable const& other)
+        : traceable { other.tracer }
+      {}
+
+      template <typename Pointer>
+      explicit traceable(Pointer const p)
+        : traceable { p ? *tracer_of(p) : nullptr }
+      {}
+
+      ~traceable()
+      {
+        if (tracer)
+        {
+          auto const lock = std::unique_lock(resource);
+          traceables.erase(this);
+        }
+      }
+
+      auto reset()
+      {
+        reset(nullptr);
+      }
+
+      template <typename Pointer>
+      auto reset(Pointer const p) -> void
+      {
+        reset(p ? *tracer_of(p) : nullptr);
+      }
+
+      auto reset(traceable const& other) -> void
+      {
+        reset(other.tracer);
       }
     };
 
