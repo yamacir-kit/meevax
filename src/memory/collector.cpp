@@ -82,6 +82,9 @@ inline namespace memory
 
     for (auto&& traceable : traceables)
     {
+      assert(traceable);
+      assert(traceable->tracer);
+
       if (traceable->tracer and not traceable->tracer->marked() and is_root(traceable))
       {
         trace(traceable->tracer);
@@ -91,9 +94,9 @@ inline namespace memory
 
   auto collector::tracer_of(void * const p) -> decltype(collector::tracers)::iterator
   {
-    tracer dummy { p, 0 };
-
     assert(p);
+
+    auto dummy = tracer(p, 0);
 
     if (auto iter = tracers.lower_bound(&dummy); iter != std::end(tracers) and (*iter)->contains(p))
     {

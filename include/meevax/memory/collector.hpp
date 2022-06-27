@@ -70,8 +70,11 @@ inline namespace memory
 
       ~traceable()
       {
-        auto const lock = std::unique_lock(resource);
-        traceables.erase(this);
+        if (tracer)
+        {
+          auto const lock = std::unique_lock(resource);
+          traceables.erase(this);
+        }
       }
 
       template <typename Pointer>
@@ -80,12 +83,16 @@ inline namespace memory
         reset(p ? *tracer_of(p) : nullptr);
       }
 
-      auto reset(memory::tracer * h = nullptr) -> void
+      auto reset(memory::tracer * after = nullptr) -> void
       {
-        if (not std::exchange(tracer, h))
+        if (auto before = std::exchange(tracer, after); not before and after)
         {
           auto const lock = std::unique_lock(resource);
           traceables.emplace(this);
+        }
+        else if (before and not after)
+        {
+          traceables.erase(this);
         }
       }
     };
