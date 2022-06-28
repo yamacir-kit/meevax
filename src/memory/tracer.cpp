@@ -14,53 +14,36 @@
    limitations under the License.
 */
 
-#include <meevax/memory/region.hpp>
+#include <meevax/memory/tracer.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  region::region(void const* const base, std::size_t const size)
+  tracer::tracer(void * const base,
+                 std::size_t const size,
+                 deallocator<void>::signature const deallocate)
     : base { base }
     , size { size }
+    , deallocate { deallocate }
   {}
 
-  region::~region()
+  tracer::~tracer()
   {
-    if (size)
+    if (size and deallocate)
     {
-      release();
+      deallocate(base);
     }
   }
 
-  auto region::assigned() const noexcept -> bool
-  {
-    return derived and deallocate;
-  }
-
-  auto region::contains(std::uintptr_t const k) const noexcept -> bool
+  auto tracer::contains(std::uintptr_t const k) const noexcept -> bool
   {
     return begin() <= k and k < end();
   }
 
-  auto region::contains(void const* const derived) const noexcept -> bool
+  auto tracer::contains(void const* const derived) const noexcept -> bool
   {
     return contains(reinterpret_cast<std::uintptr_t>(derived));
-  }
-
-  auto region::release() -> void
-  {
-    if (assigned())
-    {
-      deallocate(derived);
-    }
-  }
-
-  auto region::reset(void const* const x, deallocator<void>::signature const f) noexcept -> region *
-  {
-    derived = x;
-    deallocate = f;
-    return this;
   }
 } // namespace memory
 } // namespace meevax

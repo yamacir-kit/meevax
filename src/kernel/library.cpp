@@ -85,8 +85,8 @@ inline namespace kernel
     define<predicate>("eq?",  [](let const& xs) { return eq (car(xs), cadr(xs)); });
     define<predicate>("eqv?", [](let const& xs) { return eqv(car(xs), cadr(xs)); });
 
-    declare_export("eq?",
-                   "eqv?");
+    declare_export("eq?");
+    declare_export("eqv?");
   }
 
   library::library(number_library_t)
@@ -181,27 +181,36 @@ inline namespace kernel
       return make<string>(lexical_cast<std::string>(car(xs)));
     });
 
-    declare_export("number?",
-                   "complex?",
-                   "real?",
-                   "rational?",
-                   "integer?",
-                   "exact-integer?",
-                   "%complex?",
-                   "ratio?",
-                   "single-float?",
-                   "double-float?",
-                   "=", "!=", "<", "<=", ">", ">=",
-                   "+", "*", "-", "/", "%",
-                   "floor",
-                   "ceiling",
-                   "truncate",
-                   "round",
-                   "expt",
-                   "exact",
-                   "inexact",
-                   "integer->char",
-                   "number->string");
+    declare_export("number?");
+    declare_export("complex?");
+    declare_export("real?");
+    declare_export("rational?");
+    declare_export("integer?");
+    declare_export("exact-integer?");
+    declare_export("%complex?");
+    declare_export("ratio?");
+    declare_export("single-float?");
+    declare_export("double-float?");
+    declare_export("=");
+    declare_export("!=");
+    declare_export("<");
+    declare_export("<=");
+    declare_export(">");
+    declare_export(">=");
+    declare_export("+");
+    declare_export("*");
+    declare_export("-");
+    declare_export("/");
+    declare_export("%");
+    declare_export("floor");
+    declare_export("ceiling");
+    declare_export("truncate");
+    declare_export("round");
+    declare_export("expt");
+    declare_export("exact");
+    declare_export("inexact");
+    declare_export("integer->char");
+    declare_export("number->string");
   }
 
   library::library(inexact_library_t)
@@ -259,10 +268,24 @@ inline namespace kernel
       }
     });
 
-    declare_export("finite?", "infinite?", "nan?", "exp", "sqrt", "log",
-                   "sin", "asin", "sinh", "asinh",
-                   "cos", "acos", "cosh", "acosh",
-                   "tan", "atan", "tanh", "atanh");
+    declare_export("finite?");
+    declare_export("infinite?");
+    declare_export("nan?");
+    declare_export("exp");
+    declare_export("sqrt");
+    declare_export("log");
+    declare_export("sin");
+    declare_export("asin");
+    declare_export("sinh");
+    declare_export("asinh");
+    declare_export("cos");
+    declare_export("acos");
+    declare_export("cosh");
+    declare_export("acosh");
+    declare_export("tan");
+    declare_export("atan");
+    declare_export("tanh");
+    declare_export("atanh");
   }
 
   library::library(pair_library_t)
@@ -314,23 +337,40 @@ inline namespace kernel
     define<procedure>("set-car!", [](auto&& xs) { return caar(xs) = cadr(xs); });
     define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
 
-    declare_export("pair?", "cons", "car", "cdr", "set-car!", "set-cdr!",
-                   "caar", "caaar", "caaaar",
-                   "cadr", "caadr", "caaadr",
-                   "cdar", "cadar", "caadar",
-                   "cddr", "caddr", "caaddr",
-                           "cdaar", "cadaar",
-                           "cdadr", "cadadr",
-                           "cddar", "caddar",
-                           "cdddr", "cadddr",
-                                    "cdaaar",
-                                    "cdaadr",
-                                    "cdadar",
-                                    "cdaddr",
-                                    "cddaar",
-                                    "cddadr",
-                                    "cdddar",
-                                    "cddddr");
+    declare_export("pair?");
+    declare_export("cons");
+    declare_export("car");
+    declare_export("cdr");
+    declare_export("set-car!");
+    declare_export("set-cdr!");
+    declare_export("caaaar");
+    declare_export("caaadr");
+    declare_export("caaar");
+    declare_export("caadar");
+    declare_export("caaddr");
+    declare_export("caadr");
+    declare_export("caar");
+    declare_export("cadaar");
+    declare_export("cadadr");
+    declare_export("cadar");
+    declare_export("caddar");
+    declare_export("cadddr");
+    declare_export("caddr");
+    declare_export("cadr");
+    declare_export("cdaaar");
+    declare_export("cdaadr");
+    declare_export("cdaar");
+    declare_export("cdadar");
+    declare_export("cdaddr");
+    declare_export("cdadr");
+    declare_export("cdar");
+    declare_export("cddaar");
+    declare_export("cddadr");
+    declare_export("cddar");
+    declare_export("cdddar");
+    declare_export("cddddr");
+    declare_export("cdddr");
+    declare_export("cddr");
   }
 
   library::library(list_library_t)
@@ -362,7 +402,10 @@ inline namespace kernel
       return make<vector>(for_each_in, car(xs));
     });
 
-    declare_export("null?", "append", "list->string", "list->vector");
+    declare_export("null?");
+    declare_export("append");
+    declare_export("list->string");
+    declare_export("list->vector");
   }
 
   library::library(symbol_library_t)
@@ -377,7 +420,8 @@ inline namespace kernel
       return make<string>(car(xs).as<symbol>());
     });
 
-    declare_export("symbol?", "symbol->string");
+    declare_export("symbol?");
+    declare_export("symbol->string");
   }
 
   library::library(character_library_t)
@@ -411,7 +455,9 @@ inline namespace kernel
       }
     });
 
-    declare_export("char?", "char->integer", "char-codepoint");
+    declare_export("char?");
+    declare_export("char->integer");
+    declare_export("char-codepoint");
   }
 
   library::library(string_library_t)
@@ -536,21 +582,21 @@ inline namespace kernel
       return intern(car(xs).as<string>());
     });
 
-    declare_export("string?",
-                   "make-string",
-                   "string-append",
-                   "string-copy",
-                   "string-length",
-                   "string-ref",
-                   "string-set!",
-                   "string=?",
-                   "string<?",
-                   "string<=?",
-                   "string>?",
-                   "string>=?",
-                   "string->list",
-                   "string->number",
-                   "string->symbol");
+    declare_export("string?");
+    declare_export("make-string");
+    declare_export("string-append");
+    declare_export("string-copy");
+    declare_export("string-length");
+    declare_export("string-ref");
+    declare_export("string-set!");
+    declare_export("string=?");
+    declare_export("string<?");
+    declare_export("string<=?");
+    declare_export("string>?");
+    declare_export("string>=?");
+    declare_export("string->list");
+    declare_export("string->number");
+    declare_export("string->symbol");
   }
 
   library::library(vector_library_t)
@@ -654,15 +700,15 @@ inline namespace kernel
       }
     });
 
-    declare_export("vector?",
-                   "vector",
-                   "make-vector",
-                   "vector-length",
-                   "vector-ref",
-                   "vector-set!",
-                   "vector-fill!",
-                   "vector->list",
-                   "vector->string");
+    declare_export("vector?");
+    declare_export("vector");
+    declare_export("make-vector");
+    declare_export("vector-length");
+    declare_export("vector-ref");
+    declare_export("vector-set!");
+    declare_export("vector-fill!");
+    declare_export("vector->list");
+    declare_export("vector->string");
   }
 
   library::library(control_library_t)
@@ -713,12 +759,12 @@ inline namespace kernel
       return car(xs).is<syntax_error>();
     });
 
-    declare_export("throw",
-                   "make-error",
-                   "error?",
-                   "read-error?",
-                   "file-error?",
-                   "syntax-error?");
+    declare_export("throw");
+    declare_export("make-error");
+    declare_export("error?");
+    declare_export("read-error?");
+    declare_export("file-error?");
+    declare_export("syntax-error?");
   }
 
   library::library(port_library_t)
@@ -907,32 +953,32 @@ inline namespace kernel
       return unspecified_object;
     });
 
-    declare_export("input-port?",
-                   "output-port?",
-                   "binary-port?",
-                   "textual-port?",
-                   "port?",
-                   "input-port-open?",
-                   "output-port-open?",
-                   "standard-input-port",
-                   "standard-output-port",
-                   "standard-error-port",
-                   "open-input-file",
-                   "open-output-file",
-                   "close-input-port",
-                   "close-output-port",
-                   "open-input-string",
-                   "open-output-string",
-                   "get-output-string",
-                   "%read-char",
-                   "%peek-char",
-                   "eof-object?",
-                   "eof-object",
-                   "read-ready?",
-                   "%read-string",
-                   "put-char",
-                   "put-string",
-                   "%flush-output-port");
+    declare_export("input-port?");
+    declare_export("output-port?");
+    declare_export("binary-port?");
+    declare_export("textual-port?");
+    declare_export("port?");
+    declare_export("input-port-open?");
+    declare_export("output-port-open?");
+    declare_export("standard-input-port");
+    declare_export("standard-output-port");
+    declare_export("standard-error-port");
+    declare_export("open-input-file");
+    declare_export("open-output-file");
+    declare_export("close-input-port");
+    declare_export("close-output-port");
+    declare_export("open-input-string");
+    declare_export("open-output-string");
+    declare_export("get-output-string");
+    declare_export("%read-char");
+    declare_export("%peek-char");
+    declare_export("eof-object?");
+    declare_export("eof-object");
+    declare_export("read-ready?");
+    declare_export("%read-string");
+    declare_export("put-char");
+    declare_export("put-string");
+    declare_export("%flush-output-port");
   }
 
   library::library(evaluate_library_t)
@@ -993,7 +1039,8 @@ inline namespace kernel
       return standard_output;
     });
 
-    declare_export("%write-simple", "print");
+    declare_export("%write-simple");
+    declare_export("print");
   }
 
   library::library(macro_library_t)
@@ -1030,11 +1077,11 @@ inline namespace kernel
       return make<syntactic_closure>(car(xs), cadr(xs), caddr(xs));
     });
 
-    declare_export("identifier?",
-                   "identifier->symbol",
-                   "transformer?",
-                   "syntactic-closure?",
-                   "make-syntactic-closure");
+    declare_export("identifier?");
+    declare_export("identifier->symbol");
+    declare_export("transformer?");
+    declare_export("syntactic-closure?");
+    declare_export("make-syntactic-closure");
   }
 
   library::library(experimental_library_t)
@@ -1064,9 +1111,9 @@ inline namespace kernel
       return std::numeric_limits<double>::is_iec559;
     });
 
-    declare_export("type-of",
-                   "disassemble",
-                   "ieee-float?");
+    declare_export("type-of");
+    declare_export("disassemble");
+    declare_export("ieee-float?");
   }
 
   library::library(context_library_t)
@@ -1150,7 +1197,8 @@ inline namespace kernel
         return make<exact_integer>(gc.count());
       });
 
-      library.declare_export("gc-collect", "gc-count");
+      library.declare_export("gc-collect");
+      library.declare_export("gc-count");
     });
 
     define_library("(meevax version)", [](library & library)

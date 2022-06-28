@@ -14,9 +14,10 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_REGION_HPP
-#define INCLUDED_MEEVAX_MEMORY_REGION_HPP
+#ifndef INCLUDED_MEEVAX_MEMORY_TRACER_HPP
+#define INCLUDED_MEEVAX_MEMORY_TRACER_HPP
 
+#include <cassert>
 #include <cstdint> // std::uintptr_t
 #include <functional> // std::less
 
@@ -28,22 +29,20 @@ namespace meevax
 {
 inline namespace memory
 {
-  class region : public marker
+  class tracer : public marker
   {
-    void const* const base;
+    void * base;
 
-    const std::size_t size;
+    std::size_t const size;
 
-    void const* derived = nullptr;
-
-    deallocator<void>::signature deallocate = nullptr;
+    deallocator<void>::signature const deallocate;
 
   public:
-    explicit region(void const* const, std::size_t const);
+    explicit tracer(void * const,
+                    std::size_t const,
+                    deallocator<void>::signature const = nullptr);
 
-    ~region();
-
-    auto assigned() const noexcept -> bool;
+    ~tracer();
 
     auto begin() const noexcept -> std::uintptr_t
     {
@@ -58,15 +57,11 @@ inline namespace memory
     {
       return begin() + size;
     }
-
-    auto release() -> void;
-
-    auto reset(void const* const = nullptr, deallocator<void>::signature const = nullptr) noexcept -> region *;
   };
 
-  inline auto operator <(region const& x, region const& y)
+  inline auto operator <(tracer const& x, tracer const& y)
   {
-    return x.end() < y.begin();
+    return x.end() <= y.begin();
   }
 } // namespace memory
 } // namespace meevax
@@ -74,14 +69,18 @@ inline namespace memory
 namespace std
 {
   template <>
-  struct less<meevax::region *>
+  struct less<meevax::tracer *>
   {
-    auto operator ()(meevax::region * const x,
-                     meevax::region * const y) const
+    using is_transparent = void;
+
+    auto operator ()(meevax::tracer * const x, meevax::tracer * const y) const
     {
+      assert(x);
+      assert(y);
+
       return *x < *y;
     }
   };
 } // namespace std
 
-#endif // INCLUDED_MEEVAX_MEMORY_REGION_HPP
+#endif // INCLUDED_MEEVAX_MEMORY_TRACER_HPP

@@ -25,7 +25,7 @@
 #include <new>
 #include <set>
 
-#include <meevax/memory/region.hpp>
+#include <meevax/memory/tracer.hpp>
 #include <meevax/memory/simple_allocator.hpp>
 #include <meevax/string/header.hpp>
 
@@ -44,68 +44,108 @@ inline namespace memory
   * ------------------------------------------------------------------------- */
   {
   public:
-    struct collectable
+    class traceable
     {
-    protected:
-      region * context = nullptr;
+      friend class collector;
 
-      explicit constexpr collectable() = default;
+      memory::tracer * tracer = nullptr;
 
-      template <typename Pointer>
-      explicit collectable(Pointer const p)
-        : collectable { collector::reset(p, deallocator<Pointer>::deallocate) }
-      {}
-
-      explicit collectable(region * region)
-        : context { region }
+      explicit traceable(memory::tracer * tracer)
+        : tracer { tracer }
       {
-        if (context)
+        if (tracer)
         {
           auto const lock = std::unique_lock(resource);
-          objects.try_emplace(this, context);
+          traceables.insert(std::end(traceables), this);
         }
       }
 
-      ~collectable()
+      auto reset(memory::tracer * after) -> void
       {
-        auto const lock = std::unique_lock(resource);
-        objects.erase(this);
+        if (auto before = std::exchange(tracer, after); not before and after)
+        {
+          auto const lock = std::unique_lock(resource);
+          traceables.insert(this);
+        }
+        else if (before and not after)
+        {
+          traceables.erase(this);
+        }
+      }
+
+      auto locate(void * const data)
+      {
+        assert(data);
+
+        if (newest_tracer->contains(data)) // Heuristic-based optimization.
+        {
+          return newest_tracer;
+        }
+        else
+        {
+          auto dummy = memory::tracer(data, 0);
+          auto iter = tracers.lower_bound(&dummy);
+          assert(iter != std::end(tracers));
+          return *iter;
+        }
+      }
+
+    protected:
+      explicit traceable() = default;
+
+      explicit traceable(traceable const& other)
+        : traceable { other.tracer }
+      {}
+
+      template <typename Pointer>
+      explicit traceable(Pointer const p)
+        : traceable { p ? locate(p) : nullptr }
+      {}
+
+      ~traceable()
+      {
+        if (tracer)
+        {
+          auto const lock = std::unique_lock(resource);
+          traceables.erase(this);
+        }
+      }
+
+      auto reset()
+      {
+        reset(nullptr);
       }
 
       template <typename Pointer>
       auto reset(Pointer const p) -> void
       {
-        reset(collector::reset(p, deallocator<Pointer>::deallocate));
+        reset(p ? locate(p) : nullptr);
       }
 
-      auto reset(region * region) -> void
+      auto reset(traceable const& other) -> void
       {
-        if (context = region)
-        {
-          auto const lock = std::unique_lock(resource);
-          objects.insert_or_assign(this, context);
-        }
+        reset(other.tracer);
       }
     };
 
   private:
-    static inline std::mutex resource;
-
-    static inline simple_allocator<region> region_allocator {};
-
     template <typename T>
     using set = std::set<T, std::less<T>, simple_allocator<T>>;
 
-    static inline set<region *> regions;
+  protected:
+    static inline std::mutex resource;
 
-    template <typename T, typename U>
-    using map = std::map<T, U, std::less<T>, simple_allocator<std::pair<T, U>>>;
+    static inline simple_allocator<tracer> tracer_source {};
 
-    static inline map<collectable * const, region *> objects;
+    static inline tracer * newest_tracer = nullptr;
 
-    static inline std::size_t allocation;
+    static inline set<tracer *> tracers {};
 
-    static inline std::size_t threshold;
+    static inline set<traceable *> traceables {};
+
+    static inline std::size_t allocation = 0;
+
+    static inline std::size_t threshold = 8_MiB;
 
   public:
     explicit collector();
@@ -120,7 +160,29 @@ inline namespace memory
 
     auto operator =(collector const&) -> collector & = delete;
 
-    static auto allocate(std::size_t const) -> void *;
+    template <typename T, typename... Ts>
+    static auto make(Ts&&... xs)
+    {
+      if (auto data = new T(std::forward<decltype(xs)>(xs)...); data)
+      {
+        if (allocation += sizeof(T); threshold < allocation)
+        {
+          collect();
+        }
+
+        newest_tracer = tracer_source.new_(data, sizeof(T), deallocator<T>::deallocate);
+
+        assert(tracers.find(newest_tracer) == std::end(tracers));
+
+        tracers.insert(std::end(tracers), newest_tracer);
+
+        return data;
+      }
+      else
+      {
+        throw std::bad_alloc();
+      }
+    }
 
     static auto clear() -> void;
 
@@ -128,25 +190,18 @@ inline namespace memory
 
     static auto count() noexcept -> std::size_t;
 
-    static auto deallocate(void * const, std::size_t const = 0) -> void;
-
     static auto mark() -> void;
 
-    static auto region_of(void const* const) -> decltype(regions)::iterator;
-
-    static auto reset(void * const, deallocator<void>::signature const) -> region *;
+    static auto tracer_of(void * const) -> decltype(tracers)::iterator;
 
     static auto reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max()) -> void;
 
     static auto sweep() -> void;
 
-    static auto traverse(region * const) -> void;
-  } static gc;
+    static auto trace(tracer * const) -> void;
+  }
+  static gc;
 } // namespace memory
 } // namespace meevax
-
-auto operator new(std::size_t const, meevax::collector &) -> void *;
-
-void operator delete(void * const, meevax::collector &) noexcept;
 
 #endif // INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP

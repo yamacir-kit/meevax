@@ -27,13 +27,6 @@ inline namespace memory
   {
     if (not reference_count++)
     {
-      objects = {};
-
-      regions = {};
-
-      allocation = 0;
-
-      threshold = 8_MiB;
     }
   }
 
@@ -43,47 +36,19 @@ inline namespace memory
     {
       clear();
 
-      assert(std::size(regions) == 0);
-      assert(std::size(objects) == 0);
-    }
-  }
-
-  auto collector::allocate(std::size_t const size) -> void *
-  {
-    if (auto data = ::operator new(size); data)
-    {
-      if (threshold < allocation)
-      {
-        collect();
-      }
-
-      allocation += size;
-
-      regions.insert(region_allocator.new_(data, size));
-
-      return data;
-    }
-    else
-    {
-      throw std::bad_alloc();
+      assert(std::size(tracers) == 0);
+      assert(std::size(traceables) == 0);
     }
   }
 
   auto collector::clear() -> void
   {
-    for (auto iter = std::begin(regions); iter != std::end(regions); )
+    for (auto iter = std::begin(tracers); iter != std::end(tracers); )
     {
       assert(*iter);
 
-      if (auto * const region = *iter; region->assigned())
-      {
-        region_allocator.delete_(region);
-        iter = regions.erase(iter);
-      }
-      else
-      {
-        ++iter;
-      }
+      tracer_source.delete_(*iter);
+      tracers.erase(iter++);
     }
   }
 
@@ -103,67 +68,43 @@ inline namespace memory
 
   auto collector::count() noexcept -> std::size_t
   {
-    return std::size(regions);
-  }
-
-  auto collector::deallocate(void * const data, std::size_t const) -> void
-  {
-    assert(*region_of(data));
-
-    regions.erase(region_of(data));
-
-    ::operator delete(data);
+    return std::size(tracers);
   }
 
   auto collector::mark() -> void
   {
     marker::toggle();
 
-    for (auto&& [derived, region] : objects)
+    auto is_root = [](auto&& traceable)
     {
-      assert(region); // NOTE: objects always hold a valid region pointer.
+      return tracer_of(traceable) == std::cend(tracers); // If there is no tracer for the traceable, it is a root object.
+    };
 
-      if (not region->marked() and region_of(derived) == std::cend(regions))
+    for (auto&& traceable : traceables)
+    {
+      assert(traceable);
+      assert(traceable->tracer);
+
+      if (not traceable->tracer->marked() and is_root(traceable))
       {
-        traverse(region);
+        trace(traceable->tracer);
       }
     }
   }
 
-  auto collector::region_of(void const* const p) -> decltype(collector::regions)::iterator
+  auto collector::tracer_of(void * const p) -> decltype(collector::tracers)::iterator
   {
-    region dummy { p, 0 };
-
     assert(p);
 
-    auto not_found = std::cend(regions);
+    auto dummy = tracer(p, 0);
 
-    if (auto iter = regions.lower_bound(std::addressof(dummy)); iter != not_found and (*iter)->contains(p))
+    if (auto iter = tracers.lower_bound(&dummy); iter != std::end(tracers) and (*iter)->contains(p))
     {
       return iter;
     }
     else
     {
-      return not_found;
-    }
-  }
-
-  auto collector::reset(void * const derived, deallocator<void>::signature const deallocate) -> region *
-  {
-    if (derived)
-    {
-      auto const lock = std::unique_lock(resource);
-
-      auto const iter = region_of(derived);
-
-      assert(iter != std::cend(regions));
-      assert(deallocate);
-
-      return (*iter)->reset(derived, deallocate);
-    }
-    else
-    {
-      return nullptr;
+      return std::end(tracers);
     }
   }
 
@@ -177,52 +118,36 @@ inline namespace memory
 
   auto collector::sweep() -> void
   {
-    for (auto iter = std::begin(regions); iter != std::end(regions); )
+    for (auto iter = std::begin(tracers); iter != std::end(tracers); )
     {
-      assert(*iter);
-
-      if (auto region = *iter; not region->marked())
+      if (not (*iter)->marked())
       {
-        if (region->assigned())
-        {
-          region_allocator.delete_(region);
-          iter = regions.erase(iter);
-          continue;
-        }
-        else
-        {
-          region->mark();
-        }
+        tracer_source.delete_(*iter);
+        tracers.erase(iter++);
       }
-
-      ++iter;
+      else
+      {
+        ++iter;
+      }
     }
   }
 
-  auto collector::traverse(region * const region) -> void
+  auto collector::trace(tracer * const tracer) -> void
   {
-    if (region and not region->marked())
-    {
-      region->mark();
+    assert(tracer);
 
-      const auto lower = objects.lower_bound(reinterpret_cast<collectable *>(region->begin()));
-      const auto upper = objects.lower_bound(reinterpret_cast<collectable *>(region->end()));
+    if (not tracer->marked())
+    {
+      tracer->mark();
+
+      const auto lower = traceables.lower_bound(reinterpret_cast<traceable *>(tracer->begin()));
+      const auto upper = traceables.lower_bound(reinterpret_cast<traceable *>(tracer->end()));
 
       for (auto iter = lower; iter != upper; ++iter)
       {
-        traverse(iter->second);
+        trace((*iter)->tracer);
       }
     }
   }
 } // namespace memory
 } // namespace meevax
-
-auto operator new(std::size_t const size, meevax::collector & gc) -> void *
-{
-  return gc.allocate(size);
-}
-
-auto operator delete(void * const data, meevax::collector & gc) noexcept -> void
-{
-  gc.deallocate(data);
-}

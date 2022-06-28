@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 
+#include <cstddef>
 #include <meevax/memory/collector.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
 
@@ -27,19 +28,25 @@ inline namespace memory
   template <typename... Ts>
   struct gc_pointer
     : public nan_boxing_pointer<Ts...>
-    , private collector::collectable
+    , private collector::traceable
   {
-    gc_pointer(std::nullptr_t = nullptr)
+    explicit gc_pointer(std::nullptr_t = nullptr)
+    {}
+
+    template <typename T, REQUIRES(std::is_scalar<T>)>
+    explicit gc_pointer(T const& datum)
+      : nan_boxing_pointer<Ts...> { datum }
+      , collector::traceable { nan_boxing_pointer<Ts...>::get() }
     {}
 
     explicit gc_pointer(nan_boxing_pointer<Ts...> const& datum)
       : nan_boxing_pointer<Ts...> { datum }
-      , collector::collectable { datum.get() }
+      , collector::traceable { nan_boxing_pointer<Ts...>::get() }
     {}
 
     explicit gc_pointer(gc_pointer const& gcp)
       : nan_boxing_pointer<Ts...> { gcp }
-      , collector::collectable { gcp.context }
+      , collector::traceable { static_cast<collector::traceable const&>(gcp) }
     {}
 
     auto operator =(gc_pointer const& gcp) -> auto &
@@ -48,10 +55,16 @@ inline namespace memory
       return *this;
     }
 
-    auto reset(gc_pointer const& gcp = nullptr) -> void
+    auto reset(gc_pointer const& gcp) -> void
     {
-      nan_boxing_pointer<Ts...>::operator =(gcp);
-      collector::collectable::reset(gcp.context);
+      nan_boxing_pointer<Ts...>::reset(gcp);
+      collector::traceable::reset(static_cast<collector::traceable const&>(gcp));
+    }
+
+    auto reset(std::nullptr_t = nullptr) -> void
+    {
+      nan_boxing_pointer<Ts...>::reset();
+      collector::traceable::reset();
     }
   };
 } // namespace memory

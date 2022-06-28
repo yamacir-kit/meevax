@@ -68,46 +68,49 @@ inline namespace memory
     static constexpr std::uintptr_t signature_T_0b110 = 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
     static constexpr std::uintptr_t signature_T_0b111 = 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
 
-    constexpr nan_boxing_pointer(nan_boxing_pointer const&) = default;
+    template <typename U>
+    using is_mimicable = typename std::bool_constant<
+                           std::is_same_v<U, float64> or
+                           std::is_same_v<U, pointer> or sizeof(U) <= 4>;
 
-    auto operator =(nan_boxing_pointer const&) -> nan_boxing_pointer & = default;
+    explicit nan_boxing_pointer(nan_boxing_pointer const&) = default;
 
-    nan_boxing_pointer(std::nullptr_t = nullptr)
-      : nan_boxing_pointer { static_cast<pointer>(nullptr) }
-    {}
+    auto reset(nan_boxing_pointer const& value) -> void
+    {
+      data = value.data;
+    }
 
-    #define DEFINE(TYPE)                                                       \
-    nan_boxing_pointer(TYPE const& value) noexcept                             \
+    #define DEFINE(TYPE, ...)                                                  \
+    explicit nan_boxing_pointer(TYPE const& value __VA_ARGS__) noexcept        \
       : data { reinterpret_cast<pointer>(                                      \
                  signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value)) }  \
     {}                                                                         \
                                                                                \
-    auto reset(TYPE const& value) noexcept -> void                             \
+    auto reset(TYPE const& value __VA_ARGS__) noexcept -> void                 \
     {                                                                          \
       data = reinterpret_cast<pointer>(                                        \
                signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value));     \
     }                                                                          \
                                                                                \
-    auto operator =(TYPE const& value) noexcept -> auto &                      \
-    {                                                                          \
-      reset(value);                                                            \
-      return *this;                                                            \
-    }                                                                          \
-                                                                               \
-    static_assert(std::is_same_v<TYPE, float64> or \
-                  std::is_same_v<TYPE, pointer> or \
-                  sizeof(TYPE) <= 4)
+    static_assert(is_mimicable<TYPE>::value)
 
-    DEFINE(float64); // 0b000
-    DEFINE(pointer); // 0b001
-    DEFINE(T_0b010);
-    DEFINE(T_0b011);
-    DEFINE(T_0b100);
-    DEFINE(T_0b101);
-    DEFINE(T_0b110);
-    DEFINE(T_0b111);
+    DEFINE(float64,          ); // 0b000
+    DEFINE(pointer, = nullptr); // 0b001
+    DEFINE(T_0b010,          );
+    DEFINE(T_0b011,          );
+    DEFINE(T_0b100,          );
+    DEFINE(T_0b101,          );
+    DEFINE(T_0b110,          );
+    DEFINE(T_0b111,          );
 
     #undef DEFINE
+
+    template <typename... Ts>
+    auto operator =(Ts&&... xs) -> auto &
+    {
+      reset(std::forward<decltype(xs)>(xs)...);
+      return *this;
+    }
 
     auto operator ->() const
     {

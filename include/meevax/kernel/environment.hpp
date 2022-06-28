@@ -72,10 +72,9 @@ inline namespace kernel
 
     auto declare_import(const_reference) -> void;
 
-    template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
-    auto declare_import(Ts&&... xs) -> void
+    auto declare_import(std::string const& import_set) -> void
     {
-      (declare_import(read(xs)), ...);
+      declare_import(read(import_set));
     }
 
     auto define(const_reference, const_reference = undefined) -> void;
