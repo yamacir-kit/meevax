@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_TRACER_HPP
 #define INCLUDED_MEEVAX_MEMORY_TRACER_HPP
 
+#include <cassert>
 #include <cstdint> // std::uintptr_t
 #include <functional> // std::less
 
@@ -70,9 +71,13 @@ namespace std
   template <>
   struct less<meevax::tracer *>
   {
-    auto operator ()(meevax::tracer * const x,
-                     meevax::tracer * const y) const
+    using is_transparent = void;
+
+    auto operator ()(meevax::tracer * const x, meevax::tracer * const y) const
     {
+      assert(x);
+      assert(y);
+
       return *x < *y;
     }
   };

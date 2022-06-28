@@ -56,7 +56,7 @@ inline namespace memory
         if (tracer)
         {
           auto const lock = std::unique_lock(resource);
-          traceables.emplace(this);
+          traceables.insert(std::end(traceables), this);
         }
       }
 
@@ -65,7 +65,7 @@ inline namespace memory
         if (auto before = std::exchange(tracer, after); not before and after)
         {
           auto const lock = std::unique_lock(resource);
-          traceables.emplace(this);
+          traceables.insert(this);
         }
         else if (before and not after)
         {
@@ -129,14 +129,15 @@ inline namespace memory
     };
 
   private:
+    template <typename T>
+    using set = std::set<T, std::less<T>, simple_allocator<T>>;
+
+  protected:
     static inline std::mutex resource;
 
     static inline simple_allocator<tracer> tracer_source {};
 
     static inline tracer * newest_tracer = nullptr;
-
-    template <typename T>
-    using set = std::set<T, std::less<T>, simple_allocator<T>>;
 
     static inline set<tracer *> tracers {};
 
@@ -171,9 +172,9 @@ inline namespace memory
 
         newest_tracer = tracer_source.new_(data, sizeof(T), deallocator<T>::deallocate);
 
-        [[maybe_unused]] auto [iter, success] = tracers.insert(newest_tracer);
+        assert(tracers.find(newest_tracer) == std::end(tracers));
 
-        assert(success);
+        tracers.insert(std::end(tracers), newest_tracer);
 
         return data;
       }
