@@ -56,12 +56,6 @@ inline namespace kernel
     explicit environment(Ts&&... xs)
     {
       (import(xs), ...);
-
-      // define<procedure>("set-batch!",       [this](let const& xs, auto&&...) { return batch       = select(car(xs)); });
-      // define<procedure>("set-debug!",       [this](let const& xs, auto&&...) { return debug       = select(car(xs)); });
-      // define<procedure>("set-interactive!", [this](let const& xs, auto&&...) { return interactive = select(car(xs)); });
-      // define<procedure>("set-trace!",       [this](let const& xs, auto&&...) { return trace       = select(car(xs)); });
-      // define<procedure>("set-verbose!",     [this](let const& xs, auto&&...) { return verbose     = select(car(xs)); });
     }
 
     auto operator [](const_reference) -> const_reference;
@@ -69,13 +63,6 @@ inline namespace kernel
     auto operator [](std::string const&) -> const_reference;
 
     auto apply(const_reference, const_reference) -> lvalue;
-
-    auto declare_import(const_reference) -> void;
-
-    auto declare_import(std::string const& import_set) -> void
-    {
-      declare_import(read(import_set));
-    }
 
     auto define(const_reference, const_reference = undefined) -> void;
 
@@ -108,6 +95,10 @@ inline namespace kernel
     auto global() noexcept -> reference;
 
     auto global() const noexcept -> const_reference;
+
+    auto import_(const_reference) -> void;
+
+    auto import_(std::string const&) -> void;
 
     auto load(std::string const&) -> lvalue;
 

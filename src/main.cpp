@@ -33,7 +33,7 @@ auto main(int const argc, char const* const* const argv) -> int
     if (main.interactive)
     {
       main.display_version();
-      main.declare_import("(scheme r5rs)");
+      main.import_("(scheme r5rs)");
     }
 
     while (main.interactive and main.char_ready())

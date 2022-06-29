@@ -59,7 +59,7 @@ inline namespace kernel
 
       for (let const& x : xs)
       {
-        e.as<environment>().declare_import(x);
+        e.as<environment>().import_(x);
       }
 
       return e;
@@ -1148,7 +1148,7 @@ inline namespace kernel
   {
     for (let const& declaration : declarations)
     {
-      declare(declaration);
+      evaluate(declaration);
     }
   }
 
@@ -1248,7 +1248,7 @@ inline namespace kernel
     }
   }
 
-  auto library::declare(const_reference declaration) -> void
+  auto library::evaluate(const_reference declaration) -> void
   {
     if (declaration.is<pair>() and car(declaration).is<symbol>()
                                and car(declaration).as<symbol>().value == "export")
@@ -1263,12 +1263,12 @@ inline namespace kernel
     {
       for (let const& command_or_definition : cdr(declaration))
       {
-        declare(command_or_definition);
+        evaluate(command_or_definition);
       }
     }
     else
     {
-      evaluate(declaration); // Non-standard extension.
+      environment::evaluate(declaration); // Non-standard extension.
     }
   }
 

@@ -39,7 +39,7 @@ inline namespace kernel
 
     static auto boot() -> void;
 
-    auto declare(const_reference) -> void;
+    auto evaluate(const_reference) -> void;
 
     auto export_(const_reference) -> void;
 
