@@ -35,39 +35,11 @@ inline namespace kernel
       declare(*this);
     }
 
-    explicit library(const_reference declarations)
-    {
-      for (let const& declaration : declarations)
-      {
-        declare(declaration);
-      }
-    }
+    explicit library(const_reference);
 
     static auto boot() -> void;
 
-    auto declare(const_reference declaration) -> void
-    {
-      if (declaration.is<pair>() and car(declaration).is<symbol>()
-                                 and car(declaration).as<symbol>().value == "export")
-      {
-        for (let const& export_spec : cdr(declaration))
-        {
-          declare_export(export_spec);
-        }
-      }
-      else if (declaration.is<pair>() and car(declaration).is<symbol>()
-                                      and car(declaration).as<symbol>().value == "begin")
-      {
-        for (let const& command_or_definition : cdr(declaration))
-        {
-          declare(command_or_definition);
-        }
-      }
-      else
-      {
-        evaluate(declaration); // Non-standard extension.
-      }
-    }
+    auto declare(const_reference) -> void;
 
     auto declare_export(const_reference export_spec) -> void
     {
@@ -79,44 +51,7 @@ inline namespace kernel
       declare_export(read(export_spec));
     }
 
-    auto resolve_export_specs()
-    {
-      let bindings = unit;
-
-      for (let const& export_spec : export_specs)
-      {
-        if (export_spec.is<pair>() and car(export_spec).is<symbol>()
-                                   and car(export_spec).as<symbol>().value == "rename")
-        {
-          if (let const& binding = identify(cadr(export_spec), unit); binding.as<identity>().is_free())
-          {
-            std::cout << error(make<string>("exported but undefined"), cadr(export_spec)) << std::endl;
-          }
-          else
-          {
-            bindings = cons(make<absolute>(caddr(export_spec), binding.as<absolute>().load()), bindings);
-          }
-        }
-        else
-        {
-          if (let const& binding = identify(export_spec, unit); binding.as<identity>().is_free())
-          {
-            std::cout << error(make<string>("exported but undefined"), export_spec) << std::endl;
-          }
-          else
-          {
-            bindings = cons(binding, bindings);
-          }
-        }
-      }
-
-      return bindings;
-    }
-
-    friend auto operator <<(std::ostream & os, library const& library) -> std::ostream &
-    {
-      return os << library.global();
-    }
+    auto resolve_export_specs() -> lvalue;
 
     #define DEFINE_BASIS_LIBRARY(NAME)                                         \
     struct NAME##_library_t                                                    \
@@ -151,7 +86,9 @@ inline namespace kernel
     #undef DEFINE_BASIS_LIBRARY
   };
 
-  extern std::map<std::string, library> libraries;
+  auto operator <<(std::ostream &, library const&) -> std::ostream &;
+
+  extern std::unordered_map<std::string, library> libraries;
 
   template <typename... Ts>
   auto define_library(std::string const& name, Ts&&... xs)

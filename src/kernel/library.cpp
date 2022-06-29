@@ -1144,7 +1144,13 @@ inline namespace kernel
     declare_export("emergency-exit");
   }
 
-  std::map<std::string, library> libraries {};
+  library::library(const_reference declarations)
+  {
+    for (let const& declaration : declarations)
+    {
+      declare(declaration);
+    }
+  }
 
   auto library::boot() -> void
   {
@@ -1241,5 +1247,70 @@ inline namespace kernel
       }
     }
   }
+
+  auto library::declare(const_reference declaration) -> void
+  {
+    if (declaration.is<pair>() and car(declaration).is<symbol>()
+                               and car(declaration).as<symbol>().value == "export")
+    {
+      for (let const& export_spec : cdr(declaration))
+      {
+        declare_export(export_spec);
+      }
+    }
+    else if (declaration.is<pair>() and car(declaration).is<symbol>()
+                                    and car(declaration).as<symbol>().value == "begin")
+    {
+      for (let const& command_or_definition : cdr(declaration))
+      {
+        declare(command_or_definition);
+      }
+    }
+    else
+    {
+      evaluate(declaration); // Non-standard extension.
+    }
+  }
+
+  auto library::resolve_export_specs() -> lvalue
+  {
+    let bindings = unit;
+
+    for (let const& export_spec : export_specs)
+    {
+      if (export_spec.is<pair>() and car(export_spec).is<symbol>()
+                                 and car(export_spec).as<symbol>().value == "rename")
+      {
+        if (let const& binding = identify(cadr(export_spec), unit); binding.as<identity>().is_free())
+        {
+          std::cout << error(make<string>("exported but undefined"), cadr(export_spec)) << std::endl;
+        }
+        else
+        {
+          bindings = cons(make<absolute>(caddr(export_spec), binding.as<absolute>().load()), bindings);
+        }
+      }
+      else
+      {
+        if (let const& binding = identify(export_spec, unit); binding.as<identity>().is_free())
+        {
+          std::cout << error(make<string>("exported but undefined"), export_spec) << std::endl;
+        }
+        else
+        {
+          bindings = cons(binding, bindings);
+        }
+      }
+    }
+
+    return bindings;
+  }
+
+  auto operator <<(std::ostream & os, library const& library) -> std::ostream &
+  {
+    return os << library.global();
+  }
+
+  std::unordered_map<std::string, library> libraries {};
 } // namespace kernel
 } // namespace meevax
