@@ -25,10 +25,9 @@ inline namespace kernel
 {
   enum class for_each_in_tag {} constexpr for_each_in {};
 
-  struct vector
-    : public std::vector<lvalue>
+  struct vector : public std::vector<value_type>
   {
-    using std::vector<lvalue>::vector;
+    using std::vector<meevax::value_type>::vector;
 
     template <typename InputIterator>
     explicit vector(for_each_in_tag, InputIterator from, InputIterator to)

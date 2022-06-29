@@ -90,7 +90,7 @@ inline namespace kernel
         return make<bool>(debug = true);
       }),
 
-      std::make_pair('h', [](auto&&...) -> lvalue
+      std::make_pair('h', [](auto&&...) -> value_type
       {
         configurator::display_help();
         throw exit_status::success;
@@ -101,7 +101,7 @@ inline namespace kernel
         return make<bool>(interactive = true);
       }),
 
-      std::make_pair('v', [](auto&&...) -> lvalue
+      std::make_pair('v', [](auto&&...) -> value_type
       {
         configurator::display_version();
         throw exit_status::success;
@@ -140,7 +140,7 @@ inline namespace kernel
         return make<bool>(debug = true);
       }),
 
-      std::make_pair("help", [](auto&&...) -> lvalue
+      std::make_pair("help", [](auto&&...) -> value_type
       {
         display_help();
         throw exit_status::success;
@@ -161,7 +161,7 @@ inline namespace kernel
         return make<bool>(verbose = true);
       }),
 
-      std::make_pair("version", [](auto&&...) -> lvalue
+      std::make_pair("version", [](auto&&...) -> value_type
       {
         display_version();
         throw exit_status::success;

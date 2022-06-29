@@ -443,7 +443,7 @@ inline namespace kernel
       }
     });
 
-    define<procedure>("char-codepoint", [](let const& xs) -> lvalue
+    define<procedure>("char-codepoint", [](let const& xs) -> value_type
     {
       if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
       {
@@ -729,7 +729,7 @@ inline namespace kernel
 
   library::library(exception_library_t)
   {
-    define<procedure>("throw", [](let const& xs) -> lvalue
+    define<procedure>("throw", [](let const& xs) -> value_type
     {
       throw car(xs);
     });
@@ -861,7 +861,7 @@ inline namespace kernel
       return make<string>(car(xs).as<std::ostringstream>().str());
     });
 
-    define<procedure>("%read-char", [](let const& xs) -> lvalue
+    define<procedure>("%read-char", [](let const& xs) -> value_type
     {
       try
       {
@@ -877,7 +877,7 @@ inline namespace kernel
       }
     });
 
-    define<procedure>("%peek-char", [](let const& xs) -> lvalue
+    define<procedure>("%peek-char", [](let const& xs) -> value_type
     {
       try
       {
@@ -993,7 +993,7 @@ inline namespace kernel
 
   library::library(read_library_t)
   {
-    define<procedure>("%read", [this](let const& xs) -> lvalue
+    define<procedure>("%read", [this](let const& xs) -> value_type
     {
       try
       {
@@ -1118,7 +1118,7 @@ inline namespace kernel
 
   library::library(context_library_t)
   {
-    define<procedure>("emergency-exit", [](let const& xs) -> lvalue
+    define<procedure>("emergency-exit", [](let const& xs) -> value_type
     {
       switch (length(xs))
       {
@@ -1282,7 +1282,7 @@ inline namespace kernel
     export_(read(export_spec));
   }
 
-  auto library::resolve_export_specs() -> lvalue
+  auto library::resolve_export_specs() -> value_type
   {
     let bindings = unit;
 

@@ -27,7 +27,7 @@ inline namespace kernel
 {
   struct library : public environment
   {
-    std::vector<lvalue> export_specs;
+    std::vector<value_type> export_specs;
 
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
     explicit library(F&& declare)
@@ -45,7 +45,7 @@ inline namespace kernel
 
     auto export_(std::string const&) -> void;
 
-    auto resolve_export_specs() -> lvalue;
+    auto resolve_export_specs() -> value_type;
 
     #define DEFINE_BASIS_LIBRARY(NAME)                                         \
     struct NAME##_library_t                                                    \

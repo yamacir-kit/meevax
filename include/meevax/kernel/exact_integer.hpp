@@ -28,13 +28,11 @@ inline namespace kernel
 {
   struct exact_integer : public number
   {
-    using value_type = mpz_t;
-
-    value_type value;
+    mpz_t value;
 
     explicit exact_integer() noexcept;
 
-    explicit exact_integer(value_type) noexcept;
+    explicit exact_integer(mpz_t) noexcept;
 
     exact_integer(exact_integer const&) noexcept;
 
@@ -85,7 +83,7 @@ inline namespace kernel
 
     auto truncate_quotient(exact_integer const&) const -> exact_integer;
 
-    #define DEFINE(NAME) auto NAME() const -> lvalue override
+    #define DEFINE(NAME) auto NAME() const -> value_type override
 
     DEFINE(exact); DEFINE(inexact);
 
@@ -97,7 +95,7 @@ inline namespace kernel
 
     #undef DEFINE
 
-    #define DEFINE(NAME) auto NAME(const_reference) const -> lvalue override
+    #define DEFINE(NAME) auto NAME(const_reference) const -> value_type override
 
     DEFINE(atan2);
     DEFINE(pow);
@@ -118,11 +116,11 @@ inline namespace kernel
 
     explicit operator std::string() const;
 
-    auto operator + (const_reference) const -> lvalue override;
-    auto operator - (const_reference) const -> lvalue override;
-    auto operator * (const_reference) const -> lvalue override;
-    auto operator / (const_reference) const -> lvalue override;
-    auto operator % (const_reference) const -> lvalue override;
+    auto operator + (const_reference) const -> value_type override;
+    auto operator - (const_reference) const -> value_type override;
+    auto operator * (const_reference) const -> value_type override;
+    auto operator / (const_reference) const -> value_type override;
+    auto operator % (const_reference) const -> value_type override;
 
     auto operator ==(const_reference) const -> bool override;
     auto operator !=(const_reference) const -> bool override;

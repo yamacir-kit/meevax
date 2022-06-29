@@ -31,7 +31,7 @@ inline namespace kernel
     return (*this)[intern(name)];
   }
 
-  auto environment::apply(const_reference f, const_reference xs) -> lvalue
+  auto environment::apply(const_reference f, const_reference xs) -> value_type
   {
     assert(f.is<closure>() or f.is<procedure>() or f.is<continuation>());
 
@@ -63,7 +63,7 @@ inline namespace kernel
     define(intern(name), value);
   }
 
-  auto environment::evaluate(const_reference expression) -> lvalue
+  auto environment::evaluate(const_reference expression) -> value_type
   {
     if (expression.is<pair>() and car(expression).is<symbol>()
                               and car(expression).as<symbol>().value == "define-library")
@@ -108,12 +108,12 @@ inline namespace kernel
     }
   }
 
-  auto environment::execute() -> lvalue
+  auto environment::execute() -> value_type
   {
     return trace ? machine::execute<true>() : machine::execute();
   }
 
-  auto environment::execute(const_reference code) -> lvalue
+  auto environment::execute(const_reference code) -> value_type
   {
     c = code;
     return execute();
@@ -129,7 +129,7 @@ inline namespace kernel
     return second;
   }
 
-  auto resolve_import_set(const_reference import_set) -> lvalue
+  auto resolve_import_set(const_reference import_set) -> value_type
   {
     if (car(import_set).as<symbol>().value == "only")
     {
@@ -176,7 +176,7 @@ inline namespace kernel
     import_(read(import_set));
   }
 
-  auto environment::load(std::string const& s) -> lvalue
+  auto environment::load(std::string const& s) -> value_type
   {
     if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
     {
@@ -203,7 +203,7 @@ inline namespace kernel
     return first;
   }
 
-  auto environment::identify(const_reference variable, const_reference scope) const -> lvalue
+  auto environment::identify(const_reference variable, const_reference scope) const -> value_type
   {
     if (not variable.is_also<identifier>())
     {
@@ -219,7 +219,7 @@ inline namespace kernel
     }
   }
 
-  auto environment::identify(const_reference variable, const_reference scope) -> lvalue
+  auto environment::identify(const_reference variable, const_reference scope) -> value_type
   {
     if (not variable.is_also<identifier>())
     {

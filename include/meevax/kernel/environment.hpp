@@ -62,7 +62,7 @@ inline namespace kernel
 
     auto operator [](std::string const&) -> const_reference;
 
-    auto apply(const_reference, const_reference) -> lvalue;
+    auto apply(const_reference, const_reference) -> value_type;
 
     auto define(const_reference, const_reference = undefined) -> void;
 
@@ -74,13 +74,13 @@ inline namespace kernel
       define(name, make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
-    auto evaluate(const_reference) -> lvalue;
+    auto evaluate(const_reference) -> value_type;
 
-    auto execute() -> lvalue;
+    auto execute() -> value_type;
 
-    auto execute(const_reference) -> lvalue;
+    auto execute(const_reference) -> value_type;
 
-    auto fork() const -> lvalue
+    auto fork() const -> value_type
     {
       return make<environment>(*this);
     }
@@ -100,15 +100,15 @@ inline namespace kernel
 
     auto import_(std::string const&) -> void;
 
-    auto load(std::string const&) -> lvalue;
+    auto load(std::string const&) -> value_type;
 
     auto scope() const noexcept -> const_reference;
 
     auto scope() noexcept -> reference;
 
-    auto identify(const_reference, const_reference) -> lvalue;
+    auto identify(const_reference, const_reference) -> value_type;
 
-    auto identify(const_reference, const_reference) const -> lvalue;
+    auto identify(const_reference, const_reference) const -> value_type;
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;

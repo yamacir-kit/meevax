@@ -85,7 +85,7 @@ inline namespace kernel
     : string { std::stringstream(s + "\"") }
   {}
 
-  auto string::list(size_type from, size_type to) const -> lvalue
+  auto string::list(size_type from, size_type to) const -> meevax::value_type
   {
     let x = unit;
 
@@ -97,7 +97,7 @@ inline namespace kernel
     return x;
   }
 
-  auto string::list(size_type from) const -> lvalue
+  auto string::list(size_type from) const -> meevax::value_type
   {
     return list(from, size());
   }
