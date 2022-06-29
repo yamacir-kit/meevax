@@ -41,15 +41,9 @@ inline namespace kernel
 
     auto declare(const_reference) -> void;
 
-    auto declare_export(const_reference export_spec) -> void
-    {
-      export_specs.push_back(export_spec);
-    }
+    auto export_(const_reference) -> void;
 
-    auto declare_export(std::string const& export_spec) -> void
-    {
-      declare_export(read(export_spec));
-    }
+    auto export_(std::string const&) -> void;
 
     auto resolve_export_specs() -> lvalue;
 
