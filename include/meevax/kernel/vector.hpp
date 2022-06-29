@@ -23,23 +23,38 @@ namespace meevax
 {
 inline namespace kernel
 {
-  enum class for_each_in_tag {} constexpr for_each_in {};
-
-  struct vector : public std::vector<value_type>
+  struct vector
   {
-    using std::vector<meevax::value_type>::vector;
+    std::vector<value_type> data;
 
-    template <typename InputIterator>
-    explicit vector(for_each_in_tag, InputIterator from, InputIterator to)
+    using size_type = decltype(data)::size_type;
+
+    explicit vector() = default;
+
+    /*
+       (vector obj ...)                                               procedure
+
+       Returns a newly allocated vector whose elements contain the given
+       arguments. It is analogous to list.
+    */
+    explicit vector(const_reference x)
     {
-      std::copy(from, to, std::back_inserter(*this));
+      std::copy(std::begin(x), std::end(x), std::back_inserter(data));
     }
 
-    explicit vector(for_each_in_tag, const_reference);
+    /*
+       (make-vector k)                                                procedure
+       (make-vector k fill)                                           procedure
+
+       Returns a newly allocated vector of k elements. If a second argument is
+       given, then each element is initialized to fill. Otherwise the initial
+       contents of each element is unspecified.
+    */
+    explicit vector(exact_integer const& k, const_reference fill)
+      : data { static_cast<size_type>(k), fill }
+    {}
 
     auto fill(const_reference, size_type, size_type) -> void;
-
-    auto fill(const_reference, size_type = 0) -> void;
 
     auto list(size_type, size_type) const -> value_type;
 

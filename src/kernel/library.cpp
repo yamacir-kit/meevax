@@ -399,7 +399,7 @@ inline namespace kernel
 
     define<procedure>("list->vector", [](let const& xs)
     {
-      return make<vector>(for_each_in, car(xs));
+      return make<vector>(car(xs));
     });
 
     export_("null?");
@@ -608,7 +608,7 @@ inline namespace kernel
 
     define<procedure>("vector", [](let const& xs)
     {
-      return make<vector>(for_each_in, xs);
+      return make<vector>(xs);
     });
 
     define<procedure>("make-vector", [](let const& xs)
@@ -616,10 +616,10 @@ inline namespace kernel
       switch (length(xs))
       {
       case 1:
-        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), unspecified_object);
+        return make<vector>(car(xs).as<exact_integer>(), unspecified_object);
 
       case 2:
-        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), cadr(xs));
+        return make<vector>(car(xs).as<exact_integer>(), cadr(xs));
 
       default:
         throw invalid_application(intern("make-vector") | xs);
@@ -628,17 +628,17 @@ inline namespace kernel
 
     define<procedure>("vector-length", [](let const& xs)
     {
-      return make<exact_integer>(car(xs).as<vector>().size());
+      return make<exact_integer>(car(xs).as<vector>().data.size());
     });
 
     define<procedure>("vector-ref", [](let const& xs)
     {
-      return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
+      return car(xs).as<vector>().data.at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
     });
 
     define<procedure>("vector-set!", [](let const& xs)
     {
-      return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs);
+      return car(xs).as<vector>().data.at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs);
     });
 
     define<procedure>("vector-fill!", [](let const& xs)
@@ -646,15 +646,21 @@ inline namespace kernel
       switch (length(xs))
       {
       case 2:
-        car(xs).as<vector>().fill(cadr(xs));
+        car(xs).as<vector>().fill(cadr(xs),
+                                  static_cast<vector::size_type>(caddr(xs).as<exact_integer>()),
+                                  car(xs).as<vector>().data.size()
+                                  );
         break;
 
       case 3:
-        car(xs).as<vector>().fill(cadr(xs), static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
+        car(xs).as<vector>().fill(cadr(xs),
+                                  static_cast<vector::size_type>(caddr(xs).as<exact_integer>()),
+                                  car(xs).as<vector>().data.size()
+                                  );
         break;
 
       case 4:
-        car(xs).as<vector>().fill(cadr(xs), static_cast<string::size_type>(caddr(xs).as<exact_integer>()), static_cast<string::size_type>(cadddr(xs).as<exact_integer>()));
+        car(xs).as<vector>().fill(cadr(xs), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()), static_cast<string::size_type>(cadddr(xs).as<exact_integer>()));
         break;
 
       default:

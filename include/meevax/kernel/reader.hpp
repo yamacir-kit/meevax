@@ -394,7 +394,7 @@ inline namespace kernel
 
           case '(':
             is.putback(c);
-            return make<vector>(for_each_in, read(is));
+            return make<vector>(read(is));
 
           case '\\':
             return parse::character(is);
