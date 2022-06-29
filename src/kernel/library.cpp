@@ -178,7 +178,7 @@ inline namespace kernel
 
     define<procedure>("number->string", [](auto&& xs)
     {
-      return make<string>(lexical_cast<std::string>(car(xs)));
+      return make<string>(lexical_cast<external_representation>(car(xs)));
     });
 
     export_("number?");
@@ -925,7 +925,7 @@ inline namespace kernel
 
     define<procedure>("put-char", [](let const& xs)
     {
-      cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
+      cadr(xs).as<std::ostream>() << static_cast<external_representation>(car(xs).as<character>());
       return unspecified_object;
     });
 
@@ -934,7 +934,7 @@ inline namespace kernel
       switch (length(xs))
       {
       case 2:
-        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
+        cadr(xs).as<std::ostream>() << static_cast<external_representation>(car(xs).as<string>());
         break;
 
       case 3: // TODO
@@ -1026,7 +1026,7 @@ inline namespace kernel
       {
         if (x.is<string>())
         {
-          std::cout << static_cast<std::string>(x.as<string>());
+          std::cout << static_cast<external_representation>(x.as<string>());
         }
         else
         {
@@ -1277,7 +1277,7 @@ inline namespace kernel
     export_specs.push_back(export_spec);
   }
 
-  auto library::export_(std::string const& export_spec) -> void
+  auto library::export_(external_representation const& export_spec) -> void
   {
     export_(read(export_spec));
   }
@@ -1321,6 +1321,6 @@ inline namespace kernel
     return os << library.global();
   }
 
-  std::unordered_map<std::string, library> libraries {};
+  std::unordered_map<external_representation, library> libraries {};
 } // namespace kernel
 } // namespace meevax

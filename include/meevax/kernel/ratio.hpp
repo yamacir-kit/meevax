@@ -30,7 +30,7 @@ inline namespace kernel
 
     explicit ratio(double);
 
-    explicit ratio(std::string const&, int = 0);
+    explicit ratio(external_representation const&, int = 0);
 
     auto exact() const -> value_type override;
 

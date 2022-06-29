@@ -54,6 +54,8 @@ inline namespace kernel
 
   using null = std::nullptr_t;
 
+  using external_representation = std::string;
+
   struct number
   {
     #define DEFINE(NAME) virtual auto NAME() const -> value_type = 0

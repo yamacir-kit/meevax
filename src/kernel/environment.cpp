@@ -26,7 +26,7 @@ inline namespace kernel
     return identify(name, scope()).as<absolute>().load();
   }
 
-  auto environment::operator [](std::string const& name) -> const_reference
+  auto environment::operator [](external_representation const& name) -> const_reference
   {
     return (*this)[intern(name)];
   }
@@ -58,7 +58,7 @@ inline namespace kernel
     global() = make<absolute>(name, value) | global();
   }
 
-  auto environment::define(std::string const& name, const_reference value) -> void
+  auto environment::define(external_representation const& name, const_reference value) -> void
   {
     define(intern(name), value);
   }
@@ -68,7 +68,7 @@ inline namespace kernel
     if (expression.is<pair>() and car(expression).is<symbol>()
                               and car(expression).as<symbol>().value == "define-library")
     {
-      define_library(lexical_cast<std::string>(cadr(expression)), cddr(expression));
+      define_library(lexical_cast<external_representation>(cadr(expression)), cddr(expression));
       return cadr(expression);
     }
     else if (expression.is<pair>() and car(expression).is<symbol>()
@@ -151,7 +151,7 @@ inline namespace kernel
 
       return filtered_bindings;
     }
-    else if (auto iter = libraries.find(lexical_cast<std::string>(import_set)); iter != std::end(libraries))
+    else if (auto iter = libraries.find(lexical_cast<external_representation>(import_set)); iter != std::end(libraries))
     {
       return std::get<1>(*iter).resolve_export_specs();
     }
@@ -171,12 +171,12 @@ inline namespace kernel
     }
   }
 
-  auto environment::import_(std::string const& import_set) -> void
+  auto environment::import_(external_representation const& import_set) -> void
   {
     import_(read(import_set));
   }
 
-  auto environment::load(std::string const& s) -> value_type
+  auto environment::load(external_representation const& s) -> value_type
   {
     if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
     {

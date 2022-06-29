@@ -37,7 +37,7 @@ inline namespace kernel
       : value { value }
     {}
 
-    explicit floating_point(std::string const& token) try
+    explicit floating_point(external_representation const& token) try
       : value { lexical_cast<T>(token) }
     {}
     catch (...)
@@ -95,10 +95,10 @@ inline namespace kernel
       return std::isnan(value);
     }
 
-    // TODO TEMPLATE SPECIALIZATION to<std::string>()
+    // TODO TEMPLATE SPECIALIZATION to<external_representation>()
     auto to_string() const
     {
-      return lexical_cast<std::string>(value);
+      return lexical_cast<external_representation>(value);
     }
 
     auto inexact() const -> value_type override

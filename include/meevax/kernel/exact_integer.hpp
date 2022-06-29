@@ -46,7 +46,7 @@ inline namespace kernel
 
     explicit exact_integer(double);
 
-    explicit exact_integer(std::string const&, int = 0);
+    explicit exact_integer(external_representation const&, int = 0);
 
     explicit exact_integer(addition,                exact_integer const&, exact_integer const&);
     explicit exact_integer(subtraction,             exact_integer const&, exact_integer const&);
@@ -61,7 +61,7 @@ inline namespace kernel
 
     auto operator=(exact_integer &&) noexcept -> exact_integer &;
 
-    auto operator=(std::string const&) -> exact_integer &;
+    auto operator=(external_representation const&) -> exact_integer &;
 
     auto floor_remainder(exact_integer const&) const -> exact_integer;
 
@@ -75,7 +75,7 @@ inline namespace kernel
 
     auto is_integer() const -> bool override;
 
-    auto string(int = 10) const -> std::string;
+    auto string(int = 10) const -> external_representation;
 
     auto swap(exact_integer &) noexcept -> void;
 
@@ -114,7 +114,7 @@ inline namespace kernel
 
     explicit operator double() const;
 
-    explicit operator std::string() const;
+    explicit operator external_representation() const;
 
     auto operator + (const_reference) const -> value_type override;
     auto operator - (const_reference) const -> value_type override;

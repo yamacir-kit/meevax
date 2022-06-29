@@ -20,7 +20,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  syntax::syntax(std::string const& name, function_type const& compile)
+  syntax::syntax(external_representation const& name, function_type const& compile)
     : description { name }
     , compile { compile }
   {}

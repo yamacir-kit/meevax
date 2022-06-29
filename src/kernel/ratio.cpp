@@ -34,7 +34,7 @@ inline namespace kernel
     mpq_clear(value);
   }
 
-  ratio::ratio(std::string const& token, int radix)
+  ratio::ratio(external_representation const& token, int radix)
   {
     std::regex static const pattern { "([+-]?[0-9a-f]+)/([0-9a-f]+)" };
 

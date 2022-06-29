@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/symbol.hpp>
 #include <meevax/utility/description.hpp>
 
 namespace meevax
@@ -34,13 +35,13 @@ inline namespace kernel
 
     function_type call;
 
-    explicit procedure(std::string const&, function_type const&);
+    explicit procedure(symbol::value_type const&, function_type const&);
 
-    explicit procedure(std::string const&, std::string const&);
+    explicit procedure(symbol::value_type const&, symbol::value_type const&);
 
-    static auto dlopen(std::string const&) -> void *;
+    static auto dlopen(symbol::value_type const&) -> void *;
 
-    static auto dlsym(std::string const&, void * const) -> function_pointer_type;
+    static auto dlsym(symbol::value_type const&, void * const) -> function_pointer_type;
   };
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
@@ -48,7 +49,7 @@ inline namespace kernel
   struct predicate : public procedure
   {
     template <typename Callable>
-    explicit predicate(std::string const& name, Callable && call)
+    explicit predicate(symbol::value_type const& name, Callable && call)
       : procedure { name, [call](auto&&... xs) { return call(std::forward<decltype(xs)>(xs)...) ? t : f; } }
     {}
   };

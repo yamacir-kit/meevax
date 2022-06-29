@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  extern std::unordered_map<std::string, value_type> const constants;
+  extern std::unordered_map<external_representation, value_type> const constants;
 } // namespace kernel
 } // namespace meevax
 
