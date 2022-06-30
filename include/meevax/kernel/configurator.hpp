@@ -113,7 +113,7 @@ inline namespace kernel
       std::make_pair('e', [](const_reference x, auto&&...)
       {
         print(interaction_environment().as<environment>().evaluate(x));
-        return unspecified_object;
+        return unspecified;
       }),
 
       std::make_pair('l', [](const_reference x, auto&&...)
@@ -124,7 +124,7 @@ inline namespace kernel
       std::make_pair('w', [](const_reference x, auto&&...)
       {
         print(x);
-        return unspecified_object;
+        return unspecified;
       }),
     };
 
@@ -173,7 +173,7 @@ inline namespace kernel
       std::make_pair("evaluate", [](const_reference x, auto&&...)
       {
         print(interaction_environment().as<environment>().evaluate(x));
-        return unspecified_object;
+        return unspecified;
       }),
 
       std::make_pair("load", [](const_reference x, auto&&...)
@@ -184,7 +184,7 @@ inline namespace kernel
       std::make_pair("write", [](const_reference x, auto&&...)
       {
         print(x);
-        return unspecified_object;
+        return unspecified;
       }),
     };
 
@@ -273,7 +273,7 @@ inline namespace kernel
           return load(*current_option);
         }
 
-        return unspecified_object;
+        return unspecified;
       }();
     }
   };

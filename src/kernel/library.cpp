@@ -616,7 +616,7 @@ inline namespace kernel
       switch (length(xs))
       {
       case 1:
-        return make<vector>(car(xs), unspecified_object);
+        return make<vector>(car(xs), unspecified);
 
       case 2:
         return make<vector>(car(xs), cadr(xs));
@@ -661,7 +661,7 @@ inline namespace kernel
         throw invalid_application(intern("vector-fill!") | xs);
       }
 
-      return unspecified_object;
+      return unspecified;
     });
 
     define<procedure>("vector->list", [](let const& xs)
@@ -813,7 +813,7 @@ inline namespace kernel
         x.as<std::ifstream>().close();
       }
 
-      return unspecified_object;
+      return unspecified;
     });
 
     define<procedure>("close-output-port", [](let const& xs)
@@ -823,7 +823,7 @@ inline namespace kernel
         x.as<std::ofstream>().close();
       }
 
-      return unspecified_object;
+      return unspecified;
     });
 
     define<procedure>("open-input-string", [](let const& xs)
@@ -926,7 +926,7 @@ inline namespace kernel
     define<procedure>("put-char", [](let const& xs)
     {
       cadr(xs).as<std::ostream>() << static_cast<external_representation>(car(xs).as<character>());
-      return unspecified_object;
+      return unspecified;
     });
 
     define<procedure>("put-string", [](let const& xs)
@@ -944,13 +944,13 @@ inline namespace kernel
         throw invalid_application(intern("write-string") | xs);
       }
 
-      return unspecified_object;
+      return unspecified;
     });
 
     define<procedure>("%flush-output-port", [](let const& xs)
     {
       car(xs).as<std::ostream>() << std::flush;
-      return unspecified_object;
+      return unspecified;
     });
 
     export_("input-port?");
@@ -1017,7 +1017,7 @@ inline namespace kernel
     define<procedure>("%write-simple", [](let const& xs)
     {
       write(cadr(xs), car(xs));
-      return unspecified_object;
+      return unspecified;
     });
 
     define<procedure>("print", [](let const& xs)

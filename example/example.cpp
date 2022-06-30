@@ -32,6 +32,6 @@ extern "C"
       }
     }
 
-    return unspecified_object;
+    return unspecified;
   }
 }

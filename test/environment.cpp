@@ -17,7 +17,7 @@ auto main() -> int
     assert(e1.is<exact_integer>());
     assert(eof_object.is<eof>());
     assert(undefined.is<unbound>());
-    assert(unspecified_object.is<unspecified>());
+    assert(unspecified.is<ghost>());
     assert(interaction_environment().is<environment>());
   }
 

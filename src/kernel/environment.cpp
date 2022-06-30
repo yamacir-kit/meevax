@@ -79,7 +79,7 @@ inline namespace kernel
         import_(import_set);
       }
 
-      return unspecified_object;
+      return unspecified;
     }
     else
     {
@@ -185,7 +185,7 @@ inline namespace kernel
         evaluate(e);
       }
 
-      return unspecified_object;
+      return unspecified;
     }
     else
     {

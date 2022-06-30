@@ -40,7 +40,7 @@ inline namespace kernel
     #define DEFINE(NAME)                                                       \
     auto NAME() const -> value_type override                                   \
     {                                                                          \
-      return unspecified_object;                                               \
+      return unspecified;                                                      \
     }                                                                          \
     static_assert(true)
 
@@ -57,7 +57,7 @@ inline namespace kernel
     #define DEFINE(NAME)                                                       \
     auto NAME(const_reference) const -> value_type override                    \
     {                                                                          \
-      return unspecified_object;                                               \
+      return unspecified;                                                      \
     }                                                                          \
     static_assert(true)
 
@@ -66,11 +66,11 @@ inline namespace kernel
 
     #undef DEFINE
 
-    auto operator + (const_reference) const -> value_type override { return unspecified_object; }
-    auto operator - (const_reference) const -> value_type override { return unspecified_object; }
-    auto operator * (const_reference) const -> value_type override { return unspecified_object; }
-    auto operator / (const_reference) const -> value_type override { return unspecified_object; }
-    auto operator % (const_reference) const -> value_type override { return unspecified_object; }
+    auto operator + (const_reference) const -> value_type override { return unspecified; }
+    auto operator - (const_reference) const -> value_type override { return unspecified; }
+    auto operator * (const_reference) const -> value_type override { return unspecified; }
+    auto operator / (const_reference) const -> value_type override { return unspecified; }
+    auto operator % (const_reference) const -> value_type override { return unspecified; }
 
     auto operator ==(const_reference) const -> bool override { return false; };
     auto operator !=(const_reference) const -> bool override { return false; };

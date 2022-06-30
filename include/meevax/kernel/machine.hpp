@@ -909,7 +909,7 @@ inline namespace kernel
                                         caddr(current_expression),
                                         current_scope,
                                         current_continuation)
-                              : list(make(mnemonic::load_constant), unspecified_object,
+                              : list(make(mnemonic::load_constant), unspecified,
                                      make(mnemonic::return_))));
       }
       else
@@ -930,7 +930,7 @@ inline namespace kernel
                                         caddr(current_expression),
                                         current_scope,
                                         list(make(mnemonic::join)))
-                              : list(make(mnemonic::load_constant), unspecified_object,
+                              : list(make(mnemonic::load_constant), unspecified,
                                      make(mnemonic::join)),
                             current_continuation));
       }
@@ -989,7 +989,7 @@ inline namespace kernel
         {
           return compile(context(),
                          current_environment,
-                         cdr(current_expression) ? cadr(current_expression) : unspecified_object,
+                         cdr(current_expression) ? cadr(current_expression) : unspecified,
                          current_scope,
                          cons(make(mnemonic::define), current_environment.identify(car(current_expression), current_scope),
                               current_continuation));
