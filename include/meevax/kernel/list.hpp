@@ -28,32 +28,31 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto unwrap = [](auto&& x) -> decltype(auto)
+  template <auto N, typename T>
+  auto field(T&& x) -> decltype(auto)
   {
-    using type = typename std::decay<decltype(x)>::type;
-
-    if constexpr (std::is_same<type, iterator>::value)
+    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, iterator>)
     {
-      return x.get().template as<pair>();
+      return std::get<N>(x.get().template as<pair>());
     }
-    else if constexpr (std::is_same<type, value_type>::value)
+    else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, value_type>)
     {
-      return x.template as<pair>();
+      return std::get<N>(x.template as<pair>());
     }
     else
     {
-      return std::forward<decltype(x)>(x);
+      return std::get<N>(x);
     }
-  };
+  }
 
   auto car = [](auto&& x) -> decltype(auto)
   {
-    return std::get<0>(unwrap(std::forward<decltype(x)>(x)));
+    return field<0>(std::forward<decltype(x)>(x));
   };
 
   auto cdr = [](auto&& x) -> decltype(auto)
   {
-    return std::get<1>(unwrap(std::forward<decltype(x)>(x)));
+    return field<1>(std::forward<decltype(x)>(x));
   };
 
   template <typename T, typename U, REQUIRES(std::is_convertible<T, value_type>,

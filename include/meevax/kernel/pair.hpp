@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  let extern const unit;
+  let extern unit;
 
   template <typename T>
   using pair_of = std::pair<T, T>;

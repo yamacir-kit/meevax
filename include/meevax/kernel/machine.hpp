@@ -837,7 +837,7 @@ inline namespace kernel
                                              },
                                              binding_specs),
                                          body)),
-                            make_list(length(binding_specs), undefined)),
+                            make_list(length(binding_specs), unit)),
                        current_scope,
                        current_continuation);
       }
