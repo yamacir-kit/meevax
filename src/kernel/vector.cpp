@@ -23,53 +23,57 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto vector::fill(const_reference x, size_type from, size_type to) -> void
+  vector::vector(const_reference x)
   {
-    for (auto iter = std::next(std::begin(data), from); iter != std::next(std::begin(data), to); ++iter)
-    {
-      *iter = x;
-    }
+    std::copy(std::begin(x), std::end(x), std::back_inserter(data));
   }
 
-  auto vector::list(size_type from, size_type to) const -> value_type
+  vector::vector(const_reference k, const_reference fill)
+    : data { k.as<exact_integer>(), fill }
+  {}
+
+  auto vector::fill(const_reference x, const_reference from, const_reference to) -> void
   {
-    let x = unit;
-
-    for (auto iter = std::prev(std::rend(data), to); iter != std::prev(std::rend(data), from); ++iter)
-    {
-      x = cons(*iter, x);
-    }
-
-    return x;
+    std::fill(std::next(std::begin(data), from.as<exact_integer>()),
+              std::next(std::begin(data), to.as<exact_integer>()),
+              x);
   }
 
-  auto vector::list(size_type from) const -> value_type
+  auto vector::length() const -> value_type
   {
-    return list(from, std::size(data));
+    return make<exact_integer>(data.size());
   }
 
-  auto vector::string(size_type from, size_type to) const -> value_type
+  auto vector::list(const_reference from, const_reference to) const -> value_type
+  {
+    return std::accumulate(std::prev(std::rend(data), to.as<exact_integer>()),
+                           std::prev(std::rend(data), from.as<exact_integer>()),
+                           unit,
+                           xcons);
+  }
+
+  auto vector::ref(const_reference k) const -> const_reference
+  {
+    return data.at(k.as<exact_integer>());
+  }
+
+  auto vector::set(const_reference k, const_reference x) -> const_reference
+  {
+    return data.at(k.as<exact_integer>()) = x;
+  }
+
+  auto vector::string(const_reference from, const_reference to) const -> value_type
   {
     meevax::string s;
 
-    for (auto iter = std::prev(std::rend(data), to); iter != std::prev(std::rend(data), from); ++iter)
-    {
-      if ((*iter).is<character>())
-      {
-        s.push_back((*iter).as<character>());
-      }
-      else
-      {
-        throw error(make<meevax::string>("It is an error if any element of vector between start and end is not a character"), unit);
-      }
-    }
+    std::for_each(std::next(std::begin(data), from.as<exact_integer>()),
+                  std::next(std::begin(data), to.as<exact_integer>()),
+                  [&](let const& each)
+                  {
+                    s.push_back(each.as<character>());
+                  });
 
     return make(s);
-  }
-
-  auto vector::string(size_type from) const -> value_type
-  {
-    return string(from, std::size(data));
   }
 
   auto operator ==(vector const& lhs, vector const& rhs) -> bool

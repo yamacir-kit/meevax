@@ -104,11 +104,11 @@ inline namespace kernel
 
     explicit operator bool() const;
 
-    explicit operator int() const;
+    operator int() const;
 
-    explicit operator signed long() const;
+    operator signed long() const;
 
-    explicit operator unsigned long() const;
+    operator unsigned long() const;
 
     explicit operator float() const;
 

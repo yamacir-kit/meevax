@@ -37,10 +37,7 @@ inline namespace kernel
        Returns a newly allocated vector whose elements contain the given
        arguments. It is analogous to list.
     */
-    explicit vector(const_reference x)
-    {
-      std::copy(std::begin(x), std::end(x), std::back_inserter(data));
-    }
+    explicit vector(const_reference);
 
     /*
        (make-vector k)                                                procedure
@@ -50,19 +47,76 @@ inline namespace kernel
        given, then each element is initialized to fill. Otherwise the initial
        contents of each element is unspecified.
     */
-    explicit vector(exact_integer const& k, const_reference fill)
-      : data { static_cast<size_type>(k), fill }
-    {}
+    explicit vector(const_reference, const_reference);
 
-    auto fill(const_reference, size_type, size_type) -> void;
+    /*
+       (vector-fill! vector fill)                                     procedure
+       (vector-fill! vector fill start)                               procedure
+       (vector-fill! vector fill start end)                           procedure
 
-    auto list(size_type, size_type) const -> value_type;
+       The vector-fill! procedure stores fill in the elements of vector between
+       start and end.
+    */
+    auto fill(const_reference, const_reference, const_reference) -> void;
 
-    auto list(size_type = 0) const -> value_type;
+    /*
+       (vector-length vector)                                         procedure
 
-    auto string(size_type, size_type) const -> value_type;
+       Returns the number of elements in vector as an exact integer.
+    */
+    auto length() const -> value_type;
 
-    auto string(size_type = 0) const -> value_type;
+    /*
+       (vector->list vector)                                          procedure
+       (vector->list vector start)                                    procedure
+       (vector->list vector start end)                                procedure
+       (list->vector list)                                            procedure
+
+       The vector->list procedure returns a newly allocated list of the objects
+       contained in the elements of vector between start and end. The
+       list->vector procedure returns a newly created vector initialized to the
+       elements of the list list.
+
+       In both procedures, order is preserved.
+    */
+    auto list(const_reference, const_reference) const -> value_type;
+
+    /*
+       (vector-ref vector k)                                          procedure
+
+       It is an error if k is not a valid index of vector. The vector-ref
+       procedure returns the contents of element k of vector.
+    */
+    auto ref(const_reference) const -> const_reference;
+
+    /*
+       (vector-set! vector k obj)                                     procedure
+
+       It is an error if k is not a valid index of vector. The vector-set!
+       procedure stores obj in element k of vector.
+    */
+    auto set(const_reference, const_reference) -> const_reference;
+
+    /*
+       (vector->string vector)                                        procedure
+       (vector->string vector start)                                  procedure
+       (vector->string vector start end)                              procedure
+
+       (string->vector string)                                        procedure
+       (string->vector string start)                                  procedure
+       (string->vector string start end)                              procedure
+
+       It is an error if any element of vector between start and end is not a
+       character.
+
+       The vector->string procedure returns a newly allocated string of the
+       objects contained in the elements of vector between start and end. The
+       string->vector procedure returns a newly created vector initialized to
+       the elements of the string string between start and end.
+
+       In both procedures, order is preserved.
+    */
+    auto string(const_reference, const_reference) const -> value_type;
   };
 
   auto operator ==(vector const&, vector const&) -> bool;
