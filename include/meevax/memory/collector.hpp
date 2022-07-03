@@ -170,7 +170,10 @@ inline namespace memory
           collect();
         }
 
-        newest_tracer = tracer_source.new_(data, sizeof(T), deallocator<T>::deallocate);
+        newest_tracer = tracer_source.new_(data, sizeof(T), [](auto * data)
+        {
+          delete static_cast<T *>(data);
+        });
 
         assert(tracers.find(newest_tracer) == std::end(tracers));
 
