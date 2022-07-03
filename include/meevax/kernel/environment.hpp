@@ -80,17 +80,9 @@ inline namespace kernel
 
     auto execute(const_reference) -> value_type;
 
-    auto fork() const -> value_type
-    {
-      return make<environment>(*this);
-    }
+    auto fork() const -> value_type;
 
-    auto fork(const_reference scope) const // DIRTY HACK!!!
-    {
-      let const copy = make<environment>(*this);
-      copy.as<environment>().scope() = scope;
-      return copy;
-    }
+    auto fork(const_reference) const -> value_type;
 
     auto global() noexcept -> reference;
 

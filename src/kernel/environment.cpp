@@ -119,6 +119,18 @@ inline namespace kernel
     return execute();
   }
 
+  auto environment::fork() const -> value_type
+  {
+    return make<environment>(*this);
+  }
+
+  auto environment::fork(const_reference scope) const -> value_type
+  {
+    let const copy = make<environment>(*this);
+    copy.as<environment>().scope() = scope;
+    return copy;
+  }
+
   auto environment::global() const noexcept -> const_reference
   {
     return second;
