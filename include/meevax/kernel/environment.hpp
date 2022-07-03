@@ -39,13 +39,11 @@ inline namespace kernel
   public:
     using configurator::debug;
     using configurator::trace;
-    using configurator::verbose;
 
     using reader::intern;
     using reader::read;
 
     using writer::print;
-    using writer::verbose_port;
     using writer::write;
 
     explicit environment(environment &&) = default;

@@ -51,7 +51,6 @@ inline namespace kernel
     static inline auto debug       = false;
     static inline auto interactive = true;
     static inline auto trace       = false;
-    static inline auto verbose     = false;
 
     static auto display_version() -> void
     {
@@ -73,7 +72,6 @@ inline namespace kernel
       print("  -l, --load=FILENAME    Same as -e '(load FILENAME)'");
       print("  -t, --trace            Display stacks of virtual machine for each steps.");
       print("  -v, --version          Display version information and exit.");
-      print("      --verbose          Display detailed informations.");
       print("  -w, --write=OBJECT     Same as -e '(write OBJECT)'");
     }
 
@@ -154,11 +152,6 @@ inline namespace kernel
       std::make_pair("trace", [](auto&&...)
       {
         return make<bool>(trace = true);
-      }),
-
-      std::make_pair("verbose", [](auto&&...)
-      {
-        return make<bool>(verbose = true);
       }),
 
       std::make_pair("version", [](auto&&...) -> value_type

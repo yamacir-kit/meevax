@@ -133,7 +133,6 @@ Options:
   -l, --load=FILENAME    Same as -e '(load FILENAME)'
   -t, --trace            Display stacks of virtual machine for each steps.
   -v, --version          Display version information and exit.
-      --verbose          Display detailed informations.
   -w, --write=OBJECT     Same as -e '(write OBJECT)'
 ```
 

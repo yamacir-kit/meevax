@@ -56,11 +56,6 @@ inline namespace kernel
       let static port = make<output_file_port>("/dev/null");
       return port;
     }
-
-    static auto verbose_port() -> const_reference
-    {
-      return Environment::verbose ? standard_output : null_port();
-    }
   };
 } // namespace kernel
 } // namespace meevax

@@ -92,11 +92,6 @@ inline namespace kernel
 
       c = optimize(c);
 
-      if (debug)
-      {
-        disassemble(verbose_port().as<std::ostream>(), c);
-      }
-
       let const result = execute();
 
       assert(s.is<null>());
