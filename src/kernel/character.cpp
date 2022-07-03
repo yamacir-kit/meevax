@@ -73,7 +73,7 @@ inline namespace kernel
     return codepoint;
   }
 
-  character::operator std::string() const
+  character::operator external_representation() const
   {
     std::array<char, 5> bytes {};
 
@@ -126,7 +126,7 @@ inline namespace kernel
     case 0x7F: return os << cyan("delete"   );
 
     default:
-      return os << cyan(static_cast<std::string>(datum));
+      return os << cyan(static_cast<external_representation>(datum));
     }
   }
 

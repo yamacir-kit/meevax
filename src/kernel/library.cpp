@@ -178,7 +178,7 @@ inline namespace kernel
 
     define<procedure>("number->string", [](auto&& xs)
     {
-      return make<string>(lexical_cast<std::string>(car(xs)));
+      return make<string>(lexical_cast<external_representation>(car(xs)));
     });
 
     export_("number?");
@@ -399,7 +399,7 @@ inline namespace kernel
 
     define<procedure>("list->vector", [](let const& xs)
     {
-      return make<vector>(for_each_in, car(xs));
+      return make<vector>(car(xs));
     });
 
     export_("null?");
@@ -443,7 +443,7 @@ inline namespace kernel
       }
     });
 
-    define<procedure>("char-codepoint", [](let const& xs) -> lvalue
+    define<procedure>("char-codepoint", [](let const& xs) -> value_type
     {
       if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
       {
@@ -608,7 +608,7 @@ inline namespace kernel
 
     define<procedure>("vector", [](let const& xs)
     {
-      return make<vector>(for_each_in, xs);
+      return make<vector>(xs);
     });
 
     define<procedure>("make-vector", [](let const& xs)
@@ -616,10 +616,10 @@ inline namespace kernel
       switch (length(xs))
       {
       case 1:
-        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), unspecified_object);
+        return make<vector>(car(xs), unspecified);
 
       case 2:
-        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), cadr(xs));
+        return make<vector>(car(xs), cadr(xs));
 
       default:
         throw invalid_application(intern("make-vector") | xs);
@@ -628,17 +628,17 @@ inline namespace kernel
 
     define<procedure>("vector-length", [](let const& xs)
     {
-      return make<exact_integer>(car(xs).as<vector>().size());
+      return car(xs).as<vector>().length();
     });
 
     define<procedure>("vector-ref", [](let const& xs)
     {
-      return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
+      return car(xs).as<vector>().ref(cadr(xs));
     });
 
     define<procedure>("vector-set!", [](let const& xs)
     {
-      return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs);
+      return car(xs).as<vector>().set(cadr(xs), caddr(xs));
     });
 
     define<procedure>("vector-fill!", [](let const& xs)
@@ -646,22 +646,22 @@ inline namespace kernel
       switch (length(xs))
       {
       case 2:
-        car(xs).as<vector>().fill(cadr(xs));
+        car(xs).as<vector>().fill(cadr(xs), e0, car(xs).as<vector>().length());
         break;
 
       case 3:
-        car(xs).as<vector>().fill(cadr(xs), static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
+        car(xs).as<vector>().fill(cadr(xs), caddr(xs), car(xs).as<vector>().length());
         break;
 
       case 4:
-        car(xs).as<vector>().fill(cadr(xs), static_cast<string::size_type>(caddr(xs).as<exact_integer>()), static_cast<string::size_type>(cadddr(xs).as<exact_integer>()));
+        car(xs).as<vector>().fill(cadr(xs), caddr(xs), cadddr(xs));
         break;
 
       default:
         throw invalid_application(intern("vector-fill!") | xs);
       }
 
-      return unspecified_object;
+      return unspecified;
     });
 
     define<procedure>("vector->list", [](let const& xs)
@@ -669,13 +669,13 @@ inline namespace kernel
       switch (length(xs))
       {
       case 1:
-        return car(xs).as<vector>().list();
+        return car(xs).as<vector>().list(e0, car(xs).as<vector>().length());
 
       case 2:
-        return car(xs).as<vector>().list(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
+        return car(xs).as<vector>().list(cadr(xs), car(xs).as<vector>().length());
 
       case 3:
-        return car(xs).as<vector>().list(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()));
+        return car(xs).as<vector>().list(cadr(xs), caddr(xs));
 
       default:
         throw invalid_application(intern("vector->list") | xs);
@@ -687,13 +687,13 @@ inline namespace kernel
       switch (length(xs))
       {
       case 1:
-        return car(xs).as<vector>().string();
+        return car(xs).as<vector>().string(e0, car(xs).as<vector>().length());
 
       case 2:
-        return car(xs).as<vector>().string(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
+        return car(xs).as<vector>().string(cadr(xs), car(xs).as<vector>().length());
 
       case 3:
-        return car(xs).as<vector>().string(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()));
+        return car(xs).as<vector>().string(cadr(xs), caddr(xs));
 
       default:
         throw invalid_application(intern("vector->string") | xs);
@@ -729,7 +729,7 @@ inline namespace kernel
 
   library::library(exception_library_t)
   {
-    define<procedure>("throw", [](let const& xs) -> lvalue
+    define<procedure>("throw", [](let const& xs) -> value_type
     {
       throw car(xs);
     });
@@ -813,7 +813,7 @@ inline namespace kernel
         x.as<std::ifstream>().close();
       }
 
-      return unspecified_object;
+      return unspecified;
     });
 
     define<procedure>("close-output-port", [](let const& xs)
@@ -823,7 +823,7 @@ inline namespace kernel
         x.as<std::ofstream>().close();
       }
 
-      return unspecified_object;
+      return unspecified;
     });
 
     define<procedure>("open-input-string", [](let const& xs)
@@ -861,7 +861,7 @@ inline namespace kernel
       return make<string>(car(xs).as<std::ostringstream>().str());
     });
 
-    define<procedure>("%read-char", [](let const& xs) -> lvalue
+    define<procedure>("%read-char", [](let const& xs) -> value_type
     {
       try
       {
@@ -877,7 +877,7 @@ inline namespace kernel
       }
     });
 
-    define<procedure>("%peek-char", [](let const& xs) -> lvalue
+    define<procedure>("%peek-char", [](let const& xs) -> value_type
     {
       try
       {
@@ -925,8 +925,8 @@ inline namespace kernel
 
     define<procedure>("put-char", [](let const& xs)
     {
-      cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
-      return unspecified_object;
+      cadr(xs).as<std::ostream>() << static_cast<external_representation>(car(xs).as<character>());
+      return unspecified;
     });
 
     define<procedure>("put-string", [](let const& xs)
@@ -934,7 +934,7 @@ inline namespace kernel
       switch (length(xs))
       {
       case 2:
-        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
+        cadr(xs).as<std::ostream>() << static_cast<external_representation>(car(xs).as<string>());
         break;
 
       case 3: // TODO
@@ -944,13 +944,13 @@ inline namespace kernel
         throw invalid_application(intern("write-string") | xs);
       }
 
-      return unspecified_object;
+      return unspecified;
     });
 
     define<procedure>("%flush-output-port", [](let const& xs)
     {
       car(xs).as<std::ostream>() << std::flush;
-      return unspecified_object;
+      return unspecified;
     });
 
     export_("input-port?");
@@ -993,7 +993,7 @@ inline namespace kernel
 
   library::library(read_library_t)
   {
-    define<procedure>("%read", [this](let const& xs) -> lvalue
+    define<procedure>("%read", [this](let const& xs) -> value_type
     {
       try
       {
@@ -1017,7 +1017,7 @@ inline namespace kernel
     define<procedure>("%write-simple", [](let const& xs)
     {
       write(cadr(xs), car(xs));
-      return unspecified_object;
+      return unspecified;
     });
 
     define<procedure>("print", [](let const& xs)
@@ -1026,7 +1026,7 @@ inline namespace kernel
       {
         if (x.is<string>())
         {
-          std::cout << static_cast<std::string>(x.as<string>());
+          std::cout << static_cast<external_representation>(x.as<string>());
         }
         else
         {
@@ -1118,7 +1118,7 @@ inline namespace kernel
 
   library::library(context_library_t)
   {
-    define<procedure>("emergency-exit", [](let const& xs) -> lvalue
+    define<procedure>("emergency-exit", [](let const& xs) -> value_type
     {
       switch (length(xs))
       {
@@ -1277,12 +1277,12 @@ inline namespace kernel
     export_specs.push_back(export_spec);
   }
 
-  auto library::export_(std::string const& export_spec) -> void
+  auto library::export_(external_representation const& export_spec) -> void
   {
     export_(read(export_spec));
   }
 
-  auto library::resolve_export_specs() -> lvalue
+  auto library::resolve_export_specs() -> value_type
   {
     let bindings = unit;
 
@@ -1321,6 +1321,6 @@ inline namespace kernel
     return os << library.global();
   }
 
-  std::unordered_map<std::string, library> libraries {};
+  std::unordered_map<external_representation, library> libraries {};
 } // namespace kernel
 } // namespace meevax

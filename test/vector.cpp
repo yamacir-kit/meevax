@@ -11,36 +11,37 @@ auto main() -> int
 
   // make-vector
   {
-    let const v = make<vector>(make<symbol>("a"),
-                               make<symbol>("b"),
-                               make<symbol>("c"));
+    let const v = make<vector>(list(make<symbol>("a"),
+                                    make<symbol>("b"),
+                                    make<symbol>("c")));
+    gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 3);
+    assert(v.as<vector>().data.size() == 3);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 3);
+    assert(v.as<vector>().data.size() == 3);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 3);
+    assert(v.as<vector>().data.size() == 3);
     assert(gc.count() == gc_count + 4);
 
-    v.as<vector>().clear();
+    v.as<vector>().data.clear();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 0);
+    assert(v.as<vector>().data.size() == 0);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 0);
+    assert(v.as<vector>().data.size() == 0);
     assert(gc.count() == gc_count + 1);
   }
 
@@ -48,36 +49,36 @@ auto main() -> int
 
   // list->vector
   {
-    let const v = make<vector>(for_each_in, list(make<symbol>("a"),
-                                                 make<symbol>("b"),
-                                                 make<symbol>("c")));
+    let const v = make<vector>(list(make<symbol>("a"),
+                                    make<symbol>("b"),
+                                    make<symbol>("c")));
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 3);
+    assert(v.as<vector>().data.size() == 3);
     assert(gc.count() == gc_count + 7);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 3);
+    assert(v.as<vector>().data.size() == 3);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 3);
+    assert(v.as<vector>().data.size() == 3);
     assert(gc.count() == gc_count + 4);
 
-    v.as<vector>().clear();
+    v.as<vector>().data.clear();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 0);
+    assert(v.as<vector>().data.size() == 0);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 0);
+    assert(v.as<vector>().data.size() == 0);
     assert(gc.count() == gc_count + 1);
   }
 
@@ -89,42 +90,42 @@ auto main() -> int
 
     auto const gc_count = gc.count();
 
-    let const v = make<vector>(for_each_in, module.read("(a b c)"));
+    let const v = make<vector>(module.read("(a b c)"));
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 3);
-    assert(v.as<vector>()[0].as<symbol>().value == "a");
-    assert(v.as<vector>()[1].as<symbol>().value == "b");
-    assert(v.as<vector>()[2].as<symbol>().value == "c");
+    assert(v.as<vector>().data.size() == 3);
+    assert(v.as<vector>().data[0].as<symbol>().value == "a");
+    assert(v.as<vector>().data[1].as<symbol>().value == "b");
+    assert(v.as<vector>().data[2].as<symbol>().value == "c");
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 3);
-    assert(v.as<vector>()[0].as<symbol>().value == "a");
-    assert(v.as<vector>()[1].as<symbol>().value == "b");
-    assert(v.as<vector>()[2].as<symbol>().value == "c");
+    assert(v.as<vector>().data.size() == 3);
+    assert(v.as<vector>().data[0].as<symbol>().value == "a");
+    assert(v.as<vector>().data[1].as<symbol>().value == "b");
+    assert(v.as<vector>().data[2].as<symbol>().value == "c");
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 3);
-    assert(v.as<vector>()[0].as<symbol>().value == "a");
-    assert(v.as<vector>()[1].as<symbol>().value == "b");
-    assert(v.as<vector>()[2].as<symbol>().value == "c");
+    assert(v.as<vector>().data.size() == 3);
+    assert(v.as<vector>().data[0].as<symbol>().value == "a");
+    assert(v.as<vector>().data[1].as<symbol>().value == "b");
+    assert(v.as<vector>().data[2].as<symbol>().value == "c");
     assert(gc.count() == gc_count + 4);
 
-    v.as<vector>().clear();
+    v.as<vector>().data.clear();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 0);
+    assert(v.as<vector>().data.size() == 0);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 0);
+    assert(v.as<vector>().data.size() == 0);
   }
 
   environment::symbols.clear();
@@ -139,30 +140,30 @@ auto main() -> int
     let const v = module.read("#(a b c)");
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 3);
+    assert(v.as<vector>().data.size() == 3);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 3);
+    assert(v.as<vector>().data.size() == 3);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 3);
+    assert(v.as<vector>().data.size() == 3);
     assert(gc.count() == gc_count + 4);
 
-    v.as<vector>().clear();
+    v.as<vector>().data.clear();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 0);
+    assert(v.as<vector>().data.size() == 0);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().size() == 0);
+    assert(v.as<vector>().data.size() == 0);
     assert(gc.count() == gc_count + 4);
   }
 
@@ -175,7 +176,7 @@ auto main() -> int
 
     module.define<procedure>("vector", [](let const& xs)
     {
-      return make<vector>(for_each_in, xs);
+      return make<vector>(xs);
     });
 
     module.evaluate(module.read("(vector 1 2 3)"));

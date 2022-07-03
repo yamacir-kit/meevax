@@ -28,36 +28,35 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto unwrap = [](auto&& x) -> decltype(auto)
+  template <auto N, typename T>
+  auto field(T&& x) -> decltype(auto)
   {
-    using type = typename std::decay<decltype(x)>::type;
-
-    if constexpr (std::is_same<type, iterator>::value)
+    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, iterator>)
     {
-      return x.get().template as<pair>();
+      return std::get<N>(x.get().template as<pair>());
     }
-    else if constexpr (std::is_same<type, lvalue>::value)
+    else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, value_type>)
     {
-      return x.template as<pair>();
+      return x.template is<null>() ? unit : std::get<N>(x.template as<pair>());
     }
     else
     {
-      return std::forward<decltype(x)>(x);
+      return std::get<N>(x);
     }
-  };
+  }
 
   auto car = [](auto&& x) -> decltype(auto)
   {
-    return std::get<0>(unwrap(std::forward<decltype(x)>(x)));
+    return field<0>(std::forward<decltype(x)>(x));
   };
 
   auto cdr = [](auto&& x) -> decltype(auto)
   {
-    return std::get<1>(unwrap(std::forward<decltype(x)>(x)));
+    return field<1>(std::forward<decltype(x)>(x));
   };
 
-  template <typename T, typename U, REQUIRES(std::is_convertible<T, lvalue>,
-                                             std::is_convertible<U, lvalue>)>
+  template <typename T, typename U, REQUIRES(std::is_convertible<T, value_type>,
+                                             std::is_convertible<U, value_type>)>
   auto operator |(T&& x, U&& y) -> decltype(auto)
   {
     return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
@@ -104,7 +103,7 @@ inline namespace kernel
 
   auto list_copy = [](auto const& x)
   {
-    auto copy = [](auto&& rec, const_reference x) -> lvalue
+    auto copy = [](auto&& rec, const_reference x) -> value_type
     {
       if (x.is<pair>())
       {
@@ -178,25 +177,25 @@ inline namespace kernel
     return car(list_tail(std::forward<decltype(xs)>(xs)...));
   };
 
-  auto take(const_reference, std::size_t) -> lvalue;
+  auto take(const_reference, std::size_t) -> value_type;
 
   auto length = [](auto const& x) constexpr
   {
     return std::distance(std::cbegin(x), std::cend(x));
   };
 
-  auto append2(const_reference, const_reference) -> lvalue;
+  auto append2(const_reference, const_reference) -> value_type;
 
-  auto reverse(const_reference) -> lvalue;
+  auto reverse(const_reference) -> value_type;
 
-  auto zip(const_reference, const_reference) -> lvalue;
+  auto zip(const_reference, const_reference) -> value_type;
 
-  auto unzip1(const_reference xs) -> lvalue;
+  auto unzip1(const_reference xs) -> value_type;
 
-  auto unzip2(const_reference xs) -> std::tuple<lvalue, lvalue>;
+  auto unzip2(const_reference xs) -> std::tuple<value_type, value_type>;
 
   template <typename Function>
-  auto map(Function&& function, const_reference x) -> lvalue
+  auto map(Function&& function, const_reference x) -> value_type
   {
     return x.is<null>() ? unit : cons(function(car(x)), map(function, cdr(x)));
   }

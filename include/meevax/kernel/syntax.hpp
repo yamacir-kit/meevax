@@ -19,6 +19,7 @@
 
 #include <meevax/kernel/context.hpp>
 #include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/symbol.hpp>
 #include <meevax/utility/description.hpp>
 
 #define SYNTAX(NAME)                                                           \
@@ -27,7 +28,7 @@
     [[maybe_unused]] environment &   current_environment,                      \
     [[maybe_unused]] const_reference current_expression,                       \
     [[maybe_unused]] const_reference current_scope,                            \
-    [[maybe_unused]] const_reference current_continuation) -> lvalue
+    [[maybe_unused]] const_reference current_continuation) -> value_type
 
 namespace meevax
 {
@@ -41,7 +42,7 @@ inline namespace kernel
 
     function_type compile;
 
-    explicit syntax(std::string const&, function_type const&);
+    explicit syntax(symbol::value_type const&, function_type const&);
   };
 
   auto operator <<(std::ostream &, syntax const&) -> std::ostream &;

@@ -27,7 +27,7 @@ inline namespace kernel
 {
   struct library : public environment
   {
-    std::vector<lvalue> export_specs;
+    std::vector<value_type> export_specs;
 
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
     explicit library(F&& declare)
@@ -43,9 +43,9 @@ inline namespace kernel
 
     auto export_(const_reference) -> void;
 
-    auto export_(std::string const&) -> void;
+    auto export_(external_representation const&) -> void;
 
-    auto resolve_export_specs() -> lvalue;
+    auto resolve_export_specs() -> value_type;
 
     #define DEFINE_BASIS_LIBRARY(NAME)                                         \
     struct NAME##_library_t                                                    \
@@ -82,10 +82,10 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, library const&) -> std::ostream &;
 
-  extern std::unordered_map<std::string, library> libraries;
+  extern std::unordered_map<external_representation, library> libraries;
 
   template <typename... Ts>
-  auto define_library(std::string const& name, Ts&&... xs)
+  auto define_library(external_representation const& name, Ts&&... xs)
   {
     return libraries.emplace(name, std::forward<decltype(xs)>(xs)...);
   }

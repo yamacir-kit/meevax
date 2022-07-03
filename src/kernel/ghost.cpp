@@ -20,18 +20,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(std::ostream & os, unspecified const&) -> std::ostream &
+  auto operator <<(std::ostream & os, ghost const& ghost) -> std::ostream &
   {
-    return os << faint("#;unspecified");
+    return os << faint("#;", ghost.name);
   }
 
-  let const unspecified_object = make<unspecified>();
+  let const unspecified = make<ghost>("unspecified");
 
-  auto operator <<(std::ostream & os, unbound const&) -> std::ostream &
-  {
-    return os << faint("#;unbound");
-  }
-
-  let const undefined = make<unbound>();
+  let const undefined = make<ghost>("undefined");
 } // namespace kernel
 } // namespace meevax

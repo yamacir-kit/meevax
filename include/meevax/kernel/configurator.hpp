@@ -90,7 +90,7 @@ inline namespace kernel
         return make<bool>(debug = true);
       }),
 
-      std::make_pair('h', [](auto&&...) -> lvalue
+      std::make_pair('h', [](auto&&...) -> value_type
       {
         configurator::display_help();
         throw exit_status::success;
@@ -101,7 +101,7 @@ inline namespace kernel
         return make<bool>(interactive = true);
       }),
 
-      std::make_pair('v', [](auto&&...) -> lvalue
+      std::make_pair('v', [](auto&&...) -> value_type
       {
         configurator::display_version();
         throw exit_status::success;
@@ -113,7 +113,7 @@ inline namespace kernel
       std::make_pair('e', [](const_reference x, auto&&...)
       {
         print(interaction_environment().as<environment>().evaluate(x));
-        return unspecified_object;
+        return unspecified;
       }),
 
       std::make_pair('l', [](const_reference x, auto&&...)
@@ -124,7 +124,7 @@ inline namespace kernel
       std::make_pair('w', [](const_reference x, auto&&...)
       {
         print(x);
-        return unspecified_object;
+        return unspecified;
       }),
     };
 
@@ -140,7 +140,7 @@ inline namespace kernel
         return make<bool>(debug = true);
       }),
 
-      std::make_pair("help", [](auto&&...) -> lvalue
+      std::make_pair("help", [](auto&&...) -> value_type
       {
         display_help();
         throw exit_status::success;
@@ -161,7 +161,7 @@ inline namespace kernel
         return make<bool>(verbose = true);
       }),
 
-      std::make_pair("version", [](auto&&...) -> lvalue
+      std::make_pair("version", [](auto&&...) -> value_type
       {
         display_version();
         throw exit_status::success;
@@ -173,7 +173,7 @@ inline namespace kernel
       std::make_pair("evaluate", [](const_reference x, auto&&...)
       {
         print(interaction_environment().as<environment>().evaluate(x));
-        return unspecified_object;
+        return unspecified;
       }),
 
       std::make_pair("load", [](const_reference x, auto&&...)
@@ -184,7 +184,7 @@ inline namespace kernel
       std::make_pair("write", [](const_reference x, auto&&...)
       {
         print(x);
-        return unspecified_object;
+        return unspecified;
       }),
     };
 
@@ -273,7 +273,7 @@ inline namespace kernel
           return load(*current_option);
         }
 
-        return unspecified_object;
+        return unspecified;
       }();
     }
   };

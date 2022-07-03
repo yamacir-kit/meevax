@@ -971,7 +971,7 @@
 (check (list->vector '(dididit dah)) => #(dididit dah))
 
 ; (check (string->vector "ABC") => #(#\A #\B #\C))
-; (check (vector->string #(#\1 #\2 #\3) => "123"))
+(check (vector->string #(#\1 #\2 #\3)) => "123")
 
 ; (define a #(1 8 2 8)) ; a may be immutable
 ; (define b (vector-copy a))
@@ -1197,4 +1197,4 @@
 
 (check-report)
 
-(exit (check-passed? 367))
+(exit (check-passed? 368))

@@ -102,7 +102,7 @@ inline namespace kernel
         return std::isspace(c) or one_of('"', '#', '\'', '(', ')', ',', ';', '[', ']', '`', '{', '|', '}', std::char_traits<char>::eof()); // NOTE: What read treats specially.
       };
 
-      std::string result;
+      external_representation result;
 
       for (auto c = is.peek(); not is_end(c); c = is.peek())
       {
@@ -130,7 +130,7 @@ inline namespace kernel
 
     auto character_name = [](std::istream & is)
     {
-      std::unordered_map<std::string, character::value_type> static const character_names
+      std::unordered_map<external_representation, character::value_type> static const character_names
       {
         { "alarm"    , 0x07 },
         { "backspace", 0x08 },
@@ -180,11 +180,11 @@ inline namespace kernel
 
   namespace string_to
   {
-    template <typename F, typename G, REQUIRES(std::is_invocable<F, std::string const&, int>,
-                                               std::is_invocable<G, std::string const&, int>)>
+    template <typename F, typename G, REQUIRES(std::is_invocable<F, external_representation const&, int>,
+                                               std::is_invocable<G, external_representation const&, int>)>
     auto operator |(F&& f, G&& g)
     {
-      return [=](std::string const& token, auto radix)
+      return [=](external_representation const& token, auto radix)
       {
         try
         {
@@ -197,24 +197,24 @@ inline namespace kernel
       };
     }
 
-    auto integer = [](std::string const& token, auto radix = 10) -> lvalue
+    auto integer = [](external_representation const& token, auto radix = 10) -> value_type
     {
       auto const result = exact_integer(token, radix);
       return make(result);
     };
 
-    auto ratio = [](std::string const& token, auto radix = 10)
+    auto ratio = [](external_representation const& token, auto radix = 10)
     {
       return meevax::ratio(token, radix).simple();
     };
 
-    auto decimal = [](std::string const& token, auto) -> lvalue
+    auto decimal = [](external_representation const& token, auto) -> value_type
     {
       auto const result = double_float(token);
       return make(result);
     };
 
-    auto flonum = [](std::string const& token, auto)
+    auto flonum = [](external_representation const& token, auto)
     {
       if (auto iter = constants.find(token); iter != std::end(constants))
       {
@@ -248,14 +248,14 @@ inline namespace kernel
     using char_type = typename std::istream::char_type;
 
   public:
-    static inline std::unordered_map<std::string, lvalue> symbols {};
+    static inline std::unordered_map<external_representation, value_type> symbols {};
 
     inline auto char_ready() const
     {
       return standard_input.is_also<std::istream>() and standard_input.as<std::istream>();
     }
 
-    static auto intern(std::string const& name) -> const_reference
+    static auto intern(external_representation const& name) -> const_reference
     {
       if (auto const iter = symbols.find(name); iter != std::end(symbols))
       {
@@ -271,7 +271,7 @@ inline namespace kernel
       }
     }
 
-    inline auto read(std::istream & is) -> lvalue
+    inline auto read(std::istream & is) -> value_type
     {
       for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
       {
@@ -353,7 +353,7 @@ inline namespace kernel
             return read(is), read(is);
 
           case 'b': // (string->number (read) 2)
-            return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 2);
+            return string_to::number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 2);
 
           case 'c': // from Common Lisp
             if (let const xs = read(is); xs.is<null>())
@@ -370,7 +370,7 @@ inline namespace kernel
             }
 
           case 'd':
-            return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 10);
+            return string_to::number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 10);
 
           case 'e':
             return read(is).template as<number>().exact(); // NOTE: Same as #,(exact (read))
@@ -383,18 +383,18 @@ inline namespace kernel
             return read(is).template as<number>().inexact(); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 8);
+            return string_to::number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 8);
 
           case 't':
             parse::token(is);
             return t;
 
           case 'x':
-            return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 16);
+            return string_to::number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 16);
 
           case '(':
             is.putback(c);
-            return make<vector>(for_each_in, read(is));
+            return make<vector>(read(is));
 
           case '\\':
             return parse::character(is);
@@ -427,7 +427,7 @@ inline namespace kernel
       return read(is);
     }
 
-    inline auto read(const_reference x) -> lvalue
+    inline auto read(const_reference x) -> value_type
     {
       if (x.is_also<std::istream>())
       {
@@ -439,7 +439,7 @@ inline namespace kernel
       }
     }
 
-    inline auto read() -> lvalue
+    inline auto read() -> value_type
     {
       let const result = read(standard_input);
 
@@ -448,7 +448,7 @@ inline namespace kernel
       return result;
     }
 
-    inline auto read(std::string const& s) -> lvalue
+    inline auto read(external_representation const& s) -> value_type
     {
       return read(std::stringstream(s));
     }

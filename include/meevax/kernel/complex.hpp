@@ -38,9 +38,9 @@ inline namespace kernel
     auto imag() noexcept -> reference;
 
     #define DEFINE(NAME)                                                       \
-    auto NAME() const -> lvalue override                                       \
+    auto NAME() const -> value_type override                                   \
     {                                                                          \
-      return unspecified_object;                                               \
+      return unspecified;                                                      \
     }                                                                          \
     static_assert(true)
 
@@ -55,9 +55,9 @@ inline namespace kernel
     #undef DEFINE
 
     #define DEFINE(NAME)                                                       \
-    auto NAME(const_reference) const -> lvalue override                        \
+    auto NAME(const_reference) const -> value_type override                    \
     {                                                                          \
-      return unspecified_object;                                               \
+      return unspecified;                                                      \
     }                                                                          \
     static_assert(true)
 
@@ -66,11 +66,11 @@ inline namespace kernel
 
     #undef DEFINE
 
-    auto operator + (const_reference) const -> lvalue override { return unspecified_object; }
-    auto operator - (const_reference) const -> lvalue override { return unspecified_object; }
-    auto operator * (const_reference) const -> lvalue override { return unspecified_object; }
-    auto operator / (const_reference) const -> lvalue override { return unspecified_object; }
-    auto operator % (const_reference) const -> lvalue override { return unspecified_object; }
+    auto operator + (const_reference) const -> value_type override { return unspecified; }
+    auto operator - (const_reference) const -> value_type override { return unspecified; }
+    auto operator * (const_reference) const -> value_type override { return unspecified; }
+    auto operator / (const_reference) const -> value_type override { return unspecified; }
+    auto operator % (const_reference) const -> value_type override { return unspecified; }
 
     auto operator ==(const_reference) const -> bool override { return false; };
     auto operator !=(const_reference) const -> bool override { return false; };

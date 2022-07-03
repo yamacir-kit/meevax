@@ -118,7 +118,7 @@ inline namespace kernel
         , identity { syntactic_environment.as<environment>().identify(expression, syntactic_environment.as<environment>().scope()) }
       {}
 
-      auto identify_with_offset(const_reference use_env_scope) -> lvalue
+      auto identify_with_offset(const_reference use_env_scope) -> value_type
       {
         if (identity.is<relative>())
         {
@@ -188,7 +188,7 @@ inline namespace kernel
       environment &   current_environment,
       const_reference current_expression,
       const_reference current_scope = unit,
-      const_reference current_continuation = list(make(mnemonic::stop))) -> lvalue
+      const_reference current_continuation = list(make(mnemonic::stop))) -> value_type
     {
       if (current_expression.is<null>()) /* ------------------------------------
       *
@@ -328,7 +328,7 @@ inline namespace kernel
     }
 
     template <auto trace = false>
-    inline auto execute() -> lvalue
+    inline auto execute() -> value_type
     {
     decode:
       if constexpr (trace)
@@ -693,7 +693,7 @@ inline namespace kernel
       }
     }
 
-    static auto identify(const_reference variable, const_reference scope) -> lvalue
+    static auto identify(const_reference variable, const_reference scope) -> value_type
     {
       for (auto outer = std::begin(scope); outer != std::end(scope); ++outer)
       {
@@ -837,7 +837,7 @@ inline namespace kernel
                                              },
                                              binding_specs),
                                          body)),
-                            make_list(length(binding_specs), undefined)),
+                            make_list(length(binding_specs), unit)),
                        current_scope,
                        current_continuation);
       }
@@ -891,7 +891,7 @@ inline namespace kernel
     {
       if (current_context.is_tail)
       {
-        assert(lexical_cast<std::string>(current_continuation) == "(return)");
+        assert(lexical_cast<external_representation>(current_continuation) == "(return)");
 
         return compile(context(),
                        current_environment,
@@ -909,7 +909,7 @@ inline namespace kernel
                                         caddr(current_expression),
                                         current_scope,
                                         current_continuation)
-                              : list(make(mnemonic::load_constant), unspecified_object,
+                              : list(make(mnemonic::load_constant), unspecified,
                                      make(mnemonic::return_))));
       }
       else
@@ -930,7 +930,7 @@ inline namespace kernel
                                         caddr(current_expression),
                                         current_scope,
                                         list(make(mnemonic::join)))
-                              : list(make(mnemonic::load_constant), unspecified_object,
+                              : list(make(mnemonic::load_constant), unspecified,
                                      make(mnemonic::join)),
                             current_continuation));
       }
@@ -989,7 +989,7 @@ inline namespace kernel
         {
           return compile(context(),
                          current_environment,
-                         cdr(current_expression) ? cadr(current_expression) : unspecified_object,
+                         cdr(current_expression) ? cadr(current_expression) : unspecified,
                          current_scope,
                          cons(make(mnemonic::define), current_environment.identify(car(current_expression), current_scope),
                               current_continuation));

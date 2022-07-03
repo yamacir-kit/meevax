@@ -23,73 +23,68 @@ namespace meevax
 {
 inline namespace kernel
 {
-  vector::vector(for_each_in_tag, const_reference xs)
-    : vector { for_each_in, std::cbegin(xs), std::cend(xs) }
+  vector::vector(const_reference x)
+  {
+    std::copy(std::begin(x), std::end(x), std::back_inserter(data));
+  }
+
+  vector::vector(const_reference k, const_reference fill)
+    : data { k.as<exact_integer>(), fill }
   {}
 
-  auto vector::fill(const_reference x, size_type from, size_type to) -> void
+  auto vector::fill(const_reference x, const_reference from, const_reference to) -> void
   {
-    for (auto iter = std::next(begin(), from); iter != std::next(begin(), to); ++iter)
-    {
-      *iter = x;
-    }
+    std::fill(std::next(std::begin(data), from.as<exact_integer>()),
+              std::next(std::begin(data), to.as<exact_integer>()),
+              x);
   }
 
-  auto vector::fill(const_reference x, size_type from) -> void
+  auto vector::length() const -> value_type
   {
-    fill(x, from, size());
+    return make<exact_integer>(data.size());
   }
 
-  auto vector::list(size_type from, size_type to) const -> value_type
+  auto vector::list(const_reference from, const_reference to) const -> value_type
   {
-    let x = unit;
-
-    for (auto iter = std::prev(rend(), to); iter != std::prev(rend(), from); ++iter)
-    {
-      x = cons(*iter, x);
-    }
-
-    return x;
+    return std::accumulate(std::prev(std::rend(data), to.as<exact_integer>()),
+                           std::prev(std::rend(data), from.as<exact_integer>()),
+                           unit,
+                           xcons);
   }
 
-  auto vector::list(size_type from) const -> value_type
+  auto vector::ref(const_reference k) const -> const_reference
   {
-    return list(from, size());
+    return data.at(k.as<exact_integer>());
   }
 
-  auto vector::string(size_type from, size_type to) const -> value_type
+  auto vector::set(const_reference k, const_reference x) -> const_reference
+  {
+    return data.at(k.as<exact_integer>()) = x;
+  }
+
+  auto vector::string(const_reference from, const_reference to) const -> value_type
   {
     meevax::string s;
 
-    for (auto iter = std::prev(rend(), to); iter != std::prev(rend(), from); ++iter)
-    {
-      if ((*iter).is<character>())
-      {
-        s.push_back((*iter).as<character>());
-      }
-      else
-      {
-        throw error(make<meevax::string>("It is an error if any element of vector between start and end is not a character"), unit);
-      }
-    }
+    std::for_each(std::next(std::begin(data), from.as<exact_integer>()),
+                  std::next(std::begin(data), to.as<exact_integer>()),
+                  [&](let const& each)
+                  {
+                    s.push_back(each.as<character>());
+                  });
 
     return make(s);
   }
 
-  auto vector::string(size_type from) const -> value_type
-  {
-    return string(from, size());
-  }
-
   auto operator ==(vector const& lhs, vector const& rhs) -> bool
   {
-    return std::equal(std::begin(lhs), std::end(lhs),
-                      std::begin(rhs), std::end(rhs), equal);
+    return std::equal(std::begin(lhs.data), std::end(lhs.data),
+                      std::begin(rhs.data), std::end(rhs.data), equal);
   }
 
   auto operator <<(std::ostream & os, vector const& datum) -> std::ostream &
   {
-    return os << magenta("#(") << for_each(datum) << magenta(")");
+    return os << magenta("#(") << for_each(datum.data) << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax
