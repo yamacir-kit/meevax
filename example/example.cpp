@@ -34,4 +34,29 @@ extern "C"
 
     return unspecified;
   }
+
+  struct hoge
+  {
+    int value;
+
+    ~hoge()
+    {
+      std::cout << "DESTRUCTOR!" << std::endl;
+    }
+  };
+
+  let make_hoge(let const& xs)
+  {
+    return make<hoge>(car(xs).as<exact_integer>());
+  }
+
+  let is_hoge(let const& xs)
+  {
+    return car(xs).is<hoge>() ? t : f;
+  }
+
+  let hoge_value(let const& xs)
+  {
+    return make<exact_integer>(car(xs).as<hoge>().value);
+  }
 }

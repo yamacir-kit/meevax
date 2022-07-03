@@ -14,9 +14,10 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_TYPE_TRAITS_IS_DEREFERENCEABLE_HPP
-#define INCLUDED_MEEVAX_TYPE_TRAITS_IS_DEREFERENCEABLE_HPP
+#ifndef INCLUDED_MEEVAX_TYPE_TRAITS_IS_OUTPUT_STREAMABLE_HPP
+#define INCLUDED_MEEVAX_TYPE_TRAITS_IS_OUTPUT_STREAMABLE_HPP
 
+#include <ostream>
 #include <type_traits>
 
 namespace meevax
@@ -24,15 +25,14 @@ namespace meevax
 inline namespace type_traits
 {
   template <typename T, typename = void>
-  struct is_dereferenceable
-    : public std::false_type
+  struct is_output_streamable : public std::false_type
   {};
 
   template <typename T>
-  struct is_dereferenceable<T, std::void_t<decltype(*std::declval<T>())>>
+  struct is_output_streamable<T, std::void_t<decltype(std::declval<std::ostream &>() << std::declval<T>())>>
     : public std::true_type
   {};
 } // namespace type_traits
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_TYPE_TRAITS_IS_DEREFERENCEABLE_HPP
+#endif // INCLUDED_MEEVAX_TYPE_TRAITS_IS_OUTPUT_STREAMABLE_HPP

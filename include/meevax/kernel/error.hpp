@@ -79,6 +79,7 @@ inline namespace kernel
 
     catch (exit_status const value) // NOTE: emergency-exit
     {
+      gc.clear(); // NOTE:
       return underlying_cast(value);
     }
 
