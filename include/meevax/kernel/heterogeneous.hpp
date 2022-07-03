@@ -19,7 +19,6 @@
 
 #include <meevax/functional/compose.hpp>
 #include <meevax/iostream/escape_sequence.hpp>
-#include <meevax/iostream/write.hpp>
 #include <meevax/kernel/overview.hpp>
 #include <meevax/kernel/profiler.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
