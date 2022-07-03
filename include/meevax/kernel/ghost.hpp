@@ -25,17 +25,12 @@ inline namespace kernel
 {
   struct ghost
   {
-    external_representation const name = "unspecified";
+    external_representation const name;
   };
 
   auto operator <<(std::ostream &, ghost const&) -> std::ostream &;
 
   let extern const unspecified;
-
-  struct unbound
-  {};
-
-  auto operator <<(std::ostream &, unbound const&) -> std::ostream &;
 
   let extern const undefined;
 } // namespace kernel

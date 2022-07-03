@@ -27,11 +27,6 @@ inline namespace kernel
 
   let const unspecified = make<ghost>("unspecified");
 
-  auto operator <<(std::ostream & os, unbound const&) -> std::ostream &
-  {
-    return os << faint("#;unbound");
-  }
-
-  let const undefined = make<unbound>();
+  let const undefined = make<ghost>("undefined");
 } // namespace kernel
 } // namespace meevax

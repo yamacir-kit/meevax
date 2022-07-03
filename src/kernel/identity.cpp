@@ -47,7 +47,7 @@ inline namespace kernel
 
   auto absolute::is_free() const -> bool
   {
-    return load().is<unbound>();
+    return eq(load(), undefined);
   }
 
   auto absolute::load(const_reference) const -> const_reference
