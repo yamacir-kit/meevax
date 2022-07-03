@@ -61,11 +61,6 @@ inline namespace kernel
     {
       return Environment::verbose ? standard_output : null_port();
     }
-
-    static auto debug_port() -> const_reference
-    {
-      return Environment::debug ? standard_error : null_port();
-    }
   };
 } // namespace kernel
 } // namespace meevax

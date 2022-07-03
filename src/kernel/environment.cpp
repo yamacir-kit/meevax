@@ -94,7 +94,7 @@ inline namespace kernel
 
       if (debug)
       {
-        disassemble(debug_port().as<std::ostream>(), c);
+        disassemble(verbose_port().as<std::ostream>(), c);
       }
 
       let const result = execute();

@@ -126,7 +126,7 @@ Usage: meevax [OPTION...] [FILE...]
 
 Options:
   -b, --batch            Suppress any system output.
-  -d, --debug            Display detailed informations for developers.
+  -d, --debug            Deprecated.
   -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.
   -h, --help             Display this help text and exit.
   -i, --interactive      Take over control of root environment.

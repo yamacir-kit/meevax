@@ -45,7 +45,7 @@ inline namespace kernel
     using reader::read;
 
     using writer::print;
-    using writer::debug_port;
+    using writer::verbose_port;
     using writer::write;
 
     explicit environment(environment &&) = default;

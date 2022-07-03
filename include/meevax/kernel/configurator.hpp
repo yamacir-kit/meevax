@@ -66,7 +66,7 @@ inline namespace kernel
       print();
       print("Options:");
       print("  -b, --batch            Suppress any system output.");
-      print("  -d, --debug            Display detailed informations for developers.");
+      print("  -d, --debug            Deprecated.");
       print("  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.");
       print("  -h, --help             Display this help text and exit.");
       print("  -i, --interactive      Take over control of root environment.");
