@@ -49,13 +49,6 @@ inline namespace kernel
     {
       return write(standard_output, std::forward<decltype(xs)>(xs)..., '\n');
     }
-
-  public:
-    static auto null_port() -> const_reference
-    {
-      let static port = make<output_file_port>("/dev/null");
-      return port;
-    }
   };
 } // namespace kernel
 } // namespace meevax
