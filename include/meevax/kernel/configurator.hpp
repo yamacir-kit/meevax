@@ -24,6 +24,7 @@
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
+#include <meevax/kernel/writer.hpp>
 
 namespace meevax
 {
@@ -40,8 +41,6 @@ inline namespace kernel
     IMPORT(environment, evaluate, NIL);
     IMPORT(environment, load, NIL);
     IMPORT(environment, read, NIL);
-
-    USING_STATIC(environment, print);
 
     template <typename Key>
     using dispatcher = std::unordered_map<Key, procedure::function_type>;

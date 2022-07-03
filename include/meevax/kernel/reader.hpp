@@ -242,7 +242,6 @@ inline namespace kernel
     {}
 
     IMPORT(Environment, evaluate, NIL);
-    IMPORT(Environment, write,    NIL);
 
     using char_type = typename std::istream::char_type;
 

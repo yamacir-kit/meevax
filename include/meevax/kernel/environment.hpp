@@ -32,7 +32,6 @@ inline namespace kernel
                     , public machine<environment>
                     , public optimizer
                     , public reader<environment>
-                    , public writer<environment>
   {
     using pair::pair;
 
@@ -42,9 +41,6 @@ inline namespace kernel
 
     using reader::intern;
     using reader::read;
-
-    using writer::print;
-    using writer::write;
 
     explicit environment(environment &&) = default;
 
@@ -112,8 +108,6 @@ inline namespace kernel
   extern template class machine<environment>;
 
   extern template class reader<environment>;
-
-  extern template class writer<environment>;
 } // namespace kernel
 } // namespace meevax
 
