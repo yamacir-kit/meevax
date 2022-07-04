@@ -1274,7 +1274,7 @@ inline namespace kernel
 
   auto library::export_(const_reference export_spec) -> void
   {
-    export_specs.push_back(export_spec);
+    export_specs = cons(export_spec, export_specs);
   }
 
   auto library::export_(external_representation const& export_spec) -> void

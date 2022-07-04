@@ -27,7 +27,7 @@ inline namespace kernel
 {
   struct library : public environment
   {
-    std::vector<value_type> export_specs;
+    let export_specs;
 
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
     explicit library(F&& declare)

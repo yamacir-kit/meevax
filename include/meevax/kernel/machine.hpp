@@ -174,33 +174,11 @@ inline namespace kernel
     };
 
   public:
-    /* ---- R7RS 4. Expressions ------------------------------------------------
-     *
-     *  <expression> = <identifier>
-     *               | <literal>
-     *               | <procedure call>
-     *               | <lambda expression>
-     *               | <conditional>
-     *               | <assignment>
-     *               | <derived expression>
-     *
-     *  Expression types are categorized as primitive or derived. Primitive
-     *  expression types include variables and procedure calls. Derived
-     *  expression types are not semantically primitive, but can instead be
-     *  defined as macros. Suitable syntax definitions of some of the derived
-     *  expressions are given in section 7.3.
-     *
-     *  The procedures force, promise?, make-promise, and make-parameter are
-     *  also described in this chapter because they are intimately associated
-     *  with the delay, delay-force, and parameterize expression types.
-     *
-     * ---------------------------------------------------------------------- */
-    static auto compile(
-      context         current_context,
-      environment &   current_environment,
-      const_reference current_expression,
-      const_reference current_scope = unit,
-      const_reference current_continuation = list(make(mnemonic::stop))) -> value_type
+    static auto compile(context         current_context,
+                        environment &   current_environment,
+                        const_reference current_expression,
+                        const_reference current_scope = unit,
+                        const_reference current_continuation = list(make(mnemonic::stop)))
     {
       if (current_expression.is<null>()) /* ------------------------------------
       *
