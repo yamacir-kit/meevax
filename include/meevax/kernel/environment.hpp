@@ -52,9 +52,15 @@ inline namespace kernel
       (import(xs), ...);
     }
 
-    auto operator [](const_reference) -> const_reference;
+    auto operator [](const_reference variable) -> decltype(auto)
+    {
+      return identify(variable, scope()).as<identity>().load(e);
+    }
 
-    auto operator [](symbol::value_type const&) -> const_reference;
+    auto operator [](symbol::value_type const& variable) -> decltype(auto)
+    {
+      return (*this)[intern(variable)];
+    }
 
     auto apply(const_reference, const_reference) -> value_type;
 

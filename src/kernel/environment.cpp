@@ -21,16 +21,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto environment::operator [](const_reference name) -> const_reference
-  {
-    return identify(name, scope()).as<absolute>().load();
-  }
-
-  auto environment::operator [](external_representation const& name) -> const_reference
-  {
-    return (*this)[intern(name)];
-  }
-
   auto environment::apply(const_reference f, const_reference xs) -> value_type
   {
     assert(f.is<closure>() or f.is<procedure>() or f.is<continuation>());
@@ -53,9 +43,7 @@ inline namespace kernel
 
   auto environment::define(const_reference name, const_reference value) -> void
   {
-    assert(name.is_also<identifier>());
-
-    global() = make<absolute>(name, value) | global();
+    (*this)[name] = value;
   }
 
   auto environment::define(external_representation const& name, const_reference value) -> void
@@ -253,9 +241,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      define(variable);
-
-      return car(global());
+      return car(global() = make<absolute>(variable, undefined) | global());
     }
   }
 
