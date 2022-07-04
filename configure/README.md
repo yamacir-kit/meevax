@@ -126,14 +126,13 @@ Usage: meevax [OPTION...] [FILE...]
 
 Options:
   -b, --batch            Suppress any system output.
-  -d, --debug            Display detailed informations for developers.
+  -d, --debug            Deprecated.
   -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.
   -h, --help             Display this help text and exit.
   -i, --interactive      Take over control of root environment.
   -l, --load=FILENAME    Same as -e '(load FILENAME)'
   -t, --trace            Display stacks of virtual machine for each steps.
   -v, --version          Display version information and exit.
-      --verbose          Display detailed informations.
   -w, --write=OBJECT     Same as -e '(write OBJECT)'
 ```
 

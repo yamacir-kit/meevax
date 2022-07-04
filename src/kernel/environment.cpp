@@ -92,11 +92,6 @@ inline namespace kernel
 
       c = optimize(c);
 
-      if (debug)
-      {
-        disassemble(debug_port().as<std::ostream>(), c);
-      }
-
       let const result = execute();
 
       assert(s.is<null>());
@@ -266,15 +261,15 @@ inline namespace kernel
 
   auto operator >>(std::istream & is, environment & datum) -> std::istream &
   {
-    datum.print("environment::operator >>(std::istream &, environment &)");
-    datum.print("read new expression => ", datum.read(is));
+    print("environment::operator >>(std::istream &, environment &)");
+    print("read new expression => ", datum.read(is));
 
     return is;
   }
 
-  auto operator <<(std::ostream & os, environment & datum) -> std::ostream &
+  auto operator <<(std::ostream & os, environment &) -> std::ostream &
   {
-    return datum.write(os, "environment::operator <<(std::ostream &, environment &)\n");
+    return write(os, "environment::operator <<(std::ostream &, environment &)\n");
   }
 
   auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &
@@ -287,7 +282,5 @@ inline namespace kernel
   template class machine<environment>;
 
   template class reader<environment>;
-
-  template class writer<environment>;
 } // namespace kernel
 } // namespace meevax

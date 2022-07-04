@@ -28,7 +28,7 @@ inline namespace type_traits
 {
   auto unwrap_reference_wrapper = [](auto&& value) -> decltype(auto)
   {
-    if constexpr (is_reference_wrapper<typename std::decay<decltype(value)>::type>::value)
+    if constexpr (is_reference_wrapper<std::decay_t<decltype(value)>>::value)
     {
       return value.get();
     }

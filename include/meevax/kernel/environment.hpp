@@ -32,21 +32,15 @@ inline namespace kernel
                     , public machine<environment>
                     , public optimizer
                     , public reader<environment>
-                    , public writer<environment>
   {
     using pair::pair;
 
   public:
     using configurator::debug;
     using configurator::trace;
-    using configurator::verbose;
 
     using reader::intern;
     using reader::read;
-
-    using writer::print;
-    using writer::debug_port;
-    using writer::write;
 
     explicit environment(environment &&) = default;
 
@@ -114,8 +108,6 @@ inline namespace kernel
   extern template class machine<environment>;
 
   extern template class reader<environment>;
-
-  extern template class writer<environment>;
 } // namespace kernel
 } // namespace meevax
 

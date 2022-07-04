@@ -241,9 +241,7 @@ inline namespace kernel
     explicit reader()
     {}
 
-    IMPORT(Environment, evaluate,   NIL);
-    IMPORT(Environment, debug_port, NIL);
-    IMPORT(Environment, write,      NIL);
+    IMPORT(Environment, evaluate, NIL);
 
     using char_type = typename std::istream::char_type;
 
@@ -441,11 +439,7 @@ inline namespace kernel
 
     inline auto read() -> value_type
     {
-      let const result = read(standard_input);
-
-      write(debug_port(), pretty::header(__func__), result, "\n");
-
-      return result;
+      return read(standard_input);
     }
 
     inline auto read(external_representation const& s) -> value_type

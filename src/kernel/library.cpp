@@ -1016,7 +1016,7 @@ inline namespace kernel
   {
     define<procedure>("%write-simple", [](let const& xs)
     {
-      write(cadr(xs), car(xs));
+      kernel::write(cadr(xs), car(xs));
       return unspecified;
     });
 
