@@ -60,6 +60,18 @@ inline namespace kernel
         assert(expression.is<closure>());
       }
 
+      auto apply(const_reference f, const_reference xs)
+      {
+        Environment expander;
+
+        expander.s = list(f, xs);
+        expander.e = unit;
+        expander.c = list(make(mnemonic::call), make(mnemonic::stop));
+        expander.d = unit;
+
+        return expander.execute();
+      }
+
       auto expand(const_reference form, const_reference use_env) /* ------------
       *
       *  Scheme programs can define and use new derived expression types,
@@ -91,7 +103,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        return mac_env.template as<environment>().apply(expression, list(form, use_env, mac_env));
+        return apply(expression, list(form, use_env, mac_env));
       }
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &

@@ -62,8 +62,6 @@ inline namespace kernel
       return (*this)[intern(variable)];
     }
 
-    auto apply(const_reference, const_reference) -> value_type;
-
     auto define(const_reference, const_reference = undefined) -> void;
 
     auto define(symbol::value_type const&, const_reference = undefined) -> void;

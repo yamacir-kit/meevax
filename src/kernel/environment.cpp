@@ -21,26 +21,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto environment::apply(const_reference f, const_reference xs) -> value_type
-  {
-    assert(f.is<closure>() or f.is<procedure>() or f.is<continuation>());
-
-    auto dump = std::make_tuple(std::exchange(s, list(f, xs)),
-                                std::exchange(e, unit),
-                                std::exchange(c, list(make(mnemonic::call),
-                                                      make(mnemonic::stop))),
-                                std::exchange(d, unit));
-
-    let const result = execute();
-
-    s = std::get<0>(dump);
-    e = std::get<1>(dump);
-    c = std::get<2>(dump);
-    d = std::get<3>(dump);
-
-    return result;
-  }
-
   auto environment::define(const_reference name, const_reference value) -> void
   {
     (*this)[name] = value;
