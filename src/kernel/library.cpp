@@ -1145,11 +1145,9 @@ inline namespace kernel
   }
 
   library::library(const_reference declarations)
+    : declarations { declarations }
   {
-    for (let const& declaration : declarations)
-    {
-      evaluate(declaration);
-    }
+    build();
   }
 
   auto library::boot() -> void
@@ -1248,6 +1246,17 @@ inline namespace kernel
     }
   }
 
+  auto library::build() -> void
+  {
+    if (export_specs.is<null>())
+    {
+      for (let const& declaration : declarations)
+      {
+        evaluate(declaration);
+      }
+    }
+  }
+
   auto library::evaluate(const_reference declaration) -> void
   {
     if (declaration.is<pair>() and car(declaration).is<symbol>()
@@ -1284,36 +1293,32 @@ inline namespace kernel
 
   auto library::resolve_export_specs() -> value_type
   {
-    let bindings = unit;
-
-    for (let const& export_spec : export_specs)
+    return map([this](let const& export_spec)
     {
       if (export_spec.is<pair>() and car(export_spec).is<symbol>()
                                  and car(export_spec).as<symbol>().value == "rename")
       {
         if (let const& binding = identify(cadr(export_spec), unit); binding.as<identity>().is_free())
         {
-          std::cout << error(make<string>("exported but undefined"), cadr(export_spec)) << std::endl;
+          throw error(make<string>("exported but undefined"), cadr(export_spec));
         }
         else
         {
-          bindings = cons(make<absolute>(caddr(export_spec), binding.as<absolute>().load()), bindings);
+          return make<absolute>(caddr(export_spec), binding.as<absolute>().load());
         }
       }
       else
       {
         if (let const& binding = identify(export_spec, unit); binding.as<identity>().is_free())
         {
-          std::cout << error(make<string>("exported but undefined"), export_spec) << std::endl;
+          throw error(make<string>("exported but undefined"), export_spec);
         }
         else
         {
-          bindings = cons(binding, bindings);
+          return binding;
         }
       }
-    }
-
-    return bindings;
+    }, export_specs);
   }
 
   auto operator <<(std::ostream & os, library const& library) -> std::ostream &

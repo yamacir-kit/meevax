@@ -27,7 +27,9 @@ inline namespace kernel
 {
   struct library : public environment
   {
-    let export_specs;
+    let export_specs = unit;
+
+    let const declarations = unit;
 
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
     explicit library(F&& declare)
@@ -38,6 +40,8 @@ inline namespace kernel
     explicit library(const_reference);
 
     static auto boot() -> void;
+
+    auto build() -> void;
 
     auto evaluate(const_reference) -> void;
 

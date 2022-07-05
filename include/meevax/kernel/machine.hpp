@@ -178,7 +178,7 @@ inline namespace kernel
                         environment &   current_environment,
                         const_reference current_expression,
                         const_reference current_scope = unit,
-                        const_reference current_continuation = list(make(mnemonic::stop)))
+                        const_reference current_continuation = list(make(mnemonic::stop))) -> value_type
     {
       if (current_expression.is<null>()) /* ------------------------------------
       *
