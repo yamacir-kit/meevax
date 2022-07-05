@@ -1146,9 +1146,7 @@ inline namespace kernel
 
   library::library(const_reference declarations)
     : declarations { declarations }
-  {
-    build();
-  }
+  {}
 
   auto library::boot() -> void
   {
@@ -1293,6 +1291,8 @@ inline namespace kernel
 
   auto library::resolve_export_specs() -> value_type
   {
+    build();
+
     return map([this](let const& export_spec)
     {
       if (export_spec.is<pair>() and car(export_spec).is<symbol>()
