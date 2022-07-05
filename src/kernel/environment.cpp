@@ -104,45 +104,40 @@ inline namespace kernel
     return second;
   }
 
-  auto resolve_import_set(const_reference import_set) -> value_type
+  auto resolve(const_reference import_set) -> value_type
   {
     if (car(import_set).as<symbol>().value == "only")
     {
-      let const exported_bindings = resolve_import_set(cadr(import_set));
+      let const identities = resolve(cadr(import_set));
 
-      let filtered_bindings = unit;
-
-      for (let const& identifier : cddr(import_set))
+      return map([&](let const& identifier)
       {
-        if (let const& binding = assq(identifier, exported_bindings); select(binding))
+        if (let const& identity = assq(identifier, identities); select(identity))
         {
-          filtered_bindings = cons(binding, filtered_bindings);
+          return identity;
         }
         else
         {
-          throw error(make<string>("no such identifier"), identifier);
+          throw error(make<string>("No such identifier"), identity);
         }
-      }
-
-      return filtered_bindings;
+      }, cddr(import_set));
     }
     else if (auto iter = libraries.find(lexical_cast<external_representation>(import_set)); iter != std::end(libraries))
     {
-      return std::get<1>(*iter).resolve_export_specs();
+      return std::get<1>(*iter).exported_identifiers();
     }
     else
     {
-      throw error(make<string>("no such library"), import_set);
+      throw error(make<string>("No such library"), import_set);
     }
   }
 
   auto environment::import_(const_reference import_set) -> void
   {
-    let const bindings = resolve_import_set(import_set);
-
-    for (let const& binding : bindings)
+    for (let const& identity : resolve(import_set))
     {
-      define(binding.as<absolute>().symbol(), binding.as<absolute>().load());
+      assert(identity.is<absolute>());
+      define(identity.as<absolute>().symbol(), identity.as<absolute>().load());
     }
   }
 

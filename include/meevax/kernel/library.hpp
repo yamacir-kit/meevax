@@ -27,14 +27,16 @@ inline namespace kernel
 {
   struct library : public environment
   {
-    let export_specs = unit;
-
     let const declarations = unit;
 
-    template <typename F, REQUIRES(std::is_invocable<F, library &>)>
-    explicit library(F&& declare)
+    let export_specs = unit;
+
+    let identifiers = unit;
+
+    template <typename Build, REQUIRES(std::is_invocable<Build, library &>)>
+    explicit library(Build&& build)
     {
-      declare(*this);
+      build(*this);
     }
 
     explicit library(const_reference);
@@ -49,7 +51,7 @@ inline namespace kernel
 
     auto export_(external_representation const&) -> void;
 
-    auto resolve_export_specs() -> value_type;
+    auto exported_identifiers() -> const_reference;
 
     #define DEFINE_BASIS_LIBRARY(NAME)                                         \
     struct NAME##_library_t                                                    \

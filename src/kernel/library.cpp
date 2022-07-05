@@ -1289,11 +1289,11 @@ inline namespace kernel
     export_(read(export_spec));
   }
 
-  auto library::resolve_export_specs() -> value_type
+  auto library::exported_identifiers() -> const_reference
   {
     build();
 
-    return map([this](let const& export_spec)
+    auto resolve = [this](let const& export_spec)
     {
       if (export_spec.is<pair>() and car(export_spec).is<symbol>()
                                  and car(export_spec).as<symbol>().value == "rename")
@@ -1307,18 +1307,18 @@ inline namespace kernel
           return make<absolute>(caddr(export_spec), binding.as<absolute>().load());
         }
       }
+      else if (let const& binding = identify(export_spec, unit); binding.as<identity>().is_free())
+      {
+        throw error(make<string>("exported but undefined"), export_spec);
+      }
       else
       {
-        if (let const& binding = identify(export_spec, unit); binding.as<identity>().is_free())
-        {
-          throw error(make<string>("exported but undefined"), export_spec);
-        }
-        else
-        {
-          return binding;
-        }
+        return binding;
       }
-    }, export_specs);
+    };
+
+    return identifiers.is<null>() ? identifiers = map(resolve, export_specs)
+                                  : identifiers;
   }
 
   auto operator <<(std::ostream & os, library const& library) -> std::ostream &
