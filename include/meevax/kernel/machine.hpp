@@ -821,7 +821,7 @@ inline namespace kernel
                        current_environment,
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs),
-                                 append2(map([](const_reference binding_spec)
+                                 append2(map1([](const_reference binding_spec)
                                              {
                                                return cons(make<syntax>("set!", set), binding_spec);
                                              },
@@ -1119,7 +1119,7 @@ inline namespace kernel
 
       return cons(make(mnemonic::let_syntax),
                   make<syntactic_continuation>(body,
-                                               cons(map(make_keyword, bindings),
+                                               cons(map1(make_keyword, bindings),
                                                     current_scope)),
                   current_continuation);
     }

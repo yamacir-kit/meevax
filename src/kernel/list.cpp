@@ -53,7 +53,7 @@ inline namespace kernel
 
   auto unzip1(const_reference xs) -> value_type
   {
-    return map(car, xs);
+    return map1(car, xs);
   }
 
   auto unzip2(const_reference xs) -> std::tuple<value_type, value_type>

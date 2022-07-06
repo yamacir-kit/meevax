@@ -195,9 +195,9 @@ inline namespace kernel
   auto unzip2(const_reference xs) -> std::tuple<value_type, value_type>;
 
   template <typename Function>
-  auto map(Function&& function, const_reference x) -> value_type
+  auto map1(Function&& function, const_reference x) -> value_type
   {
-    return x.is<null>() ? unit : cons(function(car(x)), map(function, cdr(x)));
+    return x.is<null>() ? unit : cons(function(car(x)), map1(function, cdr(x)));
   }
 
   auto find = [](const_reference x, auto&& predicate) constexpr -> const_reference

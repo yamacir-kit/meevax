@@ -1289,7 +1289,7 @@ inline namespace kernel
     export_(read(export_spec));
   }
 
-  auto library::exported_identifiers() -> const_reference
+  auto library::exported_identities() -> const_reference
   {
     build();
 
@@ -1317,7 +1317,7 @@ inline namespace kernel
       }
     };
 
-    return identifiers.is<null>() ? identifiers = map(resolve, export_specs)
+    return identifiers.is<null>() ? identifiers = map1(resolve, export_specs)
                                   : identifiers;
   }
 

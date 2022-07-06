@@ -110,7 +110,7 @@ inline namespace kernel
     {
       let const identities = resolve(cadr(import_set));
 
-      return map([&](let const& identifier)
+      return map1([&](let const& identifier)
       {
         if (let const& identity = assq(identifier, identities); select(identity))
         {
@@ -124,7 +124,7 @@ inline namespace kernel
     }
     else if (auto iter = libraries.find(lexical_cast<external_representation>(import_set)); iter != std::end(libraries))
     {
-      return std::get<1>(*iter).exported_identifiers();
+      return std::get<1>(*iter).exported_identities();
     }
     else
     {
