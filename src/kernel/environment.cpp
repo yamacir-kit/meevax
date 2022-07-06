@@ -132,11 +132,9 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      let const ids = resolve(cadr(import_set));
-
       let result = unit;
 
-      for (let const& id : ids)
+      for (let const& id : resolve(cadr(import_set)))
       {
         if (let const& x = memq(id, cddr(import_set)); not select(x))
         {

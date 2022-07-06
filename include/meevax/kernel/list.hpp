@@ -33,11 +33,11 @@ inline namespace kernel
   {
     if constexpr (std::is_same_v<std::decay_t<decltype(x)>, iterator>)
     {
-      return std::get<N>(x.get().template as<pair>());
+      return std::get<N>(*x.get());
     }
     else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, value_type>)
     {
-      return x.template is<null>() ? unit : std::get<N>(x.template as<pair>());
+      return x.template is<null>() ? unit : std::get<N>(*x);
     }
     else
     {
@@ -194,10 +194,10 @@ inline namespace kernel
 
   auto unzip2(const_reference xs) -> std::tuple<value_type, value_type>;
 
-  template <typename Function>
-  auto map1(Function&& function, const_reference x) -> value_type
+  template <typename F>
+  auto map1(F&& f, const_reference x) -> value_type
   {
-    return x.is<null>() ? unit : cons(function(car(x)), map1(function, cdr(x)));
+    return x.is<null>() ? unit : cons(f(car(x)), map1(f, cdr(x)));
   }
 
   auto find = [](const_reference xs, auto&& compare) constexpr -> const_reference
@@ -212,25 +212,22 @@ inline namespace kernel
     }
   };
 
-  auto assoc = [](const_reference key, const_reference alist, auto&& compare = equivalence_comparator<2>()) -> const_reference
+  auto assoc = [](const_reference x, const_reference xs, auto&& compare)
   {
-    return find(alist, [&](auto&& each)
-    {
-      return compare(car(each), key);
-    });
+    return find(xs, [&](auto&& each) { return compare(x, car(each)); });
   };
 
-  auto assv = [](auto&&... xs) -> const_reference
+  auto assv = [](auto&&... xs)
   {
-    return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<1>());
+    return assoc(std::forward<decltype(xs)>(xs)..., eqv);
   };
 
-  auto assq = [](auto&&... xs) -> const_reference
+  auto assq = [](auto&&... xs)
   {
-    return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<0>());
+    return assoc(std::forward<decltype(xs)>(xs)..., eq);
   };
 
-  auto alist_cons = [](auto&& key, auto&& datum, auto&& alist) constexpr
+  auto alist_cons = [](auto&& key, auto&& datum, auto&& alist)
   {
     return cons(cons(key, datum), alist);
   };
@@ -247,12 +244,12 @@ inline namespace kernel
     }
   };
 
-  auto memv = [](auto&&... xs) -> decltype(auto)
+  auto memv = [](auto&&... xs)
   {
     return member(std::forward<decltype(xs)>(xs)..., eqv);
   };
 
-  auto memq = [](auto&&... xs) -> decltype(auto)
+  auto memq = [](auto&&... xs)
   {
     return member(std::forward<decltype(xs)>(xs)..., eq);
   };
