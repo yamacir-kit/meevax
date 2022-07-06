@@ -41,7 +41,7 @@
           (meevax evaluate)
           (meevax syntax) ; for let-syntax letrec-syntax
           (scheme r4rs)
-          (scheme r5rs continuation)
+          (except (scheme r5rs continuation) exit)
           (srfi 149))
 
   (export quote lambda if set! cond case and or let let* letrec begin do delay

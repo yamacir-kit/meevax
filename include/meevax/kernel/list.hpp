@@ -200,9 +200,9 @@ inline namespace kernel
     return x.is<null>() ? unit : cons(function(car(x)), map1(function, cdr(x)));
   }
 
-  auto find = [](const_reference x, auto&& predicate) constexpr -> const_reference
+  auto find = [](const_reference xs, auto&& compare) constexpr -> const_reference
   {
-    if (auto const& iter = std::find_if(std::cbegin(x), std::cend(x), std::forward<decltype(predicate)>(predicate)); iter)
+    if (auto&& iter = std::find_if(std::begin(xs), std::end(xs), compare); iter)
     {
       return *iter;
     }
@@ -233,6 +233,28 @@ inline namespace kernel
   auto alist_cons = [](auto&& key, auto&& datum, auto&& alist) constexpr
   {
     return cons(cons(key, datum), alist);
+  };
+
+  auto member = [](const_reference x, const_reference xs, auto&& compare)
+  {
+    if (auto&& iter = std::find_if(std::begin(xs), std::end(xs), [&](auto&& each) { return compare(x, each); }); iter)
+    {
+      return iter.get();
+    }
+    else
+    {
+      return f;
+    }
+  };
+
+  auto memv = [](auto&&... xs) -> decltype(auto)
+  {
+    return member(std::forward<decltype(xs)>(xs)..., eqv);
+  };
+
+  auto memq = [](auto&&... xs) -> decltype(auto)
+  {
+    return member(std::forward<decltype(xs)>(xs)..., eq);
   };
 } // namespace kernel
 } // namespace meevax

@@ -106,7 +106,11 @@ inline namespace kernel
 
   auto resolve(const_reference import_set) -> value_type
   {
-    if (car(import_set).as<symbol>().value == "only")
+    if (car(import_set).as<symbol>().value == "only") /* -----------------------
+    *
+    *  (only <import set> <identifier> ...)
+    *
+    * ----------------------------------------------------------------------- */
     {
       let const identities = resolve(cadr(import_set));
 
@@ -121,6 +125,43 @@ inline namespace kernel
           throw error(make<string>("No such identifier"), identity);
         }
       }, cddr(import_set));
+    }
+    else if (car(import_set).as<symbol>().value == "except") /* ----------------
+    *
+    *  (except <import set> <identifier> ...)
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      let const ids = resolve(cadr(import_set));
+
+      let result = unit;
+
+      for (let const& id : ids)
+      {
+        if (let const& x = memq(id, cddr(import_set)); not select(x))
+        {
+          result = cons(id, result);
+        }
+      }
+
+      return result;
+    }
+    else if (car(import_set).as<symbol>().value == "prefix") /* ----------------
+    *
+    *  (prefix <import set> <identifier> ...)
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      throw error(make<string>("Unsupported"), car(import_set));
+    }
+    else if (car(import_set).as<symbol>().value == "rename") /* ----------------
+    *
+    *  (rename <import set>
+    *          (<identifier 1> <identifier 2>) ...)
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      throw error(make<string>("Unsupported"), car(import_set));
     }
     else if (auto iter = libraries.find(lexical_cast<external_representation>(import_set)); iter != std::end(libraries))
     {
