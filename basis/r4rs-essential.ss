@@ -11,7 +11,7 @@
           (meevax read)
           (meevax string)
           (meevax symbol)
-          (meevax syntax)
+          (rename (meevax syntax) (call-with-current-continuation! call-with-current-continuation))
           (meevax vector)
           (meevax write)
           (srfi 211 explicit-renaming))
@@ -34,7 +34,7 @@
           string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?
           substring string-append string->list list->string vector? make-vector
           vector vector-length vector-ref vector-set! vector->list list->vector
-          procedure? apply map for-each call-with-current-continuation!
+          procedure? apply map for-each call-with-current-continuation
           call-with-input-file call-with-output-file input-port? output-port?
           current-input-port current-output-port open-input-file
           open-output-file close-input-port close-output-port read read-char
