@@ -1,8 +1,8 @@
 (import (scheme base)
         (scheme process-context)
         (srfi 78)
-        (srfi 211 explicit-renaming)
-        (srfi 211 syntactic-closures))
+        (except (srfi 211 syntactic-closures) identifier?)
+        (srfi 211 explicit-renaming))
 
 (letrec-syntax ((my-and (er-macro-transformer
                           (lambda (form rename compare)

@@ -1,10 +1,10 @@
-(import (only (meevax macro) transformer?)
+(import (only (meevax macro) identifier? transformer?)
         (scheme base)
         (scheme cxr)
         (scheme process-context)
         (srfi 78)
-        (srfi 211 syntactic-closures)
-        (srfi 211 explicit-renaming)
+        (except (srfi 211 syntactic-closures) identifier?)
+        (except (srfi 211 explicit-renaming) identifier?)
         )
 
 (define (traditional-macro-transformer f)

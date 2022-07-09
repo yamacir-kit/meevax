@@ -1,7 +1,7 @@
 (import (scheme base)
         (scheme process-context)
         (srfi 78)
-        (srfi 211 syntactic-closures)
+        (except (srfi 211 syntactic-closures) identifier?)
         (srfi 211 explicit-renaming))
 
 ; (check (symbol? (syntax x)) => #f)

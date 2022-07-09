@@ -220,7 +220,16 @@ inline namespace kernel
     for (let const& identity : resolve(import_set))
     {
       assert(identity.is<absolute>());
-      define(identity.as<absolute>().symbol(), identity.as<absolute>().load());
+
+      if (let const& variable = identity.as<absolute>().symbol(); not eq((*this)[variable], undefined) and not interactive)
+      {
+        throw error(make<string>("In a program or library declaration, it is an error to import the same identifier more than once with different bindings"),
+                    list(import_set, variable));
+      }
+      else
+      {
+        define(identity.as<absolute>().symbol(), identity.as<absolute>().load());
+      }
     }
   }
 

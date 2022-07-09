@@ -1,10 +1,10 @@
 (define-library (scheme r4rs)
   (import (meevax inexact)
-          (meevax number) ; for exact-integer?
-          (meevax port) ; for read-ready?
-          (meevax string) ; for string-copy
-          (meevax syntax) ; for define-syntax
-          (meevax vector) ; for vector-fill!
+          (only (meevax number) exact-integer? expt exact inexact ratio?)
+          (only (meevax port) read-ready? standard-input-port standard-output-port)
+          (only (meevax string) string-copy)
+          (only (meevax syntax) define-syntax)
+          (only (meevax vector) vector-fill!)
           (scheme r4rs essential)
           (srfi 45)
           (srfi 211 explicit-renaming))

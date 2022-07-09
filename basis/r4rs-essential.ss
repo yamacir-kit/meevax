@@ -556,9 +556,9 @@
                result))
            (call-with-output-port (open-output-file path) f))
 
-         (define current-input-port standard-input-port)  ; r7rs incompatible (current-input-port is standard input)
+         (define current-input-port standard-input-port) ; r7rs incompatible (current-input-port is standard input)
 
-         (define current-output-port standard-output-port)  ; r7rs incompatible (current-output-port is standard output)
+         (define current-output-port standard-output-port) ; r7rs incompatible (current-output-port is standard output)
 
          (define (read . port)
            (%read (if (pair? port)
