@@ -92,6 +92,8 @@ inline namespace kernel
 
     auto load(external_representation const&) -> value_type;
 
+    auto resolve(const_reference) -> value_type;
+
     auto scope() const noexcept -> const_reference;
 
     auto scope() noexcept -> reference;

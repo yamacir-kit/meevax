@@ -104,7 +104,7 @@ inline namespace kernel
     return second;
   }
 
-  auto resolve(const_reference declaration) -> value_type
+  auto environment::resolve(const_reference declaration) -> value_type
   {
     if (car(declaration).as<symbol>().value == "only") /* ----------------------
     *
@@ -112,13 +112,13 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      auto only = [](let const& import_set)
+      auto only = [this](let const& import_set)
       {
         return [=](let const& identifiers)
         {
           return filter([&](let const& identity)
                         {
-                          return select(memq(identity.as<meevax::identity>().symbol(),
+                          return select(memq(identity.as<absolute>().symbol(),
                                              identifiers));
                         },
                         resolve(import_set));
@@ -134,13 +134,13 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      auto except = [](let const& import_set)
+      auto except = [this](let const& import_set)
       {
         return [=](let const& identifiers)
         {
           return filter([&](let const& identity)
                         {
-                          return not select(memq(identity.as<meevax::identity>().symbol(),
+                          return not select(memq(identity.as<absolute>().symbol(),
                                                  identifiers));
                         },
                         resolve(import_set));
@@ -152,11 +152,26 @@ inline namespace kernel
     }
     else if (car(declaration).as<symbol>().value == "prefix") /* ---------------
     *
-    *  <declaration> = (prefix <import set> <identifier> ...)
+    *  <declaration> = (prefix <import set> <identifier>)
     *
     * ----------------------------------------------------------------------- */
     {
-      throw error(make<string>("Unsupported"), car(declaration));
+      auto prefix = [this](let const& import_set)
+      {
+        return [=](let const& identifier)
+        {
+          return map1([&](let const& identity)
+                      {
+                        return make<absolute>(intern(identifier.as<symbol>().value +
+                                                     identity.as<absolute>().symbol().as<symbol>().value),
+                                              identity.as<absolute>().load());
+                      },
+                      resolve(import_set));
+        };
+      };
+
+      return prefix(cadr(declaration))
+                   (caddr(declaration));
     }
     else if (car(declaration).as<symbol>().value == "rename") /* ---------------
     *
