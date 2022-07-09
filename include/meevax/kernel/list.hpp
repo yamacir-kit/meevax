@@ -253,6 +253,38 @@ inline namespace kernel
   {
     return member(std::forward<decltype(xs)>(xs)..., eq);
   };
+
+  auto filter = [](auto&& satisfy, const_reference xs)
+  {
+    auto recur = [&](auto&& recur, let const& xs)
+    {
+      if (xs.is<null>())
+      {
+        return xs;
+      }
+      else
+      {
+        if (let const& head = car(xs),
+                       rest = cdr(xs); satisfy(head))
+        {
+          if (let const& new_tail = recur(recur, rest); eq(rest, new_tail))
+          {
+            return xs;
+          }
+          else
+          {
+            return cons(head, new_tail);
+          }
+        }
+        else
+        {
+          return recur(recur, rest);
+        }
+      }
+    };
+
+    return z(recur)(xs);
+  };
 } // namespace kernel
 } // namespace meevax
 

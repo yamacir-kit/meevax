@@ -104,70 +104,76 @@ inline namespace kernel
     return second;
   }
 
-  auto resolve(const_reference import_set) -> value_type
+  auto resolve(const_reference declaration) -> value_type
   {
-    if (car(import_set).as<symbol>().value == "only") /* -----------------------
+    if (car(declaration).as<symbol>().value == "only") /* ----------------------
     *
-    *  (only <import set> <identifier> ...)
+    *  <declaration> = (only <import set> <identifier> ...)
     *
     * ----------------------------------------------------------------------- */
     {
-      let const identities = resolve(cadr(import_set));
-
-      return map1([&](let const& identifier)
+      auto only = [](let const& import_set)
       {
-        if (let const& identity = assq(identifier, identities); select(identity))
+        return [=](let const& identifiers)
         {
-          return identity;
-        }
-        else
-        {
-          throw error(make<string>("No such identifier"), identity);
-        }
-      }, cddr(import_set));
+          return filter([&](let const& identity)
+                        {
+                          return select(memq(identity.as<meevax::identity>().symbol(),
+                                             identifiers));
+                        },
+                        resolve(import_set));
+        };
+      };
+
+      return only(cadr(declaration))
+                 (cddr(declaration));
     }
-    else if (car(import_set).as<symbol>().value == "except") /* ----------------
+    else if (car(declaration).as<symbol>().value == "except") /* ---------------
     *
-    *  (except <import set> <identifier> ...)
+    *  <declaration> = (except <import set> <identifier> ...)
     *
     * ----------------------------------------------------------------------- */
     {
-      let result = unit;
-
-      for (let const& id : resolve(cadr(import_set)))
+      auto except = [](let const& import_set)
       {
-        if (let const& x = memq(id, cddr(import_set)); not select(x))
+        return [=](let const& identifiers)
         {
-          result = cons(id, result);
-        }
-      }
+          return filter([&](let const& identity)
+                        {
+                          return not select(memq(identity.as<meevax::identity>().symbol(),
+                                                 identifiers));
+                        },
+                        resolve(import_set));
+        };
+      };
 
-      return result;
+      return except(cadr(declaration))
+                   (cddr(declaration));
     }
-    else if (car(import_set).as<symbol>().value == "prefix") /* ----------------
+    else if (car(declaration).as<symbol>().value == "prefix") /* ---------------
     *
-    *  (prefix <import set> <identifier> ...)
+    *  <declaration> = (prefix <import set> <identifier> ...)
     *
     * ----------------------------------------------------------------------- */
     {
-      throw error(make<string>("Unsupported"), car(import_set));
+      throw error(make<string>("Unsupported"), car(declaration));
     }
-    else if (car(import_set).as<symbol>().value == "rename") /* ----------------
+    else if (car(declaration).as<symbol>().value == "rename") /* ---------------
     *
-    *  (rename <import set>
-    *          (<identifier 1> <identifier 2>) ...)
+    *  <declaration> = (rename <import set>
+    *                          (<identifier 1> <identifier 2>) ...)
     *
     * ----------------------------------------------------------------------- */
     {
-      throw error(make<string>("Unsupported"), car(import_set));
+      throw error(make<string>("Unsupported"), car(declaration));
     }
-    else if (auto iter = libraries.find(lexical_cast<external_representation>(import_set)); iter != std::end(libraries))
+    else if (auto iter = libraries.find(lexical_cast<external_representation>(declaration)); iter != std::end(libraries))
     {
       return std::get<1>(*iter).exported_identities();
     }
     else
     {
-      throw error(make<string>("No such library"), import_set);
+      throw error(make<string>("No such library"), declaration);
     }
   }
 

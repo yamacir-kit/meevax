@@ -1,4 +1,4 @@
-(import (scheme r5rs)
+(import (scheme base)
         (scheme process-context))
 
 (define (ack m n)
