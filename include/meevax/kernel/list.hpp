@@ -256,7 +256,7 @@ inline namespace kernel
 
   auto filter = [](auto&& satisfy, const_reference xs)
   {
-    auto recur = [&](auto&& recur, let const& xs)
+    auto filter = [&](auto&& filter, let const& xs)
     {
       if (xs.is<null>())
       {
@@ -267,23 +267,23 @@ inline namespace kernel
         if (let const& head = car(xs),
                        rest = cdr(xs); satisfy(head))
         {
-          if (let const& new_tail = recur(recur, rest); eq(rest, new_tail))
+          if (let const& filtered = filter(filter, rest); eq(rest, filtered))
           {
             return xs;
           }
           else
           {
-            return cons(head, new_tail);
+            return cons(head, filtered);
           }
         }
         else
         {
-          return recur(recur, rest);
+          return filter(filter, rest);
         }
       }
     };
 
-    return z(recur)(xs);
+    return z(filter)(xs);
   };
 } // namespace kernel
 } // namespace meevax

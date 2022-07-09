@@ -51,7 +51,7 @@ inline namespace kernel
 
     auto export_(external_representation const&) -> void;
 
-    auto exported_identities() -> const_reference;
+    auto resolve() -> const_reference;
 
     #define DEFINE_BASIS_LIBRARY(NAME)                                         \
     struct NAME##_library_t                                                    \

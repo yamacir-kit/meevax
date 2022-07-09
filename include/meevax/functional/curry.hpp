@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_FUNCTIONAL_CURRY_HPP
 #define INCLUDED_MEEVAX_FUNCTIONAL_CURRY_HPP
 
+#include <tuple>
 #include <utility>
 
 namespace meevax

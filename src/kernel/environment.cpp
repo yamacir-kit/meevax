@@ -169,7 +169,7 @@ inline namespace kernel
     }
     else if (auto iter = libraries.find(lexical_cast<external_representation>(declaration)); iter != std::end(libraries))
     {
-      return std::get<1>(*iter).exported_identities();
+      return std::get<1>(*iter).resolve();
     }
     else
     {
