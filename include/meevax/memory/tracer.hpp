@@ -21,7 +21,6 @@
 #include <cstdint> // std::uintptr_t
 #include <functional> // std::less
 
-#include <meevax/memory/deallocator.hpp>
 #include <meevax/memory/marker.hpp>
 #include <meevax/utility/debug.hpp>
 
@@ -35,12 +34,12 @@ inline namespace memory
 
     std::size_t const size;
 
-    deallocator<void>::signature const deallocate;
+    using deallocator = void (*)(void *);
+
+    deallocator const deallocate;
 
   public:
-    explicit tracer(void * const,
-                    std::size_t const,
-                    deallocator<void>::signature const = nullptr);
+    explicit tracer(void * const, std::size_t const, deallocator const = nullptr);
 
     ~tracer();
 

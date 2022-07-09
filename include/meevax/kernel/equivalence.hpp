@@ -23,39 +23,17 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto eq = [](auto const& x, auto const& y) constexpr // address=? or reference=?
+  auto eq = [](auto const& x, auto const& y) constexpr
   {
     return x == y;
   };
 
-  auto eqv = [](auto const& x, auto const& y) // value=?
+  auto eqv = [](auto const& x, auto const& y)
   {
     return eq(x, y) or x.compare(y);
   };
 
-  auto equal(const_reference, const_reference) -> bool; // structure=?
-
-  template <std::size_t Coarseness = 0>
-  struct equivalence_comparator;
-
-  #define SPECIALIZE_EQUIVALENCE_COMPARATOR(COARSENESS, COMPARE)               \
-  template <>                                                                  \
-  struct equivalence_comparator<COARSENESS>                                    \
-  {                                                                            \
-    template <typename... Ts>                                                  \
-    constexpr auto operator ()(Ts&&... xs) const -> bool                       \
-    {                                                                          \
-      return COMPARE(std::forward<decltype(xs)>(xs)...);                       \
-    }                                                                          \
-  }
-
-  SPECIALIZE_EQUIVALENCE_COMPARATOR(0, eq);
-  SPECIALIZE_EQUIVALENCE_COMPARATOR(1, eqv);
-  SPECIALIZE_EQUIVALENCE_COMPARATOR(2, equal);
-
-  #undef SPECIALIZE_EQUIVALENCE_COMPARATOR
-
-  using default_equivalence_comparator = equivalence_comparator<>;
+  auto equal(const_reference, const_reference) -> bool;
 } // namespace kernel
 } // namespace meevax
 

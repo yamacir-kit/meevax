@@ -28,36 +28,35 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto unwrap = [](auto&& x) -> decltype(auto)
+  template <auto N, typename T>
+  auto field(T&& x) -> decltype(auto)
   {
-    using type = typename std::decay<decltype(x)>::type;
-
-    if constexpr (std::is_same<type, iterator>::value)
+    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, iterator>)
     {
-      return x.get().template as<pair>();
+      return std::get<N>(*x.get());
     }
-    else if constexpr (std::is_same<type, lvalue>::value)
+    else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, value_type>)
     {
-      return x.template as<pair>();
+      return x.template is<null>() ? unit : std::get<N>(*x);
     }
     else
     {
-      return std::forward<decltype(x)>(x);
+      return std::get<N>(x);
     }
-  };
+  }
 
   auto car = [](auto&& x) -> decltype(auto)
   {
-    return std::get<0>(unwrap(std::forward<decltype(x)>(x)));
+    return field<0>(std::forward<decltype(x)>(x));
   };
 
   auto cdr = [](auto&& x) -> decltype(auto)
   {
-    return std::get<1>(unwrap(std::forward<decltype(x)>(x)));
+    return field<1>(std::forward<decltype(x)>(x));
   };
 
-  template <typename T, typename U, REQUIRES(std::is_convertible<T, lvalue>,
-                                             std::is_convertible<U, lvalue>)>
+  template <typename T, typename U, REQUIRES(std::is_convertible<T, value_type>,
+                                             std::is_convertible<U, value_type>)>
   auto operator |(T&& x, U&& y) -> decltype(auto)
   {
     return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
@@ -104,7 +103,7 @@ inline namespace kernel
 
   auto list_copy = [](auto const& x)
   {
-    auto copy = [](auto&& rec, const_reference x) -> lvalue
+    auto copy = [](auto&& rec, const_reference x) -> value_type
     {
       if (x.is<pair>())
       {
@@ -178,32 +177,32 @@ inline namespace kernel
     return car(list_tail(std::forward<decltype(xs)>(xs)...));
   };
 
-  auto take(const_reference, std::size_t) -> lvalue;
+  auto take(const_reference, std::size_t) -> value_type;
 
   auto length = [](auto const& x) constexpr
   {
     return std::distance(std::cbegin(x), std::cend(x));
   };
 
-  auto append2(const_reference, const_reference) -> lvalue;
+  auto append2(const_reference, const_reference) -> value_type;
 
-  auto reverse(const_reference) -> lvalue;
+  auto reverse(const_reference) -> value_type;
 
-  auto zip(const_reference, const_reference) -> lvalue;
+  auto zip(const_reference, const_reference) -> value_type;
 
-  auto unzip1(const_reference xs) -> lvalue;
+  auto unzip1(const_reference xs) -> value_type;
 
-  auto unzip2(const_reference xs) -> std::tuple<lvalue, lvalue>;
+  auto unzip2(const_reference xs) -> std::tuple<value_type, value_type>;
 
-  template <typename Function>
-  auto map(Function&& function, const_reference x) -> lvalue
+  template <typename F>
+  auto map1(F&& f, const_reference x) -> value_type
   {
-    return x.is<null>() ? unit : cons(function(car(x)), map(function, cdr(x)));
+    return x.is<null>() ? unit : cons(f(car(x)), map1(f, cdr(x)));
   }
 
-  auto find = [](const_reference x, auto&& predicate) constexpr -> const_reference
+  auto find = [](const_reference xs, auto&& compare) constexpr -> const_reference
   {
-    if (auto const& iter = std::find_if(std::cbegin(x), std::cend(x), std::forward<decltype(predicate)>(predicate)); iter)
+    if (auto&& iter = std::find_if(std::begin(xs), std::end(xs), compare); iter)
     {
       return *iter;
     }
@@ -213,27 +212,78 @@ inline namespace kernel
     }
   };
 
-  auto assoc = [](const_reference key, const_reference alist, auto&& compare = equivalence_comparator<2>()) -> const_reference
+  auto assoc = [](const_reference x, const_reference xs, auto&& compare)
   {
-    return find(alist, [&](auto&& each)
-    {
-      return compare(car(each), key);
-    });
+    return find(xs, [&](auto&& each) { return compare(x, car(each)); });
   };
 
-  auto assv = [](auto&&... xs) -> const_reference
+  auto assv = [](auto&&... xs)
   {
-    return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<1>());
+    return assoc(std::forward<decltype(xs)>(xs)..., eqv);
   };
 
-  auto assq = [](auto&&... xs) -> const_reference
+  auto assq = [](auto&&... xs)
   {
-    return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<0>());
+    return assoc(std::forward<decltype(xs)>(xs)..., eq);
   };
 
-  auto alist_cons = [](auto&& key, auto&& datum, auto&& alist) constexpr
+  auto alist_cons = [](auto&& key, auto&& datum, auto&& alist)
   {
     return cons(cons(key, datum), alist);
+  };
+
+  auto member = [](const_reference x, const_reference xs, auto&& compare)
+  {
+    if (auto&& iter = std::find_if(std::begin(xs), std::end(xs), [&](auto&& each) { return compare(x, each); }); iter)
+    {
+      return iter.get();
+    }
+    else
+    {
+      return f;
+    }
+  };
+
+  auto memv = [](auto&&... xs)
+  {
+    return member(std::forward<decltype(xs)>(xs)..., eqv);
+  };
+
+  auto memq = [](auto&&... xs)
+  {
+    return member(std::forward<decltype(xs)>(xs)..., eq);
+  };
+
+  auto filter = [](auto&& satisfy, const_reference xs)
+  {
+    auto filter = [&](auto&& filter, let const& xs)
+    {
+      if (xs.is<null>())
+      {
+        return xs;
+      }
+      else
+      {
+        if (let const& head = car(xs),
+                       rest = cdr(xs); satisfy(head))
+        {
+          if (let const& filtered = filter(filter, rest); eq(rest, filtered))
+          {
+            return xs;
+          }
+          else
+          {
+            return cons(head, filtered);
+          }
+        }
+        else
+        {
+          return filter(filter, rest);
+        }
+      }
+    };
+
+    return z(filter)(xs);
   };
 } // namespace kernel
 } // namespace meevax

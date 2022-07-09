@@ -44,7 +44,7 @@ inline namespace kernel
         case 'v': emplace_back('\v'); break;
 
         case 'x':
-          if (std::string token; std::getline(is, token, ';') and is.ignore(1))
+          if (external_representation token; std::getline(is, token, ';') and is.ignore(1))
           {
             if (std::stringstream ss; ss << std::hex << token)
             {
@@ -81,11 +81,11 @@ inline namespace kernel
     : string { is }
   {}
 
-  string::string(std::string const& s)
+  string::string(external_representation const& s)
     : string { std::stringstream(s + "\"") }
   {}
 
-  auto string::list(size_type from, size_type to) const -> lvalue
+  auto string::list(size_type from, size_type to) const -> meevax::value_type
   {
     let x = unit;
 
@@ -97,18 +97,18 @@ inline namespace kernel
     return x;
   }
 
-  auto string::list(size_type from) const -> lvalue
+  auto string::list(size_type from) const -> meevax::value_type
   {
     return list(from, size());
   }
 
-  string::operator std::string() const
+  string::operator external_representation() const
   {
-    std::string result;
+    external_representation result;
 
     for (character const& each : *this)
     {
-      result.append(static_cast<std::string>(each));
+      result.append(static_cast<external_representation>(each));
     }
 
     return result;

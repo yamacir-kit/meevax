@@ -20,7 +20,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  let const unit { nullptr };
+  let unit { nullptr };
 
   auto operator <<(std::ostream & os, pair const& pare) -> std::ostream &
   {

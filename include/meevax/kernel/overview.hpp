@@ -44,17 +44,21 @@ inline namespace kernel
   template <template <typename...> typename, typename, typename...>
   class heterogeneous;
 
-  using lvalue = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, mnemonic>;
+  using value_type = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, mnemonic>;
 
-  using                   let = lvalue;
-  using       reference = let &;
-  using const_reference = let const&;
+  using reference = value_type &;
+
+  using const_reference = value_type const&;
+
+  using let = value_type;
 
   using null = std::nullptr_t;
 
+  using external_representation = std::string;
+
   struct number
   {
-    #define DEFINE(NAME) virtual auto NAME() const -> lvalue = 0
+    #define DEFINE(NAME) virtual auto NAME() const -> value_type = 0
 
     DEFINE(exact); DEFINE(inexact);
 
@@ -66,8 +70,8 @@ inline namespace kernel
 
     #undef DEFINE
 
-    virtual auto atan2(const_reference) const -> lvalue = 0;
-    virtual auto pow  (const_reference) const -> lvalue = 0;
+    virtual auto atan2(const_reference) const -> value_type = 0;
+    virtual auto pow  (const_reference) const -> value_type = 0;
 
     virtual auto is_complex () const -> bool { return true ; }
     virtual auto is_real    () const -> bool { return false; }
@@ -78,11 +82,11 @@ inline namespace kernel
     virtual auto is_infinite() const -> bool { return false; }
     virtual auto is_nan     () const -> bool { return false; }
 
-    virtual auto operator + (const_reference) const -> lvalue = 0;
-    virtual auto operator - (const_reference) const -> lvalue = 0;
-    virtual auto operator * (const_reference) const -> lvalue = 0;
-    virtual auto operator / (const_reference) const -> lvalue = 0;
-    virtual auto operator % (const_reference) const -> lvalue = 0;
+    virtual auto operator + (const_reference) const -> value_type = 0;
+    virtual auto operator - (const_reference) const -> value_type = 0;
+    virtual auto operator * (const_reference) const -> value_type = 0;
+    virtual auto operator / (const_reference) const -> value_type = 0;
+    virtual auto operator % (const_reference) const -> value_type = 0;
 
     virtual auto operator ==(const_reference) const -> bool = 0;
     virtual auto operator !=(const_reference) const -> bool = 0;

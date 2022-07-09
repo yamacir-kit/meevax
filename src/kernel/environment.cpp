@@ -21,97 +21,22 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto environment::operator [](const_reference name) -> const_reference
-  {
-    return identify(name, scope()).as<absolute>().load();
-  }
-
-  auto environment::operator [](std::string const& name) -> const_reference
-  {
-    return (*this)[intern(name)];
-  }
-
-  auto environment::apply(const_reference f, const_reference xs) -> lvalue
-  {
-    assert(f.is<closure>() or f.is<procedure>() or f.is<continuation>());
-
-    auto dump = std::make_tuple(std::exchange(s, list(f, xs)),
-                                std::exchange(e, unit),
-                                std::exchange(c, list(make(mnemonic::call),
-                                                      make(mnemonic::stop))),
-                                std::exchange(d, unit));
-
-    let const result = execute();
-
-    s = std::get<0>(dump);
-    e = std::get<1>(dump);
-    c = std::get<2>(dump);
-    d = std::get<3>(dump);
-
-    return result;
-  }
-
-  auto resolve_import_set(const_reference import_set) -> lvalue
-  {
-    if (car(import_set).as<symbol>().value == "only")
-    {
-      let const exported_bindings = resolve_import_set(cadr(import_set));
-
-      let filtered_bindings = unit;
-
-      for (let const& identifier : cddr(import_set))
-      {
-        if (let const& binding = assq(identifier, exported_bindings); select(binding))
-        {
-          filtered_bindings = cons(binding, filtered_bindings);
-        }
-        else
-        {
-          throw error(make<string>("no such identifier"), identifier);
-        }
-      }
-
-      return filtered_bindings;
-    }
-    else if (auto iter = libraries.find(lexical_cast<std::string>(import_set)); iter != std::end(libraries))
-    {
-      return std::get<1>(*iter).resolve_export_specs();
-    }
-    else
-    {
-      throw error(make<string>("no such library"), import_set);
-    }
-  }
-
-  auto environment::declare_import(const_reference import_set) -> void
-  {
-    let const bindings = resolve_import_set(import_set);
-
-    for (let const& binding : bindings)
-    {
-      define(binding.as<absolute>().symbol(),
-             binding.as<absolute>().load());
-    }
-  }
-
   auto environment::define(const_reference name, const_reference value) -> void
   {
-    assert(name.is_also<identifier>());
-
-    global() = make<absolute>(name, value) | global();
+    (*this)[name] = value;
   }
 
-  auto environment::define(std::string const& name, const_reference value) -> void
+  auto environment::define(external_representation const& name, const_reference value) -> void
   {
     define(intern(name), value);
   }
 
-  auto environment::evaluate(const_reference expression) -> lvalue
+  auto environment::evaluate(const_reference expression) -> value_type
   {
     if (expression.is<pair>() and car(expression).is<symbol>()
                               and car(expression).as<symbol>().value == "define-library")
     {
-      define_library(lexical_cast<std::string>(cadr(expression)), cddr(expression));
+      define_library(lexical_cast<external_representation>(cadr(expression)), cddr(expression));
       return cadr(expression);
     }
     else if (expression.is<pair>() and car(expression).is<symbol>()
@@ -119,10 +44,10 @@ inline namespace kernel
     {
       for (let const& import_set : cdr(expression))
       {
-        declare_import(import_set);
+        import_(import_set);
       }
 
-      return unspecified_object;
+      return unspecified;
     }
     else
     {
@@ -135,11 +60,6 @@ inline namespace kernel
 
       c = optimize(c);
 
-      if (debug)
-      {
-        disassemble(debug_port().as<std::ostream>(), c);
-      }
-
       let const result = execute();
 
       assert(s.is<null>());
@@ -151,15 +71,27 @@ inline namespace kernel
     }
   }
 
-  auto environment::execute() -> lvalue
+  auto environment::execute() -> value_type
   {
     return trace ? machine::execute<true>() : machine::execute();
   }
 
-  auto environment::execute(const_reference code) -> lvalue
+  auto environment::execute(const_reference code) -> value_type
   {
     c = code;
     return execute();
+  }
+
+  auto environment::fork() const -> value_type
+  {
+    return make<environment>(*this);
+  }
+
+  auto environment::fork(const_reference scope) const -> value_type
+  {
+    let const copy = make<environment>(*this);
+    copy.as<environment>().scope() = scope;
+    return copy;
   }
 
   auto environment::global() const noexcept -> const_reference
@@ -172,7 +104,141 @@ inline namespace kernel
     return second;
   }
 
-  auto environment::load(std::string const& s) -> lvalue
+  auto environment::resolve(const_reference declaration) -> value_type
+  {
+    if (car(declaration).as<symbol>().value == "only") /* ----------------------
+    *
+    *  <declaration> = (only <import set> <identifier> ...)
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      auto only = [this](let const& import_set)
+      {
+        return [=](let const& identifiers)
+        {
+          return filter([&](let const& identity)
+                        {
+                          return select(memq(identity.as<absolute>().symbol(),
+                                             identifiers));
+                        },
+                        resolve(import_set));
+        };
+      };
+
+      return only(cadr(declaration))
+                 (cddr(declaration));
+    }
+    else if (car(declaration).as<symbol>().value == "except") /* ---------------
+    *
+    *  <declaration> = (except <import set> <identifier> ...)
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      auto except = [this](let const& import_set)
+      {
+        return [=](let const& identifiers)
+        {
+          return filter([&](let const& identity)
+                        {
+                          return not select(memq(identity.as<absolute>().symbol(),
+                                                 identifiers));
+                        },
+                        resolve(import_set));
+        };
+      };
+
+      return except(cadr(declaration))
+                   (cddr(declaration));
+    }
+    else if (car(declaration).as<symbol>().value == "prefix") /* ---------------
+    *
+    *  <declaration> = (prefix <import set> <identifier>)
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      auto prefix = [this](let const& import_set)
+      {
+        return [=](let const& prefixes)
+        {
+          return map1([&](let const& identity)
+                      {
+                        return make<absolute>(intern(car(prefixes).as<symbol>().value +
+                                                     identity.as<absolute>().symbol().as<symbol>().value),
+                                              identity.as<absolute>().load());
+                      },
+                      resolve(import_set));
+        };
+      };
+
+      return prefix(cadr(declaration))
+                   (cadr(declaration));
+    }
+    else if (car(declaration).as<symbol>().value == "rename") /* ---------------
+    *
+    *  <declaration> = (rename <import set>
+    *                          (<identifier 1> <identifier 2>) ...)
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      auto rename = [this](let const& import_set)
+      {
+        return [=](let const& renamings)
+        {
+          return map1([&](let const& identity)
+                      {
+                        if (let const& renaming = assq(identity.as<absolute>().symbol(),
+                                                       renamings);
+                            select(renaming))
+                        {
+                          assert(cadr(renaming).is<symbol>());
+                          return make<absolute>(cadr(renaming), identity.as<absolute>().load());
+                        }
+                        else
+                        {
+                          return identity;
+                        }
+                      },
+                      resolve(import_set));
+        };
+      };
+
+      return rename(cadr(declaration))
+                   (cddr(declaration));
+    }
+    else if (auto iter = libraries.find(lexical_cast<external_representation>(declaration)); iter != std::end(libraries))
+    {
+      return std::get<1>(*iter).resolve();
+    }
+    else
+    {
+      throw error(make<string>("No such library"), declaration);
+    }
+  }
+
+  auto environment::import_(const_reference import_set) -> void
+  {
+    for (let const& identity : resolve(import_set))
+    {
+      assert(identity.is<absolute>());
+
+      if (let const& variable = identity.as<absolute>().symbol(); not eq((*this)[variable], undefined) and not interactive)
+      {
+        throw error(make<string>("In a program or library declaration, it is an error to import the same identifier more than once with different bindings"),
+                    list(import_set, variable));
+      }
+      else
+      {
+        define(identity.as<absolute>().symbol(), identity.as<absolute>().load());
+      }
+    }
+  }
+
+  auto environment::import_(external_representation const& import_set) -> void
+  {
+    import_(read(import_set));
+  }
+
+  auto environment::load(external_representation const& s) -> value_type
   {
     if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
     {
@@ -181,7 +247,7 @@ inline namespace kernel
         evaluate(e);
       }
 
-      return unspecified_object;
+      return unspecified;
     }
     else
     {
@@ -199,7 +265,7 @@ inline namespace kernel
     return first;
   }
 
-  auto environment::identify(const_reference variable, const_reference scope) const -> lvalue
+  auto environment::identify(const_reference variable, const_reference scope) const -> value_type
   {
     if (not variable.is_also<identifier>())
     {
@@ -215,7 +281,7 @@ inline namespace kernel
     }
   }
 
-  auto environment::identify(const_reference variable, const_reference scope) -> lvalue
+  auto environment::identify(const_reference variable, const_reference scope) -> value_type
   {
     if (not variable.is_also<identifier>())
     {
@@ -242,23 +308,21 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      define(variable);
-
-      return car(global());
+      return car(global() = make<absolute>(variable, undefined) | global());
     }
   }
 
   auto operator >>(std::istream & is, environment & datum) -> std::istream &
   {
-    datum.print("environment::operator >>(std::istream &, environment &)");
-    datum.print("read new expression => ", datum.read(is));
+    print("environment::operator >>(std::istream &, environment &)");
+    print("read new expression => ", datum.read(is));
 
     return is;
   }
 
-  auto operator <<(std::ostream & os, environment & datum) -> std::ostream &
+  auto operator <<(std::ostream & os, environment &) -> std::ostream &
   {
-    return datum.write(os, "environment::operator <<(std::ostream &, environment &)\n");
+    return write(os, "environment::operator <<(std::ostream &, environment &)\n");
   }
 
   auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &
@@ -271,7 +335,5 @@ inline namespace kernel
   template class machine<environment>;
 
   template class reader<environment>;
-
-  template class writer<environment>;
 } // namespace kernel
 } // namespace meevax

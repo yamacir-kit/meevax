@@ -1,7 +1,7 @@
 (define-library (scheme r5rs continuation)
   (import (meevax context)
-          (meevax syntax)
-          (scheme r4rs essential))
+          (only (meevax syntax) define-syntax)
+          (rename (scheme r4rs) (call-with-current-continuation r4rs:call/cc)))
 
   (export call-with-current-continuation dynamic-wind exit)
 
@@ -25,10 +25,10 @@
                    (else ((cdar from)) (windup! (cdr from) (cdr to)) ((caar to))))
              (set! %current-dynamic-extents to))
            (let ((current-dynamic-extents %current-dynamic-extents))
-             (call-with-current-continuation! (lambda (k1)
-                                                (procedure (lambda (k2)
-                                                             (windup! %current-dynamic-extents current-dynamic-extents)
-                                                             (k1 k2)))))))
+             (r4rs:call/cc (lambda (k1)
+                             (procedure (lambda (k2)
+                                          (windup! %current-dynamic-extents current-dynamic-extents)
+                                          (k1 k2)))))))
 
          (define (exit . normally?)
            (for-each (lambda (before/after)
@@ -39,9 +39,9 @@
 (define-library (scheme r5rs)
   (import (meevax environment)
           (meevax evaluate)
-          (meevax syntax) ; for let-syntax letrec-syntax
-          (scheme r4rs)
-          (scheme r5rs continuation)
+          (only (meevax syntax) define-syntax let-syntax letrec-syntax)
+          (except (scheme r4rs) call-with-current-continuation)
+          (except (scheme r5rs continuation) exit)
           (srfi 149))
 
   (export quote lambda if set! cond case and or let let* letrec begin do delay

@@ -24,8 +24,8 @@
 ; THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 (define-library (srfi 149)
-  (import (meevax macro)
-          (meevax syntax) ; for define-syntax
+  (import (only (meevax macro) identifier->symbol)
+          (only (meevax syntax) define-syntax quote-syntax)
           (scheme r4rs)
           (srfi 211 explicit-renaming)
           )

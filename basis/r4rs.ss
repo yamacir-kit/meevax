@@ -1,10 +1,10 @@
 (define-library (scheme r4rs)
   (import (meevax inexact)
-          (meevax number) ; for exact-integer?
-          (meevax port) ; for read-ready?
-          (meevax string) ; for string-copy
-          (meevax syntax) ; for define-syntax
-          (meevax vector) ; for vector-fill!
+          (only (meevax number) exact-integer? expt exact inexact ratio?)
+          (only (meevax port) read-ready? standard-input-port standard-output-port)
+          (only (meevax string) string-copy)
+          (only (meevax syntax) define-syntax)
+          (only (meevax vector) vector-fill!)
           (scheme r4rs essential)
           (srfi 45)
           (srfi 211 explicit-renaming))
@@ -32,7 +32,7 @@
           string-append string->list list->string string-copy string-fill!
           vector? make-vector vector vector-length vector-ref vector-set!
           vector->list list->vector vector-fill! procedure? apply map for-each
-          force call-with-current-continuation! call-with-input-file
+          force call-with-current-continuation call-with-input-file
           call-with-output-file input-port? output-port? current-input-port
           current-output-port with-input-from-file with-output-to-file
           open-input-file open-output-file close-input-port close-output-port

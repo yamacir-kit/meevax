@@ -23,50 +23,23 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename Environment>
-  class writer
+  template <typename... Ts>
+  auto write(std::ostream & os, Ts&&... xs) -> std::ostream &
   {
-    friend Environment;
+    return (os << ... << xs);
+  }
 
-    explicit writer()
-    {}
+  template <typename... Ts>
+  auto write(const_reference x, Ts&&... xs) -> decltype(auto)
+  {
+    return write(x.as<std::ostream>(), std::forward<decltype(xs)>(xs)...);
+  }
 
-  public:
-    template <typename... Ts>
-    static auto write(std::ostream & os, Ts&&... xs) -> std::ostream &
-    {
-      return (os << ... << xs);
-    }
-
-    template <typename... Ts>
-    static auto write(const_reference x, Ts&&... xs) -> decltype(auto)
-    {
-      return write(x.as<std::ostream>(), std::forward<decltype(xs)>(xs)...);
-    }
-
-    template <typename... Ts>
-    static auto print(Ts&&... xs) -> decltype(auto)
-    {
-      return write(standard_output, std::forward<decltype(xs)>(xs)..., '\n');
-    }
-
-  public:
-    static auto null_port() -> const_reference
-    {
-      let static port = make<output_file_port>("/dev/null");
-      return port;
-    }
-
-    static auto verbose_port() -> const_reference
-    {
-      return Environment::verbose ? standard_output : null_port();
-    }
-
-    static auto debug_port() -> const_reference
-    {
-      return Environment::debug ? standard_error : null_port();
-    }
-  };
+  template <typename... Ts>
+  auto print(Ts&&... xs) -> decltype(auto)
+  {
+    return write(standard_output, std::forward<decltype(xs)>(xs)..., '\n');
+  }
 } // namespace kernel
 } // namespace meevax
 

@@ -32,7 +32,7 @@ inline namespace kernel
     mpz_init(value);
   }
 
-  exact_integer::exact_integer(value_type given) noexcept
+  exact_integer::exact_integer(mpz_t given) noexcept
   {
     mpz_init_set(value, given);
   }
@@ -67,7 +67,7 @@ inline namespace kernel
     mpz_init_set_d(value, rhs);
   }
 
-  exact_integer::exact_integer(std::string const& s, int radix)
+  exact_integer::exact_integer(external_representation const& s, int radix)
   {
     if (mpz_init_set_str(value, s.c_str(), radix))
     {
@@ -129,7 +129,7 @@ inline namespace kernel
     return *this;
   }
 
-  auto exact_integer::operator=(std::string const& s) -> exact_integer &
+  auto exact_integer::operator=(external_representation const& s) -> exact_integer &
   {
     if (mpz_set_str(value, s.c_str(), 0))
     {
@@ -141,7 +141,7 @@ inline namespace kernel
     }
   }
 
-  auto exact_integer::exact() const -> lvalue
+  auto exact_integer::exact() const -> value_type
   {
     return make(*this);
   }
@@ -160,7 +160,7 @@ inline namespace kernel
     return result;
   }
 
-  auto exact_integer::inexact() const -> lvalue
+  auto exact_integer::inexact() const -> value_type
   {
     return make<double_float>(static_cast<double>(*this));
   }
@@ -170,7 +170,7 @@ inline namespace kernel
     return true;
   }
 
-  auto exact_integer::string(int radix) const -> std::string
+  auto exact_integer::string(int radix) const -> external_representation
   {
     auto deallocate = [](char * data)
     {
@@ -205,7 +205,7 @@ inline namespace kernel
   }
 
   #define DEFINE(NAME)                                                         \
-  auto exact_integer::NAME() const -> lvalue                                   \
+  auto exact_integer::NAME() const -> value_type                               \
   {                                                                            \
     if (const double_float n { std::NAME(static_cast<double>(*this)) }; n.is_integer()) \
     {                                                                          \
@@ -229,7 +229,7 @@ inline namespace kernel
   #undef DEFINE
 
   #define DEFINE(NAME)                                                         \
-  auto exact_integer::NAME(const_reference x) const -> lvalue                  \
+  auto exact_integer::NAME(const_reference x) const -> value_type              \
   {                                                                            \
     if (const double_float n {                                                 \
           std::NAME(static_cast<double>(*this),                                \
@@ -280,7 +280,7 @@ inline namespace kernel
     return mpz_get_d(value);
   }
 
-  exact_integer::operator std::string() const
+  exact_integer::operator external_representation() const
   {
     return string();
   }
@@ -315,7 +315,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, exact_integer const& datum) -> std::ostream &
   {
-    return os << cyan(static_cast<std::string>(datum));
+    return os << cyan(static_cast<external_representation>(datum));
   }
 } // namespace kernel
 } // namespace meevax

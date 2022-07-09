@@ -52,7 +52,7 @@ inline namespace kernel
 
     virtual auto raise() const -> void;
 
-    virtual auto what() const -> std::string;
+    virtual auto what() const -> external_representation;
   };
 
   auto operator <<(std::ostream &, error const&) -> std::ostream &;
@@ -79,6 +79,7 @@ inline namespace kernel
 
     catch (exit_status const value) // NOTE: emergency-exit
     {
+      gc.clear(); // NOTE:
       return underlying_cast(value);
     }
 

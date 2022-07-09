@@ -33,14 +33,14 @@ auto main(int const argc, char const* const* const argv) -> int
     if (main.interactive)
     {
       main.display_version();
-      main.declare_import("(scheme r5rs)");
+      main.import_("(scheme r5rs)");
     }
 
     while (main.interactive and main.char_ready())
     {
-      main.print(u8"\u250c", repeat(u8"\u2500", 79));
-      main.write(standard_output, u8"\u2502\u03bb> ");
-      main.print(main.evaluate(main.read()));
+      print(u8"\u250c", repeat(u8"\u2500", 79));
+      write(standard_output, u8"\u2502\u03bb> ");
+      print(main.evaluate(main.read()));
     }
 
     return underlying_cast(exit_status::success);

@@ -1,4 +1,4 @@
-(import (meevax macro)
+(import (only (meevax macro) syntactic-closure?)
         (scheme base)
         (scheme process-context)
         (srfi 78)

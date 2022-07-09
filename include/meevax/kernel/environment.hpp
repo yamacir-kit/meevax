@@ -32,49 +32,34 @@ inline namespace kernel
                     , public machine<environment>
                     , public optimizer
                     , public reader<environment>
-                    , public writer<environment>
   {
     using pair::pair;
 
   public:
     using configurator::debug;
     using configurator::trace;
-    using configurator::verbose;
 
     using reader::intern;
     using reader::read;
-
-    using writer::print;
-    using writer::debug_port;
-    using writer::write;
 
     explicit environment(environment &&) = default;
 
     explicit environment(environment const&) = default;
 
-    template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
+    template <typename... Ts, REQUIRES(std::is_convertible<Ts, external_representation>...)>
     explicit environment(Ts&&... xs)
     {
       (import(xs), ...);
-
-      // define<procedure>("set-batch!",       [this](let const& xs, auto&&...) { return batch       = select(car(xs)); });
-      // define<procedure>("set-debug!",       [this](let const& xs, auto&&...) { return debug       = select(car(xs)); });
-      // define<procedure>("set-interactive!", [this](let const& xs, auto&&...) { return interactive = select(car(xs)); });
-      // define<procedure>("set-trace!",       [this](let const& xs, auto&&...) { return trace       = select(car(xs)); });
-      // define<procedure>("set-verbose!",     [this](let const& xs, auto&&...) { return verbose     = select(car(xs)); });
     }
 
-    auto operator [](const_reference) -> const_reference;
-
-    auto operator [](std::string const&) -> const_reference;
-
-    auto apply(const_reference, const_reference) -> lvalue;
-
-    auto declare_import(const_reference) -> void;
-
-    auto declare_import(std::string const& import_set) -> void
+    auto operator [](const_reference variable) -> decltype(auto)
     {
-      declare_import(read(import_set));
+      return identify(variable, scope()).as<identity>().load(e);
+    }
+
+    auto operator [](symbol::value_type const& variable) -> decltype(auto)
+    {
+      return (*this)[intern(variable)];
     }
 
     auto define(const_reference, const_reference = undefined) -> void;
@@ -87,37 +72,35 @@ inline namespace kernel
       define(name, make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
-    auto evaluate(const_reference) -> lvalue;
+    auto evaluate(const_reference) -> value_type;
 
-    auto execute() -> lvalue;
+    auto execute() -> value_type;
 
-    auto execute(const_reference) -> lvalue;
+    auto execute(const_reference) -> value_type;
 
-    auto fork() const -> lvalue
-    {
-      return make<environment>(*this);
-    }
+    auto fork() const -> value_type;
 
-    auto fork(const_reference scope) const // DIRTY HACK!!!
-    {
-      let const copy = make<environment>(*this);
-      copy.as<environment>().scope() = scope;
-      return copy;
-    }
+    auto fork(const_reference) const -> value_type;
 
     auto global() noexcept -> reference;
 
     auto global() const noexcept -> const_reference;
 
-    auto load(std::string const&) -> lvalue;
+    auto import_(const_reference) -> void;
+
+    auto import_(external_representation const&) -> void;
+
+    auto load(external_representation const&) -> value_type;
+
+    auto resolve(const_reference) -> value_type;
 
     auto scope() const noexcept -> const_reference;
 
     auto scope() noexcept -> reference;
 
-    auto identify(const_reference, const_reference) -> lvalue;
+    auto identify(const_reference, const_reference) -> value_type;
 
-    auto identify(const_reference, const_reference) const -> lvalue;
+    auto identify(const_reference, const_reference) const -> value_type;
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;
@@ -131,8 +114,6 @@ inline namespace kernel
   extern template class machine<environment>;
 
   extern template class reader<environment>;
-
-  extern template class writer<environment>;
 } // namespace kernel
 } // namespace meevax
 

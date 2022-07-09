@@ -2,8 +2,6 @@
         (scheme process-context)
         (srfi 78))
 
-(define call-with-current-continuation call-with-current-continuation!) ; TEMPORARY
-
 (check (* 5 8) => 40)
 
 ;;; The FACT procedure computes the factorial

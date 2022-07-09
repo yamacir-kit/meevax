@@ -23,32 +23,100 @@ namespace meevax
 {
 inline namespace kernel
 {
-  enum class for_each_in_tag {} constexpr for_each_in {};
-
   struct vector
-    : public std::vector<lvalue>
   {
-    using std::vector<lvalue>::vector;
+    std::vector<value_type> data;
 
-    template <typename InputIterator>
-    explicit vector(for_each_in_tag, InputIterator from, InputIterator to)
-    {
-      std::copy(from, to, std::back_inserter(*this));
-    }
+    using size_type = decltype(data)::size_type;
 
-    explicit vector(for_each_in_tag, const_reference);
+    explicit vector() = default;
 
-    auto fill(const_reference, size_type, size_type) -> void;
+    /*
+       (vector obj ...)                                               procedure
 
-    auto fill(const_reference, size_type = 0) -> void;
+       Returns a newly allocated vector whose elements contain the given
+       arguments. It is analogous to list.
+    */
+    explicit vector(const_reference);
 
-    auto list(size_type, size_type) const -> value_type;
+    /*
+       (make-vector k)                                                procedure
+       (make-vector k fill)                                           procedure
 
-    auto list(size_type = 0) const -> value_type;
+       Returns a newly allocated vector of k elements. If a second argument is
+       given, then each element is initialized to fill. Otherwise the initial
+       contents of each element is unspecified.
+    */
+    explicit vector(const_reference, const_reference);
 
-    auto string(size_type, size_type) const -> value_type;
+    /*
+       (vector-fill! vector fill)                                     procedure
+       (vector-fill! vector fill start)                               procedure
+       (vector-fill! vector fill start end)                           procedure
 
-    auto string(size_type = 0) const -> value_type;
+       The vector-fill! procedure stores fill in the elements of vector between
+       start and end.
+    */
+    auto fill(const_reference, const_reference, const_reference) -> void;
+
+    /*
+       (vector-length vector)                                         procedure
+
+       Returns the number of elements in vector as an exact integer.
+    */
+    auto length() const -> value_type;
+
+    /*
+       (vector->list vector)                                          procedure
+       (vector->list vector start)                                    procedure
+       (vector->list vector start end)                                procedure
+       (list->vector list)                                            procedure
+
+       The vector->list procedure returns a newly allocated list of the objects
+       contained in the elements of vector between start and end. The
+       list->vector procedure returns a newly created vector initialized to the
+       elements of the list list.
+
+       In both procedures, order is preserved.
+    */
+    auto list(const_reference, const_reference) const -> value_type;
+
+    /*
+       (vector-ref vector k)                                          procedure
+
+       It is an error if k is not a valid index of vector. The vector-ref
+       procedure returns the contents of element k of vector.
+    */
+    auto ref(const_reference) const -> const_reference;
+
+    /*
+       (vector-set! vector k obj)                                     procedure
+
+       It is an error if k is not a valid index of vector. The vector-set!
+       procedure stores obj in element k of vector.
+    */
+    auto set(const_reference, const_reference) -> const_reference;
+
+    /*
+       (vector->string vector)                                        procedure
+       (vector->string vector start)                                  procedure
+       (vector->string vector start end)                              procedure
+
+       (string->vector string)                                        procedure
+       (string->vector string start)                                  procedure
+       (string->vector string start end)                              procedure
+
+       It is an error if any element of vector between start and end is not a
+       character.
+
+       The vector->string procedure returns a newly allocated string of the
+       objects contained in the elements of vector between start and end. The
+       string->vector procedure returns a newly created vector initialized to
+       the elements of the string string between start and end.
+
+       In both procedures, order is preserved.
+    */
+    auto string(const_reference, const_reference) const -> value_type;
   };
 
   auto operator ==(vector const&, vector const&) -> bool;

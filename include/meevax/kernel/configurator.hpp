@@ -24,6 +24,7 @@
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
+#include <meevax/kernel/writer.hpp>
 
 namespace meevax
 {
@@ -41,8 +42,6 @@ inline namespace kernel
     IMPORT(environment, load, NIL);
     IMPORT(environment, read, NIL);
 
-    USING_STATIC(environment, print);
-
     template <typename Key>
     using dispatcher = std::unordered_map<Key, procedure::function_type>;
 
@@ -51,7 +50,6 @@ inline namespace kernel
     static inline auto debug       = false;
     static inline auto interactive = true;
     static inline auto trace       = false;
-    static inline auto verbose     = false;
 
     static auto display_version() -> void
     {
@@ -66,14 +64,13 @@ inline namespace kernel
       print();
       print("Options:");
       print("  -b, --batch            Suppress any system output.");
-      print("  -d, --debug            Display detailed informations for developers.");
+      print("  -d, --debug            Deprecated.");
       print("  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.");
       print("  -h, --help             Display this help text and exit.");
       print("  -i, --interactive      Take over control of root environment.");
       print("  -l, --load=FILENAME    Same as -e '(load FILENAME)'");
       print("  -t, --trace            Display stacks of virtual machine for each steps.");
       print("  -v, --version          Display version information and exit.");
-      print("      --verbose          Display detailed informations.");
       print("  -w, --write=OBJECT     Same as -e '(write OBJECT)'");
     }
 
@@ -90,7 +87,7 @@ inline namespace kernel
         return make<bool>(debug = true);
       }),
 
-      std::make_pair('h', [](auto&&...) -> lvalue
+      std::make_pair('h', [](auto&&...) -> value_type
       {
         configurator::display_help();
         throw exit_status::success;
@@ -101,7 +98,7 @@ inline namespace kernel
         return make<bool>(interactive = true);
       }),
 
-      std::make_pair('v', [](auto&&...) -> lvalue
+      std::make_pair('v', [](auto&&...) -> value_type
       {
         configurator::display_version();
         throw exit_status::success;
@@ -113,7 +110,7 @@ inline namespace kernel
       std::make_pair('e', [](const_reference x, auto&&...)
       {
         print(interaction_environment().as<environment>().evaluate(x));
-        return unspecified_object;
+        return unspecified;
       }),
 
       std::make_pair('l', [](const_reference x, auto&&...)
@@ -124,7 +121,7 @@ inline namespace kernel
       std::make_pair('w', [](const_reference x, auto&&...)
       {
         print(x);
-        return unspecified_object;
+        return unspecified;
       }),
     };
 
@@ -140,7 +137,7 @@ inline namespace kernel
         return make<bool>(debug = true);
       }),
 
-      std::make_pair("help", [](auto&&...) -> lvalue
+      std::make_pair("help", [](auto&&...) -> value_type
       {
         display_help();
         throw exit_status::success;
@@ -156,12 +153,7 @@ inline namespace kernel
         return make<bool>(trace = true);
       }),
 
-      std::make_pair("verbose", [](auto&&...)
-      {
-        return make<bool>(verbose = true);
-      }),
-
-      std::make_pair("version", [](auto&&...) -> lvalue
+      std::make_pair("version", [](auto&&...) -> value_type
       {
         display_version();
         throw exit_status::success;
@@ -173,7 +165,7 @@ inline namespace kernel
       std::make_pair("evaluate", [](const_reference x, auto&&...)
       {
         print(interaction_environment().as<environment>().evaluate(x));
-        return unspecified_object;
+        return unspecified;
       }),
 
       std::make_pair("load", [](const_reference x, auto&&...)
@@ -184,7 +176,7 @@ inline namespace kernel
       std::make_pair("write", [](const_reference x, auto&&...)
       {
         print(x);
-        return unspecified_object;
+        return unspecified;
       }),
     };
 
@@ -273,7 +265,7 @@ inline namespace kernel
           return load(*current_option);
         }
 
-        return unspecified_object;
+        return unspecified;
       }();
     }
   };

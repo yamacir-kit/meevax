@@ -52,13 +52,13 @@ inline namespace kernel
   template <typename T, typename... Ts>
   auto make(Ts&&... xs)
   {
-    return lvalue::allocate<T>(std::forward<decltype(xs)>(xs)...); // NOTE: This leaks memory if exception thrown from T's constructor.
+    return value_type::allocate<T>(std::forward<decltype(xs)>(xs)...); // NOTE: This leaks memory if exception thrown from T's constructor.
   }
 
   template <typename T>
   auto make(T&& x)
   {
-    return lvalue::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
+    return value_type::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
 } // namespace kernel
 } // namespace meevax

@@ -34,7 +34,7 @@ inline namespace kernel
     mpq_clear(value);
   }
 
-  ratio::ratio(std::string const& token, int radix)
+  ratio::ratio(external_representation const& token, int radix)
   {
     std::regex static const pattern { "([+-]?[0-9a-f]+)/([0-9a-f]+)" };
 
@@ -54,7 +54,7 @@ inline namespace kernel
     }
   }
 
-  auto ratio::exact() const -> lvalue
+  auto ratio::exact() const -> value_type
   {
     return simple();
   }
@@ -69,7 +69,7 @@ inline namespace kernel
     return second;
   }
 
-  auto ratio::inexact() const -> lvalue
+  auto ratio::inexact() const -> value_type
   {
     return make<double_float>(numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>());
   }
@@ -106,7 +106,7 @@ inline namespace kernel
     }
   }
 
-  auto ratio::simple() const -> lvalue
+  auto ratio::simple() const -> value_type
   {
     if (auto x = reduce(); x.is_integer())
     {
@@ -119,7 +119,7 @@ inline namespace kernel
   }
 
   #define DEFINE(NAME)                                                         \
-  auto ratio::NAME() const -> lvalue                                           \
+  auto ratio::NAME() const -> value_type                                       \
   {                                                                            \
     if (const double_float x {                                                 \
           std::NAME(numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>()) \
@@ -146,7 +146,7 @@ inline namespace kernel
   #undef DEFINE
 
   #define DEFINE(NAME)                                                         \
-  auto ratio::NAME(const_reference x) const -> lvalue                          \
+  auto ratio::NAME(const_reference x) const -> value_type                      \
   {                                                                            \
     if (const double_float n {                                                 \
           std::NAME(numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>(), \

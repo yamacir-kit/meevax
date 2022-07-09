@@ -14,26 +14,25 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_DEALLOCATOR_HPP
-#define INCLUDED_MEEVAX_MEMORY_DEALLOCATOR_HPP
+#ifndef INCLUDED_MEEVAX_TYPE_TRAITS_IS_OUTPUT_STREAMABLE_HPP
+#define INCLUDED_MEEVAX_TYPE_TRAITS_IS_OUTPUT_STREAMABLE_HPP
 
+#include <ostream>
 #include <type_traits>
 
 namespace meevax
 {
-inline namespace memory
+inline namespace type_traits
 {
-  template <typename T>
-  struct deallocator
-  {
-    using signature = void (*)(void *);
+  template <typename T, typename = void>
+  struct is_output_streamable : public std::false_type
+  {};
 
-    static void deallocate(void * p)
-    {
-      delete static_cast<T *>(p);
-    }
-  };
-} // namespace memory
+  template <typename T>
+  struct is_output_streamable<T, std::void_t<decltype(std::declval<std::ostream &>() << std::declval<T>())>>
+    : public std::true_type
+  {};
+} // namespace type_traits
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_MEMORY_DEALLOCATOR_HPP
+#endif // INCLUDED_MEEVAX_TYPE_TRAITS_IS_OUTPUT_STREAMABLE_HPP

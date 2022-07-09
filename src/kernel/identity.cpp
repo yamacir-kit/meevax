@@ -47,7 +47,7 @@ inline namespace kernel
 
   auto absolute::is_free() const -> bool
   {
-    return load().is<unbound>();
+    return eq(load(), undefined);
   }
 
   auto absolute::load(const_reference) const -> const_reference
@@ -60,12 +60,12 @@ inline namespace kernel
     return second;
   }
 
-  auto absolute::make_load_mnemonic() const -> lvalue
+  auto absolute::make_load_mnemonic() const -> value_type
   {
     return make(mnemonic::load_absolute);
   }
 
-  auto absolute::make_store_mnemonic() const -> lvalue
+  auto absolute::make_store_mnemonic() const -> value_type
   {
     return make(mnemonic::store_absolute);
   }
@@ -90,12 +90,12 @@ inline namespace kernel
                     cdr(second).template as<std::uint32_t>());
   }
 
-  auto relative::make_load_mnemonic() const -> lvalue
+  auto relative::make_load_mnemonic() const -> value_type
   {
     return make(mnemonic::load_relative);
   }
 
-  auto relative::make_store_mnemonic() const -> lvalue
+  auto relative::make_store_mnemonic() const -> value_type
   {
     return make(mnemonic::store_relative);
   }
@@ -115,12 +115,12 @@ inline namespace kernel
                      cdr(second).template as<std::uint32_t>());
   }
 
-  auto variadic::make_load_mnemonic() const -> lvalue
+  auto variadic::make_load_mnemonic() const -> value_type
   {
     return make(mnemonic::load_variadic);
   }
 
-  auto variadic::make_store_mnemonic() const -> lvalue
+  auto variadic::make_store_mnemonic() const -> value_type
   {
     return make(mnemonic::store_variadic);
   }

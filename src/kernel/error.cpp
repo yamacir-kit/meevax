@@ -35,11 +35,11 @@ inline namespace kernel
     throw *this;
   }
 
-  auto error::what() const -> std::string
+  auto error::what() const -> external_representation
   {
     std::stringstream ss {};
 
-    ss << "error: " << static_cast<std::string>(message().as<string>());
+    ss << "error: " << static_cast<external_representation>(message().as<string>());
 
     if (irritants())
     {
@@ -61,7 +61,7 @@ inline namespace kernel
     return os << magenta(")");
   }
 
-  auto raise(std::string const& message) -> void
+  auto raise(external_representation const& message) -> void
   {
     throw error(make<string>(message));
   }

@@ -31,23 +31,21 @@ inline namespace kernel
   struct floating_point : public number
                         , public std::numeric_limits<T>
   {
-    using value_type = T;
-
-    value_type value;
+    T value;
 
     explicit constexpr floating_point(T value = {})
       : value { value }
     {}
 
-    explicit floating_point(std::string const& token) try
-      : value { lexical_cast<value_type>(token) }
+    explicit floating_point(external_representation const& token) try
+      : value { lexical_cast<T>(token) }
     {}
     catch (...)
     {
       throw read_error(make<string>("not a decimal"), make<string>(token));
     }
 
-    auto exact() const -> lvalue override
+    auto exact() const -> value_type override
     {
       /* ---- R7RS 6.2.6 (exact z) ---------------------------------------------
        *
@@ -97,19 +95,19 @@ inline namespace kernel
       return std::isnan(value);
     }
 
-    // TODO TEMPLATE SPECIALIZATION to<std::string>()
+    // TODO TEMPLATE SPECIALIZATION to<external_representation>()
     auto to_string() const
     {
-      return lexical_cast<std::string>(value);
+      return lexical_cast<external_representation>(value);
     }
 
-    auto inexact() const -> lvalue override
+    auto inexact() const -> value_type override
     {
       return make(floating_point<double>(value));
     }
 
     #define DEFINE(NAME)                                                       \
-    auto NAME() const -> lvalue override                                       \
+    auto NAME() const -> value_type override                                   \
     {                                                                          \
       return make(floating_point(std::NAME(value)));                           \
     }                                                                          \
@@ -127,7 +125,7 @@ inline namespace kernel
     #undef DEFINE
 
     #define DEFINE(NAME)                                                       \
-    auto NAME(const_reference x) const -> lvalue override                      \
+    auto NAME(const_reference x) const -> value_type override                  \
     {                                                                          \
       return make(floating_point(std::NAME(value, x.as<number>().inexact().as<double_float>()))); \
     }                                                                          \
@@ -138,14 +136,14 @@ inline namespace kernel
 
     #undef DEFINE
 
-    constexpr operator value_type() const noexcept { return value; }
-    constexpr operator value_type()       noexcept { return value; }
+    constexpr operator T() const noexcept { return value; }
+    constexpr operator T()       noexcept { return value; }
 
-    auto operator + (const_reference) const -> lvalue override;
-    auto operator - (const_reference) const -> lvalue override;
-    auto operator * (const_reference) const -> lvalue override;
-    auto operator / (const_reference) const -> lvalue override;
-    auto operator % (const_reference) const -> lvalue override;
+    auto operator + (const_reference) const -> value_type override;
+    auto operator - (const_reference) const -> value_type override;
+    auto operator * (const_reference) const -> value_type override;
+    auto operator / (const_reference) const -> value_type override;
+    auto operator % (const_reference) const -> value_type override;
 
     auto operator ==(const_reference) const -> bool override;
     auto operator !=(const_reference) const -> bool override;

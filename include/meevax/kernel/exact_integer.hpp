@@ -28,13 +28,11 @@ inline namespace kernel
 {
   struct exact_integer : public number
   {
-    using value_type = mpz_t;
-
-    value_type value;
+    mpz_t value;
 
     explicit exact_integer() noexcept;
 
-    explicit exact_integer(value_type) noexcept;
+    explicit exact_integer(mpz_t) noexcept;
 
     exact_integer(exact_integer const&) noexcept;
 
@@ -48,7 +46,7 @@ inline namespace kernel
 
     explicit exact_integer(double);
 
-    explicit exact_integer(std::string const&, int = 0);
+    explicit exact_integer(external_representation const&, int = 0);
 
     explicit exact_integer(addition,                exact_integer const&, exact_integer const&);
     explicit exact_integer(subtraction,             exact_integer const&, exact_integer const&);
@@ -63,7 +61,7 @@ inline namespace kernel
 
     auto operator=(exact_integer &&) noexcept -> exact_integer &;
 
-    auto operator=(std::string const&) -> exact_integer &;
+    auto operator=(external_representation const&) -> exact_integer &;
 
     auto floor_remainder(exact_integer const&) const -> exact_integer;
 
@@ -77,7 +75,7 @@ inline namespace kernel
 
     auto is_integer() const -> bool override;
 
-    auto string(int = 10) const -> std::string;
+    auto string(int = 10) const -> external_representation;
 
     auto swap(exact_integer &) noexcept -> void;
 
@@ -85,7 +83,7 @@ inline namespace kernel
 
     auto truncate_quotient(exact_integer const&) const -> exact_integer;
 
-    #define DEFINE(NAME) auto NAME() const -> lvalue override
+    #define DEFINE(NAME) auto NAME() const -> value_type override
 
     DEFINE(exact); DEFINE(inexact);
 
@@ -97,7 +95,7 @@ inline namespace kernel
 
     #undef DEFINE
 
-    #define DEFINE(NAME) auto NAME(const_reference) const -> lvalue override
+    #define DEFINE(NAME) auto NAME(const_reference) const -> value_type override
 
     DEFINE(atan2);
     DEFINE(pow);
@@ -106,23 +104,23 @@ inline namespace kernel
 
     explicit operator bool() const;
 
-    explicit operator int() const;
+    operator int() const;
 
-    explicit operator signed long() const;
+    operator signed long() const;
 
-    explicit operator unsigned long() const;
+    operator unsigned long() const;
 
     explicit operator float() const;
 
     explicit operator double() const;
 
-    explicit operator std::string() const;
+    explicit operator external_representation() const;
 
-    auto operator + (const_reference) const -> lvalue override;
-    auto operator - (const_reference) const -> lvalue override;
-    auto operator * (const_reference) const -> lvalue override;
-    auto operator / (const_reference) const -> lvalue override;
-    auto operator % (const_reference) const -> lvalue override;
+    auto operator + (const_reference) const -> value_type override;
+    auto operator - (const_reference) const -> value_type override;
+    auto operator * (const_reference) const -> value_type override;
+    auto operator / (const_reference) const -> value_type override;
+    auto operator % (const_reference) const -> value_type override;
 
     auto operator ==(const_reference) const -> bool override;
     auto operator !=(const_reference) const -> bool override;

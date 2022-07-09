@@ -19,10 +19,10 @@
 
 #include <meevax/functional/compose.hpp>
 #include <meevax/iostream/escape_sequence.hpp>
-#include <meevax/iostream/write.hpp>
 #include <meevax/kernel/overview.hpp>
 #include <meevax/kernel/profiler.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
+#include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/utility/module.hpp>
 
 namespace meevax
@@ -69,7 +69,14 @@ inline namespace kernel
 
       auto write(std::ostream & os) const -> std::ostream & override
       {
-        return os << static_cast<Bound const&>(*this);
+        if constexpr (is_output_streamable<Bound>::value)
+        {
+          return os << static_cast<Bound const&>(*this);
+        }
+        else
+        {
+          return os << magenta("#,(") << green(typeid(Bound).name()) << faint(" #;", static_cast<Bound const*>(this)) << magenta(")");
+        }
       }
     };
 

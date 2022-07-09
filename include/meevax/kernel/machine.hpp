@@ -60,6 +60,18 @@ inline namespace kernel
         assert(expression.is<closure>());
       }
 
+      auto apply(const_reference f, const_reference xs)
+      {
+        Environment expander;
+
+        expander.s = list(f, xs);
+        expander.e = unit;
+        expander.c = list(make(mnemonic::call), make(mnemonic::stop));
+        expander.d = unit;
+
+        return expander.execute();
+      }
+
       auto expand(const_reference form, const_reference use_env) /* ------------
       *
       *  Scheme programs can define and use new derived expression types,
@@ -91,7 +103,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        return mac_env.template as<environment>().apply(expression, list(form, use_env, mac_env));
+        return apply(expression, list(form, use_env, mac_env));
       }
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
@@ -118,7 +130,7 @@ inline namespace kernel
         , identity { syntactic_environment.as<environment>().identify(expression, syntactic_environment.as<environment>().scope()) }
       {}
 
-      auto identify_with_offset(const_reference use_env_scope) -> lvalue
+      auto identify_with_offset(const_reference use_env_scope) -> value_type
       {
         if (identity.is<relative>())
         {
@@ -162,33 +174,11 @@ inline namespace kernel
     };
 
   public:
-    /* ---- R7RS 4. Expressions ------------------------------------------------
-     *
-     *  <expression> = <identifier>
-     *               | <literal>
-     *               | <procedure call>
-     *               | <lambda expression>
-     *               | <conditional>
-     *               | <assignment>
-     *               | <derived expression>
-     *
-     *  Expression types are categorized as primitive or derived. Primitive
-     *  expression types include variables and procedure calls. Derived
-     *  expression types are not semantically primitive, but can instead be
-     *  defined as macros. Suitable syntax definitions of some of the derived
-     *  expressions are given in section 7.3.
-     *
-     *  The procedures force, promise?, make-promise, and make-parameter are
-     *  also described in this chapter because they are intimately associated
-     *  with the delay, delay-force, and parameterize expression types.
-     *
-     * ---------------------------------------------------------------------- */
-    static auto compile(
-      context         current_context,
-      environment &   current_environment,
-      const_reference current_expression,
-      const_reference current_scope = unit,
-      const_reference current_continuation = list(make(mnemonic::stop))) -> lvalue
+    static auto compile(context         current_context,
+                        environment &   current_environment,
+                        const_reference current_expression,
+                        const_reference current_scope = unit,
+                        const_reference current_continuation = list(make(mnemonic::stop))) -> value_type
     {
       if (current_expression.is<null>()) /* ------------------------------------
       *
@@ -328,7 +318,7 @@ inline namespace kernel
     }
 
     template <auto trace = false>
-    inline auto execute() -> lvalue
+    inline auto execute() -> value_type
     {
     decode:
       if constexpr (trace)
@@ -693,7 +683,7 @@ inline namespace kernel
       }
     }
 
-    static auto identify(const_reference variable, const_reference scope) -> lvalue
+    static auto identify(const_reference variable, const_reference scope) -> value_type
     {
       for (auto outer = std::begin(scope); outer != std::end(scope); ++outer)
       {
@@ -831,13 +821,13 @@ inline namespace kernel
                        current_environment,
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs),
-                                 append2(map([](const_reference binding_spec)
+                                 append2(map1([](const_reference binding_spec)
                                              {
                                                return cons(make<syntax>("set!", set), binding_spec);
                                              },
                                              binding_specs),
                                          body)),
-                            make_list(length(binding_specs), undefined)),
+                            make_list(length(binding_specs), unit)),
                        current_scope,
                        current_continuation);
       }
@@ -891,7 +881,7 @@ inline namespace kernel
     {
       if (current_context.is_tail)
       {
-        assert(lexical_cast<std::string>(current_continuation) == "(return)");
+        assert(lexical_cast<external_representation>(current_continuation) == "(return)");
 
         return compile(context(),
                        current_environment,
@@ -909,7 +899,7 @@ inline namespace kernel
                                         caddr(current_expression),
                                         current_scope,
                                         current_continuation)
-                              : list(make(mnemonic::load_constant), unspecified_object,
+                              : list(make(mnemonic::load_constant), unspecified,
                                      make(mnemonic::return_))));
       }
       else
@@ -930,7 +920,7 @@ inline namespace kernel
                                         caddr(current_expression),
                                         current_scope,
                                         list(make(mnemonic::join)))
-                              : list(make(mnemonic::load_constant), unspecified_object,
+                              : list(make(mnemonic::load_constant), unspecified,
                                      make(mnemonic::join)),
                             current_continuation));
       }
@@ -989,7 +979,7 @@ inline namespace kernel
         {
           return compile(context(),
                          current_environment,
-                         cdr(current_expression) ? cadr(current_expression) : unspecified_object,
+                         cdr(current_expression) ? cadr(current_expression) : unspecified,
                          current_scope,
                          cons(make(mnemonic::define), current_environment.identify(car(current_expression), current_scope),
                               current_continuation));
@@ -1129,7 +1119,7 @@ inline namespace kernel
 
       return cons(make(mnemonic::let_syntax),
                   make<syntactic_continuation>(body,
-                                               cons(map(make_keyword, bindings),
+                                               cons(map1(make_keyword, bindings),
                                                     current_scope)),
                   current_continuation);
     }

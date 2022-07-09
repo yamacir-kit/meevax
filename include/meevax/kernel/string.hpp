@@ -38,18 +38,18 @@ inline namespace kernel
 
     explicit string(std::istream &&);
 
-    explicit string(std::string const&);
+    explicit string(external_representation const&);
 
     template <typename... Ts>
     explicit string(decltype(cat), Ts&&... xs)
       : string { cat(std::forward<decltype(xs)>(xs)...) }
     {}
 
-    auto list(size_type, size_type) const -> lvalue;
+    auto list(size_type, size_type) const -> meevax::value_type;
 
-    auto list(size_type = 0) const -> lvalue;
+    auto list(size_type = 0) const -> meevax::value_type;
 
-    operator std::string() const; // write-string (for display)
+    operator external_representation() const; // write-string (for display)
   };
 
   auto operator <<(std::ostream &, string const&) -> std::ostream &;
