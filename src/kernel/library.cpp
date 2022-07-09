@@ -997,11 +997,11 @@ inline namespace kernel
 
     define_library("(meevax read)", [](library & library)
     {
-      library.define<procedure>("%read", [=](let const& xs) mutable -> value_type
+      library.define<procedure>("%read", [](let const& xs) mutable -> value_type
       {
         try
         {
-          return library.read(car(xs));
+          return interaction_environment().as<environment>().read(car(xs));
         }
         catch (eof const&)
         {
