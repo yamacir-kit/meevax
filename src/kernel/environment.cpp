@@ -158,11 +158,11 @@ inline namespace kernel
     {
       auto prefix = [this](let const& import_set)
       {
-        return [=](let const& identifier)
+        return [=](let const& prefixes)
         {
           return map1([&](let const& identity)
                       {
-                        return make<absolute>(intern(identifier.as<symbol>().value +
+                        return make<absolute>(intern(car(prefixes).as<symbol>().value +
                                                      identity.as<absolute>().symbol().as<symbol>().value),
                                               identity.as<absolute>().load());
                       },
@@ -171,7 +171,7 @@ inline namespace kernel
       };
 
       return prefix(cadr(declaration))
-                   (caddr(declaration));
+                   (cadr(declaration));
     }
     else if (car(declaration).as<symbol>().value == "rename") /* ---------------
     *
@@ -180,7 +180,30 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      throw error(make<string>("Unsupported"), car(declaration));
+      auto rename = [this](let const& import_set)
+      {
+        return [=](let const& renamings)
+        {
+          return map1([&](let const& identity)
+                      {
+                        if (let const& renaming = assq(identity.as<absolute>().symbol(),
+                                                       renamings);
+                            select(renaming))
+                        {
+                          assert(cadr(renaming).is<symbol>());
+                          return make<absolute>(cadr(renaming), identity.as<absolute>().load());
+                        }
+                        else
+                        {
+                          return identity;
+                        }
+                      },
+                      resolve(import_set));
+        };
+      };
+
+      return rename(cadr(declaration))
+                   (cddr(declaration));
     }
     else if (auto iter = libraries.find(lexical_cast<external_representation>(declaration)); iter != std::end(libraries))
     {
