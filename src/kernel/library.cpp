@@ -1364,6 +1364,7 @@ inline namespace kernel
       srfi_149,
       r5rs,
       srfi_6,  // Basic String Ports
+      srfi_11, // Syntax for receiving multiple values
       srfi_34, // Exception Handling for Programs
       srfi_23, // Error reporting mechanism
       srfi_39, // Parameter objects

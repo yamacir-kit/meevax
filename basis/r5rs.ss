@@ -37,8 +37,8 @@
            (apply emergency-exit normally?))))
 
 (define-library (scheme r5rs)
-  (import (meevax environment)
-          (meevax evaluate)
+  (import (only (meevax environment) environment)
+          (only (meevax evaluate) eval)
           (only (meevax syntax) define-syntax let-syntax letrec-syntax)
           (except (scheme r4rs) call-with-current-continuation)
           (except (scheme r5rs continuation) exit)
