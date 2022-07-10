@@ -318,8 +318,8 @@
                   (xs '() (cons x xs)))
                  ((<= i 0) xs))))
 
-         (define (list-set! x k object)
-           (set-car! (list-tail x k) object))
+         (define (list-set! xs k x)
+           (set-car! (list-tail xs k) x))
 
          (define (list-copy x)
            (let list-copy ((x x))
@@ -720,10 +720,9 @@
            (string-map char-foldcase x))))
 
 (define-library (scheme eval)
-  (export environment
-          eval
-          )
-  )
+  (import (only (meevax environment) environment)
+          (only (meevax evaluate) eval))
+  (export environment eval))
 
 (define-library (scheme file)
   (import (only (meevax port) open-input-file open-output-file)
