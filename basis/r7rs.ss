@@ -35,8 +35,8 @@
           ; include
           ; include-ci
           cond
-          ; else
-          ; =>
+          else
+          =>
           case
           and
           or
@@ -55,13 +55,13 @@
           parameterize
           guard
           quasiquote
-          ; unquote
-          ; unquote-splicing
+          unquote
+          unquote-splicing
           let-syntax
           letrec-syntax
           syntax-rules
-          ; _
-          ; ...
+          _
+          ...
           ; syntax-error
           define
           ; define-values

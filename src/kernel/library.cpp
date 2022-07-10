@@ -1441,22 +1441,11 @@ inline namespace kernel
       if (export_spec.is<pair>() and car(export_spec).is<symbol>()
                                  and car(export_spec).as<symbol>().value == "rename")
       {
-        if (let const& binding = identify(cadr(export_spec), unit); binding.as<identity>().is_free())
-        {
-          throw error(make<string>("Exported but undefined"), cadr(export_spec));
-        }
-        else
-        {
-          return make<absolute>(caddr(export_spec), binding.as<absolute>().load());
-        }
-      }
-      else if (let const& binding = identify(export_spec, unit); binding.as<identity>().is_free())
-      {
-        throw error(make<string>("Exported but undefined"), export_spec);
+        return make<absolute>(caddr(export_spec), (*this)[cadr(export_spec)]);
       }
       else
       {
-        return binding;
+        return identify(export_spec, unit);
       }
     };
 
