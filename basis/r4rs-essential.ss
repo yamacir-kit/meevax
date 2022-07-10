@@ -41,15 +41,13 @@
           open-output-file close-input-port close-output-port read read-char
           peek-char eof-object? write display newline write-char load)
 
-  (begin (define (unspecified) (if #f #f))
-
-         (define (list . xs) xs)
+  (begin (define (list . xs) xs)
 
          (define-syntax cond
            (er-macro-transformer
              (lambda (form rename compare)
                (if (null? (cdr form))
-                   (unspecified)
+                   (if #f #f)
                    ((lambda (clause)
                       (if (compare (rename 'else) (car clause))
                           (cons (rename 'begin) (cdr clause))
@@ -285,7 +283,7 @@
                        (else `(,(rename 'begin) ,@xs))))
                (define (each-clause clauses)
                  (cond ((null? clauses)
-                        (unspecified))
+                        (if #f #f))
                        ((compare (rename 'else) (caar clauses))
                         (body (cdar clauses)))
                        ((and (pair? (caar clauses))

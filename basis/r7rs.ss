@@ -265,9 +265,7 @@
           flush-output-port
           features)
 
-  (begin (define (unspecified) (if #f #f))
-
-         (define-syntax when
+  (begin (define-syntax when
            (er-macro-transformer
              (lambda (form rename compare)
                `(,(rename 'if) ,(cadr form)
@@ -380,7 +378,7 @@
          (define (close-port x)
            (cond ((input-port? x) (close-input-port x))
                  ((output-port? x) (close-output-port x))
-                 (else (unspecified))))
+                 (else (if #f #f))))
 
          (define (read-char . x)
            (%read-char (if (pair? x)
