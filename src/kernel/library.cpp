@@ -1217,17 +1217,7 @@ inline namespace kernel
 
       library.define<procedure>("make-vector", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return make<vector>(car(xs), unspecified);
-
-        case 2:
-          return make<vector>(car(xs), cadr(xs));
-
-        default:
-          throw invalid_application(intern("make-vector") | xs);
-        }
+        return make<vector>(car(xs), cdr(xs).is<pair>() ? cadr(xs) : unspecified);
       });
 
       library.define<procedure>("vector-length", [](let const& xs)
@@ -1247,61 +1237,22 @@ inline namespace kernel
 
       library.define<procedure>("vector-fill!", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 2:
-          car(xs).as<vector>().fill(cadr(xs), e0, car(xs).as<vector>().length());
-          break;
-
-        case 3:
-          car(xs).as<vector>().fill(cadr(xs), caddr(xs), car(xs).as<vector>().length());
-          break;
-
-        case 4:
-          car(xs).as<vector>().fill(cadr(xs), caddr(xs), cadddr(xs));
-          break;
-
-        default:
-          throw invalid_application(intern("vector-fill!") | xs);
-        }
-
+        car(xs).as<vector>().fill(cdr(xs).is<pair>() ? cadr(xs) : unspecified,
+                                  cddr(xs).is<pair>() ? caddr(xs) : e0,
+                                  cdddr(xs).is<pair>() ? cadddr(xs) : car(xs).as<vector>().length());
         return unspecified;
       });
 
       library.define<procedure>("vector->list", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return car(xs).as<vector>().list(e0, car(xs).as<vector>().length());
-
-        case 2:
-          return car(xs).as<vector>().list(cadr(xs), car(xs).as<vector>().length());
-
-        case 3:
-          return car(xs).as<vector>().list(cadr(xs), caddr(xs));
-
-        default:
-          throw invalid_application(intern("vector->list") | xs);
-        }
+        return car(xs).as<vector>().list(cdr(xs).is<pair>() ? cadr(xs) : e0,
+                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
       });
 
       library.define<procedure>("vector->string", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return car(xs).as<vector>().string(e0, car(xs).as<vector>().length());
-
-        case 2:
-          return car(xs).as<vector>().string(cadr(xs), car(xs).as<vector>().length());
-
-        case 3:
-          return car(xs).as<vector>().string(cadr(xs), caddr(xs));
-
-        default:
-          throw invalid_application(intern("vector->string") | xs);
-        }
+        return car(xs).as<vector>().string(cdr(xs).is<pair>() ? cadr(xs) : e0,
+                                           cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
       });
 
       library.export_("vector?");
