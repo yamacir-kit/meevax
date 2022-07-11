@@ -1308,7 +1308,7 @@
 
 (check (list->vector '(dididit dah)) => #(dididit dah))
 
-; (check (string->vector "ABC") => #(#\A #\B #\C))
+(check (string->vector "ABC") => #(#\A #\B #\C))
 
 (check (vector->string #(#\1 #\2 #\3)) => "123")
 
@@ -1555,4 +1555,4 @@
 
 (check-report)
 
-(exit (check-passed? 377))
+(exit (check-passed? 378))

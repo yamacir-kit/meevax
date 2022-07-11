@@ -27,9 +27,9 @@ inline namespace kernel
   {
     std::vector<value_type> data;
 
-    using size_type = decltype(data)::size_type;
-
     explicit vector() = default;
+
+    explicit vector(meevax::string const&);
 
     /*
        (vector obj ...)                                               procedure

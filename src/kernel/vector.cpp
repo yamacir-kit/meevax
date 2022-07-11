@@ -28,6 +28,10 @@ inline namespace kernel
     std::copy(std::begin(x), std::end(x), std::back_inserter(data));
   }
 
+  vector::vector(meevax::string const& s)
+    : vector { s.list() }
+  {}
+
   vector::vector(const_reference k, const_reference fill)
     : data { k.as<exact_integer>(), fill }
   {}
