@@ -1314,13 +1314,13 @@
 
 (define a #(1 8 2 8)) ; a may be immutable
 
-; (define b (vector-copy a))
+(define b (vector-copy a))
 
 ; (vector-set! b 0 3) ; b is mutable
 
 ; (check b => #(3 8 2 8))
 
-; (define c (vector-copy b 1 3))
+(define c (vector-copy b 1 3))
 
 ; (check c => #(8 2))
 

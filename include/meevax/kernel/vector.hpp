@@ -50,6 +50,17 @@ inline namespace kernel
     explicit vector(const_reference, const_reference);
 
     /*
+       (vector-copy vector)                                           procedure
+       (vector-copy vector start)                                     procedure
+       (vector-copy vector start end)                                 procedure
+
+       Returns a newly allocated copy of the elements of the given vector
+       between start and end. The elements of the new vector are the same (in
+       the sense of eqv?) as the elements of the old.
+    */
+    auto copy(const_reference, const_reference) -> value_type;
+
+    /*
        (vector-fill! vector fill)                                     procedure
        (vector-fill! vector fill start)                               procedure
        (vector-fill! vector fill start end)                           procedure
