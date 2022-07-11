@@ -1220,6 +1220,12 @@ inline namespace kernel
         return make<vector>(car(xs), cdr(xs).is<pair>() ? cadr(xs) : unspecified);
       });
 
+      library.define<procedure>("vector-append", [](let const& xs)
+      {
+        car(xs).as<vector>().append(cdr(xs));
+        return car(xs);
+      });
+
       library.define<procedure>("vector-copy", [](let const& xs)
       {
         return car(xs).as<vector>().copy(cdr(xs).is<pair>() ? cadr(xs) : e0,
@@ -1273,6 +1279,7 @@ inline namespace kernel
       library.export_("vector?");
       library.export_("vector");
       library.export_("make-vector");
+      library.export_("vector-append");
       library.export_("vector-copy");
       library.export_("vector-copy!");
       library.export_("vector-length");

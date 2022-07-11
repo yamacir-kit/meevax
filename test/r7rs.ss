@@ -1332,7 +1332,7 @@
 
 (check b => #(10 1 2 40 50))
 
-; (check (vector-append #(a b c) #(d e f)) => #(a b c d e f))
+(check (vector-append #(a b c) #(d e f)) => #(a b c d e f))
 
 (define a (vector 1 2 3 4 5))
 
@@ -1555,4 +1555,4 @@
 
 (check-report)
 
-(exit (check-passed? 376))
+(exit (check-passed? 377))
