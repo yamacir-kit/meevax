@@ -1226,6 +1226,15 @@ inline namespace kernel
                                          cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
       });
 
+      library.define<procedure>("vector-copy!", [](let const& xs)
+      {
+        car(xs).as<vector>().copy(list_ref(xs, 1),
+                                  list_ref(xs, 2),
+                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 3) : e0,
+                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 4) : car(xs).as<vector>().length());
+        return unspecified;
+      });
+
       library.define<procedure>("vector-length", [](let const& xs)
       {
         return car(xs).as<vector>().length();
@@ -1265,6 +1274,7 @@ inline namespace kernel
       library.export_("vector");
       library.export_("make-vector");
       library.export_("vector-copy");
+      library.export_("vector-copy!");
       library.export_("vector-length");
       library.export_("vector-ref");
       library.export_("vector-set!");

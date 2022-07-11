@@ -2,7 +2,9 @@
   (import (only (meevax exception) error? read-error? file-error?)
           (only (meevax number) exact-integer?)
           (only (meevax vector) vector->string
-                                vector-copy)
+                                vector-copy
+                                vector-copy!
+                                )
           (only (meevax port) binary-port?
                               textual-port?
                               port?
@@ -190,7 +192,7 @@
           vector->string
           ; string->vector
           vector-copy
-          ; vector-copy!
+          vector-copy!
           ; vector-append
           vector-fill!
           ; bytevector?

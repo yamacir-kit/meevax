@@ -58,7 +58,25 @@ inline namespace kernel
        between start and end. The elements of the new vector are the same (in
        the sense of eqv?) as the elements of the old.
     */
-    auto copy(const_reference, const_reference) -> value_type;
+    auto copy(const_reference, const_reference) const -> value_type;
+
+    /*
+       (vector-copy! to at from)                                      procedure
+       (vector-copy! to at from start)                                procedure
+       (vector-copy! to at from start end)                            procedure
+
+       It is an error if at is less than zero or greater than the length of to.
+       It is also an error if (- (vector-length to) at) is less than
+       (- end start).
+
+       Copies the elements of vector from between start and end to vector to,
+       starting at at. The order in which elements are copied is unspecified,
+       except that if the source and destination overlap, copying takes place
+       as if the source is first copied into a temporary vector and then into
+       the destination. This can be achieved without allocating storage by
+       making sure to copy in the correct direction in such circumstances.
+    */
+    auto copy(const_reference, const_reference, const_reference, const_reference) -> void;
 
     /*
        (vector-fill! vector fill)                                     procedure
