@@ -156,7 +156,7 @@ inline namespace kernel
       library.export_("eval");
     });
 
-    define_library("(meevax exception)", [](library & library)
+    define_library("(meevax error)", [](library & library)
     {
       library.define<procedure>("throw", [](let const& xs) -> value_type
       {
@@ -183,17 +183,11 @@ inline namespace kernel
         return car(xs).is<file_error>();
       });
 
-      library.define<predicate>("syntax-error?", [](let const& xs)
-      {
-        return car(xs).is<syntax_error>();
-      });
-
       library.export_("throw");
       library.export_("make-error");
       library.export_("error?");
       library.export_("read-error?");
       library.export_("file-error?");
-      library.export_("syntax-error?");
     });
 
     define_library("(meevax experimental)", [](library & library)

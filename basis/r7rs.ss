@@ -1,5 +1,5 @@
 (define-library (scheme base)
-  (import (only (meevax exception) error? read-error? file-error?)
+  (import (only (meevax error) error? read-error? file-error?)
           (only (meevax number) exact-integer?)
           (only (meevax vector) vector-append vector-copy vector-copy! vector->string vector<-string)
           (only (meevax port) binary-port?
