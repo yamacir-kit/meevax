@@ -1029,7 +1029,7 @@ inline namespace kernel
 
       library.define<procedure>("string-ref", [](let const& xs)
       {
-        return make(car(xs).as<string>().codepoints.at(static_cast<std::size_t>(cadr(xs).as<exact_integer>())));
+        return car(xs).as<string>().ref(cadr(xs));
       });
 
       library.define<procedure>("string-set!", [](let const& xs)

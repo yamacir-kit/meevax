@@ -119,6 +119,11 @@ inline namespace kernel
     return list(from, std::size(codepoints));
   }
 
+  auto string::ref(const_reference k) const -> value_type
+  {
+    return make(codepoints.at(k.as<exact_integer>()));
+  }
+
   string::operator external_representation() const
   {
     external_representation result;
