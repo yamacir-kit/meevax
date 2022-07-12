@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <iterator>
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
@@ -25,7 +26,7 @@ inline namespace kernel
 {
   string::string(std::istream & is, std::size_t k)
   {
-    for (auto c = character(is); size() < k and not std::char_traits<char>::eq(std::char_traits<char>::eof(), c.codepoint); c = character(is))
+    for (auto c = character(is); std::size(codepoints) < k and not std::char_traits<char>::eq(std::char_traits<char>::eof(), c.codepoint); c = character(is))
     {
       switch (c.codepoint)
       {
@@ -35,13 +36,13 @@ inline namespace kernel
       case '\\':
         switch (auto const c = character(is); c.codepoint)
         {
-        case 'a': emplace_back('\a'); break;
-        case 'b': emplace_back('\b'); break;
-        case 'f': emplace_back('\f'); break;
-        case 'n': emplace_back('\n'); break;
-        case 'r': emplace_back('\r'); break;
-        case 't': emplace_back('\t'); break;
-        case 'v': emplace_back('\v'); break;
+        case 'a': codepoints.emplace_back('\a'); break;
+        case 'b': codepoints.emplace_back('\b'); break;
+        case 'f': codepoints.emplace_back('\f'); break;
+        case 'n': codepoints.emplace_back('\n'); break;
+        case 'r': codepoints.emplace_back('\r'); break;
+        case 't': codepoints.emplace_back('\t'); break;
+        case 'v': codepoints.emplace_back('\v'); break;
 
         case 'x':
           if (external_representation token; std::getline(is, token, ';') and is.ignore(1))
@@ -50,7 +51,7 @@ inline namespace kernel
             {
               if (character::value_type value = 0; ss >> value)
               {
-                emplace_back(value);
+                codepoints.emplace_back(value);
                 break;
               }
             }
@@ -63,13 +64,13 @@ inline namespace kernel
           break;
 
         default:
-          push_back(c);
+          codepoints.push_back(c);
           break;
         }
         break;
 
       default:
-        push_back(c);
+        codepoints.push_back(c);
         break;
       }
     }
@@ -85,11 +86,27 @@ inline namespace kernel
     : string { std::stringstream(s + "\"") }
   {}
 
-  auto string::list(size_type from, size_type to) const -> meevax::value_type
+  auto string::copy(const_reference from, const_reference to) const -> value_type
+  {
+    let const& s = make<string>();
+
+    std::copy(std::next(std::begin(codepoints), from.as<exact_integer>()),
+              std::next(std::begin(codepoints), to.as<exact_integer>()),
+              std::back_inserter(s.as<string>().codepoints));
+
+    return s;
+  }
+
+  auto string::length() const -> value_type
+  {
+    return make<exact_integer>(codepoints.size());
+  }
+
+  auto string::list(std::size_t from, std::size_t to) const -> meevax::value_type
   {
     let x = unit;
 
-    for (auto iter = std::prev(rend(), to); iter != std::prev(rend(), from); ++iter)
+    for (auto iter = std::prev(codepoints.rend(), to); iter != std::prev(codepoints.rend(), from); ++iter)
     {
       x = cons(make(*iter), x);
     }
@@ -97,21 +114,27 @@ inline namespace kernel
     return x;
   }
 
-  auto string::list(size_type from) const -> meevax::value_type
+  auto string::list(std::size_t from) const -> meevax::value_type
   {
-    return list(from, size());
+    return list(from, std::size(codepoints));
   }
 
   string::operator external_representation() const
   {
     external_representation result;
 
-    for (character const& each : *this)
+    for (character const& each : codepoints)
     {
       result.append(static_cast<external_representation>(each));
     }
 
     return result;
+  }
+
+  auto operator ==(string const& s1, string const& s2) -> bool
+  {
+    return std::equal(std::begin(s1.codepoints), std::end(s1.codepoints),
+                      std::begin(s2.codepoints), std::end(s2.codepoints));
   }
 
   auto operator <<(std::ostream & os, string const& datum) -> std::ostream &
@@ -143,7 +166,7 @@ inline namespace kernel
 
     os << cyan("\"");
 
-    for (auto const& each : datum)
+    for (auto const& each : datum.codepoints)
     {
       write(each);
     }

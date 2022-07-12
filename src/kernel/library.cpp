@@ -403,7 +403,7 @@ inline namespace kernel
 
         for (let const& x : car(xs))
         {
-          s.push_back(x.as<character>());
+          s.codepoints.push_back(x.as<character>());
         }
 
         return make(std::move(s));
@@ -924,7 +924,7 @@ inline namespace kernel
         switch (length(xs))
         {
         case 2:
-          return make<string>(cadr(xs).as<std::istream>(), static_cast<string::size_type>(car(xs).as<exact_integer>()));
+          return make<string>(cadr(xs).as<std::istream>(), static_cast<std::size_t>(car(xs).as<exact_integer>()));
 
         default:
           throw invalid_application(intern("read-string") | xs);
@@ -1022,10 +1022,12 @@ inline namespace kernel
         switch (length(xs))
         {
         case 1:
-          return make<string>(static_cast<string::size_type>(car(xs).as<exact_integer>()), character());
+          return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()),
+                              character());
 
         case 2:
-          return make<string>(static_cast<string::size_type>(car(xs).as<exact_integer>()), cadr(xs).as<character>());
+          return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()),
+                              cadr(xs).as<character>());
 
         default:
           throw invalid_application(intern("make-string") | xs);
@@ -1034,17 +1036,17 @@ inline namespace kernel
 
       library.define<procedure>("string-length", [](let const& xs)
       {
-        return make<exact_integer>(car(xs).as<string>().size());
+        return make<exact_integer>(car(xs).as<string>().codepoints.size());
       });
 
       library.define<procedure>("string-ref", [](let const& xs)
       {
-        return make(car(xs).as<string>().at(static_cast<string::size_type>(cadr(xs).as<exact_integer>())));
+        return make(car(xs).as<string>().codepoints.at(static_cast<std::size_t>(cadr(xs).as<exact_integer>())));
       });
 
       library.define<procedure>("string-set!", [](let const& xs)
       {
-        car(xs).as<string>().at(static_cast<string::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs).as<character>();
+        car(xs).as<string>().codepoints.at(static_cast<std::size_t>(cadr(xs).as<exact_integer>())) = caddr(xs).as<character>();
         return car(xs);
       });
 
@@ -1054,7 +1056,9 @@ inline namespace kernel
 
         for (let const& x : xs)
         {
-          std::copy(std::cbegin(x.as<string>()), std::cend(x.as<string>()), std::back_inserter(result));
+          std::copy(std::cbegin(x.as<string>().codepoints),
+                    std::cend(x.as<string>().codepoints),
+                    std::back_inserter(result.codepoints));
         }
 
         return make(result);
@@ -1062,31 +1066,19 @@ inline namespace kernel
 
       library.define<procedure>("string-copy", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return make<string>(car(xs).as<string>());
-
-        case 2:
-          return make<string>(car(xs).as<string>().begin() + static_cast<string::size_type>(cadr(xs).as<exact_integer>()),
-                              car(xs).as<string>().end());
-        case 3:
-          return make<string>(car(xs).as<string>().begin() + static_cast<string::size_type>( cadr(xs).as<exact_integer>()),
-                              car(xs).as<string>().begin() + static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
-        default:
-          throw invalid_application(intern("string-copy") | xs);
-        }
+        return car(xs).as<string>().copy(cdr(xs).is<pair>() ? cadr(xs) : e0,
+                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<string>().length());
       });
 
-      #define STRING_COMPARE(COMPARE)                                            \
-      [](let const& xs)                                                          \
-      {                                                                          \
-        return std::adjacent_find(                                               \
-                 std::begin(xs), std::end(xs), [](let const& a, let const& b)    \
-                 {                                                               \
-                   return not COMPARE(a.as_const<string>(),                      \
-                                      b.as_const<string>());                     \
-                 }) == std::end(xs);                                             \
+      #define STRING_COMPARE(COMPARE)                                          \
+      [](let const& xs)                                                        \
+      {                                                                        \
+        return std::adjacent_find(                                             \
+                 std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
+                 {                                                             \
+                   return not COMPARE(a.as_const<string>().codepoints,         \
+                                      b.as_const<string>().codepoints);        \
+                 }) == std::end(xs);                                           \
       }
 
       library.define<predicate>("string=?",  STRING_COMPARE(std::equal_to     <void>()));
@@ -1120,10 +1112,10 @@ inline namespace kernel
           return car(xs).as<string>().list();
 
         case 2:
-          return car(xs).as<string>().list(static_cast<string::size_type>(cadr(xs).as<exact_integer>()));
+          return car(xs).as<string>().list(static_cast<std::size_t>(cadr(xs).as<exact_integer>()));
 
         case 3:
-          return car(xs).as<string>().list(static_cast<string::size_type>(cadr(xs).as<exact_integer>()), static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
+          return car(xs).as<string>().list(static_cast<std::size_t>(cadr(xs).as<exact_integer>()), static_cast<std::size_t>(caddr(xs).as<exact_integer>()));
 
         default:
           throw invalid_application(intern("string->list") | xs);

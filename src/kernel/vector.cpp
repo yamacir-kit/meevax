@@ -102,7 +102,7 @@ inline namespace kernel
                   std::next(std::begin(data), to.as<exact_integer>()),
                   [&](let const& each)
                   {
-                    s.push_back(each.as<character>());
+                    s.codepoints.push_back(each.as<character>());
                   });
 
     return make(s);

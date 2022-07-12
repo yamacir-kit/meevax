@@ -30,9 +30,11 @@ inline namespace kernel
     return ss.str();
   };
 
-  struct string : public std::vector<character>
+  struct string
   {
-    using std::vector<character>::vector; // make-string
+    std::vector<character> codepoints;
+
+    explicit string() = default;
 
     explicit string(std::istream &, std::size_t = std::numeric_limits<std::size_t>::max()); // read-string
 
@@ -45,12 +47,22 @@ inline namespace kernel
       : string { cat(std::forward<decltype(xs)>(xs)...) }
     {}
 
-    auto list(size_type, size_type) const -> meevax::value_type;
+    explicit string(std::size_t const k, character const& c)
+      : codepoints { k, c }
+    {}
 
-    auto list(size_type = 0) const -> meevax::value_type;
+    auto copy(const_reference, const_reference) const -> value_type;
+
+    auto length() const -> value_type;
+
+    auto list(std::size_t, std::size_t) const -> meevax::value_type;
+
+    auto list(std::size_t = 0) const -> meevax::value_type;
 
     operator external_representation() const; // write-string (for display)
   };
+
+  auto operator ==(string const&, string const&) -> bool;
 
   auto operator <<(std::ostream &, string const&) -> std::ostream &;
 } // namespace kernel
