@@ -1270,7 +1270,7 @@ inline namespace kernel
                                            cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
       });
 
-      library.define<procedure>("vector<-string", [](let const& xs)
+      library.define<procedure>("string->vector", [](let const& xs)
       {
         return make<vector>(car(xs).as<string>());
       });
@@ -1287,7 +1287,7 @@ inline namespace kernel
       library.export_("vector-fill!");
       library.export_("vector->list");
       library.export_("vector->string");
-      library.export_("vector<-string");
+      library.export_("string->vector");
     });
 
     define_library("(meevax version)", [](library & library)
