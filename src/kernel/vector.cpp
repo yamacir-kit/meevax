@@ -28,9 +28,41 @@ inline namespace kernel
     std::copy(std::begin(x), std::end(x), std::back_inserter(data));
   }
 
+  vector::vector(meevax::string const& s)
+    : vector { s.list() }
+  {}
+
   vector::vector(const_reference k, const_reference fill)
     : data { k.as<exact_integer>(), fill }
   {}
+
+  auto vector::append(const_reference vs) -> void
+  {
+    for (let const& v : vs)
+    {
+      std::copy(std::begin(v.as<vector>().data), std::end(v.as<vector>().data), std::back_inserter(data));
+    }
+  }
+
+  auto vector::copy(const_reference from, const_reference to) const -> value_type
+  {
+    let const& v = make<vector>();
+
+    std::copy(std::next(std::begin(data), from.as<exact_integer>()),
+              std::next(std::begin(data), to.as<exact_integer>()),
+              std::back_inserter(v.as<vector>().data));
+
+    return v;
+  }
+
+  auto vector::copy(const_reference at, const_reference v, const_reference from, const_reference to) -> void
+  {
+    data.reserve(to.as<exact_integer>());
+
+    std::copy(std::next(std::begin(v.as<vector>().data), from.as<exact_integer>()),
+              std::next(std::begin(v.as<vector>().data), to.as<exact_integer>()),
+              std::next(std::begin(data), at.as<exact_integer>()));
+  }
 
   auto vector::fill(const_reference x, const_reference from, const_reference to) -> void
   {

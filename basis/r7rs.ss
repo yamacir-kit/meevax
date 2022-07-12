@@ -1,7 +1,7 @@
 (define-library (scheme base)
   (import (only (meevax exception) error? read-error? file-error?)
           (only (meevax number) exact-integer?)
-          (only (meevax vector) vector->string)
+          (only (meevax vector) vector-append vector-copy vector-copy! vector->string vector<-string)
           (only (meevax port) binary-port?
                               textual-port?
                               port?
@@ -187,10 +187,10 @@
           vector->list
           list->vector
           vector->string
-          ; string->vector
-          ; vector-copy
-          ; vector-copy!
-          ; vector-append
+          (rename vector<-string string->vector)
+          vector-copy
+          vector-copy!
+          vector-append
           vector-fill!
           ; bytevector?
           ; make-bytevector

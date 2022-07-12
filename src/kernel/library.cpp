@@ -1217,17 +1217,28 @@ inline namespace kernel
 
       library.define<procedure>("make-vector", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return make<vector>(car(xs), unspecified);
+        return make<vector>(car(xs), cdr(xs).is<pair>() ? cadr(xs) : unspecified);
+      });
 
-        case 2:
-          return make<vector>(car(xs), cadr(xs));
+      library.define<procedure>("vector-append", [](let const& xs)
+      {
+        car(xs).as<vector>().append(cdr(xs));
+        return car(xs);
+      });
 
-        default:
-          throw invalid_application(intern("make-vector") | xs);
-        }
+      library.define<procedure>("vector-copy", [](let const& xs)
+      {
+        return car(xs).as<vector>().copy(cdr(xs).is<pair>() ? cadr(xs) : e0,
+                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
+      });
+
+      library.define<procedure>("vector-copy!", [](let const& xs)
+      {
+        car(xs).as<vector>().copy(list_ref(xs, 1),
+                                  list_ref(xs, 2),
+                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 3) : e0,
+                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 4) : car(xs).as<vector>().length());
+        return unspecified;
       });
 
       library.define<procedure>("vector-length", [](let const& xs)
@@ -1247,72 +1258,42 @@ inline namespace kernel
 
       library.define<procedure>("vector-fill!", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 2:
-          car(xs).as<vector>().fill(cadr(xs), e0, car(xs).as<vector>().length());
-          break;
-
-        case 3:
-          car(xs).as<vector>().fill(cadr(xs), caddr(xs), car(xs).as<vector>().length());
-          break;
-
-        case 4:
-          car(xs).as<vector>().fill(cadr(xs), caddr(xs), cadddr(xs));
-          break;
-
-        default:
-          throw invalid_application(intern("vector-fill!") | xs);
-        }
-
+        car(xs).as<vector>().fill(cdr(xs).is<pair>() ? cadr(xs) : unspecified,
+                                  cddr(xs).is<pair>() ? caddr(xs) : e0,
+                                  cdddr(xs).is<pair>() ? cadddr(xs) : car(xs).as<vector>().length());
         return unspecified;
       });
 
       library.define<procedure>("vector->list", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return car(xs).as<vector>().list(e0, car(xs).as<vector>().length());
-
-        case 2:
-          return car(xs).as<vector>().list(cadr(xs), car(xs).as<vector>().length());
-
-        case 3:
-          return car(xs).as<vector>().list(cadr(xs), caddr(xs));
-
-        default:
-          throw invalid_application(intern("vector->list") | xs);
-        }
+        return car(xs).as<vector>().list(cdr(xs).is<pair>() ? cadr(xs) : e0,
+                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
       });
 
       library.define<procedure>("vector->string", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return car(xs).as<vector>().string(e0, car(xs).as<vector>().length());
+        return car(xs).as<vector>().string(cdr(xs).is<pair>() ? cadr(xs) : e0,
+                                           cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
+      });
 
-        case 2:
-          return car(xs).as<vector>().string(cadr(xs), car(xs).as<vector>().length());
-
-        case 3:
-          return car(xs).as<vector>().string(cadr(xs), caddr(xs));
-
-        default:
-          throw invalid_application(intern("vector->string") | xs);
-        }
+      library.define<procedure>("vector<-string", [](let const& xs)
+      {
+        return make<vector>(car(xs).as<string>());
       });
 
       library.export_("vector?");
       library.export_("vector");
       library.export_("make-vector");
+      library.export_("vector-append");
+      library.export_("vector-copy");
+      library.export_("vector-copy!");
       library.export_("vector-length");
       library.export_("vector-ref");
       library.export_("vector-set!");
       library.export_("vector-fill!");
       library.export_("vector->list");
       library.export_("vector->string");
+      library.export_("vector<-string");
     });
 
     define_library("(meevax version)", [](library & library)

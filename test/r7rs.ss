@@ -1308,31 +1308,31 @@
 
 (check (list->vector '(dididit dah)) => #(dididit dah))
 
-; (check (string->vector "ABC") => #(#\A #\B #\C))
+(check (string->vector "ABC") => #(#\A #\B #\C))
 
 (check (vector->string #(#\1 #\2 #\3)) => "123")
 
 (define a #(1 8 2 8)) ; a may be immutable
 
-; (define b (vector-copy a))
+(define b (vector-copy a))
 
-; (vector-set! b 0 3) ; b is mutable
+(vector-set! b 0 3) ; b is mutable
 
-; (check b => #(3 8 2 8))
+(check b => #(3 8 2 8))
 
-; (define c (vector-copy b 1 3))
+(define c (vector-copy b 1 3))
 
-; (check c => #(8 2))
+(check c => #(8 2))
 
-; (define a (vector 1 2 3 4 5))
+(define a (vector 1 2 3 4 5))
 
-; (define b (vector 10 20 30 40 50))
+(define b (vector 10 20 30 40 50))
 
-; (vector-copy! b 1 a 0 2)
+(vector-copy! b 1 a 0 2)
 
-; (check b => #(10 1 2 40 50))
+(check b => #(10 1 2 40 50))
 
-; (check (vector-append #(a b c) #(d e f)) => #(a b c d e f))
+(check (vector-append #(a b c) #(d e f)) => #(a b c d e f))
 
 (define a (vector 1 2 3 4 5))
 
@@ -1555,4 +1555,4 @@
 
 (check-report)
 
-(exit (check-passed? 373))
+(exit (check-passed? 378))

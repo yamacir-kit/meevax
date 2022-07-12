@@ -119,10 +119,6 @@
            (atan (imag-part z)
                  (real-part z)))
 
-         ; (define exact->inexact inexact)
-         ;
-         ; (define inexact->exact exact)
-
          (define (list-tail x k)
            (let list-tail ((x x)
                            (k k))
