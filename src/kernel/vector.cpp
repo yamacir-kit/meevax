@@ -29,8 +29,12 @@ inline namespace kernel
   }
 
   vector::vector(meevax::string const& s)
-    : vector { s.list() }
-  {}
+  {
+    for (auto const& c : s.codepoints)
+    {
+      data.push_back(make(c));
+    }
+  }
 
   vector::vector(const_reference k, const_reference fill)
     : data { k.as<exact_integer>(), fill }

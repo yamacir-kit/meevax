@@ -96,6 +96,10 @@ inline namespace kernel
     }
   }
 
+  string::string(const_reference k, const_reference c)
+    : codepoints { k.as<exact_integer>(), c.as<character>() }
+  {}
+
   auto string::copy(const_reference from, const_reference to) const -> value_type
   {
     let const& s = make<string>();
@@ -112,21 +116,15 @@ inline namespace kernel
     return make<exact_integer>(codepoints.size());
   }
 
-  auto string::list(std::size_t from, std::size_t to) const -> meevax::value_type
+  auto string::make_list(const_reference from, const_reference to) const -> value_type
   {
-    let x = unit;
-
-    for (auto iter = std::prev(codepoints.rend(), to); iter != std::prev(codepoints.rend(), from); ++iter)
-    {
-      x = cons(make(*iter), x);
-    }
-
-    return x;
-  }
-
-  auto string::list(std::size_t from) const -> meevax::value_type
-  {
-    return list(from, std::size(codepoints));
+    return std::accumulate(std::prev(std::rend(codepoints), to.as<exact_integer>()),
+                           std::prev(std::rend(codepoints), from.as<exact_integer>()),
+                           unit,
+                           [](let const& xs, character const& c)
+                           {
+                             return cons(make(c), xs);
+                           });
   }
 
   auto string::ref(const_reference k) const -> value_type

@@ -1085,20 +1085,8 @@ inline namespace kernel
 
       library.define<procedure>("string->list", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return car(xs).as<string>().list();
-
-        case 2:
-          return car(xs).as<string>().list(static_cast<std::size_t>(cadr(xs).as<exact_integer>()));
-
-        case 3:
-          return car(xs).as<string>().list(static_cast<std::size_t>(cadr(xs).as<exact_integer>()), static_cast<std::size_t>(caddr(xs).as<exact_integer>()));
-
-        default:
-          throw invalid_application(intern("string->list") | xs);
-        }
+        return car(xs).as<string>().make_list(cdr(xs).is<pair>() ? cadr(xs) : e0,
+                                              cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<string>().length());
       });
 
       library.define<procedure>("string->symbol", [](let const& xs)
