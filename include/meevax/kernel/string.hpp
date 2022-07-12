@@ -61,6 +61,11 @@ inline namespace kernel
 
     auto copy(const_reference, const_reference) const -> value_type;
 
+    /*
+       (string-length string)                                         procedure
+
+       Returns the number of characters in the given string.
+    */
     auto length() const -> value_type;
 
     auto list(std::size_t, std::size_t) const -> meevax::value_type;

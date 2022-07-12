@@ -1024,7 +1024,7 @@ inline namespace kernel
 
       library.define<procedure>("string-length", [](let const& xs)
       {
-        return make<exact_integer>(car(xs).as<string>().codepoints.size());
+        return car(xs).as<string>().length();
       });
 
       library.define<procedure>("string-ref", [](let const& xs)
