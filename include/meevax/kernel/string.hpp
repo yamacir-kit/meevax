@@ -59,6 +59,14 @@ inline namespace kernel
       : codepoints { k.as<exact_integer>(), c.as<character>() }
     {}
 
+    /*
+       (string-append string ...)                                     procedure
+
+       Returns a newly allocated string whose characters are the concatenation
+       of the characters in the given strings.
+    */
+    explicit string(const_reference);
+
     auto copy(const_reference, const_reference) const -> value_type;
 
     /*

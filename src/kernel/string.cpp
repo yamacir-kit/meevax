@@ -86,6 +86,16 @@ inline namespace kernel
     : string { std::stringstream(s + "\"") }
   {}
 
+  string::string(const_reference xs)
+  {
+    for (let const& x : xs)
+    {
+      std::copy(std::begin(x.as<string>().codepoints),
+                std::end(x.as<string>().codepoints),
+                std::back_inserter(codepoints));
+    }
+  }
+
   auto string::copy(const_reference from, const_reference to) const -> value_type
   {
     let const& s = make<string>();

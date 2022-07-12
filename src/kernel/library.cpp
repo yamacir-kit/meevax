@@ -1040,16 +1040,7 @@ inline namespace kernel
 
       library.define<procedure>("string-append", [](let const& xs)
       {
-        string result;
-
-        for (let const& x : xs)
-        {
-          std::copy(std::cbegin(x.as<string>().codepoints),
-                    std::cend(x.as<string>().codepoints),
-                    std::back_inserter(result.codepoints));
-        }
-
-        return make(result);
+        return make<string>(xs);
       });
 
       library.define<procedure>("string-copy", [](let const& xs)
