@@ -1019,19 +1019,7 @@ inline namespace kernel
 
       library.define<procedure>("make-string", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()),
-                              character());
-
-        case 2:
-          return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()),
-                              cadr(xs).as<character>());
-
-        default:
-          throw invalid_application(intern("make-string") | xs);
-        }
+        return make<string>(car(xs), cdr(xs).is<pair>() ? cadr(xs) : make<character>());
       });
 
       library.define<procedure>("string-length", [](let const& xs)

@@ -47,8 +47,16 @@ inline namespace kernel
       : string { cat(std::forward<decltype(xs)>(xs)...) }
     {}
 
-    explicit string(std::size_t const k, character const& c)
-      : codepoints { k, c }
+    /*
+       (make-string k)                                                procedure
+       (make-string k char)                                           procedure
+
+       The make-string procedure returns a newly allocated string of length k.
+       If char is given, then all the characters of the string are initialized
+       to char, otherwise the contents of the string are unspecified.
+    */
+    explicit string(const_reference k, const_reference c)
+      : codepoints { k.as<exact_integer>(), c.as<character>() }
     {}
 
     auto copy(const_reference, const_reference) const -> value_type;
