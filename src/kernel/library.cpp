@@ -1034,7 +1034,7 @@ inline namespace kernel
 
       library.define<procedure>("string-set!", [](let const& xs)
       {
-        car(xs).as<string>().codepoints.at(static_cast<std::size_t>(cadr(xs).as<exact_integer>())) = caddr(xs).as<character>();
+        car(xs).as<string>().set(cadr(xs), caddr(xs));
         return car(xs);
       });
 

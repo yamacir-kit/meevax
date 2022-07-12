@@ -124,6 +124,11 @@ inline namespace kernel
     return make(codepoints.at(k.as<exact_integer>()));
   }
 
+  auto string::set(const_reference k, const_reference c) -> void
+  {
+    codepoints.at(k.as<exact_integer>()) = c.as<character>();
+  }
+
   string::operator external_representation() const
   {
     external_representation result;

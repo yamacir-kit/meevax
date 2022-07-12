@@ -83,6 +83,16 @@ inline namespace kernel
     */
     auto ref(const_reference) const -> value_type;
 
+    /*
+       (string-set! string k char)                                    procedure
+
+       It is an error if k is not a valid index of string.
+
+       The string-set! procedure stores char in element k of string. There is
+       no requirement for this procedure to execute in constant time.
+    */
+    auto set(const_reference, const_reference) -> void;
+
     operator external_representation() const; // write-string (for display)
   };
 
