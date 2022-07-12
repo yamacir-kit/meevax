@@ -43,11 +43,6 @@ inline namespace kernel
 
     explicit string(external_representation const&);
 
-    template <typename... Ts>
-    explicit string(decltype(cat), Ts&&... xs)
-      : string { cat(std::forward<decltype(xs)>(xs)...) }
-    {}
-
     /*
        (string-append string ...)                                     procedure
 
