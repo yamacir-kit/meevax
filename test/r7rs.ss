@@ -1282,9 +1282,9 @@
 
 (define b (string-copy "abcde"))
 
-; (string-copy! b 1 a 0 2)
+(string-copy! b 1 a 0 2)
 
-; (check b => "a12de")
+(check b => "a12de")
 
 ; ---- 6.8. --------------------------------------------------------------------
 
@@ -1555,4 +1555,4 @@
 
 (check-report)
 
-(exit (check-passed? 378))
+(exit (check-passed? 379))

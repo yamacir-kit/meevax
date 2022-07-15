@@ -61,7 +61,7 @@ inline namespace kernel
 
   auto vector::copy(const_reference at, const_reference v, const_reference from, const_reference to) -> void
   {
-    data.reserve(to.as<exact_integer>());
+    data.reserve(data.size() + v.as<vector>().data.size());
 
     std::copy(std::next(std::begin(v.as<vector>().data), from.as<exact_integer>()),
               std::next(std::begin(v.as<vector>().data), to.as<exact_integer>()),

@@ -17,6 +17,7 @@
                               put-char
                               put-string
                               %flush-output-port)
+          (only (meevax string) string-copy!)
           (only (meevax version) features)
           (scheme r5rs)
           (srfi 6) ; Basic String Ports
@@ -176,7 +177,7 @@
           string->list
           list->string
           string-copy
-          ; string-copy!
+          string-copy!
           string-fill!
           vector?
           make-vector

@@ -1049,6 +1049,15 @@ inline namespace kernel
                                          cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<string>().length());
       });
 
+      library.define<procedure>("string-copy!", [](let const& xs)
+      {
+        car(xs).as<string>().copy(list_ref(xs, 1),
+                                  list_ref(xs, 2),
+                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 3) : e0,
+                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 4) : car(xs).as<vector>().length());
+        return unspecified;
+      });
+
       #define STRING_COMPARE(COMPARE)                                          \
       [](let const& xs)                                                        \
       {                                                                        \
@@ -1098,6 +1107,7 @@ inline namespace kernel
       library.export_("make-string");
       library.export_("string-append");
       library.export_("string-copy");
+      library.export_("string-copy!");
       library.export_("string-length");
       library.export_("string-ref");
       library.export_("string-set!");
