@@ -28,7 +28,7 @@ inline namespace kernel
 
   auto environment::define(external_representation const& name, const_reference value) -> void
   {
-    define(intern(name), value);
+    define(make_symbol(name), value);
   }
 
   auto environment::evaluate(const_reference expression) -> value_type
@@ -162,8 +162,8 @@ inline namespace kernel
         {
           return map1([&](let const& identity)
                       {
-                        return make<absolute>(intern(car(prefixes).as<symbol>().value +
-                                                     identity.as<absolute>().symbol().as<symbol>().value),
+                        return make<absolute>(make_symbol(car(prefixes).as<symbol>().value +
+                                                          identity.as<absolute>().symbol().as<symbol>().value),
                                               identity.as<absolute>().load());
                       },
                       resolve(import_set));

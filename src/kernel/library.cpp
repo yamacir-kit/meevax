@@ -43,7 +43,7 @@ inline namespace kernel
         }
         else
         {
-          throw invalid_application(intern("char->integer") | xs);
+          throw invalid_application(make_symbol("char->integer") | xs);
         }
       });
 
@@ -85,7 +85,7 @@ inline namespace kernel
           else [[fallthrough]];
 
         default:
-          throw invalid_application(intern("emergency-exit") | xs);
+          throw invalid_application(make_symbol("emergency-exit") | xs);
         }
       });
 
@@ -291,7 +291,7 @@ inline namespace kernel
           return car(xs).as<number>().log() / cadr(xs).as<number>().log();
 
         default:
-          throw invalid_application(intern("log") | xs);
+          throw invalid_application(make_symbol("log") | xs);
         }
       });
 
@@ -331,7 +331,7 @@ inline namespace kernel
           return car(xs).as<number>().atan2(cadr(xs));
 
         default:
-          throw invalid_application(intern("atan") | xs);
+          throw invalid_application(make_symbol("atan") | xs);
         }
       });
 
@@ -535,7 +535,7 @@ inline namespace kernel
         switch (length(xs))                                                      \
         {                                                                        \
         case 0:                                                                  \
-          throw invalid_application(intern(SYMBOL) | xs);                        \
+          throw invalid_application(make_symbol(SYMBOL) | xs);                   \
                                                                                  \
         case 1:                                                                  \
           return FUNCTION(BASIS, car(xs));                                       \
@@ -599,7 +599,7 @@ inline namespace kernel
         }
         else
         {
-          throw invalid_application(intern("integer->char") | xs);
+          throw invalid_application(make_symbol("integer->char") | xs);
         }
       });
 
@@ -832,7 +832,7 @@ inline namespace kernel
           return make<input_string_port>(car(xs).as<string>());
 
         default:
-          throw invalid_application(intern("open-input-string") | xs);
+          throw invalid_application(make_symbol("open-input-string") | xs);
         }
       });
 
@@ -847,7 +847,7 @@ inline namespace kernel
           return make<output_string_port>(car(xs).as<string>());
 
         default:
-          throw invalid_application(intern("open-output-string") | xs);
+          throw invalid_application(make_symbol("open-output-string") | xs);
         }
       });
 
@@ -914,7 +914,7 @@ inline namespace kernel
           return make<string>(cadr(xs).as<std::istream>(), static_cast<std::size_t>(car(xs).as<exact_integer>()));
 
         default:
-          throw invalid_application(intern("read-string") | xs);
+          throw invalid_application(make_symbol("read-string") | xs);
         }
       });
 
@@ -936,7 +936,7 @@ inline namespace kernel
         case 4: // TODO
 
         default:
-          throw invalid_application(intern("write-string") | xs);
+          throw invalid_application(make_symbol("write-string") | xs);
         }
 
         return unspecified;
@@ -1075,7 +1075,7 @@ inline namespace kernel
           return make_number(car(xs).as<string>(), static_cast<int>(cadr(xs).as<exact_integer>()));
 
         default:
-          throw invalid_application(intern("string->number") | xs);
+          throw invalid_application(make_symbol("string->number") | xs);
         }
       });
 
@@ -1087,7 +1087,7 @@ inline namespace kernel
 
       library.define<procedure>("string->symbol", [](let const& xs)
       {
-        return intern(car(xs).as<string>());
+        return make_symbol(car(xs).as<string>());
       });
 
       library.define<procedure>("list->string", [](let const& xs)

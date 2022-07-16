@@ -198,7 +198,7 @@ inline namespace kernel
       return standard_input.is_also<std::istream>() and standard_input.as<std::istream>();
     }
 
-    static auto intern(external_representation const& name) -> const_reference
+    static auto make_symbol(external_representation const& name) -> const_reference
     {
       if (auto const iter = symbols.find(name); iter != std::end(symbols))
       {
@@ -214,31 +214,29 @@ inline namespace kernel
       }
     }
 
-    static auto make_number(external_representation const& token, std::size_t radix = 10)
+    static auto make_number(external_representation const& token, int radix = 10)
     {
       try
       {
-        auto const result = exact_integer(token, radix);
-        return make(result);
+        return make<exact_integer>(token, radix);
       }
       catch (...)
       {
         try
         {
-          return meevax::ratio(token, radix).simple();
+          return ratio(token, radix).simple();
         }
         catch (...)
         {
           try
           {
-            auto const result = double_float(token);
-            return make(result);
+            return make<double_float>(token);
           }
           catch (...)
           {
             if (auto iter = constants.find(token); iter != std::end(constants))
             {
-              return cdr(*iter);
+              return iter->second;
             }
             else
             {
@@ -273,8 +271,7 @@ inline namespace kernel
           try
           {
             let const kar = read(is);
-            is.putback(c);
-            return cons(kar, read(is));
+            return cons(kar, read(is.putback(c)));
           }
           catch (std::integral_constant<char_type, ')'> const&) { return std::char_traits<char_type>::eq(c, '(') ? unit : throw; }
           catch (std::integral_constant<char_type, ']'> const&) { return std::char_traits<char_type>::eq(c, '[') ? unit : throw; }
@@ -301,20 +298,20 @@ inline namespace kernel
           return make<string>(is);
 
         case '\'':
-          return list(intern("quote"), read(is));
+          return list(make_symbol("quote"), read(is));
 
         case '`':
-          return list(intern("quasiquote"), read(is));
+          return list(make_symbol("quasiquote"), read(is));
 
         case ',':
           switch (is.peek())
           {
           case '@':
             is.ignore(1);
-            return list(intern("unquote-splicing"), read(is));
+            return list(make_symbol("unquote-splicing"), read(is));
 
           default:
-            return list(intern("unquote"), read(is));
+            return list(make_symbol("unquote"), read(is));
           }
 
         case '#':
@@ -392,7 +389,7 @@ inline namespace kernel
           }
           catch (...)
           {
-            return intern(token);
+            return make_symbol(token);
           }
         }
       }
