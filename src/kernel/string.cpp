@@ -14,7 +14,6 @@
    limitations under the License.
 */
 
-#include <iterator>
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
@@ -86,19 +85,23 @@ inline namespace kernel
     : string { std::stringstream(s + "\"") }
   {}
 
-  string::string(const_reference xs)
+  string::string(const_reference k, const_reference c)
+    : codepoints { k.as<exact_integer>(), c.as<character>() }
+  {}
+
+  auto string::append(const_reference xs) -> value_type
   {
+    let const s = make<string>();
+
     for (let const& x : xs)
     {
       std::copy(std::begin(x.as<string>().codepoints),
                 std::end(x.as<string>().codepoints),
-                std::back_inserter(codepoints));
+                std::back_inserter(s.as<string>().codepoints));
     }
-  }
 
-  string::string(const_reference k, const_reference c)
-    : codepoints { k.as<exact_integer>(), c.as<character>() }
-  {}
+    return s;
+  }
 
   auto string::copy(const_reference from, const_reference to) const -> value_type
   {

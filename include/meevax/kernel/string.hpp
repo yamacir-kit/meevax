@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_STRING_HPP
 
 #include <meevax/kernel/character.hpp>
-#include <type_traits>
 
 namespace meevax
 {
@@ -44,14 +43,6 @@ inline namespace kernel
     explicit string(external_representation const&);
 
     /*
-       (string-append string ...)                                     procedure
-
-       Returns a newly allocated string whose characters are the concatenation
-       of the characters in the given strings.
-    */
-    explicit string(const_reference);
-
-    /*
        (make-string k)                                                procedure
        (make-string k char)                                           procedure
 
@@ -60,6 +51,14 @@ inline namespace kernel
        to char, otherwise the contents of the string are unspecified.
     */
     explicit string(const_reference, const_reference);
+
+    /*
+       (string-append string ...)                                     procedure
+
+       Returns a newly allocated string whose characters are the concatenation
+       of the characters in the given strings.
+    */
+    static auto append(const_reference) -> value_type;
 
     /*
        (string-copy string)                                           procedure

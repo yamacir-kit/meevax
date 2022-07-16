@@ -1040,7 +1040,7 @@ inline namespace kernel
 
       library.define<procedure>("string-append", [](let const& xs)
       {
-        return make<string>(xs);
+        return string::append(xs);
       });
 
       library.define<procedure>("string-copy", [](let const& xs)
