@@ -35,60 +35,7 @@ inline namespace kernel
 {
   namespace parse
   {
-    // using meevax::iostream::operator *;
-    // using meevax::iostream::operator +;
     using meevax::iostream::operator |;
-
-    // auto intraline_whitespace = satisfy([](auto c) { return std::isblank(c); });
-
-    // auto line_ending = sequence("\r\n") | one_of('\n', '\r');
-
-    // auto whitespace = intraline_whitespace | line_ending;
-
-    // auto vertical_line = one_of('|');
-
-    // auto delimiter = whitespace | vertical_line | one_of('(', ')', '"', ';');
-
-    // auto letter = satisfy([](auto c) { return std::isalpha(c); });
-
-    // auto special_initial = one_of('!', '$', '%', '&', '*', '/', ':', '<', '=', '>', '?', '^', '_', '~');
-
-    // auto initial = letter | special_initial;
-
-    // auto digit = satisfy([](auto c) { return std::isdigit(c); });
-
-    // auto hex_digit = satisfy([](auto c) { return std::isxdigit(c); });
-
-    // auto explicit_sign = one_of('+', '-');
-
-    // auto special_subsequent = explicit_sign | one_of('.', '@');
-
-    // auto subsequent = initial | digit | special_subsequent;
-
-    // auto inline_hex_escape = sequence("\\x") + hex_digit + many(hex_digit);
-
-    // TODO auto any_character_other_than_vertical_line_or_backslash
-
-    // auto symbol_element = letter;
-    //                     //   any_character_other_than_vertical_line_or_backslash
-    //                     // | inline_hex_escape
-    //                     // | mnemonic_escape
-    //                     // | s("\\|")
-
-    // auto sign_subsequent = initial | explicit_sign | one_of('@');
-
-    // auto dot_subsequent = sign_subsequent | one_of('.');
-
-    // auto peculiar_identifier = explicit_sign
-    //                          | explicit_sign + sign_subsequent + many(subsequent)
-    //                          | explicit_sign + one_of('.') + dot_subsequent + many(subsequent)
-    //                          | one_of('.') + dot_subsequent + many(subsequent);
-
-    // auto identifier = initial + many(subsequent)
-    //                 | vertical_line + many(symbol_element) + vertical_line
-    //                 | peculiar_identifier;
-
-    // auto boolean = sequence("#true") | sequence("#t") | sequence("#false") | sequence("#f");
 
     auto token = [](std::istream & is) //  = <identifier> | <boolean> | <number> | <character> | <string> | ( | ) | #( | #u8( | ’ | ` | , | ,@ | .
     {
@@ -198,22 +145,6 @@ inline namespace kernel
       return standard_input.is_also<std::istream>() and standard_input.as<std::istream>();
     }
 
-    static auto make_symbol(external_representation const& name) -> const_reference
-    {
-      if (auto const iter = symbols.find(name); iter != std::end(symbols))
-      {
-        return iter->second;
-      }
-      else if (auto const [iter, success] = symbols.emplace(name, make<symbol>(name)); success)
-      {
-        return iter->second;
-      }
-      else
-      {
-        throw error(make<string>("failed to intern a symbol"), make<string>(name));
-      }
-    }
-
     static auto make_number(external_representation const& token, int radix = 10)
     {
       try
@@ -244,6 +175,22 @@ inline namespace kernel
             }
           }
         }
+      }
+    }
+
+    static auto make_symbol(external_representation const& name) -> const_reference
+    {
+      if (auto const iter = symbols.find(name); iter != std::end(symbols))
+      {
+        return iter->second;
+      }
+      else if (auto const [iter, success] = symbols.emplace(name, make<symbol>(name)); success)
+      {
+        return iter->second;
+      }
+      else
+      {
+        throw error(make<string>("failed to intern a symbol"), make<string>(name));
       }
     }
 
@@ -317,18 +264,18 @@ inline namespace kernel
         case '#':
           switch (auto const c = is.get())
           {
-          case '!': // from SRFI-22
+          case '!': // from SRFI 22
             is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             return read(is);
 
-          case ',': // from SRFI-10
+          case ',': // from SRFI 10
             return evaluate(read(is));
 
-          case ';': // from SRFI-62
+          case ';': // from SRFI 62
             return read(is), read(is);
 
           case 'b': // (string->number (read) 2)
-            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 2);
+            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 2);
 
           case 'c': // from Common Lisp
             if (let const xs = read(is); xs.is<null>())
@@ -345,27 +292,27 @@ inline namespace kernel
             }
 
           case 'd':
-            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 10);
+            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 10);
 
           case 'e':
             return read(is).template as<number>().exact(); // NOTE: Same as #,(exact (read))
 
           case 'f':
-            parse::token(is);
+            read_token(is);
             return f;
 
           case 'i':
             return read(is).template as<number>().inexact(); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 8);
+            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 8);
 
           case 't':
-            parse::token(is);
+            read_token(is);
             return t;
 
           case 'x':
-            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 16);
+            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 16);
 
           case '(':
             is.putback(c);
@@ -379,7 +326,7 @@ inline namespace kernel
           }
 
         default:
-          if (auto const token = c + parse::token(is); token == ".")
+          if (auto const token = read_token(is.putback(c)); token == ".")
           {
             throw std::integral_constant<char_type, '.'>();
           }
@@ -412,6 +359,28 @@ inline namespace kernel
       auto port = std::stringstream(s);
       return read(port);
     }
+
+    static auto read_token(std::istream & is) -> external_representation
+    {
+      auto is_end = [](auto c) constexpr
+      {
+        auto one_of = [c](auto... xs) constexpr
+        {
+          return (std::char_traits<char>::eq(c, xs) or ...);
+        };
+
+        return std::isspace(c) or one_of('"', '#', '\'', '(', ')', ',', ';', '[', ']', '`', '{', '|', '}', std::char_traits<char>::eof()); // NOTE: What read treats specially.
+      };
+
+      external_representation token;
+
+      for (auto c = is.peek(); not is_end(c); c = is.peek())
+      {
+        token.push_back(is.get());
+      }
+
+      return token;
+    };
   };
 } // namespace kernel
 } // namespace meevax
