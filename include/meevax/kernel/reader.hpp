@@ -257,11 +257,11 @@ inline namespace kernel
     {
       if (auto const iter = symbols.find(name); iter != std::end(symbols))
       {
-        return cdr(*iter);
+        return iter->second;
       }
       else if (auto const [iter, success] = symbols.emplace(name, make<symbol>(name)); success)
       {
-        return cdr(*iter);
+        return iter->second;
       }
       else
       {
@@ -305,9 +305,9 @@ inline namespace kernel
 
             switch (c)
             {
-            case '(': ignore(is, [](auto c) { return not std::char_traits<char_type>::eq(c, ')'); }).get(); break;
-            case '[': ignore(is, [](auto c) { return not std::char_traits<char_type>::eq(c, ']'); }).get(); break;
-            case '{': ignore(is, [](auto c) { return not std::char_traits<char_type>::eq(c, '}'); }).get(); break;
+            case '(': is.ignore(std::numeric_limits<std::streamsize>::max(), ')'); break;
+            case '[': is.ignore(std::numeric_limits<std::streamsize>::max(), ']'); break;
+            case '{': is.ignore(std::numeric_limits<std::streamsize>::max(), '}'); break;
             }
 
             return kdr;
@@ -420,31 +420,20 @@ inline namespace kernel
       return eof_object;
     }
 
-    inline auto read(std::istream && is)
+    inline auto read(const_reference x) -> decltype(auto)
     {
-      return read(is);
+      return read(x.as<std::istream>());
     }
 
-    inline auto read(const_reference x) -> value_type
-    {
-      if (x.is_also<std::istream>())
-      {
-        return read(x.as<std::istream>());
-      }
-      else
-      {
-        throw read_error(make<string>("not an input-port"), x);
-      }
-    }
-
-    inline auto read() -> value_type
+    inline auto read() -> decltype(auto)
     {
       return read(standard_input);
     }
 
-    inline auto read(external_representation const& s) -> value_type
+    inline auto read(external_representation const& s) -> decltype(auto)
     {
-      return read(std::stringstream(s));
+      auto port = std::stringstream(s);
+      return read(port);
     }
   };
 } // namespace kernel
