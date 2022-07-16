@@ -178,61 +178,6 @@ inline namespace kernel
     auto character = any_character | character_name | hex_scalar_value;
   }
 
-  namespace string_to
-  {
-    template <typename F, typename G, REQUIRES(std::is_invocable<F, external_representation const&, int>,
-                                               std::is_invocable<G, external_representation const&, int>)>
-    auto operator |(F&& f, G&& g)
-    {
-      return [=](external_representation const& token, auto radix)
-      {
-        try
-        {
-          return f(token, radix);
-        }
-        catch (...)
-        {
-          return g(token, radix);
-        }
-      };
-    }
-
-    auto integer = [](external_representation const& token, auto radix = 10) -> value_type
-    {
-      auto const result = exact_integer(token, radix);
-      return make(result);
-    };
-
-    auto ratio = [](external_representation const& token, auto radix = 10)
-    {
-      return meevax::ratio(token, radix).simple();
-    };
-
-    auto decimal = [](external_representation const& token, auto) -> value_type
-    {
-      auto const result = double_float(token);
-      return make(result);
-    };
-
-    auto flonum = [](external_representation const& token, auto)
-    {
-      if (auto iter = constants.find(token); iter != std::end(constants))
-      {
-        return cdr(*iter);
-      }
-      else
-      {
-        throw read_error(make<string>("not a number"), make<string>(token));
-      }
-    };
-
-    auto real = integer | ratio | decimal | flonum;
-
-    auto complex = real;
-
-    auto number = complex;
-  } // namespace string_to
-
   template <typename Environment>
   class reader
   {
@@ -266,6 +211,41 @@ inline namespace kernel
       else
       {
         throw error(make<string>("failed to intern a symbol"), make<string>(name));
+      }
+    }
+
+    static auto make_number(external_representation const& token, std::size_t radix = 10)
+    {
+      try
+      {
+        auto const result = exact_integer(token, radix);
+        return make(result);
+      }
+      catch (...)
+      {
+        try
+        {
+          return meevax::ratio(token, radix).simple();
+        }
+        catch (...)
+        {
+          try
+          {
+            auto const result = double_float(token);
+            return make(result);
+          }
+          catch (...)
+          {
+            if (auto iter = constants.find(token); iter != std::end(constants))
+            {
+              return cdr(*iter);
+            }
+            else
+            {
+              throw read_error(make<string>("not a number"), make<string>(token));
+            }
+          }
+        }
       }
     }
 
@@ -351,7 +331,7 @@ inline namespace kernel
             return read(is), read(is);
 
           case 'b': // (string->number (read) 2)
-            return string_to::number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 2);
+            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 2);
 
           case 'c': // from Common Lisp
             if (let const xs = read(is); xs.is<null>())
@@ -368,7 +348,7 @@ inline namespace kernel
             }
 
           case 'd':
-            return string_to::number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 10);
+            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 10);
 
           case 'e':
             return read(is).template as<number>().exact(); // NOTE: Same as #,(exact (read))
@@ -381,14 +361,14 @@ inline namespace kernel
             return read(is).template as<number>().inexact(); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return string_to::number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 8);
+            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 8);
 
           case 't':
             parse::token(is);
             return t;
 
           case 'x':
-            return string_to::number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 16);
+            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : parse::token(is), 16);
 
           case '(':
             is.putback(c);
@@ -408,7 +388,7 @@ inline namespace kernel
           }
           else try
           {
-            return string_to::number(token, 10);
+            return make_number(token, 10);
           }
           catch (...)
           {
@@ -430,7 +410,7 @@ inline namespace kernel
       return read(standard_input);
     }
 
-    inline auto read(external_representation const& s) -> decltype(auto)
+    inline auto read(external_representation const& s) -> value_type // NOTE: Specifying `decltype(auto)` causes a `undefined reference to ...` error in GCC-7.
     {
       auto port = std::stringstream(s);
       return read(port);

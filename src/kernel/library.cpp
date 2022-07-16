@@ -1069,10 +1069,10 @@ inline namespace kernel
         switch (length(xs))
         {
         case 1:
-          return string_to::number(car(xs).as<string>(), 10);
+          return make_number(car(xs).as<string>(), 10);
 
         case 2:
-          return string_to::number(car(xs).as<string>(), static_cast<int>(cadr(xs).as<exact_integer>()));
+          return make_number(car(xs).as<string>(), static_cast<int>(cadr(xs).as<exact_integer>()));
 
         default:
           throw invalid_application(intern("string->number") | xs);
