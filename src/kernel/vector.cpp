@@ -28,7 +28,7 @@ inline namespace kernel
     std::copy(std::begin(x), std::end(x), std::back_inserter(data));
   }
 
-  vector::vector(meevax::string const& s)
+  vector::vector(string const& s)
   {
     for (auto const& c : s.codepoints)
     {
@@ -96,20 +96,6 @@ inline namespace kernel
   auto vector::set(const_reference k, const_reference x) -> const_reference
   {
     return data.at(k.as<exact_integer>()) = x;
-  }
-
-  auto vector::string(const_reference from, const_reference to) const -> value_type
-  {
-    meevax::string s;
-
-    std::for_each(std::next(std::begin(data), from.as<exact_integer>()),
-                  std::next(std::begin(data), to.as<exact_integer>()),
-                  [&](let const& each)
-                  {
-                    s.codepoints.push_back(each.as<character>());
-                  });
-
-    return make(s);
   }
 
   auto operator ==(vector const& lhs, vector const& rhs) -> bool

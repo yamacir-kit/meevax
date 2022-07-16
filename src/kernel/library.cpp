@@ -1095,6 +1095,13 @@ inline namespace kernel
         return make<string>(car(xs));
       });
 
+      library.define<procedure>("vector->string", [](let const& xs)
+      {
+        return make<string>(car(xs).as<vector>(),
+                            cdr(xs).is<pair>() ? cadr(xs) : e0,
+                            cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
+      });
+
       library.export_("string?");
       library.export_("make-string");
       library.export_("string-append");
@@ -1112,6 +1119,7 @@ inline namespace kernel
       library.export_("string->number");
       library.export_("string->symbol");
       library.export_("list->string");
+      library.export_("vector->string");
     });
 
     define_library("(meevax symbol)", [](library & library)
@@ -1226,12 +1234,6 @@ inline namespace kernel
                                          cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
       });
 
-      library.define<procedure>("vector->string", [](let const& xs)
-      {
-        return car(xs).as<vector>().string(cdr(xs).is<pair>() ? cadr(xs) : e0,
-                                           cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
-      });
-
       library.define<procedure>("string->vector", [](let const& xs)
       {
         return make<vector>(car(xs).as<string>());
@@ -1248,7 +1250,6 @@ inline namespace kernel
       library.export_("vector-set!");
       library.export_("vector-fill!");
       library.export_("vector->list");
-      library.export_("vector->string");
       library.export_("string->vector");
     });
 

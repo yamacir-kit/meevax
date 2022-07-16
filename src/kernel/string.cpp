@@ -18,6 +18,7 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/string.hpp>
+#include <meevax/kernel/vector.hpp>
 
 namespace meevax
 {
@@ -84,6 +85,16 @@ inline namespace kernel
   string::string(external_representation const& s)
     : string { std::stringstream(s + "\"") }
   {}
+
+  string::string(vector const& v, const_reference begin, const_reference end)
+  {
+    std::for_each(std::next(std::begin(v.data), begin.as<exact_integer>()),
+                  std::next(std::begin(v.data), end.as<exact_integer>()),
+                  [&](let const& c)
+                  {
+                    codepoints.push_back(c.as<character>());
+                  });
+  }
 
   string::string(const_reference xs)
   {

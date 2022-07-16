@@ -1,7 +1,7 @@
 (define-library (scheme base)
   (import (only (meevax error) error? read-error? file-error?)
           (only (meevax number) exact-integer?)
-          (only (meevax vector) vector-append vector-copy vector-copy! vector->string string->vector)
+          (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
           (only (meevax port) binary-port?
                               textual-port?
                               port?
@@ -17,7 +17,7 @@
                               put-char
                               put-string
                               %flush-output-port)
-          (only (meevax string) string-copy!)
+          (only (meevax string) string-copy! vector->string)
           (only (meevax version) features)
           (scheme r5rs)
           (srfi 6) ; Basic String Ports
