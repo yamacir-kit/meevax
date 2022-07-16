@@ -33,98 +33,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  namespace parse
-  {
-    using meevax::iostream::operator |;
-
-    auto token = [](std::istream & is) //  = <identifier> | <boolean> | <number> | <character> | <string> | ( | ) | #( | #u8( | ’ | ` | , | ,@ | .
-    {
-      auto is_end = [](auto c) constexpr
-      {
-        auto one_of = [c](auto... xs) constexpr
-        {
-          return (std::char_traits<char>::eq(c, xs) or ...);
-        };
-
-        return std::isspace(c) or one_of('"', '#', '\'', '(', ')', ',', ';', '[', ']', '`', '{', '|', '}', std::char_traits<char>::eof()); // NOTE: What read treats specially.
-      };
-
-      external_representation result;
-
-      for (auto c = is.peek(); not is_end(c); c = is.peek())
-      {
-        result.push_back(is.get());
-      }
-
-      return result;
-    };
-
-    auto any_character = [](std::istream & is)
-    {
-      switch (auto s = token(is); std::size(s))
-      {
-      case 0:
-        return make<character>(is.get());
-
-      case 1:
-        return make<character>(s[0]);
-
-      default:
-        putback(is, s);
-        throw read_error(make<string>("If <character> in #\\<character> is alphabetic, then any character immediately following <character> cannot be one that can appear in an identifier"));
-      }
-    };
-
-    auto character_name = [](std::istream & is)
-    {
-      std::unordered_map<external_representation, character::value_type> static const character_names
-      {
-        { "alarm"    , 0x07 },
-        { "backspace", 0x08 },
-        { "delete"   , 0x7F },
-        { "escape"   , 0x1B },
-        { "newline"  , 0x0A },
-        { "null"     , 0x00 },
-        { "return"   , 0x0D },
-        { "space"    , 0x20 },
-        { "tab"      , 0x09 },
-      };
-
-      auto const name = token(is);
-
-      try
-      {
-        return make<character>(character_names.at(name));
-      }
-      catch (...)
-      {
-        putback(is, name);
-        throw read_error(make<string>("invalid <charcter name>"), make<string>("\\#" + name));
-      }
-    };
-
-    auto hex_scalar_value = [](std::istream & is)
-    {
-      if (auto s = token(is); s[0] == 'x' and 1 < std::size(s))
-      {
-        std::stringstream ss;
-        ss << std::hex << s.substr(1);
-
-        character::value_type value = 0;
-        ss >> value;
-
-        return make<character>(value);
-      }
-      else
-      {
-        putback(is, s);
-        throw read_error(make<string>("invalid <hex scalar value>"), make<string>("\\#" + s));
-      }
-    };
-
-    auto character = any_character | character_name | hex_scalar_value;
-  }
-
   template <typename Environment>
   class reader
   {
@@ -278,17 +186,10 @@ inline namespace kernel
             return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 2);
 
           case 'c': // from Common Lisp
-            if (let const xs = read(is); xs.is<null>())
             {
-              return make<complex>(e0, e0);
-            }
-            else if (not cdr(xs).is<pair>())
-            {
-              return make<complex>(car(xs), e0);
-            }
-            else
-            {
-              return make<complex>(car(xs), cadr(xs));
+              let const xs = read(is);
+              return make<complex>(list_tail(xs, 0).is<pair>() ? list_ref(xs, 0) : e0,
+                                   list_tail(xs, 1).is<pair>() ? list_ref(xs, 1) : e0);
             }
 
           case 'd':
@@ -319,7 +220,7 @@ inline namespace kernel
             return make<vector>(read(is));
 
           case '\\':
-            return parse::character(is);
+            return read_character(is);
 
           default:
             throw read_error(make<string>("unknown discriminator"), make<character>(c));
@@ -358,6 +259,78 @@ inline namespace kernel
     {
       auto port = std::stringstream(s);
       return read(port);
+    }
+
+    static auto read_character(std::istream & is)
+    {
+      using meevax::iostream::operator |;
+
+      auto any_character = [](std::istream & is)
+      {
+        switch (auto s = read_token(is); std::size(s))
+        {
+        case 0:
+          return make<character>(is.get());
+
+        case 1:
+          return make<character>(s[0]);
+
+        default:
+          putback(is, s);
+          throw read_error(make<string>("If <character> in #\\<character> is alphabetic, then any character immediately following <character> cannot be one that can appear in an identifier"));
+        }
+      };
+
+      auto character_name = [](std::istream & is)
+      {
+        std::unordered_map<external_representation, character::value_type> static const character_names
+        {
+          { "alarm"    , 0x07 },
+          { "backspace", 0x08 },
+          { "delete"   , 0x7F },
+          { "escape"   , 0x1B },
+          { "newline"  , 0x0A },
+          { "null"     , 0x00 },
+          { "return"   , 0x0D },
+          { "space"    , 0x20 },
+          { "tab"      , 0x09 },
+        };
+
+        auto const name = read_token(is);
+
+        try
+        {
+          return make<character>(character_names.at(name));
+        }
+        catch (...)
+        {
+          putback(is, name);
+          throw read_error(make<string>("invalid <charcter name>"), make<string>("\\#" + name));
+        }
+      };
+
+      auto hex_scalar_value = [](std::istream & is)
+      {
+        if (auto s = read_token(is); s[0] == 'x' and 1 < std::size(s))
+        {
+          std::stringstream ss;
+          ss << std::hex << s.substr(1);
+
+          character::value_type value = 0;
+          ss >> value;
+
+          return make<character>(value);
+        }
+        else
+        {
+          putback(is, s);
+          throw read_error(make<string>("invalid <hex scalar value>"), make<string>("\\#" + s));
+        }
+      };
+
+      auto character = any_character | character_name | hex_scalar_value;
+
+      return character(is);
     }
 
     static auto read_token(std::istream & is) -> external_representation
