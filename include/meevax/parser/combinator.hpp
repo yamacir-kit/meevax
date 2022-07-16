@@ -21,9 +21,9 @@
 #include <iostream>
 #include <type_traits>
 
-#include <meevax/parser/class.hpp>
+#include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/error.hpp> // for read_error
-#include <meevax/kernel/miscellaneous.hpp> // for eof
+#include <meevax/parser/class.hpp>
 
 namespace meevax
 {

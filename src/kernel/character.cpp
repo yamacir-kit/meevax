@@ -15,8 +15,8 @@
 */
 
 #include <meevax/kernel/character.hpp>
+#include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/error.hpp>
-#include <meevax/kernel/miscellaneous.hpp> // for eof
 
 namespace meevax
 {
