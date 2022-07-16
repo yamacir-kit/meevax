@@ -397,18 +397,6 @@ inline namespace kernel
         return std::accumulate(std::begin(xs), std::end(xs), unit, append2);
       });
 
-      library.define<procedure>("list->string", [](let const& xs)
-      {
-        string s;
-
-        for (let const& x : car(xs))
-        {
-          s.codepoints.push_back(x.as<character>());
-        }
-
-        return make(std::move(s));
-      });
-
       library.define<procedure>("list->vector", [](let const& xs)
       {
         return make<vector>(car(xs));
@@ -416,7 +404,6 @@ inline namespace kernel
 
       library.export_("null?");
       library.export_("append");
-      library.export_("list->string");
       library.export_("list->vector");
     });
 
@@ -1103,6 +1090,11 @@ inline namespace kernel
         return intern(car(xs).as<string>());
       });
 
+      library.define<procedure>("list->string", [](let const& xs)
+      {
+        return make<string>(car(xs));
+      });
+
       library.export_("string?");
       library.export_("make-string");
       library.export_("string-append");
@@ -1119,6 +1111,7 @@ inline namespace kernel
       library.export_("string->list");
       library.export_("string->number");
       library.export_("string->symbol");
+      library.export_("list->string");
     });
 
     define_library("(meevax symbol)", [](library & library)

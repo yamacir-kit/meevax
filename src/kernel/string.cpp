@@ -85,6 +85,14 @@ inline namespace kernel
     : string { std::stringstream(s + "\"") }
   {}
 
+  string::string(const_reference xs)
+  {
+    for (let const& x : xs)
+    {
+      codepoints.push_back(x.as<character>());
+    }
+  }
+
   string::string(const_reference k, const_reference c)
     : codepoints { k.as<exact_integer>(), c.as<character>() }
   {}
