@@ -22,7 +22,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  character::character(value_type const codepoint)
+  character::character(int_type const codepoint)
     : codepoint { codepoint }
   {}
 
@@ -68,7 +68,7 @@ inline namespace kernel
     }
   }
 
-  character::operator value_type() const
+  character::operator int_type() const
   {
     return codepoint;
   }

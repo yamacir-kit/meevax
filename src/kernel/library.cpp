@@ -595,7 +595,7 @@ inline namespace kernel
       {
         if (xs.is<pair>() and car(xs).is<exact_integer>())
         {
-          return make<character>(static_cast<character::value_type>(car(xs).as<exact_integer>()));
+          return make<character>(car(xs).as<exact_integer>());
         }
         else
         {

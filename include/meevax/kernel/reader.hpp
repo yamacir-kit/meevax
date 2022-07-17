@@ -263,9 +263,7 @@ inline namespace kernel
 
     static auto read_character(std::istream & is)
     {
-      using meevax::iostream::operator |;
-
-      std::unordered_map<external_representation, character::value_type> static const character_names {
+      std::unordered_map<external_representation, character::int_type> static const character_names {
         { "alarm"    , 0x07 },
         { "backspace", 0x08 },
         { "delete"   , 0x7F },
@@ -295,7 +293,7 @@ inline namespace kernel
           std::stringstream ss;
           ss << std::hex << token.substr(1);
 
-          character::value_type value = 0;
+          character::int_type value = 0;
           ss >> value;
 
           return make<character>(value);

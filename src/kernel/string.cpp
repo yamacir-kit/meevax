@@ -49,7 +49,7 @@ inline namespace kernel
           {
             if (std::stringstream ss; ss << std::hex << token)
             {
-              if (character::value_type value = 0; ss >> value)
+              if (character::int_type value = 0; ss >> value)
               {
                 codepoints.emplace_back(value);
                 break;
