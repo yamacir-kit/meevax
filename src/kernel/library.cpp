@@ -860,7 +860,7 @@ inline namespace kernel
       {
         try
         {
-          return make<character>(car(xs).as<std::istream>());
+          return make<character>(read_codepoint(car(xs).as<std::istream>()));
         }
         catch (eof const&)
         {
@@ -877,7 +877,7 @@ inline namespace kernel
         try
         {
           auto const g = car(xs).as<std::istream>().tellg();
-          let const c = make<character>(car(xs).as<std::istream>());
+          let const c = make<character>(read_codepoint(car(xs).as<std::istream>()));
           car(xs).as<std::istream>().seekg(g);
           return c;
         }

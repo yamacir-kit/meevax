@@ -37,8 +37,6 @@ inline namespace kernel
 
     explicit character(int_type const); // integer->char
 
-    explicit character(std::istream &); // read-char
-
     operator int_type() const; // char->integer
 
     explicit operator external_representation() const; // write-char (for display)

@@ -17,6 +17,7 @@
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/vector.hpp>
 
@@ -26,15 +27,15 @@ inline namespace kernel
 {
   string::string(std::istream & is, std::size_t k)
   {
-    for (auto c = character(is); std::size(codepoints) < k and not std::char_traits<char>::eq(std::char_traits<char>::eof(), c.codepoint); c = character(is))
+    for (auto codepoint = read_codepoint(is); codepoints.size() < k and not std::char_traits<char>::eq(std::char_traits<char>::eof(), codepoint); codepoint = read_codepoint(is))
     {
-      switch (c.codepoint)
+      switch (codepoint)
       {
       case '"':
         return;
 
       case '\\':
-        switch (auto const c = character(is); c.codepoint)
+        switch (auto const codepoint = read_codepoint(is); codepoint)
         {
         case 'a': codepoints.emplace_back('\a'); break;
         case 'b': codepoints.emplace_back('\b'); break;
@@ -64,13 +65,13 @@ inline namespace kernel
           break;
 
         default:
-          codepoints.push_back(c);
+          codepoints.emplace_back(codepoint);
           break;
         }
         break;
 
       default:
-        codepoints.push_back(c);
+        codepoints.emplace_back(codepoint);
         break;
       }
     }
