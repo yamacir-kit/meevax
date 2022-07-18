@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
-#include <meevax/iostream/ignore.hpp>
-#include <meevax/iostream/putback.hpp>
 #include <meevax/kernel/constant.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/error.hpp>
@@ -34,7 +32,11 @@ inline namespace kernel
 {
   auto read_codepoint(std::istream &) -> character::int_type;
 
+  auto read_character(std::istream &) -> value_type;
+
   auto read_string(std::istream &) -> value_type;
+
+  auto read_token(std::istream &) -> std::string;
 
   template <typename Environment>
   class reader
@@ -53,36 +55,8 @@ inline namespace kernel
 
     inline auto char_ready() const
     {
-      return standard_input.is_also<std::istream>() and standard_input.as<std::istream>();
-    }
-
-    static auto is_special_character(char_type c)
-    {
-      auto one_of = [c](auto... xs) constexpr
-      {
-        return (std::char_traits<char>::eq(c, xs) or ...);
-      };
-
-      return one_of(std::char_traits<char>::eof(),
-                    '\t', // 0x09
-                    '\n', // 0x0A
-                    '\v', // 0x0B
-                    '\f', // 0x0C
-                    '\r', // 0x0D
-                    ' ',  // 0x20
-                    '"',  // 0x22
-                    '#',  // 0x23
-                    '\'', // 0x27
-                    '(',  // 0x28
-                    ')',  // 0x29
-                    ',',  // 0x2C
-                    ';',  // 0x3B
-                    '[',  // 0x5B
-                    ']',  // 0x5D
-                    '`',  // 0x60
-                    '{',  // 0x7B
-                    '|',  // 0x7C
-                    '}'); // 0x7D
+      assert(standard_input.is_also<std::istream>());
+      return static_cast<bool>(standard_input.as<std::istream>());
     }
 
     static auto make_number(external_representation const& token, int radix = 10)
@@ -279,6 +253,7 @@ inline namespace kernel
 
     inline auto read(const_reference x) -> decltype(auto)
     {
+      assert(x.is_also<std::istream>());
       return read(x.as<std::istream>());
     }
 
@@ -292,59 +267,6 @@ inline namespace kernel
       auto port = std::stringstream(s);
       return read(port);
     }
-
-    static auto read_character(std::istream & is)
-    {
-      std::unordered_map<external_representation, character::int_type> static const character_names {
-        { "alarm"    , 0x07 },
-        { "backspace", 0x08 },
-        { "delete"   , 0x7F },
-        { "escape"   , 0x1B },
-        { "newline"  , 0x0A },
-        { "null"     , 0x00 },
-        { "return"   , 0x0D },
-        { "space"    , 0x20 },
-        { "tab"      , 0x09 },
-      };
-
-      switch (auto token = read_token(is); token.length())
-      {
-      case 0:
-        assert(is_special_character(is.peek()));
-        return make<character>(is.get());
-
-      case 1:
-        assert(std::isprint(token.front()));
-        return make<character>(token.front());
-
-      default:
-        if (auto iter = character_names.find(token); iter != std::end(character_names))
-        {
-          return make<character>(iter->second);
-        }
-        else if (token[0] == 'x' and 1 < token.length())
-        {
-          return make<character>(lexical_cast<character::int_type>(std::hex, token.substr(1)));
-        }
-        else
-        {
-          putback(is, token);
-          throw read_error(make<string>("not a character"), make<string>("\\#" + token));
-        }
-      }
-    }
-
-    static auto read_token(std::istream & is) -> external_representation
-    {
-      auto token = external_representation();
-
-      while (not is_special_character(is.peek()))
-      {
-        token.push_back(is.get());
-      }
-
-      return token;
-    };
   };
 } // namespace kernel
 } // namespace meevax

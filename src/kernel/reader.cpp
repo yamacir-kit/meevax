@@ -14,12 +14,43 @@
    limitations under the License.
 */
 
+#include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/reader.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
+  template <typename Char>
+  auto is_special_character(Char c)
+  {
+    auto one_of = [c](auto... xs) constexpr
+    {
+      return (std::char_traits<char>::eq(c, xs) or ...);
+    };
+
+    return one_of(std::char_traits<char>::eof(),
+                  '\t', // 0x09
+                  '\n', // 0x0A
+                  '\v', // 0x0B
+                  '\f', // 0x0C
+                  '\r', // 0x0D
+                  ' ',  // 0x20
+                  '"',  // 0x22
+                  '#',  // 0x23
+                  '\'', // 0x27
+                  '(',  // 0x28
+                  ')',  // 0x29
+                  ',',  // 0x2C
+                  ';',  // 0x3B
+                  '[',  // 0x5B
+                  ']',  // 0x5D
+                  '`',  // 0x60
+                  '{',  // 0x7B
+                  '|',  // 0x7C
+                  '}'); // 0x7D
+  }
+
   auto read_codepoint(std::istream & is) -> character::int_type /* -------------
   *
   *  00000000 -- 0000007F: 0xxxxxxx
@@ -63,6 +94,51 @@ inline namespace kernel
     }
 
     return codepoint;
+  }
+
+  auto read_character(std::istream & is) -> value_type
+  {
+    std::unordered_map<external_representation, character::int_type> static const character_names {
+      { "alarm"    , 0x07 },
+      { "backspace", 0x08 },
+      { "delete"   , 0x7F },
+      { "escape"   , 0x1B },
+      { "newline"  , 0x0A },
+      { "null"     , 0x00 },
+      { "return"   , 0x0D },
+      { "space"    , 0x20 },
+      { "tab"      , 0x09 },
+    };
+
+    switch (auto token = read_token(is); token.length())
+    {
+    case 0:
+      assert(is_special_character(is.peek()));
+      return make<character>(is.get());
+
+    case 1:
+      assert(std::isprint(token.front()));
+      return make<character>(token.front());
+
+    default:
+      if (auto iter = character_names.find(token); iter != std::end(character_names))
+      {
+        return make<character>(iter->second);
+      }
+      else if (token[0] == 'x' and 1 < token.length())
+      {
+        return make<character>(lexical_cast<character::int_type>(std::hex, token.substr(1)));
+      }
+      else
+      {
+        for (auto iter = std::rbegin(token); iter != std::rend(token); ++iter)
+        {
+          is.putback(*iter);
+        }
+
+        throw read_error(make<string>("not a character"), make<string>("\\#" + token));
+      }
+    }
   }
 
   auto read_string(std::istream & is) -> value_type
@@ -121,6 +197,18 @@ inline namespace kernel
     }
 
     throw read_error(make<string>("unterminated string"), unit);
+  }
+
+  auto read_token(std::istream & is) -> std::string
+  {
+    auto token = std::string();
+
+    while (not is_special_character(is.peek()))
+    {
+      token.push_back(is.get());
+    }
+
+    return token;
   }
 } // namespace kernel
 } // namespace meevax
