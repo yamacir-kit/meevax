@@ -365,13 +365,7 @@ inline namespace kernel
         }
         else if (token[0] == 'x' and 1 < token.length())
         {
-          std::stringstream ss;
-          ss << std::hex << token.substr(1);
-
-          character::int_type value = 0;
-          ss >> value;
-
-          return make<character>(value);
+          return make<character>(lexical_cast<character::int_type>(std::hex, token.substr(1)));
         }
         else
         {
