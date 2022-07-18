@@ -32,50 +32,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto read_codepoint = [](std::istream & is) /* -------------------------------
-  *
-  *  00000000 -- 0000007F: 0xxxxxxx
-  *  00000080 -- 000007FF: 110xxxxx 10xxxxxx
-  *  00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
-  *  00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-  *
-  * ------------------------------------------------------------------------- */
-  {
-    character::int_type codepoint = 0;
+  auto read_codepoint(std::istream &) -> character::int_type;
 
-    if (auto const c = is.peek(); std::char_traits<char>::eq(std::char_traits<char>::eof(), c))
-    {
-      throw eof();
-    }
-    else if (0x00 <= c and c <= 0x7F) // 7 bit
-    {
-      codepoint = is.get();
-    }
-    else if (0xC2 <= c and c <= 0xDF) // 11 bit
-    {
-      codepoint |= is.get() bitand 0b0001'1111; codepoint <<= 6;
-      codepoint |= is.get() bitand 0b0011'1111;
-    }
-    else if (0xE0 <= c and c <= 0xEF) // 16 bit
-    {
-      codepoint |= is.get() bitand 0b0000'1111; codepoint <<= 6;
-      codepoint |= is.get() bitand 0b0011'1111; codepoint <<= 6;
-      codepoint |= is.get() bitand 0b0011'1111;
-    }
-    else if (0xF0 <= c and c <= 0xF4) // 21 bit
-    {
-      codepoint |= is.get() bitand 0b0000'0111; codepoint <<= 6;
-      codepoint |= is.get() bitand 0b0011'1111; codepoint <<= 6;
-      codepoint |= is.get() bitand 0b0011'1111; codepoint <<= 6;
-      codepoint |= is.get() bitand 0b0011'1111;
-    }
-    else
-    {
-      throw read_error(make<string>("invalid stream"), unit);
-    }
-
-    return codepoint;
-  };
+  auto read_string(std::istream &) -> value_type;
 
   template <typename Environment>
   class reader
@@ -190,7 +149,7 @@ inline namespace kernel
           break;
 
         case '"':  // 0x22
-          return make<string>(is);
+          return read_string(is);
 
         case '#':  // 0x23
           switch (auto const c = is.get())
