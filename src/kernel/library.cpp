@@ -603,9 +603,10 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("number->string", [](auto&& xs)
+      library.define<procedure>("number->string", [](let const& xs)
       {
-        return make<string>(lexical_cast<external_representation>(car(xs)));
+        return make<string>(lexical_cast<external_representation>(std::setbase(cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10),
+                                                                  car(xs)));
       });
 
       library.export_("number?");
@@ -1071,17 +1072,8 @@ inline namespace kernel
 
       library.define<procedure>("string->number", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return make_number(car(xs).as<string>(), 10);
-
-        case 2:
-          return make_number(car(xs).as<string>(), static_cast<int>(cadr(xs).as<exact_integer>()));
-
-        default:
-          throw invalid_application(make_symbol("string->number") | xs);
-        }
+        return make_number(car(xs).as<string>(),
+                           cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10);
       });
 
       library.define<procedure>("string->list", [](let const& xs)

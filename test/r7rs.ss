@@ -101,9 +101,9 @@
 
 (check "abc" => "abc")
 
-; (check '# => #)
+(check '#\a => #\a) ; R7RSSmallErrata 4. In Section 4.1.2 (Literal expressions), the examples '# and # should be '#\a and #\a respectively.
 
-; (check # => #)
+(check #\a => #\a) ; R7RSSmallErrata 4. In Section 4.1.2 (Literal expressions), the examples '# and # should be '#\a and #\a respectively.
 
 (check '#(a 10) => #(a 10))
 
@@ -1555,4 +1555,4 @@
 
 (check-report)
 
-(exit (check-passed? 379))
+(exit (check-passed? 381))
