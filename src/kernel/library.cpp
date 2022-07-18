@@ -908,14 +908,19 @@ inline namespace kernel
 
       library.define<procedure>("%read-string", [](let const& xs)
       {
-        switch (length(xs))
+        auto read_string = [](string & string, std::size_t k, std::istream & is)
         {
-        case 2:
-          return make<string>(cadr(xs).as<std::istream>(), static_cast<std::size_t>(car(xs).as<exact_integer>()));
+          for (std::size_t i = 0; i < k and is; ++i)
+          {
+            string.codepoints.emplace_back(read_codepoint(is));
+          }
+        };
 
-        default:
-          throw invalid_application(make_symbol("read-string") | xs);
-        }
+        let const s = make<string>();
+
+        read_string(s.as<string>(), car(xs).as<exact_integer>(), cadr(xs).as<std::istream>());
+
+        return s;
       });
 
       library.define<procedure>("put-char", [](let const& xs)
