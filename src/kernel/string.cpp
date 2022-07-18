@@ -25,67 +25,12 @@ namespace meevax
 {
 inline namespace kernel
 {
-  string::string(std::istream & is, std::size_t k)
-  {
-    for (auto codepoint = read_codepoint(is); codepoints.size() < k and not std::char_traits<char>::eq(std::char_traits<char>::eof(), codepoint); codepoint = read_codepoint(is))
-    {
-      switch (codepoint)
-      {
-      case '"':
-        return;
-
-      case '\\':
-        switch (auto const codepoint = read_codepoint(is); codepoint)
-        {
-        case 'a': codepoints.emplace_back('\a'); break;
-        case 'b': codepoints.emplace_back('\b'); break;
-        case 'f': codepoints.emplace_back('\f'); break;
-        case 'n': codepoints.emplace_back('\n'); break;
-        case 'r': codepoints.emplace_back('\r'); break;
-        case 't': codepoints.emplace_back('\t'); break;
-        case 'v': codepoints.emplace_back('\v'); break;
-
-        case 'x':
-          if (external_representation token; std::getline(is, token, ';') and is.ignore(1))
-          {
-            if (std::stringstream ss; ss << std::hex << token)
-            {
-              if (character::int_type value = 0; ss >> value)
-              {
-                codepoints.emplace_back(value);
-                break;
-              }
-            }
-          }
-          throw read_error(make<string>("invalid escape sequence"));
-
-        case '\n':
-        case '\r':
-          ignore(is, [](auto c) { return std::isspace(c); });
-          break;
-
-        default:
-          codepoints.emplace_back(codepoint);
-          break;
-        }
-        break;
-
-      default:
-        codepoints.emplace_back(codepoint);
-        break;
-      }
-    }
-
-    throw read_error(make<string>("unterminated string"), unit);
-  }
-
-  string::string(std::istream && is)
-    : string { is }
-  {}
-
   string::string(external_representation const& s)
-    : string { std::stringstream(s + "\"") }
-  {}
+  {
+    for (auto port = std::stringstream(s);
+         not std::char_traits<char>::eq(std::char_traits<char>::eof(), port.peek());
+         codepoints.emplace_back(read_codepoint(port)));
+  }
 
   string::string(vector const& v, const_reference begin, const_reference end)
   {
