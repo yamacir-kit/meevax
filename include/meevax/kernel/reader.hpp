@@ -355,8 +355,8 @@ inline namespace kernel
         return make<character>(is.get());
 
       case 1:
-        assert(std::isprint(token[0]));
-        return make<character>(token[0]);
+        assert(std::isprint(token.front()));
+        return make<character>(token.front());
 
       default:
         if (auto iter = character_names.find(token); iter != std::end(character_names))
@@ -383,19 +383,9 @@ inline namespace kernel
 
     static auto read_token(std::istream & is) -> external_representation
     {
-      auto is_end = [](auto c) constexpr
-      {
-        auto one_of = [c](auto... xs) constexpr
-        {
-          return (std::char_traits<char>::eq(c, xs) or ...);
-        };
+      auto token = external_representation();
 
-        return std::isspace(c) or one_of('"', '#', '\'', '(', ')', ',', ';', '[', ']', '`', '{', '|', '}', std::char_traits<char>::eof()); // NOTE: What read treats specially.
-      };
-
-      external_representation token;
-
-      for (auto c = is.peek(); not is_end(c); c = is.peek())
+      while (not is_special_character(is.peek()))
       {
         token.push_back(is.get());
       }
