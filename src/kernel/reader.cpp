@@ -175,7 +175,7 @@ inline namespace kernel
     throw read_error(make<string>("unterminated multi-line comment"), unit);
   }
 
-  auto read_string(std::istream & is) -> value_type
+  auto read_string(std::istream & is, character::int_type const quotation) -> value_type
   {
     let const s = make<string>();
 
@@ -183,11 +183,12 @@ inline namespace kernel
 
     for (auto codepoint = read_codepoint(is); not std::char_traits<char>::eq(std::char_traits<char>::eof(), codepoint); codepoint = read_codepoint(is))
     {
-      switch (codepoint)
+      if (codepoint == quotation)
       {
-      case '"':
         return s;
-
+      }
+      else switch (codepoint)
+      {
       case '\\':
         switch (auto const codepoint = read_codepoint(is); codepoint)
         {
@@ -200,7 +201,7 @@ inline namespace kernel
         case 'v': codepoints.emplace_back('\v'); break;
 
         case 'x':
-          if (auto token = external_representation(); std::getline(is, token, ';') and is.ignore(1))
+          if (auto token = external_representation(); std::getline(is, token, ';'))
           {
             if (std::stringstream ss; ss << std::hex << token)
             {

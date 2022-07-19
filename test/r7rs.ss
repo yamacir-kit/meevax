@@ -36,9 +36,9 @@
 
 (check (symbol? 'V17a) => #t)
 
-; (check (symbol? |two words|) => #t)
+(check (symbol? '|two words|) => #t)
 
-; (check (symbol? |two\x20;words|) => #t)
+(check (symbol? '|two\x20;words|) => #t)
 
 (check (symbol? 'the-word-recursion-has-many-meanings) => #t)
 
@@ -1555,4 +1555,4 @@
 
 (check-report)
 
-(exit (check-passed? 381))
+(exit (check-passed? 383))

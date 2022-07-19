@@ -136,7 +136,7 @@ inline namespace kernel
   {
     auto write = [&](character const& c) -> decltype(auto)
     {
-      if (c.codepoint < 0x80)
+      if (std::isprint(c.codepoint))
       {
         switch (c.codepoint)
         {

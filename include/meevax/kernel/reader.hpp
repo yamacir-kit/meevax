@@ -36,7 +36,7 @@ inline namespace kernel
 
   auto read_comment(std::istream &) -> std::istream &;
 
-  auto read_string(std::istream &) -> value_type;
+  auto read_string(std::istream &, character::int_type const quotation = '"') -> value_type;
 
   auto read_token(std::istream &) -> std::string;
 
@@ -51,6 +51,11 @@ inline namespace kernel
     IMPORT(Environment, evaluate, NIL);
 
     using char_type = typename std::istream::char_type;
+
+    auto read_symbolic_string(std::istream & is, character::int_type c = '"') -> value_type
+    {
+      return make_symbol(read_string(is, c).as<string>());
+    }
 
   public:
     static inline std::unordered_map<external_representation, value_type> symbols {};
@@ -140,6 +145,9 @@ inline namespace kernel
           case ';': // SRFI 62
             return read(is), read(is);
 
+          case '"':
+            return read_symbolic_string(is, c);
+
           case 'b': // (string->number (read) 2)
             return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 2);
 
@@ -210,8 +218,7 @@ inline namespace kernel
           return list(make_symbol("quasiquote"), read(is));
 
         case '|':  // 0x7C
-          // TODO VERTICAL-LINE SYMBOLS
-          return read(is);
+          return read_symbolic_string(is, c);
 
         case '(':
         case '[':
