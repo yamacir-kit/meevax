@@ -48,10 +48,10 @@
 
 ; ---- 2.2. --------------------------------------------------------------------
 
-; #|
-;   The FACT procedure computes the factorial
-;   of a non-negative integer.
-; |#
+#|
+  The FACT procedure computes the factorial
+  of a non-negative integer.
+|#
 (define fact
   (lambda (n)
     (if (= n 0)

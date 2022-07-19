@@ -36,7 +36,7 @@ inline namespace kernel
 
     explicit string() = default;
 
-    explicit string(std::string const&);
+    explicit string(external_representation const&);
 
     /*
        (list->string list)                                            procedure

@@ -50,6 +50,7 @@ Subset of R7RS-small.
 | [ 10](https://srfi.schemers.org/srfi-10/srfi-10.html)   | #, external form                                         | built-in                                                                                                                                                                       |            |
 | [ 11](https://srfi.schemers.org/srfi-11/srfi-11.html)   | Syntax for receiving multiple values                     | [`(srfi 11)`](./basis/srfi-11.ss) <br> [`(scheme base)`](./basis/r7rs.ss)                                                                                                      | R7RS 4.2.2 |
 | [ 23](https://srfi.schemers.org/srfi-23/srfi-23.html)   | Error reporting mechanism                                | [`(srfi 23)`](./basis/srfi-23.ss) <br> [`(scheme base)`](./basis/r7rs.ss)                                                                                                      | R7RS 6.11  |
+| [ 30](https://srfi.schemers.org/srfi-30/srfi-30.html)   | Nested Multi-line Comments                               | built-in                                                                                                                                                                       | R7RS 2.2   |
 | [ 34](https://srfi.schemers.org/srfi-34/srfi-34.html)   | Exception Handling for Programs                          | [`(srfi 34)`](./basis/srfi-34.ss) <br> [`(scheme base)`](./basis/r7rs.ss)                                                                                                      | R7RS 6.11  |
 | [ 39](https://srfi.schemers.org/srfi-39/srfi-39.html)   | Parameter objects                                        | [`(srfi 39)`](./basis/srfi-39.ss) <br> [`(scheme base)`](./basis/r7rs.ss)                                                                                                      | R7RS 4.2.6 |
 | [ 45](https://srfi.schemers.org/srfi-45/srfi-45.html)   | Primitives for Expressing Iterative Lazy Algorithms      | [`(srfi 45)`](./basis/srfi-45.ss)                                                                                                                                              | [#296](https://github.com/yamacir-kit/meevax/issues/296)
@@ -104,9 +105,9 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name        | Description
 |:-------------------|:--
-| `all` (default)    | Build shared-library `libmeevax.0.4.157.so` and executable `meevax`.
+| `all` (default)    | Build shared-library `libmeevax.0.4.158.so` and executable `meevax`.
 | `test`             | Test executable `meevax`.
-| `package`          | Generate debian package `meevax_0.4.157_amd64.deb`.
+| `package`          | Generate debian package `meevax_0.4.158_amd64.deb`.
 | `install`          | Copy files into `/usr/local` __(1)__.
 | `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
 | `safe-install.deb` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
@@ -121,7 +122,7 @@ __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's
 ## Usage
 
 ```
-Meevax Lisp System, version 0.4.157
+Meevax Lisp System, version 0.4.158
 
 Usage: meevax [OPTION...] [FILE...]
 

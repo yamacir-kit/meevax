@@ -30,9 +30,11 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto read_character(std::istream &) -> value_type;
+
   auto read_codepoint(std::istream &) -> character::int_type;
 
-  auto read_character(std::istream &) -> value_type;
+  auto read_comment(std::istream &) -> std::istream &;
 
   auto read_string(std::istream &) -> value_type;
 
@@ -128,20 +130,20 @@ inline namespace kernel
         case '#':  // 0x23
           switch (auto const c = is.get())
           {
-          case '!': // from SRFI 22
+          case '!': // SRFI 22
             is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             return read(is);
 
-          case ',': // from SRFI 10
+          case ',': // SRFI 10
             return evaluate(read(is));
 
-          case ';': // from SRFI 62
+          case ';': // SRFI 62
             return read(is), read(is);
 
           case 'b': // (string->number (read) 2)
             return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 2);
 
-          case 'c': // from Common Lisp
+          case 'c': // Common Lisp
             {
               let const xs = read(is);
               return make<complex>(list_tail(xs, 0).is<pair>() ? list_ref(xs, 0) : e0,
@@ -178,6 +180,10 @@ inline namespace kernel
           case '\\':
             return read_character(is);
 
+          case '|': // SRFI 30
+            read_comment(is);
+            return read(is);
+
           default:
             throw read_error(make<string>("unknown discriminator"), make<character>(c));
           }
@@ -202,6 +208,10 @@ inline namespace kernel
 
         case '`':  // 0x60
           return list(make_symbol("quasiquote"), read(is));
+
+        case '|':  // 0x7C
+          // TODO VERTICAL-LINE SYMBOLS
+          return read(is);
 
         case '(':
         case '[':

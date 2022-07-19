@@ -51,6 +51,51 @@ inline namespace kernel
                   '}'); // 0x7D
   }
 
+  auto read_character(std::istream & is) -> value_type
+  {
+    std::unordered_map<external_representation, character::int_type> static const character_names {
+      { "alarm"    , 0x07 },
+      { "backspace", 0x08 },
+      { "delete"   , 0x7F },
+      { "escape"   , 0x1B },
+      { "newline"  , 0x0A },
+      { "null"     , 0x00 },
+      { "return"   , 0x0D },
+      { "space"    , 0x20 },
+      { "tab"      , 0x09 },
+    };
+
+    switch (auto token = read_token(is); token.length())
+    {
+    case 0:
+      assert(is_special_character(is.peek()));
+      return make<character>(is.get());
+
+    case 1:
+      assert(std::isprint(token.front()));
+      return make<character>(token.front());
+
+    default:
+      if (auto iter = character_names.find(token); iter != std::end(character_names))
+      {
+        return make<character>(iter->second);
+      }
+      else if (token[0] == 'x' and 1 < token.length())
+      {
+        return make<character>(lexical_cast<character::int_type>(std::hex, token.substr(1)));
+      }
+      else
+      {
+        for (auto iter = std::rbegin(token); iter != std::rend(token); ++iter)
+        {
+          is.putback(*iter);
+        }
+
+        throw read_error(make<string>("not a character"), make<string>("\\#" + token));
+      }
+    }
+  }
+
   auto read_codepoint(std::istream & is) -> character::int_type /* -------------
   *
   *  00000000 -- 0000007F: 0xxxxxxx
@@ -96,49 +141,38 @@ inline namespace kernel
     return codepoint;
   }
 
-  auto read_character(std::istream & is) -> value_type
+  auto read_comment(std::istream & is) -> std::istream &
   {
-    std::unordered_map<external_representation, character::int_type> static const character_names {
-      { "alarm"    , 0x07 },
-      { "backspace", 0x08 },
-      { "delete"   , 0x7F },
-      { "escape"   , 0x1B },
-      { "newline"  , 0x0A },
-      { "null"     , 0x00 },
-      { "return"   , 0x0D },
-      { "space"    , 0x20 },
-      { "tab"      , 0x09 },
-    };
-
-    switch (auto token = read_token(is); token.length())
+    while (not std::char_traits<char>::eq(std::char_traits<char>::eof(), is.peek())) switch (is.get())
     {
-    case 0:
-      assert(is_special_character(is.peek()));
-      return make<character>(is.get());
+    case '#':
+      switch (is.peek())
+      {
+      case '|':
+        is.ignore(1);
+        read_comment(is);
+        [[fallthrough]];
 
-    case 1:
-      assert(std::isprint(token.front()));
-      return make<character>(token.front());
+      default:
+        continue;
+      }
+
+    case '|':
+      switch (is.peek())
+      {
+      case '#':
+        is.ignore(1);
+        return is;
+
+      default:
+        continue;
+      }
 
     default:
-      if (auto iter = character_names.find(token); iter != std::end(character_names))
-      {
-        return make<character>(iter->second);
-      }
-      else if (token[0] == 'x' and 1 < token.length())
-      {
-        return make<character>(lexical_cast<character::int_type>(std::hex, token.substr(1)));
-      }
-      else
-      {
-        for (auto iter = std::rbegin(token); iter != std::rend(token); ++iter)
-        {
-          is.putback(*iter);
-        }
-
-        throw read_error(make<string>("not a character"), make<string>("\\#" + token));
-      }
+      continue;
     }
+
+    throw read_error(make<string>("unterminated multi-line comment"), unit);
   }
 
   auto read_string(std::istream & is) -> value_type
