@@ -19,6 +19,7 @@
 
 #include <regex>
 
+#include <meevax/iostream/concatenate.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
@@ -218,7 +219,7 @@ inline namespace kernel
               }
               else
               {
-                throw error(make<string>(cat("option -", name, " requires an argument")));
+                throw error(make<string>(concatenate("option -", name, " requires an argument")));
               }
             }
             else if (auto iter = short_options.find(*current_short_option); iter != std::end(short_options))
@@ -246,7 +247,7 @@ inline namespace kernel
             }
             else
             {
-              throw error(make<string>(cat("option --", current_long_option, " requires an argument")));
+              throw error(make<string>(concatenate("option --", current_long_option, " requires an argument")));
             }
           }
           else if (auto iter = long_options.find(current_long_option); iter != std::end(long_options))

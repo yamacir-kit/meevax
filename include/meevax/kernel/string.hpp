@@ -23,13 +23,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto cat = [](auto&&... xs)
-  {
-    std::stringstream ss;
-    (ss << ... << xs);
-    return ss.str();
-  };
-
   struct string
   {
     std::vector<character> codepoints;

@@ -19,6 +19,7 @@
 
 #include <typeindex>
 
+#include <meevax/iostream/concatenate.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/error.hpp>
@@ -75,7 +76,7 @@ inline namespace kernel
     }
     else
     {
-      throw error(make<string>(cat("no viable operation ", demangle(typeid(F)), " with ", a, " and ", b)));
+      throw error(make<string>(concatenate("no viable operation ", demangle(typeid(F)), " with ", a, " and ", b)));
     }
   }
 
@@ -111,7 +112,7 @@ inline namespace kernel
     }
     else
     {
-      throw error(make<string>(cat("no viable operation ", demangle(typeid(F)), " with ", a, " and ", b)));
+      throw error(make<string>(concatenate("no viable operation ", demangle(typeid(F)), " with ", a, " and ", b)));
     }
   }
 
