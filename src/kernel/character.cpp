@@ -22,15 +22,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  character::character(int_type const codepoint)
-    : codepoint { codepoint }
-  {}
-
-  character::operator int_type() const
-  {
-    return codepoint;
-  }
-
   character::operator external_representation() const
   {
     std::array<char, 5> bytes {};
@@ -93,5 +84,7 @@ inline namespace kernel
   static_assert(std::is_standard_layout<character>::value);
 
   static_assert(std::is_trivial<character>::value);
+
+  static_assert(4 <= sizeof(character::int_type));
 } // namespace kernel
 } // namespace meevax

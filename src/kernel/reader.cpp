@@ -22,34 +22,32 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename Char>
-  auto is_special_character(Char c)
+  constexpr auto is_special_character(character::int_type c)
   {
     auto one_of = [c](auto... xs) constexpr
     {
-      return (std::char_traits<char>::eq(c, xs) or ...);
+      return (character::eq(c, xs) or ...);
     };
 
-    return one_of(std::char_traits<char>::eof(),
-                  '\t', // 0x09
-                  '\n', // 0x0A
-                  '\v', // 0x0B
-                  '\f', // 0x0C
-                  '\r', // 0x0D
-                  ' ',  // 0x20
-                  '"',  // 0x22
-                  '#',  // 0x23
-                  '\'', // 0x27
-                  '(',  // 0x28
-                  ')',  // 0x29
-                  ',',  // 0x2C
-                  ';',  // 0x3B
-                  '[',  // 0x5B
-                  ']',  // 0x5D
-                  '`',  // 0x60
-                  '{',  // 0x7B
-                  '|',  // 0x7C
-                  '}'); // 0x7D
+    return character::is_eof(c) or one_of('\t', // 0x09
+                                          '\n', // 0x0A
+                                          '\v', // 0x0B
+                                          '\f', // 0x0C
+                                          '\r', // 0x0D
+                                          ' ',  // 0x20
+                                          '"',  // 0x22
+                                          '#',  // 0x23
+                                          '\'', // 0x27
+                                          '(',  // 0x28
+                                          ')',  // 0x29
+                                          ',',  // 0x2C
+                                          ';',  // 0x3B
+                                          '[',  // 0x5B
+                                          ']',  // 0x5D
+                                          '`',  // 0x60
+                                          '{',  // 0x7B
+                                          '|',  // 0x7C
+                                          '}'); // 0x7D
   }
 
   auto get_codepoint(std::istream & is) -> character::int_type /* --------------
@@ -63,7 +61,7 @@ inline namespace kernel
   {
     character::int_type codepoint = 0;
 
-    if (auto const c = is.peek(); std::char_traits<char>::eq(std::char_traits<char>::eof(), c))
+    if (auto const c = is.peek(); character::is_eof(c))
     {
       throw eof();
     }
@@ -101,11 +99,11 @@ inline namespace kernel
   {
     auto s = string();
 
-    assert(std::char_traits<char>::eq(is.peek(), delimiter));
+    assert(character::eq(is.peek(), delimiter));
 
     is.ignore(1);
 
-    for (auto codepoint = get_codepoint(is); not std::char_traits<char>::eq(std::char_traits<char>::eof(), codepoint); codepoint = get_codepoint(is))
+    for (auto codepoint = get_codepoint(is); not character::is_eof(codepoint); codepoint = get_codepoint(is))
     {
       if (codepoint == delimiter)
       {
@@ -164,7 +162,7 @@ inline namespace kernel
 
   auto ignore_nested_block_comment(std::istream & is) -> std::istream &
   {
-    while (not std::char_traits<char>::eq(std::char_traits<char>::eof(), is.peek())) switch (is.get())
+    while (not character::is_eof(is.peek())) switch (is.get())
     {
     case '#':
       switch (is.peek())
