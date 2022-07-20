@@ -14,18 +14,22 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_IOSTREAM_PUTBACK_HPP
-#define INCLUDED_MEEVAX_IOSTREAM_PUTBACK_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_EOF_HPP
+#define INCLUDED_MEEVAX_KERNEL_EOF_HPP
 
-#include <iostream>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
-inline namespace iostream
+inline namespace kernel
 {
-  [[deprecated]]
-  auto putback(std::istream &, std::string const&) -> std::istream &;
-} // namespace iostream
+  struct eof
+  {};
+
+  let extern const eof_object;
+
+  auto operator <<(std::ostream &, eof const&) -> std::ostream &;
+} // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_IOSTREAM_PUTBACK_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_EOF_HPP

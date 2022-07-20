@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax
@@ -22,7 +23,21 @@ inline namespace kernel
 {
   auto operator <<(std::ostream & os, symbol const& datum) -> std::ostream &
   {
-    return os << (datum.value.empty() ? "||" : datum.value);
+    if (datum.value.empty())
+    {
+      return os << "||";
+    }
+    else if (std::find_if(std::begin(datum.value), std::end(datum.value), [](auto c)
+                          {
+                            return std::iscntrl(c) or std::isspace(c);
+                          }) != std::end(datum.value))
+    {
+      return os << cyan("#") << string(datum.value);
+    }
+    else
+    {
+      return os << datum.value;
+    }
   }
 } // namespace kernel
 } // namespace meevax

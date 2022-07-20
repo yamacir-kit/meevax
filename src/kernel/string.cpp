@@ -17,96 +17,106 @@
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/string.hpp>
+#include <meevax/kernel/vector.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  string::string(std::istream & is, std::size_t k)
-  {
-    for (auto c = character(is); size() < k and not std::char_traits<char>::eq(std::char_traits<char>::eof(), c.codepoint); c = character(is))
-    {
-      switch (c.codepoint)
-      {
-      case '"':
-        return;
-
-      case '\\':
-        switch (auto const c = character(is); c.codepoint)
-        {
-        case 'a': emplace_back('\a'); break;
-        case 'b': emplace_back('\b'); break;
-        case 'f': emplace_back('\f'); break;
-        case 'n': emplace_back('\n'); break;
-        case 'r': emplace_back('\r'); break;
-        case 't': emplace_back('\t'); break;
-        case 'v': emplace_back('\v'); break;
-
-        case 'x':
-          if (external_representation token; std::getline(is, token, ';') and is.ignore(1))
-          {
-            if (std::stringstream ss; ss << std::hex << token)
-            {
-              if (character::value_type value = 0; ss >> value)
-              {
-                emplace_back(value);
-                break;
-              }
-            }
-          }
-          throw read_error(make<string>("invalid escape sequence"));
-
-        case '\n':
-        case '\r':
-          ignore(is, [](auto c) { return std::isspace(c); });
-          break;
-
-        default:
-          push_back(c);
-          break;
-        }
-        break;
-
-      default:
-        push_back(c);
-        break;
-      }
-    }
-
-    throw read_error(make<string>("unterminated string"), unit);
-  }
-
-  string::string(std::istream && is)
-    : string { is }
-  {}
-
   string::string(external_representation const& s)
-    : string { std::stringstream(s + "\"") }
-  {}
-
-  auto string::list(size_type from, size_type to) const -> meevax::value_type
   {
-    let x = unit;
-
-    for (auto iter = std::prev(rend(), to); iter != std::prev(rend(), from); ++iter)
-    {
-      x = cons(make(*iter), x);
-    }
-
-    return x;
+    for (auto port = std::stringstream(s); not character::is_eof(port.peek()); codepoints.emplace_back(get_codepoint(port)));
   }
 
-  auto string::list(size_type from) const -> meevax::value_type
+  string::string(vector const& v, const_reference begin, const_reference end)
   {
-    return list(from, size());
+    std::for_each(std::next(std::begin(v.data), begin.as<exact_integer>()),
+                  std::next(std::begin(v.data), end.as<exact_integer>()),
+                  [&](let const& c)
+                  {
+                    codepoints.push_back(c.as<character>());
+                  });
+  }
+
+  string::string(const_reference xs)
+  {
+    for (let const& x : xs)
+    {
+      codepoints.push_back(x.as<character>());
+    }
+  }
+
+  string::string(const_reference k, const_reference c)
+    : codepoints { k.as<exact_integer>(), c.as<character>() }
+  {}
+
+  auto string::append(const_reference xs) -> value_type
+  {
+    let const s = make<string>();
+
+    for (let const& x : xs)
+    {
+      std::copy(std::begin(x.as<string>().codepoints),
+                std::end(x.as<string>().codepoints),
+                std::back_inserter(s.as<string>().codepoints));
+    }
+
+    return s;
+  }
+
+  auto string::copy(const_reference from, const_reference to) const -> value_type
+  {
+    let const& s = make<string>();
+
+    std::copy(std::next(std::begin(codepoints), from.as<exact_integer>()),
+              std::next(std::begin(codepoints), to.as<exact_integer>()),
+              std::back_inserter(s.as<string>().codepoints));
+
+    return s;
+  }
+
+  auto string::copy(const_reference at, const_reference from, const_reference begin, const_reference end) -> void
+  {
+    codepoints.reserve(codepoints.size() + from.as<string>().codepoints.size());
+
+    std::copy(std::next(std::begin(from.as<string>().codepoints), begin.as<exact_integer>()),
+              std::next(std::begin(from.as<string>().codepoints), end.as<exact_integer>()),
+              std::next(std::begin(codepoints), at.as<exact_integer>()));
+  }
+
+  auto string::length() const -> value_type
+  {
+    return make<exact_integer>(codepoints.size());
+  }
+
+  auto string::make_list(const_reference from, const_reference to) const -> value_type
+  {
+    return std::accumulate(std::prev(std::rend(codepoints), to.as<exact_integer>()),
+                           std::prev(std::rend(codepoints), from.as<exact_integer>()),
+                           unit,
+                           [](let const& xs, character const& c)
+                           {
+                             return cons(make(c), xs);
+                           });
+  }
+
+  auto string::ref(const_reference k) const -> value_type
+  {
+    return make(codepoints.at(k.as<exact_integer>()));
+  }
+
+  auto string::set(const_reference k, const_reference c) -> void
+  {
+    codepoints.at(k.as<exact_integer>()) = c.as<character>();
   }
 
   string::operator external_representation() const
   {
     external_representation result;
 
-    for (character const& each : *this)
+    for (character const& each : codepoints)
     {
       result.append(static_cast<external_representation>(each));
     }
@@ -114,11 +124,17 @@ inline namespace kernel
     return result;
   }
 
+  auto operator ==(string const& s1, string const& s2) -> bool
+  {
+    return std::equal(std::begin(s1.codepoints), std::end(s1.codepoints),
+                      std::begin(s2.codepoints), std::end(s2.codepoints));
+  }
+
   auto operator <<(std::ostream & os, string const& datum) -> std::ostream &
   {
     auto write = [&](character const& c) -> decltype(auto)
     {
-      if (c.codepoint < 0x80)
+      if (std::isprint(c.codepoint))
       {
         switch (c.codepoint)
         {
@@ -143,7 +159,7 @@ inline namespace kernel
 
     os << cyan("\"");
 
-    for (auto const& each : datum)
+    for (auto const& each : datum.codepoints)
     {
       write(each);
     }

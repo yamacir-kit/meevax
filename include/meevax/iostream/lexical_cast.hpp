@@ -25,10 +25,10 @@ namespace meevax
 {
 inline namespace iostream
 {
-  template <typename To, typename From>
-  auto lexical_cast(From const& from) -> To
+  template <typename To, typename... Ts>
+  auto lexical_cast(Ts&&... xs) -> To
   {
-    if (std::stringstream ss; ss << from)
+    if (std::stringstream ss; (ss << ... << xs))
     {
       if constexpr (std::is_same<typename std::decay<To>::type, std::string>::value)
       {
@@ -51,7 +51,7 @@ inline namespace iostream
     else
     {
       std::stringstream what;
-      what << "failed to write " << typeid(From).name() << " type object to std::stringstream";
+      ((what << "failed to write"), ..., (what << " " << typeid(Ts).name())) << " type object to std::stringstream";
       throw std::runtime_error(what.str());
     }
   }

@@ -1,7 +1,7 @@
 (define-library (scheme base)
   (import (only (meevax error) error? read-error? file-error?)
           (only (meevax number) exact-integer?)
-          (only (meevax vector) vector-append vector-copy vector-copy! vector->string vector<-string)
+          (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
           (only (meevax port) binary-port?
                               textual-port?
                               port?
@@ -11,12 +11,13 @@
                               standard-output-port
                               standard-error-port
                               eof-object
-                              %read-char
-                              %peek-char
-                              read-ready?
+                              get-ready?
+                              get-char
+                              get-char!
                               put-char
                               put-string
                               %flush-output-port)
+          (only (meevax string) string-copy! vector->string)
           (only (meevax version) features)
           (scheme r5rs)
           (srfi 6) ; Basic String Ports
@@ -176,7 +177,7 @@
           string->list
           list->string
           string-copy
-          ; string-copy!
+          string-copy!
           string-fill!
           vector?
           make-vector
@@ -187,7 +188,7 @@
           vector->list
           list->vector
           vector->string
-          (rename vector<-string string->vector)
+          string->vector
           vector-copy
           vector-copy!
           vector-append
@@ -381,19 +382,19 @@
                  (else (if #f #f))))
 
          (define (read-char . x)
-           (%read-char (if (pair? x)
-                           (car x)
-                           (current-input-port))))
+           (get-char! (if (pair? x)
+                          (car x)
+                          (current-input-port))))
 
          (define (peek-char . x)
-           (%peek-char (if (pair? x)
-                           (car x)
-                           (current-input-port))))
+           (get-char (if (pair? x)
+                         (car x)
+                         (current-input-port))))
 
          (define (char-ready? . x)
-           (read-ready? (if (pair? x)
-                            (car x)
-                            (current-input-port))))
+           (get-ready? (if (pair? x)
+                           (car x)
+                           (current-input-port))))
 
          (define (write-char x . port)
            (put-char x (if (pair? port)

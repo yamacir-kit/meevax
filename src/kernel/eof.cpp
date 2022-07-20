@@ -14,22 +14,17 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_MISCELLANEOUS_HPP
-#define INCLUDED_MEEVAX_KERNEL_MISCELLANEOUS_HPP
-
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/eof.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct eof
-  {};
+  let const eof_object = make<eof>();
 
-  let extern const eof_object;
-
-  auto operator <<(std::ostream &, eof const&) -> std::ostream &;
+  auto operator <<(std::ostream & os, eof const&) -> std::ostream &
+  {
+    return os << magenta("#,(") << green("eof-object") << magenta(")");
+  }
 } // namespace kernel
 } // namespace meevax
-
-#endif // INCLUDED_MEEVAX_KERNEL_MISCELLANEOUS_HPP

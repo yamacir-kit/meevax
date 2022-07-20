@@ -565,14 +565,14 @@
                       (current-input-port))))
 
          (define (read-char . port)
-           (%read-char (if (pair? port)
-                           (car port)
-                           (current-input-port))))
+           (get-char! (if (pair? port)
+                          (car port)
+                          (current-input-port))))
 
          (define (peek-char . port)
-           (%peek-char (if (pair? port)
-                           (car port)
-                           (current-input-port))))
+           (get-char (if (pair? port)
+                         (car port)
+                         (current-input-port))))
 
          (define (write x . port)
            (%write-simple x (if (pair? port)

@@ -36,9 +36,9 @@
 
 (check (symbol? 'V17a) => #t)
 
-; (check (symbol? |two words|) => #t)
+(check (symbol? '|two words|) => #t)
 
-; (check (symbol? |two\x20;words|) => #t)
+(check (symbol? '|two\x20;words|) => #t)
 
 (check (symbol? 'the-word-recursion-has-many-meanings) => #t)
 
@@ -48,10 +48,10 @@
 
 ; ---- 2.2. --------------------------------------------------------------------
 
-; #|
-;   The FACT procedure computes the factorial
-;   of a non-negative integer.
-; |#
+#|
+  The FACT procedure computes the factorial
+  of a non-negative integer.
+|#
 (define fact
   (lambda (n)
     (if (= n 0)
@@ -101,9 +101,9 @@
 
 (check "abc" => "abc")
 
-; (check '# => #)
+(check '#\a => #\a) ; R7RSSmallErrata 4. In Section 4.1.2 (Literal expressions), the examples '# and # should be '#\a and #\a respectively.
 
-; (check # => #)
+(check #\a => #\a) ; R7RSSmallErrata 4. In Section 4.1.2 (Literal expressions), the examples '# and # should be '#\a and #\a respectively.
 
 (check '#(a 10) => #(a 10))
 
@@ -1282,9 +1282,9 @@
 
 (define b (string-copy "abcde"))
 
-; (string-copy! b 1 a 0 2)
+(string-copy! b 1 a 0 2)
 
-; (check b => "a12de")
+(check b => "a12de")
 
 ; ---- 6.8. --------------------------------------------------------------------
 
@@ -1555,4 +1555,4 @@
 
 (check-report)
 
-(exit (check-passed? 378))
+(exit (check-passed? 383))
