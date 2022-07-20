@@ -16,6 +16,7 @@
 
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/reader.hpp>
+#include <string>
 
 namespace meevax
 {
@@ -100,6 +101,10 @@ inline namespace kernel
   {
     auto s = string();
 
+    assert(std::char_traits<char>::eq(is.peek(), delimiter));
+
+    is.ignore(1);
+
     for (auto codepoint = get_codepoint(is); not std::char_traits<char>::eq(std::char_traits<char>::eof(), codepoint); codepoint = get_codepoint(is))
     {
       if (codepoint == delimiter)
@@ -121,16 +126,9 @@ inline namespace kernel
         case 'x':
           if (auto token = external_representation(); std::getline(is, token, ';'))
           {
-            if (std::stringstream ss; ss << std::hex << token)
-            {
-              if (character::int_type value = 0; ss >> value)
-              {
-                s.codepoints.emplace_back(value);
-                break;
-              }
-            }
+            s.codepoints.emplace_back(lexical_cast<character::int_type>(std::hex, token));
           }
-          throw read_error(make<string>("invalid escape sequence"));
+          break;
 
         case '\n':
         case '\r':

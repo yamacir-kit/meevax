@@ -78,7 +78,7 @@ inline namespace kernel
           break;
 
         case '"':  // 0x22
-          return read_string_literal(is);
+          return read_string_literal(is.putback(c));
 
         case '#':  // 0x23
           switch (auto const c = is.get())
@@ -94,7 +94,7 @@ inline namespace kernel
             return read(is), read(is);
 
           case '"':
-            return string_to_symbol(get_delimited_elements(is, c));
+            return string_to_symbol(get_delimited_elements(is.putback(c), c));
 
           case 'b': // (string->number (read) 2)
             return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 2);
@@ -166,7 +166,7 @@ inline namespace kernel
           return list(string_to_symbol("quasiquote"), read(is));
 
         case '|':  // 0x7C
-          return string_to_symbol(get_delimited_elements(is, c));
+          return string_to_symbol(get_delimited_elements(is.putback(c), c));
 
         case '(':
         case '[':
