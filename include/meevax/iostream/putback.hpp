@@ -23,6 +23,7 @@ namespace meevax
 {
 inline namespace iostream
 {
+  [[deprecated]]
   auto putback(std::istream &, std::string const&) -> std::istream &;
 } // namespace iostream
 } // namespace meevax

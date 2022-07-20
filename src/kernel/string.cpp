@@ -17,6 +17,7 @@
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/vector.hpp>
 
@@ -24,67 +25,12 @@ namespace meevax
 {
 inline namespace kernel
 {
-  string::string(std::istream & is, std::size_t k)
-  {
-    for (auto c = character(is); std::size(codepoints) < k and not std::char_traits<char>::eq(std::char_traits<char>::eof(), c.codepoint); c = character(is))
-    {
-      switch (c.codepoint)
-      {
-      case '"':
-        return;
-
-      case '\\':
-        switch (auto const c = character(is); c.codepoint)
-        {
-        case 'a': codepoints.emplace_back('\a'); break;
-        case 'b': codepoints.emplace_back('\b'); break;
-        case 'f': codepoints.emplace_back('\f'); break;
-        case 'n': codepoints.emplace_back('\n'); break;
-        case 'r': codepoints.emplace_back('\r'); break;
-        case 't': codepoints.emplace_back('\t'); break;
-        case 'v': codepoints.emplace_back('\v'); break;
-
-        case 'x':
-          if (external_representation token; std::getline(is, token, ';') and is.ignore(1))
-          {
-            if (std::stringstream ss; ss << std::hex << token)
-            {
-              if (character::value_type value = 0; ss >> value)
-              {
-                codepoints.emplace_back(value);
-                break;
-              }
-            }
-          }
-          throw read_error(make<string>("invalid escape sequence"));
-
-        case '\n':
-        case '\r':
-          ignore(is, [](auto c) { return std::isspace(c); });
-          break;
-
-        default:
-          codepoints.push_back(c);
-          break;
-        }
-        break;
-
-      default:
-        codepoints.push_back(c);
-        break;
-      }
-    }
-
-    throw read_error(make<string>("unterminated string"), unit);
-  }
-
-  string::string(std::istream && is)
-    : string { is }
-  {}
-
   string::string(external_representation const& s)
-    : string { std::stringstream(s + "\"") }
-  {}
+  {
+    for (auto port = std::stringstream(s);
+         not std::char_traits<char>::eq(std::char_traits<char>::eof(), port.peek());
+         codepoints.emplace_back(get_codepoint(port)));
+  }
 
   string::string(vector const& v, const_reference begin, const_reference end)
   {
@@ -190,7 +136,7 @@ inline namespace kernel
   {
     auto write = [&](character const& c) -> decltype(auto)
     {
-      if (c.codepoint < 0x80)
+      if (std::isprint(c.codepoint))
       {
         switch (c.codepoint)
         {

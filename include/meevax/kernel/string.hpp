@@ -36,10 +36,6 @@ inline namespace kernel
 
     explicit string() = default;
 
-    explicit string(std::istream &, std::size_t = std::numeric_limits<std::size_t>::max()); // read-string
-
-    explicit string(std::istream &&);
-
     explicit string(external_representation const&);
 
     /*
