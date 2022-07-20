@@ -40,12 +40,18 @@ inline namespace kernel
     : data { k.as<exact_integer>(), fill }
   {}
 
-  auto vector::append(const_reference vs) -> void
+  auto vector::append(const_reference xs) -> value_type
   {
-    for (let const& v : vs)
+    let const v = make<vector>();
+
+    for (let const& x : xs)
     {
-      std::copy(std::begin(v.as<vector>().data), std::end(v.as<vector>().data), std::back_inserter(data));
+      std::copy(x.as<vector>().data.begin(),
+                x.as<vector>().data.end(),
+                std::back_inserter(v.as<vector>().data));
     }
+
+    return v;
   }
 
   auto vector::copy(const_reference from, const_reference to) const -> value_type

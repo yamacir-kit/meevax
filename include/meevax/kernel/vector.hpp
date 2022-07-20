@@ -55,7 +55,7 @@ inline namespace kernel
        Returns a newly allocated vector whose elements are the concatenation of
        the elements of the given vectors.
     */
-    auto append(const_reference) -> void;
+    static auto append(const_reference) -> value_type;
 
     /*
        (vector-copy vector)                                           procedure

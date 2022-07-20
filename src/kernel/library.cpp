@@ -1183,8 +1183,7 @@ inline namespace kernel
 
       library.define<procedure>("vector-append", [](let const& xs)
       {
-        car(xs).as<vector>().append(cdr(xs));
-        return car(xs);
+        return vector::append(xs);
       });
 
       library.define<procedure>("vector-copy", [](let const& xs)
