@@ -43,7 +43,7 @@ inline namespace kernel
         }
         else
         {
-          throw invalid_application(make_symbol("char->integer") | xs);
+          throw invalid_application(string_to_symbol("char->integer") | xs);
         }
       });
 
@@ -85,7 +85,7 @@ inline namespace kernel
           else [[fallthrough]];
 
         default:
-          throw invalid_application(make_symbol("emergency-exit") | xs);
+          throw invalid_application(string_to_symbol("emergency-exit") | xs);
         }
       });
 
@@ -291,7 +291,7 @@ inline namespace kernel
           return car(xs).as<number>().log() / cadr(xs).as<number>().log();
 
         default:
-          throw invalid_application(make_symbol("log") | xs);
+          throw invalid_application(string_to_symbol("log") | xs);
         }
       });
 
@@ -331,7 +331,7 @@ inline namespace kernel
           return car(xs).as<number>().atan2(cadr(xs));
 
         default:
-          throw invalid_application(make_symbol("atan") | xs);
+          throw invalid_application(string_to_symbol("atan") | xs);
         }
       });
 
@@ -500,14 +500,14 @@ inline namespace kernel
         return car(xs).is<double_float>();
       });
 
-      #define DEFINE(SYMBOL, COMPARE)                                            \
-      library.define<predicate>(#SYMBOL, [](let const& xs)                       \
-      {                                                                          \
-        return std::adjacent_find(                                               \
-                 std::begin(xs), std::end(xs), [](let const& a, let const& b)    \
-                 {                                                               \
-                   return not COMPARE(a.as<number>(), b);                        \
-                 }) == std::end(xs);                                             \
+      #define DEFINE(SYMBOL, COMPARE)                                          \
+      library.define<predicate>(#SYMBOL, [](let const& xs)                     \
+      {                                                                        \
+        return std::adjacent_find(                                             \
+                 std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
+                 {                                                             \
+                   return not COMPARE(a.as<number>(), b);                      \
+                 }) == std::end(xs);                                           \
       })
 
       DEFINE(= , std::equal_to     <void>());
@@ -529,25 +529,25 @@ inline namespace kernel
         return std::accumulate(std::begin(xs), std::end(xs), e1, std::multiplies<void>());
       });
 
-      #define DEFINE(SYMBOL, FUNCTION, BASIS)                                    \
-      library.define<procedure>(SYMBOL, [](let const& xs)                        \
-      {                                                                          \
-        switch (length(xs))                                                      \
-        {                                                                        \
-        case 0:                                                                  \
-          throw invalid_application(make_symbol(SYMBOL) | xs);                   \
-                                                                                 \
-        case 1:                                                                  \
-          return FUNCTION(BASIS, car(xs));                                       \
-                                                                                 \
-        default:                                                                 \
-          return std::accumulate(                                                \
-                   std::next(std::begin(xs)), std::end(xs), car(xs),             \
-                   [](let const& a, let const& b)                                \
-                   {                                                             \
-                     return FUNCTION(a, b);                                      \
-                   });                                                           \
-        }                                                                        \
+      #define DEFINE(SYMBOL, FUNCTION, BASIS)                                  \
+      library.define<procedure>(SYMBOL, [](let const& xs)                      \
+      {                                                                        \
+        switch (length(xs))                                                    \
+        {                                                                      \
+        case 0:                                                                \
+          throw invalid_application(string_to_symbol(SYMBOL) | xs);            \
+                                                                               \
+        case 1:                                                                \
+          return FUNCTION(BASIS, car(xs));                                     \
+                                                                               \
+        default:                                                               \
+          return std::accumulate(                                              \
+                   std::next(std::begin(xs)), std::end(xs), car(xs),           \
+                   [](let const& a, let const& b)                              \
+                   {                                                           \
+                     return FUNCTION(a, b);                                    \
+                   });                                                         \
+        }                                                                      \
       })
 
       DEFINE("-", sub, e0);
@@ -599,7 +599,7 @@ inline namespace kernel
         }
         else
         {
-          throw invalid_application(make_symbol("integer->char") | xs);
+          throw invalid_application(string_to_symbol("integer->char") | xs);
         }
       });
 
@@ -833,7 +833,7 @@ inline namespace kernel
           return make<input_string_port>(car(xs).as<string>());
 
         default:
-          throw invalid_application(make_symbol("open-input-string") | xs);
+          throw invalid_application(string_to_symbol("open-input-string") | xs);
         }
       });
 
@@ -848,7 +848,7 @@ inline namespace kernel
           return make<output_string_port>(car(xs).as<string>());
 
         default:
-          throw invalid_application(make_symbol("open-output-string") | xs);
+          throw invalid_application(string_to_symbol("open-output-string") | xs);
         }
       });
 
@@ -942,7 +942,7 @@ inline namespace kernel
         case 4: // TODO
 
         default:
-          throw invalid_application(make_symbol("write-string") | xs);
+          throw invalid_application(string_to_symbol("write-string") | xs);
         }
 
         return unspecified;
@@ -1072,8 +1072,8 @@ inline namespace kernel
 
       library.define<procedure>("string->number", [](let const& xs)
       {
-        return make_number(car(xs).as<string>(),
-                           cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10);
+        return string_to_number(car(xs).as<string>(),
+                                cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10);
       });
 
       library.define<procedure>("string->list", [](let const& xs)
@@ -1084,7 +1084,7 @@ inline namespace kernel
 
       library.define<procedure>("string->symbol", [](let const& xs)
       {
-        return make_symbol(car(xs).as<string>());
+        return string_to_symbol(car(xs).as<string>());
       });
 
       library.define<procedure>("list->string", [](let const& xs)

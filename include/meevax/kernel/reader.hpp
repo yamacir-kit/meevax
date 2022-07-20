@@ -54,7 +54,7 @@ inline namespace kernel
 
     auto read_symbolic_string(std::istream & is, character::int_type c = '"') -> value_type
     {
-      return make_symbol(read_string(is, c).as<string>());
+      return string_to_symbol(read_string(is, c).as<string>());
     }
 
   public:
@@ -64,55 +64,6 @@ inline namespace kernel
     {
       assert(standard_input.is_also<std::istream>());
       return static_cast<bool>(standard_input.as<std::istream>());
-    }
-
-    static auto make_number(external_representation const& token, int radix = 10)
-    {
-      try
-      {
-        return make<exact_integer>(token, radix);
-      }
-      catch (...)
-      {
-        try
-        {
-          return ratio(token, radix).simple();
-        }
-        catch (...)
-        {
-          try
-          {
-            return make<double_float>(token);
-          }
-          catch (...)
-          {
-            if (auto iter = constants.find(token); iter != std::end(constants))
-            {
-              return iter->second;
-            }
-            else
-            {
-              throw read_error(make<string>("not a number"), make<string>(token));
-            }
-          }
-        }
-      }
-    }
-
-    static auto make_symbol(external_representation const& name) -> const_reference
-    {
-      if (auto const iter = symbols.find(name); iter != std::end(symbols))
-      {
-        return iter->second;
-      }
-      else if (auto const [iter, success] = symbols.emplace(name, make<symbol>(name)); success)
-      {
-        return iter->second;
-      }
-      else
-      {
-        throw error(make<string>("failed to intern a symbol"), make<string>(name));
-      }
     }
 
     inline auto read(std::istream & is) -> value_type
@@ -149,7 +100,7 @@ inline namespace kernel
             return read_symbolic_string(is, c);
 
           case 'b': // (string->number (read) 2)
-            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 2);
+            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 2);
 
           case 'c': // Common Lisp
             {
@@ -159,7 +110,7 @@ inline namespace kernel
             }
 
           case 'd':
-            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 10);
+            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 10);
 
           case 'e':
             return read(is).template as<number>().exact(); // NOTE: Same as #,(exact (read))
@@ -172,14 +123,14 @@ inline namespace kernel
             return read(is).template as<number>().inexact(); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 8);
+            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 8);
 
           case 't':
             read_token(is);
             return t;
 
           case 'x':
-            return make_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 16);
+            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 16);
 
           case '(':
             is.putback(c);
@@ -197,17 +148,17 @@ inline namespace kernel
           }
 
         case '\'': // 0x27
-          return list(make_symbol("quote"), read(is));
+          return list(string_to_symbol("quote"), read(is));
 
         case ',':  // 0x2C
           switch (is.peek())
           {
           case '@':
             is.ignore(1);
-            return list(make_symbol("unquote-splicing"), read(is));
+            return list(string_to_symbol("unquote-splicing"), read(is));
 
           default:
-            return list(make_symbol("unquote"), read(is));
+            return list(string_to_symbol("unquote"), read(is));
           }
 
         case ';':  // 0x3B
@@ -215,7 +166,7 @@ inline namespace kernel
           break;
 
         case '`':  // 0x60
-          return list(make_symbol("quasiquote"), read(is));
+          return list(string_to_symbol("quasiquote"), read(is));
 
         case '|':  // 0x7C
           return read_symbolic_string(is, c);
@@ -256,11 +207,11 @@ inline namespace kernel
           }
           else try
           {
-            return make_number(token, 10);
+            return string_to_number(token, 10);
           }
           catch (...)
           {
-            return make_symbol(token);
+            return string_to_symbol(token);
           }
         }
       }
@@ -283,6 +234,55 @@ inline namespace kernel
     {
       auto port = std::stringstream(s);
       return read(port);
+    }
+
+    static auto string_to_number(external_representation const& token, int radix = 10)
+    {
+      try
+      {
+        return make<exact_integer>(token, radix);
+      }
+      catch (...)
+      {
+        try
+        {
+          return ratio(token, radix).simple();
+        }
+        catch (...)
+        {
+          try
+          {
+            return make<double_float>(token);
+          }
+          catch (...)
+          {
+            if (auto iter = constants.find(token); iter != std::end(constants))
+            {
+              return iter->second;
+            }
+            else
+            {
+              throw read_error(make<string>("not a number"), make<string>(token));
+            }
+          }
+        }
+      }
+    }
+
+    static auto string_to_symbol(external_representation const& name) -> const_reference
+    {
+      if (auto const iter = symbols.find(name); iter != std::end(symbols))
+      {
+        return iter->second;
+      }
+      else if (auto const [iter, success] = symbols.emplace(name, make<symbol>(name)); success)
+      {
+        return iter->second;
+      }
+      else
+      {
+        throw error(make<string>("failed to intern a symbol"), make<string>(name));
+      }
     }
   };
 } // namespace kernel

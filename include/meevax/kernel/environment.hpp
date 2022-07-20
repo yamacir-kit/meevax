@@ -39,8 +39,8 @@ inline namespace kernel
     using configurator::debug;
     using configurator::trace;
 
-    using reader::make_symbol;
     using reader::read;
+    using reader::string_to_symbol;
 
     explicit environment(environment &&) = default;
 
@@ -59,7 +59,7 @@ inline namespace kernel
 
     auto operator [](symbol::value_type const& variable) -> decltype(auto)
     {
-      return (*this)[make_symbol(variable)];
+      return (*this)[string_to_symbol(variable)];
     }
 
     auto define(const_reference, const_reference = undefined) -> void;
