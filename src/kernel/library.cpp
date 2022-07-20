@@ -857,11 +857,19 @@ inline namespace kernel
         return make<string>(car(xs).as<std::ostringstream>().str());
       });
 
-      library.define<procedure>("%read-char", [](let const& xs) -> value_type
+      library.define<predicate>("get-ready?", [](let const& xs)
+      {
+        return static_cast<bool>(car(xs).as<std::istream>());
+      });
+
+      library.define<procedure>("get-char", [](let const& xs) -> value_type
       {
         try
         {
-          return make<character>(get_codepoint(car(xs).as<std::istream>()));
+          auto const g = car(xs).as<std::istream>().tellg();
+          let const c = make<character>(get_codepoint(car(xs).as<std::istream>()));
+          car(xs).as<std::istream>().seekg(g);
+          return c;
         }
         catch (eof const&)
         {
@@ -873,14 +881,11 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("%peek-char", [](let const& xs) -> value_type
+      library.define<procedure>("get-char!", [](let const& xs) -> value_type
       {
         try
         {
-          auto const g = car(xs).as<std::istream>().tellg();
-          let const c = make<character>(get_codepoint(car(xs).as<std::istream>()));
-          car(xs).as<std::istream>().seekg(g);
-          return c;
+          return make<character>(get_codepoint(car(xs).as<std::istream>()));
         }
         catch (eof const&)
         {
@@ -902,12 +907,7 @@ inline namespace kernel
         return eof_object;
       });
 
-      library.define<predicate>("read-ready?", [](let const& xs)
-      {
-        return static_cast<bool>(car(xs).as<std::istream>());
-      });
-
-      library.define<procedure>("%read-string", [](let const& xs)
+      library.define<procedure>("get-string!", [](let const& xs)
       {
         auto read_k = [](string & string, std::size_t k, std::istream & is)
         {
@@ -971,12 +971,12 @@ inline namespace kernel
       library.export_("open-input-string");
       library.export_("open-output-string");
       library.export_("get-output-string");
-      library.export_("%read-char");
-      library.export_("%peek-char");
       library.export_("eof-object?");
       library.export_("eof-object");
-      library.export_("read-ready?");
-      library.export_("%read-string");
+      library.export_("get-ready?");
+      library.export_("get-char");
+      library.export_("get-char!");
+      library.export_("get-string!");
       library.export_("put-char");
       library.export_("put-string");
       library.export_("%flush-output-port");

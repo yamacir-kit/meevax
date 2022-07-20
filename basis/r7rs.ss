@@ -11,9 +11,9 @@
                               standard-output-port
                               standard-error-port
                               eof-object
-                              %read-char
-                              %peek-char
-                              read-ready?
+                              get-ready?
+                              get-char
+                              get-char!
                               put-char
                               put-string
                               %flush-output-port)
@@ -382,19 +382,19 @@
                  (else (if #f #f))))
 
          (define (read-char . x)
-           (%read-char (if (pair? x)
-                           (car x)
-                           (current-input-port))))
+           (get-char! (if (pair? x)
+                          (car x)
+                          (current-input-port))))
 
          (define (peek-char . x)
-           (%peek-char (if (pair? x)
-                           (car x)
-                           (current-input-port))))
+           (get-char (if (pair? x)
+                         (car x)
+                         (current-input-port))))
 
          (define (char-ready? . x)
-           (read-ready? (if (pair? x)
-                            (car x)
-                            (current-input-port))))
+           (get-ready? (if (pair? x)
+                           (car x)
+                           (current-input-port))))
 
          (define (write-char x . port)
            (put-char x (if (pair? port)
