@@ -861,7 +861,7 @@ inline namespace kernel
       {
         try
         {
-          return make<character>(read_codepoint(car(xs).as<std::istream>()));
+          return make<character>(get_codepoint(car(xs).as<std::istream>()));
         }
         catch (eof const&)
         {
@@ -878,7 +878,7 @@ inline namespace kernel
         try
         {
           auto const g = car(xs).as<std::istream>().tellg();
-          let const c = make<character>(read_codepoint(car(xs).as<std::istream>()));
+          let const c = make<character>(get_codepoint(car(xs).as<std::istream>()));
           car(xs).as<std::istream>().seekg(g);
           return c;
         }
@@ -909,17 +909,17 @@ inline namespace kernel
 
       library.define<procedure>("%read-string", [](let const& xs)
       {
-        auto read_string = [](string & string, std::size_t k, std::istream & is)
+        auto read_k = [](string & string, std::size_t k, std::istream & is)
         {
           for (std::size_t i = 0; i < k and is; ++i)
           {
-            string.codepoints.emplace_back(read_codepoint(is));
+            string.codepoints.emplace_back(get_codepoint(is));
           }
         };
 
         let const s = make<string>();
 
-        read_string(s.as<string>(), car(xs).as<exact_integer>(), cadr(xs).as<std::istream>());
+        read_k(s.as<string>(), car(xs).as<exact_integer>(), cadr(xs).as<std::istream>());
 
         return s;
       });

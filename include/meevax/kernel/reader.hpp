@@ -30,15 +30,17 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto read_character(std::istream &) -> value_type;
+  auto get_codepoint(std::istream &) -> character::int_type;
 
-  auto read_codepoint(std::istream &) -> character::int_type;
+  auto get_delimited_elements(std::istream & is, character::int_type) -> string;
 
-  auto read_comment(std::istream &) -> std::istream &;
+  auto get_token(std::istream &) -> external_representation;
 
-  auto read_string(std::istream &, character::int_type const quotation = '"') -> value_type;
+  auto ignore_nested_block_comment(std::istream &) -> std::istream &;
 
-  auto read_token(std::istream &) -> std::string;
+  auto read_character_literal(std::istream &) -> value_type;
+
+  auto read_string_literal(std::istream &) -> value_type;
 
   template <typename Environment>
   class reader
@@ -51,11 +53,6 @@ inline namespace kernel
     IMPORT(Environment, evaluate, NIL);
 
     using char_type = typename std::istream::char_type;
-
-    auto read_symbolic_string(std::istream & is, character::int_type c = '"') -> value_type
-    {
-      return string_to_symbol(read_string(is, c).as<string>());
-    }
 
   public:
     static inline std::unordered_map<external_representation, value_type> symbols {};
@@ -81,7 +78,7 @@ inline namespace kernel
           break;
 
         case '"':  // 0x22
-          return read_string(is);
+          return read_string_literal(is);
 
         case '#':  // 0x23
           switch (auto const c = is.get())
@@ -97,10 +94,10 @@ inline namespace kernel
             return read(is), read(is);
 
           case '"':
-            return read_symbolic_string(is, c);
+            return string_to_symbol(get_delimited_elements(is, c));
 
           case 'b': // (string->number (read) 2)
-            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 2);
+            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 2);
 
           case 'c': // Common Lisp
             {
@@ -110,37 +107,37 @@ inline namespace kernel
             }
 
           case 'd':
-            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 10);
+            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 10);
 
           case 'e':
             return read(is).template as<number>().exact(); // NOTE: Same as #,(exact (read))
 
           case 'f':
-            read_token(is);
+            get_token(is);
             return f;
 
           case 'i':
             return read(is).template as<number>().inexact(); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 8);
+            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 8);
 
           case 't':
-            read_token(is);
+            get_token(is);
             return t;
 
           case 'x':
-            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : read_token(is), 16);
+            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 16);
 
           case '(':
             is.putback(c);
             return make<vector>(read(is));
 
           case '\\':
-            return read_character(is);
+            return read_character_literal(is);
 
           case '|': // SRFI 30
-            read_comment(is);
+            ignore_nested_block_comment(is);
             return read(is);
 
           default:
@@ -169,7 +166,7 @@ inline namespace kernel
           return list(string_to_symbol("quasiquote"), read(is));
 
         case '|':  // 0x7C
-          return read_symbolic_string(is, c);
+          return string_to_symbol(get_delimited_elements(is, c));
 
         case '(':
         case '[':
@@ -201,7 +198,7 @@ inline namespace kernel
         case '}': throw std::integral_constant<char_type, '}'>();
 
         default:
-          if (auto const token = read_token(is.putback(c)); token == ".")
+          if (auto const token = get_token(is.putback(c)); token == ".")
           {
             throw std::integral_constant<char_type, '.'>();
           }

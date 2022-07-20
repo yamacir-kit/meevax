@@ -29,7 +29,7 @@ inline namespace kernel
   {
     for (auto port = std::stringstream(s);
          not std::char_traits<char>::eq(std::char_traits<char>::eof(), port.peek());
-         codepoints.emplace_back(read_codepoint(port)));
+         codepoints.emplace_back(get_codepoint(port)));
   }
 
   string::string(vector const& v, const_reference begin, const_reference end)

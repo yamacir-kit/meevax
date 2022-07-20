@@ -51,52 +51,7 @@ inline namespace kernel
                   '}'); // 0x7D
   }
 
-  auto read_character(std::istream & is) -> value_type
-  {
-    std::unordered_map<external_representation, character::int_type> static const character_names {
-      { "alarm"    , 0x07 },
-      { "backspace", 0x08 },
-      { "delete"   , 0x7F },
-      { "escape"   , 0x1B },
-      { "newline"  , 0x0A },
-      { "null"     , 0x00 },
-      { "return"   , 0x0D },
-      { "space"    , 0x20 },
-      { "tab"      , 0x09 },
-    };
-
-    switch (auto token = read_token(is); token.length())
-    {
-    case 0:
-      assert(is_special_character(is.peek()));
-      return make<character>(is.get());
-
-    case 1:
-      assert(std::isprint(token.front()));
-      return make<character>(token.front());
-
-    default:
-      if (auto iter = character_names.find(token); iter != std::end(character_names))
-      {
-        return make<character>(iter->second);
-      }
-      else if (token[0] == 'x' and 1 < token.length())
-      {
-        return make<character>(lexical_cast<character::int_type>(std::hex, token.substr(1)));
-      }
-      else
-      {
-        for (auto iter = std::rbegin(token); iter != std::rend(token); ++iter)
-        {
-          is.putback(*iter);
-        }
-
-        throw read_error(make<string>("not a character"), make<string>("\\#" + token));
-      }
-    }
-  }
-
-  auto read_codepoint(std::istream & is) -> character::int_type /* -------------
+  auto get_codepoint(std::istream & is) -> character::int_type /* --------------
   *
   *  00000000 -- 0000007F: 0xxxxxxx
   *  00000080 -- 000007FF: 110xxxxx 10xxxxxx
@@ -141,7 +96,75 @@ inline namespace kernel
     return codepoint;
   }
 
-  auto read_comment(std::istream & is) -> std::istream &
+  auto get_delimited_elements(std::istream & is, character::int_type delimiter) -> string
+  {
+    auto s = string();
+
+    for (auto codepoint = get_codepoint(is); not std::char_traits<char>::eq(std::char_traits<char>::eof(), codepoint); codepoint = get_codepoint(is))
+    {
+      if (codepoint == delimiter)
+      {
+        return s;
+      }
+      else switch (codepoint)
+      {
+      case '\\':
+        switch (auto const codepoint = get_codepoint(is); codepoint)
+        {
+        case 'a': s.codepoints.emplace_back('\a'); break;
+        case 'b': s.codepoints.emplace_back('\b'); break;
+        case 'f': s.codepoints.emplace_back('\f'); break;
+        case 'n': s.codepoints.emplace_back('\n'); break;
+        case 'r': s.codepoints.emplace_back('\r'); break;
+        case 't': s.codepoints.emplace_back('\t'); break;
+        case 'v': s.codepoints.emplace_back('\v'); break;
+        case 'x':
+          if (auto token = external_representation(); std::getline(is, token, ';'))
+          {
+            if (std::stringstream ss; ss << std::hex << token)
+            {
+              if (character::int_type value = 0; ss >> value)
+              {
+                s.codepoints.emplace_back(value);
+                break;
+              }
+            }
+          }
+          throw read_error(make<string>("invalid escape sequence"));
+
+        case '\n':
+        case '\r':
+          ignore(is, [](auto c) { return std::isspace(c); });
+          break;
+
+        default:
+          s.codepoints.emplace_back(codepoint);
+          break;
+        }
+        break;
+
+      default:
+        s.codepoints.emplace_back(codepoint);
+        break;
+      }
+    }
+
+    throw read_error(make<string>("unterminated string"), unit);
+  }
+
+  auto get_token(std::istream & is) -> std::string
+  {
+    auto token = std::string();
+
+    while (not is_special_character(is.peek()))
+    {
+      token.push_back(is.get());
+    }
+
+    return token;
+  }
+
+  auto ignore_nested_block_comment(std::istream & is) -> std::istream &
   {
     while (not std::char_traits<char>::eq(std::char_traits<char>::eof(), is.peek())) switch (is.get())
     {
@@ -150,7 +173,7 @@ inline namespace kernel
       {
       case '|':
         is.ignore(1);
-        read_comment(is);
+        ignore_nested_block_comment(is);
         [[fallthrough]];
 
       default:
@@ -175,75 +198,54 @@ inline namespace kernel
     throw read_error(make<string>("unterminated multi-line comment"), unit);
   }
 
-  auto read_string(std::istream & is, character::int_type const quotation) -> value_type
+  auto read_character_literal(std::istream & is) -> value_type
   {
-    let const s = make<string>();
+    std::unordered_map<external_representation, character::int_type> static const character_names {
+      { "alarm"    , 0x07 },
+      { "backspace", 0x08 },
+      { "delete"   , 0x7F },
+      { "escape"   , 0x1B },
+      { "newline"  , 0x0A },
+      { "null"     , 0x00 },
+      { "return"   , 0x0D },
+      { "space"    , 0x20 },
+      { "tab"      , 0x09 },
+    };
 
-    auto&& codepoints = s.as<string>().codepoints;
-
-    for (auto codepoint = read_codepoint(is); not std::char_traits<char>::eq(std::char_traits<char>::eof(), codepoint); codepoint = read_codepoint(is))
+    switch (auto token = get_token(is); token.length())
     {
-      if (codepoint == quotation)
+    case 0:
+      assert(is_special_character(is.peek()));
+      return make<character>(is.get());
+
+    case 1:
+      assert(std::isprint(token.front()));
+      return make<character>(token.front());
+
+    default:
+      if (auto iter = character_names.find(token); iter != std::end(character_names))
       {
-        return s;
+        return make<character>(iter->second);
       }
-      else switch (codepoint)
+      else if (token[0] == 'x' and 1 < token.length())
       {
-      case '\\':
-        switch (auto const codepoint = read_codepoint(is); codepoint)
+        return make<character>(lexical_cast<character::int_type>(std::hex, token.substr(1)));
+      }
+      else
+      {
+        for (auto iter = std::rbegin(token); iter != std::rend(token); ++iter)
         {
-        case 'a': codepoints.emplace_back('\a'); break;
-        case 'b': codepoints.emplace_back('\b'); break;
-        case 'f': codepoints.emplace_back('\f'); break;
-        case 'n': codepoints.emplace_back('\n'); break;
-        case 'r': codepoints.emplace_back('\r'); break;
-        case 't': codepoints.emplace_back('\t'); break;
-        case 'v': codepoints.emplace_back('\v'); break;
-
-        case 'x':
-          if (auto token = external_representation(); std::getline(is, token, ';'))
-          {
-            if (std::stringstream ss; ss << std::hex << token)
-            {
-              if (character::int_type value = 0; ss >> value)
-              {
-                codepoints.emplace_back(value);
-                break;
-              }
-            }
-          }
-          throw read_error(make<string>("invalid escape sequence"));
-
-        case '\n':
-        case '\r':
-          ignore(is, [](auto c) { return std::isspace(c); });
-          break;
-
-        default:
-          codepoints.emplace_back(codepoint);
-          break;
+          is.putback(*iter);
         }
-        break;
 
-      default:
-        codepoints.emplace_back(codepoint);
-        break;
+        throw read_error(make<string>("not a character"), make<string>("\\#" + token));
       }
     }
-
-    throw read_error(make<string>("unterminated string"), unit);
   }
 
-  auto read_token(std::istream & is) -> std::string
+  auto read_string_literal(std::istream & is) -> value_type
   {
-    auto token = std::string();
-
-    while (not is_special_character(is.peek()))
-    {
-      token.push_back(is.get());
-    }
-
-    return token;
+    return make(get_delimited_elements(is, '"'));
   }
 } // namespace kernel
 } // namespace meevax
