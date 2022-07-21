@@ -32,7 +32,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto make_number = [](auto&& z)
+  inline auto make_number = [](auto&& z)
   {
     if constexpr (std::is_same<typename std::decay<decltype(z)>::type, ratio>::value)
     {

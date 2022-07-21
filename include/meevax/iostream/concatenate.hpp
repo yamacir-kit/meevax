@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace iostream
 {
-  auto concatenate = [](auto&&... xs)
+  inline auto concatenate = [](auto&&... xs)
   {
     std::stringstream ss;
     (ss << ... << xs);

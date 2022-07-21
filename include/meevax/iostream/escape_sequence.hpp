@@ -70,7 +70,7 @@ inline namespace iostream
   escape_sequence(T&&, Ts&&...) -> escape_sequence<Ts...>;
 
   #define DEFINE(COMMAND, NAME)                                                \
-  auto NAME = [](auto&&... xs)                                                 \
+  inline auto NAME = [](auto&&... xs)                                          \
   {                                                                            \
     return escape_sequence(COMMAND, std::forward<decltype(xs)>(xs)...); \
   }
