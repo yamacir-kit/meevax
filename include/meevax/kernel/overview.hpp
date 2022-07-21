@@ -34,6 +34,7 @@ inline namespace kernel
   struct exact_integer;  // exact_integer.hpp
   struct pair;           // pair.hpp
   struct ratio;          // ratio.hpp
+  struct vector;         // vector.hpp
 
   template <typename T>
   struct floating_point; // floating_point.hpp

@@ -27,9 +27,9 @@ inline namespace kernel
   {
     std::vector<value_type> data;
 
-    using size_type = decltype(data)::size_type;
-
     explicit vector() = default;
+
+    explicit vector(string const&);
 
     /*
        (vector obj ...)                                               procedure
@@ -48,6 +48,43 @@ inline namespace kernel
        contents of each element is unspecified.
     */
     explicit vector(const_reference, const_reference);
+
+    /*
+       (vector-append vector ...)                                     procedure
+
+       Returns a newly allocated vector whose elements are the concatenation of
+       the elements of the given vectors.
+    */
+    static auto append(const_reference) -> value_type;
+
+    /*
+       (vector-copy vector)                                           procedure
+       (vector-copy vector start)                                     procedure
+       (vector-copy vector start end)                                 procedure
+
+       Returns a newly allocated copy of the elements of the given vector
+       between start and end. The elements of the new vector are the same (in
+       the sense of eqv?) as the elements of the old.
+    */
+    auto copy(const_reference, const_reference) const -> value_type;
+
+    /*
+       (vector-copy! to at from)                                      procedure
+       (vector-copy! to at from start)                                procedure
+       (vector-copy! to at from start end)                            procedure
+
+       It is an error if at is less than zero or greater than the length of to.
+       It is also an error if (- (vector-length to) at) is less than
+       (- end start).
+
+       Copies the elements of vector from between start and end to vector to,
+       starting at at. The order in which elements are copied is unspecified,
+       except that if the source and destination overlap, copying takes place
+       as if the source is first copied into a temporary vector and then into
+       the destination. This can be achieved without allocating storage by
+       making sure to copy in the correct direction in such circumstances.
+    */
+    auto copy(const_reference, const_reference, const_reference, const_reference) -> void;
 
     /*
        (vector-fill! vector fill)                                     procedure
@@ -96,27 +133,6 @@ inline namespace kernel
        procedure stores obj in element k of vector.
     */
     auto set(const_reference, const_reference) -> const_reference;
-
-    /*
-       (vector->string vector)                                        procedure
-       (vector->string vector start)                                  procedure
-       (vector->string vector start end)                              procedure
-
-       (string->vector string)                                        procedure
-       (string->vector string start)                                  procedure
-       (string->vector string start end)                              procedure
-
-       It is an error if any element of vector between start and end is not a
-       character.
-
-       The vector->string procedure returns a newly allocated string of the
-       objects contained in the elements of vector between start and end. The
-       string->vector procedure returns a newly created vector initialized to
-       the elements of the string string between start and end.
-
-       In both procedures, order is preserved.
-    */
-    auto string(const_reference, const_reference) const -> value_type;
   };
 
   auto operator ==(vector const&, vector const&) -> bool;

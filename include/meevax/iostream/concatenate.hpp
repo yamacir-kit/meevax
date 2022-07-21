@@ -14,17 +14,22 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/miscellaneous.hpp>
+#ifndef INCLUDED_MEEVAX_IOSTREAM_CONCATENATE_HPP
+#define INCLUDED_MEEVAX_IOSTREAM_CONCATENATE_HPP
+
+#include <sstream>
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace iostream
 {
-  let const eof_object = make<eof>();
-
-  auto operator <<(std::ostream & os, eof const&) -> std::ostream &
+  auto concatenate = [](auto&&... xs)
   {
-    return os << magenta("#,(") << green("eof-object") << magenta(")");
-  }
-} // namespace kernel
+    std::stringstream ss;
+    (ss << ... << xs);
+    return ss.str();
+  };
+} // namespace iostream
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_IOSTREAM_CONCATENATE_HPP

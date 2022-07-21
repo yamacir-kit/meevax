@@ -27,17 +27,37 @@ inline namespace kernel
 {
   struct character
   {
-    using value_type = std::char_traits<char>::int_type;
+    using char_type = char;
 
-    value_type codepoint;
+    using int_type = std::char_traits<char_type>::int_type;
+
+    int_type codepoint;
 
     explicit character() = default;
 
-    explicit character(value_type const); // integer->char
+    explicit constexpr character(int_type const& codepoint)
+      : codepoint { codepoint }
+    {}
 
-    explicit character(std::istream &); // read-char
+    static constexpr auto eq(int_type const& c1, int_type const& c2)
+    {
+      return std::char_traits<char_type>::eq_int_type(c1, c2);
+    }
 
-    operator value_type() const; // char->integer
+    inline constexpr auto eq(int_type const& c) const
+    {
+      return std::char_traits<char_type>::eq_int_type(codepoint, c);
+    }
+
+    static constexpr auto is_eof(int_type const& c)
+    {
+      return eq(std::char_traits<char_type>::eof(), c);
+    }
+
+    inline constexpr operator int_type() const
+    {
+      return codepoint;
+    }
 
     explicit operator external_representation() const; // write-char (for display)
   };

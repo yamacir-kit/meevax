@@ -1,7 +1,7 @@
 (define-library (scheme r4rs)
   (import (meevax inexact)
           (only (meevax number) exact-integer? expt exact inexact ratio?)
-          (only (meevax port) read-ready? standard-input-port standard-output-port)
+          (only (meevax port) get-ready? standard-input-port standard-output-port)
           (only (meevax string) string-copy)
           (only (meevax syntax) define-syntax)
           (only (meevax vector) vector-fill!)
@@ -119,10 +119,6 @@
            (atan (imag-part z)
                  (real-part z)))
 
-         ; (define exact->inexact inexact)
-         ;
-         ; (define inexact->exact exact)
-
          (define (list-tail x k)
            (let list-tail ((x x)
                            (k k))
@@ -166,6 +162,6 @@
              (set! %current-output-port previous-output-port)))
 
          (define (char-ready? . port)
-           (read-ready? (if (pair? port)
-                            (car port)
-                            (current-input-port))))))
+           (get-ready? (if (pair? port)
+                           (car port)
+                           (current-input-port))))))

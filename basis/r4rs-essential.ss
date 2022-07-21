@@ -11,7 +11,8 @@
           (meevax read)
           (meevax string)
           (meevax symbol)
-          (rename (meevax syntax) (call-with-current-continuation! call-with-current-continuation))
+          (rename (meevax syntax)
+                  (call-with-current-continuation! call-with-current-continuation))
           (meevax vector)
           (meevax write)
           (srfi 211 explicit-renaming))
@@ -40,15 +41,13 @@
           open-output-file close-input-port close-output-port read read-char
           peek-char eof-object? write display newline write-char load)
 
-  (begin (define (unspecified) (if #f #f))
-
-         (define (list . xs) xs)
+  (begin (define (list . xs) xs)
 
          (define-syntax cond
            (er-macro-transformer
              (lambda (form rename compare)
                (if (null? (cdr form))
-                   (unspecified)
+                   (if #f #f)
                    ((lambda (clause)
                       (if (compare (rename 'else) (car clause))
                           (cons (rename 'begin) (cdr clause))
@@ -284,7 +283,7 @@
                        (else `(,(rename 'begin) ,@xs))))
                (define (each-clause clauses)
                  (cond ((null? clauses)
-                        (unspecified))
+                        (if #f #f))
                        ((compare (rename 'else) (caar clauses))
                         (body (cdar clauses)))
                        ((and (pair? (caar clauses))
@@ -566,14 +565,14 @@
                       (current-input-port))))
 
          (define (read-char . port)
-           (%read-char (if (pair? port)
-                           (car port)
-                           (current-input-port))))
+           (get-char! (if (pair? port)
+                          (car port)
+                          (current-input-port))))
 
          (define (peek-char . port)
-           (%peek-char (if (pair? port)
-                           (car port)
-                           (current-input-port))))
+           (get-char (if (pair? port)
+                         (car port)
+                         (current-input-port))))
 
          (define (write x . port)
            (%write-simple x (if (pair? port)

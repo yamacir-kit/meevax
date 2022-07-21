@@ -43,7 +43,7 @@ inline namespace kernel
         }
         else
         {
-          throw invalid_application(intern("char->integer") | xs);
+          throw invalid_application(string_to_symbol("char->integer") | xs);
         }
       });
 
@@ -85,7 +85,7 @@ inline namespace kernel
           else [[fallthrough]];
 
         default:
-          throw invalid_application(intern("emergency-exit") | xs);
+          throw invalid_application(string_to_symbol("emergency-exit") | xs);
         }
       });
 
@@ -156,7 +156,7 @@ inline namespace kernel
       library.export_("eval");
     });
 
-    define_library("(meevax exception)", [](library & library)
+    define_library("(meevax error)", [](library & library)
     {
       library.define<procedure>("throw", [](let const& xs) -> value_type
       {
@@ -183,17 +183,11 @@ inline namespace kernel
         return car(xs).is<file_error>();
       });
 
-      library.define<predicate>("syntax-error?", [](let const& xs)
-      {
-        return car(xs).is<syntax_error>();
-      });
-
       library.export_("throw");
       library.export_("make-error");
       library.export_("error?");
       library.export_("read-error?");
       library.export_("file-error?");
-      library.export_("syntax-error?");
     });
 
     define_library("(meevax experimental)", [](library & library)
@@ -297,7 +291,7 @@ inline namespace kernel
           return car(xs).as<number>().log() / cadr(xs).as<number>().log();
 
         default:
-          throw invalid_application(intern("log") | xs);
+          throw invalid_application(string_to_symbol("log") | xs);
         }
       });
 
@@ -337,7 +331,7 @@ inline namespace kernel
           return car(xs).as<number>().atan2(cadr(xs));
 
         default:
-          throw invalid_application(intern("atan") | xs);
+          throw invalid_application(string_to_symbol("atan") | xs);
         }
       });
 
@@ -403,18 +397,6 @@ inline namespace kernel
         return std::accumulate(std::begin(xs), std::end(xs), unit, append2);
       });
 
-      library.define<procedure>("list->string", [](let const& xs)
-      {
-        string s;
-
-        for (let const& x : car(xs))
-        {
-          s.push_back(x.as<character>());
-        }
-
-        return make(std::move(s));
-      });
-
       library.define<procedure>("list->vector", [](let const& xs)
       {
         return make<vector>(car(xs));
@@ -422,7 +404,6 @@ inline namespace kernel
 
       library.export_("null?");
       library.export_("append");
-      library.export_("list->string");
       library.export_("list->vector");
     });
 
@@ -519,14 +500,14 @@ inline namespace kernel
         return car(xs).is<double_float>();
       });
 
-      #define DEFINE(SYMBOL, COMPARE)                                            \
-      library.define<predicate>(#SYMBOL, [](let const& xs)                       \
-      {                                                                          \
-        return std::adjacent_find(                                               \
-                 std::begin(xs), std::end(xs), [](let const& a, let const& b)    \
-                 {                                                               \
-                   return not COMPARE(a.as<number>(), b);                        \
-                 }) == std::end(xs);                                             \
+      #define DEFINE(SYMBOL, COMPARE)                                          \
+      library.define<predicate>(#SYMBOL, [](let const& xs)                     \
+      {                                                                        \
+        return std::adjacent_find(                                             \
+                 std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
+                 {                                                             \
+                   return not COMPARE(a.as<number>(), b);                      \
+                 }) == std::end(xs);                                           \
       })
 
       DEFINE(= , std::equal_to     <void>());
@@ -548,25 +529,25 @@ inline namespace kernel
         return std::accumulate(std::begin(xs), std::end(xs), e1, std::multiplies<void>());
       });
 
-      #define DEFINE(SYMBOL, FUNCTION, BASIS)                                    \
-      library.define<procedure>(SYMBOL, [](let const& xs)                        \
-      {                                                                          \
-        switch (length(xs))                                                      \
-        {                                                                        \
-        case 0:                                                                  \
-          throw invalid_application(intern(SYMBOL) | xs);                        \
-                                                                                 \
-        case 1:                                                                  \
-          return FUNCTION(BASIS, car(xs));                                       \
-                                                                                 \
-        default:                                                                 \
-          return std::accumulate(                                                \
-                   std::next(std::begin(xs)), std::end(xs), car(xs),             \
-                   [](let const& a, let const& b)                                \
-                   {                                                             \
-                     return FUNCTION(a, b);                                      \
-                   });                                                           \
-        }                                                                        \
+      #define DEFINE(SYMBOL, FUNCTION, BASIS)                                  \
+      library.define<procedure>(SYMBOL, [](let const& xs)                      \
+      {                                                                        \
+        switch (length(xs))                                                    \
+        {                                                                      \
+        case 0:                                                                \
+          throw invalid_application(string_to_symbol(SYMBOL) | xs);            \
+                                                                               \
+        case 1:                                                                \
+          return FUNCTION(BASIS, car(xs));                                     \
+                                                                               \
+        default:                                                               \
+          return std::accumulate(                                              \
+                   std::next(std::begin(xs)), std::end(xs), car(xs),           \
+                   [](let const& a, let const& b)                              \
+                   {                                                           \
+                     return FUNCTION(a, b);                                    \
+                   });                                                         \
+        }                                                                      \
       })
 
       DEFINE("-", sub, e0);
@@ -614,17 +595,18 @@ inline namespace kernel
       {
         if (xs.is<pair>() and car(xs).is<exact_integer>())
         {
-          return make<character>(static_cast<character::value_type>(car(xs).as<exact_integer>()));
+          return make<character>(car(xs).as<exact_integer>());
         }
         else
         {
-          throw invalid_application(intern("integer->char") | xs);
+          throw invalid_application(string_to_symbol("integer->char") | xs);
         }
       });
 
-      library.define<procedure>("number->string", [](auto&& xs)
+      library.define<procedure>("number->string", [](let const& xs)
       {
-        return make<string>(lexical_cast<external_representation>(car(xs)));
+        return make<string>(lexical_cast<external_representation>(std::setbase(cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10),
+                                                                  car(xs)));
       });
 
       library.export_("number?");
@@ -851,7 +833,7 @@ inline namespace kernel
           return make<input_string_port>(car(xs).as<string>());
 
         default:
-          throw invalid_application(intern("open-input-string") | xs);
+          throw invalid_application(string_to_symbol("open-input-string") | xs);
         }
       });
 
@@ -866,7 +848,7 @@ inline namespace kernel
           return make<output_string_port>(car(xs).as<string>());
 
         default:
-          throw invalid_application(intern("open-output-string") | xs);
+          throw invalid_application(string_to_symbol("open-output-string") | xs);
         }
       });
 
@@ -875,11 +857,19 @@ inline namespace kernel
         return make<string>(car(xs).as<std::ostringstream>().str());
       });
 
-      library.define<procedure>("%read-char", [](let const& xs) -> value_type
+      library.define<predicate>("get-ready?", [](let const& xs)
+      {
+        return static_cast<bool>(car(xs).as<std::istream>());
+      });
+
+      library.define<procedure>("get-char", [](let const& xs) -> value_type
       {
         try
         {
-          return make<character>(car(xs).as<std::istream>());
+          auto const g = car(xs).as<std::istream>().tellg();
+          let const c = make<character>(get_codepoint(car(xs).as<std::istream>()));
+          car(xs).as<std::istream>().seekg(g);
+          return c;
         }
         catch (eof const&)
         {
@@ -891,14 +881,11 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("%peek-char", [](let const& xs) -> value_type
+      library.define<procedure>("get-char!", [](let const& xs) -> value_type
       {
         try
         {
-          auto const g = car(xs).as<std::istream>().tellg();
-          let const c = make<character>(car(xs).as<std::istream>());
-          car(xs).as<std::istream>().seekg(g);
-          return c;
+          return make<character>(get_codepoint(car(xs).as<std::istream>()));
         }
         catch (eof const&)
         {
@@ -920,21 +907,21 @@ inline namespace kernel
         return eof_object;
       });
 
-      library.define<predicate>("read-ready?", [](let const& xs)
+      library.define<procedure>("get-string!", [](let const& xs)
       {
-        return static_cast<bool>(car(xs).as<std::istream>());
-      });
-
-      library.define<procedure>("%read-string", [](let const& xs)
-      {
-        switch (length(xs))
+        auto read_k = [](string & string, std::size_t k, std::istream & is)
         {
-        case 2:
-          return make<string>(cadr(xs).as<std::istream>(), static_cast<string::size_type>(car(xs).as<exact_integer>()));
+          for (std::size_t i = 0; i < k and is; ++i)
+          {
+            string.codepoints.emplace_back(get_codepoint(is));
+          }
+        };
 
-        default:
-          throw invalid_application(intern("read-string") | xs);
-        }
+        let const s = make<string>();
+
+        read_k(s.as<string>(), car(xs).as<exact_integer>(), cadr(xs).as<std::istream>());
+
+        return s;
       });
 
       library.define<procedure>("put-char", [](let const& xs)
@@ -955,7 +942,7 @@ inline namespace kernel
         case 4: // TODO
 
         default:
-          throw invalid_application(intern("write-string") | xs);
+          throw invalid_application(string_to_symbol("write-string") | xs);
         }
 
         return unspecified;
@@ -984,12 +971,12 @@ inline namespace kernel
       library.export_("open-input-string");
       library.export_("open-output-string");
       library.export_("get-output-string");
-      library.export_("%read-char");
-      library.export_("%peek-char");
       library.export_("eof-object?");
       library.export_("eof-object");
-      library.export_("read-ready?");
-      library.export_("%read-string");
+      library.export_("get-ready?");
+      library.export_("get-char");
+      library.export_("get-char!");
+      library.export_("get-string!");
       library.export_("put-char");
       library.export_("put-string");
       library.export_("%flush-output-port");
@@ -1025,74 +1012,54 @@ inline namespace kernel
 
       library.define<procedure>("make-string", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return make<string>(static_cast<string::size_type>(car(xs).as<exact_integer>()), character());
-
-        case 2:
-          return make<string>(static_cast<string::size_type>(car(xs).as<exact_integer>()), cadr(xs).as<character>());
-
-        default:
-          throw invalid_application(intern("make-string") | xs);
-        }
+        return make<string>(car(xs), cdr(xs).is<pair>() ? cadr(xs) : make<character>());
       });
 
       library.define<procedure>("string-length", [](let const& xs)
       {
-        return make<exact_integer>(car(xs).as<string>().size());
+        return car(xs).as<string>().length();
       });
 
       library.define<procedure>("string-ref", [](let const& xs)
       {
-        return make(car(xs).as<string>().at(static_cast<string::size_type>(cadr(xs).as<exact_integer>())));
+        return car(xs).as<string>().ref(cadr(xs));
       });
 
       library.define<procedure>("string-set!", [](let const& xs)
       {
-        car(xs).as<string>().at(static_cast<string::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs).as<character>();
+        car(xs).as<string>().set(cadr(xs), caddr(xs));
         return car(xs);
       });
 
       library.define<procedure>("string-append", [](let const& xs)
       {
-        string result;
-
-        for (let const& x : xs)
-        {
-          std::copy(std::cbegin(x.as<string>()), std::cend(x.as<string>()), std::back_inserter(result));
-        }
-
-        return make(result);
+        return string::append(xs);
       });
 
       library.define<procedure>("string-copy", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return make<string>(car(xs).as<string>());
-
-        case 2:
-          return make<string>(car(xs).as<string>().begin() + static_cast<string::size_type>(cadr(xs).as<exact_integer>()),
-                              car(xs).as<string>().end());
-        case 3:
-          return make<string>(car(xs).as<string>().begin() + static_cast<string::size_type>( cadr(xs).as<exact_integer>()),
-                              car(xs).as<string>().begin() + static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
-        default:
-          throw invalid_application(intern("string-copy") | xs);
-        }
+        return car(xs).as<string>().copy(cdr(xs).is<pair>() ? cadr(xs) : e0,
+                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<string>().length());
       });
 
-      #define STRING_COMPARE(COMPARE)                                            \
-      [](let const& xs)                                                          \
-      {                                                                          \
-        return std::adjacent_find(                                               \
-                 std::begin(xs), std::end(xs), [](let const& a, let const& b)    \
-                 {                                                               \
-                   return not COMPARE(a.as_const<string>(),                      \
-                                      b.as_const<string>());                     \
-                 }) == std::end(xs);                                             \
+      library.define<procedure>("string-copy!", [](let const& xs)
+      {
+        car(xs).as<string>().copy(list_ref(xs, 1),
+                                  list_ref(xs, 2),
+                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 3) : e0,
+                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 4) : car(xs).as<vector>().length());
+        return unspecified;
+      });
+
+      #define STRING_COMPARE(COMPARE)                                          \
+      [](let const& xs)                                                        \
+      {                                                                        \
+        return std::adjacent_find(                                             \
+                 std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
+                 {                                                             \
+                   return not COMPARE(a.as_const<string>().codepoints,         \
+                                      b.as_const<string>().codepoints);        \
+                 }) == std::end(xs);                                           \
       }
 
       library.define<predicate>("string=?",  STRING_COMPARE(std::equal_to     <void>()));
@@ -1105,46 +1072,38 @@ inline namespace kernel
 
       library.define<procedure>("string->number", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return string_to::number(car(xs).as<string>(), 10);
-
-        case 2:
-          return string_to::number(car(xs).as<string>(), static_cast<int>(cadr(xs).as<exact_integer>()));
-
-        default:
-          throw invalid_application(intern("string->number") | xs);
-        }
+        return string_to_number(car(xs).as<string>(),
+                                cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10);
       });
 
       library.define<procedure>("string->list", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return car(xs).as<string>().list();
-
-        case 2:
-          return car(xs).as<string>().list(static_cast<string::size_type>(cadr(xs).as<exact_integer>()));
-
-        case 3:
-          return car(xs).as<string>().list(static_cast<string::size_type>(cadr(xs).as<exact_integer>()), static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
-
-        default:
-          throw invalid_application(intern("string->list") | xs);
-        }
+        return car(xs).as<string>().make_list(cdr(xs).is<pair>() ? cadr(xs) : e0,
+                                              cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<string>().length());
       });
 
       library.define<procedure>("string->symbol", [](let const& xs)
       {
-        return intern(car(xs).as<string>());
+        return string_to_symbol(car(xs).as<string>());
+      });
+
+      library.define<procedure>("list->string", [](let const& xs)
+      {
+        return make<string>(car(xs));
+      });
+
+      library.define<procedure>("vector->string", [](let const& xs)
+      {
+        return make<string>(car(xs).as<vector>(),
+                            cdr(xs).is<pair>() ? cadr(xs) : e0,
+                            cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
       });
 
       library.export_("string?");
       library.export_("make-string");
       library.export_("string-append");
       library.export_("string-copy");
+      library.export_("string-copy!");
       library.export_("string-length");
       library.export_("string-ref");
       library.export_("string-set!");
@@ -1156,6 +1115,8 @@ inline namespace kernel
       library.export_("string->list");
       library.export_("string->number");
       library.export_("string->symbol");
+      library.export_("list->string");
+      library.export_("vector->string");
     });
 
     define_library("(meevax symbol)", [](library & library)
@@ -1217,17 +1178,27 @@ inline namespace kernel
 
       library.define<procedure>("make-vector", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return make<vector>(car(xs), unspecified);
+        return make<vector>(car(xs), cdr(xs).is<pair>() ? cadr(xs) : unspecified);
+      });
 
-        case 2:
-          return make<vector>(car(xs), cadr(xs));
+      library.define<procedure>("vector-append", [](let const& xs)
+      {
+        return vector::append(xs);
+      });
 
-        default:
-          throw invalid_application(intern("make-vector") | xs);
-        }
+      library.define<procedure>("vector-copy", [](let const& xs)
+      {
+        return car(xs).as<vector>().copy(cdr(xs).is<pair>() ? cadr(xs) : e0,
+                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
+      });
+
+      library.define<procedure>("vector-copy!", [](let const& xs)
+      {
+        car(xs).as<vector>().copy(list_ref(xs, 1),
+                                  list_ref(xs, 2),
+                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 3) : e0,
+                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 4) : car(xs).as<vector>().length());
+        return unspecified;
       });
 
       library.define<procedure>("vector-length", [](let const& xs)
@@ -1247,72 +1218,35 @@ inline namespace kernel
 
       library.define<procedure>("vector-fill!", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 2:
-          car(xs).as<vector>().fill(cadr(xs), e0, car(xs).as<vector>().length());
-          break;
-
-        case 3:
-          car(xs).as<vector>().fill(cadr(xs), caddr(xs), car(xs).as<vector>().length());
-          break;
-
-        case 4:
-          car(xs).as<vector>().fill(cadr(xs), caddr(xs), cadddr(xs));
-          break;
-
-        default:
-          throw invalid_application(intern("vector-fill!") | xs);
-        }
-
+        car(xs).as<vector>().fill(cdr(xs).is<pair>() ? cadr(xs) : unspecified,
+                                  cddr(xs).is<pair>() ? caddr(xs) : e0,
+                                  cdddr(xs).is<pair>() ? cadddr(xs) : car(xs).as<vector>().length());
         return unspecified;
       });
 
       library.define<procedure>("vector->list", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return car(xs).as<vector>().list(e0, car(xs).as<vector>().length());
-
-        case 2:
-          return car(xs).as<vector>().list(cadr(xs), car(xs).as<vector>().length());
-
-        case 3:
-          return car(xs).as<vector>().list(cadr(xs), caddr(xs));
-
-        default:
-          throw invalid_application(intern("vector->list") | xs);
-        }
+        return car(xs).as<vector>().list(cdr(xs).is<pair>() ? cadr(xs) : e0,
+                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
       });
 
-      library.define<procedure>("vector->string", [](let const& xs)
+      library.define<procedure>("string->vector", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return car(xs).as<vector>().string(e0, car(xs).as<vector>().length());
-
-        case 2:
-          return car(xs).as<vector>().string(cadr(xs), car(xs).as<vector>().length());
-
-        case 3:
-          return car(xs).as<vector>().string(cadr(xs), caddr(xs));
-
-        default:
-          throw invalid_application(intern("vector->string") | xs);
-        }
+        return make<vector>(car(xs).as<string>());
       });
 
       library.export_("vector?");
       library.export_("vector");
       library.export_("make-vector");
+      library.export_("vector-append");
+      library.export_("vector-copy");
+      library.export_("vector-copy!");
       library.export_("vector-length");
       library.export_("vector-ref");
       library.export_("vector-set!");
       library.export_("vector-fill!");
       library.export_("vector->list");
-      library.export_("vector->string");
+      library.export_("string->vector");
     });
 
     define_library("(meevax version)", [](library & library)
@@ -1364,6 +1298,7 @@ inline namespace kernel
       srfi_149,
       r5rs,
       srfi_6,  // Basic String Ports
+      srfi_11, // Syntax for receiving multiple values
       srfi_34, // Exception Handling for Programs
       srfi_23, // Error reporting mechanism
       srfi_39, // Parameter objects
@@ -1441,22 +1376,11 @@ inline namespace kernel
       if (export_spec.is<pair>() and car(export_spec).is<symbol>()
                                  and car(export_spec).as<symbol>().value == "rename")
       {
-        if (let const& binding = identify(cadr(export_spec), unit); binding.as<identity>().is_free())
-        {
-          throw error(make<string>("Exported but undefined"), cadr(export_spec));
-        }
-        else
-        {
-          return make<absolute>(caddr(export_spec), binding.as<absolute>().load());
-        }
-      }
-      else if (let const& binding = identify(export_spec, unit); binding.as<identity>().is_free())
-      {
-        throw error(make<string>("Exported but undefined"), export_spec);
+        return make<absolute>(caddr(export_spec), (*this)[cadr(export_spec)]);
       }
       else
       {
-        return binding;
+        return identify(export_spec, unit);
       }
     };
 

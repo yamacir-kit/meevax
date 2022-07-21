@@ -28,9 +28,51 @@ inline namespace kernel
     std::copy(std::begin(x), std::end(x), std::back_inserter(data));
   }
 
+  vector::vector(string const& s)
+  {
+    for (auto const& c : s.codepoints)
+    {
+      data.push_back(make(c));
+    }
+  }
+
   vector::vector(const_reference k, const_reference fill)
     : data { k.as<exact_integer>(), fill }
   {}
+
+  auto vector::append(const_reference xs) -> value_type
+  {
+    let const v = make<vector>();
+
+    for (let const& x : xs)
+    {
+      std::copy(x.as<vector>().data.begin(),
+                x.as<vector>().data.end(),
+                std::back_inserter(v.as<vector>().data));
+    }
+
+    return v;
+  }
+
+  auto vector::copy(const_reference from, const_reference to) const -> value_type
+  {
+    let const& v = make<vector>();
+
+    std::copy(std::next(std::begin(data), from.as<exact_integer>()),
+              std::next(std::begin(data), to.as<exact_integer>()),
+              std::back_inserter(v.as<vector>().data));
+
+    return v;
+  }
+
+  auto vector::copy(const_reference at, const_reference v, const_reference from, const_reference to) -> void
+  {
+    data.reserve(data.size() + v.as<vector>().data.size());
+
+    std::copy(std::next(std::begin(v.as<vector>().data), from.as<exact_integer>()),
+              std::next(std::begin(v.as<vector>().data), to.as<exact_integer>()),
+              std::next(std::begin(data), at.as<exact_integer>()));
+  }
 
   auto vector::fill(const_reference x, const_reference from, const_reference to) -> void
   {
@@ -60,20 +102,6 @@ inline namespace kernel
   auto vector::set(const_reference k, const_reference x) -> const_reference
   {
     return data.at(k.as<exact_integer>()) = x;
-  }
-
-  auto vector::string(const_reference from, const_reference to) const -> value_type
-  {
-    meevax::string s;
-
-    std::for_each(std::next(std::begin(data), from.as<exact_integer>()),
-                  std::next(std::begin(data), to.as<exact_integer>()),
-                  [&](let const& each)
-                  {
-                    s.push_back(each.as<character>());
-                  });
-
-    return make(s);
   }
 
   auto operator ==(vector const& lhs, vector const& rhs) -> bool

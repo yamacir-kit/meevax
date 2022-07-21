@@ -1,5 +1,5 @@
 (define-library (srfi 23)
-  (import (only (meevax exception) make-error)
+  (import (only (meevax error) make-error)
           (only (scheme r5rs) define apply)
           (only (srfi 34) raise))
   (export error)

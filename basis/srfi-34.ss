@@ -19,15 +19,10 @@
 ;  IN THE SOFTWARE.
 
 (define-library (srfi 34)
-  (import (only (meevax exception) throw)
-          (scheme r5rs)
-          )
+  (import (only (meevax error) throw)
+          (scheme r5rs))
 
-  (export with-exception-handler
-          raise
-          raise-continuable
-          guard
-          )
+  (export with-exception-handler raise raise-continuable guard)
 
   (begin (define %current-exception-handlers (list throw))
 
