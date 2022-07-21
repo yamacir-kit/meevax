@@ -107,8 +107,6 @@ inline namespace kernel
       return underlying_cast(exit_status::failure);
     }
   }
-
-  auto invalid_application(const_reference) -> error;
 } // namespace kernel
 } // namespace meevax
 

@@ -65,11 +65,5 @@ inline namespace kernel
   {
     throw error(make<string>(message));
   }
-
-  auto invalid_application(const_reference irritants) -> error
-  {
-    let static const message = make<string>("invalid application");
-    return error(message, irritants);
-  }
 } // namespace kernel
 } // namespace meevax

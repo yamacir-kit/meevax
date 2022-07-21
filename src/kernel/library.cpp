@@ -37,14 +37,7 @@ inline namespace kernel
 
       library.define<procedure>("char->integer", [](let const& xs)
       {
-        if (xs.is<pair>() and car(xs).is<character>())
-        {
-          return make<exact_integer>(car(xs).as<character>().codepoint);
-        }
-        else
-        {
-          throw invalid_application(string_to_symbol("char->integer") | xs);
-        }
+        return make<exact_integer>(car(xs).as<character>().codepoint);
       });
 
       library.define<procedure>("char-codepoint", [](let const& xs) -> value_type
@@ -66,27 +59,18 @@ inline namespace kernel
 
     define_library("(meevax context)", [](library & library)
     {
-      library.define<procedure>("emergency-exit", [](let const& xs) -> value_type
+      library.define<procedure>("emergency-exit", [](let const& xs)
       {
-        switch (length(xs))
+        if (let const& status = car(xs); status.is<bool>())
         {
-        case 0:
-          throw exit_status::success;
-
-        case 1:
-          if (let const& x = car(xs); x.is<bool>())
-          {
-            throw select(x) ? exit_status::success : exit_status::failure;
-          }
-          else if (x.is<exact_integer>())
-          {
-            throw exit_status(static_cast<int>(x.as<exact_integer>()));
-          }
-          else [[fallthrough]];
-
-        default:
-          throw invalid_application(string_to_symbol("emergency-exit") | xs);
+          throw select(status) ? exit_status::success : exit_status::failure;
         }
+        else
+        {
+          throw exit_status(static_cast<int>(status.as<exact_integer>()));
+        }
+
+        return unspecified;
       });
 
       library.export_("emergency-exit");
@@ -282,17 +266,8 @@ inline namespace kernel
 
       library.define<procedure>("log", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return car(xs).as<number>().log();
-
-        case 2:
-          return car(xs).as<number>().log() / cadr(xs).as<number>().log();
-
-        default:
-          throw invalid_application(string_to_symbol("log") | xs);
-        }
+        return cdr(xs).is<pair>() ? car(xs).as<number>().log() / cadr(xs).as<number>().log()
+                                  : car(xs).as<number>().log();
       });
 
       library.define<procedure>("sin", [](let const& xs)
@@ -322,17 +297,8 @@ inline namespace kernel
 
       library.define<procedure>("atan", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 1:
-          return car(xs).as<number>().atan();
-
-        case 2:
-          return car(xs).as<number>().atan2(cadr(xs));
-
-        default:
-          throw invalid_application(string_to_symbol("atan") | xs);
-        }
+        return cdr(xs).is<pair>() ? car(xs).as<number>().atan2(cadr(xs))
+                                  : car(xs).as<number>().atan();
       });
 
       library.define<procedure>("sinh", [](let const& xs)
@@ -532,22 +498,11 @@ inline namespace kernel
       #define DEFINE(SYMBOL, FUNCTION, BASIS)                                  \
       library.define<procedure>(SYMBOL, [](let const& xs)                      \
       {                                                                        \
-        switch (length(xs))                                                    \
-        {                                                                      \
-        case 0:                                                                \
-          throw invalid_application(string_to_symbol(SYMBOL) | xs);            \
-                                                                               \
-        case 1:                                                                \
-          return FUNCTION(BASIS, car(xs));                                     \
-                                                                               \
-        default:                                                               \
-          return std::accumulate(                                              \
-                   std::next(std::begin(xs)), std::end(xs), car(xs),           \
-                   [](let const& a, let const& b)                              \
-                   {                                                           \
-                     return FUNCTION(a, b);                                    \
-                   });                                                         \
-        }                                                                      \
+        return cdr(xs).is<pair>() ? std::accumulate(std::begin(cdr(xs)), std::end(xs), car(xs), [](auto&& a, auto&& b) \
+                                    {                                          \
+                                      return FUNCTION(a, b);                   \
+                                    })                                         \
+                                  : FUNCTION(BASIS, car(xs));                  \
       })
 
       DEFINE("-", sub, e0);
@@ -593,14 +548,7 @@ inline namespace kernel
 
       library.define<procedure>("integer->char", [](let const& xs)
       {
-        if (xs.is<pair>() and car(xs).is<exact_integer>())
-        {
-          return make<character>(car(xs).as<exact_integer>());
-        }
-        else
-        {
-          throw invalid_application(string_to_symbol("integer->char") | xs);
-        }
+        return make<character>(car(xs).as<exact_integer>());
       });
 
       library.define<procedure>("number->string", [](let const& xs)
@@ -824,32 +772,14 @@ inline namespace kernel
 
       library.define<procedure>("open-input-string", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 0:
-          return make<input_string_port>();
-
-        case 1:
-          return make<input_string_port>(car(xs).as<string>());
-
-        default:
-          throw invalid_application(string_to_symbol("open-input-string") | xs);
-        }
+        return cdr(xs).is<pair>() ? make<input_string_port>(car(xs).as<string>())
+                                  : make<input_string_port>();
       });
 
       library.define<procedure>("open-output-string", [](let const& xs)
       {
-        switch (length(xs))
-        {
-        case 0:
-          return make<output_string_port>();
-
-        case 1:
-          return make<output_string_port>(car(xs).as<string>());
-
-        default:
-          throw invalid_application(string_to_symbol("open-output-string") | xs);
-        }
+        return cdr(xs).is<pair>() ? make<output_string_port>(car(xs).as<string>())
+                                  : make<output_string_port>();
       });
 
       library.define<procedure>("get-output-string", [](let const& xs)
@@ -932,18 +862,13 @@ inline namespace kernel
 
       library.define<procedure>("put-string", [](let const& xs)
       {
-        switch (length(xs))
+        auto copy = [&]()
         {
-        case 2:
-          cadr(xs).as<std::ostream>() << static_cast<external_representation>(car(xs).as<string>());
-          break;
+          return car(xs).as<string>().copy(list_tail(xs, 2).is<pair>() ? list_ref(xs, 2) : e0,
+                                           list_tail(xs, 3).is<pair>() ? list_ref(xs, 3) : car(xs).as<string>().length());
+        };
 
-        case 3: // TODO
-        case 4: // TODO
-
-        default:
-          throw invalid_application(string_to_symbol("write-string") | xs);
-        }
+        cadr(xs).as<std::ostream>() << static_cast<std::string>(copy().as<string>());
 
         return unspecified;
       });
