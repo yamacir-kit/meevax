@@ -20,11 +20,11 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto exact_integer::operator * (const_reference b) const -> value_type { return apply(mul, *this, b); }
+  // auto exact_integer::operator * (const_reference b) const -> value_type { return apply(mul, *this, b); }
   // auto exact_integer::operator + (const_reference b) const -> value_type { return apply(add, *this, b); }
   // auto exact_integer::operator - (const_reference b) const -> value_type { return apply(sub, *this, b); }
-  auto exact_integer::operator / (const_reference b) const -> value_type { return apply(div, *this, b); }
-  auto exact_integer::operator % (const_reference b) const -> value_type { return apply(mod, *this, b); }
+  // auto exact_integer::operator / (const_reference b) const -> value_type { return apply(div, *this, b); }
+  // auto exact_integer::operator % (const_reference b) const -> value_type { return apply(mod, *this, b); }
   auto exact_integer::operator !=(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, b); }
   auto exact_integer::operator < (const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, b); }
   auto exact_integer::operator <=(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, b); }
@@ -56,11 +56,11 @@ inline namespace kernel
   auto operator > (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a >  x.numerator().as<exact_integer>() : false; }
   auto operator >=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a >= x.numerator().as<exact_integer>() : false; }
 
-  auto ratio::operator * (const_reference x) const -> value_type { return apply(mul, *this, x); }
+  // auto ratio::operator * (const_reference x) const -> value_type { return apply(mul, *this, x); }
   // auto ratio::operator + (const_reference x) const -> value_type { return apply(add, *this, x); }
   // auto ratio::operator - (const_reference x) const -> value_type { return apply(sub, *this, x); }
-  auto ratio::operator / (const_reference x) const -> value_type { return apply(div, *this, x); }
-  auto ratio::operator % (const_reference x) const -> value_type { return apply(mod, *this, x); }
+  // auto ratio::operator / (const_reference x) const -> value_type { return apply(div, *this, x); }
+  // auto ratio::operator % (const_reference x) const -> value_type { return apply(mod, *this, x); }
   auto ratio::operator !=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, x); }
   auto ratio::operator < (const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, x); }
   auto ratio::operator <=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, x); }
@@ -94,32 +94,29 @@ inline namespace kernel
 
   namespace experimental
   {
-    #define ADD(T, U) { type_index<2>(typeid(T), typeid(U)), binary_operation<std::plus<void>, T, U>() }
+    #define APPLY(OPERATOR, T, U) \
+    { type_index<2>(typeid(T), typeid(U)), binary_operation<OPERATOR, T, U>() }
 
-    std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> add
-    {
-      ADD(exact_integer, exact_integer), ADD(exact_integer, ratio), ADD(exact_integer, single_float), ADD(exact_integer, double_float),
-      ADD(ratio,         exact_integer), ADD(ratio,         ratio), ADD(ratio,         single_float), ADD(ratio,         double_float),
-      ADD(single_float,  exact_integer), ADD(single_float,  ratio), ADD(single_float,  single_float), ADD(single_float,  double_float),
-      ADD(double_float,  exact_integer), ADD(double_float,  ratio), ADD(double_float,  single_float), ADD(double_float,  double_float),
-    };
+    #define DEFINE_OVERLOADINGS(NAME, OP)                                                                                                                       \
+    std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> NAME                                                        \
+    {                                                                                                                                                           \
+      APPLY(OP, exact_integer, exact_integer), APPLY(OP, exact_integer, ratio), APPLY(OP, exact_integer, single_float), APPLY(OP, exact_integer, double_float), \
+      APPLY(OP, ratio,         exact_integer), APPLY(OP, ratio,         ratio), APPLY(OP, ratio,         single_float), APPLY(OP, ratio,         double_float), \
+      APPLY(OP, single_float,  exact_integer), APPLY(OP, single_float,  ratio), APPLY(OP, single_float,  single_float), APPLY(OP, single_float,  double_float), \
+      APPLY(OP, double_float,  exact_integer), APPLY(OP, double_float,  ratio), APPLY(OP, double_float,  single_float), APPLY(OP, double_float,  double_float), \
+    }
 
-    #undef ADD
-
-    #define SUB(T, U) { type_index<2>(typeid(T), typeid(U)), binary_operation<std::minus<void>, T, U>() }
-
-    std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> sub
-    {
-      SUB(exact_integer, exact_integer), SUB(exact_integer, ratio), SUB(exact_integer, single_float), SUB(exact_integer, double_float),
-      SUB(ratio,         exact_integer), SUB(ratio,         ratio), SUB(ratio,         single_float), SUB(ratio,         double_float),
-      SUB(single_float,  exact_integer), SUB(single_float,  ratio), SUB(single_float,  single_float), SUB(single_float,  double_float),
-      SUB(double_float,  exact_integer), SUB(double_float,  ratio), SUB(double_float,  single_float), SUB(double_float,  double_float),
-    };
-
-    #undef SUB
+    DEFINE_OVERLOADINGS(add, std::plus      <void>);
+    DEFINE_OVERLOADINGS(sub, std::minus     <void>);
+    DEFINE_OVERLOADINGS(mul, std::multiplies<void>);
+    DEFINE_OVERLOADINGS(div, std::divides   <void>);
+    DEFINE_OVERLOADINGS(mod, std::modulus   <void>);
   }
 
   auto operator +(const_reference x, const_reference y) -> value_type { return experimental::add.at(type_index<2>(x.type(), y.type()))(x, y); }
   auto operator -(const_reference x, const_reference y) -> value_type { return experimental::sub.at(type_index<2>(x.type(), y.type()))(x, y); }
+  auto operator *(const_reference x, const_reference y) -> value_type { return experimental::mul.at(type_index<2>(x.type(), y.type()))(x, y); }
+  auto operator /(const_reference x, const_reference y) -> value_type { return experimental::div.at(type_index<2>(x.type(), y.type()))(x, y); }
+  auto operator %(const_reference x, const_reference y) -> value_type { return experimental::mod.at(type_index<2>(x.type(), y.type()))(x, y); }
 } // namespace kernel
 } // namespace meevax
