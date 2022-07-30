@@ -82,37 +82,7 @@ inline namespace kernel
     virtual auto is_finite  () const -> bool { return true ; }
     virtual auto is_infinite() const -> bool { return false; }
     virtual auto is_nan     () const -> bool { return false; }
-
-    // virtual auto operator + (const_reference) const -> value_type = 0;
-    // virtual auto operator - (const_reference) const -> value_type = 0;
-    // virtual auto operator * (const_reference) const -> value_type = 0;
-    // virtual auto operator / (const_reference) const -> value_type = 0;
-    // virtual auto operator % (const_reference) const -> value_type = 0;
-
-    // virtual auto operator ==(const_reference) const -> bool = 0;
-    // virtual auto operator !=(const_reference) const -> bool = 0;
-    // virtual auto operator < (const_reference) const -> bool = 0;
-    // virtual auto operator <=(const_reference) const -> bool = 0;
-    // virtual auto operator > (const_reference) const -> bool = 0;
-    // virtual auto operator >=(const_reference) const -> bool = 0;
   };
-
-  #define DEFINE(SYMBOL)                                                       \
-  template <template <typename...> typename P, typename T, typename... Ts>     \
-  auto operator SYMBOL(heterogeneous<P, T, Ts...> const& x,                    \
-                       heterogeneous<P, T, Ts...> const& y) -> decltype(auto)  \
-  {                                                                            \
-    return x.template as<number>() SYMBOL y;                                   \
-  }                                                                            \
-  static_assert(true)
-
-  // DEFINE(+);
-  // DEFINE(-);
-  // DEFINE(*);
-  // DEFINE(/);
-  // DEFINE(%);
-
-  #undef DEFINE
 
   [[noreturn]]
   auto raise(std::string const&) -> void; // error.hpp

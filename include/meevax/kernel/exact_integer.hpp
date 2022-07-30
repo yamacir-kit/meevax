@@ -115,19 +115,6 @@ inline namespace kernel
     explicit operator double() const;
 
     explicit operator external_representation() const;
-
-    // auto operator + (const_reference) const -> value_type override;
-    // auto operator - (const_reference) const -> value_type override;
-    // auto operator * (const_reference) const -> value_type override;
-    // auto operator / (const_reference) const -> value_type override;
-    // auto operator % (const_reference) const -> value_type override;
-
-    // auto operator ==(const_reference) const -> bool override;
-    // auto operator !=(const_reference) const -> bool override;
-    // auto operator < (const_reference) const -> bool override;
-    // auto operator <=(const_reference) const -> bool override;
-    // auto operator > (const_reference) const -> bool override;
-    // auto operator >=(const_reference) const -> bool override;
   };
 
   auto operator ==(exact_integer const&, int const) -> bool;

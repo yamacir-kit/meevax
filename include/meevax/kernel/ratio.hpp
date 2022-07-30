@@ -77,19 +77,6 @@ inline namespace kernel
     DEFINE(pow);
 
     #undef DEFINE
-
-    // auto operator + (const_reference) const -> value_type override;
-    // auto operator - (const_reference) const -> value_type override;
-    // auto operator * (const_reference) const -> value_type override;
-    // auto operator / (const_reference) const -> value_type override;
-    // auto operator % (const_reference) const -> value_type override;
-
-    // auto operator ==(const_reference) const -> bool override;
-    // auto operator !=(const_reference) const -> bool override;
-    // auto operator < (const_reference) const -> bool override;
-    // auto operator <=(const_reference) const -> bool override;
-    // auto operator > (const_reference) const -> bool override;
-    // auto operator >=(const_reference) const -> bool override;
   };
 
   auto operator <<(std::ostream &, ratio const&) -> std::ostream &;

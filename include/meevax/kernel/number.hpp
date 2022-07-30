@@ -45,78 +45,6 @@ inline namespace kernel
     }
   };
 
-  /* ---- Binary Numerical Comparator Overloaings Adapter ----------------------
-   *
-   *  Dispatch static numeric vs. dynamic numerical operations to static
-   *  overloads. If the rvalue type binds a non-numeric type, an exception is
-   *  thrown.
-   *
-   *  Usage:
-   *
-   *    auto operator <(Number const& lhs, const_reference rhs)
-   *    {
-   *      return apply<bool>(std::less<void>(), lhs, rhs);
-   *    }
-   *
-   * ------------------------------------------------------------------------ */
-  template <typename R, typename F, typename T>
-  auto apply(F&& procedure, T const& a, const_reference b) -> decltype(auto)
-  {
-    static std::unordered_map<
-      std::type_index, std::function<R (T const&, const_reference)>> const overloads
-    {
-      { typeid(single_float),  [&](T const& a, const_reference b) { return procedure(a, b.as<single_float >()); } },
-      { typeid(double_float),  [&](T const& a, const_reference b) { return procedure(a, b.as<double_float >()); } },
-      { typeid(ratio),         [&](T const& a, const_reference b) { return procedure(a, b.as<ratio        >()); } },
-      { typeid(exact_integer), [&](T const& a, const_reference b) { return procedure(a, b.as<exact_integer>()); } },
-    };
-
-    if (auto const iter = overloads.find(b.type()); iter != std::end(overloads))
-    {
-      return cdr(*iter)(a, b);
-    }
-    else
-    {
-      throw error(make<string>(concatenate("no viable operation ", demangle(typeid(F)), " with ", a, " and ", b)));
-    }
-  }
-
-  /* ---- Binary Numerical Operator Overloaings Adapter ------------------------
-   *
-   *  Dispatch static numeric vs. dynamic numerical operations to static
-   *  overloads. If the rvalue type binds a non-numeric type, an exception is
-   *  thrown.
-   *
-   *  Usage:
-   *
-   *    let operator +(Number const& lhs, const_reference rhs)
-   *    {
-   *      return apply(add, lhs, rhs);
-   *    }
-   *
-   * ------------------------------------------------------------------------ */
-  template <typename F, typename T>
-  auto apply(F&& procedure, T const& a, const_reference b) -> decltype(auto)
-  {
-    static std::unordered_map<
-      std::type_index, std::function<let (T const&, const_reference)>> const overloads
-    {
-      { typeid(single_float),  [&](T const& a, const_reference b) { return make_number(procedure(a, b.as<single_float >())); } },
-      { typeid(double_float),  [&](T const& a, const_reference b) { return make_number(procedure(a, b.as<double_float >())); } },
-      { typeid(ratio),         [&](T const& a, const_reference b) { return make_number(procedure(a, b.as<ratio        >())); } },
-      { typeid(exact_integer), [&](T const& a, const_reference b) { return make_number(procedure(a, b.as<exact_integer>())); } },
-    };
-
-    if (auto const iter = overloads.find(b.type()); iter != std::end(overloads))
-    {
-      return cdr(*iter)(a, b);
-    }
-    else
-    {
-      throw error(make<string>(concatenate("no viable operation ", demangle(typeid(F)), " with ", a, " and ", b)));
-    }
-  }
-
   auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator - (exact_integer const&, exact_integer const&) -> exact_integer;
@@ -188,18 +116,6 @@ inline namespace kernel
   template <typename T> auto operator ==(ratio const& a, floating_point<T> const& b) -> bool { return a.inexact().as<double_float>() == b; }
   template <typename T> auto operator > (ratio const& a, floating_point<T> const& b) -> bool { return a.inexact().as<double_float>() >  b; }
   template <typename T> auto operator >=(ratio const& a, floating_point<T> const& b) -> bool { return a.inexact().as<double_float>() >= b; }
-
-  // template <typename T> auto floating_point<T>::operator * (const_reference x) const -> value_type { return apply(mul, *this, x); }
-  // template <typename T> auto floating_point<T>::operator + (const_reference x) const -> value_type { return apply(add, *this, x); }
-  // template <typename T> auto floating_point<T>::operator - (const_reference x) const -> value_type { return apply(sub, *this, x); }
-  // template <typename T> auto floating_point<T>::operator / (const_reference x) const -> value_type { return apply(div, *this, x); }
-  // template <typename T> auto floating_point<T>::operator % (const_reference x) const -> value_type { return apply(mod, *this, x); }
-  // template <typename T> auto floating_point<T>::operator !=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, x); }
-  // template <typename T> auto floating_point<T>::operator < (const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, x); }
-  // template <typename T> auto floating_point<T>::operator <=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, x); }
-  // template <typename T> auto floating_point<T>::operator ==(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, *this, x); }
-  // template <typename T> auto floating_point<T>::operator > (const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, *this, x); }
-  // template <typename T> auto floating_point<T>::operator >=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, *this, x); }
 
   template <typename T> auto operator * (floating_point<T> const& a, exact_integer const& b)         { return a *  b.inexact().as<double_float>(); }
   template <typename T> auto operator + (floating_point<T> const& a, exact_integer const& b)         { return a +  b.inexact().as<double_float>(); }
