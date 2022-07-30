@@ -66,8 +66,8 @@ inline namespace kernel
 
     #undef DEFINE
 
-    auto operator + (const_reference) const -> value_type override { return unspecified; }
-    auto operator - (const_reference) const -> value_type override { return unspecified; }
+    // auto operator + (const_reference) const -> value_type override { return unspecified; }
+    // auto operator - (const_reference) const -> value_type override { return unspecified; }
     auto operator * (const_reference) const -> value_type override { return unspecified; }
     auto operator / (const_reference) const -> value_type override { return unspecified; }
     auto operator % (const_reference) const -> value_type override { return unspecified; }

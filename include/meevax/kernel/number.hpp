@@ -190,8 +190,8 @@ inline namespace kernel
   template <typename T> auto operator >=(ratio const& a, floating_point<T> const& b) -> bool { return a.inexact().as<double_float>() >= b; }
 
   template <typename T> auto floating_point<T>::operator * (const_reference x) const -> value_type { return apply(mul, *this, x); }
-  template <typename T> auto floating_point<T>::operator + (const_reference x) const -> value_type { return apply(add, *this, x); }
-  template <typename T> auto floating_point<T>::operator - (const_reference x) const -> value_type { return apply(sub, *this, x); }
+  // template <typename T> auto floating_point<T>::operator + (const_reference x) const -> value_type { return apply(add, *this, x); }
+  // template <typename T> auto floating_point<T>::operator - (const_reference x) const -> value_type { return apply(sub, *this, x); }
   template <typename T> auto floating_point<T>::operator / (const_reference x) const -> value_type { return apply(div, *this, x); }
   template <typename T> auto floating_point<T>::operator % (const_reference x) const -> value_type { return apply(mod, *this, x); }
   template <typename T> auto floating_point<T>::operator !=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, x); }
@@ -265,9 +265,11 @@ inline namespace kernel
     };
 
     extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> add;
+    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> sub;
   }
 
   auto operator +(const_reference, const_reference) -> value_type;
+  auto operator -(const_reference, const_reference) -> value_type;
 } // namespace kernel
 } // namespace meevax
 

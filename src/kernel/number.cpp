@@ -21,8 +21,8 @@ namespace meevax
 inline namespace kernel
 {
   auto exact_integer::operator * (const_reference b) const -> value_type { return apply(mul, *this, b); }
-  auto exact_integer::operator + (const_reference b) const -> value_type { return apply(add, *this, b); }
-  auto exact_integer::operator - (const_reference b) const -> value_type { return apply(sub, *this, b); }
+  // auto exact_integer::operator + (const_reference b) const -> value_type { return apply(add, *this, b); }
+  // auto exact_integer::operator - (const_reference b) const -> value_type { return apply(sub, *this, b); }
   auto exact_integer::operator / (const_reference b) const -> value_type { return apply(div, *this, b); }
   auto exact_integer::operator % (const_reference b) const -> value_type { return apply(mod, *this, b); }
   auto exact_integer::operator !=(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, b); }
@@ -57,8 +57,8 @@ inline namespace kernel
   auto operator >=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a >= x.numerator().as<exact_integer>() : false; }
 
   auto ratio::operator * (const_reference x) const -> value_type { return apply(mul, *this, x); }
-  auto ratio::operator + (const_reference x) const -> value_type { return apply(add, *this, x); }
-  auto ratio::operator - (const_reference x) const -> value_type { return apply(sub, *this, x); }
+  // auto ratio::operator + (const_reference x) const -> value_type { return apply(add, *this, x); }
+  // auto ratio::operator - (const_reference x) const -> value_type { return apply(sub, *this, x); }
   auto ratio::operator / (const_reference x) const -> value_type { return apply(div, *this, x); }
   auto ratio::operator % (const_reference x) const -> value_type { return apply(mod, *this, x); }
   auto ratio::operator !=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, x); }
@@ -105,11 +105,21 @@ inline namespace kernel
     };
 
     #undef ADD
+
+    #define SUB(T, U) { type_index<2>(typeid(T), typeid(U)), binary_operation<std::minus<void>, T, U>() }
+
+    std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> sub
+    {
+      SUB(exact_integer, exact_integer), SUB(exact_integer, ratio), SUB(exact_integer, single_float), SUB(exact_integer, double_float),
+      SUB(ratio,         exact_integer), SUB(ratio,         ratio), SUB(ratio,         single_float), SUB(ratio,         double_float),
+      SUB(single_float,  exact_integer), SUB(single_float,  ratio), SUB(single_float,  single_float), SUB(single_float,  double_float),
+      SUB(double_float,  exact_integer), SUB(double_float,  ratio), SUB(double_float,  single_float), SUB(double_float,  double_float),
+    };
+
+    #undef SUB
   }
 
-  auto operator +(const_reference x, const_reference y) -> value_type
-  {
-    return experimental::add.at(type_index<2>(x.type(), y.type()))(x, y);
-  }
+  auto operator +(const_reference x, const_reference y) -> value_type { return experimental::add.at(type_index<2>(x.type(), y.type()))(x, y); }
+  auto operator -(const_reference x, const_reference y) -> value_type { return experimental::sub.at(type_index<2>(x.type(), y.type()))(x, y); }
 } // namespace kernel
 } // namespace meevax

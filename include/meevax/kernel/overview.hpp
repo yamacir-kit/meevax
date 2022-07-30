@@ -83,8 +83,8 @@ inline namespace kernel
     virtual auto is_infinite() const -> bool { return false; }
     virtual auto is_nan     () const -> bool { return false; }
 
-    virtual auto operator + (const_reference) const -> value_type = 0;
-    virtual auto operator - (const_reference) const -> value_type = 0;
+    // virtual auto operator + (const_reference) const -> value_type = 0;
+    // virtual auto operator - (const_reference) const -> value_type = 0;
     virtual auto operator * (const_reference) const -> value_type = 0;
     virtual auto operator / (const_reference) const -> value_type = 0;
     virtual auto operator % (const_reference) const -> value_type = 0;
@@ -106,7 +106,8 @@ inline namespace kernel
   }                                                                            \
   static_assert(true)
 
-  DEFINE(-);
+  // DEFINE(+);
+  // DEFINE(-);
   DEFINE(*);
   DEFINE(/);
   DEFINE(%);
