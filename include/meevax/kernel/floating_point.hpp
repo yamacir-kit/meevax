@@ -127,7 +127,7 @@ inline namespace kernel
     #define DEFINE(NAME)                                                       \
     auto NAME(const_reference x) const -> value_type override                  \
     {                                                                          \
-      return make(floating_point(std::NAME(value, x.as<number>().inexact().as<double_float>()))); \
+      return make(floating_point(std::NAME(value, x.as<number>().inexact().as<floating_point<T>>()))); \
     }                                                                          \
     static_assert(true)
 

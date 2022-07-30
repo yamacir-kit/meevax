@@ -91,5 +91,25 @@ inline namespace kernel
   auto operator <=(ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) <= (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
   auto operator > (ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) >  (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
   auto operator >=(ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) >= (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
+
+  namespace experimental
+  {
+    #define ADD(T, U) { type_index<2>(typeid(T), typeid(U)), binary_operation<std::plus<void>, T, U>() }
+
+    std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> add
+    {
+      ADD(exact_integer, exact_integer), ADD(exact_integer, ratio), ADD(exact_integer, single_float), ADD(exact_integer, double_float),
+      ADD(ratio,         exact_integer), ADD(ratio,         ratio), ADD(ratio,         single_float), ADD(ratio,         double_float),
+      ADD(single_float,  exact_integer), ADD(single_float,  ratio), ADD(single_float,  single_float), ADD(single_float,  double_float),
+      ADD(double_float,  exact_integer), ADD(double_float,  ratio), ADD(double_float,  single_float), ADD(double_float,  double_float),
+    };
+
+    #undef ADD
+  }
+
+  auto operator +(const_reference x, const_reference y) -> value_type
+  {
+    return experimental::add.at(type_index<2>(x.type(), y.type()))(x, y);
+  }
 } // namespace kernel
 } // namespace meevax

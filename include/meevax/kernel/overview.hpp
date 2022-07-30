@@ -106,7 +106,6 @@ inline namespace kernel
   }                                                                            \
   static_assert(true)
 
-  DEFINE(+);
   DEFINE(-);
   DEFINE(*);
   DEFINE(/);

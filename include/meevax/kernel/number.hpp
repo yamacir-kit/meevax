@@ -27,6 +27,7 @@
 #include <meevax/kernel/floating_point.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/ratio.hpp>
+#include <meevax/kernel/type_index.hpp>
 
 namespace meevax
 {
@@ -249,6 +250,24 @@ inline namespace kernel
   template <typename T, typename U> auto operator <=(floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value <= b.value; }
   template <typename T, typename U> auto operator > (floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value >  b.value; }
   template <typename T, typename U> auto operator >=(floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value >= b.value; }
+
+  namespace experimental
+  {
+    template <typename Operator, typename T, typename U>
+    struct binary_operation
+    {
+      static inline constexpr Operator operate {};
+
+      auto operator ()(const_reference x, const_reference y) -> value_type
+      {
+        return make_number(operate(x.as<T>(), y.as<U>()));
+      }
+    };
+
+    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> add;
+  }
+
+  auto operator +(const_reference, const_reference) -> value_type;
 } // namespace kernel
 } // namespace meevax
 
