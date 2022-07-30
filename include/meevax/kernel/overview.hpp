@@ -89,12 +89,12 @@ inline namespace kernel
     // virtual auto operator / (const_reference) const -> value_type = 0;
     // virtual auto operator % (const_reference) const -> value_type = 0;
 
-    virtual auto operator ==(const_reference) const -> bool = 0;
-    virtual auto operator !=(const_reference) const -> bool = 0;
-    virtual auto operator < (const_reference) const -> bool = 0;
-    virtual auto operator <=(const_reference) const -> bool = 0;
-    virtual auto operator > (const_reference) const -> bool = 0;
-    virtual auto operator >=(const_reference) const -> bool = 0;
+    // virtual auto operator ==(const_reference) const -> bool = 0;
+    // virtual auto operator !=(const_reference) const -> bool = 0;
+    // virtual auto operator < (const_reference) const -> bool = 0;
+    // virtual auto operator <=(const_reference) const -> bool = 0;
+    // virtual auto operator > (const_reference) const -> bool = 0;
+    // virtual auto operator >=(const_reference) const -> bool = 0;
   };
 
   #define DEFINE(SYMBOL)                                                       \

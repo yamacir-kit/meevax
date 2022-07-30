@@ -194,12 +194,12 @@ inline namespace kernel
   // template <typename T> auto floating_point<T>::operator - (const_reference x) const -> value_type { return apply(sub, *this, x); }
   // template <typename T> auto floating_point<T>::operator / (const_reference x) const -> value_type { return apply(div, *this, x); }
   // template <typename T> auto floating_point<T>::operator % (const_reference x) const -> value_type { return apply(mod, *this, x); }
-  template <typename T> auto floating_point<T>::operator !=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, x); }
-  template <typename T> auto floating_point<T>::operator < (const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, x); }
-  template <typename T> auto floating_point<T>::operator <=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, x); }
-  template <typename T> auto floating_point<T>::operator ==(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, *this, x); }
-  template <typename T> auto floating_point<T>::operator > (const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, *this, x); }
-  template <typename T> auto floating_point<T>::operator >=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, *this, x); }
+  // template <typename T> auto floating_point<T>::operator !=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, x); }
+  // template <typename T> auto floating_point<T>::operator < (const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, x); }
+  // template <typename T> auto floating_point<T>::operator <=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, x); }
+  // template <typename T> auto floating_point<T>::operator ==(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, *this, x); }
+  // template <typename T> auto floating_point<T>::operator > (const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, *this, x); }
+  // template <typename T> auto floating_point<T>::operator >=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, *this, x); }
 
   template <typename T> auto operator * (floating_point<T> const& a, exact_integer const& b)         { return a *  b.inexact().as<double_float>(); }
   template <typename T> auto operator + (floating_point<T> const& a, exact_integer const& b)         { return a +  b.inexact().as<double_float>(); }
@@ -269,6 +269,13 @@ inline namespace kernel
     extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> mul;
     extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> div;
     extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> mod;
+
+    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> equal_to;
+    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> not_equal_to;
+    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> less;
+    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> less_equal;
+    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> greater;
+    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> greater_equal;
   }
 
   auto operator +(const_reference, const_reference) -> value_type;

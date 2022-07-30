@@ -472,16 +472,16 @@ inline namespace kernel
         return std::adjacent_find(                                             \
                  std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
                  {                                                             \
-                   return not COMPARE(a.as<number>(), b);                      \
+                   return not experimental::COMPARE.at(type_index<2>(a.type(), b.type()))(a, b).as<bool>(); \
                  }) == std::end(xs);                                           \
       })
 
-      DEFINE(= , std::equal_to     <void>());
-      DEFINE(!=, std::not_equal_to <void>());
-      DEFINE(< , std::less         <void>());
-      DEFINE(<=, std::less_equal   <void>());
-      DEFINE(> , std::greater      <void>());
-      DEFINE(>=, std::greater_equal<void>());
+      DEFINE(= , equal_to     );
+      DEFINE(!=, not_equal_to );
+      DEFINE(< , less         );
+      DEFINE(<=, less_equal   );
+      DEFINE(> , greater      );
+      DEFINE(>=, greater_equal);
 
       #undef DEFINE
 

@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <functional>
 #include <meevax/kernel/number.hpp>
 
 namespace meevax
@@ -25,12 +26,12 @@ inline namespace kernel
   // auto exact_integer::operator - (const_reference b) const -> value_type { return apply(sub, *this, b); }
   // auto exact_integer::operator / (const_reference b) const -> value_type { return apply(div, *this, b); }
   // auto exact_integer::operator % (const_reference b) const -> value_type { return apply(mod, *this, b); }
-  auto exact_integer::operator !=(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, b); }
-  auto exact_integer::operator < (const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, b); }
-  auto exact_integer::operator <=(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, b); }
-  auto exact_integer::operator ==(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, *this, b); }
-  auto exact_integer::operator > (const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, *this, b); }
-  auto exact_integer::operator >=(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, *this, b); }
+  // auto exact_integer::operator !=(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, b); }
+  // auto exact_integer::operator < (const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, b); }
+  // auto exact_integer::operator <=(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, b); }
+  // auto exact_integer::operator ==(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, *this, b); }
+  // auto exact_integer::operator > (const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, *this, b); }
+  // auto exact_integer::operator >=(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, *this, b); }
 
   auto operator * (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(mul, a, b); }
   auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(add, a, b); }
@@ -61,12 +62,12 @@ inline namespace kernel
   // auto ratio::operator - (const_reference x) const -> value_type { return apply(sub, *this, x); }
   // auto ratio::operator / (const_reference x) const -> value_type { return apply(div, *this, x); }
   // auto ratio::operator % (const_reference x) const -> value_type { return apply(mod, *this, x); }
-  auto ratio::operator !=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, x); }
-  auto ratio::operator < (const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, x); }
-  auto ratio::operator <=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, x); }
-  auto ratio::operator ==(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, *this, x); }
-  auto ratio::operator > (const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, *this, x); }
-  auto ratio::operator >=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, *this, x); }
+  // auto ratio::operator !=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, x); }
+  // auto ratio::operator < (const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, x); }
+  // auto ratio::operator <=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, x); }
+  // auto ratio::operator ==(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, *this, x); }
+  // auto ratio::operator > (const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, *this, x); }
+  // auto ratio::operator >=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, *this, x); }
 
   auto operator * (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b), cdr(a)); }
   auto operator + (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() + a.denominator().as<exact_integer>() * b), cdr(a)); }
@@ -111,6 +112,13 @@ inline namespace kernel
     DEFINE_OVERLOADINGS(mul, std::multiplies<void>);
     DEFINE_OVERLOADINGS(div, std::divides   <void>);
     DEFINE_OVERLOADINGS(mod, std::modulus   <void>);
+
+    DEFINE_OVERLOADINGS(equal_to,      std::equal_to     <void>);
+    DEFINE_OVERLOADINGS(not_equal_to,  std::not_equal_to <void>);
+    DEFINE_OVERLOADINGS(less,          std::less         <void>);
+    DEFINE_OVERLOADINGS(less_equal,    std::less_equal   <void>);
+    DEFINE_OVERLOADINGS(greater,       std::greater      <void>);
+    DEFINE_OVERLOADINGS(greater_equal, std::greater_equal<void>);
   }
 
   auto operator +(const_reference x, const_reference y) -> value_type { return experimental::add.at(type_index<2>(x.type(), y.type()))(x, y); }

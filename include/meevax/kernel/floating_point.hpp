@@ -145,12 +145,12 @@ inline namespace kernel
     // auto operator / (const_reference) const -> value_type override;
     // auto operator % (const_reference) const -> value_type override;
 
-    auto operator ==(const_reference) const -> bool override;
-    auto operator !=(const_reference) const -> bool override;
-    auto operator < (const_reference) const -> bool override;
-    auto operator <=(const_reference) const -> bool override;
-    auto operator > (const_reference) const -> bool override;
-    auto operator >=(const_reference) const -> bool override;
+    // auto operator ==(const_reference) const -> bool override;
+    // auto operator !=(const_reference) const -> bool override;
+    // auto operator < (const_reference) const -> bool override;
+    // auto operator <=(const_reference) const -> bool override;
+    // auto operator > (const_reference) const -> bool override;
+    // auto operator >=(const_reference) const -> bool override;
   };
 
   template <typename T>
