@@ -59,14 +59,6 @@ inline namespace kernel
 
   struct number
   {
-    virtual auto is_complex () const -> bool { return true ; }
-    virtual auto is_real    () const -> bool { return false; }
-    virtual auto is_rational() const -> bool { return false; }
-    virtual auto is_integer () const -> bool { return false; }
-
-    virtual auto is_finite  () const -> bool { return true ; }
-    virtual auto is_infinite() const -> bool { return false; }
-    virtual auto is_nan     () const -> bool { return false; }
   };
 
   [[noreturn]]

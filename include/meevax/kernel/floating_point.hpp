@@ -45,41 +45,6 @@ inline namespace kernel
       throw read_error(make<string>("not a decimal"), make<string>(token));
     }
 
-    auto is_complex() const noexcept -> bool override
-    {
-      return true;
-    }
-
-    auto is_real() const noexcept -> bool override
-    {
-      return true;
-    }
-
-    auto is_rational() const noexcept -> bool override
-    {
-      return not is_nan() and is_finite();
-    }
-
-    auto is_integer() const noexcept -> bool override
-    {
-      return value == std::trunc(value);
-    }
-
-    auto is_finite() const -> bool override
-    {
-      return not std::isinf(value);
-    }
-
-    auto is_infinite() const -> bool override
-    {
-      return std::isinf(value);
-    }
-
-    auto is_nan() const -> bool override
-    {
-      return std::isnan(value);
-    }
-
     // TODO TEMPLATE SPECIALIZATION to<external_representation>()
     auto to_string() const
     {

@@ -38,24 +38,24 @@ inline namespace kernel
   auto operator - (exact_integer const& a, ratio const& b) -> ratio { return ratio(make(a * b.denominator().as<exact_integer>() - b.numerator().as<exact_integer>()), cdr(b)); }
   auto operator / (exact_integer const& a, ratio const& b) -> ratio { return a * b.invert(); }
   auto operator % (exact_integer const&  , ratio const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
-  auto operator !=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a != x.numerator().as<exact_integer>() : false; }
-  auto operator < (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a <  x.numerator().as<exact_integer>() : false; }
-  auto operator <=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a <= x.numerator().as<exact_integer>() : false; }
-  auto operator ==(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a == x.numerator().as<exact_integer>() : false; }
-  auto operator > (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a >  x.numerator().as<exact_integer>() : false; }
-  auto operator >=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a >= x.numerator().as<exact_integer>() : false; }
+  auto operator !=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return is_integer()(x) ? a != x.numerator().as<exact_integer>() : false; }
+  auto operator < (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return is_integer()(x) ? a <  x.numerator().as<exact_integer>() : false; }
+  auto operator <=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return is_integer()(x) ? a <= x.numerator().as<exact_integer>() : false; }
+  auto operator ==(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return is_integer()(x) ? a == x.numerator().as<exact_integer>() : false; }
+  auto operator > (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return is_integer()(x) ? a >  x.numerator().as<exact_integer>() : false; }
+  auto operator >=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return is_integer()(x) ? a >= x.numerator().as<exact_integer>() : false; }
 
   auto operator * (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b), cdr(a)); }
   auto operator + (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() + a.denominator().as<exact_integer>() * b), cdr(a)); }
   auto operator - (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() - a.denominator().as<exact_integer>() * b), cdr(a)); }
   auto operator / (ratio const& a, exact_integer const& b) -> ratio { return ratio(car(a), make(a.denominator().as<exact_integer>() * b)); }
   auto operator % (ratio const&  , exact_integer const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
-  auto operator !=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator().as<exact_integer>() != b : false; }
-  auto operator < (ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator().as<exact_integer>() <  b : false; }
-  auto operator <=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator().as<exact_integer>() <= b : false; }
-  auto operator ==(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator().as<exact_integer>() == b : false; }
-  auto operator > (ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator().as<exact_integer>() >  b : false; }
-  auto operator >=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator().as<exact_integer>() >= b : false; }
+  auto operator !=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return is_integer()(x) ? x.numerator().as<exact_integer>() != b : false; }
+  auto operator < (ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return is_integer()(x) ? x.numerator().as<exact_integer>() <  b : false; }
+  auto operator <=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return is_integer()(x) ? x.numerator().as<exact_integer>() <= b : false; }
+  auto operator ==(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return is_integer()(x) ? x.numerator().as<exact_integer>() == b : false; }
+  auto operator > (ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return is_integer()(x) ? x.numerator().as<exact_integer>() >  b : false; }
+  auto operator >=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return is_integer()(x) ? x.numerator().as<exact_integer>() >= b : false; }
 
   auto operator + (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>() + b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()), make(a.denominator().as<exact_integer>() * b.denominator().as<exact_integer>())); }
   auto operator - (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>() - b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()), make(a.denominator().as<exact_integer>() * b.denominator().as<exact_integer>())); }

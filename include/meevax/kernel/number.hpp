@@ -280,6 +280,135 @@ inline namespace kernel
   auto operator /(const_reference, const_reference) -> value_type;
   auto operator %(const_reference, const_reference) -> value_type;
 
+  struct is_complex
+  {
+    template <typename T>
+    auto operator ()(T const&) const
+    {
+      return true;
+    }
+  };
+
+  struct is_real
+  {
+    template <typename T>
+    auto operator ()(T const&) const
+    {
+      return false;
+    }
+
+    template <typename T>
+    auto operator ()(floating_point<T> const&) const
+    {
+      return true;
+    }
+
+    auto operator ()(ratio const&) const
+    {
+      return true;
+    }
+
+    auto operator ()(exact_integer const&) const
+    {
+      return true;
+    }
+  };
+
+  struct is_rational
+  {
+    template <typename T>
+    auto operator ()(T const&) const
+    {
+      return false;
+    }
+
+    template <typename T>
+    auto operator ()(floating_point<T> const& x) const
+    {
+      return not std::isnan(x.value) and not std::isinf(x.value);
+    }
+
+    auto operator ()(ratio const&) const
+    {
+      return true;
+    }
+
+    auto operator ()(exact_integer const&) const
+    {
+      return true;
+    }
+  };
+
+  struct is_integer
+  {
+    template <typename T>
+    auto operator ()(T const&) const
+    {
+      return false;
+    }
+
+    template <typename T>
+    auto operator ()(floating_point<T> const& x) const
+    {
+      return x.value == std::trunc(x.value);
+    }
+
+    auto operator ()(ratio const& x) const
+    {
+      return x.denominator().as<exact_integer>() == 1;
+    }
+
+    auto operator ()(exact_integer const&) const
+    {
+      return true;
+    }
+  };
+
+  struct is_finite
+  {
+    template <typename T>
+    auto operator ()(T const&) const
+    {
+      return true;
+    }
+
+    template <typename T>
+    auto operator ()(floating_point<T> const& x) const
+    {
+      return not std::isinf(x.value);
+    }
+  };
+
+  struct is_infinite
+  {
+    template <typename T>
+    auto operator ()(T const&) const
+    {
+      return false;
+    }
+
+    template <typename T>
+    auto operator ()(floating_point<T> const& x) const
+    {
+      return std::isinf(x.value);
+    }
+  };
+
+  struct is_nan
+  {
+    template <typename T>
+    auto operator ()(T const&) const
+    {
+      return false;
+    }
+
+    template <typename T>
+    auto operator ()(floating_point<T> const& x) const
+    {
+      return std::isnan(x.value);
+    }
+  };
+
   auto exact_integer_sqrt(exact_integer const&) -> std::tuple<exact_integer, exact_integer>;
 
   struct sqrt
@@ -287,7 +416,7 @@ inline namespace kernel
     template <typename T>
     auto operator ()(T const& x) const -> decltype(auto)
     {
-      return floating_point(std::sqrt(inexact_(x)));
+      return floating_point(std::sqrt(inexact()(x)));
     }
 
     auto operator ()(exact_integer const& x) const
@@ -308,7 +437,7 @@ inline namespace kernel
     template <typename T, typename U>
     auto operator ()(T const& x, U const& y) const -> decltype(auto)
     {
-      return floating_point(std::pow(inexact_(x), inexact_(y)));
+      return floating_point(std::pow(inexact()(x), inexact()(y)));
     }
 
     auto operator ()(exact_integer const& base, exact_integer const& exponent) const
@@ -325,7 +454,7 @@ inline namespace kernel
     template <typename T>                                                      \
     auto operator ()(T const& x) const -> decltype(auto)                       \
     {                                                                          \
-      return floating_point(std::ROUND(inexact_(x)));                          \
+      return floating_point(std::ROUND(inexact()(x)));                         \
     }                                                                          \
                                                                                \
     auto operator ()(exact_integer const& x) const -> auto const&              \

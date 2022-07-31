@@ -155,11 +155,6 @@ inline namespace kernel
     return result;
   }
 
-  auto exact_integer::is_integer() const -> bool
-  {
-    return true;
-  }
-
   auto exact_integer::string(int radix) const -> external_representation
   {
     auto deallocate = [](char * data)

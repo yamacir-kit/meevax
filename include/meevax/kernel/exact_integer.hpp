@@ -67,14 +67,6 @@ inline namespace kernel
 
     auto floor_quotient(exact_integer const&) const -> exact_integer;
 
-    auto is_complex() const noexcept -> bool override { return true; }
-
-    auto is_real() const noexcept -> bool override { return true; }
-
-    auto is_rational() const noexcept -> bool override { return true; }
-
-    auto is_integer() const -> bool override;
-
     auto string(int = 10) const -> external_representation;
 
     auto swap(exact_integer &) noexcept -> void;

@@ -18,6 +18,7 @@
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
+#include <stdexcept>
 
 namespace meevax
 {
@@ -240,19 +241,40 @@ inline namespace kernel
 
     define_library("(meevax inexact)", [](library & library)
     {
-      library.define<predicate>("finite?", [](let const& xs)
+      library.define<procedure>("finite?", [](let const& xs)
       {
-        return car(xs).as<number>().is_finite();
+        try
+        {
+          return apply<is_finite>(car(xs));
+        }
+        catch (std::out_of_range const&)
+        {
+          return f;
+        }
       });
 
-      library.define<predicate>("infinite?", [](let const& xs)
+      library.define<procedure>("infinite?", [](let const& xs)
       {
-        return car(xs).as<number>().is_infinite();
+        try
+        {
+          return apply<is_infinite>(car(xs));
+        }
+        catch (std::out_of_range const&)
+        {
+          return f;
+        }
       });
 
-      library.define<predicate>("nan?", [](let const& xs)
+      library.define<procedure>("nan?", [](let const& xs)
       {
-        return car(xs).is_also<number>() and car(xs).as<number>().is_nan();
+        try
+        {
+          return apply<is_nan>(car(xs));
+        }
+        catch (std::out_of_range const&)
+        {
+          return f;
+        }
       });
 
       library.define<procedure>("exp", [](let const& xs)
@@ -417,29 +439,64 @@ inline namespace kernel
 
     define_library("(meevax number)", [](library & library)
     {
-      library.define<predicate>("number?", [](let const& xs)
+      library.define<procedure>("number?", [](let const& xs)
       {
-        return car(xs).is_also<number>();
+        try
+        {
+          return apply<is_complex>(car(xs));
+        }
+        catch (std::out_of_range const&)
+        {
+          return f;
+        }
       });
 
-      library.define<predicate>("complex?", [](let const& xs)
+      library.define<procedure>("complex?", [](let const& xs)
       {
-        return car(xs).is_also<number>() and car(xs).as<number>().is_complex();
+        try
+        {
+          return apply<is_complex>(car(xs));
+        }
+        catch (std::out_of_range const&)
+        {
+          return f;
+        }
       });
 
-      library.define<predicate>("real?", [](let const& xs)
+      library.define<procedure>("real?", [](let const& xs)
       {
-        return car(xs).is_also<number>() and car(xs).as<number>().is_real();
+        try
+        {
+          return apply<is_real>(car(xs));
+        }
+        catch (std::out_of_range const&)
+        {
+          return f;
+        }
       });
 
-      library.define<predicate>("rational?", [](let const& xs)
+      library.define<procedure>("rational?", [](let const& xs)
       {
-        return car(xs).is_also<number>() and car(xs).as<number>().is_rational();
+        try
+        {
+          return apply<is_rational>(car(xs));
+        }
+        catch (std::out_of_range const&)
+        {
+          return f;
+        }
       });
 
-      library.define<predicate>("integer?", [](let const& xs)
+      library.define<procedure>("integer?", [](let const& xs)
       {
-        return car(xs).is_also<number>() and car(xs).as<number>().is_integer ();
+        try
+        {
+          return apply<is_integer>(car(xs));
+        }
+        catch (std::out_of_range const&)
+        {
+          return f;
+        }
       });
 
       library.define<predicate>("exact-integer?", [](let const& xs)

@@ -69,11 +69,6 @@ inline namespace kernel
     return ratio(denominator(), numerator());
   }
 
-  auto ratio::is_integer() const -> bool
-  {
-    return denominator().as<exact_integer>() == 1;
-  }
-
   auto ratio::numerator() const -> const_reference
   {
     return first;
@@ -98,7 +93,7 @@ inline namespace kernel
 
   auto ratio::simple() const -> value_type
   {
-    if (auto x = reduce(); x.is_integer())
+    if (auto x = reduce(); is_integer()(x))
     {
       return car(x);
     }
