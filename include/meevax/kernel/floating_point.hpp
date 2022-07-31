@@ -122,17 +122,6 @@ inline namespace kernel
 
     #undef DEFINE
 
-    #define DEFINE(NAME)                                                       \
-    auto NAME(const_reference x) const -> value_type override                  \
-    {                                                                          \
-      return make(floating_point(std::NAME(value, x.as<number>().inexact().as<floating_point<T>>()))); \
-    }                                                                          \
-    static_assert(true)
-
-    DEFINE(pow);
-
-    #undef DEFINE
-
     constexpr operator T() const noexcept { return value; }
     constexpr operator T()       noexcept { return value; }
   };

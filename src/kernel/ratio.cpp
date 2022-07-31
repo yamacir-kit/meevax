@@ -148,27 +148,6 @@ inline namespace kernel
 
   #undef DEFINE
 
-  #define DEFINE(NAME)                                                         \
-  auto ratio::NAME(const_reference x) const -> value_type                      \
-  {                                                                            \
-    if (const double_float n {                                                 \
-          std::NAME(numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>(), \
-                    x.as<number>().inexact().as<double_float>())               \
-        }; n.is_integer())                                                     \
-    {                                                                          \
-      return make<exact_integer>(n.value);                                     \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      return make(n);                                                          \
-    }                                                                          \
-  }                                                                            \
-  static_assert(true)
-
-  DEFINE(pow);
-
-  #undef DEFINE
-
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &
   {
     return os << datum.numerator() << cyan("/") << datum.denominator();

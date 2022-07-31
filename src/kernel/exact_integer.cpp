@@ -226,27 +226,6 @@ inline namespace kernel
 
   #undef DEFINE
 
-  #define DEFINE(NAME)                                                         \
-  auto exact_integer::NAME(const_reference x) const -> value_type              \
-  {                                                                            \
-    if (const double_float n {                                                 \
-          std::NAME(static_cast<double>(*this),                                \
-                    x.as<number>().inexact().as<double_float>())               \
-        }; n.is_integer())                                                     \
-    {                                                                          \
-      return make<exact_integer>(n.value);                                     \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      return make(n);                                                          \
-    }                                                                          \
-  }                                                                            \
-  static_assert(true)
-
-  DEFINE(pow);
-
-  #undef DEFINE
-
   exact_integer::operator bool() const
   {
     return (*value)._mp_size;

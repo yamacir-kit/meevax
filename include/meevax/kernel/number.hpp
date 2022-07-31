@@ -166,7 +166,18 @@ inline namespace kernel
   template <typename T, typename U> auto operator > (floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value >  b.value; }
   template <typename T, typename U> auto operator >=(floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value >= b.value; }
 
-
+  template <typename U>
+  auto inexact_cast(U&& x)
+  {
+    if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
+    {
+      return std::forward<decltype(x)>(x);
+    }
+    else
+    {
+      return static_cast<double>(std::forward<decltype(x)>(x));
+    }
+  }
 
   namespace inexact
   {
@@ -175,28 +186,15 @@ inline namespace kernel
     {
       static inline constexpr F f {};
 
-      template <typename U>
-      auto inexact(U&& x)
-      {
-        if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
-        {
-          return std::forward<decltype(x)>(x);
-        }
-        else
-        {
-          return static_cast<double>(std::forward<decltype(x)>(x));
-        }
-      }
-
       auto operator ()(const_reference x) -> value_type
       {
-        return make(floating_point(f(inexact(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()))));
+        return make(floating_point(f(inexact_cast(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()))));
       }
 
       auto operator ()(const_reference x, const_reference y) -> value_type
       {
-        return make(floating_point(f(inexact(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()),
-                                     inexact(y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()))));
+        return make(floating_point(f(inexact_cast(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()),
+                                     inexact_cast(y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()))));
       }
     };
 
@@ -256,6 +254,20 @@ inline namespace kernel
     };
 
     template <typename F>
+    auto apply(const_reference x) -> value_type
+    {
+      static std::unordered_map<type_index<1>, std::function<value_type (const_reference)>> apply
+      {
+        { type_index<1>(typeid(exact_integer)), application<F, exact_integer>() },
+        { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
+        { type_index<1>(typeid(single_float )), application<F, single_float >() },
+        { type_index<1>(typeid(double_float )), application<F, double_float >() },
+      };
+
+      return apply.at(type_index<1>(x.type()))(x);
+    }
+
+    template <typename F>
     auto apply(const_reference x, const_reference y) -> value_type
     {
       #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
@@ -282,6 +294,23 @@ inline namespace kernel
   auto operator *(const_reference, const_reference) -> value_type;
   auto operator /(const_reference, const_reference) -> value_type;
   auto operator %(const_reference, const_reference) -> value_type;
+
+  struct expt
+  {
+    auto operator ()(exact_integer const& base, exact_integer const& exponent) const
+    {
+      exact_integer result {};
+      mpz_pow_ui(result.value, base.value, static_cast<unsigned long>(exponent));
+      return result;
+    }
+
+    template <typename T, typename U>
+    auto operator ()(T const& x, U const& y) const -> decltype(auto)
+    {
+      return floating_point(std::pow(inexact_cast(x),
+                                     inexact_cast(y)));
+    }
+  };
 } // namespace kernel
 } // namespace meevax
 

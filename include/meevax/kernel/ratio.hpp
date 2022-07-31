@@ -70,12 +70,6 @@ inline namespace kernel
     DEFINE(round);
 
     #undef DEFINE
-
-    #define DEFINE(NAME) auto NAME(const_reference) const -> value_type override
-
-    DEFINE(pow);
-
-    #undef DEFINE
   };
 
   auto operator <<(std::ostream &, ratio const&) -> std::ostream &;

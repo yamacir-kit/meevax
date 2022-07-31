@@ -93,12 +93,6 @@ inline namespace kernel
 
     #undef DEFINE
 
-    #define DEFINE(NAME) auto NAME(const_reference) const -> value_type override
-
-    DEFINE(pow);
-
-    #undef DEFINE
-
     explicit operator bool() const;
 
     operator int() const;

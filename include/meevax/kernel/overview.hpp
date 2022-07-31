@@ -69,8 +69,6 @@ inline namespace kernel
 
     #undef DEFINE
 
-    virtual auto pow  (const_reference) const -> value_type = 0;
-
     virtual auto is_complex () const -> bool { return true ; }
     virtual auto is_real    () const -> bool { return false; }
     virtual auto is_rational() const -> bool { return false; }

@@ -544,7 +544,7 @@ inline namespace kernel
 
       library.define<procedure>("expt", [](let const& xs)
       {
-        return car(xs).as<number>().pow(cadr(xs));
+        return experimental::apply<expt>(car(xs), cadr(xs));
       });
 
       library.define<procedure>("integer->char", [](let const& xs)

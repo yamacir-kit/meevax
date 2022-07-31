@@ -51,17 +51,6 @@ inline namespace kernel
     DEFINE(floor); DEFINE(ceil); DEFINE(trunc); DEFINE(round);
 
     #undef DEFINE
-
-    #define DEFINE(NAME)                                                       \
-    auto NAME(const_reference) const -> value_type override                    \
-    {                                                                          \
-      return unspecified;                                                      \
-    }                                                                          \
-    static_assert(true)
-
-    DEFINE(pow);
-
-    #undef DEFINE
   };
 
   auto operator <<(std::ostream &, complex const&) -> std::ostream &;
