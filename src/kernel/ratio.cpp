@@ -118,6 +118,11 @@ inline namespace kernel
     }
   }
 
+  ratio::operator double() const
+  {
+    return numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>();
+  }
+
   #define DEFINE(NAME)                                                         \
   auto ratio::NAME() const -> value_type                                       \
   {                                                                            \
@@ -134,9 +139,7 @@ inline namespace kernel
   }                                                                            \
   static_assert(true)
 
-                                                          DEFINE(exp);
-                                                          DEFINE(log);
-               DEFINE(atan);                              DEFINE(sqrt);
+  DEFINE(sqrt);
 
   DEFINE(floor);
   DEFINE(ceil);
@@ -162,7 +165,6 @@ inline namespace kernel
   }                                                                            \
   static_assert(true)
 
-  DEFINE(atan2);
   DEFINE(pow);
 
   #undef DEFINE

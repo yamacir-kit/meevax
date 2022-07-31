@@ -26,6 +26,7 @@
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/ratio.hpp>
 #include <meevax/kernel/type_index.hpp>
+#include <utility>
 
 namespace meevax
 {
@@ -167,7 +168,7 @@ inline namespace kernel
 
   namespace inexact
   {
-    template <typename Operator, typename T>
+    template <typename Operator, typename... Ts>
     struct application
     {
       static inline constexpr Operator operate {};
@@ -187,7 +188,13 @@ inline namespace kernel
 
       auto operator ()(const_reference x) -> value_type
       {
-        return make(floating_point(operate(inexact(x.as<T>()))));
+        return make(floating_point(operate(inexact(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()))));
+      }
+
+      auto operator ()(const_reference x, const_reference y) -> value_type
+      {
+        return make(floating_point(operate(inexact(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()),
+                                           inexact(y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()))));
       }
     };
 
@@ -197,12 +204,33 @@ inline namespace kernel
       static std::unordered_map<type_index<1>, std::function<value_type (const_reference)>> apply
       {
         { type_index<1>(typeid(exact_integer)), application<F, exact_integer>() },
-        // { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
+        { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
         { type_index<1>(typeid(single_float )), application<F, single_float >() },
         { type_index<1>(typeid(double_float )), application<F, double_float >() },
       };
 
       return apply.at(type_index<1>(x.type()))(x);
+    }
+
+    template <typename F>
+    auto apply(const_reference x, const_reference y) -> value_type
+    {
+      #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
+
+      static std::unordered_map<
+        type_index<2>,
+        std::function<value_type (const_reference, const_reference)>
+      > apply
+      {
+        APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, single_float), APPLY(exact_integer, double_float),
+        APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         single_float), APPLY(ratio,         double_float),
+        APPLY(single_float,  exact_integer), APPLY(single_float,  ratio), APPLY(single_float,  single_float), APPLY(single_float,  double_float),
+        APPLY(double_float,  exact_integer), APPLY(double_float,  ratio), APPLY(double_float,  single_float), APPLY(double_float,  double_float),
+      };
+
+      #undef APPLY
+
+      return apply.at(type_index<2>(x.type(), y.type()))(x, y);
     }
   }
 

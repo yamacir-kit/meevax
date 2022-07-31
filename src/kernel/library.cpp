@@ -257,7 +257,7 @@ inline namespace kernel
 
       library.define<procedure>("exp", [](let const& xs)
       {
-        return car(xs).as<number>().exp();
+        return inexact::apply<exp>(car(xs));
       });
 
       library.define<procedure>("sqrt", [](let const& xs)
@@ -267,8 +267,8 @@ inline namespace kernel
 
       library.define<procedure>("log", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? car(xs).as<number>().log() / cadr(xs).as<number>().log()
-                                  : car(xs).as<number>().log();
+        return cdr(xs).is<pair>() ? inexact::apply<log>(car(xs)) / inexact::apply<log>(cadr(xs))
+                                  : inexact::apply<log>(car(xs));
       });
 
       library.define<procedure>("sin", [](let const& xs)
@@ -298,8 +298,8 @@ inline namespace kernel
 
       library.define<procedure>("atan", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? car(xs).as<number>().atan2(cadr(xs))
-                                  : car(xs).as<number>().atan();
+        return cdr(xs).is<pair>() ? inexact::apply<atan2>(car(xs), cadr(xs))
+                                  : inexact::apply<atan>(car(xs));
       });
 
       library.define<procedure>("sinh", [](let const& xs)

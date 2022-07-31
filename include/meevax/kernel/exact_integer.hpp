@@ -87,9 +87,7 @@ inline namespace kernel
 
     DEFINE(exact); DEFINE(inexact);
 
-                                                            DEFINE(exp);
-                                                            DEFINE(log);
-                 DEFINE(atan);                              DEFINE(sqrt);
+    DEFINE(sqrt);
 
     DEFINE(floor); DEFINE(ceil); DEFINE(trunc); DEFINE(round);
 
@@ -97,7 +95,6 @@ inline namespace kernel
 
     #define DEFINE(NAME) auto NAME(const_reference) const -> value_type override
 
-    DEFINE(atan2);
     DEFINE(pow);
 
     #undef DEFINE

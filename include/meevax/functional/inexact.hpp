@@ -36,7 +36,11 @@ inline namespace functional
 
   DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
   DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
-  DEFINE(tan);               DEFINE(tanh); DEFINE(atanh);
+  DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
+               DEFINE(atan2);
+
+  DEFINE(exp);
+  DEFINE(log);
 
   #undef DEFINE
 } // namespace functional

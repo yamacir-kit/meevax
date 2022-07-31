@@ -58,11 +58,11 @@ inline namespace kernel
 
     auto simple() const -> value_type;
 
+    explicit operator double() const;
+
     #define DEFINE(NAME) auto NAME() const -> value_type override
 
-                                                            DEFINE(exp);
-                                                            DEFINE(log);
-                 DEFINE(atan);                              DEFINE(sqrt);
+    DEFINE(sqrt);
 
     DEFINE(floor);
     DEFINE(ceil);
@@ -73,7 +73,6 @@ inline namespace kernel
 
     #define DEFINE(NAME) auto NAME(const_reference) const -> value_type override
 
-    DEFINE(atan2);
     DEFINE(pow);
 
     #undef DEFINE

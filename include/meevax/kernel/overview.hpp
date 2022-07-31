@@ -63,15 +63,12 @@ inline namespace kernel
 
     DEFINE(exact); DEFINE(inexact);
 
-                                                            DEFINE(exp);
-                                                            DEFINE(log);
-                 DEFINE(atan);                              DEFINE(sqrt);
+    DEFINE(sqrt);
 
     DEFINE(floor); DEFINE(ceil); DEFINE(trunc); DEFINE(round);
 
     #undef DEFINE
 
-    virtual auto atan2(const_reference) const -> value_type = 0;
     virtual auto pow  (const_reference) const -> value_type = 0;
 
     virtual auto is_complex () const -> bool { return true ; }

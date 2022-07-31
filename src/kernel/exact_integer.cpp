@@ -217,9 +217,7 @@ inline namespace kernel
     }                                                                          \
   } static_assert(true)
 
-                                                          DEFINE(exp);
-                                                          DEFINE(log);
-               DEFINE(atan);                              DEFINE(sqrt);
+  DEFINE(sqrt);
 
   DEFINE(floor);
   DEFINE(ceil);
@@ -245,7 +243,6 @@ inline namespace kernel
   }                                                                            \
   static_assert(true)
 
-  DEFINE(atan2);
   DEFINE(pow);
 
   #undef DEFINE
