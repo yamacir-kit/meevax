@@ -83,12 +83,6 @@ inline namespace kernel
 
     auto truncate_quotient(exact_integer const&) const -> exact_integer;
 
-    #define DEFINE(NAME) auto NAME() const -> value_type override
-
-    DEFINE(exact); DEFINE(inexact);
-
-    #undef DEFINE
-
     explicit operator bool() const;
 
     operator int() const;

@@ -45,21 +45,6 @@ inline namespace kernel
       throw read_error(make<string>("not a decimal"), make<string>(token));
     }
 
-    auto exact() const -> value_type override
-    {
-      /* ---- R7RS 6.2.6 (exact z) ---------------------------------------------
-       *
-       *  The procedure exact returns an exact representation of z. The value
-       *  returned is the exact number that is numerically closest to the
-       *  argument. For exact arguments, the result is the same as the argument.
-       *  For inexact non-integral real arguments, the implementation may return
-       *  a rational approximation, or may report an implementation
-       *
-       * -------------------------------------------------------------------- */
-
-      return ratio(value).simple();
-    }
-
     auto is_complex() const noexcept -> bool override
     {
       return true;
@@ -99,11 +84,6 @@ inline namespace kernel
     auto to_string() const
     {
       return lexical_cast<external_representation>(value);
-    }
-
-    auto inexact() const -> value_type override
-    {
-      return make(floating_point<double>(value));
     }
 
     constexpr operator T() const noexcept { return value; }

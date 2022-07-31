@@ -32,10 +32,6 @@ inline namespace kernel
 
     explicit ratio(external_representation const&, int = 0);
 
-    auto exact() const -> value_type override;
-
-    auto inexact() const -> value_type override;
-
     auto denominator() const -> const_reference;
 
     auto denominator() -> reference;

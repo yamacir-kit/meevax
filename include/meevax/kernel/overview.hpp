@@ -59,12 +59,6 @@ inline namespace kernel
 
   struct number
   {
-    #define DEFINE(NAME) virtual auto NAME() const -> value_type = 0
-
-    DEFINE(exact); DEFINE(inexact);
-
-    #undef DEFINE
-
     virtual auto is_complex () const -> bool { return true ; }
     virtual auto is_real    () const -> bool { return false; }
     virtual auto is_rational() const -> bool { return false; }

@@ -54,11 +54,6 @@ inline namespace kernel
     }
   }
 
-  auto ratio::exact() const -> value_type
-  {
-    return simple();
-  }
-
   auto ratio::denominator() const -> const_reference
   {
     return second;
@@ -67,11 +62,6 @@ inline namespace kernel
   auto ratio::denominator() -> reference
   {
     return second;
-  }
-
-  auto ratio::inexact() const -> value_type
-  {
-    return make<double_float>(numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>());
   }
 
   auto ratio::invert() const -> ratio
@@ -120,7 +110,7 @@ inline namespace kernel
 
   ratio::operator double() const
   {
-    return numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>();
+    return static_cast<double>(numerator().as<exact_integer>()) / static_cast<double>(denominator().as<exact_integer>());
   }
 
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &

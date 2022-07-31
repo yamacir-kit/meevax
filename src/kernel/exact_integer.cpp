@@ -141,11 +141,6 @@ inline namespace kernel
     }
   }
 
-  auto exact_integer::exact() const -> value_type
-  {
-    return make(*this);
-  }
-
   auto exact_integer::floor_remainder(exact_integer const& divisor) const -> exact_integer
   {
     exact_integer result {};
@@ -158,11 +153,6 @@ inline namespace kernel
     exact_integer result {};
     mpz_fdiv_q(result.value, value, divisor.value);
     return result;
-  }
-
-  auto exact_integer::inexact() const -> value_type
-  {
-    return make<double_float>(static_cast<double>(*this));
   }
 
   auto exact_integer::is_integer() const -> bool

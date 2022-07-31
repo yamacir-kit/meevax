@@ -110,14 +110,14 @@ inline namespace kernel
             return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 10);
 
           case 'e':
-            return read(is).template as<number>().exact(); // NOTE: Same as #,(exact (read))
+            return apply<exact>(read(is)); // NOTE: Same as #,(exact (read))
 
           case 'f':
             get_token(is);
             return f;
 
           case 'i':
-            return read(is).template as<number>().inexact(); // NOTE: Same as #,(inexact (read))
+            return apply<inexact>(read(is)); // NOTE: Same as #,(inexact (read))
 
           case 'o':
             return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 8);

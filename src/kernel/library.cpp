@@ -534,12 +534,12 @@ inline namespace kernel
 
       library.define<procedure>("exact", [](let const& xs)
       {
-        return car(xs).as<number>().exact();
+        return apply<exact>(car(xs));
       });
 
       library.define<procedure>("inexact", [](let const& xs)
       {
-        return car(xs).as<number>().inexact();
+        return apply<inexact>(car(xs));
       });
 
       library.define<procedure>("expt", [](let const& xs)

@@ -36,17 +36,6 @@ inline namespace kernel
     auto imag() const noexcept -> const_reference;
 
     auto imag() noexcept -> reference;
-
-    #define DEFINE(NAME)                                                       \
-    auto NAME() const -> value_type override                                   \
-    {                                                                          \
-      return unspecified;                                                      \
-    }                                                                          \
-    static_assert(true)
-
-    DEFINE(exact); DEFINE(inexact);
-
-    #undef DEFINE
   };
 
   auto operator <<(std::ostream &, complex const&) -> std::ostream &;
