@@ -87,8 +87,6 @@ inline namespace kernel
 
     DEFINE(exact); DEFINE(inexact);
 
-    DEFINE(sqrt);
-
     DEFINE(floor); DEFINE(ceil); DEFINE(trunc); DEFINE(round);
 
     #undef DEFINE

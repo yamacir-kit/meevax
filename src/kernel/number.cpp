@@ -74,5 +74,12 @@ inline namespace kernel
   auto operator *(const_reference x, const_reference y) -> value_type { return experimental::apply<std::multiplies<void>>(x, y); }
   auto operator /(const_reference x, const_reference y) -> value_type { return experimental::apply<std::divides   <void>>(x, y); }
   auto operator %(const_reference x, const_reference y) -> value_type { return experimental::apply<std::modulus   <void>>(x, y); }
+
+  auto exact_integer_sqrt(exact_integer const& x) -> std::tuple<exact_integer, exact_integer>
+  {
+    exact_integer s, r;
+    mpz_rootrem(s.value, r.value, x.value, 2);
+    return std::make_tuple(s, r);
+  }
 } // namespace kernel
 } // namespace meevax

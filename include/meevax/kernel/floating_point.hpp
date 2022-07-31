@@ -113,8 +113,6 @@ inline namespace kernel
     }                                                                          \
     static_assert(true)
 
-    DEFINE(sqrt);
-
     DEFINE(floor);
     DEFINE(ceil);
     DEFINE(trunc);

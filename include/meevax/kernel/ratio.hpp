@@ -62,8 +62,6 @@ inline namespace kernel
 
     #define DEFINE(NAME) auto NAME() const -> value_type override
 
-    DEFINE(sqrt);
-
     DEFINE(floor);
     DEFINE(ceil);
     DEFINE(trunc);

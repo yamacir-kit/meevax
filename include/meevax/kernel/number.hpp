@@ -34,7 +34,11 @@ inline namespace kernel
 {
   inline auto make_number = [](auto&& z)
   {
-    if constexpr (std::is_same<typename std::decay<decltype(z)>::type, ratio>::value)
+    if constexpr (std::is_same_v<std::decay_t<decltype(z)>, value_type>)
+    {
+      return std::forward<decltype(z)>(z);
+    }
+    else if constexpr (std::is_same_v<std::decay_t<decltype(z)>, ratio>)
     {
       return z.simple();
     }
@@ -295,20 +299,42 @@ inline namespace kernel
   auto operator /(const_reference, const_reference) -> value_type;
   auto operator %(const_reference, const_reference) -> value_type;
 
+  auto exact_integer_sqrt(exact_integer const&) -> std::tuple<exact_integer, exact_integer>;
+
+  struct sqrt
+  {
+    template <typename T>
+    auto operator ()(T const& x) const -> decltype(auto)
+    {
+      return floating_point(std::sqrt(inexact_cast(x)));
+    }
+
+    auto operator ()(exact_integer const& x) const
+    {
+      if (auto&& [s, r] = exact_integer_sqrt(x); r == 0)
+      {
+        return make(s);
+      }
+      else
+      {
+        return make(operator ()<exact_integer const&>(x));
+      }
+    }
+  };
+
   struct expt
   {
+    template <typename T, typename U>
+    auto operator ()(T const& x, U const& y) const -> decltype(auto)
+    {
+      return floating_point(std::pow(inexact_cast(x), inexact_cast(y)));
+    }
+
     auto operator ()(exact_integer const& base, exact_integer const& exponent) const
     {
       exact_integer result {};
       mpz_pow_ui(result.value, base.value, static_cast<unsigned long>(exponent));
       return result;
-    }
-
-    template <typename T, typename U>
-    auto operator ()(T const& x, U const& y) const -> decltype(auto)
-    {
-      return floating_point(std::pow(inexact_cast(x),
-                                     inexact_cast(y)));
     }
   };
 } // namespace kernel

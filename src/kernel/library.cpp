@@ -262,7 +262,7 @@ inline namespace kernel
 
       library.define<procedure>("sqrt", [](let const& xs)
       {
-        return car(xs).as<number>().sqrt();
+        return experimental::apply<sqrt>(car(xs));
       });
 
       library.define<procedure>("log", [](let const& xs)
