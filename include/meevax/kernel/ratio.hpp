@@ -59,15 +59,6 @@ inline namespace kernel
     auto simple() const -> value_type;
 
     explicit operator double() const;
-
-    #define DEFINE(NAME) auto NAME() const -> value_type override
-
-    DEFINE(floor);
-    DEFINE(ceil);
-    DEFINE(trunc);
-    DEFINE(round);
-
-    #undef DEFINE
   };
 
   auto operator <<(std::ostream &, ratio const&) -> std::ostream &;

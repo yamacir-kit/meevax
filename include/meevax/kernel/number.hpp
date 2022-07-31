@@ -205,7 +205,10 @@ inline namespace kernel
     template <typename F>
     auto apply(const_reference x) -> value_type
     {
-      static std::unordered_map<type_index<1>, std::function<value_type (const_reference)>> apply
+      static const std::unordered_map<
+        type_index<1>,
+        std::function<value_type (const_reference)>
+      > apply
       {
         { type_index<1>(typeid(exact_integer)), application<F, exact_integer>() },
         { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
@@ -221,7 +224,7 @@ inline namespace kernel
     {
       #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
 
-      static std::unordered_map<
+      static const std::unordered_map<
         type_index<2>,
         std::function<value_type (const_reference, const_reference)>
       > apply
@@ -260,7 +263,10 @@ inline namespace kernel
     template <typename F>
     auto apply(const_reference x) -> value_type
     {
-      static std::unordered_map<type_index<1>, std::function<value_type (const_reference)>> apply
+      static const std::unordered_map<
+        type_index<1>,
+        std::function<value_type (const_reference)>
+      > apply
       {
         { type_index<1>(typeid(exact_integer)), application<F, exact_integer>() },
         { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
@@ -276,7 +282,7 @@ inline namespace kernel
     {
       #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
 
-      static std::unordered_map<
+      static const std::unordered_map<
         type_index<2>,
         std::function<value_type (const_reference, const_reference)>
       > apply
@@ -337,6 +343,33 @@ inline namespace kernel
       return result;
     }
   };
+
+  #define DEFINE(ROUND)                                                        \
+  struct ROUND                                                                 \
+  {                                                                            \
+    template <typename T>                                                      \
+    auto operator ()(T const& x) const -> decltype(auto)                       \
+    {                                                                          \
+      return floating_point(std::ROUND(inexact_cast(x)));                      \
+    }                                                                          \
+                                                                               \
+    auto operator ()(exact_integer const& x) const -> auto const&              \
+    {                                                                          \
+      return x;                                                                \
+    }                                                                          \
+                                                                               \
+    auto operator ()(ratio const& x) const                                     \
+    {                                                                          \
+      return exact_integer(operator ()<ratio const&>(x));                      \
+    }                                                                          \
+  }
+
+  DEFINE(floor);
+  DEFINE(ceil);
+  DEFINE(trunc);
+  DEFINE(round);
+
+  #undef DEFINE
 } // namespace kernel
 } // namespace meevax
 

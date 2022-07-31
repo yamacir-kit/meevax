@@ -106,20 +106,6 @@ inline namespace kernel
       return make(floating_point<double>(value));
     }
 
-    #define DEFINE(NAME)                                                       \
-    auto NAME() const -> value_type override                                   \
-    {                                                                          \
-      return make(floating_point(std::NAME(value)));                           \
-    }                                                                          \
-    static_assert(true)
-
-    DEFINE(floor);
-    DEFINE(ceil);
-    DEFINE(trunc);
-    DEFINE(round);
-
-    #undef DEFINE
-
     constexpr operator T() const noexcept { return value; }
     constexpr operator T()       noexcept { return value; }
   };

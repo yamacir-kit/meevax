@@ -123,29 +123,6 @@ inline namespace kernel
     return numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>();
   }
 
-  #define DEFINE(NAME)                                                         \
-  auto ratio::NAME() const -> value_type                                       \
-  {                                                                            \
-    if (const double_float x {                                                 \
-          std::NAME(numerator().as<exact_integer>().inexact().as<double_float>() / denominator().as<exact_integer>().inexact().as<double_float>()) \
-        }; x.is_integer())                                                     \
-    {                                                                          \
-      return make<exact_integer>(x.value);                                     \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      return make(x);                                                          \
-    }                                                                          \
-  }                                                                            \
-  static_assert(true)
-
-  DEFINE(floor);
-  DEFINE(ceil);
-  DEFINE(trunc);
-  DEFINE(round);
-
-  #undef DEFINE
-
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &
   {
     return os << datum.numerator() << cyan("/") << datum.denominator();

@@ -63,8 +63,6 @@ inline namespace kernel
 
     DEFINE(exact); DEFINE(inexact);
 
-    DEFINE(floor); DEFINE(ceil); DEFINE(trunc); DEFINE(round);
-
     #undef DEFINE
 
     virtual auto is_complex () const -> bool { return true ; }

@@ -514,22 +514,22 @@ inline namespace kernel
 
       library.define<procedure>("floor", [](let const& xs)
       {
-        return car(xs).as<number>().floor();
+        return experimental::apply<floor>(car(xs));
       });
 
       library.define<procedure>("ceiling", [](let const& xs)
       {
-        return car(xs).as<number>().ceil();
+        return experimental::apply<ceil>(car(xs));
       });
 
       library.define<procedure>("truncate", [](let const& xs)
       {
-        return car(xs).as<number>().trunc();
+        return experimental::apply<trunc>(car(xs));
       });
 
       library.define<procedure>("round", [](let const& xs)
       {
-        return car(xs).as<number>().round();
+        return experimental::apply<round>(car(xs));
       });
 
       library.define<procedure>("exact", [](let const& xs)

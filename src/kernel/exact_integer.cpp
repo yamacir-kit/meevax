@@ -204,26 +204,6 @@ inline namespace kernel
     return result;
   }
 
-  #define DEFINE(NAME)                                                         \
-  auto exact_integer::NAME() const -> value_type                               \
-  {                                                                            \
-    if (const double_float n { std::NAME(static_cast<double>(*this)) }; n.is_integer()) \
-    {                                                                          \
-      return make<exact_integer>(n.value);                                     \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      return make(n);                                                          \
-    }                                                                          \
-  } static_assert(true)
-
-  DEFINE(floor);
-  DEFINE(ceil);
-  DEFINE(trunc);
-  DEFINE(round);
-
-  #undef DEFINE
-
   exact_integer::operator bool() const
   {
     return (*value)._mp_size;
