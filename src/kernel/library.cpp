@@ -272,7 +272,7 @@ inline namespace kernel
 
       library.define<procedure>("sin", [](let const& xs)
       {
-        return car(xs).as<number>().sin();
+        return inexact::apply<inexact::sin_t>(car(xs));
       });
 
       library.define<procedure>("cos", [](let const& xs)

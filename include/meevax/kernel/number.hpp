@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
-#include <typeindex>
-
 #include <meevax/iostream/concatenate.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/complex.hpp>
@@ -166,6 +164,56 @@ inline namespace kernel
   template <typename T, typename U> auto operator <=(floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value <= b.value; }
   template <typename T, typename U> auto operator > (floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value >  b.value; }
   template <typename T, typename U> auto operator >=(floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value >= b.value; }
+
+  namespace inexact
+  {
+    template <typename Operator, typename T>
+    struct application
+    {
+      static inline constexpr Operator operate {};
+
+      template <typename U>
+      auto inexact(U&& x)
+      {
+        if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
+        {
+          return std::forward<decltype(x)>(x);
+        }
+        else
+        {
+          return static_cast<double>(std::forward<decltype(x)>(x));
+        }
+      }
+
+      auto operator ()(const_reference x) -> value_type
+      {
+        return make(floating_point(operate(inexact(x.as<T>()))));
+      }
+    };
+
+    struct sin_t
+    {
+      template <typename T>
+      auto operator ()(T&& x) const -> decltype(auto)
+      {
+        return std::sin(std::forward<decltype(x)>(x));
+      }
+    };
+
+    template <typename F>
+    auto apply(const_reference x) -> value_type
+    {
+      static std::unordered_map<type_index<1>, std::function<value_type (const_reference)>> apply
+      {
+        { type_index<1>(typeid(exact_integer)), application<F, exact_integer>() },
+        // { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
+        { type_index<1>(typeid(single_float )), application<F, single_float >() },
+        { type_index<1>(typeid(double_float )), application<F, double_float >() },
+      };
+
+      return apply.at(type_index<1>(x.type()))(x);
+    }
+  }
 
   namespace experimental
   {
