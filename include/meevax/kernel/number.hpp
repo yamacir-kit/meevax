@@ -33,36 +33,37 @@ namespace meevax
 {
 inline namespace kernel
 {
-  inline auto make_number = [](auto&& z)
-  {
-    if constexpr (std::is_same_v<std::decay_t<decltype(z)>, value_type>)
-    {
-      return std::forward<decltype(z)>(z);
-    }
-    else if constexpr (std::is_same_v<std::decay_t<decltype(z)>, ratio>)
-    {
-      return z.simple();
-    }
-    else
-    {
-      return make(std::forward<decltype(z)>(z));
-    }
-  };
-
   template <typename F, typename... Ts>
   struct application
   {
     static inline constexpr F f {};
 
+    template <typename T>
+    auto finish(T&& z) -> decltype(auto)
+    {
+      if constexpr (std::is_same_v<std::decay_t<decltype(z)>, value_type>)
+      {
+        return std::forward<decltype(z)>(z);
+      }
+      else if constexpr (std::is_same_v<std::decay_t<decltype(z)>, ratio>)
+      {
+        return z.simple();
+      }
+      else
+      {
+        return make(std::forward<decltype(z)>(z));
+      }
+    }
+
     auto operator ()(const_reference x) -> value_type
     {
-      return make_number(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
+      return finish(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
     }
 
     auto operator ()(const_reference x, const_reference y) -> value_type
     {
-      return make_number(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
-                           y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
+      return finish(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
+                      y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
     }
   };
 
@@ -138,19 +139,6 @@ inline namespace kernel
       }
     }
   };
-
-  template <typename U>
-  auto inexact_(U&& x)
-  {
-    if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
-    {
-      return std::forward<decltype(x)>(x);
-    }
-    else
-    {
-      return static_cast<double>(std::forward<decltype(x)>(x));
-    }
-  }
 
   auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
