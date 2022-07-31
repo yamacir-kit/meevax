@@ -113,9 +113,9 @@ inline namespace kernel
     }                                                                          \
     static_assert(true)
 
-    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
-    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
-    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
+                                                            DEFINE(exp);
+                                                            DEFINE(log);
+                 DEFINE(atan);                              DEFINE(sqrt);
 
     DEFINE(floor);
     DEFINE(ceil);

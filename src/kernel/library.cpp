@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/functional/inexact.hpp>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
@@ -272,27 +273,27 @@ inline namespace kernel
 
       library.define<procedure>("sin", [](let const& xs)
       {
-        return inexact::apply<inexact::sin_t>(car(xs));
+        return inexact::apply<sin>(car(xs));
       });
 
       library.define<procedure>("cos", [](let const& xs)
       {
-        return car(xs).as<number>().cos();
+        return inexact::apply<cos>(car(xs));
       });
 
       library.define<procedure>("tan", [](let const& xs)
       {
-        return car(xs).as<number>().tan();
+        return inexact::apply<tan>(car(xs));
       });
 
       library.define<procedure>("asin", [](let const& xs)
       {
-        return car(xs).as<number>().asin();
+        return inexact::apply<asin>(car(xs));
       });
 
       library.define<procedure>("acos", [](let const& xs)
       {
-        return car(xs).as<number>().acos();
+        return inexact::apply<acos>(car(xs));
       });
 
       library.define<procedure>("atan", [](let const& xs)
@@ -303,32 +304,32 @@ inline namespace kernel
 
       library.define<procedure>("sinh", [](let const& xs)
       {
-        return car(xs).as<number>().sinh();
+        return inexact::apply<sinh>(car(xs));
       });
 
       library.define<procedure>("cosh", [](let const& xs)
       {
-        return car(xs).as<number>().cosh();
+        return inexact::apply<cosh>(car(xs));
       });
 
       library.define<procedure>("tanh", [](let const& xs)
       {
-        return car(xs).as<number>().tanh();
+        return inexact::apply<tanh>(car(xs));
       });
 
       library.define<procedure>("asinh", [](let const& xs)
       {
-        return car(xs).as<number>().asinh();
+        return inexact::apply<asinh>(car(xs));
       });
 
       library.define<procedure>("acosh", [](let const& xs)
       {
-        return car(xs).as<number>().acosh();
+        return inexact::apply<acosh>(car(xs));
       });
 
       library.define<procedure>("atanh", [](let const& xs)
       {
-        return car(xs).as<number>().atanh();
+        return inexact::apply<atanh>(car(xs));
       });
 
       library.export_("finite?");

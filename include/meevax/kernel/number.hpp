@@ -191,15 +191,6 @@ inline namespace kernel
       }
     };
 
-    struct sin_t
-    {
-      template <typename T>
-      auto operator ()(T&& x) const -> decltype(auto)
-      {
-        return std::sin(std::forward<decltype(x)>(x));
-      }
-    };
-
     template <typename F>
     auto apply(const_reference x) -> value_type
     {
