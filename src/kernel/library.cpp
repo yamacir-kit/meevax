@@ -473,7 +473,7 @@ inline namespace kernel
         return std::adjacent_find(                                             \
                  std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
                  {                                                             \
-                   return not experimental::COMPARE.at(type_index<2>(a.type(), b.type()))(a, b).as<bool>(); \
+                   return not experimental::apply<std::COMPARE<void>>(a, b).as<bool>(); \
                  }) == std::end(xs);                                           \
       })
 

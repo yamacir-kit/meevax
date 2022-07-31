@@ -166,12 +166,14 @@ inline namespace kernel
   template <typename T, typename U> auto operator > (floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value >  b.value; }
   template <typename T, typename U> auto operator >=(floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value >= b.value; }
 
+
+
   namespace inexact
   {
-    template <typename Operator, typename... Ts>
+    template <typename F, typename... Ts>
     struct application
     {
-      static inline constexpr Operator operate {};
+      static inline constexpr F f {};
 
       template <typename U>
       auto inexact(U&& x)
@@ -188,13 +190,13 @@ inline namespace kernel
 
       auto operator ()(const_reference x) -> value_type
       {
-        return make(floating_point(operate(inexact(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()))));
+        return make(floating_point(f(inexact(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()))));
       }
 
       auto operator ()(const_reference x, const_reference y) -> value_type
       {
-        return make(floating_point(operate(inexact(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()),
-                                           inexact(y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()))));
+        return make(floating_point(f(inexact(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()),
+                                     inexact(y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()))));
       }
     };
 
@@ -236,29 +238,43 @@ inline namespace kernel
 
   namespace experimental
   {
-    template <typename Operator, typename T, typename U>
-    struct binary_operation
+    template <typename F, typename... Ts>
+    struct application
     {
-      static inline constexpr Operator operate {};
+      static inline constexpr F f {};
+
+      auto operator ()(const_reference x) -> value_type
+      {
+        return make_number(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
+      }
 
       auto operator ()(const_reference x, const_reference y) -> value_type
       {
-        return make_number(operate(x.as<T>(), y.as<U>()));
+        return make_number(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
+                             y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
       }
     };
 
-    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> add;
-    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> sub;
-    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> mul;
-    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> div;
-    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> mod;
+    template <typename F>
+    auto apply(const_reference x, const_reference y) -> value_type
+    {
+      #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
 
-    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> equal_to;
-    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> not_equal_to;
-    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> less;
-    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> less_equal;
-    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> greater;
-    extern std::unordered_map<type_index<2>, std::function<value_type (const_reference, const_reference)>> greater_equal;
+      static std::unordered_map<
+        type_index<2>,
+        std::function<value_type (const_reference, const_reference)>
+      > apply
+      {
+        APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, single_float), APPLY(exact_integer, double_float),
+        APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         single_float), APPLY(ratio,         double_float),
+        APPLY(single_float,  exact_integer), APPLY(single_float,  ratio), APPLY(single_float,  single_float), APPLY(single_float,  double_float),
+        APPLY(double_float,  exact_integer), APPLY(double_float,  ratio), APPLY(double_float,  single_float), APPLY(double_float,  double_float),
+      };
+
+      #undef APPLY
+
+      return apply.at(type_index<2>(x.type(), y.type()))(x, y);
+    }
   }
 
   auto operator +(const_reference, const_reference) -> value_type;
