@@ -20,18 +20,33 @@
 #include <functional>
 #include <cmath>
 
+#include <meevax/kernel/floating_point.hpp>
+
 namespace meevax
 {
 inline namespace functional
 {
-  #define DEFINE(FUNCTION)                                     \
-  struct FUNCTION                                              \
-  {                                                            \
-    template <typename... Ts>                                  \
-    auto operator ()(Ts&&... xs) const -> decltype(auto)       \
-    {                                                          \
-      return std::FUNCTION(std::forward<decltype(xs)>(xs)...); \
-    }                                                          \
+  template <typename U>
+  auto inexact_cast(U&& x) // TODO RENAME THIS
+  {
+    if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
+    {
+      return std::forward<decltype(x)>(x);
+    }
+    else
+    {
+      return static_cast<double>(std::forward<decltype(x)>(x));
+    }
+  }
+
+  #define DEFINE(FUNCTION)                                                     \
+  struct FUNCTION                                                              \
+  {                                                                            \
+    template <typename... Ts>                                                  \
+    auto operator ()(Ts&&... xs) const                                         \
+    {                                                                          \
+      return floating_point(std::FUNCTION(inexact_cast(std::forward<decltype(xs)>(xs))...)); \
+    }                                                                          \
   }
 
   DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);

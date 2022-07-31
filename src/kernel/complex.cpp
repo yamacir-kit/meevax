@@ -43,7 +43,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &
   {
-    return os << z.real() << cyan(experimental::apply<std::less<void>>(e0, z.imag()).as<bool>() ? '+' : '-') << z.imag() << cyan("i");
+    return os << z.real() << cyan(apply<std::less<void>>(e0, z.imag()).as<bool>() ? '+' : '-') << z.imag() << cyan("i");
   }
 } // namespace kernel
 } // namespace meevax

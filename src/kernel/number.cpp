@@ -69,11 +69,11 @@ inline namespace kernel
   auto operator > (ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) >  (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
   auto operator >=(ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) >= (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
 
-  auto operator +(const_reference x, const_reference y) -> value_type { return experimental::apply<std::plus      <void>>(x, y); }
-  auto operator -(const_reference x, const_reference y) -> value_type { return experimental::apply<std::minus     <void>>(x, y); }
-  auto operator *(const_reference x, const_reference y) -> value_type { return experimental::apply<std::multiplies<void>>(x, y); }
-  auto operator /(const_reference x, const_reference y) -> value_type { return experimental::apply<std::divides   <void>>(x, y); }
-  auto operator %(const_reference x, const_reference y) -> value_type { return experimental::apply<std::modulus   <void>>(x, y); }
+  auto operator +(const_reference x, const_reference y) -> value_type { return apply<std::plus      <void>>(x, y); }
+  auto operator -(const_reference x, const_reference y) -> value_type { return apply<std::minus     <void>>(x, y); }
+  auto operator *(const_reference x, const_reference y) -> value_type { return apply<std::multiplies<void>>(x, y); }
+  auto operator /(const_reference x, const_reference y) -> value_type { return apply<std::divides   <void>>(x, y); }
+  auto operator %(const_reference x, const_reference y) -> value_type { return apply<std::modulus   <void>>(x, y); }
 
   auto exact_integer_sqrt(exact_integer const& x) -> std::tuple<exact_integer, exact_integer>
   {

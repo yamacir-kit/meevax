@@ -257,79 +257,79 @@ inline namespace kernel
 
       library.define<procedure>("exp", [](let const& xs)
       {
-        return inexact::apply<exp>(car(xs));
+        return apply<exp>(car(xs));
       });
 
       library.define<procedure>("sqrt", [](let const& xs)
       {
-        return experimental::apply<sqrt>(car(xs));
+        return apply<sqrt>(car(xs));
       });
 
       library.define<procedure>("log", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? inexact::apply<log>(car(xs)) / inexact::apply<log>(cadr(xs))
-                                  : inexact::apply<log>(car(xs));
+        return cdr(xs).is<pair>() ? apply<log>(car(xs)) / apply<log>(cadr(xs))
+                                  : apply<log>(car(xs));
       });
 
       library.define<procedure>("sin", [](let const& xs)
       {
-        return inexact::apply<sin>(car(xs));
+        return apply<sin>(car(xs));
       });
 
       library.define<procedure>("cos", [](let const& xs)
       {
-        return inexact::apply<cos>(car(xs));
+        return apply<cos>(car(xs));
       });
 
       library.define<procedure>("tan", [](let const& xs)
       {
-        return inexact::apply<tan>(car(xs));
+        return apply<tan>(car(xs));
       });
 
       library.define<procedure>("asin", [](let const& xs)
       {
-        return inexact::apply<asin>(car(xs));
+        return apply<asin>(car(xs));
       });
 
       library.define<procedure>("acos", [](let const& xs)
       {
-        return inexact::apply<acos>(car(xs));
+        return apply<acos>(car(xs));
       });
 
       library.define<procedure>("atan", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? inexact::apply<atan2>(car(xs), cadr(xs))
-                                  : inexact::apply<atan>(car(xs));
+        return cdr(xs).is<pair>() ? apply<atan2>(car(xs), cadr(xs))
+                                  : apply<atan>(car(xs));
       });
 
       library.define<procedure>("sinh", [](let const& xs)
       {
-        return inexact::apply<sinh>(car(xs));
+        return apply<sinh>(car(xs));
       });
 
       library.define<procedure>("cosh", [](let const& xs)
       {
-        return inexact::apply<cosh>(car(xs));
+        return apply<cosh>(car(xs));
       });
 
       library.define<procedure>("tanh", [](let const& xs)
       {
-        return inexact::apply<tanh>(car(xs));
+        return apply<tanh>(car(xs));
       });
 
       library.define<procedure>("asinh", [](let const& xs)
       {
-        return inexact::apply<asinh>(car(xs));
+        return apply<asinh>(car(xs));
       });
 
       library.define<procedure>("acosh", [](let const& xs)
       {
-        return inexact::apply<acosh>(car(xs));
+        return apply<acosh>(car(xs));
       });
 
       library.define<procedure>("atanh", [](let const& xs)
       {
-        return inexact::apply<atanh>(car(xs));
+        return apply<atanh>(car(xs));
       });
 
       library.export_("finite?");
@@ -473,7 +473,7 @@ inline namespace kernel
         return std::adjacent_find(                                             \
                  std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
                  {                                                             \
-                   return not experimental::apply<std::COMPARE<void>>(a, b).as<bool>(); \
+                   return not apply<std::COMPARE<void>>(a, b).as<bool>();      \
                  }) == std::end(xs);                                           \
       })
 
@@ -514,22 +514,22 @@ inline namespace kernel
 
       library.define<procedure>("floor", [](let const& xs)
       {
-        return experimental::apply<floor>(car(xs));
+        return apply<floor>(car(xs));
       });
 
       library.define<procedure>("ceiling", [](let const& xs)
       {
-        return experimental::apply<ceil>(car(xs));
+        return apply<ceil>(car(xs));
       });
 
       library.define<procedure>("truncate", [](let const& xs)
       {
-        return experimental::apply<trunc>(car(xs));
+        return apply<trunc>(car(xs));
       });
 
       library.define<procedure>("round", [](let const& xs)
       {
-        return experimental::apply<round>(car(xs));
+        return apply<round>(car(xs));
       });
 
       library.define<procedure>("exact", [](let const& xs)
@@ -544,7 +544,7 @@ inline namespace kernel
 
       library.define<procedure>("expt", [](let const& xs)
       {
-        return experimental::apply<expt>(car(xs), cadr(xs));
+        return apply<expt>(car(xs), cadr(xs));
       });
 
       library.define<procedure>("integer->char", [](let const& xs)

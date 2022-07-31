@@ -170,8 +170,71 @@ inline namespace kernel
   template <typename T, typename U> auto operator > (floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value >  b.value; }
   template <typename T, typename U> auto operator >=(floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value >= b.value; }
 
+  template <typename F, typename... Ts>
+  struct application
+  {
+    static inline constexpr F f {};
+
+    auto operator ()(const_reference x) -> value_type
+    {
+      return make_number(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
+    }
+
+    auto operator ()(const_reference x, const_reference y) -> value_type
+    {
+      return make_number(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
+                           y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
+    }
+  };
+
+  template <typename F>
+  auto apply(const_reference x) -> value_type
+  {
+    static const std::unordered_map<
+      type_index<1>,
+      std::function<value_type (const_reference)>
+    > apply
+    {
+      { type_index<1>(typeid(exact_integer)), application<F, exact_integer>() },
+      { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
+      { type_index<1>(typeid(single_float )), application<F, single_float >() },
+      { type_index<1>(typeid(double_float )), application<F, double_float >() },
+    };
+
+    return apply.at(type_index<1>(x.type()))(x);
+  }
+
+  template <typename F>
+  auto apply(const_reference x, const_reference y) -> value_type
+  {
+    #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
+
+    static const std::unordered_map<
+      type_index<2>,
+      std::function<value_type (const_reference, const_reference)>
+    > apply
+    {
+      APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, single_float), APPLY(exact_integer, double_float),
+      APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         single_float), APPLY(ratio,         double_float),
+      APPLY(single_float,  exact_integer), APPLY(single_float,  ratio), APPLY(single_float,  single_float), APPLY(single_float,  double_float),
+      APPLY(double_float,  exact_integer), APPLY(double_float,  ratio), APPLY(double_float,  single_float), APPLY(double_float,  double_float),
+    };
+
+    #undef APPLY
+
+    return apply.at(type_index<2>(x.type(), y.type()))(x, y);
+  }
+
+  auto operator +(const_reference, const_reference) -> value_type;
+  auto operator -(const_reference, const_reference) -> value_type;
+  auto operator *(const_reference, const_reference) -> value_type;
+  auto operator /(const_reference, const_reference) -> value_type;
+  auto operator %(const_reference, const_reference) -> value_type;
+
+  auto exact_integer_sqrt(exact_integer const&) -> std::tuple<exact_integer, exact_integer>;
+
   template <typename U>
-  auto inexact_cast(U&& x)
+  auto inexact_(U&& x)
   {
     if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
     {
@@ -183,136 +246,12 @@ inline namespace kernel
     }
   }
 
-  namespace inexact
-  {
-    template <typename F, typename... Ts>
-    struct application
-    {
-      static inline constexpr F f {};
-
-      auto operator ()(const_reference x) -> value_type
-      {
-        return make(floating_point(f(inexact_cast(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()))));
-      }
-
-      auto operator ()(const_reference x, const_reference y) -> value_type
-      {
-        return make(floating_point(f(inexact_cast(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()),
-                                     inexact_cast(y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()))));
-      }
-    };
-
-    template <typename F>
-    auto apply(const_reference x) -> value_type
-    {
-      static const std::unordered_map<
-        type_index<1>,
-        std::function<value_type (const_reference)>
-      > apply
-      {
-        { type_index<1>(typeid(exact_integer)), application<F, exact_integer>() },
-        { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
-        { type_index<1>(typeid(single_float )), application<F, single_float >() },
-        { type_index<1>(typeid(double_float )), application<F, double_float >() },
-      };
-
-      return apply.at(type_index<1>(x.type()))(x);
-    }
-
-    template <typename F>
-    auto apply(const_reference x, const_reference y) -> value_type
-    {
-      #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
-
-      static const std::unordered_map<
-        type_index<2>,
-        std::function<value_type (const_reference, const_reference)>
-      > apply
-      {
-        APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, single_float), APPLY(exact_integer, double_float),
-        APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         single_float), APPLY(ratio,         double_float),
-        APPLY(single_float,  exact_integer), APPLY(single_float,  ratio), APPLY(single_float,  single_float), APPLY(single_float,  double_float),
-        APPLY(double_float,  exact_integer), APPLY(double_float,  ratio), APPLY(double_float,  single_float), APPLY(double_float,  double_float),
-      };
-
-      #undef APPLY
-
-      return apply.at(type_index<2>(x.type(), y.type()))(x, y);
-    }
-  }
-
-  namespace experimental
-  {
-    template <typename F, typename... Ts>
-    struct application
-    {
-      static inline constexpr F f {};
-
-      auto operator ()(const_reference x) -> value_type
-      {
-        return make_number(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
-      }
-
-      auto operator ()(const_reference x, const_reference y) -> value_type
-      {
-        return make_number(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
-                             y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
-      }
-    };
-
-    template <typename F>
-    auto apply(const_reference x) -> value_type
-    {
-      static const std::unordered_map<
-        type_index<1>,
-        std::function<value_type (const_reference)>
-      > apply
-      {
-        { type_index<1>(typeid(exact_integer)), application<F, exact_integer>() },
-        { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
-        { type_index<1>(typeid(single_float )), application<F, single_float >() },
-        { type_index<1>(typeid(double_float )), application<F, double_float >() },
-      };
-
-      return apply.at(type_index<1>(x.type()))(x);
-    }
-
-    template <typename F>
-    auto apply(const_reference x, const_reference y) -> value_type
-    {
-      #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
-
-      static const std::unordered_map<
-        type_index<2>,
-        std::function<value_type (const_reference, const_reference)>
-      > apply
-      {
-        APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, single_float), APPLY(exact_integer, double_float),
-        APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         single_float), APPLY(ratio,         double_float),
-        APPLY(single_float,  exact_integer), APPLY(single_float,  ratio), APPLY(single_float,  single_float), APPLY(single_float,  double_float),
-        APPLY(double_float,  exact_integer), APPLY(double_float,  ratio), APPLY(double_float,  single_float), APPLY(double_float,  double_float),
-      };
-
-      #undef APPLY
-
-      return apply.at(type_index<2>(x.type(), y.type()))(x, y);
-    }
-  }
-
-  auto operator +(const_reference, const_reference) -> value_type;
-  auto operator -(const_reference, const_reference) -> value_type;
-  auto operator *(const_reference, const_reference) -> value_type;
-  auto operator /(const_reference, const_reference) -> value_type;
-  auto operator %(const_reference, const_reference) -> value_type;
-
-  auto exact_integer_sqrt(exact_integer const&) -> std::tuple<exact_integer, exact_integer>;
-
   struct sqrt
   {
     template <typename T>
     auto operator ()(T const& x) const -> decltype(auto)
     {
-      return floating_point(std::sqrt(inexact_cast(x)));
+      return floating_point(std::sqrt(inexact_(x)));
     }
 
     auto operator ()(exact_integer const& x) const
@@ -333,7 +272,7 @@ inline namespace kernel
     template <typename T, typename U>
     auto operator ()(T const& x, U const& y) const -> decltype(auto)
     {
-      return floating_point(std::pow(inexact_cast(x), inexact_cast(y)));
+      return floating_point(std::pow(inexact_(x), inexact_(y)));
     }
 
     auto operator ()(exact_integer const& base, exact_integer const& exponent) const
@@ -350,7 +289,7 @@ inline namespace kernel
     template <typename T>                                                      \
     auto operator ()(T const& x) const -> decltype(auto)                       \
     {                                                                          \
-      return floating_point(std::ROUND(inexact_cast(x)));                      \
+      return floating_point(std::ROUND(inexact_(x)));                          \
     }                                                                          \
                                                                                \
     auto operator ()(exact_integer const& x) const -> auto const&              \
