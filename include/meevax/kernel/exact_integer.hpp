@@ -26,7 +26,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct exact_integer : public number
+  struct exact_integer
   {
     mpz_t value;
 

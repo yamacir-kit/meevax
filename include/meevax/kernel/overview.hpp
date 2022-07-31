@@ -57,10 +57,6 @@ inline namespace kernel
 
   using external_representation = std::string;
 
-  struct number
-  {
-  };
-
   [[noreturn]]
   auto raise(std::string const&) -> void; // error.hpp
 } // namespace kernel

@@ -28,8 +28,7 @@ namespace meevax
 inline namespace kernel
 {
   template <typename T>
-  struct floating_point : public number
-                        , public std::numeric_limits<T>
+  struct floating_point : public std::numeric_limits<T>
   {
     T value;
 
