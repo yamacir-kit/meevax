@@ -111,13 +111,6 @@ inline namespace kernel
   auto operator > (exact_integer const&, unsigned long const) -> bool;
   auto operator >=(exact_integer const&, unsigned long const) -> bool;
 
-  auto operator ==(exact_integer const&, double const) -> bool;
-  auto operator !=(exact_integer const&, double const) -> bool;
-  auto operator < (exact_integer const&, double const) -> bool;
-  auto operator <=(exact_integer const&, double const) -> bool;
-  auto operator > (exact_integer const&, double const) -> bool;
-  auto operator >=(exact_integer const&, double const) -> bool;
-
   auto operator <<(std::ostream &, exact_integer const&) -> std::ostream &;
 
   let extern const e0, e1; // Frequently used exact-integer values.

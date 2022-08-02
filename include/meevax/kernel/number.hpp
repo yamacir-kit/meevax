@@ -26,8 +26,6 @@
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/ratio.hpp>
 #include <meevax/kernel/type_index.hpp>
-#include <type_traits>
-#include <utility>
 
 namespace meevax
 {
@@ -79,6 +77,8 @@ inline namespace kernel
       { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
       { type_index<1>(typeid(single_float )), application<F, single_float >() },
       { type_index<1>(typeid(double_float )), application<F, double_float >() },
+      { type_index<1>(typeid(float        )), application<F, float        >() },
+      { type_index<1>(typeid(double       )), application<F, double       >() },
     };
 
     return apply.at(type_index<1>(x.type()))(x);
@@ -94,10 +94,12 @@ inline namespace kernel
       std::function<value_type (const_reference, const_reference)>
     > apply
     {
-      APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, single_float), APPLY(exact_integer, double_float),
-      APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         single_float), APPLY(ratio,         double_float),
+      APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, single_float), APPLY(exact_integer, double_float), APPLY(exact_integer, float), APPLY(exact_integer, double),
+      APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         single_float), APPLY(ratio,         double_float), APPLY(ratio,         float), APPLY(ratio,         double),
       APPLY(single_float,  exact_integer), APPLY(single_float,  ratio), APPLY(single_float,  single_float), APPLY(single_float,  double_float),
       APPLY(double_float,  exact_integer), APPLY(double_float,  ratio), APPLY(double_float,  single_float), APPLY(double_float,  double_float),
+      APPLY(float,         exact_integer), APPLY(float,         ratio),
+      APPLY(double,        exact_integer), APPLY(double,        ratio),
     };
 
     #undef APPLY
@@ -124,7 +126,7 @@ inline namespace kernel
     }
   };
 
-  struct inexact
+  struct inexact  // TODO REMOVE THIS!!!
   {
     template <typename T>
     auto operator ()(T const& x) const -> decltype(auto)
@@ -139,6 +141,23 @@ inline namespace kernel
       }
     }
   };
+
+  struct native_inexact
+  {
+    template <typename T>
+    auto operator ()(T const& x) const -> decltype(auto)
+    {
+      if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
+      {
+        return std::forward<decltype(x)>(x);
+      }
+      else
+      {
+        return static_cast<double>(std::forward<decltype(x)>(x));
+      }
+    }
+  }
+  inline constexpr inexact_cast;
 
   auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
@@ -176,6 +195,30 @@ inline namespace kernel
   template <typename T> auto operator > (exact_integer const& a, floating_point<T> const& b) -> bool { return inexact()(a) >  b; }
   template <typename T> auto operator >=(exact_integer const& a, floating_point<T> const& b) -> bool { return inexact()(a) >= b; }
 
+  auto operator * (exact_integer const&, float) -> float;
+  auto operator + (exact_integer const&, float) -> float;
+  auto operator - (exact_integer const&, float) -> float;
+  auto operator / (exact_integer const&, float) -> float;
+  auto operator % (exact_integer const&, float) -> float;
+  auto operator !=(exact_integer const&, float) -> bool;
+  auto operator < (exact_integer const&, float) -> bool;
+  auto operator <=(exact_integer const&, float) -> bool;
+  auto operator ==(exact_integer const&, float) -> bool;
+  auto operator > (exact_integer const&, float) -> bool;
+  auto operator >=(exact_integer const&, float) -> bool;
+
+  auto operator * (exact_integer const&, double) -> double;
+  auto operator + (exact_integer const&, double) -> double;
+  auto operator - (exact_integer const&, double) -> double;
+  auto operator / (exact_integer const&, double) -> double;
+  auto operator % (exact_integer const&, double) -> double;
+  auto operator !=(exact_integer const&, double) -> bool;
+  auto operator < (exact_integer const&, double) -> bool;
+  auto operator <=(exact_integer const&, double) -> bool;
+  auto operator ==(exact_integer const&, double) -> bool;
+  auto operator > (exact_integer const&, double) -> bool;
+  auto operator >=(exact_integer const&, double) -> bool;
+
   auto operator * (ratio const&, exact_integer const&) -> ratio;
   auto operator + (ratio const&, exact_integer const&) -> ratio;
   auto operator - (ratio const&, exact_integer const&) -> ratio;
@@ -199,6 +242,30 @@ inline namespace kernel
   auto operator <=(ratio const&, ratio const&) -> bool;
   auto operator > (ratio const&, ratio const&) -> bool;
   auto operator >=(ratio const&, ratio const&) -> bool;
+
+  auto operator + (ratio const&, float) -> float;
+  auto operator - (ratio const&, float) -> float;
+  auto operator * (ratio const&, float) -> float;
+  auto operator / (ratio const&, float) -> float;
+  auto operator % (ratio const&, float) -> float;
+  auto operator ==(ratio const&, float) -> bool;
+  auto operator !=(ratio const&, float) -> bool;
+  auto operator < (ratio const&, float) -> bool;
+  auto operator <=(ratio const&, float) -> bool;
+  auto operator > (ratio const&, float) -> bool;
+  auto operator >=(ratio const&, float) -> bool;
+
+  auto operator + (ratio const&, double) -> double;
+  auto operator - (ratio const&, double) -> double;
+  auto operator * (ratio const&, double) -> double;
+  auto operator / (ratio const&, double) -> double;
+  auto operator % (ratio const&, double) -> double;
+  auto operator ==(ratio const&, double) -> bool;
+  auto operator !=(ratio const&, double) -> bool;
+  auto operator < (ratio const&, double) -> bool;
+  auto operator <=(ratio const&, double) -> bool;
+  auto operator > (ratio const&, double) -> bool;
+  auto operator >=(ratio const&, double) -> bool;
 
   template <typename T> auto operator * (ratio const& a, floating_point<T> const& b)         { return inexact()(a) *  b; }
   template <typename T> auto operator + (ratio const& a, floating_point<T> const& b)         { return inexact()(a) +  b; }
@@ -261,6 +328,54 @@ inline namespace kernel
   template <typename T, typename U> auto operator <=(floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value <= b.value; }
   template <typename T, typename U> auto operator > (floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value >  b.value; }
   template <typename T, typename U> auto operator >=(floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value >= b.value; }
+
+  auto operator + (float, exact_integer const&) -> float;
+  auto operator - (float, exact_integer const&) -> float;
+  auto operator * (float, exact_integer const&) -> float;
+  auto operator / (float, exact_integer const&) -> float;
+  auto operator % (float, exact_integer const&) -> float;
+  auto operator ==(float, exact_integer const&) -> bool;
+  auto operator !=(float, exact_integer const&) -> bool;
+  auto operator < (float, exact_integer const&) -> bool;
+  auto operator <=(float, exact_integer const&) -> bool;
+  auto operator > (float, exact_integer const&) -> bool;
+  auto operator >=(float, exact_integer const&) -> bool;
+
+  auto operator + (float, ratio const&) -> float;
+  auto operator - (float, ratio const&) -> float;
+  auto operator * (float, ratio const&) -> float;
+  auto operator / (float, ratio const&) -> float;
+  auto operator % (float, ratio const&) -> float;
+  auto operator ==(float, ratio const&) -> bool;
+  auto operator !=(float, ratio const&) -> bool;
+  auto operator < (float, ratio const&) -> bool;
+  auto operator <=(float, ratio const&) -> bool;
+  auto operator > (float, ratio const&) -> bool;
+  auto operator >=(float, ratio const&) -> bool;
+
+  auto operator + (double, exact_integer const&) -> double;
+  auto operator - (double, exact_integer const&) -> double;
+  auto operator * (double, exact_integer const&) -> double;
+  auto operator / (double, exact_integer const&) -> double;
+  auto operator % (double, exact_integer const&) -> double;
+  auto operator ==(double, exact_integer const&) -> bool;
+  auto operator !=(double, exact_integer const&) -> bool;
+  auto operator < (double, exact_integer const&) -> bool;
+  auto operator <=(double, exact_integer const&) -> bool;
+  auto operator > (double, exact_integer const&) -> bool;
+  auto operator >=(double, exact_integer const&) -> bool;
+
+  auto operator + (double, ratio const&) -> double;
+  auto operator - (double, ratio const&) -> double;
+  auto operator * (double, ratio const&) -> double;
+  auto operator / (double, ratio const&) -> double;
+  auto operator % (double, ratio const&) -> double;
+  auto operator ==(double, ratio const&) -> bool;
+  auto operator !=(double, ratio const&) -> bool;
+  auto operator < (double, ratio const&) -> bool;
+  auto operator <=(double, ratio const&) -> bool;
+  auto operator > (double, ratio const&) -> bool;
+  auto operator >=(double, ratio const&) -> bool;
 
   auto operator +(const_reference, const_reference) -> value_type;
   auto operator -(const_reference, const_reference) -> value_type;
@@ -425,7 +540,7 @@ inline namespace kernel
     template <typename T, typename U>
     auto operator ()(T const& x, U const& y) const -> decltype(auto)
     {
-      return floating_point(std::pow(inexact()(x), inexact()(y)));
+      return floating_point(std::pow(inexact_cast(x), inexact_cast(y)));
     }
 
     auto operator ()(exact_integer const& base, exact_integer const& exponent) const

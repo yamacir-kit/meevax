@@ -45,6 +45,30 @@ inline namespace kernel
   auto operator > (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return is_integer()(x) ? a >  x.numerator().as<exact_integer>() : false; }
   auto operator >=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return is_integer()(x) ? a >= x.numerator().as<exact_integer>() : false; }
 
+  auto operator + (exact_integer const& a, float b) -> float { return inexact_cast(a) +  b; }
+  auto operator - (exact_integer const& a, float b) -> float { return inexact_cast(a) -  b; }
+  auto operator * (exact_integer const& a, float b) -> float { return inexact_cast(a) *  b; }
+  auto operator / (exact_integer const& a, float b) -> float { return inexact_cast(a) /  b; }
+  auto operator % (exact_integer const& a, float b) -> float { return std::remainder(inexact_cast(a), b); }
+  auto operator ==(exact_integer const& a, float b) -> bool  { return inexact_cast(a) == b; }
+  auto operator !=(exact_integer const& a, float b) -> bool  { return inexact_cast(a) != b; }
+  auto operator < (exact_integer const& a, float b) -> bool  { return inexact_cast(a) <  b; }
+  auto operator <=(exact_integer const& a, float b) -> bool  { return inexact_cast(a) <= b; }
+  auto operator > (exact_integer const& a, float b) -> bool  { return inexact_cast(a) >  b; }
+  auto operator >=(exact_integer const& a, float b) -> bool  { return inexact_cast(a) >= b; }
+
+  auto operator + (exact_integer const& a, double b) -> double { return inexact_cast(a) +  b; }
+  auto operator - (exact_integer const& a, double b) -> double { return inexact_cast(a) -  b; }
+  auto operator * (exact_integer const& a, double b) -> double { return inexact_cast(a) *  b; }
+  auto operator / (exact_integer const& a, double b) -> double { return inexact_cast(a) /  b; }
+  auto operator % (exact_integer const& a, double b) -> double { return std::remainder(inexact_cast(a), b); }
+  auto operator ==(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) == 0; }
+  auto operator !=(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) != 0; }
+  auto operator < (exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) <  0; }
+  auto operator <=(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) <= 0; }
+  auto operator > (exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) >  0; }
+  auto operator >=(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) >= 0; }
+
   auto operator * (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b), cdr(a)); }
   auto operator + (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() + a.denominator().as<exact_integer>() * b), cdr(a)); }
   auto operator - (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() - a.denominator().as<exact_integer>() * b), cdr(a)); }
@@ -68,6 +92,78 @@ inline namespace kernel
   auto operator <=(ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) <= (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
   auto operator > (ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) >  (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
   auto operator >=(ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) >= (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
+
+  auto operator + (ratio const& a, float b) -> float { return inexact_cast(a) +  b; }
+  auto operator - (ratio const& a, float b) -> float { return inexact_cast(a) -  b; }
+  auto operator * (ratio const& a, float b) -> float { return inexact_cast(a) *  b; }
+  auto operator / (ratio const& a, float b) -> float { return inexact_cast(a) /  b; }
+  auto operator % (ratio const& a, float b) -> float { return std::remainder(inexact_cast(a), b); }
+  auto operator ==(ratio const& a, float b) -> bool  { return inexact_cast(a) == b; }
+  auto operator !=(ratio const& a, float b) -> bool  { return inexact_cast(a) != b; }
+  auto operator < (ratio const& a, float b) -> bool  { return inexact_cast(a) <  b; }
+  auto operator <=(ratio const& a, float b) -> bool  { return inexact_cast(a) <= b; }
+  auto operator > (ratio const& a, float b) -> bool  { return inexact_cast(a) >  b; }
+  auto operator >=(ratio const& a, float b) -> bool  { return inexact_cast(a) >= b; }
+
+  auto operator + (ratio const& a, double b) -> double { return inexact_cast(a) +  b; }
+  auto operator - (ratio const& a, double b) -> double { return inexact_cast(a) -  b; }
+  auto operator * (ratio const& a, double b) -> double { return inexact_cast(a) *  b; }
+  auto operator / (ratio const& a, double b) -> double { return inexact_cast(a) /  b; }
+  auto operator % (ratio const& a, double b) -> double { return std::remainder(inexact_cast(a), b); }
+  auto operator ==(ratio const& a, double b) -> bool   { return inexact_cast(a) == b; }
+  auto operator !=(ratio const& a, double b) -> bool   { return inexact_cast(a) != b; }
+  auto operator < (ratio const& a, double b) -> bool   { return inexact_cast(a) <  b; }
+  auto operator <=(ratio const& a, double b) -> bool   { return inexact_cast(a) <= b; }
+  auto operator > (ratio const& a, double b) -> bool   { return inexact_cast(a) >  b; }
+  auto operator >=(ratio const& a, double b) -> bool   { return inexact_cast(a) >= b; }
+
+  auto operator + (float a, exact_integer const& b) -> float { return a +  inexact_cast(b); }
+  auto operator - (float a, exact_integer const& b) -> float { return a -  inexact_cast(b); }
+  auto operator * (float a, exact_integer const& b) -> float { return a *  inexact_cast(b); }
+  auto operator / (float a, exact_integer const& b) -> float { return a /  inexact_cast(b); }
+  auto operator % (float a, exact_integer const& b) -> float { return std::remainder(a, inexact_cast(b)); }
+  auto operator ==(float a, exact_integer const& b) -> bool  { return a == inexact_cast(b); }
+  auto operator !=(float a, exact_integer const& b) -> bool  { return a != inexact_cast(b); }
+  auto operator < (float a, exact_integer const& b) -> bool  { return a <  inexact_cast(b); }
+  auto operator <=(float a, exact_integer const& b) -> bool  { return a <= inexact_cast(b); }
+  auto operator > (float a, exact_integer const& b) -> bool  { return a >  inexact_cast(b); }
+  auto operator >=(float a, exact_integer const& b) -> bool  { return a >= inexact_cast(b); }
+
+  auto operator + (float a, ratio const& b) -> float { return a +  inexact_cast(b); }
+  auto operator - (float a, ratio const& b) -> float { return a -  inexact_cast(b); }
+  auto operator * (float a, ratio const& b) -> float { return a *  inexact_cast(b); }
+  auto operator / (float a, ratio const& b) -> float { return a /  inexact_cast(b); }
+  auto operator % (float a, ratio const& b) -> float { return std::remainder(a, inexact_cast(b)); }
+  auto operator ==(float a, ratio const& b) -> bool  { return a == inexact_cast(b); }
+  auto operator !=(float a, ratio const& b) -> bool  { return a != inexact_cast(b); }
+  auto operator < (float a, ratio const& b) -> bool  { return a <  inexact_cast(b); }
+  auto operator <=(float a, ratio const& b) -> bool  { return a <= inexact_cast(b); }
+  auto operator > (float a, ratio const& b) -> bool  { return a >  inexact_cast(b); }
+  auto operator >=(float a, ratio const& b) -> bool  { return a >= inexact_cast(b); }
+
+  auto operator + (double a, exact_integer const& b) -> double { return a +  inexact_cast(b); }
+  auto operator - (double a, exact_integer const& b) -> double { return a -  inexact_cast(b); }
+  auto operator * (double a, exact_integer const& b) -> double { return a *  inexact_cast(b); }
+  auto operator / (double a, exact_integer const& b) -> double { return a /  inexact_cast(b); }
+  auto operator % (double a, exact_integer const& b) -> double { return std::remainder(a, inexact_cast(b)); }
+  auto operator ==(double a, exact_integer const& b) -> bool   { return a == inexact_cast(b); }
+  auto operator !=(double a, exact_integer const& b) -> bool   { return a != inexact_cast(b); }
+  auto operator < (double a, exact_integer const& b) -> bool   { return a <  inexact_cast(b); }
+  auto operator <=(double a, exact_integer const& b) -> bool   { return a <= inexact_cast(b); }
+  auto operator > (double a, exact_integer const& b) -> bool   { return a >  inexact_cast(b); }
+  auto operator >=(double a, exact_integer const& b) -> bool   { return a >= inexact_cast(b); }
+
+  auto operator + (double a, ratio const& b) -> double { return a +  inexact_cast(b); }
+  auto operator - (double a, ratio const& b) -> double { return a -  inexact_cast(b); }
+  auto operator * (double a, ratio const& b) -> double { return a *  inexact_cast(b); }
+  auto operator / (double a, ratio const& b) -> double { return a /  inexact_cast(b); }
+  auto operator % (double a, ratio const& b) -> double { return std::remainder(a, inexact_cast(b)); }
+  auto operator ==(double a, ratio const& b) -> bool   { return a == inexact_cast(b); }
+  auto operator !=(double a, ratio const& b) -> bool   { return a != inexact_cast(b); }
+  auto operator < (double a, ratio const& b) -> bool   { return a <  inexact_cast(b); }
+  auto operator <=(double a, ratio const& b) -> bool   { return a <= inexact_cast(b); }
+  auto operator > (double a, ratio const& b) -> bool   { return a >  inexact_cast(b); }
+  auto operator >=(double a, ratio const& b) -> bool   { return a >= inexact_cast(b); }
 
   auto operator +(const_reference x, const_reference y) -> value_type { return apply<std::plus      <void>>(x, y); }
   auto operator -(const_reference x, const_reference y) -> value_type { return apply<std::minus     <void>>(x, y); }

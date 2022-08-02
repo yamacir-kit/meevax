@@ -245,13 +245,6 @@ inline namespace kernel
   auto operator > (exact_integer const& a, unsigned long const b) -> bool { return mpz_cmp_ui(a.value, b) >  0; }
   auto operator >=(exact_integer const& a, unsigned long const b) -> bool { return mpz_cmp_ui(a.value, b) >= 0; }
 
-  auto operator ==(exact_integer const& a, double const b) -> bool { return mpz_cmp_d(a.value, b) == 0; }
-  auto operator !=(exact_integer const& a, double const b) -> bool { return mpz_cmp_d(a.value, b) != 0; }
-  auto operator < (exact_integer const& a, double const b) -> bool { return mpz_cmp_d(a.value, b) <  0; }
-  auto operator <=(exact_integer const& a, double const b) -> bool { return mpz_cmp_d(a.value, b) <= 0; }
-  auto operator > (exact_integer const& a, double const b) -> bool { return mpz_cmp_d(a.value, b) >  0; }
-  auto operator >=(exact_integer const& a, double const b) -> bool { return mpz_cmp_d(a.value, b) >= 0; }
-
   auto operator <<(std::ostream & os, exact_integer const& datum) -> std::ostream &
   {
     return os << cyan(static_cast<external_representation>(datum));
