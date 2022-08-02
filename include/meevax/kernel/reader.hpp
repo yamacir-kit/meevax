@@ -249,7 +249,7 @@ inline namespace kernel
         {
           try
           {
-            return make<double_float>(token);
+            return make<double_float>(lexical_cast<double>(token));
           }
           catch (...)
           {

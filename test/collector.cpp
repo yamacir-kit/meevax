@@ -167,7 +167,7 @@ auto main() -> int
       assert(x.is<double_float>());
       assert(x.as<double_float>() == 42);
 
-      let const y = make<double_float>("42");
+      let const y = make<double_float>(lexical_cast<double>("42"));
 
       assert(y.is<double_float>());
       assert(y.as<double_float>() == 42);

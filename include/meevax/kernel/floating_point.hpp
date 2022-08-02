@@ -36,14 +36,6 @@ inline namespace kernel
       : value { value }
     {}
 
-    explicit floating_point(external_representation const& token) try
-      : value { lexical_cast<T>(token) }
-    {}
-    catch (...)
-    {
-      throw read_error(make<string>("not a decimal"), make<string>(token));
-    }
-
     // TODO TEMPLATE SPECIALIZATION to<external_representation>()
     auto to_string() const
     {
