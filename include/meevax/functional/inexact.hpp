@@ -20,8 +20,6 @@
 #include <functional>
 #include <cmath>
 
-#include <meevax/kernel/floating_point.hpp>
-
 namespace meevax
 {
 inline namespace functional
@@ -45,7 +43,7 @@ inline namespace functional
     template <typename... Ts>                                                  \
     auto operator ()(Ts&&... xs) const                                         \
     {                                                                          \
-      return floating_point(std::FUNCTION(inexact_cast(std::forward<decltype(xs)>(xs))...)); \
+      return std::FUNCTION(inexact_cast(std::forward<decltype(xs)>(xs))...);   \
     }                                                                          \
   }
 

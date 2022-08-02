@@ -169,7 +169,7 @@ inline namespace kernel
   auto operator -(const_reference x, const_reference y) -> value_type { return apply<std::minus     <void>>(x, y); }
   auto operator *(const_reference x, const_reference y) -> value_type { return apply<std::multiplies<void>>(x, y); }
   auto operator /(const_reference x, const_reference y) -> value_type { return apply<std::divides   <void>>(x, y); }
-  auto operator %(const_reference x, const_reference y) -> value_type { return apply<std::modulus   <void>>(x, y); }
+  auto operator %(const_reference x, const_reference y) -> value_type { return apply<     modulus         >(x, y); }
 
   auto exact_integer_sqrt(exact_integer const& x) -> std::tuple<exact_integer, exact_integer>
   {

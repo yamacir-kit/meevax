@@ -24,28 +24,28 @@ inline namespace kernel
   std::unordered_map<external_representation, value_type> const constants
   {
     // R7RS 7.1.1. Lexical structure
-    { "+inf.0", make<double_float>(+std::numeric_limits<double>::infinity()) },
-    { "-inf.0", make<double_float>(-std::numeric_limits<double>::infinity()) },
+    { "+inf.0", make(+std::numeric_limits<double>::infinity()) },
+    { "-inf.0", make(-std::numeric_limits<double>::infinity()) },
 
-    { "+nan.0", make<double_float>(+std::numeric_limits<double>::quiet_NaN()) },
-    { "-nan.0", make<double_float>(-std::numeric_limits<double>::quiet_NaN()) },
+    { "+nan.0", make(+std::numeric_limits<double>::quiet_NaN()) },
+    { "-nan.0", make(-std::numeric_limits<double>::quiet_NaN()) },
 
     // SRFI-144
-    { "fl-e",         make<double_float>(M_E       ) },
-    { "fl-log2-e",    make<double_float>(M_LOG2E   ) },
-    { "fl-log10-e",   make<double_float>(M_LOG10E  ) },
-    { "fl-log-2",     make<double_float>(M_LN2     ) },
-    { "fl-1/log-2",   make<double_float>(M_LN2     ) },
-    { "fl-log-10",    make<double_float>(M_LN10    ) },
-    { "fl-1/log-10",  make<double_float>(M_LN10    ) },
-    { "fl-pi",        make<double_float>(M_PI      ) },
-    { "fl-1/pi",      make<double_float>(M_1_PI    ) },
-    { "fl-pi/2",      make<double_float>(M_PI_2    ) },
-    { "fl-pi/4",      make<double_float>(M_PI_4    ) },
-    { "fl-2/pi",      make<double_float>(M_2_PI    ) },
-    { "fl-2/sqrt-pi", make<double_float>(M_2_SQRTPI) },
-    { "fl-sqrt-2",    make<double_float>(M_SQRT2   ) },
-    { "fl-1/sqrt-2",  make<double_float>(M_SQRT1_2 ) },
+    { "fl-e",         make(M_E       ) },
+    { "fl-log2-e",    make(M_LOG2E   ) },
+    { "fl-log10-e",   make(M_LOG10E  ) },
+    { "fl-log-2",     make(M_LN2     ) },
+    { "fl-1/log-2",   make(M_LN2     ) },
+    { "fl-log-10",    make(M_LN10    ) },
+    { "fl-1/log-10",  make(M_LN10    ) },
+    { "fl-pi",        make(M_PI      ) },
+    { "fl-1/pi",      make(M_1_PI    ) },
+    { "fl-pi/2",      make(M_PI_2    ) },
+    { "fl-pi/4",      make(M_PI_4    ) },
+    { "fl-2/pi",      make(M_2_PI    ) },
+    { "fl-2/sqrt-pi", make(M_2_SQRTPI) },
+    { "fl-sqrt-2",    make(M_SQRT2   ) },
+    { "fl-1/sqrt-2",  make(M_SQRT1_2 ) },
   };
 } // namespace kernel
 } // namespace meevax

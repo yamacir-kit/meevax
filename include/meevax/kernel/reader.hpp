@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/constant.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/error.hpp>
@@ -249,7 +250,7 @@ inline namespace kernel
         {
           try
           {
-            return make<double_float>(lexical_cast<double>(token));
+            return make(lexical_cast<double>(token));
           }
           catch (...)
           {

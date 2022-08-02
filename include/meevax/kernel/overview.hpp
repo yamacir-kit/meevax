@@ -36,12 +36,6 @@ inline namespace kernel
   struct ratio;          // ratio.hpp
   struct vector;         // vector.hpp
 
-  template <typename T>
-  struct floating_point; // floating_point.hpp
-
-  using single_float = floating_point<float>;
-  using double_float = floating_point<double>; // NOTE: 0.0 is double
-
   template <template <typename...> typename, typename, typename...>
   class heterogeneous;
 

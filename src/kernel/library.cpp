@@ -516,12 +516,12 @@ inline namespace kernel
 
       library.define<predicate>("single-float?", [](let const& xs)
       {
-        return car(xs).is<single_float>();
+        return car(xs).is<float>();
       });
 
       library.define<predicate>("double-float?", [](let const& xs)
       {
-        return car(xs).is<double_float>();
+        return car(xs).is<double>();
       });
 
       #define DEFINE(SYMBOL, COMPARE)                                          \

@@ -18,7 +18,6 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/exact_integer.hpp>
-#include <meevax/kernel/floating_point.hpp>
 
 namespace meevax
 {
