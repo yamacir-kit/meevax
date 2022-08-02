@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 
 #include <cstddef>
+#include <cmath>
 #include <iomanip>
 #include <memory>
 #include <ostream>
@@ -218,7 +219,18 @@ inline namespace memory
       #undef DEFINE
 
       default:
-        return os << as<float64>();
+        if (auto value = as<float64>(); std::isnan(value))
+        {
+          return os << yellow("+nan.0");
+        }
+        else if (std::isinf(value))
+        {
+          return os << yellow(0 < value ? '+' : '-', "inf.0");
+        }
+        else
+        {
+          return os << yellow(value);
+        }
       }
     }
   };

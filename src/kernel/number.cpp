@@ -38,20 +38,20 @@ inline namespace kernel
   auto operator - (exact_integer const& a, ratio const& b) -> ratio { return ratio(make(a * b.denominator().as<exact_integer>() - b.numerator().as<exact_integer>()), cdr(b)); }
   auto operator / (exact_integer const& a, ratio const& b) -> ratio { return a * b.invert(); }
   auto operator % (exact_integer const&  , ratio const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
-  auto operator !=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return is_integer()(x) ? a != x.numerator().as<exact_integer>() : false; }
-  auto operator < (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return is_integer()(x) ? a <  x.numerator().as<exact_integer>() : false; }
-  auto operator <=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return is_integer()(x) ? a <= x.numerator().as<exact_integer>() : false; }
-  auto operator ==(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return is_integer()(x) ? a == x.numerator().as<exact_integer>() : false; }
-  auto operator > (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return is_integer()(x) ? a >  x.numerator().as<exact_integer>() : false; }
-  auto operator >=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return is_integer()(x) ? a >= x.numerator().as<exact_integer>() : false; }
+  auto operator !=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return std::invoke(is_integer(), x) and a != x.numerator().as<exact_integer>(); }
+  auto operator < (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return std::invoke(is_integer(), x) and a <  x.numerator().as<exact_integer>(); }
+  auto operator <=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return std::invoke(is_integer(), x) and a <= x.numerator().as<exact_integer>(); }
+  auto operator ==(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return std::invoke(is_integer(), x) and a == x.numerator().as<exact_integer>(); }
+  auto operator > (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return std::invoke(is_integer(), x) and a >  x.numerator().as<exact_integer>(); }
+  auto operator >=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return std::invoke(is_integer(), x) and a >= x.numerator().as<exact_integer>(); }
 
   auto operator + (exact_integer const& a, float b) -> float { return inexact_cast(a) +  b; }
   auto operator - (exact_integer const& a, float b) -> float { return inexact_cast(a) -  b; }
   auto operator * (exact_integer const& a, float b) -> float { return inexact_cast(a) *  b; }
   auto operator / (exact_integer const& a, float b) -> float { return inexact_cast(a) /  b; }
   auto operator % (exact_integer const& a, float b) -> float { return std::remainder(inexact_cast(a), b); }
-  auto operator ==(exact_integer const& a, float b) -> bool  { return inexact_cast(a) == b; }
-  auto operator !=(exact_integer const& a, float b) -> bool  { return inexact_cast(a) != b; }
+  auto operator ==(exact_integer const& a, float b) -> bool  { return std::invoke(arithmetic_equal_to(), inexact_cast(a), b); }
+  auto operator !=(exact_integer const& a, float b) -> bool  { return not (a == b); }
   auto operator < (exact_integer const& a, float b) -> bool  { return inexact_cast(a) <  b; }
   auto operator <=(exact_integer const& a, float b) -> bool  { return inexact_cast(a) <= b; }
   auto operator > (exact_integer const& a, float b) -> bool  { return inexact_cast(a) >  b; }
@@ -74,12 +74,12 @@ inline namespace kernel
   auto operator - (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() - a.denominator().as<exact_integer>() * b), cdr(a)); }
   auto operator / (ratio const& a, exact_integer const& b) -> ratio { return ratio(car(a), make(a.denominator().as<exact_integer>() * b)); }
   auto operator % (ratio const&  , exact_integer const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
-  auto operator !=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return is_integer()(x) ? x.numerator().as<exact_integer>() != b : false; }
-  auto operator < (ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return is_integer()(x) ? x.numerator().as<exact_integer>() <  b : false; }
-  auto operator <=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return is_integer()(x) ? x.numerator().as<exact_integer>() <= b : false; }
-  auto operator ==(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return is_integer()(x) ? x.numerator().as<exact_integer>() == b : false; }
-  auto operator > (ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return is_integer()(x) ? x.numerator().as<exact_integer>() >  b : false; }
-  auto operator >=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return is_integer()(x) ? x.numerator().as<exact_integer>() >= b : false; }
+  auto operator !=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() != b; }
+  auto operator < (ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() <  b; }
+  auto operator <=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() <= b; }
+  auto operator ==(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() == b; }
+  auto operator > (ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() >  b; }
+  auto operator >=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() >= b; }
 
   auto operator + (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>() + b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()), make(a.denominator().as<exact_integer>() * b.denominator().as<exact_integer>())); }
   auto operator - (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>() - b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()), make(a.denominator().as<exact_integer>() * b.denominator().as<exact_integer>())); }
@@ -98,8 +98,8 @@ inline namespace kernel
   auto operator * (ratio const& a, float b) -> float { return inexact_cast(a) *  b; }
   auto operator / (ratio const& a, float b) -> float { return inexact_cast(a) /  b; }
   auto operator % (ratio const& a, float b) -> float { return std::remainder(inexact_cast(a), b); }
-  auto operator ==(ratio const& a, float b) -> bool  { return inexact_cast(a) == b; }
-  auto operator !=(ratio const& a, float b) -> bool  { return inexact_cast(a) != b; }
+  auto operator ==(ratio const& a, float b) -> bool  { return std::invoke(arithmetic_equal_to(), inexact_cast(a), b); }
+  auto operator !=(ratio const& a, float b) -> bool  { return not (a == b); }
   auto operator < (ratio const& a, float b) -> bool  { return inexact_cast(a) <  b; }
   auto operator <=(ratio const& a, float b) -> bool  { return inexact_cast(a) <= b; }
   auto operator > (ratio const& a, float b) -> bool  { return inexact_cast(a) >  b; }
@@ -110,8 +110,8 @@ inline namespace kernel
   auto operator * (ratio const& a, double b) -> double { return inexact_cast(a) *  b; }
   auto operator / (ratio const& a, double b) -> double { return inexact_cast(a) /  b; }
   auto operator % (ratio const& a, double b) -> double { return std::remainder(inexact_cast(a), b); }
-  auto operator ==(ratio const& a, double b) -> bool   { return inexact_cast(a) == b; }
-  auto operator !=(ratio const& a, double b) -> bool   { return inexact_cast(a) != b; }
+  auto operator ==(ratio const& a, double b) -> bool   { return std::invoke(arithmetic_equal_to(), inexact_cast(a), b); }
+  auto operator !=(ratio const& a, double b) -> bool   { return not (a == b); }
   auto operator < (ratio const& a, double b) -> bool   { return inexact_cast(a) <  b; }
   auto operator <=(ratio const& a, double b) -> bool   { return inexact_cast(a) <= b; }
   auto operator > (ratio const& a, double b) -> bool   { return inexact_cast(a) >  b; }
@@ -122,8 +122,8 @@ inline namespace kernel
   auto operator * (float a, exact_integer const& b) -> float { return a *  inexact_cast(b); }
   auto operator / (float a, exact_integer const& b) -> float { return a /  inexact_cast(b); }
   auto operator % (float a, exact_integer const& b) -> float { return std::remainder(a, inexact_cast(b)); }
-  auto operator ==(float a, exact_integer const& b) -> bool  { return a == inexact_cast(b); }
-  auto operator !=(float a, exact_integer const& b) -> bool  { return a != inexact_cast(b); }
+  auto operator ==(float a, exact_integer const& b) -> bool  { return std::invoke(arithmetic_equal_to(), a, inexact_cast(b)); }
+  auto operator !=(float a, exact_integer const& b) -> bool  { return not (a == b); }
   auto operator < (float a, exact_integer const& b) -> bool  { return a <  inexact_cast(b); }
   auto operator <=(float a, exact_integer const& b) -> bool  { return a <= inexact_cast(b); }
   auto operator > (float a, exact_integer const& b) -> bool  { return a >  inexact_cast(b); }
@@ -134,8 +134,8 @@ inline namespace kernel
   auto operator * (float a, ratio const& b) -> float { return a *  inexact_cast(b); }
   auto operator / (float a, ratio const& b) -> float { return a /  inexact_cast(b); }
   auto operator % (float a, ratio const& b) -> float { return std::remainder(a, inexact_cast(b)); }
-  auto operator ==(float a, ratio const& b) -> bool  { return a == inexact_cast(b); }
-  auto operator !=(float a, ratio const& b) -> bool  { return a != inexact_cast(b); }
+  auto operator ==(float a, ratio const& b) -> bool  { return std::invoke(arithmetic_equal_to(), a, inexact_cast(b)); }
+  auto operator !=(float a, ratio const& b) -> bool  { return not (a == b); }
   auto operator < (float a, ratio const& b) -> bool  { return a <  inexact_cast(b); }
   auto operator <=(float a, ratio const& b) -> bool  { return a <= inexact_cast(b); }
   auto operator > (float a, ratio const& b) -> bool  { return a >  inexact_cast(b); }
@@ -146,8 +146,8 @@ inline namespace kernel
   auto operator * (double a, exact_integer const& b) -> double { return a *  inexact_cast(b); }
   auto operator / (double a, exact_integer const& b) -> double { return a /  inexact_cast(b); }
   auto operator % (double a, exact_integer const& b) -> double { return std::remainder(a, inexact_cast(b)); }
-  auto operator ==(double a, exact_integer const& b) -> bool   { return a == inexact_cast(b); }
-  auto operator !=(double a, exact_integer const& b) -> bool   { return a != inexact_cast(b); }
+  auto operator ==(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) == 0; }
+  auto operator !=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) != 0; }
   auto operator < (double a, exact_integer const& b) -> bool   { return a <  inexact_cast(b); }
   auto operator <=(double a, exact_integer const& b) -> bool   { return a <= inexact_cast(b); }
   auto operator > (double a, exact_integer const& b) -> bool   { return a >  inexact_cast(b); }
@@ -158,8 +158,8 @@ inline namespace kernel
   auto operator * (double a, ratio const& b) -> double { return a *  inexact_cast(b); }
   auto operator / (double a, ratio const& b) -> double { return a /  inexact_cast(b); }
   auto operator % (double a, ratio const& b) -> double { return std::remainder(a, inexact_cast(b)); }
-  auto operator ==(double a, ratio const& b) -> bool   { return a == inexact_cast(b); }
-  auto operator !=(double a, ratio const& b) -> bool   { return a != inexact_cast(b); }
+  auto operator ==(double a, ratio const& b) -> bool   { return std::invoke(arithmetic_equal_to(), a, inexact_cast(b)); }
+  auto operator !=(double a, ratio const& b) -> bool   { return not (a == b); }
   auto operator < (double a, ratio const& b) -> bool   { return a <  inexact_cast(b); }
   auto operator <=(double a, ratio const& b) -> bool   { return a <= inexact_cast(b); }
   auto operator > (double a, ratio const& b) -> bool   { return a >  inexact_cast(b); }

@@ -28,19 +28,13 @@ namespace meevax
 inline namespace kernel
 {
   template <typename T>
-  struct floating_point : public std::numeric_limits<T>
+  struct floating_point
   {
     T value;
 
     explicit constexpr floating_point(T value = {})
       : value { value }
     {}
-
-    // TODO TEMPLATE SPECIALIZATION to<external_representation>()
-    auto to_string() const
-    {
-      return lexical_cast<external_representation>(value);
-    }
 
     constexpr operator T() const noexcept { return value; }
     constexpr operator T()       noexcept { return value; }
@@ -49,18 +43,7 @@ inline namespace kernel
   template <typename T>
   auto operator <<(std::ostream & os, floating_point<T> const& rhs) -> std::ostream &
   {
-    if (std::isnan(rhs))
-    {
-      return os << cyan("+nan.0");
-    }
-    else if (std::isinf(rhs))
-    {
-      return os << cyan(0 < rhs.value ? '+' : '-', "inf.0");
-    }
-    else
-    {
-      return os << cyan(std::fixed, rhs.value);
-    }
+    return os << make(rhs.value);
   }
 } // namespace kernel
 } // namespace meevax

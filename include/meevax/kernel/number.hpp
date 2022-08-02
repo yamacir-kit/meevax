@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
+#include <functional>
 #include <meevax/iostream/concatenate.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/complex.hpp>
@@ -26,6 +27,7 @@
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/ratio.hpp>
 #include <meevax/kernel/type_index.hpp>
+#include <type_traits>
 
 namespace meevax
 {
@@ -158,6 +160,33 @@ inline namespace kernel
     }
   }
   inline constexpr inexact_cast;
+
+  struct arithmetic_equal_to
+  {
+    template <typename T, typename U>
+    auto operator ()(T&& x, U&& y) const
+    {
+      if constexpr (std::is_floating_point_v<std::decay_t<T>> and std::is_floating_point_v<std::decay_t<U>>)
+      {
+        if (std::isnan(x) and std::isnan(y))
+        {
+          return true;
+        }
+        else if (std::isinf(x) or std::isinf(y))
+        {
+          return x == y;
+        }
+        else
+        {
+          return std::abs(x - y) <= std::numeric_limits<decltype(std::declval<T>() - std::declval<U>())>::epsilon();
+        }
+      }
+      else
+      {
+        return x == y;
+      }
+    }
+  };
 
   auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
@@ -308,21 +337,7 @@ inline namespace kernel
   template <typename T, typename U> auto operator - (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value - b.value); }
   template <typename T, typename U> auto operator / (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value / b.value); }
   template <typename T, typename U> auto operator % (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(std::remainder(a.value, b.value)); }
-  template <typename T, typename U> auto operator ==(floating_point<T> const& a, floating_point<U> const& b) -> bool
-  {
-    if (std::isnan(a.value) and std::isnan(b.value))
-    {
-      return true;
-    }
-    else if (std::isinf(a.value) or std::isinf(b.value))
-    {
-      return a.value == b.value;
-    }
-    else
-    {
-      return std::abs(a.value - b.value) <= std::numeric_limits<decltype(std::declval<T>() - std::declval<U>())>::epsilon();
-    }
-  }
+  template <typename T, typename U> auto operator ==(floating_point<T> const& a, floating_point<U> const& b) -> bool { return std::invoke(arithmetic_equal_to(), a.value, b.value); }
   template <typename T, typename U> auto operator !=(floating_point<T> const& a, floating_point<U> const& b) -> bool { return not (a == b); }
   template <typename T, typename U> auto operator < (floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value <  b.value; }
   template <typename T, typename U> auto operator <=(floating_point<T> const& a, floating_point<U> const& b) -> bool { return a.value <= b.value; }

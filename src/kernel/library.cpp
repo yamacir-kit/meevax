@@ -530,16 +530,16 @@ inline namespace kernel
         return std::adjacent_find(                                             \
                  std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
                  {                                                             \
-                   return not apply<std::COMPARE<void>>(a, b).as<bool>();      \
+                   return not apply<COMPARE>(a, b).as<bool>();                 \
                  }) == std::end(xs);                                           \
       })
 
-      DEFINE(= , equal_to     );
-      DEFINE(!=, not_equal_to );
-      DEFINE(< , less         );
-      DEFINE(<=, less_equal   );
-      DEFINE(> , greater      );
-      DEFINE(>=, greater_equal);
+      DEFINE(= , arithmetic_equal_to     );
+      DEFINE(!=, std::not_equal_to <void>);
+      DEFINE(< , std::less         <void>);
+      DEFINE(<=, std::less_equal   <void>);
+      DEFINE(> , std::greater      <void>);
+      DEFINE(>=, std::greater_equal<void>);
 
       #undef DEFINE
 

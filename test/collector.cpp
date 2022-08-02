@@ -162,19 +162,19 @@ auto main() -> int
   // number
   {
     {
-      let const x = make<double_float>(42.0);
+      let const x = make<double>(42.0);
 
-      assert(x.is<double_float>());
-      assert(x.as<double_float>() == 42);
+      assert(x.is<double>());
+      assert(x.as<double>() == 42);
 
-      let const y = make<double_float>(lexical_cast<double>("42"));
+      let const y = make(lexical_cast<double>("42"));
 
-      assert(y.is<double_float>());
-      assert(y.as<double_float>() == 42);
+      assert(y.is<double>());
+      assert(y.as<double>() == 42);
     }
 
-    assert(gc.count() == gc_count + 2);
-    assert(gc.collect() == 2);
+    assert(gc.count() == gc_count);
+    assert(gc.collect() == 0);
     assert(gc.count() == gc_count);
   }
 

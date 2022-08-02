@@ -24,11 +24,11 @@ inline namespace kernel
   std::unordered_map<external_representation, value_type> const constants
   {
     // R7RS 7.1.1. Lexical structure
-    { "+inf.0", make<double_float>(+double_float::infinity()) },
-    { "-inf.0", make<double_float>(-double_float::infinity()) },
+    { "+inf.0", make<double_float>(+std::numeric_limits<double>::infinity()) },
+    { "-inf.0", make<double_float>(-std::numeric_limits<double>::infinity()) },
 
-    { "+nan.0", make<double_float>(+double_float::quiet_NaN()) },
-    { "-nan.0", make<double_float>(-double_float::quiet_NaN()) },
+    { "+nan.0", make<double_float>(+std::numeric_limits<double>::quiet_NaN()) },
+    { "-nan.0", make<double_float>(-std::numeric_limits<double>::quiet_NaN()) },
 
     // SRFI-144
     { "fl-e",         make<double_float>(M_E       ) },
