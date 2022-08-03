@@ -248,5 +248,12 @@ inline namespace kernel
   {
     return os << cyan(static_cast<external_representation>(datum));
   }
+
+  auto exact_integer_sqrt(exact_integer const& x) -> std::tuple<exact_integer, exact_integer>
+  {
+    exact_integer s, r;
+    mpz_rootrem(s.value, r.value, x.value, 2);
+    return std::make_tuple(s, r);
+  }
 } // namespace kernel
 } // namespace meevax

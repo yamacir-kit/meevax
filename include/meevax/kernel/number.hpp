@@ -432,8 +432,6 @@ inline namespace kernel
     }
   };
 
-  auto exact_integer_sqrt(exact_integer const&) -> std::tuple<exact_integer, exact_integer>;
-
   struct sqrt
   {
     template <typename T>

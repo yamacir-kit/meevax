@@ -113,6 +113,8 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, exact_integer const&) -> std::ostream &;
 
+  auto exact_integer_sqrt(exact_integer const&) -> std::tuple<exact_integer, exact_integer>;
+
   let extern const e0, e1; // Frequently used exact-integer values.
 } // namespace kernel
 } // namespace meevax
