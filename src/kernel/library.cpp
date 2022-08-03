@@ -14,7 +14,6 @@
    limitations under the License.
 */
 
-#include <meevax/functional/inexact.hpp>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
@@ -534,7 +533,7 @@ inline namespace kernel
                  }) == std::end(xs);                                           \
       })
 
-      DEFINE(= , arithmetic_equal_to     );
+      DEFINE(= ,      equal_to           );
       DEFINE(!=, std::not_equal_to <void>);
       DEFINE(< , std::less         <void>);
       DEFINE(<=, std::less_equal   <void>);

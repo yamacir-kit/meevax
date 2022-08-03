@@ -30,173 +30,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename F, typename... Ts>
-  struct application
-  {
-    static inline constexpr F f {};
-
-    template <typename T>
-    auto finish(T&& z) -> decltype(auto)
-    {
-      if constexpr (std::is_same_v<std::decay_t<decltype(z)>, value_type>)
-      {
-        return std::forward<decltype(z)>(z);
-      }
-      else if constexpr (std::is_same_v<std::decay_t<decltype(z)>, ratio>)
-      {
-        return z.simple();
-      }
-      else
-      {
-        return make(std::forward<decltype(z)>(z));
-      }
-    }
-
-    auto operator ()(const_reference x) -> value_type
-    {
-      return finish(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
-    }
-
-    auto operator ()(const_reference x, const_reference y) -> value_type
-    {
-      return finish(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
-                      y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
-    }
-  };
-
-  template <typename F>
-  auto apply(const_reference x) -> value_type
-  {
-    static const std::unordered_map<
-      type_index<1>,
-      std::function<value_type (const_reference)>
-    > apply
-    {
-      { type_index<1>(typeid(exact_integer)), application<F, exact_integer>() },
-      { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
-      { type_index<1>(typeid(float        )), application<F, float        >() },
-      { type_index<1>(typeid(double       )), application<F, double       >() },
-    };
-
-    return apply.at(type_index<1>(x.type()))(x);
-  }
-
-  template <typename F>
-  auto apply(const_reference x, const_reference y) -> value_type
-  {
-    #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
-
-    static const std::unordered_map<
-      type_index<2>,
-      std::function<value_type (const_reference, const_reference)>
-    > apply
-    {
-      APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, float), APPLY(exact_integer, double),
-      APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         float), APPLY(ratio,         double),
-      APPLY(float,         exact_integer), APPLY(float,         ratio), APPLY(float,         float), APPLY(float,         double),
-      APPLY(double,        exact_integer), APPLY(double,        ratio), APPLY(double,        float), APPLY(double,        double),
-    };
-
-    #undef APPLY
-
-    return apply.at(type_index<2>(x.type(), y.type()))(x, y);
-  }
-
-  struct exact
-  {
-    template <typename T>
-    auto operator ()(T const& x) const -> decltype(auto)
-    {
-      return ratio(x).simple();
-    }
-
-    auto operator ()(exact_integer const& x) const -> auto const&
-    {
-      return x;
-    }
-
-    auto operator ()(ratio const& x) const -> auto const&
-    {
-      return x;
-    }
-  };
-
-  struct inexact  // TODO REMOVE THIS!!!
-  {
-    template <typename T>
-    auto operator ()(T const& x) const -> decltype(auto)
-    {
-      if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
-      {
-        return std::forward<decltype(x)>(x);
-      }
-      else
-      {
-        return static_cast<double>(std::forward<decltype(x)>(x));
-      }
-    }
-  };
-
-  struct native_inexact
-  {
-    template <typename T>
-    auto operator ()(T const& x) const -> decltype(auto)
-    {
-      if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
-      {
-        return std::forward<decltype(x)>(x);
-      }
-      else
-      {
-        return static_cast<double>(std::forward<decltype(x)>(x));
-      }
-    }
-  }
-  inline constexpr inexact_cast;
-
-  struct arithmetic_equal_to
-  {
-    template <typename T, typename U>
-    auto operator ()(T&& x, U&& y) const
-    {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>> and std::is_floating_point_v<std::decay_t<U>>)
-      {
-        if (std::isnan(x) and std::isnan(y))
-        {
-          return true;
-        }
-        else if (std::isinf(x) or std::isinf(y))
-        {
-          return x == y;
-        }
-        else
-        {
-          return std::abs(x - y) <= std::numeric_limits<decltype(std::declval<T>() - std::declval<U>())>::epsilon();
-        }
-      }
-      else
-      {
-        return x == y;
-      }
-    }
-  };
-
-  struct modulus
-  {
-    template <typename T, typename U>
-    auto operator ()(T&& x, U&& y) const
-    {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>> and std::is_floating_point_v<std::decay_t<U>>)
-      {
-        return std::remainder(x, y);
-      }
-      else
-      {
-        return x % y;
-      }
-    }
-  };
-
   auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator - (exact_integer const&, exact_integer const&) -> exact_integer;
@@ -347,10 +180,160 @@ inline namespace kernel
   auto operator /(const_reference, const_reference) -> value_type;
   auto operator %(const_reference, const_reference) -> value_type;
 
+  template <typename F, typename... Ts>
+  struct application
+  {
+    static inline constexpr F f {};
+
+    template <typename T>
+    auto finish(T&& z) -> decltype(auto)
+    {
+      if constexpr (std::is_same_v<std::decay_t<decltype(z)>, value_type>)
+      {
+        return std::forward<decltype(z)>(z);
+      }
+      else if constexpr (std::is_same_v<std::decay_t<decltype(z)>, ratio>)
+      {
+        return z.simple();
+      }
+      else
+      {
+        return make(std::forward<decltype(z)>(z));
+      }
+    }
+
+    auto operator ()(const_reference x) -> value_type
+    {
+      return finish(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
+    }
+
+    auto operator ()(const_reference x, const_reference y) -> value_type
+    {
+      return finish(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
+                      y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
+    }
+  };
+
+  template <typename F>
+  auto apply(const_reference x) -> value_type
+  {
+    static const std::unordered_map<
+      type_index<1>,
+      std::function<value_type (const_reference)>
+    > apply
+    {
+      { type_index<1>(typeid(exact_integer)), application<F, exact_integer>() },
+      { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
+      { type_index<1>(typeid(float        )), application<F, float        >() },
+      { type_index<1>(typeid(double       )), application<F, double       >() },
+    };
+
+    return apply.at(type_index<1>(x.type()))(x);
+  }
+
+  template <typename F>
+  auto apply(const_reference x, const_reference y) -> value_type
+  {
+    #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
+
+    static const std::unordered_map<
+      type_index<2>,
+      std::function<value_type (const_reference, const_reference)>
+    > apply
+    {
+      APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, float), APPLY(exact_integer, double),
+      APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         float), APPLY(ratio,         double),
+      APPLY(float,         exact_integer), APPLY(float,         ratio), APPLY(float,         float), APPLY(float,         double),
+      APPLY(double,        exact_integer), APPLY(double,        ratio), APPLY(double,        float), APPLY(double,        double),
+    };
+
+    #undef APPLY
+
+    return apply.at(type_index<2>(x.type(), y.type()))(x, y);
+  }
+
+  struct exact
+  {
+    template <typename T>
+    auto operator ()(T const& x) const -> decltype(auto)
+    {
+      return ratio(x).simple();
+    }
+
+    auto operator ()(exact_integer const& x) const -> auto const&
+    {
+      return x;
+    }
+
+    auto operator ()(ratio const& x) const -> auto const&
+    {
+      return x;
+    }
+  };
+
+  struct inexact
+  {
+    template <typename T>
+    auto operator ()(T const& x) const -> decltype(auto)
+    {
+      if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
+      {
+        return std::forward<decltype(x)>(x);
+      }
+      else
+      {
+        return static_cast<double>(std::forward<decltype(x)>(x));
+      }
+    }
+  } inline constexpr inexact_cast;
+
+  struct equal_to
+  {
+    template <typename T, typename U>
+    auto operator ()(T&& x, U&& y) const
+    {
+      if constexpr (std::is_floating_point_v<std::decay_t<T>> and std::is_floating_point_v<std::decay_t<U>>)
+      {
+        if (std::isnan(x) and std::isnan(y))
+        {
+          return true;
+        }
+        else if (std::isinf(x) or std::isinf(y))
+        {
+          return x == y;
+        }
+        else
+        {
+          return std::abs(x - y) <= std::numeric_limits<decltype(std::declval<T>() - std::declval<U>())>::epsilon();
+        }
+      }
+      else
+      {
+        return x == y;
+      }
+    }
+  };
+
+  struct modulus
+  {
+    template <typename T, typename U>
+    auto operator ()(T&& x, U&& y) const
+    {
+      if constexpr (std::is_floating_point_v<std::decay_t<T>> and std::is_floating_point_v<std::decay_t<U>>)
+      {
+        return std::remainder(x, y);
+      }
+      else
+      {
+        return x % y;
+      }
+    }
+  };
+
   struct is_complex
   {
     template <typename T>
-    auto operator ()(T const&) const
+    constexpr auto operator ()(T&&) const
     {
       return true;
     }
@@ -368,7 +351,7 @@ inline namespace kernel
   struct is_rational
   {
     template <typename T>
-    auto operator ()(T&& x) const
+    constexpr auto operator ()(T&& x) const
     {
       if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
@@ -404,7 +387,7 @@ inline namespace kernel
   struct is_finite
   {
     template <typename T>
-    auto operator ()(T&& x) const
+    constexpr auto operator ()(T&& x) const
     {
       if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
@@ -420,7 +403,7 @@ inline namespace kernel
   struct is_infinite
   {
     template <typename T>
-    auto operator ()(T&& x) const
+    constexpr auto operator ()(T&& x) const
     {
       if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
@@ -436,7 +419,7 @@ inline namespace kernel
   struct is_nan
   {
     template <typename T>
-    auto operator ()(T&& x) const
+    constexpr auto operator ()(T&& x) const
     {
       if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
@@ -456,7 +439,7 @@ inline namespace kernel
     template <typename T>
     auto operator ()(T const& x) const
     {
-      return std::sqrt(inexact()(x));
+      return std::sqrt(inexact_cast(x));
     }
 
     auto operator ()(exact_integer const& x) const
@@ -494,7 +477,7 @@ inline namespace kernel
     template <typename T>                                                      \
     auto operator ()(T const& x) const                                         \
     {                                                                          \
-      return std::ROUND(inexact()(x));                                         \
+      return std::ROUND(inexact_cast(x));                                      \
     }                                                                          \
                                                                                \
     auto operator ()(exact_integer const& x) const -> auto const&              \
@@ -512,6 +495,26 @@ inline namespace kernel
   DEFINE(ceil);
   DEFINE(trunc);
   DEFINE(round);
+
+  #undef DEFINE
+
+  #define DEFINE(CMATH)                                                        \
+  struct CMATH                                                                 \
+  {                                                                            \
+    template <typename... Ts>                                                  \
+    auto operator ()(Ts&&... xs) const                                         \
+    {                                                                          \
+      return std::CMATH(inexact_cast(std::forward<decltype(xs)>(xs))...);      \
+    }                                                                          \
+  }
+
+  DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
+  DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
+  DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
+               DEFINE(atan2);
+
+  DEFINE(exp);
+  DEFINE(log);
 
   #undef DEFINE
 } // namespace kernel
