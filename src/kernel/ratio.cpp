@@ -29,6 +29,7 @@ inline namespace kernel
     mpq_set_d(value, x);
 
     numerator() = make<exact_integer>(mpq_numref(value));
+
     denominator() = make<exact_integer>(mpq_denref(value));
 
     mpq_clear(value);
@@ -81,9 +82,24 @@ inline namespace kernel
 
   auto ratio::reduce() const -> ratio
   {
-    if (auto const d = exact_integer(gcd, numerator().as<exact_integer>(), denominator().as<exact_integer>()); d != 1)
+    auto gcd = [](exact_integer const& a, exact_integer const& b)
     {
-      return ratio(make<exact_integer>(div, numerator().as<exact_integer>(), d), make<exact_integer>(div, denominator().as<exact_integer>(), d));
+      exact_integer n;
+      mpz_gcd(n.value, a.value, b.value);
+      return n;
+    };
+
+    auto div = [](exact_integer const& a, exact_integer const& b)
+    {
+      exact_integer n;
+      mpz_div(n.value, a.value, b.value);
+      return n;
+    };
+
+    if (auto x = gcd(numerator().as<exact_integer>(), denominator().as<exact_integer>()); x != 1)
+    {
+      return ratio(make<exact_integer>(div(numerator().as<exact_integer>(), x)),
+                   make<exact_integer>(div(denominator().as<exact_integer>(), x)));
     }
     else
     {
