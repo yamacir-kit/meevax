@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <functional>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
@@ -562,9 +563,9 @@ inline namespace kernel
                                   : FUNCTION(BASIS, car(xs));                  \
       })
 
-      DEFINE("-", sub, e0);
-      DEFINE("/", div, e1);
-      DEFINE("%", mod, e1);
+      DEFINE("-", std::minus  <void>(), e0);
+      DEFINE("/", std::divides<void>(), e1);
+      DEFINE("%", std::modulus<void>(), e1);
 
       #undef DEFINE
 

@@ -19,7 +19,6 @@
 
 #include <gmp.h>
 
-#include <meevax/functional/arithmetic_operation.hpp>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax

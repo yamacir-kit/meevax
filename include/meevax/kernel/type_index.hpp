@@ -19,6 +19,7 @@
 
 #include <array>
 #include <functional>
+#include <numeric>
 #include <typeindex>
 
 namespace meevax
