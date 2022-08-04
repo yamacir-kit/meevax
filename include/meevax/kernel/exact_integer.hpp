@@ -55,17 +55,9 @@ inline namespace kernel
 
     auto operator=(external_representation const&) -> exact_integer &;
 
-    auto floor_remainder(exact_integer const&) const -> exact_integer;
-
-    auto floor_quotient(exact_integer const&) const -> exact_integer;
-
     auto string(int = 10) const -> external_representation;
 
     auto swap(exact_integer &) noexcept -> void;
-
-    auto truncate_remainder(exact_integer const&) const -> exact_integer;
-
-    auto truncate_quotient(exact_integer const&) const -> exact_integer;
 
     explicit operator bool() const;
 

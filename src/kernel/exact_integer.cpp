@@ -104,20 +104,6 @@ inline namespace kernel
     }
   }
 
-  auto exact_integer::floor_remainder(exact_integer const& divisor) const -> exact_integer
-  {
-    exact_integer result {};
-    mpz_fdiv_r(result.value, value, divisor.value);
-    return result;
-  }
-
-  auto exact_integer::floor_quotient(exact_integer const& divisor) const -> exact_integer
-  {
-    exact_integer result {};
-    mpz_fdiv_q(result.value, value, divisor.value);
-    return result;
-  }
-
   auto exact_integer::string(int radix) const -> external_representation
   {
     auto deallocate = [](char * data)
@@ -136,20 +122,6 @@ inline namespace kernel
   auto exact_integer::swap(exact_integer & rhs) noexcept -> void
   {
     std::swap(*value, *rhs.value);
-  }
-
-  auto exact_integer::truncate_remainder(exact_integer const& divisor) const -> exact_integer
-  {
-    exact_integer result {};
-    mpz_tdiv_r(result.value, value, divisor.value);
-    return result;
-  }
-
-  auto exact_integer::truncate_quotient(exact_integer const& divisor) const -> exact_integer
-  {
-    exact_integer result {};
-    mpz_tdiv_q(result.value, value, divisor.value);
-    return result;
   }
 
   exact_integer::operator bool() const
