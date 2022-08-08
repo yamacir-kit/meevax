@@ -611,8 +611,20 @@ inline namespace kernel
 
       library.define<procedure>("number->string", [](let const& xs)
       {
-        return make<string>(lexical_cast<external_representation>(std::setbase(cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10),
-                                                                  car(xs)));
+        switch (cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10)
+        {
+        case 2:
+          return apply<number_to_string<2>>(car(xs));
+
+        case 8:
+          return apply<number_to_string<8>>(car(xs));
+
+        case 10: default:
+          return apply<number_to_string<10>>(car(xs));
+
+        case 16:
+          return apply<number_to_string<16>>(car(xs));
+        }
       });
 
       library.export_("number?");

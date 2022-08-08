@@ -71,7 +71,7 @@ inline namespace kernel
     if (mpz_init_set_str(value, s.c_str(), radix))
     {
       mpz_clear(value);
-      throw read_error(make<meevax::string>("not an exact-integer"), make<meevax::string>(s));
+      throw error();
     }
   }
 

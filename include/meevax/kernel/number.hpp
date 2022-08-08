@@ -24,6 +24,7 @@
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/ratio.hpp>
+#include <meevax/kernel/string.hpp>
 #include <meevax/kernel/type_index.hpp>
 
 namespace meevax
@@ -515,6 +516,38 @@ inline namespace kernel
   DEFINE(log);
 
   #undef DEFINE
+
+  template <auto Radix>
+  struct number_to_string
+  {
+    template <typename T>
+    auto operator ()(T&& z) const
+    {
+      if constexpr (std::is_floating_point_v<std::decay_t<T>>)
+      {
+        return string("TODO");
+      }
+      else if constexpr (std::is_same_v<std::decay_t<T>, exact_integer>)
+      {
+        auto deallocate = [](char * data)
+        {
+          using gmp_free_function = void (*)(void *, std::size_t);
+          gmp_free_function free;
+          mp_get_memory_functions(nullptr, nullptr, &free);
+          std::invoke(free, static_cast<void *>(data), std::strlen(data) + 1);
+        };
+
+        auto result = std::unique_ptr<char, decltype(deallocate)>(mpz_get_str(nullptr, Radix, z.value),
+                                                                  deallocate);
+
+        return string(result.get());
+      }
+      else
+      {
+        return string("TODO");
+      }
+    }
+  };
 } // namespace kernel
 } // namespace meevax
 

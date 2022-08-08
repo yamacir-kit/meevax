@@ -51,7 +51,7 @@ inline namespace kernel
     }
     else
     {
-      throw read_error(make<string>("not a ratio"), make<string>(token));
+      throw error();
     }
   }
 
