@@ -529,18 +529,14 @@ inline namespace kernel
       }
       else if constexpr (std::is_same_v<std::decay_t<T>, exact_integer>)
       {
-        auto deallocate = [](char * data)
+        auto free = [](char * data)
         {
-          using gmp_free_function = void (*)(void *, std::size_t);
-          gmp_free_function free;
+          void (*free)(void *, std::size_t);
           mp_get_memory_functions(nullptr, nullptr, &free);
           std::invoke(free, static_cast<void *>(data), std::strlen(data) + 1);
         };
 
-        auto result = std::unique_ptr<char, decltype(deallocate)>(mpz_get_str(nullptr, Radix, z.value),
-                                                                  deallocate);
-
-        return string(result.get());
+        return string(std::unique_ptr<char, decltype(free)>(mpz_get_str(nullptr, Radix, z.value), free).get());
       }
       else
       {

@@ -55,9 +55,6 @@ inline namespace kernel
 
     auto operator=(external_representation const&) -> exact_integer &;
 
-    [[deprecated]]
-    auto string(int = 10) const -> external_representation;
-
     auto swap(exact_integer &) noexcept -> void;
 
     explicit operator bool() const;
@@ -71,8 +68,6 @@ inline namespace kernel
     explicit operator float() const;
 
     explicit operator double() const;
-
-    explicit operator external_representation() const;
   };
 
   auto operator ==(exact_integer const&, int const) -> bool;

@@ -104,21 +104,6 @@ inline namespace kernel
     }
   }
 
-  auto exact_integer::string(int radix) const -> external_representation
-  {
-    auto deallocate = [](char * data)
-    {
-      using gmp_free_function = void (*)(void *, std::size_t);
-      gmp_free_function current_free_function;
-      mp_get_memory_functions(nullptr, nullptr, &current_free_function);
-      std::invoke(current_free_function, static_cast<void *>(data), std::strlen(data) + 1);
-    };
-
-    std::unique_ptr<char, decltype(deallocate)> result { mpz_get_str(nullptr, radix, value), deallocate };
-
-    return result.get();
-  }
-
   auto exact_integer::swap(exact_integer & rhs) noexcept -> void
   {
     std::swap(*value, *rhs.value);
@@ -154,11 +139,6 @@ inline namespace kernel
     return mpz_get_d(value);
   }
 
-  exact_integer::operator external_representation() const
-  {
-    return string();
-  }
-
   auto operator ==(exact_integer const& a, int const b) -> bool { return a == static_cast<signed long>(b); }
   auto operator !=(exact_integer const& a, int const b) -> bool { return a != static_cast<signed long>(b); }
   auto operator < (exact_integer const& a, int const b) -> bool { return a <  static_cast<signed long>(b); }
@@ -182,7 +162,14 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, exact_integer const& datum) -> std::ostream &
   {
-    return os << cyan(static_cast<external_representation>(datum));
+    auto free = [](char * data)
+    {
+      void (*free)(void *, std::size_t);
+      mp_get_memory_functions(nullptr, nullptr, &free);
+      std::invoke(free, static_cast<void *>(data), std::strlen(data) + 1);
+    };
+
+    return os << cyan(std::unique_ptr<char, decltype(free)>(mpz_get_str(nullptr, 10, datum.value), free).get());
   }
 
   auto exact_integer_sqrt(exact_integer const& x) -> std::tuple<exact_integer, exact_integer>
