@@ -28,7 +28,6 @@ inline namespace kernel
     mpq_set_d(value, x);
 
     numerator() = make<exact_integer>(mpq_numref(value));
-
     denominator() = make<exact_integer>(mpq_denref(value));
 
     mpq_clear(value);
@@ -107,7 +106,7 @@ inline namespace kernel
   {
     if (auto x = reduce(); is_integer()(x))
     {
-      return car(x);
+      return x.numerator();
     }
     else
     {

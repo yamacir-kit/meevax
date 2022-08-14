@@ -25,7 +25,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct ratio : public virtual pair
+  struct ratio : protected virtual pair
   {
     using pair::pair;
 
