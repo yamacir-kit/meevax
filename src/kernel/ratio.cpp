@@ -23,16 +23,27 @@ namespace meevax
 inline namespace kernel
 {
   ratio::ratio()
-    : pair {}
-  {}
+  {
+    mpq_init(value);
+  }
 
   ratio::ratio(ratio const& q)
     : pair { static_cast<pair const&>(q) }
-  {}
+  {
+    mpq_init(value);
+    mpq_set_num(value, q.numerator().as<exact_integer>().value);
+    mpq_set_den(value, q.denominator().as<exact_integer>().value);
+    mpq_canonicalize(value);
+  }
 
   ratio::ratio(const_reference x, const_reference y)
     : pair { x, y }
-  {}
+  {
+    mpq_init(value);
+    mpq_set_num(value, x.as<exact_integer>().value);
+    mpq_set_den(value, y.as<exact_integer>().value);
+    mpq_canonicalize(value);
+  }
 
   ratio::ratio(double x)
   {
@@ -41,8 +52,6 @@ inline namespace kernel
 
     numerator() = make<exact_integer>(mpq_numref(value));
     denominator() = make<exact_integer>(mpq_denref(value));
-
-    mpq_clear(value);
   }
 
   ratio::ratio(external_representation const& token, int radix)
@@ -56,10 +65,15 @@ inline namespace kernel
     }
     else // TEMPORARY!!!
     {
+      mpq_canonicalize(value);
       numerator() = make<exact_integer>(mpq_numref(value));
       denominator() = make<exact_integer>(mpq_denref(value));
-      mpq_clear(value);
     }
+  }
+
+  ratio::~ratio()
+  {
+    mpq_clear(value);
   }
 
   auto ratio::denominator() const -> const_reference

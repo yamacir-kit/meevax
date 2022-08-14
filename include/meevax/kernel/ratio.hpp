@@ -39,6 +39,8 @@ inline namespace kernel
 
     explicit ratio(external_representation const&, int = 10);
 
+    ~ratio();
+
     auto denominator() const -> const_reference;
 
     auto denominator() -> reference;
