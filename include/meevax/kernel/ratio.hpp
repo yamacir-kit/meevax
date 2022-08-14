@@ -27,9 +27,13 @@ inline namespace kernel
 {
   struct ratio : protected virtual pair
   {
-    using pair::pair;
-
     mpq_t value;
+
+    ratio();
+
+    ratio(ratio const&);
+
+    ratio(const_reference, const_reference);
 
     explicit ratio(double);
 

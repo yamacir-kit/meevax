@@ -22,6 +22,18 @@ namespace meevax
 {
 inline namespace kernel
 {
+  ratio::ratio()
+    : pair {}
+  {}
+
+  ratio::ratio(ratio const& q)
+    : pair { static_cast<pair const&>(q) }
+  {}
+
+  ratio::ratio(const_reference x, const_reference y)
+    : pair { x, y }
+  {}
+
   ratio::ratio(double x)
   {
     mpq_init(value);
@@ -98,7 +110,7 @@ inline namespace kernel
     }
     else
     {
-      return *this;
+      return ratio(*this);
     }
   }
 
