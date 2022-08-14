@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_RATIO_HPP
 #define INCLUDED_MEEVAX_KERNEL_RATIO_HPP
 
+#include <gmp.h>
+
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
@@ -27,9 +29,11 @@ inline namespace kernel
   {
     using pair::pair;
 
+    mpq_t value;
+
     explicit ratio(double);
 
-    explicit ratio(external_representation const&, int = 0);
+    explicit ratio(external_representation const&, int = 10);
 
     auto denominator() const -> const_reference;
 

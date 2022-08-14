@@ -24,7 +24,6 @@ inline namespace kernel
 {
   ratio::ratio(double x)
   {
-    mpq_t value;
     mpq_init(value);
     mpq_set_d(value, x);
 
@@ -39,19 +38,16 @@ inline namespace kernel
   {
     std::regex static const pattern { "([+-]?[0-9a-f]+)/([0-9a-f]+)" };
 
-    if (std::smatch result; std::regex_match(token, result, pattern))
+    if (mpq_init(value); not std::regex_match(token, pattern) or mpq_set_str(value, token.c_str(), radix))
     {
-      auto n = exact_integer(result.str(1), radix);
-
-      numerator() = make(n);
-
-      auto d = exact_integer(result.str(2), radix);
-
-      denominator() = make(d);
-    }
-    else
-    {
+      mpq_clear(value);
       throw error();
+    }
+    else // TEMPORARY!!!
+    {
+      numerator() = make<exact_integer>(mpq_numref(value));
+      denominator() = make<exact_integer>(mpq_denref(value));
+      mpq_clear(value);
     }
   }
 
