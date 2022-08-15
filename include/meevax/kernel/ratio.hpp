@@ -25,13 +25,15 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct ratio : protected virtual pair
+  struct ratio
   {
     mpq_t value;
 
     ratio();
 
     ratio(ratio const&);
+
+    ratio(ratio &&);
 
     explicit ratio(const_reference, const_reference);
 
