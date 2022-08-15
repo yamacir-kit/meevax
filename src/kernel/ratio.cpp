@@ -35,8 +35,8 @@ inline namespace kernel
     mpq_set_den(value, q.denominator().as<exact_integer>().value);
     mpq_canonicalize(value);
 
-    numerator() = make<exact_integer>(mpq_numref(value));
-    denominator() = make<exact_integer>(mpq_denref(value));
+    first = make<exact_integer>(mpq_numref(value));
+    second = make<exact_integer>(mpq_denref(value));
   }
 
   ratio::ratio(const_reference x, const_reference y)
@@ -46,8 +46,8 @@ inline namespace kernel
     mpq_set_den(value, y.as<exact_integer>().value);
     mpq_canonicalize(value);
 
-    numerator() = make<exact_integer>(mpq_numref(value));
-    denominator() = make<exact_integer>(mpq_denref(value));
+    first = make<exact_integer>(mpq_numref(value));
+    second = make<exact_integer>(mpq_denref(value));
   }
 
   ratio::ratio(double x)
@@ -55,8 +55,8 @@ inline namespace kernel
     mpq_init(value);
     mpq_set_d(value, x);
 
-    numerator() = make<exact_integer>(mpq_numref(value));
-    denominator() = make<exact_integer>(mpq_denref(value));
+    first = make<exact_integer>(mpq_numref(value));
+    second = make<exact_integer>(mpq_denref(value));
   }
 
   ratio::ratio(external_representation const& token, int radix)
@@ -71,8 +71,8 @@ inline namespace kernel
     else // TEMPORARY!!!
     {
       mpq_canonicalize(value);
-      numerator() = make<exact_integer>(mpq_numref(value));
-      denominator() = make<exact_integer>(mpq_denref(value));
+      first = make<exact_integer>(mpq_numref(value));
+      second = make<exact_integer>(mpq_denref(value));
     }
   }
 
@@ -86,22 +86,12 @@ inline namespace kernel
     return second;
   }
 
-  auto ratio::denominator() -> reference
-  {
-    return second;
-  }
-
   auto ratio::invert() const -> ratio
   {
     return ratio(denominator(), numerator());
   }
 
   auto ratio::numerator() const -> const_reference
-  {
-    return first;
-  }
-
-  auto ratio::numerator() -> reference
   {
     return first;
   }

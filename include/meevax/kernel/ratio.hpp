@@ -43,13 +43,9 @@ inline namespace kernel
 
     auto denominator() const -> const_reference;
 
-    auto denominator() -> reference;
-
     auto invert() const -> ratio;
 
     auto numerator() const -> const_reference;
-
-    auto numerator() -> reference;
 
     auto simple() const -> value_type;
 
