@@ -81,7 +81,7 @@ inline namespace kernel
     mpq_clear(value);
   }
 
-  auto ratio::denominator() const -> const_reference
+  auto ratio::denominator() const -> value_type
   {
     return second;
   }
@@ -91,21 +91,9 @@ inline namespace kernel
     return ratio(denominator(), numerator());
   }
 
-  auto ratio::numerator() const -> const_reference
+  auto ratio::numerator() const -> value_type
   {
     return first;
-  }
-
-  auto ratio::simple() const -> value_type
-  {
-    if (auto x = ratio(*this); is_integer()(x))
-    {
-      return x.numerator();
-    }
-    else
-    {
-      return make(x);
-    }
   }
 
   ratio::operator double() const

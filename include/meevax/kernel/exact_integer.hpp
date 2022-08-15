@@ -31,7 +31,7 @@ inline namespace kernel
 
     explicit exact_integer() noexcept;
 
-    explicit exact_integer(mpz_t) noexcept;
+    explicit exact_integer(mpz_t const) noexcept;
 
     exact_integer(exact_integer const&) noexcept;
 

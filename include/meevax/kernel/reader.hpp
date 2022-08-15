@@ -244,7 +244,7 @@ inline namespace kernel
       {
         try
         {
-          return ratio(token, radix).simple();
+          return make(ratio(token, radix));
         }
         catch (...)
         {

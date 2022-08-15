@@ -41,13 +41,11 @@ inline namespace kernel
 
     ~ratio();
 
-    auto denominator() const -> const_reference;
+    auto denominator() const -> value_type;
 
     auto invert() const -> ratio;
 
-    auto numerator() const -> const_reference;
-
-    auto simple() const -> value_type;
+    auto numerator() const -> value_type;
 
     explicit operator double() const;
   };
