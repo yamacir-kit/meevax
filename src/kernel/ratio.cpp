@@ -63,14 +63,14 @@ inline namespace kernel
 
   ratio::ratio(external_representation const& token, int radix)
   {
-    std::regex static const pattern { "([+-]?[0-9a-f]+)/([0-9a-f]+)" };
+    // std::regex static const pattern { "([+-]?[0-9a-f]+)/([0-9a-f]+)" };
 
-    if (mpq_init(value); not std::regex_match(token, pattern) or mpq_set_str(value, token.c_str(), radix))
+    if (mpq_init(value); mpq_set_str(value, token.c_str(), radix))
     {
       mpq_clear(value);
       throw error();
     }
-    else // TEMPORARY!!!
+    else
     {
       mpq_canonicalize(value);
     }
@@ -81,19 +81,19 @@ inline namespace kernel
     mpq_clear(value);
   }
 
-  auto ratio::denominator() const -> value_type
+  auto ratio::denominator() const -> exact_integer
   {
-    return make<exact_integer>(mpq_denref(value));
+    return exact_integer(mpq_denref(value));
   }
 
-  auto ratio::numerator() const -> value_type
+  auto ratio::numerator() const -> exact_integer
   {
-    return make<exact_integer>(mpq_numref(value));
+    return exact_integer(mpq_numref(value));
   }
 
   ratio::operator double() const
   {
-    return static_cast<double>(numerator().as<exact_integer>()) / static_cast<double>(denominator().as<exact_integer>());
+    return mpq_get_d(value);
   }
 
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &

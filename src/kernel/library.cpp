@@ -571,12 +571,12 @@ inline namespace kernel
 
       library.define<procedure>("ratio-numerator", [](let const& xs)
       {
-        return car(xs).as<ratio>().numerator();
+        return make(car(xs).as<ratio>().numerator());
       });
 
       library.define<procedure>("ratio-denominator", [](let const& xs)
       {
-        return car(xs).as<ratio>().denominator();
+        return make(car(xs).as<ratio>().denominator());
       });
 
       library.define<procedure>("floor", [](let const& xs)

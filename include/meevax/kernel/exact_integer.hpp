@@ -29,13 +29,15 @@ inline namespace kernel
   {
     mpz_t value;
 
-    explicit exact_integer() noexcept;
-
-    explicit exact_integer(mpz_t const) noexcept;
+    exact_integer() noexcept;
 
     exact_integer(exact_integer const&) noexcept;
 
-    explicit exact_integer(exact_integer &&) noexcept;
+    exact_integer(exact_integer &&) noexcept;
+
+    ~exact_integer();
+
+    explicit exact_integer(mpz_t const) noexcept;
 
     explicit exact_integer(int);
 
@@ -47,17 +49,11 @@ inline namespace kernel
 
     explicit exact_integer(external_representation const&, int = 0);
 
-    ~exact_integer();
-
     auto operator=(exact_integer const&) -> exact_integer &;
 
     auto operator=(exact_integer &&) noexcept -> exact_integer &;
 
     auto operator=(external_representation const&) -> exact_integer &;
-
-    auto swap(exact_integer &) noexcept -> void;
-
-    explicit operator bool() const;
 
     operator int() const;
 
@@ -68,6 +64,8 @@ inline namespace kernel
     explicit operator float() const;
 
     explicit operator double() const;
+
+    explicit operator bool() const;
   };
 
   auto operator ==(exact_integer const&, int const) -> bool;

@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_RATIO_HPP
 
 #include <gmp.h>
-
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
@@ -35,6 +34,8 @@ inline namespace kernel
 
     ratio(ratio &&);
 
+    ~ratio();
+
     explicit ratio(exact_integer const&);
 
     explicit ratio(exact_integer const&, exact_integer const&);
@@ -43,11 +44,9 @@ inline namespace kernel
 
     explicit ratio(external_representation const&, int = 10);
 
-    ~ratio();
+    auto denominator() const -> exact_integer;
 
-    auto denominator() const -> value_type;
-
-    auto numerator() const -> value_type;
+    auto numerator() const -> exact_integer;
 
     explicit operator double() const;
   };

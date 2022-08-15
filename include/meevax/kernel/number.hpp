@@ -195,9 +195,9 @@ inline namespace kernel
       }
       else if constexpr (std::is_same_v<std::decay_t<decltype(z)>, ratio>)
       {
-        if (auto i = exact_integer(mpq_denref(z.value)); i == 1)
+        if (z.denominator() == 1)
         {
-          return z.numerator();
+          return make(z.numerator());
         }
         else
         {
@@ -380,7 +380,7 @@ inline namespace kernel
       }
       else if constexpr (std::is_same_v<std::decay_t<T>, ratio>)
       {
-        return x.denominator().template as<exact_integer>() == 1;
+        return x.denominator() == 1;
       }
       else
       {
