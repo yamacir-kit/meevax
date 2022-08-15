@@ -35,7 +35,9 @@ inline namespace kernel
 
     ratio(ratio &&);
 
-    explicit ratio(const_reference, const_reference);
+    explicit ratio(exact_integer const&);
+
+    explicit ratio(exact_integer const&, exact_integer const&);
 
     explicit ratio(double);
 
@@ -44,8 +46,6 @@ inline namespace kernel
     ~ratio();
 
     auto denominator() const -> value_type;
-
-    auto invert() const -> ratio;
 
     auto numerator() const -> value_type;
 

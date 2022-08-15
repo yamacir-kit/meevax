@@ -24,7 +24,7 @@
 
 (let ((x (+ 1 1/2)))
 
-  (check x => 3/2)
+  (check x (=> =) 3/2)
 
   (check (number?   x) => #t)
   (check (complex?  x) => #t)

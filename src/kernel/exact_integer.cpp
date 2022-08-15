@@ -36,15 +36,15 @@ inline namespace kernel
     mpz_init_set(value, z);
   }
 
-  exact_integer::exact_integer(exact_integer const& given) noexcept
+  exact_integer::exact_integer(exact_integer const& other) noexcept
   {
-    mpz_init_set(value, given.value);
+    mpz_init_set(value, other.value);
   }
 
-  exact_integer::exact_integer(exact_integer && rhs) noexcept
+  exact_integer::exact_integer(exact_integer && other) noexcept
   {
-    *value = *rhs.value;
-    mpz_init(rhs.value);
+    mpz_init(value);
+    mpz_swap(value, other.value);
   }
 
   exact_integer::exact_integer(int rhs)

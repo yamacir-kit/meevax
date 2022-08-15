@@ -41,11 +41,17 @@ inline namespace kernel
     mpq_canonicalize(value);
   }
 
-  ratio::ratio(const_reference x, const_reference y)
+  ratio::ratio(exact_integer const& z)
   {
     mpq_init(value);
-    mpq_set_num(value, x.as<exact_integer>().value);
-    mpq_set_den(value, y.as<exact_integer>().value);
+    mpq_set_z(value, z.value);
+  }
+
+  ratio::ratio(exact_integer const& n, exact_integer const& d)
+  {
+    mpq_init(value);
+    mpq_set_num(value, n.value);
+    mpq_set_den(value, d.value);
     mpq_canonicalize(value);
   }
 
@@ -80,11 +86,6 @@ inline namespace kernel
     return make<exact_integer>(mpq_denref(value));
   }
 
-  auto ratio::invert() const -> ratio
-  {
-    return ratio(denominator(), numerator());
-  }
-
   auto ratio::numerator() const -> value_type
   {
     return make<exact_integer>(mpq_numref(value));
@@ -97,7 +98,14 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &
   {
-    return os << datum.numerator() << cyan("/") << datum.denominator();
+    auto free = [](char * data)
+    {
+      void (*free)(void *, std::size_t);
+      mp_get_memory_functions(nullptr, nullptr, &free);
+      std::invoke(free, static_cast<void *>(data), std::strlen(data) + 1);
+    };
+
+    return os << cyan(std::unique_ptr<char, decltype(free)>(mpq_get_str(nullptr, 10, datum.value), free).get());
   }
 } // namespace kernel
 } // namespace meevax

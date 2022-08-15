@@ -24,26 +24,26 @@ inline namespace kernel
   auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_add(n.value, a.value, b.value); return n; }
   auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_sub(n.value, a.value, b.value); return n; }
   auto operator * (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_mul(n.value, a.value, b.value); return n; }
-  auto operator / (exact_integer const& a, exact_integer const& b) -> ratio         { return ratio(make(a), make(b)); }
+  auto operator / (exact_integer const& a, exact_integer const& b) -> ratio         { return ratio(a, b); }
   auto operator % (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_tdiv_r(n.value, a.value, b.value); return n; }
+  auto operator ==(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) == 0; }
   auto operator !=(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) != 0; }
   auto operator < (exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) <  0; }
   auto operator <=(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) <= 0; }
-  auto operator ==(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) == 0; }
   auto operator > (exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) >  0; }
   auto operator >=(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) >= 0; }
 
-  auto operator * (exact_integer const& a, ratio const& b) -> ratio { return ratio(make(a * b.numerator().as<exact_integer>()), b.denominator()); }
-  auto operator + (exact_integer const& a, ratio const& b) -> ratio { return ratio(make(a * b.denominator().as<exact_integer>() + b.numerator().as<exact_integer>()), b.denominator()); }
-  auto operator - (exact_integer const& a, ratio const& b) -> ratio { return ratio(make(a * b.denominator().as<exact_integer>() - b.numerator().as<exact_integer>()), b.denominator()); }
-  auto operator / (exact_integer const& a, ratio const& b) -> ratio { return a * b.invert(); }
+  auto operator + (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_add(q.value, ratio(a).value, b.value); return q; }
+  auto operator - (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_sub(q.value, ratio(a).value, b.value); return q; }
+  auto operator * (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_mul(q.value, ratio(a).value, b.value); return q; }
+  auto operator / (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_div(q.value, ratio(a).value, b.value); return q; }
   auto operator % (exact_integer const&  , ratio const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
-  auto operator !=(exact_integer const& a, ratio const& b) -> bool  { auto const x = ratio(b); return std::invoke(is_integer(), x) and a != x.numerator().as<exact_integer>(); }
-  auto operator < (exact_integer const& a, ratio const& b) -> bool  { auto const x = ratio(b); return std::invoke(is_integer(), x) and a <  x.numerator().as<exact_integer>(); }
-  auto operator <=(exact_integer const& a, ratio const& b) -> bool  { auto const x = ratio(b); return std::invoke(is_integer(), x) and a <= x.numerator().as<exact_integer>(); }
-  auto operator ==(exact_integer const& a, ratio const& b) -> bool  { auto const x = ratio(b); return std::invoke(is_integer(), x) and a == x.numerator().as<exact_integer>(); }
-  auto operator > (exact_integer const& a, ratio const& b) -> bool  { auto const x = ratio(b); return std::invoke(is_integer(), x) and a >  x.numerator().as<exact_integer>(); }
-  auto operator >=(exact_integer const& a, ratio const& b) -> bool  { auto const x = ratio(b); return std::invoke(is_integer(), x) and a >= x.numerator().as<exact_integer>(); }
+  auto operator ==(exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) == 0; }
+  auto operator !=(exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) != 0; }
+  auto operator < (exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) >  0; }
+  auto operator <=(exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) >= 0; }
+  auto operator > (exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) <  0; }
+  auto operator >=(exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) <= 0; }
 
   auto operator + (exact_integer const& a, float b) -> float { return inexact_cast(a) +  b; }
   auto operator - (exact_integer const& a, float b) -> float { return inexact_cast(a) -  b; }
@@ -69,29 +69,29 @@ inline namespace kernel
   auto operator > (exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) >  0; }
   auto operator >=(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) >= 0; }
 
-  auto operator * (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b), a.denominator()); }
-  auto operator + (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() + a.denominator().as<exact_integer>() * b), a.denominator()); }
-  auto operator - (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() - a.denominator().as<exact_integer>() * b), a.denominator()); }
-  auto operator / (ratio const& a, exact_integer const& b) -> ratio { return ratio(a.numerator(), make(a.denominator().as<exact_integer>() * b)); }
+  auto operator + (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_add(q.value, a.value, ratio(b).value); return q; }
+  auto operator - (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_sub(q.value, a.value, ratio(b).value); return q; }
+  auto operator * (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_mul(q.value, a.value, ratio(b).value); return q; }
+  auto operator / (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_div(q.value, a.value, ratio(b).value); return q; }
   auto operator % (ratio const&  , exact_integer const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
-  auto operator !=(ratio const& a, exact_integer const& b) -> bool  { auto const x = ratio(a); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() != b; }
-  auto operator < (ratio const& a, exact_integer const& b) -> bool  { auto const x = ratio(a); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() <  b; }
-  auto operator <=(ratio const& a, exact_integer const& b) -> bool  { auto const x = ratio(a); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() <= b; }
-  auto operator ==(ratio const& a, exact_integer const& b) -> bool  { auto const x = ratio(a); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() == b; }
-  auto operator > (ratio const& a, exact_integer const& b) -> bool  { auto const x = ratio(a); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() >  b; }
-  auto operator >=(ratio const& a, exact_integer const& b) -> bool  { auto const x = ratio(a); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() >= b; }
+  auto operator ==(ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) == 0; }
+  auto operator !=(ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) != 0; }
+  auto operator < (ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) <  0; }
+  auto operator <=(ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) <= 0; }
+  auto operator > (ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) >  0; }
+  auto operator >=(ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) >= 0; }
 
-  auto operator + (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>() + b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()), make(a.denominator().as<exact_integer>() * b.denominator().as<exact_integer>())); }
-  auto operator - (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>() - b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()), make(a.denominator().as<exact_integer>() * b.denominator().as<exact_integer>())); }
-  auto operator * (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b.numerator().as<exact_integer>()), make(a.denominator().as<exact_integer>() * b.denominator().as<exact_integer>())); }
-  auto operator / (ratio const& a, ratio const& b) -> ratio { return a * b.invert(); }
+  auto operator + (ratio const& a, ratio const& b) -> ratio { ratio q; mpq_add(q.value, a.value, b.value); return q; }
+  auto operator - (ratio const& a, ratio const& b) -> ratio { ratio q; mpq_sub(q.value, a.value, b.value); return q; }
+  auto operator * (ratio const& a, ratio const& b) -> ratio { ratio q; mpq_mul(q.value, a.value, b.value); return q; }
+  auto operator / (ratio const& a, ratio const& b) -> ratio { ratio q; mpq_div(q.value, a.value, b.value); return q; }
   auto operator % (ratio const&  , ratio const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
-  auto operator ==(ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) == (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
-  auto operator !=(ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) != (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
-  auto operator < (ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) <  (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
-  auto operator <=(ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) <= (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
-  auto operator > (ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) >  (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
-  auto operator >=(ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) >= (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
+  auto operator ==(ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) == 0; }
+  auto operator !=(ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) != 0; }
+  auto operator < (ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) <  0; }
+  auto operator <=(ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) <= 0; }
+  auto operator > (ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) >  0; }
+  auto operator >=(ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) >= 0; }
 
   auto operator + (ratio const& a, float b) -> float { return inexact_cast(a) +  b; }
   auto operator - (ratio const& a, float b) -> float { return inexact_cast(a) -  b; }
@@ -148,10 +148,10 @@ inline namespace kernel
   auto operator % (double a, exact_integer const& b) -> double { return std::remainder(a, inexact_cast(b)); }
   auto operator ==(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) == 0; }
   auto operator !=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) != 0; }
-  auto operator < (double a, exact_integer const& b) -> bool   { return a <  inexact_cast(b); }
-  auto operator <=(double a, exact_integer const& b) -> bool   { return a <= inexact_cast(b); }
-  auto operator > (double a, exact_integer const& b) -> bool   { return a >  inexact_cast(b); }
-  auto operator >=(double a, exact_integer const& b) -> bool   { return a >= inexact_cast(b); }
+  auto operator < (double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) >  0; }
+  auto operator <=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) >= 0; }
+  auto operator > (double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) <  0; }
+  auto operator >=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) <= 0; }
 
   auto operator + (double a, ratio const& b) -> double { return a +  inexact_cast(b); }
   auto operator - (double a, ratio const& b) -> double { return a -  inexact_cast(b); }
