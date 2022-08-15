@@ -33,7 +33,7 @@ inline namespace kernel
 
     ratio(ratio const&);
 
-    ratio(const_reference, const_reference);
+    explicit ratio(const_reference, const_reference);
 
     explicit ratio(double);
 
@@ -50,8 +50,6 @@ inline namespace kernel
     auto numerator() const -> const_reference;
 
     auto numerator() -> reference;
-
-    auto reduce() const -> ratio;
 
     auto simple() const -> value_type;
 

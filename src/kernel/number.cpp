@@ -38,12 +38,12 @@ inline namespace kernel
   auto operator - (exact_integer const& a, ratio const& b) -> ratio { return ratio(make(a * b.denominator().as<exact_integer>() - b.numerator().as<exact_integer>()), b.denominator()); }
   auto operator / (exact_integer const& a, ratio const& b) -> ratio { return a * b.invert(); }
   auto operator % (exact_integer const&  , ratio const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
-  auto operator !=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return std::invoke(is_integer(), x) and a != x.numerator().as<exact_integer>(); }
-  auto operator < (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return std::invoke(is_integer(), x) and a <  x.numerator().as<exact_integer>(); }
-  auto operator <=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return std::invoke(is_integer(), x) and a <= x.numerator().as<exact_integer>(); }
-  auto operator ==(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return std::invoke(is_integer(), x) and a == x.numerator().as<exact_integer>(); }
-  auto operator > (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return std::invoke(is_integer(), x) and a >  x.numerator().as<exact_integer>(); }
-  auto operator >=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return std::invoke(is_integer(), x) and a >= x.numerator().as<exact_integer>(); }
+  auto operator !=(exact_integer const& a, ratio const& b) -> bool  { auto const x = ratio(b); return std::invoke(is_integer(), x) and a != x.numerator().as<exact_integer>(); }
+  auto operator < (exact_integer const& a, ratio const& b) -> bool  { auto const x = ratio(b); return std::invoke(is_integer(), x) and a <  x.numerator().as<exact_integer>(); }
+  auto operator <=(exact_integer const& a, ratio const& b) -> bool  { auto const x = ratio(b); return std::invoke(is_integer(), x) and a <= x.numerator().as<exact_integer>(); }
+  auto operator ==(exact_integer const& a, ratio const& b) -> bool  { auto const x = ratio(b); return std::invoke(is_integer(), x) and a == x.numerator().as<exact_integer>(); }
+  auto operator > (exact_integer const& a, ratio const& b) -> bool  { auto const x = ratio(b); return std::invoke(is_integer(), x) and a >  x.numerator().as<exact_integer>(); }
+  auto operator >=(exact_integer const& a, ratio const& b) -> bool  { auto const x = ratio(b); return std::invoke(is_integer(), x) and a >= x.numerator().as<exact_integer>(); }
 
   auto operator + (exact_integer const& a, float b) -> float { return inexact_cast(a) +  b; }
   auto operator - (exact_integer const& a, float b) -> float { return inexact_cast(a) -  b; }
@@ -74,12 +74,12 @@ inline namespace kernel
   auto operator - (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() - a.denominator().as<exact_integer>() * b), a.denominator()); }
   auto operator / (ratio const& a, exact_integer const& b) -> ratio { return ratio(a.numerator(), make(a.denominator().as<exact_integer>() * b)); }
   auto operator % (ratio const&  , exact_integer const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
-  auto operator !=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() != b; }
-  auto operator < (ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() <  b; }
-  auto operator <=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() <= b; }
-  auto operator ==(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() == b; }
-  auto operator > (ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() >  b; }
-  auto operator >=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() >= b; }
+  auto operator !=(ratio const& a, exact_integer const& b) -> bool  { auto const x = ratio(a); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() != b; }
+  auto operator < (ratio const& a, exact_integer const& b) -> bool  { auto const x = ratio(a); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() <  b; }
+  auto operator <=(ratio const& a, exact_integer const& b) -> bool  { auto const x = ratio(a); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() <= b; }
+  auto operator ==(ratio const& a, exact_integer const& b) -> bool  { auto const x = ratio(a); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() == b; }
+  auto operator > (ratio const& a, exact_integer const& b) -> bool  { auto const x = ratio(a); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() >  b; }
+  auto operator >=(ratio const& a, exact_integer const& b) -> bool  { auto const x = ratio(a); return std::invoke(is_integer(), x) and x.numerator().as<exact_integer>() >= b; }
 
   auto operator + (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>() + b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()), make(a.denominator().as<exact_integer>() * b.denominator().as<exact_integer>())); }
   auto operator - (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>() - b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()), make(a.denominator().as<exact_integer>() * b.denominator().as<exact_integer>())); }

@@ -34,15 +34,20 @@ inline namespace kernel
     mpq_set_num(value, q.numerator().as<exact_integer>().value);
     mpq_set_den(value, q.denominator().as<exact_integer>().value);
     mpq_canonicalize(value);
+
+    numerator() = make<exact_integer>(mpq_numref(value));
+    denominator() = make<exact_integer>(mpq_denref(value));
   }
 
   ratio::ratio(const_reference x, const_reference y)
-    : pair { x, y }
   {
     mpq_init(value);
     mpq_set_num(value, x.as<exact_integer>().value);
     mpq_set_den(value, y.as<exact_integer>().value);
     mpq_canonicalize(value);
+
+    numerator() = make<exact_integer>(mpq_numref(value));
+    denominator() = make<exact_integer>(mpq_denref(value));
   }
 
   ratio::ratio(double x)
@@ -101,36 +106,9 @@ inline namespace kernel
     return first;
   }
 
-  auto ratio::reduce() const -> ratio
-  {
-    auto gcd = [](exact_integer const& a, exact_integer const& b)
-    {
-      exact_integer n;
-      mpz_gcd(n.value, a.value, b.value);
-      return n;
-    };
-
-    auto div = [](exact_integer const& a, exact_integer const& b)
-    {
-      exact_integer n;
-      mpz_div(n.value, a.value, b.value);
-      return n;
-    };
-
-    if (auto x = gcd(numerator().as<exact_integer>(), denominator().as<exact_integer>()); x != 1)
-    {
-      return ratio(make<exact_integer>(div(numerator().as<exact_integer>(), x)),
-                   make<exact_integer>(div(denominator().as<exact_integer>(), x)));
-    }
-    else
-    {
-      return ratio(*this);
-    }
-  }
-
   auto ratio::simple() const -> value_type
   {
-    if (auto x = reduce(); is_integer()(x))
+    if (auto x = ratio(*this); is_integer()(x))
     {
       return x.numerator();
     }
