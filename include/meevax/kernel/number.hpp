@@ -195,7 +195,14 @@ inline namespace kernel
       }
       else if constexpr (std::is_same_v<std::decay_t<decltype(z)>, ratio>)
       {
-        return z.simple();
+        if (z.denominator() == 1)
+        {
+          return make(z.numerator());
+        }
+        else
+        {
+          return make(std::forward<decltype(z)>(z));
+        }
       }
       else
       {
@@ -256,21 +263,18 @@ inline namespace kernel
   struct exact
   {
     template <typename T>
-    auto operator ()(T const& x) const -> decltype(auto)
+    auto operator ()(T&& x) const -> decltype(auto)
     {
-      return ratio(x).simple();
+      if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
+      {
+        return ratio(std::forward<decltype(x)>(x));
+      }
+      else
+      {
+        return std::forward<decltype(x)>(x);
+      }
     }
-
-    auto operator ()(exact_integer const& x) const -> auto const&
-    {
-      return x;
-    }
-
-    auto operator ()(ratio const& x) const -> auto const&
-    {
-      return x;
-    }
-  };
+  } inline constexpr exact_cast;
 
   struct inexact
   {
@@ -376,7 +380,7 @@ inline namespace kernel
       }
       else if constexpr (std::is_same_v<std::decay_t<T>, ratio>)
       {
-        return x.denominator().template as<exact_integer>() == 1;
+        return x.denominator() == 1;
       }
       else
       {

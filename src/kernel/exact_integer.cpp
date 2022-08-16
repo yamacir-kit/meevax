@@ -31,20 +31,25 @@ inline namespace kernel
     mpz_init(value);
   }
 
-  exact_integer::exact_integer(mpz_t given) noexcept
+  exact_integer::exact_integer(exact_integer const& other) noexcept
   {
-    mpz_init_set(value, given);
+    mpz_init_set(value, other.value);
   }
 
-  exact_integer::exact_integer(exact_integer const& given) noexcept
+  exact_integer::exact_integer(exact_integer && other) noexcept
   {
-    mpz_init_set(value, given.value);
+    mpz_init(value);
+    mpz_swap(value, other.value);
   }
 
-  exact_integer::exact_integer(exact_integer && rhs) noexcept
+  exact_integer::~exact_integer()
   {
-    *value = *rhs.value;
-    mpz_init(rhs.value);
+    mpz_clear(value);
+  }
+
+  exact_integer::exact_integer(mpz_t const z) noexcept
+  {
+    mpz_init_set(value, z);
   }
 
   exact_integer::exact_integer(int rhs)
@@ -75,20 +80,15 @@ inline namespace kernel
     }
   }
 
-  exact_integer::~exact_integer()
-  {
-    mpz_clear(value);
-  }
-
   auto exact_integer::operator=(exact_integer const& rhs) -> exact_integer &
   {
     mpz_set(value, rhs.value);
     return *this;
   }
 
-  auto exact_integer::operator=(exact_integer && rhs) noexcept -> exact_integer &
+  auto exact_integer::operator=(exact_integer && other) noexcept -> exact_integer &
   {
-    swap(rhs);
+    mpz_swap(value, other.value);
     return *this;
   }
 
@@ -102,11 +102,6 @@ inline namespace kernel
     {
       return *this;
     }
-  }
-
-  auto exact_integer::swap(exact_integer & rhs) noexcept -> void
-  {
-    std::swap(*value, *rhs.value);
   }
 
   exact_integer::operator bool() const

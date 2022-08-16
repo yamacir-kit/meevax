@@ -1,6 +1,6 @@
 (define-library (scheme r4rs)
   (import (meevax inexact)
-          (only (meevax number) exact-integer? expt exact inexact ratio?)
+          (only (meevax number) exact-integer? expt exact inexact ratio? ratio-numerator ratio-denominator)
           (only (meevax port) get-ready? standard-input-port standard-output-port)
           (only (meevax string) string-copy)
           (only (meevax syntax) define-syntax)
@@ -71,12 +71,13 @@
                                                        ,body)))))))
 
          (define (numerator x)
-           (cond ((ratio? x) (car x))
+           (cond ((ratio? x) (ratio-numerator x))
                  ((exact? x) x)
                  (else (inexact (numerator (exact x))))))
 
          (define (denominator x)
-           (cond ((exact? x) (if (ratio? x) (cdr x) 1))
+           (cond ((ratio? x) (ratio-denominator x))
+                 ((exact? x) 1)
                  ((integer? x) 1.0)
                  (else (inexact (denominator (exact x))))))
 

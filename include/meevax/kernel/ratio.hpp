@@ -17,33 +17,36 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_RATIO_HPP
 #define INCLUDED_MEEVAX_KERNEL_RATIO_HPP
 
+#include <gmp.h>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct ratio : public virtual pair
+  struct ratio
   {
-    using pair::pair;
+    mpq_t value;
+
+    ratio();
+
+    ratio(ratio const&);
+
+    ratio(ratio &&);
+
+    ~ratio();
+
+    explicit ratio(exact_integer const&);
+
+    explicit ratio(exact_integer const&, exact_integer const&);
 
     explicit ratio(double);
 
-    explicit ratio(external_representation const&, int = 0);
+    explicit ratio(external_representation const&, int = 10);
 
-    auto denominator() const -> const_reference;
+    auto denominator() const -> exact_integer;
 
-    auto denominator() -> reference;
-
-    auto invert() const -> ratio;
-
-    auto numerator() const -> const_reference;
-
-    auto numerator() -> reference;
-
-    auto reduce() const -> ratio;
-
-    auto simple() const -> value_type;
+    auto numerator() const -> exact_integer;
 
     explicit operator double() const;
   };

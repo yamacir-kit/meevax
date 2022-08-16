@@ -22,111 +22,90 @@ namespace meevax
 {
 inline namespace kernel
 {
+  ratio::ratio()
+  {
+    mpq_init(value);
+  }
+
+  ratio::ratio(ratio const& other)
+  {
+    mpq_init(value);
+    mpq_set(value, other.value);
+    mpq_canonicalize(value);
+  }
+
+  ratio::ratio(ratio && other)
+  {
+    mpq_init(value);
+    mpq_swap(value, other.value);
+    mpq_canonicalize(value);
+  }
+
+  ratio::ratio(exact_integer const& z)
+  {
+    mpq_init(value);
+    mpq_set_z(value, z.value);
+  }
+
+  ratio::ratio(exact_integer const& n, exact_integer const& d)
+  {
+    mpq_init(value);
+    mpq_set_num(value, n.value);
+    mpq_set_den(value, d.value);
+    mpq_canonicalize(value);
+  }
+
   ratio::ratio(double x)
   {
-    mpq_t value;
     mpq_init(value);
     mpq_set_d(value, x);
-
-    numerator() = make<exact_integer>(mpq_numref(value));
-
-    denominator() = make<exact_integer>(mpq_denref(value));
-
-    mpq_clear(value);
   }
 
   ratio::ratio(external_representation const& token, int radix)
   {
-    std::regex static const pattern { "([+-]?[0-9a-f]+)/([0-9a-f]+)" };
+    // std::regex static const pattern { "([+-]?[0-9a-f]+)/([0-9a-f]+)" };
 
-    if (std::smatch result; std::regex_match(token, result, pattern))
+    if (mpq_init(value); mpq_set_str(value, token.c_str(), radix))
     {
-      auto n = exact_integer(result.str(1), radix);
-
-      numerator() = make(n);
-
-      auto d = exact_integer(result.str(2), radix);
-
-      denominator() = make(d);
-    }
-    else
-    {
+      mpq_clear(value);
       throw error();
     }
-  }
-
-  auto ratio::denominator() const -> const_reference
-  {
-    return second;
-  }
-
-  auto ratio::denominator() -> reference
-  {
-    return second;
-  }
-
-  auto ratio::invert() const -> ratio
-  {
-    return ratio(denominator(), numerator());
-  }
-
-  auto ratio::numerator() const -> const_reference
-  {
-    return first;
-  }
-
-  auto ratio::numerator() -> reference
-  {
-    return first;
-  }
-
-  auto ratio::reduce() const -> ratio
-  {
-    auto gcd = [](exact_integer const& a, exact_integer const& b)
-    {
-      exact_integer n;
-      mpz_gcd(n.value, a.value, b.value);
-      return n;
-    };
-
-    auto div = [](exact_integer const& a, exact_integer const& b)
-    {
-      exact_integer n;
-      mpz_div(n.value, a.value, b.value);
-      return n;
-    };
-
-    if (auto x = gcd(numerator().as<exact_integer>(), denominator().as<exact_integer>()); x != 1)
-    {
-      return ratio(make<exact_integer>(div(numerator().as<exact_integer>(), x)),
-                   make<exact_integer>(div(denominator().as<exact_integer>(), x)));
-    }
     else
     {
-      return *this;
+      mpq_canonicalize(value);
     }
   }
 
-  auto ratio::simple() const -> value_type
+  ratio::~ratio()
   {
-    if (auto x = reduce(); is_integer()(x))
-    {
-      return car(x);
-    }
-    else
-    {
-      return make(x);
-    }
+    mpq_clear(value);
+  }
+
+  auto ratio::denominator() const -> exact_integer
+  {
+    return exact_integer(mpq_denref(value));
+  }
+
+  auto ratio::numerator() const -> exact_integer
+  {
+    return exact_integer(mpq_numref(value));
   }
 
   ratio::operator double() const
   {
-    return static_cast<double>(numerator().as<exact_integer>()) / static_cast<double>(denominator().as<exact_integer>());
+    return mpq_get_d(value);
   }
 
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &
   {
-    return os << datum.numerator() << cyan("/") << datum.denominator();
+    auto free = [](char * data)
+    {
+      void (*free)(void *, std::size_t);
+      mp_get_memory_functions(nullptr, nullptr, &free);
+      std::invoke(free, static_cast<void *>(data), std::strlen(data) + 1);
+    };
+
+    return os << cyan(std::unique_ptr<char, decltype(free)>(mpq_get_str(nullptr, 10, datum.value), free).get());
   }
 } // namespace kernel
 } // namespace meevax

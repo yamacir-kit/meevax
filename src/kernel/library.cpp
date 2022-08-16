@@ -569,6 +569,16 @@ inline namespace kernel
 
       #undef DEFINE
 
+      library.define<procedure>("ratio-numerator", [](let const& xs)
+      {
+        return make(car(xs).as<ratio>().numerator());
+      });
+
+      library.define<procedure>("ratio-denominator", [](let const& xs)
+      {
+        return make(car(xs).as<ratio>().denominator());
+      });
+
       library.define<procedure>("floor", [](let const& xs)
       {
         return apply<floor>(car(xs));
@@ -648,6 +658,8 @@ inline namespace kernel
       library.export_("-");
       library.export_("/");
       library.export_("%");
+      library.export_("ratio-numerator");
+      library.export_("ratio-denominator");
       library.export_("floor");
       library.export_("ceiling");
       library.export_("truncate");
