@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
 #include <meevax/iostream/lexical_cast.hpp>
-#include <meevax/kernel/constant.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
@@ -234,43 +233,89 @@ inline namespace kernel
       return read(port);
     }
 
+    static auto string_to_integer(external_representation const& token, int radix = 10)
+    {
+      return make<exact_integer>(token, radix);
+    }
+
+    static auto string_to_rational(external_representation const& token, int radix = 10)
+    {
+      try
+      {
+        return string_to_integer(token, radix);
+      }
+      catch (...)
+      {
+        return make(ratio(token, radix));
+      }
+    }
+
+    static auto string_to_real(external_representation const& token, int radix = 10)
+    {
+      try
+      {
+        return string_to_rational(token, radix);
+      }
+      catch (...)
+      {
+        std::unordered_map<external_representation, double> static const constants
+        {
+          // R7RS 7.1.1. Lexical structure
+          { "+inf.0", +std::numeric_limits<double>::infinity()  },
+          { "-inf.0", -std::numeric_limits<double>::infinity()  },
+          { "+nan.0", +std::numeric_limits<double>::quiet_NaN() },
+          { "-nan.0", -std::numeric_limits<double>::quiet_NaN() },
+
+          // SRFI-144
+          { "fl-e",         M_E        },
+          { "fl-log2-e",    M_LOG2E    },
+          { "fl-log10-e",   M_LOG10E   },
+          { "fl-log-2",     M_LN2      },
+          { "fl-1/log-2",   M_LN2      },
+          { "fl-log-10",    M_LN10     },
+          { "fl-1/log-10",  M_LN10     },
+          { "fl-pi",        M_PI       },
+          { "fl-1/pi",      M_1_PI     },
+          { "fl-pi/2",      M_PI_2     },
+          { "fl-pi/4",      M_PI_4     },
+          { "fl-2/pi",      M_2_PI     },
+          { "fl-2/sqrt-pi", M_2_SQRTPI },
+          { "fl-sqrt-2",    M_SQRT2    },
+          { "fl-1/sqrt-2",  M_SQRT1_2  },
+        };
+
+        if (auto iter = constants.find(token); iter != std::end(constants))
+        {
+          return make(iter->second);
+        }
+        else
+        {
+          return make(lexical_cast<double>(token));
+        }
+      }
+    }
+
+    static auto string_to_complex(external_representation const& token, int radix = 10)
+    {
+      try
+      {
+        return string_to_real(token, radix);
+      }
+      catch (...)
+      {
+        return make(complex(token, radix));
+      }
+    }
+
     static auto string_to_number(external_representation const& token, int radix = 10)
     {
       try
       {
-        return make<exact_integer>(token, radix);
+        return string_to_complex(token, radix);
       }
       catch (...)
       {
-        try
-        {
-          return make(ratio(token, radix));
-        }
-        catch (...)
-        {
-          try
-          {
-            return make(lexical_cast<double>(token));
-          }
-          catch (...)
-          {
-            try
-            {
-              return make(complex(token, radix));
-            }
-            catch (...)
-            {
-              if (auto iter = constants.find(token); iter != std::end(constants))
-              {
-                return iter->second;
-              }
-              else
-              {
-                throw read_error(make<string>("not a number"), make<string>(token));
-              }
-            }
-          }
-        }
+        throw read_error(make<string>("not a number"), make<string>(token));
       }
     }
 
