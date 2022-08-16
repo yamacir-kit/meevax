@@ -229,7 +229,7 @@ inline namespace memory
         }
         else
         {
-          return os << yellow(value);
+          return os << std::fixed << std::setprecision(17) << yellow(value);
         }
       }
     }
