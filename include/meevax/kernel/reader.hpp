@@ -254,13 +254,20 @@ inline namespace kernel
           }
           catch (...)
           {
-            if (auto iter = constants.find(token); iter != std::end(constants))
+            try
             {
-              return iter->second;
+              return make(complex(token, radix));
             }
-            else
+            catch (...)
             {
-              throw read_error(make<string>("not a number"), make<string>(token));
+              if (auto iter = constants.find(token); iter != std::end(constants))
+              {
+                return iter->second;
+              }
+              else
+              {
+                throw read_error(make<string>("not a number"), make<string>(token));
+              }
             }
           }
         }

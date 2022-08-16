@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_COMPLEX_HPP
 #define INCLUDED_MEEVAX_KERNEL_COMPLEX_HPP
 
+#include <regex>
+
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/pair.hpp>
 
@@ -28,13 +30,13 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto real() const noexcept -> const_reference;
-
-    auto real() noexcept -> reference;
+    explicit complex(std::string const&, int = 10);
 
     auto imag() const noexcept -> const_reference;
 
-    auto imag() noexcept -> reference;
+    auto pattern() const -> std::regex const&;
+
+    auto real() const noexcept -> const_reference;
   };
 
   auto operator <<(std::ostream &, complex const&) -> std::ostream &;

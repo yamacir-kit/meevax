@@ -21,14 +21,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto complex::real() const noexcept -> const_reference
+  complex::complex(std::string const& token, int radix)
   {
-    return first;
-  }
-
-  auto complex::real() noexcept -> reference
-  {
-    return first;
+    throw error();
   }
 
   auto complex::imag() const noexcept -> const_reference
@@ -36,9 +31,15 @@ inline namespace kernel
     return second;
   }
 
-  auto complex::imag() noexcept -> reference
+  auto complex::pattern() const -> std::regex const&
   {
-    return second;
+    std::regex static const pattern {};
+    return pattern;
+  }
+
+  auto complex::real() const noexcept -> const_reference
+  {
+    return first;
   }
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &
