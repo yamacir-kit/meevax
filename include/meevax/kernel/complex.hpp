@@ -34,7 +34,7 @@ inline namespace kernel
 
     auto imag() const noexcept -> const_reference;
 
-    auto pattern() const -> std::regex const&;
+    static auto pattern() -> std::regex const&;
 
     auto real() const noexcept -> const_reference;
   };

@@ -243,5 +243,97 @@ inline namespace kernel
   {
     return make(get_delimited_elements(is, '"'));
   }
+
+  auto string_to_integer(std::string const& token, int radix) -> value_type
+  {
+    return make<exact_integer>(token, radix);
+  }
+
+  auto string_to_rational(std::string const& token, int radix) -> value_type
+  {
+    try
+    {
+      return string_to_integer(token, radix);
+    }
+    catch (...)
+    {
+      return make(ratio(token, radix));
+    }
+  }
+
+  auto string_to_real(std::string const& token, int radix) -> value_type
+  {
+    try
+    {
+      return string_to_rational(token, radix);
+    }
+    catch (...)
+    {
+      std::unordered_map<external_representation, double> static const constants
+      {
+        // R7RS 7.1.1. Lexical structure
+        { "+inf.0", +std::numeric_limits<double>::infinity()  },
+        { "-inf.0", -std::numeric_limits<double>::infinity()  },
+        { "+nan.0", +std::numeric_limits<double>::quiet_NaN() },
+        { "-nan.0", -std::numeric_limits<double>::quiet_NaN() },
+
+        // SRFI-144
+        { "fl-e",         M_E        },
+        { "fl-log2-e",    M_LOG2E    },
+        { "fl-log10-e",   M_LOG10E   },
+        { "fl-log-2",     M_LN2      },
+        { "fl-1/log-2",   M_LN2      },
+        { "fl-log-10",    M_LN10     },
+        { "fl-1/log-10",  M_LN10     },
+        { "fl-pi",        M_PI       },
+        { "fl-1/pi",      M_1_PI     },
+        { "fl-pi/2",      M_PI_2     },
+        { "fl-pi/4",      M_PI_4     },
+        { "fl-2/pi",      M_2_PI     },
+        { "fl-2/sqrt-pi", M_2_SQRTPI },
+        { "fl-sqrt-2",    M_SQRT2    },
+        { "fl-1/sqrt-2",  M_SQRT1_2  },
+      };
+
+      std::regex static const pattern { R"(([+-]?(?:\d+\.?|\d*\.\d+))([DEFLSdefls][+-]?\d+)?)" };
+
+      if (auto iter = constants.find(token); iter != std::end(constants))
+      {
+        return make(iter->second);
+      }
+      else if (std::regex_match(token, pattern))
+      {
+        return make(lexical_cast<double>(token));
+      }
+      else
+      {
+        throw std::invalid_argument("not a real number");
+      }
+    }
+  }
+
+  auto string_to_complex(std::string const& token, int radix) -> value_type
+  {
+    try
+    {
+      return string_to_real(token, radix);
+    }
+    catch (...)
+    {
+      return make(complex(token, radix));
+    }
+  }
+
+  auto string_to_number(std::string const& token, int radix) -> value_type
+  {
+    try
+    {
+      return string_to_complex(token, radix);
+    }
+    catch (...)
+    {
+      throw read_error(make<string>("not a number"), make<string>(token));
+    }
+  }
 } // namespace kernel
 } // namespace meevax

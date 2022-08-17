@@ -29,8 +29,10 @@ inline namespace kernel
       PRINT(result.str(1));
       PRINT(result.str(2));
     }
-
-    throw error();
+    else
+    {
+      throw std::invalid_argument("not a complex number");
+    }
   }
 
   auto complex::imag() const noexcept -> const_reference
@@ -38,7 +40,7 @@ inline namespace kernel
     return second;
   }
 
-  auto complex::pattern() const -> std::regex const&
+  auto complex::pattern() -> std::regex const&
   {
     std::regex static const pattern { R"(([+-]?.*)([+-].*)i)" };
     return pattern;
