@@ -34,7 +34,7 @@ inline namespace kernel
     }
   }
 
-  auto complex::imag() const noexcept -> const_reference
+  auto complex::imaginary() const noexcept -> const_reference
   {
     return second;
   }
@@ -52,7 +52,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &
   {
-    return os << z.real() << cyan(apply<std::less<void>>(e0, z.imag()).as<bool>() ? '+' : '-') << z.imag() << cyan("i");
+    return os << z.real() << cyan(apply<less>(e0, z.imaginary()).as<bool>() ? "+" : "") << z.imaginary() << cyan("i");
   }
 } // namespace kernel
 } // namespace meevax

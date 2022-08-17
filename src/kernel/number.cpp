@@ -165,10 +165,10 @@ inline namespace kernel
   auto operator > (double a, ratio const& b) -> bool   { return a >  inexact_cast(b); }
   auto operator >=(double a, ratio const& b) -> bool   { return a >= inexact_cast(b); }
 
-  auto operator +(const_reference x, const_reference y) -> value_type { return apply<std::plus      <void>>(x, y); }
-  auto operator -(const_reference x, const_reference y) -> value_type { return apply<std::minus     <void>>(x, y); }
-  auto operator *(const_reference x, const_reference y) -> value_type { return apply<std::multiplies<void>>(x, y); }
-  auto operator /(const_reference x, const_reference y) -> value_type { return apply<std::divides   <void>>(x, y); }
-  auto operator %(const_reference x, const_reference y) -> value_type { return apply<     modulus         >(x, y); }
+  auto operator +(const_reference x, const_reference y) -> value_type { return apply<plus      >(x, y); }
+  auto operator -(const_reference x, const_reference y) -> value_type { return apply<minus     >(x, y); }
+  auto operator *(const_reference x, const_reference y) -> value_type { return apply<multiplies>(x, y); }
+  auto operator /(const_reference x, const_reference y) -> value_type { return apply<divides   >(x, y); }
+  auto operator %(const_reference x, const_reference y) -> value_type { return apply<modulus   >(x, y); }
 } // namespace kernel
 } // namespace meevax
