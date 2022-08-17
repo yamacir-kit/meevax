@@ -284,13 +284,19 @@ inline namespace kernel
           { "fl-1/sqrt-2",  M_SQRT1_2  },
         };
 
+        std::regex static const pattern { R"(([+-]?(?:\d+\.?|\d*\.\d+))([DEFLSdefls][+-]?\d+)?)" };
+
         if (auto iter = constants.find(token); iter != std::end(constants))
         {
           return make(iter->second);
         }
-        else
+        else if (std::regex_match(token, pattern))
         {
           return make(lexical_cast<double>(token));
+        }
+        else
+        {
+          throw std::invalid_argument("not a real number");
         }
       }
     }

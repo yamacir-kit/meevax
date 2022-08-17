@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/number.hpp>
+#include <meevax/kernel/reader.hpp>
 
 namespace meevax
 {
@@ -23,6 +23,13 @@ inline namespace kernel
 {
   complex::complex(std::string const& token, int radix)
   {
+    if (std::smatch result; std::regex_match(token, result, pattern()))
+    {
+      PRINT(result.str(0));
+      PRINT(result.str(1));
+      PRINT(result.str(2));
+    }
+
     throw error();
   }
 
@@ -33,7 +40,7 @@ inline namespace kernel
 
   auto complex::pattern() const -> std::regex const&
   {
-    std::regex static const pattern {};
+    std::regex static const pattern { R"(([+-]?.*)([+-].*)i)" };
     return pattern;
   }
 
