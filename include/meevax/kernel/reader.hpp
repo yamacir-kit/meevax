@@ -32,9 +32,9 @@ inline namespace kernel
 {
   auto get_codepoint(std::istream &) -> character::int_type;
 
-  auto get_delimited_elements(std::istream & is, character::int_type) -> string;
+  auto get_delimited_elements(std::istream &, character::int_type) -> string;
 
-  auto get_token(std::istream &) -> external_representation;
+  auto get_token(std::istream &) -> std::string;
 
   auto ignore_nested_block_comment(std::istream &) -> std::istream &;
 
@@ -65,7 +65,7 @@ inline namespace kernel
     using char_type = typename std::istream::char_type;
 
   public:
-    static inline std::unordered_map<external_representation, value_type> symbols {};
+    static inline std::unordered_map<std::string, value_type> symbols {};
 
     inline auto char_ready() const
     {
@@ -107,7 +107,7 @@ inline namespace kernel
             return string_to_symbol(get_delimited_elements(is.putback(c), c));
 
           case 'b': // (string->number (read) 2)
-            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 2);
+            return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 2);
 
           case 'c': // Common Lisp
             {
@@ -117,7 +117,7 @@ inline namespace kernel
             }
 
           case 'd':
-            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 10);
+            return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 10);
 
           case 'e':
             return apply<exact>(read(is)); // NOTE: Same as #,(exact (read))
@@ -130,14 +130,14 @@ inline namespace kernel
             return apply<inexact>(read(is)); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 8);
+            return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 8);
 
           case 't':
             get_token(is);
             return t;
 
           case 'x':
-            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 16);
+            return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 16);
 
           case '(':
             is.putback(c);
@@ -237,13 +237,13 @@ inline namespace kernel
       return read(standard_input);
     }
 
-    inline auto read(external_representation const& s) -> value_type // NOTE: Specifying `decltype(auto)` causes a `undefined reference to ...` error in GCC-7.
+    inline auto read(std::string const& s) -> value_type // NOTE: Specifying `decltype(auto)` causes a `undefined reference to ...` error in GCC-7.
     {
       auto port = std::stringstream(s);
       return read(port);
     }
 
-    static auto string_to_symbol(external_representation const& name) -> const_reference
+    static auto string_to_symbol(std::string const& name) -> const_reference
     {
       if (auto const iter = symbols.find(name); iter != std::end(symbols))
       {

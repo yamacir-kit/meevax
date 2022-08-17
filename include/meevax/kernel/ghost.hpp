@@ -25,7 +25,7 @@ inline namespace kernel
 {
   struct ghost
   {
-    external_representation const name;
+    std::string const name;
   };
 
   auto operator <<(std::ostream &, ghost const&) -> std::ostream &;

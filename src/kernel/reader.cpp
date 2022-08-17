@@ -16,7 +16,6 @@
 
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/reader.hpp>
-#include <string>
 
 namespace meevax
 {
@@ -122,7 +121,7 @@ inline namespace kernel
         case 't': s.codepoints.emplace_back('\t'); break;
         case 'v': s.codepoints.emplace_back('\v'); break;
         case 'x':
-          if (auto token = external_representation(); std::getline(is, token, ';'))
+          if (auto token = std::string(); std::getline(is, token, ';'))
           {
             s.codepoints.emplace_back(lexical_cast<character::int_type>(std::hex, token));
           }
@@ -196,7 +195,7 @@ inline namespace kernel
 
   auto read_character_literal(std::istream & is) -> value_type
   {
-    std::unordered_map<external_representation, character::int_type> static const character_names {
+    std::unordered_map<std::string, character::int_type> static const character_names {
       { "alarm"    , 0x07 },
       { "backspace", 0x08 },
       { "delete"   , 0x7F },
@@ -269,7 +268,7 @@ inline namespace kernel
     }
     catch (...)
     {
-      std::unordered_map<external_representation, double> static const constants
+      std::unordered_map<std::string, double> static const constants
       {
         // R7RS 7.1.1. Lexical structure
         { "+inf.0", +std::numeric_limits<double>::infinity()  },
@@ -332,7 +331,7 @@ inline namespace kernel
     }
     catch (...)
     {
-      throw read_error(make<string>("not a number"), make<string>(token));
+      throw std::invalid_argument("not a number");
     }
   }
 } // namespace kernel

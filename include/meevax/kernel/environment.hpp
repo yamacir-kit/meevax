@@ -46,7 +46,7 @@ inline namespace kernel
 
     explicit environment(environment const&) = default;
 
-    template <typename... Ts, REQUIRES(std::is_convertible<Ts, external_representation>...)>
+    template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
     explicit environment(Ts&&... xs)
     {
       (import(xs), ...);
@@ -88,9 +88,9 @@ inline namespace kernel
 
     auto import_(const_reference) -> void;
 
-    auto import_(external_representation const&) -> void;
+    auto import_(std::string const&) -> void;
 
-    auto load(external_representation const&) -> value_type;
+    auto load(std::string const&) -> value_type;
 
     auto resolve(const_reference) -> value_type;
 

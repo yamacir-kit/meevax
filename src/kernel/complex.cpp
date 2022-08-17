@@ -25,9 +25,8 @@ inline namespace kernel
   {
     if (std::smatch result; std::regex_match(token, result, pattern()))
     {
-      PRINT(result.str(0));
-      PRINT(result.str(1));
-      PRINT(result.str(2));
+      std::get<0>(*this) = string_to_real(result.str(1), radix);
+      std::get<1>(*this) = string_to_real(result.str(2), radix);
     }
     else
     {

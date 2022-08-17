@@ -42,7 +42,7 @@ inline namespace kernel
 
     explicit ratio(double);
 
-    explicit ratio(external_representation const&, int = 10);
+    explicit ratio(std::string const&, int = 10);
 
     auto denominator() const -> exact_integer;
 

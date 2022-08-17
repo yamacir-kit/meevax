@@ -52,7 +52,7 @@ inline namespace kernel
 
     virtual auto raise() const -> void;
 
-    virtual auto what() const -> external_representation;
+    virtual auto what() const -> std::string;
   };
 
   auto operator <<(std::ostream &, error const&) -> std::ostream &;
