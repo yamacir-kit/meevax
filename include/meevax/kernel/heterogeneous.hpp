@@ -151,7 +151,7 @@ inline namespace kernel
     template <typename U>
     inline auto is() const
     {
-      return type() == typeid(typename std::decay<U>::type);
+      return type() == typeid(std::decay_t<U>);
     }
 
     template <typename U, REQUIRES(std::is_class<U>)>

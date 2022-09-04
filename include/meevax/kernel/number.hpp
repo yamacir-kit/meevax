@@ -234,6 +234,7 @@ inline namespace kernel
       { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
       { type_index<1>(typeid(float        )), application<F, float        >() },
       { type_index<1>(typeid(double       )), application<F, double       >() },
+      // { type_index<1>(typeid(complex      )), application<F, complex      >() },
     };
 
     return apply.at(type_index<1>(x.type()))(x);
@@ -285,7 +286,7 @@ inline namespace kernel
   struct inexact
   {
     template <typename T>
-    auto operator ()(T const& x) const -> decltype(auto)
+    auto operator ()(T&& x) const -> decltype(auto)
     {
       if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
       {

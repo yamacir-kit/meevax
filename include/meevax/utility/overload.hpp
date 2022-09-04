@@ -34,7 +34,7 @@ inline namespace utility
   overloads(Ts&&...) -> overloads<Ts...>;
 
   template <typename... Ts>
-  constexpr auto overload(Ts&&... xs) -> overloads<typename std::decay<Ts...>::type>
+  constexpr auto overload(Ts&&... xs) -> overloads<std::decay_t<Ts...>>
   {
     return { std::forward<decltype(xs)>(xs)... };
   }

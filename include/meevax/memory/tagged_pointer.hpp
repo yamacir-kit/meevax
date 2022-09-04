@@ -87,15 +87,15 @@ inline namespace memory
     template <typename U>
     auto as() const
     {
-      return bit_cast<typename std::decay<U>::type>(
-               static_cast<uintN_t<sizeof(typename std::decay<U>::type)>>(
+      return bit_cast<std::decay_t<U>>(
+               static_cast<uintN_t<sizeof(std::decay_t<U>)>>(
                  reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) >> 32));
     }
 
     template <typename U>
     auto is() const noexcept
     {
-      return type() == typeid(typename std::decay<U>::type);
+      return type() == typeid(std::decay_t<U>);
     }
 
     constexpr auto tag() const noexcept
@@ -109,7 +109,7 @@ inline namespace memory
       {
       #define DEFINE(TAG)                                                      \
       case TAG:                                                                \
-        return typeid(typename std::decay<T_##TAG>::type)
+        return typeid(std::decay_t<T_##TAG>)
 
       DEFINE(0b001);
       DEFINE(0b010);
