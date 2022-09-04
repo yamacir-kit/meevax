@@ -420,26 +420,6 @@ inline namespace kernel
     }
   };
 
-  struct is_finite
-  {
-    template <typename T>
-    constexpr auto operator ()(T&& x) const
-    {
-      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
-      {
-        return apply<is_finite>(x.real()) and apply<is_finite>(x.imaginary());
-      }
-      else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
-      {
-        return not std::isinf(x);
-      }
-      else
-      {
-        return true;
-      }
-    }
-  };
-
   struct is_infinite
   {
     template <typename T>
@@ -457,6 +437,15 @@ inline namespace kernel
       {
         return false;
       }
+    }
+  };
+
+  struct is_finite
+  {
+    template <typename T>
+    constexpr auto operator ()(T&& x) const
+    {
+      return not std::invoke(is_infinite(), std::forward<decltype(x)>(x));
     }
   };
 
@@ -483,7 +472,7 @@ inline namespace kernel
   struct sqrt
   {
     template <typename T>
-    constexpr auto operator ()(T&& x) const
+    constexpr auto operator ()(T&& x) const -> decltype(auto)
     {
       if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
       {
@@ -509,17 +498,31 @@ inline namespace kernel
 
   struct expt
   {
-    template <typename T, typename U>
-    auto operator ()(T const& x, U const& y) const -> decltype(auto)
+    template <typename Base, typename Exponent>
+    constexpr auto operator ()(Base&& base, Exponent&& exponent) const -> decltype(auto)
     {
-      return std::pow(inexact_cast(x), inexact_cast(y));
+      if constexpr (std::is_same_v<std::decay_t<decltype(base)>, exact_integer> and
+                    std::is_same_v<std::decay_t<decltype(exponent)>, exact_integer>)
+      {
+        exact_integer result {};
+        mpz_pow_ui(result.value, base.value, static_cast<unsigned long>(exponent));
+        return result;
+      }
+      else
+      {
+        return std::pow(inexact_cast(std::forward<decltype(base)>(base)),
+                        inexact_cast(std::forward<decltype(exponent)>(exponent)));
+      }
     }
+  };
 
-    auto operator ()(exact_integer const& base, exact_integer const& exponent) const
+  struct atan2
+  {
+    template <typename T, typename U>
+    auto operator ()(T&& x, U&& y) const
     {
-      exact_integer result {};
-      mpz_pow_ui(result.value, base.value, static_cast<unsigned long>(exponent));
-      return result;
+      return std::atan2(inexact_cast(std::forward<decltype(x)>(x)),
+                        inexact_cast(std::forward<decltype(y)>(y)));
     }
   };
 
@@ -558,17 +561,16 @@ inline namespace kernel
   #define DEFINE(CMATH)                                                        \
   struct CMATH                                                                 \
   {                                                                            \
-    template <typename... Ts>                                                  \
-    auto operator ()(Ts&&... xs) const                                         \
+    template <typename T>                                                      \
+    auto operator ()(T&& x) const                                              \
     {                                                                          \
-      return std::CMATH(inexact_cast(std::forward<decltype(xs)>(xs))...);      \
+      return std::CMATH(inexact_cast(std::forward<decltype(x)>(x)));           \
     }                                                                          \
   }
 
   DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
   DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
   DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
-               DEFINE(atan2);
 
   DEFINE(exp);
   DEFINE(log);
