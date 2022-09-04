@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_COMPLEX_HPP
 #define INCLUDED_MEEVAX_KERNEL_COMPLEX_HPP
 
+#include <complex>
 #include <regex>
 
 #include <meevax/kernel/ghost.hpp>
@@ -37,6 +38,8 @@ inline namespace kernel
     static auto pattern() -> std::regex const&;
 
     auto real() const noexcept -> const_reference;
+
+    explicit operator std::complex<double>();
   };
 
   auto operator <<(std::ostream &, complex const&) -> std::ostream &;

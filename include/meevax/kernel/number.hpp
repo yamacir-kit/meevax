@@ -265,7 +265,12 @@ inline namespace kernel
     template <typename T>
     auto operator ()(T&& x) const -> decltype(auto)
     {
-      if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
+      {
+        return complex(apply<exact>(x.real()),
+                       apply<exact>(x.imaginary()));
+      }
+      else if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
       {
         return ratio(std::forward<decltype(x)>(x));
       }
@@ -274,14 +279,20 @@ inline namespace kernel
         return std::forward<decltype(x)>(x);
       }
     }
-  } inline constexpr exact_cast;
+  }
+  inline constexpr exact_cast;
 
   struct inexact
   {
     template <typename T>
     auto operator ()(T const& x) const -> decltype(auto)
     {
-      if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
+      {
+        return complex(apply<inexact>(x.real()),
+                       apply<inexact>(x.imaginary()));
+      }
+      else if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
       {
         return std::forward<decltype(x)>(x);
       }
@@ -290,7 +301,8 @@ inline namespace kernel
         return static_cast<double>(std::forward<decltype(x)>(x));
       }
     }
-  } inline constexpr inexact_cast;
+  }
+  inline constexpr inexact_cast;
 
   using plus = std::plus<void>;
 
@@ -412,7 +424,11 @@ inline namespace kernel
     template <typename T>
     constexpr auto operator ()(T&& x) const
     {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>>)
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
+      {
+        return apply<is_finite>(x.real()) and apply<is_finite>(x.imaginary());
+      }
+      else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
         return not std::isinf(x);
       }
@@ -428,7 +444,11 @@ inline namespace kernel
     template <typename T>
     constexpr auto operator ()(T&& x) const
     {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>>)
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
+      {
+        return apply<is_infinite>(x.real()) or apply<is_infinite>(x.imaginary());
+      }
+      else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
         return std::isinf(x);
       }
@@ -444,7 +464,11 @@ inline namespace kernel
     template <typename T>
     constexpr auto operator ()(T&& x) const
     {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>>)
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
+      {
+        return apply<is_nan>(x.real()) or apply<is_nan>(x.imaginary());
+      }
+      else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
         return std::isnan(x);
       }
@@ -458,20 +482,26 @@ inline namespace kernel
   struct sqrt
   {
     template <typename T>
-    auto operator ()(T const& x) const
+    constexpr auto operator ()(T&& x) const
     {
-      return std::sqrt(inexact_cast(x));
-    }
-
-    auto operator ()(exact_integer const& x) const
-    {
-      if (auto&& [s, r] = exact_integer_sqrt(x); r == 0)
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
       {
-        return make(s);
+        return std::sqrt(static_cast<std::complex<double>>(std::forward<decltype(x)>(x)));
+      }
+      else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, exact_integer>)
+      {
+        if (auto&& [s, r] = exact_integer_sqrt(x); r == 0)
+        {
+          return make(s);
+        }
+        else
+        {
+          return make(std::sqrt(inexact_cast(x)));
+        }
       }
       else
       {
-        return make(operator ()<exact_integer const&>(x));
+        return std::sqrt(inexact_cast(x));
       }
     }
   };
@@ -496,19 +526,24 @@ inline namespace kernel
   struct ROUND                                                                 \
   {                                                                            \
     template <typename T>                                                      \
-    auto operator ()(T const& x) const                                         \
+    constexpr auto operator ()(T&& x) const                                    \
     {                                                                          \
-      return std::ROUND(inexact_cast(x));                                      \
-    }                                                                          \
-                                                                               \
-    auto operator ()(exact_integer const& x) const -> auto const&              \
-    {                                                                          \
-      return x;                                                                \
-    }                                                                          \
-                                                                               \
-    auto operator ()(ratio const& x) const                                     \
-    {                                                                          \
-      return exact_integer(operator ()<ratio const&>(x));                      \
+      if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)       \
+      {                                                                        \
+        return std::ROUND(inexact_cast(x));                                    \
+      }                                                                        \
+      else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, ratio>)     \
+      {                                                                        \
+        return exact_integer(std::ROUND(inexact_cast(x)));                     \
+      }                                                                        \
+      else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, exact_integer>) \
+      {                                                                        \
+        return std::forward<decltype(x)>(x);                                   \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        throw std::invalid_argument("not a real number");                      \
+      }                                                                        \
     }                                                                          \
   }
 

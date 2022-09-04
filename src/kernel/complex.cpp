@@ -41,13 +41,22 @@ inline namespace kernel
 
   auto complex::pattern() -> std::regex const&
   {
-    std::regex static const pattern { R"(([+-]?.*)([+-].*)i)" };
+    std::regex static const pattern { R"(([+-]?.*)([+-].*)[ij])" };
     return pattern;
   }
 
   auto complex::real() const noexcept -> const_reference
   {
     return first;
+  }
+
+  complex::operator std::complex<double>()
+  {
+    assert(apply<is_real>(real()));
+    assert(apply<is_real>(imaginary()));
+
+    return std::complex(apply<inexact>(real()).as<double>(),
+                        apply<inexact>(imaginary()).as<double>());
   }
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &
