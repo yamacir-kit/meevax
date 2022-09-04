@@ -36,7 +36,7 @@ inline namespace kernel
     }
   }
 
-  auto complex::imaginary() const noexcept -> const_reference
+  auto complex::imag() const noexcept -> const_reference
   {
     return second;
   }
@@ -55,27 +55,27 @@ inline namespace kernel
   complex::operator std::complex<double>()
   {
     assert(apply<is_real>(real()));
-    assert(apply<is_real>(imaginary()));
+    assert(apply<is_real>(imag()));
 
     return std::complex(apply<inexact>(real()).as<double>(),
-                        apply<inexact>(imaginary()).as<double>());
+                        apply<inexact>(imag()).as<double>());
   }
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &
   {
     os << z.real();
 
-    if (apply<equal_to>(e0, z.imaginary()).as<bool>())
+    if (apply<equal_to>(e0, z.imag()).as<bool>())
     {
       return os;
     }
-    else if (apply<less>(e0, z.imaginary()).as<bool>())
+    else if (apply<less>(e0, z.imag()).as<bool>())
     {
-      return os << cyan("+") << z.imaginary() << cyan("i");
+      return os << cyan("+") << z.imag() << cyan("i");
     }
     else
     {
-      return os << z.imaginary() << cyan("i");
+      return os << z.imag() << cyan("i");
     }
   }
 } // namespace kernel

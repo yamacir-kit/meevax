@@ -33,7 +33,7 @@ inline namespace kernel
 
     explicit complex(std::string const&, int = 10);
 
-    auto imaginary() const noexcept -> const_reference;
+    auto imag() const noexcept -> const_reference;
 
     static auto pattern() -> std::regex const&;
 
