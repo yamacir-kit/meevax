@@ -97,7 +97,7 @@ inline namespace kernel
 
     catch (std::exception const& error)
     {
-      std::cerr << "; error" << error.what() << std::endl;
+      std::cerr << "; error " << std::quoted(error.what()) << std::endl;
       return underlying_cast(exit_status::failure);
     }
 

@@ -234,7 +234,7 @@ inline namespace kernel
       { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
       { type_index<1>(typeid(float        )), application<F, float        >() },
       { type_index<1>(typeid(double       )), application<F, double       >() },
-      // { type_index<1>(typeid(complex      )), application<F, complex      >() },
+      { type_index<1>(typeid(complex      )), application<F, complex      >() },
     };
 
     return apply.at(type_index<1>(x.type()))(x);
@@ -499,7 +499,7 @@ inline namespace kernel
   struct expt
   {
     template <typename Base, typename Exponent>
-    constexpr auto operator ()(Base&& base, Exponent&& exponent) const -> decltype(auto)
+    auto operator ()(Base&& base, Exponent&& exponent) const -> decltype(auto)
     {
       if constexpr (std::is_same_v<std::decay_t<decltype(base)>, exact_integer> and
                     std::is_same_v<std::decay_t<decltype(exponent)>, exact_integer>)
@@ -546,7 +546,8 @@ inline namespace kernel
       }                                                                        \
       else                                                                     \
       {                                                                        \
-        throw std::invalid_argument("not a real number");                      \
+        return complex(apply<ROUND>(x.real()),                                 \
+                       apply<ROUND>(x.imaginary()));                           \
       }                                                                        \
     }                                                                          \
   }
@@ -561,10 +562,17 @@ inline namespace kernel
   #define DEFINE(CMATH)                                                        \
   struct CMATH                                                                 \
   {                                                                            \
-    template <typename T>                                                      \
-    auto operator ()(T&& x) const                                              \
+    template <typename Number>                                                 \
+    auto operator ()(Number&& number) const                                    \
     {                                                                          \
-      return std::CMATH(inexact_cast(std::forward<decltype(x)>(x)));           \
+      if constexpr (std::is_same_v<std::decay_t<Number>, complex>)             \
+      {                                                                        \
+        return std::CMATH(static_cast<std::complex<double>>(std::forward<Number>(number))); \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        return std::CMATH(inexact_cast(std::forward<Number>(number)));         \
+      }                                                                        \
     }                                                                          \
   }
 
