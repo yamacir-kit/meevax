@@ -25,8 +25,10 @@ inline namespace kernel
   {
     if (std::smatch result; std::regex_match(token, result, pattern()))
     {
+      auto&& i = result.str(2);
+
       std::get<0>(*this) = string_to_real(result.str(1), radix);
-      std::get<1>(*this) = string_to_real(result.str(2), radix);
+      std::get<1>(*this) = string_to_real(not i.empty() and i[0] == '+' ? i.substr(1) : i, radix);
     }
     else
     {
@@ -61,7 +63,20 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &
   {
-    return os << z.real() << cyan(apply<less>(e0, z.imaginary()).as<bool>() ? "+" : "") << z.imaginary() << cyan("i");
+    os << z.real();
+
+    if (apply<equal_to>(e0, z.imaginary()).as<bool>())
+    {
+      return os;
+    }
+    else if (apply<less>(e0, z.imaginary()).as<bool>())
+    {
+      return os << cyan("+") << z.imaginary() << cyan("i");
+    }
+    else
+    {
+      return os << z.imaginary() << cyan("i");
+    }
   }
 } // namespace kernel
 } // namespace meevax

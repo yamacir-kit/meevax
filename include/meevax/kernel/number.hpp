@@ -181,32 +181,93 @@ inline namespace kernel
   auto operator /(const_reference, const_reference) -> value_type;
   auto operator %(const_reference, const_reference) -> value_type;
 
+  using plus = std::plus<void>;
+
+  using minus = std::minus<void>;
+
+  using multiplies = std::multiplies<void>;
+
+  using divides = std::divides<void>;
+
+  struct modulus
+  {
+    template <typename T, typename U>
+    auto operator ()(T&& x, U&& y) const
+    {
+      if constexpr (std::is_floating_point_v<std::decay_t<T>> and
+                    std::is_floating_point_v<std::decay_t<U>>)
+      {
+        return std::fmod(x, y);
+      }
+      else
+      {
+        return x % y;
+      }
+    }
+  };
+
+  struct equal_to
+  {
+    template <typename T, typename U>
+    auto operator ()(T&& x, U&& y) const
+    {
+      if constexpr (std::is_floating_point_v<std::decay_t<T>> and
+                    std::is_floating_point_v<std::decay_t<U>>)
+      {
+        if (std::isnan(x) and std::isnan(y))
+        {
+          return true;
+        }
+        else if (std::isinf(x) or std::isinf(y))
+        {
+          return x == y;
+        }
+        else
+        {
+          return std::abs(x - y) <= std::numeric_limits<decltype(std::declval<T>() - std::declval<U>())>::epsilon();
+        }
+      }
+      else
+      {
+        return x == y;
+      }
+    }
+  };
+
+  using less = std::less<void>;
+
+  using less_equal = std::less_equal<void>;
+
+  using greater = std::greater<void>;
+
+  using greater_equal = std::greater_equal<void>;
+
   template <typename F, typename... Ts>
   struct application
   {
     static inline constexpr F f {};
 
     template <typename T>
-    auto finish(T&& z) -> decltype(auto)
+    auto finish(T&& x) -> decltype(auto)
     {
-      if constexpr (std::is_same_v<std::decay_t<decltype(z)>, value_type>)
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, value_type>)
       {
-        return std::forward<decltype(z)>(z);
+        return std::forward<decltype(x)>(x);
       }
-      else if constexpr (std::is_same_v<std::decay_t<decltype(z)>, ratio>)
+      else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, ratio>)
       {
-        if (z.denominator() == 1)
+        if (x.denominator() == 1)
         {
-          return make(z.numerator());
+          return make(x.numerator());
         }
         else
         {
-          return make(std::forward<decltype(z)>(z));
+          return make(std::forward<decltype(x)>(x));
         }
       }
       else
       {
-        return make(std::forward<decltype(z)>(z));
+        return make(std::forward<decltype(x)>(x));
       }
     }
 
@@ -304,67 +365,6 @@ inline namespace kernel
     }
   }
   inline constexpr inexact_cast;
-
-  using plus = std::plus<void>;
-
-  using minus = std::minus<void>;
-
-  using multiplies = std::multiplies<void>;
-
-  using divides = std::divides<void>;
-
-  struct modulus
-  {
-    template <typename T, typename U>
-    auto operator ()(T&& x, U&& y) const
-    {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>> and std::is_floating_point_v<std::decay_t<U>>)
-      {
-        return std::fmod(x, y);
-      }
-      else
-      {
-        return x % y;
-      }
-    }
-  };
-
-  struct equal_to
-  {
-    template <typename T, typename U>
-    auto operator ()(T&& x, U&& y) const
-    {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>> and std::is_floating_point_v<std::decay_t<U>>)
-      {
-        if (std::isnan(x) and std::isnan(y))
-        {
-          return true;
-        }
-        else if (std::isinf(x) or std::isinf(y))
-        {
-          return x == y;
-        }
-        else
-        {
-          return std::abs(x - y) <= std::numeric_limits<decltype(std::declval<T>() - std::declval<U>())>::epsilon();
-        }
-      }
-      else
-      {
-        return x == y;
-      }
-    }
-  };
-
-  using not_equal_to = std::not_equal_to<void>;
-
-  using less = std::less<void>;
-
-  using less_equal = std::less_equal<void>;
-
-  using greater = std::greater<void>;
-
-  using greater_equal = std::greater_equal<void>;
 
   struct is_complex
   {
@@ -562,16 +562,18 @@ inline namespace kernel
   #define DEFINE(CMATH)                                                        \
   struct CMATH                                                                 \
   {                                                                            \
-    template <typename Number>                                                 \
-    auto operator ()(Number&& number) const                                    \
+    template <typename T>                                                      \
+    auto operator ()(T&& x) const                                              \
     {                                                                          \
-      if constexpr (std::is_same_v<std::decay_t<Number>, complex>)             \
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)        \
       {                                                                        \
-        return std::CMATH(static_cast<std::complex<double>>(std::forward<Number>(number))); \
+        auto result = std::CMATH(static_cast<std::complex<double>>(std::forward<decltype(x)>(x))); \
+        return complex(make(result.real()),                                    \
+                       make(result.imag()));                                   \
       }                                                                        \
       else                                                                     \
       {                                                                        \
-        return std::CMATH(inexact_cast(std::forward<Number>(number)));         \
+        return std::CMATH(inexact_cast(std::forward<decltype(x)>(x)));         \
       }                                                                        \
     }                                                                          \
   }

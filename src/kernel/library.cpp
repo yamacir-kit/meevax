@@ -534,38 +534,37 @@ inline namespace kernel
                  }) == std::end(xs);                                           \
       })
 
-      DEFINE(= ,      equal_to           );
-      DEFINE(!=, std::not_equal_to <void>);
-      DEFINE(< , std::less         <void>);
-      DEFINE(<=, std::less_equal   <void>);
-      DEFINE(> , std::greater      <void>);
-      DEFINE(>=, std::greater_equal<void>);
+      DEFINE(= , equal_to     );
+      DEFINE(< , less         );
+      DEFINE(<=, less_equal   );
+      DEFINE(> , greater      );
+      DEFINE(>=, greater_equal);
 
       #undef DEFINE
 
       library.define<procedure>("+", [](let const& xs)
       {
-        return std::accumulate(std::begin(xs), std::end(xs), e0, std::plus<void>());
+        return std::accumulate(std::begin(xs), std::end(xs), e0, plus());
       });
 
       library.define<procedure>("*", [](let const& xs)
       {
-        return std::accumulate(std::begin(xs), std::end(xs), e1, std::multiplies<void>());
+        return std::accumulate(std::begin(xs), std::end(xs), e1, multiplies());
       });
 
       #define DEFINE(SYMBOL, FUNCTION, BASIS)                                  \
       library.define<procedure>(SYMBOL, [](let const& xs)                      \
       {                                                                        \
-        return cdr(xs).is<pair>() ? std::accumulate(std::begin(cdr(xs)), std::end(xs), car(xs), [](auto&& a, auto&& b) \
+        return cdr(xs).is<pair>() ? std::accumulate(std::next(std::begin(xs)), std::end(xs), car(xs), [](auto&& a, auto&& b) \
                                     {                                          \
-                                      return FUNCTION(a, b);                   \
+                                      return FUNCTION()(a, b);                 \
                                     })                                         \
-                                  : FUNCTION(BASIS, car(xs));                  \
+                                  : FUNCTION()(BASIS, car(xs));                \
       })
 
-      DEFINE("-", std::minus  <void>(), e0);
-      DEFINE("/", std::divides<void>(), e1);
-      DEFINE("%", std::modulus<void>(), e1);
+      DEFINE("-", minus  , e0);
+      DEFINE("/", divides, e1);
+      DEFINE("%", modulus, e1);
 
       #undef DEFINE
 
@@ -1064,16 +1063,16 @@ inline namespace kernel
         return std::adjacent_find(                                             \
                  std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
                  {                                                             \
-                   return not COMPARE(a.as_const<string>().codepoints,         \
-                                      b.as_const<string>().codepoints);        \
+                   return not COMPARE()(a.as_const<string>().codepoints,       \
+                                        b.as_const<string>().codepoints);      \
                  }) == std::end(xs);                                           \
       }
 
-      library.define<predicate>("string=?",  STRING_COMPARE(std::equal_to     <void>()));
-      library.define<predicate>("string<?",  STRING_COMPARE(std::less         <void>()));
-      library.define<predicate>("string<=?", STRING_COMPARE(std::less_equal   <void>()));
-      library.define<predicate>("string>?",  STRING_COMPARE(std::greater      <void>()));
-      library.define<predicate>("string>=?", STRING_COMPARE(std::greater_equal<void>()));
+      library.define<predicate>("string=?",  STRING_COMPARE(equal_to     ));
+      library.define<predicate>("string<?",  STRING_COMPARE(less         ));
+      library.define<predicate>("string<=?", STRING_COMPARE(less_equal   ));
+      library.define<predicate>("string>?",  STRING_COMPARE(greater      ));
+      library.define<predicate>("string>=?", STRING_COMPARE(greater_equal));
 
       #undef STRING_COMPARE
 
