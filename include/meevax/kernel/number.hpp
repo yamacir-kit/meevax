@@ -254,6 +254,17 @@ inline namespace kernel
       {
         return std::forward<decltype(x)>(x);
       }
+      else if constexpr (std::is_same_v<std::decay_t<T>, complex>)
+      {
+        if (x.imag() == e0)
+        {
+          return make(x.real());
+        }
+        else
+        {
+          return make(std::forward<decltype(x)>(x));
+        }
+      }
       else if constexpr (std::is_same_v<std::decay_t<T>, ratio>)
       {
         if (x.denominator() == 1)
