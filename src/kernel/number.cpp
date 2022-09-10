@@ -14,7 +14,6 @@
    limitations under the License.
 */
 
-#include <functional>
 #include <meevax/kernel/number.hpp>
 
 namespace meevax
@@ -164,6 +163,12 @@ inline namespace kernel
   auto operator <=(double a, ratio const& b) -> bool   { return a <= inexact_cast(b); }
   auto operator > (double a, ratio const& b) -> bool   { return a >  inexact_cast(b); }
   auto operator >=(double a, ratio const& b) -> bool   { return a >= inexact_cast(b); }
+
+  auto operator + (complex const& a, complex const& b) -> complex { return complex(a.real() + b.real(), a.imag() + b.imag()); }
+  auto operator - (complex const& a, complex const& b) -> complex { return complex(a.real() - b.real(), a.imag() - b.imag()); }
+  auto operator * (complex const& a, complex const& b) -> complex { return complex(a.real() * b.real() - a.imag() * b.imag(), a.imag() * b.real() + a.real() * b.imag()); }
+  auto operator / (complex const& a, complex const& b) -> complex { auto x = a.real() * b.real() + a.imag() * b.imag(); auto y = a.imag() * b.real() - a.real() * b.imag(); auto d = b.real() * b.real() + b.imag() * b.imag(); return complex(x / d, y / d); }
+  auto operator % (complex const&  , complex const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
 
   auto operator +(const_reference x, const_reference y) -> value_type { return apply<plus      >(x, y); }
   auto operator -(const_reference x, const_reference y) -> value_type { return apply<minus     >(x, y); }

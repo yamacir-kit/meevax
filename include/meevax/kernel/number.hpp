@@ -175,6 +175,12 @@ inline namespace kernel
   auto operator > (double, ratio const&) -> bool;
   auto operator >=(double, ratio const&) -> bool;
 
+  auto operator + (complex const&, complex const&) -> complex;
+  auto operator - (complex const&, complex const&) -> complex;
+  auto operator * (complex const&, complex const&) -> complex;
+  auto operator / (complex const&, complex const&) -> complex;
+  auto operator % (complex const&, complex const&) -> complex;
+
   auto operator +(const_reference, const_reference) -> value_type;
   auto operator -(const_reference, const_reference) -> value_type;
   auto operator *(const_reference, const_reference) -> value_type;
