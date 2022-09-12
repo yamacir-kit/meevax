@@ -356,7 +356,7 @@ inline namespace kernel
     static inline constexpr F f {};
 
     template <typename T>
-    auto finish(T&& x) -> decltype(auto)
+    auto canonicalize(T&& x) -> decltype(auto)
     {
       if constexpr (std::is_same_v<std::decay_t<T>, value_type>)
       {
@@ -364,14 +364,7 @@ inline namespace kernel
       }
       else if constexpr (std::is_same_v<std::decay_t<T>, complex>)
       {
-        if (x.imag() == e0)
-        {
-          return make(x.real());
-        }
-        else
-        {
-          return make(std::forward<decltype(x)>(x));
-        }
+        return x.canonicalize();
       }
       else if constexpr (std::is_same_v<std::decay_t<T>, ratio>)
       {
@@ -392,13 +385,14 @@ inline namespace kernel
 
     auto operator ()(const_reference x) -> value_type
     {
-      return finish(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
+      return canonicalize(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
     }
 
-    auto operator ()(const_reference x, const_reference y) -> value_type
+    auto operator ()(const_reference x,
+                     const_reference y) -> value_type
     {
-      return finish(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
-                      y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
+      return canonicalize(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
+                            y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
     }
   };
 

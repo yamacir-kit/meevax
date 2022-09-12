@@ -34,6 +34,18 @@ inline namespace kernel
     }
   }
 
+  auto complex::canonicalize() const -> value_type
+  {
+    if (apply<equal_to>(imag(), e0).as<bool>())
+    {
+      return real();
+    }
+    else
+    {
+      return make(*this);
+    }
+  }
+
   auto complex::imag() const noexcept -> const_reference
   {
     return second;
@@ -61,11 +73,9 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &
   {
-    os << z.real();
-
     if (apply<equal_to>(z.imag(), e0).as<bool>())
     {
-      return os;
+      return os << z.real();
     }
     else
     {
@@ -82,7 +92,7 @@ inline namespace kernel
         }
       };
 
-      return os << cyan(explicitly_signed(z.imag()), "i");
+      return os << z.real() << cyan(explicitly_signed(z.imag()), "i");
     }
   }
 } // namespace kernel
