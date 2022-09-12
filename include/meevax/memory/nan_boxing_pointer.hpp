@@ -221,15 +221,15 @@ inline namespace memory
       default:
         if (auto value = as<float64>(); std::isnan(value))
         {
-          return os << yellow("+nan.0");
+          return os << cyan("+nan.0");
         }
         else if (std::isinf(value))
         {
-          return os << yellow(0 < value ? '+' : '-', "inf.0");
+          return os << cyan(0 < value ? '+' : '-', "inf.0");
         }
         else
         {
-          return os << std::fixed << std::setprecision(17) << yellow(value);
+          return os << std::fixed << std::setprecision(17) << cyan(value);
         }
       }
     }

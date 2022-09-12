@@ -73,7 +73,7 @@ inline namespace kernel
 
   exact_integer::exact_integer(std::string const& s, int radix)
   {
-    if (mpz_init_set_str(value, s.c_str(), radix))
+    if (mpz_init_set_str(value, (s.at(0) == '+' ? s.substr(1) : s).c_str(), radix))
     {
       mpz_clear(value);
       throw std::invalid_argument("not a integer");

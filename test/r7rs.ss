@@ -872,7 +872,7 @@
 
 (check (finite? +inf.0) => #f)
 
-; (check (finite? 3.0+inf.0i) => #f)
+(check (finite? 3.0+inf.0i) => #f)
 
 (check (infinite? 3) => #f)
 
@@ -880,15 +880,15 @@
 
 (check (infinite? +nan.0) => #f)
 
-; (check (infinite? 3.0+inf.0i) => #t)
+(check (infinite? 3.0+inf.0i) => #t)
 
 (check (nan? +nan.0) => #t)
 
 (check (nan? 32) => #f)
 
-; (check (nan? +nan.0+5.0i) => #t)
+(check (nan? +nan.0+5.0i) => #t)
 
-; (check (nan? 1+2i) => #f)
+(check (nan? 1+2i) => #f)
 
 (check (zero? 0/1) => #t)
 
@@ -1555,4 +1555,4 @@
 
 (check-report)
 
-(exit (check-passed? 387))
+(exit (check-passed? 391))

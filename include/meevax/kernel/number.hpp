@@ -559,7 +559,8 @@ inline namespace kernel
     {
       if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
       {
-        return apply<is_infinite>(x.real()) or apply<is_infinite>(x.imag());
+        return apply<is_infinite>(x.real()).template as<bool>() or
+               apply<is_infinite>(x.imag()).template as<bool>();
       }
       else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
@@ -588,7 +589,8 @@ inline namespace kernel
     {
       if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
       {
-        return apply<is_nan>(x.real()) or apply<is_nan>(x.imag());
+        return apply<is_nan>(x.real()).template as<bool>() or
+               apply<is_nan>(x.imag()).template as<bool>();
       }
       else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {

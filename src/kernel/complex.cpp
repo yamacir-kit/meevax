@@ -25,10 +25,8 @@ inline namespace kernel
   {
     if (std::smatch result; std::regex_match(token, result, pattern()))
     {
-      auto&& i = result.str(2);
-
       std::get<0>(*this) = string_to_real(result.str(1), radix);
-      std::get<1>(*this) = string_to_real(not i.empty() and i[0] == '+' ? i.substr(1) : i, radix);
+      std::get<1>(*this) = string_to_real(result.str(2), radix);
     }
     else
     {
@@ -69,13 +67,22 @@ inline namespace kernel
     {
       return os;
     }
-    else if (apply<less>(e0, z.imag()).as<bool>())
-    {
-      return os << cyan("+") << z.imag() << cyan("i");
-    }
     else
     {
-      return os << z.imag() << cyan("i");
+      auto explicitly_signed = [](auto const& number)
+      {
+        switch (auto const s = lexical_cast<std::string>(number); s[0])
+        {
+        case '+':
+        case '-':
+          return s;
+
+        default:
+          return "+" + s;
+        }
+      };
+
+      return os << cyan(explicitly_signed(z.imag()), "i");
     }
   }
 } // namespace kernel
