@@ -65,7 +65,7 @@ inline namespace kernel
   {
     os << z.real();
 
-    if (apply<equal_to>(e0, z.imag()).as<bool>())
+    if (apply<equal_to>(z.imag(), e0).as<bool>())
     {
       return os;
     }

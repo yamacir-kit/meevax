@@ -498,9 +498,16 @@ inline namespace kernel
   struct is_real
   {
     template <typename T>
-    constexpr auto operator ()(T&&) const
+    constexpr auto operator ()(T&& x) const
     {
-      return not std::is_same_v<std::decay_t<T>, complex>;
+      if constexpr (std::is_same_v<std::decay_t<T>, complex>)
+      {
+        return apply<equal_to>(x.imag(), e0).template as<bool>();
+      }
+      else
+      {
+        return true;
+      }
     }
   };
 
@@ -524,9 +531,13 @@ inline namespace kernel
   struct is_integer
   {
     template <typename T>
-    auto operator ()(T&& x) const
+    constexpr auto operator ()(T&& x) const
     {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>>)
+      if constexpr (std::is_same_v<std::decay_t<T>, complex>)
+      {
+        return apply<equal_to>(x.imag(), e0).template as<bool>() and apply<is_integer>(x.real()).template as<bool>();
+      }
+      else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
         return x == std::trunc(x);
       }
