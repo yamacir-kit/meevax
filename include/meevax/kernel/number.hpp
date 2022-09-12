@@ -79,6 +79,18 @@ inline namespace kernel
   auto operator > (exact_integer const&, double) -> bool;
   auto operator >=(exact_integer const&, double) -> bool;
 
+  auto operator * (exact_integer const&, complex const&) -> complex;
+  auto operator + (exact_integer const&, complex const&) -> complex;
+  auto operator - (exact_integer const&, complex const&) -> complex;
+  auto operator / (exact_integer const&, complex const&) -> complex;
+  auto operator % (exact_integer const&, complex const&) -> complex;
+  auto operator ==(exact_integer const&, complex const&) -> bool;
+  auto operator !=(exact_integer const&, complex const&) -> bool;
+  auto operator < (exact_integer const&, complex const&) -> bool;
+  auto operator <=(exact_integer const&, complex const&) -> bool;
+  auto operator > (exact_integer const&, complex const&) -> bool;
+  auto operator >=(exact_integer const&, complex const&) -> bool;
+
   auto operator * (ratio const&, exact_integer const&) -> ratio;
   auto operator + (ratio const&, exact_integer const&) -> ratio;
   auto operator - (ratio const&, exact_integer const&) -> ratio;
@@ -127,6 +139,18 @@ inline namespace kernel
   auto operator > (ratio const&, double) -> bool;
   auto operator >=(ratio const&, double) -> bool;
 
+  auto operator + (ratio const&, complex const&) -> complex;
+  auto operator - (ratio const&, complex const&) -> complex;
+  auto operator * (ratio const&, complex const&) -> complex;
+  auto operator / (ratio const&, complex const&) -> complex;
+  auto operator % (ratio const&, complex const&) -> complex;
+  auto operator ==(ratio const&, complex const&) -> bool;
+  auto operator !=(ratio const&, complex const&) -> bool;
+  auto operator < (ratio const&, complex const&) -> bool;
+  auto operator <=(ratio const&, complex const&) -> bool;
+  auto operator > (ratio const&, complex const&) -> bool;
+  auto operator >=(ratio const&, complex const&) -> bool;
+
   auto operator + (float, exact_integer const&) -> float;
   auto operator - (float, exact_integer const&) -> float;
   auto operator * (float, exact_integer const&) -> float;
@@ -150,6 +174,18 @@ inline namespace kernel
   auto operator <=(float, ratio const&) -> bool;
   auto operator > (float, ratio const&) -> bool;
   auto operator >=(float, ratio const&) -> bool;
+
+  auto operator + (float, complex const&) -> complex;
+  auto operator - (float, complex const&) -> complex;
+  auto operator * (float, complex const&) -> complex;
+  auto operator / (float, complex const&) -> complex;
+  auto operator % (float, complex const&) -> complex;
+  auto operator ==(float, complex const&) -> bool;
+  auto operator !=(float, complex const&) -> bool;
+  auto operator < (float, complex const&) -> bool;
+  auto operator <=(float, complex const&) -> bool;
+  auto operator > (float, complex const&) -> bool;
+  auto operator >=(float, complex const&) -> bool;
 
   auto operator + (double, exact_integer const&) -> double;
   auto operator - (double, exact_integer const&) -> double;
@@ -175,17 +211,83 @@ inline namespace kernel
   auto operator > (double, ratio const&) -> bool;
   auto operator >=(double, ratio const&) -> bool;
 
+  auto operator + (double, complex const&) -> complex;
+  auto operator - (double, complex const&) -> complex;
+  auto operator * (double, complex const&) -> complex;
+  auto operator / (double, complex const&) -> complex;
+  auto operator % (double, complex const&) -> complex;
+  auto operator ==(double, complex const&) -> bool;
+  auto operator !=(double, complex const&) -> bool;
+  auto operator < (double, complex const&) -> bool;
+  auto operator <=(double, complex const&) -> bool;
+  auto operator > (double, complex const&) -> bool;
+  auto operator >=(double, complex const&) -> bool;
+
   auto operator + (complex const&, complex const&) -> complex;
   auto operator - (complex const&, complex const&) -> complex;
   auto operator * (complex const&, complex const&) -> complex;
   auto operator / (complex const&, complex const&) -> complex;
   auto operator % (complex const&, complex const&) -> complex;
+  auto operator ==(complex const&, complex const&) -> bool;
+  auto operator !=(complex const&, complex const&) -> bool;
+  auto operator < (complex const&, complex const&) -> bool;
+  auto operator <=(complex const&, complex const&) -> bool;
+  auto operator > (complex const&, complex const&) -> bool;
+  auto operator >=(complex const&, complex const&) -> bool;
 
-  auto operator +(const_reference, const_reference) -> value_type;
-  auto operator -(const_reference, const_reference) -> value_type;
-  auto operator *(const_reference, const_reference) -> value_type;
-  auto operator /(const_reference, const_reference) -> value_type;
-  auto operator %(const_reference, const_reference) -> value_type;
+  auto operator + (complex const&, float) -> complex;
+  auto operator - (complex const&, float) -> complex;
+  auto operator * (complex const&, float) -> complex;
+  auto operator / (complex const&, float) -> complex;
+  auto operator % (complex const&, float) -> complex;
+  auto operator ==(complex const&, float) -> bool;
+  auto operator !=(complex const&, float) -> bool;
+  auto operator < (complex const&, float) -> bool;
+  auto operator <=(complex const&, float) -> bool;
+  auto operator > (complex const&, float) -> bool;
+  auto operator >=(complex const&, float) -> bool;
+
+  auto operator + (complex const&, double) -> complex;
+  auto operator - (complex const&, double) -> complex;
+  auto operator * (complex const&, double) -> complex;
+  auto operator / (complex const&, double) -> complex;
+  auto operator % (complex const&, double) -> complex;
+  auto operator ==(complex const&, double) -> bool;
+  auto operator !=(complex const&, double) -> bool;
+  auto operator < (complex const&, double) -> bool;
+  auto operator <=(complex const&, double) -> bool;
+  auto operator > (complex const&, double) -> bool;
+  auto operator >=(complex const&, double) -> bool;
+
+  auto operator + (complex const&, ratio const&) -> complex;
+  auto operator - (complex const&, ratio const&) -> complex;
+  auto operator * (complex const&, ratio const&) -> complex;
+  auto operator / (complex const&, ratio const&) -> complex;
+  auto operator % (complex const&, ratio const&) -> complex;
+  auto operator ==(complex const&, ratio const&) -> bool;
+  auto operator !=(complex const&, ratio const&) -> bool;
+  auto operator < (complex const&, ratio const&) -> bool;
+  auto operator <=(complex const&, ratio const&) -> bool;
+  auto operator > (complex const&, ratio const&) -> bool;
+  auto operator >=(complex const&, ratio const&) -> bool;
+
+  auto operator + (complex const&, exact_integer const&) -> complex;
+  auto operator - (complex const&, exact_integer const&) -> complex;
+  auto operator * (complex const&, exact_integer const&) -> complex;
+  auto operator / (complex const&, exact_integer const&) -> complex;
+  auto operator % (complex const&, exact_integer const&) -> complex;
+  auto operator ==(complex const&, exact_integer const&) -> bool;
+  auto operator !=(complex const&, exact_integer const&) -> bool;
+  auto operator < (complex const&, exact_integer const&) -> bool;
+  auto operator <=(complex const&, exact_integer const&) -> bool;
+  auto operator > (complex const&, exact_integer const&) -> bool;
+  auto operator >=(complex const&, exact_integer const&) -> bool;
+
+  auto operator + (const_reference, const_reference) -> value_type;
+  auto operator - (const_reference, const_reference) -> value_type;
+  auto operator * (const_reference, const_reference) -> value_type;
+  auto operator / (const_reference, const_reference) -> value_type;
+  auto operator % (const_reference, const_reference) -> value_type;
 
   using plus = std::plus<void>;
 
@@ -328,10 +430,11 @@ inline namespace kernel
       std::function<value_type (const_reference, const_reference)>
     > apply
     {
-      APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, float), APPLY(exact_integer, double),
-      APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         float), APPLY(ratio,         double),
-      APPLY(float,         exact_integer), APPLY(float,         ratio), APPLY(float,         float), APPLY(float,         double),
-      APPLY(double,        exact_integer), APPLY(double,        ratio), APPLY(double,        float), APPLY(double,        double),
+      APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, float), APPLY(exact_integer, double), APPLY(exact_integer, complex),
+      APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         float), APPLY(ratio,         double), APPLY(ratio,         complex),
+      APPLY(float,         exact_integer), APPLY(float,         ratio), APPLY(float,         float), APPLY(float,         double), APPLY(float,         complex),
+      APPLY(double,        exact_integer), APPLY(double,        ratio), APPLY(double,        float), APPLY(double,        double), APPLY(double,        complex),
+      APPLY(complex,       exact_integer), APPLY(complex,       ratio), APPLY(complex,       float), APPLY(complex,       double), APPLY(complex,       complex),
     };
 
     #undef APPLY
@@ -519,8 +622,14 @@ inline namespace kernel
     template <typename Base, typename Exponent>
     auto operator ()(Base&& base, Exponent&& exponent) const -> decltype(auto)
     {
-      if constexpr (std::is_same_v<std::decay_t<decltype(base)>, exact_integer> and
-                    std::is_same_v<std::decay_t<decltype(exponent)>, exact_integer>)
+      if constexpr (std::is_same_v<std::decay_t<decltype(base)>, complex> or
+                    std::is_same_v<std::decay_t<decltype(exponent)>, complex>)
+      {
+        throw std::invalid_argument("unsupported operation"); // TODO
+        return e0;
+      }
+      else if constexpr (std::is_same_v<std::decay_t<decltype(base)>, exact_integer> and
+                         std::is_same_v<std::decay_t<decltype(exponent)>, exact_integer>)
       {
         exact_integer result {};
         mpz_pow_ui(result.value, base.value, static_cast<unsigned long>(exponent));
@@ -537,10 +646,19 @@ inline namespace kernel
   struct atan2
   {
     template <typename T, typename U>
-    auto operator ()(T&& x, U&& y) const
+    auto operator ()(T&& x, U&& y) const -> decltype(auto)
     {
-      return std::atan2(inexact_cast(std::forward<decltype(x)>(x)),
-                        inexact_cast(std::forward<decltype(y)>(y)));
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex> or
+                    std::is_same_v<std::decay_t<decltype(y)>, complex>)
+      {
+        throw std::invalid_argument("unsupported operation");
+        return e0; // dummy return value.
+      }
+      else
+      {
+        return std::atan2(inexact_cast(std::forward<decltype(x)>(x)),
+                          inexact_cast(std::forward<decltype(y)>(y)));
+      }
     }
   };
 
