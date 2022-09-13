@@ -615,22 +615,25 @@ inline namespace kernel
     {
       if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
       {
-        return std::sqrt(static_cast<std::complex<double>>(std::forward<decltype(x)>(x)));
-      }
-      else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, exact_integer>)
-      {
-        if (auto&& [s, r] = exact_integer_sqrt(x); r == 0)
-        {
-          return make(s);
-        }
-        else
-        {
-          return make(std::sqrt(inexact_cast(x)));
-        }
+        auto const z = std::sqrt(inexact_cast(std::forward<decltype(x)>(x)));
+        return complex(make(z.real()), make(z.imag()));
       }
       else
       {
-        return std::sqrt(inexact_cast(x));
+        auto sqrt = [](auto&& x)
+        {
+          if constexpr (std::is_same_v<std::decay_t<decltype(x)>, exact_integer>)
+          {
+            auto const [s, r] = exact_integer_sqrt(x);
+            return r == 0 ? make(s) : make(std::sqrt(inexact_cast(x)));
+          }
+          else
+          {
+            return make(std::sqrt(inexact_cast(x)));
+          }
+        };
+
+        return x < exact_integer(0) ? make<complex>(e0, sqrt(exact_integer(0) - x)) : sqrt(x);
       }
     }
   };
@@ -645,8 +648,7 @@ inline namespace kernel
       {
         auto const z = std::pow(inexact_cast(std::forward<decltype(x)>(x)),
                                 inexact_cast(std::forward<decltype(y)>(y)));
-        return complex(make(z.real()),
-                       make(z.imag()));
+        return complex(make(z.real()), make(z.imag()));
       }
       else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, exact_integer> and
                          std::is_same_v<std::decay_t<decltype(y)>, exact_integer>)
@@ -702,8 +704,7 @@ inline namespace kernel
       }                                                                        \
       else                                                                     \
       {                                                                        \
-        return complex(apply<ROUND>(x.real()),                                 \
-                       apply<ROUND>(x.imag()));                                \
+        return complex(apply<ROUND>(x.real()), apply<ROUND>(x.imag()));        \
       }                                                                        \
     }                                                                          \
   }
@@ -724,8 +725,7 @@ inline namespace kernel
       if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)        \
       {                                                                        \
         auto const z = std::CMATH(inexact_cast(std::forward<decltype(x)>(x))); \
-        return complex(make(z.real()),                                         \
-                       make(z.imag()));                                        \
+        return complex(make(z.real()), make(z.imag()));                        \
       }                                                                        \
       else                                                                     \
       {                                                                        \
