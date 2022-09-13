@@ -436,6 +436,23 @@ inline namespace kernel
     return apply.at(type_index<2>(x.type(), y.type()))(x, y);
   }
 
+  template <typename T>
+  auto inexact_cast(T&& x) -> decltype(auto)
+  {
+    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
+    {
+      return std::complex<double>(std::forward<decltype(x)>(x));
+    }
+    else if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
+    {
+      return std::forward<decltype(x)>(x);
+    }
+    else
+    {
+      return static_cast<double>(std::forward<decltype(x)>(x));
+    }
+  }
+
   struct exact
   {
     template <typename T>
@@ -455,8 +472,7 @@ inline namespace kernel
         return std::forward<decltype(x)>(x);
       }
     }
-  }
-  inline constexpr exact_cast;
+  };
 
   struct inexact
   {
@@ -468,17 +484,12 @@ inline namespace kernel
         return complex(apply<inexact>(x.real()),
                        apply<inexact>(x.imag()));
       }
-      else if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
-      {
-        return std::forward<decltype(x)>(x);
-      }
       else
       {
-        return static_cast<double>(std::forward<decltype(x)>(x));
+        return inexact_cast(std::forward<decltype(x)>(x));
       }
     }
-  }
-  inline constexpr inexact_cast;
+  };
 
   struct is_complex
   {
@@ -626,26 +637,28 @@ inline namespace kernel
 
   struct expt
   {
-    template <typename Base, typename Exponent>
-    auto operator ()(Base&& base, Exponent&& exponent) const -> decltype(auto)
+    template <typename T, typename U>
+    auto operator ()(T&& x, U&& y) const -> decltype(auto)
     {
-      if constexpr (std::is_same_v<std::decay_t<decltype(base)>, complex> or
-                    std::is_same_v<std::decay_t<decltype(exponent)>, complex>)
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex> or
+                    std::is_same_v<std::decay_t<decltype(y)>, complex>)
       {
-        throw std::invalid_argument("unsupported operation"); // TODO
-        return e0;
+        auto const z = std::pow(inexact_cast(std::forward<decltype(x)>(x)),
+                                inexact_cast(std::forward<decltype(y)>(y)));
+        return complex(make(z.real()),
+                       make(z.imag()));
       }
-      else if constexpr (std::is_same_v<std::decay_t<decltype(base)>, exact_integer> and
-                         std::is_same_v<std::decay_t<decltype(exponent)>, exact_integer>)
+      else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, exact_integer> and
+                         std::is_same_v<std::decay_t<decltype(y)>, exact_integer>)
       {
         exact_integer result {};
-        mpz_pow_ui(result.value, base.value, static_cast<unsigned long>(exponent));
+        mpz_pow_ui(result.value, x.value, static_cast<unsigned long>(y));
         return result;
       }
       else
       {
-        return std::pow(inexact_cast(std::forward<decltype(base)>(base)),
-                        inexact_cast(std::forward<decltype(exponent)>(exponent)));
+        return std::pow(inexact_cast(std::forward<decltype(x)>(x)),
+                        inexact_cast(std::forward<decltype(y)>(y)));
       }
     }
   };
@@ -710,9 +723,9 @@ inline namespace kernel
     {                                                                          \
       if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)        \
       {                                                                        \
-        auto result = std::CMATH(static_cast<std::complex<double>>(std::forward<decltype(x)>(x))); \
-        return complex(make(result.real()),                                    \
-                       make(result.imag()));                                   \
+        auto const z = std::CMATH(inexact_cast(std::forward<decltype(x)>(x))); \
+        return complex(make(z.real()),                                         \
+                       make(z.imag()));                                        \
       }                                                                        \
       else                                                                     \
       {                                                                        \

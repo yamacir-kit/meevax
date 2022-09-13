@@ -33,7 +33,16 @@ auto main(int const argc, char const* const* const argv) -> int
     if (main.interactive)
     {
       main.display_version();
-      main.import_("(scheme r5rs)");
+      main.import_("(scheme base)");
+      main.import_("(scheme char)");
+      main.import_("(scheme cxr)");
+      main.import_("(scheme eval)");
+      main.import_("(scheme inexact)");
+      main.import_("(scheme lazy)");
+      main.import_("(scheme load)");
+      main.import_("(scheme process-context)");
+      main.import_("(scheme read)");
+      main.import_("(scheme write)");
     }
 
     while (main.interactive and main.char_ready())

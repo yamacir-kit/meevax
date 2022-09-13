@@ -433,18 +433,7 @@
 (define-library (scheme inexact)
   (import (only (meevax inexact) finite? infinite? nan?)
           (only (scheme r5rs) exp log sin cos tan asin acos atan sqrt))
-  (export finite?
-          infinite?
-          nan?
-          exp
-          log
-          sin
-          cos
-          tan
-          asin
-          acos
-          atan
-          sqrt))
+  (export finite? infinite? nan? exp log sin cos tan asin acos atan sqrt))
 
 (define-library (scheme complex)
   (export make-rectangular
