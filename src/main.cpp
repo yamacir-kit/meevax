@@ -35,6 +35,7 @@ auto main(int const argc, char const* const* const argv) -> int
       main.display_version();
       main.import_("(scheme base)");
       main.import_("(scheme char)");
+      main.import_("(scheme complex)");
       main.import_("(scheme cxr)");
       main.import_("(scheme eval)");
       main.import_("(scheme inexact)");

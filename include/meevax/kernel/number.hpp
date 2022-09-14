@@ -436,12 +436,12 @@ inline namespace kernel
     return apply.at(type_index<2>(x.type(), y.type()))(x, y);
   }
 
-  template <typename T>
-  auto inexact_cast(T&& x) -> decltype(auto)
+  template <typename T = double, typename U, REQUIRES(std::is_floating_point<T>)>
+  auto inexact_cast(U&& x) -> decltype(auto)
   {
     if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
     {
-      return std::complex<double>(std::forward<decltype(x)>(x));
+      return std::complex<T>(std::forward<decltype(x)>(x));
     }
     else if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
     {
@@ -449,7 +449,7 @@ inline namespace kernel
     }
     else
     {
-      return static_cast<double>(std::forward<decltype(x)>(x));
+      return static_cast<T>(std::forward<decltype(x)>(x));
     }
   }
 

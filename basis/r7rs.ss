@@ -436,13 +436,25 @@
   (export finite? infinite? nan? exp log sin cos tan asin acos atan sqrt))
 
 (define-library (scheme complex)
-  (export make-rectangular
-          make-polar
-          real-part
-          imag-part
-          angle
-          )
-  )
+  (import (meevax complex)
+          (scheme base)
+          (scheme inexact))
+
+  (export make-rectangular make-polar real-part imag-part magnitude angle)
+
+  (begin (define (make-polar magnitude angle)
+           (make-rectangular (* magnitude (cos angle))
+                             (* magnitude (sin angle))))
+
+         (define (magnitude z)
+           (let ((re (real-part z))
+                 (im (imag-part z)))
+             (sqrt (+ (* re re)
+                      (* im im)))))
+
+         (define (angle z)
+           (atan (imag-part z)
+                 (real-part z)))))
 
 (define-library (scheme cxr)
   (import (meevax pair))

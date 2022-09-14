@@ -59,6 +59,31 @@ inline namespace kernel
       library.export_("char-codepoint");
     });
 
+    define_library("(meevax complex)", [](library & library)
+    {
+      library.define<procedure>("make-rectangular", [](let const& xs)
+      {
+        assert(apply<is_real>(car(xs)));
+        assert(apply<is_real>(cadr(xs)));
+
+        return make<complex>(car(xs), cadr(xs));
+      });
+
+      library.define<procedure>("real-part", [](let const& xs)
+      {
+        return car(xs).as<complex>().real();
+      });
+
+      library.define<procedure>("imag-part", [](let const& xs)
+      {
+        return car(xs).as<complex>().imag();
+      });
+
+      library.export_("make-rectangular");
+      library.export_("real-part");
+      library.export_("imag-part");
+    });
+
     define_library("(meevax context)", [](library & library)
     {
       library.define<procedure>("emergency-exit", [](let const& xs)
