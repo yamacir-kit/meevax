@@ -61,7 +61,7 @@ inline namespace kernel
     let static const features = list(
       make<symbol>("r4rs"),
       make<symbol>("exact-closed"),
-      // make<symbol>("exact-complex"),
+      make<symbol>("exact-complex"),
       make<symbol>("ieee-float"),
       // make<symbol>("full-unicode"),
       make<symbol>("ratios"),
