@@ -79,6 +79,18 @@ inline namespace kernel
   auto operator > (exact_integer const&, double) -> bool;
   auto operator >=(exact_integer const&, double) -> bool;
 
+  auto operator * (exact_integer const&, complex const&) -> complex;
+  auto operator + (exact_integer const&, complex const&) -> complex;
+  auto operator - (exact_integer const&, complex const&) -> complex;
+  auto operator / (exact_integer const&, complex const&) -> complex;
+  auto operator % (exact_integer const&, complex const&) -> complex;
+  auto operator ==(exact_integer const&, complex const&) -> bool;
+  auto operator !=(exact_integer const&, complex const&) -> bool;
+  auto operator < (exact_integer const&, complex const&) -> bool;
+  auto operator <=(exact_integer const&, complex const&) -> bool;
+  auto operator > (exact_integer const&, complex const&) -> bool;
+  auto operator >=(exact_integer const&, complex const&) -> bool;
+
   auto operator * (ratio const&, exact_integer const&) -> ratio;
   auto operator + (ratio const&, exact_integer const&) -> ratio;
   auto operator - (ratio const&, exact_integer const&) -> ratio;
@@ -127,6 +139,18 @@ inline namespace kernel
   auto operator > (ratio const&, double) -> bool;
   auto operator >=(ratio const&, double) -> bool;
 
+  auto operator + (ratio const&, complex const&) -> complex;
+  auto operator - (ratio const&, complex const&) -> complex;
+  auto operator * (ratio const&, complex const&) -> complex;
+  auto operator / (ratio const&, complex const&) -> complex;
+  auto operator % (ratio const&, complex const&) -> complex;
+  auto operator ==(ratio const&, complex const&) -> bool;
+  auto operator !=(ratio const&, complex const&) -> bool;
+  auto operator < (ratio const&, complex const&) -> bool;
+  auto operator <=(ratio const&, complex const&) -> bool;
+  auto operator > (ratio const&, complex const&) -> bool;
+  auto operator >=(ratio const&, complex const&) -> bool;
+
   auto operator + (float, exact_integer const&) -> float;
   auto operator - (float, exact_integer const&) -> float;
   auto operator * (float, exact_integer const&) -> float;
@@ -150,6 +174,18 @@ inline namespace kernel
   auto operator <=(float, ratio const&) -> bool;
   auto operator > (float, ratio const&) -> bool;
   auto operator >=(float, ratio const&) -> bool;
+
+  auto operator + (float, complex const&) -> complex;
+  auto operator - (float, complex const&) -> complex;
+  auto operator * (float, complex const&) -> complex;
+  auto operator / (float, complex const&) -> complex;
+  auto operator % (float, complex const&) -> complex;
+  auto operator ==(float, complex const&) -> bool;
+  auto operator !=(float, complex const&) -> bool;
+  auto operator < (float, complex const&) -> bool;
+  auto operator <=(float, complex const&) -> bool;
+  auto operator > (float, complex const&) -> bool;
+  auto operator >=(float, complex const&) -> bool;
 
   auto operator + (double, exact_integer const&) -> double;
   auto operator - (double, exact_integer const&) -> double;
@@ -175,129 +211,116 @@ inline namespace kernel
   auto operator > (double, ratio const&) -> bool;
   auto operator >=(double, ratio const&) -> bool;
 
-  auto operator +(const_reference, const_reference) -> value_type;
-  auto operator -(const_reference, const_reference) -> value_type;
-  auto operator *(const_reference, const_reference) -> value_type;
-  auto operator /(const_reference, const_reference) -> value_type;
-  auto operator %(const_reference, const_reference) -> value_type;
+  auto operator + (double, complex const&) -> complex;
+  auto operator - (double, complex const&) -> complex;
+  auto operator * (double, complex const&) -> complex;
+  auto operator / (double, complex const&) -> complex;
+  auto operator % (double, complex const&) -> complex;
+  auto operator ==(double, complex const&) -> bool;
+  auto operator !=(double, complex const&) -> bool;
+  auto operator < (double, complex const&) -> bool;
+  auto operator <=(double, complex const&) -> bool;
+  auto operator > (double, complex const&) -> bool;
+  auto operator >=(double, complex const&) -> bool;
 
-  template <typename F, typename... Ts>
-  struct application
+  auto operator + (complex const&, complex const&) -> complex;
+  auto operator - (complex const&, complex const&) -> complex;
+  auto operator * (complex const&, complex const&) -> complex;
+  auto operator / (complex const&, complex const&) -> complex;
+  auto operator % (complex const&, complex const&) -> complex;
+  auto operator ==(complex const&, complex const&) -> bool;
+  auto operator !=(complex const&, complex const&) -> bool;
+  auto operator < (complex const&, complex const&) -> bool;
+  auto operator <=(complex const&, complex const&) -> bool;
+  auto operator > (complex const&, complex const&) -> bool;
+  auto operator >=(complex const&, complex const&) -> bool;
+
+  auto operator + (complex const&, float) -> complex;
+  auto operator - (complex const&, float) -> complex;
+  auto operator * (complex const&, float) -> complex;
+  auto operator / (complex const&, float) -> complex;
+  auto operator % (complex const&, float) -> complex;
+  auto operator ==(complex const&, float) -> bool;
+  auto operator !=(complex const&, float) -> bool;
+  auto operator < (complex const&, float) -> bool;
+  auto operator <=(complex const&, float) -> bool;
+  auto operator > (complex const&, float) -> bool;
+  auto operator >=(complex const&, float) -> bool;
+
+  auto operator + (complex const&, double) -> complex;
+  auto operator - (complex const&, double) -> complex;
+  auto operator * (complex const&, double) -> complex;
+  auto operator / (complex const&, double) -> complex;
+  auto operator % (complex const&, double) -> complex;
+  auto operator ==(complex const&, double) -> bool;
+  auto operator !=(complex const&, double) -> bool;
+  auto operator < (complex const&, double) -> bool;
+  auto operator <=(complex const&, double) -> bool;
+  auto operator > (complex const&, double) -> bool;
+  auto operator >=(complex const&, double) -> bool;
+
+  auto operator + (complex const&, ratio const&) -> complex;
+  auto operator - (complex const&, ratio const&) -> complex;
+  auto operator * (complex const&, ratio const&) -> complex;
+  auto operator / (complex const&, ratio const&) -> complex;
+  auto operator % (complex const&, ratio const&) -> complex;
+  auto operator ==(complex const&, ratio const&) -> bool;
+  auto operator !=(complex const&, ratio const&) -> bool;
+  auto operator < (complex const&, ratio const&) -> bool;
+  auto operator <=(complex const&, ratio const&) -> bool;
+  auto operator > (complex const&, ratio const&) -> bool;
+  auto operator >=(complex const&, ratio const&) -> bool;
+
+  auto operator + (complex const&, exact_integer const&) -> complex;
+  auto operator - (complex const&, exact_integer const&) -> complex;
+  auto operator * (complex const&, exact_integer const&) -> complex;
+  auto operator / (complex const&, exact_integer const&) -> complex;
+  auto operator % (complex const&, exact_integer const&) -> complex;
+  auto operator ==(complex const&, exact_integer const&) -> bool;
+  auto operator !=(complex const&, exact_integer const&) -> bool;
+  auto operator < (complex const&, exact_integer const&) -> bool;
+  auto operator <=(complex const&, exact_integer const&) -> bool;
+  auto operator > (complex const&, exact_integer const&) -> bool;
+  auto operator >=(complex const&, exact_integer const&) -> bool;
+
+  auto operator + (const_reference, const_reference) -> value_type;
+  auto operator - (const_reference, const_reference) -> value_type;
+  auto operator * (const_reference, const_reference) -> value_type;
+  auto operator / (const_reference, const_reference) -> value_type;
+  auto operator % (const_reference, const_reference) -> value_type;
+
+  using plus = std::plus<void>;
+
+  using minus = std::minus<void>;
+
+  using multiplies = std::multiplies<void>;
+
+  using divides = std::divides<void>;
+
+  struct modulus
   {
-    static inline constexpr F f {};
-
-    template <typename T>
-    auto finish(T&& z) -> decltype(auto)
+    template <typename T, typename U>
+    auto operator ()(T&& x, U&& y) const
     {
-      if constexpr (std::is_same_v<std::decay_t<decltype(z)>, value_type>)
+      if constexpr (std::is_floating_point_v<std::decay_t<T>> and
+                    std::is_floating_point_v<std::decay_t<U>>)
       {
-        return std::forward<decltype(z)>(z);
-      }
-      else if constexpr (std::is_same_v<std::decay_t<decltype(z)>, ratio>)
-      {
-        if (z.denominator() == 1)
-        {
-          return make(z.numerator());
-        }
-        else
-        {
-          return make(std::forward<decltype(z)>(z));
-        }
+        return std::fmod(x, y);
       }
       else
       {
-        return make(std::forward<decltype(z)>(z));
+        return x % y;
       }
-    }
-
-    auto operator ()(const_reference x) -> value_type
-    {
-      return finish(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
-    }
-
-    auto operator ()(const_reference x, const_reference y) -> value_type
-    {
-      return finish(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
-                      y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
     }
   };
-
-  template <typename F>
-  auto apply(const_reference x) -> value_type
-  {
-    static const std::unordered_map<
-      type_index<1>,
-      std::function<value_type (const_reference)>
-    > apply
-    {
-      { type_index<1>(typeid(exact_integer)), application<F, exact_integer>() },
-      { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
-      { type_index<1>(typeid(float        )), application<F, float        >() },
-      { type_index<1>(typeid(double       )), application<F, double       >() },
-    };
-
-    return apply.at(type_index<1>(x.type()))(x);
-  }
-
-  template <typename F>
-  auto apply(const_reference x, const_reference y) -> value_type
-  {
-    #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
-
-    static const std::unordered_map<
-      type_index<2>,
-      std::function<value_type (const_reference, const_reference)>
-    > apply
-    {
-      APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, float), APPLY(exact_integer, double),
-      APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         float), APPLY(ratio,         double),
-      APPLY(float,         exact_integer), APPLY(float,         ratio), APPLY(float,         float), APPLY(float,         double),
-      APPLY(double,        exact_integer), APPLY(double,        ratio), APPLY(double,        float), APPLY(double,        double),
-    };
-
-    #undef APPLY
-
-    return apply.at(type_index<2>(x.type(), y.type()))(x, y);
-  }
-
-  struct exact
-  {
-    template <typename T>
-    auto operator ()(T&& x) const -> decltype(auto)
-    {
-      if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
-      {
-        return ratio(std::forward<decltype(x)>(x));
-      }
-      else
-      {
-        return std::forward<decltype(x)>(x);
-      }
-    }
-  } inline constexpr exact_cast;
-
-  struct inexact
-  {
-    template <typename T>
-    auto operator ()(T const& x) const -> decltype(auto)
-    {
-      if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
-      {
-        return std::forward<decltype(x)>(x);
-      }
-      else
-      {
-        return static_cast<double>(std::forward<decltype(x)>(x));
-      }
-    }
-  } inline constexpr inexact_cast;
 
   struct equal_to
   {
     template <typename T, typename U>
     auto operator ()(T&& x, U&& y) const
     {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>> and std::is_floating_point_v<std::decay_t<U>>)
+      if constexpr (std::is_floating_point_v<std::decay_t<T>> and
+                    std::is_floating_point_v<std::decay_t<U>>)
       {
         if (std::isnan(x) and std::isnan(y))
         {
@@ -319,18 +342,151 @@ inline namespace kernel
     }
   };
 
-  struct modulus
+  using less = std::less<void>;
+
+  using less_equal = std::less_equal<void>;
+
+  using greater = std::greater<void>;
+
+  using greater_equal = std::greater_equal<void>;
+
+  template <typename F, typename... Ts>
+  struct application
   {
-    template <typename T, typename U>
-    auto operator ()(T&& x, U&& y) const
+    static inline constexpr F f {};
+
+    template <typename T>
+    auto canonicalize(T&& x) -> decltype(auto)
     {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>> and std::is_floating_point_v<std::decay_t<U>>)
+      if constexpr (std::is_same_v<std::decay_t<T>, value_type>)
       {
-        return std::remainder(x, y);
+        return std::forward<decltype(x)>(x);
+      }
+      else if constexpr (std::is_same_v<std::decay_t<T>, complex>)
+      {
+        return x.canonicalize();
+      }
+      else if constexpr (std::is_same_v<std::decay_t<T>, ratio>)
+      {
+        if (x.denominator() == 1)
+        {
+          return make(x.numerator());
+        }
+        else
+        {
+          return make(std::forward<decltype(x)>(x));
+        }
       }
       else
       {
-        return x % y;
+        return make(std::forward<decltype(x)>(x));
+      }
+    }
+
+    auto operator ()(const_reference x) -> value_type
+    {
+      return canonicalize(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
+    }
+
+    auto operator ()(const_reference x,
+                     const_reference y) -> value_type
+    {
+      return canonicalize(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
+                            y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
+    }
+  };
+
+  template <typename F>
+  auto apply(const_reference x) -> value_type
+  {
+    static const std::unordered_map<
+      type_index<1>,
+      std::function<value_type (const_reference)>
+    > apply
+    {
+      { type_index<1>(typeid(exact_integer)), application<F, exact_integer>() },
+      { type_index<1>(typeid(ratio        )), application<F, ratio        >() },
+      { type_index<1>(typeid(float        )), application<F, float        >() },
+      { type_index<1>(typeid(double       )), application<F, double       >() },
+      { type_index<1>(typeid(complex      )), application<F, complex      >() },
+    };
+
+    return apply.at(type_index<1>(x.type()))(x);
+  }
+
+  template <typename F>
+  auto apply(const_reference x, const_reference y) -> value_type
+  {
+    #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
+
+    static const std::unordered_map<
+      type_index<2>,
+      std::function<value_type (const_reference, const_reference)>
+    > apply
+    {
+      APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, float), APPLY(exact_integer, double), APPLY(exact_integer, complex),
+      APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         float), APPLY(ratio,         double), APPLY(ratio,         complex),
+      APPLY(float,         exact_integer), APPLY(float,         ratio), APPLY(float,         float), APPLY(float,         double), APPLY(float,         complex),
+      APPLY(double,        exact_integer), APPLY(double,        ratio), APPLY(double,        float), APPLY(double,        double), APPLY(double,        complex),
+      APPLY(complex,       exact_integer), APPLY(complex,       ratio), APPLY(complex,       float), APPLY(complex,       double), APPLY(complex,       complex),
+    };
+
+    #undef APPLY
+
+    return apply.at(type_index<2>(x.type(), y.type()))(x, y);
+  }
+
+  template <typename T = double, typename U, REQUIRES(std::is_floating_point<T>)>
+  auto inexact_cast(U&& x) -> decltype(auto)
+  {
+    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
+    {
+      return std::complex<T>(std::forward<decltype(x)>(x));
+    }
+    else if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
+    {
+      return std::forward<decltype(x)>(x);
+    }
+    else
+    {
+      return static_cast<T>(std::forward<decltype(x)>(x));
+    }
+  }
+
+  struct exact
+  {
+    template <typename T>
+    auto operator ()(T&& x) const -> decltype(auto)
+    {
+      if constexpr (std::is_same_v<std::decay_t<T>, complex>)
+      {
+        return complex(apply<exact>(x.real()),
+                       apply<exact>(x.imag()));
+      }
+      else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
+      {
+        return ratio(std::forward<decltype(x)>(x));
+      }
+      else
+      {
+        return std::forward<decltype(x)>(x);
+      }
+    }
+  };
+
+  struct inexact
+  {
+    template <typename T>
+    auto operator ()(T&& x) const -> decltype(auto)
+    {
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
+      {
+        return complex(apply<inexact>(x.real()),
+                       apply<inexact>(x.imag()));
+      }
+      else
+      {
+        return inexact_cast(std::forward<decltype(x)>(x));
       }
     }
   };
@@ -347,9 +503,16 @@ inline namespace kernel
   struct is_real
   {
     template <typename T>
-    constexpr auto operator ()(T&&) const
+    constexpr auto operator ()(T&& x) const
     {
-      return not std::is_same_v<std::decay_t<T>, complex>;
+      if constexpr (std::is_same_v<std::decay_t<T>, complex>)
+      {
+        return apply<equal_to>(x.imag(), e0).template as<bool>();
+      }
+      else
+      {
+        return true;
+      }
     }
   };
 
@@ -364,7 +527,8 @@ inline namespace kernel
       }
       else
       {
-        return std::is_same_v<std::decay_t<T>, exact_integer> or std::is_same_v<std::decay_t<T>, ratio>;
+        return std::is_same_v<std::decay_t<T>, exact_integer> or
+               std::is_same_v<std::decay_t<T>, ratio>;
       }
     }
   };
@@ -372,9 +536,13 @@ inline namespace kernel
   struct is_integer
   {
     template <typename T>
-    auto operator ()(T&& x) const
+    constexpr auto operator ()(T&& x) const
     {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>>)
+      if constexpr (std::is_same_v<std::decay_t<T>, complex>)
+      {
+        return apply<equal_to>(x.imag(), e0).template as<bool>() and apply<is_integer>(x.real()).template as<bool>();
+      }
+      else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
         return x == std::trunc(x);
       }
@@ -389,28 +557,17 @@ inline namespace kernel
     }
   };
 
-  struct is_finite
-  {
-    template <typename T>
-    constexpr auto operator ()(T&& x) const
-    {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>>)
-      {
-        return not std::isinf(x);
-      }
-      else
-      {
-        return true;
-      }
-    }
-  };
-
   struct is_infinite
   {
     template <typename T>
     constexpr auto operator ()(T&& x) const
     {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>>)
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
+      {
+        return apply<is_infinite>(x.real()).template as<bool>() or
+               apply<is_infinite>(x.imag()).template as<bool>();
+      }
+      else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
         return std::isinf(x);
       }
@@ -421,12 +578,26 @@ inline namespace kernel
     }
   };
 
+  struct is_finite
+  {
+    template <typename T>
+    constexpr auto operator ()(T&& x) const
+    {
+      return not std::invoke(is_infinite(), std::forward<decltype(x)>(x));
+    }
+  };
+
   struct is_nan
   {
     template <typename T>
     constexpr auto operator ()(T&& x) const
     {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>>)
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
+      {
+        return apply<is_nan>(x.real()).template as<bool>() or
+               apply<is_nan>(x.imag()).template as<bool>();
+      }
+      else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
         return std::isnan(x);
       }
@@ -440,20 +611,29 @@ inline namespace kernel
   struct sqrt
   {
     template <typename T>
-    auto operator ()(T const& x) const
+    constexpr auto operator ()(T&& x) const -> decltype(auto)
     {
-      return std::sqrt(inexact_cast(x));
-    }
-
-    auto operator ()(exact_integer const& x) const
-    {
-      if (auto&& [s, r] = exact_integer_sqrt(x); r == 0)
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
       {
-        return make(s);
+        auto const z = std::sqrt(inexact_cast(std::forward<decltype(x)>(x)));
+        return complex(make(z.real()), make(z.imag()));
       }
       else
       {
-        return make(operator ()<exact_integer const&>(x));
+        auto sqrt = [](auto&& x)
+        {
+          if constexpr (std::is_same_v<std::decay_t<decltype(x)>, exact_integer>)
+          {
+            auto const [s, r] = exact_integer_sqrt(x);
+            return r == 0 ? make(s) : make(std::sqrt(inexact_cast(x)));
+          }
+          else
+          {
+            return make(std::sqrt(inexact_cast(x)));
+          }
+        };
+
+        return x < exact_integer(0) ? make<complex>(e0, sqrt(exact_integer(0) - x)) : sqrt(x);
       }
     }
   };
@@ -461,16 +641,46 @@ inline namespace kernel
   struct expt
   {
     template <typename T, typename U>
-    auto operator ()(T const& x, U const& y) const -> decltype(auto)
+    auto operator ()(T&& x, U&& y) const -> decltype(auto)
     {
-      return std::pow(inexact_cast(x), inexact_cast(y));
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex> or
+                    std::is_same_v<std::decay_t<decltype(y)>, complex>)
+      {
+        auto const z = std::pow(inexact_cast(std::forward<decltype(x)>(x)),
+                                inexact_cast(std::forward<decltype(y)>(y)));
+        return complex(make(z.real()), make(z.imag()));
+      }
+      else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, exact_integer> and
+                         std::is_same_v<std::decay_t<decltype(y)>, exact_integer>)
+      {
+        exact_integer result {};
+        mpz_pow_ui(result.value, x.value, static_cast<unsigned long>(y));
+        return result;
+      }
+      else
+      {
+        return std::pow(inexact_cast(std::forward<decltype(x)>(x)),
+                        inexact_cast(std::forward<decltype(y)>(y)));
+      }
     }
+  };
 
-    auto operator ()(exact_integer const& base, exact_integer const& exponent) const
+  struct atan2
+  {
+    template <typename T, typename U>
+    auto operator ()(T&& x, U&& y) const -> decltype(auto)
     {
-      exact_integer result {};
-      mpz_pow_ui(result.value, base.value, static_cast<unsigned long>(exponent));
-      return result;
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex> or
+                    std::is_same_v<std::decay_t<decltype(y)>, complex>)
+      {
+        throw std::invalid_argument("unsupported operation");
+        return e0; // dummy return value.
+      }
+      else
+      {
+        return std::atan2(inexact_cast(std::forward<decltype(x)>(x)),
+                          inexact_cast(std::forward<decltype(y)>(y)));
+      }
     }
   };
 
@@ -478,19 +688,24 @@ inline namespace kernel
   struct ROUND                                                                 \
   {                                                                            \
     template <typename T>                                                      \
-    auto operator ()(T const& x) const                                         \
+    constexpr auto operator ()(T&& x) const                                    \
     {                                                                          \
-      return std::ROUND(inexact_cast(x));                                      \
-    }                                                                          \
-                                                                               \
-    auto operator ()(exact_integer const& x) const -> auto const&              \
-    {                                                                          \
-      return x;                                                                \
-    }                                                                          \
-                                                                               \
-    auto operator ()(ratio const& x) const                                     \
-    {                                                                          \
-      return exact_integer(operator ()<ratio const&>(x));                      \
+      if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)       \
+      {                                                                        \
+        return std::ROUND(inexact_cast(x));                                    \
+      }                                                                        \
+      else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, ratio>)     \
+      {                                                                        \
+        return exact_integer(std::ROUND(inexact_cast(x)));                     \
+      }                                                                        \
+      else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, exact_integer>) \
+      {                                                                        \
+        return std::forward<decltype(x)>(x);                                   \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        return complex(apply<ROUND>(x.real()), apply<ROUND>(x.imag()));        \
+      }                                                                        \
     }                                                                          \
   }
 
@@ -504,17 +719,24 @@ inline namespace kernel
   #define DEFINE(CMATH)                                                        \
   struct CMATH                                                                 \
   {                                                                            \
-    template <typename... Ts>                                                  \
-    auto operator ()(Ts&&... xs) const                                         \
+    template <typename T>                                                      \
+    auto operator ()(T&& x) const                                              \
     {                                                                          \
-      return std::CMATH(inexact_cast(std::forward<decltype(xs)>(xs))...);      \
+      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)        \
+      {                                                                        \
+        auto const z = std::CMATH(inexact_cast(std::forward<decltype(x)>(x))); \
+        return complex(make(z.real()), make(z.imag()));                        \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        return std::CMATH(inexact_cast(std::forward<decltype(x)>(x)));         \
+      }                                                                        \
     }                                                                          \
   }
 
   DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
   DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
   DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
-               DEFINE(atan2);
 
   DEFINE(exp);
   DEFINE(log);

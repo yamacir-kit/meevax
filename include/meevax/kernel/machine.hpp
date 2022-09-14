@@ -882,7 +882,7 @@ inline namespace kernel
     {
       if (current_context.is_tail)
       {
-        assert(lexical_cast<external_representation>(current_continuation) == "(return)");
+        assert(lexical_cast<std::string>(current_continuation) == "(return)");
 
         return compile(context(),
                        current_environment,

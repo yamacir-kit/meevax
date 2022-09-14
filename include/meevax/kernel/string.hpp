@@ -29,7 +29,7 @@ inline namespace kernel
 
     explicit string() = default;
 
-    explicit string(external_representation const&);
+    explicit string(std::string const&);
 
     /*
        (list->string list)                                            procedure
@@ -152,7 +152,7 @@ inline namespace kernel
     */
     auto set(const_reference, const_reference) -> void;
 
-    operator external_representation() const; // write-string (for display)
+    operator std::string() const; // write-string (for display)
   };
 
   auto operator ==(string const&, string const&) -> bool;

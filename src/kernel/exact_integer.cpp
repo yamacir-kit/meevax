@@ -71,12 +71,12 @@ inline namespace kernel
     mpz_init_set_d(value, rhs);
   }
 
-  exact_integer::exact_integer(external_representation const& s, int radix)
+  exact_integer::exact_integer(std::string const& s, int radix)
   {
-    if (mpz_init_set_str(value, s.c_str(), radix))
+    if (mpz_init_set_str(value, (s.at(0) == '+' ? s.substr(1) : s).c_str(), radix))
     {
       mpz_clear(value);
-      throw error();
+      throw std::invalid_argument("not a integer");
     }
   }
 
@@ -92,11 +92,11 @@ inline namespace kernel
     return *this;
   }
 
-  auto exact_integer::operator=(external_representation const& s) -> exact_integer &
+  auto exact_integer::operator=(std::string const& s) -> exact_integer &
   {
     if (mpz_set_str(value, s.c_str(), 0))
     {
-      throw error(make<meevax::string>("invalid argument"), make<meevax::string>(s));
+      throw std::invalid_argument(s);
     }
     else
     {

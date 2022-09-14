@@ -61,14 +61,14 @@ inline namespace kernel
     mpq_set_d(value, x);
   }
 
-  ratio::ratio(external_representation const& token, int radix)
+  ratio::ratio(std::string const& token, int radix)
   {
     // std::regex static const pattern { "([+-]?[0-9a-f]+)/([0-9a-f]+)" };
 
     if (mpq_init(value); mpq_set_str(value, token.c_str(), radix))
     {
       mpq_clear(value);
-      throw error();
+      throw std::invalid_argument("not a ratio");
     }
     else
     {

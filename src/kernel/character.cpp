@@ -22,7 +22,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  character::operator external_representation() const
+  character::operator std::string() const
   {
     std::array<char, 5> bytes {};
 
@@ -75,7 +75,7 @@ inline namespace kernel
     case 0x7F: return os << cyan("delete"   );
 
     default:
-      return os << cyan(static_cast<external_representation>(datum));
+      return os << cyan(static_cast<std::string>(datum));
     }
   }
 

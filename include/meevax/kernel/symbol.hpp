@@ -35,7 +35,7 @@ inline namespace kernel
       : value { std::forward<decltype(xs)>(xs)... }
     {}
 
-    operator external_representation() const noexcept
+    operator std::string() const noexcept
     {
       return value;
     }

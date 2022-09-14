@@ -33,9 +33,9 @@ inline namespace iostream
 
     std::tuple<
       typename std::conditional<
-        not std::is_reference<Ts>::value or std::is_scalar<typename std::remove_reference<Ts>::type>::value,
-        typename std::decay<Ts>::type,
-        std::reference_wrapper<typename std::remove_reference<Ts>::type>
+        not std::is_reference_v<Ts> or std::is_scalar_v<std::remove_reference_t<Ts>>,
+        std::decay_t<Ts>,
+        std::reference_wrapper<std::remove_reference_t<Ts>>
       >::type...
     > references;
 

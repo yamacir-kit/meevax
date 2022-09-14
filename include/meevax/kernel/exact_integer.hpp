@@ -47,13 +47,13 @@ inline namespace kernel
 
     explicit exact_integer(double);
 
-    explicit exact_integer(external_representation const&, int = 0);
+    explicit exact_integer(std::string const&, int = 0);
 
     auto operator=(exact_integer const&) -> exact_integer &;
 
     auto operator=(exact_integer &&) noexcept -> exact_integer &;
 
-    auto operator=(external_representation const&) -> exact_integer &;
+    auto operator=(std::string const&) -> exact_integer &;
 
     operator int() const;
 

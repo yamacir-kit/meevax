@@ -49,8 +49,6 @@ inline namespace kernel
 
   using null = std::nullptr_t;
 
-  using external_representation = std::string;
-
   [[noreturn]]
   auto raise(std::string const&) -> void; // error.hpp
 } // namespace kernel
