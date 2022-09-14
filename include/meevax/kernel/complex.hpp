@@ -37,8 +37,6 @@ inline namespace kernel
 
     auto imag() const noexcept -> const_reference;
 
-    static auto pattern() -> std::regex const&;
-
     auto real() const noexcept -> const_reference;
 
     explicit operator std::complex<double>();

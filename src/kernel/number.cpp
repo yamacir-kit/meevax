@@ -217,7 +217,7 @@ inline namespace kernel
   auto operator * (complex const& a, complex const& b) -> complex { return complex(a.real() * b.real() - a.imag() * b.imag(), a.imag() * b.real() + a.real() * b.imag()); }
   auto operator / (complex const& a, complex const& b) -> complex { auto x = a.real() * b.real() + a.imag() * b.imag(); auto y = a.imag() * b.real() - a.real() * b.imag(); auto d = b.real() * b.real() + b.imag() * b.imag(); return complex(x / d, y / d); }
   auto operator % (complex const&  , complex const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
-  auto operator ==(complex const& a, complex const& b) -> bool    { return apply<equal_to>(a.real(), b.real()) and apply<equal_to>(a.imag(), b.imag()); }
+  auto operator ==(complex const& a, complex const& b) -> bool    { return apply<equal_to>(a.real(), b.real()).as<bool>() and apply<equal_to>(a.imag(), b.imag()).as<bool>(); }
   auto operator !=(complex const& a, complex const& b) -> bool    { return not (a == b); }
   auto operator < (complex const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
   auto operator <=(complex const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }

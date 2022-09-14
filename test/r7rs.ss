@@ -982,7 +982,7 @@
 
 (check (sqrt 9) => 3)
 
-; (check (sqrt -1) => +i)
+(check (sqrt -1) => +i)
 
 ; (check (exact-integer-sqrt 4) => #,(values 2 0))
 
@@ -1555,4 +1555,4 @@
 
 (check-report)
 
-(exit (check-passed? 391))
+(exit (check-passed? 392))
