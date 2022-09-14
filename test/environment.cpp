@@ -21,11 +21,9 @@ auto main() -> int
     assert(interaction_environment().is<environment>());
   }
 
-  assert(constants.size() == 19);
-
   const auto gc_count = gc.count();
 
-  assert(gc_count == constants.size() + specials_count);
+  assert(gc_count == specials_count);
 
   library::boot();
 

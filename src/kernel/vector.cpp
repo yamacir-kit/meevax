@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#include <numeric>
+
 #include <meevax/algorithm/for_each.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/string.hpp>

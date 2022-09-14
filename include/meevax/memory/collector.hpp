@@ -119,7 +119,7 @@ inline namespace memory
       template <typename Pointer>
       auto reset(Pointer const p) -> void
       {
-        reset(p ? locate(p) : nullptr);
+        reset(p != nullptr ? locate(p) : nullptr);
       }
 
       auto reset(traceable const& other) -> void

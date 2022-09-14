@@ -30,7 +30,7 @@ inline namespace iostream
   {
     if (std::stringstream ss; (ss << ... << xs))
     {
-      if constexpr (std::is_same<typename std::decay<To>::type, std::string>::value)
+      if constexpr (std::is_same_v<std::decay_t<To>, std::string>)
       {
         return ss.str();
       }

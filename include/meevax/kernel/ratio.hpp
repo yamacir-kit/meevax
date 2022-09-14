@@ -17,79 +17,38 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_RATIO_HPP
 #define INCLUDED_MEEVAX_KERNEL_RATIO_HPP
 
+#include <gmp.h>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct ratio : public number
-               , public virtual pair
+  struct ratio
   {
-    using pair::pair;
+    mpq_t value;
+
+    ratio();
+
+    ratio(ratio const&);
+
+    ratio(ratio &&);
+
+    ~ratio();
+
+    explicit ratio(exact_integer const&);
+
+    explicit ratio(exact_integer const&, exact_integer const&);
 
     explicit ratio(double);
 
-    explicit ratio(external_representation const&, int = 0);
+    explicit ratio(std::string const&, int = 10);
 
-    auto exact() const -> value_type override;
+    auto denominator() const -> exact_integer;
 
-    auto inexact() const -> value_type override;
+    auto numerator() const -> exact_integer;
 
-    auto denominator() const -> const_reference;
-
-    auto denominator() -> reference;
-
-    auto invert() const -> ratio;
-
-    auto is_complex() const noexcept -> bool override { return true; }
-
-    auto is_real() const noexcept -> bool override { return true; }
-
-    auto is_rational() const noexcept -> bool override { return true; }
-
-    auto is_integer() const -> bool override;
-
-    auto numerator() const -> const_reference;
-
-    auto numerator() -> reference;
-
-    auto reduce() const -> ratio;
-
-    auto simple() const -> value_type;
-
-    #define DEFINE(NAME) auto NAME() const -> value_type override
-
-    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
-    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
-    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
-
-    DEFINE(floor);
-    DEFINE(ceil);
-    DEFINE(trunc);
-    DEFINE(round);
-
-    #undef DEFINE
-
-    #define DEFINE(NAME) auto NAME(const_reference) const -> value_type override
-
-    DEFINE(atan2);
-    DEFINE(pow);
-
-    #undef DEFINE
-
-    auto operator + (const_reference) const -> value_type override;
-    auto operator - (const_reference) const -> value_type override;
-    auto operator * (const_reference) const -> value_type override;
-    auto operator / (const_reference) const -> value_type override;
-    auto operator % (const_reference) const -> value_type override;
-
-    auto operator ==(const_reference) const -> bool override;
-    auto operator !=(const_reference) const -> bool override;
-    auto operator < (const_reference) const -> bool override;
-    auto operator <=(const_reference) const -> bool override;
-    auto operator > (const_reference) const -> bool override;
-    auto operator >=(const_reference) const -> bool override;
+    explicit operator double() const;
   };
 
   auto operator <<(std::ostream &, ratio const&) -> std::ostream &;

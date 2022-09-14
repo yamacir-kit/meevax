@@ -23,12 +23,12 @@ namespace meevax
 {
 inline namespace functional
 {
-  auto i = [](auto&& x) constexpr
+  inline auto i = [](auto&& x) constexpr
   {
     return std::forward<decltype(x)>(x);
   };
 
-  auto y = [](auto&& f) constexpr -> decltype(auto)
+  inline auto y = [](auto&& f) constexpr -> decltype(auto)
   {
     return [&](auto&&... xs) -> decltype(auto)
     {
@@ -36,7 +36,7 @@ inline namespace functional
     };
   };
 
-  auto z = [](auto&& f) constexpr -> decltype(auto)
+  inline auto z = [](auto&& f) constexpr -> decltype(auto)
   {
     return curry(std::forward<decltype(f)>(f))
                 (std::forward<decltype(f)>(f));

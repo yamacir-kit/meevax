@@ -438,7 +438,7 @@
 ; (define range
 ;   (case-lambda
 ;     ((e) (range 0 e))
-;     ((b e) (do ((r ’() (cons e r))
+;     ((b e) (do ((r '() (cons e r))
 ;                 (e (- e 1) (- e 1)))
 ;                ((< e b) r)))))
 
@@ -826,15 +826,15 @@
 
 ; ---- 6.2.6. ------------------------------------------------------------------
 
-; (check (complex? 3+4i) => #t)
+(check (complex? 3+4i) => #t)
 
 (check (complex? 3) => #t)
 
 (check (real? 3) => #t)
 
-; (check (real? -2.5+0i) => #t)
+(check (real? -2.5+0i) => #t)
 
-; (check (real? -2.5+0.0i) => #t)
+(check (real? -2.5+0.0i) => #t)
 
 (check (real? #e1e10) => #t)
 
@@ -850,7 +850,7 @@
 
 (check (rational? 6/3) => #t)
 
-; (check (integer? 3+0i) => #t)
+(check (integer? 3+0i) => #t)
 
 (check (integer? 3.0) => #t)
 
@@ -872,7 +872,7 @@
 
 (check (finite? +inf.0) => #f)
 
-; (check (finite? 3.0+inf.0i) => #f)
+(check (finite? 3.0+inf.0i) => #f)
 
 (check (infinite? 3) => #f)
 
@@ -880,15 +880,15 @@
 
 (check (infinite? +nan.0) => #f)
 
-; (check (infinite? 3.0+inf.0i) => #t)
+(check (infinite? 3.0+inf.0i) => #t)
 
 (check (nan? +nan.0) => #t)
 
 (check (nan? 32) => #f)
 
-; (check (nan? +nan.0+5.0i) => #t)
+(check (nan? +nan.0+5.0i) => #t)
 
-; (check (nan? 1+2i) => #f)
+(check (nan? 1+2i) => #f)
 
 (check (zero? 0/1) => #t)
 
@@ -982,7 +982,7 @@
 
 (check (sqrt 9) => 3)
 
-; (check (sqrt -1) => +i)
+(check (sqrt -1) => +i)
 
 ; (check (exact-integer-sqrt 4) => #,(values 2 0))
 
@@ -1555,4 +1555,4 @@
 
 (check-report)
 
-(exit (check-passed? 383))
+(exit (check-passed? 392))

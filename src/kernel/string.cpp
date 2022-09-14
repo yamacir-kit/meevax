@@ -25,7 +25,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  string::string(external_representation const& s)
+  string::string(std::string const& s)
   {
     for (auto port = std::stringstream(s); not character::is_eof(port.peek()); codepoints.emplace_back(get_codepoint(port)));
   }
@@ -112,13 +112,13 @@ inline namespace kernel
     codepoints.at(k.as<exact_integer>()) = c.as<character>();
   }
 
-  string::operator external_representation() const
+  string::operator std::string() const
   {
-    external_representation result;
+    std::string result;
 
     for (character const& each : codepoints)
     {
-      result.append(static_cast<external_representation>(each));
+      result.append(static_cast<std::string>(each));
     }
 
     return result;

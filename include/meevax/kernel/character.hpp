@@ -59,7 +59,7 @@ inline namespace kernel
       return codepoint;
     }
 
-    explicit operator external_representation() const; // write-char (for display)
+    explicit operator std::string() const; // write-char (for display)
   };
 
   auto operator <<(std::ostream &, character const&) -> std::ostream &; // write

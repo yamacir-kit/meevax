@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_MACHINE_HPP
 #define INCLUDED_MEEVAX_KERNEL_MACHINE_HPP
 
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/ghost.hpp>
@@ -881,7 +882,7 @@ inline namespace kernel
     {
       if (current_context.is_tail)
       {
-        assert(lexical_cast<external_representation>(current_continuation) == "(return)");
+        assert(lexical_cast<std::string>(current_continuation) == "(return)");
 
         return compile(context(),
                        current_environment,

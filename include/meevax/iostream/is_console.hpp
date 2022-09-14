@@ -25,7 +25,7 @@ namespace meevax
 {
 inline namespace iostream
 {
-  auto is_console = [](std::ostream & os)
+  inline auto is_console = [](std::ostream & os)
   {
     if (os.rdbuf() == std::cout.rdbuf())
     {

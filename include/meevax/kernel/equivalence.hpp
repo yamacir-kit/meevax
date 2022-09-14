@@ -23,12 +23,12 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto eq = [](auto const& x, auto const& y) constexpr
+  inline auto eq = [](auto const& x, auto const& y) constexpr
   {
     return x == y;
   };
 
-  auto eqv = [](auto const& x, auto const& y)
+  inline auto eqv = [](auto const& x, auto const& y)
   {
     return eq(x, y) or x.compare(y);
   };

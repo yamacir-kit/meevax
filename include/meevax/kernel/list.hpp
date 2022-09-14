@@ -45,12 +45,12 @@ inline namespace kernel
     }
   }
 
-  auto car = [](auto&& x) -> decltype(auto)
+  inline auto car = [](auto&& x) -> decltype(auto)
   {
     return field<0>(std::forward<decltype(x)>(x));
   };
 
-  auto cdr = [](auto&& x) -> decltype(auto)
+  inline auto cdr = [](auto&& x) -> decltype(auto)
   {
     return field<1>(std::forward<decltype(x)>(x));
   };
@@ -62,22 +62,22 @@ inline namespace kernel
     return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
   }
 
-  auto cons = [](auto&&... xs) constexpr
+  inline auto cons = [](auto&&... xs) constexpr
   {
     return (std::forward<decltype(xs)>(xs) | ...);
   };
 
-  auto list = [](auto&& ... xs) constexpr
+  inline auto list = [](auto&& ... xs) constexpr
   {
     return (std::forward<decltype(xs)>(xs) | ... | unit);
   };
 
-  auto xcons = [](auto&& d, auto&& a) constexpr
+  inline auto xcons = [](auto&& d, auto&& a) constexpr
   {
     return cons(std::forward<decltype(a)>(a), std::forward<decltype(d)>(d));
   };
 
-  auto make_list = [](std::size_t k, const_reference x = unit)
+  inline auto make_list = [](std::size_t k, const_reference x = unit)
   {
     let result = list();
 
@@ -89,7 +89,7 @@ inline namespace kernel
     return result;
   };
 
-  auto list_tabulate = [](auto n, auto&& initialize)
+  inline auto list_tabulate = [](auto n, auto&& initialize)
   {
     let x = list();
 
@@ -101,7 +101,7 @@ inline namespace kernel
     return x;
   };
 
-  auto list_copy = [](auto const& x)
+  inline auto list_copy = [](auto const& x)
   {
     auto copy = [](auto&& rec, const_reference x) -> value_type
     {
@@ -118,7 +118,7 @@ inline namespace kernel
     return z(copy)(x);
   };
 
-  auto circular_list = [](auto&&... xs)
+  inline auto circular_list = [](auto&&... xs)
   {
     let x = list(std::forward<decltype(xs)>(xs)...);
 
@@ -130,38 +130,38 @@ inline namespace kernel
     return x;
   };
 
-  constexpr auto caar = compose(car, car);
-  constexpr auto cadr = compose(car, cdr);
-  constexpr auto cdar = compose(cdr, car);
-  constexpr auto cddr = compose(cdr, cdr);
+  inline constexpr auto caar = compose(car, car);
+  inline constexpr auto cadr = compose(car, cdr);
+  inline constexpr auto cdar = compose(cdr, car);
+  inline constexpr auto cddr = compose(cdr, cdr);
 
-  constexpr auto caaar = compose(car, caar);
-  constexpr auto caadr = compose(car, cadr);
-  constexpr auto cadar = compose(car, cdar);
-  constexpr auto caddr = compose(car, cddr);
-  constexpr auto cdaar = compose(cdr, caar);
-  constexpr auto cdadr = compose(cdr, cadr);
-  constexpr auto cddar = compose(cdr, cdar);
-  constexpr auto cdddr = compose(cdr, cddr);
+  inline constexpr auto caaar = compose(car, caar);
+  inline constexpr auto caadr = compose(car, cadr);
+  inline constexpr auto cadar = compose(car, cdar);
+  inline constexpr auto caddr = compose(car, cddr);
+  inline constexpr auto cdaar = compose(cdr, caar);
+  inline constexpr auto cdadr = compose(cdr, cadr);
+  inline constexpr auto cddar = compose(cdr, cdar);
+  inline constexpr auto cdddr = compose(cdr, cddr);
 
-  constexpr auto caaaar = compose(car, caaar);
-  constexpr auto caaadr = compose(car, caadr);
-  constexpr auto caadar = compose(car, cadar);
-  constexpr auto caaddr = compose(car, caddr);
-  constexpr auto cadaar = compose(car, cdaar);
-  constexpr auto cadadr = compose(car, cdadr);
-  constexpr auto caddar = compose(car, cddar);
-  constexpr auto cadddr = compose(car, cdddr);
-  constexpr auto cdaaar = compose(cdr, caaar);
-  constexpr auto cdaadr = compose(cdr, caadr);
-  constexpr auto cdadar = compose(cdr, cadar);
-  constexpr auto cdaddr = compose(cdr, caddr);
-  constexpr auto cddaar = compose(cdr, cdaar);
-  constexpr auto cddadr = compose(cdr, cdadr);
-  constexpr auto cdddar = compose(cdr, cddar);
-  constexpr auto cddddr = compose(cdr, cdddr);
+  inline constexpr auto caaaar = compose(car, caaar);
+  inline constexpr auto caaadr = compose(car, caadr);
+  inline constexpr auto caadar = compose(car, cadar);
+  inline constexpr auto caaddr = compose(car, caddr);
+  inline constexpr auto cadaar = compose(car, cdaar);
+  inline constexpr auto cadadr = compose(car, cdadr);
+  inline constexpr auto caddar = compose(car, cddar);
+  inline constexpr auto cadddr = compose(car, cdddr);
+  inline constexpr auto cdaaar = compose(cdr, caaar);
+  inline constexpr auto cdaadr = compose(cdr, caadr);
+  inline constexpr auto cdadar = compose(cdr, cadar);
+  inline constexpr auto cdaddr = compose(cdr, caddr);
+  inline constexpr auto cddaar = compose(cdr, cdaar);
+  inline constexpr auto cddadr = compose(cdr, cdadr);
+  inline constexpr auto cdddar = compose(cdr, cddar);
+  inline constexpr auto cddddr = compose(cdr, cdddr);
 
-  auto unpair = [](const_reference x) // a.k.a car+cdr (SRFI 1)
+  inline auto unpair = [](const_reference x) // a.k.a car+cdr (SRFI 1)
   {
     return std::forward_as_tuple(car(x), cdr(x));
   };
@@ -172,14 +172,14 @@ inline namespace kernel
     return 0 < k ? list_tail(cdr(x), k - 1) : x;
   }
 
-  auto list_ref = [](auto&&... xs) constexpr -> const_reference
+  inline auto list_ref = [](auto&&... xs) constexpr -> const_reference
   {
     return car(list_tail(std::forward<decltype(xs)>(xs)...));
   };
 
   auto take(const_reference, std::size_t) -> value_type;
 
-  auto length = [](auto const& x) constexpr
+  inline auto length = [](auto const& x) constexpr
   {
     return std::distance(std::cbegin(x), std::cend(x));
   };
@@ -200,7 +200,7 @@ inline namespace kernel
     return x.is<null>() ? unit : cons(f(car(x)), map1(f, cdr(x)));
   }
 
-  auto find = [](const_reference xs, auto&& compare) constexpr -> const_reference
+  inline auto find = [](const_reference xs, auto&& compare) constexpr -> const_reference
   {
     if (auto&& iter = std::find_if(std::begin(xs), std::end(xs), compare); iter)
     {
@@ -212,27 +212,27 @@ inline namespace kernel
     }
   };
 
-  auto assoc = [](const_reference x, const_reference xs, auto&& compare)
+  inline auto assoc = [](const_reference x, const_reference xs, auto&& compare)
   {
     return find(xs, [&](auto&& each) { return compare(x, car(each)); });
   };
 
-  auto assv = [](auto&&... xs)
+  inline auto assv = [](auto&&... xs)
   {
     return assoc(std::forward<decltype(xs)>(xs)..., eqv);
   };
 
-  auto assq = [](auto&&... xs)
+  inline auto assq = [](auto&&... xs)
   {
     return assoc(std::forward<decltype(xs)>(xs)..., eq);
   };
 
-  auto alist_cons = [](auto&& key, auto&& datum, auto&& alist)
+  inline auto alist_cons = [](auto&& key, auto&& datum, auto&& alist)
   {
     return cons(cons(key, datum), alist);
   };
 
-  auto member = [](const_reference x, const_reference xs, auto&& compare)
+  inline auto member = [](const_reference x, const_reference xs, auto&& compare)
   {
     if (auto&& iter = std::find_if(std::begin(xs), std::end(xs), [&](auto&& each) { return compare(x, each); }); iter)
     {
@@ -244,17 +244,17 @@ inline namespace kernel
     }
   };
 
-  auto memv = [](auto&&... xs)
+  inline auto memv = [](auto&&... xs)
   {
     return member(std::forward<decltype(xs)>(xs)..., eqv);
   };
 
-  auto memq = [](auto&&... xs)
+  inline auto memq = [](auto&&... xs)
   {
     return member(std::forward<decltype(xs)>(xs)..., eq);
   };
 
-  auto filter = [](auto&& satisfy, const_reference xs)
+  inline auto filter = [](auto&& satisfy, const_reference xs)
   {
     auto filter = [&](auto&& filter, let const& xs)
     {

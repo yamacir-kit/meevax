@@ -17,6 +17,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_COMPLEX_HPP
 #define INCLUDED_MEEVAX_KERNEL_COMPLEX_HPP
 
+#include <complex>
+#include <regex>
+
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/pair.hpp>
 
@@ -24,60 +27,19 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct complex : public number
-                 , public virtual pair
+  struct complex : public virtual pair
   {
     using pair::pair;
 
-    auto real() const noexcept -> const_reference;
+    explicit complex(std::string const&, int = 10);
 
-    auto real() noexcept -> reference;
+    auto canonicalize() const -> value_type;
 
     auto imag() const noexcept -> const_reference;
 
-    auto imag() noexcept -> reference;
+    auto real() const noexcept -> const_reference;
 
-    #define DEFINE(NAME)                                                       \
-    auto NAME() const -> value_type override                                   \
-    {                                                                          \
-      return unspecified;                                                      \
-    }                                                                          \
-    static_assert(true)
-
-    DEFINE(exact); DEFINE(inexact);
-
-    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
-    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
-    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
-
-    DEFINE(floor); DEFINE(ceil); DEFINE(trunc); DEFINE(round);
-
-    #undef DEFINE
-
-    #define DEFINE(NAME)                                                       \
-    auto NAME(const_reference) const -> value_type override                    \
-    {                                                                          \
-      return unspecified;                                                      \
-    }                                                                          \
-    static_assert(true)
-
-    DEFINE(atan2);
-    DEFINE(pow);
-
-    #undef DEFINE
-
-    auto operator + (const_reference) const -> value_type override { return unspecified; }
-    auto operator - (const_reference) const -> value_type override { return unspecified; }
-    auto operator * (const_reference) const -> value_type override { return unspecified; }
-    auto operator / (const_reference) const -> value_type override { return unspecified; }
-    auto operator % (const_reference) const -> value_type override { return unspecified; }
-
-    auto operator ==(const_reference) const -> bool override { return false; };
-    auto operator !=(const_reference) const -> bool override { return false; };
-    auto operator < (const_reference) const -> bool override { return false; };
-    auto operator <=(const_reference) const -> bool override { return false; };
-    auto operator > (const_reference) const -> bool override { return false; };
-    auto operator >=(const_reference) const -> bool override { return false; };
+    explicit operator std::complex<double>();
   };
 
   auto operator <<(std::ostream &, complex const&) -> std::ostream &;

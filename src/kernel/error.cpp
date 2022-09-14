@@ -35,11 +35,11 @@ inline namespace kernel
     throw *this;
   }
 
-  auto error::what() const -> external_representation
+  auto error::what() const -> std::string
   {
     std::stringstream ss {};
 
-    ss << "error: " << static_cast<external_representation>(message().as<string>());
+    ss << "error: " << static_cast<std::string>(message().as<string>());
 
     if (irritants())
     {
@@ -61,15 +61,9 @@ inline namespace kernel
     return os << magenta(")");
   }
 
-  auto raise(external_representation const& message) -> void
+  auto raise(std::string const& message) -> void
   {
     throw error(make<string>(message));
-  }
-
-  auto invalid_application(const_reference irritants) -> error
-  {
-    let static const message = make<string>("invalid application");
-    return error(message, irritants);
   }
 } // namespace kernel
 } // namespace meevax

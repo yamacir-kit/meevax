@@ -19,24 +19,25 @@
 
 #include <gmp.h>
 
-#include <meevax/functional/arithmetic_operation.hpp>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct exact_integer : public number
+  struct exact_integer
   {
     mpz_t value;
 
-    explicit exact_integer() noexcept;
-
-    explicit exact_integer(mpz_t) noexcept;
+    exact_integer() noexcept;
 
     exact_integer(exact_integer const&) noexcept;
 
-    explicit exact_integer(exact_integer &&) noexcept;
+    exact_integer(exact_integer &&) noexcept;
+
+    ~exact_integer();
+
+    explicit exact_integer(mpz_t const) noexcept;
 
     explicit exact_integer(int);
 
@@ -46,63 +47,13 @@ inline namespace kernel
 
     explicit exact_integer(double);
 
-    explicit exact_integer(external_representation const&, int = 0);
-
-    explicit exact_integer(addition,                exact_integer const&, exact_integer const&);
-    explicit exact_integer(subtraction,             exact_integer const&, exact_integer const&);
-    explicit exact_integer(multiplication,          exact_integer const&, exact_integer const&);
-    explicit exact_integer(division,                exact_integer const&, exact_integer const&);
-    explicit exact_integer(modulo,                  exact_integer const&, exact_integer const&);
-    explicit exact_integer(greatest_common_divisor, exact_integer const&, exact_integer const&);
-
-    ~exact_integer();
+    explicit exact_integer(std::string const&, int = 0);
 
     auto operator=(exact_integer const&) -> exact_integer &;
 
     auto operator=(exact_integer &&) noexcept -> exact_integer &;
 
-    auto operator=(external_representation const&) -> exact_integer &;
-
-    auto floor_remainder(exact_integer const&) const -> exact_integer;
-
-    auto floor_quotient(exact_integer const&) const -> exact_integer;
-
-    auto is_complex() const noexcept -> bool override { return true; }
-
-    auto is_real() const noexcept -> bool override { return true; }
-
-    auto is_rational() const noexcept -> bool override { return true; }
-
-    auto is_integer() const -> bool override;
-
-    auto string(int = 10) const -> external_representation;
-
-    auto swap(exact_integer &) noexcept -> void;
-
-    auto truncate_remainder(exact_integer const&) const -> exact_integer;
-
-    auto truncate_quotient(exact_integer const&) const -> exact_integer;
-
-    #define DEFINE(NAME) auto NAME() const -> value_type override
-
-    DEFINE(exact); DEFINE(inexact);
-
-    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
-    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
-    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
-
-    DEFINE(floor); DEFINE(ceil); DEFINE(trunc); DEFINE(round);
-
-    #undef DEFINE
-
-    #define DEFINE(NAME) auto NAME(const_reference) const -> value_type override
-
-    DEFINE(atan2);
-    DEFINE(pow);
-
-    #undef DEFINE
-
-    explicit operator bool() const;
+    auto operator=(std::string const&) -> exact_integer &;
 
     operator int() const;
 
@@ -114,20 +65,7 @@ inline namespace kernel
 
     explicit operator double() const;
 
-    explicit operator external_representation() const;
-
-    auto operator + (const_reference) const -> value_type override;
-    auto operator - (const_reference) const -> value_type override;
-    auto operator * (const_reference) const -> value_type override;
-    auto operator / (const_reference) const -> value_type override;
-    auto operator % (const_reference) const -> value_type override;
-
-    auto operator ==(const_reference) const -> bool override;
-    auto operator !=(const_reference) const -> bool override;
-    auto operator < (const_reference) const -> bool override;
-    auto operator <=(const_reference) const -> bool override;
-    auto operator > (const_reference) const -> bool override;
-    auto operator >=(const_reference) const -> bool override;
+    explicit operator bool() const;
   };
 
   auto operator ==(exact_integer const&, int const) -> bool;
@@ -151,14 +89,9 @@ inline namespace kernel
   auto operator > (exact_integer const&, unsigned long const) -> bool;
   auto operator >=(exact_integer const&, unsigned long const) -> bool;
 
-  auto operator ==(exact_integer const&, double const) -> bool;
-  auto operator !=(exact_integer const&, double const) -> bool;
-  auto operator < (exact_integer const&, double const) -> bool;
-  auto operator <=(exact_integer const&, double const) -> bool;
-  auto operator > (exact_integer const&, double const) -> bool;
-  auto operator >=(exact_integer const&, double const) -> bool;
-
   auto operator <<(std::ostream &, exact_integer const&) -> std::ostream &;
+
+  auto exact_integer_sqrt(exact_integer const&) -> std::tuple<exact_integer, exact_integer>;
 
   let extern const e0, e1; // Frequently used exact-integer values.
 } // namespace kernel

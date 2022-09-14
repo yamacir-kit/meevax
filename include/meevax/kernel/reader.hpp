@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
-#include <meevax/kernel/constant.hpp>
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
@@ -32,15 +32,25 @@ inline namespace kernel
 {
   auto get_codepoint(std::istream &) -> character::int_type;
 
-  auto get_delimited_elements(std::istream & is, character::int_type) -> string;
+  auto get_delimited_elements(std::istream &, character::int_type) -> string;
 
-  auto get_token(std::istream &) -> external_representation;
+  auto get_token(std::istream &) -> std::string;
 
   auto ignore_nested_block_comment(std::istream &) -> std::istream &;
 
   auto read_character_literal(std::istream &) -> value_type;
 
   auto read_string_literal(std::istream &) -> value_type;
+
+  auto string_to_integer(std::string const&, int = 10) -> value_type;
+
+  auto string_to_rational(std::string const&, int = 10) -> value_type;
+
+  auto string_to_real(std::string const&, int = 10) -> value_type;
+
+  auto string_to_complex(std::string const&, int = 10) -> value_type;
+
+  auto string_to_number(std::string const&, int = 10) -> value_type;
 
   template <typename Environment>
   class reader
@@ -55,7 +65,7 @@ inline namespace kernel
     using char_type = typename std::istream::char_type;
 
   public:
-    static inline std::unordered_map<external_representation, value_type> symbols {};
+    static inline std::unordered_map<std::string, value_type> symbols {};
 
     inline auto char_ready() const
     {
@@ -97,7 +107,7 @@ inline namespace kernel
             return string_to_symbol(get_delimited_elements(is.putback(c), c));
 
           case 'b': // (string->number (read) 2)
-            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 2);
+            return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 2);
 
           case 'c': // Common Lisp
             {
@@ -107,27 +117,27 @@ inline namespace kernel
             }
 
           case 'd':
-            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 10);
+            return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 10);
 
           case 'e':
-            return read(is).template as<number>().exact(); // NOTE: Same as #,(exact (read))
+            return apply<exact>(read(is)); // NOTE: Same as #,(exact (read))
 
           case 'f':
             get_token(is);
             return f;
 
           case 'i':
-            return read(is).template as<number>().inexact(); // NOTE: Same as #,(inexact (read))
+            return apply<inexact>(read(is)); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 8);
+            return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 8);
 
           case 't':
             get_token(is);
             return t;
 
           case 'x':
-            return string_to_number(is.peek() == '#' ? lexical_cast<external_representation>(read(is)) : get_token(is), 16);
+            return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 16);
 
           case '(':
             is.putback(c);
@@ -227,46 +237,13 @@ inline namespace kernel
       return read(standard_input);
     }
 
-    inline auto read(external_representation const& s) -> value_type // NOTE: Specifying `decltype(auto)` causes a `undefined reference to ...` error in GCC-7.
+    inline auto read(std::string const& s) -> value_type // NOTE: Specifying `decltype(auto)` causes a `undefined reference to ...` error in GCC-7.
     {
       auto port = std::stringstream(s);
       return read(port);
     }
 
-    static auto string_to_number(external_representation const& token, int radix = 10)
-    {
-      try
-      {
-        return make<exact_integer>(token, radix);
-      }
-      catch (...)
-      {
-        try
-        {
-          return ratio(token, radix).simple();
-        }
-        catch (...)
-        {
-          try
-          {
-            return make<double_float>(token);
-          }
-          catch (...)
-          {
-            if (auto iter = constants.find(token); iter != std::end(constants))
-            {
-              return iter->second;
-            }
-            else
-            {
-              throw read_error(make<string>("not a number"), make<string>(token));
-            }
-          }
-        }
-      }
-    }
-
-    static auto string_to_symbol(external_representation const& name) -> const_reference
+    static auto string_to_symbol(std::string const& name) -> const_reference
     {
       if (auto const iter = symbols.find(name); iter != std::end(symbols))
       {

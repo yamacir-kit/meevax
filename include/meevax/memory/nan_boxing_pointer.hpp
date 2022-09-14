@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 
 #include <cstddef>
+#include <cmath>
 #include <iomanip>
 #include <memory>
 #include <ostream>
@@ -44,9 +45,9 @@ inline namespace memory
             typename T_0b111 = std::integral_constant<std::uint32_t, 0b111>>
   struct nan_boxing_pointer
   {
-    using element_type = typename std::decay<T>::type;
+    using element_type = std::decay_t<T>;
 
-    using pointer = typename std::add_pointer<element_type>::type;
+    using pointer = std::add_pointer_t<element_type>;
 
     pointer data;
 
@@ -130,14 +131,14 @@ inline namespace memory
     template <typename U>
     auto as() const
     {
-      if constexpr (std::is_same<float64, typename std::decay<U>::type>::value)
+      if constexpr (std::is_same_v<std::decay_t<U>, float64>)
       {
         return bit_cast<float64>(data);
       }
       else
       {
-        return bit_cast<typename std::decay<U>::type>(
-                 static_cast<uintN_t<sizeof(typename std::decay<U>::type)>>(
+        return bit_cast<std::decay_t<U>>(
+                 static_cast<uintN_t<sizeof(std::decay_t<U>)>>(
                    reinterpret_cast<std::uintptr_t>(data) & mask_payload));
       }
     }
@@ -160,7 +161,7 @@ inline namespace memory
     template <typename U>
     auto is() const noexcept
     {
-      return type() == typeid(typename std::decay<U>::type);
+      return type() == typeid(std::decay_t<U>);
     }
 
     auto signature() const noexcept
@@ -218,7 +219,18 @@ inline namespace memory
       #undef DEFINE
 
       default:
-        return os << as<float64>();
+        if (auto value = as<float64>(); std::isnan(value))
+        {
+          return os << cyan("+nan.0");
+        }
+        else if (std::isinf(value))
+        {
+          return os << cyan(0 < value ? '+' : '-', "inf.0");
+        }
+        else
+        {
+          return os << std::fixed << std::setprecision(17) << cyan(value);
+        }
       }
     }
   };

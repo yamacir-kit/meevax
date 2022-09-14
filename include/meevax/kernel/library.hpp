@@ -49,17 +49,17 @@ inline namespace kernel
 
     auto export_(const_reference) -> void;
 
-    auto export_(external_representation const&) -> void;
+    auto export_(std::string const&) -> void;
 
     auto resolve() -> const_reference;
   };
 
   auto operator <<(std::ostream &, library const&) -> std::ostream &;
 
-  extern std::unordered_map<external_representation, library> libraries;
+  extern std::unordered_map<std::string, library> libraries;
 
   template <typename... Ts>
-  auto define_library(external_representation const& name, Ts&&... xs)
+  auto define_library(std::string const& name, Ts&&... xs)
   {
     return libraries.emplace(name, std::forward<decltype(xs)>(xs)...);
   }

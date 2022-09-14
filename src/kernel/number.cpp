@@ -20,76 +20,262 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto exact_integer::operator * (const_reference b) const -> value_type { return apply(mul, *this, b); }
-  auto exact_integer::operator + (const_reference b) const -> value_type { return apply(add, *this, b); }
-  auto exact_integer::operator - (const_reference b) const -> value_type { return apply(sub, *this, b); }
-  auto exact_integer::operator / (const_reference b) const -> value_type { return apply(div, *this, b); }
-  auto exact_integer::operator % (const_reference b) const -> value_type { return apply(mod, *this, b); }
-  auto exact_integer::operator !=(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, b); }
-  auto exact_integer::operator < (const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, b); }
-  auto exact_integer::operator <=(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, b); }
-  auto exact_integer::operator ==(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, *this, b); }
-  auto exact_integer::operator > (const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, *this, b); }
-  auto exact_integer::operator >=(const_reference b) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, *this, b); }
-
-  auto operator * (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(mul, a, b); }
-  auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(add, a, b); }
-  auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(sub, a, b); }
-  auto operator / (exact_integer const& a, exact_integer const& b) -> ratio         { return ratio(make(a), make(b)); }
-  auto operator % (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(mod, a, b); }
+  auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_add(n.value, a.value, b.value); return n; }
+  auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_sub(n.value, a.value, b.value); return n; }
+  auto operator * (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_mul(n.value, a.value, b.value); return n; }
+  auto operator / (exact_integer const& a, exact_integer const& b) -> ratio         { return ratio(a, b); }
+  auto operator % (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_tdiv_r(n.value, a.value, b.value); return n; }
+  auto operator ==(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) == 0; }
   auto operator !=(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) != 0; }
   auto operator < (exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) <  0; }
   auto operator <=(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) <= 0; }
-  auto operator ==(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) == 0; }
   auto operator > (exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) >  0; }
   auto operator >=(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) >= 0; }
 
-  auto operator * (exact_integer const& a, ratio const& b) -> ratio { return ratio(make(a * b.numerator().as<exact_integer>()), cdr(b)); }
-  auto operator + (exact_integer const& a, ratio const& b) -> ratio { return ratio(make(a * b.denominator().as<exact_integer>() + b.numerator().as<exact_integer>()), cdr(b)); }
-  auto operator - (exact_integer const& a, ratio const& b) -> ratio { return ratio(make(a * b.denominator().as<exact_integer>() - b.numerator().as<exact_integer>()), cdr(b)); }
-  auto operator / (exact_integer const& a, ratio const& b) -> ratio { return a * b.invert(); }
-  auto operator % (exact_integer const&  , ratio const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
-  auto operator !=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a != x.numerator().as<exact_integer>() : false; }
-  auto operator < (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a <  x.numerator().as<exact_integer>() : false; }
-  auto operator <=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a <= x.numerator().as<exact_integer>() : false; }
-  auto operator ==(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a == x.numerator().as<exact_integer>() : false; }
-  auto operator > (exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a >  x.numerator().as<exact_integer>() : false; }
-  auto operator >=(exact_integer const& a, ratio const& b) -> bool  { auto const x = b.reduce(); return x.is_integer() ? a >= x.numerator().as<exact_integer>() : false; }
+  auto operator + (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_add(q.value, ratio(a).value, b.value); return q; }
+  auto operator - (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_sub(q.value, ratio(a).value, b.value); return q; }
+  auto operator * (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_mul(q.value, ratio(a).value, b.value); return q; }
+  auto operator / (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_div(q.value, ratio(a).value, b.value); return q; }
+  auto operator % (exact_integer const&  , ratio const&  ) -> ratio { throw std::invalid_argument("unsupported operation"); }
+  auto operator ==(exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) == 0; }
+  auto operator !=(exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) != 0; }
+  auto operator < (exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) >  0; }
+  auto operator <=(exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) >= 0; }
+  auto operator > (exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) <  0; }
+  auto operator >=(exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) <= 0; }
 
-  auto ratio::operator * (const_reference x) const -> value_type { return apply(mul, *this, x); }
-  auto ratio::operator + (const_reference x) const -> value_type { return apply(add, *this, x); }
-  auto ratio::operator - (const_reference x) const -> value_type { return apply(sub, *this, x); }
-  auto ratio::operator / (const_reference x) const -> value_type { return apply(div, *this, x); }
-  auto ratio::operator % (const_reference x) const -> value_type { return apply(mod, *this, x); }
-  auto ratio::operator !=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, *this, x); }
-  auto ratio::operator < (const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, *this, x); }
-  auto ratio::operator <=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, *this, x); }
-  auto ratio::operator ==(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, *this, x); }
-  auto ratio::operator > (const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, *this, x); }
-  auto ratio::operator >=(const_reference x) const -> bool       { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, *this, x); }
+  auto operator + (exact_integer const& a, float b) -> float { return inexact_cast(a) +  b; }
+  auto operator - (exact_integer const& a, float b) -> float { return inexact_cast(a) -  b; }
+  auto operator * (exact_integer const& a, float b) -> float { return inexact_cast(a) *  b; }
+  auto operator / (exact_integer const& a, float b) -> float { return inexact_cast(a) /  b; }
+  auto operator % (exact_integer const& a, float b) -> float { return std::remainder(inexact_cast(a), b); }
+  auto operator ==(exact_integer const& a, float b) -> bool  { return std::invoke(equal_to(), inexact_cast(a), b); }
+  auto operator !=(exact_integer const& a, float b) -> bool  { return not (a == b); }
+  auto operator < (exact_integer const& a, float b) -> bool  { return inexact_cast(a) <  b; }
+  auto operator <=(exact_integer const& a, float b) -> bool  { return inexact_cast(a) <= b; }
+  auto operator > (exact_integer const& a, float b) -> bool  { return inexact_cast(a) >  b; }
+  auto operator >=(exact_integer const& a, float b) -> bool  { return inexact_cast(a) >= b; }
 
-  auto operator * (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b), cdr(a)); }
-  auto operator + (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() + a.denominator().as<exact_integer>() * b), cdr(a)); }
-  auto operator - (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() - a.denominator().as<exact_integer>() * b), cdr(a)); }
-  auto operator / (ratio const& a, exact_integer const& b) -> ratio { return ratio(car(a), make(a.denominator().as<exact_integer>() * b)); }
-  auto operator % (ratio const&  , exact_integer const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
-  auto operator !=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator().as<exact_integer>() != b : false; }
-  auto operator < (ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator().as<exact_integer>() <  b : false; }
-  auto operator <=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator().as<exact_integer>() <= b : false; }
-  auto operator ==(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator().as<exact_integer>() == b : false; }
-  auto operator > (ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator().as<exact_integer>() >  b : false; }
-  auto operator >=(ratio const& a, exact_integer const& b) -> bool  { auto const x = a.reduce(); return x.is_integer() ? x.numerator().as<exact_integer>() >= b : false; }
+  auto operator + (exact_integer const& a, double b) -> double { return inexact_cast(a) +  b; }
+  auto operator - (exact_integer const& a, double b) -> double { return inexact_cast(a) -  b; }
+  auto operator * (exact_integer const& a, double b) -> double { return inexact_cast(a) *  b; }
+  auto operator / (exact_integer const& a, double b) -> double { return inexact_cast(a) /  b; }
+  auto operator % (exact_integer const& a, double b) -> double { return std::remainder(inexact_cast(a), b); }
+  auto operator ==(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) == 0; }
+  auto operator !=(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) != 0; }
+  auto operator < (exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) <  0; }
+  auto operator <=(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) <= 0; }
+  auto operator > (exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) >  0; }
+  auto operator >=(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) >= 0; }
 
-  auto operator + (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>() + b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()), make(a.denominator().as<exact_integer>() * b.denominator().as<exact_integer>())); }
-  auto operator - (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>() - b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()), make(a.denominator().as<exact_integer>() * b.denominator().as<exact_integer>())); }
-  auto operator * (ratio const& a, ratio const& b) -> ratio { return ratio(make(a.numerator().as<exact_integer>() * b.numerator().as<exact_integer>()), make(a.denominator().as<exact_integer>() * b.denominator().as<exact_integer>())); }
-  auto operator / (ratio const& a, ratio const& b) -> ratio { return a * b.invert(); }
-  auto operator % (ratio const&  , ratio const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
-  auto operator ==(ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) == (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
-  auto operator !=(ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) != (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
-  auto operator < (ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) <  (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
-  auto operator <=(ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) <= (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
-  auto operator > (ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) >  (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
-  auto operator >=(ratio const& a, ratio const& b) -> bool  { return (a.numerator().as<exact_integer>() * b.denominator().as<exact_integer>()) >= (b.numerator().as<exact_integer>() * a.denominator().as<exact_integer>()); }
+  auto operator + (exact_integer const& a, complex const& b) -> complex { return complex(make(a), e0) +  b; }
+  auto operator - (exact_integer const& a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
+  auto operator * (exact_integer const& a, complex const& b) -> complex { return complex(make(a), e0) *  b; }
+  auto operator / (exact_integer const& a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
+  auto operator % (exact_integer const&  , complex const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
+  auto operator ==(exact_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
+  auto operator !=(exact_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
+  auto operator < (exact_integer const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator <=(exact_integer const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator > (exact_integer const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator >=(exact_integer const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+
+  auto operator + (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_add(q.value, a.value, ratio(b).value); return q; }
+  auto operator - (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_sub(q.value, a.value, ratio(b).value); return q; }
+  auto operator * (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_mul(q.value, a.value, ratio(b).value); return q; }
+  auto operator / (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_div(q.value, a.value, ratio(b).value); return q; }
+  auto operator % (ratio const&  , exact_integer const&  ) -> ratio { throw std::invalid_argument("unsupported operation"); }
+  auto operator ==(ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) == 0; }
+  auto operator !=(ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) != 0; }
+  auto operator < (ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) <  0; }
+  auto operator <=(ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) <= 0; }
+  auto operator > (ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) >  0; }
+  auto operator >=(ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) >= 0; }
+
+  auto operator + (ratio const& a, ratio const& b) -> ratio { ratio q; mpq_add(q.value, a.value, b.value); return q; }
+  auto operator - (ratio const& a, ratio const& b) -> ratio { ratio q; mpq_sub(q.value, a.value, b.value); return q; }
+  auto operator * (ratio const& a, ratio const& b) -> ratio { ratio q; mpq_mul(q.value, a.value, b.value); return q; }
+  auto operator / (ratio const& a, ratio const& b) -> ratio { ratio q; mpq_div(q.value, a.value, b.value); return q; }
+  auto operator % (ratio const&  , ratio const&  ) -> ratio { throw std::invalid_argument("unsupported operation"); }
+  auto operator ==(ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) == 0; }
+  auto operator !=(ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) != 0; }
+  auto operator < (ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) <  0; }
+  auto operator <=(ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) <= 0; }
+  auto operator > (ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) >  0; }
+  auto operator >=(ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) >= 0; }
+
+  auto operator + (ratio const& a, float b) -> float { return inexact_cast(a) +  b; }
+  auto operator - (ratio const& a, float b) -> float { return inexact_cast(a) -  b; }
+  auto operator * (ratio const& a, float b) -> float { return inexact_cast(a) *  b; }
+  auto operator / (ratio const& a, float b) -> float { return inexact_cast(a) /  b; }
+  auto operator % (ratio const& a, float b) -> float { return std::remainder(inexact_cast(a), b); }
+  auto operator ==(ratio const& a, float b) -> bool  { return std::invoke(equal_to(), inexact_cast(a), b); }
+  auto operator !=(ratio const& a, float b) -> bool  { return not (a == b); }
+  auto operator < (ratio const& a, float b) -> bool  { return inexact_cast(a) <  b; }
+  auto operator <=(ratio const& a, float b) -> bool  { return inexact_cast(a) <= b; }
+  auto operator > (ratio const& a, float b) -> bool  { return inexact_cast(a) >  b; }
+  auto operator >=(ratio const& a, float b) -> bool  { return inexact_cast(a) >= b; }
+
+  auto operator + (ratio const& a, double b) -> double { return inexact_cast(a) +  b; }
+  auto operator - (ratio const& a, double b) -> double { return inexact_cast(a) -  b; }
+  auto operator * (ratio const& a, double b) -> double { return inexact_cast(a) *  b; }
+  auto operator / (ratio const& a, double b) -> double { return inexact_cast(a) /  b; }
+  auto operator % (ratio const& a, double b) -> double { return std::remainder(inexact_cast(a), b); }
+  auto operator ==(ratio const& a, double b) -> bool   { return std::invoke(equal_to(), inexact_cast(a), b); }
+  auto operator !=(ratio const& a, double b) -> bool   { return not (a == b); }
+  auto operator < (ratio const& a, double b) -> bool   { return inexact_cast(a) <  b; }
+  auto operator <=(ratio const& a, double b) -> bool   { return inexact_cast(a) <= b; }
+  auto operator > (ratio const& a, double b) -> bool   { return inexact_cast(a) >  b; }
+  auto operator >=(ratio const& a, double b) -> bool   { return inexact_cast(a) >= b; }
+
+  auto operator + (ratio const& a, complex const& b) -> complex { return complex(make(a), e0) +  b; }
+  auto operator - (ratio const& a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
+  auto operator * (ratio const& a, complex const& b) -> complex { return complex(make(a), e0) *  b; }
+  auto operator / (ratio const& a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
+  auto operator % (ratio const&  , complex const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
+  auto operator ==(ratio const& a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
+  auto operator !=(ratio const& a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
+  auto operator < (ratio const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator <=(ratio const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator > (ratio const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator >=(ratio const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+
+  auto operator + (float a, exact_integer const& b) -> float { return a +  inexact_cast(b); }
+  auto operator - (float a, exact_integer const& b) -> float { return a -  inexact_cast(b); }
+  auto operator * (float a, exact_integer const& b) -> float { return a *  inexact_cast(b); }
+  auto operator / (float a, exact_integer const& b) -> float { return a /  inexact_cast(b); }
+  auto operator % (float a, exact_integer const& b) -> float { return std::remainder(a, inexact_cast(b)); }
+  auto operator ==(float a, exact_integer const& b) -> bool  { return std::invoke(equal_to(), a, inexact_cast(b)); }
+  auto operator !=(float a, exact_integer const& b) -> bool  { return not (a == b); }
+  auto operator < (float a, exact_integer const& b) -> bool  { return a <  inexact_cast(b); }
+  auto operator <=(float a, exact_integer const& b) -> bool  { return a <= inexact_cast(b); }
+  auto operator > (float a, exact_integer const& b) -> bool  { return a >  inexact_cast(b); }
+  auto operator >=(float a, exact_integer const& b) -> bool  { return a >= inexact_cast(b); }
+
+  auto operator + (float a, ratio const& b) -> float { return a +  inexact_cast(b); }
+  auto operator - (float a, ratio const& b) -> float { return a -  inexact_cast(b); }
+  auto operator * (float a, ratio const& b) -> float { return a *  inexact_cast(b); }
+  auto operator / (float a, ratio const& b) -> float { return a /  inexact_cast(b); }
+  auto operator % (float a, ratio const& b) -> float { return std::remainder(a, inexact_cast(b)); }
+  auto operator ==(float a, ratio const& b) -> bool  { return std::invoke(equal_to(), a, inexact_cast(b)); }
+  auto operator !=(float a, ratio const& b) -> bool  { return not (a == b); }
+  auto operator < (float a, ratio const& b) -> bool  { return a <  inexact_cast(b); }
+  auto operator <=(float a, ratio const& b) -> bool  { return a <= inexact_cast(b); }
+  auto operator > (float a, ratio const& b) -> bool  { return a >  inexact_cast(b); }
+  auto operator >=(float a, ratio const& b) -> bool  { return a >= inexact_cast(b); }
+
+  auto operator + (float a, complex const& b) -> complex { return complex(make(a), e0) +  b; }
+  auto operator - (float a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
+  auto operator * (float a, complex const& b) -> complex { return complex(make(a), e0) *  b; }
+  auto operator / (float a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
+  auto operator % (float  , complex const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
+  auto operator ==(float a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
+  auto operator !=(float a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
+  auto operator < (float  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator <=(float  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator > (float  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator >=(float  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+
+  auto operator + (double a, exact_integer const& b) -> double { return a +  inexact_cast(b); }
+  auto operator - (double a, exact_integer const& b) -> double { return a -  inexact_cast(b); }
+  auto operator * (double a, exact_integer const& b) -> double { return a *  inexact_cast(b); }
+  auto operator / (double a, exact_integer const& b) -> double { return a /  inexact_cast(b); }
+  auto operator % (double a, exact_integer const& b) -> double { return std::remainder(a, inexact_cast(b)); }
+  auto operator ==(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) == 0; }
+  auto operator !=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) != 0; }
+  auto operator < (double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) >  0; }
+  auto operator <=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) >= 0; }
+  auto operator > (double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) <  0; }
+  auto operator >=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) <= 0; }
+
+  auto operator + (double a, ratio const& b) -> double { return a +  inexact_cast(b); }
+  auto operator - (double a, ratio const& b) -> double { return a -  inexact_cast(b); }
+  auto operator * (double a, ratio const& b) -> double { return a *  inexact_cast(b); }
+  auto operator / (double a, ratio const& b) -> double { return a /  inexact_cast(b); }
+  auto operator % (double a, ratio const& b) -> double { return std::remainder(a, inexact_cast(b)); }
+  auto operator ==(double a, ratio const& b) -> bool   { return std::invoke(equal_to(), a, inexact_cast(b)); }
+  auto operator !=(double a, ratio const& b) -> bool   { return not (a == b); }
+  auto operator < (double a, ratio const& b) -> bool   { return a <  inexact_cast(b); }
+  auto operator <=(double a, ratio const& b) -> bool   { return a <= inexact_cast(b); }
+  auto operator > (double a, ratio const& b) -> bool   { return a >  inexact_cast(b); }
+  auto operator >=(double a, ratio const& b) -> bool   { return a >= inexact_cast(b); }
+
+  auto operator + (double a, complex const& b) -> complex { return complex(make(a), e0) +  b; }
+  auto operator - (double a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
+  auto operator * (double a, complex const& b) -> complex { return complex(make(a), e0) *  b; }
+  auto operator / (double a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
+  auto operator % (double  , complex const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
+  auto operator ==(double a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
+  auto operator !=(double a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
+  auto operator < (double  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator <=(double  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator > (double  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator >=(double  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+
+  auto operator + (complex const& a, complex const& b) -> complex { return complex(a.real() + b.real(), a.imag() + b.imag()); }
+  auto operator - (complex const& a, complex const& b) -> complex { return complex(a.real() - b.real(), a.imag() - b.imag()); }
+  auto operator * (complex const& a, complex const& b) -> complex { return complex(a.real() * b.real() - a.imag() * b.imag(), a.imag() * b.real() + a.real() * b.imag()); }
+  auto operator / (complex const& a, complex const& b) -> complex { auto x = a.real() * b.real() + a.imag() * b.imag(); auto y = a.imag() * b.real() - a.real() * b.imag(); auto d = b.real() * b.real() + b.imag() * b.imag(); return complex(x / d, y / d); }
+  auto operator % (complex const&  , complex const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
+  auto operator ==(complex const& a, complex const& b) -> bool    { return apply<equal_to>(a.real(), b.real()).as<bool>() and apply<equal_to>(a.imag(), b.imag()).as<bool>(); }
+  auto operator !=(complex const& a, complex const& b) -> bool    { return not (a == b); }
+  auto operator < (complex const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator <=(complex const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator > (complex const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator >=(complex const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+
+  auto operator + (complex const& a, float b) -> complex { return a +  complex(make(b), e0); }
+  auto operator - (complex const& a, float b) -> complex { return a -  complex(make(b), e0); }
+  auto operator * (complex const& a, float b) -> complex { return a *  complex(make(b), e0); }
+  auto operator / (complex const& a, float b) -> complex { return a /  complex(make(b), e0); }
+  auto operator % (complex const&  , float  ) -> complex { throw std::invalid_argument("unsupported operation"); }
+  auto operator ==(complex const& a, float b) -> bool    { return a == complex(make(b), e0); }
+  auto operator !=(complex const& a, float b) -> bool    { return a != complex(make(b), e0); }
+  auto operator < (complex const&  , float  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator <=(complex const&  , float  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator > (complex const&  , float  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator >=(complex const&  , float  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+
+  auto operator + (complex const& a, double b) -> complex { return a +  complex(make(b), e0); }
+  auto operator - (complex const& a, double b) -> complex { return a -  complex(make(b), e0); }
+  auto operator * (complex const& a, double b) -> complex { return a *  complex(make(b), e0); }
+  auto operator / (complex const& a, double b) -> complex { return a /  complex(make(b), e0); }
+  auto operator % (complex const&  , double  ) -> complex { throw std::invalid_argument("unsupported operation"); }
+  auto operator ==(complex const& a, double b) -> bool    { return a == complex(make(b), e0); }
+  auto operator !=(complex const& a, double b) -> bool    { return a != complex(make(b), e0); }
+  auto operator < (complex const&  , double  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator <=(complex const&  , double  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator > (complex const&  , double  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator >=(complex const&  , double  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+
+  auto operator + (complex const& a, ratio const& b) -> complex { return a +  complex(make(b), e0); }
+  auto operator - (complex const& a, ratio const& b) -> complex { return a -  complex(make(b), e0); }
+  auto operator * (complex const& a, ratio const& b) -> complex { return a *  complex(make(b), e0); }
+  auto operator / (complex const& a, ratio const& b) -> complex { return a /  complex(make(b), e0); }
+  auto operator % (complex const&  , ratio const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
+  auto operator ==(complex const& a, ratio const& b) -> bool    { return a == complex(make(b), e0); }
+  auto operator !=(complex const& a, ratio const& b) -> bool    { return a != complex(make(b), e0); }
+  auto operator < (complex const&  , ratio const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator <=(complex const&  , ratio const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator > (complex const&  , ratio const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator >=(complex const&  , ratio const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+
+  auto operator + (complex const& a, exact_integer const& b) -> complex { return a +  complex(make(b), e0); }
+  auto operator - (complex const& a, exact_integer const& b) -> complex { return a -  complex(make(b), e0); }
+  auto operator * (complex const& a, exact_integer const& b) -> complex { return a *  complex(make(b), e0); }
+  auto operator / (complex const& a, exact_integer const& b) -> complex { return a /  complex(make(b), e0); }
+  auto operator % (complex const&  , exact_integer const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
+  auto operator ==(complex const& a, exact_integer const& b) -> bool    { return a == complex(make(b), e0); }
+  auto operator !=(complex const& a, exact_integer const& b) -> bool    { return a != complex(make(b), e0); }
+  auto operator < (complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator <=(complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator > (complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+  auto operator >=(complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
+
+  auto operator + (const_reference x, const_reference y) -> value_type { return apply<plus      >(x, y); }
+  auto operator - (const_reference x, const_reference y) -> value_type { return apply<minus     >(x, y); }
+  auto operator * (const_reference x, const_reference y) -> value_type { return apply<multiplies>(x, y); }
+  auto operator / (const_reference x, const_reference y) -> value_type { return apply<divides   >(x, y); }
+  auto operator % (const_reference x, const_reference y) -> value_type { return apply<modulus   >(x, y); }
 } // namespace kernel
 } // namespace meevax

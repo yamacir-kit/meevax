@@ -45,7 +45,7 @@ inline namespace kernel
   #undef DEFINE
 
   #define DEFINE(TYPENAME, FILE_STREAM, NAME)                                  \
-  TYPENAME::TYPENAME(external_representation const& name)                      \
+  TYPENAME::TYPENAME(std::string const& name)                                  \
     : description { name }                                                     \
     , FILE_STREAM { name }                                                     \
   {}                                                                           \

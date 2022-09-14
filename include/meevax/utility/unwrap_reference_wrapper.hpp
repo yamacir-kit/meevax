@@ -26,7 +26,7 @@ namespace meevax
 {
 inline namespace type_traits
 {
-  auto unwrap_reference_wrapper = [](auto&& value) -> decltype(auto)
+  inline auto unwrap_reference_wrapper = [](auto&& value) -> decltype(auto)
   {
     if constexpr (is_reference_wrapper<std::decay_t<decltype(value)>>::value)
     {

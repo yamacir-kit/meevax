@@ -14,21 +14,48 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/number.hpp>
+#include <meevax/kernel/reader.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto complex::real() const noexcept -> const_reference
+  complex::complex(std::string const& token, int radix)
   {
-    return first;
+    std::regex static const rectangular { R"(([+-]?.*)([+-].*)i)" };
+
+    std::regex static const polar { R"(([+-]?.*)@([+-]?.*))" };
+
+    if (std::smatch result; std::regex_match(token, result, rectangular))
+    {
+      std::get<0>(*this) = string_to_real(result[1].length() == 0 ?                 "0" : result.str(1), radix);
+      std::get<1>(*this) = string_to_real(result[2].length() == 1 ? result.str(2) + "1" : result.str(2), radix);
+    }
+    else if (std::regex_match(token, result, polar))
+    {
+      auto const magnitude = string_to_real(result.str(1), radix);
+      auto const angle     = string_to_real(result.str(2), radix);
+
+      std::get<0>(*this) = magnitude * apply<cos>(angle);
+      std::get<1>(*this) = magnitude * apply<sin>(angle);
+    }
+    else
+    {
+      throw std::invalid_argument("not a complex number");
+    }
   }
 
-  auto complex::real() noexcept -> reference
+  auto complex::canonicalize() const -> value_type
   {
-    return first;
+    if (apply<equal_to>(imag(), e0).as<bool>())
+    {
+      return real();
+    }
+    else
+    {
+      return make(*this);
+    }
   }
 
   auto complex::imag() const noexcept -> const_reference
@@ -36,14 +63,43 @@ inline namespace kernel
     return second;
   }
 
-  auto complex::imag() noexcept -> reference
+  auto complex::real() const noexcept -> const_reference
   {
-    return second;
+    return first;
+  }
+
+  complex::operator std::complex<double>()
+  {
+    assert(apply<is_real>(real()));
+    assert(apply<is_real>(imag()));
+
+    return std::complex(apply<inexact>(real()).as<double>(),
+                        apply<inexact>(imag()).as<double>());
   }
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &
   {
-    return os << z.real() << cyan(e0.as<number>() < z.imag() ? '+' : '-') << z.imag() << cyan("i");
+    if (apply<equal_to>(z.imag(), e0).as<bool>())
+    {
+      return os << z.real();
+    }
+    else
+    {
+      auto explicitly_signed = [](auto const& number)
+      {
+        switch (auto const s = lexical_cast<std::string>(number); s[0])
+        {
+        case '+':
+        case '-':
+          return s;
+
+        default:
+          return "+" + s;
+        }
+      };
+
+      return os << z.real() << cyan(explicitly_signed(z.imag()), "i");
+    }
   }
 } // namespace kernel
 } // namespace meevax
