@@ -19,8 +19,7 @@
 
 #include <fstream>
 
-#include <meevax/kernel/pair.hpp>
-#include <meevax/utility/description.hpp>
+#include <meevax/kernel/string.hpp>
 
 namespace meevax
 {
@@ -43,9 +42,12 @@ inline namespace kernel
   #undef DEFINE
 
   #define DEFINE(TYPENAME, FILE_STREAM)                                        \
-  struct TYPENAME : public description                                         \
-                  , public FILE_STREAM                                         \
+  struct TYPENAME : public FILE_STREAM                                         \
   {                                                                            \
+    string const pathname;                                                     \
+                                                                               \
+    explicit TYPENAME(string const&);                                          \
+                                                                               \
     explicit TYPENAME(std::string const&);                                     \
   };                                                                           \
                                                                                \
