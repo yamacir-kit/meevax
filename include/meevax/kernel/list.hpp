@@ -21,7 +21,6 @@
 
 #include <meevax/functional/combinator.hpp>
 #include <meevax/kernel/equivalence.hpp>
-#include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/iterator.hpp>
 
 namespace meevax
