@@ -112,17 +112,17 @@ inline namespace kernel
 
     static inline const dispatcher<char> short_options_with_arguments
     {
-      std::make_pair('e', [](const_reference x)
+      std::make_pair('e', [](auto&& x)
       {
         print(interaction_environment().as<environment>().evaluate(x));
       }),
 
-      std::make_pair('l', [](const_reference x)
+      std::make_pair('l', [](auto&& x)
       {
-        interaction_environment().as<environment>().load(x.as_const<symbol>());
+        interaction_environment().as<environment>().load(x.template as_const<symbol>());
       }),
 
-      std::make_pair('w', [](const_reference x)
+      std::make_pair('w', [](auto&& x)
       {
         print(x);
       }),
@@ -165,17 +165,17 @@ inline namespace kernel
 
     static inline const dispatcher<std::string> long_options_with_arguments
     {
-      std::make_pair("evaluate", [](const_reference x)
+      std::make_pair("evaluate", [](auto&& x)
       {
         print(interaction_environment().as<environment>().evaluate(x));
       }),
 
-      std::make_pair("load", [](const_reference x)
+      std::make_pair("load", [](auto&& x)
       {
-        interaction_environment().as<environment>().load(x.as_const<string>());
+        interaction_environment().as<environment>().load(x.template as_const<string>());
       }),
 
-      std::make_pair("write", [](const_reference x)
+      std::make_pair("write", [](auto&& x)
       {
         print(x);
       }),

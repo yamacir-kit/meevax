@@ -88,7 +88,11 @@ inline namespace kernel
     {
       library.define<procedure>("emergency-exit", [](let const& xs)
       {
-        if (let const& status = car(xs); status.is<bool>())
+        if (let const& status = car(xs); status.is<null>())
+        {
+          throw exit_status::success;
+        }
+        else if (status.is<bool>())
         {
           throw select(status) ? exit_status::success : exit_status::failure;
         }
