@@ -14,10 +14,10 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_EQUIVALENCE_HPP
-#define INCLUDED_MEEVAX_KERNEL_EQUIVALENCE_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
+#define INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
 
-#include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
@@ -37,4 +37,4 @@ inline namespace kernel
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_EQUIVALENCE_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP

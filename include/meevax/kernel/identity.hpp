@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_IDENTITY_HPP
 #define INCLUDED_MEEVAX_KERNEL_IDENTITY_HPP
 
-#include <meevax/kernel/equivalence.hpp>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax

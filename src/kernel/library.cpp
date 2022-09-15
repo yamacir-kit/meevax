@@ -148,13 +148,20 @@ inline namespace kernel
       library.export_("%load");
     });
 
-    define_library("(meevax equivalence)", [](library & library)
+    define_library("(meevax comparator)", [](library & library)
     {
-      library.define<predicate>("eq?",  [](let const& xs) { return eq (car(xs), cadr(xs)); });
-      library.define<predicate>("eqv?", [](let const& xs) { return eqv(car(xs), cadr(xs)); });
+      library.define<predicate>("identity=?", [](let const& xs)
+      {
+        return eq(car(xs), cadr(xs));
+      });
 
-      library.export_("eq?");
-      library.export_("eqv?");
+      library.define<predicate>("normally=?", [](let const& xs)
+      {
+        return eqv(car(xs), cadr(xs));
+      });
+
+      library.export_("identity=?");
+      library.export_("normally=?");
     });
 
     define_library("(meevax evaluate)", [](library & library)

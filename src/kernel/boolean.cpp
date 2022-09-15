@@ -15,7 +15,7 @@
 */
 
 #include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/equivalence.hpp>
+#include <meevax/kernel/comparator.hpp>
 
 namespace meevax
 {
