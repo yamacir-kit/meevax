@@ -21,13 +21,13 @@ namespace meevax
 inline namespace kernel
 {
   syntax::syntax(std::string const& name, function_type const& compile)
-    : description { name }
+    : name { name }
     , compile { compile }
   {}
 
   auto operator <<(std::ostream & os, syntax const& datum) -> std::ostream &
   {
-    return os << magenta("#,(") << green("syntax") << " " << datum.name << magenta(")");
+    return os << magenta("#,(") << green("syntax ") << datum.name << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

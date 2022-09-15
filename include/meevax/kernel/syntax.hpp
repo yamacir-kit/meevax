@@ -19,7 +19,6 @@
 
 #include <meevax/kernel/context.hpp>
 #include <meevax/kernel/pair.hpp>
-#include <meevax/utility/description.hpp>
 
 #define SYNTAX(NAME)                                                           \
   auto NAME(                                                                   \
@@ -33,13 +32,15 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct syntax : public description
+  struct syntax
   {
     using function_pointer_type = SYNTAX((*));
 
     using function_type = std::function<SYNTAX()>;
 
-    function_type compile;
+    std::string const name;
+
+    function_type const compile;
 
     explicit syntax(std::string const&, function_type const&);
   };
