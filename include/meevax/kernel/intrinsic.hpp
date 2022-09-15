@@ -28,7 +28,7 @@ inline namespace kernel
                    , public procedure
   {
     template <typename F, typename G>
-    explicit intrinsic(symbol::value_type const& name, F&& f, G&& g)
+    explicit intrinsic(std::string const& name, F&& f, G&& g)
       : syntax    { name, std::forward<decltype(f)>(f) }
       , procedure { name, std::forward<decltype(g)>(g) }
     {}
