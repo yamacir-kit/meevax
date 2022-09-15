@@ -23,7 +23,6 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
-#include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 #include <meevax/kernel/writer.hpp>
 
@@ -44,7 +43,7 @@ inline namespace kernel
     IMPORT(environment, read, NIL);
 
     template <typename Key>
-    using dispatcher = std::unordered_map<Key, procedure::function_type>;
+    using dispatcher = std::unordered_map<Key, std::function<void (const_reference)>>;
 
   public:
     static inline auto batch       = false;
@@ -80,15 +79,15 @@ inline namespace kernel
     {
       std::make_pair('b', [](auto&&...)
       {
-        return make<bool>(batch = true);
+        batch = true;
       }),
 
       std::make_pair('d', [](auto&&...)
       {
-        return make<bool>(debug = true);
+        debug = true;
       }),
 
-      std::make_pair('h', [](auto&&...) -> value_type
+      std::make_pair('h', [](auto&&...)
       {
         configurator::display_help();
         throw exit_status::success;
@@ -96,10 +95,15 @@ inline namespace kernel
 
       std::make_pair('i', [](auto&&...)
       {
-        return make<bool>(interactive = true);
+        interactive = true;
       }),
 
-      std::make_pair('v', [](auto&&...) -> value_type
+      std::make_pair('t', [](auto&&...)
+      {
+        trace = true;
+      }),
+
+      std::make_pair('v', [](auto&&...)
       {
         configurator::display_version();
         throw exit_status::success;
@@ -108,21 +112,19 @@ inline namespace kernel
 
     static inline const dispatcher<char> short_options_with_arguments
     {
-      std::make_pair('e', [](const_reference x, auto&&...)
+      std::make_pair('e', [](const_reference x)
       {
         print(interaction_environment().as<environment>().evaluate(x));
-        return unspecified;
       }),
 
-      std::make_pair('l', [](const_reference x, auto&&...)
+      std::make_pair('l', [](const_reference x)
       {
-        return interaction_environment().as<environment>().load(x.as_const<symbol>());
+        interaction_environment().as<environment>().load(x.as_const<symbol>());
       }),
 
-      std::make_pair('w', [](const_reference x, auto&&...)
+      std::make_pair('w', [](const_reference x)
       {
         print(x);
-        return unspecified;
       }),
     };
 
@@ -130,15 +132,15 @@ inline namespace kernel
     {
       std::make_pair("batch", [](auto&&...)
       {
-        return make<bool>(batch = true);
+        batch = true;
       }),
 
       std::make_pair("debug", [](auto&&...)
       {
-        return make<bool>(debug = true);
+        debug = true;
       }),
 
-      std::make_pair("help", [](auto&&...) -> value_type
+      std::make_pair("help", [](auto&&...)
       {
         display_help();
         throw exit_status::success;
@@ -146,15 +148,15 @@ inline namespace kernel
 
       std::make_pair("interactive", [](auto&&...)
       {
-        return make<bool>(interactive = true);
+        interactive = true;
       }),
 
       std::make_pair("trace", [](auto&&...)
       {
-        return make<bool>(trace = true);
+        trace = true;
       }),
 
-      std::make_pair("version", [](auto&&...) -> value_type
+      std::make_pair("version", [](auto&&...)
       {
         display_version();
         throw exit_status::success;
@@ -163,21 +165,19 @@ inline namespace kernel
 
     static inline const dispatcher<std::string> long_options_with_arguments
     {
-      std::make_pair("evaluate", [](const_reference x, auto&&...)
+      std::make_pair("evaluate", [](const_reference x)
       {
         print(interaction_environment().as<environment>().evaluate(x));
-        return unspecified;
       }),
 
-      std::make_pair("load", [](const_reference x, auto&&...)
+      std::make_pair("load", [](const_reference x)
       {
-        return interaction_environment().as<environment>().load(x.as_const<string>());
+        interaction_environment().as<environment>().load(x.as_const<string>());
       }),
 
-      std::make_pair("write", [](const_reference x, auto&&...)
+      std::make_pair("write", [](const_reference x)
       {
         print(x);
-        return unspecified;
       }),
     };
 
@@ -263,10 +263,8 @@ inline namespace kernel
         else
         {
           interactive = false;
-          return load(*current_option);
+          load(*current_option);
         }
-
-        return unspecified;
       }();
     }
   };
