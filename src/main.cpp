@@ -14,9 +14,7 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
-#include <meevax/string/repeat.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int
 {
@@ -48,8 +46,7 @@ auto main(int const argc, char const* const* const argv) -> int
 
     while (main.interactive and main.char_ready())
     {
-      print(u8"\u250c", repeat(u8"\u2500", 79));
-      write(standard_output, u8"\u2502\u03bb> ");
+      write(standard_output, u8"\u03bb> ");
       print(main.evaluate(main.read()));
     }
 

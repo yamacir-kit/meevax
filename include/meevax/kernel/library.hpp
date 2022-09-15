@@ -17,9 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 #define INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 
-#include <functional>
 #include <meevax/kernel/environment.hpp>
-#include <unordered_map>
 
 namespace meevax
 {

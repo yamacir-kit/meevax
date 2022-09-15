@@ -18,9 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_COMPLEX_HPP
 
 #include <complex>
-#include <regex>
 
-#include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax

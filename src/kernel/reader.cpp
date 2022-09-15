@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#include <regex>
+
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/reader.hpp>
 

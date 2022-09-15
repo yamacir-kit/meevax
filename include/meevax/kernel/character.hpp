@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
-#include <iostream>
-
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
