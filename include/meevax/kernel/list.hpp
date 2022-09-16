@@ -19,7 +19,6 @@
 
 #include <algorithm>
 
-#include <meevax/functional/combinator.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/comparator.hpp>
 #include <meevax/kernel/iterator.hpp>

@@ -19,9 +19,7 @@
 
 #include <regex>
 
-#include <meevax/iostream/concatenate.hpp>
 #include <meevax/kernel/error.hpp>
-#include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/version.hpp>
 #include <meevax/kernel/writer.hpp>

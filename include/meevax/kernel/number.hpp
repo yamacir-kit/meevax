@@ -21,7 +21,6 @@
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/ratio.hpp>
 #include <meevax/kernel/string.hpp>
-#include <meevax/kernel/type_index.hpp>
 
 namespace meevax
 {

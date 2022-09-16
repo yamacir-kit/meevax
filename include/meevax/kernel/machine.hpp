@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_MACHINE_HPP
 #define INCLUDED_MEEVAX_KERNEL_MACHINE_HPP
 
-#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/ghost.hpp>

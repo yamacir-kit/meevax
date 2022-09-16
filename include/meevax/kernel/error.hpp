@@ -17,11 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 
-#include <stdexcept>
-
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/string.hpp>
-#include <meevax/type_traits/underlying_cast.hpp>
 
 /* ---- Error ------------------------------------------------------------------
  *

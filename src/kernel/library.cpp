@@ -1136,7 +1136,7 @@ inline namespace kernel
 
       library.define<procedure>("vector->string", [](let const& xs)
       {
-        return make<string>(car(xs).as<vector>(),
+        return make<string>(car(xs),
                             cdr(xs).is<pair>() ? cadr(xs) : e0,
                             cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
       });

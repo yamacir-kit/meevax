@@ -17,10 +17,19 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
 #define INCLUDED_MEEVAX_KERNEL_OVERVIEW_HPP
 
+#include <meevax/functional/combinator.hpp>
+#include <meevax/functional/compose.hpp>
+#include <meevax/iostream/concatenate.hpp>
+#include <meevax/iostream/escape_sequence.hpp>
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/mnemonic.hpp>
+#include <meevax/kernel/type_index.hpp>
 #include <meevax/memory/gc_pointer.hpp>
-#include <meevax/type_traits/requires.hpp>
+#include <meevax/type_traits/is_equality_comparable.hpp>
+#include <meevax/type_traits/is_output_streamable.hpp>
+#include <meevax/type_traits/underlying_cast.hpp>
 #include <meevax/utility/demangle.hpp>
+#include <meevax/utility/module.hpp>
 
 #define NIL /* nothing */
 
@@ -28,13 +37,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  class environment;
-
-  struct error;          // error.hpp
-  struct exact_integer;  // exact_integer.hpp
   struct pair;           // pair.hpp
-  struct ratio;          // ratio.hpp
-  struct vector;         // vector.hpp
 
   template <template <typename...> typename, typename, typename...>
   class heterogeneous;

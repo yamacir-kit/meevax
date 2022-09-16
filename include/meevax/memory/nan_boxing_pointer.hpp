@@ -22,7 +22,6 @@
 #include <iomanip>
 #include <memory>
 #include <ostream>
-#include <type_traits>
 #include <typeinfo>
 
 #include <meevax/memory/bit_cast.hpp>

@@ -32,6 +32,8 @@ namespace meevax
 {
 inline namespace kernel
 {
+  class environment; // environment.hpp
+
   struct syntax
   {
     using function_pointer_type = SYNTAX((*));
