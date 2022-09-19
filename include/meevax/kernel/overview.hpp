@@ -51,9 +51,6 @@ inline namespace kernel
   using let = value_type;
 
   using null = std::nullptr_t;
-
-  [[noreturn]]
-  auto raise(std::string const&) -> void; // error.hpp
 } // namespace kernel
 } // namespace meevax
 

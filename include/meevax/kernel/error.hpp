@@ -47,8 +47,6 @@ inline namespace kernel
 
     auto message() const noexcept -> const_reference;
 
-    virtual auto raise() const -> void;
-
     virtual auto what() const -> std::string;
   };
 

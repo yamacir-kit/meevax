@@ -30,11 +30,6 @@ inline namespace kernel
     return first;
   }
 
-  auto error::raise() const -> void
-  {
-    throw *this;
-  }
-
   auto error::what() const -> std::string
   {
     std::stringstream ss {};
@@ -59,11 +54,6 @@ inline namespace kernel
     }
 
     return os << magenta(")");
-  }
-
-  auto raise(std::string const& message) -> void
-  {
-    throw error(make<string>(message));
   }
 } // namespace kernel
 } // namespace meevax
