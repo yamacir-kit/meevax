@@ -254,7 +254,7 @@ inline namespace kernel
       }
       else
       {
-        throw error(make<string>("failed to intern a symbol"), make<string>(name));
+        throw std::runtime_error(concatenate("failed to intern a symbol '", name));
       }
     }
   };

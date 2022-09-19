@@ -211,7 +211,7 @@ inline namespace kernel
     }
     else
     {
-      throw error(make<string>("No such library"), declaration);
+      throw std::runtime_error("No such library");
     }
   }
 

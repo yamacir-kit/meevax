@@ -217,7 +217,7 @@ inline namespace kernel
               }
               else
               {
-                throw error(make<string>(concatenate("option -", name, " requires an argument")));
+                throw std::runtime_error(concatenate("option -", name, " requires an argument"));
               }
             }
             else if (auto iter = short_options.find(*current_short_option); iter != std::end(short_options))
@@ -226,8 +226,7 @@ inline namespace kernel
             }
             else
             {
-              throw error(make<string>("unknown short-option"),
-                          make<symbol>(*current_short_option));
+              throw std::runtime_error(concatenate("unknown short-option ", *current_short_option));
             }
           }
         }
@@ -245,7 +244,7 @@ inline namespace kernel
             }
             else
             {
-              throw error(make<string>(concatenate("option --", current_long_option, " requires an argument")));
+              throw std::runtime_error(concatenate("option --", current_long_option, " requires an argument"));
             }
           }
           else if (auto iter = long_options.find(current_long_option); iter != std::end(long_options))
@@ -254,8 +253,7 @@ inline namespace kernel
           }
           else
           {
-            throw error(make<string>("unknown long-option"),
-                        make<symbol>(*current_option));
+            throw std::runtime_error(concatenate("unknown long-option ", *current_option));
           }
         }
         else
