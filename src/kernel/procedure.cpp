@@ -22,6 +22,7 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/procedure.hpp>
+#include <meevax/kernel/string.hpp>
 
 namespace meevax
 {

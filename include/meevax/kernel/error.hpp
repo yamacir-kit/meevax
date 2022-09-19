@@ -17,17 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 
-#include <meevax/kernel/list.hpp>
-#include <meevax/kernel/string.hpp>
-
-/* ---- Error ------------------------------------------------------------------
- *
- * - error
- *    |-- file-error
- *    |-- read_error
- *    `-- syntax_error
- *
- * -------------------------------------------------------------------------- */
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
@@ -52,12 +42,16 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, error const&) -> std::ostream &;
 
+  /*
+     - error
+        |-- file-error
+        |-- read_error
+        `-- syntax_error
+  */
   #define DEFINE_ERROR(TYPENAME)                                               \
   struct TYPENAME ## _error : public error                                     \
   {                                                                            \
     using error::error;                                                        \
-                                                                               \
-    ~TYPENAME ## _error() override = default;                                  \
   }
 
   DEFINE_ERROR(file);
