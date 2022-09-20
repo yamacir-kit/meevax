@@ -71,7 +71,7 @@ inline namespace kernel
       }
       else
       {
-        throw file_error(make<string>(::dlerror()), unit);
+        throw file_error(::dlerror());
       }
     }
   }
@@ -84,7 +84,7 @@ inline namespace kernel
     }
     else
     {
-      throw file_error(make<string>(::dlerror()), unit);
+      throw file_error(::dlerror());
     }
   }
 

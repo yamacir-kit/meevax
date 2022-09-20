@@ -987,7 +987,7 @@ inline namespace kernel
       }
       else
       {
-        throw syntax_error(make<string>("definition cannot appear in this syntactic-context"));
+        throw syntax_error("definition cannot appear in this syntactic-context");
       }
     }
 

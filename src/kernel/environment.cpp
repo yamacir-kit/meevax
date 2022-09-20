@@ -223,7 +223,7 @@ inline namespace kernel
 
       if (let const& variable = identity.as<absolute>().symbol(); not eq((*this)[variable], undefined) and not interactive)
       {
-        throw error(make<string>("In a program or library declaration, it is an error to import the same identifier more than once with different bindings"),
+        throw error("In a program or library declaration, it is an error to import the same identifier more than once with different bindings",
                     list(import_set, variable));
       }
       else
@@ -251,7 +251,7 @@ inline namespace kernel
     }
     else
     {
-      throw file_error(make<string>("failed to open file: " + s));
+      throw file_error("failed to open file", make<string>(s));
     }
   }
 

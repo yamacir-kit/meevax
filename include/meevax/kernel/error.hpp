@@ -33,11 +33,13 @@ inline namespace kernel
   {
     using pair::pair;
 
+    explicit error(std::string const&, const_reference = unit);
+
     auto irritants() const noexcept -> const_reference;
 
     auto message() const noexcept -> const_reference;
 
-    virtual auto what() const -> std::string;
+    auto what() const -> std::string;
   };
 
   auto operator <<(std::ostream &, error const&) -> std::ostream &;

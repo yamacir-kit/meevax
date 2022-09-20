@@ -150,7 +150,7 @@ inline namespace kernel
             return read(is);
 
           default:
-            throw read_error(make<string>("unknown discriminator"), make<character>(c));
+            throw read_error("unknown discriminator", make<character>(c));
           }
 
         case '\'': // 0x27
