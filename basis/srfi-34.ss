@@ -24,32 +24,32 @@
 
   (export with-exception-handler raise raise-continuable guard)
 
-  (begin (define %current-exception-handlers (list throw))
+  (begin (define current-exception-handlers (list throw))
 
-         (define (%with-exception-handlers new-handlers thunk)
-           (let ((old-handlers %current-exception-handlers))
+         (define (with-exception-handlers new-handlers thunk)
+           (let ((old-handlers current-exception-handlers))
              (dynamic-wind
-               (lambda () (set! %current-exception-handlers new-handlers)) ; install
+               (lambda () (set! current-exception-handlers new-handlers)) ; install
                thunk
-               (lambda () (set! %current-exception-handlers old-handlers))))) ; uninstall
+               (lambda () (set! current-exception-handlers old-handlers))))) ; uninstall
 
          (define (with-exception-handler handler thunk)
-           (%with-exception-handlers (cons handler %current-exception-handlers) thunk))
+           (with-exception-handlers (cons handler current-exception-handlers) thunk))
 
          (define (raise x)
-           (let ((inner (car %current-exception-handlers))
-                 (outer (cdr %current-exception-handlers)))
-             (%with-exception-handlers outer
+           (let ((inner (car current-exception-handlers))
+                 (outer (cdr current-exception-handlers)))
+             (with-exception-handlers outer
                (lambda ()
                  (inner x)
                  (error "If the handler returns, a secondary exception is raised in the same dynamic environment as the handler")))))
 
          (define (raise-continuable x)
-           (let ((inner (car %current-exception-handlers))
-                 (outer (cdr %current-exception-handlers)))
-             (%with-exception-handlers outer
-                                       (lambda ()
-                                         (inner x)))))
+           (let ((inner (car current-exception-handlers))
+                 (outer (cdr current-exception-handlers)))
+             (with-exception-handlers outer
+               (lambda ()
+                 (inner x)))))
 
          (define-syntax guard
            (syntax-rules ()
