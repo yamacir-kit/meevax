@@ -74,14 +74,7 @@ inline namespace kernel
   {
     LINE();
 
-    if (x.is_also<error>())
-    {
-      throw x.as<error>();
-    }
-    else
-    {
-      throw x;
-    }
+    throw x.is_also<error>() ? x.as<error>() : error("uncaught exception", x);
   }
 
   auto environment::execute() -> value_type
