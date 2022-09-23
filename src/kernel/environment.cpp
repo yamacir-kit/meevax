@@ -31,7 +31,7 @@ inline namespace kernel
     define(string_to_symbol(name), value);
   }
 
-  auto environment::evaluate(const_reference expression) -> value_type
+  auto environment::evaluate(const_reference expression) -> value_type try
   {
     if (expression.is<pair>() and car(expression).is<symbol>()
                               and car(expression).as<symbol>().value == "define-library")
@@ -68,6 +68,19 @@ inline namespace kernel
       assert(d.is<null>());
 
       return result;
+    }
+  }
+  catch (const_reference x)
+  {
+    LINE();
+
+    if (x.is_also<error>())
+    {
+      throw x.as<error>();
+    }
+    else
+    {
+      throw x;
     }
   }
 

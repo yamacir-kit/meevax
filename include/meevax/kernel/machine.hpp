@@ -47,6 +47,8 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
+    let raise;
+
     struct transformer
     {
       let const expression;
@@ -318,7 +320,7 @@ inline namespace kernel
     }
 
     template <auto trace = false>
-    inline auto execute() -> value_type
+    inline auto execute() -> value_type try
     {
     decode:
       if constexpr (trace)
@@ -682,6 +684,16 @@ inline namespace kernel
         }();
       }
     }
+    catch (std::exception const& exception)
+    {
+      LINE();
+      return report(make<error>(make<string>(exception.what())));
+    }
+    catch (error const& error)
+    {
+      LINE();
+      return report(make(error));
+    }
 
     static auto identify(const_reference variable, const_reference scope) -> value_type
     {
@@ -715,6 +727,30 @@ inline namespace kernel
       }
 
       return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().identify_with_offset(scope) : f;
+    }
+
+    inline auto report(const_reference x) -> value_type
+    {
+      LINE();
+
+      if (raise.is<null>())
+      {
+        LINE();
+
+        throw x;
+        return unspecified;
+      }
+      else
+      {
+        LINE();
+
+        s = list(raise, list(x));
+        e = unit;
+        c = list(make(mnemonic::call), make(mnemonic::stop));
+        d = unit;
+
+        return execute();
+      }
     }
 
     [[deprecated]]
