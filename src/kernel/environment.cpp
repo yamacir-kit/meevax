@@ -33,14 +33,12 @@ inline namespace kernel
 
   auto environment::evaluate(const_reference expression) -> value_type try
   {
-    if (expression.is<pair>() and car(expression).is<symbol>()
-                              and car(expression).as<symbol>().value == "define-library")
+    if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "define-library")
     {
       define_library(lexical_cast<std::string>(cadr(expression)), cddr(expression));
       return cadr(expression);
     }
-    else if (expression.is<pair>() and car(expression).is<symbol>()
-                                   and car(expression).as<symbol>().value == "import")
+    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "import")
     {
       for (let const& import_set : cdr(expression))
       {
@@ -48,6 +46,10 @@ inline namespace kernel
       }
 
       return unspecified;
+    }
+    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "declare-error-reporter!")
+    {
+      return raise = evaluate(cadr(expression));
     }
     else
     {
@@ -213,7 +215,14 @@ inline namespace kernel
     }
     else if (auto iter = libraries.find(lexical_cast<std::string>(declaration)); iter != std::end(libraries))
     {
-      return std::get<1>(*iter).resolve();
+      let const import_set = std::get<1>(*iter).resolve();
+
+      if (raise.is<null>() and not std::get<1>(*iter).raise.is<null>())
+      {
+        raise = std::get<1>(*iter).raise;
+      }
+
+      return import_set;
     }
     else
     {

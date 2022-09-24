@@ -743,11 +743,11 @@ inline namespace kernel
       else
       {
         LINE();
+        PRINT(raise);
+        PRINT(x);
 
         s = list(raise, list(x));
-        e = unit;
         c = list(make(mnemonic::call), make(mnemonic::stop));
-        d = unit;
 
         return execute();
       }

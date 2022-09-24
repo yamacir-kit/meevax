@@ -1377,16 +1377,14 @@ inline namespace kernel
 
   auto library::evaluate(const_reference declaration) -> void
   {
-    if (declaration.is<pair>() and car(declaration).is<symbol>()
-                               and car(declaration).as<symbol>().value == "export")
+    if (car(declaration).is<symbol>() and car(declaration).as<symbol>().value == "export")
     {
       for (let const& export_spec : cdr(declaration))
       {
         export_(export_spec);
       }
     }
-    else if (declaration.is<pair>() and car(declaration).is<symbol>()
-                                    and car(declaration).as<symbol>().value == "begin")
+    else if (car(declaration).is<symbol>() and car(declaration).as<symbol>().value == "begin")
     {
       for (let const& command_or_definition : cdr(declaration))
       {
@@ -1415,8 +1413,7 @@ inline namespace kernel
 
     auto resolve = [this](let const& export_spec)
     {
-      if (export_spec.is<pair>() and car(export_spec).is<symbol>()
-                                 and car(export_spec).as<symbol>().value == "rename")
+      if (car(export_spec).is<symbol>() and car(export_spec).as<symbol>().value == "rename")
       {
         return make<absolute>(caddr(export_spec), (*this)[cadr(export_spec)]);
       }

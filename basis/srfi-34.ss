@@ -42,7 +42,7 @@
              (with-exception-handlers outer
                (lambda ()
                  (inner x)
-                 (error "If the handler returns, a secondary exception is raised in the same dynamic environment as the handler")))))
+                 (throw x)))))
 
          (define (raise-continuable x)
            (let ((inner (car current-exception-handlers))
@@ -50,6 +50,8 @@
              (with-exception-handlers outer
                (lambda ()
                  (inner x)))))
+
+         (declare-error-reporter! raise)
 
          (define-syntax guard
            (syntax-rules ()
