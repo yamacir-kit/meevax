@@ -747,7 +747,7 @@ inline namespace kernel
         PRINT(x);
 
         s = list(raise, list(x));
-        c = list(make(mnemonic::call), make(mnemonic::stop));
+        c = list(make(mnemonic::tail_call), make(mnemonic::stop));
 
         return execute();
       }
