@@ -193,7 +193,7 @@ inline namespace kernel
       {
         return cons(make(mnemonic::load_constant), unit, current_continuation);
       }
-      else if (not current_expression.is<pair>()) /* -----------------------------------
+      else if (not current_expression.is<pair>()) /* ---------------------------
       *
       *  <variable>                                                      syntax
       *
