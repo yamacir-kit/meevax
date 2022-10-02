@@ -19,11 +19,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
+string(CONCAT UNSTABLE_OPTIMIZATION_OPTIONS # JOIN available if VERSION > 3.12
+  # "-flto " # This optimization causes a SEGV when compiling with Clang 10.
+  # "-fmerge-all-constants " # This optimization is very effective in reducing binary size, but non-standard to the C++ standard.
+  # "-march=native " # This optimization causes "Illegal instruction" error (is Valgrind's bug) on CI.
+  # "-mtune=native "
+  )
+
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -pipe")
 set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG") # NOTE: -march=native causes "Illegal instruction" error (is Valgrind's bug) on CI.
+set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG ${UNSTABLE_OPTIMIZATION_OPTIONS}")
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
