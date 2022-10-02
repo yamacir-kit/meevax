@@ -47,6 +47,10 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
+    let r0; /*
+       special register (The Meevax kernel does not specify the use of this
+       register. Scheme library uses it for managing parameters.) */
+
     let raise;
 
     struct transformer
@@ -193,7 +197,7 @@ inline namespace kernel
       {
         return cons(make(mnemonic::load_constant), unit, current_continuation);
       }
-      else if (not current_expression.is<pair>()) /* -----------------------------------
+      else if (not current_expression.is<pair>()) /* ---------------------------
       *
       *  <variable>                                                      syntax
       *
@@ -400,6 +404,15 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(list(make<continuation>(s, e, cadr(c), d)), s);
         c = cddr(c);
+        goto decode;
+
+      case mnemonic::load_r0: /* -----------------------------------------------
+        *
+        *  s e (%load-r0 . c) => (r0 . s) e c d
+        *
+        * ------------------------------------------------------------------- */
+        s = cons(r0, s);
+        c = cdr(c);
         goto decode;
 
       case mnemonic::select: /* ------------------------------------------------
@@ -664,6 +677,15 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
+      case mnemonic::store_r0: /* ----------------------------------------------
+        *
+        *  (x . s) e (%store-r0 . c) d => (x . s) e c d
+        *
+        * ------------------------------------------------------------------- */
+        r0 = car(s);
+        c = cdr(c);
+        goto decode;
+
       default: // ERROR
       case mnemonic::stop: /* --------------------------------------------------
         *
@@ -782,6 +804,30 @@ inline namespace kernel
                      cadr(current_expression),
                      current_scope,
                      cons(id.as<identity>().make_store_mnemonic(), id,
+                          current_continuation));
+    }
+
+    static SYNTAX(load_r0) /* --------------------------------------------------
+    *
+    *  (load-r0)                                                         syntax
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      return cons(make(mnemonic::load_r0),
+                  current_continuation);
+    }
+
+    static SYNTAX(store_r0) /* -------------------------------------------------
+    *
+    *  (store-r0 <expression>)                                        syntax
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      return compile(context(),
+                     current_environment,
+                     car(current_expression),
+                     current_scope,
+                     cons(make(mnemonic::store_r0),
                           current_continuation));
     }
 

@@ -41,10 +41,12 @@ inline namespace kernel
     load_continuation, //
     load_relative,     // a.k.a LDL
     load_variadic,     //
+    load_r0,           //
     return_,           // a.k.a RTN
     select,            // a.k.a SEL
     stop,              //
     store_absolute,    //
+    store_r0,          //
     store_relative,    //
     store_variadic,    //
     tail_call,         //

@@ -147,9 +147,15 @@ inline namespace kernel
         return interaction_environment();
       });
 
+      library.define<syntax>("store-r0", store_r0);
+
+      library.define<syntax>("load-r0", load_r0);
+
       library.export_("environment");
       library.export_("interaction-environment");
       library.export_("%load");
+      library.export_("store-r0");
+      library.export_("load-r0");
     });
 
     define_library("(meevax comparator)", [](library & library)
