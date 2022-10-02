@@ -19,7 +19,8 @@
 ; SOFTWARE.
 
 (define-library (srfi 39)
-  (import (scheme r5rs)
+  (import (only (meevax environment) load-r0 store-r0)
+          (scheme r5rs)
           (srfi 211 explicit-renaming))
 
   (export make-parameter parameterize)
@@ -42,26 +43,19 @@
                parameter)))
 
          (define (dynamic-bind parameters values body)
-           (let* ((outer (current-parameters))
+           (let* ((outer (load-r0))
                   (inner (map (lambda (parameter value)
                                 (cons parameter (parameter value 'apply-converter-to-value)))
                               parameters
                               values)))
              (dynamic-wind
-               (lambda () (install! (append inner outer)))
+               (lambda () (store-r0 (append inner outer)))
                body
-               (lambda () (install! outer)))))
+               (lambda () (store-r0 outer)))))
 
          (define (dynamic-lookup parameter default)
-           (or (assq parameter (current-parameters))
+           (or (assq parameter (load-r0))
                default))
-
-         (define parameters '())
-
-         (define (current-parameters) parameters)
-
-         (define (install! new-parameters)
-           (set! parameters new-parameters))
 
          (define-syntax parameterize
            (er-macro-transformer
