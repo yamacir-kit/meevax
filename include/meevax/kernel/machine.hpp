@@ -47,9 +47,7 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
-    let r0; /*
-       special register (The Meevax kernel does not specify the use of this
-       register. Scheme library uses it for managing parameters.) */
+    std::array<let, 1> r; // general register
 
     let raise;
 
@@ -411,7 +409,7 @@ inline namespace kernel
         *  s e (%load-r0 . c) => (r0 . s) e c d
         *
         * ------------------------------------------------------------------- */
-        s = cons(r0, s);
+        s = cons(r[0], s);
         c = cdr(c);
         goto decode;
 
@@ -682,7 +680,7 @@ inline namespace kernel
         *  (x . s) e (%store-r0 . c) d => (x . s) e c d
         *
         * ------------------------------------------------------------------- */
-        r0 = car(s);
+        r[0] = car(s);
         c = cdr(c);
         goto decode;
 
