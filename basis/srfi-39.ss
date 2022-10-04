@@ -32,7 +32,7 @@
                   (default (cons #f (convert init))))
              (letrec ((parameter
                         (lambda value
-                          (let ((cell (dynamic-lookup parameter default)))
+                          (let ((cell (or (assq parameter (load-r0)) default)))
                             (cond ((null? value)
                                    (cdr cell))
                                   ((null? (cdr value))
@@ -52,10 +52,6 @@
                (lambda () (store-r0 (append inner outer)))
                body
                (lambda () (store-r0 outer)))))
-
-         (define (dynamic-lookup parameter default)
-           (or (assq parameter (load-r0))
-               default))
 
          (define-syntax parameterize
            (er-macro-transformer
