@@ -19,7 +19,7 @@
 ; SOFTWARE.
 
 (define-library (srfi 39)
-  (import (only (meevax environment) load-r0 store-r0)
+  (import (only (meevax dynamic-environment) load-r0 store-r0)
           (scheme r5rs)
           (srfi 211 explicit-renaming))
 

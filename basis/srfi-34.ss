@@ -109,7 +109,4 @@
                          clause1 clause2 ...)
               (if test
                   (begin result1 result2 ...)
-                  (guard-aux reraise clause1 clause2 ...)))))
-
-         )
-  )
+                  (guard-aux reraise clause1 clause2 ...)))))))
