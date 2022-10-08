@@ -47,9 +47,9 @@ inline namespace kernel
 
       return unspecified;
     }
-    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "declare-error-reporter!")
+    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "declare-raiser")
     {
-      return raise = evaluate(cadr(expression));
+      return raiser = evaluate(cadr(expression));
     }
     else
     {
@@ -74,8 +74,6 @@ inline namespace kernel
   }
   catch (const_reference x)
   {
-    LINE();
-
     throw x.is_also<error>() ? x.as<error>() : error("uncaught exception", x);
   }
 
@@ -217,9 +215,9 @@ inline namespace kernel
     {
       let const import_set = std::get<1>(*iter).resolve();
 
-      if (raise.is<null>() and not std::get<1>(*iter).raise.is<null>())
+      if (auto const& [library_name, library] = *iter; raiser.is<null>() and not library.raiser.is<null>())
       {
-        raise = std::get<1>(*iter).raise;
+        raiser = library.raiser;
       }
 
       return import_set;

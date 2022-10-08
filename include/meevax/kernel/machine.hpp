@@ -54,7 +54,25 @@ inline namespace kernel
        a[2] is used for current-exception-handler.
        a[3] is currently unused. */
 
-    let raise;
+    let raiser; /*
+
+       raiser is a one-argument procedure for propagating C++ exceptions thrown
+       in the Meevax kernel to the exception handler of the language running on
+       the Meevax kernel.
+
+       raiser is set to null by default. In this default state, that is, if
+       raiser is null, C++ exceptions thrown in the kernel are rethrown to the
+       outer environment.
+
+       Although raiser can be set to any one-argument procedure by
+       `declare-raiser` declaration, it is basically assumed to be set to
+       R7RS Scheme's standard procedure `raise`.
+
+       The value of raiser is propagated by the import declaration. Currently,
+       in the Scheme standard library provided by Meevax, the procedure `raise`
+       is defined in the library (srfi 34), and `declare-raiser` is also
+       declared in (srfi 34). This means that environments that depend on the
+       library (srfi 34) will automatically declare `raise` as raiser. */
 
     struct transformer
     {
@@ -711,13 +729,11 @@ inline namespace kernel
     }
     catch (std::exception const& exception)
     {
-      LINE();
-      return report(make<error>(make<string>(exception.what())));
+      return raise(make<error>(make<string>(exception.what())));
     }
     catch (error const& error)
     {
-      LINE();
-      return report(make(error));
+      return raise(make(error));
     }
 
     static auto identify(const_reference variable, const_reference scope) -> value_type
@@ -754,24 +770,16 @@ inline namespace kernel
       return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().identify_with_offset(scope) : f;
     }
 
-    inline auto report(const_reference x) -> value_type
+    inline auto raise(const_reference x) -> value_type
     {
-      LINE();
-
-      if (raise.is<null>())
+      if (raiser.is<null>())
       {
-        LINE();
-
         throw x;
         return unspecified;
       }
       else
       {
-        LINE();
-        PRINT(raise);
-        PRINT(x);
-
-        s = list(raise, list(x));
+        s = list(raiser, list(x));
         c = list(make(mnemonic::tail_call), make(mnemonic::stop));
 
         return execute();
