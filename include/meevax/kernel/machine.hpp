@@ -47,12 +47,11 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
-    std::array<let, 3> a; // auxiliary register
-      /*
+    std::array<let, 3> a; /* auxiliary register
+
          a[0] is used for current-dynamic-extents.
          a[1] is used for current-dynamic-bindings.
-         a[2] is reserved for current-exception-handler.
-      */
+         a[2] is reserved for current-exception-handler. */
 
     let raise;
 
