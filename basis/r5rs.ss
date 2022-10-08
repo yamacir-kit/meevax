@@ -1,39 +1,48 @@
 (define-library (scheme r5rs continuation)
   (import (meevax context)
-          (only (meevax syntax) define-syntax)
-          (rename (scheme r4rs) (call-with-current-continuation r4rs:call/cc)))
+          (only (meevax dynamic-environment) load-auxiliary store-auxiliary)
+          (only (meevax syntax) define-syntax call-with-current-continuation!)
+          (except (scheme r4rs) call-with-current-continuation))
 
   (export call-with-current-continuation dynamic-wind exit)
 
-  (begin (define %current-dynamic-extents '()) ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
+  ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
+
+  (begin (define (current-dynamic-extents)
+           (load-auxiliary 0))
+
+         (define (install-dynamic-extents! extents)
+           (store-auxiliary 0 extents))
 
          (define (dynamic-wind before thunk after)
            (before)
-           (set! %current-dynamic-extents (cons (cons before after) %current-dynamic-extents))
+           (install-dynamic-extents! (cons (cons before after)
+                                    (current-dynamic-extents)))
            ((lambda (result) ; TODO let-values
-              (set! %current-dynamic-extents (cdr %current-dynamic-extents))
+              (install-dynamic-extents! (cdr (current-dynamic-extents)))
               (after)
               result) ; TODO (apply values result)
             (thunk)))
 
          (define (call-with-current-continuation procedure)
            (define (windup! from to)
-             (set! %current-dynamic-extents from)
+             (install-dynamic-extents! from)
              (cond ((eq? from to))
                    ((null? from) (windup! from (cdr to)) ((caar to)))
                    ((null? to) ((cdar from)) (windup! (cdr from) to))
                    (else ((cdar from)) (windup! (cdr from) (cdr to)) ((caar to))))
-             (set! %current-dynamic-extents to))
-           (let ((current-dynamic-extents %current-dynamic-extents))
-             (r4rs:call/cc (lambda (k1)
-                             (procedure (lambda (k2)
-                                          (windup! %current-dynamic-extents current-dynamic-extents)
-                                          (k1 k2)))))))
+             (install-dynamic-extents! to))
+           (let ((dynamic-extents (current-dynamic-extents)))
+             (call-with-current-continuation!
+               (lambda (continue)
+                 (procedure (lambda (x)
+                              (windup! (current-dynamic-extents) dynamic-extents)
+                              (continue x)))))))
 
          (define (exit . normally?)
            (for-each (lambda (before/after)
                        ((cdr before/after)))
-                     %current-dynamic-extents)
+                     (current-dynamic-extents))
            (apply emergency-exit normally?))))
 
 (define-library (scheme r5rs)

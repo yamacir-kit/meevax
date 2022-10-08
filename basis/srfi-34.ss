@@ -19,37 +19,48 @@
 ;  IN THE SOFTWARE.
 
 (define-library (srfi 34)
-  (import (only (meevax error) throw)
+  (import (only (meevax dynamic-environment) load-auxiliary store-auxiliary)
+          (only (meevax error) throw)
           (scheme r5rs))
 
   (export with-exception-handler raise raise-continuable guard)
 
-  (begin (define current-exception-handlers (list throw))
+  (begin (define (current-exception-handlers)
+           (load-auxiliary 2))
+
+         (define (install-exception-handlers! handlers)
+           (store-auxiliary 2 handlers))
 
          (define (with-exception-handlers new-handlers thunk)
-           (let ((old-handlers current-exception-handlers))
+           (let ((old-handlers (current-exception-handlers)))
              (dynamic-wind
-               (lambda () (set! current-exception-handlers new-handlers)) ; install
+               (lambda () (install-exception-handlers! new-handlers)) ; install
                thunk
-               (lambda () (set! current-exception-handlers old-handlers))))) ; uninstall
+               (lambda () (install-exception-handlers! old-handlers))))) ; uninstall
 
          (define (with-exception-handler handler thunk)
-           (with-exception-handlers (cons handler current-exception-handlers) thunk))
+           (with-exception-handlers (cons handler (current-exception-handlers)) thunk))
 
          (define (raise x)
-           (let ((inner (car current-exception-handlers))
-                 (outer (cdr current-exception-handlers)))
+           (let ((inner (car (current-exception-handlers)))
+                 (outer (cdr (current-exception-handlers))))
              (with-exception-handlers outer
                (lambda ()
-                 (inner x)
-                 (error "If the handler returns, a secondary exception is raised in the same dynamic environment as the handler")))))
+                 (if (procedure? inner)
+                     (inner x)
+                     (throw x))
+                 (throw x)))))
 
          (define (raise-continuable x)
-           (let ((inner (car current-exception-handlers))
-                 (outer (cdr current-exception-handlers)))
+           (let ((inner (car (current-exception-handlers)))
+                 (outer (cdr (current-exception-handlers))))
              (with-exception-handlers outer
                (lambda ()
-                 (inner x)))))
+                 (if (procedure? inner)
+                     (inner x)
+                     (throw x))))))
+
+         (declare-raiser raise)
 
          (define-syntax guard
            (syntax-rules ()
@@ -107,7 +118,4 @@
                          clause1 clause2 ...)
               (if test
                   (begin result1 result2 ...)
-                  (guard-aux reraise clause1 clause2 ...)))))
-
-         )
-  )
+                  (guard-aux reraise clause1 clause2 ...)))))))

@@ -31,16 +31,14 @@ inline namespace kernel
     define(string_to_symbol(name), value);
   }
 
-  auto environment::evaluate(const_reference expression) -> value_type
+  auto environment::evaluate(const_reference expression) -> value_type try
   {
-    if (expression.is<pair>() and car(expression).is<symbol>()
-                              and car(expression).as<symbol>().value == "define-library")
+    if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "define-library")
     {
       define_library(lexical_cast<std::string>(cadr(expression)), cddr(expression));
       return cadr(expression);
     }
-    else if (expression.is<pair>() and car(expression).is<symbol>()
-                                   and car(expression).as<symbol>().value == "import")
+    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "import")
     {
       for (let const& import_set : cdr(expression))
       {
@@ -48,6 +46,10 @@ inline namespace kernel
       }
 
       return unspecified;
+    }
+    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "declare-raiser")
+    {
+      return raiser = evaluate(cadr(expression));
     }
     else
     {
@@ -69,6 +71,10 @@ inline namespace kernel
 
       return result;
     }
+  }
+  catch (const_reference x)
+  {
+    throw x.is_also<error>() ? x.as<error>() : error("uncaught exception", x);
   }
 
   auto environment::execute() -> value_type
@@ -207,7 +213,14 @@ inline namespace kernel
     }
     else if (auto iter = libraries.find(lexical_cast<std::string>(declaration)); iter != std::end(libraries))
     {
-      return std::get<1>(*iter).resolve();
+      let const import_set = std::get<1>(*iter).resolve();
+
+      if (auto const& [library_name, library] = *iter; raiser.is<null>() and not library.raiser.is<null>())
+      {
+        raiser = library.raiser;
+      }
+
+      return import_set;
     }
     else
     {

@@ -13,8 +13,7 @@
           (meevax read)
           (meevax string)
           (meevax symbol)
-          (rename (meevax syntax)
-                  (call-with-current-continuation! call-with-current-continuation))
+          (meevax syntax)
           (meevax vector)
           (meevax write)
           (srfi 211 explicit-renaming))
@@ -542,6 +541,9 @@
                  (for-each f x))
                (begin (apply map f x xs)
                       (if #f #f))))
+
+         (define (call-with-current-continuation f)
+           (call-with-current-continuation! f))
 
          (define (call-with-input-file path f) ; r7rs incompatible (values unsupported)
            (define (call-with-input-port port f)
