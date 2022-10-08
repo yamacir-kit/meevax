@@ -25,14 +25,20 @@
 
   (export make-parameter parameterize)
 
-  (begin (define (make-parameter init . converter)
+  (begin (define (current-dynamic-bindings)
+           (load-auxiliary 1))
+
+         (define (install-dynamic-bindings! bindings)
+           (store-auxiliary 1 bindings))
+
+         (define (make-parameter init . converter)
            (let* ((convert (if (null? converter)
                                (lambda (x) x)
                                (car converter)))
                   (default (cons #f (convert init))))
              (letrec ((parameter
                         (lambda value
-                          (let ((cell (or (assq parameter (load-auxiliary 1)) default)))
+                          (let ((cell (or (assq parameter (current-dynamic-bindings)) default)))
                             (cond ((null? value)
                                    (cdr cell))
                                   ((null? (cdr value))
@@ -43,15 +49,14 @@
                parameter)))
 
          (define (dynamic-bind parameters values body)
-           (let* ((outer (load-auxiliary 1))
+           (let* ((outer (current-dynamic-bindings))
                   (inner (map (lambda (parameter value)
                                 (cons parameter (parameter value 'apply-converter-to-value)))
                               parameters
                               values)))
-             (dynamic-wind
-               (lambda () (store-auxiliary 1 (append inner outer)))
-               body
-               (lambda () (store-auxiliary 1 outer)))))
+             (dynamic-wind (lambda () (install-dynamic-bindings! (append inner outer)))
+                           body
+                           (lambda () (install-dynamic-bindings! outer)))))
 
          (define-syntax parameterize
            (er-macro-transformer

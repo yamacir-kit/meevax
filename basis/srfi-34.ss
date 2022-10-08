@@ -25,19 +25,25 @@
 
   (export with-exception-handler raise raise-continuable guard)
 
-  (begin (define (with-exception-handlers new-handlers thunk)
-           (let ((old-handlers (load-auxiliary 2)))
+  (begin (define (current-exception-handlers)
+           (load-auxiliary 2))
+
+         (define (install-exception-handlers! handlers)
+           (store-auxiliary 2 handlers))
+
+         (define (with-exception-handlers new-handlers thunk)
+           (let ((old-handlers (current-exception-handlers)))
              (dynamic-wind
-               (lambda () (store-auxiliary 2 new-handlers)) ; install
+               (lambda () (install-exception-handlers! new-handlers)) ; install
                thunk
-               (lambda () (store-auxiliary 2 old-handlers))))) ; uninstall
+               (lambda () (install-exception-handlers! old-handlers))))) ; uninstall
 
          (define (with-exception-handler handler thunk)
-           (with-exception-handlers (cons handler (load-auxiliary 2)) thunk))
+           (with-exception-handlers (cons handler (current-exception-handlers)) thunk))
 
          (define (raise x)
-           (let ((inner (car (load-auxiliary 2)))
-                 (outer (cdr (load-auxiliary 2))))
+           (let ((inner (car (current-exception-handlers)))
+                 (outer (cdr (current-exception-handlers))))
              (with-exception-handlers outer
                (lambda ()
                  (if (procedure? inner)
@@ -46,8 +52,8 @@
                  (throw x)))))
 
          (define (raise-continuable x)
-           (let ((inner (car (load-auxiliary 2)))
-                 (outer (cdr (load-auxiliary 2))))
+           (let ((inner (car (current-exception-handlers)))
+                 (outer (cdr (current-exception-handlers))))
              (with-exception-handlers outer
                (lambda ()
                  (if (procedure? inner)
