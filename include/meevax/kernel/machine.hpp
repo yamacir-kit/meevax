@@ -409,7 +409,7 @@ inline namespace kernel
         *  s e (%load-auxiliary i . c) => (a[i] . s) e c d
         *
         * ------------------------------------------------------------------- */
-        s = cons(a[cadr(c).as<exact_integer>()], s);
+        s = cons(a[cadr(c).template as<exact_integer>()], s);
         c = cddr(c);
         goto decode;
 
@@ -680,7 +680,7 @@ inline namespace kernel
         *  (x . s) e (%store-auxiliary i . c) d => (x . s) e c d
         *
         * ------------------------------------------------------------------- */
-        a[cadr(c).as<exact_integer>()] = car(s);
+        a[cadr(c).template as<exact_integer>()] = car(s);
         c = cddr(c);
         goto decode;
 
