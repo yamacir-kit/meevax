@@ -11,14 +11,13 @@
                     (lambda ()
                       (+ 1 "2" 3))))) => "addition aborted")
 
-; (check (call/cc (lambda (return)
-;                   (with-exception-handler
-;                     (lambda (x)
-;                       (return "addition aborted"))
-;                     (lambda ()
-;                       (eval '(+ 1 "2" 3)
-;                             (environment '(scheme base)))
-;                       "BUG!")))) => "addition aborted")
+(check (call/cc (lambda (return)
+                  (with-exception-handler
+                    (lambda (x)
+                      (return "addition aborted"))
+                    (lambda ()
+                      (eval '(+ 1 "2" 3)
+                            (environment '(scheme base))))))) => "addition aborted")
 
 (check (call/cc (lambda (return)
                   (with-exception-handler
@@ -52,4 +51,4 @@
 
 (check-report)
 
-(exit (check-passed? 3))
+(exit (check-passed? 4))

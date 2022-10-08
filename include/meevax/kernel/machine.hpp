@@ -51,7 +51,8 @@ inline namespace kernel
 
          a[0] is used for current-dynamic-extents.
          a[1] is used for current-dynamic-bindings.
-         a[2] is reserved for current-exception-handler. */
+         a[2] is used for current-exception-handler.
+         a[3] is currently unused. */
 
     let raise;
 

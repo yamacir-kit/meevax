@@ -19,37 +19,40 @@
 ;  IN THE SOFTWARE.
 
 (define-library (srfi 34)
-  (import (only (meevax error) throw)
+  (import (only (meevax dynamic-environment) load-auxiliary store-auxiliary)
+          (only (meevax error) throw)
           (scheme r5rs))
 
   (export with-exception-handler raise raise-continuable guard)
 
-  (begin (define current-exception-handlers (list throw))
-
-         (define (with-exception-handlers new-handlers thunk)
-           (let ((old-handlers current-exception-handlers))
+  (begin (define (with-exception-handlers new-handlers thunk)
+           (let ((old-handlers (load-auxiliary 2)))
              (dynamic-wind
-               (lambda () (set! current-exception-handlers new-handlers)) ; install
+               (lambda () (store-auxiliary 2 new-handlers)) ; install
                thunk
-               (lambda () (set! current-exception-handlers old-handlers))))) ; uninstall
+               (lambda () (store-auxiliary 2 old-handlers))))) ; uninstall
 
          (define (with-exception-handler handler thunk)
-           (with-exception-handlers (cons handler current-exception-handlers) thunk))
+           (with-exception-handlers (cons handler (load-auxiliary 2)) thunk))
 
          (define (raise x)
-           (let ((inner (car current-exception-handlers))
-                 (outer (cdr current-exception-handlers)))
+           (let ((inner (car (load-auxiliary 2)))
+                 (outer (cdr (load-auxiliary 2))))
              (with-exception-handlers outer
                (lambda ()
-                 (inner x)
+                 (if (procedure? inner)
+                     (inner x)
+                     (throw x))
                  (throw x)))))
 
          (define (raise-continuable x)
-           (let ((inner (car current-exception-handlers))
-                 (outer (cdr current-exception-handlers)))
+           (let ((inner (car (load-auxiliary 2)))
+                 (outer (cdr (load-auxiliary 2))))
              (with-exception-handlers outer
                (lambda ()
-                 (inner x)))))
+                 (if (procedure? inner)
+                     (inner x)
+                     (throw x))))))
 
          (declare-error-reporter! raise)
 
