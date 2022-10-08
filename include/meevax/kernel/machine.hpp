@@ -47,9 +47,11 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
-    let r0; /*
-       special register (The Meevax kernel does not specify the use of this
-       register. Scheme library uses it for managing parameters.) */
+    std::array<let, 3> a; /* auxiliary register
+
+         a[0] is used for current-dynamic-extents.
+         a[1] is used for current-dynamic-bindings.
+         a[2] is reserved for current-exception-handler. */
 
     let raise;
 
@@ -406,13 +408,13 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::load_r0: /* -----------------------------------------------
+      case mnemonic::load_auxiliary: /* ----------------------------------------
         *
-        *  s e (%load-r0 . c) => (r0 . s) e c d
+        *  s e (%load-auxiliary i . c) => (a[i] . s) e c d
         *
         * ------------------------------------------------------------------- */
-        s = cons(r0, s);
-        c = cdr(c);
+        s = cons(a[cadr(c).template as<exact_integer>()], s);
+        c = cddr(c);
         goto decode;
 
       case mnemonic::select: /* ------------------------------------------------
@@ -677,13 +679,13 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::store_r0: /* ----------------------------------------------
+      case mnemonic::store_auxiliary: /* ---------------------------------------
         *
-        *  (x . s) e (%store-r0 . c) d => (x . s) e c d
+        *  (x . s) e (%store-auxiliary i . c) d => (x . s) e c d
         *
         * ------------------------------------------------------------------- */
-        r0 = car(s);
-        c = cdr(c);
+        a[cadr(c).template as<exact_integer>()] = car(s);
+        c = cddr(c);
         goto decode;
 
       default: // ERROR
@@ -807,27 +809,27 @@ inline namespace kernel
                           current_continuation));
     }
 
-    static SYNTAX(load_r0) /* --------------------------------------------------
+    static SYNTAX(load_auxiliary) /* -------------------------------------------
     *
-    *  (load-r0)                                                         syntax
+    *  (load-auxiliary <index>)                                          syntax
     *
     * ----------------------------------------------------------------------- */
     {
-      return cons(make(mnemonic::load_r0),
+      return cons(make(mnemonic::load_auxiliary), car(current_expression),
                   current_continuation);
     }
 
-    static SYNTAX(store_r0) /* -------------------------------------------------
+    static SYNTAX(store_auxiliary) /* ------------------------------------------
     *
-    *  (store-r0 <expression>)                                        syntax
+    *  (store-auxiliary <index> <expression>)                            syntax
     *
     * ----------------------------------------------------------------------- */
     {
       return compile(context(),
                      current_environment,
-                     car(current_expression),
+                     cadr(current_expression),
                      current_scope,
-                     cons(make(mnemonic::store_r0),
+                     cons(make(mnemonic::store_auxiliary), car(current_expression),
                           current_continuation));
     }
 

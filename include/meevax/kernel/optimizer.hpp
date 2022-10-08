@@ -41,10 +41,8 @@ inline namespace kernel
       case mnemonic::dummy:
       case mnemonic::join:
       case mnemonic::letrec:
-      case mnemonic::load_r0:
       case mnemonic::return_:
       case mnemonic::stop:
-      case mnemonic::store_r0:
       case mnemonic::tail_call:
         return [&]()
         {
@@ -63,9 +61,11 @@ inline namespace kernel
       case mnemonic::let_syntax:
       case mnemonic::letrec_syntax:
       case mnemonic::load_absolute:
+      case mnemonic::load_auxiliary:
       case mnemonic::load_relative:
       case mnemonic::load_variadic:
       case mnemonic::store_absolute:
+      case mnemonic::store_auxiliary:
       case mnemonic::store_relative:
       case mnemonic::store_variadic:
         return [&]()
