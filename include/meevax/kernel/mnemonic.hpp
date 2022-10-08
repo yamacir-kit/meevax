@@ -36,17 +36,17 @@ inline namespace kernel
     letrec,            // a.k.a RAP
     letrec_syntax,     //
     load_absolute,     // a.k.a LDG
+    load_auxiliary,    //
     load_closure,      // a.k.a LDF
     load_constant,     // a.k.a LDC
     load_continuation, //
     load_relative,     // a.k.a LDL
     load_variadic,     //
-    load_r0,           //
     return_,           // a.k.a RTN
     select,            // a.k.a SEL
     stop,              //
     store_absolute,    //
-    store_r0,          //
+    store_auxiliary,   //
     store_relative,    //
     store_variadic,    //
     tail_call,         //

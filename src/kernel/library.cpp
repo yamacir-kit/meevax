@@ -154,11 +154,11 @@ inline namespace kernel
 
     define_library("(meevax dynamic-environment)", [](library & library)
     {
-      library.define<syntax>("store-r0", store_r0);
-      library.define<syntax>("load-r0", load_r0);
+      library.define<syntax>("store-auxiliary", store_auxiliary);
+      library.define<syntax>("load-auxiliary", load_auxiliary);
 
-      library.export_("store-r0");
-      library.export_("load-r0");
+      library.export_("store-auxiliary");
+      library.export_("load-auxiliary");
     });
 
     define_library("(meevax comparator)", [](library & library)

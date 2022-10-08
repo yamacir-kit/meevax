@@ -19,7 +19,7 @@
 ; SOFTWARE.
 
 (define-library (srfi 39)
-  (import (only (meevax dynamic-environment) load-r0 store-r0)
+  (import (only (meevax dynamic-environment) load-auxiliary store-auxiliary)
           (scheme r5rs)
           (srfi 211 explicit-renaming))
 
@@ -32,7 +32,7 @@
                   (default (cons #f (convert init))))
              (letrec ((parameter
                         (lambda value
-                          (let ((cell (or (assq parameter (load-r0)) default)))
+                          (let ((cell (or (assq parameter (load-auxiliary 1)) default)))
                             (cond ((null? value)
                                    (cdr cell))
                                   ((null? (cdr value))
@@ -43,15 +43,15 @@
                parameter)))
 
          (define (dynamic-bind parameters values body)
-           (let* ((outer (load-r0))
+           (let* ((outer (load-auxiliary 1))
                   (inner (map (lambda (parameter value)
                                 (cons parameter (parameter value 'apply-converter-to-value)))
                               parameters
                               values)))
              (dynamic-wind
-               (lambda () (store-r0 (append inner outer)))
+               (lambda () (store-auxiliary 1 (append inner outer)))
                body
-               (lambda () (store-r0 outer)))))
+               (lambda () (store-auxiliary 1 outer)))))
 
          (define-syntax parameterize
            (er-macro-transformer
