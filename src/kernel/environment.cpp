@@ -58,9 +58,7 @@ inline namespace kernel
       assert(c.is<null>());
       assert(d.is<null>());
 
-      c = compile(context(), *this, expression, scope());
-
-      c = optimize(c);
+      c = optimize(compile(context(), *this, expression, scope()));
 
       let const result = execute();
 
@@ -74,7 +72,15 @@ inline namespace kernel
   }
   catch (const_reference x)
   {
-    throw x.is_also<error>() ? x.as<error>() : error("uncaught exception", x);
+    if (x.is_also<error>())
+    {
+      x.as<error>().raise(); // NOTE: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84476
+      return unit;
+    }
+    else
+    {
+      throw error("uncaught exception", x);
+    }
   }
 
   auto environment::execute() -> value_type

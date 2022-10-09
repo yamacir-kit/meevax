@@ -39,6 +39,9 @@ inline namespace kernel
 
     auto message() const noexcept -> const_reference;
 
+    [[noreturn]] // NOTE: GCC ignores this attribute when accessed through pointer (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84476)
+    virtual auto raise() const -> void;
+
     auto what() const -> std::string;
   };
 
@@ -54,6 +57,11 @@ inline namespace kernel
   struct TYPENAME ## _error : public error                                     \
   {                                                                            \
     using error::error;                                                        \
+                                                                               \
+    auto raise() const -> void override                                        \
+    {                                                                          \
+      throw *this;                                                             \
+    }                                                                          \
   }
 
   DEFINE_ERROR(file);

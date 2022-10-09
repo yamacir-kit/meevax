@@ -36,6 +36,11 @@ inline namespace kernel
     return first;
   }
 
+  auto error::raise() const -> void
+  {
+    throw *this;
+  }
+
   auto error::what() const -> std::string
   {
     std::stringstream ss {};
