@@ -90,15 +90,15 @@ inline namespace kernel
       {
         if (let const& status = car(xs); status.is<null>())
         {
-          throw exit_status::success;
+          throw success;
         }
         else if (status.is<bool>())
         {
-          throw select(status) ? exit_status::success : exit_status::failure;
+          throw select(status) ? success : failure;
         }
         else
         {
-          throw exit_status(static_cast<int>(status.as<exact_integer>()));
+          throw static_cast<int>(status.as<exact_integer>());
         }
 
         return unspecified;

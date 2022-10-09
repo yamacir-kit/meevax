@@ -50,6 +50,6 @@ auto main(int const argc, char const* const* const argv) -> int
       print(main.evaluate(main.read()));
     }
 
-    return underlying_cast(exit_status::success);
+    return success;
   });
 }

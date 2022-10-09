@@ -23,11 +23,8 @@ namespace meevax
 {
 inline namespace kernel
 {
-  enum class exit_status : int
-  {
-    success = EXIT_SUCCESS,
-    failure = EXIT_FAILURE,
-  };
+  constexpr auto success = EXIT_SUCCESS;
+  constexpr auto failure = EXIT_FAILURE;
 
   struct error : public virtual pair
   {
@@ -76,34 +73,34 @@ inline namespace kernel
       return thunk();
     }
 
-    catch (exit_status const value) // NOTE: emergency-exit
+    catch (int const value) // NOTE: emergency-exit
     {
       gc.clear(); // NOTE:
-      return underlying_cast(value);
+      return value;
     }
 
     catch (const_reference error) // NOTE: procedure `throw` (Terminate the program without running any outstanding dynamic-wind after procedures)
     {
       std::cerr << "; " << error << std::endl;
-      return underlying_cast(exit_status::failure);
+      return failure;
     }
 
     catch (error const& error) // NOTE: system-error
     {
       std::cerr << "; " << error << std::endl;
-      return underlying_cast(exit_status::failure);
+      return failure;
     }
 
     catch (std::exception const& error)
     {
       std::cerr << "; system-error " << std::quoted(error.what()) << std::endl;
-      return underlying_cast(exit_status::failure);
+      return failure;
     }
 
     catch (...)
     {
       std::cerr << "; error: An unknown object was thrown that was neither a Meevax exception type nor a C++ standard exception type." << std::endl;
-      return underlying_cast(exit_status::failure);
+      return failure;
     }
   }
 } // namespace kernel

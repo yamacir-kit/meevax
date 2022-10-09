@@ -88,7 +88,7 @@ inline namespace kernel
       std::make_pair('h', [](auto&&...)
       {
         configurator::display_help();
-        throw exit_status::success;
+        throw success;
       }),
 
       std::make_pair('i', [](auto&&...)
@@ -104,7 +104,7 @@ inline namespace kernel
       std::make_pair('v', [](auto&&...)
       {
         configurator::display_version();
-        throw exit_status::success;
+        throw success;
       }),
     };
 
@@ -141,7 +141,7 @@ inline namespace kernel
       std::make_pair("help", [](auto&&...)
       {
         display_help();
-        throw exit_status::success;
+        throw success;
       }),
 
       std::make_pair("interactive", [](auto&&...)
@@ -157,7 +157,7 @@ inline namespace kernel
       std::make_pair("version", [](auto&&...)
       {
         display_version();
-        throw exit_status::success;
+        throw success;
       }),
     };
 
