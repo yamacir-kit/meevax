@@ -31,16 +31,14 @@ inline namespace kernel
     define(string_to_symbol(name), value);
   }
 
-  auto environment::evaluate(const_reference expression) -> value_type
+  auto environment::evaluate(const_reference expression) -> value_type try
   {
-    if (expression.is<pair>() and car(expression).is<symbol>()
-                              and car(expression).as<symbol>().value == "define-library")
+    if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "define-library")
     {
       define_library(lexical_cast<std::string>(cadr(expression)), cddr(expression));
       return cadr(expression);
     }
-    else if (expression.is<pair>() and car(expression).is<symbol>()
-                                   and car(expression).as<symbol>().value == "import")
+    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "import")
     {
       for (let const& import_set : cdr(expression))
       {
@@ -49,6 +47,10 @@ inline namespace kernel
 
       return unspecified;
     }
+    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "declare-raiser")
+    {
+      return raiser = evaluate(cadr(expression));
+    }
     else
     {
       assert(s.is<null>());
@@ -56,9 +58,7 @@ inline namespace kernel
       assert(c.is<null>());
       assert(d.is<null>());
 
-      c = compile(context(), *this, expression, scope());
-
-      c = optimize(c);
+      c = optimize(compile(context(), *this, expression, scope()));
 
       let const result = execute();
 
@@ -68,6 +68,18 @@ inline namespace kernel
       assert(d.is<null>());
 
       return result;
+    }
+  }
+  catch (const_reference x)
+  {
+    if (x.is_also<error>())
+    {
+      x.as<error>().raise(); // NOTE: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84476
+      return unit;
+    }
+    else
+    {
+      throw error("uncaught exception", x);
     }
   }
 
@@ -207,11 +219,18 @@ inline namespace kernel
     }
     else if (auto iter = libraries.find(lexical_cast<std::string>(declaration)); iter != std::end(libraries))
     {
-      return std::get<1>(*iter).resolve();
+      let const import_set = std::get<1>(*iter).resolve();
+
+      if (auto const& [library_name, library] = *iter; raiser.is<null>() and not library.raiser.is<null>())
+      {
+        raiser = library.raiser;
+      }
+
+      return import_set;
     }
     else
     {
-      throw error(make<string>("No such library"), declaration);
+      throw std::runtime_error("No such library");
     }
   }
 
@@ -223,7 +242,7 @@ inline namespace kernel
 
       if (let const& variable = identity.as<absolute>().symbol(); not eq((*this)[variable], undefined) and not interactive)
       {
-        throw error(make<string>("In a program or library declaration, it is an error to import the same identifier more than once with different bindings"),
+        throw error("In a program or library declaration, it is an error to import the same identifier more than once with different bindings",
                     list(import_set, variable));
       }
       else
@@ -251,7 +270,7 @@ inline namespace kernel
     }
     else
     {
-      throw file_error(make<string>("failed to open file: " + s));
+      throw file_error("failed to open file", make<string>(s));
     }
   }
 

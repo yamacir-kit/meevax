@@ -46,10 +46,17 @@ auto main(int const argc, char const* const* const argv) -> int
 
     while (main.interactive and main.char_ready())
     {
-      write(standard_output, u8"\u03bb> ");
-      print(main.evaluate(main.read()));
+      try
+      {
+        write(standard_output, u8"\u03bb> ");
+        print(main.evaluate(main.read()));
+      }
+      catch (error const& error)
+      {
+        std::cerr << error << std::endl;
+      }
     }
 
-    return underlying_cast(exit_status::success);
+    return success;
   });
 }

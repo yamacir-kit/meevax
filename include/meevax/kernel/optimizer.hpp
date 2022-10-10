@@ -61,9 +61,11 @@ inline namespace kernel
       case mnemonic::let_syntax:
       case mnemonic::letrec_syntax:
       case mnemonic::load_absolute:
+      case mnemonic::load_auxiliary:
       case mnemonic::load_relative:
       case mnemonic::load_variadic:
       case mnemonic::store_absolute:
+      case mnemonic::store_auxiliary:
       case mnemonic::store_relative:
       case mnemonic::store_variadic:
         return [&]()

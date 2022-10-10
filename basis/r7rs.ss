@@ -2,21 +2,11 @@
   (import (only (meevax error) error? read-error? file-error?)
           (only (meevax number) exact-integer?)
           (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
-          (only (meevax port) binary-port?
-                              textual-port?
-                              port?
-                              input-port-open?
-                              output-port-open?
-                              standard-input-port
-                              standard-output-port
-                              standard-error-port
-                              eof-object
-                              get-ready?
-                              get-char
-                              get-char!
-                              put-char
-                              put-string
-                              %flush-output-port)
+          (only (meevax port)
+            binary-port? textual-port? port? input-port-open? output-port-open?
+            standard-input-port standard-output-port standard-error-port
+            eof-object get-ready? get-char get-char! put-char put-string
+            %flush-output-port)
           (only (meevax string) string-copy! vector->string)
           (only (meevax version) features)
           (scheme r5rs)
@@ -61,7 +51,7 @@
           syntax-rules
           _
           ...
-          ; syntax-error
+          syntax-error
           define
           ; define-values
           define-syntax
@@ -285,6 +275,11 @@
                                 ,@(map (lambda (x) (cons (rename 'define) x))
                                        (cadr form))
                                 ,@(cddr form)))))
+
+         (define-syntax syntax-error
+           (er-macro-transformer
+             (lambda (form rename compare)
+               (apply error (cdr form)))))
 
          (define (floor-quotient x y)
            (floor (/ x y)))

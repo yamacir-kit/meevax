@@ -114,9 +114,7 @@ inline namespace kernel
         }
         else
         {
-          std::stringstream ss {};
-          ss << "no viable conversion from " << demangle(type()) << " to " << demangle(typeid(U));
-          raise(ss.str());
+          throw std::runtime_error(concatenate("no viable conversion from ", demangle(type()), " to ", demangle(typeid(U))));
         }
       }
       else

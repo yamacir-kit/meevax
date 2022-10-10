@@ -27,7 +27,6 @@
 #include <meevax/memory/gc_pointer.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
-#include <meevax/type_traits/underlying_cast.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/module.hpp>
 
@@ -51,9 +50,6 @@ inline namespace kernel
   using let = value_type;
 
   using null = std::nullptr_t;
-
-  [[noreturn]]
-  auto raise(std::string const&) -> void; // error.hpp
 } // namespace kernel
 } // namespace meevax
 

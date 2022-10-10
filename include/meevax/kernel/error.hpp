@@ -17,54 +17,51 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 
-#include <meevax/kernel/list.hpp>
-#include <meevax/kernel/string.hpp>
-
-/* ---- Error ------------------------------------------------------------------
- *
- * - error
- *    |-- file-error
- *    |-- read_error
- *    `-- syntax_error
- *
- * -------------------------------------------------------------------------- */
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  enum class exit_status : int
-  {
-    success = EXIT_SUCCESS,
-    failure = EXIT_FAILURE,
-  };
+  constexpr auto success = EXIT_SUCCESS;
+  constexpr auto failure = EXIT_FAILURE;
 
   struct error : public virtual pair
   {
     using pair::pair;
 
+    explicit error(std::string const&, const_reference = unit);
+
     auto irritants() const noexcept -> const_reference;
 
     auto message() const noexcept -> const_reference;
 
+    [[noreturn]] // NOTE: GCC ignores this attribute when accessed through pointer (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84476)
     virtual auto raise() const -> void;
 
-    virtual auto what() const -> std::string;
+    auto what() const -> std::string;
   };
 
   auto operator <<(std::ostream &, error const&) -> std::ostream &;
 
+  /*
+     - error
+        |-- file-error
+        `-- read_error
+  */
   #define DEFINE_ERROR(TYPENAME)                                               \
   struct TYPENAME ## _error : public error                                     \
   {                                                                            \
     using error::error;                                                        \
                                                                                \
-    ~TYPENAME ## _error() override = default;                                  \
+    auto raise() const -> void override                                        \
+    {                                                                          \
+      throw *this;                                                             \
+    }                                                                          \
   }
 
   DEFINE_ERROR(file);
   DEFINE_ERROR(read);
-  DEFINE_ERROR(syntax);
 
   template <typename Thunk>
   auto with_exception_handler(Thunk && thunk)
@@ -73,35 +70,20 @@ inline namespace kernel
     {
       return thunk();
     }
-
-    catch (exit_status const value) // NOTE: emergency-exit
+    catch (int const status) // NOTE: emergency-exit
     {
-      gc.clear(); // NOTE:
-      return underlying_cast(value);
+      gc.clear();
+      return status;
     }
-
-    catch (const_reference error) // NOTE: procedure `throw` (Terminate the program without running any outstanding dynamic-wind after procedures)
-    {
-      std::cerr << "; " << error << std::endl;
-      return underlying_cast(exit_status::failure);
-    }
-
     catch (error const& error) // NOTE: system-error
     {
       std::cerr << "; " << error << std::endl;
-      return underlying_cast(exit_status::failure);
+      return failure;
     }
-
     catch (std::exception const& error)
     {
-      std::cerr << "; error " << std::quoted(error.what()) << std::endl;
-      return underlying_cast(exit_status::failure);
-    }
-
-    catch (...)
-    {
-      std::cerr << "; error: An unknown object was thrown that was neither a Meevax exception type nor a C++ standard exception type." << std::endl;
-      return underlying_cast(exit_status::failure);
+      std::cerr << "; " << error.what() << std::endl;
+      return failure;
     }
   }
 } // namespace kernel

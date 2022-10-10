@@ -15,11 +15,17 @@
 */
 
 #include <meevax/kernel/error.hpp>
+#include <meevax/kernel/procedure.hpp>
+#include <meevax/kernel/string.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
+  error::error(std::string const& message, const_reference irritants)
+    : pair { make<string>(message), irritants }
+  {}
+
   auto error::irritants() const noexcept -> const_reference
   {
     return second;
@@ -59,11 +65,6 @@ inline namespace kernel
     }
 
     return os << magenta(")");
-  }
-
-  auto raise(std::string const& message) -> void
-  {
-    throw error(make<string>(message));
   }
 } // namespace kernel
 } // namespace meevax
