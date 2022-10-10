@@ -72,34 +72,19 @@ inline namespace kernel
     {
       return thunk();
     }
-
-    catch (int const value) // NOTE: emergency-exit
+    catch (int const status) // NOTE: emergency-exit
     {
-      gc.clear(); // NOTE:
-      return value;
+      gc.clear();
+      return status;
     }
-
-    catch (const_reference error) // NOTE: procedure `throw` (Terminate the program without running any outstanding dynamic-wind after procedures)
-    {
-      std::cerr << "; " << error << std::endl;
-      return failure;
-    }
-
     catch (error const& error) // NOTE: system-error
     {
       std::cerr << "; " << error << std::endl;
       return failure;
     }
-
     catch (std::exception const& error)
     {
-      std::cerr << "; system-error " << std::quoted(error.what()) << std::endl;
-      return failure;
-    }
-
-    catch (...)
-    {
-      std::cerr << "; error: An unknown object was thrown that was neither a Meevax exception type nor a C++ standard exception type." << std::endl;
+      std::cerr << "; " << error.what() << std::endl;
       return failure;
     }
   }

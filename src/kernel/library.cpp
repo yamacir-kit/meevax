@@ -86,7 +86,7 @@ inline namespace kernel
 
     define_library("(meevax context)", [](library & library)
     {
-      library.define<procedure>("emergency-exit", [](let const& xs)
+      library.define<procedure>("emergency-exit", [](let const& xs) -> value_type
       {
         if (let const& status = car(xs); status.is<null>())
         {
@@ -100,8 +100,6 @@ inline namespace kernel
         {
           throw static_cast<int>(status.as<exact_integer>());
         }
-
-        return unspecified;
       });
 
       library.export_("emergency-exit");
