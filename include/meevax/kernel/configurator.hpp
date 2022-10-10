@@ -36,9 +36,9 @@ inline namespace kernel
     explicit configurator()
     {}
 
-    IMPORT(environment, evaluate, NIL);
-    IMPORT(environment, load, NIL);
-    IMPORT(environment, read, NIL);
+    IMPORT(environment, evaluate, );
+    IMPORT(environment, load,     );
+    IMPORT(environment, read,     );
 
     template <typename Key>
     using dispatcher = std::unordered_map<Key, std::function<void (const_reference)>>;

@@ -59,7 +59,7 @@ inline namespace kernel
     explicit reader()
     {}
 
-    IMPORT(Environment, evaluate, NIL);
+    IMPORT(Environment, evaluate, );
 
     using char_type = typename std::istream::char_type;
 

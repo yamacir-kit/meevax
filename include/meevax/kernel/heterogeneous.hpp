@@ -31,8 +31,6 @@
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/module.hpp>
 
-#define NIL /* nothing */
-
 namespace meevax
 {
 inline namespace kernel
