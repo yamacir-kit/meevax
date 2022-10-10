@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
-#include <meevax/kernel/object.hpp>
+#include <meevax/kernel/heterogeneous.hpp>
 
 namespace meevax
 {
@@ -26,6 +26,18 @@ inline namespace kernel
   let extern unit;
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;
+
+  template <typename T, typename... Ts>
+  auto make(Ts&&... xs)
+  {
+    return value_type::allocate<T>(std::forward<decltype(xs)>(xs)...); // NOTE: This leaks memory if exception thrown from T's constructor.
+  }
+
+  template <typename T>
+  auto make(T&& x)
+  {
+    return value_type::allocate<std::decay_t<T>>(std::forward<decltype(x)>(x));
+  }
 
   struct pair : public std::pair<value_type, value_type>
   {
