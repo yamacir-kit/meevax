@@ -1080,7 +1080,7 @@ inline namespace kernel
       }
       else
       {
-        throw syntax_error("definition cannot appear in this syntactic-context");
+        throw error("definition cannot appear in this syntactic-context");
       }
     }
 

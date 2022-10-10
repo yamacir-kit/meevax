@@ -47,8 +47,7 @@ inline namespace kernel
   /*
      - error
         |-- file-error
-        |-- read_error
-        `-- syntax_error
+        `-- read_error
   */
   #define DEFINE_ERROR(TYPENAME)                                               \
   struct TYPENAME ## _error : public error                                     \
@@ -63,7 +62,6 @@ inline namespace kernel
 
   DEFINE_ERROR(file);
   DEFINE_ERROR(read);
-  DEFINE_ERROR(syntax);
 
   template <typename Thunk>
   auto with_exception_handler(Thunk && thunk)
