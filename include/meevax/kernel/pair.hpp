@@ -23,6 +23,16 @@ namespace meevax
 {
 inline namespace kernel
 {
+  struct pair;
+
+  using value_type = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, mnemonic>;
+
+  using reference = value_type &;
+
+  using const_reference = value_type const&;
+
+  using let = value_type;
+
   let extern unit;
 
   template <typename T, typename... Ts>

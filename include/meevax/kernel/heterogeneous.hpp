@@ -17,13 +17,28 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
-#include <meevax/kernel/overview.hpp>
+#include <meevax/functional/combinator.hpp>
+#include <meevax/functional/compose.hpp>
+#include <meevax/iostream/concatenate.hpp>
+#include <meevax/iostream/escape_sequence.hpp>
+#include <meevax/iostream/lexical_cast.hpp>
+#include <meevax/kernel/mnemonic.hpp>
 #include <meevax/kernel/profiler.hpp>
+#include <meevax/kernel/type_index.hpp>
+#include <meevax/memory/gc_pointer.hpp>
+#include <meevax/type_traits/is_equality_comparable.hpp>
+#include <meevax/type_traits/is_output_streamable.hpp>
+#include <meevax/utility/demangle.hpp>
+#include <meevax/utility/module.hpp>
+
+#define NIL /* nothing */
 
 namespace meevax
 {
 inline namespace kernel
 {
+  using null = std::nullptr_t;
+
   template <template <typename...> typename Pointer, typename Top, typename... Ts>
   class heterogeneous : public Pointer<Top, Ts...>
   {
