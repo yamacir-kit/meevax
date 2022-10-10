@@ -22,6 +22,25 @@ inline namespace kernel
 {
   let unit { nullptr };
 
+  pair::pair(const_reference a, const_reference b)
+    : std::pair<value_type, value_type> { a, b }
+  {}
+
+  auto pair::compare(pair const* that) const -> bool
+  {
+    return that and *this == *that;
+  }
+
+  auto pair::type() const noexcept -> std::type_info const&
+  {
+    return typeid(pair);
+  }
+
+  auto pair::write(std::ostream & os) const -> std::ostream &
+  {
+    return os << *this;
+  }
+
   auto operator <<(std::ostream & os, pair const& pare) -> std::ostream &
   {
     os << magenta("(") << car(pare);

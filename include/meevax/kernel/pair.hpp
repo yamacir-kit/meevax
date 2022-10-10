@@ -25,8 +25,6 @@ inline namespace kernel
 {
   let extern unit;
 
-  auto operator <<(std::ostream &, pair const&) -> std::ostream &;
-
   template <typename T, typename... Ts>
   auto make(Ts&&... xs)
   {
@@ -41,9 +39,7 @@ inline namespace kernel
 
   struct pair : public std::pair<value_type, value_type>
   {
-    explicit pair(const_reference a = unit, const_reference b = unit)
-      : std::pair<value_type, value_type> { a, b }
-    {}
+    explicit pair(const_reference = unit, const_reference = unit);
 
     template <typename... Ts, typename = std::enable_if_t<(1 < sizeof...(Ts))>>
     explicit pair(const_reference a, Ts&&... xs)
@@ -52,21 +48,14 @@ inline namespace kernel
 
     virtual ~pair() = default;
 
-    virtual auto compare(pair const* that) const -> bool
-    {
-      return that and *this == *that;
-    }
+    virtual auto compare(pair const*) const -> bool;
 
-    virtual auto type() const noexcept -> std::type_info const&
-    {
-      return typeid(pair);
-    }
+    virtual auto type() const noexcept -> std::type_info const&;
 
-    virtual auto write(std::ostream & os) const -> std::ostream &
-    {
-      return os << *this;
-    }
+    virtual auto write(std::ostream &) const -> std::ostream &;
   };
+
+  auto operator <<(std::ostream &, pair const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 
