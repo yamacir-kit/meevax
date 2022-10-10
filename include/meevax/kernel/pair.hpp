@@ -25,8 +25,9 @@ inline namespace kernel
 {
   let extern unit;
 
+  auto operator <<(std::ostream &, pair const&) -> std::ostream &;
+
   struct pair : public std::pair<value_type, value_type>
-              , public top<pair>
   {
     explicit pair(const_reference a = unit, const_reference b = unit)
       : std::pair<value_type, value_type> { a, b }
@@ -38,9 +39,22 @@ inline namespace kernel
     {}
 
     virtual ~pair() = default;
-  };
 
-  auto operator <<(std::ostream &, pair const&) -> std::ostream &;
+    virtual auto compare(pair const* that) const -> bool
+    {
+      return that and *this == *that;
+    }
+
+    virtual auto type() const noexcept -> std::type_info const&
+    {
+      return typeid(pair);
+    }
+
+    virtual auto write(std::ostream & os) const -> std::ostream &
+    {
+      return os << *this;
+    }
+  };
 } // namespace kernel
 } // namespace meevax
 

@@ -23,32 +23,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename T>
-  struct top
-  {
-    virtual auto compare(T const* p) const -> bool
-    {
-      if constexpr (is_equality_comparable<T>::value)
-      {
-        return p ? *p == static_cast<T const&>(*this) : std::is_same<T, null>::value;
-      }
-      else
-      {
-        return false;
-      }
-    }
-
-    virtual auto type() const noexcept -> std::type_info const&
-    {
-      return typeid(T);
-    }
-
-    virtual auto write(std::ostream & os) const -> std::ostream &
-    {
-      return os << static_cast<T const&>(*this);
-    }
-  };
-
   template <typename T, typename... Ts>
   auto make(Ts&&... xs)
   {
