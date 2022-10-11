@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 #define INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 
-#include <cassert>
 #include <cstddef>
 #include <limits>
 #include <map>
@@ -27,7 +26,6 @@
 
 #include <meevax/memory/tracer.hpp>
 #include <meevax/memory/simple_allocator.hpp>
-#include <meevax/string/header.hpp>
 
 namespace meevax
 {

@@ -19,11 +19,8 @@
 
 #include <regex>
 
-#include <meevax/iostream/concatenate.hpp>
 #include <meevax/kernel/error.hpp>
-#include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
-#include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 #include <meevax/kernel/writer.hpp>
 
@@ -39,12 +36,12 @@ inline namespace kernel
     explicit configurator()
     {}
 
-    IMPORT(environment, evaluate, NIL);
-    IMPORT(environment, load, NIL);
-    IMPORT(environment, read, NIL);
+    IMPORT(environment, evaluate, );
+    IMPORT(environment, load,     );
+    IMPORT(environment, read,     );
 
     template <typename Key>
-    using dispatcher = std::unordered_map<Key, procedure::function_type>;
+    using dispatcher = std::unordered_map<Key, std::function<void (const_reference)>>;
 
   public:
     static inline auto batch       = false;
@@ -80,49 +77,52 @@ inline namespace kernel
     {
       std::make_pair('b', [](auto&&...)
       {
-        return make<bool>(batch = true);
+        batch = true;
       }),
 
       std::make_pair('d', [](auto&&...)
       {
-        return make<bool>(debug = true);
+        debug = true;
       }),
 
-      std::make_pair('h', [](auto&&...) -> value_type
+      std::make_pair('h', [](auto&&...)
       {
         configurator::display_help();
-        throw exit_status::success;
+        throw success;
       }),
 
       std::make_pair('i', [](auto&&...)
       {
-        return make<bool>(interactive = true);
+        interactive = true;
       }),
 
-      std::make_pair('v', [](auto&&...) -> value_type
+      std::make_pair('t', [](auto&&...)
+      {
+        trace = true;
+      }),
+
+      std::make_pair('v', [](auto&&...)
       {
         configurator::display_version();
-        throw exit_status::success;
+        throw success;
       }),
     };
 
     static inline const dispatcher<char> short_options_with_arguments
     {
-      std::make_pair('e', [](const_reference x, auto&&...)
+      std::make_pair('e', [](auto&& x)
       {
         print(interaction_environment().as<environment>().evaluate(x));
-        return unspecified;
       }),
 
-      std::make_pair('l', [](const_reference x, auto&&...)
+      std::make_pair('l', [](auto&& x)
       {
-        return interaction_environment().as<environment>().load(x.as_const<symbol>());
+        interaction_environment().as<environment>().load(x.template as_const<symbol>());
       }),
 
-      std::make_pair('w', [](const_reference x, auto&&...)
+      std::make_pair('w', [](auto&& x)
       {
         print(x);
-        return unspecified;
       }),
     };
 
@@ -130,54 +130,52 @@ inline namespace kernel
     {
       std::make_pair("batch", [](auto&&...)
       {
-        return make<bool>(batch = true);
+        batch = true;
       }),
 
       std::make_pair("debug", [](auto&&...)
       {
-        return make<bool>(debug = true);
+        debug = true;
       }),
 
-      std::make_pair("help", [](auto&&...) -> value_type
+      std::make_pair("help", [](auto&&...)
       {
         display_help();
-        throw exit_status::success;
+        throw success;
       }),
 
       std::make_pair("interactive", [](auto&&...)
       {
-        return make<bool>(interactive = true);
+        interactive = true;
       }),
 
       std::make_pair("trace", [](auto&&...)
       {
-        return make<bool>(trace = true);
+        trace = true;
       }),
 
-      std::make_pair("version", [](auto&&...) -> value_type
+      std::make_pair("version", [](auto&&...)
       {
         display_version();
-        throw exit_status::success;
+        throw success;
       }),
     };
 
     static inline const dispatcher<std::string> long_options_with_arguments
     {
-      std::make_pair("evaluate", [](const_reference x, auto&&...)
+      std::make_pair("evaluate", [](auto&& x)
       {
         print(interaction_environment().as<environment>().evaluate(x));
-        return unspecified;
       }),
 
-      std::make_pair("load", [](const_reference x, auto&&...)
+      std::make_pair("load", [](auto&& x)
       {
-        return interaction_environment().as<environment>().load(x.as_const<string>());
+        interaction_environment().as<environment>().load(x.template as_const<string>());
       }),
 
-      std::make_pair("write", [](const_reference x, auto&&...)
+      std::make_pair("write", [](auto&& x)
       {
         print(x);
-        return unspecified;
       }),
     };
 
@@ -219,7 +217,7 @@ inline namespace kernel
               }
               else
               {
-                throw error(make<string>(concatenate("option -", name, " requires an argument")));
+                throw std::runtime_error(concatenate("option -", name, " requires an argument"));
               }
             }
             else if (auto iter = short_options.find(*current_short_option); iter != std::end(short_options))
@@ -228,8 +226,7 @@ inline namespace kernel
             }
             else
             {
-              throw error(make<string>("unknown short-option"),
-                          make<symbol>(*current_short_option));
+              throw std::runtime_error(concatenate("unknown short-option ", *current_short_option));
             }
           }
         }
@@ -247,7 +244,7 @@ inline namespace kernel
             }
             else
             {
-              throw error(make<string>(concatenate("option --", current_long_option, " requires an argument")));
+              throw std::runtime_error(concatenate("option --", current_long_option, " requires an argument"));
             }
           }
           else if (auto iter = long_options.find(current_long_option); iter != std::end(long_options))
@@ -256,17 +253,14 @@ inline namespace kernel
           }
           else
           {
-            throw error(make<string>("unknown long-option"),
-                        make<symbol>(*current_option));
+            throw std::runtime_error(concatenate("unknown long-option ", *current_option));
           }
         }
         else
         {
           interactive = false;
-          return load(*current_option);
+          load(*current_option);
         }
-
-        return unspecified;
       }();
     }
   };

@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 
 #include <meevax/kernel/pair.hpp>
-#include <meevax/kernel/mnemonic.hpp>
 
 namespace meevax
 {

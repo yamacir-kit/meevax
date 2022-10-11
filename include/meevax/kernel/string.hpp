@@ -69,7 +69,7 @@ inline namespace kernel
 
        In both procedures, order is preserved.
     */
-    explicit string(vector const&, const_reference, const_reference);
+    explicit string(const_reference, const_reference, const_reference);
 
     /*
        (string-append string ...)                                     procedure

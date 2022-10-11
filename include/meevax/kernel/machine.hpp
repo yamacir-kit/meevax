@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_MACHINE_HPP
 #define INCLUDED_MEEVAX_KERNEL_MACHINE_HPP
 
-#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/ghost.hpp>
@@ -47,6 +46,33 @@ inline namespace kernel
         e, // environment (giving values to symbols)
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
+
+    std::array<let, 3> a; /* auxiliary register
+
+       a[0] is used for current-dynamic-extents.
+       a[1] is used for current-dynamic-bindings.
+       a[2] is used for current-exception-handler.
+       a[3] is currently unused. */
+
+    let raiser; /*
+
+       raiser is a one-argument procedure for propagating C++ exceptions thrown
+       in the Meevax kernel to the exception handler of the language running on
+       the Meevax kernel.
+
+       raiser is set to null by default. In this default state, that is, if
+       raiser is null, C++ exceptions thrown in the kernel are rethrown to the
+       outer environment.
+
+       Although raiser can be set to any one-argument procedure by
+       `declare-raiser` declaration, it is basically assumed to be set to
+       R7RS Scheme's standard procedure `raise`.
+
+       The value of raiser is propagated by the import declaration. Currently,
+       in the Scheme standard library provided by Meevax, the procedure `raise`
+       is defined in the library (srfi 34), and `declare-raiser` is also
+       declared in (srfi 34). This means that environments that depend on the
+       library (srfi 34) will automatically declare `raise` as raiser. */
 
     struct transformer
     {
@@ -192,7 +218,7 @@ inline namespace kernel
       {
         return cons(make(mnemonic::load_constant), unit, current_continuation);
       }
-      else if (not current_expression.is<pair>()) /* -----------------------------------
+      else if (not current_expression.is<pair>()) /* ---------------------------
       *
       *  <variable>                                                      syntax
       *
@@ -319,7 +345,7 @@ inline namespace kernel
     }
 
     template <auto trace = false>
-    inline auto execute() -> value_type
+    inline auto execute() -> value_type try
     {
     decode:
       if constexpr (trace)
@@ -398,6 +424,15 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         s = cons(list(make<continuation>(s, e, cadr(c), d)), s);
+        c = cddr(c);
+        goto decode;
+
+      case mnemonic::load_auxiliary: /* ----------------------------------------
+        *
+        *  s e (%load-auxiliary i . c) => (a[i] . s) e c d
+        *
+        * ------------------------------------------------------------------- */
+        s = cons(a[cadr(c).template as<exact_integer>()], s);
         c = cddr(c);
         goto decode;
 
@@ -583,7 +618,7 @@ inline namespace kernel
         }
         else
         {
-          throw error(make<string>("not applicable"), callee);
+          throw std::runtime_error(concatenate("not applicable ", callee));
         }
 
       case mnemonic::dummy: /* -------------------------------------------------
@@ -663,6 +698,15 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
+      case mnemonic::store_auxiliary: /* ---------------------------------------
+        *
+        *  (x . s) e (%store-auxiliary i . c) d => (x . s) e c d
+        *
+        * ------------------------------------------------------------------- */
+        a[cadr(c).template as<exact_integer>()] = car(s);
+        c = cddr(c);
+        goto decode;
+
       default: // ERROR
       case mnemonic::stop: /* --------------------------------------------------
         *
@@ -682,6 +726,14 @@ inline namespace kernel
           return x;
         }();
       }
+    }
+    catch (std::exception const& exception)
+    {
+      return raise(make<error>(make<string>(exception.what())));
+    }
+    catch (error const& error)
+    {
+      return raise(make(error));
     }
 
     static auto identify(const_reference variable, const_reference scope) -> value_type
@@ -718,6 +770,22 @@ inline namespace kernel
       return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().identify_with_offset(scope) : f;
     }
 
+    inline auto raise(const_reference x) -> value_type
+    {
+      if (raiser.is<null>())
+      {
+        throw x;
+        return unspecified;
+      }
+      else
+      {
+        s = list(raiser, list(x));
+        c = list(make(mnemonic::tail_call), make(mnemonic::stop));
+
+        return execute();
+      }
+    }
+
     [[deprecated]]
     inline auto reset() -> void
     {
@@ -747,6 +815,30 @@ inline namespace kernel
                      cadr(current_expression),
                      current_scope,
                      cons(id.as<identity>().make_store_mnemonic(), id,
+                          current_continuation));
+    }
+
+    static SYNTAX(load_auxiliary) /* -------------------------------------------
+    *
+    *  (load-auxiliary <index>)                                          syntax
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      return cons(make(mnemonic::load_auxiliary), car(current_expression),
+                  current_continuation);
+    }
+
+    static SYNTAX(store_auxiliary) /* ------------------------------------------
+    *
+    *  (store-auxiliary <index> <expression>)                            syntax
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      return compile(context(),
+                     current_environment,
+                     cadr(current_expression),
+                     current_scope,
+                     cons(make(mnemonic::store_auxiliary), car(current_expression),
                           current_continuation));
     }
 
@@ -988,7 +1080,7 @@ inline namespace kernel
       }
       else
       {
-        throw syntax_error(make<string>("definition cannot appear in this syntactic-context"));
+        throw error("definition cannot appear in this syntactic-context");
       }
     }
 

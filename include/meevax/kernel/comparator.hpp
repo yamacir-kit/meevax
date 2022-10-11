@@ -14,21 +14,27 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_UTILITY_DESCRIPTION_HPP
-#define INCLUDED_MEEVAX_UTILITY_DESCRIPTION_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
+#define INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
 
-#include <string>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct description
+  inline auto eq = [](auto const& x, auto const& y) constexpr
   {
-    std::string const name;
+    return x == y;
   };
+
+  inline auto eqv = [](auto const& x, auto const& y)
+  {
+    return eq(x, y) or x.compare(y);
+  };
+
+  auto equal(const_reference, const_reference) -> bool;
 } // namespace kernel
 } // namespace meevax
 
-
-#endif // INCLUDED_MEEVAX_UTILITY_DESCRIPTION_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP

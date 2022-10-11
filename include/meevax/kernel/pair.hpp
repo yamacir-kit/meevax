@@ -17,30 +17,52 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
-#include <meevax/kernel/object.hpp>
+#include <meevax/kernel/heterogeneous.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
+  struct pair;
+
+  using value_type = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, mnemonic>;
+
+  using reference = value_type &;
+
+  using const_reference = value_type const&;
+
+  using let = value_type;
+
   let extern unit;
 
-  template <typename T>
-  using pair_of = std::pair<T, T>;
-
-  struct pair : public pair_of<value_type>
-              , public top<pair>
+  template <typename T, typename... Ts>
+  auto make(Ts&&... xs)
   {
-    explicit pair(const_reference a = unit, const_reference b = unit)
-      : pair_of<value_type> { a, b }
-    {}
+    return value_type::allocate<T>(std::forward<decltype(xs)>(xs)...); // NOTE: This leaks memory if exception thrown from T's constructor.
+  }
 
-    template <typename... Ts, typename = typename std::enable_if<(1 < sizeof...(Ts))>::type>
+  template <typename T>
+  auto make(T&& x)
+  {
+    return value_type::allocate<std::decay_t<T>>(std::forward<decltype(x)>(x));
+  }
+
+  struct pair : public std::pair<value_type, value_type>
+  {
+    explicit pair(const_reference = unit, const_reference = unit);
+
+    template <typename... Ts, typename = std::enable_if_t<(1 < sizeof...(Ts))>>
     explicit pair(const_reference a, Ts&&... xs)
-      : pair_of<value_type> { a, make<pair>(std::forward<decltype(xs)>(xs)...) }
+      : pair { a, make<pair>(std::forward<decltype(xs)>(xs)...) }
     {}
 
     virtual ~pair() = default;
+
+    virtual auto compare(pair const*) const -> bool;
+
+    virtual auto type() const noexcept -> std::type_info const&;
+
+    virtual auto write(std::ostream &) const -> std::ostream &;
   };
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;

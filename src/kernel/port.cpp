@@ -45,14 +45,19 @@ inline namespace kernel
   #undef DEFINE
 
   #define DEFINE(TYPENAME, FILE_STREAM, NAME)                                  \
-  TYPENAME::TYPENAME(std::string const& name)                                  \
-    : description { name }                                                     \
-    , FILE_STREAM { name }                                                     \
+  TYPENAME::TYPENAME(string const& pathname)                                   \
+    : FILE_STREAM { pathname }                                                 \
+    , pathname { pathname }                                                    \
+  {}                                                                           \
+                                                                               \
+  TYPENAME::TYPENAME(std::string const& pathname)                              \
+    : FILE_STREAM { pathname }                                                 \
+    , pathname { pathname }                                                    \
   {}                                                                           \
                                                                                \
   auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
   {                                                                            \
-    return os << magenta("#,(") << green("open-" NAME) << " " << datum.name << magenta(")"); \
+    return os << magenta("#,(") << green("open-" NAME " ") << datum.pathname << magenta(")"); \
   }                                                                            \
   static_assert(true)
 

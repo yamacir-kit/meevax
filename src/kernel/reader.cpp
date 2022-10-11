@@ -14,8 +14,11 @@
    limitations under the License.
 */
 
+#include <regex>
+
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/reader.hpp>
+#include <meevax/kernel/string.hpp>
 
 namespace meevax
 {
@@ -88,7 +91,7 @@ inline namespace kernel
     }
     else
     {
-      throw read_error(make<string>("invalid stream"), unit);
+      throw read_error("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable");
     }
 
     return codepoint;
@@ -144,7 +147,7 @@ inline namespace kernel
       }
     }
 
-    throw read_error(make<string>("unterminated string"), unit);
+    throw read_error("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable");
   }
 
   auto get_token(std::istream & is) -> std::string
@@ -190,7 +193,7 @@ inline namespace kernel
       continue;
     }
 
-    throw read_error(make<string>("unterminated multi-line comment"), unit);
+    throw read_error("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable");
   }
 
   auto read_character_literal(std::istream & is) -> value_type
@@ -233,7 +236,7 @@ inline namespace kernel
           is.putback(*iter);
         }
 
-        throw read_error(make<string>("not a character"), make<string>("\\#" + token));
+        throw read_error("not a character", make<string>("\\#" + token));
       }
     }
   }

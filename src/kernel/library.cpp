@@ -86,18 +86,20 @@ inline namespace kernel
 
     define_library("(meevax context)", [](library & library)
     {
-      library.define<procedure>("emergency-exit", [](let const& xs)
+      library.define<procedure>("emergency-exit", [](let const& xs) -> value_type
       {
-        if (let const& status = car(xs); status.is<bool>())
+        if (let const& status = car(xs); status.is<null>())
         {
-          throw select(status) ? exit_status::success : exit_status::failure;
+          throw success;
+        }
+        else if (status.is<bool>())
+        {
+          throw select(status) ? success : failure;
         }
         else
         {
-          throw exit_status(static_cast<int>(status.as<exact_integer>()));
+          throw static_cast<int>(status.as<exact_integer>());
         }
-
-        return unspecified;
       });
 
       library.export_("emergency-exit");
@@ -148,13 +150,29 @@ inline namespace kernel
       library.export_("%load");
     });
 
-    define_library("(meevax equivalence)", [](library & library)
+    define_library("(meevax dynamic-environment)", [](library & library)
     {
-      library.define<predicate>("eq?",  [](let const& xs) { return eq (car(xs), cadr(xs)); });
-      library.define<predicate>("eqv?", [](let const& xs) { return eqv(car(xs), cadr(xs)); });
+      library.define<syntax>("store-auxiliary", store_auxiliary);
+      library.define<syntax>("load-auxiliary", load_auxiliary);
 
-      library.export_("eq?");
-      library.export_("eqv?");
+      library.export_("store-auxiliary");
+      library.export_("load-auxiliary");
+    });
+
+    define_library("(meevax comparator)", [](library & library)
+    {
+      library.define<predicate>("identity=?", [](let const& xs)
+      {
+        return eq(car(xs), cadr(xs));
+      });
+
+      library.define<predicate>("normally=?", [](let const& xs)
+      {
+        return eqv(car(xs), cadr(xs));
+      });
+
+      library.export_("identity=?");
+      library.export_("normally=?");
     });
 
     define_library("(meevax evaluate)", [](library & library)
@@ -1125,7 +1143,7 @@ inline namespace kernel
 
       library.define<procedure>("vector->string", [](let const& xs)
       {
-        return make<string>(car(xs).as<vector>(),
+        return make<string>(car(xs),
                             cdr(xs).is<pair>() ? cadr(xs) : e0,
                             cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
       });
@@ -1366,16 +1384,14 @@ inline namespace kernel
 
   auto library::evaluate(const_reference declaration) -> void
   {
-    if (declaration.is<pair>() and car(declaration).is<symbol>()
-                               and car(declaration).as<symbol>().value == "export")
+    if (car(declaration).is<symbol>() and car(declaration).as<symbol>().value == "export")
     {
       for (let const& export_spec : cdr(declaration))
       {
         export_(export_spec);
       }
     }
-    else if (declaration.is<pair>() and car(declaration).is<symbol>()
-                                    and car(declaration).as<symbol>().value == "begin")
+    else if (car(declaration).is<symbol>() and car(declaration).as<symbol>().value == "begin")
     {
       for (let const& command_or_definition : cdr(declaration))
       {
@@ -1404,8 +1420,7 @@ inline namespace kernel
 
     auto resolve = [this](let const& export_spec)
     {
-      if (export_spec.is<pair>() and car(export_spec).is<symbol>()
-                                 and car(export_spec).as<symbol>().value == "rename")
+      if (car(export_spec).is<symbol>() and car(export_spec).as<symbol>().value == "rename")
       {
         return make<absolute>(caddr(export_spec), (*this)[cadr(export_spec)]);
       }

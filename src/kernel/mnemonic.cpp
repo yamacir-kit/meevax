@@ -35,6 +35,7 @@ inline namespace kernel
       case mnemonic::letrec:            return os << "letrec";
       case mnemonic::letrec_syntax:     return os << "letrec-syntax";
       case mnemonic::load_absolute:     return os << "load-absolute";
+      case mnemonic::load_auxiliary:    return os << "load-auxiliary";
       case mnemonic::load_closure:      return os << "load-closure";
       case mnemonic::load_constant:     return os << "load-constant";
       case mnemonic::load_continuation: return os << "load-continuation";
@@ -44,6 +45,7 @@ inline namespace kernel
       case mnemonic::select:            return os << "select";
       case mnemonic::stop:              return os << "stop";
       case mnemonic::store_absolute:    return os << "store-absolute";
+      case mnemonic::store_auxiliary:   return os << "store-auxiliary";
       case mnemonic::store_relative:    return os << "store-relative";
       case mnemonic::store_variadic:    return os << "store-variadic";
       case mnemonic::tail_call:         return os << "tail-call";

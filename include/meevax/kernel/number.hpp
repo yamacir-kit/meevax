@@ -17,15 +17,10 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
-#include <meevax/iostream/concatenate.hpp>
-#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/complex.hpp>
-#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/exact_integer.hpp>
-#include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/ratio.hpp>
 #include <meevax/kernel/string.hpp>
-#include <meevax/kernel/type_index.hpp>
 
 namespace meevax
 {

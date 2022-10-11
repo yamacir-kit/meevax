@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
-#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
@@ -60,7 +59,7 @@ inline namespace kernel
     explicit reader()
     {}
 
-    IMPORT(Environment, evaluate, NIL);
+    IMPORT(Environment, evaluate, );
 
     using char_type = typename std::istream::char_type;
 
@@ -151,7 +150,7 @@ inline namespace kernel
             return read(is);
 
           default:
-            throw read_error(make<string>("unknown discriminator"), make<character>(c));
+            throw read_error("unknown discriminator", make<character>(c));
           }
 
         case '\'': // 0x27
@@ -255,7 +254,7 @@ inline namespace kernel
       }
       else
       {
-        throw error(make<string>("failed to intern a symbol"), make<string>(name));
+        throw std::runtime_error(concatenate("failed to intern a symbol '", name));
       }
     }
   };

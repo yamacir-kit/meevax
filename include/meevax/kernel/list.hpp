@@ -19,9 +19,8 @@
 
 #include <algorithm>
 
-#include <meevax/functional/combinator.hpp>
-#include <meevax/kernel/equivalence.hpp>
-#include <meevax/kernel/exact_integer.hpp>
+#include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/comparator.hpp>
 #include <meevax/kernel/iterator.hpp>
 
 namespace meevax
@@ -29,7 +28,7 @@ namespace meevax
 inline namespace kernel
 {
   template <auto N, typename T>
-  auto field(T&& x) -> decltype(auto)
+  auto get(T&& x) -> decltype(auto)
   {
     if constexpr (std::is_same_v<std::decay_t<decltype(x)>, iterator>)
     {
@@ -47,12 +46,12 @@ inline namespace kernel
 
   inline auto car = [](auto&& x) -> decltype(auto)
   {
-    return field<0>(std::forward<decltype(x)>(x));
+    return get<0>(std::forward<decltype(x)>(x));
   };
 
   inline auto cdr = [](auto&& x) -> decltype(auto)
   {
-    return field<1>(std::forward<decltype(x)>(x));
+    return get<1>(std::forward<decltype(x)>(x));
   };
 
   template <typename T, typename U, REQUIRES(std::is_convertible<T, value_type>,

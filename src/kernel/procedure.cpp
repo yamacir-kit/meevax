@@ -22,22 +22,23 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/procedure.hpp>
+#include <meevax/kernel/string.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  procedure::procedure(symbol::value_type const& name, function_type const& call)
-    : description { name }
+  procedure::procedure(std::string const& name, function_type const& call)
+    : name { name }
     , call { call }
   {}
 
-  procedure::procedure(symbol::value_type const& name, symbol::value_type const& libfoo_so)
-    : description { name }
+  procedure::procedure(std::string const& name, std::string const& libfoo_so)
+    : name { name }
     , call { dlsym(name, dlopen(libfoo_so)) }
   {}
 
-  auto procedure::dlopen(symbol::value_type const& libfoo_so) -> void *
+  auto procedure::dlopen(std::string const& libfoo_so) -> void *
   {
     auto dlclose = [](void * const handle)
     {
@@ -48,7 +49,7 @@ inline namespace kernel
     };
 
     static std::unordered_map<
-      symbol::value_type, std::unique_ptr<void, decltype(dlclose)>
+      std::string, std::unique_ptr<void, decltype(dlclose)>
     > dynamic_libraries {};
 
     ::dlerror(); // clear
@@ -70,12 +71,12 @@ inline namespace kernel
       }
       else
       {
-        throw file_error(make<string>(::dlerror()), unit);
+        throw file_error(::dlerror());
       }
     }
   }
 
-  auto procedure::dlsym(symbol::value_type const& name, void * const handle) -> function_pointer_type
+  auto procedure::dlsym(std::string const& name, void * const handle) -> function_pointer_type
   {
     if (auto address = ::dlsym(handle, name.c_str()); address)
     {
@@ -83,7 +84,7 @@ inline namespace kernel
     }
     else
     {
-      throw file_error(make<string>(::dlerror()), unit);
+      throw file_error(::dlerror());
     }
   }
 
