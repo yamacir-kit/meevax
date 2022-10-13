@@ -56,7 +56,7 @@ inline namespace kernel
   {
     friend Environment;
 
-    explicit reader()
+    explicit constexpr reader()
     {}
 
     IMPORT(Environment, evaluate, );
@@ -254,7 +254,7 @@ inline namespace kernel
       }
       else
       {
-        throw std::runtime_error(concatenate("failed to intern a symbol '", name));
+        throw error("failed to intern a symbol", make<string>(name));
       }
     }
   };

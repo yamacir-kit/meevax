@@ -19,7 +19,6 @@
 
 #include <meevax/functional/combinator.hpp>
 #include <meevax/functional/compose.hpp>
-#include <meevax/iostream/concatenate.hpp>
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/mnemonic.hpp>
@@ -127,7 +126,7 @@ inline namespace kernel
         }
         else
         {
-          throw std::runtime_error(concatenate("no viable conversion from ", demangle(type()), " to ", demangle(typeid(U))));
+          throw std::runtime_error(lexical_cast<std::string>("no viable conversion from ", demangle(type()), " to ", demangle(typeid(U))));
         }
       }
       else

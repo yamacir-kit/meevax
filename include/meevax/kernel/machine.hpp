@@ -618,7 +618,7 @@ inline namespace kernel
         }
         else
         {
-          throw std::runtime_error(concatenate("not applicable ", callee));
+          throw error("not applicable", callee);
         }
 
       case mnemonic::dummy: /* -------------------------------------------------
