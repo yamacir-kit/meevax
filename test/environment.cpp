@@ -27,9 +27,9 @@ auto main() -> int
 
   library::boot();
 
-  environment::symbols.clear();
+  symbols.clear();
 
-  assert(environment::symbols.empty());
+  assert(symbols.empty());
 
   const_cast<reference>(interaction_environment()).reset(); // DIRTY HACK!
 

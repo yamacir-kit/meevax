@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 
@@ -37,6 +38,24 @@ inline namespace kernel
     else
     {
       return os << datum.value;
+    }
+  }
+
+  std::unordered_map<std::string, value_type> symbols;
+
+  auto string_to_symbol(std::string const& name) -> const_reference
+  {
+    if (auto const iter = symbols.find(name); iter != std::end(symbols))
+    {
+      return iter->second;
+    }
+    else if (auto const [iter, success] = symbols.emplace(name, make<symbol>(name)); success)
+    {
+      return iter->second;
+    }
+    else
+    {
+      throw error("failed to intern a symbol", make<string>(name));
     }
   }
 } // namespace kernel

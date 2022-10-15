@@ -64,8 +64,6 @@ inline namespace kernel
     using char_type = typename std::istream::char_type;
 
   public:
-    static inline std::unordered_map<std::string, value_type> symbols {};
-
     inline auto char_ready() const
     {
       assert(standard_input.is_also<std::istream>());
@@ -240,22 +238,6 @@ inline namespace kernel
     {
       auto port = std::stringstream(s);
       return read(port);
-    }
-
-    static auto string_to_symbol(std::string const& name) -> const_reference
-    {
-      if (auto const iter = symbols.find(name); iter != std::end(symbols))
-      {
-        return iter->second;
-      }
-      else if (auto const [iter, success] = symbols.emplace(name, make<symbol>(name)); success)
-      {
-        return iter->second;
-      }
-      else
-      {
-        throw error("failed to intern a symbol", make<string>(name));
-      }
     }
   };
 } // namespace kernel

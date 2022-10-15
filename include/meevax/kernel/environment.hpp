@@ -39,7 +39,6 @@ inline namespace kernel
     using configurator::trace;
 
     using reader::read;
-    using reader::string_to_symbol;
 
     explicit environment(environment &&) = default;
 
