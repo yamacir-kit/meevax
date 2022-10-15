@@ -83,13 +83,15 @@
                  (not (null? x)))))
 
          (define (circular-list? x)
-           (let rec ((x x) (lag x))
+           (let rec ((x x)
+                     (y x))
              (and (pair? x)
                   (let ((x (cdr x)))
                     (and (pair? x)
-                         (let ((x   (cdr x))
-                               (lag (cdr lag)))
-                           (or (eq? x lag) (rec x lag))))))))
+                         (let ((x (cdr x))
+                               (y (cdr y)))
+                           (or (eq? x y)
+                               (rec x y))))))))
 
          (define (not-pair? x) (not (pair? x)))
 
