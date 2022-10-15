@@ -183,7 +183,7 @@ inline namespace kernel
       };
 
       return prefix(cadr(declaration))
-                   (cadr(declaration));
+                   (cddr(declaration));
     }
     else if (car(declaration).as<symbol>().value == "rename") /* ---------------
     *

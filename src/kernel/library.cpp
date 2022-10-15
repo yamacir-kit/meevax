@@ -1310,15 +1310,15 @@ inline namespace kernel
 
     define_library("(meevax write)", [](library & library)
     {
-      library.define<procedure>("%write-simple", [](let const& xs)
+      library.define<procedure>("write", [](let const& xs)
       {
-        kernel::write_simple(cadr(xs), car(xs));
+        kernel::write(cadr(xs), car(xs));
         return unspecified;
       });
 
-      library.define<procedure>("%write", [](let const& xs)
+      library.define<procedure>("write-simple", [](let const& xs)
       {
-        kernel::write(cadr(xs), car(xs));
+        kernel::write_simple(cadr(xs), car(xs));
         return unspecified;
       });
 
@@ -1341,9 +1341,9 @@ inline namespace kernel
         return standard_output;
       });
 
-      library.export_("%write");
-      library.export_("%write-simple");
       library.export_("print");
+      library.export_("write");
+      library.export_("write-simple");
     });
 
     std::vector<string_view> const codes {

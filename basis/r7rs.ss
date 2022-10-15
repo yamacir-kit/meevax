@@ -574,14 +574,13 @@
 
 (define-library (scheme write)
   (import (scheme base)
-          (only (meevax write) %write %write-simple)
-          (only (meevax port) put-char)
-          )
+          (prefix (meevax write) %))
+
   (export write
           ; write-shared
           write-simple
-          display
-          )
+          display)
+
   (begin (define (write x . port)
            (%write x (if (pair? port)
                          (car port)
