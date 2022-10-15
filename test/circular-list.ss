@@ -1,8 +1,7 @@
 (import (scheme base)
         (scheme write)
         (only (srfi 1) circular-list?)
-        (srfi 78)
-        )
+        (srfi 78))
 
 (define x (list 'a 'b 'c))
 (set-cdr! (cddr x) x)
@@ -21,3 +20,13 @@
 (newline)
 (write y)
 (newline)
+
+(let ((z (list 1)))
+  (newline)
+  (write (list z z))
+  (newline))
+
+(let ((z (list 1)))
+  (newline)
+  (write-shared (list z z))
+  (newline))

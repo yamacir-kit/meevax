@@ -1357,6 +1357,7 @@ inline namespace kernel
       srfi_11, // Syntax for receiving multiple values
       srfi_34, // Exception Handling for Programs
       srfi_23, // Error reporting mechanism
+      srfi_38, // External Representation for Data With Shared Structure
       srfi_39, // Parameter objects
       r7rs,
       srfi_8,  // receive: Binding to multiple values

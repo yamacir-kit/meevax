@@ -573,18 +573,19 @@
                       (current-input-port))))))
 
 (define-library (scheme write)
-  (import (scheme base)
-          (prefix (meevax write) %))
-
-  (export write
-          ; write-shared
-          write-simple
-          display)
+  (import (prefix (meevax write) %)
+          (scheme base)
+          (srfi 38))
 
   (begin (define (write x . port)
            (%write x (if (pair? port)
                          (car port)
                          (current-output-port))))
+
+         (define (write-shared x . port)
+           (write-with-shared-structure x (if (pair? port)
+                                              (car port)
+                                              (current-output-port))))
 
          (define (write-simple x . port)
            (%write-simple x (if (pair? port)
@@ -596,7 +597,9 @@
                   (apply write-char x xs))
                  ((string? x)
                   (apply write-string x xs))
-                 (else (apply write x xs))))))
+                 (else (apply write x xs)))))
+
+  (export write write-shared write-simple display))
 
 (define-library (scheme load)
   (import (only (scheme r5rs) load))
