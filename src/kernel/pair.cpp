@@ -15,6 +15,7 @@
 */
 
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/writer.hpp>
 
 namespace meevax
 {
@@ -82,21 +83,7 @@ inline namespace kernel
     }
     else
     {
-      os << magenta("(") << car(datum);
-
-      for (auto iter = std::begin(cdr(datum)); iter != end; ++iter)
-      {
-        if (iter.get().is<pair>())
-        {
-          os << " " << *iter;
-        }
-        else // iter is the last element of dotted-list.
-        {
-          return os << magenta(" . ") << iter.get() << magenta(")");
-        }
-      }
-
-      return os << magenta(")");
+      return write_simple(os, datum);
     }
   }
 } // namespace kernel

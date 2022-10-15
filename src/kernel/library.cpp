@@ -1312,6 +1312,12 @@ inline namespace kernel
     {
       library.define<procedure>("%write-simple", [](let const& xs)
       {
+        kernel::write_simple(cadr(xs), car(xs));
+        return unspecified;
+      });
+
+      library.define<procedure>("%write", [](let const& xs)
+      {
         kernel::write(cadr(xs), car(xs));
         return unspecified;
       });
@@ -1335,6 +1341,7 @@ inline namespace kernel
         return standard_output;
       });
 
+      library.export_("%write");
       library.export_("%write-simple");
       library.export_("print");
     });

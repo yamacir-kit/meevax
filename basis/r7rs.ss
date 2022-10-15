@@ -574,7 +574,7 @@
 
 (define-library (scheme write)
   (import (scheme base)
-          (only (meevax write) %write-simple)
+          (only (meevax write) %write %write-simple)
           (only (meevax port) put-char)
           )
   (export write
@@ -582,20 +582,22 @@
           write-simple
           display
           )
-  (begin (define (write-simple x . port)
+  (begin (define (write x . port)
+           (%write x (if (pair? port)
+                         (car port)
+                         (current-output-port))))
+
+         (define (write-simple x . port)
            (%write-simple x (if (pair? port)
                                 (car port)
                                 (current-output-port))))
 
-         (define write write-simple) ; DUMMY
-
-         (define (display datum . port)
-           (cond ((char?   datum) (apply write-char   datum port))
-                 ((string? datum) (apply write-string datum port))
-                 (else            (apply write        datum port))))
-
-    )
-  )
+         (define (display x . xs)
+           (cond ((char? x)
+                  (apply write-char x xs))
+                 ((string? x)
+                  (apply write-string x xs))
+                 (else (apply write x xs))))))
 
 (define-library (scheme load)
   (import (only (scheme r5rs) load))
