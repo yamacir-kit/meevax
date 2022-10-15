@@ -19,7 +19,8 @@
 ;  THE SOFTWARE.
 
 (define-library (srfi 38)
-  (import (scheme r5rs))
+  (import (scheme r5rs)
+          (srfi 23))
 
   ;;; A printer that shows all sharing of substructures.  Uses the Common
   ;;; Lisp print-circle notation: #n# refers to a previous substructure

@@ -414,11 +414,7 @@
 
 (define-library (scheme lazy)
   (import (srfi 45))
-  (export delay
-          (rename lazy delay-force)
-          force
-          promise?
-          (rename eager make-promise)))
+  (export delay (rename lazy delay-force) force promise? (rename eager make-promise)))
 
 (define-library (scheme case-lambda)
   (export case-lambda
