@@ -45,14 +45,14 @@ inline namespace kernel
     {
       template <typename... Us>
       explicit constexpr binder(Us&&... xs)
-        : std::conditional<std::is_base_of<Top, Bound>::value, Top, Bound>::type { std::forward<decltype(xs)>(xs)... }
+        : std::conditional_t<std::is_base_of_v<Top, Bound>, Top, Bound> { std::forward<decltype(xs)>(xs)... }
       {}
 
       ~binder() override = default;
 
       auto compare([[maybe_unused]] Top const* top) const -> bool override
       {
-        if constexpr (is_equality_comparable<Bound>::value)
+        if constexpr (is_equality_comparable_v<Bound>)
         {
           if (auto const* bound = dynamic_cast<Bound const*>(top); bound)
           {
@@ -60,7 +60,7 @@ inline namespace kernel
           }
           else
           {
-            return std::is_same<Bound, null>::value;
+            return std::is_same_v<Bound, null>;
           }
         }
         else
@@ -138,7 +138,7 @@ inline namespace kernel
     template <typename U>
     inline auto as_const() const -> decltype(auto)
     {
-      return as<typename std::add_const_t<U>>();
+      return as<std::add_const_t<U>>();
     }
 
     inline auto compare(heterogeneous const& rhs) const -> bool
