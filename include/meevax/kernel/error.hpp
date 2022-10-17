@@ -77,12 +77,12 @@ inline namespace kernel
     }
     catch (error const& error) // NOTE: system-error
     {
-      std::cerr << "; " << error << std::endl;
+      std::cerr << error << std::endl;
       return failure;
     }
-    catch (std::exception const& error)
+    catch (std::exception const& exception)
     {
-      std::cerr << "; " << error.what() << std::endl;
+      std::cerr << error(exception.what()) << std::endl;
       return failure;
     }
   }

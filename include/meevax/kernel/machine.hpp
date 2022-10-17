@@ -37,7 +37,11 @@ inline namespace kernel
     machine()
     {}
 
-    IMPORT(Environment, fork, const);
+    template <typename... Ts>
+    auto fork(Ts&&... xs) const -> decltype(auto)
+    {
+      return static_cast<Environment const&>(*this).fork(std::forward<decltype(xs)>(xs)...);
+    }
 
     using environment = Environment;
 

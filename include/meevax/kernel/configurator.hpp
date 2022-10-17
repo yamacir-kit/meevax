@@ -28,20 +28,31 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename environment>
+  template <typename Environment>
   class configurator
   {
-    friend environment;
+    friend Environment;
 
     explicit configurator()
     {}
 
-    IMPORT(environment, evaluate, );
-    IMPORT(environment, load,     );
-    IMPORT(environment, read,     );
+    template <typename... Ts>
+    auto evaluate(Ts&&... xs) -> decltype(auto)
+    {
+      return static_cast<Environment &>(*this).evaluate(std::forward<decltype(xs)>(xs)...);
+    }
 
-    template <typename Key>
-    using dispatcher = std::unordered_map<Key, std::function<void (const_reference)>>;
+    template <typename... Ts>
+    auto load(Ts&&... xs) -> decltype(auto)
+    {
+      return static_cast<Environment &>(*this).load(std::forward<decltype(xs)>(xs)...);
+    }
+
+    template <typename... Ts>
+    auto read(Ts&&... xs) -> decltype(auto)
+    {
+      return static_cast<Environment &>(*this).read(std::forward<decltype(xs)>(xs)...);
+    }
 
   public:
     static inline auto batch       = false;
@@ -73,6 +84,9 @@ inline namespace kernel
     }
 
   private:
+    template <typename Key>
+    using dispatcher = std::unordered_map<Key, std::function<void (const_reference)>>;
+
     static inline const dispatcher<char> short_options
     {
       std::make_pair('b', [](auto&&...)
@@ -112,12 +126,12 @@ inline namespace kernel
     {
       std::make_pair('e', [](auto&& x)
       {
-        print(interaction_environment().as<environment>().evaluate(x));
+        print(interaction_environment().as<Environment>().evaluate(x));
       }),
 
       std::make_pair('l', [](auto&& x)
       {
-        interaction_environment().as<environment>().load(x.template as_const<symbol>());
+        interaction_environment().as<Environment>().load(x.template as_const<symbol>());
       }),
 
       std::make_pair('w', [](auto&& x)
@@ -165,12 +179,12 @@ inline namespace kernel
     {
       std::make_pair("evaluate", [](auto&& x)
       {
-        print(interaction_environment().as<environment>().evaluate(x));
+        print(interaction_environment().as<Environment>().evaluate(x));
       }),
 
       std::make_pair("load", [](auto&& x)
       {
-        interaction_environment().as<environment>().load(x.template as_const<string>());
+        interaction_environment().as<Environment>().load(x.template as_const<string>());
       }),
 
       std::make_pair("write", [](auto&& x)

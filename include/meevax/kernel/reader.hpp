@@ -59,11 +59,15 @@ inline namespace kernel
     explicit constexpr reader()
     {}
 
-    IMPORT(Environment, evaluate, );
-
-    using char_type = typename std::istream::char_type;
+    template <typename... Ts>
+    auto evaluate(Ts&&... xs) -> decltype(auto)
+    {
+      return static_cast<Environment &>(*this).evaluate(std::forward<decltype(xs)>(xs)...);
+    }
 
   public:
+    using char_type = typename std::istream::char_type;
+
     inline auto char_ready() const
     {
       assert(standard_input.is_also<std::istream>());
