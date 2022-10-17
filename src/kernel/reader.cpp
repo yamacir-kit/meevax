@@ -97,17 +97,15 @@ inline namespace kernel
     return codepoint;
   }
 
-  auto get_delimited_elements(std::istream & is, character::int_type delimiter) -> string
+  auto get_delimited_elements(std::istream & is) -> string
   {
     auto s = string();
 
-    assert(character::eq(is.peek(), delimiter));
-
-    is.ignore(1);
+    auto const quotation_mark = is.get();
 
     for (auto codepoint = get_codepoint(is); not character::is_eof(codepoint); codepoint = get_codepoint(is))
     {
-      if (codepoint == delimiter)
+      if (codepoint == quotation_mark)
       {
         return s;
       }
@@ -244,7 +242,7 @@ inline namespace kernel
 
   auto read_string_literal(std::istream & is) -> value_type
   {
-    return make(get_delimited_elements(is, '"'));
+    return make(get_delimited_elements(is));
   }
 
   auto string_to_integer(std::string const& token, int radix) -> value_type

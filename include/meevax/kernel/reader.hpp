@@ -31,7 +31,7 @@ inline namespace kernel
 {
   auto get_codepoint(std::istream &) -> character::int_type;
 
-  auto get_delimited_elements(std::istream &, character::int_type) -> string;
+  auto get_delimited_elements(std::istream &) -> string;
 
   auto get_token(std::istream &) -> std::string;
 
@@ -103,7 +103,7 @@ inline namespace kernel
             return read(is), read(is);
 
           case '"':
-            return string_to_symbol(get_delimited_elements(is.putback(c), c));
+            return string_to_symbol(get_delimited_elements(is.putback(c)));
 
           case 'b': // (string->number (read) 2)
             return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 2);
@@ -175,7 +175,7 @@ inline namespace kernel
           return list(string_to_symbol("quasiquote"), read(is));
 
         case '|':  // 0x7C
-          return string_to_symbol(get_delimited_elements(is.putback(c), c));
+          return string_to_symbol(get_delimited_elements(is.putback(c)));
 
         case '(':
         case '[':
