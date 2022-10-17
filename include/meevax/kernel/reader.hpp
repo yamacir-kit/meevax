@@ -37,7 +37,11 @@ inline namespace kernel
 
   auto ignore_nested_block_comment(std::istream &) -> std::istream &;
 
-  auto read_character_literal(std::istream &) -> value_type;
+  template <typename T>
+  auto read(std::istream &) -> value_type;
+
+  template <>
+  auto read<character>(std::istream &) -> value_type;
 
   auto read_string_literal(std::istream &) -> value_type;
 
@@ -139,7 +143,7 @@ inline namespace kernel
             return make<vector>(read(is));
 
           case '\\':
-            return read_character_literal(is);
+            return meevax::read<character>(is);
 
           case '|': // SRFI 30
             ignore_nested_block_comment(is);
@@ -203,7 +207,7 @@ inline namespace kernel
         case '}': throw std::integral_constant<char_type, '}'>();
 
         default:
-          if (auto const token = get_token(is.putback(c)); token == ".")
+          if (auto const& token = get_token(is.putback(c)); token == ".")
           {
             throw std::integral_constant<char_type, '.'>();
           }

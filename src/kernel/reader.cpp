@@ -196,7 +196,8 @@ inline namespace kernel
     throw read_error("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable");
   }
 
-  auto read_character_literal(std::istream & is) -> value_type
+  template <>
+  auto read<character>(std::istream & is) -> value_type
   {
     std::unordered_map<std::string, character::int_type> static const character_names {
       { "alarm"    , 0x07 },
