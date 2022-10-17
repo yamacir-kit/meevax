@@ -36,24 +36,6 @@ inline namespace kernel
     explicit configurator()
     {}
 
-    template <typename... Ts>
-    auto evaluate(Ts&&... xs) -> decltype(auto)
-    {
-      return static_cast<Environment &>(*this).evaluate(std::forward<decltype(xs)>(xs)...);
-    }
-
-    template <typename... Ts>
-    auto load(Ts&&... xs) -> decltype(auto)
-    {
-      return static_cast<Environment &>(*this).load(std::forward<decltype(xs)>(xs)...);
-    }
-
-    template <typename... Ts>
-    auto read(Ts&&... xs) -> decltype(auto)
-    {
-      return static_cast<Environment &>(*this).read(std::forward<decltype(xs)>(xs)...);
-    }
-
   public:
     static inline auto batch       = false;
     static inline auto debug       = false;
@@ -203,6 +185,11 @@ inline namespace kernel
     {
       static std::regex const pattern { R"(--(\w[-\w]+)(=(.*))?|-([\w]+))" };
 
+      auto read = [](auto&&... xs)
+      {
+        return interaction_environment().as<Environment>().read(std::forward<decltype(xs)>(xs)...);
+      };
+
       for (auto current_option = std::begin(args); current_option != std::end(args); ++current_option) [&]()
       {
         std::smatch analysis {};
@@ -273,7 +260,7 @@ inline namespace kernel
         else
         {
           interactive = false;
-          load(*current_option);
+          interaction_environment().as<Environment>().load(*current_option);
         }
       }();
     }

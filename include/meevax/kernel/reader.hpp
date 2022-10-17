@@ -59,12 +59,6 @@ inline namespace kernel
     explicit constexpr reader()
     {}
 
-    template <typename... Ts>
-    auto evaluate(Ts&&... xs) -> decltype(auto)
-    {
-      return static_cast<Environment &>(*this).evaluate(std::forward<decltype(xs)>(xs)...);
-    }
-
   public:
     using char_type = typename std::istream::char_type;
 
@@ -99,7 +93,7 @@ inline namespace kernel
             return read(is);
 
           case ',': // SRFI 10
-            return evaluate(read(is));
+            return static_cast<Environment &>(*this).evaluate(read(is));
 
           case ';': // SRFI 62
             return read(is), read(is);
