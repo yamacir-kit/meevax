@@ -41,7 +41,8 @@ inline namespace kernel
   template <>
   auto read<character>(std::istream &) -> value_type;
 
-  auto read_string_literal(std::istream &) -> value_type;
+  template <>
+  auto read<string>(std::istream &) -> value_type;
 
   auto string_to_integer(std::string const&, int = 10) -> value_type;
 
@@ -85,7 +86,7 @@ inline namespace kernel
           break;
 
         case '"':  // 0x22
-          return read_string_literal(is.putback(c));
+          return meevax::read<string>(is.putback(c));
 
         case '#':  // 0x23
           switch (auto const c = is.get())
@@ -101,7 +102,7 @@ inline namespace kernel
             return read(is), read(is);
 
           case '"':
-            return string_to_symbol(read_string_literal(is.putback(c)).as<string>());
+            return string_to_symbol(meevax::read<string>(is.putback(c)).as<string>());
 
           case 'b': // (string->number (read) 2)
             return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 2);
@@ -173,7 +174,7 @@ inline namespace kernel
           return list(string_to_symbol("quasiquote"), read(is));
 
         case '|':  // 0x7C
-          return string_to_symbol(read_string_literal(is.putback(c)).as<string>());
+          return string_to_symbol(meevax::read<string>(is.putback(c)).as<string>());
 
         case '(':
         case '[':

@@ -189,7 +189,8 @@ inline namespace kernel
     }
   }
 
-  auto read_string_literal(std::istream & is) -> value_type
+  template <>
+  auto read<string>(std::istream & is) -> value_type
   {
     auto s = string();
 
