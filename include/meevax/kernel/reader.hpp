@@ -38,21 +38,14 @@ inline namespace kernel
   template <typename T>
   auto read(std::istream &) -> value_type;
 
-  template <>
-  auto read<character>(std::istream &) -> value_type;
+  template <> auto read<character>(std::istream &) -> value_type;
+  template <> auto read<string   >(std::istream &) -> value_type;
 
-  template <>
-  auto read<string>(std::istream &) -> value_type;
-
-  auto string_to_integer(std::string const&, int = 10) -> value_type;
-
+  auto string_to_integer (std::string const&, int = 10) -> value_type;
   auto string_to_rational(std::string const&, int = 10) -> value_type;
-
-  auto string_to_real(std::string const&, int = 10) -> value_type;
-
-  auto string_to_complex(std::string const&, int = 10) -> value_type;
-
-  auto string_to_number(std::string const&, int = 10) -> value_type;
+  auto string_to_real    (std::string const&, int = 10) -> value_type;
+  auto string_to_complex (std::string const&, int = 10) -> value_type;
+  auto string_to_number  (std::string const&, int = 10) -> value_type;
 
   template <typename Environment>
   class reader
