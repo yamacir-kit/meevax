@@ -55,6 +55,30 @@ inline namespace kernel
     explicit constexpr reader()
     {}
 
+    struct datum_label
+    {
+      std::uintptr_t value;
+    };
+
+    std::unordered_map<std::uintptr_t, value_type> datum_labels;
+
+    auto finish(const_reference xs, const_reference datum) -> void
+    {
+      if (xs.is<pair>())
+      {
+        finish(car(xs), datum);
+
+        if (cdr(xs).is<datum_label>())
+        {
+          cdr(xs) = datum;
+        }
+        else
+        {
+          finish(cdr(xs), datum);
+        }
+      }
+    }
+
   public:
     using char_type = typename std::istream::char_type;
 
@@ -96,6 +120,48 @@ inline namespace kernel
 
           case '"':
             return string_to_symbol(meevax::read<string>(is.putback(c)).as<string>());
+
+          case '0':
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+          case '5':
+          case '6':
+          case '7':
+          case '8':
+          case '9':
+            if (std::uintptr_t n = 0; is.putback(c) >> n)
+            {
+              switch (auto c = is.get())
+              {
+              case '#':
+                return datum_labels.at(n);
+
+              case '=':
+                if (auto && [iter, success] = datum_labels.emplace(n, make<datum_label>(n)); success)
+                {
+                  let result = read(is);
+
+                  finish(result, result);
+
+                  datum_labels.erase(n);
+
+                  return result;
+                }
+                else
+                {
+                  throw read_error("duplicated datum-label declaration", make<exact_integer>(n));
+                }
+
+              default:
+                throw read_error("unknown discriminator", make<string>(lexical_cast<std::string>("#", n, c)));
+              }
+            }
+            else
+            {
+              return eof_object;
+            }
 
           case 'b':
             return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 2);

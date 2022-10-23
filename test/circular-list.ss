@@ -26,3 +26,15 @@
   (newline)
   (write-shared (list x x))
   (newline))
+
+(let ((x '#0=(a b c . #0#)))
+  (check (circular-list? x) => #t)
+  (newline)
+  (write x)
+  (newline))
+
+(let ((x '#0=(a b c (d e f . #0#))))
+  (check (circular-list? x) => #f)
+  (newline)
+  (write-shared x)
+  (newline))
