@@ -97,15 +97,15 @@ inline namespace kernel
           case '"':
             return string_to_symbol(meevax::read<string>(is.putback(c)).as<string>());
 
-          case 'b': // (string->number (read) 2)
+          case 'b':
             return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 2);
 
           case 'c': // Common Lisp
+            return [](let const& xs)
             {
-              let const xs = read(is);
               return make<complex>(list_tail(xs, 0).is<pair>() ? list_ref(xs, 0) : e0,
                                    list_tail(xs, 1).is<pair>() ? list_ref(xs, 1) : e0);
-            }
+            }(read(is));
 
           case 'd':
             return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 10);
