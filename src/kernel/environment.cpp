@@ -47,9 +47,9 @@ inline namespace kernel
 
       return unspecified;
     }
-    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "declare-raiser")
+    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "declare-raise")
     {
-      return raiser = evaluate(cadr(expression));
+      return raise = evaluate(cadr(expression));
     }
     else
     {
@@ -79,7 +79,7 @@ inline namespace kernel
     }
     else
     {
-      throw error("uncaught exception", x);
+      throw error(make<string>("uncaught exception"), x);
     }
   }
 
@@ -221,9 +221,9 @@ inline namespace kernel
     {
       let const import_set = std::get<1>(*iter).resolve();
 
-      if (auto const& [library_name, library] = *iter; raiser.is<null>() and not library.raiser.is<null>())
+      if (auto const& [library_name, library] = *iter; raise.is<null>() and not library.raise.is<null>())
       {
-        raiser = library.raiser;
+        raise = library.raise;
       }
 
       return import_set;
@@ -242,7 +242,7 @@ inline namespace kernel
 
       if (let const& variable = identity.as<absolute>().symbol(); not eq((*this)[variable], undefined) and not interactive)
       {
-        throw error("In a program or library declaration, it is an error to import the same identifier more than once with different bindings",
+        throw error(make<string>("In a program or library declaration, it is an error to import the same identifier more than once with different bindings"),
                     list(import_set, variable));
       }
       else
@@ -270,7 +270,8 @@ inline namespace kernel
     }
     else
     {
-      throw file_error("failed to open file", make<string>(s));
+      throw file_error(make<string>("failed to open file"),
+                       make<string>(s));
     }
   }
 

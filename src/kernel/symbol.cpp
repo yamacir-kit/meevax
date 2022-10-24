@@ -55,7 +55,8 @@ inline namespace kernel
     }
     else
     {
-      throw error("failed to intern a symbol", make<string>(name));
+      throw error(make<string>("failed to intern a symbol"),
+                  make<string>(name));
     }
   }
 } // namespace kernel

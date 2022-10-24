@@ -44,7 +44,7 @@ auto main(int const argc, char const* const* const argv) -> int
       main.import_("(scheme write)");
     }
 
-    while (main.interactive and main.char_ready())
+    while (main.interactive and main.get_ready())
     {
       try
       {

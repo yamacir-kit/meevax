@@ -28,7 +28,6 @@
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/utility/demangle.hpp>
-#include <meevax/utility/module.hpp>
 
 namespace meevax
 {
@@ -76,7 +75,7 @@ inline namespace kernel
 
       auto write(std::ostream & os) const -> std::ostream & override
       {
-        if constexpr (is_output_streamable<Bound>::value)
+        if constexpr (is_output_streamable_v<Bound>)
         {
           return os << static_cast<Bound const&>(*this);
         }
