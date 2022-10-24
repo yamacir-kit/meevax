@@ -60,7 +60,7 @@
                      (inner x)
                      (throw x))))))
 
-         (declare-raiser raise)
+         (declare-raise raise)
 
          (define-syntax guard
            (syntax-rules ()

@@ -58,25 +58,25 @@ inline namespace kernel
        a[2] is used for current-exception-handler.
        a[3] is currently unused. */
 
-    let raiser; /*
+    let raise; /*
 
-       raiser is a one-argument procedure for propagating C++ exceptions thrown
+       raise is a one-argument procedure for propagating C++ exceptions thrown
        in the Meevax kernel to the exception handler of the language running on
        the Meevax kernel.
 
-       raiser is set to null by default. In this default state, that is, if
-       raiser is null, C++ exceptions thrown in the kernel are rethrown to the
+       raise is set to null by default. In this default state, that is, if
+       raise is null, C++ exceptions thrown in the kernel are rethrown to the
        outer environment.
 
-       Although raiser can be set to any one-argument procedure by
-       `declare-raiser` declaration, it is basically assumed to be set to
+       Although raise can be set to any one-argument procedure by
+       `declare-raise` declaration, it is basically assumed to be set to
        R7RS Scheme's standard procedure `raise`.
 
-       The value of raiser is propagated by the import declaration. Currently,
+       The value of raise is propagated by the import declaration. Currently,
        in the Scheme standard library provided by Meevax, the procedure `raise`
-       is defined in the library (srfi 34), and `declare-raiser` is also
+       is defined in the library (srfi 34), and `declare-raise` is also
        declared in (srfi 34). This means that environments that depend on the
-       library (srfi 34) will automatically declare `raise` as raiser. */
+       library (srfi 34) will automatically declare `raise` as raise. */
 
     struct transformer
     {
@@ -733,11 +733,11 @@ inline namespace kernel
     }
     catch (std::exception const& exception)
     {
-      return raise(make<error>(make<string>(exception.what())));
+      return reraise(make<error>(make<string>(exception.what())));
     }
     catch (error const& error)
     {
-      return raise(make(error));
+      return reraise(make(error));
     }
 
     static auto identify(const_reference variable, const_reference scope) -> value_type
@@ -774,16 +774,16 @@ inline namespace kernel
       return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().identify_with_offset(scope) : f;
     }
 
-    inline auto raise(const_reference x) -> value_type
+    inline auto reraise(const_reference x) -> value_type
     {
-      if (raiser.is<null>())
+      if (raise.is<null>())
       {
         throw x;
         return unspecified;
       }
       else
       {
-        s = list(raiser, list(x));
+        s = list(raise, list(x));
         c = list(make(mnemonic::tail_call), make(mnemonic::stop));
 
         return execute();

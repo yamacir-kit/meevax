@@ -47,9 +47,9 @@ inline namespace kernel
 
       return unspecified;
     }
-    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "declare-raiser")
+    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "declare-raise")
     {
-      return raiser = evaluate(cadr(expression));
+      return raise = evaluate(cadr(expression));
     }
     else
     {
@@ -221,9 +221,9 @@ inline namespace kernel
     {
       let const import_set = std::get<1>(*iter).resolve();
 
-      if (auto const& [library_name, library] = *iter; raiser.is<null>() and not library.raiser.is<null>())
+      if (auto const& [library_name, library] = *iter; raise.is<null>() and not library.raise.is<null>())
       {
-        raiser = library.raiser;
+        raise = library.raise;
       }
 
       return import_set;
