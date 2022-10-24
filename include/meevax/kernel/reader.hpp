@@ -82,7 +82,7 @@ inline namespace kernel
   public:
     using char_type = typename std::istream::char_type;
 
-    inline auto char_ready() const
+    inline auto get_ready() const
     {
       assert(standard_input.is_also<std::istream>());
       return static_cast<bool>(standard_input.as<std::istream>());
