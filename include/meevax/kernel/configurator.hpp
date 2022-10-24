@@ -218,7 +218,8 @@ inline namespace kernel
               }
               else
               {
-                throw error("option requires an argument", make<symbol>(lexical_cast<std::string>("-", name)));
+                throw error(make<string>("option requires an argument"),
+                            make<symbol>(lexical_cast<std::string>("-", name)));
               }
             }
             else if (auto iter = short_options.find(*current_short_option); iter != std::end(short_options))
@@ -227,7 +228,8 @@ inline namespace kernel
             }
             else
             {
-              throw error("unknown option", make<symbol>(lexical_cast<std::string>("-", *current_short_option)));
+              throw error(make<string>("unknown option"),
+                          make<symbol>(lexical_cast<std::string>("-", *current_short_option)));
             }
           }
         }
@@ -245,7 +247,8 @@ inline namespace kernel
             }
             else
             {
-              throw error("option requires an argument", make<symbol>(lexical_cast<std::string>("--", current_long_option)));
+              throw error(make<string>("option requires an argument"),
+                          make<symbol>(lexical_cast<std::string>("--", current_long_option)));
             }
           }
           else if (auto iter = long_options.find(current_long_option); iter != std::end(long_options))
@@ -254,7 +257,8 @@ inline namespace kernel
           }
           else
           {
-            throw error("unknown option", make<symbol>(lexical_cast<std::string>("--", current_long_option)));
+            throw error(make<string>("unknown option"),
+                        make<symbol>(lexical_cast<std::string>("--", current_long_option)));
           }
         }
         else

@@ -151,11 +151,13 @@ inline namespace kernel
                 }
                 else
                 {
-                  throw read_error("duplicated datum-label declaration", make<exact_integer>(n));
+                  throw read_error(make<string>("duplicated datum-label declaration"),
+                                   make<exact_integer>(n));
                 }
 
               default:
-                throw read_error("unknown discriminator", make<string>(lexical_cast<std::string>("#", n, c)));
+                throw read_error(make<string>("unknown discriminator"),
+                                 make<string>(lexical_cast<std::string>("#", n, std::char_traits<char_type>::to_char_type(c))));
               }
             }
             else
@@ -208,7 +210,7 @@ inline namespace kernel
             return read(is);
 
           default:
-            throw read_error("unknown discriminator", make<character>(c));
+            throw read_error(make<string>("unknown discriminator"), make<character>(c));
           }
 
         case '\'': // 0x27

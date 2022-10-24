@@ -91,7 +91,7 @@ inline namespace kernel
     }
     else
     {
-      throw read_error("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable");
+      throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
     }
 
     return codepoint;
@@ -140,7 +140,7 @@ inline namespace kernel
       continue;
     }
 
-    throw read_error("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable");
+    throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
   }
 
   template <>
@@ -184,7 +184,7 @@ inline namespace kernel
           is.putback(*iter);
         }
 
-        throw read_error("not a character", make<string>("\\#" + token));
+        throw read_error(make<string>("not a character"), make<string>("\\#" + token));
       }
     }
   }
@@ -238,7 +238,7 @@ inline namespace kernel
       }
     }
 
-    throw read_error("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable");
+    throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
   }
 
   auto string_to_integer(std::string const& token, int radix) -> value_type

@@ -622,7 +622,7 @@ inline namespace kernel
         }
         else
         {
-          throw error("not applicable", callee);
+          throw error(make<string>("not applicable"), callee);
         }
 
       case mnemonic::dummy: /* -------------------------------------------------
@@ -1084,7 +1084,7 @@ inline namespace kernel
       }
       else
       {
-        throw error("definition cannot appear in this syntactic-context");
+        throw error(make<string>("definition cannot appear in this syntactic-context"));
       }
     }
 

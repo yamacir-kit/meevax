@@ -73,7 +73,7 @@ namespace meevax
       if (auto const c = get_char(port); check(c))
       {
         port.seekg(g);
-        throw read_error("not satisfy");
+        throw read_error(make<string>("not satisfy"));
       }
       else
       {
