@@ -30,7 +30,7 @@ inline namespace memory
   {
     using element_type = T;
 
-    using pointer = typename std::add_pointer<element_type>::type;
+    using pointer = std::add_pointer_t<element_type>;
 
     pointer data;
 

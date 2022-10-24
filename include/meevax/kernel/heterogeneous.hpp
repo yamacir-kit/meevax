@@ -119,7 +119,7 @@ inline namespace kernel
     {
       if constexpr (std::is_class_v<U>)
       {
-        if (auto data = dynamic_cast<typename std::add_pointer_t<U>>(get()); data)
+        if (auto data = dynamic_cast<std::add_pointer_t<U>>(get()); data)
         {
           return *data;
         }
@@ -161,7 +161,7 @@ inline namespace kernel
     template <typename U, REQUIRES(std::is_class<U>)>
     inline auto is_also() const
     {
-      return dynamic_cast<U *>(get()) != nullptr;
+      return dynamic_cast<std::add_pointer_t<U>>(get()) != nullptr;
     }
 
     inline auto type() const -> std::type_info const&
@@ -180,7 +180,7 @@ inline namespace kernel
     {
       if (datum.dereferenceable())
       {
-        return not datum ? os << magenta("()") : datum->write(os);
+        return datum ? datum->write(os) : os << magenta("()");
       }
       else
       {
