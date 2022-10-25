@@ -144,11 +144,11 @@ inline namespace kernel
     {
       if (dereferenceable())
       {
-        return *this ? get()->compare(rhs.get()) : not rhs;
+        return *this ? get()->compare(rhs.get()) : rhs.is<null>();
       }
       else
       {
-        return Pointer<Top, Ts...>::equivalent_to(rhs);
+        return Pointer<Top, Ts...>::compare(rhs);
       }
     }
 
@@ -176,16 +176,21 @@ inline namespace kernel
       }
     }
 
-    friend auto operator <<(std::ostream & os, heterogeneous const& datum) -> std::ostream &
+    inline auto write(std::ostream & os) const -> std::ostream &
     {
-      if (datum.dereferenceable())
+      if (dereferenceable())
       {
-        return datum ? datum->write(os) : os << magenta("()");
+        return *this ? get()->write(os) : os << magenta("()");
       }
       else
       {
-        return datum.write(os);
+        return Pointer<Top, Ts...>::write(os);
       }
+    }
+
+    friend auto operator <<(std::ostream & os, heterogeneous const& datum) -> std::ostream &
+    {
+      return datum.write(os);
     }
   };
 } // namespace kernel

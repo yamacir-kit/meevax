@@ -68,11 +68,6 @@ inline namespace memory
     static constexpr std::uintptr_t signature_T_0b110 = 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
     static constexpr std::uintptr_t signature_T_0b111 = 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
 
-    template <typename U>
-    using is_mimicable = typename std::bool_constant<
-                           std::is_same_v<U, float64> or
-                           std::is_same_v<U, pointer> or sizeof(U) <= 4>;
-
     explicit nan_boxing_pointer(nan_boxing_pointer const&) = default;
 
     auto reset(nan_boxing_pointer const& value) -> void
@@ -92,7 +87,8 @@ inline namespace memory
                signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value));     \
     }                                                                          \
                                                                                \
-    static_assert(is_mimicable<TYPE>::value)
+    static_assert(std::is_same_v<TYPE, float64> or                             \
+                  std::is_same_v<TYPE, pointer> or sizeof(TYPE) <= 4)
 
     DEFINE(float64,          ); // 0b000
     DEFINE(pointer, = nullptr); // 0b001
@@ -147,7 +143,7 @@ inline namespace memory
       return signature() == signature_pointer;
     }
 
-    auto equivalent_to(nan_boxing_pointer const& nbp) const noexcept
+    auto compare(nan_boxing_pointer const& nbp) const noexcept
     {
       return data == nbp.data;
     }
@@ -238,14 +234,14 @@ inline namespace memory
   constexpr auto operator ==(nan_boxing_pointer<Ts...> const& x,
                              nan_boxing_pointer<Ts...> const& y)
   {
-    return x.equivalent_to(y);
+    return x.compare(y);
   }
 
   template <typename... Ts>
   constexpr auto operator !=(nan_boxing_pointer<Ts...> const& x,
                              nan_boxing_pointer<Ts...> const& y)
   {
-    return not x.equivalent_to(y);
+    return not x.compare(y);
   }
 } // namespace memory
 } // namespace meevax
