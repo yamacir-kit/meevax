@@ -35,7 +35,7 @@ inline namespace kernel
 
     using const_reference = meevax::const_reference;
 
-    using pointer = typename std::add_pointer<value_type>::type;
+    using pointer = std::add_pointer_t<value_type>;
 
     using difference_type = std::ptrdiff_t;
 

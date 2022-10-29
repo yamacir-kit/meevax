@@ -31,42 +31,58 @@ inline namespace kernel
 {
   auto get_codepoint(std::istream &) -> character::int_type;
 
-  auto get_delimited_elements(std::istream &, character::int_type) -> string;
-
   auto get_token(std::istream &) -> std::string;
 
   auto ignore_nested_block_comment(std::istream &) -> std::istream &;
 
-  auto read_character_literal(std::istream &) -> value_type;
+  template <typename T>
+  auto read(std::istream &) -> value_type;
 
-  auto read_string_literal(std::istream &) -> value_type;
+  template <> auto read<character>(std::istream &) -> value_type;
+  template <> auto read<string   >(std::istream &) -> value_type;
 
-  auto string_to_integer(std::string const&, int = 10) -> value_type;
-
+  auto string_to_integer (std::string const&, int = 10) -> value_type;
   auto string_to_rational(std::string const&, int = 10) -> value_type;
-
-  auto string_to_real(std::string const&, int = 10) -> value_type;
-
-  auto string_to_complex(std::string const&, int = 10) -> value_type;
-
-  auto string_to_number(std::string const&, int = 10) -> value_type;
+  auto string_to_real    (std::string const&, int = 10) -> value_type;
+  auto string_to_complex (std::string const&, int = 10) -> value_type;
+  auto string_to_number  (std::string const&, int = 10) -> value_type;
 
   template <typename Environment>
   class reader
   {
     friend Environment;
 
-    explicit reader()
+    explicit constexpr reader()
     {}
 
-    IMPORT(Environment, evaluate, );
+    struct datum_label
+    {
+      std::uintptr_t value;
+    };
 
-    using char_type = typename std::istream::char_type;
+    std::unordered_map<std::uintptr_t, value_type> datum_labels;
+
+    auto finish(const_reference xs, const_reference datum) -> void
+    {
+      if (xs.is<pair>())
+      {
+        finish(car(xs), datum);
+
+        if (cdr(xs).is<datum_label>())
+        {
+          cdr(xs) = datum;
+        }
+        else
+        {
+          finish(cdr(xs), datum);
+        }
+      }
+    }
 
   public:
-    static inline std::unordered_map<std::string, value_type> symbols {};
+    using char_type = typename std::istream::char_type;
 
-    inline auto char_ready() const
+    inline auto get_ready() const
     {
       assert(standard_input.is_also<std::istream>());
       return static_cast<bool>(standard_input.as<std::istream>());
@@ -87,7 +103,7 @@ inline namespace kernel
           break;
 
         case '"':  // 0x22
-          return read_string_literal(is.putback(c));
+          return meevax::read<string>(is.putback(c));
 
         case '#':  // 0x23
           switch (auto const c = is.get())
@@ -97,23 +113,67 @@ inline namespace kernel
             return read(is);
 
           case ',': // SRFI 10
-            return evaluate(read(is));
+            return static_cast<Environment &>(*this).evaluate(read(is));
 
           case ';': // SRFI 62
             return read(is), read(is);
 
           case '"':
-            return string_to_symbol(get_delimited_elements(is.putback(c), c));
+            return string_to_symbol(meevax::read<string>(is.putback(c)).as<string>());
 
-          case 'b': // (string->number (read) 2)
+          case '0':
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+          case '5':
+          case '6':
+          case '7':
+          case '8':
+          case '9':
+            if (std::uintptr_t n = 0; is.putback(c) >> n)
+            {
+              switch (auto c = is.get())
+              {
+              case '#':
+                return datum_labels.at(n);
+
+              case '=':
+                if (auto && [iter, success] = datum_labels.emplace(n, make<datum_label>(n)); success)
+                {
+                  let result = read(is);
+
+                  finish(result, result);
+
+                  datum_labels.erase(n);
+
+                  return result;
+                }
+                else
+                {
+                  throw read_error(make<string>("duplicated datum-label declaration"),
+                                   make<exact_integer>(n));
+                }
+
+              default:
+                throw read_error(make<string>("unknown discriminator"),
+                                 make<string>(lexical_cast<std::string>("#", n, std::char_traits<char_type>::to_char_type(c))));
+              }
+            }
+            else
+            {
+              return eof_object;
+            }
+
+          case 'b':
             return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 2);
 
           case 'c': // Common Lisp
+            return [](let const& xs)
             {
-              let const xs = read(is);
               return make<complex>(list_tail(xs, 0).is<pair>() ? list_ref(xs, 0) : e0,
                                    list_tail(xs, 1).is<pair>() ? list_ref(xs, 1) : e0);
-            }
+            }(read(is));
 
           case 'd':
             return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 10);
@@ -143,14 +203,14 @@ inline namespace kernel
             return make<vector>(read(is));
 
           case '\\':
-            return read_character_literal(is);
+            return meevax::read<character>(is);
 
           case '|': // SRFI 30
             ignore_nested_block_comment(is);
             return read(is);
 
           default:
-            throw read_error("unknown discriminator", make<character>(c));
+            throw read_error(make<string>("unknown discriminator"), make<character>(c));
           }
 
         case '\'': // 0x27
@@ -175,7 +235,7 @@ inline namespace kernel
           return list(string_to_symbol("quasiquote"), read(is));
 
         case '|':  // 0x7C
-          return string_to_symbol(get_delimited_elements(is.putback(c), c));
+          return string_to_symbol(meevax::read<string>(is.putback(c)).as<string>());
 
         case '(':
         case '[':
@@ -207,7 +267,7 @@ inline namespace kernel
         case '}': throw std::integral_constant<char_type, '}'>();
 
         default:
-          if (auto const token = get_token(is.putback(c)); token == ".")
+          if (auto const& token = get_token(is.putback(c)); token == ".")
           {
             throw std::integral_constant<char_type, '.'>();
           }
@@ -240,22 +300,6 @@ inline namespace kernel
     {
       auto port = std::stringstream(s);
       return read(port);
-    }
-
-    static auto string_to_symbol(std::string const& name) -> const_reference
-    {
-      if (auto const iter = symbols.find(name); iter != std::end(symbols))
-      {
-        return iter->second;
-      }
-      else if (auto const [iter, success] = symbols.emplace(name, make<symbol>(name)); success)
-      {
-        return iter->second;
-      }
-      else
-      {
-        throw std::runtime_error(concatenate("failed to intern a symbol '", name));
-      }
     }
   };
 } // namespace kernel

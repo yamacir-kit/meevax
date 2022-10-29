@@ -25,10 +25,10 @@ namespace meevax
 inline namespace memory
 {
   template <auto Byte>
-  using intN_t = typename std::conditional_t<Byte == 1, std::int8_t,
-                 typename std::conditional_t<Byte == 2, std::int16_t,
-                 typename std::conditional_t<Byte == 4, std::int32_t,
-                 typename std::conditional_t<Byte == 8, std::int64_t, void>>>>;
+  using intN_t = std::conditional_t<Byte == 1, std::int8_t,
+                 std::conditional_t<Byte == 2, std::int16_t,
+                 std::conditional_t<Byte == 4, std::int32_t,
+                 std::conditional_t<Byte == 8, std::int64_t, void>>>>;
 
   static_assert(std::is_same<intN_t<1>, std::int8_t>::value);
   static_assert(std::is_same<intN_t<2>, std::int16_t>::value);
@@ -39,10 +39,10 @@ inline namespace memory
   static_assert(std::is_same<intN_t<sizeof(double)>, std::int64_t>::value);
 
   template <auto Byte>
-  using uintN_t = typename std::conditional_t<Byte == 1, std::uint8_t,
-                  typename std::conditional_t<Byte == 2, std::uint16_t,
-                  typename std::conditional_t<Byte == 4, std::uint32_t,
-                  typename std::conditional_t<Byte == 8, std::uint64_t, void>>>>;
+  using uintN_t = std::conditional_t<Byte == 1, std::uint8_t,
+                  std::conditional_t<Byte == 2, std::uint16_t,
+                  std::conditional_t<Byte == 4, std::uint32_t,
+                  std::conditional_t<Byte == 8, std::uint64_t, void>>>>;
 } // namespace memory
 } // namespace meevax
 

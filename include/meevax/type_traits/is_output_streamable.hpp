@@ -32,6 +32,9 @@ inline namespace type_traits
   struct is_output_streamable<T, std::void_t<decltype(std::declval<std::ostream &>() << std::declval<T>())>>
     : public std::true_type
   {};
+
+  template <typename T>
+  inline constexpr auto is_output_streamable_v = is_output_streamable<T>::value;
 } // namespace type_traits
 } // namespace meevax
 

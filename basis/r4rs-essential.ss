@@ -15,7 +15,7 @@
           (meevax symbol)
           (meevax syntax)
           (meevax vector)
-          (meevax write)
+          (prefix (meevax write) %)
           (srfi 211 explicit-renaming))
 
   (export quote lambda if set! cond case and or let letrec begin quasiquote
@@ -579,9 +579,9 @@
                          (current-input-port))))
 
          (define (write x . port)
-           (%write-simple x (if (pair? port)
-                                (car port)
-                                (current-output-port))))
+           (%write x (if (pair? port)
+                         (car port)
+                         (current-output-port))))
 
          (define (write-char x . port)
            (put-char x (if (pair? port)
@@ -594,10 +594,12 @@
              ((1)  (put-string string (car xs)))
              (else (put-string (apply string-copy string (cadr xs)) (car xs)))))
 
-         (define (display datum . port)
-           (cond ((char?   datum) (apply write-char    datum port))
-                 ((string? datum) (apply write-string  datum port))
-                 (else            (apply write         datum port))))
+         (define (display x . xs)
+           (cond ((char? x)
+                  (apply write-char x xs))
+                 ((string? x)
+                  (apply write-string x xs))
+                 (else (apply write x xs))))
 
          (define (newline . port)
            (apply write-char #\newline port))

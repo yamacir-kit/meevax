@@ -17,7 +17,7 @@
          (define (dynamic-wind before thunk after)
            (before)
            (install-dynamic-extents! (cons (cons before after)
-                                    (current-dynamic-extents)))
+                                           (current-dynamic-extents)))
            ((lambda (result) ; TODO let-values
               (install-dynamic-extents! (cdr (current-dynamic-extents)))
               (after)

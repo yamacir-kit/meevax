@@ -32,11 +32,11 @@ inline namespace iostream
     char const* command;
 
     std::tuple<
-      typename std::conditional<
+      std::conditional_t<
         not std::is_reference_v<Ts> or std::is_scalar_v<std::remove_reference_t<Ts>>,
         std::decay_t<Ts>,
         std::reference_wrapper<std::remove_reference_t<Ts>>
-      >::type...
+      >...
     > references;
 
     template <typename T>
@@ -72,7 +72,7 @@ inline namespace iostream
   #define DEFINE(COMMAND, NAME)                                                \
   inline auto NAME = [](auto&&... xs)                                          \
   {                                                                            \
-    return escape_sequence(COMMAND, std::forward<decltype(xs)>(xs)...); \
+    return escape_sequence(COMMAND, std::forward<decltype(xs)>(xs)...);        \
   }
 
   DEFINE("0m", normal);

@@ -91,63 +91,10 @@ inline namespace kernel
     }
     else
     {
-      throw read_error("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable");
+      throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
     }
 
     return codepoint;
-  }
-
-  auto get_delimited_elements(std::istream & is, character::int_type delimiter) -> string
-  {
-    auto s = string();
-
-    assert(character::eq(is.peek(), delimiter));
-
-    is.ignore(1);
-
-    for (auto codepoint = get_codepoint(is); not character::is_eof(codepoint); codepoint = get_codepoint(is))
-    {
-      if (codepoint == delimiter)
-      {
-        return s;
-      }
-      else switch (codepoint)
-      {
-      case '\\':
-        switch (auto const codepoint = get_codepoint(is); codepoint)
-        {
-        case 'a': s.codepoints.emplace_back('\a'); break;
-        case 'b': s.codepoints.emplace_back('\b'); break;
-        case 'f': s.codepoints.emplace_back('\f'); break;
-        case 'n': s.codepoints.emplace_back('\n'); break;
-        case 'r': s.codepoints.emplace_back('\r'); break;
-        case 't': s.codepoints.emplace_back('\t'); break;
-        case 'v': s.codepoints.emplace_back('\v'); break;
-        case 'x':
-          if (auto token = std::string(); std::getline(is, token, ';'))
-          {
-            s.codepoints.emplace_back(lexical_cast<character::int_type>(std::hex, token));
-          }
-          break;
-
-        case '\n':
-        case '\r':
-          ignore(is, [](auto c) { return std::isspace(c); });
-          break;
-
-        default:
-          s.codepoints.emplace_back(codepoint);
-          break;
-        }
-        break;
-
-      default:
-        s.codepoints.emplace_back(codepoint);
-        break;
-      }
-    }
-
-    throw read_error("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable");
   }
 
   auto get_token(std::istream & is) -> std::string
@@ -193,10 +140,11 @@ inline namespace kernel
       continue;
     }
 
-    throw read_error("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable");
+    throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
   }
 
-  auto read_character_literal(std::istream & is) -> value_type
+  template <>
+  auto read<character>(std::istream & is) -> value_type
   {
     std::unordered_map<std::string, character::int_type> static const character_names {
       { "alarm"    , 0x07 },
@@ -236,14 +184,61 @@ inline namespace kernel
           is.putback(*iter);
         }
 
-        throw read_error("not a character", make<string>("\\#" + token));
+        throw read_error(make<string>("not a character"), make<string>("\\#" + token));
       }
     }
   }
 
-  auto read_string_literal(std::istream & is) -> value_type
+  template <>
+  auto read<string>(std::istream & is) -> value_type
   {
-    return make(get_delimited_elements(is, '"'));
+    auto s = string();
+
+    auto const quotation_mark = is.get();
+
+    for (auto codepoint = get_codepoint(is); not character::is_eof(codepoint); codepoint = get_codepoint(is))
+    {
+      if (codepoint == quotation_mark)
+      {
+        return make(s);
+      }
+      else switch (codepoint)
+      {
+      case '\\':
+        switch (auto const codepoint = get_codepoint(is); codepoint)
+        {
+        case 'a': s.codepoints.emplace_back('\a'); break;
+        case 'b': s.codepoints.emplace_back('\b'); break;
+        case 'f': s.codepoints.emplace_back('\f'); break;
+        case 'n': s.codepoints.emplace_back('\n'); break;
+        case 'r': s.codepoints.emplace_back('\r'); break;
+        case 't': s.codepoints.emplace_back('\t'); break;
+        case 'v': s.codepoints.emplace_back('\v'); break;
+        case 'x':
+          if (auto token = std::string(); std::getline(is, token, ';'))
+          {
+            s.codepoints.emplace_back(lexical_cast<character::int_type>(std::hex, token));
+          }
+          break;
+
+        case '\n':
+        case '\r':
+          ignore(is, [](auto c) { return std::isspace(c); });
+          break;
+
+        default:
+          s.codepoints.emplace_back(codepoint);
+          break;
+        }
+        break;
+
+      default:
+        s.codepoints.emplace_back(codepoint);
+        break;
+      }
+    }
+
+    throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
   }
 
   auto string_to_integer(std::string const& token, int radix) -> value_type

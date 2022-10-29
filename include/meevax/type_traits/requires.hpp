@@ -19,7 +19,6 @@
 
 #include <type_traits>
 
-#define REQUIRES(...) \
-  typename = typename std::enable_if<std::conjunction<__VA_ARGS__>::value>::type
+#define REQUIRES(...) typename = std::enable_if_t<std::conjunction_v<__VA_ARGS__>>
 
 #endif // INCLUDED_MEEVAX_TYPE_TRAITS_REQUIRES_HPP

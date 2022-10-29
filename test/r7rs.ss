@@ -63,7 +63,7 @@
 
 ; (check (let ((x (list 'a 'b 'c)))
 ;          (set-cdr! (cddr x) x)
-;          x) => #0=(a b c . #0#)) ; TODO
+;          x) => #0=(a b c . #0#)) ; TODO circular-list comparison
 
 ; #1=(begin (display #\x) #1#) ; MUST BE ERROR
 

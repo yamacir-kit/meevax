@@ -33,15 +33,8 @@ inline namespace type_traits
     : public std::true_type
   {};
 
-  template <typename T, typename U, typename = void>
-  struct is_equality_comparable_with
-    : public std::false_type
-  {};
-
-  template <typename T, typename U>
-  struct is_equality_comparable_with<T, U, std::void_t<decltype(std::declval<T>() == std::declval<U>())>>
-    : public std::true_type
-  {};
+  template <typename T>
+  inline constexpr auto is_equality_comparable_v = is_equality_comparable<T>::value;
 } // namespace type_traits
 } // namespace meevax
 

@@ -22,10 +22,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  error::error(std::string const& message, const_reference irritants)
-    : pair { make<string>(message), irritants }
-  {}
-
   auto error::irritants() const noexcept -> const_reference
   {
     return second;

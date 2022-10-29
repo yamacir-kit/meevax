@@ -28,20 +28,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename environment>
+  template <typename Environment>
   class configurator
   {
-    friend environment;
+    friend Environment;
 
     explicit configurator()
     {}
-
-    IMPORT(environment, evaluate, );
-    IMPORT(environment, load,     );
-    IMPORT(environment, read,     );
-
-    template <typename Key>
-    using dispatcher = std::unordered_map<Key, std::function<void (const_reference)>>;
 
   public:
     static inline auto batch       = false;
@@ -73,6 +66,9 @@ inline namespace kernel
     }
 
   private:
+    template <typename Key>
+    using dispatcher = std::unordered_map<Key, std::function<void (const_reference)>>;
+
     static inline const dispatcher<char> short_options
     {
       std::make_pair('b', [](auto&&...)
@@ -112,12 +108,12 @@ inline namespace kernel
     {
       std::make_pair('e', [](auto&& x)
       {
-        print(interaction_environment().as<environment>().evaluate(x));
+        print(interaction_environment().as<Environment>().evaluate(x));
       }),
 
       std::make_pair('l', [](auto&& x)
       {
-        interaction_environment().as<environment>().load(x.template as_const<symbol>());
+        interaction_environment().as<Environment>().load(x.template as_const<symbol>());
       }),
 
       std::make_pair('w', [](auto&& x)
@@ -165,12 +161,12 @@ inline namespace kernel
     {
       std::make_pair("evaluate", [](auto&& x)
       {
-        print(interaction_environment().as<environment>().evaluate(x));
+        print(interaction_environment().as<Environment>().evaluate(x));
       }),
 
       std::make_pair("load", [](auto&& x)
       {
-        interaction_environment().as<environment>().load(x.template as_const<string>());
+        interaction_environment().as<Environment>().load(x.template as_const<string>());
       }),
 
       std::make_pair("write", [](auto&& x)
@@ -188,6 +184,11 @@ inline namespace kernel
     auto configure(std::vector<std::string> const& args) -> void
     {
       static std::regex const pattern { R"(--(\w[-\w]+)(=(.*))?|-([\w]+))" };
+
+      auto read = [](auto&&... xs)
+      {
+        return interaction_environment().as<Environment>().read(std::forward<decltype(xs)>(xs)...);
+      };
 
       for (auto current_option = std::begin(args); current_option != std::end(args); ++current_option) [&]()
       {
@@ -217,7 +218,8 @@ inline namespace kernel
               }
               else
               {
-                throw std::runtime_error(concatenate("option -", name, " requires an argument"));
+                throw error(make<string>("option requires an argument"),
+                            make<symbol>(lexical_cast<std::string>("-", name)));
               }
             }
             else if (auto iter = short_options.find(*current_short_option); iter != std::end(short_options))
@@ -226,7 +228,8 @@ inline namespace kernel
             }
             else
             {
-              throw std::runtime_error(concatenate("unknown short-option ", *current_short_option));
+              throw error(make<string>("unknown option"),
+                          make<symbol>(lexical_cast<std::string>("-", *current_short_option)));
             }
           }
         }
@@ -244,7 +247,8 @@ inline namespace kernel
             }
             else
             {
-              throw std::runtime_error(concatenate("option --", current_long_option, " requires an argument"));
+              throw error(make<string>("option requires an argument"),
+                          make<symbol>(lexical_cast<std::string>("--", current_long_option)));
             }
           }
           else if (auto iter = long_options.find(current_long_option); iter != std::end(long_options))
@@ -253,13 +257,14 @@ inline namespace kernel
           }
           else
           {
-            throw std::runtime_error(concatenate("unknown long-option ", *current_option));
+            throw error(make<string>("unknown option"),
+                        make<symbol>(lexical_cast<std::string>("--", current_long_option)));
           }
         }
         else
         {
           interactive = false;
-          load(*current_option);
+          interaction_environment().as<Environment>().load(*current_option);
         }
       }();
     }

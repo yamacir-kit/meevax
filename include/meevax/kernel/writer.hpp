@@ -23,6 +23,16 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto write_simple(std::ostream &, pair const&) -> std::ostream &;
+
+  auto write_simple(std::ostream &, const_reference) -> std::ostream &;
+
+  template <typename... Ts>
+  auto write_simple(const_reference x, Ts&&... xs) -> decltype(auto)
+  {
+    return write_simple(x.as<std::ostream>(), std::forward<decltype(xs)>(xs)...);
+  }
+
   template <typename... Ts>
   auto write(std::ostream & os, Ts&&... xs) -> std::ostream &
   {

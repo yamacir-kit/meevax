@@ -19,7 +19,6 @@
 
 #include <meevax/functional/combinator.hpp>
 #include <meevax/functional/compose.hpp>
-#include <meevax/iostream/concatenate.hpp>
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/mnemonic.hpp>
@@ -29,7 +28,6 @@
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/utility/demangle.hpp>
-#include <meevax/utility/module.hpp>
 
 namespace meevax
 {
@@ -46,14 +44,14 @@ inline namespace kernel
     {
       template <typename... Us>
       explicit constexpr binder(Us&&... xs)
-        : std::conditional<std::is_base_of<Top, Bound>::value, Top, Bound>::type { std::forward<decltype(xs)>(xs)... }
+        : std::conditional_t<std::is_base_of_v<Top, Bound>, Top, Bound> { std::forward<decltype(xs)>(xs)... }
       {}
 
       ~binder() override = default;
 
       auto compare([[maybe_unused]] Top const* top) const -> bool override
       {
-        if constexpr (is_equality_comparable<Bound>::value)
+        if constexpr (is_equality_comparable_v<Bound>)
         {
           if (auto const* bound = dynamic_cast<Bound const*>(top); bound)
           {
@@ -61,7 +59,7 @@ inline namespace kernel
           }
           else
           {
-            return std::is_same<Bound, null>::value;
+            return std::is_same_v<Bound, null>;
           }
         }
         else
@@ -77,7 +75,7 @@ inline namespace kernel
 
       auto write(std::ostream & os) const -> std::ostream & override
       {
-        if constexpr (is_output_streamable<Bound>::value)
+        if constexpr (is_output_streamable_v<Bound>)
         {
           return os << static_cast<Bound const&>(*this);
         }
@@ -121,13 +119,13 @@ inline namespace kernel
     {
       if constexpr (std::is_class_v<U>)
       {
-        if (auto data = dynamic_cast<typename std::add_pointer_t<U>>(get()); data)
+        if (auto data = dynamic_cast<std::add_pointer_t<U>>(get()); data)
         {
           return *data;
         }
         else
         {
-          throw std::runtime_error(concatenate("no viable conversion from ", demangle(type()), " to ", demangle(typeid(U))));
+          throw std::runtime_error(lexical_cast<std::string>("no viable conversion from ", demangle(type()), " to ", demangle(typeid(U))));
         }
       }
       else
@@ -139,18 +137,18 @@ inline namespace kernel
     template <typename U>
     inline auto as_const() const -> decltype(auto)
     {
-      return as<typename std::add_const_t<U>>();
+      return as<std::add_const_t<U>>();
     }
 
     inline auto compare(heterogeneous const& rhs) const -> bool
     {
       if (dereferenceable())
       {
-        return *this ? get()->compare(rhs.get()) : not rhs;
+        return *this ? get()->compare(rhs.get()) : rhs.is<null>();
       }
       else
       {
-        return Pointer<Top, Ts...>::equivalent_to(rhs);
+        return Pointer<Top, Ts...>::compare(rhs);
       }
     }
 
@@ -163,7 +161,7 @@ inline namespace kernel
     template <typename U, REQUIRES(std::is_class<U>)>
     inline auto is_also() const
     {
-      return dynamic_cast<U *>(get()) != nullptr;
+      return dynamic_cast<std::add_pointer_t<U>>(get()) != nullptr;
     }
 
     inline auto type() const -> std::type_info const&
@@ -178,16 +176,21 @@ inline namespace kernel
       }
     }
 
-    friend auto operator <<(std::ostream & os, heterogeneous const& datum) -> std::ostream &
+    inline auto write(std::ostream & os) const -> std::ostream &
     {
-      if (datum.dereferenceable())
+      if (dereferenceable())
       {
-        return not datum ? os << magenta("()") : datum->write(os);
+        return *this ? get()->write(os) : os << magenta("()");
       }
       else
       {
-        return datum.write(os);
+        return Pointer<Top, Ts...>::write(os);
       }
+    }
+
+    friend auto operator <<(std::ostream & os, heterogeneous const& datum) -> std::ostream &
+    {
+      return datum.write(os);
     }
   };
 } // namespace kernel

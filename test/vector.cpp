@@ -128,7 +128,7 @@ auto main() -> int
     assert(v.as<vector>().data.size() == 0);
   }
 
-  environment::symbols.clear();
+  symbols.clear();
   gc.collect();
 
   // vector literal
@@ -167,7 +167,7 @@ auto main() -> int
     assert(gc.count() == gc_count + 4);
   }
 
-  environment::symbols.clear();
+  symbols.clear();
   gc.count();
 
   // vector constructor

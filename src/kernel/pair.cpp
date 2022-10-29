@@ -15,6 +15,7 @@
 */
 
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/writer.hpp>
 
 namespace meevax
 {
@@ -41,24 +42,49 @@ inline namespace kernel
     return os << *this;
   }
 
-  auto operator <<(std::ostream & os, pair const& pare) -> std::ostream &
+  auto label(const_reference x, const_reference y) -> const_reference
   {
-    os << magenta("(") << car(pare);
-
-    for (let rest = cdr(pare); rest; rest = cdr(rest))
+    if (x.is<pair>() and cdr(x).is<pair>() and (cddr(x) == cdr(y) or label(cddr(x), cdr(y))))
     {
-      if (rest.is<pair>())
-      {
-        os << " " << car(rest);
-      }
-      else // iter is the last element of dotted-list.
-      {
-        os << magenta(" . ") << rest;
-        break;
-      }
+      return cdddr(x);
     }
+    else
+    {
+      return unit;
+    }
+  }
 
-    return os << magenta(")");
+  auto label(pair const& x)
+  {
+    if (cdr(x).is<pair>() and (cddr(x) == cdr(x) or label(cddr(x), cdr(x))))
+    {
+      return cdddr(x);
+    }
+    else
+    {
+      return unit;
+    }
+  }
+
+  auto operator <<(std::ostream & os, pair const& datum) -> std::ostream &
+  {
+    if (let const& end = label(datum))
+    {
+      auto n = reinterpret_cast<std::uintptr_t>(end.get());
+
+      os << magenta("#", n, "=(") << car(datum);
+
+      for (auto iter = std::begin(cdr(datum)); iter != end; ++iter)
+      {
+        os << " " << *iter;
+      }
+
+      return os << magenta(" . #", n, "#)");
+    }
+    else
+    {
+      return write_simple(os, datum);
+    }
   }
 } // namespace kernel
 } // namespace meevax

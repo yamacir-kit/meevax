@@ -42,6 +42,10 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, symbol const&) -> std::ostream &;
+
+  extern std::unordered_map<std::string, value_type> symbols;
+
+  auto string_to_symbol(std::string const&) -> const_reference;
 } // namespace kernel
 } // namespace meevax
 

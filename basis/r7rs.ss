@@ -414,11 +414,7 @@
 
 (define-library (scheme lazy)
   (import (srfi 45))
-  (export delay
-          (rename lazy delay-force)
-          force
-          promise?
-          (rename eager make-promise)))
+  (export delay (rename lazy delay-force) force promise? (rename eager make-promise)))
 
 (define-library (scheme case-lambda)
   (export case-lambda
@@ -573,29 +569,33 @@
                       (current-input-port))))))
 
 (define-library (scheme write)
-  (import (scheme base)
-          (only (meevax write) %write-simple)
-          (only (meevax port) put-char)
-          )
-  (export write
-          ; write-shared
-          write-simple
-          display
-          )
-  (begin (define (write-simple x . port)
+  (import (prefix (meevax write) %)
+          (scheme base)
+          (srfi 38))
+
+  (begin (define (write x . port)
+           (%write x (if (pair? port)
+                         (car port)
+                         (current-output-port))))
+
+         (define (write-shared x . port)
+           (write-with-shared-structure x (if (pair? port)
+                                              (car port)
+                                              (current-output-port))))
+
+         (define (write-simple x . port)
            (%write-simple x (if (pair? port)
                                 (car port)
                                 (current-output-port))))
 
-         (define write write-simple) ; DUMMY
+         (define (display x . xs)
+           (cond ((char? x)
+                  (apply write-char x xs))
+                 ((string? x)
+                  (apply write-string x xs))
+                 (else (apply write x xs)))))
 
-         (define (display datum . port)
-           (cond ((char?   datum) (apply write-char   datum port))
-                 ((string? datum) (apply write-string datum port))
-                 (else            (apply write        datum port))))
-
-    )
-  )
+  (export write write-shared write-simple display))
 
 (define-library (scheme load)
   (import (only (scheme r5rs) load))

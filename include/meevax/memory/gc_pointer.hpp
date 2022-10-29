@@ -26,9 +26,8 @@ namespace meevax
 inline namespace memory
 {
   template <typename... Ts>
-  struct gc_pointer
-    : public nan_boxing_pointer<Ts...>
-    , private collector::traceable
+  struct gc_pointer : public nan_boxing_pointer<Ts...>
+                    , private collector::traceable
   {
     explicit gc_pointer(std::nullptr_t = nullptr)
     {}

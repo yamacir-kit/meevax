@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 
 #include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/string.hpp>
 
 namespace meevax
 {
@@ -29,8 +30,6 @@ inline namespace kernel
   struct error : public virtual pair
   {
     using pair::pair;
-
-    explicit error(std::string const&, const_reference = unit);
 
     auto irritants() const noexcept -> const_reference;
 
@@ -77,12 +76,12 @@ inline namespace kernel
     }
     catch (error const& error) // NOTE: system-error
     {
-      std::cerr << "; " << error << std::endl;
+      std::cerr << error << std::endl;
       return failure;
     }
-    catch (std::exception const& error)
+    catch (std::exception const& exception)
     {
-      std::cerr << "; " << error.what() << std::endl;
+      std::cerr << error(make<string>(exception.what())) << std::endl;
       return failure;
     }
   }
