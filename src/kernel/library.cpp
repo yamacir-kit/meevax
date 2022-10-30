@@ -856,12 +856,7 @@ inline namespace kernel
         return standard_error;
       });
 
-      library.define<procedure>("input-port-open", [](let const& xs)
-      {
-        return make<file_port>(car(xs).as<string>());
-      });
-
-      library.define<procedure>("output-port-open", [](let const& xs)
+      library.define<procedure>("open", [](let const& xs)
       {
         return make<file_port>(car(xs).as<string>());
       });
@@ -998,14 +993,13 @@ inline namespace kernel
       library.export_("get-string!");
       library.export_("input-port");
       library.export_("input-port-close");
-      library.export_("input-port-open");
       library.export_("input-port-open?");
       library.export_("input-port?");
       library.export_("input-string-open");
+      library.export_("open");
       library.export_("output-port");
       library.export_("output-port-close");
       library.export_("output-port-flush");
-      library.export_("output-port-open");
       library.export_("output-port-open?");
       library.export_("output-port?");
       library.export_("output-string-get");

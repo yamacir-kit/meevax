@@ -46,7 +46,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, file_port const& datum) -> std::ostream &
   {
-    return os << magenta("#,(") << green("open-port ") << datum.name << magenta(")");
+    return os << magenta("#,(") << green("open ") << datum.name << magenta(")");
   }
 
   #undef DEFINE
