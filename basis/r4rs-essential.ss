@@ -588,17 +588,13 @@
                            (car port)
                            (current-output-port))))
 
-         (define (write-string string . xs) ; TODO REMOVE!
-           (case (length xs)
-             ((0)  (put-string string (current-output-port)))
-             ((1)  (put-string string (car xs)))
-             (else (put-string (apply string-copy string (cadr xs)) (car xs)))))
-
          (define (display x . xs)
            (cond ((char? x)
                   (apply write-char x xs))
                  ((string? x)
-                  (apply write-string x xs))
+                  (put-string x (if (pair? xs) ; NOTE: The procedure write-string is not defined in R4RS.
+                                    (car xs)
+                                    (current-output-port))))
                  (else (apply write x xs))))
 
          (define (newline . port)
