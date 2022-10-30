@@ -13,8 +13,7 @@
                   (input-port-close close-input-port)
                   (input-port-open open-input-file)
                   (output-port-close close-output-port)
-                  (output-port-open open-output-file)
-                  )
+                  (output-port-open open-output-file))
           (meevax read)
           (meevax string)
           (meevax symbol)
@@ -564,9 +563,9 @@
                result))
            (call-with-output-port (open-output-file path) f))
 
-         (define current-input-port standard-input-port) ; r7rs incompatible (current-input-port is standard input)
+         (define current-input-port input-port)
 
-         (define current-output-port standard-output-port) ; r7rs incompatible (current-output-port is standard output)
+         (define current-output-port output-port)
 
          (define (read . port)
            (%read (if (pair? port)

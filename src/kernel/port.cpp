@@ -33,7 +33,7 @@ inline namespace kernel
                                                                                \
   auto operator <<(std::ostream & os, standard_##NAME##_port const&) -> std::ostream & \
   {                                                                            \
-    return os << magenta("#,(") << "standard-" #NAME "-port" << magenta(")");  \
+    return os << magenta("#,(") << #NAME "-port" << magenta(")");              \
   }                                                                            \
                                                                                \
   let const standard_##NAME = make<standard_##NAME##_port>()

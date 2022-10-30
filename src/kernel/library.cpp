@@ -841,17 +841,17 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("standard-input-port", [](auto&&...)
+      library.define<procedure>("input-port", [](auto&&...)
       {
         return standard_input;
       });
 
-      library.define<procedure>("standard-output-port", [](auto&&...)
+      library.define<procedure>("output-port", [](auto&&...)
       {
         return standard_output;
       });
 
-      library.define<procedure>("standard-error-port", [](auto&&...)
+      library.define<procedure>("error-port", [](auto&&...)
       {
         return standard_error;
       });
@@ -991,15 +991,18 @@ inline namespace kernel
       library.export_("binary-port?");
       library.export_("eof-object");
       library.export_("eof-object?");
+      library.export_("error-port");
       library.export_("get-char!");
       library.export_("get-char");
       library.export_("get-ready?");
       library.export_("get-string!");
+      library.export_("input-port");
       library.export_("input-port-close");
       library.export_("input-port-open");
       library.export_("input-port-open?");
       library.export_("input-port?");
       library.export_("input-string-open");
+      library.export_("output-port");
       library.export_("output-port-close");
       library.export_("output-port-flush");
       library.export_("output-port-open");
@@ -1010,9 +1013,6 @@ inline namespace kernel
       library.export_("port?");
       library.export_("put-char");
       library.export_("put-string");
-      library.export_("standard-error-port");
-      library.export_("standard-input-port");
-      library.export_("standard-output-port");
       library.export_("textual-port?");
     });
 

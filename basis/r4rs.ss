@@ -1,7 +1,7 @@
 (define-library (scheme r4rs)
   (import (meevax inexact)
           (only (meevax number) exact-integer? expt exact inexact ratio? ratio-numerator ratio-denominator)
-          (only (meevax port) get-ready? standard-input-port standard-output-port)
+          (only (meevax port) get-ready? input-port output-port)
           (only (meevax string) string-copy)
           (only (meevax syntax) define-syntax)
           (only (meevax vector) vector-fill!)
@@ -142,11 +142,11 @@
                    (begin (string-set! s k c)
                           (rec (- k 1)))))))
 
-         (define %current-input-port standard-input-port)
+         (define %current-input-port (input-port))
 
          (define (current-input-port) %current-input-port)
 
-         (define %current-output-port standard-output-port)
+         (define %current-output-port (output-port))
 
          (define (current-output-port) %current-output-port)
 

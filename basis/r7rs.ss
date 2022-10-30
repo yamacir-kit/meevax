@@ -6,12 +6,12 @@
                 binary-port?
                 textual-port?
                 port?
+                input-port
                 input-port-open?
+                output-port
                 output-port-open?
                 output-port-flush
-                standard-input-port
-                standard-output-port
-                standard-error-port
+                error-port
                 eof-object
                 get-ready?
                 get-char
@@ -357,7 +357,7 @@
              result))
 
          (define current-input-port
-           (make-parameter (standard-input-port)
+           (make-parameter (input-port)
              (lambda (x)
                (cond ((not (input-port? x))
                       (error "current-input-port: not input-port" x))
@@ -366,7 +366,7 @@
                      (else x)))))
 
          (define current-output-port
-           (make-parameter (standard-output-port)
+           (make-parameter (output-port)
              (lambda (x)
                (cond ((not (output-port? x))
                       (error "current-output-port: not output-port" x))
@@ -375,7 +375,7 @@
                      (else x)))))
 
          (define current-error-port
-           (make-parameter (standard-error-port)
+           (make-parameter (error-port)
              (lambda (x)
                (cond ((not (output-port? x))
                       (error "current-error-port: not output-port" x))
