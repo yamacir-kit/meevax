@@ -44,26 +44,10 @@ inline namespace kernel
 
   #undef DEFINE
 
-  #define DEFINE(TYPENAME, FILE_STREAM, NAME)                                  \
-  TYPENAME::TYPENAME(string const& pathname)                                   \
-    : FILE_STREAM { pathname }                                                 \
-    , pathname { pathname }                                                    \
-  {}                                                                           \
-                                                                               \
-  TYPENAME::TYPENAME(std::string const& pathname)                              \
-    : FILE_STREAM { pathname }                                                 \
-    , pathname { pathname }                                                    \
-  {}                                                                           \
-                                                                               \
-  auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
-  {                                                                            \
-    return os << magenta("#,(") << green("open-" NAME " ") << datum.pathname << magenta(")"); \
-  }                                                                            \
-  static_assert(true)
-
-  DEFINE(       file_port, std:: fstream,        "file");
-  DEFINE( input_file_port, std::ifstream,  "input-file");
-  DEFINE(output_file_port, std::ofstream, "outout-file");
+  auto operator <<(std::ostream & os, file_port const& datum) -> std::ostream &
+  {
+    return os << magenta("#,(") << green("open-port ") << datum.name << magenta(")");
+  }
 
   #undef DEFINE
 

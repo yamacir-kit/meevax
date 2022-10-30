@@ -858,12 +858,12 @@ inline namespace kernel
 
       library.define<procedure>("input-port-open", [](let const& xs)
       {
-        return make<input_file_port>(car(xs).as<string>());
+        return make<file_port>(car(xs).as<string>());
       });
 
       library.define<procedure>("output-port-open", [](let const& xs)
       {
-        return make<output_file_port>(car(xs).as<string>());
+        return make<file_port>(car(xs).as<string>());
       });
 
       library.define<procedure>("input-port-close", [](let const& xs)

@@ -41,21 +41,18 @@ inline namespace kernel
 
   #undef DEFINE
 
-  #define DEFINE(TYPENAME, FILE_STREAM)                                        \
-  struct TYPENAME : public FILE_STREAM                                         \
-  {                                                                            \
-    string const pathname;                                                     \
-                                                                               \
-    explicit TYPENAME(string const&);                                          \
-                                                                               \
-    explicit TYPENAME(std::string const&);                                     \
-  };                                                                           \
-                                                                               \
-  auto operator <<(std::ostream &, TYPENAME const&) -> std::ostream &
+  struct file_port : public std::fstream
+  {
+    string const name;
 
-  DEFINE(       file_port, std:: fstream);
-  DEFINE( input_file_port, std::ifstream);
-  DEFINE(output_file_port, std::ofstream);
+    template <typename String, typename... Ts>
+    explicit file_port(String const& name, Ts&&... xs)
+      : std::fstream { name, std::forward<decltype(xs)>(xs)... }
+      , name { name }
+    {}
+  };
+
+  auto operator <<(std::ostream &, file_port const&) -> std::ostream &;
 
   #undef DEFINE
 
