@@ -54,21 +54,12 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, file_port const&) -> std::ostream &;
 
-  #undef DEFINE
+  struct string_port : public std::stringstream
+  {
+    using std::stringstream::stringstream;
+  };
 
-  #define DEFINE(TYPENAME, BASE)                                               \
-  struct TYPENAME : public std::BASE                                           \
-  {                                                                            \
-    using std::BASE::BASE;                                                     \
-  };                                                                           \
-                                                                               \
-  auto operator <<(std::ostream &, TYPENAME const&) -> std::ostream &
-
-  DEFINE(       string_port,  stringstream);
-  DEFINE( input_string_port, istringstream);
-  DEFINE(output_string_port, ostringstream);
-
-  #undef DEFINE
+  auto operator <<(std::ostream &, string_port const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

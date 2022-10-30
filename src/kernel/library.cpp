@@ -869,19 +869,19 @@ inline namespace kernel
 
       library.define<procedure>("input-string-open", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? make<input_string_port>(car(xs).as<string>())
-                                  : make<input_string_port>();
+        return cdr(xs).is<pair>() ? make<string_port>(car(xs).as<string>())
+                                  : make<string_port>();
       });
 
       library.define<procedure>("output-string-open", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? make<output_string_port>(car(xs).as<string>())
-                                  : make<output_string_port>();
+        return cdr(xs).is<pair>() ? make<string_port>(car(xs).as<string>())
+                                  : make<string_port>();
       });
 
       library.define<procedure>("output-string-get", [](let const& xs)
       {
-        return make<string>(car(xs).as<std::ostringstream>().str());
+        return make<string>(car(xs).as<string_port>().str());
       });
 
       library.define<predicate>("get-ready?", [](let const& xs)

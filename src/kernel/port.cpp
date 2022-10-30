@@ -49,19 +49,9 @@ inline namespace kernel
     return os << magenta("#,(") << green("open ") << datum.name << magenta(")");
   }
 
-  #undef DEFINE
-
-  #define DEFINE(TYPENAME, NAME)                                               \
-  auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
-  {                                                                            \
-    return os << magenta("#,(") << green("open-" NAME) << " " << string(datum.str()) << magenta(")"); \
-  }                                                                            \
-  static_assert(true)
-
-  DEFINE(       string_port,        "string");
-  DEFINE( input_string_port,  "input-string");
-  DEFINE(output_string_port, "output-string");
-
-  #undef DEFINE
+  auto operator <<(std::ostream & os, string_port const& datum) -> std::ostream &
+  {
+    return os << magenta("#,(") << green("open-string ") << string(datum.str()) << magenta(")");
+  }
 } // namespace kernel
 } // namespace meevax
