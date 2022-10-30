@@ -9,9 +9,7 @@
           (meevax list)
           (meevax number)
           (meevax pair)
-          (rename (meevax port)
-                  (input-port-close close-input-port)
-                  (output-port-close close-output-port))
+          (meevax port)
           (meevax read)
           (meevax string)
           (meevax symbol)
@@ -568,6 +566,10 @@
          (define open-input-file open)
 
          (define open-output-file open)
+
+         (define close-input-port close)
+
+         (define close-output-port close)
 
          (define (read . port)
            (%read (if (pair? port)
