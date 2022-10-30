@@ -892,7 +892,7 @@ inline namespace kernel
                                   : make<input_string_port>();
       });
 
-      library.define<procedure>("open-output-string", [](let const& xs)
+      library.define<procedure>("output-string-open", [](let const& xs)
       {
         return cdr(xs).is<pair>() ? make<output_string_port>(car(xs).as<string>())
                                   : make<output_string_port>();
@@ -988,32 +988,32 @@ inline namespace kernel
         return unspecified;
       });
 
-      library.export_("input-port?");
-      library.export_("output-port?");
       library.export_("binary-port?");
-      library.export_("textual-port?");
-      library.export_("port?");
-      library.export_("input-port-open?");
-      library.export_("output-port-open?");
-      library.export_("standard-input-port");
-      library.export_("standard-output-port");
-      library.export_("standard-error-port");
-      library.export_("open-input-file");
-      library.export_("open-output-file");
       library.export_("close-input-port");
       library.export_("close-output-port");
-      library.export_("input-string-open");
-      library.export_("open-output-string");
-      library.export_("get-output-string");
-      library.export_("eof-object?");
       library.export_("eof-object");
-      library.export_("get-ready?");
-      library.export_("get-char");
+      library.export_("eof-object?");
       library.export_("get-char!");
+      library.export_("get-char");
+      library.export_("get-output-string");
+      library.export_("get-ready?");
       library.export_("get-string!");
+      library.export_("input-port-open?");
+      library.export_("input-port?");
+      library.export_("input-string-open");
+      library.export_("open-input-file");
+      library.export_("open-output-file");
+      library.export_("output-port-flush");
+      library.export_("output-port-open?");
+      library.export_("output-port?");
+      library.export_("output-string-open");
+      library.export_("port?");
       library.export_("put-char");
       library.export_("put-string");
-      library.export_("output-port-flush");
+      library.export_("standard-error-port");
+      library.export_("standard-input-port");
+      library.export_("standard-output-port");
+      library.export_("textual-port?");
     });
 
     define_library("(meevax read)", [](library & library)
