@@ -72,14 +72,6 @@ inline namespace kernel
     explicit string(const_reference, const_reference, const_reference);
 
     /*
-       (string-append string ...)                                     procedure
-
-       Returns a newly allocated string whose characters are the concatenation
-       of the characters in the given strings.
-    */
-    static auto append(const_reference) -> value_type;
-
-    /*
        (string-copy string)                                           procedure
        (string-copy string start)                                     procedure
        (string-copy string start end)                                 procedure

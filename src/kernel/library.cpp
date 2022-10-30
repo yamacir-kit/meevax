@@ -1074,7 +1074,23 @@ inline namespace kernel
 
       library.define<procedure>("string-append", [](let const& xs)
       {
-        return string::append(xs);
+        /*
+           (string-append string ...)                                 procedure
+
+           Returns a newly allocated string whose characters are the
+           concatenation of the characters in the given strings.
+        */
+
+        auto&& s = string();
+
+        for (let const& x : xs)
+        {
+          std::copy(std::begin(x.as<string>().codepoints),
+                    std::end(x.as<string>().codepoints),
+                    std::back_inserter(s.codepoints));
+        }
+
+        return make(std::forward<decltype(s)>(s));
       });
 
       library.define<procedure>("string-copy", [](let const& xs)

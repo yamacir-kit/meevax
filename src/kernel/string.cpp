@@ -52,20 +52,6 @@ inline namespace kernel
     : codepoints { k.as<exact_integer>(), c.as<character>() }
   {}
 
-  auto string::append(const_reference xs) -> value_type
-  {
-    let const s = make<string>();
-
-    for (let const& x : xs)
-    {
-      std::copy(std::begin(x.as<string>().codepoints),
-                std::end(x.as<string>().codepoints),
-                std::back_inserter(s.as<string>().codepoints));
-    }
-
-    return s;
-  }
-
   auto string::copy(const_reference from, const_reference to) const -> value_type
   {
     let const& s = make<string>();
