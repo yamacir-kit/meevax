@@ -886,7 +886,7 @@ inline namespace kernel
         return unspecified;
       });
 
-      library.define<procedure>("open-input-string", [](let const& xs)
+      library.define<procedure>("input-string-open", [](let const& xs)
       {
         return cdr(xs).is<pair>() ? make<input_string_port>(car(xs).as<string>())
                                   : make<input_string_port>();
@@ -1002,7 +1002,7 @@ inline namespace kernel
       library.export_("open-output-file");
       library.export_("close-input-port");
       library.export_("close-output-port");
-      library.export_("open-input-string");
+      library.export_("input-string-open");
       library.export_("open-output-string");
       library.export_("get-output-string");
       library.export_("eof-object?");
