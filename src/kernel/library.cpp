@@ -105,7 +105,7 @@ inline namespace kernel
       library.export_("emergency-exit");
     });
 
-    define_library("(meevax control)", [](library & library)
+    define_library("(meevax function)", [](library & library)
     {
       library.define<predicate>("closure?", [](let const& xs)
       {
@@ -117,8 +117,20 @@ inline namespace kernel
         return car(xs).is<continuation>();
       });
 
+      library.define<procedure>("foreign-function", [](let const& xs)
+      {
+        return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
+      });
+
+      library.define<predicate>("foreign-function?", [](let const& xs)
+      {
+        return car(xs).is<procedure>();
+      });
+
       library.export_("closure?");
       library.export_("continuation?");
+      library.export_("foreign-function");
+      library.export_("foreign-function?");
     });
 
     define_library("(meevax environment)", [](library & library)
@@ -244,22 +256,6 @@ inline namespace kernel
       library.export_("type-of");
       library.export_("disassemble");
       library.export_("ieee-float?");
-    });
-
-    define_library("(meevax foreign-function)", [](library & library)
-    {
-      library.define<procedure>("foreign-function", [](let const& xs)
-      {
-        return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
-      });
-
-      library.define<predicate>("foreign-function?", [](let const& xs)
-      {
-        return car(xs).is<procedure>();
-      });
-
-      library.export_("foreign-function");
-      library.export_("foreign-function?");
     });
 
     define_library("(meevax garbage-collector)", [](library & library)
