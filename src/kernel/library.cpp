@@ -140,20 +140,20 @@ inline namespace kernel
         return cadr(xs).as<environment>().evaluate(car(xs));
       });
 
-      library.define<procedure>("%load", [](let const& xs)
-      {
-        return car(xs).as<environment>().load(cadr(xs).as<string>());
-      });
-
       library.define<procedure>("interaction-environment", [](auto&&...)
       {
         return interaction_environment();
       });
 
+      library.define<procedure>("load", [](let const& xs)
+      {
+        return car(xs).as<environment>().load(cadr(xs).as<string>());
+      });
+
       library.export_("environment");
       library.export_("eval");
       library.export_("interaction-environment");
-      library.export_("%load");
+      library.export_("load");
     });
 
     define_library("(meevax dynamic-environment)", [](library & library)
