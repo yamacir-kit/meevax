@@ -38,7 +38,7 @@ inline namespace kernel
                                                                                \
   let const standard_##NAME = make<standard_##NAME##_port>()
 
-  DEFINE(input,  std:: cin);
+  DEFINE(input,  std::cin );
   DEFINE(output, std::cout);
   DEFINE(error,  std::cerr);
 

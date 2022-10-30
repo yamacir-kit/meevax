@@ -867,21 +867,21 @@ inline namespace kernel
         return unspecified;
       });
 
-      library.define<procedure>("input-string-open", [](let const& xs)
+      library.define<procedure>("open-string", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? make<string_port>(car(xs).as<string>())
-                                  : make<string_port>();
+        return xs.is<pair>() ? make<string_port>(car(xs).as<string>()) : make<string_port>();
       });
 
-      library.define<procedure>("output-string-open", [](let const& xs)
+      library.define<procedure>("port->string", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? make<string_port>(car(xs).as<string>())
-                                  : make<string_port>();
-      });
-
-      library.define<procedure>("output-string-get", [](let const& xs)
-      {
-        return make<string>(car(xs).as<string_port>().str());
+        if (car(xs).is<string_port>())
+        {
+          return make<string>(car(xs).as<string_port>().str());
+        }
+        else
+        {
+          return make<string>(std::string(std::istreambuf_iterator<char>(car(xs).as<std::istream>()), {}));
+        }
       });
 
       library.define<predicate>("get-ready?", [](let const& xs)
@@ -981,14 +981,13 @@ inline namespace kernel
       library.export_("input-port");
       library.export_("input-port-open?");
       library.export_("input-port?");
-      library.export_("input-string-open");
       library.export_("open");
+      library.export_("open-string");
       library.export_("output-port");
       library.export_("output-port-flush");
       library.export_("output-port-open?");
       library.export_("output-port?");
-      library.export_("output-string-get");
-      library.export_("output-string-open");
+      library.export_("port->string");
       library.export_("port?");
       library.export_("put-char");
       library.export_("put-string");
