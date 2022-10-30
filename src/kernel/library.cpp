@@ -898,7 +898,7 @@ inline namespace kernel
                                   : make<output_string_port>();
       });
 
-      library.define<procedure>("get-output-string", [](let const& xs)
+      library.define<procedure>("output-string-get", [](let const& xs)
       {
         return make<string>(car(xs).as<std::ostringstream>().str());
       });
@@ -995,7 +995,6 @@ inline namespace kernel
       library.export_("eof-object?");
       library.export_("get-char!");
       library.export_("get-char");
-      library.export_("get-output-string");
       library.export_("get-ready?");
       library.export_("get-string!");
       library.export_("input-port-open?");
@@ -1006,6 +1005,7 @@ inline namespace kernel
       library.export_("output-port-flush");
       library.export_("output-port-open?");
       library.export_("output-port?");
+      library.export_("output-string-get");
       library.export_("output-string-open");
       library.export_("port?");
       library.export_("put-char");
