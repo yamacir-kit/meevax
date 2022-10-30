@@ -3,10 +3,22 @@
           (only (meevax number) exact-integer?)
           (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
           (only (meevax port)
-            binary-port? textual-port? port? input-port-open? output-port-open?
-            standard-input-port standard-output-port standard-error-port
-            eof-object get-ready? get-char get-char! put-char put-string
-            %flush-output-port)
+                binary-port?
+                textual-port?
+                port?
+                input-port-open?
+                output-port-open?
+                output-port-flush
+                standard-input-port
+                standard-output-port
+                standard-error-port
+                eof-object
+                get-ready?
+                get-char
+                get-char!
+                put-char
+                put-string
+                )
           (only (meevax string) string-copy! vector->string)
           (only (meevax version) features)
           (scheme r5rs)
@@ -406,9 +418,9 @@
            (apply write-char #\newline port))
 
          (define (flush-output-port . port)
-           (%flush-output-port (if (pair? port)
-                                   (car port)
-                                   (current-output-port))))
+           (output-port-flush (if (pair? port)
+                                  (car port)
+                                  (current-output-port))))
          )
   )
 

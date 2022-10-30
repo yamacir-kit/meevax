@@ -982,7 +982,7 @@ inline namespace kernel
         return unspecified;
       });
 
-      library.define<procedure>("%flush-output-port", [](let const& xs)
+      library.define<procedure>("output-port-flush", [](let const& xs)
       {
         car(xs).as<std::ostream>() << std::flush;
         return unspecified;
@@ -1013,7 +1013,7 @@ inline namespace kernel
       library.export_("get-string!");
       library.export_("put-char");
       library.export_("put-string");
-      library.export_("%flush-output-port");
+      library.export_("output-port-flush");
     });
 
     define_library("(meevax read)", [](library & library)
