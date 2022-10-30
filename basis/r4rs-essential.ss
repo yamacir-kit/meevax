@@ -13,6 +13,7 @@
                   (input-port-close close-input-port)
                   (input-port-open open-input-file)
                   (output-port-close close-output-port)
+                  (output-port-open open-output-file)
                   )
           (meevax read)
           (meevax string)
