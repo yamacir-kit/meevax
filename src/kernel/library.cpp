@@ -978,14 +978,7 @@ inline namespace kernel
 
       library.define<procedure>("put-string", [](let const& xs)
       {
-        auto copy = [&]()
-        {
-          return car(xs).as<string>().copy(list_tail(xs, 2).is<pair>() ? list_ref(xs, 2) : e0,
-                                           list_tail(xs, 3).is<pair>() ? list_ref(xs, 3) : car(xs).as<string>().length());
-        };
-
-        cadr(xs).as<std::ostream>() << static_cast<std::string>(copy().as<string>());
-
+        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
         return unspecified;
       });
 

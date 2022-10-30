@@ -400,7 +400,7 @@
            (case (length xs)
              ((0)  (put-string string (current-output-port)))
              ((1)  (put-string string (car xs)))
-             (else (put-string (apply string-copy string (cadr xs)) (car xs)))))
+             (else (put-string (apply string-copy string (cdr xs)) (car xs)))))
 
          (define (newline . port)
            (apply write-char #\newline port))
