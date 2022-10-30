@@ -876,7 +876,7 @@ inline namespace kernel
         return unspecified;
       });
 
-      library.define<procedure>("close-output-port", [](let const& xs)
+      library.define<procedure>("output-port-close", [](let const& xs)
       {
         if (let const& x = car(xs); x.is_also<std::ofstream>())
         {
@@ -989,7 +989,6 @@ inline namespace kernel
       });
 
       library.export_("binary-port?");
-      library.export_("close-output-port");
       library.export_("eof-object");
       library.export_("eof-object?");
       library.export_("get-char!");
@@ -1002,6 +1001,7 @@ inline namespace kernel
       library.export_("input-string-open");
       library.export_("open-input-file");
       library.export_("open-output-file");
+      library.export_("output-port-close");
       library.export_("output-port-flush");
       library.export_("output-port-open?");
       library.export_("output-port?");

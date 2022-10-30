@@ -11,6 +11,7 @@
           (meevax pair)
           (rename (meevax port)
                   (input-port-close close-input-port)
+                  (output-port-close close-output-port)
                   )
           (meevax read)
           (meevax string)
