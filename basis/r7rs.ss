@@ -529,8 +529,7 @@
            (string-map char-foldcase x))))
 
 (define-library (scheme eval)
-  (import (only (meevax environment) environment)
-          (only (meevax evaluate) eval))
+  (import (only (meevax environment) environment eval))
   (export environment eval))
 
 (define-library (scheme file)

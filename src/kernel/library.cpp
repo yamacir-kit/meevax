@@ -135,6 +135,11 @@ inline namespace kernel
         return e;
       });
 
+      library.define<procedure>("eval", [](let const& xs)
+      {
+        return cadr(xs).as<environment>().evaluate(car(xs));
+      });
+
       library.define<procedure>("%load", [](let const& xs)
       {
         return car(xs).as<environment>().load(cadr(xs).as<string>());
@@ -146,6 +151,7 @@ inline namespace kernel
       });
 
       library.export_("environment");
+      library.export_("eval");
       library.export_("interaction-environment");
       library.export_("%load");
     });
@@ -173,16 +179,6 @@ inline namespace kernel
 
       library.export_("identity=?");
       library.export_("normally=?");
-    });
-
-    define_library("(meevax evaluate)", [](library & library)
-    {
-      library.define<procedure>("eval", [](let const& xs)
-      {
-        return cadr(xs).as<environment>().evaluate(car(xs));
-      });
-
-      library.export_("eval");
     });
 
     define_library("(meevax error)", [](library & library)
