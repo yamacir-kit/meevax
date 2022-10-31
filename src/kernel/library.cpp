@@ -978,7 +978,7 @@ inline namespace kernel
         return s;
       });
 
-      library.define<procedure>("%read", [](let const& xs) mutable -> value_type
+      library.define<procedure>("read", [](let const& xs) mutable -> value_type
       {
         try
         {
@@ -998,7 +998,7 @@ inline namespace kernel
       library.export_("get-char!");
       library.export_("get-ready?");
       library.export_("get-string!");
-      library.export_("%read");
+      library.export_("read");
     });
 
     define_library("(meevax string)", [](library & library)

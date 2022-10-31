@@ -566,7 +566,8 @@
   )
 
 (define-library (scheme read)
-  (import (meevax read)
+  (import (rename (meevax read)
+                  (read %read))
           (scheme base))
   (export read)
   (begin (define (read . x)
