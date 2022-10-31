@@ -1262,25 +1262,6 @@ inline namespace kernel
 
     define_library("(meevax write)", [](library & library)
     {
-      library.define<procedure>("print", [](let const& xs)
-      {
-        for (let const& x : xs)
-        {
-          if (x.is<string>())
-          {
-            std::cout << static_cast<std::string>(x.as<string>());
-          }
-          else
-          {
-            std::cout << x;
-          }
-        }
-
-        std::cout << std::endl;
-
-        return standard_output;
-      });
-
       library.define<procedure>("put-char", [](let const& xs)
       {
         cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
@@ -1305,7 +1286,6 @@ inline namespace kernel
         return unspecified;
       });
 
-      library.export_("print");
       library.export_("put-char");
       library.export_("put-string");
       library.export_("write");
