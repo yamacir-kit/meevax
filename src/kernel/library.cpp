@@ -884,11 +884,6 @@ inline namespace kernel
         }
       });
 
-      library.define<predicate>("get-ready?", [](let const& xs)
-      {
-        return static_cast<bool>(car(xs).as<std::istream>());
-      });
-
       library.define<predicate>("eof-object?", [](let const& xs)
       {
         return car(xs).is<eof>();
@@ -910,7 +905,6 @@ inline namespace kernel
       library.export_("eof-object");
       library.export_("eof-object?");
       library.export_("error-port");
-      library.export_("get-ready?");
       library.export_("input-port");
       library.export_("input-port-open?");
       library.export_("input-port?");
@@ -962,6 +956,11 @@ inline namespace kernel
         }
       });
 
+      library.define<predicate>("get-ready?", [](let const& xs)
+      {
+        return static_cast<bool>(car(xs).as<std::istream>());
+      });
+
       library.define<procedure>("get-string!", [](let const& xs)
       {
         auto read_k = [](string & string, std::size_t k, std::istream & is)
@@ -997,6 +996,7 @@ inline namespace kernel
 
       library.export_("get-char");
       library.export_("get-char!");
+      library.export_("get-ready?");
       library.export_("get-string!");
       library.export_("%read");
     });

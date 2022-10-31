@@ -13,9 +13,8 @@
                 output-port-flush
                 error-port
                 eof-object
-                get-ready?
                 )
-          (only (meevax read) get-char get-char!)
+          (only (meevax read) get-char get-char! get-ready?)
           (only (meevax string) string-copy! vector->string)
           (only (meevax version) features)
           (only (meevax write) put-char put-string)
