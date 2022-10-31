@@ -817,27 +817,15 @@ inline namespace kernel
         return car(xs).is_also<std::ios>();
       });
 
-      library.define<predicate>("input-port-open?", [](let const& xs)
+      library.define<predicate>("open?", [](let const& xs)
       {
-        if (let const& x = car(xs); x.is_also<std::ifstream>())
+        if (let const& x = car(xs); x.is<file_port>())
         {
-          return x.as<std::ifstream>().is_open();
+          return x.as<file_port>().is_open();
         }
         else
         {
-          return x.is_also<std::istream>();
-        }
-      });
-
-      library.define<predicate>("output-port-open?", [](let const& xs)
-      {
-        if (let const& x = car(xs); x.is_also<std::ofstream>())
-        {
-          return x.as<std::ofstream>().is_open();
-        }
-        else
-        {
-          return x.is_also<std::ostream>();
+          return x.is_also<std::ios>();
         }
       });
 
@@ -894,7 +882,7 @@ inline namespace kernel
         return eof_object;
       });
 
-      library.define<procedure>("output-port-flush", [](let const& xs)
+      library.define<procedure>("flush", [](let const& xs)
       {
         car(xs).as<std::ostream>() << std::flush;
         return unspecified;
@@ -905,13 +893,12 @@ inline namespace kernel
       library.export_("eof-object");
       library.export_("eof-object?");
       library.export_("error-port");
+      library.export_("flush");
       library.export_("input-port");
-      library.export_("input-port-open?");
       library.export_("input-port?");
       library.export_("open");
+      library.export_("open?");
       library.export_("output-port");
-      library.export_("output-port-flush");
-      library.export_("output-port-open?");
       library.export_("output-port?");
       library.export_("port->string");
       library.export_("port?");

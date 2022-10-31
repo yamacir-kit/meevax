@@ -7,10 +7,9 @@
                 textual-port?
                 port?
                 input-port
-                input-port-open?
+                open?
                 output-port
-                output-port-open?
-                output-port-flush
+                flush
                 error-port
                 eof-object
                 )
@@ -353,6 +352,10 @@
              (close-port port)
              result))
 
+         (define input-port-open? open?)
+
+         (define output-port-open? open?)
+
          (define current-input-port
            (make-parameter (input-port)
              (lambda (x)
@@ -415,9 +418,9 @@
            (apply write-char #\newline port))
 
          (define (flush-output-port . port)
-           (output-port-flush (if (pair? port)
-                                  (car port)
-                                  (current-output-port))))
+           (flush (if (pair? port)
+                      (car port)
+                      (current-output-port))))
          )
   )
 
