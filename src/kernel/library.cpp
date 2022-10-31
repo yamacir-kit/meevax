@@ -867,7 +867,7 @@ inline namespace kernel
         return unspecified;
       });
 
-      library.define<procedure>("open-string", [](let const& xs)
+      library.define<procedure>("string->port", [](let const& xs)
       {
         return xs.is<pair>() ? make<string_port>(car(xs).as<string>()) : make<string_port>();
       });
@@ -909,13 +909,13 @@ inline namespace kernel
       library.export_("input-port-open?");
       library.export_("input-port?");
       library.export_("open");
-      library.export_("open-string");
       library.export_("output-port");
       library.export_("output-port-flush");
       library.export_("output-port-open?");
       library.export_("output-port?");
       library.export_("port->string");
       library.export_("port?");
+      library.export_("string->port");
       library.export_("textual-port?");
     });
 

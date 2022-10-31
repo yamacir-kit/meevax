@@ -51,7 +51,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, string_port const& datum) -> std::ostream &
   {
-    return os << magenta("#,(") << green("open-string ") << string(datum.str()) << magenta(")");
+    return os << magenta("#,(") << green("string->port ") << string(datum.str()) << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax
