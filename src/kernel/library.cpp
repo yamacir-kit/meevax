@@ -889,6 +889,44 @@ inline namespace kernel
         return static_cast<bool>(car(xs).as<std::istream>());
       });
 
+      library.define<predicate>("eof-object?", [](let const& xs)
+      {
+        return car(xs).is<eof>();
+      });
+
+      library.define<procedure>("eof-object", [](auto&&...)
+      {
+        return eof_object;
+      });
+
+      library.define<procedure>("output-port-flush", [](let const& xs)
+      {
+        car(xs).as<std::ostream>() << std::flush;
+        return unspecified;
+      });
+
+      library.export_("binary-port?");
+      library.export_("close");
+      library.export_("eof-object");
+      library.export_("eof-object?");
+      library.export_("error-port");
+      library.export_("get-ready?");
+      library.export_("input-port");
+      library.export_("input-port-open?");
+      library.export_("input-port?");
+      library.export_("open");
+      library.export_("open-string");
+      library.export_("output-port");
+      library.export_("output-port-flush");
+      library.export_("output-port-open?");
+      library.export_("output-port?");
+      library.export_("port->string");
+      library.export_("port?");
+      library.export_("textual-port?");
+    });
+
+    define_library("(meevax read)", [](library & library)
+    {
       library.define<procedure>("get-char", [](let const& xs) -> value_type
       {
         try
@@ -924,16 +962,6 @@ inline namespace kernel
         }
       });
 
-      library.define<predicate>("eof-object?", [](let const& xs)
-      {
-        return car(xs).is<eof>();
-      });
-
-      library.define<procedure>("eof-object", [](auto&&...)
-      {
-        return eof_object;
-      });
-
       library.define<procedure>("get-string!", [](let const& xs)
       {
         auto read_k = [](string & string, std::size_t k, std::istream & is)
@@ -951,37 +979,6 @@ inline namespace kernel
         return s;
       });
 
-      library.define<procedure>("output-port-flush", [](let const& xs)
-      {
-        car(xs).as<std::ostream>() << std::flush;
-        return unspecified;
-      });
-
-      library.export_("binary-port?");
-      library.export_("close");
-      library.export_("eof-object");
-      library.export_("eof-object?");
-      library.export_("error-port");
-      library.export_("get-char!");
-      library.export_("get-char");
-      library.export_("get-ready?");
-      library.export_("get-string!");
-      library.export_("input-port");
-      library.export_("input-port-open?");
-      library.export_("input-port?");
-      library.export_("open");
-      library.export_("open-string");
-      library.export_("output-port");
-      library.export_("output-port-flush");
-      library.export_("output-port-open?");
-      library.export_("output-port?");
-      library.export_("port->string");
-      library.export_("port?");
-      library.export_("textual-port?");
-    });
-
-    define_library("(meevax read)", [](library & library)
-    {
       library.define<procedure>("%read", [](let const& xs) mutable -> value_type
       {
         try
@@ -998,6 +995,9 @@ inline namespace kernel
         }
       });
 
+      library.export_("get-char");
+      library.export_("get-char!");
+      library.export_("get-string!");
       library.export_("%read");
     });
 
@@ -1275,30 +1275,6 @@ inline namespace kernel
 
     define_library("(meevax write)", [](library & library)
     {
-      library.define<procedure>("write", [](let const& xs)
-      {
-        kernel::write(cadr(xs), car(xs));
-        return unspecified;
-      });
-
-      library.define<procedure>("write-simple", [](let const& xs)
-      {
-        kernel::write_simple(cadr(xs), car(xs));
-        return unspecified;
-      });
-
-      library.define<procedure>("put-char", [](let const& xs)
-      {
-        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
-        return unspecified;
-      });
-
-      library.define<procedure>("put-string", [](let const& xs)
-      {
-        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
-        return unspecified;
-      });
-
       library.define<procedure>("print", [](let const& xs)
       {
         for (let const& x : xs)
@@ -1316,6 +1292,30 @@ inline namespace kernel
         std::cout << std::endl;
 
         return standard_output;
+      });
+
+      library.define<procedure>("put-char", [](let const& xs)
+      {
+        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
+        return unspecified;
+      });
+
+      library.define<procedure>("put-string", [](let const& xs)
+      {
+        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
+        return unspecified;
+      });
+
+      library.define<procedure>("write", [](let const& xs)
+      {
+        meevax::write(cadr(xs), car(xs));
+        return unspecified;
+      });
+
+      library.define<procedure>("write-simple", [](let const& xs)
+      {
+        write_simple(cadr(xs), car(xs));
+        return unspecified;
       });
 
       library.export_("print");
