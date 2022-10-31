@@ -15,7 +15,8 @@
           (meevax symbol)
           (meevax syntax)
           (meevax vector)
-          (prefix (meevax write) %)
+          (rename (meevax write)
+                  (write %write))
           (srfi 211 explicit-renaming))
 
   (export quote lambda if set! cond case and or let letrec begin quasiquote

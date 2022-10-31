@@ -951,18 +951,6 @@ inline namespace kernel
         return s;
       });
 
-      library.define<procedure>("put-char", [](let const& xs)
-      {
-        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
-        return unspecified;
-      });
-
-      library.define<procedure>("put-string", [](let const& xs)
-      {
-        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
-        return unspecified;
-      });
-
       library.define<procedure>("output-port-flush", [](let const& xs)
       {
         car(xs).as<std::ostream>() << std::flush;
@@ -989,8 +977,6 @@ inline namespace kernel
       library.export_("output-port?");
       library.export_("port->string");
       library.export_("port?");
-      library.export_("put-char");
-      library.export_("put-string");
       library.export_("textual-port?");
     });
 
@@ -1301,6 +1287,18 @@ inline namespace kernel
         return unspecified;
       });
 
+      library.define<procedure>("put-char", [](let const& xs)
+      {
+        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
+        return unspecified;
+      });
+
+      library.define<procedure>("put-string", [](let const& xs)
+      {
+        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
+        return unspecified;
+      });
+
       library.define<procedure>("print", [](let const& xs)
       {
         for (let const& x : xs)
@@ -1321,6 +1319,8 @@ inline namespace kernel
       });
 
       library.export_("print");
+      library.export_("put-char");
+      library.export_("put-string");
       library.export_("write");
       library.export_("write-simple");
     });

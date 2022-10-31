@@ -16,11 +16,10 @@
                 get-ready?
                 get-char
                 get-char!
-                put-char
-                put-string
                 )
           (only (meevax string) string-copy! vector->string)
           (only (meevax version) features)
+          (only (meevax write) put-char put-string)
           (scheme r5rs)
           (srfi 6) ; Basic String Ports
           (srfi 11) ; Syntax for receiving multiple values
