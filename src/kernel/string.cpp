@@ -34,11 +34,6 @@ inline namespace kernel
     : codepoints { k.as<exact_integer>(), c.as<character>() }
   {}
 
-  auto string::length() const -> value_type
-  {
-    return make<exact_integer>(codepoints.size());
-  }
-
   string::operator std::string() const
   {
     std::string result;

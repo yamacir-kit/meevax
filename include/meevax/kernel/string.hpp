@@ -41,13 +41,6 @@ inline namespace kernel
     */
     explicit string(const_reference, const_reference);
 
-    /*
-       (string-length string)                                         procedure
-
-       Returns the number of characters in the given string.
-    */
-    auto length() const -> value_type;
-
     operator std::string() const; // write-string (for display)
   };
 

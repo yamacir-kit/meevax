@@ -1002,7 +1002,13 @@ inline namespace kernel
 
       library.define<procedure>("string-length", [](let const& xs)
       {
-        return car(xs).as<string>().length();
+        /*
+           (string-length string)                                     procedure
+
+           Returns the number of characters in the given string.
+        */
+
+        return make<exact_integer>(list_ref(xs, 0).as<string>().codepoints.size());
       });
 
       library.define<procedure>("string-ref", [](let const& xs)
