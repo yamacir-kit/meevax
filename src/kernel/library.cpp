@@ -1113,15 +1113,15 @@ inline namespace kernel
            direction in such circumstances.
         */
 
-        auto&& s1 = xs[0].as<string>();
+        auto&& s1 = xs[0].as<string>().codepoints;
 
-        auto&& s2 = xs[2].as<string>();
+        auto&& s2 = xs[2].as<string>().codepoints;
 
-        s1.codepoints.reserve(s1.codepoints.size() + s2.codepoints.size());
+        s1.reserve(s1.size() + s2.size());
 
-        std::copy(std::next(std::begin(s2.codepoints), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
-                  std::next(std::begin(s2.codepoints), list_tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : s2.codepoints.size()),
-                  std::next(std::begin(s1.codepoints),                               xs[1].as<exact_integer>()));
+        std::copy(std::next(std::begin(s2), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
+                  std::next(std::begin(s2), list_tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : s2.size()),
+                  std::next(std::begin(s1),                               xs[1].as<exact_integer>()));
 
         return unspecified;
       });
@@ -1409,13 +1409,18 @@ inline namespace kernel
            It is an error if k is not a valid index of vector. The vector-ref
            procedure returns the contents of element k of vector.
         */
-
         return xs[0][xs[1].as<exact_integer>()];
       });
 
       library.define<procedure>("vector-set!", [](let const& xs)
       {
-        return car(xs).as<vector>().set(cadr(xs), caddr(xs));
+        /*
+           (vector-set! vector k obj)                                 procedure
+
+           It is an error if k is not a valid index of vector. The vector-set!
+           procedure stores obj in element k of vector.
+        */
+        return xs[0].as<vector>().objects[xs[1].as<exact_integer>()] = xs[2];
       });
 
       library.define<procedure>("vector-fill!", [](let const& xs)

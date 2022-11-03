@@ -63,11 +63,6 @@ inline namespace kernel
                            xcons);
   }
 
-  auto vector::set(const_reference k, const_reference x) -> const_reference
-  {
-    return objects.at(k.as<exact_integer>()) = x;
-  }
-
   auto vector::operator [](std::size_t k) const -> const_reference
   {
     return objects[k];
