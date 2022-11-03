@@ -1467,7 +1467,14 @@ inline namespace kernel
 
       library.define<procedure>("string->vector", [](let const& xs)
       {
-        return make<vector>(car(xs).as<string>());
+        auto&& v = vector();
+
+        for (auto&& character : xs[0].as<string>().codepoints)
+        {
+          v.objects.push_back(make(character));
+        }
+
+        return make(std::forward<decltype(v)>(v));
       });
 
       library.export_("vector?");

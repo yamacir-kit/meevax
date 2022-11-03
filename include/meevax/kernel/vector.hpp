@@ -29,8 +29,6 @@ inline namespace kernel
 
     explicit vector() = default;
 
-    explicit vector(string const&);
-
     /*
        (vector obj ...)                                               procedure
 

@@ -31,14 +31,6 @@ inline namespace kernel
     std::copy(std::begin(x), std::end(x), std::back_inserter(objects));
   }
 
-  vector::vector(string const& s)
-  {
-    for (auto const& c : s.codepoints)
-    {
-      objects.push_back(make(c));
-    }
-  }
-
   vector::vector(const_reference k, const_reference fill)
     : objects { k.as<exact_integer>(), fill }
   {}
