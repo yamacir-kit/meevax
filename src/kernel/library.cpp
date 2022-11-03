@@ -1348,7 +1348,14 @@ inline namespace kernel
 
       library.define<procedure>("vector-ref", [](let const& xs)
       {
-        return car(xs).as<vector>().ref(cadr(xs));
+        /*
+           (vector-ref vector k)                                      procedure
+
+           It is an error if k is not a valid index of vector. The vector-ref
+           procedure returns the contents of element k of vector.
+        */
+
+        return xs[0][xs[1].as<exact_integer>()];
       });
 
       library.define<procedure>("vector-set!", [](let const& xs)

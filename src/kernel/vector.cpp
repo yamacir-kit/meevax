@@ -97,14 +97,14 @@ inline namespace kernel
                            xcons);
   }
 
-  auto vector::ref(const_reference k) const -> const_reference
-  {
-    return data.at(k.as<exact_integer>());
-  }
-
   auto vector::set(const_reference k, const_reference x) -> const_reference
   {
     return data.at(k.as<exact_integer>()) = x;
+  }
+
+  auto vector::operator [](std::size_t k) const -> const_reference
+  {
+    return data[k];
   }
 
   auto operator ==(vector const& lhs, vector const& rhs) -> bool
