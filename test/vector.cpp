@@ -17,31 +17,31 @@ auto main() -> int
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 3);
+    assert(v.as<vector>().objects.size() == 3);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 3);
+    assert(v.as<vector>().objects.size() == 3);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 3);
+    assert(v.as<vector>().objects.size() == 3);
     assert(gc.count() == gc_count + 4);
 
-    v.as<vector>().data.clear();
+    v.as<vector>().objects.clear();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 0);
+    assert(v.as<vector>().objects.size() == 0);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 0);
+    assert(v.as<vector>().objects.size() == 0);
     assert(gc.count() == gc_count + 1);
   }
 
@@ -54,31 +54,31 @@ auto main() -> int
                                     make<symbol>("c")));
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 3);
+    assert(v.as<vector>().objects.size() == 3);
     assert(gc.count() == gc_count + 7);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 3);
+    assert(v.as<vector>().objects.size() == 3);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 3);
+    assert(v.as<vector>().objects.size() == 3);
     assert(gc.count() == gc_count + 4);
 
-    v.as<vector>().data.clear();
+    v.as<vector>().objects.clear();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 0);
+    assert(v.as<vector>().objects.size() == 0);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 0);
+    assert(v.as<vector>().objects.size() == 0);
     assert(gc.count() == gc_count + 1);
   }
 
@@ -93,39 +93,39 @@ auto main() -> int
     let const v = make<vector>(module.read("(a b c)"));
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 3);
-    assert(v.as<vector>().data[0].as<symbol>().value == "a");
-    assert(v.as<vector>().data[1].as<symbol>().value == "b");
-    assert(v.as<vector>().data[2].as<symbol>().value == "c");
+    assert(v.as<vector>().objects.size() == 3);
+    assert(v.as<vector>().objects[0].as<symbol>().value == "a");
+    assert(v.as<vector>().objects[1].as<symbol>().value == "b");
+    assert(v.as<vector>().objects[2].as<symbol>().value == "c");
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 3);
-    assert(v.as<vector>().data[0].as<symbol>().value == "a");
-    assert(v.as<vector>().data[1].as<symbol>().value == "b");
-    assert(v.as<vector>().data[2].as<symbol>().value == "c");
+    assert(v.as<vector>().objects.size() == 3);
+    assert(v.as<vector>().objects[0].as<symbol>().value == "a");
+    assert(v.as<vector>().objects[1].as<symbol>().value == "b");
+    assert(v.as<vector>().objects[2].as<symbol>().value == "c");
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 3);
-    assert(v.as<vector>().data[0].as<symbol>().value == "a");
-    assert(v.as<vector>().data[1].as<symbol>().value == "b");
-    assert(v.as<vector>().data[2].as<symbol>().value == "c");
+    assert(v.as<vector>().objects.size() == 3);
+    assert(v.as<vector>().objects[0].as<symbol>().value == "a");
+    assert(v.as<vector>().objects[1].as<symbol>().value == "b");
+    assert(v.as<vector>().objects[2].as<symbol>().value == "c");
     assert(gc.count() == gc_count + 4);
 
-    v.as<vector>().data.clear();
+    v.as<vector>().objects.clear();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 0);
+    assert(v.as<vector>().objects.size() == 0);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 0);
+    assert(v.as<vector>().objects.size() == 0);
   }
 
   symbols.clear();
@@ -140,30 +140,30 @@ auto main() -> int
     let const v = module.read("#(a b c)");
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 3);
+    assert(v.as<vector>().objects.size() == 3);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 3);
+    assert(v.as<vector>().objects.size() == 3);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 3);
+    assert(v.as<vector>().objects.size() == 3);
     assert(gc.count() == gc_count + 4);
 
-    v.as<vector>().data.clear();
+    v.as<vector>().objects.clear();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 0);
+    assert(v.as<vector>().objects.size() == 0);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().data.size() == 0);
+    assert(v.as<vector>().objects.size() == 0);
     assert(gc.count() == gc_count + 4);
   }
 

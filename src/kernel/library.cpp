@@ -1228,8 +1228,8 @@ inline namespace kernel
 
         auto&& s = string();
 
-        std::for_each(std::next(std::begin(xs[0].as<vector>().data), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
-                      std::next(std::begin(xs[0].as<vector>().data), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().data.size()),
+        std::for_each(std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                      std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
                       [&](let const& x)
                       {
                         s.codepoints.push_back(x.as<character>());
@@ -1333,9 +1333,9 @@ inline namespace kernel
 
         for (let const& x : xs)
         {
-          for (let const& object : x.as<vector>().data)
+          for (let const& object : x.as<vector>().objects)
           {
-            v.data.push_back(object);
+            v.objects.push_back(object);
           }
         }
 
