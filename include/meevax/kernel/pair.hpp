@@ -63,6 +63,8 @@ inline namespace kernel
     virtual auto type() const noexcept -> std::type_info const&;
 
     virtual auto write(std::ostream &) const -> std::ostream &;
+
+    virtual auto operator [](std::size_t) const -> const_reference;
   };
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;

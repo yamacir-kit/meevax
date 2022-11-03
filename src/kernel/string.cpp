@@ -30,87 +30,9 @@ inline namespace kernel
     for (auto port = std::stringstream(s); not character::is_eof(port.peek()); codepoints.emplace_back(get_codepoint(port)));
   }
 
-  string::string(const_reference v, const_reference begin, const_reference end)
-  {
-    std::for_each(std::next(std::begin(v.as<vector>().data), begin.as<exact_integer>()),
-                  std::next(std::begin(v.as<vector>().data), end.as<exact_integer>()),
-                  [&](let const& c)
-                  {
-                    codepoints.push_back(c.as<character>());
-                  });
-  }
-
-  string::string(const_reference xs)
-  {
-    for (let const& x : xs)
-    {
-      codepoints.push_back(x.as<character>());
-    }
-  }
-
-  string::string(const_reference k, const_reference c)
-    : codepoints { k.as<exact_integer>(), c.as<character>() }
+  string::string(std::size_t const k, character const& c)
+    : codepoints { k, c }
   {}
-
-  auto string::append(const_reference xs) -> value_type
-  {
-    let const s = make<string>();
-
-    for (let const& x : xs)
-    {
-      std::copy(std::begin(x.as<string>().codepoints),
-                std::end(x.as<string>().codepoints),
-                std::back_inserter(s.as<string>().codepoints));
-    }
-
-    return s;
-  }
-
-  auto string::copy(const_reference from, const_reference to) const -> value_type
-  {
-    let const& s = make<string>();
-
-    std::copy(std::next(std::begin(codepoints), from.as<exact_integer>()),
-              std::next(std::begin(codepoints), to.as<exact_integer>()),
-              std::back_inserter(s.as<string>().codepoints));
-
-    return s;
-  }
-
-  auto string::copy(const_reference at, const_reference from, const_reference begin, const_reference end) -> void
-  {
-    codepoints.reserve(codepoints.size() + from.as<string>().codepoints.size());
-
-    std::copy(std::next(std::begin(from.as<string>().codepoints), begin.as<exact_integer>()),
-              std::next(std::begin(from.as<string>().codepoints), end.as<exact_integer>()),
-              std::next(std::begin(codepoints), at.as<exact_integer>()));
-  }
-
-  auto string::length() const -> value_type
-  {
-    return make<exact_integer>(codepoints.size());
-  }
-
-  auto string::make_list(const_reference from, const_reference to) const -> value_type
-  {
-    return std::accumulate(std::prev(std::rend(codepoints), to.as<exact_integer>()),
-                           std::prev(std::rend(codepoints), from.as<exact_integer>()),
-                           unit,
-                           [](let const& xs, character const& c)
-                           {
-                             return cons(make(c), xs);
-                           });
-  }
-
-  auto string::ref(const_reference k) const -> value_type
-  {
-    return make(codepoints.at(k.as<exact_integer>()));
-  }
-
-  auto string::set(const_reference k, const_reference c) -> void
-  {
-    codepoints.at(k.as<exact_integer>()) = c.as<character>();
-  }
 
   string::operator std::string() const
   {

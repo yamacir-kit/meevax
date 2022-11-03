@@ -25,6 +25,7 @@
 #include <meevax/kernel/profiler.hpp>
 #include <meevax/kernel/type_index.hpp>
 #include <meevax/memory/gc_pointer.hpp>
+#include <meevax/type_traits/is_array_subscriptable.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/utility/demangle.hpp>
@@ -82,6 +83,18 @@ inline namespace kernel
         else
         {
           return os << magenta("#,(") << green(typeid(Bound).name()) << faint(" #;", static_cast<Bound const*>(this)) << magenta(")");
+        }
+      }
+
+      auto operator []([[maybe_unused]] std::size_t k) const -> heterogeneous const& override
+      {
+        if constexpr (is_array_subscriptable_v<Bound>)
+        {
+          return static_cast<Bound const&>(*this)[k];
+        }
+        else
+        {
+          throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
         }
       }
     };
@@ -185,6 +198,18 @@ inline namespace kernel
       else
       {
         return Pointer<Top, Ts...>::write(os);
+      }
+    }
+
+    inline auto operator [](std::size_t k) const -> heterogeneous const&
+    {
+      if (dereferenceable())
+      {
+        return *this ? get()->operator [](k) : *this; // throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
+      }
+      else
+      {
+        throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
       }
     }
 

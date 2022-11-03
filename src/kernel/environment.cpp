@@ -259,7 +259,7 @@ inline namespace kernel
 
   auto environment::load(std::string const& s) -> value_type
   {
-    if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
+    if (let port = make<file_port>(s); port and port.as<file_port>().is_open())
     {
       for (let e = read(port); e != eof_object; e = read(port))
       {

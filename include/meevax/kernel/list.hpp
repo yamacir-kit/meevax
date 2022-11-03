@@ -171,11 +171,6 @@ inline namespace kernel
     return 0 < k ? list_tail(cdr(x), k - 1) : x;
   }
 
-  inline auto list_ref = [](auto&&... xs) constexpr -> const_reference
-  {
-    return car(list_tail(std::forward<decltype(xs)>(xs)...));
-  };
-
   auto take(const_reference, std::size_t) -> value_type;
 
   inline auto length = [](auto const& x) constexpr
