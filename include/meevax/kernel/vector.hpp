@@ -50,16 +50,6 @@ inline namespace kernel
     explicit vector(const_reference, const_reference);
 
     /*
-       (vector-fill! vector fill)                                     procedure
-       (vector-fill! vector fill start)                               procedure
-       (vector-fill! vector fill start end)                           procedure
-
-       The vector-fill! procedure stores fill in the elements of vector between
-       start and end.
-    */
-    auto fill(const_reference, const_reference, const_reference) -> void;
-
-    /*
        (vector-length vector)                                         procedure
 
        Returns the number of elements in vector as an exact integer.

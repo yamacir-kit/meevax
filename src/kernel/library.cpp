@@ -1425,9 +1425,18 @@ inline namespace kernel
 
       library.define<procedure>("vector-fill!", [](let const& xs)
       {
-        car(xs).as<vector>().fill(cdr(xs).is<pair>() ? cadr(xs) : unspecified,
-                                  cddr(xs).is<pair>() ? caddr(xs) : e0,
-                                  cdddr(xs).is<pair>() ? cadddr(xs) : car(xs).as<vector>().length());
+        /*
+           (vector-fill! vector fill)                                 procedure
+           (vector-fill! vector fill start)                           procedure
+           (vector-fill! vector fill start end)                       procedure
+
+           The vector-fill! procedure stores fill in the elements of vector
+           between start and end.
+        */
+        std::fill(std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : 0),
+                  std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+                  list_tail(xs, 1).is<pair>() ? xs[1] : unspecified);
+
         return unspecified;
       });
 

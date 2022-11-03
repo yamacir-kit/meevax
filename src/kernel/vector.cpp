@@ -43,13 +43,6 @@ inline namespace kernel
     : objects { k.as<exact_integer>(), fill }
   {}
 
-  auto vector::fill(const_reference x, const_reference from, const_reference to) -> void
-  {
-    std::fill(std::next(std::begin(objects), from.as<exact_integer>()),
-              std::next(std::begin(objects), to.as<exact_integer>()),
-              x);
-  }
-
   auto vector::length() const -> value_type
   {
     return make<exact_integer>(objects.size());
