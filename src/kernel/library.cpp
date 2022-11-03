@@ -1012,7 +1012,17 @@ inline namespace kernel
 
       library.define<procedure>("string-set!", [](let const& xs)
       {
-        car(xs).as<string>().set(cadr(xs), caddr(xs));
+        /*
+           (string-set! string k char)                                procedure
+
+           It is an error if k is not a valid index of string.
+
+           The string-set! procedure stores char in element k of string. There
+           is no requirement for this procedure to execute in constant time.
+        */
+
+        car(xs).as<string>().codepoints.at(cadr(xs).as<exact_integer>()) = caddr(xs).as<character>();
+
         return car(xs);
       });
 
