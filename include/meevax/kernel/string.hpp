@@ -72,16 +72,6 @@ inline namespace kernel
     explicit string(const_reference, const_reference, const_reference);
 
     /*
-       (string-copy string)                                           procedure
-       (string-copy string start)                                     procedure
-       (string-copy string start end)                                 procedure
-
-       Returns a newly allocated copy of the part of the given string between
-       start and end.
-    */
-    auto copy(const_reference, const_reference) const -> value_type;
-
-    /*
        (string-copy! to at from)                                      procedure
        (string-copy! to at from start)                                procedure
        (string-copy! to at from start end)                            procedure

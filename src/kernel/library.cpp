@@ -1039,8 +1039,22 @@ inline namespace kernel
 
       library.define<procedure>("string-copy", [](let const& xs)
       {
-        return car(xs).as<string>().copy(cdr(xs).is<pair>() ? cadr(xs) : e0,
-                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<string>().length());
+        /*
+           (string-copy string)                                       procedure
+           (string-copy string start)                                 procedure
+           (string-copy string start end)                             procedure
+
+           Returns a newly allocated copy of the part of the given string
+           between start and end.
+        */
+
+        auto&& s = string();
+
+        std::copy(std::next(std::begin(list_ref(xs, 0).as<string>().codepoints), list_tail(xs, 1).is<pair>() ? list_ref(xs, 1).as<exact_integer>() : 0),
+                  std::next(std::begin(list_ref(xs, 0).as<string>().codepoints), list_tail(xs, 2).is<pair>() ? list_ref(xs, 2).as<exact_integer>() : list_ref(xs, 0).as<string>().codepoints.size()),
+                  std::back_inserter(s.codepoints));
+
+        return make(s);
       });
 
       library.define<procedure>("string-copy!", [](let const& xs)
