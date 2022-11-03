@@ -1007,8 +1007,8 @@ inline namespace kernel
            unspecified.
         */
 
-        return make<string>(list_ref(xs, 0).as<exact_integer>(),
-                            list_tail(xs, 1).is<pair>() ? list_ref(xs, 1).as<character>() : character());
+        return make<string>(xs[0].as<exact_integer>(),
+                            list_tail(xs, 1).is<pair>() ? xs[1].as<character>() : character());
       });
 
       library.define<procedure>("string-length", [](let const& xs)
@@ -1019,7 +1019,7 @@ inline namespace kernel
            Returns the number of characters in the given string.
         */
 
-        return make<exact_integer>(list_ref(xs, 0).as<string>().codepoints.size());
+        return make<exact_integer>(xs[0].as<string>().codepoints.size());
       });
 
       library.define<procedure>("string-ref", [](let const& xs)
@@ -1087,8 +1087,8 @@ inline namespace kernel
 
         auto&& s = string();
 
-        std::copy(std::next(std::begin(list_ref(xs, 0).as<string>().codepoints), list_tail(xs, 1).is<pair>() ? list_ref(xs, 1).as<exact_integer>() : 0),
-                  std::next(std::begin(list_ref(xs, 0).as<string>().codepoints), list_tail(xs, 2).is<pair>() ? list_ref(xs, 2).as<exact_integer>() : list_ref(xs, 0).as<string>().codepoints.size()),
+        std::copy(std::next(std::begin(xs[0].as<string>().codepoints), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                  std::next(std::begin(xs[0].as<string>().codepoints), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<string>().codepoints.size()),
                   std::back_inserter(s.codepoints));
 
         return make(s);
@@ -1114,15 +1114,15 @@ inline namespace kernel
            direction in such circumstances.
         */
 
-        auto&& s1 = list_ref(xs, 0).as<string>();
+        auto&& s1 = xs[0].as<string>();
 
-        auto&& s2 = list_ref(xs, 2).as<string>();
+        auto&& s2 = xs[2].as<string>();
 
         s1.codepoints.reserve(s1.codepoints.size() + s2.codepoints.size());
 
-        std::copy(std::next(std::begin(s2.codepoints), list_tail(xs, 3).is<pair>() ? list_ref(xs, 3).as<exact_integer>() : 0),
-                  std::next(std::begin(s2.codepoints), list_tail(xs, 4).is<pair>() ? list_ref(xs, 4).as<exact_integer>() : s2.codepoints.size()),
-                  std::next(std::begin(s1.codepoints),                               list_ref(xs, 1).as<exact_integer>()));
+        std::copy(std::next(std::begin(s2.codepoints), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
+                  std::next(std::begin(s2.codepoints), list_tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : s2.codepoints.size()),
+                  std::next(std::begin(s1.codepoints),                               xs[1].as<exact_integer>()));
 
         return unspecified;
       });
@@ -1170,8 +1170,8 @@ inline namespace kernel
            are inverses so far as equal? is concerned.
         */
 
-        return std::accumulate(std::prev(std::rend(list_ref(xs, 0).as<string>().codepoints), list_tail(xs, 2).is<pair>() ? list_ref(xs, 2).as<exact_integer>() : list_ref(xs, 0).as<string>().codepoints.size()),
-                               std::prev(std::rend(list_ref(xs, 0).as<string>().codepoints), list_tail(xs, 1).is<pair>() ? list_ref(xs, 1).as<exact_integer>() : 0),
+        return std::accumulate(std::prev(std::rend(xs[0].as<string>().codepoints), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<string>().codepoints.size()),
+                               std::prev(std::rend(xs[0].as<string>().codepoints), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
                                unit,
                                [](let const& xs, character const& c)
                                {
@@ -1200,7 +1200,7 @@ inline namespace kernel
 
         auto&& s = string();
 
-        for (let const& x : list_ref(xs, 0))
+        for (let const& x : xs[0])
         {
           s.codepoints.push_back(x.as<character>());
         }
@@ -1229,8 +1229,8 @@ inline namespace kernel
 
         auto&& s = string();
 
-        std::for_each(std::next(std::begin(list_ref(xs, 0).as<vector>().data), list_tail(xs, 1).is<pair>() ? list_ref(xs, 1).as<exact_integer>() : 0),
-                      std::next(std::begin(list_ref(xs, 0).as<vector>().data), list_tail(xs, 2).is<pair>() ? list_ref(xs, 2).as<exact_integer>() : list_ref(xs, 0).as<vector>().data.size()),
+        std::for_each(std::next(std::begin(xs[0].as<vector>().data), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                      std::next(std::begin(xs[0].as<vector>().data), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().data.size()),
                       [&](let const& x)
                       {
                         s.codepoints.push_back(x.as<character>());
@@ -1334,10 +1334,10 @@ inline namespace kernel
 
       library.define<procedure>("vector-copy!", [](let const& xs)
       {
-        car(xs).as<vector>().copy(list_ref(xs, 1),
-                                  list_ref(xs, 2),
-                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 3) : e0,
-                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 4) : car(xs).as<vector>().length());
+        car(xs).as<vector>().copy(xs[1],
+                                  xs[2],
+                                  list_tail(xs, 3).is<pair>() ? xs[3] : e0,
+                                  list_tail(xs, 3).is<pair>() ? xs[4] : car(xs).as<vector>().length());
         return unspecified;
       });
 
@@ -1348,7 +1348,14 @@ inline namespace kernel
 
       library.define<procedure>("vector-ref", [](let const& xs)
       {
-        return car(xs).as<vector>().ref(cadr(xs));
+        /*
+           (vector-ref vector k)                                      procedure
+
+           It is an error if k is not a valid index of vector. The vector-ref
+           procedure returns the contents of element k of vector.
+        */
+
+        return xs[0][xs[1].as<exact_integer>()];
       });
 
       library.define<procedure>("vector-set!", [](let const& xs)

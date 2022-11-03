@@ -42,6 +42,11 @@ inline namespace kernel
     return os << *this;
   }
 
+  auto pair::operator [](std::size_t k) const -> const_reference
+  {
+    return 0 < k ? second[--k] : first;
+  }
+
   auto label(const_reference x, const_reference y) -> const_reference
   {
     if (x.is<pair>() and cdr(x).is<pair>() and (cddr(x) == cdr(y) or label(cddr(x), cdr(y))))

@@ -119,20 +119,14 @@ inline namespace kernel
     auto list(const_reference, const_reference) const -> value_type;
 
     /*
-       (vector-ref vector k)                                          procedure
-
-       It is an error if k is not a valid index of vector. The vector-ref
-       procedure returns the contents of element k of vector.
-    */
-    auto ref(const_reference) const -> const_reference;
-
-    /*
        (vector-set! vector k obj)                                     procedure
 
        It is an error if k is not a valid index of vector. The vector-set!
        procedure stores obj in element k of vector.
     */
     auto set(const_reference, const_reference) -> const_reference;
+
+    auto operator [](std::size_t) const -> const_reference;
   };
 
   auto operator ==(vector const&, vector const&) -> bool;

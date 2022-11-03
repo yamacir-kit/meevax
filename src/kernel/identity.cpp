@@ -85,9 +85,8 @@ inline namespace kernel
     assert(car(second).template is<std::uint32_t>());
     assert(cdr(second).template is<std::uint32_t>());
 
-    return list_ref(list_ref(e,
-                             car(second).template as<std::uint32_t>()),
-                    cdr(second).template as<std::uint32_t>());
+    return e[car(second).template as<std::uint32_t>()]
+            [cdr(second).template as<std::uint32_t>()];
   }
 
   auto relative::make_load_mnemonic() const -> value_type
@@ -110,9 +109,7 @@ inline namespace kernel
     assert(car(second).template is<std::uint32_t>());
     assert(cdr(second).template is<std::uint32_t>());
 
-    return list_tail(list_ref(e,
-                              car(second).template as<std::uint32_t>()),
-                     cdr(second).template as<std::uint32_t>());
+    return list_tail(e[car(second).template as<std::uint32_t>()], cdr(second).template as<std::uint32_t>());
   }
 
   auto variadic::make_load_mnemonic() const -> value_type
