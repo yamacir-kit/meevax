@@ -72,24 +72,6 @@ inline namespace kernel
     explicit string(const_reference, const_reference, const_reference);
 
     /*
-       (string-copy! to at from)                                      procedure
-       (string-copy! to at from start)                                procedure
-       (string-copy! to at from start end)                            procedure
-
-       It is an error if at is less than zero or greater than the length of to.
-       It is also an error if (- (string-length to) at) is less than (- end
-       start).
-
-       Copies the characters of string from between start and end to string to,
-       starting at at. The order in which characters are copied is unspecified,
-       except that if the source and destination overlap, copying takes place
-       as if the source is first copied into a temporary string and then into
-       the destination. This can be achieved without allocating storage by
-       making sure to copy in the correct direction in such circumstances.
-    */
-    auto copy(const_reference, const_reference, const_reference, const_reference) -> void;
-
-    /*
        (string-length string)                                         procedure
 
        Returns the number of characters in the given string.

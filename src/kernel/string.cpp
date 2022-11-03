@@ -52,15 +52,6 @@ inline namespace kernel
     : codepoints { k.as<exact_integer>(), c.as<character>() }
   {}
 
-  auto string::copy(const_reference at, const_reference from, const_reference begin, const_reference end) -> void
-  {
-    codepoints.reserve(codepoints.size() + from.as<string>().codepoints.size());
-
-    std::copy(std::next(std::begin(from.as<string>().codepoints), begin.as<exact_integer>()),
-              std::next(std::begin(from.as<string>().codepoints), end.as<exact_integer>()),
-              std::next(std::begin(codepoints), at.as<exact_integer>()));
-  }
-
   auto string::length() const -> value_type
   {
     return make<exact_integer>(codepoints.size());

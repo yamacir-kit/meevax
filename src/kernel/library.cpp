@@ -1059,10 +1059,34 @@ inline namespace kernel
 
       library.define<procedure>("string-copy!", [](let const& xs)
       {
-        car(xs).as<string>().copy(list_ref(xs, 1),
-                                  list_ref(xs, 2),
-                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 3) : e0,
-                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 4) : car(xs).as<vector>().length());
+        /*
+           (string-copy! to at from)                                  procedure
+           (string-copy! to at from start)                            procedure
+           (string-copy! to at from start end)                        procedure
+
+           It is an error if at is less than zero or greater than the length of
+           to. It is also an error if (- (string-length to) at) is less than (-
+           end start).
+
+           Copies the characters of string from between start and end to string
+           to, starting at at. The order in which characters are copied is
+           unspecified, except that if the source and destination overlap,
+           copying takes place as if the source is first copied into a
+           temporary string and then into the destination. This can be achieved
+           without allocating storage by making sure to copy in the correct
+           direction in such circumstances.
+        */
+
+        auto&& s1 = list_ref(xs, 0).as<string>();
+
+        auto&& s2 = list_ref(xs, 2).as<string>();
+
+        s1.codepoints.reserve(s1.codepoints.size() + s2.codepoints.size());
+
+        std::copy(std::next(std::begin(s2.codepoints), list_tail(xs, 3).is<pair>() ? list_ref(xs, 3).as<exact_integer>() : 0),
+                  std::next(std::begin(s2.codepoints), list_tail(xs, 4).is<pair>() ? list_ref(xs, 4).as<exact_integer>() : s2.codepoints.size()),
+                  std::next(std::begin(s1.codepoints),                               list_ref(xs, 1).as<exact_integer>()));
+
         return unspecified;
       });
 
