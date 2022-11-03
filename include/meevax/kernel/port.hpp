@@ -41,37 +41,25 @@ inline namespace kernel
 
   #undef DEFINE
 
-  #define DEFINE(TYPENAME, FILE_STREAM)                                        \
-  struct TYPENAME : public FILE_STREAM                                         \
-  {                                                                            \
-    string const pathname;                                                     \
-                                                                               \
-    explicit TYPENAME(string const&);                                          \
-                                                                               \
-    explicit TYPENAME(std::string const&);                                     \
-  };                                                                           \
-                                                                               \
-  auto operator <<(std::ostream &, TYPENAME const&) -> std::ostream &
+  struct file_port : public std::fstream
+  {
+    string const name;
 
-  DEFINE(       file_port, std:: fstream);
-  DEFINE( input_file_port, std::ifstream);
-  DEFINE(output_file_port, std::ofstream);
+    template <typename String, typename... Ts>
+    explicit file_port(String const& name, Ts&&... xs)
+      : std::fstream { name, std::forward<decltype(xs)>(xs)... }
+      , name { name }
+    {}
+  };
 
-  #undef DEFINE
+  auto operator <<(std::ostream &, file_port const&) -> std::ostream &;
 
-  #define DEFINE(TYPENAME, BASE)                                               \
-  struct TYPENAME : public std::BASE                                           \
-  {                                                                            \
-    using std::BASE::BASE;                                                     \
-  };                                                                           \
-                                                                               \
-  auto operator <<(std::ostream &, TYPENAME const&) -> std::ostream &
+  struct string_port : public std::stringstream
+  {
+    using std::stringstream::stringstream;
+  };
 
-  DEFINE(       string_port,  stringstream);
-  DEFINE( input_string_port, istringstream);
-  DEFINE(output_string_port, ostringstream);
-
-  #undef DEFINE
+  auto operator <<(std::ostream &, string_port const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

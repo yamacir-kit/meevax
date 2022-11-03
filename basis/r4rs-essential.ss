@@ -10,12 +10,14 @@
           (meevax number)
           (meevax pair)
           (meevax port)
-          (meevax read)
+          (rename (meevax read)
+                  (read %read))
           (meevax string)
           (meevax symbol)
           (meevax syntax)
           (meevax vector)
-          (prefix (meevax write) %)
+          (rename (meevax write)
+                  (write %write))
           (srfi 211 explicit-renaming))
 
   (export quote lambda if set! cond case and or let letrec begin quasiquote
@@ -559,9 +561,17 @@
                result))
            (call-with-output-port (open-output-file path) f))
 
-         (define current-input-port standard-input-port) ; r7rs incompatible (current-input-port is standard input)
+         (define current-input-port input-port)
 
-         (define current-output-port standard-output-port) ; r7rs incompatible (current-output-port is standard output)
+         (define current-output-port output-port)
+
+         (define open-input-file open)
+
+         (define open-output-file open)
+
+         (define close-input-port close)
+
+         (define close-output-port close)
 
          (define (read . port)
            (%read (if (pair? port)
