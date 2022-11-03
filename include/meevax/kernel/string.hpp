@@ -31,17 +31,9 @@ inline namespace kernel
 
     explicit string(std::string const&);
 
-    /*
-       (make-string k)                                                procedure
-       (make-string k char)                                           procedure
+    explicit string(std::size_t const, character const&);
 
-       The make-string procedure returns a newly allocated string of length k.
-       If char is given, then all the characters of the string are initialized
-       to char, otherwise the contents of the string are unspecified.
-    */
-    explicit string(const_reference, const_reference);
-
-    operator std::string() const; // write-string (for display)
+    operator std::string() const;
   };
 
   auto operator ==(string const&, string const&) -> bool;

@@ -997,7 +997,18 @@ inline namespace kernel
 
       library.define<procedure>("make-string", [](let const& xs)
       {
-        return make<string>(car(xs), cdr(xs).is<pair>() ? cadr(xs) : make<character>());
+        /*
+           (make-string k)                                            procedure
+           (make-string k char)                                       procedure
+
+           The make-string procedure returns a newly allocated string of length
+           k. If char is given, then all the characters of the string are
+           initialized to char, otherwise the contents of the string are
+           unspecified.
+        */
+
+        return make<string>(list_ref(xs, 0).as<exact_integer>(),
+                            list_tail(xs, 1).is<pair>() ? list_ref(xs, 1).as<character>() : character());
       });
 
       library.define<procedure>("string-length", [](let const& xs)
