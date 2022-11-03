@@ -56,21 +56,6 @@ inline namespace kernel
     */
     auto length() const -> value_type;
 
-    /*
-       (vector->list vector)                                          procedure
-       (vector->list vector start)                                    procedure
-       (vector->list vector start end)                                procedure
-       (list->vector list)                                            procedure
-
-       The vector->list procedure returns a newly allocated list of the objects
-       contained in the elements of vector between start and end. The
-       list->vector procedure returns a newly created vector initialized to the
-       elements of the list list.
-
-       In both procedures, order is preserved.
-    */
-    auto list(const_reference, const_reference) const -> value_type;
-
     auto operator [](std::size_t) const -> const_reference;
   };
 

@@ -1409,6 +1409,7 @@ inline namespace kernel
            It is an error if k is not a valid index of vector. The vector-ref
            procedure returns the contents of element k of vector.
         */
+
         return xs[0][xs[1].as<exact_integer>()];
       });
 
@@ -1420,6 +1421,7 @@ inline namespace kernel
            It is an error if k is not a valid index of vector. The vector-set!
            procedure stores obj in element k of vector.
         */
+
         return xs[0].as<vector>().objects[xs[1].as<exact_integer>()] = xs[2];
       });
 
@@ -1433,6 +1435,7 @@ inline namespace kernel
            The vector-fill! procedure stores fill in the elements of vector
            between start and end.
         */
+
         std::fill(std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : 0),
                   std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : xs[0].as<vector>().objects.size()),
                   list_tail(xs, 1).is<pair>() ? xs[1] : unspecified);
@@ -1442,8 +1445,24 @@ inline namespace kernel
 
       library.define<procedure>("vector->list", [](let const& xs)
       {
-        return car(xs).as<vector>().list(cdr(xs).is<pair>() ? cadr(xs) : e0,
-                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
+        /*
+           (vector->list vector)                                      procedure
+           (vector->list vector start)                                procedure
+           (vector->list vector start end)                            procedure
+           (list->vector list)                                        procedure
+
+           The vector->list procedure returns a newly allocated list of the
+           objects contained in the elements of vector between start and end.
+           The list->vector procedure returns a newly created vector
+           initialized to the elements of the list list.
+
+           In both procedures, order is preserved.
+        */
+
+        return std::accumulate(std::prev(std::rend(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+                               std::prev(std::rend(xs[0].as<vector>().objects), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                               unit,
+                               xcons);
       });
 
       library.define<procedure>("string->vector", [](let const& xs)

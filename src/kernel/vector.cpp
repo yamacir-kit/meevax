@@ -48,14 +48,6 @@ inline namespace kernel
     return make<exact_integer>(objects.size());
   }
 
-  auto vector::list(const_reference from, const_reference to) const -> value_type
-  {
-    return std::accumulate(std::prev(std::rend(objects), to.as<exact_integer>()),
-                           std::prev(std::rend(objects), from.as<exact_integer>()),
-                           unit,
-                           xcons);
-  }
-
   auto vector::operator [](std::size_t k) const -> const_reference
   {
     return objects[k];
