@@ -79,23 +79,6 @@ inline namespace kernel
     auto length() const -> value_type;
 
     /*
-       (string->list string)                                          procedure
-       (string->list string start)                                    procedure
-       (string->list string start end)                                procedure
-
-       (list->string list)                                            procedure
-
-       It is an error if any element of list is not a character.
-
-       The string->list procedure returns a newly allocated list of the
-       characters of string between start and end. list->string returns a newly
-       allocated string formed from the elements in the list list. In both
-       procedures, order is preserved. string->list and list->string are
-       inverses so far as equal? is concerned.
-    */
-    auto make_list(const_reference, const_reference) const -> value_type;
-
-    /*
        (string-ref string k)                                          procedure
 
        It is an error if k is not a valid index of string.

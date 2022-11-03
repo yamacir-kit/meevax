@@ -57,17 +57,6 @@ inline namespace kernel
     return make<exact_integer>(codepoints.size());
   }
 
-  auto string::make_list(const_reference from, const_reference to) const -> value_type
-  {
-    return std::accumulate(std::prev(std::rend(codepoints), to.as<exact_integer>()),
-                           std::prev(std::rend(codepoints), from.as<exact_integer>()),
-                           unit,
-                           [](let const& xs, character const& c)
-                           {
-                             return cons(make(c), xs);
-                           });
-  }
-
   auto string::ref(const_reference k) const -> value_type
   {
     return make(codepoints.at(k.as<exact_integer>()));

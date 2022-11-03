@@ -1117,8 +1117,29 @@ inline namespace kernel
 
       library.define<procedure>("string->list", [](let const& xs)
       {
-        return car(xs).as<string>().make_list(cdr(xs).is<pair>() ? cadr(xs) : e0,
-                                              cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<string>().length());
+        /*
+           (string->list string)                                      procedure
+           (string->list string start)                                procedure
+           (string->list string start end)                            procedure
+
+           (list->string list)                                        procedure
+
+           It is an error if any element of list is not a character.
+
+           The string->list procedure returns a newly allocated list of the
+           characters of string between start and end. list->string returns a
+           newly allocated string formed from the elements in the list list. In
+           both procedures, order is preserved. string->list and list->string
+           are inverses so far as equal? is concerned.
+        */
+
+        return std::accumulate(std::prev(std::rend(list_ref(xs, 0).as<string>().codepoints), list_tail(xs, 2).is<pair>() ? list_ref(xs, 2).as<exact_integer>() : list_ref(xs, 0).as<string>().codepoints.size()),
+                               std::prev(std::rend(list_ref(xs, 0).as<string>().codepoints), list_tail(xs, 1).is<pair>() ? list_ref(xs, 1).as<exact_integer>() : 0),
+                               unit,
+                               [](let const& xs, character const& c)
+                               {
+                                 return cons(make(c), xs);
+                               });
       });
 
       library.define<procedure>("string->symbol", [](let const& xs)
