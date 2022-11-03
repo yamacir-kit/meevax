@@ -1322,7 +1322,24 @@ inline namespace kernel
 
       library.define<procedure>("vector-append", [](let const& xs)
       {
-        return vector::append(xs);
+        /*
+           (vector-append vector ...)                                 procedure
+
+           Returns a newly allocated vector whose elements are the
+           concatenation of the elements of the given vectors.
+        */
+
+        auto&& v = vector();
+
+        for (let const& x : xs)
+        {
+          for (let const& object : x.as<vector>().data)
+          {
+            v.data.push_back(object);
+          }
+        }
+
+        return make(std::forward<decltype(v)>(v));
       });
 
       library.define<procedure>("vector-copy", [](let const& xs)

@@ -50,14 +50,6 @@ inline namespace kernel
     explicit vector(const_reference, const_reference);
 
     /*
-       (vector-append vector ...)                                     procedure
-
-       Returns a newly allocated vector whose elements are the concatenation of
-       the elements of the given vectors.
-    */
-    static auto append(const_reference) -> value_type;
-
-    /*
        (vector-copy vector)                                           procedure
        (vector-copy vector start)                                     procedure
        (vector-copy vector start end)                                 procedure
