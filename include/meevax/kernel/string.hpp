@@ -55,23 +55,6 @@ inline namespace kernel
     explicit string(const_reference, const_reference);
 
     /*
-       (vector->string vector)                                        procedure
-       (vector->string vector start)                                  procedure
-       (vector->string vector start end)                              procedure
-
-       It is an error if any element of vector between start and end is not a
-       character.
-
-       The vector->string procedure returns a newly allocated string of the
-       objects contained in the elements of vector between start and end. The
-       string->vector procedure returns a newly created vector initialized to
-       the elements of the string string between start and end.
-
-       In both procedures, order is preserved.
-    */
-    explicit string(const_reference, const_reference, const_reference);
-
-    /*
        (string-length string)                                         procedure
 
        Returns the number of characters in the given string.

@@ -1174,9 +1174,33 @@ inline namespace kernel
 
       library.define<procedure>("vector->string", [](let const& xs)
       {
-        return make<string>(car(xs),
-                            cdr(xs).is<pair>() ? cadr(xs) : e0,
-                            cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
+        /*
+           (vector->string vector)                                    procedure
+           (vector->string vector start)                              procedure
+           (vector->string vector start end)                          procedure
+
+           It is an error if any element of vector between start and end is not
+           a character.
+
+           The vector->string procedure returns a newly allocated string of the
+           objects contained in the elements of vector between start and end.
+           The string->vector procedure returns a newly created vector
+           initialized to the elements of the string string between start and
+           end.
+
+           In both procedures, order is preserved.
+        */
+
+        auto&& s = string();
+
+        std::for_each(std::next(std::begin(list_ref(xs, 0).as<vector>().data), list_tail(xs, 1).is<pair>() ? list_ref(xs, 1).as<exact_integer>() : 0),
+                      std::next(std::begin(list_ref(xs, 0).as<vector>().data), list_tail(xs, 2).is<pair>() ? list_ref(xs, 2).as<exact_integer>() : list_ref(xs, 0).as<vector>().data.size()),
+                      [&](let const& x)
+                      {
+                        s.codepoints.push_back(x.as<character>());
+                      });
+
+        return make(s);
       });
 
       library.export_("string?");
