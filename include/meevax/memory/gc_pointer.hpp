@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 
-#include <cstddef>
 #include <meevax/memory/collector.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
 
