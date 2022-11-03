@@ -30,14 +30,6 @@ inline namespace kernel
     for (auto port = std::stringstream(s); not character::is_eof(port.peek()); codepoints.emplace_back(get_codepoint(port)));
   }
 
-  string::string(const_reference xs)
-  {
-    for (let const& x : xs)
-    {
-      codepoints.push_back(x.as<character>());
-    }
-  }
-
   string::string(const_reference k, const_reference c)
     : codepoints { k.as<exact_integer>(), c.as<character>() }
   {}

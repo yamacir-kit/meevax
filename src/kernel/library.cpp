@@ -1169,7 +1169,26 @@ inline namespace kernel
 
       library.define<procedure>("list->string", [](let const& xs)
       {
-        return make<string>(car(xs));
+        /*
+           (list->string list)                                        procedure
+
+           It is an error if any element of list is not a character.
+
+           The string->list procedure returns a newly allocated list of the
+           characters of string between start and end. list->string returns a
+           newly allocated string formed from the elements in the list list. In
+           both procedures, order is preserved. string->list and list->string
+           are inverses so far as equal? is concerned.
+        */
+
+        auto&& s = string();
+
+        for (let const& x : list_ref(xs, 0))
+        {
+          s.codepoints.push_back(x.as<character>());
+        }
+
+        return make(std::forward<decltype(s)>(s));
       });
 
       library.define<procedure>("vector->string", [](let const& xs)

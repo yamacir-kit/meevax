@@ -32,19 +32,6 @@ inline namespace kernel
     explicit string(std::string const&);
 
     /*
-       (list->string list)                                            procedure
-
-       It is an error if any element of list is not a character.
-
-       The string->list procedure returns a newly allocated list of the
-       characters of string between start and end. list->string returns a newly
-       allocated string formed from the elements in the list list. In both
-       procedures, order is preserved. string->list and list->string are
-       inverses so far as equal? is concerned.
-    */
-    explicit string(const_reference);
-
-    /*
        (make-string k)                                                procedure
        (make-string k char)                                           procedure
 
