@@ -84,6 +84,11 @@ inline namespace kernel
           return os << magenta("#,(") << green(typeid(Bound).name()) << faint(" #;", static_cast<Bound const*>(this)) << magenta(")");
         }
       }
+
+      auto operator [](std::size_t) const -> heterogeneous const& override
+      {
+        throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
+      }
     };
 
   public:
@@ -185,6 +190,18 @@ inline namespace kernel
       else
       {
         return Pointer<Top, Ts...>::write(os);
+      }
+    }
+
+    inline auto operator [](std::size_t k) const -> heterogeneous const&
+    {
+      if (dereferenceable())
+      {
+        return *this ? get()->operator [](k) : *this; // throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
+      }
+      else
+      {
+        throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
       }
     }
 

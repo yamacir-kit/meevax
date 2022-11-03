@@ -171,8 +171,8 @@ inline namespace kernel
           case 'c': // Common Lisp
             return [](let const& xs)
             {
-              return make<complex>(list_tail(xs, 0).is<pair>() ? list_ref(xs, 0) : e0,
-                                   list_tail(xs, 1).is<pair>() ? list_ref(xs, 1) : e0);
+              return make<complex>(list_tail(xs, 0).is<pair>() ? xs[0] : e0,
+                                   list_tail(xs, 1).is<pair>() ? xs[1] : e0);
             }(read(is));
 
           case 'd':
