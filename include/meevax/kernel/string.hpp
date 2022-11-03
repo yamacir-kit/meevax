@@ -78,17 +78,6 @@ inline namespace kernel
     */
     auto length() const -> value_type;
 
-    /*
-       (string-ref string k)                                          procedure
-
-       It is an error if k is not a valid index of string.
-
-       The string-ref procedure returns character k of string using zero-origin
-       indexing. There is no requirement for this procedure to execute in
-       constant time.
-    */
-    auto ref(const_reference) const -> value_type;
-
     operator std::string() const; // write-string (for display)
   };
 

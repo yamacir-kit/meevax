@@ -57,11 +57,6 @@ inline namespace kernel
     return make<exact_integer>(codepoints.size());
   }
 
-  auto string::ref(const_reference k) const -> value_type
-  {
-    return make(codepoints.at(k.as<exact_integer>()));
-  }
-
   string::operator std::string() const
   {
     std::string result;

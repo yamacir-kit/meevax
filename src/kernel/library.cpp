@@ -1007,7 +1007,17 @@ inline namespace kernel
 
       library.define<procedure>("string-ref", [](let const& xs)
       {
-        return car(xs).as<string>().ref(cadr(xs));
+        /*
+           (string-ref string k)                                      procedure
+
+           It is an error if k is not a valid index of string.
+
+           The string-ref procedure returns character k of string using
+           zero-origin indexing. There is no requirement for this procedure to
+           execute in constant time.
+        */
+
+        return make(car(xs).as<string>().codepoints.at(cadr(xs).as<exact_integer>()));
       });
 
       library.define<procedure>("string-set!", [](let const& xs)
