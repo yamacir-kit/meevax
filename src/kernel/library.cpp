@@ -1344,16 +1344,55 @@ inline namespace kernel
 
       library.define<procedure>("vector-copy", [](let const& xs)
       {
-        return car(xs).as<vector>().copy(cdr(xs).is<pair>() ? cadr(xs) : e0,
-                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
+        /*
+           (vector-copy vector)                                       procedure
+           (vector-copy vector start)                                 procedure
+           (vector-copy vector start end)                             procedure
+
+           Returns a newly allocated copy of the elements of the given vector
+           between start and end. The elements of the new vector are the same
+           (in the sense of eqv?) as the elements of the old.
+        */
+
+        auto&& v = vector();
+
+        std::copy(std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                  std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+                  std::back_inserter(v.objects));
+
+        return make(std::forward<decltype(v)>(v));
       });
 
       library.define<procedure>("vector-copy!", [](let const& xs)
       {
-        car(xs).as<vector>().copy(xs[1],
-                                  xs[2],
-                                  list_tail(xs, 3).is<pair>() ? xs[3] : e0,
-                                  list_tail(xs, 3).is<pair>() ? xs[4] : car(xs).as<vector>().length());
+        /*
+           (vector-copy! to at from)                                  procedure
+           (vector-copy! to at from start)                            procedure
+           (vector-copy! to at from start end)                        procedure
+
+           It is an error if at is less than zero or greater than the length of
+           to. It is also an error if (- (vector-length to) at) is less than (-
+           end start).
+
+           Copies the elements of vector from between start and end to vector
+           to, starting at at. The order in which elements are copied is
+           unspecified, except that if the source and destination overlap,
+           copying takes place as if the source is first copied into a
+           temporary vector and then into the destination. This can be achieved
+           without allocating storage by making sure to copy in the correct
+           direction in such circumstances.
+        */
+
+        auto&& v1 = xs[0].as<vector>().objects;
+
+        auto&& v2 = xs[2].as<vector>().objects;
+
+        v1.reserve(v1.size() + v2.size());
+
+        std::copy(std::next(std::begin(v2), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
+                  std::next(std::begin(v2), list_tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : v1.size()),
+                  std::next(std::begin(v1),                               xs[1].as<exact_integer>()));
+
         return unspecified;
       });
 

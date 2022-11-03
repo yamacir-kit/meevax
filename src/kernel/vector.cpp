@@ -43,26 +43,6 @@ inline namespace kernel
     : objects { k.as<exact_integer>(), fill }
   {}
 
-  auto vector::copy(const_reference from, const_reference to) const -> value_type
-  {
-    let const& v = make<vector>();
-
-    std::copy(std::next(std::begin(objects), from.as<exact_integer>()),
-              std::next(std::begin(objects), to.as<exact_integer>()),
-              std::back_inserter(v.as<vector>().objects));
-
-    return v;
-  }
-
-  auto vector::copy(const_reference at, const_reference v, const_reference from, const_reference to) -> void
-  {
-    objects.reserve(objects.size() + v.as<vector>().objects.size());
-
-    std::copy(std::next(std::begin(v.as<vector>().objects), from.as<exact_integer>()),
-              std::next(std::begin(v.as<vector>().objects), to.as<exact_integer>()),
-              std::next(std::begin(objects), at.as<exact_integer>()));
-  }
-
   auto vector::fill(const_reference x, const_reference from, const_reference to) -> void
   {
     std::fill(std::next(std::begin(objects), from.as<exact_integer>()),
