@@ -1113,15 +1113,15 @@ inline namespace kernel
            direction in such circumstances.
         */
 
-        auto&& s1 = xs[0].as<string>();
+        auto&& s1 = xs[0].as<string>().codepoints;
 
-        auto&& s2 = xs[2].as<string>();
+        auto&& s2 = xs[2].as<string>().codepoints;
 
-        s1.codepoints.reserve(s1.codepoints.size() + s2.codepoints.size());
+        s1.reserve(s1.size() + s2.size());
 
-        std::copy(std::next(std::begin(s2.codepoints), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
-                  std::next(std::begin(s2.codepoints), list_tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : s2.codepoints.size()),
-                  std::next(std::begin(s1.codepoints),                               xs[1].as<exact_integer>()));
+        std::copy(std::next(std::begin(s2), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
+                  std::next(std::begin(s2), list_tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : s2.size()),
+                  std::next(std::begin(s1),                               xs[1].as<exact_integer>()));
 
         return unspecified;
       });
@@ -1228,8 +1228,8 @@ inline namespace kernel
 
         auto&& s = string();
 
-        std::for_each(std::next(std::begin(xs[0].as<vector>().data), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
-                      std::next(std::begin(xs[0].as<vector>().data), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().data.size()),
+        std::for_each(std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                      std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
                       [&](let const& x)
                       {
                         s.codepoints.push_back(x.as<character>());
@@ -1317,32 +1317,103 @@ inline namespace kernel
 
       library.define<procedure>("make-vector", [](let const& xs)
       {
-        return make<vector>(car(xs), cdr(xs).is<pair>() ? cadr(xs) : unspecified);
+        /*
+           (make-vector k)                                            procedure
+           (make-vector k fill)                                       procedure
+
+           Returns a newly allocated vector of k elements. If a second argument
+           is given, then each element is initialized to fill. Otherwise the
+           initial contents of each element is unspecified.
+        */
+
+        return make<vector>(xs[0].as<exact_integer>(), list_tail(xs, 1).is<pair>() ? xs[1] : unspecified);
       });
 
       library.define<procedure>("vector-append", [](let const& xs)
       {
-        return vector::append(xs);
+        /*
+           (vector-append vector ...)                                 procedure
+
+           Returns a newly allocated vector whose elements are the
+           concatenation of the elements of the given vectors.
+        */
+
+        auto&& v = vector();
+
+        for (let const& x : xs)
+        {
+          for (let const& object : x.as<vector>().objects)
+          {
+            v.objects.push_back(object);
+          }
+        }
+
+        return make(std::forward<decltype(v)>(v));
       });
 
       library.define<procedure>("vector-copy", [](let const& xs)
       {
-        return car(xs).as<vector>().copy(cdr(xs).is<pair>() ? cadr(xs) : e0,
-                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
+        /*
+           (vector-copy vector)                                       procedure
+           (vector-copy vector start)                                 procedure
+           (vector-copy vector start end)                             procedure
+
+           Returns a newly allocated copy of the elements of the given vector
+           between start and end. The elements of the new vector are the same
+           (in the sense of eqv?) as the elements of the old.
+        */
+
+        auto&& v = vector();
+
+        std::copy(std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                  std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+                  std::back_inserter(v.objects));
+
+        return make(std::forward<decltype(v)>(v));
       });
 
       library.define<procedure>("vector-copy!", [](let const& xs)
       {
-        car(xs).as<vector>().copy(xs[1],
-                                  xs[2],
-                                  list_tail(xs, 3).is<pair>() ? xs[3] : e0,
-                                  list_tail(xs, 3).is<pair>() ? xs[4] : car(xs).as<vector>().length());
+        /*
+           (vector-copy! to at from)                                  procedure
+           (vector-copy! to at from start)                            procedure
+           (vector-copy! to at from start end)                        procedure
+
+           It is an error if at is less than zero or greater than the length of
+           to. It is also an error if (- (vector-length to) at) is less than (-
+           end start).
+
+           Copies the elements of vector from between start and end to vector
+           to, starting at at. The order in which elements are copied is
+           unspecified, except that if the source and destination overlap,
+           copying takes place as if the source is first copied into a
+           temporary vector and then into the destination. This can be achieved
+           without allocating storage by making sure to copy in the correct
+           direction in such circumstances.
+        */
+
+        auto&& v1 = xs[0].as<vector>().objects;
+
+        auto&& v2 = xs[2].as<vector>().objects;
+
+        v1.reserve(v1.size() + v2.size());
+
+        std::copy(std::next(std::begin(v2), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
+                  std::next(std::begin(v2), list_tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : v1.size()),
+                  std::next(std::begin(v1),                               xs[1].as<exact_integer>()));
+
         return unspecified;
       });
 
       library.define<procedure>("vector-length", [](let const& xs)
       {
-        return car(xs).as<vector>().length();
+        /*
+           (vector-length vector)                                     procedure
+
+           Returns the number of elements in vector as an exact integer.
+        */
+
+        return make<exact_integer>(xs[0].as<vector>().objects.size());
       });
 
       library.define<procedure>("vector-ref", [](let const& xs)
@@ -1359,26 +1430,66 @@ inline namespace kernel
 
       library.define<procedure>("vector-set!", [](let const& xs)
       {
-        return car(xs).as<vector>().set(cadr(xs), caddr(xs));
+        /*
+           (vector-set! vector k obj)                                 procedure
+
+           It is an error if k is not a valid index of vector. The vector-set!
+           procedure stores obj in element k of vector.
+        */
+
+        return xs[0].as<vector>().objects[xs[1].as<exact_integer>()] = xs[2];
       });
 
       library.define<procedure>("vector-fill!", [](let const& xs)
       {
-        car(xs).as<vector>().fill(cdr(xs).is<pair>() ? cadr(xs) : unspecified,
-                                  cddr(xs).is<pair>() ? caddr(xs) : e0,
-                                  cdddr(xs).is<pair>() ? cadddr(xs) : car(xs).as<vector>().length());
+        /*
+           (vector-fill! vector fill)                                 procedure
+           (vector-fill! vector fill start)                           procedure
+           (vector-fill! vector fill start end)                       procedure
+
+           The vector-fill! procedure stores fill in the elements of vector
+           between start and end.
+        */
+
+        std::fill(std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : 0),
+                  std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+                  list_tail(xs, 1).is<pair>() ? xs[1] : unspecified);
+
         return unspecified;
       });
 
       library.define<procedure>("vector->list", [](let const& xs)
       {
-        return car(xs).as<vector>().list(cdr(xs).is<pair>() ? cadr(xs) : e0,
-                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
+        /*
+           (vector->list vector)                                      procedure
+           (vector->list vector start)                                procedure
+           (vector->list vector start end)                            procedure
+           (list->vector list)                                        procedure
+
+           The vector->list procedure returns a newly allocated list of the
+           objects contained in the elements of vector between start and end.
+           The list->vector procedure returns a newly created vector
+           initialized to the elements of the list list.
+
+           In both procedures, order is preserved.
+        */
+
+        return std::accumulate(std::prev(std::rend(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+                               std::prev(std::rend(xs[0].as<vector>().objects), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                               unit,
+                               xcons);
       });
 
       library.define<procedure>("string->vector", [](let const& xs)
       {
-        return make<vector>(car(xs).as<string>());
+        auto&& v = vector();
+
+        for (auto&& character : xs[0].as<string>().codepoints)
+        {
+          v.objects.push_back(make(character));
+        }
+
+        return make(std::forward<decltype(v)>(v));
       });
 
       library.export_("vector?");
