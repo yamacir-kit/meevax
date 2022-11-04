@@ -55,17 +55,17 @@ inline namespace kernel
       return identify(variable, scope()).as<identity>().load(e);
     }
 
-    auto operator [](symbol::value_type const& variable) -> decltype(auto)
+    auto operator [](std::string const& variable) -> decltype(auto)
     {
       return (*this)[string_to_symbol(variable)];
     }
 
     auto define(const_reference, const_reference = undefined) -> void;
 
-    auto define(symbol::value_type const&, const_reference = undefined) -> void;
+    auto define(std::string const&, const_reference = undefined) -> void;
 
     template <typename T, typename... Ts>
-    auto define(symbol::value_type const& name, Ts&&... xs) -> void
+    auto define(std::string const& name, Ts&&... xs) -> void
     {
       define(name, make<T>(name, std::forward<decltype(xs)>(xs)...));
     }

@@ -52,10 +52,6 @@ inline namespace kernel
           return f;
         }
       });
-
-      library.export_("char?");
-      library.export_("char->integer");
-      library.export_("char-codepoint");
     });
 
     define_library("(meevax complex)", [](library & library)
@@ -77,10 +73,6 @@ inline namespace kernel
       {
         return car(xs).as<complex>().imag();
       });
-
-      library.export_("make-rectangular");
-      library.export_("real-part");
-      library.export_("imag-part");
     });
 
     define_library("(meevax context)", [](library & library)
@@ -100,8 +92,6 @@ inline namespace kernel
           throw static_cast<int>(status.as<exact_integer>());
         }
       });
-
-      library.export_("emergency-exit");
     });
 
     define_library("(meevax function)", [](library & library)
@@ -125,11 +115,6 @@ inline namespace kernel
       {
         return car(xs).is<procedure>();
       });
-
-      library.export_("closure?");
-      library.export_("continuation?");
-      library.export_("foreign-function");
-      library.export_("foreign-function?");
     });
 
     define_library("(meevax environment)", [](library & library)
@@ -160,20 +145,12 @@ inline namespace kernel
       {
         return car(xs).as<environment>().load(cadr(xs).as<string>());
       });
-
-      library.export_("environment");
-      library.export_("eval");
-      library.export_("interaction-environment");
-      library.export_("load");
     });
 
     define_library("(meevax dynamic-environment)", [](library & library)
     {
       library.define<syntax>("store-auxiliary", store_auxiliary);
       library.define<syntax>("load-auxiliary", load_auxiliary);
-
-      library.export_("store-auxiliary");
-      library.export_("load-auxiliary");
     });
 
     define_library("(meevax comparator)", [](library & library)
@@ -187,9 +164,6 @@ inline namespace kernel
       {
         return eqv(car(xs), cadr(xs));
       });
-
-      library.export_("identity=?");
-      library.export_("normally=?");
     });
 
     define_library("(meevax error)", [](library & library)
@@ -218,12 +192,6 @@ inline namespace kernel
       {
         return car(xs).is<file_error>();
       });
-
-      library.export_("throw");
-      library.export_("make-error");
-      library.export_("error?");
-      library.export_("read-error?");
-      library.export_("file-error?");
     });
 
     define_library("(meevax experimental)", [](library & library)
@@ -251,10 +219,6 @@ inline namespace kernel
       {
         return std::numeric_limits<double>::is_iec559;
       });
-
-      library.export_("type-of");
-      library.export_("disassemble");
-      library.export_("ieee-float?");
     });
 
     define_library("(meevax garbage-collector)", [](library & library)
@@ -268,9 +232,6 @@ inline namespace kernel
       {
         return make<exact_integer>(gc.count());
       });
-
-      library.export_("gc-collect");
-      library.export_("gc-count");
     });
 
     define_library("(meevax inexact)", [](library & library)
@@ -387,25 +348,6 @@ inline namespace kernel
       {
         return apply<atanh>(car(xs));
       });
-
-      library.export_("finite?");
-      library.export_("infinite?");
-      library.export_("nan?");
-      library.export_("exp");
-      library.export_("sqrt");
-      library.export_("log");
-      library.export_("sin");
-      library.export_("asin");
-      library.export_("sinh");
-      library.export_("asinh");
-      library.export_("cos");
-      library.export_("acos");
-      library.export_("cosh");
-      library.export_("acosh");
-      library.export_("tan");
-      library.export_("atan");
-      library.export_("tanh");
-      library.export_("atanh");
     });
 
     define_library("(meevax list)", [](library & library)
@@ -424,10 +366,6 @@ inline namespace kernel
       {
         return make<vector>(car(xs));
       });
-
-      library.export_("null?");
-      library.export_("append");
-      library.export_("list->vector");
     });
 
     define_library("(meevax macro)", [](library & library)
@@ -463,12 +401,6 @@ inline namespace kernel
       {
         return make<syntactic_closure>(car(xs), cadr(xs), caddr(xs));
       });
-
-      library.export_("identifier?");
-      library.export_("identifier->symbol");
-      library.export_("transformer?");
-      library.export_("syntactic-closure?");
-      library.export_("make-syntactic-closure");
     });
 
     define_library("(meevax number)", [](library & library)
@@ -669,39 +601,6 @@ inline namespace kernel
           return apply<number_to_string<16>>(car(xs));
         }
       });
-
-      library.export_("number?");
-      library.export_("complex?");
-      library.export_("real?");
-      library.export_("rational?");
-      library.export_("integer?");
-      library.export_("exact-integer?");
-      library.export_("%complex?");
-      library.export_("ratio?");
-      library.export_("single-float?");
-      library.export_("double-float?");
-      library.export_("=");
-      library.export_("!=");
-      library.export_("<");
-      library.export_("<=");
-      library.export_(">");
-      library.export_(">=");
-      library.export_("+");
-      library.export_("*");
-      library.export_("-");
-      library.export_("/");
-      library.export_("%");
-      library.export_("ratio-numerator");
-      library.export_("ratio-denominator");
-      library.export_("floor");
-      library.export_("ceiling");
-      library.export_("truncate");
-      library.export_("round");
-      library.export_("expt");
-      library.export_("exact");
-      library.export_("inexact");
-      library.export_("integer->char");
-      library.export_("number->string");
     });
 
     define_library("(meevax pair)", [](library & library)
@@ -752,41 +651,6 @@ inline namespace kernel
 
       library.define<procedure>("set-car!", [](auto&& xs) { return caar(xs) = cadr(xs); });
       library.define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
-
-      library.export_("pair?");
-      library.export_("cons");
-      library.export_("car");
-      library.export_("cdr");
-      library.export_("set-car!");
-      library.export_("set-cdr!");
-      library.export_("caaaar");
-      library.export_("caaadr");
-      library.export_("caaar");
-      library.export_("caadar");
-      library.export_("caaddr");
-      library.export_("caadr");
-      library.export_("caar");
-      library.export_("cadaar");
-      library.export_("cadadr");
-      library.export_("cadar");
-      library.export_("caddar");
-      library.export_("cadddr");
-      library.export_("caddr");
-      library.export_("cadr");
-      library.export_("cdaaar");
-      library.export_("cdaadr");
-      library.export_("cdaar");
-      library.export_("cdadar");
-      library.export_("cdaddr");
-      library.export_("cdadr");
-      library.export_("cdar");
-      library.export_("cddaar");
-      library.export_("cddadr");
-      library.export_("cddar");
-      library.export_("cdddar");
-      library.export_("cddddr");
-      library.export_("cdddr");
-      library.export_("cddr");
     });
 
     define_library("(meevax port)", [](library & library)
@@ -886,23 +750,6 @@ inline namespace kernel
         car(xs).as<std::ostream>() << std::flush;
         return unspecified;
       });
-
-      library.export_("binary-port?");
-      library.export_("close");
-      library.export_("eof-object");
-      library.export_("eof-object?");
-      library.export_("error-port");
-      library.export_("flush");
-      library.export_("input-port");
-      library.export_("input-port?");
-      library.export_("open");
-      library.export_("open?");
-      library.export_("output-port");
-      library.export_("output-port?");
-      library.export_("port->string");
-      library.export_("port?");
-      library.export_("string->port");
-      library.export_("textual-port?");
     });
 
     define_library("(meevax read)", [](library & library)
@@ -979,12 +826,6 @@ inline namespace kernel
           return make(error);
         }
       });
-
-      library.export_("get-char");
-      library.export_("get-char!");
-      library.export_("get-ready?");
-      library.export_("get-string!");
-      library.export_("read");
     });
 
     define_library("(meevax string)", [](library & library)
@@ -1237,25 +1078,6 @@ inline namespace kernel
 
         return make(s);
       });
-
-      library.export_("string?");
-      library.export_("make-string");
-      library.export_("string-append");
-      library.export_("string-copy");
-      library.export_("string-copy!");
-      library.export_("string-length");
-      library.export_("string-ref");
-      library.export_("string-set!");
-      library.export_("string=?");
-      library.export_("string<?");
-      library.export_("string<=?");
-      library.export_("string>?");
-      library.export_("string>=?");
-      library.export_("string->list");
-      library.export_("string->number");
-      library.export_("string->symbol");
-      library.export_("list->string");
-      library.export_("vector->string");
     });
 
     define_library("(meevax symbol)", [](library & library)
@@ -1269,9 +1091,6 @@ inline namespace kernel
       {
         return make<string>(car(xs).as<symbol>());
       });
-
-      library.export_("symbol?");
-      library.export_("symbol->string");
     });
 
     define_library("(meevax syntax)", [](library & library)
@@ -1288,19 +1107,6 @@ inline namespace kernel
       library.define<syntax>("quote", quote);
       library.define<syntax>("quote-syntax", quote_syntax);
       library.define<syntax>("set!", set);
-
-      library.export_("begin");
-      library.export_("call-with-current-continuation!");
-      library.export_("define");
-      library.export_("define-syntax");
-      library.export_("if");
-      library.export_("lambda");
-      library.export_("let-syntax");
-      library.export_("letrec");
-      library.export_("letrec-syntax");
-      library.export_("quote");
-      library.export_("quote-syntax");
-      library.export_("set!");
     });
 
     define_library("(meevax vector)", [](library & library)
@@ -1498,19 +1304,6 @@ inline namespace kernel
 
         return make(std::forward<decltype(v)>(v));
       });
-
-      library.export_("vector?");
-      library.export_("vector");
-      library.export_("make-vector");
-      library.export_("vector-append");
-      library.export_("vector-copy");
-      library.export_("vector-copy!");
-      library.export_("vector-length");
-      library.export_("vector-ref");
-      library.export_("vector-set!");
-      library.export_("vector-fill!");
-      library.export_("vector->list");
-      library.export_("string->vector");
     });
 
     define_library("(meevax version)", [](library & library)
@@ -1519,8 +1312,6 @@ inline namespace kernel
       {
         return features();
       });
-
-      library.export_("features");
     });
 
     define_library("(meevax write)", [](library & library)
@@ -1548,11 +1339,6 @@ inline namespace kernel
         write_simple(cadr(xs), car(xs));
         return unspecified;
       });
-
-      library.export_("put-char");
-      library.export_("put-string");
-      library.export_("write");
-      library.export_("write-simple");
     });
 
     std::vector<string_view> const codes {

@@ -31,10 +31,10 @@ inline namespace kernel
 
     let identifiers = unit;
 
-    template <typename Build, REQUIRES(std::is_invocable<Build, library &>)>
-    explicit library(Build&& build)
+    template <typename F, REQUIRES(std::is_invocable<F, library &>)>
+    explicit library(F&& f)
     {
-      std::invoke(std::forward<decltype(build)>(build), *this);
+      std::invoke(std::forward<decltype(f)>(f), *this);
     }
 
     explicit library(const_reference);
@@ -42,6 +42,13 @@ inline namespace kernel
     static auto boot() -> void;
 
     auto build() -> void;
+
+    template <typename T, typename... Ts>
+    auto define(std::string const& name, Ts&&... xs) -> void
+    {
+      environment::define<T>(name, std::forward<decltype(xs)>(xs)...);
+      export_(name);
+    }
 
     auto evaluate(const_reference) -> void;
 
