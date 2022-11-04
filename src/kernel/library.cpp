@@ -1307,11 +1307,18 @@ inline namespace kernel
     {
       library.define<predicate>("vector?", [](let const& xs)
       {
-        return car(xs).is<vector>();
+        return xs[0].is<vector>();
       });
 
       library.define<procedure>("vector", [](let const& xs)
       {
+        /*
+           (vector obj ...)                                           procedure
+
+           Returns a newly allocated vector whose elements contain the given
+           arguments. It is analogous to list.
+        */
+
         return make<vector>(xs);
       });
 

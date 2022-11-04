@@ -29,12 +29,6 @@ inline namespace kernel
 
     explicit vector() = default;
 
-    /*
-       (vector obj ...)                                               procedure
-
-       Returns a newly allocated vector whose elements contain the given
-       arguments. It is analogous to list.
-    */
     explicit vector(const_reference);
 
     explicit vector(std::size_t, const_reference);
