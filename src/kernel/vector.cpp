@@ -31,8 +31,8 @@ inline namespace kernel
     std::copy(std::begin(x), std::end(x), std::back_inserter(objects));
   }
 
-  vector::vector(const_reference k, const_reference fill)
-    : objects { k.as<exact_integer>(), fill }
+  vector::vector(std::size_t k, const_reference fill)
+    : objects { k, fill }
   {}
 
   auto vector::length() const -> value_type

@@ -37,15 +37,7 @@ inline namespace kernel
     */
     explicit vector(const_reference);
 
-    /*
-       (make-vector k)                                                procedure
-       (make-vector k fill)                                           procedure
-
-       Returns a newly allocated vector of k elements. If a second argument is
-       given, then each element is initialized to fill. Otherwise the initial
-       contents of each element is unspecified.
-    */
-    explicit vector(const_reference, const_reference);
+    explicit vector(std::size_t, const_reference);
 
     /*
        (vector-length vector)                                         procedure

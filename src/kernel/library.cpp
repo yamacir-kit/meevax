@@ -1317,7 +1317,16 @@ inline namespace kernel
 
       library.define<procedure>("make-vector", [](let const& xs)
       {
-        return make<vector>(car(xs), cdr(xs).is<pair>() ? cadr(xs) : unspecified);
+        /*
+           (make-vector k)                                            procedure
+           (make-vector k fill)                                       procedure
+
+           Returns a newly allocated vector of k elements. If a second argument
+           is given, then each element is initialized to fill. Otherwise the
+           initial contents of each element is unspecified.
+        */
+
+        return make<vector>(xs[0].as<exact_integer>(), list_tail(xs, 1).is<pair>() ? xs[1] : unspecified);
       });
 
       library.define<procedure>("vector-append", [](let const& xs)
