@@ -35,11 +35,6 @@ inline namespace kernel
     : objects { k, fill }
   {}
 
-  auto vector::length() const -> value_type
-  {
-    return make<exact_integer>(objects.size());
-  }
-
   auto vector::operator [](std::size_t k) const -> const_reference
   {
     return objects[k];

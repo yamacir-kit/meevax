@@ -1407,7 +1407,13 @@ inline namespace kernel
 
       library.define<procedure>("vector-length", [](let const& xs)
       {
-        return car(xs).as<vector>().length();
+        /*
+           (vector-length vector)                                     procedure
+
+           Returns the number of elements in vector as an exact integer.
+        */
+
+        return make<exact_integer>(xs[0].as<vector>().objects.size());
       });
 
       library.define<procedure>("vector-ref", [](let const& xs)

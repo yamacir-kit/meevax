@@ -39,13 +39,6 @@ inline namespace kernel
 
     explicit vector(std::size_t, const_reference);
 
-    /*
-       (vector-length vector)                                         procedure
-
-       Returns the number of elements in vector as an exact integer.
-    */
-    auto length() const -> value_type;
-
     auto operator [](std::size_t) const -> const_reference;
   };
 
