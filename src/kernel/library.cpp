@@ -1342,22 +1342,22 @@ inline namespace kernel
     });
 
     std::vector<string_view> const codes {
-      srfi_211,
-      r4rs_essential,
-      srfi_45,
       r4rs,
-      srfi_149,
+      r4rs_essential,
       r5rs,
+      r7rs,
+      srfi_1,  // List Library
       srfi_6,  // Basic String Ports
+      srfi_8,  // receive: Binding to multiple values
       srfi_11, // Syntax for receiving multiple values
-      srfi_34, // Exception Handling for Programs
       srfi_23, // Error reporting mechanism
+      srfi_34, // Exception Handling for Programs
       srfi_38, // External Representation for Data With Shared Structure
       srfi_39, // Parameter objects
-      r7rs,
-      srfi_8,  // receive: Binding to multiple values
-      srfi_1,  // List Library
+      srfi_45,
       srfi_78, // Lightweight testing
+      srfi_149,
+      srfi_211,
     };
 
     auto sandbox = environment();
