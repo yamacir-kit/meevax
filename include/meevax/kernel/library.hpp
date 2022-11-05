@@ -27,7 +27,30 @@ inline namespace kernel
   {
     let const declarations = unit;
 
-    let export_specs = unit;
+    struct export_spec
+    {
+      let const form;
+
+      explicit export_spec(const_reference form)
+        : form { form }
+      {}
+
+      auto operator ()(environment & library_environment)
+      {
+        if (form.is<pair>())
+        {
+          assert(form[0].is<symbol>());
+          assert(form[0].as<symbol>().value == "rename");
+          return make<absolute>(form[2], library_environment[form[1]]);
+        }
+        else
+        {
+          return library_environment.identify(form, unit);
+        }
+      }
+    };
+
+    std::vector<export_spec> export_specs;
 
     let identifiers = unit;
 

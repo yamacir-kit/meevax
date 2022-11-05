@@ -1376,7 +1376,7 @@ inline namespace kernel
 
   auto library::build() -> void
   {
-    if (export_specs.is<null>())
+    if (export_specs.empty())
     {
       for (let const& declaration : declarations)
       {
@@ -1409,7 +1409,7 @@ inline namespace kernel
 
   auto library::export_(const_reference export_spec) -> void
   {
-    export_specs = cons(export_spec, export_specs);
+    export_specs.emplace_back(export_spec);
   }
 
   auto library::export_(std::string const& export_spec) -> void
@@ -1421,19 +1421,13 @@ inline namespace kernel
   {
     build();
 
-    auto resolve = [this](let const& export_spec)
-    {
-      if (car(export_spec).is<symbol>() and car(export_spec).as<symbol>().value == "rename")
-      {
-        return make<absolute>(caddr(export_spec), (*this)[cadr(export_spec)]);
-      }
-      else
-      {
-        return identify(export_spec, unit);
-      }
-    };
-
-    return identifiers.is<null>() ? identifiers = map1(resolve, export_specs)
+    return identifiers.is<null>() ? identifiers = std::accumulate(std::begin(export_specs),
+                                                                  std::end(export_specs),
+                                                                  unit,
+                                                                  [this](auto&& tail, auto&& export_spec)
+                                                                  {
+                                                                    return cons(export_spec(*this), tail);
+                                                                  })
                                   : identifiers;
   }
 
