@@ -1389,9 +1389,9 @@ inline namespace kernel
   {
     if (car(declaration).is<symbol>() and car(declaration).as<symbol>().value == "export")
     {
-      for (let const& export_spec : cdr(declaration))
+      for (let const& form : cdr(declaration))
       {
-        export_(export_spec);
+        declare<export_spec>(form);
       }
     }
     else if (car(declaration).is<symbol>() and car(declaration).as<symbol>().value == "begin")
@@ -1405,16 +1405,6 @@ inline namespace kernel
     {
       environment::evaluate(declaration); // Non-standard extension.
     }
-  }
-
-  auto library::export_(const_reference export_spec) -> void
-  {
-    export_specs.emplace_back(export_spec);
-  }
-
-  auto library::export_(std::string const& export_spec) -> void
-  {
-    export_(read(export_spec));
   }
 
   auto library::resolve() -> const_reference

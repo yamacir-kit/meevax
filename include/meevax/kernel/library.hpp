@@ -67,17 +67,19 @@ inline namespace kernel
     auto build() -> void;
 
     template <typename T, typename... Ts>
+    auto declare(Ts&&... xs) -> void
+    {
+      export_specs.emplace_back(std::forward<decltype(xs)>(xs)...);
+    }
+
+    template <typename T, typename... Ts>
     auto define(std::string const& name, Ts&&... xs) -> void
     {
       environment::define<T>(name, std::forward<decltype(xs)>(xs)...);
-      export_(name);
+      declare<export_spec>(read(name));
     }
 
     auto evaluate(const_reference) -> void;
-
-    auto export_(const_reference) -> void;
-
-    auto export_(std::string const&) -> void;
 
     auto resolve() -> const_reference;
   };
