@@ -35,7 +35,7 @@ inline namespace kernel
         : form { form }
       {}
 
-      auto operator ()(environment & library_environment)
+      auto identify(environment & library_environment) const
       {
         if (form.is<pair>())
         {
@@ -50,9 +50,21 @@ inline namespace kernel
       }
     };
 
-    std::vector<export_spec> export_specs;
+    struct export_specs : public std::vector<export_spec>
+    {
+      let import_set = unit;
 
-    let identifiers = unit;
+      auto make_import_set(environment & e) -> decltype(auto)
+      {
+        return import_set.is<null>() ? import_set = std::accumulate(std::begin(*this), std::end(*this), unit, [&](auto&& xs, auto&& export_spec)
+                                       {
+                                         return cons(export_spec.identify(e), xs);
+                                       })
+                                     : import_set;
+      }
+    };
+
+    std::tuple<export_specs> declaration;
 
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
     explicit library(F&& f)
@@ -69,7 +81,7 @@ inline namespace kernel
     template <typename T, typename... Ts>
     auto declare(Ts&&... xs) -> void
     {
-      export_specs.emplace_back(std::forward<decltype(xs)>(xs)...);
+      std::get<export_specs>(declaration).emplace_back(std::forward<decltype(xs)>(xs)...);
     }
 
     template <typename T, typename... Ts>

@@ -1376,7 +1376,7 @@ inline namespace kernel
 
   auto library::build() -> void
   {
-    if (export_specs.empty())
+    if (std::get<export_specs>(declaration).empty())
     {
       for (let const& declaration : declarations)
       {
@@ -1411,14 +1411,7 @@ inline namespace kernel
   {
     build();
 
-    return identifiers.is<null>() ? identifiers = std::accumulate(std::begin(export_specs),
-                                                                  std::end(export_specs),
-                                                                  unit,
-                                                                  [this](auto&& tail, auto&& export_spec)
-                                                                  {
-                                                                    return cons(export_spec(*this), tail);
-                                                                  })
-                                  : identifiers;
+    return std::get<export_specs>(declaration).make_import_set(*this);
   }
 
   auto operator <<(std::ostream & os, library const& library) -> std::ostream &
