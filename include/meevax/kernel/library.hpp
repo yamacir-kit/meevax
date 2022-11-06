@@ -35,17 +35,17 @@ inline namespace kernel
         : form { form }
       {}
 
-      auto identify(environment & library_environment) const
+      auto identify(environment & e) const
       {
         if (form.is<pair>())
         {
           assert(form[0].is<symbol>());
           assert(form[0].as<symbol>().value == "rename");
-          return make<absolute>(form[2], library_environment[form[1]]);
+          return make<absolute>(form[2], e[form[1]]);
         }
         else
         {
-          return library_environment.identify(form, unit);
+          return e.identify(form, unit);
         }
       }
     };
@@ -78,7 +78,7 @@ inline namespace kernel
 
     auto build() -> void;
 
-    template <typename T, typename... Ts>
+    template <typename T, typename... Ts, REQUIRES(std::is_same<T, export_spec>)>
     auto declare(Ts&&... xs) -> void
     {
       std::get<export_specs>(declaration).emplace_back(std::forward<decltype(xs)>(xs)...);

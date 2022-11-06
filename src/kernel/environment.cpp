@@ -116,9 +116,9 @@ inline namespace kernel
     return second;
   }
 
-  auto environment::resolve(const_reference declaration) -> value_type
+  auto environment::resolve(const_reference form) -> value_type
   {
-    if (car(declaration).as<symbol>().value == "only") /* ----------------------
+    if (form[0].as<symbol>().value == "only") /* -------------------------------
     *
     *  <declaration> = (only <import set> <identifier> ...)
     *
@@ -137,10 +137,10 @@ inline namespace kernel
         };
       };
 
-      return only(cadr(declaration))
-                 (cddr(declaration));
+      return only(cadr(form))
+                 (cddr(form));
     }
-    else if (car(declaration).as<symbol>().value == "except") /* ---------------
+    else if (form[0].as<symbol>().value == "except") /* ------------------------
     *
     *  <declaration> = (except <import set> <identifier> ...)
     *
@@ -159,10 +159,10 @@ inline namespace kernel
         };
       };
 
-      return except(cadr(declaration))
-                   (cddr(declaration));
+      return except(cadr(form))
+                   (cddr(form));
     }
-    else if (car(declaration).as<symbol>().value == "prefix") /* ---------------
+    else if (form[0].as<symbol>().value == "prefix") /* ------------------------
     *
     *  <declaration> = (prefix <import set> <identifier>)
     *
@@ -182,10 +182,10 @@ inline namespace kernel
         };
       };
 
-      return prefix(cadr(declaration))
-                   (cddr(declaration));
+      return prefix(cadr(form))
+                   (cddr(form));
     }
-    else if (car(declaration).as<symbol>().value == "rename") /* ---------------
+    else if (form[0].as<symbol>().value == "rename") /* ------------------------
     *
     *  <declaration> = (rename <import set>
     *                          (<identifier 1> <identifier 2>) ...)
@@ -214,10 +214,10 @@ inline namespace kernel
         };
       };
 
-      return rename(cadr(declaration))
-                   (cddr(declaration));
+      return rename(cadr(form))
+                   (cddr(form));
     }
-    else if (auto iter = libraries.find(lexical_cast<std::string>(declaration)); iter != std::end(libraries))
+    else if (auto iter = libraries.find(lexical_cast<std::string>(form)); iter != std::end(libraries))
     {
       let const import_set = std::get<1>(*iter).resolve();
 
@@ -234,16 +234,15 @@ inline namespace kernel
     }
   }
 
-  auto environment::import_(const_reference import_set) -> void
+  auto environment::import_(const_reference form) -> void
   {
-    for (let const& identity : resolve(import_set))
+    for (let const& identity : resolve(form))
     {
       assert(identity.is<absolute>());
 
       if (let const& variable = identity.as<absolute>().symbol(); not eq((*this)[variable], undefined) and not interactive)
       {
-        throw error(make<string>("In a program or library declaration, it is an error to import the same identifier more than once with different bindings"),
-                    list(import_set, variable));
+        throw error(make<string>("In a program or library declaration, it is an error to import the same identifier more than once with different bindings"), list(form, variable));
       }
       else
       {
@@ -252,9 +251,9 @@ inline namespace kernel
     }
   }
 
-  auto environment::import_(std::string const& import_set) -> void
+  auto environment::import_(std::string const& form) -> void
   {
-    import_(read(import_set));
+    import_(read(form));
   }
 
   auto environment::load(std::string const& s) -> value_type
