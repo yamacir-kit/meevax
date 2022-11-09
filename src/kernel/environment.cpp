@@ -112,7 +112,7 @@ inline namespace kernel
     return second;
   }
 
-  auto environment::resolve(const_reference form) -> value_type
+  auto resolve(const_reference form) -> value_type
   {
     if (form[0].as<symbol>().value == "only") /* -------------------------------
     *
@@ -120,7 +120,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      auto only = [this](let const& import_set)
+      auto only = [](let const& import_set)
       {
         return [=](let const& identifiers)
         {
@@ -142,7 +142,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      auto except = [this](let const& import_set)
+      auto except = [](let const& import_set)
       {
         return [=](let const& identifiers)
         {
@@ -164,7 +164,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      auto prefix = [this](let const& import_set)
+      auto prefix = [](let const& import_set)
       {
         return [=](let const& prefixes)
         {
@@ -188,7 +188,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      auto rename = [this](let const& import_set)
+      auto rename = [](let const& import_set)
       {
         return [=](let const& renamings)
         {

@@ -69,8 +69,8 @@ inline namespace kernel
        raise is null, C++ exceptions thrown in the kernel are rethrown to the
        outer environment.
 
-       Although raise can be set to any one-argument procedure by
-       `declare-raise` declaration, it is basically assumed to be set to
+       Although raise can be set to any one-argument procedure by procedure
+       `kernel-exception-handler-set!`, it is basically assumed to be set to
        R7RS Scheme's standard procedure `raise`.                              */
 
     struct transformer
