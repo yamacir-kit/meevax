@@ -192,6 +192,11 @@ inline namespace kernel
       {
         return car(xs).is<file_error>();
       });
+
+      library.define<predicate>("kernel-exception-handler-set!", [](let const& xs)
+      {
+        return raise = car(xs);
+      });
     });
 
     define_library("(meevax experimental)", [](library & library)

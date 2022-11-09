@@ -47,10 +47,6 @@ inline namespace kernel
 
       return unspecified;
     }
-    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "declare-raise")
-    {
-      return raise = evaluate(cadr(expression));
-    }
     else
     {
       assert(s.is<null>());
@@ -219,18 +215,11 @@ inline namespace kernel
     }
     else if (auto iter = libraries.find(lexical_cast<std::string>(form)); iter != std::end(libraries))
     {
-      let const import_set = std::get<1>(*iter).resolve();
-
-      if (auto const& [library_name, library] = *iter; raise.is<null>() and not library.raise.is<null>())
-      {
-        raise = library.raise;
-      }
-
-      return import_set;
+      return std::get<1>(*iter).resolve();
     }
     else
     {
-      throw std::runtime_error("No such library");
+      throw error(make<string>("No such library"), form);
     }
   }
 

@@ -54,13 +54,19 @@ inline namespace kernel
     {
       let import_set = unit;
 
-      auto make_import_set(environment & e) -> decltype(auto)
+      auto make_import_set(environment & e) -> meevax::const_reference
       {
-        return import_set.is<null>() ? import_set = std::accumulate(std::begin(*this), std::end(*this), unit, [&](auto&& xs, auto&& export_spec)
-                                       {
-                                         return cons(export_spec.identify(e), xs);
-                                       })
-                                     : import_set;
+        if (import_set.is<null>())
+        {
+          return import_set = std::accumulate(std::begin(*this), std::end(*this), unit, [&](auto&& xs, auto&& export_spec)
+          {
+            return cons(export_spec.identify(e), xs);
+          });
+        }
+        else
+        {
+          return import_set;
+        }
       }
     };
 

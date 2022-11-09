@@ -20,7 +20,7 @@
 
 (define-library (srfi 34)
   (import (only (meevax dynamic-environment) load-auxiliary store-auxiliary)
-          (only (meevax error) throw)
+          (only (meevax error) throw kernel-exception-handler-set!)
           (scheme r5rs))
 
   (export with-exception-handler raise raise-continuable guard)
@@ -60,7 +60,7 @@
                      (inner x)
                      (throw x))))))
 
-         (declare-raise raise)
+         (kernel-exception-handler-set! raise)
 
          (define-syntax guard
            (syntax-rules ()
