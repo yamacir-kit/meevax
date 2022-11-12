@@ -55,9 +55,9 @@ inline namespace kernel
     }
 
     template <typename T, typename... Ts>
-    auto declare(Ts&&... xs) -> void
+    auto declare(Ts&&... xs) -> decltype(auto)
     {
-      T(std::forward<decltype(xs)>(xs)...).resolve(*this);
+      return std::decay_t<T>(std::forward<decltype(xs)>(xs)...).resolve(*this);
     }
 
     auto define(const_reference, const_reference = undefined) -> void;

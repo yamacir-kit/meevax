@@ -1379,27 +1379,16 @@ inline namespace kernel
     }
   }
 
-  auto library::build() -> void
-  {
-    if (std::get<export_specs>(declaration).empty())
-    {
-      for (let const& declaration : declarations)
-      {
-        evaluate(declaration);
-      }
-    }
-  }
-
   auto library::evaluate(const_reference declaration) -> void
   {
-    if (car(declaration).is<symbol>() and car(declaration).as<symbol>().value == "export")
+    if (declaration[0].is<symbol>() and declaration[0].as<symbol>().value == "export")
     {
       for (let const& form : cdr(declaration))
       {
         declare<export_spec>(form);
       }
     }
-    else if (car(declaration).is<symbol>() and car(declaration).as<symbol>().value == "begin")
+    else if (declaration[0].is<symbol>() and declaration[0].as<symbol>().value == "begin")
     {
       for (let const& command_or_definition : cdr(declaration))
       {
@@ -1414,9 +1403,17 @@ inline namespace kernel
 
   auto library::resolve() -> const_reference
   {
-    build();
+    if (not declarations.is<null>())
+    {
+      for (let const& declaration : declarations)
+      {
+        evaluate(declaration);
+      }
 
-    return std::get<export_specs>(declaration).make_import_set(*this);
+      declarations = unit;
+    }
+
+    return subset;
   }
 
   auto operator <<(std::ostream & os, library const& library) -> std::ostream &

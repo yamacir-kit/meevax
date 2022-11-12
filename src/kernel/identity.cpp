@@ -50,14 +50,22 @@ inline namespace kernel
     return eq(load(), undefined);
   }
 
-  auto absolute::load(const_reference) const -> const_reference
+  auto absolute::load(const_reference e) const -> const_reference
   {
-    return second;
+    if (second.is_also<identity>())
+    {
+      // NOTE: Only the (export (rename ...)) form makes an identity whose value is identity.
+      return second.as<identity>().load(e);
+    }
+    else
+    {
+      return second;
+    }
   }
 
-  auto absolute::load(const_reference) -> reference
+  auto absolute::load(const_reference e) -> reference
   {
-    return second;
+    return const_cast<reference>(std::as_const(*this).load(e));
   }
 
   auto absolute::make_load_mnemonic() const -> value_type

@@ -40,9 +40,9 @@ inline namespace kernel
     }
     else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "import")
     {
-      for (let const& x : cdr(expression))
+      for (let const& form : cdr(expression))
       {
-        declare<import_set>(x);
+        declare<import_set>(form);
       }
 
       return unspecified;

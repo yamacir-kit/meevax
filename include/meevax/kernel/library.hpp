@@ -26,7 +26,9 @@ inline namespace kernel
 {
   struct library : public environment
   {
-    let const declarations = unit;
+    let declarations = unit;
+
+    let subset = unit;
 
     struct export_spec
     {
@@ -36,42 +38,34 @@ inline namespace kernel
         : form { form }
       {}
 
-      auto identify(environment & e) const
+      auto resolve(library & library) const
       {
-        if (form.is<pair>())
+        auto identity = [&]()
         {
-          assert(form[0].is<symbol>());
-          assert(form[0].as<symbol>().value == "rename");
-          return make<absolute>(form[2], e[form[1]]);
-        }
-        else
-        {
-          return e.identify(form, unit);
-        }
-      }
-    };
-
-    struct export_specs : public std::vector<export_spec>
-    {
-      let import_set = unit;
-
-      auto make_import_set(environment & e) -> meevax::const_reference
-      {
-        if (import_set.is<null>())
-        {
-          return import_set = std::accumulate(std::begin(*this), std::end(*this), unit, [&](auto&& xs, auto&& export_spec)
+          if (form.is<pair>())
           {
-            return cons(export_spec.identify(e), xs);
-          });
-        }
-        else
-        {
-          return import_set;
-        }
+            assert(form[0].is<symbol>());
+            assert(form[0].as<symbol>().value == "rename");
+            return make<absolute>(form[2], library.identify(form[1], unit));
+          }
+          else
+          {
+            return library.identify(form, unit);
+          }
+        };
+
+        return library.subset = cons(identity(), library.subset);
       }
     };
 
-    std::tuple<export_specs> declaration;
+    template <typename T, typename = void>
+    struct is_library_declaration : public std::false_type
+    {};
+
+    template <typename T>
+    struct is_library_declaration<T, std::void_t<decltype(std::declval<T>().resolve(std::declval<library &>()))>>
+      : public std::true_type
+    {};
 
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
     explicit library(F&& f)
@@ -83,18 +77,16 @@ inline namespace kernel
 
     static auto boot() -> void;
 
-    auto build() -> void;
-
     template <typename T, typename... Ts>
-    auto declare(Ts&&... xs) -> void
+    auto declare(Ts&&... xs) -> decltype(auto)
     {
-      if constexpr (std::is_same_v<std::decay_t<T>, export_spec>)
+      if constexpr (is_library_declaration<std::decay_t<T>>::value)
       {
-        std::get<export_specs>(declaration).emplace_back(std::forward<decltype(xs)>(xs)...);
+        return std::decay_t<T>(std::forward<decltype(xs)>(xs)...).resolve(*this);
       }
       else
       {
-        environment::declare<T>(std::forward<decltype(xs)>(xs)...);
+        return environment::declare<T>(std::forward<decltype(xs)>(xs)...);
       }
     }
 
