@@ -14,28 +14,35 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_IMPORT_SET_HPP
-#define INCLUDED_MEEVAX_KERNEL_IMPORT_SET_HPP
-
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/library.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  class environment;
+  export_spec::export_spec(const_reference form)
+    : form { form }
+  {}
 
-  struct import_set
+  auto export_spec::resolve(library & library) const -> const_reference
   {
-    let const identities;
+    auto identity = [&]()
+    {
+      if (form.is<pair>())
+      {
+        assert(form[0].is<symbol>());
+        assert(form[0].as<symbol>().value == "rename");
+        return make<absolute>(form[2], library.identify(form[1], unit));
+      }
+      else
+      {
+        return library.identify(form, unit);
+      }
+    };
 
-    explicit import_set(const_reference);
-
-    explicit import_set(std::string const&);
-
-    auto resolve(environment &) const -> void;
-  };
+    return library.subset = cons(identity(), library.subset);
+  }
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_IMPORT_SET_HPP
+

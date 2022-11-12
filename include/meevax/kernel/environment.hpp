@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
 
 #include <meevax/kernel/configurator.hpp>
+#include <meevax/kernel/import_set.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/optimizer.hpp>
 #include <meevax/kernel/reader.hpp>

@@ -21,7 +21,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto make_import_set(const_reference form) -> value_type
+  auto resolve_library(const_reference form) -> value_type
   {
     if (form[0].as<symbol>().value == "only") /* -------------------------------
     *
@@ -31,14 +31,13 @@ inline namespace kernel
     {
       auto only = [](let const& import_set)
       {
-        return [=](let const& identifiers)
+        return [=](let const& identities)
         {
           return filter([&](let const& identity)
                         {
-                          return select(memq(identity.as<absolute>().symbol(),
-                                             identifiers));
+                          return select(memq(identity.as<absolute>().symbol(), identities));
                         },
-                        make_import_set(import_set));
+                        resolve_library(import_set));
         };
       };
 
@@ -53,14 +52,13 @@ inline namespace kernel
     {
       auto except = [](let const& import_set)
       {
-        return [=](let const& identifiers)
+        return [=](let const& identities)
         {
           return filter([&](let const& identity)
                         {
-                          return not select(memq(identity.as<absolute>().symbol(),
-                                                 identifiers));
+                          return not select(memq(identity.as<absolute>().symbol(), identities));
                         },
-                        make_import_set(import_set));
+                        resolve_library(import_set));
         };
       };
 
@@ -83,7 +81,7 @@ inline namespace kernel
                                                                identity.as<absolute>().symbol().as<symbol>().value),
                                               identity.as<absolute>().load());
                       },
-                      make_import_set(import_set));
+                      resolve_library(import_set));
         };
       };
 
@@ -103,9 +101,7 @@ inline namespace kernel
         {
           return map1([&](let const& identity)
                       {
-                        if (let const& renaming = assq(identity.as<absolute>().symbol(),
-                                                       renamings);
-                            select(renaming))
+                        if (let const& renaming = assq(identity.as<absolute>().symbol(), renamings); select(renaming))
                         {
                           assert(cadr(renaming).is<symbol>());
                           return make<absolute>(cadr(renaming), identity.as<absolute>().load());
@@ -115,7 +111,7 @@ inline namespace kernel
                           return identity;
                         }
                       },
-                      make_import_set(import_set));
+                      resolve_library(import_set));
         };
       };
 
@@ -133,7 +129,7 @@ inline namespace kernel
   }
 
   import_set::import_set(const_reference form)
-    : identifiers { make_import_set(form) }
+    : identities { resolve_library(form) }
   {}
 
   import_set::import_set(std::string const& library_name)
@@ -142,7 +138,7 @@ inline namespace kernel
 
   auto import_set::resolve(environment & e) const -> void
   {
-    for (let const& identity : identifiers)
+    for (let const& identity : identities)
     {
       assert(identity.is<absolute>());
 

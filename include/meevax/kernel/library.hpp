@@ -18,7 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 
 #include <meevax/kernel/environment.hpp>
-#include <meevax/kernel/import_set.hpp>
+#include <meevax/kernel/export_spec.hpp>
 
 namespace meevax
 {
@@ -29,34 +29,6 @@ inline namespace kernel
     let declarations = unit;
 
     let subset = unit;
-
-    struct export_spec
-    {
-      let const form;
-
-      explicit export_spec(const_reference form)
-        : form { form }
-      {}
-
-      auto resolve(library & library) const
-      {
-        auto identity = [&]()
-        {
-          if (form.is<pair>())
-          {
-            assert(form[0].is<symbol>());
-            assert(form[0].as<symbol>().value == "rename");
-            return make<absolute>(form[2], library.identify(form[1], unit));
-          }
-          else
-          {
-            return library.identify(form, unit);
-          }
-        };
-
-        return library.subset = cons(identity(), library.subset);
-      }
-    };
 
     template <typename T, typename = void>
     struct is_library_declaration : public std::false_type
