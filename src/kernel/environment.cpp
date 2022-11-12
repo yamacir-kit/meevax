@@ -40,9 +40,9 @@ inline namespace kernel
     }
     else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "import")
     {
-      for (let const& import_set : cdr(expression))
+      for (let const& x : cdr(expression))
       {
-        import_(import_set);
+        declare<import_set>(x);
       }
 
       return unspecified;
@@ -110,139 +110,6 @@ inline namespace kernel
   auto environment::global() noexcept -> reference
   {
     return second;
-  }
-
-  auto resolve(const_reference form) -> value_type
-  {
-    if (form[0].as<symbol>().value == "only") /* -------------------------------
-    *
-    *  <declaration> = (only <import set> <identifier> ...)
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      auto only = [](let const& import_set)
-      {
-        return [=](let const& identifiers)
-        {
-          return filter([&](let const& identity)
-                        {
-                          return select(memq(identity.as<absolute>().symbol(),
-                                             identifiers));
-                        },
-                        resolve(import_set));
-        };
-      };
-
-      return only(cadr(form))
-                 (cddr(form));
-    }
-    else if (form[0].as<symbol>().value == "except") /* ------------------------
-    *
-    *  <declaration> = (except <import set> <identifier> ...)
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      auto except = [](let const& import_set)
-      {
-        return [=](let const& identifiers)
-        {
-          return filter([&](let const& identity)
-                        {
-                          return not select(memq(identity.as<absolute>().symbol(),
-                                                 identifiers));
-                        },
-                        resolve(import_set));
-        };
-      };
-
-      return except(cadr(form))
-                   (cddr(form));
-    }
-    else if (form[0].as<symbol>().value == "prefix") /* ------------------------
-    *
-    *  <declaration> = (prefix <import set> <identifier>)
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      auto prefix = [](let const& import_set)
-      {
-        return [=](let const& prefixes)
-        {
-          return map1([&](let const& identity)
-                      {
-                        return make<absolute>(string_to_symbol(car(prefixes).as<symbol>().value +
-                                                               identity.as<absolute>().symbol().as<symbol>().value),
-                                              identity.as<absolute>().load());
-                      },
-                      resolve(import_set));
-        };
-      };
-
-      return prefix(cadr(form))
-                   (cddr(form));
-    }
-    else if (form[0].as<symbol>().value == "rename") /* ------------------------
-    *
-    *  <declaration> = (rename <import set>
-    *                          (<identifier 1> <identifier 2>) ...)
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      auto rename = [](let const& import_set)
-      {
-        return [=](let const& renamings)
-        {
-          return map1([&](let const& identity)
-                      {
-                        if (let const& renaming = assq(identity.as<absolute>().symbol(),
-                                                       renamings);
-                            select(renaming))
-                        {
-                          assert(cadr(renaming).is<symbol>());
-                          return make<absolute>(cadr(renaming), identity.as<absolute>().load());
-                        }
-                        else
-                        {
-                          return identity;
-                        }
-                      },
-                      resolve(import_set));
-        };
-      };
-
-      return rename(cadr(form))
-                   (cddr(form));
-    }
-    else if (auto iter = libraries.find(lexical_cast<std::string>(form)); iter != std::end(libraries))
-    {
-      return std::get<1>(*iter).resolve();
-    }
-    else
-    {
-      throw error(make<string>("No such library"), form);
-    }
-  }
-
-  auto environment::import_(const_reference form) -> void
-  {
-    for (let const& identity : resolve(form))
-    {
-      assert(identity.is<absolute>());
-
-      if (let const& variable = identity.as<absolute>().symbol(); not eq((*this)[variable], undefined) and not interactive)
-      {
-        throw error(make<string>("In a program or library declaration, it is an error to import the same identifier more than once with different bindings"), list(form, variable));
-      }
-      else
-      {
-        define(identity.as<absolute>().symbol(), identity.as<absolute>().load());
-      }
-    }
-  }
-
-  auto environment::import_(std::string const& form) -> void
-  {
-    import_(read(form));
   }
 
   auto environment::load(std::string const& s) -> value_type

@@ -40,15 +40,9 @@ inline namespace kernel
 
     using reader::read;
 
-    explicit environment(environment &&) = default;
+    environment(environment &&) = default;
 
-    explicit environment(environment const&) = default;
-
-    template <typename... Ts, REQUIRES(std::is_convertible<Ts, std::string>...)>
-    explicit environment(Ts&&... xs)
-    {
-      (import(xs), ...);
-    }
+    environment(environment const&) = default;
 
     auto operator [](const_reference variable) -> decltype(auto)
     {
@@ -58,6 +52,12 @@ inline namespace kernel
     auto operator [](std::string const& variable) -> decltype(auto)
     {
       return (*this)[string_to_symbol(variable)];
+    }
+
+    template <typename T, typename... Ts>
+    auto declare(Ts&&... xs) -> void
+    {
+      T(std::forward<decltype(xs)>(xs)...).resolve(*this);
     }
 
     auto define(const_reference, const_reference = undefined) -> void;
@@ -83,10 +83,6 @@ inline namespace kernel
     auto global() noexcept -> reference;
 
     auto global() const noexcept -> const_reference;
-
-    auto import_(const_reference) -> void;
-
-    auto import_(std::string const&) -> void;
 
     auto load(std::string const&) -> value_type;
 

@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/import_set.hpp>
 
 namespace meevax
 {
@@ -84,10 +85,17 @@ inline namespace kernel
 
     auto build() -> void;
 
-    template <typename T, typename... Ts, REQUIRES(std::is_same<T, export_spec>)>
+    template <typename T, typename... Ts>
     auto declare(Ts&&... xs) -> void
     {
-      std::get<export_specs>(declaration).emplace_back(std::forward<decltype(xs)>(xs)...);
+      if constexpr (std::is_same_v<std::decay_t<T>, export_spec>)
+      {
+        std::get<export_specs>(declaration).emplace_back(std::forward<decltype(xs)>(xs)...);
+      }
+      else
+      {
+        environment::declare<T>(std::forward<decltype(xs)>(xs)...);
+      }
     }
 
     template <typename T, typename... Ts>

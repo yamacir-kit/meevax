@@ -31,17 +31,17 @@ auto main(int const argc, char const* const* const argv) -> int
     if (main.interactive)
     {
       main.display_version();
-      main.import_("(scheme base)");
-      main.import_("(scheme char)");
-      main.import_("(scheme complex)");
-      main.import_("(scheme cxr)");
-      main.import_("(scheme eval)");
-      main.import_("(scheme inexact)");
-      main.import_("(scheme lazy)");
-      main.import_("(scheme load)");
-      main.import_("(scheme process-context)");
-      main.import_("(scheme read)");
-      main.import_("(scheme write)");
+      main.declare<import_set>("(scheme base)");
+      main.declare<import_set>("(scheme char)");
+      main.declare<import_set>("(scheme complex)");
+      main.declare<import_set>("(scheme cxr)");
+      main.declare<import_set>("(scheme eval)");
+      main.declare<import_set>("(scheme inexact)");
+      main.declare<import_set>("(scheme lazy)");
+      main.declare<import_set>("(scheme load)");
+      main.declare<import_set>("(scheme process-context)");
+      main.declare<import_set>("(scheme read)");
+      main.declare<import_set>("(scheme write)");
     }
 
     while (main.interactive and main.get_ready())
