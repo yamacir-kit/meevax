@@ -126,15 +126,14 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
         if (5 <= length(c) and
-            list_ref(c, 0).is<mnemonic>() and
-            list_ref(c, 0).as<mnemonic>() == mnemonic::load_constant and
-            list_ref(c, 2).is<mnemonic>() and
-            list_ref(c, 2).as<mnemonic>() == mnemonic::load_constant and
-            list_ref(c, 4).is<mnemonic>() and
-            list_ref(c, 4).as<mnemonic>() == mnemonic::cons)
+            c[0].is<mnemonic>() and
+            c[0].as<mnemonic>() == mnemonic::load_constant and
+            c[2].is<mnemonic>() and
+            c[2].as<mnemonic>() == mnemonic::load_constant and
+            c[4].is<mnemonic>() and
+            c[4].as<mnemonic>() == mnemonic::cons)
         {
-          return merge_constants(cons(list_ref(c, 0), cons(list_ref(c, 3),
-                                                           list_ref(c, 1)),
+          return merge_constants(cons(c[0], cons(c[3], c[1]),
                                       merge_constants(list_tail(c, 5))));
         }
         else if (let const& continuation = merge_constants(cddr(c)); continuation == cddr(c))

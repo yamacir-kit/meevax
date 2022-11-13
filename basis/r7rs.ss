@@ -3,12 +3,20 @@
           (only (meevax number) exact-integer?)
           (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
           (only (meevax port)
-            binary-port? textual-port? port? input-port-open? output-port-open?
-            standard-input-port standard-output-port standard-error-port
-            eof-object get-ready? get-char get-char! put-char put-string
-            %flush-output-port)
+                binary-port?
+                textual-port?
+                port?
+                input-port
+                open?
+                output-port
+                flush
+                error-port
+                eof-object
+                )
+          (only (meevax read) get-char get-char! get-ready?)
           (only (meevax string) string-copy! vector->string)
           (only (meevax version) features)
+          (only (meevax write) put-char put-string)
           (scheme r5rs)
           (srfi 6) ; Basic String Ports
           (srfi 11) ; Syntax for receiving multiple values
@@ -344,8 +352,12 @@
              (close-port port)
              result))
 
+         (define input-port-open? open?)
+
+         (define output-port-open? open?)
+
          (define current-input-port
-           (make-parameter (standard-input-port)
+           (make-parameter (input-port)
              (lambda (x)
                (cond ((not (input-port? x))
                       (error "current-input-port: not input-port" x))
@@ -354,7 +366,7 @@
                      (else x)))))
 
          (define current-output-port
-           (make-parameter (standard-output-port)
+           (make-parameter (output-port)
              (lambda (x)
                (cond ((not (output-port? x))
                       (error "current-output-port: not output-port" x))
@@ -363,7 +375,7 @@
                      (else x)))))
 
          (define current-error-port
-           (make-parameter (standard-error-port)
+           (make-parameter (error-port)
              (lambda (x)
                (cond ((not (output-port? x))
                       (error "current-error-port: not output-port" x))
@@ -400,15 +412,15 @@
            (case (length xs)
              ((0)  (put-string string (current-output-port)))
              ((1)  (put-string string (car xs)))
-             (else (put-string (apply string-copy string (cadr xs)) (car xs)))))
+             (else (put-string (apply string-copy string (cdr xs)) (car xs)))))
 
          (define (newline . port)
            (apply write-char #\newline port))
 
          (define (flush-output-port . port)
-           (%flush-output-port (if (pair? port)
-                                   (car port)
-                                   (current-output-port))))
+           (flush (if (pair? port)
+                      (car port)
+                      (current-output-port))))
          )
   )
 
@@ -529,15 +541,12 @@
            (string-map char-foldcase x))))
 
 (define-library (scheme eval)
-  (import (only (meevax environment) environment)
-          (only (meevax evaluate) eval))
+  (import (only (meevax environment) environment eval))
   (export environment eval))
 
 (define-library (scheme file)
-  (import (only (meevax port) open-input-file open-output-file)
-          (only (scheme r5rs) call-with-input-file call-with-output-file)
-          (only (scheme base) define parameterize current-input-port current-output-port)
-          )
+  (import (only (scheme r5rs) call-with-input-file call-with-output-file open-input-file open-output-file)
+          (only (scheme base) define parameterize current-input-port current-output-port))
   (export call-with-input-file
           call-with-output-file
           with-input-from-file
@@ -560,7 +569,8 @@
   )
 
 (define-library (scheme read)
-  (import (meevax read)
+  (import (rename (meevax read)
+                  (read %read))
           (scheme base))
   (export read)
   (begin (define (read . x)

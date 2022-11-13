@@ -14,11 +14,10 @@
    limitations under the License.
 */
 
-#include <functional>
 #include <meevax/kernel/basis.hpp>
+#include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
-#include <stdexcept>
 
 namespace meevax
 {
@@ -53,10 +52,6 @@ inline namespace kernel
           return f;
         }
       });
-
-      library.export_("char?");
-      library.export_("char->integer");
-      library.export_("char-codepoint");
     });
 
     define_library("(meevax complex)", [](library & library)
@@ -78,10 +73,6 @@ inline namespace kernel
       {
         return car(xs).as<complex>().imag();
       });
-
-      library.export_("make-rectangular");
-      library.export_("real-part");
-      library.export_("imag-part");
     });
 
     define_library("(meevax context)", [](library & library)
@@ -101,11 +92,9 @@ inline namespace kernel
           throw static_cast<int>(status.as<exact_integer>());
         }
       });
-
-      library.export_("emergency-exit");
     });
 
-    define_library("(meevax control)", [](library & library)
+    define_library("(meevax function)", [](library & library)
     {
       library.define<predicate>("closure?", [](let const& xs)
       {
@@ -117,8 +106,15 @@ inline namespace kernel
         return car(xs).is<continuation>();
       });
 
-      library.export_("closure?");
-      library.export_("continuation?");
+      library.define<procedure>("foreign-function", [](let const& xs)
+      {
+        return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
+      });
+
+      library.define<predicate>("foreign-function?", [](let const& xs)
+      {
+        return car(xs).is<procedure>();
+      });
     });
 
     define_library("(meevax environment)", [](library & library)
@@ -129,15 +125,15 @@ inline namespace kernel
 
         for (let const& x : xs)
         {
-          e.as<environment>().import_(x);
+          e.as<environment>().declare<import_set>(x);
         }
 
         return e;
       });
 
-      library.define<procedure>("%load", [](let const& xs)
+      library.define<procedure>("eval", [](let const& xs)
       {
-        return car(xs).as<environment>().load(cadr(xs).as<string>());
+        return cadr(xs).as<environment>().evaluate(car(xs));
       });
 
       library.define<procedure>("interaction-environment", [](auto&&...)
@@ -145,18 +141,16 @@ inline namespace kernel
         return interaction_environment();
       });
 
-      library.export_("environment");
-      library.export_("interaction-environment");
-      library.export_("%load");
+      library.define<procedure>("load", [](let const& xs)
+      {
+        return car(xs).as<environment>().load(cadr(xs).as<string>());
+      });
     });
 
     define_library("(meevax dynamic-environment)", [](library & library)
     {
       library.define<syntax>("store-auxiliary", store_auxiliary);
       library.define<syntax>("load-auxiliary", load_auxiliary);
-
-      library.export_("store-auxiliary");
-      library.export_("load-auxiliary");
     });
 
     define_library("(meevax comparator)", [](library & library)
@@ -170,19 +164,6 @@ inline namespace kernel
       {
         return eqv(car(xs), cadr(xs));
       });
-
-      library.export_("identity=?");
-      library.export_("normally=?");
-    });
-
-    define_library("(meevax evaluate)", [](library & library)
-    {
-      library.define<procedure>("eval", [](let const& xs)
-      {
-        return cadr(xs).as<environment>().evaluate(car(xs));
-      });
-
-      library.export_("eval");
     });
 
     define_library("(meevax error)", [](library & library)
@@ -212,11 +193,10 @@ inline namespace kernel
         return car(xs).is<file_error>();
       });
 
-      library.export_("throw");
-      library.export_("make-error");
-      library.export_("error?");
-      library.export_("read-error?");
-      library.export_("file-error?");
+      library.define<predicate>("kernel-exception-handler-set!", [](let const& xs)
+      {
+        return raise = car(xs);
+      });
     });
 
     define_library("(meevax experimental)", [](library & library)
@@ -244,26 +224,6 @@ inline namespace kernel
       {
         return std::numeric_limits<double>::is_iec559;
       });
-
-      library.export_("type-of");
-      library.export_("disassemble");
-      library.export_("ieee-float?");
-    });
-
-    define_library("(meevax foreign-function)", [](library & library)
-    {
-      library.define<procedure>("foreign-function", [](let const& xs)
-      {
-        return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
-      });
-
-      library.define<predicate>("foreign-function?", [](let const& xs)
-      {
-        return car(xs).is<procedure>();
-      });
-
-      library.export_("foreign-function");
-      library.export_("foreign-function?");
     });
 
     define_library("(meevax garbage-collector)", [](library & library)
@@ -277,9 +237,6 @@ inline namespace kernel
       {
         return make<exact_integer>(gc.count());
       });
-
-      library.export_("gc-collect");
-      library.export_("gc-count");
     });
 
     define_library("(meevax inexact)", [](library & library)
@@ -396,25 +353,6 @@ inline namespace kernel
       {
         return apply<atanh>(car(xs));
       });
-
-      library.export_("finite?");
-      library.export_("infinite?");
-      library.export_("nan?");
-      library.export_("exp");
-      library.export_("sqrt");
-      library.export_("log");
-      library.export_("sin");
-      library.export_("asin");
-      library.export_("sinh");
-      library.export_("asinh");
-      library.export_("cos");
-      library.export_("acos");
-      library.export_("cosh");
-      library.export_("acosh");
-      library.export_("tan");
-      library.export_("atan");
-      library.export_("tanh");
-      library.export_("atanh");
     });
 
     define_library("(meevax list)", [](library & library)
@@ -433,10 +371,6 @@ inline namespace kernel
       {
         return make<vector>(car(xs));
       });
-
-      library.export_("null?");
-      library.export_("append");
-      library.export_("list->vector");
     });
 
     define_library("(meevax macro)", [](library & library)
@@ -472,12 +406,6 @@ inline namespace kernel
       {
         return make<syntactic_closure>(car(xs), cadr(xs), caddr(xs));
       });
-
-      library.export_("identifier?");
-      library.export_("identifier->symbol");
-      library.export_("transformer?");
-      library.export_("syntactic-closure?");
-      library.export_("make-syntactic-closure");
     });
 
     define_library("(meevax number)", [](library & library)
@@ -678,39 +606,6 @@ inline namespace kernel
           return apply<number_to_string<16>>(car(xs));
         }
       });
-
-      library.export_("number?");
-      library.export_("complex?");
-      library.export_("real?");
-      library.export_("rational?");
-      library.export_("integer?");
-      library.export_("exact-integer?");
-      library.export_("%complex?");
-      library.export_("ratio?");
-      library.export_("single-float?");
-      library.export_("double-float?");
-      library.export_("=");
-      library.export_("!=");
-      library.export_("<");
-      library.export_("<=");
-      library.export_(">");
-      library.export_(">=");
-      library.export_("+");
-      library.export_("*");
-      library.export_("-");
-      library.export_("/");
-      library.export_("%");
-      library.export_("ratio-numerator");
-      library.export_("ratio-denominator");
-      library.export_("floor");
-      library.export_("ceiling");
-      library.export_("truncate");
-      library.export_("round");
-      library.export_("expt");
-      library.export_("exact");
-      library.export_("inexact");
-      library.export_("integer->char");
-      library.export_("number->string");
     });
 
     define_library("(meevax pair)", [](library & library)
@@ -761,41 +656,6 @@ inline namespace kernel
 
       library.define<procedure>("set-car!", [](auto&& xs) { return caar(xs) = cadr(xs); });
       library.define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
-
-      library.export_("pair?");
-      library.export_("cons");
-      library.export_("car");
-      library.export_("cdr");
-      library.export_("set-car!");
-      library.export_("set-cdr!");
-      library.export_("caaaar");
-      library.export_("caaadr");
-      library.export_("caaar");
-      library.export_("caadar");
-      library.export_("caaddr");
-      library.export_("caadr");
-      library.export_("caar");
-      library.export_("cadaar");
-      library.export_("cadadr");
-      library.export_("cadar");
-      library.export_("caddar");
-      library.export_("cadddr");
-      library.export_("caddr");
-      library.export_("cadr");
-      library.export_("cdaaar");
-      library.export_("cdaadr");
-      library.export_("cdaar");
-      library.export_("cdadar");
-      library.export_("cdaddr");
-      library.export_("cdadr");
-      library.export_("cdar");
-      library.export_("cddaar");
-      library.export_("cddadr");
-      library.export_("cddar");
-      library.export_("cdddar");
-      library.export_("cddddr");
-      library.export_("cdddr");
-      library.export_("cddr");
     });
 
     define_library("(meevax port)", [](library & library)
@@ -825,97 +685,80 @@ inline namespace kernel
         return car(xs).is_also<std::ios>();
       });
 
-      library.define<predicate>("input-port-open?", [](let const& xs)
+      library.define<predicate>("open?", [](let const& xs)
       {
-        if (let const& x = car(xs); x.is_also<std::ifstream>())
+        if (let const& x = car(xs); x.is<file_port>())
         {
-          return x.as<std::ifstream>().is_open();
+          return x.as<file_port>().is_open();
         }
         else
         {
-          return x.is_also<std::istream>();
+          return x.is_also<std::ios>();
         }
       });
 
-      library.define<predicate>("output-port-open?", [](let const& xs)
-      {
-        if (let const& x = car(xs); x.is_also<std::ofstream>())
-        {
-          return x.as<std::ofstream>().is_open();
-        }
-        else
-        {
-          return x.is_also<std::ostream>();
-        }
-      });
-
-      library.define<procedure>("standard-input-port", [](auto&&...)
+      library.define<procedure>("input-port", [](auto&&...)
       {
         return standard_input;
       });
 
-      library.define<procedure>("standard-output-port", [](auto&&...)
+      library.define<procedure>("output-port", [](auto&&...)
       {
         return standard_output;
       });
 
-      library.define<procedure>("standard-error-port", [](auto&&...)
+      library.define<procedure>("error-port", [](auto&&...)
       {
         return standard_error;
       });
 
-      library.define<procedure>("open-input-file", [](let const& xs)
+      library.define<procedure>("open", [](let const& xs)
       {
-        return make<input_file_port>(car(xs).as<string>());
+        return make<file_port>(car(xs).as<string>());
       });
 
-      library.define<procedure>("open-output-file", [](let const& xs)
+      library.define<procedure>("close", [](let const& xs)
       {
-        return make<output_file_port>(car(xs).as<string>());
-      });
-
-      library.define<procedure>("close-input-port", [](let const& xs)
-      {
-        if (let const& x = car(xs); x.is_also<std::ifstream>())
-        {
-          x.as<std::ifstream>().close();
-        }
-
+        car(xs).as<file_port>().close();
         return unspecified;
       });
 
-      library.define<procedure>("close-output-port", [](let const& xs)
+      library.define<procedure>("string->port", [](let const& xs)
       {
-        if (let const& x = car(xs); x.is_also<std::ofstream>())
-        {
-          x.as<std::ofstream>().close();
-        }
+        return xs.is<pair>() ? make<string_port>(car(xs).as<string>()) : make<string_port>();
+      });
 
+      library.define<procedure>("port->string", [](let const& xs)
+      {
+        if (car(xs).is<string_port>())
+        {
+          return make<string>(car(xs).as<string_port>().str());
+        }
+        else
+        {
+          return make<string>(std::string(std::istreambuf_iterator<char>(car(xs).as<std::istream>()), {}));
+        }
+      });
+
+      library.define<predicate>("eof-object?", [](let const& xs)
+      {
+        return car(xs).is<eof>();
+      });
+
+      library.define<procedure>("eof-object", [](auto&&...)
+      {
+        return eof_object;
+      });
+
+      library.define<procedure>("flush", [](let const& xs)
+      {
+        car(xs).as<std::ostream>() << std::flush;
         return unspecified;
       });
+    });
 
-      library.define<procedure>("open-input-string", [](let const& xs)
-      {
-        return cdr(xs).is<pair>() ? make<input_string_port>(car(xs).as<string>())
-                                  : make<input_string_port>();
-      });
-
-      library.define<procedure>("open-output-string", [](let const& xs)
-      {
-        return cdr(xs).is<pair>() ? make<output_string_port>(car(xs).as<string>())
-                                  : make<output_string_port>();
-      });
-
-      library.define<procedure>("get-output-string", [](let const& xs)
-      {
-        return make<string>(car(xs).as<std::ostringstream>().str());
-      });
-
-      library.define<predicate>("get-ready?", [](let const& xs)
-      {
-        return static_cast<bool>(car(xs).as<std::istream>());
-      });
-
+    define_library("(meevax read)", [](library & library)
+    {
       library.define<procedure>("get-char", [](let const& xs) -> value_type
       {
         try
@@ -951,14 +794,9 @@ inline namespace kernel
         }
       });
 
-      library.define<predicate>("eof-object?", [](let const& xs)
+      library.define<predicate>("get-ready?", [](let const& xs)
       {
-        return car(xs).is<eof>();
-      });
-
-      library.define<procedure>("eof-object", [](auto&&...)
-      {
-        return eof_object;
+        return static_cast<bool>(car(xs).as<std::istream>());
       });
 
       library.define<procedure>("get-string!", [](let const& xs)
@@ -978,62 +816,7 @@ inline namespace kernel
         return s;
       });
 
-      library.define<procedure>("put-char", [](let const& xs)
-      {
-        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
-        return unspecified;
-      });
-
-      library.define<procedure>("put-string", [](let const& xs)
-      {
-        auto copy = [&]()
-        {
-          return car(xs).as<string>().copy(list_tail(xs, 2).is<pair>() ? list_ref(xs, 2) : e0,
-                                           list_tail(xs, 3).is<pair>() ? list_ref(xs, 3) : car(xs).as<string>().length());
-        };
-
-        cadr(xs).as<std::ostream>() << static_cast<std::string>(copy().as<string>());
-
-        return unspecified;
-      });
-
-      library.define<procedure>("%flush-output-port", [](let const& xs)
-      {
-        car(xs).as<std::ostream>() << std::flush;
-        return unspecified;
-      });
-
-      library.export_("input-port?");
-      library.export_("output-port?");
-      library.export_("binary-port?");
-      library.export_("textual-port?");
-      library.export_("port?");
-      library.export_("input-port-open?");
-      library.export_("output-port-open?");
-      library.export_("standard-input-port");
-      library.export_("standard-output-port");
-      library.export_("standard-error-port");
-      library.export_("open-input-file");
-      library.export_("open-output-file");
-      library.export_("close-input-port");
-      library.export_("close-output-port");
-      library.export_("open-input-string");
-      library.export_("open-output-string");
-      library.export_("get-output-string");
-      library.export_("eof-object?");
-      library.export_("eof-object");
-      library.export_("get-ready?");
-      library.export_("get-char");
-      library.export_("get-char!");
-      library.export_("get-string!");
-      library.export_("put-char");
-      library.export_("put-string");
-      library.export_("%flush-output-port");
-    });
-
-    define_library("(meevax read)", [](library & library)
-    {
-      library.define<procedure>("%read", [](let const& xs) mutable -> value_type
+      library.define<procedure>("read", [](let const& xs) mutable -> value_type
       {
         try
         {
@@ -1048,8 +831,6 @@ inline namespace kernel
           return make(error);
         }
       });
-
-      library.export_("%read");
     });
 
     define_library("(meevax string)", [](library & library)
@@ -1061,42 +842,133 @@ inline namespace kernel
 
       library.define<procedure>("make-string", [](let const& xs)
       {
-        return make<string>(car(xs), cdr(xs).is<pair>() ? cadr(xs) : make<character>());
+        /*
+           (make-string k)                                            procedure
+           (make-string k char)                                       procedure
+
+           The make-string procedure returns a newly allocated string of length
+           k. If char is given, then all the characters of the string are
+           initialized to char, otherwise the contents of the string are
+           unspecified.
+        */
+
+        return make<string>(xs[0].as<exact_integer>(),
+                            list_tail(xs, 1).is<pair>() ? xs[1].as<character>() : character());
       });
 
       library.define<procedure>("string-length", [](let const& xs)
       {
-        return car(xs).as<string>().length();
+        /*
+           (string-length string)                                     procedure
+
+           Returns the number of characters in the given string.
+        */
+
+        return make<exact_integer>(xs[0].as<string>().codepoints.size());
       });
 
       library.define<procedure>("string-ref", [](let const& xs)
       {
-        return car(xs).as<string>().ref(cadr(xs));
+        /*
+           (string-ref string k)                                      procedure
+
+           It is an error if k is not a valid index of string.
+
+           The string-ref procedure returns character k of string using
+           zero-origin indexing. There is no requirement for this procedure to
+           execute in constant time.
+        */
+
+        return make(car(xs).as<string>().codepoints.at(cadr(xs).as<exact_integer>()));
       });
 
       library.define<procedure>("string-set!", [](let const& xs)
       {
-        car(xs).as<string>().set(cadr(xs), caddr(xs));
+        /*
+           (string-set! string k char)                                procedure
+
+           It is an error if k is not a valid index of string.
+
+           The string-set! procedure stores char in element k of string. There
+           is no requirement for this procedure to execute in constant time.
+        */
+
+        car(xs).as<string>().codepoints.at(cadr(xs).as<exact_integer>()) = caddr(xs).as<character>();
+
         return car(xs);
       });
 
       library.define<procedure>("string-append", [](let const& xs)
       {
-        return string::append(xs);
+        /*
+           (string-append string ...)                                 procedure
+
+           Returns a newly allocated string whose characters are the
+           concatenation of the characters in the given strings.
+        */
+
+        auto&& s = string();
+
+        for (let const& x : xs)
+        {
+          std::copy(std::begin(x.as<string>().codepoints),
+                    std::end(x.as<string>().codepoints),
+                    std::back_inserter(s.codepoints));
+        }
+
+        return make(std::forward<decltype(s)>(s));
       });
 
       library.define<procedure>("string-copy", [](let const& xs)
       {
-        return car(xs).as<string>().copy(cdr(xs).is<pair>() ? cadr(xs) : e0,
-                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<string>().length());
+        /*
+           (string-copy string)                                       procedure
+           (string-copy string start)                                 procedure
+           (string-copy string start end)                             procedure
+
+           Returns a newly allocated copy of the part of the given string
+           between start and end.
+        */
+
+        auto&& s = string();
+
+        std::copy(std::next(std::begin(xs[0].as<string>().codepoints), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                  std::next(std::begin(xs[0].as<string>().codepoints), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<string>().codepoints.size()),
+                  std::back_inserter(s.codepoints));
+
+        return make(s);
       });
 
       library.define<procedure>("string-copy!", [](let const& xs)
       {
-        car(xs).as<string>().copy(list_ref(xs, 1),
-                                  list_ref(xs, 2),
-                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 3) : e0,
-                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 4) : car(xs).as<vector>().length());
+        /*
+           (string-copy! to at from)                                  procedure
+           (string-copy! to at from start)                            procedure
+           (string-copy! to at from start end)                        procedure
+
+           It is an error if at is less than zero or greater than the length of
+           to. It is also an error if (- (string-length to) at) is less than (-
+           end start).
+
+           Copies the characters of string from between start and end to string
+           to, starting at at. The order in which characters are copied is
+           unspecified, except that if the source and destination overlap,
+           copying takes place as if the source is first copied into a
+           temporary string and then into the destination. This can be achieved
+           without allocating storage by making sure to copy in the correct
+           direction in such circumstances.
+        */
+
+        auto&& s1 = xs[0].as<string>().codepoints;
+
+        auto&& s2 = xs[2].as<string>().codepoints;
+
+        s1.reserve(s1.size() + s2.size());
+
+        std::copy(std::next(std::begin(s2), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
+                  std::next(std::begin(s2), list_tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : s2.size()),
+                  std::next(std::begin(s1),                               xs[1].as<exact_integer>()));
+
         return unspecified;
       });
 
@@ -1127,8 +999,29 @@ inline namespace kernel
 
       library.define<procedure>("string->list", [](let const& xs)
       {
-        return car(xs).as<string>().make_list(cdr(xs).is<pair>() ? cadr(xs) : e0,
-                                              cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<string>().length());
+        /*
+           (string->list string)                                      procedure
+           (string->list string start)                                procedure
+           (string->list string start end)                            procedure
+
+           (list->string list)                                        procedure
+
+           It is an error if any element of list is not a character.
+
+           The string->list procedure returns a newly allocated list of the
+           characters of string between start and end. list->string returns a
+           newly allocated string formed from the elements in the list list. In
+           both procedures, order is preserved. string->list and list->string
+           are inverses so far as equal? is concerned.
+        */
+
+        return std::accumulate(std::prev(std::rend(xs[0].as<string>().codepoints), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<string>().codepoints.size()),
+                               std::prev(std::rend(xs[0].as<string>().codepoints), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                               unit,
+                               [](let const& xs, character const& c)
+                               {
+                                 return cons(make(c), xs);
+                               });
       });
 
       library.define<procedure>("string->symbol", [](let const& xs)
@@ -1138,34 +1031,58 @@ inline namespace kernel
 
       library.define<procedure>("list->string", [](let const& xs)
       {
-        return make<string>(car(xs));
+        /*
+           (list->string list)                                        procedure
+
+           It is an error if any element of list is not a character.
+
+           The string->list procedure returns a newly allocated list of the
+           characters of string between start and end. list->string returns a
+           newly allocated string formed from the elements in the list list. In
+           both procedures, order is preserved. string->list and list->string
+           are inverses so far as equal? is concerned.
+        */
+
+        auto&& s = string();
+
+        for (let const& x : xs[0])
+        {
+          s.codepoints.push_back(x.as<character>());
+        }
+
+        return make(std::forward<decltype(s)>(s));
       });
 
       library.define<procedure>("vector->string", [](let const& xs)
       {
-        return make<string>(car(xs),
-                            cdr(xs).is<pair>() ? cadr(xs) : e0,
-                            cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
-      });
+        /*
+           (vector->string vector)                                    procedure
+           (vector->string vector start)                              procedure
+           (vector->string vector start end)                          procedure
 
-      library.export_("string?");
-      library.export_("make-string");
-      library.export_("string-append");
-      library.export_("string-copy");
-      library.export_("string-copy!");
-      library.export_("string-length");
-      library.export_("string-ref");
-      library.export_("string-set!");
-      library.export_("string=?");
-      library.export_("string<?");
-      library.export_("string<=?");
-      library.export_("string>?");
-      library.export_("string>=?");
-      library.export_("string->list");
-      library.export_("string->number");
-      library.export_("string->symbol");
-      library.export_("list->string");
-      library.export_("vector->string");
+           It is an error if any element of vector between start and end is not
+           a character.
+
+           The vector->string procedure returns a newly allocated string of the
+           objects contained in the elements of vector between start and end.
+           The string->vector procedure returns a newly created vector
+           initialized to the elements of the string string between start and
+           end.
+
+           In both procedures, order is preserved.
+        */
+
+        auto&& s = string();
+
+        std::for_each(std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                      std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+                      [&](let const& x)
+                      {
+                        s.codepoints.push_back(x.as<character>());
+                      });
+
+        return make(s);
+      });
     });
 
     define_library("(meevax symbol)", [](library & library)
@@ -1179,9 +1096,6 @@ inline namespace kernel
       {
         return make<string>(car(xs).as<symbol>());
       });
-
-      library.export_("symbol?");
-      library.export_("symbol->string");
     });
 
     define_library("(meevax syntax)", [](library & library)
@@ -1198,104 +1112,203 @@ inline namespace kernel
       library.define<syntax>("quote", quote);
       library.define<syntax>("quote-syntax", quote_syntax);
       library.define<syntax>("set!", set);
-
-      library.export_("begin");
-      library.export_("call-with-current-continuation!");
-      library.export_("define");
-      library.export_("define-syntax");
-      library.export_("if");
-      library.export_("lambda");
-      library.export_("let-syntax");
-      library.export_("letrec");
-      library.export_("letrec-syntax");
-      library.export_("quote");
-      library.export_("quote-syntax");
-      library.export_("set!");
     });
 
     define_library("(meevax vector)", [](library & library)
     {
       library.define<predicate>("vector?", [](let const& xs)
       {
-        return car(xs).is<vector>();
+        return xs[0].is<vector>();
       });
 
       library.define<procedure>("vector", [](let const& xs)
       {
+        /*
+           (vector obj ...)                                           procedure
+
+           Returns a newly allocated vector whose elements contain the given
+           arguments. It is analogous to list.
+        */
+
         return make<vector>(xs);
       });
 
       library.define<procedure>("make-vector", [](let const& xs)
       {
-        return make<vector>(car(xs), cdr(xs).is<pair>() ? cadr(xs) : unspecified);
+        /*
+           (make-vector k)                                            procedure
+           (make-vector k fill)                                       procedure
+
+           Returns a newly allocated vector of k elements. If a second argument
+           is given, then each element is initialized to fill. Otherwise the
+           initial contents of each element is unspecified.
+        */
+
+        return make<vector>(xs[0].as<exact_integer>(), list_tail(xs, 1).is<pair>() ? xs[1] : unspecified);
       });
 
       library.define<procedure>("vector-append", [](let const& xs)
       {
-        return vector::append(xs);
+        /*
+           (vector-append vector ...)                                 procedure
+
+           Returns a newly allocated vector whose elements are the
+           concatenation of the elements of the given vectors.
+        */
+
+        auto&& v = vector();
+
+        for (let const& x : xs)
+        {
+          for (let const& object : x.as<vector>().objects)
+          {
+            v.objects.push_back(object);
+          }
+        }
+
+        return make(std::forward<decltype(v)>(v));
       });
 
       library.define<procedure>("vector-copy", [](let const& xs)
       {
-        return car(xs).as<vector>().copy(cdr(xs).is<pair>() ? cadr(xs) : e0,
-                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
+        /*
+           (vector-copy vector)                                       procedure
+           (vector-copy vector start)                                 procedure
+           (vector-copy vector start end)                             procedure
+
+           Returns a newly allocated copy of the elements of the given vector
+           between start and end. The elements of the new vector are the same
+           (in the sense of eqv?) as the elements of the old.
+        */
+
+        auto&& v = vector();
+
+        std::copy(std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                  std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+                  std::back_inserter(v.objects));
+
+        return make(std::forward<decltype(v)>(v));
       });
 
       library.define<procedure>("vector-copy!", [](let const& xs)
       {
-        car(xs).as<vector>().copy(list_ref(xs, 1),
-                                  list_ref(xs, 2),
-                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 3) : e0,
-                                  list_tail(xs, 3).is<pair>() ? list_ref(xs, 4) : car(xs).as<vector>().length());
+        /*
+           (vector-copy! to at from)                                  procedure
+           (vector-copy! to at from start)                            procedure
+           (vector-copy! to at from start end)                        procedure
+
+           It is an error if at is less than zero or greater than the length of
+           to. It is also an error if (- (vector-length to) at) is less than (-
+           end start).
+
+           Copies the elements of vector from between start and end to vector
+           to, starting at at. The order in which elements are copied is
+           unspecified, except that if the source and destination overlap,
+           copying takes place as if the source is first copied into a
+           temporary vector and then into the destination. This can be achieved
+           without allocating storage by making sure to copy in the correct
+           direction in such circumstances.
+        */
+
+        auto&& v1 = xs[0].as<vector>().objects;
+
+        auto&& v2 = xs[2].as<vector>().objects;
+
+        v1.reserve(v1.size() + v2.size());
+
+        std::copy(std::next(std::begin(v2), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
+                  std::next(std::begin(v2), list_tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : v1.size()),
+                  std::next(std::begin(v1),                               xs[1].as<exact_integer>()));
+
         return unspecified;
       });
 
       library.define<procedure>("vector-length", [](let const& xs)
       {
-        return car(xs).as<vector>().length();
+        /*
+           (vector-length vector)                                     procedure
+
+           Returns the number of elements in vector as an exact integer.
+        */
+
+        return make<exact_integer>(xs[0].as<vector>().objects.size());
       });
 
       library.define<procedure>("vector-ref", [](let const& xs)
       {
-        return car(xs).as<vector>().ref(cadr(xs));
+        /*
+           (vector-ref vector k)                                      procedure
+
+           It is an error if k is not a valid index of vector. The vector-ref
+           procedure returns the contents of element k of vector.
+        */
+
+        return xs[0][xs[1].as<exact_integer>()];
       });
 
       library.define<procedure>("vector-set!", [](let const& xs)
       {
-        return car(xs).as<vector>().set(cadr(xs), caddr(xs));
+        /*
+           (vector-set! vector k obj)                                 procedure
+
+           It is an error if k is not a valid index of vector. The vector-set!
+           procedure stores obj in element k of vector.
+        */
+
+        return xs[0].as<vector>().objects[xs[1].as<exact_integer>()] = xs[2];
       });
 
       library.define<procedure>("vector-fill!", [](let const& xs)
       {
-        car(xs).as<vector>().fill(cdr(xs).is<pair>() ? cadr(xs) : unspecified,
-                                  cddr(xs).is<pair>() ? caddr(xs) : e0,
-                                  cdddr(xs).is<pair>() ? cadddr(xs) : car(xs).as<vector>().length());
+        /*
+           (vector-fill! vector fill)                                 procedure
+           (vector-fill! vector fill start)                           procedure
+           (vector-fill! vector fill start end)                       procedure
+
+           The vector-fill! procedure stores fill in the elements of vector
+           between start and end.
+        */
+
+        std::fill(std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : 0),
+                  std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+                  list_tail(xs, 1).is<pair>() ? xs[1] : unspecified);
+
         return unspecified;
       });
 
       library.define<procedure>("vector->list", [](let const& xs)
       {
-        return car(xs).as<vector>().list(cdr(xs).is<pair>() ? cadr(xs) : e0,
-                                         cddr(xs).is<pair>() ? caddr(xs) : car(xs).as<vector>().length());
+        /*
+           (vector->list vector)                                      procedure
+           (vector->list vector start)                                procedure
+           (vector->list vector start end)                            procedure
+           (list->vector list)                                        procedure
+
+           The vector->list procedure returns a newly allocated list of the
+           objects contained in the elements of vector between start and end.
+           The list->vector procedure returns a newly created vector
+           initialized to the elements of the list list.
+
+           In both procedures, order is preserved.
+        */
+
+        return std::accumulate(std::prev(std::rend(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+                               std::prev(std::rend(xs[0].as<vector>().objects), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                               unit,
+                               xcons);
       });
 
       library.define<procedure>("string->vector", [](let const& xs)
       {
-        return make<vector>(car(xs).as<string>());
-      });
+        auto&& v = vector();
 
-      library.export_("vector?");
-      library.export_("vector");
-      library.export_("make-vector");
-      library.export_("vector-append");
-      library.export_("vector-copy");
-      library.export_("vector-copy!");
-      library.export_("vector-length");
-      library.export_("vector-ref");
-      library.export_("vector-set!");
-      library.export_("vector-fill!");
-      library.export_("vector->list");
-      library.export_("string->vector");
+        for (auto&& character : xs[0].as<string>().codepoints)
+        {
+          v.objects.push_back(make(character));
+        }
+
+        return make(std::forward<decltype(v)>(v));
+      });
     });
 
     define_library("(meevax version)", [](library & library)
@@ -1304,65 +1317,52 @@ inline namespace kernel
       {
         return features();
       });
-
-      library.export_("features");
     });
 
     define_library("(meevax write)", [](library & library)
     {
+      library.define<procedure>("put-char", [](let const& xs)
+      {
+        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
+        return unspecified;
+      });
+
+      library.define<procedure>("put-string", [](let const& xs)
+      {
+        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
+        return unspecified;
+      });
+
       library.define<procedure>("write", [](let const& xs)
       {
-        kernel::write(cadr(xs), car(xs));
+        meevax::write(cadr(xs), car(xs));
         return unspecified;
       });
 
       library.define<procedure>("write-simple", [](let const& xs)
       {
-        kernel::write_simple(cadr(xs), car(xs));
+        write_simple(cadr(xs), car(xs));
         return unspecified;
       });
-
-      library.define<procedure>("print", [](let const& xs)
-      {
-        for (let const& x : xs)
-        {
-          if (x.is<string>())
-          {
-            std::cout << static_cast<std::string>(x.as<string>());
-          }
-          else
-          {
-            std::cout << x;
-          }
-        }
-
-        std::cout << std::endl;
-
-        return standard_output;
-      });
-
-      library.export_("print");
-      library.export_("write");
-      library.export_("write-simple");
     });
 
     std::vector<string_view> const codes {
-      srfi_211,
-      r4rs_essential,
-      srfi_45,
       r4rs,
-      srfi_149,
+      r4rs_essential,
       r5rs,
+      r7rs,
+      srfi_1,  // List Library
       srfi_6,  // Basic String Ports
+      srfi_8,  // receive: Binding to multiple values
       srfi_11, // Syntax for receiving multiple values
-      srfi_34, // Exception Handling for Programs
       srfi_23, // Error reporting mechanism
+      srfi_34, // Exception Handling for Programs
       srfi_38, // External Representation for Data With Shared Structure
       srfi_39, // Parameter objects
-      r7rs,
-      srfi_8,  // receive: Binding to multiple values
-      srfi_1,  // List Library
+      srfi_45,
       srfi_78, // Lightweight testing
+      srfi_149,
+      srfi_211,
     };
 
     auto sandbox = environment();
@@ -1379,27 +1379,16 @@ inline namespace kernel
     }
   }
 
-  auto library::build() -> void
-  {
-    if (export_specs.is<null>())
-    {
-      for (let const& declaration : declarations)
-      {
-        evaluate(declaration);
-      }
-    }
-  }
-
   auto library::evaluate(const_reference declaration) -> void
   {
-    if (car(declaration).is<symbol>() and car(declaration).as<symbol>().value == "export")
+    if (declaration[0].is<symbol>() and declaration[0].as<symbol>().value == "export")
     {
-      for (let const& export_spec : cdr(declaration))
+      for (let const& form : cdr(declaration))
       {
-        export_(export_spec);
+        declare<export_spec>(form);
       }
     }
-    else if (car(declaration).is<symbol>() and car(declaration).as<symbol>().value == "begin")
+    else if (declaration[0].is<symbol>() and declaration[0].as<symbol>().value == "begin")
     {
       for (let const& command_or_definition : cdr(declaration))
       {
@@ -1412,34 +1401,19 @@ inline namespace kernel
     }
   }
 
-  auto library::export_(const_reference export_spec) -> void
-  {
-    export_specs = cons(export_spec, export_specs);
-  }
-
-  auto library::export_(std::string const& export_spec) -> void
-  {
-    export_(read(export_spec));
-  }
-
   auto library::resolve() -> const_reference
   {
-    build();
-
-    auto resolve = [this](let const& export_spec)
+    if (not declarations.is<null>())
     {
-      if (car(export_spec).is<symbol>() and car(export_spec).as<symbol>().value == "rename")
+      for (let const& declaration : declarations)
       {
-        return make<absolute>(caddr(export_spec), (*this)[cadr(export_spec)]);
+        evaluate(declaration);
       }
-      else
-      {
-        return identify(export_spec, unit);
-      }
-    };
 
-    return identifiers.is<null>() ? identifiers = map1(resolve, export_specs)
-                                  : identifiers;
+      declarations = unit;
+    }
+
+    return subset;
   }
 
   auto operator <<(std::ostream & os, library const& library) -> std::ostream &

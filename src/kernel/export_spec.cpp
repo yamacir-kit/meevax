@@ -14,32 +14,35 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_STRING_HPP
-#define INCLUDED_MEEVAX_KERNEL_STRING_HPP
-
-#include <meevax/kernel/character.hpp>
+#include <meevax/kernel/library.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct string
+  export_spec::export_spec(const_reference form)
+    : form { form }
+  {}
+
+  auto export_spec::resolve(library & library) const -> const_reference
   {
-    std::vector<character> codepoints;
+    auto identity = [&]()
+    {
+      if (form.is<pair>())
+      {
+        assert(form[0].is<symbol>());
+        assert(form[0].as<symbol>().value == "rename");
+        return make<absolute>(form[2], library.identify(form[1], unit));
+      }
+      else
+      {
+        return library.identify(form, unit);
+      }
+    };
 
-    explicit string() = default;
-
-    explicit string(std::string const&);
-
-    explicit string(std::size_t const, character const&);
-
-    operator std::string() const;
-  };
-
-  auto operator ==(string const&, string const&) -> bool;
-
-  auto operator <<(std::ostream &, string const&) -> std::ostream &;
+    return library.subset = cons(identity(), library.subset);
+  }
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_STRING_HPP
+

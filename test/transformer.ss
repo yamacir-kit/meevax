@@ -26,8 +26,6 @@
 
 (check (cons x y) => (1 . 2))
 
-; (print (macroexpand-1 '(swap! x y)))
-
 (swap! x y)
 
 (check (cons x y) => (2 . 1))
@@ -50,8 +48,6 @@
 (define y 2)
 
 (check (cons x y) => (1 . 2))
-
-; (print (macroexpand-1 '(swap! x y)))
 
 (let ((a     'non-hygienic!)
       (b     'non-hygienic!)
@@ -121,8 +117,6 @@
 
 (check (cons x y) => (1 . 2))
 
-; (print (macroexpand-1 '(swap! x y)))
-
 (let ((a     'non-hygienic!)
       (b     'non-hygienic!)
       (let   'non-hygienic!)
@@ -153,8 +147,6 @@
 (define y 2)
 
 (check (cons x y) => (1 . 2))
-
-; (print (macroexpand-1 '(swap! x y)))
 
 (let ((a     'non-hygienic!)
       (b     'non-hygienic!)

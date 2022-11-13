@@ -33,51 +33,25 @@ inline namespace kernel
                                                                                \
   auto operator <<(std::ostream & os, standard_##NAME##_port const&) -> std::ostream & \
   {                                                                            \
-    return os << magenta("#,(") << "standard-" #NAME "-port" << magenta(")");  \
+    return os << magenta("#,(") << #NAME "-port" << magenta(")");              \
   }                                                                            \
                                                                                \
   let const standard_##NAME = make<standard_##NAME##_port>()
 
-  DEFINE(input,  std:: cin);
+  DEFINE(input,  std::cin );
   DEFINE(output, std::cout);
   DEFINE(error,  std::cerr);
 
   #undef DEFINE
 
-  #define DEFINE(TYPENAME, FILE_STREAM, NAME)                                  \
-  TYPENAME::TYPENAME(string const& pathname)                                   \
-    : FILE_STREAM { pathname }                                                 \
-    , pathname { pathname }                                                    \
-  {}                                                                           \
-                                                                               \
-  TYPENAME::TYPENAME(std::string const& pathname)                              \
-    : FILE_STREAM { pathname }                                                 \
-    , pathname { pathname }                                                    \
-  {}                                                                           \
-                                                                               \
-  auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
-  {                                                                            \
-    return os << magenta("#,(") << green("open-" NAME " ") << datum.pathname << magenta(")"); \
-  }                                                                            \
-  static_assert(true)
+  auto operator <<(std::ostream & os, file_port const& datum) -> std::ostream &
+  {
+    return os << magenta("#,(") << green("open ") << datum.name << magenta(")");
+  }
 
-  DEFINE(       file_port, std:: fstream,        "file");
-  DEFINE( input_file_port, std::ifstream,  "input-file");
-  DEFINE(output_file_port, std::ofstream, "outout-file");
-
-  #undef DEFINE
-
-  #define DEFINE(TYPENAME, NAME)                                               \
-  auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
-  {                                                                            \
-    return os << magenta("#,(") << green("open-" NAME) << " " << string(datum.str()) << magenta(")"); \
-  }                                                                            \
-  static_assert(true)
-
-  DEFINE(       string_port,        "string");
-  DEFINE( input_string_port,  "input-string");
-  DEFINE(output_string_port, "output-string");
-
-  #undef DEFINE
+  auto operator <<(std::ostream & os, string_port const& datum) -> std::ostream &
+  {
+    return os << magenta("#,(") << green("string->port ") << string(datum.str()) << magenta(")");
+  }
 } // namespace kernel
 } // namespace meevax

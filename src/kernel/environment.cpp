@@ -40,16 +40,12 @@ inline namespace kernel
     }
     else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "import")
     {
-      for (let const& import_set : cdr(expression))
+      for (let const& form : cdr(expression))
       {
-        import_(import_set);
+        declare<import_set>(form);
       }
 
       return unspecified;
-    }
-    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "declare-raise")
-    {
-      return raise = evaluate(cadr(expression));
     }
     else
     {
@@ -116,150 +112,9 @@ inline namespace kernel
     return second;
   }
 
-  auto environment::resolve(const_reference declaration) -> value_type
-  {
-    if (car(declaration).as<symbol>().value == "only") /* ----------------------
-    *
-    *  <declaration> = (only <import set> <identifier> ...)
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      auto only = [this](let const& import_set)
-      {
-        return [=](let const& identifiers)
-        {
-          return filter([&](let const& identity)
-                        {
-                          return select(memq(identity.as<absolute>().symbol(),
-                                             identifiers));
-                        },
-                        resolve(import_set));
-        };
-      };
-
-      return only(cadr(declaration))
-                 (cddr(declaration));
-    }
-    else if (car(declaration).as<symbol>().value == "except") /* ---------------
-    *
-    *  <declaration> = (except <import set> <identifier> ...)
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      auto except = [this](let const& import_set)
-      {
-        return [=](let const& identifiers)
-        {
-          return filter([&](let const& identity)
-                        {
-                          return not select(memq(identity.as<absolute>().symbol(),
-                                                 identifiers));
-                        },
-                        resolve(import_set));
-        };
-      };
-
-      return except(cadr(declaration))
-                   (cddr(declaration));
-    }
-    else if (car(declaration).as<symbol>().value == "prefix") /* ---------------
-    *
-    *  <declaration> = (prefix <import set> <identifier>)
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      auto prefix = [this](let const& import_set)
-      {
-        return [=](let const& prefixes)
-        {
-          return map1([&](let const& identity)
-                      {
-                        return make<absolute>(string_to_symbol(car(prefixes).as<symbol>().value +
-                                                               identity.as<absolute>().symbol().as<symbol>().value),
-                                              identity.as<absolute>().load());
-                      },
-                      resolve(import_set));
-        };
-      };
-
-      return prefix(cadr(declaration))
-                   (cddr(declaration));
-    }
-    else if (car(declaration).as<symbol>().value == "rename") /* ---------------
-    *
-    *  <declaration> = (rename <import set>
-    *                          (<identifier 1> <identifier 2>) ...)
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      auto rename = [this](let const& import_set)
-      {
-        return [=](let const& renamings)
-        {
-          return map1([&](let const& identity)
-                      {
-                        if (let const& renaming = assq(identity.as<absolute>().symbol(),
-                                                       renamings);
-                            select(renaming))
-                        {
-                          assert(cadr(renaming).is<symbol>());
-                          return make<absolute>(cadr(renaming), identity.as<absolute>().load());
-                        }
-                        else
-                        {
-                          return identity;
-                        }
-                      },
-                      resolve(import_set));
-        };
-      };
-
-      return rename(cadr(declaration))
-                   (cddr(declaration));
-    }
-    else if (auto iter = libraries.find(lexical_cast<std::string>(declaration)); iter != std::end(libraries))
-    {
-      let const import_set = std::get<1>(*iter).resolve();
-
-      if (auto const& [library_name, library] = *iter; raise.is<null>() and not library.raise.is<null>())
-      {
-        raise = library.raise;
-      }
-
-      return import_set;
-    }
-    else
-    {
-      throw std::runtime_error("No such library");
-    }
-  }
-
-  auto environment::import_(const_reference import_set) -> void
-  {
-    for (let const& identity : resolve(import_set))
-    {
-      assert(identity.is<absolute>());
-
-      if (let const& variable = identity.as<absolute>().symbol(); not eq((*this)[variable], undefined) and not interactive)
-      {
-        throw error(make<string>("In a program or library declaration, it is an error to import the same identifier more than once with different bindings"),
-                    list(import_set, variable));
-      }
-      else
-      {
-        define(identity.as<absolute>().symbol(), identity.as<absolute>().load());
-      }
-    }
-  }
-
-  auto environment::import_(std::string const& import_set) -> void
-  {
-    import_(read(import_set));
-  }
-
   auto environment::load(std::string const& s) -> value_type
   {
-    if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
+    if (let port = make<file_port>(s); port and port.as<file_port>().is_open())
     {
       for (let e = read(port); e != eof_object; e = read(port))
       {

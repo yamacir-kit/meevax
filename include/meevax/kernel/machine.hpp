@@ -21,7 +21,6 @@
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identity.hpp>
-#include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/intrinsic.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
 
@@ -51,14 +50,16 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
-    std::array<let, 3> a; /* auxiliary register
+    std::array<let, 3> a;                                                     /*
+
+       Auxiliary register.
 
        a[0] is used for current-dynamic-extents.
        a[1] is used for current-dynamic-bindings.
        a[2] is used for current-exception-handler.
-       a[3] is currently unused. */
+       a[3] is currently unused.                                              */
 
-    let raise; /*
+    let static inline raise = unit;                                           /*
 
        raise is a one-argument procedure for propagating C++ exceptions thrown
        in the Meevax kernel to the exception handler of the language running on
@@ -68,15 +69,9 @@ inline namespace kernel
        raise is null, C++ exceptions thrown in the kernel are rethrown to the
        outer environment.
 
-       Although raise can be set to any one-argument procedure by
-       `declare-raise` declaration, it is basically assumed to be set to
-       R7RS Scheme's standard procedure `raise`.
-
-       The value of raise is propagated by the import declaration. Currently,
-       in the Scheme standard library provided by Meevax, the procedure `raise`
-       is defined in the library (srfi 34), and `declare-raise` is also
-       declared in (srfi 34). This means that environments that depend on the
-       library (srfi 34) will automatically declare `raise` as raise. */
+       Although raise can be set to any one-argument procedure by procedure
+       `kernel-exception-handler-set!`, it is basically assumed to be set to
+       R7RS Scheme's standard procedure `raise`.                              */
 
     struct transformer
     {

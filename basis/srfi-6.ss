@@ -1,3 +1,5 @@
 (define-library (srfi 6)
-  (import (only (meevax port) open-input-string open-output-string get-output-string))
-  (export open-input-string open-output-string get-output-string))
+  (import (meevax port))
+  (export (rename port->string get-output-string)
+          (rename string->port open-input-string)
+          (rename string->port open-output-string)))

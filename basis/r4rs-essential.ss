@@ -1,21 +1,23 @@
 (define-library (scheme r4rs essential)
   (import (meevax character)
-          (meevax control)
-          (meevax environment)
+          (meevax function)
+          (rename (meevax environment)
+                  (load %load))
           (rename (meevax comparator)
                   (identity=? eq?)
                   (normally=? eqv?))
-          (meevax foreign-function)
           (meevax list)
           (meevax number)
           (meevax pair)
           (meevax port)
-          (meevax read)
+          (rename (meevax read)
+                  (read %read))
           (meevax string)
           (meevax symbol)
           (meevax syntax)
           (meevax vector)
-          (prefix (meevax write) %)
+          (rename (meevax write)
+                  (write %write))
           (srfi 211 explicit-renaming))
 
   (export quote lambda if set! cond case and or let letrec begin quasiquote
@@ -559,9 +561,17 @@
                result))
            (call-with-output-port (open-output-file path) f))
 
-         (define current-input-port standard-input-port) ; r7rs incompatible (current-input-port is standard input)
+         (define current-input-port input-port)
 
-         (define current-output-port standard-output-port) ; r7rs incompatible (current-output-port is standard output)
+         (define current-output-port output-port)
+
+         (define open-input-file open)
+
+         (define open-output-file open)
+
+         (define close-input-port close)
+
+         (define close-output-port close)
 
          (define (read . port)
            (%read (if (pair? port)
@@ -588,17 +598,13 @@
                            (car port)
                            (current-output-port))))
 
-         (define (write-string string . xs) ; TODO REMOVE!
-           (case (length xs)
-             ((0)  (put-string string (current-output-port)))
-             ((1)  (put-string string (car xs)))
-             (else (put-string (apply string-copy string (cadr xs)) (car xs)))))
-
          (define (display x . xs)
            (cond ((char? x)
                   (apply write-char x xs))
                  ((string? x)
-                  (apply write-string x xs))
+                  (put-string x (if (pair? xs) ; NOTE: The procedure write-string is not defined in R4RS.
+                                    (car xs)
+                                    (current-output-port))))
                  (else (apply write x xs))))
 
          (define (newline . port)

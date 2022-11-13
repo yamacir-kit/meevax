@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/export_spec.hpp>
 
 namespace meevax
 {
@@ -25,29 +26,50 @@ inline namespace kernel
 {
   struct library : public environment
   {
-    let const declarations = unit;
+    let declarations = unit;
 
-    let export_specs = unit;
+    let subset = unit;
 
-    let identifiers = unit;
+    template <typename T, typename = void>
+    struct is_library_declaration : public std::false_type
+    {};
 
-    template <typename Build, REQUIRES(std::is_invocable<Build, library &>)>
-    explicit library(Build&& build)
+    template <typename T>
+    struct is_library_declaration<T, std::void_t<decltype(std::declval<T>().resolve(std::declval<library &>()))>>
+      : public std::true_type
+    {};
+
+    template <typename F, REQUIRES(std::is_invocable<F, library &>)>
+    explicit library(F&& f)
     {
-      std::invoke(std::forward<decltype(build)>(build), *this);
+      std::invoke(std::forward<decltype(f)>(f), *this);
     }
 
     explicit library(const_reference);
 
     static auto boot() -> void;
 
-    auto build() -> void;
+    template <typename T, typename... Ts>
+    auto declare(Ts&&... xs) -> decltype(auto)
+    {
+      if constexpr (is_library_declaration<std::decay_t<T>>::value)
+      {
+        return std::decay_t<T>(std::forward<decltype(xs)>(xs)...).resolve(*this);
+      }
+      else
+      {
+        return environment::declare<T>(std::forward<decltype(xs)>(xs)...);
+      }
+    }
+
+    template <typename T, typename... Ts>
+    auto define(std::string const& name, Ts&&... xs) -> void
+    {
+      environment::define<T>(name, std::forward<decltype(xs)>(xs)...);
+      declare<export_spec>(read(name));
+    }
 
     auto evaluate(const_reference) -> void;
-
-    auto export_(const_reference) -> void;
-
-    auto export_(std::string const&) -> void;
 
     auto resolve() -> const_reference;
   };
