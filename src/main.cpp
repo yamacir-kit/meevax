@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/describe.hpp>
 #include <meevax/kernel/library.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int
@@ -42,6 +43,12 @@ auto main(int const argc, char const* const* const argv) -> int
       main.declare<import_set>("(scheme process-context)");
       main.declare<import_set>("(scheme read)");
       main.declare<import_set>("(scheme write)");
+
+      main.define<procedure>("describe", [&](let const& xs)
+      {
+        describe(xs[0], xs[1]);
+        return unspecified;
+      });
     }
 
     while (main.interactive and main.get_ready())

@@ -1421,6 +1421,6 @@ inline namespace kernel
     return os << library.global();
   }
 
-  std::unordered_map<std::string, library> libraries {};
+  std::map<std::string, library> libraries {};
 } // namespace kernel
 } // namespace meevax
