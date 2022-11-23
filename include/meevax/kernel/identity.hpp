@@ -31,7 +31,7 @@ inline namespace kernel
 
     virtual auto is_free() const -> bool = 0;
 
-    virtual auto load(object const& e) -> reference;
+    virtual auto load(object const& e) -> object &;
 
     virtual auto load(object const&) const -> object const& = 0;
 
@@ -52,7 +52,7 @@ inline namespace kernel
 
     auto is_free() const -> bool override;
 
-    auto load(object const& = unit) -> reference override;
+    auto load(object const& = unit) -> object & override;
 
     auto load(object const& = unit) const -> object const& override;
 

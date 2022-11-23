@@ -27,8 +27,6 @@ inline namespace kernel
 
   using object = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, mnemonic>;
 
-  using reference = object &;
-
   using let = object;
 
   let extern unit;

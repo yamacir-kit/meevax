@@ -24,9 +24,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto identity::load(object const& e) -> reference
+  auto identity::load(object const& e) -> object &
   {
-    return const_cast<reference>(std::as_const(*this).load(e));
+    return const_cast<object &>(std::as_const(*this).load(e));
   }
 
   auto identity::symbol() const -> object const&
@@ -63,9 +63,9 @@ inline namespace kernel
     }
   }
 
-  auto absolute::load(object const& e) -> reference
+  auto absolute::load(object const& e) -> object &
   {
-    return const_cast<reference>(std::as_const(*this).load(e));
+    return const_cast<object &>(std::as_const(*this).load(e));
   }
 
   auto absolute::make_load_mnemonic() const -> object

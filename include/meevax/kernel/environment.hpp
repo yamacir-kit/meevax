@@ -81,15 +81,15 @@ inline namespace kernel
 
     auto fork(object const&) const -> object;
 
-    auto global() noexcept -> reference;
-
     auto global() const noexcept -> object const&;
+
+    auto global() noexcept -> object &;
 
     auto load(std::string const&) -> object;
 
     auto scope() const noexcept -> object const&;
 
-    auto scope() noexcept -> reference;
+    auto scope() noexcept -> object &;
 
     auto identify(object const&, object const&) -> object;
 

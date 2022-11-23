@@ -107,7 +107,7 @@ inline namespace kernel
     return second;
   }
 
-  auto environment::global() noexcept -> reference
+  auto environment::global() noexcept -> object &
   {
     return second;
   }
@@ -135,7 +135,7 @@ inline namespace kernel
     return first;
   }
 
-  auto environment::scope() noexcept -> reference
+  auto environment::scope() noexcept -> object &
   {
     return first;
   }
