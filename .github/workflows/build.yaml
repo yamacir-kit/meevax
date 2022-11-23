@@ -16,7 +16,7 @@ jobs:
         configuration: [ Debug, Release ]
         system: [ ubuntu-18.04, ubuntu-20.04, ubuntu-22.04 ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: ./script/setup.sh --all
       - run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
       - run: cmake --build build --target safe-install.deb
