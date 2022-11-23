@@ -23,18 +23,23 @@ namespace meevax
 {
 inline namespace type_traits
 {
-  template <typename T, typename = void>
+  template <typename T, typename U, typename = void>
   struct is_equality_comparable
     : public std::false_type
   {};
 
   template <typename T>
-  struct is_equality_comparable<T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>>
+  struct is_equality_comparable<T, T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>>
     : public std::true_type
   {};
 
-  template <typename T>
-  inline constexpr auto is_equality_comparable_v = is_equality_comparable<T>::value;
+  template <typename T, typename U>
+  struct is_equality_comparable<T, U, std::void_t<decltype(std::declval<T>() == std::declval<U>())>>
+    : public std::true_type
+  {};
+
+  template <typename T, typename U = T>
+  inline constexpr auto is_equality_comparable_v = is_equality_comparable<T, U>::value;
 } // namespace type_traits
 } // namespace meevax
 

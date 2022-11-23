@@ -26,22 +26,34 @@ inline namespace kernel
 {
   struct symbol : public identifier
   {
-    using value_type = std::string;
-
-    value_type const value;
+    std::string const std_string;
 
     template <typename... Ts>
     explicit symbol(Ts&&... xs)
-      : value { std::forward<decltype(xs)>(xs)... }
+      : std_string { std::forward<decltype(xs)>(xs)... }
     {}
 
     operator std::string() const noexcept
     {
-      return value;
+      return std_string;
     }
   };
 
+  auto operator + (symbol const&, symbol const&) -> std::string;
+  auto operator ==(symbol const&, symbol const&) -> bool;
+  auto operator !=(symbol const&, symbol const&) -> bool;
+  auto operator < (symbol const&, symbol const&) -> bool;
+  auto operator <=(symbol const&, symbol const&) -> bool;
+  auto operator > (symbol const&, symbol const&) -> bool;
+  auto operator >=(symbol const&, symbol const&) -> bool;
+
   auto operator <<(std::ostream &, symbol const&) -> std::ostream &;
+
+  template <typename T, REQUIRES(is_equality_comparable<std::string const&, T const&>)>
+  auto operator ==(symbol const& a, T const& b) -> bool
+  {
+    return a.std_string == b;
+  }
 
   extern std::unordered_map<std::string, object> symbols;
 

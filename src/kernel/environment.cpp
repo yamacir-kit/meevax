@@ -33,12 +33,12 @@ inline namespace kernel
 
   auto environment::evaluate(object const& expression) -> object try
   {
-    if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "define-library")
+    if (car(expression).is<symbol>() and car(expression).as<symbol>() == "define-library")
     {
       define_library(lexical_cast<std::string>(cadr(expression)), cddr(expression));
       return cadr(expression);
     }
-    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "import")
+    else if (car(expression).is<symbol>() and car(expression).as<symbol>() == "import")
     {
       for (let const& form : cdr(expression))
       {

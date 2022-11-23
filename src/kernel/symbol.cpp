@@ -22,22 +22,35 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto operator +(symbol const& a, symbol const& b) -> std::string
+  {
+    return a.std_string + b.std_string;
+  }
+
+  auto operator ==(symbol const& a, symbol const& b) -> bool { return a.std_string == b.std_string; }
+  auto operator !=(symbol const& a, symbol const& b) -> bool { return a.std_string != b.std_string; }
+  auto operator < (symbol const& a, symbol const& b) -> bool { return a.std_string <  b.std_string; }
+  auto operator <=(symbol const& a, symbol const& b) -> bool { return a.std_string <= b.std_string; }
+  auto operator > (symbol const& a, symbol const& b) -> bool { return a.std_string >  b.std_string; }
+  auto operator >=(symbol const& a, symbol const& b) -> bool { return a.std_string >= b.std_string; }
+
   auto operator <<(std::ostream & os, symbol const& datum) -> std::ostream &
   {
-    if (datum.value.empty())
+    if (datum.std_string.empty())
     {
       return os << "||";
     }
-    else if (std::find_if(std::begin(datum.value), std::end(datum.value), [](auto c)
-                          {
-                            return std::iscntrl(c) or std::isspace(c);
-                          }) != std::end(datum.value))
+    else if (auto iter = std::find_if(std::begin(datum.std_string), std::end(datum.std_string), [](auto c)
+             {
+               return std::iscntrl(c) or std::isspace(c);
+             });
+             iter != std::end(datum.std_string))
     {
-      return os << cyan("#") << string(datum.value);
+      return os << cyan("#") << string(datum.std_string);
     }
     else
     {
-      return os << datum.value;
+      return os << datum.std_string;
     }
   }
 

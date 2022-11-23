@@ -48,7 +48,7 @@ auto main() -> int
       let x = make<symbol>("x");
 
       assert(x.is<symbol>());
-      assert(x.as<symbol>().value == "x");
+      assert(x.as<symbol>() == "x");
 
       return x; //  RVO
     };
@@ -56,12 +56,12 @@ auto main() -> int
     let x = f();
 
     assert(x.is<symbol>());
-    assert(x.as<symbol>().value == "x");
+    assert(x.as<symbol>() == "x");
 
     gc.collect();
 
     assert(x.is<symbol>());
-    assert(x.as<symbol>().value == "x");
+    assert(x.as<symbol>() == "x");
   }
 
   gc.collect();
@@ -77,9 +77,9 @@ auto main() -> int
       assert(x.is<symbol>());
       assert(y.is<symbol>());
       assert(z.is<symbol>());
-      assert(x.as<symbol>().value == "x");
-      assert(y.as<symbol>().value == "y");
-      assert(z.as<symbol>().value == "z");
+      assert(x.as<symbol>() == "x");
+      assert(y.as<symbol>() == "y");
+      assert(z.as<symbol>() == "z");
       assert(gc.count() == gc_count + 3);
 
       return list(x, y, z);
@@ -95,9 +95,9 @@ auto main() -> int
     gc.collect();
 
     assert(length(a) == 3);
-    assert(car(a).is<symbol>());
-    assert(cadr(a).is<symbol>());
-    assert(caddr(a).is<symbol>());
+    assert(a[0].is<symbol>());
+    assert(a[1].is<symbol>());
+    assert(a[2].is<symbol>());
   }
 
   gc.collect();
@@ -113,9 +113,9 @@ auto main() -> int
       assert(a.is<symbol>());
       assert(b.is<symbol>());
       assert(c.is<symbol>());
-      assert(a.as<symbol>().value == "a");
-      assert(b.as<symbol>().value == "b");
-      assert(c.as<symbol>().value == "c");
+      assert(a.as<symbol>() == "a");
+      assert(b.as<symbol>() == "b");
+      assert(c.as<symbol>() == "c");
       assert(gc.count() == gc_count + 3);
 
       return circular_list(a, b, c);
@@ -123,17 +123,17 @@ auto main() -> int
 
     let x = f();
 
-    assert(car(x).as<symbol>().value == "a");
-    assert(cadr(x).as<symbol>().value == "b");
-    assert(caddr(x).as<symbol>().value == "c");
-    assert(cadddr(x).as<symbol>().value == "a");
+    assert(x[0].as<symbol>() == "a");
+    assert(x[1].as<symbol>() == "b");
+    assert(x[2].as<symbol>() == "c");
+    assert(x[3].as<symbol>() == "a");
 
     gc.collect();
 
-    assert(car(x).as<symbol>().value == "a");
-    assert(cadr(x).as<symbol>().value == "b");
-    assert(caddr(x).as<symbol>().value == "c");
-    assert(cadddr(x).as<symbol>().value == "a");
+    assert(x[0].as<symbol>() == "a");
+    assert(x[1].as<symbol>() == "b");
+    assert(x[2].as<symbol>() == "c");
+    assert(x[3].as<symbol>() == "a");
   }
 
   gc.collect();
@@ -146,7 +146,7 @@ auto main() -> int
 
     assert(gc.count() == gc_count + 1);
     assert(x.is<symbol>());
-    assert(x.as<symbol>().value == "hoge");
+    assert(x.as<symbol>() == "hoge");
 
     x = make<exact_integer>(42);
 

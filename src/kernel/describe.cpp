@@ -58,7 +58,7 @@ inline namespace kernel
         {
           for (let const& identity : library.resolve())
           {
-            if (std::regex_match(identity.as<absolute>().symbol().as<symbol>().value, pattern))
+            if (std::regex_match(identity.as<absolute>().symbol().as<symbol>().std_string, pattern))
             {
               search_result[library_name].push_back(identity);
             }
@@ -69,7 +69,7 @@ inline namespace kernel
         {
           std::sort(std::begin(search_result[library_name]), std::end(search_result[library_name]), [](let const& a, let const& b)
           {
-            return a.as<absolute>().symbol().as<symbol>().value < b.as<absolute>().symbol().as<symbol>().value;
+            return a.as<absolute>().symbol().as<symbol>() < b.as<absolute>().symbol().as<symbol>();
           });
         }
       }
