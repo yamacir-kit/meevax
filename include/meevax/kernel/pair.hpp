@@ -29,8 +29,6 @@ inline namespace kernel
 
   using reference = object &;
 
-  using const_reference = object const&;
-
   using let = object;
 
   let extern unit;
@@ -38,7 +36,7 @@ inline namespace kernel
   template <typename T, typename... Ts>
   auto make(Ts&&... xs)
   {
-    return object::allocate<T>(std::forward<decltype(xs)>(xs)...); // NOTE: This leaks memory if exception thrown from T's constructor.
+    return object::allocate<T>(std::forward<decltype(xs)>(xs)...);
   }
 
   template <typename T>
@@ -49,10 +47,10 @@ inline namespace kernel
 
   struct pair : public std::pair<object, object>
   {
-    explicit pair(const_reference = unit, const_reference = unit);
+    explicit pair(object const& = unit, object const& = unit);
 
     template <typename... Ts, typename = std::enable_if_t<(1 < sizeof...(Ts))>>
-    explicit pair(const_reference a, Ts&&... xs)
+    explicit pair(object const& a, Ts&&... xs)
       : pair { a, make<pair>(std::forward<decltype(xs)>(xs)...) }
     {}
 
@@ -64,7 +62,7 @@ inline namespace kernel
 
     virtual auto write(std::ostream &) const -> std::ostream &;
 
-    virtual auto operator [](std::size_t) const -> const_reference;
+    virtual auto operator [](std::size_t) const -> object const&;
   };
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;

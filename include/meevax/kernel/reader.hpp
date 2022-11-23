@@ -62,7 +62,7 @@ inline namespace kernel
 
     std::unordered_map<std::uintptr_t, object> datum_labels;
 
-    auto finish(const_reference xs, const_reference datum) -> void
+    auto finish(object const& xs, object const& datum) -> void
     {
       if (xs.is<pair>())
       {
@@ -285,7 +285,7 @@ inline namespace kernel
       return eof_object;
     }
 
-    inline auto read(const_reference x) -> decltype(auto)
+    inline auto read(object const& x) -> decltype(auto)
     {
       assert(x.is_also<std::istream>());
       return read(x.as<std::istream>());

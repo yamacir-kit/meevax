@@ -22,12 +22,12 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto error::irritants() const noexcept -> const_reference
+  auto error::irritants() const noexcept -> object const&
   {
     return second;
   }
 
-  auto error::message() const noexcept -> const_reference
+  auto error::message() const noexcept -> object const&
   {
     return first;
   }

@@ -23,7 +23,7 @@ inline namespace kernel
 {
   let unit { nullptr };
 
-  pair::pair(const_reference a, const_reference b)
+  pair::pair(object const& a, object const& b)
     : std::pair<object, object> { a, b }
   {}
 
@@ -42,12 +42,12 @@ inline namespace kernel
     return os << *this;
   }
 
-  auto pair::operator [](std::size_t k) const -> const_reference
+  auto pair::operator [](std::size_t k) const -> object const&
   {
     return 0 < k ? second[--k] : first;
   }
 
-  auto label(const_reference x, const_reference y) -> const_reference
+  auto label(object const& x, object const& y) -> object const&
   {
     if (x.is<pair>() and cdr(x).is<pair>() and (cddr(x) == cdr(y) or label(cddr(x), cdr(y))))
     {

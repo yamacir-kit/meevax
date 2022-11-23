@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto describe(const_reference, const_reference) -> void;
+  auto describe(object const&, object const&) -> void;
 } // namespace kernel
 } // namespace meevax
 

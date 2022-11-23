@@ -22,7 +22,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto disassemble(std::ostream & os, const_reference c, std::size_t depth) -> void
+  auto disassemble(std::ostream & os, object const& c, std::size_t depth) -> void
   {
     depth = std::clamp(depth, std::numeric_limits<std::size_t>::min(),
                               std::numeric_limits<std::size_t>::max());

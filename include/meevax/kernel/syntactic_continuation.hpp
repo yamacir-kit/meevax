@@ -27,12 +27,12 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto expression() const -> const_reference
+    auto expression() const -> object const&
     {
       return first;
     }
 
-    auto scope() const -> const_reference
+    auto scope() const -> object const&
     {
       return second;
     }

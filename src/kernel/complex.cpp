@@ -60,12 +60,12 @@ inline namespace kernel
     }
   }
 
-  auto complex::imag() const noexcept -> const_reference
+  auto complex::imag() const noexcept -> object const&
   {
     return second;
   }
 
-  auto complex::real() const noexcept -> const_reference
+  auto complex::real() const noexcept -> object const&
   {
     return first;
   }

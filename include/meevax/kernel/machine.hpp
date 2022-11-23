@@ -79,14 +79,14 @@ inline namespace kernel
 
       let const mac_env;
 
-      explicit transformer(const_reference expression, const_reference mac_env)
+      explicit transformer(object const& expression, object const& mac_env)
         : expression { expression }
         , mac_env { mac_env }
       {
         assert(expression.is<closure>());
       }
 
-      auto apply(const_reference f, const_reference xs)
+      auto apply(object const& f, object const& xs)
       {
         Environment expander;
 
@@ -98,7 +98,7 @@ inline namespace kernel
         return expander.execute();
       }
 
-      auto expand(const_reference form, const_reference use_env) /* ------------
+      auto expand(object const& form, object const& use_env) /* ----------------
       *
       *  Scheme programs can define and use new derived expression types,
       *  called macros. Program-defined expression types have the syntax
@@ -156,7 +156,7 @@ inline namespace kernel
         , identity { syntactic_environment.as<environment>().identify(expression, syntactic_environment.as<environment>().scope()) }
       {}
 
-      auto identify_with_offset(const_reference use_env_scope) -> object
+      auto identify_with_offset(object const& use_env_scope) -> object
       {
         if (identity.is<relative>())
         {
@@ -200,11 +200,11 @@ inline namespace kernel
     };
 
   public:
-    static auto compile(context         current_context,
-                        environment &   current_environment,
-                        const_reference current_expression,
-                        const_reference current_scope = unit,
-                        const_reference current_continuation = list(make(mnemonic::stop))) -> object
+    static auto compile(context       current_context,
+                        environment & current_environment,
+                        object const& current_expression,
+                        object const& current_scope = unit,
+                        object const& current_continuation = list(make(mnemonic::stop))) -> object
     {
       if (current_expression.is<null>()) /* ------------------------------------
       *
@@ -735,7 +735,7 @@ inline namespace kernel
       return reraise(make(error));
     }
 
-    static auto identify(const_reference variable, const_reference scope) -> object
+    static auto identify(object const& variable, object const& scope) -> object
     {
       for (auto outer = std::begin(scope); outer != std::end(scope); ++outer)
       {
@@ -769,7 +769,7 @@ inline namespace kernel
       return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().identify_with_offset(scope) : f;
     }
 
-    inline auto reraise(const_reference x) -> object
+    inline auto reraise(object const& x) -> object
     {
       if (raise.is<null>())
       {
@@ -843,7 +843,7 @@ inline namespace kernel
 
     static SYNTAX(body)
     {
-      auto is_definition = [&](const_reference form)
+      auto is_definition = [&](object const& form)
       {
         if (form.is<pair>())
         {
@@ -859,7 +859,7 @@ inline namespace kernel
         return false;
       };
 
-      auto sweep = [&](const_reference form)
+      auto sweep = [&](object const& form)
       {
         let binding_specs = unit;
 
@@ -913,7 +913,7 @@ inline namespace kernel
                        current_environment,
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs),
-                                 append2(map1([](const_reference binding_spec)
+                                 append2(map1([](let const& binding_spec)
                                              {
                                                return cons(make<syntax>("set!", set), binding_spec);
                                              },

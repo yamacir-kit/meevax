@@ -45,7 +45,7 @@ inline namespace kernel
 
     environment(environment const&) = default;
 
-    auto operator [](const_reference variable) -> decltype(auto)
+    auto operator [](object const& variable) -> decltype(auto)
     {
       return identify(variable, scope()).as<identity>().load(e);
     }
@@ -61,9 +61,9 @@ inline namespace kernel
       return std::decay_t<T>(std::forward<decltype(xs)>(xs)...).resolve(*this);
     }
 
-    auto define(const_reference, const_reference = undefined) -> void;
+    auto define(object const&, object const& = undefined) -> void;
 
-    auto define(std::string const&, const_reference = undefined) -> void;
+    auto define(std::string const&, object const& = undefined) -> void;
 
     template <typename T, typename... Ts>
     auto define(std::string const& name, Ts&&... xs) -> void
@@ -71,29 +71,29 @@ inline namespace kernel
       define(name, make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
-    auto evaluate(const_reference) -> object;
+    auto evaluate(object const&) -> object;
 
     auto execute() -> object;
 
-    auto execute(const_reference) -> object;
+    auto execute(object const&) -> object;
 
     auto fork() const -> object;
 
-    auto fork(const_reference) const -> object;
+    auto fork(object const&) const -> object;
 
     auto global() noexcept -> reference;
 
-    auto global() const noexcept -> const_reference;
+    auto global() const noexcept -> object const&;
 
     auto load(std::string const&) -> object;
 
-    auto scope() const noexcept -> const_reference;
+    auto scope() const noexcept -> object const&;
 
     auto scope() noexcept -> reference;
 
-    auto identify(const_reference, const_reference) -> object;
+    auto identify(object const&, object const&) -> object;
 
-    auto identify(const_reference, const_reference) const -> object;
+    auto identify(object const&, object const&) const -> object;
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;

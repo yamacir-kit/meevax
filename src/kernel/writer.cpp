@@ -48,7 +48,7 @@ inline namespace kernel
     return os << magenta(")");
   }
 
-  auto write_simple(std::ostream & os, const_reference x) -> std::ostream &
+  auto write_simple(std::ostream & os, object const& x) -> std::ostream &
   {
     return x.is<pair>() ? write_simple(os, x.as<pair>()) : os << x;
   }

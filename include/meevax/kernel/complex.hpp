@@ -33,9 +33,9 @@ inline namespace kernel
 
     auto canonicalize() const -> object;
 
-    auto imag() const noexcept -> const_reference;
+    auto imag() const noexcept -> object const&;
 
-    auto real() const noexcept -> const_reference;
+    auto real() const noexcept -> object const&;
 
     explicit operator std::complex<double>();
   };

@@ -24,12 +24,12 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto identity::load(const_reference e) -> reference
+  auto identity::load(object const& e) -> reference
   {
     return const_cast<reference>(std::as_const(*this).load(e));
   }
 
-  auto identity::symbol() const -> const_reference
+  auto identity::symbol() const -> object const&
   {
     assert(first.is_also<identifier>());
     return first;
@@ -50,7 +50,7 @@ inline namespace kernel
     return eq(load(), undefined);
   }
 
-  auto absolute::load(const_reference e) const -> const_reference
+  auto absolute::load(object const& e) const -> object const&
   {
     if (second.is_also<identity>())
     {
@@ -63,7 +63,7 @@ inline namespace kernel
     }
   }
 
-  auto absolute::load(const_reference e) -> reference
+  auto absolute::load(object const& e) -> reference
   {
     return const_cast<reference>(std::as_const(*this).load(e));
   }
@@ -88,7 +88,7 @@ inline namespace kernel
     return false;
   }
 
-  auto relative::load(const_reference e) const -> const_reference
+  auto relative::load(object const& e) const -> object const&
   {
     assert(car(second).template is<std::uint32_t>());
     assert(cdr(second).template is<std::uint32_t>());
@@ -112,7 +112,7 @@ inline namespace kernel
     return false; // No viable comparison.
   }
 
-  auto variadic::load(const_reference e) const -> const_reference
+  auto variadic::load(object const& e) const -> object const&
   {
     assert(car(second).template is<std::uint32_t>());
     assert(cdr(second).template is<std::uint32_t>());

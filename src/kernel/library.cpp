@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  library::library(const_reference declarations)
+  library::library(object const& declarations)
     : declarations { declarations }
   {}
 
@@ -1379,7 +1379,7 @@ inline namespace kernel
     }
   }
 
-  auto library::evaluate(const_reference declaration) -> void
+  auto library::evaluate(object const& declaration) -> void
   {
     if (declaration[0].is<symbol>() and declaration[0].as<symbol>().value == "export")
     {
@@ -1401,7 +1401,7 @@ inline namespace kernel
     }
   }
 
-  auto library::resolve() -> const_reference
+  auto library::resolve() -> object const&
   {
     if (not declarations.is<null>())
     {

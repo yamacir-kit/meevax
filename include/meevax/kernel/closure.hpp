@@ -28,9 +28,9 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto c() const -> const_reference;
+    auto c() const -> object const&;
 
-    auto e() const -> const_reference;
+    auto e() const -> object const&;
   };
 
   auto operator <<(std::ostream &, closure const&) -> std::ostream &;

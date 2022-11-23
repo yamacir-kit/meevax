@@ -21,7 +21,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto resolve_library(const_reference form) -> object
+  auto resolve_library(object const& form) -> object
   {
     if (form[0].as<symbol>().value == "only") /* -------------------------------
     *
@@ -128,7 +128,7 @@ inline namespace kernel
     }
   }
 
-  import_set::import_set(const_reference form)
+  import_set::import_set(object const& form)
     : identities { resolve_library(form) }
   {}
 

@@ -21,7 +21,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto describe(const_reference target_variable_name, const_reference target_library_name) -> void
+  auto describe(object const& target_variable_name, object const& target_library_name) -> void
   {
     if (target_variable_name.is<symbol>())
     {

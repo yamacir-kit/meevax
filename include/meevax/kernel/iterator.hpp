@@ -31,9 +31,9 @@ inline namespace kernel
 
     using value_type = object;
 
-    using reference = value_type &;
+    using reference = std::add_lvalue_reference_t<value_type>;
 
-    using const_reference = value_type const&;
+    using const_reference = std::add_const_t<reference>;
 
     using pointer = std::add_pointer_t<value_type>;
 
@@ -41,7 +41,7 @@ inline namespace kernel
 
     using size_type = std::size_t;
 
-    iterator(const_reference x)
+    iterator(object const& x)
       : std::reference_wrapper<const object> { std::cref(x) }
     {}
 
@@ -67,13 +67,13 @@ inline namespace kernel
 
 namespace std
 {
-  auto begin(meevax::const_reference) -> meevax::iterator;
+  auto begin(meevax::object const&) -> meevax::iterator;
 
-  auto cbegin(meevax::const_reference) -> meevax::iterator;
+  auto cbegin(meevax::object const&) -> meevax::iterator;
 
-  auto cend(meevax::const_reference) -> meevax::iterator const&;
+  auto cend(meevax::object const&) -> meevax::iterator const&;
 
-  auto end(meevax::const_reference) -> meevax::iterator const&;
+  auto end(meevax::object const&) -> meevax::iterator const&;
 } // namespace std
 
 #endif // INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP

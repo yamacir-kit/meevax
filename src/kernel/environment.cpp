@@ -21,17 +21,17 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto environment::define(const_reference name, const_reference value) -> void
+  auto environment::define(object const& name, object const& value) -> void
   {
     (*this)[name] = value;
   }
 
-  auto environment::define(std::string const& name, const_reference value) -> void
+  auto environment::define(std::string const& name, object const& value) -> void
   {
     define(string_to_symbol(name), value);
   }
 
-  auto environment::evaluate(const_reference expression) -> object try
+  auto environment::evaluate(object const& expression) -> object try
   {
     if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "define-library")
     {
@@ -66,7 +66,7 @@ inline namespace kernel
       return result;
     }
   }
-  catch (const_reference x)
+  catch (object const& x)
   {
     if (x.is_also<error>())
     {
@@ -84,7 +84,7 @@ inline namespace kernel
     return trace ? machine::execute<true>() : machine::execute();
   }
 
-  auto environment::execute(const_reference code) -> object
+  auto environment::execute(object const& code) -> object
   {
     c = code;
     return execute();
@@ -95,14 +95,14 @@ inline namespace kernel
     return make<environment>(*this);
   }
 
-  auto environment::fork(const_reference scope) const -> object
+  auto environment::fork(object const& scope) const -> object
   {
     let const copy = make<environment>(*this);
     copy.as<environment>().scope() = scope;
     return copy;
   }
 
-  auto environment::global() const noexcept -> const_reference
+  auto environment::global() const noexcept -> object const&
   {
     return second;
   }
@@ -130,7 +130,7 @@ inline namespace kernel
     }
   }
 
-  auto environment::scope() const noexcept -> const_reference
+  auto environment::scope() const noexcept -> object const&
   {
     return first;
   }
@@ -140,7 +140,7 @@ inline namespace kernel
     return first;
   }
 
-  auto environment::identify(const_reference variable, const_reference scope) const -> object
+  auto environment::identify(object const& variable, object const& scope) const -> object
   {
     if (not variable.is_also<identifier>())
     {
@@ -156,7 +156,7 @@ inline namespace kernel
     }
   }
 
-  auto environment::identify(const_reference variable, const_reference scope) -> object
+  auto environment::identify(object const& variable, object const& scope) -> object
   {
     if (not variable.is_also<identifier>())
     {

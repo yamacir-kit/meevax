@@ -33,7 +33,7 @@ inline namespace kernel
     return eq(x, y) or x.compare(y);
   };
 
-  auto equal(const_reference, const_reference) -> bool;
+  auto equal(object const&, object const&) -> bool;
 } // namespace kernel
 } // namespace meevax
 

@@ -20,11 +20,11 @@ namespace meevax
 {
 inline namespace kernel
 {
-  export_spec::export_spec(const_reference form)
+  export_spec::export_spec(object const& form)
     : form { form }
   {}
 
-  auto export_spec::resolve(library & library) const -> const_reference
+  auto export_spec::resolve(library & library) const -> object const&
   {
     auto identity = [&]()
     {

@@ -56,23 +56,23 @@ inline namespace kernel
 
 namespace std
 {
-  auto begin(meevax::const_reference x) -> meevax::iterator
+  auto begin(meevax::object const& x) -> meevax::iterator
   {
     return meevax::iterator(x);
   }
 
-  auto cbegin(meevax::const_reference x) -> meevax::iterator
+  auto cbegin(meevax::object const& x) -> meevax::iterator
   {
     return meevax::iterator(x);
   }
 
-  auto cend(meevax::const_reference) -> meevax::iterator const&
+  auto cend(meevax::object const&) -> meevax::iterator const&
   {
     static meevax::iterator const cend { meevax::unit };
     return cend;
   }
 
-  auto end(meevax::const_reference) -> meevax::iterator const&
+  auto end(meevax::object const&) -> meevax::iterator const&
   {
     static meevax::iterator const end { meevax::unit };
     return end;

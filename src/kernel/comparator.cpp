@@ -20,7 +20,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto equal(const_reference x, const_reference y) -> bool
+  auto equal(object const& x, object const& y) -> bool
   {
     if (x.is<null>() and y.is<null>())
     {

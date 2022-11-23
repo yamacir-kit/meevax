@@ -26,16 +26,16 @@ namespace meevax
 {
 inline namespace kernel
 {
-  vector::vector(const_reference x)
+  vector::vector(object const& x)
   {
     std::copy(std::begin(x), std::end(x), std::back_inserter(objects));
   }
 
-  vector::vector(std::size_t k, const_reference fill)
+  vector::vector(std::size_t k, object const& fill)
     : objects { k, fill }
   {}
 
-  auto vector::operator [](std::size_t k) const -> const_reference
+  auto vector::operator [](std::size_t k) const -> object const&
   {
     return objects[k];
   }

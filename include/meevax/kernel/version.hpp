@@ -26,16 +26,16 @@ namespace meevax
 inline namespace kernel
 {
   [[deprecated]]
-  auto gmp_version() -> const_reference;
+  auto gmp_version() -> object const&;
 
-  auto version() -> const_reference;
+  auto version() -> object const&;
 
-  auto major_version() -> const_reference;
-  auto minor_version() -> const_reference;
-  auto patch_version() -> const_reference;
-  auto exact_version() -> const_reference;
+  auto major_version() -> object const&;
+  auto minor_version() -> object const&;
+  auto patch_version() -> object const&;
+  auto exact_version() -> object const&;
 
-  auto features() -> const_reference;
+  auto features() -> object const&;
 } // namespace kernel
 } // namespace meevax
 

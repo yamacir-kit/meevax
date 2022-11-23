@@ -67,7 +67,7 @@ inline namespace kernel
 
   private:
     template <typename Key>
-    using dispatcher = std::unordered_map<Key, std::function<void (const_reference)>>;
+    using dispatcher = std::unordered_map<Key, std::function<void (object const&)>>;
 
     static inline const dispatcher<char> short_options
     {

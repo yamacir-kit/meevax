@@ -278,11 +278,11 @@ inline namespace kernel
   auto operator > (complex const&, exact_integer const&) -> bool;
   auto operator >=(complex const&, exact_integer const&) -> bool;
 
-  auto operator + (const_reference, const_reference) -> object;
-  auto operator - (const_reference, const_reference) -> object;
-  auto operator * (const_reference, const_reference) -> object;
-  auto operator / (const_reference, const_reference) -> object;
-  auto operator % (const_reference, const_reference) -> object;
+  auto operator + (object const&, object const&) -> object;
+  auto operator - (object const&, object const&) -> object;
+  auto operator * (object const&, object const&) -> object;
+  auto operator / (object const&, object const&) -> object;
+  auto operator % (object const&, object const&) -> object;
 
   using plus = std::plus<void>;
 
@@ -378,13 +378,13 @@ inline namespace kernel
       }
     }
 
-    auto operator ()(const_reference x) -> object
+    auto operator ()(object const& x) -> object
     {
       return canonicalize(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
     }
 
-    auto operator ()(const_reference x,
-                     const_reference y) -> object
+    auto operator ()(object const& x,
+                     object const& y) -> object
     {
       return canonicalize(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
                             y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
@@ -392,11 +392,11 @@ inline namespace kernel
   };
 
   template <typename F>
-  auto apply(const_reference x) -> object
+  auto apply(object const& x) -> object
   {
     static const std::unordered_map<
       type_index<1>,
-      std::function<object (const_reference)>
+      std::function<object (object const&)>
     > apply
     {
       { type_index<1>(typeid(exact_integer)), application<F, exact_integer>() },
@@ -410,13 +410,13 @@ inline namespace kernel
   }
 
   template <typename F>
-  auto apply(const_reference x, const_reference y) -> object
+  auto apply(object const& x, object const& y) -> object
   {
     #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
 
     static const std::unordered_map<
       type_index<2>,
-      std::function<object (const_reference, const_reference)>
+      std::function<object (object const&, object const&)>
     > apply
     {
       APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, float), APPLY(exact_integer, double), APPLY(exact_integer, complex),

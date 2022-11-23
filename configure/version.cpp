@@ -20,43 +20,43 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto gmp_version() -> const_reference
+  auto gmp_version() -> object const&
   {
     let static const version = make<symbol>(::gmp_version);
     return version;
   }
 
-  auto version() -> const_reference
+  auto version() -> object const&
   {
     let static const version = make<symbol>("${PROJECT_VERSION}");
     return version;
   }
 
-  auto major_version() -> const_reference
+  auto major_version() -> object const&
   {
     let static const version = make<exact_integer>("${PROJECT_VERSION_MAJOR}");
     return version;
   }
 
-  auto minor_version() -> const_reference
+  auto minor_version() -> object const&
   {
     let static const version = make<exact_integer>("${PROJECT_VERSION_MINOR}");
     return version;
   }
 
-  auto patch_version() -> const_reference
+  auto patch_version() -> object const&
   {
     let static const version = make<exact_integer>("${PROJECT_VERSION_PATCH}");
     return version;
   }
 
-  auto exact_version() -> const_reference
+  auto exact_version() -> object const&
   {
     let static const version = make<symbol>("${${PROJECT_NAME}_VERSION_EXACT}");
     return version;
   }
 
-  auto features() -> const_reference
+  auto features() -> object const&
   {
     let static const features = list(
       make<symbol>("r4rs"),

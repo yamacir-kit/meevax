@@ -76,7 +76,7 @@ inline namespace kernel
     return cons(std::forward<decltype(a)>(a), std::forward<decltype(d)>(d));
   };
 
-  inline auto make_list = [](std::size_t k, const_reference x = unit)
+  inline auto make_list = [](std::size_t k, object const& x = unit)
   {
     let result = list();
 
@@ -102,7 +102,7 @@ inline namespace kernel
 
   inline auto list_copy = [](auto const& x)
   {
-    auto copy = [](auto&& rec, const_reference x) -> object
+    auto copy = [](auto&& rec, object const& x) -> object
     {
       if (x.is<pair>())
       {
@@ -160,41 +160,41 @@ inline namespace kernel
   inline constexpr auto cdddar = compose(cdr, cddar);
   inline constexpr auto cddddr = compose(cdr, cdddr);
 
-  inline auto unpair = [](const_reference x) // a.k.a car+cdr (SRFI 1)
+  inline auto unpair = [](object const& x) // a.k.a car+cdr (SRFI 1)
   {
     return std::forward_as_tuple(car(x), cdr(x));
   };
 
   template <typename T, typename K, REQUIRES(std::is_integral<K>)>
-  auto list_tail(T&& x, K const k) -> const_reference
+  auto list_tail(T&& x, K const k) -> object const&
   {
     return 0 < k ? list_tail(cdr(x), k - 1) : x;
   }
 
-  auto take(const_reference, std::size_t) -> object;
+  auto take(object const&, std::size_t) -> object;
 
   inline auto length = [](auto const& x) constexpr
   {
     return std::distance(std::cbegin(x), std::cend(x));
   };
 
-  auto append2(const_reference, const_reference) -> object;
+  auto append2(object const&, object const&) -> object;
 
-  auto reverse(const_reference) -> object;
+  auto reverse(object const&) -> object;
 
-  auto zip(const_reference, const_reference) -> object;
+  auto zip(object const&, object const&) -> object;
 
-  auto unzip1(const_reference xs) -> object;
+  auto unzip1(object const& xs) -> object;
 
-  auto unzip2(const_reference xs) -> std::tuple<object, object>;
+  auto unzip2(object const& xs) -> std::tuple<object, object>;
 
   template <typename F>
-  auto map1(F&& f, const_reference x) -> object
+  auto map1(F&& f, object const& x) -> object
   {
     return x.is<null>() ? unit : cons(f(car(x)), map1(f, cdr(x)));
   }
 
-  inline auto find = [](const_reference xs, auto&& compare) constexpr -> const_reference
+  inline auto find = [](object const& xs, auto&& compare) constexpr -> object const&
   {
     if (auto&& iter = std::find_if(std::begin(xs), std::end(xs), compare); iter)
     {
@@ -206,7 +206,7 @@ inline namespace kernel
     }
   };
 
-  inline auto assoc = [](const_reference x, const_reference xs, auto&& compare)
+  inline auto assoc = [](object const& x, object const& xs, auto&& compare)
   {
     return find(xs, [&](auto&& each) { return compare(x, car(each)); });
   };
@@ -226,7 +226,7 @@ inline namespace kernel
     return cons(cons(key, datum), alist);
   };
 
-  inline auto member = [](const_reference x, const_reference xs, auto&& compare)
+  inline auto member = [](object const& x, object const& xs, auto&& compare)
   {
     if (auto&& iter = std::find_if(std::begin(xs), std::end(xs), [&](auto&& each) { return compare(x, each); }); iter)
     {
@@ -248,7 +248,7 @@ inline namespace kernel
     return member(std::forward<decltype(xs)>(xs)..., eq);
   };
 
-  inline auto filter = [](auto&& satisfy, const_reference xs)
+  inline auto filter = [](auto&& satisfy, object const& xs)
   {
     auto filter = [&](auto&& filter, let const& xs)
     {

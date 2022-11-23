@@ -29,11 +29,11 @@ inline namespace kernel
 
     explicit vector() = default;
 
-    explicit vector(const_reference);
+    explicit vector(object const&);
 
-    explicit vector(std::size_t, const_reference);
+    explicit vector(std::size_t, object const&);
 
-    auto operator [](std::size_t) const -> const_reference;
+    auto operator [](std::size_t) const -> object const&;
   };
 
   auto operator ==(vector const&, vector const&) -> bool;

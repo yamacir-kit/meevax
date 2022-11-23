@@ -272,10 +272,10 @@ inline namespace kernel
   auto operator > (complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
   auto operator >=(complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
 
-  auto operator + (const_reference x, const_reference y) -> object { return apply<plus      >(x, y); }
-  auto operator - (const_reference x, const_reference y) -> object { return apply<minus     >(x, y); }
-  auto operator * (const_reference x, const_reference y) -> object { return apply<multiplies>(x, y); }
-  auto operator / (const_reference x, const_reference y) -> object { return apply<divides   >(x, y); }
-  auto operator % (const_reference x, const_reference y) -> object { return apply<modulus   >(x, y); }
+  auto operator + (object const& x, object const& y) -> object { return apply<plus      >(x, y); }
+  auto operator - (object const& x, object const& y) -> object { return apply<minus     >(x, y); }
+  auto operator * (object const& x, object const& y) -> object { return apply<multiplies>(x, y); }
+  auto operator / (object const& x, object const& y) -> object { return apply<divides   >(x, y); }
+  auto operator % (object const& x, object const& y) -> object { return apply<modulus   >(x, y); }
 } // namespace kernel
 } // namespace meevax
