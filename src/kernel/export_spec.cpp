@@ -31,7 +31,7 @@ inline namespace kernel
       if (form.is<pair>())
       {
         assert(form[0].is<symbol>());
-        assert(form[0].as<symbol>().value == "rename");
+        assert(form[0].as<symbol>() == "rename");
         return make<absolute>(form[2], library.identify(form[1], unit));
       }
       else
