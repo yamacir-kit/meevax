@@ -48,7 +48,7 @@ inline namespace kernel
     }
   }
 
-  auto complex::canonicalize() const -> value_type
+  auto complex::canonicalize() const -> object
   {
     if (apply<equal_to>(imag(), e0).as<bool>())
     {

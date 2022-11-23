@@ -41,7 +41,7 @@ inline namespace kernel
         return make<exact_integer>(car(xs).as<character>().codepoint);
       });
 
-      library.define<procedure>("char-codepoint", [](let const& xs) -> value_type
+      library.define<procedure>("char-codepoint", [](let const& xs) -> object
       {
         if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
         {
@@ -77,7 +77,7 @@ inline namespace kernel
 
     define_library("(meevax context)", [](library & library)
     {
-      library.define<procedure>("emergency-exit", [](let const& xs) -> value_type
+      library.define<procedure>("emergency-exit", [](let const& xs) -> object
       {
         if (let const& status = car(xs); status.is<null>())
         {
@@ -168,7 +168,7 @@ inline namespace kernel
 
     define_library("(meevax error)", [](library & library)
     {
-      library.define<procedure>("throw", [](let const& xs) -> value_type
+      library.define<procedure>("throw", [](let const& xs) -> object
       {
         throw car(xs);
       });
@@ -759,7 +759,7 @@ inline namespace kernel
 
     define_library("(meevax read)", [](library & library)
     {
-      library.define<procedure>("get-char", [](let const& xs) -> value_type
+      library.define<procedure>("get-char", [](let const& xs) -> object
       {
         try
         {
@@ -778,7 +778,7 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("get-char!", [](let const& xs) -> value_type
+      library.define<procedure>("get-char!", [](let const& xs) -> object
       {
         try
         {
@@ -816,7 +816,7 @@ inline namespace kernel
         return s;
       });
 
-      library.define<procedure>("read", [](let const& xs) mutable -> value_type
+      library.define<procedure>("read", [](let const& xs) mutable -> object
       {
         try
         {

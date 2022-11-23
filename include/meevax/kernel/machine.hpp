@@ -156,7 +156,7 @@ inline namespace kernel
         , identity { syntactic_environment.as<environment>().identify(expression, syntactic_environment.as<environment>().scope()) }
       {}
 
-      auto identify_with_offset(const_reference use_env_scope) -> value_type
+      auto identify_with_offset(const_reference use_env_scope) -> object
       {
         if (identity.is<relative>())
         {
@@ -204,7 +204,7 @@ inline namespace kernel
                         environment &   current_environment,
                         const_reference current_expression,
                         const_reference current_scope = unit,
-                        const_reference current_continuation = list(make(mnemonic::stop))) -> value_type
+                        const_reference current_continuation = list(make(mnemonic::stop))) -> object
     {
       if (current_expression.is<null>()) /* ------------------------------------
       *
@@ -344,7 +344,7 @@ inline namespace kernel
     }
 
     template <auto trace = false>
-    inline auto execute() -> value_type try
+    inline auto execute() -> object try
     {
     decode:
       if constexpr (trace)
@@ -735,7 +735,7 @@ inline namespace kernel
       return reraise(make(error));
     }
 
-    static auto identify(const_reference variable, const_reference scope) -> value_type
+    static auto identify(const_reference variable, const_reference scope) -> object
     {
       for (auto outer = std::begin(scope); outer != std::end(scope); ++outer)
       {
@@ -769,7 +769,7 @@ inline namespace kernel
       return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().identify_with_offset(scope) : f;
     }
 
-    inline auto reraise(const_reference x) -> value_type
+    inline auto reraise(const_reference x) -> object
     {
       if (raise.is<null>())
       {

@@ -21,7 +21,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto resolve_library(const_reference form) -> value_type
+  auto resolve_library(const_reference form) -> object
   {
     if (form[0].as<symbol>().value == "only") /* -------------------------------
     *

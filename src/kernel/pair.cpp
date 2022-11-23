@@ -24,7 +24,7 @@ inline namespace kernel
   let unit { nullptr };
 
   pair::pair(const_reference a, const_reference b)
-    : std::pair<value_type, value_type> { a, b }
+    : std::pair<object, object> { a, b }
   {}
 
   auto pair::compare(pair const* that) const -> bool

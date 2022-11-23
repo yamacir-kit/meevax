@@ -36,16 +36,16 @@ inline namespace kernel
   auto ignore_nested_block_comment(std::istream &) -> std::istream &;
 
   template <typename T>
-  auto read(std::istream &) -> value_type;
+  auto read(std::istream &) -> object;
 
-  template <> auto read<character>(std::istream &) -> value_type;
-  template <> auto read<string   >(std::istream &) -> value_type;
+  template <> auto read<character>(std::istream &) -> object;
+  template <> auto read<string   >(std::istream &) -> object;
 
-  auto string_to_integer (std::string const&, int = 10) -> value_type;
-  auto string_to_rational(std::string const&, int = 10) -> value_type;
-  auto string_to_real    (std::string const&, int = 10) -> value_type;
-  auto string_to_complex (std::string const&, int = 10) -> value_type;
-  auto string_to_number  (std::string const&, int = 10) -> value_type;
+  auto string_to_integer (std::string const&, int = 10) -> object;
+  auto string_to_rational(std::string const&, int = 10) -> object;
+  auto string_to_real    (std::string const&, int = 10) -> object;
+  auto string_to_complex (std::string const&, int = 10) -> object;
+  auto string_to_number  (std::string const&, int = 10) -> object;
 
   template <typename Environment>
   class reader
@@ -60,7 +60,7 @@ inline namespace kernel
       std::uintptr_t value;
     };
 
-    std::unordered_map<std::uintptr_t, value_type> datum_labels;
+    std::unordered_map<std::uintptr_t, object> datum_labels;
 
     auto finish(const_reference xs, const_reference datum) -> void
     {
@@ -88,7 +88,7 @@ inline namespace kernel
       return static_cast<bool>(standard_input.as<std::istream>());
     }
 
-    inline auto read(std::istream & is) -> value_type
+    inline auto read(std::istream & is) -> object
     {
       for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
       {
@@ -296,7 +296,7 @@ inline namespace kernel
       return read(standard_input);
     }
 
-    inline auto read(std::string const& s) -> value_type // NOTE: Specifying `decltype(auto)` causes a `undefined reference to ...` error in GCC-7.
+    inline auto read(std::string const& s) -> object // NOTE: Specifying `decltype(auto)` causes a `undefined reference to ...` error in GCC-7.
     {
       auto port = std::stringstream(s);
       return read(port);

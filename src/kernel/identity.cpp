@@ -68,12 +68,12 @@ inline namespace kernel
     return const_cast<reference>(std::as_const(*this).load(e));
   }
 
-  auto absolute::make_load_mnemonic() const -> value_type
+  auto absolute::make_load_mnemonic() const -> object
   {
     return make(mnemonic::load_absolute);
   }
 
-  auto absolute::make_store_mnemonic() const -> value_type
+  auto absolute::make_store_mnemonic() const -> object
   {
     return make(mnemonic::store_absolute);
   }
@@ -97,12 +97,12 @@ inline namespace kernel
             [cdr(second).template as<std::uint32_t>()];
   }
 
-  auto relative::make_load_mnemonic() const -> value_type
+  auto relative::make_load_mnemonic() const -> object
   {
     return make(mnemonic::load_relative);
   }
 
-  auto relative::make_store_mnemonic() const -> value_type
+  auto relative::make_store_mnemonic() const -> object
   {
     return make(mnemonic::store_relative);
   }
@@ -120,12 +120,12 @@ inline namespace kernel
     return list_tail(e[car(second).template as<std::uint32_t>()], cdr(second).template as<std::uint32_t>());
   }
 
-  auto variadic::make_load_mnemonic() const -> value_type
+  auto variadic::make_load_mnemonic() const -> object
   {
     return make(mnemonic::load_variadic);
   }
 
-  auto variadic::make_store_mnemonic() const -> value_type
+  auto variadic::make_store_mnemonic() const -> object
   {
     return make(mnemonic::store_variadic);
   }

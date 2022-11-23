@@ -278,11 +278,11 @@ inline namespace kernel
   auto operator > (complex const&, exact_integer const&) -> bool;
   auto operator >=(complex const&, exact_integer const&) -> bool;
 
-  auto operator + (const_reference, const_reference) -> value_type;
-  auto operator - (const_reference, const_reference) -> value_type;
-  auto operator * (const_reference, const_reference) -> value_type;
-  auto operator / (const_reference, const_reference) -> value_type;
-  auto operator % (const_reference, const_reference) -> value_type;
+  auto operator + (const_reference, const_reference) -> object;
+  auto operator - (const_reference, const_reference) -> object;
+  auto operator * (const_reference, const_reference) -> object;
+  auto operator / (const_reference, const_reference) -> object;
+  auto operator % (const_reference, const_reference) -> object;
 
   using plus = std::plus<void>;
 
@@ -353,7 +353,7 @@ inline namespace kernel
     template <typename T>
     auto canonicalize(T&& x) -> decltype(auto)
     {
-      if constexpr (std::is_same_v<std::decay_t<T>, value_type>)
+      if constexpr (std::is_same_v<std::decay_t<T>, object>)
       {
         return std::forward<decltype(x)>(x);
       }
@@ -378,13 +378,13 @@ inline namespace kernel
       }
     }
 
-    auto operator ()(const_reference x) -> value_type
+    auto operator ()(const_reference x) -> object
     {
       return canonicalize(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
     }
 
     auto operator ()(const_reference x,
-                     const_reference y) -> value_type
+                     const_reference y) -> object
     {
       return canonicalize(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
                             y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
@@ -392,11 +392,11 @@ inline namespace kernel
   };
 
   template <typename F>
-  auto apply(const_reference x) -> value_type
+  auto apply(const_reference x) -> object
   {
     static const std::unordered_map<
       type_index<1>,
-      std::function<value_type (const_reference)>
+      std::function<object (const_reference)>
     > apply
     {
       { type_index<1>(typeid(exact_integer)), application<F, exact_integer>() },
@@ -410,13 +410,13 @@ inline namespace kernel
   }
 
   template <typename F>
-  auto apply(const_reference x, const_reference y) -> value_type
+  auto apply(const_reference x, const_reference y) -> object
   {
     #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
 
     static const std::unordered_map<
       type_index<2>,
-      std::function<value_type (const_reference, const_reference)>
+      std::function<object (const_reference, const_reference)>
     > apply
     {
       APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, float), APPLY(exact_integer, double), APPLY(exact_integer, complex),

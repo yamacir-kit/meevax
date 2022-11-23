@@ -41,7 +41,7 @@ inline namespace kernel
     }
   }
 
-  std::unordered_map<std::string, value_type> symbols;
+  std::unordered_map<std::string, object> symbols;
 
   auto string_to_symbol(std::string const& name) -> const_reference
   {

@@ -25,7 +25,7 @@ inline namespace kernel
 {
   struct vector
   {
-    std::vector<value_type> objects;
+    std::vector<object> objects;
 
     explicit vector() = default;
 

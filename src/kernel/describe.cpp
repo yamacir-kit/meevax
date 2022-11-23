@@ -25,7 +25,7 @@ inline namespace kernel
   {
     if (target_variable_name.is<symbol>())
     {
-      std::map<std::string, value_type> search_result {};
+      std::map<std::string, object> search_result {};
 
       for (auto&& [library_name, library] : libraries)
       {
@@ -48,7 +48,7 @@ inline namespace kernel
     }
     else if (target_variable_name.is<string>())
     {
-      std::map<std::string, std::vector<value_type>> search_result {};
+      std::map<std::string, std::vector<object>> search_result {};
 
       auto const pattern = std::regex(static_cast<std::string>(target_variable_name.as<string>()));
 

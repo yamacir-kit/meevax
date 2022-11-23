@@ -43,7 +43,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, symbol const&) -> std::ostream &;
 
-  extern std::unordered_map<std::string, value_type> symbols;
+  extern std::unordered_map<std::string, object> symbols;
 
   auto string_to_symbol(std::string const&) -> const_reference;
 } // namespace kernel

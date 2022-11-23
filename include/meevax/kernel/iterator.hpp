@@ -25,15 +25,15 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct iterator : public std::reference_wrapper<const value_type>
+  struct iterator : public std::reference_wrapper<const object>
   {
     using iterator_category = std::forward_iterator_tag;
 
-    using value_type = meevax::value_type;
+    using value_type = object;
 
-    using reference = meevax::reference;
+    using reference = value_type &;
 
-    using const_reference = meevax::const_reference;
+    using const_reference = value_type const&;
 
     using pointer = std::add_pointer_t<value_type>;
 
@@ -42,7 +42,7 @@ inline namespace kernel
     using size_type = std::size_t;
 
     iterator(const_reference x)
-      : std::reference_wrapper<const value_type> { std::cref(x) }
+      : std::reference_wrapper<const object> { std::cref(x) }
     {}
 
     auto operator *() const -> const_reference;

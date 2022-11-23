@@ -31,7 +31,7 @@ inline namespace kernel
     define(string_to_symbol(name), value);
   }
 
-  auto environment::evaluate(const_reference expression) -> value_type try
+  auto environment::evaluate(const_reference expression) -> object try
   {
     if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "define-library")
     {
@@ -79,23 +79,23 @@ inline namespace kernel
     }
   }
 
-  auto environment::execute() -> value_type
+  auto environment::execute() -> object
   {
     return trace ? machine::execute<true>() : machine::execute();
   }
 
-  auto environment::execute(const_reference code) -> value_type
+  auto environment::execute(const_reference code) -> object
   {
     c = code;
     return execute();
   }
 
-  auto environment::fork() const -> value_type
+  auto environment::fork() const -> object
   {
     return make<environment>(*this);
   }
 
-  auto environment::fork(const_reference scope) const -> value_type
+  auto environment::fork(const_reference scope) const -> object
   {
     let const copy = make<environment>(*this);
     copy.as<environment>().scope() = scope;
@@ -112,7 +112,7 @@ inline namespace kernel
     return second;
   }
 
-  auto environment::load(std::string const& s) -> value_type
+  auto environment::load(std::string const& s) -> object
   {
     if (let port = make<file_port>(s); port and port.as<file_port>().is_open())
     {
@@ -140,7 +140,7 @@ inline namespace kernel
     return first;
   }
 
-  auto environment::identify(const_reference variable, const_reference scope) const -> value_type
+  auto environment::identify(const_reference variable, const_reference scope) const -> object
   {
     if (not variable.is_also<identifier>())
     {
@@ -156,7 +156,7 @@ inline namespace kernel
     }
   }
 
-  auto environment::identify(const_reference variable, const_reference scope) -> value_type
+  auto environment::identify(const_reference variable, const_reference scope) -> object
   {
     if (not variable.is_also<identifier>())
     {

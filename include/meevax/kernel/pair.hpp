@@ -25,29 +25,29 @@ inline namespace kernel
 {
   struct pair;
 
-  using value_type = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, mnemonic>;
+  using object = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, mnemonic>;
 
-  using reference = value_type &;
+  using reference = object &;
 
-  using const_reference = value_type const&;
+  using const_reference = object const&;
 
-  using let = value_type;
+  using let = object;
 
   let extern unit;
 
   template <typename T, typename... Ts>
   auto make(Ts&&... xs)
   {
-    return value_type::allocate<T>(std::forward<decltype(xs)>(xs)...); // NOTE: This leaks memory if exception thrown from T's constructor.
+    return object::allocate<T>(std::forward<decltype(xs)>(xs)...); // NOTE: This leaks memory if exception thrown from T's constructor.
   }
 
   template <typename T>
   auto make(T&& x)
   {
-    return value_type::allocate<std::decay_t<T>>(std::forward<decltype(x)>(x));
+    return object::allocate<std::decay_t<T>>(std::forward<decltype(x)>(x));
   }
 
-  struct pair : public std::pair<value_type, value_type>
+  struct pair : public std::pair<object, object>
   {
     explicit pair(const_reference = unit, const_reference = unit);
 

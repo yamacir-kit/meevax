@@ -27,7 +27,7 @@ inline namespace kernel
   {
     static inline auto fmerge_constants = true;
 
-    static auto merge_constants(const_reference c) -> value_type
+    static auto merge_constants(const_reference c) -> object
     {
       if (not c.is<pair>())
       {

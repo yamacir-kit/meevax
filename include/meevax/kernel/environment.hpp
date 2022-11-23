@@ -71,29 +71,29 @@ inline namespace kernel
       define(name, make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
-    auto evaluate(const_reference) -> value_type;
+    auto evaluate(const_reference) -> object;
 
-    auto execute() -> value_type;
+    auto execute() -> object;
 
-    auto execute(const_reference) -> value_type;
+    auto execute(const_reference) -> object;
 
-    auto fork() const -> value_type;
+    auto fork() const -> object;
 
-    auto fork(const_reference) const -> value_type;
+    auto fork(const_reference) const -> object;
 
     auto global() noexcept -> reference;
 
     auto global() const noexcept -> const_reference;
 
-    auto load(std::string const&) -> value_type;
+    auto load(std::string const&) -> object;
 
     auto scope() const noexcept -> const_reference;
 
     auto scope() noexcept -> reference;
 
-    auto identify(const_reference, const_reference) -> value_type;
+    auto identify(const_reference, const_reference) -> object;
 
-    auto identify(const_reference, const_reference) const -> value_type;
+    auto identify(const_reference, const_reference) const -> object;
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;
