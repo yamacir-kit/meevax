@@ -26,11 +26,13 @@ string(CONCAT UNSTABLE_OPTIMIZATION_OPTIONS # JOIN available if VERSION > 3.12
   # "-mtune=native "
   )
 
+# NOTE: The `-gdwarf-4` option is set due to the following issues with Clang 14 and Valgrind versions below 3.20: https://bugzilla.mozilla.org/show_bug.cgi?id=1758782
+
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -pipe")
-set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g")
-set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG ${UNSTABLE_OPTIMIZATION_OPTIONS}")
+set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g -gdwarf-4")
+set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os              -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -gdwarf-4 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE        "-O3              -DNDEBUG ${UNSTABLE_OPTIMIZATION_OPTIONS}")
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})

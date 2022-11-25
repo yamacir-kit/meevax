@@ -56,12 +56,9 @@ inline namespace memory
   {
     auto const before = count();
 
-    if (auto const lock = std::unique_lock(resource); lock)
-    {
-      mark(), sweep();
+    mark(), sweep();
 
-      allocation = 0;
-    }
+    allocation = 0;
 
     return before - count();
   }
@@ -110,10 +107,7 @@ inline namespace memory
 
   auto collector::reset_threshold(std::size_t const size) -> void
   {
-    if (auto const lock = std::unique_lock(resource); lock)
-    {
-      threshold = size;
-    }
+    threshold = size;
   }
 
   auto collector::sweep() -> void

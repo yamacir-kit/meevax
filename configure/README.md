@@ -73,7 +73,7 @@ Subset of R7RS-small.
 To install the above software, it is easy to use the following script.
 
 ``` bash
-$ ./script/setup.sh --required
+$ ./script/setup.sh
 ```
 
 ## Installation

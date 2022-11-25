@@ -20,8 +20,6 @@
 #include <cstddef>
 #include <limits>
 #include <map>
-#include <mutex>
-#include <new>
 #include <set>
 
 #include <meevax/memory/tracer.hpp>
@@ -53,7 +51,6 @@ inline namespace memory
       {
         if (tracer)
         {
-          auto const lock = std::unique_lock(resource);
           traceables.insert(std::end(traceables), this);
         }
       }
@@ -62,7 +59,6 @@ inline namespace memory
       {
         if (auto before = std::exchange(tracer, after); not before and after)
         {
-          auto const lock = std::unique_lock(resource);
           traceables.insert(this);
         }
         else if (before and not after)
@@ -104,7 +100,6 @@ inline namespace memory
       {
         if (tracer)
         {
-          auto const lock = std::unique_lock(resource);
           traceables.erase(this);
         }
       }
@@ -126,13 +121,10 @@ inline namespace memory
       }
     };
 
-  private:
     template <typename T>
     using set = std::set<T, std::less<T>, simple_allocator<T>>;
 
   protected:
-    static inline std::mutex resource;
-
     static inline simple_allocator<tracer> tracer_source {};
 
     static inline tracer * newest_tracer = nullptr;
