@@ -1,7 +1,0 @@
-[35m[K./test/r4rs-appendix.ss[m[K[36m[K:[m[K[32m[K143[m[K[36m[K:[m[K;   (symbol? ([01;31m[Kidentifier-[m[K>symbol (syntax x)))
-[35m[K./test/r4rs-appendix.ss[m[K[36m[K:[m[K[32m[K147[m[K[36m[K:[m[K;   ([01;31m[Kidentifier-[m[K>symbol (syntax x))
-[35m[K./test/r4rs-appendix.ss[m[K[36m[K:[m[K[32m[K151[m[K[36m[K:[m[K;   ([01;31m[Kidentifier-[m[K>symbol (generate-identifier 'x))
-[35m[K./test/identifier.ss[m[K[36m[K:[m[K[32m[K77[m[K[36m[K:[m[K; (check ([01;31m[Kidentifier-[m[K>symbol (identifier 'value)) => value)
-[35m[K./src/kernel/library.cpp[m[K[36m[K:[m[K[32m[K383[m[K[36m[K:[m[K      library.define<procedure>("[01;31m[Kidentifier-[m[K>symbol", [](let const& xs)
-[35m[K./basis/srfi-149.ss[m[K[36m[K:[m[K[32m[K27[m[K[36m[K:[m[K  (import (only (meevax macro) [01;31m[Kidentifier-[m[K>symbol)
-[35m[K./basis/srfi-149.ss[m[K[36m[K:[m[K[32m[K171[m[K[36m[K:[m[K                                                         ([01;31m[Kidentifier-[m[K>symbol (car x)))
