@@ -35,7 +35,7 @@ inline namespace kernel
         {
           return filter([&](let const& identity)
                         {
-                          return select(memq(identity.as<absolute>().symbol(), identities));
+                          return is_truthy(memq(identity.as<absolute>().symbol(), identities));
                         },
                         resolve_library(import_set));
         };
@@ -56,7 +56,7 @@ inline namespace kernel
         {
           return filter([&](let const& identity)
                         {
-                          return not select(memq(identity.as<absolute>().symbol(), identities));
+                          return not is_truthy(memq(identity.as<absolute>().symbol(), identities));
                         },
                         resolve_library(import_set));
         };
@@ -100,7 +100,7 @@ inline namespace kernel
         {
           return map1([&](let const& identity)
                       {
-                        if (let const& renaming = assq(identity.as<absolute>().symbol(), renamings); select(renaming))
+                        if (let const& renaming = assq(identity.as<absolute>().symbol(), renamings); is_truthy(renaming))
                         {
                           assert(cadr(renaming).is<symbol>());
                           return make<absolute>(cadr(renaming), identity.as<absolute>().load());

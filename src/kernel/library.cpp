@@ -85,7 +85,7 @@ inline namespace kernel
         }
         else if (status.is<bool>())
         {
-          throw select(status) ? success : failure;
+          throw is_truthy(status) ? success : failure;
         }
         else
         {

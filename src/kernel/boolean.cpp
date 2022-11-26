@@ -24,7 +24,7 @@ inline namespace kernel
   let const t = make<bool>(true);
   let const f = make<bool>(false);
 
-  auto select(object const& x) -> bool
+  auto is_truthy(object const& x) -> bool
   {
     return not eq(x, f);
   }

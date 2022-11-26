@@ -237,7 +237,7 @@ inline namespace kernel
         }
         else if (current_expression.is<syntactic_closure>())
         {
-          if (let const& id = std::as_const(current_environment).identify(current_expression, current_scope); select(id))
+          if (let const& id = std::as_const(current_environment).identify(current_expression, current_scope); is_truthy(id))
           {
             return cons(id.as<identity>().make_load_mnemonic(), id,
                         current_continuation);
@@ -452,7 +452,7 @@ inline namespace kernel
         *  where c' = (if <boolean> c1 c2)
         *
         * ------------------------------------------------------------------- */
-        c = select(car(s)) ? cadr(c) : caddr(c);
+        c = is_truthy(car(s)) ? cadr(c) : caddr(c);
         s = cdr(s);
         goto decode;
 

@@ -146,7 +146,7 @@ inline namespace kernel
     {
       return f;
     }
-    else if (let const& identity = machine::identify(variable, scope); select(identity))
+    else if (let const& identity = machine::identify(variable, scope); is_truthy(identity))
     {
       return identity;
     }
@@ -167,7 +167,7 @@ inline namespace kernel
     {
       return f;
     }
-    if (let const& id = std::as_const(*this).identify(variable, scope); select(id))
+    if (let const& id = std::as_const(*this).identify(variable, scope); is_truthy(id))
     {
       return id;
     }
