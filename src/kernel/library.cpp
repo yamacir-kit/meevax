@@ -36,11 +36,6 @@ inline namespace kernel
         return car(xs).is<character>();
       });
 
-      library.define<procedure>("char->integer", [](let const& xs)
-      {
-        return make<exact_integer>(car(xs).as<character>().codepoint);
-      });
-
       library.define<procedure>("char-codepoint", [](let const& xs) -> object
       {
         if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
@@ -51,6 +46,11 @@ inline namespace kernel
         {
           return f;
         }
+      });
+
+      library.define<procedure>("integer->char", [](let const& xs)
+      {
+        return make<character>(car(xs).as<exact_integer>());
       });
     });
 
@@ -367,9 +367,53 @@ inline namespace kernel
         return std::accumulate(std::begin(xs), std::end(xs), unit, append2);
       });
 
-      library.define<procedure>("list->vector", [](let const& xs)
+      library.define<procedure>("string->list", [](let const& xs)
       {
-        return make<vector>(car(xs));
+        /*
+           (string->list string)                                      procedure
+           (string->list string start)                                procedure
+           (string->list string start end)                            procedure
+
+           (list->string list)                                        procedure
+
+           It is an error if any element of list is not a character.
+
+           The string->list procedure returns a newly allocated list of the
+           characters of string between start and end. list->string returns a
+           newly allocated string formed from the elements in the list list. In
+           both procedures, order is preserved. string->list and list->string
+           are inverses so far as equal? is concerned.
+        */
+
+        return std::accumulate(std::prev(std::rend(xs[0].as<string>().codepoints), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<string>().codepoints.size()),
+                               std::prev(std::rend(xs[0].as<string>().codepoints), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                               unit,
+                               [](let const& xs, character const& c)
+                               {
+                                 return cons(make(c), xs);
+                               });
+      });
+
+      library.define<procedure>("vector->list", [](let const& xs)
+      {
+        /*
+           (vector->list vector)                                      procedure
+           (vector->list vector start)                                procedure
+           (vector->list vector start end)                            procedure
+           (list->vector list)                                        procedure
+
+           The vector->list procedure returns a newly allocated list of the
+           objects contained in the elements of vector between start and end.
+           The list->vector procedure returns a newly created vector
+           initialized to the elements of the list list.
+
+           In both procedures, order is preserved.
+        */
+
+        return std::accumulate(std::prev(std::rend(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+                               std::prev(std::rend(xs[0].as<vector>().objects), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                               unit,
+                               xcons);
       });
     });
 
@@ -378,18 +422,6 @@ inline namespace kernel
       library.define<predicate>("identifier?", [](let const& xs)
       {
         return car(xs).is_also<identifier>();
-      });
-
-      library.define<procedure>("identifier->symbol", [](let const& xs)
-      {
-        if (let const& x = car(xs); x.is<syntactic_closure>())
-        {
-          return x.as<syntactic_closure>().expression;
-        }
-        else
-        {
-          return x;
-        }
       });
 
       library.define<predicate>("transformer?", [](let const& xs)
@@ -584,27 +616,15 @@ inline namespace kernel
         return apply<expt>(car(xs), cadr(xs));
       });
 
-      library.define<procedure>("integer->char", [](let const& xs)
+      library.define<procedure>("char->integer", [](let const& xs)
       {
-        return make<character>(car(xs).as<exact_integer>());
+        return make<exact_integer>(car(xs).as<character>().codepoint);
       });
 
-      library.define<procedure>("number->string", [](let const& xs)
+      library.define<procedure>("string->number", [](let const& xs)
       {
-        switch (cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10)
-        {
-        case 2:
-          return apply<number_to_string<2>>(car(xs));
-
-        case 8:
-          return apply<number_to_string<8>>(car(xs));
-
-        case 10: default:
-          return apply<number_to_string<10>>(car(xs));
-
-        case 16:
-          return apply<number_to_string<16>>(car(xs));
-        }
+        return string_to_number(car(xs).as<string>(),
+                                cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10);
       });
     });
 
@@ -726,18 +746,6 @@ inline namespace kernel
       library.define<procedure>("string->port", [](let const& xs)
       {
         return xs.is<pair>() ? make<string_port>(car(xs).as<string>()) : make<string_port>();
-      });
-
-      library.define<procedure>("port->string", [](let const& xs)
-      {
-        if (car(xs).is<string_port>())
-        {
-          return make<string>(car(xs).as<string_port>().str());
-        }
-        else
-        {
-          return make<string>(std::string(std::istreambuf_iterator<char>(car(xs).as<std::istream>()), {}));
-        }
       });
 
       library.define<predicate>("eof-object?", [](let const& xs)
@@ -991,42 +999,27 @@ inline namespace kernel
 
       #undef STRING_COMPARE
 
-      library.define<procedure>("string->number", [](let const& xs)
+      library.define<procedure>("symbol->string", [](let const& xs)
       {
-        return string_to_number(car(xs).as<string>(),
-                                cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10);
+        return make<string>(car(xs).as<symbol>());
       });
 
-      library.define<procedure>("string->list", [](let const& xs)
+      library.define<procedure>("number->string", [](let const& xs)
       {
-        /*
-           (string->list string)                                      procedure
-           (string->list string start)                                procedure
-           (string->list string start end)                            procedure
+        switch (cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10)
+        {
+        case 2:
+          return apply<number_to_string<2>>(car(xs));
 
-           (list->string list)                                        procedure
+        case 8:
+          return apply<number_to_string<8>>(car(xs));
 
-           It is an error if any element of list is not a character.
+        case 10: default:
+          return apply<number_to_string<10>>(car(xs));
 
-           The string->list procedure returns a newly allocated list of the
-           characters of string between start and end. list->string returns a
-           newly allocated string formed from the elements in the list list. In
-           both procedures, order is preserved. string->list and list->string
-           are inverses so far as equal? is concerned.
-        */
-
-        return std::accumulate(std::prev(std::rend(xs[0].as<string>().codepoints), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<string>().codepoints.size()),
-                               std::prev(std::rend(xs[0].as<string>().codepoints), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
-                               unit,
-                               [](let const& xs, character const& c)
-                               {
-                                 return cons(make(c), xs);
-                               });
-      });
-
-      library.define<procedure>("string->symbol", [](let const& xs)
-      {
-        return string_to_symbol(car(xs).as<string>());
+        case 16:
+          return apply<number_to_string<16>>(car(xs));
+        }
       });
 
       library.define<procedure>("list->string", [](let const& xs)
@@ -1083,6 +1076,18 @@ inline namespace kernel
 
         return make(s);
       });
+
+      library.define<procedure>("port->string", [](let const& xs)
+      {
+        if (car(xs).is<string_port>())
+        {
+          return make<string>(car(xs).as<string_port>().str());
+        }
+        else
+        {
+          return make<string>(std::string(std::istreambuf_iterator<char>(car(xs).as<std::istream>()), {}));
+        }
+      });
     });
 
     define_library("(meevax symbol)", [](library & library)
@@ -1092,9 +1097,21 @@ inline namespace kernel
         return car(xs).is<symbol>();
       });
 
-      library.define<procedure>("symbol->string", [](let const& xs)
+      library.define<procedure>("string->symbol", [](let const& xs)
       {
-        return make<string>(car(xs).as<symbol>());
+        return string_to_symbol(car(xs).as<string>());
+      });
+
+      library.define<procedure>("identifier->symbol", [](let const& xs)
+      {
+        if (let const& x = car(xs); x.is<syntactic_closure>())
+        {
+          return x.as<syntactic_closure>().expression;
+        }
+        else
+        {
+          return x;
+        }
       });
     });
 
@@ -1276,26 +1293,9 @@ inline namespace kernel
         return unspecified;
       });
 
-      library.define<procedure>("vector->list", [](let const& xs)
+      library.define<procedure>("list->vector", [](let const& xs)
       {
-        /*
-           (vector->list vector)                                      procedure
-           (vector->list vector start)                                procedure
-           (vector->list vector start end)                            procedure
-           (list->vector list)                                        procedure
-
-           The vector->list procedure returns a newly allocated list of the
-           objects contained in the elements of vector between start and end.
-           The list->vector procedure returns a newly created vector
-           initialized to the elements of the list list.
-
-           In both procedures, order is preserved.
-        */
-
-        return std::accumulate(std::prev(std::rend(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
-                               std::prev(std::rend(xs[0].as<vector>().objects), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
-                               unit,
-                               xcons);
+        return make<vector>(car(xs));
       });
 
       library.define<procedure>("string->vector", [](let const& xs)
