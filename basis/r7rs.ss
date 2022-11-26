@@ -1,5 +1,5 @@
 (define-library (scheme base)
-  (import (only (meevax error) error? read-error? file-error?)
+  (import (only (meevax error) error-object? read-error? file-error?)
           (only (meevax number) exact-integer?)
           (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
           (only (meevax port)
@@ -336,11 +336,6 @@
            (if (null? xs)
                (string-map-1 x)
                (string-map-n (cons x xs))))
-
-         (define (error-object? x)
-           (or (error? x)
-               (read-error? x)
-               (file-error? x)))
 
          ; (define (call-with-port port procedure)
          ;   (let-values ((results (procedure port)))

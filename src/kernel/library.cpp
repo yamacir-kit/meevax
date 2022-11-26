@@ -173,14 +173,14 @@ inline namespace kernel
         throw car(xs);
       });
 
-      library.define<procedure>("make-error", [](let const& xs)
+      library.define<procedure>("error-object", [](let const& xs)
       {
         return make<error>(car(xs), cdr(xs));
       });
 
-      library.define<predicate>("error?", [](let const& xs)
+      library.define<predicate>("error-object?", [](let const& xs)
       {
-        return car(xs).is<error>();
+        return car(xs).is_also<error>();
       });
 
       library.define<predicate>("read-error?", [](let const& xs)
