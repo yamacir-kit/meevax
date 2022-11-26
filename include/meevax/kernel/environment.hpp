@@ -47,7 +47,7 @@ inline namespace kernel
 
     auto operator [](object const& variable) -> decltype(auto)
     {
-      return identify(variable, scope()).as<identity>().load(e);
+      return identify(variable).as<identity>().load(e);
     }
 
     auto operator [](std::string const& variable) -> decltype(auto)
@@ -73,27 +73,24 @@ inline namespace kernel
 
     auto evaluate(object const&) -> object;
 
-    auto execute() -> object;
-
+    auto execute()              -> object;
     auto execute(object const&) -> object;
 
-    auto fork() const -> object;
-
+    auto fork()              const -> object;
     auto fork(object const&) const -> object;
 
     auto global() const noexcept -> object const&;
-
-    auto global() noexcept -> object &;
+    auto global()       noexcept -> object      &;
 
     auto load(std::string const&) -> object;
 
     auto scope() const noexcept -> object const&;
-
-    auto scope() noexcept -> object &;
-
-    auto identify(object const&, object const&) -> object;
+    auto scope()       noexcept -> object      &;
 
     auto identify(object const&, object const&) const -> object;
+    auto identify(object const&)                const -> object;
+    auto identify(object const&, object const&)       -> object;
+    auto identify(object const&)                      -> object;
   };
 
   auto operator >>(std::istream &, environment &) -> std::istream &;

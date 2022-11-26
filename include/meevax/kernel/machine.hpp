@@ -153,7 +153,7 @@ inline namespace kernel
                                  let const& expression)
         : syntactic_environment { syntactic_environment }
         , expression { expression }
-        , identity { syntactic_environment.as<environment>().identify(expression, syntactic_environment.as<environment>().scope()) }
+        , identity { syntactic_environment.as<environment>().identify(expression) }
       {}
 
       auto identify_with_offset(object const& use_env_scope) -> object

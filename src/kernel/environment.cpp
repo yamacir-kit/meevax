@@ -156,6 +156,11 @@ inline namespace kernel
     }
   }
 
+  auto environment::identify(object const& variable) const -> object
+  {
+    return identify(variable, scope());
+  }
+
   auto environment::identify(object const& variable, object const& scope) -> object
   {
     if (not variable.is_also<identifier>())
@@ -185,6 +190,11 @@ inline namespace kernel
     {
       return car(global() = make<absolute>(variable, undefined) | global());
     }
+  }
+
+  auto environment::identify(object const& variable) -> object
+  {
+    return identify(variable, scope());
   }
 
   auto operator >>(std::istream & is, environment & datum) -> std::istream &
