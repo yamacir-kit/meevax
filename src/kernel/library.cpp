@@ -1100,7 +1100,6 @@ inline namespace kernel
 
     define_library("(meevax syntax)", [](library & library)
     {
-      library.define<syntax>("begin", machine::begin);
       library.define<syntax>("call-with-current-continuation!", call_with_current_continuation);
       library.define<syntax>("define", machine::define);
       library.define<syntax>("define-syntax", define_syntax);
@@ -1111,6 +1110,7 @@ inline namespace kernel
       library.define<syntax>("letrec-syntax", letrec_syntax);
       library.define<syntax>("quote", quote);
       library.define<syntax>("quote-syntax", quote_syntax);
+      library.define<syntax>("sequence", sequence);
       library.define<syntax>("set!", set);
     });
 

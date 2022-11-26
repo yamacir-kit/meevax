@@ -28,7 +28,7 @@ inline namespace memory
   struct gc_pointer : public nan_boxing_pointer<Ts...>
                     , private collector::traceable
   {
-    explicit gc_pointer(std::nullptr_t = nullptr)
+    explicit constexpr gc_pointer(std::nullptr_t = nullptr)
     {}
 
     template <typename T, REQUIRES(std::is_scalar<T>)>

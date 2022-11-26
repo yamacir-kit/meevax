@@ -914,10 +914,10 @@ inline namespace kernel
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs),
                                  append2(map1([](let const& binding_spec)
-                                             {
-                                               return cons(make<syntax>("set!", set), binding_spec);
-                                             },
-                                             binding_specs),
+                                              {
+                                                return cons(make<syntax>("set!", set), binding_spec);
+                                              },
+                                              binding_specs),
                                          body)),
                             make_list(length(binding_specs), unit)),
                        current_scope,
@@ -930,11 +930,11 @@ inline namespace kernel
                        car(current_expression),
                        current_scope,
                        cons(make(mnemonic::drop),
-                            begin(current_context,
-                                  current_environment,
-                                  cdr(current_expression),
-                                  current_scope,
-                                  current_continuation)));
+                            sequence(current_context,
+                                     current_environment,
+                                     cdr(current_expression),
+                                     current_scope,
+                                     current_continuation)));
       }
     }
 
@@ -1358,7 +1358,7 @@ inline namespace kernel
       }
     }
 
-    static SYNTAX(begin) /* ----------------------------------------------------
+    static SYNTAX(sequence) /* -------------------------------------------------
     *
     *  Both of Scheme's sequencing constructs are named begin, but the two
     *  have slightly different forms and uses:
@@ -1399,11 +1399,11 @@ inline namespace kernel
                        car(current_expression), // head expression
                        current_scope,
                        cons(make(mnemonic::drop), // pop result of head expression
-                            begin(current_context,
-                                  current_environment,
-                                  cdr(current_expression), // rest expressions
-                                  current_scope,
-                                  current_continuation)));
+                            sequence(current_context,
+                                     current_environment,
+                                     cdr(current_expression), // tail expressions
+                                     current_scope,
+                                     current_continuation)));
       }
     }
   };

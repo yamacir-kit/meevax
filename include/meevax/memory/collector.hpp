@@ -85,7 +85,7 @@ inline namespace memory
       }
 
     protected:
-      explicit traceable() = default;
+      explicit constexpr traceable() = default;
 
       explicit traceable(traceable const& other)
         : traceable { other.tracer }
