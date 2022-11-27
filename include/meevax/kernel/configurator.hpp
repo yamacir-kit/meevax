@@ -44,12 +44,12 @@ inline namespace kernel
 
     static auto display_version() -> void
     {
-      print("Meevax Lisp ", version());
+      print(version());
     }
 
     static auto display_help() -> void
     {
-      display_version();
+      print("Meevax Lisp ", version());
       print();
       print("Usage: meevax [OPTION...] [FILE...]");
       print();
