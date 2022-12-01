@@ -573,6 +573,10 @@
                       (car x)
                       (current-input-port))))))
 
+(define-library (scheme repl)
+  (import (only (meevax environment) interaction-environment))
+  (export interaction-environment))
+
 (define-library (scheme write)
   (import (prefix (meevax write) %)
           (scheme base)

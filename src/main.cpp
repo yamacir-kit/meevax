@@ -42,6 +42,7 @@ auto main(int const argc, char const* const* const argv) -> int
       main.declare<import_set>("(scheme load)");
       main.declare<import_set>("(scheme process-context)");
       main.declare<import_set>("(scheme read)");
+      main.declare<import_set>("(scheme repl)");
       main.declare<import_set>("(scheme write)");
 
       main.define<procedure>("describe", [&](let const& xs)
