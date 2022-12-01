@@ -49,19 +49,31 @@ inline namespace kernel
     }
     else
     {
-      assert(s.is<null>());
-      assert(e.is<null>());
-      assert(c.is<null>());
-      assert(d.is<null>());
+      /*
+         In most cases, the s, e, c, and d registers are all null when evaluate
+         is called. However, if environment::evaluate of the same environment
+         is called during the execution of environment::evaluate, this is not
+         the case, so it is necessary to save the register. For example,
+         situations like evaluating
+           (eval <expression> (interaction-environment))
+         in the REPL.
+      */
+      if (s or e or c)
+      {
+        d = cons(s, e, c, d);
+      }
 
       c = optimize(compile(context(), *this, expression, scope()));
 
       let const result = execute();
 
-      assert(s.is<null>());
-      assert(e.is<null>());
-      assert(c.is<null>());
-      assert(d.is<null>());
+      if (d)
+      {
+        s = d[0];
+        e = d[1];
+        c = d[2];
+        d = list_tail(d, 3);
+      }
 
       return result;
     }
