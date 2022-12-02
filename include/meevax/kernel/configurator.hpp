@@ -21,6 +21,8 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
+#include <meevax/kernel/procedure.hpp>
+#include <meevax/kernel/syntax.hpp>
 #include <meevax/kernel/version.hpp>
 #include <meevax/kernel/writer.hpp>
 
@@ -175,6 +177,28 @@ inline namespace kernel
       }),
     };
 
+    struct option
+    {
+      let const operation;
+
+      bool const supports_abbreviation;
+
+      bool const requires_an_argument;
+
+      template <typename S, typename F>
+      explicit option(S&& s, F&& f, bool supports_abbreviation = false, bool requires_an_argument = false)
+        : operation { make<procedure>(std::forward<decltype(s)>(s),
+                                      std::forward<decltype(f)>(f)) }
+        , supports_abbreviation { supports_abbreviation }
+        , requires_an_argument { requires_an_argument }
+      {}
+
+      auto name() const -> auto const&
+      {
+        return operation.as<procedure>().name;
+      }
+    };
+
   public:
     auto configure(const int argc, char const* const* const argv)
     {
@@ -190,7 +214,143 @@ inline namespace kernel
         return interaction_environment().as<Environment>().read(std::forward<decltype(xs)>(xs)...);
       };
 
-      for (auto current_option = std::begin(args); current_option != std::end(args); ++current_option) [&]()
+      std::vector<option> options
+      {
+        option("help",        [this](let const&) { display_help();     return unit; }, true),
+        option("version",     [this](let const&) { display_version();  return unit; }, true),
+
+        option("batch",       [this](let const&) { batch       = true; return unit; }, true),
+        option("debug",       [this](let const&) { debug       = true; return unit; }, true),
+        option("interactive", [this](let const&) { interactive = true; return unit; }, true),
+        option("trace",       [this](let const&) { trace       = true; return unit; }, true),
+
+        option("evaluate", [this](let const& xs)
+        {
+          return static_cast<Environment &>(*this).evaluate(xs[0]);
+        }, true, true),
+
+        option("load", [this](let const& xs)
+        {
+          static_cast<Environment &>(*this).load(xs[0].as<string>());
+          return unit;
+        }, true, true),
+
+        option("write", [this](let const& xs)
+        {
+          std::cout << xs[0] << std::endl;
+          return unit;
+        }, true, true),
+      };
+
+      auto long_option = [&](auto&& name) -> auto const&
+      {
+        if (auto iter = std::find_if(std::cbegin(options), std::cend(options), [&](auto&& option)
+                        {
+                          return option.name() == name;
+                        });
+            iter != std::cend(options))
+        {
+          return *iter;
+        }
+        else
+        {
+          throw error(make<string>("unknown long-option"),
+                      make<symbol>(lexical_cast<std::string>("--", name)));
+        }
+      };
+
+      auto short_option = [&](auto&& name) -> auto const&
+      {
+        if (auto iter = std::find_if(std::cbegin(options), std::cend(options), [&](auto&& option)
+                        {
+                          return option.supports_abbreviation and option.name()[0] == name;
+                        });
+            iter != std::cend(options))
+        {
+          return *iter;
+        }
+        else
+        {
+          throw error(make<string>("unknown short-option"),
+                      make<symbol>(lexical_cast<std::string>('-', name)));
+        }
+      };
+
+      std::vector<object> expressions {};
+
+      let const quote = make<syntax>("quote", Environment::quote);
+
+      for (auto iter = std::begin(args); iter != std::end(args); ++iter)
+      {
+        static std::regex const pattern { R"(--(\w[-\w]+)(?:=(.*))?|-([\w]+))" };
+
+        auto read_argument = [&]()
+        {
+          if (std::next(iter) != std::cend(args))
+          {
+            return read(*++iter);
+          }
+          else
+          {
+            throw error(make<string>("an argument required but not specified"),
+                        make<symbol>(*iter));
+          }
+        };
+
+        if (std::smatch result; std::regex_match(*iter, result, pattern))
+        {
+          if (result.length(3))
+          {
+            for (auto str3 = result.str(3); not str3.empty(); str3.erase(0, 1))
+            {
+              if (auto&& option = short_option(str3.front()); option.requires_an_argument)
+              {
+                expressions.push_back(list(option.operation,
+                                           list(quote,
+                                                1 < str3.length() ? read(str3.substr(1))
+                                                                  : read_argument())));
+                break;
+              }
+              else
+              {
+                expressions.push_back(list(option.operation));
+              }
+            }
+          }
+          else if (result.length(2))
+          {
+            expressions.push_back(list(long_option(result.str(1)).operation,
+                                       list(quote,
+                                            read(result.str(2)))));
+          }
+          else if (result.length(1))
+          {
+            if (auto&& option = long_option(result.str(1)); option.requires_an_argument)
+            {
+              expressions.push_back(list(option.operation,
+                                         list(quote,
+                                              read_argument())));
+            }
+            else
+            {
+              expressions.push_back(list(option.operation));
+            }
+          }
+        }
+        else
+        {
+          expressions.push_back(list(long_option("load").operation, make<string>(*iter)));
+          interactive = false;
+        }
+      }
+
+      for (auto&& expression : expressions)
+      {
+        std::cout << "option = " << expression << std::endl;
+        static_cast<Environment &>(*this).evaluate(expression);
+      }
+
+      for (auto current_option = std::begin(args); false; ++current_option) [&]()
       {
         std::smatch analysis {};
 
