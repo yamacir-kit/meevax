@@ -27,21 +27,17 @@ inline namespace kernel
 
   struct procedure
   {
-    using function_pointer_type = PROCEDURE((*));
-
-    using function_type = std::function<PROCEDURE()>;
-
     std::string const name;
 
-    function_type call;
+    std::function<PROCEDURE()> const call;
 
-    explicit procedure(std::string const&, function_type const&);
+    explicit procedure(std::string const&, std::function<PROCEDURE()> const&);
 
     explicit procedure(std::string const&, std::string const&);
 
     static auto dlopen(std::string const&) -> void *;
 
-    static auto dlsym(std::string const&, void * const) -> function_pointer_type;
+    static auto dlsym(std::string const&, void * const) -> PROCEDURE((*));
   };
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
@@ -49,7 +45,7 @@ inline namespace kernel
   struct predicate : public procedure
   {
     template <typename Callable>
-    explicit predicate(std::string const& name, Callable && call)
+    explicit predicate(std::string const& name, Callable&& call)
       : procedure { name, [call](auto&&... xs) { return call(std::forward<decltype(xs)>(xs)...) ? t : f; } }
     {}
   };

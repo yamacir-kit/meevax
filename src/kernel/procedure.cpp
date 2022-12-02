@@ -23,12 +23,13 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/string.hpp>
+#include <meevax/kernel/symbol.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  procedure::procedure(std::string const& name, function_type const& call)
+  procedure::procedure(std::string const& name, std::function<PROCEDURE()> const& call)
     : name { name }
     , call { call }
   {}
@@ -48,9 +49,7 @@ inline namespace kernel
       }
     };
 
-    static std::unordered_map<
-      std::string, std::unique_ptr<void, decltype(dlclose)>
-    > dynamic_libraries {};
+    static std::unordered_map<std::string, std::unique_ptr<void, decltype(dlclose)>> dynamic_libraries {};
 
     ::dlerror(); // clear
 
@@ -76,11 +75,11 @@ inline namespace kernel
     }
   }
 
-  auto procedure::dlsym(std::string const& name, void * const handle) -> function_pointer_type
+  auto procedure::dlsym(std::string const& name, void * const handle) -> PROCEDURE((*))
   {
     if (auto address = ::dlsym(handle, name.c_str()); address)
     {
-      return reinterpret_cast<function_pointer_type>(address);
+      return reinterpret_cast<PROCEDURE((*))>(address);
     }
     else
     {
@@ -90,7 +89,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, procedure const& datum) -> std::ostream &
   {
-    return os << magenta("#,(") << green("procedure") << " " << datum.name << magenta(")");
+    return os << magenta("#,(") << green("procedure") << " " << symbol(datum.name) << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

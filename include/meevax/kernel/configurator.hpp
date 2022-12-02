@@ -66,21 +66,20 @@ inline namespace kernel
     {
       let const operation;
 
-      bool const supports_abbreviation;
-
       bool const requires_an_argument;
 
       template <typename S, typename F>
-      explicit option(S&& s, F&& f, bool supports_abbreviation = false, bool requires_an_argument = false)
+      explicit option(S&& s, F&& f, bool requires_an_argument = false)
         : operation { make<procedure>(std::forward<decltype(s)>(s),
                                       std::forward<decltype(f)>(f)) }
-        , supports_abbreviation { supports_abbreviation }
         , requires_an_argument { requires_an_argument }
       {}
 
-      auto name() const -> auto const&
+      template <typename... Ts>
+      auto match(Ts&&... xs) const
       {
-        return operation.as<procedure>().name;
+        return std::regex_match(std::forward<decltype(xs)>(xs)...,
+                                std::regex(operation.as<procedure>().name));
       }
     };
 
@@ -100,53 +99,46 @@ inline namespace kernel
 
       std::vector<option> options
       {
-        option("batch",       [this](let const&) { batch       = true; return unit; }, true),
-        option("debug",       [this](let const&) { debug       = true; return unit; }, true),
-        option("interactive", [this](let const&) { interactive = true; return unit; }, true),
-        option("trace",       [this](let const&) { trace       = true; return unit; }, true),
+        option("(b|batch)",       [this](let const&) { batch       = true; return unit; }),
+        option("(d|debug)",       [this](let const&) { debug       = true; return unit; }),
+        option("(i|interactive)", [this](let const&) { interactive = true; return unit; }),
+        option("(t|trace)",       [this](let const&) { trace       = true; return unit; }),
 
-        option("evaluate", [this](let const& xs)
+        option("(e|evaluate)", [this](let const& xs)
         {
           return static_cast<Environment &>(*this).evaluate(xs[0]);
-        }, true, true),
+        }, true),
 
-        option("help", [](let const&) -> object
+        option("(h|help)", [](let const&) -> object
         {
           display_help();
           throw success;
-        }, true),
+        }),
 
-        option("load", [this](let const& xs)
+        option("(l|load)", [this](let const& xs)
         {
           static_cast<Environment &>(*this).load(xs[0].as<string>());
           return unit;
-        }, true, true),
+        }, true),
 
-        option("version", [](let const&) -> object
+        option("(v|version)", [](let const&) -> object
         {
           std::cout << version() << std::endl;
           throw success;
-        }, true),
+        }),
 
-        option("write", [](let const& xs)
+        option("(w|write)", [](let const& xs)
         {
           std::cout << xs[0] << std::endl;
           return unit;
-        }, true, true),
+        }, true),
       };
 
       auto search = [&](auto&& name) -> auto const&
       {
         auto compare = [&](auto&& option)
         {
-          if constexpr (std::is_same_v<std::decay_t<decltype(name)>, char>)
-          {
-            return option.supports_abbreviation and option.name()[0] == name;
-          }
-          else
-          {
-            return option.name() == name;
-          }
+          return option.match(name);
         };
 
         if (auto iter = std::find_if(std::begin(options), std::end(options), compare); iter != std::end(options))
@@ -186,7 +178,7 @@ inline namespace kernel
           {
             for (auto str3 = result.str(3); not str3.empty(); str3.erase(0, 1))
             {
-              if (auto&& option = search(str3.front()); option.requires_an_argument)
+              if (auto&& option = search(str3.substr(0, 1)); option.requires_an_argument)
               {
                 expressions.push_back(list(option.operation, list(quote, 1 < str3.length() ? read(str3.substr(1)) : read_argument())));
                 break;
