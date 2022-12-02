@@ -60,7 +60,9 @@ inline namespace kernel
       */
       if (s or e or c)
       {
-        d = cons(s, e, c, d);
+        d = cons(std::exchange(s, unit),
+                 std::exchange(e, unit),
+                 std::exchange(c, unit), d);
       }
 
       c = optimize(compile(context(), *this, expression, scope()));
