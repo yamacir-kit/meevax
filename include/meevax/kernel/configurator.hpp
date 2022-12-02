@@ -44,11 +44,6 @@ inline namespace kernel
     static inline auto interactive = true;
     static inline auto trace       = false;
 
-    static auto display_version() -> void
-    {
-      print(version());
-    }
-
     static auto display_help() -> void
     {
       print("Meevax Lisp ", version());
@@ -105,9 +100,6 @@ inline namespace kernel
 
       std::vector<option> options
       {
-        option("help",        [this](let const&) { display_help();     return unit; }, true),
-        option("version",     [this](let const&) { display_version();  return unit; }, true),
-
         option("batch",       [this](let const&) { batch       = true; return unit; }, true),
         option("debug",       [this](let const&) { debug       = true; return unit; }, true),
         option("interactive", [this](let const&) { interactive = true; return unit; }, true),
@@ -118,50 +110,52 @@ inline namespace kernel
           return static_cast<Environment &>(*this).evaluate(xs[0]);
         }, true, true),
 
+        option("help", [](let const&) -> object
+        {
+          display_help();
+          throw success;
+        }, true),
+
         option("load", [this](let const& xs)
         {
           static_cast<Environment &>(*this).load(xs[0].as<string>());
           return unit;
         }, true, true),
 
-        option("write", [this](let const& xs)
+        option("version", [](let const&) -> object
+        {
+          std::cout << version() << std::endl;
+          throw success;
+        }, true),
+
+        option("write", [](let const& xs)
         {
           std::cout << xs[0] << std::endl;
           return unit;
         }, true, true),
       };
 
-      auto long_option = [&](auto&& name) -> auto const&
+      auto search = [&](auto&& name) -> auto const&
       {
-        if (auto iter = std::find_if(std::cbegin(options), std::cend(options), [&](auto&& option)
-                        {
-                          return option.name() == name;
-                        });
-            iter != std::cend(options))
+        auto compare = [&](auto&& option)
         {
-          return *iter;
-        }
-        else
-        {
-          throw error(make<string>("unknown long-option"),
-                      make<symbol>(lexical_cast<std::string>("--", name)));
-        }
-      };
+          if constexpr (std::is_same_v<std::decay_t<decltype(name)>, char>)
+          {
+            return option.supports_abbreviation and option.name()[0] == name;
+          }
+          else
+          {
+            return option.name() == name;
+          }
+        };
 
-      auto short_option = [&](auto&& name) -> auto const&
-      {
-        if (auto iter = std::find_if(std::cbegin(options), std::cend(options), [&](auto&& option)
-                        {
-                          return option.supports_abbreviation and option.name()[0] == name;
-                        });
-            iter != std::cend(options))
+        if (auto iter = std::find_if(std::begin(options), std::end(options), compare); iter != std::end(options))
         {
           return *iter;
         }
         else
         {
-          throw error(make<string>("unknown short-option"),
-                      make<symbol>(lexical_cast<std::string>('-', name)));
+          throw error(make<string>("unknown option"), make<symbol>(name));
         }
       };
 
@@ -192,12 +186,9 @@ inline namespace kernel
           {
             for (auto str3 = result.str(3); not str3.empty(); str3.erase(0, 1))
             {
-              if (auto&& option = short_option(str3.front()); option.requires_an_argument)
+              if (auto&& option = search(str3.front()); option.requires_an_argument)
               {
-                expressions.push_back(list(option.operation,
-                                           list(quote,
-                                                1 < str3.length() ? read(str3.substr(1))
-                                                                  : read_argument())));
+                expressions.push_back(list(option.operation, list(quote, 1 < str3.length() ? read(str3.substr(1)) : read_argument())));
                 break;
               }
               else
@@ -208,17 +199,13 @@ inline namespace kernel
           }
           else if (result.length(2))
           {
-            expressions.push_back(list(long_option(result.str(1)).operation,
-                                       list(quote,
-                                            read(result.str(2)))));
+            expressions.push_back(list(search(result.str(1)).operation, list(quote, read(result.str(2)))));
           }
           else if (result.length(1))
           {
-            if (auto&& option = long_option(result.str(1)); option.requires_an_argument)
+            if (auto&& option = search(result.str(1)); option.requires_an_argument)
             {
-              expressions.push_back(list(option.operation,
-                                         list(quote,
-                                              read_argument())));
+              expressions.push_back(list(option.operation, list(quote, read_argument())));
             }
             else
             {
@@ -228,14 +215,13 @@ inline namespace kernel
         }
         else
         {
-          expressions.push_back(list(long_option("load").operation, make<string>(*iter)));
+          expressions.push_back(list(search("load").operation, make<string>(*iter)));
           interactive = false;
         }
       }
 
       for (auto&& expression : expressions)
       {
-        std::cout << "option = " << expression << std::endl;
         static_cast<Environment &>(*this).evaluate(expression);
       }
     }

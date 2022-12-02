@@ -31,7 +31,6 @@ auto main(int const argc, char const* const* const argv) -> int
 
     if (main.interactive)
     {
-      main.display_version();
       main.declare<import_set>("(scheme base)");
       main.declare<import_set>("(scheme char)");
       main.declare<import_set>("(scheme complex)");
