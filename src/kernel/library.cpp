@@ -36,7 +36,7 @@ inline namespace kernel
         return car(xs).is<character>();
       });
 
-      library.define<procedure>("char-codepoint", [](let const& xs) -> object
+      library.define<procedure>("char-codepoint", [](let const& xs)
       {
         if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
         {
@@ -740,7 +740,6 @@ inline namespace kernel
       library.define<procedure>("close", [](let const& xs)
       {
         car(xs).as<file_port>().close();
-        return unspecified;
       });
 
       library.define<procedure>("string->port", [](let const& xs)
@@ -761,18 +760,17 @@ inline namespace kernel
       library.define<procedure>("flush", [](let const& xs)
       {
         car(xs).as<std::ostream>() << std::flush;
-        return unspecified;
       });
     });
 
     define_library("(meevax read)", [](library & library)
     {
-      library.define<procedure>("get-char", [](let const& xs) -> object
+      library.define<procedure>("get-char", [](let const& xs)
       {
         try
         {
           auto const g = car(xs).as<std::istream>().tellg();
-          let const c = make<character>(get_codepoint(car(xs).as<std::istream>()));
+          let c = make<character>(get_codepoint(car(xs).as<std::istream>()));
           car(xs).as<std::istream>().seekg(g);
           return c;
         }
@@ -786,7 +784,7 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("get-char!", [](let const& xs) -> object
+      library.define<procedure>("get-char!", [](let const& xs)
       {
         try
         {
@@ -824,7 +822,7 @@ inline namespace kernel
         return s;
       });
 
-      library.define<procedure>("read", [](let const& xs) mutable -> object
+      library.define<procedure>("read", [](let const& xs)
       {
         try
         {
@@ -976,8 +974,6 @@ inline namespace kernel
         std::copy(std::next(std::begin(s2), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
                   std::next(std::begin(s2), list_tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : s2.size()),
                   std::next(std::begin(s1),                               xs[1].as<exact_integer>()));
-
-        return unspecified;
       });
 
       #define STRING_COMPARE(COMPARE)                                          \
@@ -1236,8 +1232,6 @@ inline namespace kernel
         std::copy(std::next(std::begin(v2), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
                   std::next(std::begin(v2), list_tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : v1.size()),
                   std::next(std::begin(v1),                               xs[1].as<exact_integer>()));
-
-        return unspecified;
       });
 
       library.define<procedure>("vector-length", [](let const& xs)
@@ -1289,8 +1283,6 @@ inline namespace kernel
         std::fill(std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : 0),
                   std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : xs[0].as<vector>().objects.size()),
                   list_tail(xs, 1).is<pair>() ? xs[1] : unspecified);
-
-        return unspecified;
       });
 
       library.define<procedure>("list->vector", [](let const& xs)
@@ -1324,25 +1316,21 @@ inline namespace kernel
       library.define<procedure>("put-char", [](let const& xs)
       {
         cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
-        return unspecified;
       });
 
       library.define<procedure>("put-string", [](let const& xs)
       {
         cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
-        return unspecified;
       });
 
       library.define<procedure>("write", [](let const& xs)
       {
         meevax::write(cadr(xs), car(xs));
-        return unspecified;
       });
 
       library.define<procedure>("write-simple", [](let const& xs)
       {
         write_simple(cadr(xs), car(xs));
-        return unspecified;
       });
     });
 

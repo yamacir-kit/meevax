@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/ghost.hpp>
 
 namespace meevax
 {
@@ -78,6 +79,36 @@ inline namespace kernel
           [f](auto&&...)
           {
             return f() ? t : meevax::f;
+          }
+        }
+    {}
+
+    template <typename F, std::enable_if_t<
+                            std::is_same_v<std::invoke_result_t<F, let const&>, void>,
+                            std::nullptr_t
+                          > = nullptr>
+    explicit procedure(std::string const& name, F&& f)
+      : name { name }
+      , call {
+          [f](auto&&... xs)
+          {
+            f(std::forward<decltype(xs)>(xs)...);
+            return unspecified;
+          }
+        }
+    {}
+
+    template <typename F, std::enable_if_t<
+                            std::is_same_v<std::invoke_result_t<F>, void>,
+                            std::nullptr_t
+                          > = nullptr>
+    explicit procedure(std::string const& name, F&& f)
+      : name { name }
+      , call {
+          [f](auto&&...)
+          {
+            f();
+            return unspecified;
           }
         }
     {}
