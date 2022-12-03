@@ -68,18 +68,29 @@ inline namespace kernel
 
       bool const requires_an_argument;
 
-      template <typename S, typename F>
-      explicit option(S&& s, F&& f, bool requires_an_argument = false)
+      template <typename S, typename F, std::enable_if_t<std::is_invocable_v<F>, std::nullptr_t> = nullptr>
+      explicit option(S&& s, F&& f)
+        : operation {
+            make<procedure>(std::forward<decltype(s)>(s), [f](auto&&...)
+            {
+              f();
+              return unit;
+            })
+          }
+        , requires_an_argument { false }
+      {}
+
+      template <typename S, typename F, std::enable_if_t<std::is_invocable_v<F, let const&>, std::nullptr_t> = nullptr>
+      explicit option(S&& s, F&& f)
         : operation { make<procedure>(std::forward<decltype(s)>(s),
                                       std::forward<decltype(f)>(f)) }
-        , requires_an_argument { requires_an_argument }
+        , requires_an_argument { true }
       {}
 
       template <typename... Ts>
       auto match(Ts&&... xs) const
       {
-        return std::regex_match(std::forward<decltype(xs)>(xs)...,
-                                std::regex(operation.as<procedure>().name));
+        return std::regex_match(std::forward<decltype(xs)>(xs)..., std::regex(operation.as<procedure>().name));
       }
     };
 
@@ -99,17 +110,17 @@ inline namespace kernel
 
       std::vector<option> options
       {
-        option("(b|batch)",       [this](let const&) { batch       = true; return unit; }),
-        option("(d|debug)",       [this](let const&) { debug       = true; return unit; }),
-        option("(i|interactive)", [this](let const&) { interactive = true; return unit; }),
-        option("(t|trace)",       [this](let const&) { trace       = true; return unit; }),
+        option("(b|batch)",       [this]() { batch       = true; }),
+        option("(d|debug)",       [this]() { debug       = true; }),
+        option("(i|interactive)", [this]() { interactive = true; }),
+        option("(t|trace)",       [this]() { trace       = true; }),
 
         option("(e|evaluate)", [this](let const& xs)
         {
           return static_cast<Environment &>(*this).evaluate(xs[0]);
-        }, true),
+        }),
 
-        option("(h|help)", [](let const&) -> object
+        option("(h|help)", []()
         {
           display_help();
           throw success;
@@ -119,9 +130,9 @@ inline namespace kernel
         {
           static_cast<Environment &>(*this).load(xs[0].as<string>());
           return unit;
-        }, true),
+        }),
 
-        option("(v|version)", [](let const&) -> object
+        option("(v|version)", []()
         {
           std::cout << version() << std::endl;
           throw success;
@@ -131,17 +142,16 @@ inline namespace kernel
         {
           std::cout << xs[0] << std::endl;
           return unit;
-        }, true),
+        }),
       };
 
       auto search = [&](auto&& name) -> auto const&
       {
-        auto compare = [&](auto&& option)
-        {
-          return option.match(name);
-        };
-
-        if (auto iter = std::find_if(std::begin(options), std::end(options), compare); iter != std::end(options))
+        if (auto iter = std::find_if(std::begin(options), std::end(options), [&](auto&& option)
+                        {
+                          return option.match(name);
+                        });
+            iter != std::end(options))
         {
           return *iter;
         }
