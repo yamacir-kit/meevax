@@ -31,7 +31,14 @@ inline namespace kernel
 
     std::function<PROCEDURE()> const call;
 
-    explicit procedure(std::string const&, std::function<PROCEDURE()> const&);
+    template <typename F, std::enable_if_t<
+                            std::is_same_v<std::invoke_result_t<F, let const&>, object>,
+                            std::nullptr_t
+                          > = nullptr>
+    explicit procedure(std::string const& name, F&& f)
+      : name { name }
+      , call { std::forward<decltype(f)>(f) }
+    {}
 
     explicit procedure(std::string const&, std::string const&);
 
