@@ -71,27 +71,6 @@ inline namespace kernel
     }
   }
 
-  auto operator <<(std::ostream & os, pair const& datum) -> std::ostream &
-  {
-    if (let const& end = label(datum))
-    {
-      auto n = reinterpret_cast<std::uintptr_t>(end.get());
-
-      os << magenta("#", n, "=(") << car(datum);
-
-      for (auto iter = std::begin(cdr(datum)); iter != end; ++iter)
-      {
-        os << " " << *iter;
-      }
-
-      return os << magenta(" . #", n, "#)");
-    }
-    else
-    {
-      return write_simple(os, datum);
-    }
-  }
-
   auto write_simple(std::ostream & os, pair const& datum) -> std::ostream &
   {
     os << magenta("(");
@@ -122,6 +101,27 @@ inline namespace kernel
   auto write_simple(std::ostream & os, object const& x) -> std::ostream &
   {
     return x.is<pair>() ? write_simple(os, x.as<pair>()) : os << x;
+  }
+
+  auto operator <<(std::ostream & os, pair const& datum) -> std::ostream &
+  {
+    if (let const& end = label(datum))
+    {
+      auto n = reinterpret_cast<std::uintptr_t>(end.get());
+
+      os << magenta("#", n, "=(") << car(datum);
+
+      for (auto iter = std::begin(cdr(datum)); iter != end; ++iter)
+      {
+        os << " " << *iter;
+      }
+
+      return os << magenta(" . #", n, "#)");
+    }
+    else
+    {
+      return write_simple(os, datum);
+    }
   }
 } // namespace kernel
 } // namespace meevax
