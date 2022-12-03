@@ -24,7 +24,6 @@
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/syntax.hpp>
 #include <meevax/kernel/version.hpp>
-#include <meevax/kernel/writer.hpp>
 
 namespace meevax
 {

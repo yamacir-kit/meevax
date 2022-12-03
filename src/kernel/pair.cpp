@@ -15,7 +15,6 @@
 */
 
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/writer.hpp>
 
 namespace meevax
 {
