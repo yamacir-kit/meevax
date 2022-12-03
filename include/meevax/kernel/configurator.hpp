@@ -39,7 +39,6 @@ inline namespace kernel
     {}
 
   public:
-    static inline auto debug       = false;
     static inline auto interactive = true;
     static inline auto trace       = false;
 
@@ -50,7 +49,6 @@ inline namespace kernel
       print("Usage: meevax [OPTION...] [FILE...]");
       print();
       print("Options:");
-      print("  -d, --debug            Deprecated.");
       print("  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.");
       print("  -h, --help             Display this help text and exit.");
       print("  -i, --interactive      Take over control of root environment.");
@@ -96,7 +94,6 @@ inline namespace kernel
 
       std::vector<option> options
       {
-        option("(d|debug)",       [this]() { debug       = true; }),
         option("(i|interactive)", [this]() { interactive = true; }),
         option("(t|trace)",       [this]() { trace       = true; }),
 

@@ -36,7 +36,6 @@ inline namespace kernel
     using pair::pair;
 
   public:
-    using configurator::debug;
     using configurator::trace;
 
     using reader::read;

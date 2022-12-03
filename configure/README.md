@@ -127,7 +127,6 @@ Meevax Lisp System, version ${PROJECT_VERSION}
 Usage: meevax [OPTION...] [FILE...]
 
 Options:
-  -d, --debug            Deprecated.
   -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.
   -h, --help             Display this help text and exit.
   -i, --interactive      Take over control of root environment.
