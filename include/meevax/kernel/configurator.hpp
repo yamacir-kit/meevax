@@ -68,23 +68,11 @@ inline namespace kernel
 
       bool const requires_an_argument;
 
-      template <typename S, typename F, std::enable_if_t<std::is_invocable_v<F>, std::nullptr_t> = nullptr>
-      explicit option(S&& s, F&& f)
-        : operation {
-            make<procedure>(std::forward<decltype(s)>(s), [f]()
-            {
-              f();
-              return unit;
-            })
-          }
-        , requires_an_argument { false }
-      {}
-
-      template <typename S, typename F, std::enable_if_t<std::is_invocable_v<F, let const&>, std::nullptr_t> = nullptr>
+      template <typename S, typename F>
       explicit option(S&& s, F&& f)
         : operation { make<procedure>(std::forward<decltype(s)>(s),
                                       std::forward<decltype(f)>(f)) }
-        , requires_an_argument { true }
+        , requires_an_argument { std::is_invocable_v<F, let const&> }
       {}
 
       template <typename... Ts>
