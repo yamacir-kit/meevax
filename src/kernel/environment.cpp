@@ -221,7 +221,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, environment &) -> std::ostream &
   {
-    return write(os, "environment::operator <<(std::ostream &, environment &)\n");
+    return os << "environment::operator <<(std::ostream &, environment &)" << std::endl;
   }
 
   auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &
