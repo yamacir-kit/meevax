@@ -63,7 +63,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
 
-  struct predicate : public procedure
+  struct [[deprecated]] predicate : public procedure
   {
     template <typename Callable>
     explicit predicate(std::string const& name, Callable&& call)
