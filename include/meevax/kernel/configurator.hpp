@@ -71,7 +71,7 @@ inline namespace kernel
       template <typename S, typename F, std::enable_if_t<std::is_invocable_v<F>, std::nullptr_t> = nullptr>
       explicit option(S&& s, F&& f)
         : operation {
-            make<procedure>(std::forward<decltype(s)>(s), [f](auto&&...)
+            make<procedure>(std::forward<decltype(s)>(s), [f]()
             {
               f();
               return unit;

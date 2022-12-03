@@ -29,11 +29,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  procedure::procedure(std::string const& name, std::function<PROCEDURE()> const& call)
-    : name { name }
-    , call { call }
-  {}
-
   procedure::procedure(std::string const& name, std::string const& libfoo_so)
     : name { name }
     , call { dlsym(name, dlopen(libfoo_so)) }
