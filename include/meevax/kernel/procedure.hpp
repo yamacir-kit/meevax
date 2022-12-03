@@ -62,14 +62,6 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
-
-  struct [[deprecated]] predicate : public procedure
-  {
-    template <typename Callable>
-    explicit predicate(std::string const& name, Callable&& call)
-      : procedure { name, [call](auto&&... xs) { return call(std::forward<decltype(xs)>(xs)...) ? t : f; } }
-    {}
-  };
 } // namespace kernel
 } // namespace meevax
 
