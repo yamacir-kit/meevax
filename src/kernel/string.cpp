@@ -54,7 +54,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, string const& datum) -> std::ostream &
   {
-    auto write = [&](character const& c) -> decltype(auto)
+    auto put = [&](character const& c) -> decltype(auto)
     {
       if (std::isprint(c.codepoint))
       {
@@ -83,7 +83,7 @@ inline namespace kernel
 
     for (auto const& each : datum.codepoints)
     {
-      write(each);
+      put(each);
     }
 
     return os << cyan("\"");
