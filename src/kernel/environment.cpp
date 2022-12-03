@@ -211,19 +211,6 @@ inline namespace kernel
     return identify(variable, scope());
   }
 
-  auto operator >>(std::istream & is, environment & datum) -> std::istream &
-  {
-    std::cout << "environment::operator >>(std::istream &, environment &)" << std::endl;
-    std::cout << "read new expression => " << datum.read(is) << std::endl;
-
-    return is;
-  }
-
-  auto operator <<(std::ostream & os, environment &) -> std::ostream &
-  {
-    return os << "environment::operator <<(std::ostream &, environment &)" << std::endl;
-  }
-
   auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &
   {
     return os << magenta("#,(") << green("environment ") << faint("#;", &datum) << magenta(")");
