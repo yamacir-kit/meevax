@@ -1330,7 +1330,7 @@ inline namespace kernel
 
       library.define<procedure>("write-simple", [](let const& xs)
       {
-        write_simple(cadr(xs), car(xs));
+        write_simple(xs[1].as<std::ostream>(), xs[0]);
       });
     });
 

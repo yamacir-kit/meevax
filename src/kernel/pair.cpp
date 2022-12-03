@@ -91,5 +91,37 @@ inline namespace kernel
       return write_simple(os, datum);
     }
   }
+
+  auto write_simple(std::ostream & os, pair const& datum) -> std::ostream &
+  {
+    os << magenta("(");
+
+    write_simple(os, car(datum));
+
+    for (auto iter = std::begin(cdr(datum)); iter != unit; ++iter)
+    {
+      if (iter.get().is<pair>())
+      {
+        os << " ";
+
+        write_simple(os, *iter);
+      }
+      else // iter is the last element of dotted-list.
+      {
+        os << magenta(" . ");
+
+        write_simple(os, iter.get());
+
+        return os << magenta(")");
+      }
+    }
+
+    return os << magenta(")");
+  }
+
+  auto write_simple(std::ostream & os, object const& x) -> std::ostream &
+  {
+    return x.is<pair>() ? write_simple(os, x.as<pair>()) : os << x;
+  }
 } // namespace kernel
 } // namespace meevax
