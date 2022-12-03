@@ -136,7 +136,7 @@ inline namespace kernel
         return cadr(xs).as<environment>().evaluate(car(xs));
       });
 
-      library.define<procedure>("interaction-environment", [](auto&&...)
+      library.define<procedure>("interaction-environment", []()
       {
         return interaction_environment();
       });
@@ -220,7 +220,7 @@ inline namespace kernel
         return standard_output;
       });
 
-      library.define<procedure>("ieee-float?", [](auto&&...)
+      library.define<procedure>("ieee-float?", []()
       {
         return std::numeric_limits<double>::is_iec559;
       });
@@ -228,12 +228,12 @@ inline namespace kernel
 
     define_library("(meevax garbage-collector)", [](library & library)
     {
-      library.define<procedure>("gc-collect", [](auto&&...)
+      library.define<procedure>("gc-collect", []()
       {
         return make<exact_integer>(gc.collect());
       });
 
-      library.define<procedure>("gc-count", [](auto&&...)
+      library.define<procedure>("gc-count", []()
       {
         return make<exact_integer>(gc.count());
       });
@@ -690,7 +690,7 @@ inline namespace kernel
         return car(xs).is_also<std::ostream>();
       });
 
-      library.define<procedure>("binary-port?", [](auto&&...)
+      library.define<procedure>("binary-port?", []()
       {
         return false;
       });
@@ -717,17 +717,17 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("input-port", [](auto&&...)
+      library.define<procedure>("input-port", []()
       {
         return standard_input;
       });
 
-      library.define<procedure>("output-port", [](auto&&...)
+      library.define<procedure>("output-port", []()
       {
         return standard_output;
       });
 
-      library.define<procedure>("error-port", [](auto&&...)
+      library.define<procedure>("error-port", []()
       {
         return standard_error;
       });
@@ -753,7 +753,7 @@ inline namespace kernel
         return car(xs).is<eof>();
       });
 
-      library.define<procedure>("eof-object", [](auto&&...)
+      library.define<procedure>("eof-object", []()
       {
         return eof_object;
       });
@@ -1313,7 +1313,7 @@ inline namespace kernel
 
     define_library("(meevax version)", [](library & library)
     {
-      library.define<procedure>("features", [](auto&&...)
+      library.define<procedure>("features", []()
       {
         return features();
       });

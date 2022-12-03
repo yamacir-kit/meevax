@@ -41,6 +41,20 @@ inline namespace kernel
     {}
 
     template <typename F, std::enable_if_t<
+                            std::is_same_v<std::invoke_result_t<F>, object>,
+                            std::nullptr_t
+                          > = nullptr>
+    explicit procedure(std::string const& name, F&& f)
+      : name { name }
+      , call {
+          [f](auto&&...)
+          {
+            return f();
+          }
+        }
+    {}
+
+    template <typename F, std::enable_if_t<
                             std::is_same_v<std::invoke_result_t<F, let const&>, bool>,
                             std::nullptr_t
                           > = nullptr>
@@ -50,6 +64,20 @@ inline namespace kernel
           [f](auto&&... xs)
           {
             return f(std::forward<decltype(xs)>(xs)...) ? t : meevax::f;
+          }
+        }
+    {}
+
+    template <typename F, std::enable_if_t<
+                            std::is_same_v<std::invoke_result_t<F>, bool>,
+                            std::nullptr_t
+                          > = nullptr>
+    explicit procedure(std::string const& name, F&& f)
+      : name { name }
+      , call {
+          [f](auto&&...)
+          {
+            return f() ? t : meevax::f;
           }
         }
     {}
