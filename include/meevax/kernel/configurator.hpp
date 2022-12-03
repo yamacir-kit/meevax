@@ -39,7 +39,6 @@ inline namespace kernel
     {}
 
   public:
-    static inline auto batch       = false;
     static inline auto debug       = false;
     static inline auto interactive = true;
     static inline auto trace       = false;
@@ -51,7 +50,6 @@ inline namespace kernel
       print("Usage: meevax [OPTION...] [FILE...]");
       print();
       print("Options:");
-      print("  -b, --batch            Suppress any system output.");
       print("  -d, --debug            Deprecated.");
       print("  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.");
       print("  -h, --help             Display this help text and exit.");
@@ -72,7 +70,7 @@ inline namespace kernel
       explicit option(S&& s, F&& f)
         : operation { make<procedure>(std::forward<decltype(s)>(s),
                                       std::forward<decltype(f)>(f)) }
-        , requires_an_argument { std::is_invocable_v<F, let const&> }
+        , requires_an_argument { not std::is_invocable_v<F> }
       {}
 
       template <typename... Ts>
@@ -98,7 +96,6 @@ inline namespace kernel
 
       std::vector<option> options
       {
-        option("(b|batch)",       [this]() { batch       = true; }),
         option("(d|debug)",       [this]() { debug       = true; }),
         option("(i|interactive)", [this]() { interactive = true; }),
         option("(t|trace)",       [this]() { trace       = true; }),
