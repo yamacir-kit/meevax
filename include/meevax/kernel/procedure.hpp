@@ -40,6 +40,20 @@ inline namespace kernel
       , call { std::forward<decltype(f)>(f) }
     {}
 
+    template <typename F, std::enable_if_t<
+                            std::is_same_v<std::invoke_result_t<F, let const&>, bool>,
+                            std::nullptr_t
+                          > = nullptr>
+    explicit procedure(std::string const& name, F&& f)
+      : name { name }
+      , call {
+          [f](auto&&... xs)
+          {
+            return f(std::forward<decltype(xs)>(xs)...) ? t : meevax::f;
+          }
+        }
+    {}
+
     explicit procedure(std::string const&, std::string const&);
 
     static auto dlopen(std::string const&) -> void *;
