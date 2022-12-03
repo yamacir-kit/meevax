@@ -55,8 +55,7 @@ auto main(int const argc, char const* const* const argv) -> int
     {
       try
       {
-        write(standard_output, u8"\u03bb> ");
-        print(main.evaluate(main.read()));
+        std::cout << u8"\u03bb> " << main.evaluate(main.read()) << std::endl;
       }
       catch (error const& error)
       {

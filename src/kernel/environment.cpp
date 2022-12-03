@@ -213,8 +213,8 @@ inline namespace kernel
 
   auto operator >>(std::istream & is, environment & datum) -> std::istream &
   {
-    print("environment::operator >>(std::istream &, environment &)");
-    print("read new expression => ", datum.read(is));
+    std::cout << "environment::operator >>(std::istream &, environment &)" << std::endl;
+    std::cout << "read new expression => " << datum.read(is) << std::endl;
 
     return is;
   }

@@ -44,12 +44,6 @@ inline namespace kernel
   {
     return write(x.as<std::ostream>(), std::forward<decltype(xs)>(xs)...);
   }
-
-  template <typename... Ts>
-  auto print(Ts&&... xs) -> decltype(auto)
-  {
-    return write(standard_output, std::forward<decltype(xs)>(xs)..., '\n');
-  }
 } // namespace kernel
 } // namespace meevax
 
