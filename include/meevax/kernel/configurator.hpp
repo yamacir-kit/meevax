@@ -39,7 +39,6 @@ inline namespace kernel
 
   public:
     static inline auto interactive = true;
-    static inline auto trace       = false;
 
     static auto display_help() -> void
     {
@@ -94,8 +93,15 @@ inline namespace kernel
 
       std::vector<option> options
       {
-        option("(i|interactive)", [this]() { interactive = true; }),
-        option("(t|trace)",       [this]() { trace       = true; }),
+        option("(i|interactive)", [this]()
+        {
+          interactive = true;
+        }),
+
+        option("(t|trace)", [this]()
+        {
+          static_cast<Environment &>(*this).trace = true;
+        }),
 
         option("(e|evaluate)", [this](let const& xs)
         {

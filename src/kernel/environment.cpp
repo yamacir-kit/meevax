@@ -93,17 +93,6 @@ inline namespace kernel
     }
   }
 
-  auto environment::execute() -> object
-  {
-    return trace ? machine::execute<true>() : machine::execute();
-  }
-
-  auto environment::execute(object const& code) -> object
-  {
-    c = code;
-    return execute();
-  }
-
   auto environment::fork() const -> object
   {
     return make<environment>(*this);

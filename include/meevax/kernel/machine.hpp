@@ -42,7 +42,7 @@ inline namespace kernel
       return static_cast<Environment const&>(*this).fork(std::forward<decltype(xs)>(xs)...);
     }
 
-    using environment = Environment;
+    using environment = Environment; // hack
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -50,17 +50,17 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
-    std::array<let, 3> a;                                                     /*
-
+    /*
        Auxiliary register.
 
        a[0] is used for current-dynamic-extents.
        a[1] is used for current-dynamic-bindings.
        a[2] is used for current-exception-handler.
-       a[3] is currently unused.                                              */
+       a[3] is currently unused.
+    */
+    std::array<let, 3> a;
 
-    let static inline raise = unit;                                           /*
-
+    /*
        raise is a one-argument procedure for propagating C++ exceptions thrown
        in the Meevax kernel to the exception handler of the language running on
        the Meevax kernel.
@@ -71,7 +71,9 @@ inline namespace kernel
 
        Although raise can be set to any one-argument procedure by procedure
        `kernel-exception-handler-set!`, it is basically assumed to be set to
-       R7RS Scheme's standard procedure `raise`.                              */
+       R7RS Scheme's standard procedure `raise`.
+    */
+    let static inline raise = unit;
 
     struct transformer
     {
@@ -733,6 +735,19 @@ inline namespace kernel
     catch (error const& error)
     {
       return reraise(make(error));
+    }
+
+    bool trace = false;
+
+    inline auto execute() -> decltype(auto)
+    {
+      return trace ? machine::execute<true>() : machine::execute<false>();
+    }
+
+    inline auto execute(object const& code) -> decltype(auto)
+    {
+      c = code;
+      return execute();
     }
 
     static auto identify(object const& variable, object const& scope) -> object

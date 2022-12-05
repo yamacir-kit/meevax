@@ -36,8 +36,6 @@ inline namespace kernel
     using pair::pair;
 
   public:
-    using configurator::trace;
-
     using reader::read;
 
     using machine::quote;
@@ -73,9 +71,6 @@ inline namespace kernel
     }
 
     auto evaluate(object const&) -> object;
-
-    auto execute()              -> object;
-    auto execute(object const&) -> object;
 
     auto fork()              const -> object;
     auto fork(object const&) const -> object;
