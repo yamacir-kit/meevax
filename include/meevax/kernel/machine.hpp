@@ -88,18 +88,6 @@ inline namespace kernel
         assert(expression.is<closure>());
       }
 
-      auto apply(object const& f, object const& xs)
-      {
-        Environment expander;
-
-        expander.s = list(f, xs);
-        expander.e = unit;
-        expander.c = list(make(mnemonic::call), make(mnemonic::stop));
-        expander.d = unit;
-
-        return expander.run();
-      }
-
       auto expand(object const& form, object const& use_env) /* ----------------
       *
       *  Scheme programs can define and use new derived expression types,
@@ -131,7 +119,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        return apply(expression, list(form, use_env, mac_env));
+        return Environment().apply(expression, form, use_env, mac_env);
       }
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
@@ -714,8 +702,8 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         return [this]()
         {
-          assert(cdr(s).template is<null>());
-          assert(cdr(c).template is<null>());
+          assert(not cdr(s));
+          assert(not cdr(c));
 
           let const x = car(s);
 
@@ -739,12 +727,26 @@ inline namespace kernel
 
     inline auto run() -> object
     {
+      assert(c);
+
       return trace ? run_<true>() : run_<false>();
     }
 
-    inline auto execute(object const& instructions) -> decltype(auto)
+    inline auto execute(object const& instructions) -> object
     {
+      assert(not s);
+
       c = instructions;
+
+      return run();
+    }
+
+    template <typename... Ts>
+    inline auto apply(object const& f, Ts&&... xs) -> object
+    {
+      s = list(f, list(std::forward<decltype(xs)>(xs)...));
+      c = list(make(mnemonic::call), make(mnemonic::stop));
+
       return run();
     }
 
@@ -791,10 +793,7 @@ inline namespace kernel
       }
       else
       {
-        s = list(raise, list(x));
-        c = list(make(mnemonic::tail_call), make(mnemonic::stop));
-
-        return run();
+        return apply(raise, x);
       }
     }
 
