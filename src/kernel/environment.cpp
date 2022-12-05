@@ -65,9 +65,7 @@ inline namespace kernel
                  std::exchange(c, unit), d);
       }
 
-      c = optimize(compile(context(), *this, expression, scope()));
-
-      let const result = execute();
+      let const result = execute(optimize(compile(context(), *this, expression, scope())));
 
       if (d)
       {

@@ -97,7 +97,7 @@ inline namespace kernel
         expander.c = list(make(mnemonic::call), make(mnemonic::stop));
         expander.d = unit;
 
-        return expander.execute();
+        return expander.run();
       }
 
       auto expand(object const& form, object const& use_env) /* ----------------
@@ -345,8 +345,8 @@ inline namespace kernel
       }
     }
 
-    template <auto trace = false>
-    inline auto execute() -> object try
+    template <auto trace>
+    inline auto run_() -> object try
     {
     decode:
       if constexpr (trace)
@@ -508,9 +508,7 @@ inline namespace kernel
           {
             let & binding = keyword_.as<keyword>().load();
 
-            c = binding;
-
-            binding = make<transformer>(execute(), syntactic_environment);
+            binding = make<transformer>(execute(binding), syntactic_environment);
           }
 
           c = c_;
@@ -739,15 +737,15 @@ inline namespace kernel
 
     bool trace = false;
 
-    inline auto execute() -> decltype(auto)
+    inline auto run() -> decltype(auto)
     {
-      return trace ? machine::execute<true>() : machine::execute<false>();
+      return trace ? run_<true>() : run_<false>();
     }
 
-    inline auto execute(object const& code) -> decltype(auto)
+    inline auto execute(object const& instructions) -> decltype(auto)
     {
-      c = code;
-      return execute();
+      c = instructions;
+      return run();
     }
 
     static auto identify(object const& variable, object const& scope) -> object
@@ -796,7 +794,7 @@ inline namespace kernel
         s = list(raise, list(x));
         c = list(make(mnemonic::tail_call), make(mnemonic::stop));
 
-        return execute();
+        return run();
       }
     }
 
