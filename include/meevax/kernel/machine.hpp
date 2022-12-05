@@ -737,7 +737,7 @@ inline namespace kernel
 
     bool trace = false;
 
-    inline auto run() -> decltype(auto)
+    inline auto run() -> object
     {
       return trace ? run_<true>() : run_<false>();
     }
