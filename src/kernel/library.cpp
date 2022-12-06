@@ -36,7 +36,7 @@ inline namespace kernel
         return car(xs).is<character>();
       });
 
-      library.define<procedure>("char-codepoint", [](let const& xs)
+      library.define<procedure>("digit-value", [](let const& xs)
       {
         if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
         {

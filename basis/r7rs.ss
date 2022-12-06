@@ -456,33 +456,17 @@
 
 (define-library (scheme cxr)
   (import (meevax pair))
-  (export caaar
-          caadr
-          cadar
-          caddr
-          cdaar
-          cdadr
-          cddar
-          cdddr
-          caaaar
-          caaadr
-          caadar
-          caaddr
-          cadaar
-          cadadr
-          caddar
-          cadddr
-          cdaaar
-          cdaadr
-          cdadar
-          cdaddr
-          cddaar
-          cddadr
-          cdddar
-          cddddr))
+  (export caaar caaaar cdaaar
+          caadr caaadr cdaadr
+          cadar caadar cdadar
+          caddr caaddr cdaddr
+          cdaar cadaar cddaar
+          cdadr cadadr cddadr
+          cddar caddar cdddar
+          cdddr cadddr cddddr))
 
 (define-library (scheme char)
-  (import (only (meevax character) char-codepoint)
+  (import (only (meevax character) digit-value)
           (only (scheme r5rs)
                 char-ci=?
                 char-ci<?
@@ -513,7 +497,7 @@
           char-whitespace?
           char-upper-case?
           char-lower-case?
-          (rename char-codepoint digit-value)
+          digit-value
           char-upcase
           char-downcase
           (rename char-downcase char-foldcase)
