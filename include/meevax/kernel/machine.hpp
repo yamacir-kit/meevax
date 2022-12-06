@@ -42,7 +42,7 @@ inline namespace kernel
       return static_cast<Environment const&>(*this).fork(std::forward<decltype(xs)>(xs)...);
     }
 
-    using environment = Environment;
+    using environment = Environment; // hack
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -50,17 +50,17 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
-    std::array<let, 3> a;                                                     /*
-
+    /*
        Auxiliary register.
 
        a[0] is used for current-dynamic-extents.
        a[1] is used for current-dynamic-bindings.
        a[2] is used for current-exception-handler.
-       a[3] is currently unused.                                              */
+       a[3] is currently unused.
+    */
+    std::array<let, 3> a;
 
-    let static inline raise = unit;                                           /*
-
+    /*
        raise is a one-argument procedure for propagating C++ exceptions thrown
        in the Meevax kernel to the exception handler of the language running on
        the Meevax kernel.
@@ -71,7 +71,9 @@ inline namespace kernel
 
        Although raise can be set to any one-argument procedure by procedure
        `kernel-exception-handler-set!`, it is basically assumed to be set to
-       R7RS Scheme's standard procedure `raise`.                              */
+       R7RS Scheme's standard procedure `raise`.
+    */
+    let static inline raise = unit;
 
     struct transformer
     {
@@ -84,18 +86,6 @@ inline namespace kernel
         , mac_env { mac_env }
       {
         assert(expression.is<closure>());
-      }
-
-      auto apply(object const& f, object const& xs)
-      {
-        Environment expander;
-
-        expander.s = list(f, xs);
-        expander.e = unit;
-        expander.c = list(make(mnemonic::call), make(mnemonic::stop));
-        expander.d = unit;
-
-        return expander.execute();
       }
 
       auto expand(object const& form, object const& use_env) /* ----------------
@@ -129,7 +119,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        return apply(expression, list(form, use_env, mac_env));
+        return Environment().apply(expression, form, use_env, mac_env);
       }
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
@@ -343,8 +333,8 @@ inline namespace kernel
       }
     }
 
-    template <auto trace = false>
-    inline auto execute() -> object try
+    template <auto trace>
+    inline auto run_() -> object try
     {
     decode:
       if constexpr (trace)
@@ -506,9 +496,7 @@ inline namespace kernel
           {
             let & binding = keyword_.as<keyword>().load();
 
-            c = binding;
-
-            binding = make<transformer>(execute(), syntactic_environment);
+            binding = make<transformer>(execute(binding), syntactic_environment);
           }
 
           c = c_;
@@ -714,8 +702,8 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         return [this]()
         {
-          assert(cdr(s).template is<null>());
-          assert(cdr(c).template is<null>());
+          assert(not cdr(s));
+          assert(not cdr(c));
 
           let const x = car(s);
 
@@ -733,6 +721,33 @@ inline namespace kernel
     catch (error const& error)
     {
       return reraise(make(error));
+    }
+
+    bool trace = false;
+
+    inline auto run() -> object
+    {
+      assert(c);
+
+      return trace ? run_<true>() : run_<false>();
+    }
+
+    inline auto execute(object const& instructions) -> object
+    {
+      assert(not s);
+
+      c = instructions;
+
+      return run();
+    }
+
+    template <typename... Ts>
+    inline auto apply(object const& f, Ts&&... xs) -> object
+    {
+      s = list(f, list(std::forward<decltype(xs)>(xs)...));
+      c = list(make(mnemonic::call), make(mnemonic::stop));
+
+      return run();
     }
 
     static auto identify(object const& variable, object const& scope) -> object
@@ -778,10 +793,7 @@ inline namespace kernel
       }
       else
       {
-        s = list(raise, list(x));
-        c = list(make(mnemonic::tail_call), make(mnemonic::stop));
-
-        return execute();
+        return apply(raise, x);
       }
     }
 

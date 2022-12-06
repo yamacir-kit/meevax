@@ -64,6 +64,8 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;
+
+  auto write_simple(std::ostream &, object const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

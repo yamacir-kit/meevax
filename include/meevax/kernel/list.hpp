@@ -36,7 +36,7 @@ inline namespace kernel
     }
     else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, object>)
     {
-      return x.template is<null>() ? unit : std::get<N>(*x);
+      return x.template is_also<pair>() ? std::get<N>(*x) : unit;
     }
     else
     {

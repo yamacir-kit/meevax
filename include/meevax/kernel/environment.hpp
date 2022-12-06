@@ -36,10 +36,9 @@ inline namespace kernel
     using pair::pair;
 
   public:
-    using configurator::debug;
-    using configurator::trace;
-
     using reader::read;
+
+    using machine::quote;
 
     environment(environment &&) = default;
 
@@ -73,9 +72,6 @@ inline namespace kernel
 
     auto evaluate(object const&) -> object;
 
-    auto execute()              -> object;
-    auto execute(object const&) -> object;
-
     auto fork()              const -> object;
     auto fork(object const&) const -> object;
 
@@ -92,10 +88,6 @@ inline namespace kernel
     auto identify(object const&, object const&)       -> object;
     auto identify(object const&)                      -> object;
   };
-
-  auto operator >>(std::istream &, environment &) -> std::istream &;
-
-  auto operator <<(std::ostream &, environment &) -> std::ostream &;
 
   auto operator <<(std::ostream &, environment const&) -> std::ostream &;
 

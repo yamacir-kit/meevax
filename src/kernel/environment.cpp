@@ -49,19 +49,31 @@ inline namespace kernel
     }
     else
     {
-      assert(s.is<null>());
-      assert(e.is<null>());
-      assert(c.is<null>());
-      assert(d.is<null>());
+      /*
+         In most cases, the s, e, c, and d registers are all null when evaluate
+         is called. However, if environment::evaluate of the same environment
+         is called during the execution of environment::evaluate, this is not
+         the case, so it is necessary to save the register. For example,
+         situations like evaluating
+           (eval <expression> (interaction-environment))
+         in the REPL.
+      */
+      if (s or e or c)
+      {
+        d = cons(std::exchange(s, unit),
+                 std::exchange(e, unit),
+                 std::exchange(c, unit), d);
+      }
 
-      c = optimize(compile(context(), *this, expression, scope()));
+      let const result = execute(optimize(compile(context(), *this, expression, scope())));
 
-      let const result = execute();
-
-      assert(s.is<null>());
-      assert(e.is<null>());
-      assert(c.is<null>());
-      assert(d.is<null>());
+      if (d)
+      {
+        s = d[0];
+        e = d[1];
+        c = d[2];
+        d = list_tail(d, 3);
+      }
 
       return result;
     }
@@ -77,17 +89,6 @@ inline namespace kernel
     {
       throw error(make<string>("uncaught exception"), x);
     }
-  }
-
-  auto environment::execute() -> object
-  {
-    return trace ? machine::execute<true>() : machine::execute();
-  }
-
-  auto environment::execute(object const& code) -> object
-  {
-    c = code;
-    return execute();
   }
 
   auto environment::fork() const -> object
@@ -195,19 +196,6 @@ inline namespace kernel
   auto environment::identify(object const& variable) -> object
   {
     return identify(variable, scope());
-  }
-
-  auto operator >>(std::istream & is, environment & datum) -> std::istream &
-  {
-    print("environment::operator >>(std::istream &, environment &)");
-    print("read new expression => ", datum.read(is));
-
-    return is;
-  }
-
-  auto operator <<(std::ostream & os, environment &) -> std::ostream &
-  {
-    return write(os, "environment::operator <<(std::ostream &, environment &)\n");
   }
 
   auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &
