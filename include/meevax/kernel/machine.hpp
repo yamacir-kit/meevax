@@ -336,7 +336,7 @@ inline namespace kernel
     template <auto trace>
     inline auto run_() -> object try
     {
-    decode:
+    fetch:
       if constexpr (trace)
       {
         std::cerr << faint("; s = ") << s << "\n"
@@ -383,7 +383,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(cadr(c).template as<identity>().load(e), s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::load_constant: /* -----------------------------------------
         *
@@ -392,7 +392,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(cadr(c), s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::load_closure: /* ------------------------------------------
         *
@@ -403,7 +403,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(make<closure>(cadr(c), e), s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::load_continuation: /* -------------------------------------
         *
@@ -414,7 +414,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(list(make<continuation>(s, e, cadr(c), d)), s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::load_auxiliary: /* ----------------------------------------
         *
@@ -423,7 +423,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(a[cadr(c).template as<exact_integer>()], s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::select: /* ------------------------------------------------
         *
@@ -444,7 +444,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         c = is_truthy(car(s)) ? cadr(c) : caddr(c);
         s = cdr(s);
-        goto decode;
+        goto fetch;
 
       case mnemonic::join: /* --------------------------------------------------
         *
@@ -454,7 +454,7 @@ inline namespace kernel
         assert(cdr(c).template is<null>());
         c = car(d);
         d = cdr(d);
-        goto decode;
+        goto fetch;
 
       case mnemonic::define: /* ------------------------------------------------
         *
@@ -465,7 +465,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         cadr(c).template as<absolute>().load() = car(s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::define_syntax: /* -----------------------------------------
         *
@@ -477,7 +477,7 @@ inline namespace kernel
         assert(car(s).template is<closure>());
         cadr(c).template as<absolute>().load() = make<transformer>(car(s), fork());
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::let_syntax: /* --------------------------------------------
         *
@@ -511,7 +511,7 @@ inline namespace kernel
                             cdr(current_scope),
                             cddr(c)).template as<pair>());
         }();
-        goto decode;
+        goto fetch;
 
       case mnemonic::letrec_syntax: /* -----------------------------------------
         *
@@ -544,7 +544,7 @@ inline namespace kernel
                             cddr(c)
                            ).template as<pair>());
         }();
-        goto decode;
+        goto fetch;
 
       case mnemonic::tail_call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
@@ -558,7 +558,7 @@ inline namespace kernel
           c =               callee.as<closure>().c();
           e = cons(cadr(s), callee.as<closure>().e());
           s = unit;
-          goto decode;
+          goto fetch;
         }
         [[fallthrough]]; // This is inefficient because the type check occurs twice, but currently the performance difference caused by this is too small.
 
@@ -575,7 +575,7 @@ inline namespace kernel
           c =               callee.as<closure>().c();
           e = cons(cadr(s), callee.as<closure>().e());
           s = unit;
-          goto decode;
+          goto fetch;
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
         *
@@ -587,7 +587,7 @@ inline namespace kernel
         {
           s = cons(callee.as<procedure>().call(cadr(s)), cddr(s));
           c = cdr(c);
-          goto decode;
+          goto fetch;
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
@@ -601,7 +601,7 @@ inline namespace kernel
           e =                callee.as<continuation>().e();
           c =                callee.as<continuation>().c();
           d =                callee.as<continuation>().d();
-          goto decode;
+          goto fetch;
         }
         else
         {
@@ -615,7 +615,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         e = cons(unit, e);
         c = cdr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::letrec: /* ------------------------------------------------
         *
@@ -629,7 +629,7 @@ inline namespace kernel
         c = caar(s);
         e = cdar(s);
         s = unit;
-        goto decode;
+        goto fetch;
 
       case mnemonic::return_: /* -----------------------------------------------
         *
@@ -640,7 +640,7 @@ inline namespace kernel
         e = cadr(d);
         c = caddr(d);
         d = cdddr(d);
-        goto decode;
+        goto fetch;
 
       case mnemonic::cons: /* --------------------------------------------------
         *
@@ -649,7 +649,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(cons(car(s), cadr(s)), cddr(s));
         c = cdr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::drop: /* --------------------------------------------------
         *
@@ -658,7 +658,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cdr(s);
         c = cdr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::store_absolute: /* ----------------------------------------
         *
@@ -683,7 +683,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         cadr(c).template as<identity>().load(e) = car(s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::store_auxiliary: /* ---------------------------------------
         *
@@ -692,7 +692,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         a[cadr(c).template as<exact_integer>()] = car(s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       default: // ERROR
       case mnemonic::stop: /* --------------------------------------------------
