@@ -806,7 +806,6 @@ inline namespace kernel
       d = unit;
     }
 
-  protected:
     static SYNTAX(set) /* ------------------------------------------------------
     *
     *  (set! <variable> <expression>)                                    syntax

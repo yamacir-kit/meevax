@@ -36,10 +36,6 @@ inline namespace kernel
     using pair::pair;
 
   public:
-    using reader::read;
-
-    using machine::quote;
-
     environment(environment &&) = default;
 
     environment(environment const&) = default;
