@@ -58,8 +58,8 @@ inline namespace kernel
     {
       library.define<procedure>("make-rectangular", [](let const& xs)
       {
-        assert(meevax::apply<is_real>(xs[0]));
-        assert(meevax::apply<is_real>(xs[1]));
+        assert(apply_arithmetic<is_real>(xs[0]));
+        assert(apply_arithmetic<is_real>(xs[1]));
 
         return make<complex>(xs[0], xs[1]);
       });
@@ -245,7 +245,7 @@ inline namespace kernel
       {
         try
         {
-          return meevax::apply<is_finite>(car(xs));
+          return apply_arithmetic<is_finite>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -257,7 +257,7 @@ inline namespace kernel
       {
         try
         {
-          return meevax::apply<is_infinite>(car(xs));
+          return apply_arithmetic<is_infinite>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -269,7 +269,7 @@ inline namespace kernel
       {
         try
         {
-          return meevax::apply<is_nan>(car(xs));
+          return apply_arithmetic<is_nan>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -279,79 +279,79 @@ inline namespace kernel
 
       library.define<procedure>("exp", [](let const& xs)
       {
-        return meevax::apply<exp>(car(xs));
+        return apply_arithmetic<exp>(car(xs));
       });
 
       library.define<procedure>("sqrt", [](let const& xs)
       {
-        return meevax::apply<sqrt>(car(xs));
+        return apply_arithmetic<sqrt>(car(xs));
       });
 
       library.define<procedure>("log", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? meevax::apply<log>(car(xs)) / meevax::apply<log>(cadr(xs))
-                                  : meevax::apply<log>(car(xs));
+        return cdr(xs).is<pair>() ? apply_arithmetic<log>(car(xs)) / apply_arithmetic<log>(cadr(xs))
+                                  : apply_arithmetic<log>(car(xs));
       });
 
       library.define<procedure>("sin", [](let const& xs)
       {
-        return meevax::apply<sin>(car(xs));
+        return apply_arithmetic<sin>(car(xs));
       });
 
       library.define<procedure>("cos", [](let const& xs)
       {
-        return meevax::apply<cos>(car(xs));
+        return apply_arithmetic<cos>(car(xs));
       });
 
       library.define<procedure>("tan", [](let const& xs)
       {
-        return meevax::apply<tan>(car(xs));
+        return apply_arithmetic<tan>(car(xs));
       });
 
       library.define<procedure>("asin", [](let const& xs)
       {
-        return meevax::apply<asin>(car(xs));
+        return apply_arithmetic<asin>(car(xs));
       });
 
       library.define<procedure>("acos", [](let const& xs)
       {
-        return meevax::apply<acos>(car(xs));
+        return apply_arithmetic<acos>(car(xs));
       });
 
       library.define<procedure>("atan", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? meevax::apply<atan2>(car(xs), cadr(xs))
-                                  : meevax::apply<atan>(car(xs));
+        return cdr(xs).is<pair>() ? apply_arithmetic<atan2>(car(xs), cadr(xs))
+                                  : apply_arithmetic<atan>(car(xs));
       });
 
       library.define<procedure>("sinh", [](let const& xs)
       {
-        return meevax::apply<sinh>(car(xs));
+        return apply_arithmetic<sinh>(car(xs));
       });
 
       library.define<procedure>("cosh", [](let const& xs)
       {
-        return meevax::apply<cosh>(car(xs));
+        return apply_arithmetic<cosh>(car(xs));
       });
 
       library.define<procedure>("tanh", [](let const& xs)
       {
-        return meevax::apply<tanh>(car(xs));
+        return apply_arithmetic<tanh>(car(xs));
       });
 
       library.define<procedure>("asinh", [](let const& xs)
       {
-        return meevax::apply<asinh>(car(xs));
+        return apply_arithmetic<asinh>(car(xs));
       });
 
       library.define<procedure>("acosh", [](let const& xs)
       {
-        return meevax::apply<acosh>(car(xs));
+        return apply_arithmetic<acosh>(car(xs));
       });
 
       library.define<procedure>("atanh", [](let const& xs)
       {
-        return meevax::apply<atanh>(car(xs));
+        return apply_arithmetic<atanh>(car(xs));
       });
     });
 
@@ -446,7 +446,7 @@ inline namespace kernel
       {
         try
         {
-          return meevax::apply<is_complex>(car(xs));
+          return apply_arithmetic<is_complex>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -458,7 +458,7 @@ inline namespace kernel
       {
         try
         {
-          return meevax::apply<is_complex>(car(xs));
+          return apply_arithmetic<is_complex>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -470,7 +470,7 @@ inline namespace kernel
       {
         try
         {
-          return meevax::apply<is_real>(car(xs));
+          return apply_arithmetic<is_real>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -482,7 +482,7 @@ inline namespace kernel
       {
         try
         {
-          return meevax::apply<is_rational>(car(xs));
+          return apply_arithmetic<is_rational>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -494,7 +494,7 @@ inline namespace kernel
       {
         try
         {
-          return meevax::apply<is_integer>(car(xs));
+          return apply_arithmetic<is_integer>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -533,7 +533,7 @@ inline namespace kernel
         return std::adjacent_find(                                             \
                  std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
                  {                                                             \
-                   return not meevax::apply<COMPARE>(a, b).as<bool>();         \
+                   return not apply_arithmetic<COMPARE>(a, b).as<bool>();      \
                  }) == std::end(xs);                                           \
       })
 
@@ -583,37 +583,37 @@ inline namespace kernel
 
       library.define<procedure>("floor", [](let const& xs)
       {
-        return meevax::apply<floor>(car(xs));
+        return apply_arithmetic<floor>(car(xs));
       });
 
       library.define<procedure>("ceiling", [](let const& xs)
       {
-        return meevax::apply<ceil>(car(xs));
+        return apply_arithmetic<ceil>(car(xs));
       });
 
       library.define<procedure>("truncate", [](let const& xs)
       {
-        return meevax::apply<trunc>(car(xs));
+        return apply_arithmetic<trunc>(car(xs));
       });
 
       library.define<procedure>("round", [](let const& xs)
       {
-        return meevax::apply<round>(car(xs));
+        return apply_arithmetic<round>(car(xs));
       });
 
       library.define<procedure>("exact", [](let const& xs)
       {
-        return meevax::apply<exact>(car(xs));
+        return apply_arithmetic<exact>(car(xs));
       });
 
       library.define<procedure>("inexact", [](let const& xs)
       {
-        return meevax::apply<inexact>(car(xs));
+        return apply_arithmetic<inexact>(car(xs));
       });
 
       library.define<procedure>("expt", [](let const& xs)
       {
-        return meevax::apply<expt>(car(xs), cadr(xs));
+        return apply_arithmetic<expt>(car(xs), cadr(xs));
       });
 
       library.define<procedure>("char->integer", [](let const& xs)
@@ -1005,16 +1005,16 @@ inline namespace kernel
         switch (cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10)
         {
         case 2:
-          return meevax::apply<number_to_string<2>>(car(xs));
+          return apply_arithmetic<number_to_string<2>>(car(xs));
 
         case 8:
-          return meevax::apply<number_to_string<8>>(car(xs));
+          return apply_arithmetic<number_to_string<8>>(car(xs));
 
         case 10: default:
-          return meevax::apply<number_to_string<10>>(car(xs));
+          return apply_arithmetic<number_to_string<10>>(car(xs));
 
         case 16:
-          return meevax::apply<number_to_string<16>>(car(xs));
+          return apply_arithmetic<number_to_string<16>>(car(xs));
         }
       });
 

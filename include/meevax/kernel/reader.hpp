@@ -179,14 +179,14 @@ inline namespace kernel
             return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 10);
 
           case 'e':
-            return apply<exact>(read(is)); // NOTE: Same as #,(exact (read))
+            return apply_arithmetic<exact>(read(is)); // NOTE: Same as #,(exact (read))
 
           case 'f':
             get_token(is);
             return f;
 
           case 'i':
-            return apply<inexact>(read(is)); // NOTE: Same as #,(inexact (read))
+            return apply_arithmetic<inexact>(read(is)); // NOTE: Same as #,(inexact (read))
 
           case 'o':
             return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 8);
