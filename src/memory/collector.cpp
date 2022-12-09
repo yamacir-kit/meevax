@@ -134,8 +134,8 @@ inline namespace memory
     {
       tracer->mark();
 
-      const auto lower = registry.lower_bound(reinterpret_cast<registration *>(tracer->begin()));
-      const auto upper = registry.lower_bound(reinterpret_cast<registration *>(tracer->end()));
+      const auto lower = registry.lower_bound(tracer->lower_address<registration *>());
+      const auto upper = registry.lower_bound(tracer->upper_address<registration *>());
 
       for (auto iter = lower; iter != upper; ++iter)
       {

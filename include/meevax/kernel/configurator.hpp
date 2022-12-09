@@ -93,7 +93,7 @@ inline namespace kernel
 
       std::vector<option> options
       {
-        option("(i|interactive)", [this]()
+        option("(i|interactive)", []()
         {
           interactive = true;
         }),

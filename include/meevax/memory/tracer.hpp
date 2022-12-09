@@ -30,7 +30,7 @@ inline namespace memory
 {
   class tracer : public marker
   {
-    void * base;
+    void * const base;
 
     std::size_t const size;
 
@@ -54,24 +54,26 @@ inline namespace memory
 
     ~tracer();
 
-    auto begin() const noexcept -> std::uintptr_t
-    {
-      return reinterpret_cast<std::uintptr_t>(base);
-    }
-
     auto contains(std::uintptr_t const) const noexcept -> bool;
 
     auto contains(void const* const) const noexcept -> bool;
 
-    auto end() const noexcept -> std::uintptr_t
+    template <typename T = std::uintptr_t>
+    auto lower_address() const noexcept
     {
-      return begin() + size;
+      return reinterpret_cast<T>(base);
+    }
+
+    template <typename T = std::uintptr_t>
+    auto upper_address() const noexcept
+    {
+      return reinterpret_cast<T>(lower_address() + size);
     }
   };
 
   inline auto operator <(tracer const& x, tracer const& y)
   {
-    return x.end() <= y.begin();
+    return x.upper_address() < y.lower_address();
   }
 } // namespace memory
 } // namespace meevax

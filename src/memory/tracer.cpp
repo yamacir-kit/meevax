@@ -30,7 +30,7 @@ inline namespace memory
 
   auto tracer::contains(std::uintptr_t const k) const noexcept -> bool
   {
-    return begin() <= k and k < end();
+    return lower_address() <= k and k < upper_address();
   }
 
   auto tracer::contains(void const* const derived) const noexcept -> bool
