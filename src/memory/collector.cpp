@@ -93,7 +93,7 @@ inline namespace memory
   {
     assert(p);
 
-    auto dummy = tracer(p, 0);
+    auto dummy = tracer(p);
 
     if (auto iter = tracers.lower_bound(&dummy); iter != std::end(tracers) and (*iter)->contains(p))
     {

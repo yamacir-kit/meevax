@@ -77,7 +77,7 @@ inline namespace memory
         }
         else
         {
-          auto dummy = memory::tracer(data, 0);
+          auto dummy = memory::tracer(data);
           auto iter = tracers.lower_bound(&dummy);
           assert(iter != std::end(tracers));
           return *iter;
@@ -160,10 +160,7 @@ inline namespace memory
           collect();
         }
 
-        newest_tracer = tracer_source.new_(data, sizeof(T), [](auto * data)
-        {
-          delete static_cast<T *>(data);
-        });
+        newest_tracer = tracer_source.new_(data);
 
         assert(tracers.find(newest_tracer) == std::end(tracers));
 

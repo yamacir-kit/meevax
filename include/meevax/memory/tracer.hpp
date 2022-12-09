@@ -39,7 +39,18 @@ inline namespace memory
     deallocator const deallocate;
 
   public:
-    explicit tracer(void * const, std::size_t const, deallocator const = nullptr);
+    explicit tracer(void * const base)
+      : base { base }
+      , size { 0 }
+      , deallocate { nullptr }
+    {}
+
+    template <typename T>
+    explicit tracer(T * const base)
+      : base { base }
+      , size { sizeof(T) }
+      , deallocate { [](void * base) { delete static_cast<T *>(base); } }
+    {}
 
     ~tracer();
 

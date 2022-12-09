@@ -20,12 +20,6 @@ namespace meevax
 {
 inline namespace memory
 {
-  tracer::tracer(void * const base, std::size_t const size, deallocator const deallocate)
-    : base { base }
-    , size { size }
-    , deallocate { deallocate }
-  {}
-
   tracer::~tracer()
   {
     if (size and deallocate)
