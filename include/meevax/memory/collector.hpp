@@ -184,8 +184,6 @@ inline namespace memory
 
     static auto tracer_of(void * const) -> decltype(tracers)::iterator;
 
-    static auto reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max()) -> void;
-
     static auto sweep() -> void;
 
     static auto trace(tracer * const) -> void;

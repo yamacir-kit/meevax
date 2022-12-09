@@ -105,11 +105,6 @@ inline namespace memory
     }
   }
 
-  auto collector::reset_threshold(std::size_t const size) -> void
-  {
-    threshold = size;
-  }
-
   auto collector::sweep() -> void
   {
     for (auto iter = std::begin(tracers); iter != std::end(tracers); )
