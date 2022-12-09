@@ -72,19 +72,19 @@ inline namespace memory
   {
     marker::toggle();
 
-    auto is_root = [](auto&& traceable)
+    auto is_root = [](auto&& registration)
     {
-      return tracer_of(traceable) == std::cend(tracers); // If there is no tracer for the traceable, it is a root object.
+      return tracer_of(registration) == std::cend(tracers); // If there is no tracer for the registration, it is a root object.
     };
 
-    for (auto&& traceable : traceables)
+    for (auto&& registration : traceables)
     {
-      assert(traceable);
-      assert(traceable->tracer);
+      assert(registration);
+      assert(registration->tracer);
 
-      if (not traceable->tracer->marked() and is_root(traceable))
+      if (not registration->tracer->marked() and is_root(registration))
       {
-        trace(traceable->tracer);
+        trace(registration->tracer);
       }
     }
   }
@@ -134,8 +134,8 @@ inline namespace memory
     {
       tracer->mark();
 
-      const auto lower = traceables.lower_bound(reinterpret_cast<traceable *>(tracer->begin()));
-      const auto upper = traceables.lower_bound(reinterpret_cast<traceable *>(tracer->end()));
+      const auto lower = traceables.lower_bound(reinterpret_cast<registration *>(tracer->begin()));
+      const auto upper = traceables.lower_bound(reinterpret_cast<registration *>(tracer->end()));
 
       for (auto iter = lower; iter != upper; ++iter)
       {

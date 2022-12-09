@@ -40,13 +40,13 @@ inline namespace memory
   * ------------------------------------------------------------------------- */
   {
   public:
-    class traceable
+    class registration
     {
       friend class collector;
 
       memory::tracer * tracer = nullptr;
 
-      explicit traceable(memory::tracer * tracer)
+      explicit registration(memory::tracer * tracer)
         : tracer { tracer }
       {
         if (tracer)
@@ -85,18 +85,18 @@ inline namespace memory
       }
 
     protected:
-      explicit constexpr traceable() = default;
+      explicit constexpr registration() = default;
 
-      explicit traceable(traceable const& other)
-        : traceable { other.tracer }
+      explicit registration(registration const& other)
+        : registration { other.tracer }
       {}
 
       template <typename Pointer>
-      explicit traceable(Pointer const p)
-        : traceable { p ? locate(p) : nullptr }
+      explicit registration(Pointer const p)
+        : registration { p ? locate(p) : nullptr }
       {}
 
-      ~traceable()
+      ~registration()
       {
         if (tracer)
         {
@@ -115,7 +115,7 @@ inline namespace memory
         reset(p != nullptr ? locate(p) : nullptr);
       }
 
-      auto reset(traceable const& other) -> void
+      auto reset(registration const& other) -> void
       {
         reset(other.tracer);
       }
@@ -131,7 +131,7 @@ inline namespace memory
 
     static inline set<tracer *> tracers {};
 
-    static inline set<traceable *> traceables {};
+    static inline set<registration *> traceables {};
 
     static inline std::size_t allocation = 0;
 
