@@ -51,7 +51,7 @@ inline namespace memory
       {
         if (tracer)
         {
-          traceables.insert(std::end(traceables), this);
+          registry.insert(std::end(registry), this);
         }
       }
 
@@ -59,11 +59,11 @@ inline namespace memory
       {
         if (auto before = std::exchange(tracer, after); not before and after)
         {
-          traceables.insert(this);
+          registry.insert(this);
         }
         else if (before and not after)
         {
-          traceables.erase(this);
+          registry.erase(this);
         }
       }
 
@@ -100,7 +100,7 @@ inline namespace memory
       {
         if (tracer)
         {
-          traceables.erase(this);
+          registry.erase(this);
         }
       }
 
@@ -131,7 +131,7 @@ inline namespace memory
 
     static inline set<tracer *> tracers {};
 
-    static inline set<registration *> traceables {};
+    static inline set<registration *> registry {};
 
     static inline std::size_t allocation = 0;
 

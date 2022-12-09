@@ -37,7 +37,7 @@ inline namespace memory
       clear();
 
       assert(std::size(tracers) == 0);
-      assert(std::size(traceables) == 0);
+      assert(std::size(registry) == 0);
     }
   }
 
@@ -77,7 +77,7 @@ inline namespace memory
       return tracer_of(registration) == std::cend(tracers); // If there is no tracer for the registration, it is a root object.
     };
 
-    for (auto&& registration : traceables)
+    for (auto&& registration : registry)
     {
       assert(registration);
       assert(registration->tracer);
@@ -134,8 +134,8 @@ inline namespace memory
     {
       tracer->mark();
 
-      const auto lower = traceables.lower_bound(reinterpret_cast<registration *>(tracer->begin()));
-      const auto upper = traceables.lower_bound(reinterpret_cast<registration *>(tracer->end()));
+      const auto lower = registry.lower_bound(reinterpret_cast<registration *>(tracer->begin()));
+      const auto upper = registry.lower_bound(reinterpret_cast<registration *>(tracer->end()));
 
       for (auto iter = lower; iter != upper; ++iter)
       {
