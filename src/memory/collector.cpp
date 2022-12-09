@@ -84,7 +84,25 @@ inline namespace memory
 
       if (not registration->tracer->marked() and is_root(registration))
       {
-        trace(registration->tracer);
+        mark(registration->tracer);
+      }
+    }
+  }
+
+  auto collector::mark(tracer * const tracer) -> void
+  {
+    assert(tracer);
+
+    if (not tracer->marked())
+    {
+      tracer->mark();
+
+      const auto lower = registry.lower_bound(tracer->lower_address<registration *>());
+      const auto upper = registry.lower_bound(tracer->upper_address<registration *>());
+
+      for (auto iter = lower; iter != upper; ++iter)
+      {
+        mark((*iter)->tracer);
       }
     }
   }
@@ -117,24 +135,6 @@ inline namespace memory
       else
       {
         ++iter;
-      }
-    }
-  }
-
-  auto collector::trace(tracer * const tracer) -> void
-  {
-    assert(tracer);
-
-    if (not tracer->marked())
-    {
-      tracer->mark();
-
-      const auto lower = registry.lower_bound(tracer->lower_address<registration *>());
-      const auto upper = registry.lower_bound(tracer->upper_address<registration *>());
-
-      for (auto iter = lower; iter != upper; ++iter)
-      {
-        trace((*iter)->tracer);
       }
     }
   }

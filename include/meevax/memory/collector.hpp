@@ -182,11 +182,11 @@ inline namespace memory
 
     static auto mark() -> void;
 
+    static auto mark(tracer * const) -> void;
+
     static auto tracer_of(void * const) -> decltype(tracers)::iterator;
 
     static auto sweep() -> void;
-
-    static auto trace(tracer * const) -> void;
   }
   static gc;
 } // namespace memory
