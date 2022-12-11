@@ -52,11 +52,7 @@ inline namespace memory
       {
         if (tracer)
         {
-          assert(not registry.contains(this));
-
           registry.insert(this);
-
-          assert(registry.contains(this));
         }
       }
 
@@ -169,7 +165,7 @@ inline namespace memory
 
         assert(tracers.find(newest_tracer) == std::end(tracers));
 
-        tracers.insert(std::end(tracers), newest_tracer);
+        tracers.insert(newest_tracer);
 
         return data;
       }

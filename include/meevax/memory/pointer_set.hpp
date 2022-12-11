@@ -211,7 +211,7 @@ inline namespace memory
     auto lower_bound_page_of(std::uint64_t value)
     {
       if (auto target_page_number = page_number_of(value);
-          not pages.empty() and pages.front().number < target_page_number)
+          0 < pages.size() and pages.front().number < target_page_number)
       {
         if (auto hint_index = target_page_number - pages.front().number;
             hint_index < pages.size())
@@ -237,19 +237,6 @@ inline namespace memory
       }
     }
 
-    auto page_of(std::uint64_t value) -> page &
-    {
-      if (auto iter = lower_bound_page_of(value); iter != std::end(pages) and iter->number == page_number_of(value))
-      {
-        return *iter;
-      }
-      else
-      {
-        assert(iter == std::end(pages) or page_number_of(value) < iter->number);
-        return *pages.insert(iter, page(page_number_of(value)));
-      }
-    }
-
     auto page_count() const
     {
       return pages.size();
@@ -264,12 +251,24 @@ inline namespace memory
     {
       assert(decompress(compress(value)) == value);
 
-      page_of(compress(value)).word_of(compress(value)) |= signature_of(compress(value));
+      auto compressed = compress(value);
+
+      if (auto iter = lower_bound_page_of(compressed);
+          iter != std::end(pages) and iter->number == page_number_of(compressed))
+      {
+        iter->word_of(compressed) |= signature_of(compressed);
+      }
+      else
+      {
+        assert(iter == std::end(pages) or page_number_of(compressed) < iter->number);
+        iter = pages.insert(iter, page(page_number_of(compressed)));
+        iter->word_of(compressed) |= signature_of(compressed);
+      }
     }
 
     auto erase(T value)
     {
-      page_of(compress(value)).word_of(compress(value)) &= ~signature_of(compress(value));
+      lower_bound_page_of(compress(value))->word_of(compress(value)) &= ~signature_of(compress(value));
     }
 
     auto erase(iterator iter)

@@ -97,10 +97,9 @@ inline namespace memory
     {
       tracer->mark();
 
-      const auto lower = registry.lower_bound(tracer->lower_address<registration *>());
-      const auto upper = registry.lower_bound(tracer->upper_address<registration *>());
-
-      for (auto iter = lower; iter != upper; ++iter)
+      for (auto iter = registry.lower_bound(tracer->lower_address<registration *>());
+           iter != std::end(registry) and *iter < tracer->upper_address<registration *>();
+           ++iter)
       {
         mark((*iter)->tracer);
       }
