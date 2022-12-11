@@ -22,8 +22,9 @@
 #include <map>
 #include <set>
 
-#include <meevax/memory/tracer.hpp>
+#include <meevax/memory/pointer_set.hpp>
 #include <meevax/memory/simple_allocator.hpp>
+#include <meevax/memory/tracer.hpp>
 
 namespace meevax
 {
@@ -51,7 +52,11 @@ inline namespace memory
       {
         if (tracer)
         {
-          registry.insert(std::end(registry), this);
+          assert(not registry.contains(this));
+
+          registry.insert(this);
+
+          assert(registry.contains(this));
         }
       }
 
@@ -131,7 +136,7 @@ inline namespace memory
 
     static inline set<tracer *> tracers {};
 
-    static inline set<registration *> registry {};
+    static inline pointer_set<registration *> registry {};
 
     static inline std::size_t allocation = 0;
 
