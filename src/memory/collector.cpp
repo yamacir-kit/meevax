@@ -74,7 +74,7 @@ inline namespace memory
 
     auto is_root = [](auto&& registration)
     {
-      return tracer_of(registration) == std::cend(tracers); // If there is no tracer for the registration, it is a root object.
+      return tracer_of(registration) == std::end(tracers); // If there is no tracer for the registration, it is a root object.
     };
 
     for (auto&& registration : registry)
@@ -106,7 +106,7 @@ inline namespace memory
     }
   }
 
-  auto collector::tracer_of(void * const p) -> decltype(collector::tracers)::iterator
+  auto collector::tracer_of(void * const p) -> decltype(tracers)::iterator
   {
     assert(p);
 
