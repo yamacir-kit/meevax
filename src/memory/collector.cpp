@@ -72,9 +72,14 @@ inline namespace memory
   {
     marker::toggle();
 
-    auto is_root = [](auto&& registration)
+    auto is_root_object = [](auto&& registration)
     {
-      return tracer_of(registration) == std::end(tracers); // If there is no tracer for the registration, it is a root object.
+      auto dummy = tracer(static_cast<void *>(registration));
+
+      auto iter = tracers.lower_bound(&dummy);
+
+      // If there is no tracer for the registration, it is a root object.
+      return iter == std::end(tracers) or not (*iter)->contains(registration);
     };
 
     for (auto&& registration : registry)
@@ -82,7 +87,7 @@ inline namespace memory
       assert(registration);
       assert(registration->tracer);
 
-      if (not registration->tracer->marked() and is_root(registration))
+      if (not registration->tracer->marked() and is_root_object(registration))
       {
         mark(registration->tracer);
       }
@@ -103,22 +108,6 @@ inline namespace memory
       {
         mark((*iter)->tracer);
       }
-    }
-  }
-
-  auto collector::tracer_of(void * const p) -> decltype(tracers)::iterator
-  {
-    assert(p);
-
-    auto dummy = tracer(p);
-
-    if (auto iter = tracers.lower_bound(&dummy); iter != std::end(tracers) and (*iter)->contains(p))
-    {
-      return iter;
-    }
-    else
-    {
-      return std::end(tracers);
     }
   }
 
