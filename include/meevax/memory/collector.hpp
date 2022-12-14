@@ -72,9 +72,9 @@ inline namespace memory
       {
         assert(data);
 
-        if (newest_tracer->contains(data)) // Heuristic-based optimization.
+        if (cache->contains(data)) // Heuristic-based optimization.
         {
-          return newest_tracer;
+          return cache;
         }
         else
         {
@@ -128,7 +128,7 @@ inline namespace memory
   protected:
     static inline simple_allocator<tracer> tracer_source {};
 
-    static inline tracer * newest_tracer = nullptr;
+    static inline tracer * cache = nullptr;
 
     static inline set<tracer *> tracers {};
 
@@ -161,11 +161,11 @@ inline namespace memory
           collect();
         }
 
-        newest_tracer = tracer_source.new_(data);
+        cache = tracer_source.new_(data);
 
-        assert(tracers.find(newest_tracer) == std::end(tracers));
+        assert(tracers.find(cache) == std::end(tracers));
 
-        tracers.insert(newest_tracer);
+        tracers.insert(cache);
 
         return data;
       }
