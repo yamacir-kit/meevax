@@ -18,13 +18,11 @@
 #define INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 
 #include <cstddef>
-#include <limits>
-#include <map>
 #include <set>
 
+#include <meevax/memory/header.hpp>
 #include <meevax/memory/pointer_set.hpp>
 #include <meevax/memory/simple_allocator.hpp>
-#include <meevax/memory/tracer.hpp>
 
 namespace meevax
 {
@@ -45,20 +43,20 @@ inline namespace memory
     {
       friend class collector;
 
-      memory::tracer * tracer = nullptr;
+      memory::header * header = nullptr;
 
-      explicit registration(memory::tracer * tracer)
-        : tracer { tracer }
+      explicit registration(memory::header * header)
+        : header { header }
       {
-        if (tracer)
+        if (header)
         {
           registry.insert(this);
         }
       }
 
-      auto reset(memory::tracer * after) -> void
+      auto reset(memory::header * after) -> void
       {
-        if (auto before = std::exchange(tracer, after); not before and after)
+        if (auto before = std::exchange(header, after); not before and after)
         {
           registry.insert(this);
         }
@@ -79,8 +77,8 @@ inline namespace memory
         else
         {
           auto dummy = body<void>(data);
-          auto iter = tracers.lower_bound(&dummy);
-          assert(iter != std::end(tracers));
+          auto iter = headers.lower_bound(&dummy);
+          assert(iter != std::end(headers));
           return *iter;
         }
       }
@@ -89,7 +87,7 @@ inline namespace memory
       explicit constexpr registration() = default;
 
       explicit registration(registration const& other)
-        : registration { other.tracer }
+        : registration { other.header }
       {}
 
       template <typename Pointer>
@@ -99,7 +97,7 @@ inline namespace memory
 
       ~registration()
       {
-        if (tracer)
+        if (header)
         {
           registry.erase(this);
         }
@@ -118,7 +116,7 @@ inline namespace memory
 
       auto reset(registration const& other) -> void
       {
-        reset(other.tracer);
+        reset(other.header);
       }
     };
 
@@ -126,9 +124,9 @@ inline namespace memory
     using set = std::set<T, std::less<T>, simple_allocator<T>>;
 
   protected:
-    static inline tracer * cache = nullptr;
+    static inline header * cache = nullptr;
 
-    static inline set<tracer *> tracers {};
+    static inline set<header *> headers {};
 
     static inline pointer_set<registration *> registry {};
 
@@ -161,9 +159,9 @@ inline namespace memory
       {
         cache = data;
 
-        assert(tracers.find(cache) == std::end(tracers));
+        assert(headers.find(cache) == std::end(headers));
 
-        tracers.insert(cache);
+        headers.insert(cache);
 
         return std::addressof(data->object);
       }
@@ -181,7 +179,7 @@ inline namespace memory
 
     static auto mark() -> void;
 
-    static auto mark(tracer * const) -> void;
+    static auto mark(header * const) -> void;
 
     static auto sweep() -> void;
   }

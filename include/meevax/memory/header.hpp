@@ -14,23 +14,22 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_TRACER_HPP
-#define INCLUDED_MEEVAX_MEMORY_TRACER_HPP
+#ifndef INCLUDED_MEEVAX_MEMORY_HEADER_HPP
+#define INCLUDED_MEEVAX_MEMORY_HEADER_HPP
 
 #include <cassert>
 #include <cstdint> // std::uintptr_t
 #include <functional> // std::less
 
 #include <meevax/memory/marker.hpp>
-#include <meevax/utility/debug.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  struct tracer : public marker
+  struct header : public marker
   {
-    virtual ~tracer() = default;
+    virtual ~header() = default;
 
     virtual auto lower_address() const noexcept -> std::uintptr_t = 0;
 
@@ -39,13 +38,13 @@ inline namespace memory
     virtual auto contains(void const* const data) const noexcept -> bool = 0;
   };
 
-  inline auto operator <(tracer const& x, tracer const& y)
+  inline auto operator <(header const& x, header const& y)
   {
     return x.upper_address() < y.lower_address();
   }
 
   template <typename T>
-  struct body : public tracer
+  struct body : public header
   {
     T object;
 
@@ -74,7 +73,7 @@ inline namespace memory
   };
 
   template <>
-  struct body<void> : public tracer
+  struct body<void> : public header
   {
     void * const base;
 
@@ -84,10 +83,9 @@ inline namespace memory
 
     ~body() override = default;
 
-    auto contains(void const* const data) const noexcept -> bool override
+    auto contains(void const* const) const noexcept -> bool override
     {
-      const auto address = reinterpret_cast<std::uintptr_t>(data);
-      return lower_address() <= address and address < upper_address();
+      return false;
     }
 
     auto lower_address() const noexcept -> std::uintptr_t override
@@ -106,11 +104,11 @@ inline namespace memory
 namespace std
 {
   template <>
-  struct less<meevax::tracer *>
+  struct less<meevax::header *>
   {
     using is_transparent = void;
 
-    auto operator ()(meevax::tracer * const x, meevax::tracer * const y) const
+    auto operator ()(meevax::header * const x, meevax::header * const y) const
     {
       assert(x);
       assert(y);
@@ -120,4 +118,4 @@ namespace std
   };
 } // namespace std
 
-#endif // INCLUDED_MEEVAX_MEMORY_TRACER_HPP
+#endif // INCLUDED_MEEVAX_MEMORY_HEADER_HPP

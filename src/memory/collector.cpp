@@ -36,19 +36,18 @@ inline namespace memory
     {
       clear();
 
-      assert(std::size(tracers) == 0);
+      assert(std::size(headers) == 0);
       assert(std::size(registry) == 0);
     }
   }
 
   auto collector::clear() -> void
   {
-    for (auto iter = std::begin(tracers); iter != std::end(tracers); )
+    for (auto iter = std::begin(headers); iter != std::end(headers); )
     {
       assert(*iter);
-
       delete *iter;
-      tracers.erase(iter++);
+      headers.erase(iter++);
     }
   }
 
@@ -65,7 +64,7 @@ inline namespace memory
 
   auto collector::count() noexcept -> std::size_t
   {
-    return std::size(tracers);
+    return std::size(headers);
   }
 
   auto collector::mark() -> void
@@ -76,50 +75,50 @@ inline namespace memory
     {
       auto dummy = body<void>(static_cast<void *>(registration));
 
-      auto iter = tracers.lower_bound(&dummy);
+      auto iter = headers.lower_bound(&dummy);
 
-      // If there is no tracer for the registration, it is a root object.
-      return iter == std::end(tracers) or not (*iter)->contains(registration);
+      // If there is no header for the registration, it is a root object.
+      return iter == std::end(headers) or not (*iter)->contains(registration);
     };
 
     for (auto&& registration : registry)
     {
       assert(registration);
-      assert(registration->tracer);
+      assert(registration->header);
 
-      if (not registration->tracer->marked() and is_root_object(registration))
+      if (not registration->header->marked() and is_root_object(registration))
       {
-        mark(registration->tracer);
+        mark(registration->header);
       }
     }
   }
 
-  auto collector::mark(tracer * const tracer) -> void
+  auto collector::mark(header * const header) -> void
   {
-    assert(tracer);
+    assert(header);
 
-    if (not tracer->marked())
+    if (not header->marked())
     {
-      tracer->mark();
+      header->mark();
 
-      const auto lower_address = reinterpret_cast<registration *>(tracer->lower_address());
-      const auto upper_address = reinterpret_cast<registration *>(tracer->upper_address());
+      const auto lower_address = reinterpret_cast<registration *>(header->lower_address());
+      const auto upper_address = reinterpret_cast<registration *>(header->upper_address());
 
       for (auto iter = registry.lower_bound(lower_address); iter != std::end(registry) and *iter < upper_address; ++iter)
       {
-        mark((*iter)->tracer);
+        mark((*iter)->header);
       }
     }
   }
 
   auto collector::sweep() -> void
   {
-    for (auto iter = std::begin(tracers); iter != std::end(tracers); )
+    for (auto iter = std::begin(headers); iter != std::end(headers); )
     {
       if (not (*iter)->marked())
       {
         delete *iter;
-        tracers.erase(iter++);
+        headers.erase(iter++);
       }
       else
       {
