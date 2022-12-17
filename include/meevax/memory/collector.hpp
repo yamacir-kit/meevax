@@ -173,7 +173,7 @@ inline namespace memory
 
     static auto clear() -> void;
 
-    static auto collect() -> std::size_t;
+    static auto collect() -> void;
 
     static auto count() noexcept -> std::size_t;
 

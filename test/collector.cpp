@@ -17,17 +17,17 @@ auto main() -> int
       let z = make<symbol>("z");
 
       assert(gc.count() == gc_count + 3);
-      assert(gc.collect() == 0);
+      gc.collect();
       assert(gc.count() == gc_count + 3);
     }
 
     assert(gc.count() == gc_count + 3);
-    assert(gc.collect() == 3);
+    gc.collect();
     assert(gc.count() == gc_count);
   }
 
   assert(gc.count() == gc_count);
-  assert(gc.collect() == 0);
+  gc.collect();
   assert(gc.count() == gc_count);
 
   // copy
@@ -43,7 +43,7 @@ auto main() -> int
   }
 
   assert(gc.count() == gc_count + 1);
-  assert(gc.collect() == 1);
+  gc.collect();
   assert(gc.count() == gc_count);
 
   // move
@@ -63,7 +63,8 @@ auto main() -> int
     assert(x.is<symbol>());
     assert(x.as<symbol>() == "x");
 
-    assert(gc.collect() == 0);
+    assert(gc.count() == gc_count + 1);
+    gc.collect();
     assert(gc.count() == gc_count + 1);
 
     assert(x.is<symbol>());
@@ -71,7 +72,7 @@ auto main() -> int
   }
 
   assert(gc.count() == gc_count + 1);
-  assert(gc.collect() == 1);
+  gc.collect();
   assert(gc.count() == gc_count);
 
   // proper list
@@ -91,7 +92,7 @@ auto main() -> int
       assert(z.as<symbol>() == "z");
 
       assert(gc.count() == gc_count + 3);
-      assert(gc.collect() == 0);
+      gc.collect();
       assert(gc.count() == gc_count + 3);
 
       return list(x, y, z);
@@ -106,7 +107,7 @@ auto main() -> int
     assert(a[2].is<symbol>());
 
     assert(gc.count() == gc_count + 6);
-    assert(gc.collect() == 0);
+    gc.collect();
     assert(gc.count() == gc_count + 6);
 
     assert(length(a) == 3);
@@ -117,7 +118,7 @@ auto main() -> int
   }
 
   assert(gc.count() == gc_count + 6);
-  assert(gc.collect() == 6);
+  gc.collect();
   assert(gc.count() == gc_count);
 
   // improper list
@@ -194,7 +195,7 @@ auto main() -> int
     }
 
     assert(gc.count() == gc_count);
-    assert(gc.collect() == 0);
+    gc.collect();
     assert(gc.count() == gc_count);
   }
 

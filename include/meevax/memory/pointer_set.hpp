@@ -29,7 +29,7 @@ namespace meevax
 {
 inline namespace memory
 {
-  template <typename T, auto N = 1023>
+  template <typename T, auto N = 1024 /* NOTE: This number has no technical basis and is probably not efficient */>
   class pointer_set
   {
     static_assert(std::is_pointer_v<T>);
@@ -108,9 +108,9 @@ inline namespace memory
 
       page const* pages;
 
-      std::size_t page_index_max,
-                  word_index_max = N,
-                  char_index_max = word_capacity;
+             const     std::size_t page_index_max;
+      static constexpr std::size_t word_index_max = N;
+      static constexpr std::size_t char_index_max = word_capacity;
 
       std::size_t page_index,
                   word_index,
@@ -290,7 +290,7 @@ inline namespace memory
       return iterator(pages);
     }
 
-    auto end() const
+    constexpr auto end()
     {
       return iterator();
     }

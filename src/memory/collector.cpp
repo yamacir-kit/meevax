@@ -51,15 +51,11 @@ inline namespace memory
     }
   }
 
-  auto collector::collect() -> std::size_t
+  auto collector::collect() -> void
   {
-    auto const before = count();
-
-    mark(), sweep();
-
     allocation = 0;
 
-    return before - count();
+    return mark(), sweep();
   }
 
   auto collector::count() noexcept -> std::size_t
