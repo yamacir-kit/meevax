@@ -106,7 +106,7 @@ inline namespace memory
 
       using difference_type = std::ptrdiff_t;
 
-      page const* pages;
+      page const* const pages;
 
              const     std::size_t page_index_max;
       static constexpr std::size_t word_index_max = N;
@@ -290,7 +290,7 @@ inline namespace memory
       return iterator(pages);
     }
 
-    constexpr auto end()
+    constexpr auto end() const noexcept
     {
       return iterator();
     }
