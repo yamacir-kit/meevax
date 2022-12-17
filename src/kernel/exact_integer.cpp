@@ -15,6 +15,7 @@
 */
 
 #include <cstring> // std::strlen
+#include <memory> // std::unique_ptr
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/exact_integer.hpp>
