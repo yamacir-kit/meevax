@@ -68,7 +68,7 @@ inline namespace memory
         }
       }
 
-      auto locate(void * const data)
+      static auto locate(void * const data)
       {
         assert(data);
 
@@ -78,7 +78,7 @@ inline namespace memory
         }
         else
         {
-          auto dummy = memory::tracer(data);
+          auto dummy = body<void>(data);
           auto iter = tracers.lower_bound(&dummy);
           assert(iter != std::end(tracers));
           return *iter;
@@ -126,8 +126,6 @@ inline namespace memory
     using set = std::set<T, std::less<T>, simple_allocator<T>>;
 
   protected:
-    static inline simple_allocator<tracer> tracer_source {};
-
     static inline tracer * cache = nullptr;
 
     static inline set<tracer *> tracers {};
@@ -154,20 +152,20 @@ inline namespace memory
     template <typename T, typename... Ts>
     static auto make(Ts&&... xs)
     {
-      if (auto data = new T(std::forward<decltype(xs)>(xs)...); data)
+      if (allocation += sizeof(T); threshold < allocation)
       {
-        if (allocation += sizeof(T); threshold < allocation)
-        {
-          collect();
-        }
+        collect();
+      }
 
-        cache = tracer_source.new_(data);
+      if (auto data = new body<T>(std::forward<decltype(xs)>(xs)...); data)
+      {
+        cache = data;
 
         assert(tracers.find(cache) == std::end(tracers));
 
         tracers.insert(cache);
 
-        return data;
+        return std::addressof(data->object);
       }
       else
       {

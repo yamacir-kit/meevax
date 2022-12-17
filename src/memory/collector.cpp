@@ -47,7 +47,7 @@ inline namespace memory
     {
       assert(*iter);
 
-      tracer_source.delete_(*iter);
+      delete *iter;
       tracers.erase(iter++);
     }
   }
@@ -74,7 +74,7 @@ inline namespace memory
 
     auto is_root_object = [](auto&& registration)
     {
-      auto dummy = tracer(static_cast<void *>(registration));
+      auto dummy = body<void>(static_cast<void *>(registration));
 
       auto iter = tracers.lower_bound(&dummy);
 
@@ -102,9 +102,10 @@ inline namespace memory
     {
       tracer->mark();
 
-      for (auto iter = registry.lower_bound(tracer->lower_address<registration *>());
-           iter != std::end(registry) and *iter < tracer->upper_address<registration *>();
-           ++iter)
+      const auto lower_address = reinterpret_cast<registration *>(tracer->lower_address());
+      const auto upper_address = reinterpret_cast<registration *>(tracer->upper_address());
+
+      for (auto iter = registry.lower_bound(lower_address); iter != std::end(registry) and *iter < upper_address; ++iter)
       {
         mark((*iter)->tracer);
       }
@@ -117,7 +118,7 @@ inline namespace memory
     {
       if (not (*iter)->marked())
       {
-        tracer_source.delete_(*iter);
+        delete *iter;
         tracers.erase(iter++);
       }
       else

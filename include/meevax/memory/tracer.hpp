@@ -28,53 +28,78 @@ namespace meevax
 {
 inline namespace memory
 {
-  class tracer : public marker
+  struct tracer : public marker
   {
-    void * const base;
+    virtual ~tracer() = default;
 
-    std::size_t const size;
+    virtual auto lower_address() const noexcept -> std::uintptr_t = 0;
 
-    using deallocator = void (*)(void *);
+    virtual auto upper_address() const noexcept -> std::uintptr_t = 0;
 
-    deallocator const deallocate;
-
-  public:
-    explicit tracer(void * const base)
-      : base { base }
-      , size { 0 }
-      , deallocate { nullptr }
-    {}
-
-    template <typename T>
-    explicit tracer(T * const base)
-      : base { base }
-      , size { sizeof(T) }
-      , deallocate { [](void * base) { delete static_cast<T *>(base); } }
-    {}
-
-    ~tracer();
-
-    auto contains(std::uintptr_t const) const noexcept -> bool;
-
-    auto contains(void const* const) const noexcept -> bool;
-
-    template <typename T = std::uintptr_t>
-    auto lower_address() const noexcept
-    {
-      return reinterpret_cast<T>(base);
-    }
-
-    template <typename T = std::uintptr_t>
-    auto upper_address() const noexcept
-    {
-      return reinterpret_cast<T>(lower_address() + size);
-    }
+    virtual auto contains(void const* const data) const noexcept -> bool = 0;
   };
 
   inline auto operator <(tracer const& x, tracer const& y)
   {
     return x.upper_address() < y.lower_address();
   }
+
+  template <typename T>
+  struct body : public tracer
+  {
+    T object;
+
+    template <typename... Ts>
+    explicit body(Ts&&... xs)
+      : object { std::forward<decltype(xs)>(xs)... }
+    {}
+
+    ~body() override = default;
+
+    auto contains(void const* const data) const noexcept -> bool override
+    {
+      const auto address = reinterpret_cast<std::uintptr_t>(data);
+      return lower_address() <= address and address < upper_address();
+    }
+
+    auto lower_address() const noexcept -> std::uintptr_t override
+    {
+      return reinterpret_cast<std::uintptr_t>(std::addressof(object));
+    }
+
+    auto upper_address() const noexcept -> std::uintptr_t override
+    {
+      return lower_address() + sizeof(T);
+    }
+  };
+
+  template <>
+  struct body<void> : public tracer
+  {
+    void * const base;
+
+    explicit body(void * const base)
+      : base { base }
+    {}
+
+    ~body() override = default;
+
+    auto contains(void const* const data) const noexcept -> bool override
+    {
+      const auto address = reinterpret_cast<std::uintptr_t>(data);
+      return lower_address() <= address and address < upper_address();
+    }
+
+    auto lower_address() const noexcept -> std::uintptr_t override
+    {
+      return reinterpret_cast<std::uintptr_t>(base);
+    }
+
+    auto upper_address() const noexcept -> std::uintptr_t override
+    {
+      return lower_address();
+    }
+  };
 } // namespace memory
 } // namespace meevax
 

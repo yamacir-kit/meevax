@@ -20,22 +20,5 @@ namespace meevax
 {
 inline namespace memory
 {
-  tracer::~tracer()
-  {
-    if (size and deallocate)
-    {
-      deallocate(base);
-    }
-  }
-
-  auto tracer::contains(std::uintptr_t const k) const noexcept -> bool
-  {
-    return lower_address() <= k and k < upper_address();
-  }
-
-  auto tracer::contains(void const* const derived) const noexcept -> bool
-  {
-    return contains(reinterpret_cast<std::uintptr_t>(derived));
-  }
 } // namespace memory
 } // namespace meevax
