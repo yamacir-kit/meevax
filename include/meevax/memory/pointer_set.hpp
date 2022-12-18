@@ -23,64 +23,68 @@
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <type_traits>
 #include <vector>
 
 namespace meevax
 {
 inline namespace memory
 {
-  template <typename T, auto N = 1024 /* NOTE: This number has no technical basis and is probably not efficient */>
+  template <typename T>
+  constexpr auto log2(T x) -> T
+  {
+    return (x < 2) ? 1 : log2(x / 2) + 1;
+  }
+
+  template <typename Pointer, auto N = 1024 /* NOTE: This number has no technical basis and is probably not efficient */>
   class pointer_set
   {
-    static_assert(std::is_pointer_v<T>);
+    static_assert(std::is_pointer_v<Pointer>);
 
-    static constexpr auto word_capacity = std::numeric_limits<std::uint64_t>::digits;
+    static_assert(sizeof(std::uintptr_t) <= sizeof(std::uintmax_t));
+
+    static constexpr auto word_capacity = std::numeric_limits<std::uintmax_t>::digits;
 
     static constexpr auto page_capacity = word_capacity * N;
 
-    static constexpr auto page_number_of(std::uint64_t value)
+    static constexpr auto page_number_of(std::uintmax_t value)
     {
       return value / page_capacity;
     }
 
-    static constexpr auto word_number_of(std::uint64_t value)
+    static constexpr auto word_number_of(std::uintmax_t value)
     {
       return (value - page_number_of(value) * page_capacity) / word_capacity;
     }
 
-    static constexpr auto char_number_of(std::uint64_t value)
+    static constexpr auto char_number_of(std::uintmax_t value)
     {
       return value - page_number_of(value) * page_capacity
                    - word_number_of(value) * word_capacity;
     }
 
-    static constexpr auto signature_of(std::uint64_t value)
+    static constexpr auto compress(Pointer p) -> std::uintmax_t
     {
-      return static_cast<std::uint64_t>(1) << char_number_of(value);
+      return reinterpret_cast<std::uintptr_t>(p) >> (log2(alignof(std::remove_pointer_t<Pointer>)) - 1);
     }
 
-    static constexpr auto compress(T value) -> std::uint64_t
+    static constexpr auto decompress(std::uintmax_t value)
     {
-      return reinterpret_cast<std::uintptr_t>(value) >> 3;
-    }
-
-    static constexpr auto decompress(std::uint64_t value)
-    {
-      return reinterpret_cast<T>(value << 3);
+      return reinterpret_cast<Pointer>(value << (log2(alignof(std::remove_pointer_t<Pointer>)) - 1));
     }
 
     struct page
     {
       std::size_t number;
 
-      std::array<std::uint64_t, N> words;
+      std::array<std::uintmax_t, N> words;
 
       explicit constexpr page(std::size_t number)
         : number { number }
         , words {}
       {}
 
-      constexpr auto word_of(std::uint64_t value) -> auto &
+      constexpr auto word_of(std::uintmax_t value) -> auto &
       {
         return words[word_number_of(value)];
       }
@@ -96,9 +100,9 @@ inline namespace memory
   public:
     struct iterator
     {
-      using iterator_category = std::forward_iterator_tag;
+      using iterator_category = std::bidirectional_iterator_tag;
 
-      using value_type = T;
+      using value_type = Pointer;
 
       using reference = std::add_lvalue_reference_t<value_type>;
 
@@ -126,7 +130,7 @@ inline namespace memory
         , word_index     { word_index }
         , char_index     { char_index }
       {
-        if (not pointing_to_an_inserted_element())
+        if (not operator bool())
         {
           operator ++();
         }
@@ -140,12 +144,12 @@ inline namespace memory
         , char_index     { char_index_max }
       {}
 
-      auto pointing_to_an_inserted_element() const -> bool
+      explicit operator bool() const
       {
         return page_index < page_index_max and
                word_index < word_index_max and
                char_index < char_index_max and
-               pages[page_index].words[word_index] & (std::uint64_t(1) << char_index);
+               pages[page_index].words[word_index] & (std::uintmax_t(1) << char_index);
       }
 
       auto operator *() const
@@ -153,7 +157,7 @@ inline namespace memory
         return decompress(pages[page_index].number * page_capacity + word_index * word_capacity + char_index);
       }
 
-      auto operator ++() -> iterator &
+      auto operator ++() -> auto &
       {
         ++char_index;
 
@@ -163,7 +167,7 @@ inline namespace memory
           {
             for (auto&& word = page.words[word_index]; word and char_index < char_index_max; ++char_index)
             {
-              if (word & (std::uint64_t(1) << char_index))
+              if (word & (std::uintmax_t(1) << char_index))
               {
                 return *this;
               }
@@ -180,6 +184,13 @@ inline namespace memory
         char_index = char_index_max;
 
         return *this; // end
+      }
+
+      auto operator ++(int)
+      {
+        auto copy = *this;
+        operator ++();
+        return copy;
       }
 
       auto operator --() -> auto &
@@ -201,7 +212,7 @@ inline namespace memory
           {
             for (auto&& word = page.words[word_index]; word and char_index < char_index_max; --char_index)
             {
-              if (word & (std::uint64_t(1) << char_index))
+              if (word & (std::uintmax_t(1) << char_index))
               {
                 return *this;
               }
@@ -216,10 +227,10 @@ inline namespace memory
         return *this;
       }
 
-      auto operator ++(int) -> auto
+      auto operator --(int)
       {
         auto copy = *this;
-        operator ++();
+        operator --();
         return copy;
       }
 
@@ -243,16 +254,13 @@ inline namespace memory
       assert(begin() == end());
     }
 
-    auto lower_bound_page_of(std::uint64_t value)
+    auto lower_bound_page_of(std::uintmax_t value)
     {
-      if (auto target_page_number = page_number_of(value);
-          0 < pages.size() and pages.front().number < target_page_number)
+      if (auto target_page_number = page_number_of(value); 0 < pages.size() and pages.front().number < target_page_number)
       {
-        if (auto hint_index = target_page_number - pages.front().number;
-            hint_index < pages.size())
+        if (auto hint_index = target_page_number - pages.front().number; hint_index < pages.size())
         {
-          if (auto iter = std::next(std::begin(pages), hint_index);
-              iter->number == target_page_number)
+          if (auto iter = std::next(std::begin(pages), hint_index); iter->number == target_page_number)
           {
             return iter;
           }
@@ -282,42 +290,33 @@ inline namespace memory
       return std::distance(begin(), end());
     }
 
-    auto insert(T value)
+    auto insert(Pointer p)
     {
-      assert(decompress(compress(value)) == value);
+      const auto id = compress(p);
 
-      auto compressed = compress(value);
-
-      if (auto iter = lower_bound_page_of(compressed);
-          iter != std::end(pages) and iter->number == page_number_of(compressed))
+      if (auto iter = lower_bound_page_of(id); iter != std::end(pages) and iter->number == page_number_of(id))
       {
-        iter->word_of(compressed) |= signature_of(compressed);
+        iter->word_of(id) |= (std::uintmax_t(1) << char_number_of(id));
       }
       else
       {
-        assert(iter == std::end(pages) or page_number_of(compressed) < iter->number);
-        iter = pages.emplace(iter, page_number_of(compressed));
-        iter->word_of(compressed) |= signature_of(compressed);
+        assert(iter == std::end(pages) or page_number_of(id) < iter->number);
+        iter = pages.emplace(iter, page_number_of(id));
+        iter->word_of(id) |= (std::uintmax_t(1) << char_number_of(id));
       }
     }
 
-    auto erase(T value)
+    auto erase(Pointer p)
     {
-      lower_bound_page_of(compress(value))->word_of(compress(value)) &= ~signature_of(compress(value));
+      const auto id = compress(p);
+
+      lower_bound_page_of(id)->word_of(id) &= ~(std::uintmax_t(1) << char_number_of(id));
     }
 
     auto erase(iterator iter)
     {
       erase(*iter);
       return ++iter;
-    }
-
-    auto density() const // for parameter tuning
-    {
-      double any_bit_count = pages.size() * page_capacity;
-      double one_bit_count = size();
-
-      return one_bit_count / any_bit_count;
     }
 
     auto begin() const
@@ -330,16 +329,16 @@ inline namespace memory
       return iterator(pages);
     }
 
-    auto lower_bound(T value)
+    auto lower_bound(Pointer p)
     {
-      auto compressed = compress(value);
+      auto id = compress(p);
 
-      if (auto iter = lower_bound_page_of(compressed); iter != std::end(pages))
+      if (auto iter = lower_bound_page_of(id); iter != std::end(pages))
       {
         return iterator(pages,
                         std::distance(std::begin(pages), iter),
-                        word_number_of(compressed),
-                        char_number_of(compressed));
+                        word_number_of(id),
+                        char_number_of(id));
       }
       else
       {
