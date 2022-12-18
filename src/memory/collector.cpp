@@ -67,14 +67,22 @@ inline namespace memory
   {
     marker::toggle();
 
-    auto is_root_object = [](auto&& registration)
+    auto is_root_object = [](registration * given)
     {
-      auto dummy = body<void>(static_cast<void *>(registration));
+      /*
+         If the given `registration` is a non-root object, then an object
+         containing this `registration` as a data member exists somewhere in
+         memory.
 
-      auto iter = headers.lower_bound(&dummy);
+         Containing the `registration` as a data member means that the address
+         of the `registration` is contained in the interval of the object's
+         base-address ~ base-address + object-size. The `header` is present to
+         keep track of the base address and object size of the object needed
+         here.
+      */
+      auto iter = headers.lower_bound(reinterpret_cast<header *>(given));
 
-      // If there is no header for the registration, it is a root object.
-      return iter == std::end(headers) or not (*iter)->contains(registration);
+      return iter == std::begin(headers) or not (*--iter)->contains(given);
     };
 
     for (auto&& registration : registry)

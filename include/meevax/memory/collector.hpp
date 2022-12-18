@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 
 #include <cstddef>
+#include <functional> // std::less
 #include <set>
 
 #include <meevax/memory/header.hpp>

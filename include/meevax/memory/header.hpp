@@ -19,7 +19,6 @@
 
 #include <cassert>
 #include <cstdint> // std::uintptr_t
-#include <functional> // std::less
 
 #include <meevax/memory/marker.hpp>
 
@@ -37,11 +36,6 @@ inline namespace memory
 
     virtual auto contains(void const* const data) const noexcept -> bool = 0;
   };
-
-  inline auto operator <(header const& x, header const& y)
-  {
-    return x.upper_address() < y.lower_address();
-  }
 
   template <typename T>
   struct body : public header
@@ -100,22 +94,5 @@ inline namespace memory
   };
 } // namespace memory
 } // namespace meevax
-
-namespace std
-{
-  template <>
-  struct less<meevax::header *>
-  {
-    using is_transparent = void;
-
-    auto operator ()(meevax::header * const x, meevax::header * const y) const
-    {
-      assert(x);
-      assert(y);
-
-      return *x < *y;
-    }
-  };
-} // namespace std
 
 #endif // INCLUDED_MEEVAX_MEMORY_HEADER_HPP
