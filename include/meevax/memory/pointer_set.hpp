@@ -106,9 +106,9 @@ inline namespace memory
 
       using difference_type = std::ptrdiff_t;
 
-      page const* const pages;
+      page const* pages;
 
-             const     std::size_t page_index_max;
+                       std::size_t page_index_max;
       static constexpr std::size_t word_index_max = N;
       static constexpr std::size_t char_index_max = word_capacity;
 
