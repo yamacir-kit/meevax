@@ -19,6 +19,7 @@
 
 #include <cassert>
 #include <cstdint> // std::uintptr_t
+#include <utility> // std::forward
 
 #include <meevax/memory/marker.hpp>
 
@@ -63,33 +64,6 @@ inline namespace memory
     auto upper_address() const noexcept -> std::uintptr_t override
     {
       return lower_address() + sizeof(T);
-    }
-  };
-
-  template <>
-  struct body<void> : public header
-  {
-    void * const base;
-
-    explicit body(void * const base)
-      : base { base }
-    {}
-
-    ~body() override = default;
-
-    auto contains(void const* const) const noexcept -> bool override
-    {
-      return false;
-    }
-
-    auto lower_address() const noexcept -> std::uintptr_t override
-    {
-      return reinterpret_cast<std::uintptr_t>(base);
-    }
-
-    auto upper_address() const noexcept -> std::uintptr_t override
-    {
-      return lower_address();
     }
   };
 } // namespace memory

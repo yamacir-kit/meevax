@@ -18,26 +18,23 @@
 #define INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 
 #include <cstddef>
-#include <functional> // std::less
-#include <set>
 
 #include <meevax/memory/header.hpp>
+#include <meevax/memory/literal.hpp>
 #include <meevax/memory/pointer_set.hpp>
-#include <meevax/memory/simple_allocator.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  class collector /* -----------------------------------------------------------
-  *
-  *  This mark-and-sweep garbage collector is based on the implementation of
-  *  gc_ptr written by William E. Kempf and posted to CodeProject.
-  *
-  *  - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
-  *  - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
-  *
-  * ------------------------------------------------------------------------- */
+  /*
+     This mark-and-sweep garbage collector is based on the implementation of
+     `gc_ptr` written by William E. Kempf and posted to CodeProject.
+
+     - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
+     - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
+  */
+  class collector
   {
   public:
     class registration
@@ -121,9 +118,6 @@ inline namespace memory
         reset(other.header);
       }
     };
-
-    template <typename T>
-    using set = std::set<T, std::less<T>, simple_allocator<T>>;
 
   protected:
     static inline header * cache = nullptr;

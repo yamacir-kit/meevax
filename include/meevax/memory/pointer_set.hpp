@@ -122,9 +122,9 @@ inline namespace memory
                         std::size_t char_index)
         : pages          { pages.data() }
         , page_index_max { pages.size() }
-        , page_index { page_index }
-        , word_index { word_index }
-        , char_index { char_index }
+        , page_index     { page_index }
+        , word_index     { word_index }
+        , char_index     { char_index }
       {
         if (not pointing_to_an_inserted_element())
         {
@@ -135,9 +135,9 @@ inline namespace memory
       explicit iterator(std::vector<page> const& pages)
         : pages          { pages.data() }
         , page_index_max { pages.size() }
-        , page_index { std::numeric_limits<std::size_t>::max() }
-        , word_index { std::numeric_limits<std::size_t>::max() }
-        , char_index { std::numeric_limits<std::size_t>::max() }
+        , page_index     { page_index_max }
+        , word_index     { word_index_max }
+        , char_index     { char_index_max }
       {}
 
       auto pointing_to_an_inserted_element() const -> bool
@@ -157,26 +157,27 @@ inline namespace memory
       {
         ++char_index;
 
-        for (; page_index < page_index_max; ++page_index, word_index = 0)
+        for (; page_index < page_index_max; ++page_index)
         {
-          for (auto&& page = pages[page_index]; word_index < word_index_max; ++word_index, char_index = 0)
+          for (auto&& page = pages[page_index]; word_index < word_index_max; ++word_index)
           {
-            if (auto&& word = page.words[word_index]; word)
+            for (auto&& word = page.words[word_index]; word and char_index < char_index_max; ++char_index)
             {
-              for (; char_index < char_index_max; ++char_index)
+              if (word & (std::uint64_t(1) << char_index))
               {
-                if (word & (std::uint64_t(1) << char_index))
-                {
-                  return *this;
-                }
+                return *this;
               }
             }
+
+            char_index = 0;
           }
+
+          word_index = 0;
         }
 
-        page_index = std::numeric_limits<std::size_t>::max();
-        word_index = std::numeric_limits<std::size_t>::max();
-        char_index = std::numeric_limits<std::size_t>::max();
+        page_index = page_index_max;
+        word_index = word_index_max;
+        char_index = char_index_max;
 
         return *this; // end
       }
@@ -194,16 +195,11 @@ inline namespace memory
            n is the number of bits in the value representation of that
            particular size of integer.
         */
-
         for (; page_index < page_index_max; --page_index)
         {
-          auto&& page = pages[page_index];
-
-          for (; word_index < word_index_max; --word_index)
+          for (auto&& page = pages[page_index]; word_index < word_index_max; --word_index)
           {
-            auto&& word = page.words[word_index];
-
-            for (; char_index < char_index_max; --char_index)
+            for (auto&& word = page.words[word_index]; word and char_index < char_index_max; --char_index)
             {
               if (word & (std::uint64_t(1) << char_index))
               {
@@ -300,7 +296,7 @@ inline namespace memory
       else
       {
         assert(iter == std::end(pages) or page_number_of(compressed) < iter->number);
-        iter = pages.insert(iter, page(page_number_of(compressed)));
+        iter = pages.emplace(iter, page_number_of(compressed));
         iter->word_of(compressed) |= signature_of(compressed);
       }
     }

@@ -43,11 +43,10 @@ inline namespace memory
 
   auto collector::clear() -> void
   {
-    for (auto iter = std::begin(headers); iter != std::end(headers); )
+    for (auto&& header : headers)
     {
-      assert(*iter);
-      delete *iter;
-      headers.erase(iter++);
+      delete header;
+      headers.erase(header);
     }
   }
 
@@ -116,16 +115,12 @@ inline namespace memory
 
   auto collector::sweep() -> void
   {
-    for (auto iter = std::begin(headers); iter != std::end(headers); )
+    for (auto&& header : headers)
     {
-      if (not (*iter)->marked())
+      if (not header->marked())
       {
-        delete *iter;
-        headers.erase(iter++);
-      }
-      else
-      {
-        ++iter;
+        delete header;
+        headers.erase(header);
       }
     }
   }
