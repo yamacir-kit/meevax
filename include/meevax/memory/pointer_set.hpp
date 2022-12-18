@@ -117,10 +117,10 @@ inline namespace memory
                   char_index;
 
       explicit iterator(std::vector<page> const& pages,
-                        std::size_t page_index = 0,
-                        std::size_t word_index = 0,
-                        std::size_t char_index = 0)
-        : pages { pages.data() }
+                        std::size_t page_index,
+                        std::size_t word_index,
+                        std::size_t char_index)
+        : pages          { pages.data() }
         , page_index_max { pages.size() }
         , page_index { page_index }
         , word_index { word_index }
@@ -132,9 +132,9 @@ inline namespace memory
         }
       }
 
-      explicit iterator()
-        : pages { nullptr }
-        , page_index_max { 0 }
+      explicit iterator(std::vector<page> const& pages)
+        : pages          { pages.data() }
+        , page_index_max { pages.size() }
         , page_index { std::numeric_limits<std::size_t>::max() }
         , word_index { std::numeric_limits<std::size_t>::max() }
         , char_index { std::numeric_limits<std::size_t>::max() }
@@ -179,6 +179,45 @@ inline namespace memory
         char_index = std::numeric_limits<std::size_t>::max();
 
         return *this; // end
+      }
+
+      auto operator --() -> auto &
+      {
+        page_index = page_index_max <= page_index ? page_index_max - 1 : page_index;
+        word_index = word_index_max <= word_index ? word_index_max - 1 : word_index;
+        char_index = char_index_max <= char_index ? char_index_max - 1 : char_index - 1;
+
+        /*
+           NOTE: N4659 6.9.1.4
+
+           Unsigned integers shall obey the laws of arithmetic modulo 2 n where
+           n is the number of bits in the value representation of that
+           particular size of integer.
+        */
+
+        for (; page_index < page_index_max; --page_index)
+        {
+          auto&& page = pages[page_index];
+
+          for (; word_index < word_index_max; --word_index)
+          {
+            auto&& word = page.words[word_index];
+
+            for (; char_index < char_index_max; --char_index)
+            {
+              if (word & (std::uint64_t(1) << char_index))
+              {
+                return *this;
+              }
+            }
+
+            char_index = char_index_max - 1;
+          }
+
+          word_index = word_index_max - 1;
+        }
+
+        return *this;
       }
 
       auto operator ++(int) -> auto
@@ -287,12 +326,12 @@ inline namespace memory
 
     auto begin() const
     {
-      return iterator(pages);
+      return iterator(pages, 0, 0, 0);
     }
 
-    constexpr auto end() const noexcept
+    auto end() const noexcept
     {
-      return iterator();
+      return iterator(pages);
     }
 
     auto lower_bound(T value)

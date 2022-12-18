@@ -105,9 +105,9 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name        | Description
 |:-------------------|:--
-| `all` (default)    | Build shared-library `libmeevax.0.4.433.so` and executable `meevax`.
+| `all` (default)    | Build shared-library `libmeevax.0.4.434.so` and executable `meevax`.
 | `test`             | Test executable `meevax`.
-| `package`          | Generate debian package `meevax_0.4.433_amd64.deb`.
+| `package`          | Generate debian package `meevax_0.4.434_amd64.deb`.
 | `install`          | Copy files into `/usr/local` __(1)__.
 | `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
 | `safe-install.deb` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
@@ -122,7 +122,7 @@ __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's
 ## Usage
 
 ```
-Meevax Lisp System, version 0.4.433
+Meevax Lisp System, version 0.4.434
 
 Usage: meevax [OPTION...] [FILE...]
 
