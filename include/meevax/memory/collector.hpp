@@ -67,7 +67,7 @@ inline namespace memory
         }
       }
 
-      static auto locate(void * const data)
+      static auto locate(void * const data) -> memory::header *
       {
         assert(data);
 
@@ -75,12 +75,13 @@ inline namespace memory
         {
           return cache;
         }
+        else if (auto iter = headers.lower_bound(reinterpret_cast<memory::header *>(data)); iter != std::begin(headers) and (*--iter)->contains(data))
+        {
+          return *iter;
+        }
         else
         {
-          auto dummy = body<void>(data);
-          auto iter = headers.lower_bound(&dummy);
-          assert(iter != std::end(headers));
-          return *iter;
+          return nullptr;
         }
       }
 
@@ -127,7 +128,7 @@ inline namespace memory
   protected:
     static inline header * cache = nullptr;
 
-    static inline set<header *> headers {};
+    static inline pointer_set<header *> headers {};
 
     static inline pointer_set<registration *> registry {};
 
