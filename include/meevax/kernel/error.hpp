@@ -30,9 +30,9 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto irritants() const noexcept -> const_reference;
+    auto irritants() const noexcept -> object const&;
 
-    auto message() const noexcept -> const_reference;
+    auto message() const noexcept -> object const&;
 
     [[noreturn]] // NOTE: GCC ignores this attribute when accessed through pointer (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84476)
     virtual auto raise() const -> void;

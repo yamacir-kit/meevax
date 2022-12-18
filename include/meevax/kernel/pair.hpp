@@ -25,34 +25,30 @@ inline namespace kernel
 {
   struct pair;
 
-  using value_type = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, mnemonic>;
+  using object = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, mnemonic>;
 
-  using reference = value_type &;
-
-  using const_reference = value_type const&;
-
-  using let = value_type;
+  using let = object;
 
   let extern unit;
 
   template <typename T, typename... Ts>
   auto make(Ts&&... xs)
   {
-    return value_type::allocate<T>(std::forward<decltype(xs)>(xs)...); // NOTE: This leaks memory if exception thrown from T's constructor.
+    return object::allocate<T>(std::forward<decltype(xs)>(xs)...);
   }
 
   template <typename T>
   auto make(T&& x)
   {
-    return value_type::allocate<std::decay_t<T>>(std::forward<decltype(x)>(x));
+    return object::allocate<std::decay_t<T>>(std::forward<decltype(x)>(x));
   }
 
-  struct pair : public std::pair<value_type, value_type>
+  struct pair : public std::pair<object, object>
   {
-    explicit pair(const_reference = unit, const_reference = unit);
+    explicit pair(object const& = unit, object const& = unit);
 
     template <typename... Ts, typename = std::enable_if_t<(1 < sizeof...(Ts))>>
-    explicit pair(const_reference a, Ts&&... xs)
+    explicit pair(object const& a, Ts&&... xs)
       : pair { a, make<pair>(std::forward<decltype(xs)>(xs)...) }
     {}
 
@@ -64,10 +60,12 @@ inline namespace kernel
 
     virtual auto write(std::ostream &) const -> std::ostream &;
 
-    virtual auto operator [](std::size_t) const -> const_reference;
+    virtual auto operator [](std::size_t) const -> object const&;
   };
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;
+
+  auto write_simple(std::ostream &, object const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

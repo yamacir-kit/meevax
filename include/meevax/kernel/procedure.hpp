@@ -18,41 +18,109 @@
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/ghost.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  #define PROCEDURE(...) meevax::value_type __VA_ARGS__(meevax::const_reference xs)
+  #define PROCEDURE(...) meevax::object __VA_ARGS__(meevax::object const& xs)
 
   struct procedure
   {
-    using function_pointer_type = PROCEDURE((*));
-
-    using function_type = std::function<PROCEDURE()>;
-
     std::string const name;
 
-    function_type call;
+    std::function<PROCEDURE()> const call;
 
-    explicit procedure(std::string const&, function_type const&);
+    template <typename F, std::enable_if_t<
+                            std::is_same_v<std::invoke_result_t<F, let const&>, object>,
+                            std::nullptr_t
+                          > = nullptr>
+    explicit procedure(std::string const& name, F&& f)
+      : name { name }
+      , call { std::forward<decltype(f)>(f) }
+    {}
+
+    template <typename F, std::enable_if_t<
+                            std::is_same_v<std::invoke_result_t<F>, object>,
+                            std::nullptr_t
+                          > = nullptr>
+    explicit procedure(std::string const& name, F&& f)
+      : name { name }
+      , call {
+          [f](auto&&...)
+          {
+            return f();
+          }
+        }
+    {}
+
+    template <typename F, std::enable_if_t<
+                            std::is_same_v<std::invoke_result_t<F, let const&>, bool>,
+                            std::nullptr_t
+                          > = nullptr>
+    explicit procedure(std::string const& name, F&& f)
+      : name { name }
+      , call {
+          [f](auto&&... xs)
+          {
+            return f(std::forward<decltype(xs)>(xs)...) ? t : meevax::f;
+          }
+        }
+    {}
+
+    template <typename F, std::enable_if_t<
+                            std::is_same_v<std::invoke_result_t<F>, bool>,
+                            std::nullptr_t
+                          > = nullptr>
+    explicit procedure(std::string const& name, F&& f)
+      : name { name }
+      , call {
+          [f](auto&&...)
+          {
+            return f() ? t : meevax::f;
+          }
+        }
+    {}
+
+    template <typename F, std::enable_if_t<
+                            std::is_same_v<std::invoke_result_t<F, let const&>, void>,
+                            std::nullptr_t
+                          > = nullptr>
+    explicit procedure(std::string const& name, F&& f)
+      : name { name }
+      , call {
+          [f](auto&&... xs)
+          {
+            f(std::forward<decltype(xs)>(xs)...);
+            return unspecified;
+          }
+        }
+    {}
+
+    template <typename F, std::enable_if_t<
+                            std::is_same_v<std::invoke_result_t<F>, void>,
+                            std::nullptr_t
+                          > = nullptr>
+    explicit procedure(std::string const& name, F&& f)
+      : name { name }
+      , call {
+          [f](auto&&...)
+          {
+            f();
+            return unspecified;
+          }
+        }
+    {}
 
     explicit procedure(std::string const&, std::string const&);
 
     static auto dlopen(std::string const&) -> void *;
 
-    static auto dlsym(std::string const&, void * const) -> function_pointer_type;
+    static auto dlsym(std::string const&, void * const) -> PROCEDURE((*));
   };
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
-
-  struct predicate : public procedure
-  {
-    template <typename Callable>
-    explicit predicate(std::string const& name, Callable && call)
-      : procedure { name, [call](auto&&... xs) { return call(std::forward<decltype(xs)>(xs)...) ? t : f; } }
-    {}
-  };
 } // namespace kernel
 } // namespace meevax
 

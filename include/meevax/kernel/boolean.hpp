@@ -26,7 +26,7 @@ inline namespace kernel
   let extern const t;
   let extern const f;
 
-  auto select(const_reference) -> bool;
+  auto is_truthy(object const&) -> bool;
 } // namespace kernel
 } // namespace meevax
 

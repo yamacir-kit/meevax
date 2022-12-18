@@ -1,5 +1,5 @@
 (define-library (scheme base)
-  (import (only (meevax error) error? read-error? file-error?)
+  (import (only (meevax error) error-object? read-error? file-error?)
           (only (meevax number) exact-integer?)
           (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
           (only (meevax port)
@@ -337,11 +337,6 @@
                (string-map-1 x)
                (string-map-n (cons x xs))))
 
-         (define (error-object? x)
-           (or (error? x)
-               (read-error? x)
-               (file-error? x)))
-
          ; (define (call-with-port port procedure)
          ;   (let-values ((results (procedure port)))
          ;     (close-port port)
@@ -461,33 +456,17 @@
 
 (define-library (scheme cxr)
   (import (meevax pair))
-  (export caaar
-          caadr
-          cadar
-          caddr
-          cdaar
-          cdadr
-          cddar
-          cdddr
-          caaaar
-          caaadr
-          caadar
-          caaddr
-          cadaar
-          cadadr
-          caddar
-          cadddr
-          cdaaar
-          cdaadr
-          cdadar
-          cdaddr
-          cddaar
-          cddadr
-          cdddar
-          cddddr))
+  (export caaar caaaar cdaaar
+          caadr caaadr cdaadr
+          cadar caadar cdadar
+          caddr caaddr cdaddr
+          cdaar cadaar cddaar
+          cdadr cadadr cddadr
+          cddar caddar cdddar
+          cdddr cadddr cddddr))
 
 (define-library (scheme char)
-  (import (only (meevax character) char-codepoint)
+  (import (only (meevax character) digit-value)
           (only (scheme r5rs)
                 char-ci=?
                 char-ci<?
@@ -518,7 +497,7 @@
           char-whitespace?
           char-upper-case?
           char-lower-case?
-          (rename char-codepoint digit-value)
+          digit-value
           char-upcase
           char-downcase
           (rename char-downcase char-foldcase)
@@ -577,6 +556,10 @@
            (%read (if (pair? x)
                       (car x)
                       (current-input-port))))))
+
+(define-library (scheme repl)
+  (import (only (meevax environment) interaction-environment))
+  (export interaction-environment))
 
 (define-library (scheme write)
   (import (prefix (meevax write) %)

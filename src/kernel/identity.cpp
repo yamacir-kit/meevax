@@ -24,12 +24,12 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto identity::load(const_reference e) -> reference
+  auto identity::load(object const& e) -> object &
   {
-    return const_cast<reference>(std::as_const(*this).load(e));
+    return const_cast<object &>(std::as_const(*this).load(e));
   }
 
-  auto identity::symbol() const -> const_reference
+  auto identity::symbol() const -> object const&
   {
     assert(first.is_also<identifier>());
     return first;
@@ -50,7 +50,7 @@ inline namespace kernel
     return eq(load(), undefined);
   }
 
-  auto absolute::load(const_reference e) const -> const_reference
+  auto absolute::load(object const& e) const -> object const&
   {
     if (second.is_also<identity>())
     {
@@ -63,17 +63,17 @@ inline namespace kernel
     }
   }
 
-  auto absolute::load(const_reference e) -> reference
+  auto absolute::load(object const& e) -> object &
   {
-    return const_cast<reference>(std::as_const(*this).load(e));
+    return const_cast<object &>(std::as_const(*this).load(e));
   }
 
-  auto absolute::make_load_mnemonic() const -> value_type
+  auto absolute::make_load_mnemonic() const -> object
   {
     return make(mnemonic::load_absolute);
   }
 
-  auto absolute::make_store_mnemonic() const -> value_type
+  auto absolute::make_store_mnemonic() const -> object
   {
     return make(mnemonic::store_absolute);
   }
@@ -88,7 +88,7 @@ inline namespace kernel
     return false;
   }
 
-  auto relative::load(const_reference e) const -> const_reference
+  auto relative::load(object const& e) const -> object const&
   {
     assert(car(second).template is<std::uint32_t>());
     assert(cdr(second).template is<std::uint32_t>());
@@ -97,12 +97,12 @@ inline namespace kernel
             [cdr(second).template as<std::uint32_t>()];
   }
 
-  auto relative::make_load_mnemonic() const -> value_type
+  auto relative::make_load_mnemonic() const -> object
   {
     return make(mnemonic::load_relative);
   }
 
-  auto relative::make_store_mnemonic() const -> value_type
+  auto relative::make_store_mnemonic() const -> object
   {
     return make(mnemonic::store_relative);
   }
@@ -112,7 +112,7 @@ inline namespace kernel
     return false; // No viable comparison.
   }
 
-  auto variadic::load(const_reference e) const -> const_reference
+  auto variadic::load(object const& e) const -> object const&
   {
     assert(car(second).template is<std::uint32_t>());
     assert(cdr(second).template is<std::uint32_t>());
@@ -120,12 +120,12 @@ inline namespace kernel
     return list_tail(e[car(second).template as<std::uint32_t>()], cdr(second).template as<std::uint32_t>());
   }
 
-  auto variadic::make_load_mnemonic() const -> value_type
+  auto variadic::make_load_mnemonic() const -> object
   {
     return make(mnemonic::load_variadic);
   }
 
-  auto variadic::make_store_mnemonic() const -> value_type
+  auto variadic::make_store_mnemonic() const -> object
   {
     return make(mnemonic::store_variadic);
   }

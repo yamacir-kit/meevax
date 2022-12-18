@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  library::library(const_reference declarations)
+  library::library(object const& declarations)
     : declarations { declarations }
   {}
 
@@ -31,17 +31,12 @@ inline namespace kernel
   {
     define_library("(meevax character)", [](library & library)
     {
-      library.define<predicate>("char?", [](let const& xs)
+      library.define<procedure>("char?", [](let const& xs)
       {
         return car(xs).is<character>();
       });
 
-      library.define<procedure>("char->integer", [](let const& xs)
-      {
-        return make<exact_integer>(car(xs).as<character>().codepoint);
-      });
-
-      library.define<procedure>("char-codepoint", [](let const& xs) -> value_type
+      library.define<procedure>("digit-value", [](let const& xs)
       {
         if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
         {
@@ -52,16 +47,21 @@ inline namespace kernel
           return f;
         }
       });
+
+      library.define<procedure>("integer->char", [](let const& xs)
+      {
+        return make<character>(car(xs).as<exact_integer>());
+      });
     });
 
     define_library("(meevax complex)", [](library & library)
     {
       library.define<procedure>("make-rectangular", [](let const& xs)
       {
-        assert(apply<is_real>(car(xs)));
-        assert(apply<is_real>(cadr(xs)));
+        assert(apply_arithmetic<is_real>(xs[0]));
+        assert(apply_arithmetic<is_real>(xs[1]));
 
-        return make<complex>(car(xs), cadr(xs));
+        return make<complex>(xs[0], xs[1]);
       });
 
       library.define<procedure>("real-part", [](let const& xs)
@@ -77,7 +77,7 @@ inline namespace kernel
 
     define_library("(meevax context)", [](library & library)
     {
-      library.define<procedure>("emergency-exit", [](let const& xs) -> value_type
+      library.define<procedure>("emergency-exit", [](let const& xs) -> object
       {
         if (let const& status = car(xs); status.is<null>())
         {
@@ -85,7 +85,7 @@ inline namespace kernel
         }
         else if (status.is<bool>())
         {
-          throw select(status) ? success : failure;
+          throw is_truthy(status) ? success : failure;
         }
         else
         {
@@ -96,12 +96,12 @@ inline namespace kernel
 
     define_library("(meevax function)", [](library & library)
     {
-      library.define<predicate>("closure?", [](let const& xs)
+      library.define<procedure>("closure?", [](let const& xs)
       {
         return car(xs).is<closure>();
       });
 
-      library.define<predicate>("continuation?", [](let const& xs)
+      library.define<procedure>("continuation?", [](let const& xs)
       {
         return car(xs).is<continuation>();
       });
@@ -111,7 +111,7 @@ inline namespace kernel
         return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
       });
 
-      library.define<predicate>("foreign-function?", [](let const& xs)
+      library.define<procedure>("foreign-function?", [](let const& xs)
       {
         return car(xs).is<procedure>();
       });
@@ -136,7 +136,7 @@ inline namespace kernel
         return cadr(xs).as<environment>().evaluate(car(xs));
       });
 
-      library.define<procedure>("interaction-environment", [](auto&&...)
+      library.define<procedure>("interaction-environment", []()
       {
         return interaction_environment();
       });
@@ -155,12 +155,12 @@ inline namespace kernel
 
     define_library("(meevax comparator)", [](library & library)
     {
-      library.define<predicate>("identity=?", [](let const& xs)
+      library.define<procedure>("identity=?", [](let const& xs)
       {
         return eq(car(xs), cadr(xs));
       });
 
-      library.define<predicate>("normally=?", [](let const& xs)
+      library.define<procedure>("normally=?", [](let const& xs)
       {
         return eqv(car(xs), cadr(xs));
       });
@@ -168,32 +168,32 @@ inline namespace kernel
 
     define_library("(meevax error)", [](library & library)
     {
-      library.define<procedure>("throw", [](let const& xs) -> value_type
+      library.define<procedure>("throw", [](let const& xs) -> object
       {
         throw car(xs);
       });
 
-      library.define<procedure>("make-error", [](let const& xs)
+      library.define<procedure>("error-object", [](let const& xs)
       {
         return make<error>(car(xs), cdr(xs));
       });
 
-      library.define<predicate>("error?", [](let const& xs)
+      library.define<procedure>("error-object?", [](let const& xs)
       {
-        return car(xs).is<error>();
+        return car(xs).is_also<error>();
       });
 
-      library.define<predicate>("read-error?", [](let const& xs)
+      library.define<procedure>("read-error?", [](let const& xs)
       {
         return car(xs).is<read_error>();
       });
 
-      library.define<predicate>("file-error?", [](let const& xs)
+      library.define<procedure>("file-error?", [](let const& xs)
       {
         return car(xs).is<file_error>();
       });
 
-      library.define<predicate>("kernel-exception-handler-set!", [](let const& xs)
+      library.define<procedure>("kernel-exception-handler-set!", [](let const& xs)
       {
         return raise = car(xs);
       });
@@ -220,7 +220,7 @@ inline namespace kernel
         return standard_output;
       });
 
-      library.define<predicate>("ieee-float?", [](auto&&...)
+      library.define<procedure>("ieee-float?", []()
       {
         return std::numeric_limits<double>::is_iec559;
       });
@@ -228,12 +228,12 @@ inline namespace kernel
 
     define_library("(meevax garbage-collector)", [](library & library)
     {
-      library.define<procedure>("gc-collect", [](auto&&...)
+      library.define<procedure>("gc-collect", []()
       {
-        return make<exact_integer>(gc.collect());
+        gc.collect();
       });
 
-      library.define<procedure>("gc-count", [](auto&&...)
+      library.define<procedure>("gc-count", []()
       {
         return make<exact_integer>(gc.count());
       });
@@ -245,7 +245,7 @@ inline namespace kernel
       {
         try
         {
-          return apply<is_finite>(car(xs));
+          return apply_arithmetic<is_finite>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -257,7 +257,7 @@ inline namespace kernel
       {
         try
         {
-          return apply<is_infinite>(car(xs));
+          return apply_arithmetic<is_infinite>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -269,7 +269,7 @@ inline namespace kernel
       {
         try
         {
-          return apply<is_nan>(car(xs));
+          return apply_arithmetic<is_nan>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -279,85 +279,85 @@ inline namespace kernel
 
       library.define<procedure>("exp", [](let const& xs)
       {
-        return apply<exp>(car(xs));
+        return apply_arithmetic<exp>(car(xs));
       });
 
       library.define<procedure>("sqrt", [](let const& xs)
       {
-        return apply<sqrt>(car(xs));
+        return apply_arithmetic<sqrt>(car(xs));
       });
 
       library.define<procedure>("log", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? apply<log>(car(xs)) / apply<log>(cadr(xs))
-                                  : apply<log>(car(xs));
+        return cdr(xs).is<pair>() ? apply_arithmetic<log>(car(xs)) / apply_arithmetic<log>(cadr(xs))
+                                  : apply_arithmetic<log>(car(xs));
       });
 
       library.define<procedure>("sin", [](let const& xs)
       {
-        return apply<sin>(car(xs));
+        return apply_arithmetic<sin>(car(xs));
       });
 
       library.define<procedure>("cos", [](let const& xs)
       {
-        return apply<cos>(car(xs));
+        return apply_arithmetic<cos>(car(xs));
       });
 
       library.define<procedure>("tan", [](let const& xs)
       {
-        return apply<tan>(car(xs));
+        return apply_arithmetic<tan>(car(xs));
       });
 
       library.define<procedure>("asin", [](let const& xs)
       {
-        return apply<asin>(car(xs));
+        return apply_arithmetic<asin>(car(xs));
       });
 
       library.define<procedure>("acos", [](let const& xs)
       {
-        return apply<acos>(car(xs));
+        return apply_arithmetic<acos>(car(xs));
       });
 
       library.define<procedure>("atan", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? apply<atan2>(car(xs), cadr(xs))
-                                  : apply<atan>(car(xs));
+        return cdr(xs).is<pair>() ? apply_arithmetic<atan2>(car(xs), cadr(xs))
+                                  : apply_arithmetic<atan>(car(xs));
       });
 
       library.define<procedure>("sinh", [](let const& xs)
       {
-        return apply<sinh>(car(xs));
+        return apply_arithmetic<sinh>(car(xs));
       });
 
       library.define<procedure>("cosh", [](let const& xs)
       {
-        return apply<cosh>(car(xs));
+        return apply_arithmetic<cosh>(car(xs));
       });
 
       library.define<procedure>("tanh", [](let const& xs)
       {
-        return apply<tanh>(car(xs));
+        return apply_arithmetic<tanh>(car(xs));
       });
 
       library.define<procedure>("asinh", [](let const& xs)
       {
-        return apply<asinh>(car(xs));
+        return apply_arithmetic<asinh>(car(xs));
       });
 
       library.define<procedure>("acosh", [](let const& xs)
       {
-        return apply<acosh>(car(xs));
+        return apply_arithmetic<acosh>(car(xs));
       });
 
       library.define<procedure>("atanh", [](let const& xs)
       {
-        return apply<atanh>(car(xs));
+        return apply_arithmetic<atanh>(car(xs));
       });
     });
 
     define_library("(meevax list)", [](library & library)
     {
-      library.define<predicate>("null?", [](let const& xs)
+      library.define<procedure>("null?", [](let const& xs)
       {
         return car(xs).is<null>();
       });
@@ -367,37 +367,69 @@ inline namespace kernel
         return std::accumulate(std::begin(xs), std::end(xs), unit, append2);
       });
 
-      library.define<procedure>("list->vector", [](let const& xs)
+      library.define<procedure>("string->list", [](let const& xs)
       {
-        return make<vector>(car(xs));
+        /*
+           (string->list string)                                      procedure
+           (string->list string start)                                procedure
+           (string->list string start end)                            procedure
+
+           (list->string list)                                        procedure
+
+           It is an error if any element of list is not a character.
+
+           The string->list procedure returns a newly allocated list of the
+           characters of string between start and end. list->string returns a
+           newly allocated string formed from the elements in the list list. In
+           both procedures, order is preserved. string->list and list->string
+           are inverses so far as equal? is concerned.
+        */
+
+        return std::accumulate(std::prev(std::rend(xs[0].as<string>().codepoints), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<string>().codepoints.size()),
+                               std::prev(std::rend(xs[0].as<string>().codepoints), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                               unit,
+                               [](let const& xs, character const& c)
+                               {
+                                 return cons(make(c), xs);
+                               });
+      });
+
+      library.define<procedure>("vector->list", [](let const& xs)
+      {
+        /*
+           (vector->list vector)                                      procedure
+           (vector->list vector start)                                procedure
+           (vector->list vector start end)                            procedure
+           (list->vector list)                                        procedure
+
+           The vector->list procedure returns a newly allocated list of the
+           objects contained in the elements of vector between start and end.
+           The list->vector procedure returns a newly created vector
+           initialized to the elements of the list list.
+
+           In both procedures, order is preserved.
+        */
+
+        return std::accumulate(std::prev(std::rend(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+                               std::prev(std::rend(xs[0].as<vector>().objects), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                               unit,
+                               xcons);
       });
     });
 
     define_library("(meevax macro)", [](library & library)
     {
-      library.define<predicate>("identifier?", [](let const& xs)
+      library.define<procedure>("identifier?", [](let const& xs)
       {
         return car(xs).is_also<identifier>();
       });
 
-      library.define<procedure>("identifier->symbol", [](let const& xs)
-      {
-        if (let const& x = car(xs); x.is<syntactic_closure>())
-        {
-          return x.as<syntactic_closure>().expression;
-        }
-        else
-        {
-          return x;
-        }
-      });
-
-      library.define<predicate>("transformer?", [](let const& xs)
+      library.define<procedure>("transformer?", [](let const& xs)
       {
         return car(xs).is_also<transformer>();
       });
 
-      library.define<predicate>("syntactic-closure?", [](let const& xs)
+      library.define<procedure>("syntactic-closure?", [](let const& xs)
       {
         return car(xs).is<syntactic_closure>();
       });
@@ -414,7 +446,7 @@ inline namespace kernel
       {
         try
         {
-          return apply<is_complex>(car(xs));
+          return apply_arithmetic<is_complex>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -426,7 +458,7 @@ inline namespace kernel
       {
         try
         {
-          return apply<is_complex>(car(xs));
+          return apply_arithmetic<is_complex>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -438,7 +470,7 @@ inline namespace kernel
       {
         try
         {
-          return apply<is_real>(car(xs));
+          return apply_arithmetic<is_real>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -450,7 +482,7 @@ inline namespace kernel
       {
         try
         {
-          return apply<is_rational>(car(xs));
+          return apply_arithmetic<is_rational>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -462,7 +494,7 @@ inline namespace kernel
       {
         try
         {
-          return apply<is_integer>(car(xs));
+          return apply_arithmetic<is_integer>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -470,38 +502,38 @@ inline namespace kernel
         }
       });
 
-      library.define<predicate>("exact-integer?", [](let const& xs)
+      library.define<procedure>("exact-integer?", [](let const& xs)
       {
         return car(xs).is<exact_integer>();
       });
 
-      library.define<predicate>("%complex?", [](let const& xs)
+      library.define<procedure>("%complex?", [](let const& xs)
       {
         return car(xs).is<complex>();
       });
 
-      library.define<predicate>("ratio?", [](let const& xs)
+      library.define<procedure>("ratio?", [](let const& xs)
       {
         return car(xs).is<ratio>();
       });
 
-      library.define<predicate>("single-float?", [](let const& xs)
+      library.define<procedure>("single-float?", [](let const& xs)
       {
         return car(xs).is<float>();
       });
 
-      library.define<predicate>("double-float?", [](let const& xs)
+      library.define<procedure>("double-float?", [](let const& xs)
       {
         return car(xs).is<double>();
       });
 
       #define DEFINE(SYMBOL, COMPARE)                                          \
-      library.define<predicate>(#SYMBOL, [](let const& xs)                     \
+      library.define<procedure>(#SYMBOL, [](let const& xs)                     \
       {                                                                        \
         return std::adjacent_find(                                             \
                  std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
                  {                                                             \
-                   return not apply<COMPARE>(a, b).as<bool>();                 \
+                   return not apply_arithmetic<COMPARE>(a, b).as<bool>();      \
                  }) == std::end(xs);                                           \
       })
 
@@ -551,66 +583,54 @@ inline namespace kernel
 
       library.define<procedure>("floor", [](let const& xs)
       {
-        return apply<floor>(car(xs));
+        return apply_arithmetic<floor>(car(xs));
       });
 
       library.define<procedure>("ceiling", [](let const& xs)
       {
-        return apply<ceil>(car(xs));
+        return apply_arithmetic<ceil>(car(xs));
       });
 
       library.define<procedure>("truncate", [](let const& xs)
       {
-        return apply<trunc>(car(xs));
+        return apply_arithmetic<trunc>(car(xs));
       });
 
       library.define<procedure>("round", [](let const& xs)
       {
-        return apply<round>(car(xs));
+        return apply_arithmetic<round>(car(xs));
       });
 
       library.define<procedure>("exact", [](let const& xs)
       {
-        return apply<exact>(car(xs));
+        return apply_arithmetic<exact>(car(xs));
       });
 
       library.define<procedure>("inexact", [](let const& xs)
       {
-        return apply<inexact>(car(xs));
+        return apply_arithmetic<inexact>(car(xs));
       });
 
       library.define<procedure>("expt", [](let const& xs)
       {
-        return apply<expt>(car(xs), cadr(xs));
+        return apply_arithmetic<expt>(car(xs), cadr(xs));
       });
 
-      library.define<procedure>("integer->char", [](let const& xs)
+      library.define<procedure>("char->integer", [](let const& xs)
       {
-        return make<character>(car(xs).as<exact_integer>());
+        return make<exact_integer>(car(xs).as<character>().codepoint);
       });
 
-      library.define<procedure>("number->string", [](let const& xs)
+      library.define<procedure>("string->number", [](let const& xs)
       {
-        switch (cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10)
-        {
-        case 2:
-          return apply<number_to_string<2>>(car(xs));
-
-        case 8:
-          return apply<number_to_string<8>>(car(xs));
-
-        case 10: default:
-          return apply<number_to_string<10>>(car(xs));
-
-        case 16:
-          return apply<number_to_string<16>>(car(xs));
-        }
+        return string_to_number(car(xs).as<string>(),
+                                cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10);
       });
     });
 
     define_library("(meevax pair)", [](library & library)
     {
-      library.define<predicate>("pair?", [](let const& xs)
+      library.define<procedure>("pair?", [](let const& xs)
       {
         return car(xs).is<pair>();
       });
@@ -660,32 +680,32 @@ inline namespace kernel
 
     define_library("(meevax port)", [](library & library)
     {
-      library.define<predicate>("input-port?", [](let const& xs)
+      library.define<procedure>("input-port?", [](let const& xs)
       {
         return car(xs).is_also<std::istream>();
       });
 
-      library.define<predicate>("output-port?", [](let const& xs)
+      library.define<procedure>("output-port?", [](let const& xs)
       {
         return car(xs).is_also<std::ostream>();
       });
 
-      library.define<predicate>("binary-port?", [](auto&&...)
+      library.define<procedure>("binary-port?", []()
       {
         return false;
       });
 
-      library.define<predicate>("textual-port?", [](let const& xs)
+      library.define<procedure>("textual-port?", [](let const& xs)
       {
         return car(xs).is_also<std::ios>();
       });
 
-      library.define<predicate>("port?", [](let const& xs)
+      library.define<procedure>("port?", [](let const& xs)
       {
         return car(xs).is_also<std::ios>();
       });
 
-      library.define<predicate>("open?", [](let const& xs)
+      library.define<procedure>("open?", [](let const& xs)
       {
         if (let const& x = car(xs); x.is<file_port>())
         {
@@ -697,17 +717,17 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("input-port", [](auto&&...)
+      library.define<procedure>("input-port", []()
       {
         return standard_input;
       });
 
-      library.define<procedure>("output-port", [](auto&&...)
+      library.define<procedure>("output-port", []()
       {
         return standard_output;
       });
 
-      library.define<procedure>("error-port", [](auto&&...)
+      library.define<procedure>("error-port", []()
       {
         return standard_error;
       });
@@ -720,7 +740,6 @@ inline namespace kernel
       library.define<procedure>("close", [](let const& xs)
       {
         car(xs).as<file_port>().close();
-        return unspecified;
       });
 
       library.define<procedure>("string->port", [](let const& xs)
@@ -728,24 +747,12 @@ inline namespace kernel
         return xs.is<pair>() ? make<string_port>(car(xs).as<string>()) : make<string_port>();
       });
 
-      library.define<procedure>("port->string", [](let const& xs)
-      {
-        if (car(xs).is<string_port>())
-        {
-          return make<string>(car(xs).as<string_port>().str());
-        }
-        else
-        {
-          return make<string>(std::string(std::istreambuf_iterator<char>(car(xs).as<std::istream>()), {}));
-        }
-      });
-
-      library.define<predicate>("eof-object?", [](let const& xs)
+      library.define<procedure>("eof-object?", [](let const& xs)
       {
         return car(xs).is<eof>();
       });
 
-      library.define<procedure>("eof-object", [](auto&&...)
+      library.define<procedure>("eof-object", []()
       {
         return eof_object;
       });
@@ -753,18 +760,17 @@ inline namespace kernel
       library.define<procedure>("flush", [](let const& xs)
       {
         car(xs).as<std::ostream>() << std::flush;
-        return unspecified;
       });
     });
 
     define_library("(meevax read)", [](library & library)
     {
-      library.define<procedure>("get-char", [](let const& xs) -> value_type
+      library.define<procedure>("get-char", [](let const& xs)
       {
         try
         {
           auto const g = car(xs).as<std::istream>().tellg();
-          let const c = make<character>(get_codepoint(car(xs).as<std::istream>()));
+          let c = make<character>(get_codepoint(car(xs).as<std::istream>()));
           car(xs).as<std::istream>().seekg(g);
           return c;
         }
@@ -778,7 +784,7 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("get-char!", [](let const& xs) -> value_type
+      library.define<procedure>("get-char!", [](let const& xs)
       {
         try
         {
@@ -794,7 +800,7 @@ inline namespace kernel
         }
       });
 
-      library.define<predicate>("get-ready?", [](let const& xs)
+      library.define<procedure>("get-ready?", [](let const& xs)
       {
         return static_cast<bool>(car(xs).as<std::istream>());
       });
@@ -816,7 +822,7 @@ inline namespace kernel
         return s;
       });
 
-      library.define<procedure>("read", [](let const& xs) mutable -> value_type
+      library.define<procedure>("read", [](let const& xs)
       {
         try
         {
@@ -835,7 +841,7 @@ inline namespace kernel
 
     define_library("(meevax string)", [](library & library)
     {
-      library.define<predicate>("string?", [](let const& xs)
+      library.define<procedure>("string?", [](let const& xs)
       {
         return car(xs).is<string>();
       });
@@ -968,8 +974,6 @@ inline namespace kernel
         std::copy(std::next(std::begin(s2), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
                   std::next(std::begin(s2), list_tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : s2.size()),
                   std::next(std::begin(s1),                               xs[1].as<exact_integer>()));
-
-        return unspecified;
       });
 
       #define STRING_COMPARE(COMPARE)                                          \
@@ -983,50 +987,35 @@ inline namespace kernel
                  }) == std::end(xs);                                           \
       }
 
-      library.define<predicate>("string=?",  STRING_COMPARE(equal_to     ));
-      library.define<predicate>("string<?",  STRING_COMPARE(less         ));
-      library.define<predicate>("string<=?", STRING_COMPARE(less_equal   ));
-      library.define<predicate>("string>?",  STRING_COMPARE(greater      ));
-      library.define<predicate>("string>=?", STRING_COMPARE(greater_equal));
+      library.define<procedure>("string=?",  STRING_COMPARE(equal_to     ));
+      library.define<procedure>("string<?",  STRING_COMPARE(less         ));
+      library.define<procedure>("string<=?", STRING_COMPARE(less_equal   ));
+      library.define<procedure>("string>?",  STRING_COMPARE(greater      ));
+      library.define<procedure>("string>=?", STRING_COMPARE(greater_equal));
 
       #undef STRING_COMPARE
 
-      library.define<procedure>("string->number", [](let const& xs)
+      library.define<procedure>("symbol->string", [](let const& xs)
       {
-        return string_to_number(car(xs).as<string>(),
-                                cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10);
+        return make<string>(car(xs).as<symbol>());
       });
 
-      library.define<procedure>("string->list", [](let const& xs)
+      library.define<procedure>("number->string", [](let const& xs)
       {
-        /*
-           (string->list string)                                      procedure
-           (string->list string start)                                procedure
-           (string->list string start end)                            procedure
+        switch (cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10)
+        {
+        case 2:
+          return apply_arithmetic<number_to_string<2>>(car(xs));
 
-           (list->string list)                                        procedure
+        case 8:
+          return apply_arithmetic<number_to_string<8>>(car(xs));
 
-           It is an error if any element of list is not a character.
+        case 10: default:
+          return apply_arithmetic<number_to_string<10>>(car(xs));
 
-           The string->list procedure returns a newly allocated list of the
-           characters of string between start and end. list->string returns a
-           newly allocated string formed from the elements in the list list. In
-           both procedures, order is preserved. string->list and list->string
-           are inverses so far as equal? is concerned.
-        */
-
-        return std::accumulate(std::prev(std::rend(xs[0].as<string>().codepoints), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<string>().codepoints.size()),
-                               std::prev(std::rend(xs[0].as<string>().codepoints), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
-                               unit,
-                               [](let const& xs, character const& c)
-                               {
-                                 return cons(make(c), xs);
-                               });
-      });
-
-      library.define<procedure>("string->symbol", [](let const& xs)
-      {
-        return string_to_symbol(car(xs).as<string>());
+        case 16:
+          return apply_arithmetic<number_to_string<16>>(car(xs));
+        }
       });
 
       library.define<procedure>("list->string", [](let const& xs)
@@ -1083,24 +1072,47 @@ inline namespace kernel
 
         return make(s);
       });
+
+      library.define<procedure>("port->string", [](let const& xs)
+      {
+        if (car(xs).is<string_port>())
+        {
+          return make<string>(car(xs).as<string_port>().str());
+        }
+        else
+        {
+          return make<string>(std::string(std::istreambuf_iterator<char>(car(xs).as<std::istream>()), {}));
+        }
+      });
     });
 
     define_library("(meevax symbol)", [](library & library)
     {
-      library.define<predicate>("symbol?", [](let const& xs)
+      library.define<procedure>("symbol?", [](let const& xs)
       {
         return car(xs).is<symbol>();
       });
 
-      library.define<procedure>("symbol->string", [](let const& xs)
+      library.define<procedure>("string->symbol", [](let const& xs)
       {
-        return make<string>(car(xs).as<symbol>());
+        return string_to_symbol(car(xs).as<string>());
+      });
+
+      library.define<procedure>("identifier->symbol", [](let const& xs)
+      {
+        if (let const& x = car(xs); x.is<syntactic_closure>())
+        {
+          return x.as<syntactic_closure>().expression;
+        }
+        else
+        {
+          return x;
+        }
       });
     });
 
     define_library("(meevax syntax)", [](library & library)
     {
-      library.define<syntax>("begin", machine::begin);
       library.define<syntax>("call-with-current-continuation!", call_with_current_continuation);
       library.define<syntax>("define", machine::define);
       library.define<syntax>("define-syntax", define_syntax);
@@ -1111,12 +1123,13 @@ inline namespace kernel
       library.define<syntax>("letrec-syntax", letrec_syntax);
       library.define<syntax>("quote", quote);
       library.define<syntax>("quote-syntax", quote_syntax);
+      library.define<syntax>("sequence", sequence);
       library.define<syntax>("set!", set);
     });
 
     define_library("(meevax vector)", [](library & library)
     {
-      library.define<predicate>("vector?", [](let const& xs)
+      library.define<procedure>("vector?", [](let const& xs)
       {
         return xs[0].is<vector>();
       });
@@ -1219,8 +1232,6 @@ inline namespace kernel
         std::copy(std::next(std::begin(v2), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
                   std::next(std::begin(v2), list_tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : v1.size()),
                   std::next(std::begin(v1),                               xs[1].as<exact_integer>()));
-
-        return unspecified;
       });
 
       library.define<procedure>("vector-length", [](let const& xs)
@@ -1272,30 +1283,11 @@ inline namespace kernel
         std::fill(std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : 0),
                   std::next(std::begin(xs[0].as<vector>().objects), list_tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : xs[0].as<vector>().objects.size()),
                   list_tail(xs, 1).is<pair>() ? xs[1] : unspecified);
-
-        return unspecified;
       });
 
-      library.define<procedure>("vector->list", [](let const& xs)
+      library.define<procedure>("list->vector", [](let const& xs)
       {
-        /*
-           (vector->list vector)                                      procedure
-           (vector->list vector start)                                procedure
-           (vector->list vector start end)                            procedure
-           (list->vector list)                                        procedure
-
-           The vector->list procedure returns a newly allocated list of the
-           objects contained in the elements of vector between start and end.
-           The list->vector procedure returns a newly created vector
-           initialized to the elements of the list list.
-
-           In both procedures, order is preserved.
-        */
-
-        return std::accumulate(std::prev(std::rend(xs[0].as<vector>().objects), list_tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
-                               std::prev(std::rend(xs[0].as<vector>().objects), list_tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
-                               unit,
-                               xcons);
+        return make<vector>(car(xs));
       });
 
       library.define<procedure>("string->vector", [](let const& xs)
@@ -1313,7 +1305,7 @@ inline namespace kernel
 
     define_library("(meevax version)", [](library & library)
     {
-      library.define<procedure>("features", [](auto&&...)
+      library.define<procedure>("features", []()
       {
         return features();
       });
@@ -1324,25 +1316,21 @@ inline namespace kernel
       library.define<procedure>("put-char", [](let const& xs)
       {
         cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
-        return unspecified;
       });
 
       library.define<procedure>("put-string", [](let const& xs)
       {
         cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
-        return unspecified;
       });
 
       library.define<procedure>("write", [](let const& xs)
       {
-        meevax::write(cadr(xs), car(xs));
-        return unspecified;
+        xs[1].as<std::ostream>() << xs[0];
       });
 
       library.define<procedure>("write-simple", [](let const& xs)
       {
-        write_simple(cadr(xs), car(xs));
-        return unspecified;
+        write_simple(xs[1].as<std::ostream>(), xs[0]);
       });
     });
 
@@ -1379,16 +1367,16 @@ inline namespace kernel
     }
   }
 
-  auto library::evaluate(const_reference declaration) -> void
+  auto library::evaluate(object const& declaration) -> void
   {
-    if (declaration[0].is<symbol>() and declaration[0].as<symbol>().value == "export")
+    if (declaration[0].is<symbol>() and declaration[0].as<symbol>() == "export")
     {
       for (let const& form : cdr(declaration))
       {
         declare<export_spec>(form);
       }
     }
-    else if (declaration[0].is<symbol>() and declaration[0].as<symbol>().value == "begin")
+    else if (declaration[0].is<symbol>() and declaration[0].as<symbol>() == "begin")
     {
       for (let const& command_or_definition : cdr(declaration))
       {
@@ -1401,7 +1389,7 @@ inline namespace kernel
     }
   }
 
-  auto library::resolve() -> const_reference
+  auto library::resolve() -> object const&
   {
     if (not declarations.is<null>())
     {
@@ -1421,6 +1409,6 @@ inline namespace kernel
     return os << library.global();
   }
 
-  std::unordered_map<std::string, library> libraries {};
+  std::map<std::string, library> libraries {};
 } // namespace kernel
 } // namespace meevax

@@ -36,18 +36,13 @@ inline namespace kernel
     using pair::pair;
 
   public:
-    using configurator::debug;
-    using configurator::trace;
-
-    using reader::read;
-
     environment(environment &&) = default;
 
     environment(environment const&) = default;
 
-    auto operator [](const_reference variable) -> decltype(auto)
+    auto operator [](object const& variable) -> decltype(auto)
     {
-      return identify(variable, scope()).as<identity>().load(e);
+      return identify(variable).as<identity>().load(e);
     }
 
     auto operator [](std::string const& variable) -> decltype(auto)
@@ -61,9 +56,9 @@ inline namespace kernel
       return std::decay_t<T>(std::forward<decltype(xs)>(xs)...).resolve(*this);
     }
 
-    auto define(const_reference, const_reference = undefined) -> void;
+    auto define(object const&, object const& = undefined) -> void;
 
-    auto define(std::string const&, const_reference = undefined) -> void;
+    auto define(std::string const&, object const& = undefined) -> void;
 
     template <typename T, typename... Ts>
     auto define(std::string const& name, Ts&&... xs) -> void
@@ -71,34 +66,24 @@ inline namespace kernel
       define(name, make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
-    auto evaluate(const_reference) -> value_type;
+    auto evaluate(object const&) -> object;
 
-    auto execute() -> value_type;
+    auto fork()              const -> object;
+    auto fork(object const&) const -> object;
 
-    auto execute(const_reference) -> value_type;
+    auto global() const noexcept -> object const&;
+    auto global()       noexcept -> object      &;
 
-    auto fork() const -> value_type;
+    auto load(std::string const&) -> object;
 
-    auto fork(const_reference) const -> value_type;
+    auto scope() const noexcept -> object const&;
+    auto scope()       noexcept -> object      &;
 
-    auto global() noexcept -> reference;
-
-    auto global() const noexcept -> const_reference;
-
-    auto load(std::string const&) -> value_type;
-
-    auto scope() const noexcept -> const_reference;
-
-    auto scope() noexcept -> reference;
-
-    auto identify(const_reference, const_reference) -> value_type;
-
-    auto identify(const_reference, const_reference) const -> value_type;
+    auto identify(object const&, object const&) const -> object;
+    auto identify(object const&)                const -> object;
+    auto identify(object const&, object const&)       -> object;
+    auto identify(object const&)                      -> object;
   };
-
-  auto operator >>(std::istream &, environment &) -> std::istream &;
-
-  auto operator <<(std::ostream &, environment &) -> std::ostream &;
 
   auto operator <<(std::ostream &, environment const&) -> std::ostream &;
 

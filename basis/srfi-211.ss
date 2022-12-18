@@ -19,7 +19,8 @@
           (meevax list)
           (meevax macro)
           (meevax pair)
-          (meevax syntax))
+          (rename (meevax syntax)
+                  (sequence begin)))
 
   (begin (define (er-macro-transformer f)
            (lambda (form use-env mac-env)

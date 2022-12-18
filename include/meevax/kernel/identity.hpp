@@ -31,15 +31,15 @@ inline namespace kernel
 
     virtual auto is_free() const -> bool = 0;
 
-    virtual auto load(const_reference e) -> reference;
+    virtual auto load(object const& e) -> object &;
 
-    virtual auto load(const_reference) const -> const_reference = 0;
+    virtual auto load(object const&) const -> object const& = 0;
 
-    virtual auto make_load_mnemonic() const -> value_type = 0;
+    virtual auto make_load_mnemonic() const -> object = 0;
 
-    virtual auto make_store_mnemonic() const -> value_type = 0;
+    virtual auto make_store_mnemonic() const -> object = 0;
 
-    virtual auto symbol() const -> const_reference;
+    virtual auto symbol() const -> object const&;
   };
 
   auto operator <<(std::ostream & os, identity const& datum) -> std::ostream &;
@@ -52,13 +52,13 @@ inline namespace kernel
 
     auto is_free() const -> bool override;
 
-    auto load(const_reference = unit) -> reference override;
+    auto load(object const& = unit) -> object & override;
 
-    auto load(const_reference = unit) const -> const_reference override;
+    auto load(object const& = unit) const -> object const& override;
 
-    auto make_load_mnemonic() const -> value_type override;
+    auto make_load_mnemonic() const -> object override;
 
-    auto make_store_mnemonic() const -> value_type override;
+    auto make_store_mnemonic() const -> object override;
   };
 
   struct keyword : public absolute
@@ -74,11 +74,11 @@ inline namespace kernel
 
     auto is_free() const -> bool override;
 
-    auto load(const_reference) const -> const_reference override;
+    auto load(object const&) const -> object const& override;
 
-    auto make_load_mnemonic() const -> value_type override;
+    auto make_load_mnemonic() const -> object override;
 
-    auto make_store_mnemonic() const -> value_type override;
+    auto make_store_mnemonic() const -> object override;
   };
 
   auto operator ==(relative const&, relative const&) -> bool;
@@ -87,11 +87,11 @@ inline namespace kernel
   {
     using relative::relative;
 
-    auto load(const_reference e) const -> const_reference override;
+    auto load(object const& e) const -> object const& override;
 
-    auto make_load_mnemonic() const -> value_type override;
+    auto make_load_mnemonic() const -> object override;
 
-    auto make_store_mnemonic() const -> value_type override;
+    auto make_store_mnemonic() const -> object override;
   };
 } // namespace kernel
 } // namespace meevax

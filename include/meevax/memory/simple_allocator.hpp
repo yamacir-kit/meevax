@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
 #define INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
 
+#include <utility> // std::exchange
+
 #include <meevax/memory/literal.hpp>
 
 namespace meevax

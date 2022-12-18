@@ -20,7 +20,6 @@
 #include <cstddef>
 #include <cmath>
 #include <iomanip>
-#include <memory>
 #include <ostream>
 #include <typeinfo>
 
@@ -68,7 +67,7 @@ inline namespace memory
     static constexpr std::uintptr_t signature_T_0b110 = 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
     static constexpr std::uintptr_t signature_T_0b111 = 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
 
-    explicit nan_boxing_pointer(nan_boxing_pointer const&) = default;
+    explicit constexpr nan_boxing_pointer(nan_boxing_pointer const&) = default;
 
     auto reset(nan_boxing_pointer const& value) -> void
     {

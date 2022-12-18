@@ -42,7 +42,7 @@ inline namespace kernel
       return static_cast<Environment const&>(*this).fork(std::forward<decltype(xs)>(xs)...);
     }
 
-    using environment = Environment;
+    using environment = Environment; // hack
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -50,17 +50,17 @@ inline namespace kernel
         c, // code (instructions yet to be executed)
         d; // dump (s e c . d)
 
-    std::array<let, 3> a;                                                     /*
-
+    /*
        Auxiliary register.
 
        a[0] is used for current-dynamic-extents.
        a[1] is used for current-dynamic-bindings.
        a[2] is used for current-exception-handler.
-       a[3] is currently unused.                                              */
+       a[3] is currently unused.
+    */
+    std::array<let, 3> a;
 
-    let static inline raise = unit;                                           /*
-
+    /*
        raise is a one-argument procedure for propagating C++ exceptions thrown
        in the Meevax kernel to the exception handler of the language running on
        the Meevax kernel.
@@ -71,7 +71,9 @@ inline namespace kernel
 
        Although raise can be set to any one-argument procedure by procedure
        `kernel-exception-handler-set!`, it is basically assumed to be set to
-       R7RS Scheme's standard procedure `raise`.                              */
+       R7RS Scheme's standard procedure `raise`.
+    */
+    let static inline raise = unit;
 
     struct transformer
     {
@@ -79,26 +81,14 @@ inline namespace kernel
 
       let const mac_env;
 
-      explicit transformer(const_reference expression, const_reference mac_env)
+      explicit transformer(object const& expression, object const& mac_env)
         : expression { expression }
         , mac_env { mac_env }
       {
         assert(expression.is<closure>());
       }
 
-      auto apply(const_reference f, const_reference xs)
-      {
-        Environment expander;
-
-        expander.s = list(f, xs);
-        expander.e = unit;
-        expander.c = list(make(mnemonic::call), make(mnemonic::stop));
-        expander.d = unit;
-
-        return expander.execute();
-      }
-
-      auto expand(const_reference form, const_reference use_env) /* ------------
+      auto expand(object const& form, object const& use_env) /* ----------------
       *
       *  Scheme programs can define and use new derived expression types,
       *  called macros. Program-defined expression types have the syntax
@@ -129,7 +119,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        return apply(expression, list(form, use_env, mac_env));
+        return Environment().apply(expression, form, use_env, mac_env);
       }
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
@@ -153,10 +143,10 @@ inline namespace kernel
                                  let const& expression)
         : syntactic_environment { syntactic_environment }
         , expression { expression }
-        , identity { syntactic_environment.as<environment>().identify(expression, syntactic_environment.as<environment>().scope()) }
+        , identity { syntactic_environment.as<environment>().identify(expression) }
       {}
 
-      auto identify_with_offset(const_reference use_env_scope) -> value_type
+      auto identify_with_offset(object const& use_env_scope) -> object
       {
         if (identity.is<relative>())
         {
@@ -200,11 +190,11 @@ inline namespace kernel
     };
 
   public:
-    static auto compile(context         current_context,
-                        environment &   current_environment,
-                        const_reference current_expression,
-                        const_reference current_scope = unit,
-                        const_reference current_continuation = list(make(mnemonic::stop))) -> value_type
+    static auto compile(context       current_context,
+                        environment & current_environment,
+                        object const& current_expression,
+                        object const& current_scope = unit,
+                        object const& current_continuation = list(make(mnemonic::stop))) -> object
     {
       if (current_expression.is<null>()) /* ------------------------------------
       *
@@ -237,7 +227,7 @@ inline namespace kernel
         }
         else if (current_expression.is<syntactic_closure>())
         {
-          if (let const& id = std::as_const(current_environment).identify(current_expression, current_scope); select(id))
+          if (let const& id = std::as_const(current_environment).identify(current_expression, current_scope); is_truthy(id))
           {
             return cons(id.as<identity>().make_load_mnemonic(), id,
                         current_continuation);
@@ -343,10 +333,10 @@ inline namespace kernel
       }
     }
 
-    template <auto trace = false>
-    inline auto execute() -> value_type try
+    template <auto trace>
+    inline auto run_() -> object try
     {
-    decode:
+    fetch:
       if constexpr (trace)
       {
         std::cerr << faint("; s = ") << s << "\n"
@@ -393,7 +383,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(cadr(c).template as<identity>().load(e), s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::load_constant: /* -----------------------------------------
         *
@@ -402,7 +392,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(cadr(c), s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::load_closure: /* ------------------------------------------
         *
@@ -413,7 +403,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(make<closure>(cadr(c), e), s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::load_continuation: /* -------------------------------------
         *
@@ -424,7 +414,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(list(make<continuation>(s, e, cadr(c), d)), s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::load_auxiliary: /* ----------------------------------------
         *
@@ -433,7 +423,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(a[cadr(c).template as<exact_integer>()], s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::select: /* ------------------------------------------------
         *
@@ -452,9 +442,9 @@ inline namespace kernel
         *  where c' = (if <boolean> c1 c2)
         *
         * ------------------------------------------------------------------- */
-        c = select(car(s)) ? cadr(c) : caddr(c);
+        c = is_truthy(car(s)) ? cadr(c) : caddr(c);
         s = cdr(s);
-        goto decode;
+        goto fetch;
 
       case mnemonic::join: /* --------------------------------------------------
         *
@@ -464,7 +454,7 @@ inline namespace kernel
         assert(cdr(c).template is<null>());
         c = car(d);
         d = cdr(d);
-        goto decode;
+        goto fetch;
 
       case mnemonic::define: /* ------------------------------------------------
         *
@@ -475,7 +465,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         cadr(c).template as<absolute>().load() = car(s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::define_syntax: /* -----------------------------------------
         *
@@ -487,7 +477,7 @@ inline namespace kernel
         assert(car(s).template is<closure>());
         cadr(c).template as<absolute>().load() = make<transformer>(car(s), fork());
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::let_syntax: /* --------------------------------------------
         *
@@ -506,9 +496,7 @@ inline namespace kernel
           {
             let & binding = keyword_.as<keyword>().load();
 
-            c = binding;
-
-            binding = make<transformer>(execute(), syntactic_environment);
+            binding = make<transformer>(execute(binding), syntactic_environment);
           }
 
           c = c_;
@@ -523,7 +511,7 @@ inline namespace kernel
                             cdr(current_scope),
                             cddr(c)).template as<pair>());
         }();
-        goto decode;
+        goto fetch;
 
       case mnemonic::letrec_syntax: /* -----------------------------------------
         *
@@ -556,7 +544,7 @@ inline namespace kernel
                             cddr(c)
                            ).template as<pair>());
         }();
-        goto decode;
+        goto fetch;
 
       case mnemonic::tail_call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
@@ -570,7 +558,7 @@ inline namespace kernel
           c =               callee.as<closure>().c();
           e = cons(cadr(s), callee.as<closure>().e());
           s = unit;
-          goto decode;
+          goto fetch;
         }
         [[fallthrough]]; // This is inefficient because the type check occurs twice, but currently the performance difference caused by this is too small.
 
@@ -587,7 +575,7 @@ inline namespace kernel
           c =               callee.as<closure>().c();
           e = cons(cadr(s), callee.as<closure>().e());
           s = unit;
-          goto decode;
+          goto fetch;
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
         *
@@ -599,7 +587,7 @@ inline namespace kernel
         {
           s = cons(callee.as<procedure>().call(cadr(s)), cddr(s));
           c = cdr(c);
-          goto decode;
+          goto fetch;
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
@@ -613,7 +601,7 @@ inline namespace kernel
           e =                callee.as<continuation>().e();
           c =                callee.as<continuation>().c();
           d =                callee.as<continuation>().d();
-          goto decode;
+          goto fetch;
         }
         else
         {
@@ -627,7 +615,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         e = cons(unit, e);
         c = cdr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::letrec: /* ------------------------------------------------
         *
@@ -641,7 +629,7 @@ inline namespace kernel
         c = caar(s);
         e = cdar(s);
         s = unit;
-        goto decode;
+        goto fetch;
 
       case mnemonic::return_: /* -----------------------------------------------
         *
@@ -652,7 +640,7 @@ inline namespace kernel
         e = cadr(d);
         c = caddr(d);
         d = cdddr(d);
-        goto decode;
+        goto fetch;
 
       case mnemonic::cons: /* --------------------------------------------------
         *
@@ -661,7 +649,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(cons(car(s), cadr(s)), cddr(s));
         c = cdr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::drop: /* --------------------------------------------------
         *
@@ -670,7 +658,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cdr(s);
         c = cdr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::store_absolute: /* ----------------------------------------
         *
@@ -695,7 +683,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         cadr(c).template as<identity>().load(e) = car(s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       case mnemonic::store_auxiliary: /* ---------------------------------------
         *
@@ -704,7 +692,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         a[cadr(c).template as<exact_integer>()] = car(s);
         c = cddr(c);
-        goto decode;
+        goto fetch;
 
       default: // ERROR
       case mnemonic::stop: /* --------------------------------------------------
@@ -714,8 +702,8 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         return [this]()
         {
-          assert(cdr(s).template is<null>());
-          assert(cdr(c).template is<null>());
+          assert(not cdr(s));
+          assert(not cdr(c));
 
           let const x = car(s);
 
@@ -735,7 +723,34 @@ inline namespace kernel
       return reraise(make(error));
     }
 
-    static auto identify(const_reference variable, const_reference scope) -> value_type
+    bool trace = false;
+
+    inline auto run() -> object
+    {
+      assert(c);
+
+      return trace ? run_<true>() : run_<false>();
+    }
+
+    inline auto execute(object const& instructions) -> object
+    {
+      assert(not s);
+
+      c = instructions;
+
+      return run();
+    }
+
+    template <typename... Ts>
+    inline auto apply(object const& f, Ts&&... xs) -> object
+    {
+      s = list(f, list(std::forward<decltype(xs)>(xs)...));
+      c = list(make(mnemonic::call), make(mnemonic::stop));
+
+      return run();
+    }
+
+    static auto identify(object const& variable, object const& scope) -> object
     {
       for (auto outer = std::begin(scope); outer != std::end(scope); ++outer)
       {
@@ -769,7 +784,7 @@ inline namespace kernel
       return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().identify_with_offset(scope) : f;
     }
 
-    inline auto reraise(const_reference x) -> value_type
+    inline auto reraise(object const& x) -> object
     {
       if (raise.is<null>())
       {
@@ -778,10 +793,7 @@ inline namespace kernel
       }
       else
       {
-        s = list(raise, list(x));
-        c = list(make(mnemonic::tail_call), make(mnemonic::stop));
-
-        return execute();
+        return apply(raise, x);
       }
     }
 
@@ -794,7 +806,6 @@ inline namespace kernel
       d = unit;
     }
 
-  protected:
     static SYNTAX(set) /* ------------------------------------------------------
     *
     *  (set! <variable> <expression>)                                    syntax
@@ -843,7 +854,7 @@ inline namespace kernel
 
     static SYNTAX(body)
     {
-      auto is_definition = [&](const_reference form)
+      auto is_definition = [&](object const& form)
       {
         if (form.is<pair>())
         {
@@ -859,7 +870,7 @@ inline namespace kernel
         return false;
       };
 
-      auto sweep = [&](const_reference form)
+      auto sweep = [&](object const& form)
       {
         let binding_specs = unit;
 
@@ -913,11 +924,11 @@ inline namespace kernel
                        current_environment,
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs),
-                                 append2(map1([](const_reference binding_spec)
-                                             {
-                                               return cons(make<syntax>("set!", set), binding_spec);
-                                             },
-                                             binding_specs),
+                                 append2(map1([](let const& binding_spec)
+                                              {
+                                                return cons(make<syntax>("set!", set), binding_spec);
+                                              },
+                                              binding_specs),
                                          body)),
                             make_list(length(binding_specs), unit)),
                        current_scope,
@@ -930,11 +941,11 @@ inline namespace kernel
                        car(current_expression),
                        current_scope,
                        cons(make(mnemonic::drop),
-                            begin(current_context,
-                                  current_environment,
-                                  cdr(current_expression),
-                                  current_scope,
-                                  current_continuation)));
+                            sequence(current_context,
+                                     current_environment,
+                                     cdr(current_expression),
+                                     current_scope,
+                                     current_continuation)));
       }
     }
 
@@ -1358,7 +1369,7 @@ inline namespace kernel
       }
     }
 
-    static SYNTAX(begin) /* ----------------------------------------------------
+    static SYNTAX(sequence) /* -------------------------------------------------
     *
     *  Both of Scheme's sequencing constructs are named begin, but the two
     *  have slightly different forms and uses:
@@ -1399,11 +1410,11 @@ inline namespace kernel
                        car(current_expression), // head expression
                        current_scope,
                        cons(make(mnemonic::drop), // pop result of head expression
-                            begin(current_context,
-                                  current_environment,
-                                  cdr(current_expression), // rest expressions
-                                  current_scope,
-                                  current_continuation)));
+                            sequence(current_context,
+                                     current_environment,
+                                     cdr(current_expression), // tail expressions
+                                     current_scope,
+                                     current_continuation)));
       }
     }
   };

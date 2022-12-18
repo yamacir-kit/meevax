@@ -21,24 +21,24 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto environment::define(const_reference name, const_reference value) -> void
+  auto environment::define(object const& name, object const& value) -> void
   {
     (*this)[name] = value;
   }
 
-  auto environment::define(std::string const& name, const_reference value) -> void
+  auto environment::define(std::string const& name, object const& value) -> void
   {
     define(string_to_symbol(name), value);
   }
 
-  auto environment::evaluate(const_reference expression) -> value_type try
+  auto environment::evaluate(object const& expression) -> object try
   {
-    if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "define-library")
+    if (car(expression).is<symbol>() and car(expression).as<symbol>() == "define-library")
     {
       define_library(lexical_cast<std::string>(cadr(expression)), cddr(expression));
       return cadr(expression);
     }
-    else if (car(expression).is<symbol>() and car(expression).as<symbol>().value == "import")
+    else if (car(expression).is<symbol>() and car(expression).as<symbol>() == "import")
     {
       for (let const& form : cdr(expression))
       {
@@ -49,24 +49,36 @@ inline namespace kernel
     }
     else
     {
-      assert(s.is<null>());
-      assert(e.is<null>());
-      assert(c.is<null>());
-      assert(d.is<null>());
+      /*
+         In most cases, the s, e, c, and d registers are all null when evaluate
+         is called. However, if environment::evaluate of the same environment
+         is called during the execution of environment::evaluate, this is not
+         the case, so it is necessary to save the register. For example,
+         situations like evaluating
+           (eval <expression> (interaction-environment))
+         in the REPL.
+      */
+      if (s or e or c)
+      {
+        d = cons(std::exchange(s, unit),
+                 std::exchange(e, unit),
+                 std::exchange(c, unit), d);
+      }
 
-      c = optimize(compile(context(), *this, expression, scope()));
+      let const result = execute(optimize(compile(context(), *this, expression, scope())));
 
-      let const result = execute();
-
-      assert(s.is<null>());
-      assert(e.is<null>());
-      assert(c.is<null>());
-      assert(d.is<null>());
+      if (d)
+      {
+        s = d[0];
+        e = d[1];
+        c = d[2];
+        d = list_tail(d, 3);
+      }
 
       return result;
     }
   }
-  catch (const_reference x)
+  catch (object const& x)
   {
     if (x.is_also<error>())
     {
@@ -79,40 +91,29 @@ inline namespace kernel
     }
   }
 
-  auto environment::execute() -> value_type
-  {
-    return trace ? machine::execute<true>() : machine::execute();
-  }
-
-  auto environment::execute(const_reference code) -> value_type
-  {
-    c = code;
-    return execute();
-  }
-
-  auto environment::fork() const -> value_type
+  auto environment::fork() const -> object
   {
     return make<environment>(*this);
   }
 
-  auto environment::fork(const_reference scope) const -> value_type
+  auto environment::fork(object const& scope) const -> object
   {
     let const copy = make<environment>(*this);
     copy.as<environment>().scope() = scope;
     return copy;
   }
 
-  auto environment::global() const noexcept -> const_reference
+  auto environment::global() const noexcept -> object const&
   {
     return second;
   }
 
-  auto environment::global() noexcept -> reference
+  auto environment::global() noexcept -> object &
   {
     return second;
   }
 
-  auto environment::load(std::string const& s) -> value_type
+  auto environment::load(std::string const& s) -> object
   {
     if (let port = make<file_port>(s); port and port.as<file_port>().is_open())
     {
@@ -130,23 +131,23 @@ inline namespace kernel
     }
   }
 
-  auto environment::scope() const noexcept -> const_reference
+  auto environment::scope() const noexcept -> object const&
   {
     return first;
   }
 
-  auto environment::scope() noexcept -> reference
+  auto environment::scope() noexcept -> object &
   {
     return first;
   }
 
-  auto environment::identify(const_reference variable, const_reference scope) const -> value_type
+  auto environment::identify(object const& variable, object const& scope) const -> object
   {
     if (not variable.is_also<identifier>())
     {
       return f;
     }
-    else if (let const& identity = machine::identify(variable, scope); select(identity))
+    else if (let const& identity = machine::identify(variable, scope); is_truthy(identity))
     {
       return identity;
     }
@@ -156,13 +157,18 @@ inline namespace kernel
     }
   }
 
-  auto environment::identify(const_reference variable, const_reference scope) -> value_type
+  auto environment::identify(object const& variable) const -> object
+  {
+    return identify(variable, scope());
+  }
+
+  auto environment::identify(object const& variable, object const& scope) -> object
   {
     if (not variable.is_also<identifier>())
     {
       return f;
     }
-    if (let const& id = std::as_const(*this).identify(variable, scope); select(id))
+    if (let const& id = std::as_const(*this).identify(variable, scope); is_truthy(id))
     {
       return id;
     }
@@ -187,17 +193,9 @@ inline namespace kernel
     }
   }
 
-  auto operator >>(std::istream & is, environment & datum) -> std::istream &
+  auto environment::identify(object const& variable) -> object
   {
-    print("environment::operator >>(std::istream &, environment &)");
-    print("read new expression => ", datum.read(is));
-
-    return is;
-  }
-
-  auto operator <<(std::ostream & os, environment &) -> std::ostream &
-  {
-    return write(os, "environment::operator <<(std::ostream &, environment &)\n");
+    return identify(variable, scope());
   }
 
   auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &

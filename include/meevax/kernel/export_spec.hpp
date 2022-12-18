@@ -29,9 +29,9 @@ inline namespace kernel
   {
     let const form;
 
-    explicit export_spec(const_reference);
+    explicit export_spec(object const&);
 
-    auto resolve(library &) const -> const_reference;
+    auto resolve(library &) const -> object const&;
   };
 } // namespace kernel
 } // namespace meevax

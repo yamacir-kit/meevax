@@ -21,8 +21,9 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
+#include <meevax/kernel/procedure.hpp>
+#include <meevax/kernel/syntax.hpp>
 #include <meevax/kernel/version.hpp>
-#include <meevax/kernel/writer.hpp>
 
 namespace meevax
 {
@@ -37,145 +38,45 @@ inline namespace kernel
     {}
 
   public:
-    static inline auto batch       = false;
-    static inline auto debug       = false;
     static inline auto interactive = true;
-    static inline auto trace       = false;
-
-    static auto display_version() -> void
-    {
-      print("Meevax Lisp ", version());
-    }
 
     static auto display_help() -> void
     {
-      display_version();
-      print();
-      print("Usage: meevax [OPTION...] [FILE...]");
-      print();
-      print("Options:");
-      print("  -b, --batch            Suppress any system output.");
-      print("  -d, --debug            Deprecated.");
-      print("  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.");
-      print("  -h, --help             Display this help text and exit.");
-      print("  -i, --interactive      Take over control of root environment.");
-      print("  -l, --load=FILENAME    Same as -e '(load FILENAME)'");
-      print("  -t, --trace            Display stacks of virtual machine for each steps.");
-      print("  -v, --version          Display version information and exit.");
-      print("  -w, --write=OBJECT     Same as -e '(write OBJECT)'");
+      std::cout << "Meevax Lisp " << version() << "\n"
+                << "\n"
+                   "Usage: meevax [OPTION...] [FILE...]\n"
+                   "\n"
+                   "Options:\n"
+                   "  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.\n"
+                   "  -h, --help             Display this help text and exit.\n"
+                   "  -i, --interactive      Take over control of root environment.\n"
+                   "  -l, --load=FILENAME    Same as -e '(load FILENAME)'\n"
+                   "  -t, --trace            Display stacks of virtual machine for each steps.\n"
+                   "  -v, --version          Display version information and exit.\n"
+                   "  -w, --write=OBJECT     Same as -e '(write OBJECT)'\n"
+                << std::flush;
     }
 
-  private:
-    template <typename Key>
-    using dispatcher = std::unordered_map<Key, std::function<void (const_reference)>>;
-
-    static inline const dispatcher<char> short_options
+    struct option
     {
-      std::make_pair('b', [](auto&&...)
-      {
-        batch = true;
-      }),
+      let const operation;
 
-      std::make_pair('d', [](auto&&...)
-      {
-        debug = true;
-      }),
+      bool const requires_an_argument;
 
-      std::make_pair('h', [](auto&&...)
-      {
-        configurator::display_help();
-        throw success;
-      }),
+      template <typename S, typename F>
+      explicit option(S&& s, F&& f)
+        : operation { make<procedure>(std::forward<decltype(s)>(s),
+                                      std::forward<decltype(f)>(f)) }
+        , requires_an_argument { not std::is_invocable_v<F> }
+      {}
 
-      std::make_pair('i', [](auto&&...)
+      template <typename... Ts>
+      auto match(Ts&&... xs) const
       {
-        interactive = true;
-      }),
-
-      std::make_pair('t', [](auto&&...)
-      {
-        trace = true;
-      }),
-
-      std::make_pair('v', [](auto&&...)
-      {
-        configurator::display_version();
-        throw success;
-      }),
+        return std::regex_match(std::forward<decltype(xs)>(xs)..., std::regex(operation.as<procedure>().name));
+      }
     };
 
-    static inline const dispatcher<char> short_options_with_arguments
-    {
-      std::make_pair('e', [](auto&& x)
-      {
-        print(interaction_environment().as<Environment>().evaluate(x));
-      }),
-
-      std::make_pair('l', [](auto&& x)
-      {
-        interaction_environment().as<Environment>().load(x.template as_const<symbol>());
-      }),
-
-      std::make_pair('w', [](auto&& x)
-      {
-        print(x);
-      }),
-    };
-
-    static inline const dispatcher<std::string> long_options
-    {
-      std::make_pair("batch", [](auto&&...)
-      {
-        batch = true;
-      }),
-
-      std::make_pair("debug", [](auto&&...)
-      {
-        debug = true;
-      }),
-
-      std::make_pair("help", [](auto&&...)
-      {
-        display_help();
-        throw success;
-      }),
-
-      std::make_pair("interactive", [](auto&&...)
-      {
-        interactive = true;
-      }),
-
-      std::make_pair("trace", [](auto&&...)
-      {
-        trace = true;
-      }),
-
-      std::make_pair("version", [](auto&&...)
-      {
-        display_version();
-        throw success;
-      }),
-    };
-
-    static inline const dispatcher<std::string> long_options_with_arguments
-    {
-      std::make_pair("evaluate", [](auto&& x)
-      {
-        print(interaction_environment().as<Environment>().evaluate(x));
-      }),
-
-      std::make_pair("load", [](auto&& x)
-      {
-        interaction_environment().as<Environment>().load(x.template as_const<string>());
-      }),
-
-      std::make_pair("write", [](auto&& x)
-      {
-        print(x);
-      }),
-    };
-
-  public:
     auto configure(const int argc, char const* const* const argv)
     {
       return configure({ argv + 1, argv + argc });
@@ -190,83 +91,129 @@ inline namespace kernel
         return interaction_environment().as<Environment>().read(std::forward<decltype(xs)>(xs)...);
       };
 
-      for (auto current_option = std::begin(args); current_option != std::end(args); ++current_option) [&]()
+      std::vector<option> options
       {
-        std::smatch analysis {};
-
-        std::regex_match(*current_option, analysis, pattern);
-
-        // std::cout << header("configure") << "analysis[0] = " << analysis[0] << std::endl;
-        // std::cout << header("")          << "analysis[1] = " << analysis[1] << std::endl;
-        // std::cout << header("")          << "analysis[2] = " << analysis[2] << std::endl;
-        // std::cout << header("")          << "analysis[3] = " << analysis[3] << std::endl;
-        // std::cout << header("")          << "analysis[4] = " << analysis[4] << std::endl;
-
-        if (auto const& current_short_options = analysis.str(4); not current_short_options.empty())
+        option("(i|interactive)", []()
         {
-          for (auto current_short_option = std::cbegin(current_short_options); current_short_option != std::cend(current_short_options); ++current_short_option)
-          {
-            if (auto iter = short_options_with_arguments.find(*current_short_option); iter != std::end(short_options_with_arguments))
-            {
-              if (auto const& [name, perform] = *iter; std::next(current_short_option) != std::end(current_short_options))
-              {
-                return perform(read(std::string(std::next(current_short_option), std::end(current_short_options))));
-              }
-              else if (++current_option != std::end(args) and not std::regex_match(*current_option, analysis, pattern))
-              {
-                return perform(read(*current_option));
-              }
-              else
-              {
-                throw error(make<string>("option requires an argument"),
-                            make<symbol>(lexical_cast<std::string>("-", name)));
-              }
-            }
-            else if (auto iter = short_options.find(*current_short_option); iter != std::end(short_options))
-            {
-              cdr(*iter)(unit);
-            }
-            else
-            {
-              throw error(make<string>("unknown option"),
-                          make<symbol>(lexical_cast<std::string>("-", *current_short_option)));
-            }
-          }
+          interactive = true;
+        }),
+
+        option("(t|trace)", [this]()
+        {
+          static_cast<Environment &>(*this).trace = true;
+        }),
+
+        option("(e|evaluate)", [this](let const& xs)
+        {
+          return static_cast<Environment &>(*this).evaluate(xs[0]);
+        }),
+
+        option("(h|help)", []()
+        {
+          display_help();
+          throw success;
+        }),
+
+        option("(l|load)", [this](let const& xs)
+        {
+          static_cast<Environment &>(*this).load(xs[0].as<string>());
+          return unit;
+        }),
+
+        option("(v|version)", []()
+        {
+          std::cout << version() << std::endl;
+          throw success;
+        }),
+
+        option("(w|write)", [](let const& xs)
+        {
+          std::cout << xs[0] << std::endl;
+          return unit;
+        }),
+      };
+
+      auto search = [&](auto&& name) -> auto const&
+      {
+        if (auto iter = std::find_if(std::begin(options), std::end(options), [&](auto&& option)
+                        {
+                          return option.match(name);
+                        });
+            iter != std::end(options))
+        {
+          return *iter;
         }
-        else if (auto const current_long_option = analysis.str(1); not current_long_option.empty())
+        else
         {
-          if (auto iter = long_options_with_arguments.find(current_long_option); iter != std::cend(long_options_with_arguments))
+          throw error(make<string>("unknown option"), make<symbol>(name));
+        }
+      };
+
+      std::vector<object> expressions {};
+
+      let const quote = make<syntax>("quote", Environment::quote);
+
+      for (auto iter = std::begin(args); iter != std::end(args); ++iter)
+      {
+        static std::regex const pattern { R"(--(\w[-\w]+)(?:=(.*))?|-([\w]+))" };
+
+        auto read_argument = [&]()
+        {
+          if (std::next(iter) != std::cend(args))
           {
-            if (analysis.length(2)) // argument part
-            {
-              return cdr(*iter)(read(analysis.str(3)));
-            }
-            else if (++current_option != std::end(args) and not std::regex_match(*current_option, analysis, pattern))
-            {
-              return cdr(*iter)(read(*current_option));
-            }
-            else
-            {
-              throw error(make<string>("option requires an argument"),
-                          make<symbol>(lexical_cast<std::string>("--", current_long_option)));
-            }
-          }
-          else if (auto iter = long_options.find(current_long_option); iter != std::end(long_options))
-          {
-            return cdr(*iter)(unit);
+            return read(*++iter);
           }
           else
           {
-            throw error(make<string>("unknown option"),
-                        make<symbol>(lexical_cast<std::string>("--", current_long_option)));
+            throw error(make<string>("an argument required but not specified"),
+                        make<symbol>(*iter));
+          }
+        };
+
+        if (std::smatch result; std::regex_match(*iter, result, pattern))
+        {
+          if (result.length(3))
+          {
+            for (auto str3 = result.str(3); not str3.empty(); str3.erase(0, 1))
+            {
+              if (auto&& option = search(str3.substr(0, 1)); option.requires_an_argument)
+              {
+                expressions.push_back(list(option.operation, list(quote, 1 < str3.length() ? read(str3.substr(1)) : read_argument())));
+                break;
+              }
+              else
+              {
+                expressions.push_back(list(option.operation));
+              }
+            }
+          }
+          else if (result.length(2))
+          {
+            expressions.push_back(list(search(result.str(1)).operation, list(quote, read(result.str(2)))));
+          }
+          else if (result.length(1))
+          {
+            if (auto&& option = search(result.str(1)); option.requires_an_argument)
+            {
+              expressions.push_back(list(option.operation, list(quote, read_argument())));
+            }
+            else
+            {
+              expressions.push_back(list(option.operation));
+            }
           }
         }
         else
         {
+          expressions.push_back(list(search("load").operation, make<string>(*iter)));
           interactive = false;
-          interaction_environment().as<Environment>().load(*current_option);
         }
-      }();
+      }
+
+      for (auto&& expression : expressions)
+      {
+        static_cast<Environment &>(*this).evaluate(expression);
+      }
     }
   };
 } // namespace kernel

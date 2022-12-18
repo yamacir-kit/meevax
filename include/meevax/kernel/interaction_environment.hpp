@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto interaction_environment() -> const_reference;
+  auto interaction_environment() -> object const&;
 } // namespace kernel
 } // namespace meevax
 

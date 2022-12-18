@@ -17,23 +17,21 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
 
-#include <iterator> // std::begin, std::end, std::distance
-
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct iterator : public std::reference_wrapper<const value_type>
+  struct iterator : public std::reference_wrapper<const object>
   {
     using iterator_category = std::forward_iterator_tag;
 
-    using value_type = meevax::value_type;
+    using value_type = object;
 
-    using reference = meevax::reference;
+    using reference = std::add_lvalue_reference_t<value_type>;
 
-    using const_reference = meevax::const_reference;
+    using const_reference = std::add_const_t<reference>;
 
     using pointer = std::add_pointer_t<value_type>;
 
@@ -41,8 +39,8 @@ inline namespace kernel
 
     using size_type = std::size_t;
 
-    iterator(const_reference x)
-      : std::reference_wrapper<const value_type> { std::cref(x) }
+    iterator(object const& x)
+      : std::reference_wrapper<const object> { std::cref(x) }
     {}
 
     auto operator *() const -> const_reference;
@@ -67,13 +65,13 @@ inline namespace kernel
 
 namespace std
 {
-  auto begin(meevax::const_reference) -> meevax::iterator;
+  auto begin(meevax::object const&) -> meevax::iterator;
 
-  auto cbegin(meevax::const_reference) -> meevax::iterator;
+  auto cbegin(meevax::object const&) -> meevax::iterator;
 
-  auto cend(meevax::const_reference) -> meevax::iterator const&;
+  auto cend(meevax::object const&) -> meevax::iterator const&;
 
-  auto end(meevax::const_reference) -> meevax::iterator const&;
+  auto end(meevax::object const&) -> meevax::iterator const&;
 } // namespace std
 
 #endif // INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP

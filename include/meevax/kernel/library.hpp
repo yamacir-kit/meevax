@@ -45,7 +45,7 @@ inline namespace kernel
       std::invoke(std::forward<decltype(f)>(f), *this);
     }
 
-    explicit library(const_reference);
+    explicit library(object const&);
 
     static auto boot() -> void;
 
@@ -69,14 +69,18 @@ inline namespace kernel
       declare<export_spec>(read(name));
     }
 
-    auto evaluate(const_reference) -> void;
+    auto evaluate(object const&) -> void;
 
-    auto resolve() -> const_reference;
+    auto resolve() -> object const&;
   };
 
   auto operator <<(std::ostream &, library const&) -> std::ostream &;
 
-  extern std::unordered_map<std::string, library> libraries;
+  /*
+     NOTE: In order to improve the usability of the help procedure, it is
+     desirable to sort by library name in lexicographical order.
+  */
+  extern std::map<std::string, library> libraries;
 
   template <typename... Ts>
   auto define_library(std::string const& name, Ts&&... xs)

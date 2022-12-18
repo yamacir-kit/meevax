@@ -14,34 +14,17 @@
    limitations under the License.
 */
 
-#include <meevax/memory/tracer.hpp>
+#ifndef INCLUDED_MEEVAX_KERNEL_DESCRIBE_HPP
+#define INCLUDED_MEEVAX_KERNEL_DESCRIBE_HPP
+
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
-inline namespace memory
+inline namespace kernel
 {
-  tracer::tracer(void * const base, std::size_t const size, deallocator const deallocate)
-    : base { base }
-    , size { size }
-    , deallocate { deallocate }
-  {}
-
-  tracer::~tracer()
-  {
-    if (size and deallocate)
-    {
-      deallocate(base);
-    }
-  }
-
-  auto tracer::contains(std::uintptr_t const k) const noexcept -> bool
-  {
-    return begin() <= k and k < end();
-  }
-
-  auto tracer::contains(void const* const derived) const noexcept -> bool
-  {
-    return contains(reinterpret_cast<std::uintptr_t>(derived));
-  }
-} // namespace memory
+  auto describe(object const&, object const&) -> void;
+} // namespace kernel
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_KERNEL_DESCRIBE_HPP

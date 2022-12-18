@@ -144,7 +144,7 @@ inline namespace kernel
   }
 
   template <>
-  auto read<character>(std::istream & is) -> value_type
+  auto read<character>(std::istream & is) -> object
   {
     std::unordered_map<std::string, character::int_type> static const character_names {
       { "alarm"    , 0x07 },
@@ -190,7 +190,7 @@ inline namespace kernel
   }
 
   template <>
-  auto read<string>(std::istream & is) -> value_type
+  auto read<string>(std::istream & is) -> object
   {
     auto s = string();
 
@@ -241,12 +241,12 @@ inline namespace kernel
     throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
   }
 
-  auto string_to_integer(std::string const& token, int radix) -> value_type
+  auto string_to_integer(std::string const& token, int radix) -> object
   {
     return make<exact_integer>(token, radix);
   }
 
-  auto string_to_rational(std::string const& token, int radix) -> value_type
+  auto string_to_rational(std::string const& token, int radix) -> object
   {
     try
     {
@@ -258,7 +258,7 @@ inline namespace kernel
     }
   }
 
-  auto string_to_real(std::string const& token, int radix) -> value_type
+  auto string_to_real(std::string const& token, int radix) -> object
   {
     try
     {
@@ -309,7 +309,7 @@ inline namespace kernel
     }
   }
 
-  auto string_to_complex(std::string const& token, int radix) -> value_type
+  auto string_to_complex(std::string const& token, int radix) -> object
   {
     try
     {
@@ -321,7 +321,7 @@ inline namespace kernel
     }
   }
 
-  auto string_to_number(std::string const& token, int radix) -> value_type
+  auto string_to_number(std::string const& token, int radix) -> object
   {
     try
     {

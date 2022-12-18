@@ -29,7 +29,7 @@ inline namespace kernel
   {
     let const identities;
 
-    explicit import_set(const_reference);
+    explicit import_set(object const&);
 
     explicit import_set(std::string const&);
 

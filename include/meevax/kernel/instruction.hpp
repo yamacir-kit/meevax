@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto disassemble(std::ostream &, const_reference, std::size_t = 1) -> void;
+  auto disassemble(std::ostream &, object const&, std::size_t = 1) -> void;
 } // namespace kernel
 } // namespace meevax
 

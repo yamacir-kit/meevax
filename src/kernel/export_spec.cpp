@@ -20,23 +20,23 @@ namespace meevax
 {
 inline namespace kernel
 {
-  export_spec::export_spec(const_reference form)
+  export_spec::export_spec(object const& form)
     : form { form }
   {}
 
-  auto export_spec::resolve(library & library) const -> const_reference
+  auto export_spec::resolve(library & library) const -> object const&
   {
     auto identity = [&]()
     {
       if (form.is<pair>())
       {
         assert(form[0].is<symbol>());
-        assert(form[0].as<symbol>().value == "rename");
-        return make<absolute>(form[2], library.identify(form[1], unit));
+        assert(form[0].as<symbol>() == "rename");
+        return make<absolute>(form[2], library.identify(form[1]));
       }
       else
       {
-        return library.identify(form, unit);
+        return library.identify(form);
       }
     };
 

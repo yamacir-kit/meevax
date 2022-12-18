@@ -22,11 +22,11 @@
 
 #define SYNTAX(NAME)                                                           \
   auto NAME(                                                                   \
-    [[maybe_unused]] context         current_context,                          \
-    [[maybe_unused]] environment &   current_environment,                      \
-    [[maybe_unused]] const_reference current_expression,                       \
-    [[maybe_unused]] const_reference current_scope,                            \
-    [[maybe_unused]] const_reference current_continuation) -> value_type
+    [[maybe_unused]] context       current_context,                            \
+    [[maybe_unused]] environment & current_environment,                        \
+    [[maybe_unused]] object const& current_expression,                         \
+    [[maybe_unused]] object const& current_scope,                              \
+    [[maybe_unused]] object const& current_continuation) -> object
 
 namespace meevax
 {

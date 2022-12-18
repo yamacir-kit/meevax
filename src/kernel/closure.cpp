@@ -20,12 +20,12 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto closure::c() const -> const_reference
+  auto closure::c() const -> object const&
   {
     return first;
   }
 
-  auto closure::e() const -> const_reference
+  auto closure::e() const -> object const&
   {
     return second;
   }

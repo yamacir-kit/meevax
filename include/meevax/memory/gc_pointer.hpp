@@ -26,25 +26,25 @@ inline namespace memory
 {
   template <typename... Ts>
   struct gc_pointer : public nan_boxing_pointer<Ts...>
-                    , private collector::traceable
+                    , private collector::registration
   {
-    explicit gc_pointer(std::nullptr_t = nullptr)
+    explicit constexpr gc_pointer(std::nullptr_t = nullptr)
     {}
 
     template <typename T, REQUIRES(std::is_scalar<T>)>
     explicit gc_pointer(T const& datum)
       : nan_boxing_pointer<Ts...> { datum }
-      , collector::traceable { nan_boxing_pointer<Ts...>::get() }
+      , collector::registration { nan_boxing_pointer<Ts...>::get() }
     {}
 
     explicit gc_pointer(nan_boxing_pointer<Ts...> const& datum)
       : nan_boxing_pointer<Ts...> { datum }
-      , collector::traceable { nan_boxing_pointer<Ts...>::get() }
+      , collector::registration { nan_boxing_pointer<Ts...>::get() }
     {}
 
     explicit gc_pointer(gc_pointer const& gcp)
       : nan_boxing_pointer<Ts...> { gcp }
-      , collector::traceable { static_cast<collector::traceable const&>(gcp) }
+      , collector::registration { static_cast<collector::registration const&>(gcp) }
     {}
 
     auto operator =(gc_pointer const& gcp) -> auto &
@@ -56,13 +56,13 @@ inline namespace memory
     auto reset(gc_pointer const& gcp) -> void
     {
       nan_boxing_pointer<Ts...>::reset(gcp);
-      collector::traceable::reset(static_cast<collector::traceable const&>(gcp));
+      collector::registration::reset(static_cast<collector::registration const&>(gcp));
     }
 
     auto reset(std::nullptr_t = nullptr) -> void
     {
       nan_boxing_pointer<Ts...>::reset();
-      collector::traceable::reset();
+      collector::registration::reset();
     }
   };
 } // namespace memory

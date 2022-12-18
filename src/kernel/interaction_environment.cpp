@@ -21,7 +21,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto interaction_environment() -> const_reference
+  auto interaction_environment() -> object const&
   {
     let static const interaction_environment = make<environment>();
     return interaction_environment;

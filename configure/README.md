@@ -73,7 +73,7 @@ Subset of R7RS-small.
 To install the above software, it is easy to use the following script.
 
 ``` bash
-$ ./script/setup.sh --required
+$ ./script/setup.sh
 ```
 
 ## Installation
@@ -127,8 +127,6 @@ Meevax Lisp System, version ${PROJECT_VERSION}
 Usage: meevax [OPTION...] [FILE...]
 
 Options:
-  -b, --batch            Suppress any system output.
-  -d, --debug            Deprecated.
   -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.
   -h, --help             Display this help text and exit.
   -i, --interactive      Take over control of root environment.

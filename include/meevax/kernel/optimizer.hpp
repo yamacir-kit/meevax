@@ -27,7 +27,7 @@ inline namespace kernel
   {
     static inline auto fmerge_constants = true;
 
-    static auto merge_constants(const_reference c) -> value_type
+    static auto merge_constants(object const& c) -> object
     {
       if (not c.is<pair>())
       {
@@ -151,7 +151,7 @@ inline namespace kernel
       }
     }
 
-    static auto optimize(const_reference c)
+    static auto optimize(object const& c)
     {
       let code = c;
 

@@ -31,11 +31,11 @@ inline namespace kernel
 
     explicit complex(std::string const&, int = 10);
 
-    auto canonicalize() const -> value_type;
+    auto canonicalize() const -> object;
 
-    auto imag() const noexcept -> const_reference;
+    auto imag() const noexcept -> object const&;
 
-    auto real() const noexcept -> const_reference;
+    auto real() const noexcept -> object const&;
 
     explicit operator std::complex<double>();
   };

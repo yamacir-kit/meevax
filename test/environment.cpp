@@ -31,7 +31,7 @@ auto main() -> int
 
   assert(symbols.empty());
 
-  const_cast<reference>(interaction_environment()).reset(); // DIRTY HACK!
+  const_cast<object &>(interaction_environment()).reset(); // DIRTY HACK!
 
   libraries.clear();
 

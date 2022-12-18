@@ -15,7 +15,6 @@
 */
 
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/writer.hpp>
 
 namespace meevax
 {
@@ -23,8 +22,8 @@ inline namespace kernel
 {
   let unit { nullptr };
 
-  pair::pair(const_reference a, const_reference b)
-    : std::pair<value_type, value_type> { a, b }
+  pair::pair(object const& a, object const& b)
+    : std::pair<object, object> { a, b }
   {}
 
   auto pair::compare(pair const* that) const -> bool
@@ -42,12 +41,12 @@ inline namespace kernel
     return os << *this;
   }
 
-  auto pair::operator [](std::size_t k) const -> const_reference
+  auto pair::operator [](std::size_t k) const -> object const&
   {
     return 0 < k ? second[--k] : first;
   }
 
-  auto label(const_reference x, const_reference y) -> const_reference
+  auto label(object const& x, object const& y) -> object const&
   {
     if (x.is<pair>() and cdr(x).is<pair>() and (cddr(x) == cdr(y) or label(cddr(x), cdr(y))))
     {
@@ -69,6 +68,38 @@ inline namespace kernel
     {
       return unit;
     }
+  }
+
+  auto write_simple(std::ostream & os, pair const& datum) -> std::ostream &
+  {
+    os << magenta("(");
+
+    write_simple(os, car(datum));
+
+    for (auto iter = std::begin(cdr(datum)); iter != unit; ++iter)
+    {
+      if (iter.get().is<pair>())
+      {
+        os << " ";
+
+        write_simple(os, *iter);
+      }
+      else // iter is the last element of dotted-list.
+      {
+        os << magenta(" . ");
+
+        write_simple(os, iter.get());
+
+        return os << magenta(")");
+      }
+    }
+
+    return os << magenta(")");
+  }
+
+  auto write_simple(std::ostream & os, object const& x) -> std::ostream &
+  {
+    return x.is<pair>() ? write_simple(os, x.as<pair>()) : os << x;
   }
 
   auto operator <<(std::ostream & os, pair const& datum) -> std::ostream &

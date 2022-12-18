@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/describe.hpp>
 #include <meevax/kernel/library.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int
@@ -30,7 +31,6 @@ auto main(int const argc, char const* const* const argv) -> int
 
     if (main.interactive)
     {
-      main.display_version();
       main.declare<import_set>("(scheme base)");
       main.declare<import_set>("(scheme char)");
       main.declare<import_set>("(scheme complex)");
@@ -41,15 +41,21 @@ auto main(int const argc, char const* const* const argv) -> int
       main.declare<import_set>("(scheme load)");
       main.declare<import_set>("(scheme process-context)");
       main.declare<import_set>("(scheme read)");
+      main.declare<import_set>("(scheme repl)");
       main.declare<import_set>("(scheme write)");
+
+      main.define<procedure>("describe", [&](let const& xs)
+      {
+        describe(xs[0], xs[1]);
+        return unspecified;
+      });
     }
 
     while (main.interactive and main.get_ready())
     {
       try
       {
-        write(standard_output, u8"\u03bb> ");
-        print(main.evaluate(main.read()));
+        std::cout << u8"\u03bb> " << main.evaluate(main.read()) << std::endl;
       }
       catch (error const& error)
       {

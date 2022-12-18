@@ -21,9 +21,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto resolve_library(const_reference form) -> value_type
+  auto resolve_library(object const& form) -> object
   {
-    if (form[0].as<symbol>().value == "only") /* -------------------------------
+    if (form[0].as<symbol>() == "only") /* -------------------------------------
     *
     *  <declaration> = (only <import set> <identifier> ...)
     *
@@ -35,7 +35,7 @@ inline namespace kernel
         {
           return filter([&](let const& identity)
                         {
-                          return select(memq(identity.as<absolute>().symbol(), identities));
+                          return is_truthy(memq(identity.as<absolute>().symbol(), identities));
                         },
                         resolve_library(import_set));
         };
@@ -44,7 +44,7 @@ inline namespace kernel
       return only(cadr(form))
                  (cddr(form));
     }
-    else if (form[0].as<symbol>().value == "except") /* ------------------------
+    else if (form[0].as<symbol>() == "except") /* ------------------------------
     *
     *  <declaration> = (except <import set> <identifier> ...)
     *
@@ -56,7 +56,7 @@ inline namespace kernel
         {
           return filter([&](let const& identity)
                         {
-                          return not select(memq(identity.as<absolute>().symbol(), identities));
+                          return not is_truthy(memq(identity.as<absolute>().symbol(), identities));
                         },
                         resolve_library(import_set));
         };
@@ -65,7 +65,7 @@ inline namespace kernel
       return except(cadr(form))
                    (cddr(form));
     }
-    else if (form[0].as<symbol>().value == "prefix") /* ------------------------
+    else if (form[0].as<symbol>() == "prefix") /* ------------------------------
     *
     *  <declaration> = (prefix <import set> <identifier>)
     *
@@ -77,8 +77,7 @@ inline namespace kernel
         {
           return map1([&](let const& identity)
                       {
-                        return make<absolute>(string_to_symbol(car(prefixes).as<symbol>().value +
-                                                               identity.as<absolute>().symbol().as<symbol>().value),
+                        return make<absolute>(string_to_symbol(car(prefixes).as<symbol>() + identity.as<absolute>().symbol().as<symbol>()),
                                               identity.as<absolute>().load());
                       },
                       resolve_library(import_set));
@@ -88,7 +87,7 @@ inline namespace kernel
       return prefix(cadr(form))
                    (cddr(form));
     }
-    else if (form[0].as<symbol>().value == "rename") /* ------------------------
+    else if (form[0].as<symbol>() == "rename") /* ------------------------------
     *
     *  <declaration> = (rename <import set>
     *                          (<identifier 1> <identifier 2>) ...)
@@ -101,7 +100,7 @@ inline namespace kernel
         {
           return map1([&](let const& identity)
                       {
-                        if (let const& renaming = assq(identity.as<absolute>().symbol(), renamings); select(renaming))
+                        if (let const& renaming = assq(identity.as<absolute>().symbol(), renamings); is_truthy(renaming))
                         {
                           assert(cadr(renaming).is<symbol>());
                           return make<absolute>(cadr(renaming), identity.as<absolute>().load());
@@ -128,7 +127,7 @@ inline namespace kernel
     }
   }
 
-  import_set::import_set(const_reference form)
+  import_set::import_set(object const& form)
     : identities { resolve_library(form) }
   {}
 
