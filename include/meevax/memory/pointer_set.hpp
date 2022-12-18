@@ -346,18 +346,6 @@ inline namespace memory
         return end();
       }
     }
-
-    template <typename... Ts>
-    auto find(Ts&&... xs)
-    {
-      return std::find(begin(), end(), std::forward<decltype(xs)>(xs)...);
-    }
-
-    template <typename... Ts>
-    auto contains(Ts&&... xs)
-    {
-      return std::binary_search(begin(), end(), std::forward<decltype(xs)>(xs)...);
-    }
   };
 } // namespace memory
 } // namespace meevax

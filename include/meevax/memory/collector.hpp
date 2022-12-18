@@ -153,11 +153,7 @@ inline namespace memory
 
       if (auto data = new body<T>(std::forward<decltype(xs)>(xs)...); data)
       {
-        cache = data;
-
-        assert(headers.find(cache) == std::end(headers));
-
-        headers.insert(cache);
+        headers.insert(cache = data);
 
         return std::addressof(data->object);
       }
