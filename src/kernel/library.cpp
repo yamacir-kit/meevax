@@ -230,7 +230,7 @@ inline namespace kernel
     {
       library.define<procedure>("gc-collect", []()
       {
-        return make<exact_integer>(gc.collect());
+        gc.collect();
       });
 
       library.define<procedure>("gc-count", []()

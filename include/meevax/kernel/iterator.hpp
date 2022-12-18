@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
 
-#include <iterator> // std::begin, std::end, std::distance
-
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax

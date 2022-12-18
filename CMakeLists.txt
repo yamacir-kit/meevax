@@ -27,7 +27,6 @@ string(CONCAT UNSTABLE_OPTIMIZATION_OPTIONS # JOIN available if VERSION > 3.12
   )
 
 # NOTE: The `-gdwarf-4` option is set due to the following issues with Clang 14 and Valgrind versions below 3.20: https://bugzilla.mozilla.org/show_bug.cgi?id=1758782
-
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -pipe")
 set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g -gdwarf-4")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os              -DNDEBUG")

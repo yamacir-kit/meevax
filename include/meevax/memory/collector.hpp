@@ -18,89 +18,87 @@
 #define INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 
 #include <cstddef>
-#include <limits>
-#include <map>
-#include <set>
 
-#include <meevax/memory/tracer.hpp>
-#include <meevax/memory/simple_allocator.hpp>
+#include <meevax/memory/header.hpp>
+#include <meevax/memory/literal.hpp>
+#include <meevax/memory/pointer_set.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  class collector /* -----------------------------------------------------------
-  *
-  *  This mark-and-sweep garbage collector is based on the implementation of
-  *  gc_ptr written by William E. Kempf and posted to CodeProject.
-  *
-  *  - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
-  *  - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
-  *
-  * ------------------------------------------------------------------------- */
+  /*
+     This mark-and-sweep garbage collector is based on the implementation of
+     `gc_ptr` written by William E. Kempf and posted to CodeProject.
+
+     - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
+     - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
+  */
+  class collector
   {
   public:
-    class traceable
+    class registration
     {
       friend class collector;
 
-      memory::tracer * tracer = nullptr;
+      memory::header * header = nullptr;
 
-      explicit traceable(memory::tracer * tracer)
-        : tracer { tracer }
+      explicit registration(memory::header * header)
+        : header { header }
       {
-        if (tracer)
+        if (header)
         {
-          traceables.insert(std::end(traceables), this);
+          registry.insert(this);
         }
       }
 
-      auto reset(memory::tracer * after) -> void
+      auto reset(memory::header * after) -> void
       {
-        if (auto before = std::exchange(tracer, after); not before and after)
+        if (auto before = std::exchange(header, after); not before and after)
         {
-          traceables.insert(this);
+          registry.insert(this);
         }
         else if (before and not after)
         {
-          traceables.erase(this);
+          registry.erase(this);
         }
       }
 
-      auto locate(void * const data)
+      static auto locate(void * const data) -> memory::header *
       {
         assert(data);
 
-        if (newest_tracer->contains(data)) // Heuristic-based optimization.
+        if (cache->contains(data)) // Heuristic-based optimization.
         {
-          return newest_tracer;
+          return cache;
+        }
+        else if (auto iter = headers.lower_bound(reinterpret_cast<memory::header *>(data)); iter != std::begin(headers) and (*--iter)->contains(data))
+        {
+          return *iter;
         }
         else
         {
-          auto dummy = memory::tracer(data, 0);
-          auto iter = tracers.lower_bound(&dummy);
-          assert(iter != std::end(tracers));
-          return *iter;
+          return nullptr;
         }
       }
 
     protected:
-      explicit constexpr traceable() = default;
+      explicit constexpr registration() = default;
 
-      explicit traceable(traceable const& other)
-        : traceable { other.tracer }
+      explicit registration(registration const& other)
+        : registration { other.header }
       {}
 
       template <typename Pointer>
-      explicit traceable(Pointer const p)
-        : traceable { p ? locate(p) : nullptr }
+      explicit registration(Pointer const p)
+        : registration { p ? locate(p) : nullptr }
       {}
 
-      ~traceable()
+      ~registration()
       {
-        if (tracer)
+        if (header)
         {
-          traceables.erase(this);
+          registry.erase(this);
         }
       }
 
@@ -115,23 +113,18 @@ inline namespace memory
         reset(p != nullptr ? locate(p) : nullptr);
       }
 
-      auto reset(traceable const& other) -> void
+      auto reset(registration const& other) -> void
       {
-        reset(other.tracer);
+        reset(other.header);
       }
     };
 
-    template <typename T>
-    using set = std::set<T, std::less<T>, simple_allocator<T>>;
-
   protected:
-    static inline simple_allocator<tracer> tracer_source {};
+    static inline header * cache = nullptr;
 
-    static inline tracer * newest_tracer = nullptr;
+    static inline pointer_set<header *> headers {};
 
-    static inline set<tracer *> tracers {};
-
-    static inline set<traceable *> traceables {};
+    static inline pointer_set<registration *> registry {};
 
     static inline std::size_t allocation = 0;
 
@@ -153,23 +146,16 @@ inline namespace memory
     template <typename T, typename... Ts>
     static auto make(Ts&&... xs)
     {
-      if (auto data = new T(std::forward<decltype(xs)>(xs)...); data)
+      if (allocation += sizeof(T); threshold < allocation)
       {
-        if (allocation += sizeof(T); threshold < allocation)
-        {
-          collect();
-        }
+        collect();
+      }
 
-        newest_tracer = tracer_source.new_(data, sizeof(T), [](auto * data)
-        {
-          delete static_cast<T *>(data);
-        });
+      if (auto data = new body<T>(std::forward<decltype(xs)>(xs)...); data)
+      {
+        headers.insert(cache = data);
 
-        assert(tracers.find(newest_tracer) == std::end(tracers));
-
-        tracers.insert(std::end(tracers), newest_tracer);
-
-        return data;
+        return std::addressof(data->object);
       }
       else
       {
@@ -179,19 +165,15 @@ inline namespace memory
 
     static auto clear() -> void;
 
-    static auto collect() -> std::size_t;
+    static auto collect() -> void;
 
     static auto count() noexcept -> std::size_t;
 
     static auto mark() -> void;
 
-    static auto tracer_of(void * const) -> decltype(tracers)::iterator;
-
-    static auto reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max()) -> void;
+    static auto mark(header * const) -> void;
 
     static auto sweep() -> void;
-
-    static auto trace(tracer * const) -> void;
   }
   static gc;
 } // namespace memory

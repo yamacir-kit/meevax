@@ -36,110 +36,91 @@ inline namespace memory
     {
       clear();
 
-      assert(std::size(tracers) == 0);
-      assert(std::size(traceables) == 0);
+      assert(std::size(headers) == 0);
+      assert(std::size(registry) == 0);
     }
   }
 
   auto collector::clear() -> void
   {
-    for (auto iter = std::begin(tracers); iter != std::end(tracers); )
+    for (auto&& header : headers)
     {
-      assert(*iter);
-
-      tracer_source.delete_(*iter);
-      tracers.erase(iter++);
+      delete header;
+      headers.erase(header);
     }
   }
 
-  auto collector::collect() -> std::size_t
+  auto collector::collect() -> void
   {
-    auto const before = count();
-
-    mark(), sweep();
-
     allocation = 0;
 
-    return before - count();
+    return mark(), sweep();
   }
 
   auto collector::count() noexcept -> std::size_t
   {
-    return std::size(tracers);
+    return std::size(headers);
   }
 
   auto collector::mark() -> void
   {
     marker::toggle();
 
-    auto is_root = [](auto&& traceable)
+    auto is_root_object = [begin = std::begin(headers)](registration * given)
     {
-      return tracer_of(traceable) == std::cend(tracers); // If there is no tracer for the traceable, it is a root object.
+      /*
+         If the given `registration` is a non-root object, then an object
+         containing this `registration` as a data member exists somewhere in
+         memory.
+
+         Containing the `registration` as a data member means that the address
+         of the `registration` is contained in the interval of the object's
+         base-address ~ base-address + object-size. The `header` is present to
+         keep track of the base-address and size of the object needed here.
+      */
+      auto iter = headers.lower_bound(reinterpret_cast<header *>(given));
+
+      return iter == begin or not (*--iter)->contains(given);
     };
 
-    for (auto&& traceable : traceables)
+    for (auto&& registration : registry)
     {
-      assert(traceable);
-      assert(traceable->tracer);
+      assert(registration);
+      assert(registration->header);
 
-      if (not traceable->tracer->marked() and is_root(traceable))
+      if (not registration->header->marked() and is_root_object(registration))
       {
-        trace(traceable->tracer);
+        mark(registration->header);
       }
     }
   }
 
-  auto collector::tracer_of(void * const p) -> decltype(collector::tracers)::iterator
+  auto collector::mark(header * const header) -> void
   {
-    assert(p);
+    assert(header);
 
-    auto dummy = tracer(p, 0);
-
-    if (auto iter = tracers.lower_bound(&dummy); iter != std::end(tracers) and (*iter)->contains(p))
+    if (not header->marked())
     {
-      return iter;
-    }
-    else
-    {
-      return std::end(tracers);
-    }
-  }
+      header->mark();
 
-  auto collector::reset_threshold(std::size_t const size) -> void
-  {
-    threshold = size;
+      const auto lower_address = reinterpret_cast<registration *>(header->lower_address());
+      const auto upper_address = reinterpret_cast<registration *>(header->upper_address());
+
+      for (auto iter = registry.lower_bound(lower_address); iter != std::end(registry) and *iter < upper_address; ++iter)
+      {
+        mark((*iter)->header);
+      }
+    }
   }
 
   auto collector::sweep() -> void
   {
-    for (auto iter = std::begin(tracers); iter != std::end(tracers); )
+    for (auto&& header : headers)
     {
-      if (not (*iter)->marked())
+      if (not header->marked())
       {
-        tracer_source.delete_(*iter);
-        tracers.erase(iter++);
-      }
-      else
-      {
-        ++iter;
-      }
-    }
-  }
-
-  auto collector::trace(tracer * const tracer) -> void
-  {
-    assert(tracer);
-
-    if (not tracer->marked())
-    {
-      tracer->mark();
-
-      const auto lower = traceables.lower_bound(reinterpret_cast<traceable *>(tracer->begin()));
-      const auto upper = traceables.lower_bound(reinterpret_cast<traceable *>(tracer->end()));
-
-      for (auto iter = lower; iter != upper; ++iter)
-      {
-        trace((*iter)->tracer);
+        delete header;
+        headers.erase(header);
       }
     }
   }

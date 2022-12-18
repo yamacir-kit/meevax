@@ -20,7 +20,6 @@
 #include <cstddef>
 #include <cmath>
 #include <iomanip>
-#include <memory>
 #include <ostream>
 #include <typeinfo>
 

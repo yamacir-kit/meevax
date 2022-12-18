@@ -17,16 +17,18 @@ auto main() -> int
       let z = make<symbol>("z");
 
       assert(gc.count() == gc_count + 3);
-      assert(gc.collect() == 0);
+      gc.collect();
       assert(gc.count() == gc_count + 3);
     }
 
     assert(gc.count() == gc_count + 3);
-    assert(gc.collect() == 3);
+    gc.collect();
     assert(gc.count() == gc_count);
   }
 
+  assert(gc.count() == gc_count);
   gc.collect();
+  assert(gc.count() == gc_count);
 
   // copy
   {
@@ -35,11 +37,14 @@ auto main() -> int
 
     assert(x.is<symbol>());
     assert(y.is<symbol>());
+
     assert(eq(x, y));
     assert(eqv(x, y));
   }
 
+  assert(gc.count() == gc_count + 1);
   gc.collect();
+  assert(gc.count() == gc_count);
 
   // move
   {
@@ -50,7 +55,7 @@ auto main() -> int
       assert(x.is<symbol>());
       assert(x.as<symbol>() == "x");
 
-      return x; //  RVO
+      return x; // return value optimization
     };
 
     let x = f();
@@ -58,13 +63,17 @@ auto main() -> int
     assert(x.is<symbol>());
     assert(x.as<symbol>() == "x");
 
+    assert(gc.count() == gc_count + 1);
     gc.collect();
+    assert(gc.count() == gc_count + 1);
 
     assert(x.is<symbol>());
     assert(x.as<symbol>() == "x");
   }
 
+  assert(gc.count() == gc_count + 1);
   gc.collect();
+  assert(gc.count() == gc_count);
 
   // proper list
   {
@@ -77,9 +86,13 @@ auto main() -> int
       assert(x.is<symbol>());
       assert(y.is<symbol>());
       assert(z.is<symbol>());
+
       assert(x.as<symbol>() == "x");
       assert(y.as<symbol>() == "y");
       assert(z.as<symbol>() == "z");
+
+      assert(gc.count() == gc_count + 3);
+      gc.collect();
       assert(gc.count() == gc_count + 3);
 
       return list(x, y, z);
@@ -88,19 +101,25 @@ auto main() -> int
     let a = f();
 
     assert(length(a) == 3);
-    assert(car(a).is<symbol>());
-    assert(cadr(a).is<symbol>());
-    assert(caddr(a).is<symbol>());
 
+    assert(a[0].is<symbol>());
+    assert(a[1].is<symbol>());
+    assert(a[2].is<symbol>());
+
+    assert(gc.count() == gc_count + 6);
     gc.collect();
+    assert(gc.count() == gc_count + 6);
 
     assert(length(a) == 3);
+
     assert(a[0].is<symbol>());
     assert(a[1].is<symbol>());
     assert(a[2].is<symbol>());
   }
 
+  assert(gc.count() == gc_count + 6);
   gc.collect();
+  assert(gc.count() == gc_count);
 
   // improper list
   {
@@ -113,9 +132,11 @@ auto main() -> int
       assert(a.is<symbol>());
       assert(b.is<symbol>());
       assert(c.is<symbol>());
+
       assert(a.as<symbol>() == "a");
       assert(b.as<symbol>() == "b");
       assert(c.as<symbol>() == "c");
+
       assert(gc.count() == gc_count + 3);
 
       return circular_list(a, b, c);
@@ -174,7 +195,7 @@ auto main() -> int
     }
 
     assert(gc.count() == gc_count);
-    assert(gc.collect() == 0);
+    gc.collect();
     assert(gc.count() == gc_count);
   }
 
