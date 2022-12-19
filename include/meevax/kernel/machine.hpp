@@ -56,7 +56,6 @@ inline namespace kernel
        a[0] is used for current-dynamic-extents.
        a[1] is used for current-dynamic-bindings.
        a[2] is used for current-exception-handler.
-       a[3] is currently unused.
     */
     std::array<let, 3> a;
 
@@ -577,7 +576,6 @@ inline namespace kernel
           s = unit;
           goto fetch;
         }
-        goto second_call;
 
       second_call:
         if (let const& callee = car(s); callee.is_also<procedure>()) /* --------
@@ -636,9 +634,12 @@ inline namespace kernel
 
       case mnemonic::return_: /* -----------------------------------------------
         *
-        *  (x . s)  e (%return . c) (s' e' c' . d) => (x . s') e' c' d
+        *  (x)  e (%return . c) (s' e' c' . d) => (x . s') e' c' d
         *
         * ------------------------------------------------------------------- */
+        assert(cdr(s).is<null>());
+        assert(cdr(c).is<null>());
+
         s = cons(car(s), car(d));
         e = cadr(d);
         c = caddr(d);
