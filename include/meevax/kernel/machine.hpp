@@ -560,7 +560,7 @@ inline namespace kernel
           s = unit;
           goto fetch;
         }
-        [[fallthrough]]; // This is inefficient because the type check occurs twice, but currently the performance difference caused by this is too small.
+        goto second_call;
 
       case mnemonic::call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
@@ -577,7 +577,10 @@ inline namespace kernel
           s = unit;
           goto fetch;
         }
-        else if (callee.is_also<procedure>()) /* -------------------------------
+        goto second_call;
+
+      second_call:
+        if (let const& callee = car(s); callee.is_also<procedure>()) /* --------
         *
         *  (<procedure> xs . s) e (%call . c) d => (x . s) e c d
         *
