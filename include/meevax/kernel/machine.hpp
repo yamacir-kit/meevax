@@ -457,23 +457,27 @@ inline namespace kernel
 
       case mnemonic::define: /* ------------------------------------------------
         *
-        *  (x' . s) e (%define <identity> . c) d => (x' . s) e c d
+        *  (x') e (%define <identity> . c) d => (x' . s) e c d
         *
         *  where <identity> = (<symbol> . x := x')
         *
         * ------------------------------------------------------------------- */
+        assert(cdr(s).template is<null>());
+        assert(cadr(c).template is<absolute>());
         cadr(c).template as<absolute>().load() = car(s);
         c = cddr(c);
         goto fetch;
 
       case mnemonic::define_syntax: /* -----------------------------------------
         *
-        *  (<closure> . s) e (%define <identity> . c) d => (x' . s) e c d
+        *  (<closure>) e (%define <identity> . c) d => (x' . s) e c d
         *
         *  where <identity> = (<symbol> . x := <transformer>)
         *
         * ------------------------------------------------------------------- */
         assert(car(s).template is<closure>());
+        assert(cdr(s).template is<null>());
+        assert(cadr(c).template is<absolute>());
         cadr(c).template as<absolute>().load() = make<transformer>(car(s), fork());
         c = cddr(c);
         goto fetch;
@@ -548,12 +552,13 @@ inline namespace kernel
       case mnemonic::tail_call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
-        *  (<closure> xs . s) e (%tail-call . c) d => () (xs . e') c' d
+        *  (<closure> xs) e (%tail-call . c) d => () (xs . e') c' d
         *
         *  where <closure> = (c' . e')
         *
         * ------------------------------------------------------------------- */
         {
+          assert(cddr(s).template is<null>());
           c =               callee.as<closure>().c();
           e = cons(cadr(s), callee.as<closure>().e());
           s = unit;
@@ -592,12 +597,13 @@ inline namespace kernel
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
-        *  (<continuation> xs . s) e (%call . c) d => (xs . s') e' c' d'
+        *  (<continuation> xs) e (%call . c) d => (xs . s') e' c' d'
         *
         *  where <continuation> = (s' e' c' . 'd)
         *
         * ------------------------------------------------------------------- */
         {
+          assert(cddr(s).template is<null>());
           s = cons(caadr(s), callee.as<continuation>().s());
           e =                callee.as<continuation>().e();
           c =                callee.as<continuation>().c();
@@ -634,11 +640,11 @@ inline namespace kernel
 
       case mnemonic::return_: /* -----------------------------------------------
         *
-        *  (x)  e (%return . c) (s' e' c' . d) => (x . s') e' c' d
+        *  (x)  e (%return) (s' e' c' . d) => (x . s') e' c' d
         *
         * ------------------------------------------------------------------- */
-        assert(cdr(s).is<null>());
-        assert(cdr(c).is<null>());
+        assert(cdr(s).template is<null>());
+        assert(cdr(c).template is<null>());
 
         s = cons(car(s), car(d));
         e = cadr(d);
@@ -701,13 +707,13 @@ inline namespace kernel
       default: // ERROR
       case mnemonic::stop: /* --------------------------------------------------
         *
-        *  (x . s) e (%stop . c) d => s e (%stop . c) d
+        *  (x) e (%stop) d => () e () d
         *
         * ------------------------------------------------------------------- */
         return [this]()
         {
-          assert(not cdr(s));
-          assert(not cdr(c));
+          assert(cdr(s).template is<null>());
+          assert(cdr(c).template is<null>());
 
           let const x = car(s);
 
