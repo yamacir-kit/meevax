@@ -25,7 +25,7 @@ inline namespace kernel
 {
   struct pair;
 
-  using object = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, mnemonic>;
+  using object = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, instruction>;
 
   using let = object;
 

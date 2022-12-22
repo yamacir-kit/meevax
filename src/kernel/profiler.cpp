@@ -55,9 +55,9 @@ inline namespace kernel
 
     if (auto ss = std::stringstream(); not std::empty(instruction_fetchs))
     {
-      for (auto&& [mnemonic, count] : instruction_fetchs)
+      for (auto&& [instruction, count] : instruction_fetchs)
       {
-        ss << mnemonic << "\t" << count << "\n";
+        ss << instruction << "\t" << count << "\n";
       }
 
       sh("echo \"" + ss.str() + "\" | sed 's/meevax::kernel:://g'              \

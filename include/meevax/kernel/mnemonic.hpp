@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  enum class mnemonic : std::uint8_t
+  enum class instruction : std::uint8_t
   {
     call,              // a.k.a APP
     cons,              //
@@ -53,7 +53,7 @@ inline namespace kernel
     tail_select,       //
   };
 
-  auto operator <<(std::ostream &, mnemonic const&) -> std::ostream &;
+  auto operator <<(std::ostream &, instruction const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

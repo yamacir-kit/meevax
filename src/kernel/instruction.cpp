@@ -44,49 +44,49 @@ inline namespace kernel
         os << std::string(4 * depth, ' ');
       }
 
-      switch ((*iter).as<mnemonic>())
+      switch ((*iter).as<instruction>())
       {
-      case mnemonic::call:
-      case mnemonic::cons:
-      case mnemonic::drop:
-      case mnemonic::dummy:
-      case mnemonic::join:
-      case mnemonic::letrec:
-      case mnemonic::return_:
-      case mnemonic::stop:
-      case mnemonic::tail_call:
+      case instruction::call:
+      case instruction::cons:
+      case instruction::drop:
+      case instruction::dummy:
+      case instruction::join:
+      case instruction::letrec:
+      case instruction::return_:
+      case instruction::stop:
+      case instruction::tail_call:
         os << *iter << "\n";
-        ++offset;
+        offset += 1;
         break;
 
-      case mnemonic::define:
-      case mnemonic::define_syntax:
-      case mnemonic::let_syntax:
-      case mnemonic::letrec_syntax:
-      case mnemonic::load_absolute:
-      case mnemonic::load_auxiliary:
-      case mnemonic::load_constant:
-      case mnemonic::load_relative:
-      case mnemonic::load_variadic:
-      case mnemonic::store_absolute:
-      case mnemonic::store_auxiliary:
-      case mnemonic::store_relative:
-      case mnemonic::store_variadic:
+      case instruction::define:
+      case instruction::define_syntax:
+      case instruction::let_syntax:
+      case instruction::letrec_syntax:
+      case instruction::load_absolute:
+      case instruction::load_auxiliary:
+      case instruction::load_constant:
+      case instruction::load_relative:
+      case instruction::load_variadic:
+      case instruction::store_absolute:
+      case instruction::store_auxiliary:
+      case instruction::store_relative:
+      case instruction::store_variadic:
         os << *iter << " " << *++iter << "\n";
         offset += 2;
         break;
 
-      case mnemonic::load_closure:
-      case mnemonic::load_continuation:
+      case instruction::load_closure:
+      case instruction::load_continuation:
         os << *iter << "\n";
-        ++offset;
+        offset += 1;
         disassemble(os, *++iter, depth + 1);
         break;
 
-      case mnemonic::select:
-      case mnemonic::tail_select:
+      case instruction::select:
+      case instruction::tail_select:
         os << *iter << "\n";
-        ++offset;
+        offset += 1;
         disassemble(os, *++iter, depth + 1);
         disassemble(os, *++iter, depth + 1);
         break;

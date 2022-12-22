@@ -20,36 +20,36 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(std::ostream & os, mnemonic const& datum) -> std::ostream &
+  auto operator <<(std::ostream & os, instruction const& datum) -> std::ostream &
   {
     switch (datum)
     {
-      case mnemonic::call:              return os << "call";
-      case mnemonic::cons:              return os << "cons";
-      case mnemonic::define:            return os << "define";
-      case mnemonic::define_syntax:     return os << "define-syntax";
-      case mnemonic::drop:              return os << "drop";
-      case mnemonic::dummy:             return os << "dummy";
-      case mnemonic::join:              return os << "join";
-      case mnemonic::let_syntax:        return os << "let-syntax";
-      case mnemonic::letrec:            return os << "letrec";
-      case mnemonic::letrec_syntax:     return os << "letrec-syntax";
-      case mnemonic::load_absolute:     return os << "load-absolute";
-      case mnemonic::load_auxiliary:    return os << "load-auxiliary";
-      case mnemonic::load_closure:      return os << "load-closure";
-      case mnemonic::load_constant:     return os << "load-constant";
-      case mnemonic::load_continuation: return os << "load-continuation";
-      case mnemonic::load_relative:     return os << "load-relative";
-      case mnemonic::load_variadic:     return os << "load-variadic";
-      case mnemonic::return_:           return os << "return";
-      case mnemonic::select:            return os << "select";
-      case mnemonic::stop:              return os << "stop";
-      case mnemonic::store_absolute:    return os << "store-absolute";
-      case mnemonic::store_auxiliary:   return os << "store-auxiliary";
-      case mnemonic::store_relative:    return os << "store-relative";
-      case mnemonic::store_variadic:    return os << "store-variadic";
-      case mnemonic::tail_call:         return os << "tail-call";
-      case mnemonic::tail_select:       return os << "tail-select";
+      case instruction::call:              return os << "call";
+      case instruction::cons:              return os << "cons";
+      case instruction::define:            return os << "define";
+      case instruction::define_syntax:     return os << "define-syntax";
+      case instruction::drop:              return os << "drop";
+      case instruction::dummy:             return os << "dummy";
+      case instruction::join:              return os << "join";
+      case instruction::let_syntax:        return os << "let-syntax";
+      case instruction::letrec:            return os << "letrec";
+      case instruction::letrec_syntax:     return os << "letrec-syntax";
+      case instruction::load_absolute:     return os << "load-absolute";
+      case instruction::load_auxiliary:    return os << "load-auxiliary";
+      case instruction::load_closure:      return os << "load-closure";
+      case instruction::load_constant:     return os << "load-constant";
+      case instruction::load_continuation: return os << "load-continuation";
+      case instruction::load_relative:     return os << "load-relative";
+      case instruction::load_variadic:     return os << "load-variadic";
+      case instruction::return_:           return os << "return";
+      case instruction::select:            return os << "select";
+      case instruction::stop:              return os << "stop";
+      case instruction::store_absolute:    return os << "store-absolute";
+      case instruction::store_auxiliary:   return os << "store-auxiliary";
+      case instruction::store_relative:    return os << "store-relative";
+      case instruction::store_variadic:    return os << "store-variadic";
+      case instruction::tail_call:         return os << "tail-call";
+      case instruction::tail_select:       return os << "tail-select";
 
       default:
         throw std::logic_error(__func__);

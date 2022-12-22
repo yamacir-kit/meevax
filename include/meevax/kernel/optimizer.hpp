@@ -33,17 +33,17 @@ inline namespace kernel
       {
         return c;
       }
-      else switch (car(c).template as<mnemonic>())
+      else switch (car(c).template as<instruction>())
       {
-      case mnemonic::call:
-      case mnemonic::cons:
-      case mnemonic::drop:
-      case mnemonic::dummy:
-      case mnemonic::join:
-      case mnemonic::letrec:
-      case mnemonic::return_:
-      case mnemonic::stop:
-      case mnemonic::tail_call:
+      case instruction::call:
+      case instruction::cons:
+      case instruction::drop:
+      case instruction::dummy:
+      case instruction::join:
+      case instruction::letrec:
+      case instruction::return_:
+      case instruction::stop:
+      case instruction::tail_call:
         return [&]()
         {
           if (let const& continuation = merge_constants(cdr(c)); continuation == cdr(c))
@@ -56,18 +56,18 @@ inline namespace kernel
           }
         }();
 
-      case mnemonic::define:
-      case mnemonic::define_syntax:
-      case mnemonic::let_syntax:
-      case mnemonic::letrec_syntax:
-      case mnemonic::load_absolute:
-      case mnemonic::load_auxiliary:
-      case mnemonic::load_relative:
-      case mnemonic::load_variadic:
-      case mnemonic::store_absolute:
-      case mnemonic::store_auxiliary:
-      case mnemonic::store_relative:
-      case mnemonic::store_variadic:
+      case instruction::define:
+      case instruction::define_syntax:
+      case instruction::let_syntax:
+      case instruction::letrec_syntax:
+      case instruction::load_absolute:
+      case instruction::load_auxiliary:
+      case instruction::load_relative:
+      case instruction::load_variadic:
+      case instruction::store_absolute:
+      case instruction::store_auxiliary:
+      case instruction::store_relative:
+      case instruction::store_variadic:
         return [&]()
         {
           if (let const& continuation = merge_constants(cddr(c)); continuation == cddr(c))
@@ -80,8 +80,8 @@ inline namespace kernel
           }
         }();
 
-      case mnemonic::load_closure:
-      case mnemonic::load_continuation:
+      case instruction::load_closure:
+      case instruction::load_continuation:
         return [&]()
         {
           if (let const& branch       = merge_constants(cadr(c)),
@@ -96,8 +96,8 @@ inline namespace kernel
           }
         }();
 
-      case mnemonic::select:
-      case mnemonic::tail_select:
+      case instruction::select:
+      case instruction::tail_select:
         return [&]()
         {
           if (let const& consequent   = merge_constants(cadr(c)),
@@ -114,7 +114,7 @@ inline namespace kernel
         }();
 
 
-      case mnemonic::load_constant: /* -----------------------------------------
+      case instruction::load_constant: /* --------------------------------------
       *
       *  (load-constant x
       *   load-constant y
@@ -126,12 +126,12 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
         if (5 <= length(c) and
-            c[0].is<mnemonic>() and
-            c[0].as<mnemonic>() == mnemonic::load_constant and
-            c[2].is<mnemonic>() and
-            c[2].as<mnemonic>() == mnemonic::load_constant and
-            c[4].is<mnemonic>() and
-            c[4].as<mnemonic>() == mnemonic::cons)
+            c[0].is<instruction>() and
+            c[0].as<instruction>() == instruction::load_constant and
+            c[2].is<instruction>() and
+            c[2].as<instruction>() == instruction::load_constant and
+            c[4].is<instruction>() and
+            c[4].as<instruction>() == instruction::cons)
         {
           return merge_constants(cons(c[0], cons(c[3], c[1]),
                                       merge_constants(list_tail(c, 5))));
