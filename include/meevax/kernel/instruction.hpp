@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_MNEMONIC_HPP
-#define INCLUDED_MEEVAX_KERNEL_MNEMONIC_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
+#define INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 
 #include <iostream>
 
@@ -57,4 +57,4 @@ inline namespace kernel
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_MNEMONIC_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP

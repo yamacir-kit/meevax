@@ -20,7 +20,7 @@
 #include <typeindex>
 #include <unordered_map>
 
-#include <meevax/kernel/mnemonic.hpp>
+#include <meevax/kernel/instruction.hpp>
 
 namespace meevax
 {

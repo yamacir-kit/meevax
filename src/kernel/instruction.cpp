@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/mnemonic.hpp>
+#include <meevax/kernel/instruction.hpp>
 
 namespace meevax
 {

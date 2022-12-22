@@ -17,7 +17,6 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/mnemonic.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax
