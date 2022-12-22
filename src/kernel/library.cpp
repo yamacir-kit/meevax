@@ -15,7 +15,7 @@
 */
 
 #include <meevax/kernel/basis.hpp>
-#include <meevax/kernel/instruction.hpp>
+#include <meevax/kernel/disassemble.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
 

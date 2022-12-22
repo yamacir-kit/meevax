@@ -14,9 +14,9 @@
    limitations under the License.
 */
 
-#include <meevax/iostream/lexical_cast.hpp>
-#include <meevax/kernel/mnemonic.hpp>
+#include <meevax/kernel/disassemble.hpp>
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/mnemonic.hpp>
 
 namespace meevax
 {
