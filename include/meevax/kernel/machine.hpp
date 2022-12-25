@@ -256,7 +256,7 @@ inline namespace kernel
               mac_env_scope = cons(unit, mac_env_scope);
             }
 
-            return compile(current_context,
+            return compile(context(),
                            current_expression.as<syntactic_closure>().syntactic_environment.template as<environment>(),
                            current_expression.as<syntactic_closure>().expression,
                            mac_env_scope,
@@ -985,7 +985,7 @@ inline namespace kernel
         return compile(current_context,
                        current_environment,
                        cons(cons(make<syntax>("lambda", lambda),
-                                 unzip1(binding_specs),
+                                 unzip1(binding_specs), // formals
                                  append2(map1([](let const& binding_spec)
                                               {
                                                 return cons(make<syntax>("set!", set), binding_spec);
@@ -1003,11 +1003,11 @@ inline namespace kernel
                        car(current_expression),
                        current_scope,
                        cons(make(instruction::drop),
-                            sequence(current_context,
-                                     current_environment,
-                                     cdr(current_expression),
-                                     current_scope,
-                                     current_continuation)));
+                            machine::body(current_context,
+                                          current_environment,
+                                          cdr(current_expression),
+                                          current_scope,
+                                          current_continuation)));
       }
     }
 
