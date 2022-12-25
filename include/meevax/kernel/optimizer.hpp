@@ -33,88 +33,9 @@ inline namespace kernel
       {
         return c;
       }
-      else switch (car(c).template as<mnemonic>())
+      else switch (c[0].as<instruction>())
       {
-      case mnemonic::call:
-      case mnemonic::cons:
-      case mnemonic::drop:
-      case mnemonic::dummy:
-      case mnemonic::join:
-      case mnemonic::letrec:
-      case mnemonic::return_:
-      case mnemonic::stop:
-      case mnemonic::tail_call:
-        return [&]()
-        {
-          if (let const& continuation = merge_constants(cdr(c)); continuation == cdr(c))
-          {
-            return c;
-          }
-          else
-          {
-            return cons(car(c), continuation);
-          }
-        }();
-
-      case mnemonic::define:
-      case mnemonic::define_syntax:
-      case mnemonic::let_syntax:
-      case mnemonic::letrec_syntax:
-      case mnemonic::load_absolute:
-      case mnemonic::load_auxiliary:
-      case mnemonic::load_relative:
-      case mnemonic::load_variadic:
-      case mnemonic::store_absolute:
-      case mnemonic::store_auxiliary:
-      case mnemonic::store_relative:
-      case mnemonic::store_variadic:
-        return [&]()
-        {
-          if (let const& continuation = merge_constants(cddr(c)); continuation == cddr(c))
-          {
-            return c;
-          }
-          else
-          {
-            return cons(car(c), cadr(c), continuation);
-          }
-        }();
-
-      case mnemonic::load_closure:
-      case mnemonic::load_continuation:
-        return [&]()
-        {
-          if (let const& branch       = merge_constants(cadr(c)),
-                         continuation = merge_constants(cddr(c));
-              branch == cadr(c) and continuation == cddr(c))
-          {
-            return c;
-          }
-          else
-          {
-            return cons(car(c), branch, continuation);
-          }
-        }();
-
-      case mnemonic::select:
-      case mnemonic::tail_select:
-        return [&]()
-        {
-          if (let const& consequent   = merge_constants(cadr(c)),
-                         alternate    = merge_constants(caddr(c)),
-                         continuation = merge_constants(cdddr(c));
-              consequent == cadr(c) and alternate == caddr(c) and continuation == cdddr(c))
-          {
-            return c;
-          }
-          else
-          {
-            return cons(car(c), consequent, alternate, continuation);
-          }
-        }();
-
-
-      case mnemonic::load_constant: /* -----------------------------------------
+      case instruction::load_constant: /* --------------------------------------
       *
       *  (load-constant x
       *   load-constant y
@@ -126,14 +47,15 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
         if (5 <= length(c) and
-            c[0].is<mnemonic>() and
-            c[0].as<mnemonic>() == mnemonic::load_constant and
-            c[2].is<mnemonic>() and
-            c[2].as<mnemonic>() == mnemonic::load_constant and
-            c[4].is<mnemonic>() and
-            c[4].as<mnemonic>() == mnemonic::cons)
+            c[0].is<instruction>() and
+            c[0].as<instruction>() == instruction::load_constant and
+            c[2].is<instruction>() and
+            c[2].as<instruction>() == instruction::load_constant and
+            c[4].is<instruction>() and
+            c[4].as<instruction>() == instruction::cons)
         {
-          return merge_constants(cons(c[0], cons(c[3], c[1]),
+          return merge_constants(cons(c[0],
+                                      cons(c[3], c[1]),
                                       merge_constants(list_tail(c, 5))));
         }
         else if (let const& continuation = merge_constants(cddr(c)); continuation == cddr(c))
@@ -145,9 +67,46 @@ inline namespace kernel
           return cons(car(c), cadr(c), continuation);
         }
 
+      case instruction::load_closure:
+      case instruction::load_continuation:
+        if (let const& subcontrol   = merge_constants(cadr(c)),
+                       continuation = merge_constants(cddr(c));
+            subcontrol == cadr(c) and continuation == cddr(c))
+        {
+          return c;
+        }
+        else
+        {
+          return cons(c[0], subcontrol, continuation);
+        }
+
+      case instruction::select:
+      case instruction::tail_select:
+        if (let const& consequent   = merge_constants(cadr(c)),
+                       alternate    = merge_constants(caddr(c)),
+                       continuation = merge_constants(cdddr(c));
+            consequent == cadr(c) and alternate == caddr(c) and continuation == cdddr(c))
+        {
+          return c;
+        }
+        else
+        {
+          return cons(c[0], consequent, alternate, continuation);
+        }
+
       default:
-        assert(false);
-        return c;
+        {
+          auto length = instruction_length(c[0].as<instruction>());
+
+          if (let const& continuation = merge_constants(list_tail(c, length)); continuation == list_tail(c, length))
+          {
+            return c;
+          }
+          else
+          {
+            return append2(take(c, length), continuation);
+          }
+        }
       }
     }
 

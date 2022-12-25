@@ -35,9 +35,9 @@ inline namespace kernel
 
     virtual auto load(object const&) const -> object const& = 0;
 
-    virtual auto make_load_mnemonic() const -> object = 0;
+    virtual auto make_load_instruction() const -> object = 0;
 
-    virtual auto make_store_mnemonic() const -> object = 0;
+    virtual auto make_store_instruction() const -> object = 0;
 
     virtual auto symbol() const -> object const&;
   };
@@ -56,9 +56,9 @@ inline namespace kernel
 
     auto load(object const& = unit) const -> object const& override;
 
-    auto make_load_mnemonic() const -> object override;
+    auto make_load_instruction() const -> object override;
 
-    auto make_store_mnemonic() const -> object override;
+    auto make_store_instruction() const -> object override;
   };
 
   struct keyword : public absolute
@@ -76,9 +76,9 @@ inline namespace kernel
 
     auto load(object const&) const -> object const& override;
 
-    auto make_load_mnemonic() const -> object override;
+    auto make_load_instruction() const -> object override;
 
-    auto make_store_mnemonic() const -> object override;
+    auto make_store_instruction() const -> object override;
   };
 
   auto operator ==(relative const&, relative const&) -> bool;
@@ -89,9 +89,9 @@ inline namespace kernel
 
     auto load(object const& e) const -> object const& override;
 
-    auto make_load_mnemonic() const -> object override;
+    auto make_load_instruction() const -> object override;
 
-    auto make_store_mnemonic() const -> object override;
+    auto make_store_instruction() const -> object override;
   };
 } // namespace kernel
 } // namespace meevax

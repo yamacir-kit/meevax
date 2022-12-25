@@ -17,7 +17,6 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/mnemonic.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax
@@ -68,14 +67,14 @@ inline namespace kernel
     return const_cast<object &>(std::as_const(*this).load(e));
   }
 
-  auto absolute::make_load_mnemonic() const -> object
+  auto absolute::make_load_instruction() const -> object
   {
-    return make(mnemonic::load_absolute);
+    return make(instruction::load_absolute);
   }
 
-  auto absolute::make_store_mnemonic() const -> object
+  auto absolute::make_store_instruction() const -> object
   {
-    return make(mnemonic::store_absolute);
+    return make(instruction::store_absolute);
   }
 
   auto relative::is_bound() const -> bool
@@ -97,14 +96,14 @@ inline namespace kernel
             [cdr(second).template as<std::uint32_t>()];
   }
 
-  auto relative::make_load_mnemonic() const -> object
+  auto relative::make_load_instruction() const -> object
   {
-    return make(mnemonic::load_relative);
+    return make(instruction::load_relative);
   }
 
-  auto relative::make_store_mnemonic() const -> object
+  auto relative::make_store_instruction() const -> object
   {
-    return make(mnemonic::store_relative);
+    return make(instruction::store_relative);
   }
 
   auto operator ==(relative const&, relative const&) -> bool
@@ -120,14 +119,14 @@ inline namespace kernel
     return list_tail(e[car(second).template as<std::uint32_t>()], cdr(second).template as<std::uint32_t>());
   }
 
-  auto variadic::make_load_mnemonic() const -> object
+  auto variadic::make_load_instruction() const -> object
   {
-    return make(mnemonic::load_variadic);
+    return make(instruction::load_variadic);
   }
 
-  auto variadic::make_store_mnemonic() const -> object
+  auto variadic::make_store_instruction() const -> object
   {
-    return make(mnemonic::store_variadic);
+    return make(instruction::store_variadic);
   }
 } // namespace kernel
 } // namespace meevax

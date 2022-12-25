@@ -21,7 +21,6 @@
 #include <meevax/functional/compose.hpp>
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
-#include <meevax/kernel/mnemonic.hpp>
 #include <meevax/kernel/profiler.hpp>
 #include <meevax/kernel/type_index.hpp>
 #include <meevax/memory/gc_pointer.hpp>

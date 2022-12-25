@@ -14,83 +14,90 @@
    limitations under the License.
 */
 
-#include <meevax/iostream/lexical_cast.hpp>
-#include <meevax/kernel/mnemonic.hpp>
-#include <meevax/kernel/list.hpp>
+#include <cassert>
+
+#include <meevax/kernel/instruction.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto disassemble(std::ostream & os, object const& c, std::size_t depth) -> void
+  auto operator <<(std::ostream & os, instruction const& datum) -> std::ostream &
   {
-    depth = std::clamp(depth, std::numeric_limits<std::size_t>::min(),
-                              std::numeric_limits<std::size_t>::max());
-
-    static std::size_t offset = 0;
-
-    offset = (depth == 1 ? 0 : offset + 1);
-
-    for (auto iter = std::cbegin(c); iter != std::cend(c); ++iter)
+    switch (datum)
     {
-      os << faint("; ", std::setw(4), std::right, std::to_string(offset), "  ");
+      case instruction::call:              return os << "call";
+      case instruction::cons:              return os << "cons";
+      case instruction::define:            return os << "define";
+      case instruction::define_syntax:     return os << "define-syntax";
+      case instruction::drop:              return os << "drop";
+      case instruction::dummy:             return os << "dummy";
+      case instruction::join:              return os << "join";
+      case instruction::let_syntax:        return os << "let-syntax";
+      case instruction::letrec:            return os << "letrec";
+      case instruction::letrec_syntax:     return os << "letrec-syntax";
+      case instruction::load_absolute:     return os << "load-absolute";
+      case instruction::load_auxiliary:    return os << "load-auxiliary";
+      case instruction::load_closure:      return os << "load-closure";
+      case instruction::load_constant:     return os << "load-constant";
+      case instruction::load_continuation: return os << "load-continuation";
+      case instruction::load_relative:     return os << "load-relative";
+      case instruction::load_variadic:     return os << "load-variadic";
+      case instruction::return_:           return os << "return";
+      case instruction::select:            return os << "select";
+      case instruction::stop:              return os << "stop";
+      case instruction::store_absolute:    return os << "store-absolute";
+      case instruction::store_auxiliary:   return os << "store-auxiliary";
+      case instruction::store_relative:    return os << "store-relative";
+      case instruction::store_variadic:    return os << "store-variadic";
+      case instruction::tail_call:         return os << "tail-call";
+      case instruction::tail_select:       return os << "tail-select";
 
-      if (iter == c)
-      {
-        os << std::string(4 * (depth - 1), ' ') << magenta("(   ");
-      }
-      else
-      {
-        os << std::string(4 * depth, ' ');
-      }
+      default:
+        assert(false);
+        return os;
+    }
+  }
 
-      switch ((*iter).as<mnemonic>())
-      {
-      case mnemonic::call:
-      case mnemonic::cons:
-      case mnemonic::drop:
-      case mnemonic::dummy:
-      case mnemonic::join:
-      case mnemonic::letrec:
-      case mnemonic::return_:
-      case mnemonic::stop:
-      case mnemonic::tail_call:
-        os << *iter << "\n";
-        ++offset;
-        break;
+  auto instruction_length(instruction const& datum) -> std::size_t
+  {
+    switch (datum)
+    {
+      case instruction::call:
+      case instruction::cons:
+      case instruction::drop:
+      case instruction::dummy:
+      case instruction::join:
+      case instruction::letrec:
+      case instruction::return_:
+      case instruction::stop:
+      case instruction::tail_call:
+        return 1;
 
-      case mnemonic::define:
-      case mnemonic::define_syntax:
-      case mnemonic::let_syntax:
-      case mnemonic::letrec_syntax:
-      case mnemonic::load_absolute:
-      case mnemonic::load_auxiliary:
-      case mnemonic::load_constant:
-      case mnemonic::load_relative:
-      case mnemonic::load_variadic:
-      case mnemonic::store_absolute:
-      case mnemonic::store_auxiliary:
-      case mnemonic::store_relative:
-      case mnemonic::store_variadic:
-        os << *iter << " " << *++iter << "\n";
-        offset += 2;
-        break;
+      case instruction::define:
+      case instruction::define_syntax:
+      case instruction::let_syntax:
+      case instruction::letrec_syntax:
+      case instruction::load_absolute:
+      case instruction::load_auxiliary:
+      case instruction::load_closure:
+      case instruction::load_constant:
+      case instruction::load_continuation:
+      case instruction::load_relative:
+      case instruction::load_variadic:
+      case instruction::store_absolute:
+      case instruction::store_auxiliary:
+      case instruction::store_relative:
+      case instruction::store_variadic:
+        return 2;
 
-      case mnemonic::load_closure:
-      case mnemonic::load_continuation:
-        os << *iter << "\n";
-        ++offset;
-        disassemble(os, *++iter, depth + 1);
-        break;
+      case instruction::select:
+      case instruction::tail_select:
+        return 3;
 
-      case mnemonic::select:
-      case mnemonic::tail_select:
-        os << *iter << "\n";
-        ++offset;
-        disassemble(os, *++iter, depth + 1);
-        disassemble(os, *++iter, depth + 1);
-        break;
-      }
+      default:
+        assert(false);
+        return 0;
     }
   }
 } // namespace kernel

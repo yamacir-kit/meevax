@@ -14,32 +14,17 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_PROFILER_HPP
-#define INCLUDED_MEEVAX_KERNEL_PROFILER_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_DISASSEMBLE_HPP
+#define INCLUDED_MEEVAX_KERNEL_DISASSEMBLE_HPP
 
-#include <typeindex>
-#include <unordered_map>
-
-#include <meevax/kernel/instruction.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct profiler
-  {
-    static constexpr auto count_allocations       = false;
-    static constexpr auto count_instruction_fetch = false;
-
-    std::unordered_map<std::type_index, std::size_t> allocation_counts;
-
-    std::unordered_map<instruction, std::size_t> instruction_fetchs;
-
-    ~profiler();
-  };
-
-  auto current_profiler() -> profiler &;
+  auto disassemble(std::ostream &, object const&, std::size_t = 1) -> void;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_PROFILER_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_DISASSEMBLE_HPP
