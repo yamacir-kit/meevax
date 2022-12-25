@@ -187,6 +187,7 @@ check(r5rs)
 check(r7rs)
 check(sicp-1)
 check(srfi-8)
+check(tail-call)
 check(transformer)
 check(with-exception-handler)
 
