@@ -28,11 +28,11 @@ inline namespace kernel
   template <auto N, typename T>
   auto get(T&& x) -> decltype(auto)
   {
-    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, iterator>)
+    if constexpr (std::is_same_v<std::decay_t<T>, iterator>)
     {
       return std::get<N>(*x.get());
     }
-    else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, object>)
+    else if constexpr (std::is_same_v<std::decay_t<T>, object>)
     {
       return x.template is_also<pair>() ? std::get<N>(*x) : unit;
     }

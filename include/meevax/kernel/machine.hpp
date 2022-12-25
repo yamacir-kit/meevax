@@ -28,7 +28,7 @@ namespace meevax
 inline namespace kernel
 {
   template <typename Environment>
-  class machine // TR-SECD machine.
+  class machine
   {
     friend Environment;
 
@@ -48,17 +48,17 @@ inline namespace kernel
        The SECD machine, which in its original form was invented by Landin,
        derives its name from the designation of its four pricipal registers:
 
-       s   the stack          used to hold intermediate results when computing
-                              the values of expressions
+       s   the stack          Used to hold intermediate results when computing
+                              the values of expressions.
 
-       e   the environment    used to hold the values bound to variables during
-                              evaluation
+       e   the environment    Used to hold the values bound to variables during
+                              evaluation.
 
-       c   the control list   used to hold the machine-language program being
-                              executed
+       c   the control list   Used to hold the machine-language program being
+                              executed.
 
-       d   the dump           used as a stack to save values of other registers
-                              on calling a new function
+       d   the dump           Used as a stack to save values of other registers
+                              on calling a new function.
     */
     let s, e, c, d;
 
