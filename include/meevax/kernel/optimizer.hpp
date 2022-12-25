@@ -33,87 +33,8 @@ inline namespace kernel
       {
         return c;
       }
-      else switch (car(c).template as<instruction>())
+      else switch (c[0].as<instruction>())
       {
-      case instruction::call:
-      case instruction::cons:
-      case instruction::drop:
-      case instruction::dummy:
-      case instruction::join:
-      case instruction::letrec:
-      case instruction::return_:
-      case instruction::stop:
-      case instruction::tail_call:
-        return [&]()
-        {
-          if (let const& continuation = merge_constants(cdr(c)); continuation == cdr(c))
-          {
-            return c;
-          }
-          else
-          {
-            return cons(car(c), continuation);
-          }
-        }();
-
-      case instruction::define:
-      case instruction::define_syntax:
-      case instruction::let_syntax:
-      case instruction::letrec_syntax:
-      case instruction::load_absolute:
-      case instruction::load_auxiliary:
-      case instruction::load_relative:
-      case instruction::load_variadic:
-      case instruction::store_absolute:
-      case instruction::store_auxiliary:
-      case instruction::store_relative:
-      case instruction::store_variadic:
-        return [&]()
-        {
-          if (let const& continuation = merge_constants(cddr(c)); continuation == cddr(c))
-          {
-            return c;
-          }
-          else
-          {
-            return cons(car(c), cadr(c), continuation);
-          }
-        }();
-
-      case instruction::load_closure:
-      case instruction::load_continuation:
-        return [&]()
-        {
-          if (let const& branch       = merge_constants(cadr(c)),
-                         continuation = merge_constants(cddr(c));
-              branch == cadr(c) and continuation == cddr(c))
-          {
-            return c;
-          }
-          else
-          {
-            return cons(car(c), branch, continuation);
-          }
-        }();
-
-      case instruction::select:
-      case instruction::tail_select:
-        return [&]()
-        {
-          if (let const& consequent   = merge_constants(cadr(c)),
-                         alternate    = merge_constants(caddr(c)),
-                         continuation = merge_constants(cdddr(c));
-              consequent == cadr(c) and alternate == caddr(c) and continuation == cdddr(c))
-          {
-            return c;
-          }
-          else
-          {
-            return cons(car(c), consequent, alternate, continuation);
-          }
-        }();
-
-
       case instruction::load_constant: /* --------------------------------------
       *
       *  (load-constant x
@@ -133,7 +54,8 @@ inline namespace kernel
             c[4].is<instruction>() and
             c[4].as<instruction>() == instruction::cons)
         {
-          return merge_constants(cons(c[0], cons(c[3], c[1]),
+          return merge_constants(cons(c[0],
+                                      cons(c[3], c[1]),
                                       merge_constants(list_tail(c, 5))));
         }
         else if (let const& continuation = merge_constants(cddr(c)); continuation == cddr(c))
@@ -145,9 +67,46 @@ inline namespace kernel
           return cons(car(c), cadr(c), continuation);
         }
 
+      case instruction::load_closure:
+      case instruction::load_continuation:
+        if (let const& subcontrol   = merge_constants(cadr(c)),
+                       continuation = merge_constants(cddr(c));
+            subcontrol == cadr(c) and continuation == cddr(c))
+        {
+          return c;
+        }
+        else
+        {
+          return cons(c[0], subcontrol, continuation);
+        }
+
+      case instruction::select:
+      case instruction::tail_select:
+        if (let const& consequent   = merge_constants(cadr(c)),
+                       alternate    = merge_constants(caddr(c)),
+                       continuation = merge_constants(cdddr(c));
+            consequent == cadr(c) and alternate == caddr(c) and continuation == cdddr(c))
+        {
+          return c;
+        }
+        else
+        {
+          return cons(c[0], consequent, alternate, continuation);
+        }
+
       default:
-        assert(false);
-        return c;
+        {
+          auto length = instruction_length(c[0].as<instruction>());
+
+          if (let const& continuation = merge_constants(list_tail(c, length)); continuation == list_tail(c, length))
+          {
+            return c;
+          }
+          else
+          {
+            return append2(take(c, length), continuation);
+          }
+        }
       }
     }
 

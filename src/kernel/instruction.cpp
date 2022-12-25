@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#include <cassert>
+
 #include <meevax/kernel/instruction.hpp>
 
 namespace meevax
@@ -52,6 +54,7 @@ inline namespace kernel
       case instruction::tail_select:       return os << "tail-select";
 
       default:
+        assert(false);
         return os;
     }
   }
@@ -93,6 +96,7 @@ inline namespace kernel
         return 3;
 
       default:
+        assert(false);
         return 0;
     }
   }
