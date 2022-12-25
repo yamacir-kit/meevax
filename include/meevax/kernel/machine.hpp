@@ -341,9 +341,8 @@ inline namespace kernel
                                current_environment,
                                car(current_expression),
                                current_scope,
-                               cons(make(current_context.is_tail ? instruction::tail_call
-                                                                 : instruction::     call),
-                                    current_continuation)));
+                               current_context.is_tail ? list(make(instruction::tail_call))
+                                                       : cons(make(instruction::call), current_continuation)));
       }
     }
 
@@ -564,23 +563,6 @@ inline namespace kernel
         }();
         goto fetch;
 
-      case instruction::tail_call:
-        if (let const& callee = car(s); callee.is<closure>()) /* ---------------
-        *
-        *  (<closure> xs) e (%tail-call . c) d => () (xs . e') c' d
-        *
-        *  where <closure> = (c' . e')
-        *
-        * ------------------------------------------------------------------- */
-        {
-          assert(cddr(s).template is<null>());
-          c =               callee.as<closure>().c();
-          e = cons(cadr(s), callee.as<closure>().e());
-          s = unit;
-          goto fetch;
-        }
-        goto second_call;
-
       case instruction::call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
@@ -590,15 +572,14 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
+          assert(not list_tail(c, 1).template is<null>());
           d = cons(cddr(s), e, cdr(c), d);
           c =               callee.as<closure>().c();
           e = cons(cadr(s), callee.as<closure>().e());
           s = unit;
           goto fetch;
         }
-
-      second_call:
-        if (let const& callee = car(s); callee.is_also<procedure>()) /* --------
+        else if (callee.is_also<procedure>()) /* -------------------------------
         *
         *  (<procedure> xs . s) e (%call . c) d => (x . s) e c d
         *
@@ -606,6 +587,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
+          assert(not list_tail(c, 1).template is<null>());
           s = cons(callee.as<procedure>().call(cadr(s)), cddr(s));
           c = cdr(c);
           goto fetch;
@@ -618,7 +600,61 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
-          assert(cddr(s).template is<null>());
+          assert(    list_tail(s, 2).template is<null>());
+          assert(not list_tail(c, 1).template is<null>());
+          s = cons(caadr(s), callee.as<continuation>().s());
+          e =                callee.as<continuation>().e();
+          c =                callee.as<continuation>().c();
+          d =                callee.as<continuation>().d();
+          goto fetch;
+        }
+        else
+        {
+          throw error(make<string>("not applicable"), callee);
+        }
+
+      case instruction::tail_call:
+        if (let const& callee = car(s); callee.is<closure>()) /* ---------------
+        *
+        *  (<closure> xs) e (%tail-call) d => () (xs . e') c' d
+        *
+        *  where <closure> = (c' . e')
+        *
+        * ------------------------------------------------------------------- */
+        {
+          assert(list_tail(s, 2).template is<null>());
+          assert(list_tail(c, 1).template is<null>());
+          c =               callee.as<closure>().c();
+          e = cons(cadr(s), callee.as<closure>().e());
+          s = unit;
+          goto fetch;
+        }
+        else if (callee.is_also<procedure>()) /* -------------------------------
+        *
+        *  (<procedure> xs) e (%tail-call) (s' e' c' . d) => (x . s') e' c' d
+        *
+        *  where x = procedure(xs)
+        *
+        * ------------------------------------------------------------------- */
+        {
+          assert(list_tail(s, 2).template is<null>());
+          assert(list_tail(c, 1).template is<null>());
+          s = cons(callee.as<procedure>().call(cadr(s)), car(d));
+          e = cadr(d);
+          c = caddr(d);
+          d = cdddr(d);
+          goto fetch;
+        }
+        else if (callee.is<continuation>()) /* ---------------------------------
+        *
+        *  (<continuation> xs) e (%tail-call) d => (xs . s') e' c' d'
+        *
+        *  where <continuation> = (s' e' c' . 'd)
+        *
+        * ------------------------------------------------------------------- */
+        {
+          assert(list_tail(s, 2).template is<null>());
+          assert(list_tail(c, 1).template is<null>());
           s = cons(caadr(s), callee.as<continuation>().s());
           e =                callee.as<continuation>().e();
           c =                callee.as<continuation>().c();
@@ -1022,14 +1058,13 @@ inline namespace kernel
                                     cadr(current_expression),
                                     current_scope,
                                     current_continuation),
-                            cddr(current_expression)
-                              ? compile(current_context,
-                                        current_environment,
-                                        caddr(current_expression),
-                                        current_scope,
-                                        current_continuation)
-                              : list(make(instruction::load_constant), unspecified,
-                                     make(instruction::return_))));
+                            cddr(current_expression) ? compile(current_context,
+                                                               current_environment,
+                                                               caddr(current_expression),
+                                                               current_scope,
+                                                               current_continuation)
+                                                     : list(make(instruction::load_constant), unspecified,
+                                                            make(instruction::return_))));
       }
       else
       {
@@ -1043,14 +1078,13 @@ inline namespace kernel
                                     cadr(current_expression),
                                     current_scope,
                                     list(make(instruction::join))),
-                            cddr(current_expression)
-                              ? compile(context(),
-                                        current_environment,
-                                        caddr(current_expression),
-                                        current_scope,
-                                        list(make(instruction::join)))
-                              : list(make(instruction::load_constant), unspecified,
-                                     make(instruction::join)),
+                            cddr(current_expression) ? compile(context(),
+                                                               current_environment,
+                                                               caddr(current_expression),
+                                                               current_scope,
+                                                               list(make(instruction::join)))
+                                                     : list(make(instruction::load_constant), unspecified,
+                                                            make(instruction::join)),
                             current_continuation));
       }
     }
@@ -1207,7 +1241,7 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       return cons(make(instruction::load_closure),
-                  body(current_context,
+                  body(context(),
                        current_environment,
                        cdr(current_expression),
                        cons(car(current_expression), current_scope), // Extend lexical scope.
@@ -1438,7 +1472,7 @@ inline namespace kernel
                        cons(make(instruction::drop), // pop result of head expression
                             sequence(current_context,
                                      current_environment,
-                                     cdr(current_expression), // tail expressions
+                                     cdr(current_expression), // rest expressions
                                      current_scope,
                                      current_continuation)));
       }
