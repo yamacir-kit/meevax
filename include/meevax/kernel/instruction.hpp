@@ -54,6 +54,8 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, instruction const&) -> std::ostream &;
+
+  auto instruction_length(instruction const&) -> std::size_t;
 } // namespace kernel
 } // namespace meevax
 

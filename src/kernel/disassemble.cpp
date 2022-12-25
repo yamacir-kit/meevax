@@ -30,11 +30,11 @@ inline namespace kernel
 
     offset = (depth == 1 ? 0 : offset + 1);
 
-    for (auto iter = std::cbegin(c); iter != std::cend(c); ++iter)
+    for (auto iter = std::begin(c); iter != std::end(c); ++iter)
     {
       os << faint("; ", std::setw(4), std::right, std::to_string(offset), "  ");
 
-      if (iter == c)
+      if (iter == std::begin(c))
       {
         os << std::string(4 * (depth - 1), ' ') << magenta("(   ");
       }
@@ -43,38 +43,20 @@ inline namespace kernel
         os << std::string(4 * depth, ' ');
       }
 
-      switch ((*iter).as<instruction>())
+      auto newline = [&]() -> auto &
       {
-      case instruction::call:
-      case instruction::cons:
-      case instruction::drop:
-      case instruction::dummy:
-      case instruction::join:
-      case instruction::letrec:
-      case instruction::return_:
-      case instruction::stop:
-      case instruction::tail_call:
-        os << *iter << "\n";
-        offset += 1;
-        break;
+        if (std::next(iter) != std::end(c))
+        {
+          return os << "\n";
+        }
+        else
+        {
+          return os << magenta("   )\n");
+        }
+      };
 
-      case instruction::define:
-      case instruction::define_syntax:
-      case instruction::let_syntax:
-      case instruction::letrec_syntax:
-      case instruction::load_absolute:
-      case instruction::load_auxiliary:
-      case instruction::load_constant:
-      case instruction::load_relative:
-      case instruction::load_variadic:
-      case instruction::store_absolute:
-      case instruction::store_auxiliary:
-      case instruction::store_relative:
-      case instruction::store_variadic:
-        os << *iter << " " << *++iter << "\n";
-        offset += 2;
-        break;
-
+      switch (iter->as<instruction>())
+      {
       case instruction::load_closure:
       case instruction::load_continuation:
         os << *iter << "\n";
@@ -89,6 +71,26 @@ inline namespace kernel
         disassemble(os, *++iter, depth + 1);
         disassemble(os, *++iter, depth + 1);
         break;
+
+      default:
+        switch (instruction_length(iter->as<instruction>()))
+        {
+        case 1:
+          os << *iter;
+          newline();
+          offset += 1;
+          break;
+
+        case 2:
+          os << *iter << " " << *++iter;
+          newline();
+          offset += 2;
+          break;
+
+        default:
+          assert(false);
+          break;
+        }
       }
     }
   }

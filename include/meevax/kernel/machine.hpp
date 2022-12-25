@@ -44,16 +44,31 @@ inline namespace kernel
     using environment = Environment; // hack
 
   protected:
-    let s, // stack (holding intermediate results and return address)
-        e, // environment (giving values to symbols)
-        c, // code (instructions yet to be executed)
-        d; // dump (s e c . d)
+    /*
+       The SECD machine, which in its original form was invented by Landin,
+       derives its name from the designation of its four pricipal registers:
+
+       s   the stack          used to hold intermediate results when computing
+                              the values of expressions
+
+       e   the environment    used to hold the values bound to variables during
+                              evaluation
+
+       c   the control list   used to hold the machine-language program being
+                              executed
+
+       d   the dump           used as a stack to save values of other registers
+                              on calling a new function
+    */
+    let s, e, c, d;
 
     /*
        Auxiliary register.
 
        a[0] is used for current-dynamic-extents.
+
        a[1] is used for current-dynamic-bindings.
+
        a[2] is used for current-exception-handler.
     */
     std::array<let, 3> a;
