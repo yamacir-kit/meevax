@@ -27,9 +27,13 @@ namespace meevax
 {
 inline namespace memory
 {
-  struct header : public marker
+  struct header
   {
     virtual ~header() = default;
+
+    virtual auto mark() noexcept -> void = 0;
+
+    virtual auto marked() const noexcept -> bool = 0;
 
     virtual auto lower_address() const noexcept -> std::uintptr_t = 0;
 
@@ -43,12 +47,24 @@ inline namespace memory
   {
     T object;
 
+    marker reacheable;
+
     template <typename... Ts>
     explicit body(Ts&&... xs)
       : object { std::forward<decltype(xs)>(xs)... }
     {}
 
     ~body() override = default;
+
+    auto mark() noexcept -> void override
+    {
+      reacheable.mark();
+    }
+
+    auto marked() const noexcept -> bool override
+    {
+      return reacheable.marked();
+    }
 
     auto contains(void const* const data) const noexcept -> bool override
     {
