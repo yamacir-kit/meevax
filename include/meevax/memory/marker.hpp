@@ -39,7 +39,7 @@ inline namespace memory
 
     auto mark() noexcept
     {
-      return value = phase;
+      value = phase;
     }
 
     auto marked() const noexcept
