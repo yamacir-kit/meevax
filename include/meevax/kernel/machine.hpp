@@ -982,7 +982,7 @@ inline namespace kernel
 
            where <binding specs> = ((<variable 1> <init 1>) ...)
         */
-        return compile(current_context,
+        return compile(in_a_tail_context,
                        current_environment,
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs), // formals

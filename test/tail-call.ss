@@ -73,8 +73,7 @@
                      cons \
                      load-absolute #,(identity +) \
                      tail-call) \
-       call \
-       return)") ; BUG
+       tail-call)")
 
 ; ------------------------------------------------------------------------------
 
