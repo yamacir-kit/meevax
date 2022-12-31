@@ -42,11 +42,6 @@ inline namespace memory
       return value = phase;
     }
 
-    auto unmark() noexcept
-    {
-      return value = not phase;
-    }
-
     auto marked() const noexcept
     {
       return value == phase;
@@ -55,11 +50,6 @@ inline namespace memory
     static auto toggle() noexcept
     {
       return phase = not phase;
-    }
-
-    explicit operator bool() const noexcept
-    {
-      return marked();
     }
   };
 
