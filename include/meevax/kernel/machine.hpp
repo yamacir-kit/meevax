@@ -675,6 +675,19 @@ inline namespace kernel
         c = cdr(c);
         goto fetch;
 
+      case instruction::tail_letrec: /* ----------------------------------------
+        *
+        *  (<closure> xs . s) (<unit> . e) (%letrec . c) d => () (set-car! e' xs) c' d
+        *
+        *  where <closure> = (c' . e')
+        *
+        * ------------------------------------------------------------------- */
+        cadar(s) = cadr(s);
+        c = caar(s);
+        e = cdar(s);
+        s = unit;
+        goto fetch;
+
       case instruction::letrec: /* ---------------------------------------------
         *
         *  (<closure> xs . s) (<unit> . e) (%letrec . c) d => () (set-car! e' xs) c' (s e c . d)
@@ -1358,6 +1371,8 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
+      assert(not current_context.is_tail or lexical_cast<std::string>(current_continuation) == "(return)");
+
       auto const& [variables, inits] = unzip2(car(current_expression));
 
       return cons(make(instruction::dummy),
@@ -1365,12 +1380,12 @@ inline namespace kernel
                           current_environment,
                           inits,
                           cons(variables, current_scope),
-                          lambda(current_context,
+                          lambda(context(),
                                  current_environment,
                                  cons(variables, cdr(current_expression)), // (<formals> <body>)
                                  current_scope,
-                                 cons(make(instruction::letrec),
-                                      current_continuation))));
+                                 current_context.is_tail ? list(make(instruction::tail_letrec))
+                                                         : cons(make(instruction::letrec), current_continuation))));
     }
 
     static SYNTAX(quote) /* ----------------------------------------------------

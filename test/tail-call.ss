@@ -104,6 +104,42 @@
 
 ; ------------------------------------------------------------------------------
 
+(define (f)
+  (let ()
+    (let ()
+      (let () 42))))
+
+(check (object->string (car f))
+  => "(load-constant () \
+       load-closure (load-constant () \
+                     load-closure (load-constant () \
+                                   load-closure (load-constant 42 \
+                                                 return) \
+                                   tail-call) \
+                     tail-call) \
+       tail-call)")
+
+; ------------------------------------------------------------------------------
+
+(define (f)
+  (letrec ((a 1)
+           (b 2))
+    (+ a b)))
+
+(check (object->string (car f))
+  => "(dummy \
+       load-constant (1 2) \
+       load-closure (load-constant () \
+                     load-relative #,(identity b) \
+                     cons \
+                     load-relative #,(identity a) \
+                     cons \
+                     load-absolute #,(identity +) \
+                     tail-call) \
+       tail-letrec)")
+
+; ------------------------------------------------------------------------------
+
 (check-report)
 
-(exit (check-passed? 5))
+(exit (check-passed? 7))
