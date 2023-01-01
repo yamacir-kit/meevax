@@ -572,7 +572,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
-          assert(not list_tail(c, 1).template is<null>());
+          assert(not tail(c, 1).template is<null>());
           d = cons(cddr(s), e, cdr(c), d);
           c =               callee.as<closure>().c();
           e = cons(cadr(s), callee.as<closure>().e());
@@ -587,7 +587,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
-          assert(not list_tail(c, 1).template is<null>());
+          assert(not tail(c, 1).template is<null>());
           s = cons(callee.as<procedure>().call(cadr(s)), cddr(s));
           c = cdr(c);
           goto fetch;
@@ -600,8 +600,8 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
-          assert(    list_tail(s, 2).template is<null>());
-          assert(not list_tail(c, 1).template is<null>());
+          assert(    tail(s, 2).template is<null>());
+          assert(not tail(c, 1).template is<null>());
           s = cons(caadr(s), callee.as<continuation>().s());
           e =                callee.as<continuation>().e();
           c =                callee.as<continuation>().c();
@@ -622,8 +622,8 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
-          assert(list_tail(s, 2).template is<null>());
-          assert(list_tail(c, 1).template is<null>());
+          assert(tail(s, 2).template is<null>());
+          assert(tail(c, 1).template is<null>());
           c =               callee.as<closure>().c();
           e = cons(cadr(s), callee.as<closure>().e());
           s = unit;
@@ -637,8 +637,8 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
-          assert(list_tail(s, 2).template is<null>());
-          assert(list_tail(c, 1).template is<null>());
+          assert(tail(s, 2).template is<null>());
+          assert(tail(c, 1).template is<null>());
           s = cons(callee.as<procedure>().call(cadr(s)), car(d));
           e = cadr(d);
           c = caddr(d);
@@ -653,8 +653,8 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
-          assert(list_tail(s, 2).template is<null>());
-          assert(list_tail(c, 1).template is<null>());
+          assert(tail(s, 2).template is<null>());
+          assert(tail(c, 1).template is<null>());
           s = cons(caadr(s), callee.as<continuation>().s());
           e =                callee.as<continuation>().e();
           c =                callee.as<continuation>().c();
