@@ -945,12 +945,10 @@ inline namespace kernel
           {
             if (cadr(*iter).template is<pair>()) // (define (<variable> . <formals>) . <body>)
             {
-              auto const& [variable, formals] = unpair(cadr(*iter));
-
-              binding_specs = cons(list(variable,
+              binding_specs = cons(list(caadr(*iter), // <variable>
                                         cons(make<syntax>("lambda", lambda),
-                                             formals,
-                                             cddr(*iter))),
+                                             cdadr(*iter), // <formals>
+                                             cddr(*iter))), // <body>
                                    binding_specs);
             }
             else // (define <variable> <expression>)
@@ -985,9 +983,12 @@ inline namespace kernel
         /*
            (letrec* <binding specs> <body>)
 
-               => ((lambda <variables> <assignments> <body>) <initials>)
+               => ((lambda <variables> <assignments> <body>)
+                   <dummy 1> ... <dummy n>)
 
-           where <binding specs> = ((<variable 1> <init 1>) ...)
+           where <binding specs> = ((<variable 1> <initial 1>)
+                                    ...
+                                    (<variable n> <initial n>))
         */
         return compile(in_a_tail_context,
                        current_environment,
