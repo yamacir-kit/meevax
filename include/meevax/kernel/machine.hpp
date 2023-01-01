@@ -934,21 +934,28 @@ inline namespace kernel
 
       auto sweep = [&](object const& form)
       {
+        /*
+           <binding specs> = ((<variable> (lambda <formals> <body>)) ...)
+        */
         let binding_specs = unit;
 
         for (auto iter = std::begin(form); iter != std::end(form); ++iter)
         {
-          if (is_definition(*iter))
+          if (is_definition(*iter)) // (define ...)
           {
-            if (cadr(*iter).template is<pair>()) // (define (<variable> . <formals>) <body>)
+            if (cadr(*iter).template is<pair>()) // (define (<variable> . <formals>) . <body>)
             {
               auto const& [variable, formals] = unpair(cadr(*iter));
 
-              binding_specs = list(variable, cons(make<syntax>("lambda", lambda), formals, cddr(*iter))) | binding_specs;
+              binding_specs = cons(list(variable,
+                                        cons(make<syntax>("lambda", lambda),
+                                             formals,
+                                             cddr(*iter))),
+                                   binding_specs);
             }
             else // (define <variable> <expression>)
             {
-              binding_specs = cdr(*iter) | binding_specs;
+              binding_specs = cons(cdr(*iter), binding_specs);
             }
           }
           else
