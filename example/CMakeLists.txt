@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10.2) # Ubuntu 18.04 LTS Default
+cmake_minimum_required(VERSION 3.16.3) # Ubuntu 20.04 LTS default
 
 project(example VERSION 0.0.0 LANGUAGES CXX)
 

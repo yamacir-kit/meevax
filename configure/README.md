@@ -32,7 +32,7 @@ Latest release is [here](https://github.com/yamacir-kit/meevax/releases).
 
 ### Features
 
--   Architecture - TR-SECD virtual machine.
+-   Architecture - SECD machine.
 -   Modern C++ compatible dynamic typing - Meevax provides RTTI-based language runtime library.
 
 ### Standards
@@ -64,7 +64,7 @@ Subset of R7RS-small.
 
 ### Software
 
--   [GCC](https://gcc.gnu.org/) (>= 7.5.0) or [Clang](https://clang.llvm.org/) (>= 9.0.0)
+-   [GCC](https://gcc.gnu.org/) (>= 9.4.0) or [Clang](https://clang.llvm.org/) (>= 11.0.0)
 -   [CMake](https://cmake.org/) (>= ${CMAKE_MINIMUM_REQUIRED_VERSION})
 -   [GNU Make](http://savannah.gnu.org/projects/make)
 -   [GNU Binutils](https://www.gnu.org/software/binutils/)
