@@ -992,12 +992,12 @@ inline namespace kernel
                        current_continuation,
                        in_a_tail_context);
       }
-      else if (auto const& [binding_specs, body] = sweep(current_expression); binding_specs)
+      else if (auto const& [binding_specs, sequence] = sweep(current_expression); binding_specs)
       {
         /*
-           (letrec* <binding specs> <body>)
+           (letrec* <binding specs> <sequence>)
 
-               => ((lambda <variables> <assignments> <body>)
+               => ((lambda <variables> <assignments> <sequence>)
                    <dummy 1> ... <dummy n>)
 
            where <binding specs> = ((<variable 1> <initial 1>)
@@ -1012,7 +1012,7 @@ inline namespace kernel
                                                 return cons(make<syntax>("set!", set), binding_spec);
                                               },
                                               binding_specs),
-                                         body)),
+                                         sequence)),
                             make_list(length(binding_specs), unit)),
                        current_scope,
                        current_continuation,
@@ -1024,10 +1024,10 @@ inline namespace kernel
                        car(current_expression),
                        current_scope,
                        cons(make(instruction::drop),
-                            machine::body(current_environment,
-                                          cdr(current_expression),
-                                          current_scope,
-                                          current_continuation)));
+                            body(current_environment,
+                                 cdr(current_expression),
+                                 current_scope,
+                                 current_continuation)));
       }
     }
 
