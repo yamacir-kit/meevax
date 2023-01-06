@@ -140,6 +140,46 @@
 
 ; ------------------------------------------------------------------------------
 
+(define (f)
+  (begin (+ 1 2)
+         (+ 3 4)
+         (+ 5 6)))
+
+(check (object->string (car f))
+  => "(load-constant (1 2) \
+       load-absolute #,(identity +) \
+       call \
+       drop \
+       load-constant (3 4) \
+       load-absolute #,(identity +) \
+       call \
+       drop \
+       load-constant (5 6) \
+       load-absolute #,(identity +) \
+       tail-call)")
+
+; ------------------------------------------------------------------------------
+
+(define (f)
+  (begin (begin (+ 1 2))
+         (begin (+ 3 4))
+         (begin (+ 5 6))))
+
+(check (object->string (car f))
+  => "(load-constant (1 2) \
+       load-absolute #,(identity +) \
+       call \
+       drop \
+       load-constant (3 4) \
+       load-absolute #,(identity +) \
+       call \
+       drop \
+       load-constant (5 6) \
+       load-absolute #,(identity +) \
+       tail-call)")
+
+; ------------------------------------------------------------------------------
+
 (check-report)
 
-(exit (check-passed? 7))
+(exit (check-passed? 9))

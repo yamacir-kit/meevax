@@ -339,8 +339,7 @@ inline namespace kernel
                                car(current_expression),
                                current_scope,
                                current_context.is_tail ? list(make(instruction::tail_call))
-                                                       : cons(make(instruction::call), current_continuation)),
-                       context());
+                                                       : cons(make(instruction::call), current_continuation)));
       }
     }
 
@@ -877,6 +876,14 @@ inline namespace kernel
       d = unit;
     }
 
+    #define SYNTAX(NAME)                                                       \
+    auto NAME([[maybe_unused]] environment & current_environment,              \
+                               object const& current_expression,               \
+              [[maybe_unused]] object const& current_scope,                    \
+              [[maybe_unused]] object const& current_continuation,             \
+              [[maybe_unused]] context       current_context = {})             \
+      -> object
+
     static SYNTAX(set) /* ------------------------------------------------------
     *
     *  (set! <variable> <expression>)                                    syntax
@@ -1020,8 +1027,7 @@ inline namespace kernel
                             machine::body(current_environment,
                                           cdr(current_expression),
                                           current_scope,
-                                          current_continuation,
-                                          context())));
+                                          current_continuation)));
       }
     }
 
@@ -1249,8 +1255,7 @@ inline namespace kernel
                   body(current_environment,
                        cdr(current_expression),
                        cons(car(current_expression), current_scope), // Extend lexical scope.
-                       list(make(instruction::return_)),
-                       context()),
+                       list(make(instruction::return_))),
                   current_continuation);
     }
 
@@ -1366,9 +1371,7 @@ inline namespace kernel
                                  cons(variables, cdr(current_expression)), // (<formals> <body>)
                                  current_scope,
                                  current_context.is_tail ? list(make(instruction::tail_letrec))
-                                                         : cons(make(instruction::letrec), current_continuation),
-                                 context()),
-                          context()));
+                                                         : cons(make(instruction::letrec), current_continuation))));
     }
 
     static SYNTAX(quote) /* ----------------------------------------------------
@@ -1421,8 +1424,7 @@ inline namespace kernel
                                car(current_expression),
                                current_scope,
                                cons(make(instruction::cons),
-                                    current_continuation)),
-                       context());
+                                    current_continuation)));
       }
       else
       {
@@ -1480,6 +1482,8 @@ inline namespace kernel
                                      current_context)));
       }
     }
+
+    #undef SYNTAX
   };
 } // namespace kernel
 } // namespace meevax
