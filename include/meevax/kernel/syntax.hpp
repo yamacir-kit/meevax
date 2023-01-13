@@ -20,14 +20,6 @@
 #include <meevax/kernel/context.hpp>
 #include <meevax/kernel/pair.hpp>
 
-#define SYNTAX(NAME)                                                           \
-  auto NAME(                                                                   \
-    [[maybe_unused]] context       current_context,                            \
-    [[maybe_unused]] environment & current_environment,                        \
-    [[maybe_unused]] object const& current_expression,                         \
-    [[maybe_unused]] object const& current_scope,                              \
-    [[maybe_unused]] object const& current_continuation) -> object
-
 namespace meevax
 {
 inline namespace kernel
@@ -36,9 +28,9 @@ inline namespace kernel
 
   struct syntax
   {
-    using function_pointer_type = SYNTAX((*));
-
-    using function_type = std::function<SYNTAX()>;
+    using function_type = std::function<
+      auto (environment &, object const&, object const&, object const&, context) -> object
+    >;
 
     std::string const name;
 

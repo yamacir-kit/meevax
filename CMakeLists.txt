@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10.2) # Ubuntu 18.04 LTS Default
+cmake_minimum_required(VERSION 3.16.3) # Ubuntu 20.04 LTS default
 
 execute_process(
   COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
@@ -19,7 +19,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
-string(CONCAT UNSTABLE_OPTIMIZATION_OPTIONS # JOIN available if VERSION > 3.12
+string(JOIN " " UNSTABLE_OPTIMIZATION_OPTIONS
   # "-flto " # This optimization causes a SEGV when compiling with Clang 10.
   # "-fmerge-all-constants " # This optimization is very effective in reducing binary size, but non-standard to the C++ standard.
   # "-march=native " # This optimization causes "Illegal instruction" error (is Valgrind's bug) on CI.
@@ -187,6 +187,7 @@ check(r5rs)
 check(r7rs)
 check(sicp-1)
 check(srfi-8)
+check(tail-call)
 check(transformer)
 check(with-exception-handler)
 

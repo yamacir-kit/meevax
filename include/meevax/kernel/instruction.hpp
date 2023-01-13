@@ -50,6 +50,7 @@ inline namespace kernel
     store_relative,    //
     store_variadic,    //
     tail_call,         //
+    tail_letrec,       //
     tail_select,       //
   };
 

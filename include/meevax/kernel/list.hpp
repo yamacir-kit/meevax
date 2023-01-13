@@ -164,9 +164,9 @@ inline namespace kernel
   };
 
   template <typename T, typename K, REQUIRES(std::is_integral<K>)>
-  auto list_tail(T&& x, K const k) -> object const&
+  auto tail(T&& x, K const k) -> object const&
   {
-    return 0 < k ? list_tail(cdr(x), k - 1) : x;
+    return 0 < k ? tail(cdr(x), k - 1) : x;
   }
 
   auto take(object const&, std::size_t) -> object;

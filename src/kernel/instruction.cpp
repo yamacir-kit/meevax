@@ -51,6 +51,7 @@ inline namespace kernel
       case instruction::store_relative:    return os << "store-relative";
       case instruction::store_variadic:    return os << "store-variadic";
       case instruction::tail_call:         return os << "tail-call";
+      case instruction::tail_letrec:       return os << "tail-letrec";
       case instruction::tail_select:       return os << "tail-select";
 
       default:
@@ -72,6 +73,7 @@ inline namespace kernel
       case instruction::return_:
       case instruction::stop:
       case instruction::tail_call:
+      case instruction::tail_letrec:
         return 1;
 
       case instruction::define:

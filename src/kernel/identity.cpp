@@ -116,7 +116,7 @@ inline namespace kernel
     assert(car(second).template is<std::uint32_t>());
     assert(cdr(second).template is<std::uint32_t>());
 
-    return list_tail(e[car(second).template as<std::uint32_t>()], cdr(second).template as<std::uint32_t>());
+    return tail(e[car(second).template as<std::uint32_t>()], cdr(second).template as<std::uint32_t>());
   }
 
   auto variadic::make_load_instruction() const -> object

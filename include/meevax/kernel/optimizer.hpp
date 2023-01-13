@@ -56,7 +56,7 @@ inline namespace kernel
         {
           return merge_constants(cons(c[0],
                                       cons(c[3], c[1]),
-                                      merge_constants(list_tail(c, 5))));
+                                      merge_constants(tail(c, 5))));
         }
         else if (let const& continuation = merge_constants(cddr(c)); continuation == cddr(c))
         {
@@ -98,7 +98,7 @@ inline namespace kernel
         {
           auto length = instruction_length(c[0].as<instruction>());
 
-          if (let const& continuation = merge_constants(list_tail(c, length)); continuation == list_tail(c, length))
+          if (let const& continuation = merge_constants(tail(c, length)); continuation == tail(c, length))
           {
             return c;
           }
