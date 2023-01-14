@@ -28,11 +28,11 @@ inline namespace kernel
   template <auto N, typename T>
   auto get(T&& x) -> decltype(auto)
   {
-    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, iterator>)
+    if constexpr (std::is_same_v<std::decay_t<T>, iterator>)
     {
       return std::get<N>(*x.get());
     }
-    else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, object>)
+    else if constexpr (std::is_same_v<std::decay_t<T>, object>)
     {
       return x.template is_also<pair>() ? std::get<N>(*x) : unit;
     }
@@ -164,9 +164,9 @@ inline namespace kernel
   };
 
   template <typename T, typename K, REQUIRES(std::is_integral<K>)>
-  auto list_tail(T&& x, K const k) -> object const&
+  auto tail(T&& x, K const k) -> object const&
   {
-    return 0 < k ? list_tail(cdr(x), k - 1) : x;
+    return 0 < k ? tail(cdr(x), k - 1) : x;
   }
 
   auto take(object const&, std::size_t) -> object;

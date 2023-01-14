@@ -20,7 +20,7 @@
 #include <typeindex>
 #include <unordered_map>
 
-#include <meevax/kernel/mnemonic.hpp>
+#include <meevax/kernel/instruction.hpp>
 
 namespace meevax
 {
@@ -33,7 +33,7 @@ inline namespace kernel
 
     std::unordered_map<std::type_index, std::size_t> allocation_counts;
 
-    std::unordered_map<mnemonic, std::size_t> instruction_fetchs;
+    std::unordered_map<instruction, std::size_t> instruction_fetchs;
 
     ~profiler();
   };

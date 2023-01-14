@@ -14,33 +14,17 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
-#define INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_DISASSEMBLE_HPP
+#define INCLUDED_MEEVAX_KERNEL_DISASSEMBLE_HPP
 
-#include <meevax/kernel/context.hpp>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  class environment; // environment.hpp
-
-  struct syntax
-  {
-    using function_type = std::function<
-      auto (environment &, object const&, object const&, object const&, context) -> object
-    >;
-
-    std::string const name;
-
-    function_type const compile;
-
-    explicit syntax(std::string const&, function_type const&);
-  };
-
-  auto operator <<(std::ostream &, syntax const&) -> std::ostream &;
+  auto disassemble(std::ostream &, object const&, std::size_t = 1) -> void;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_DISASSEMBLE_HPP

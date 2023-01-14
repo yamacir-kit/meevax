@@ -17,13 +17,46 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 #define INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <iostream>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto disassemble(std::ostream &, object const&, std::size_t = 1) -> void;
+  enum class instruction : std::uint8_t
+  {
+    call,              // a.k.a APP
+    cons,              //
+    define,            //
+    define_syntax,     //
+    drop,              //
+    dummy,             // a.k.a DUM
+    join,              //
+    let_syntax,        //
+    letrec,            // a.k.a RAP
+    letrec_syntax,     //
+    load_absolute,     // a.k.a LDG
+    load_auxiliary,    //
+    load_closure,      // a.k.a LDF
+    load_constant,     // a.k.a LDC
+    load_continuation, //
+    load_relative,     // a.k.a LDL
+    load_variadic,     //
+    return_,           // a.k.a RTN
+    select,            // a.k.a SEL
+    stop,              //
+    store_absolute,    //
+    store_auxiliary,   //
+    store_relative,    //
+    store_variadic,    //
+    tail_call,         //
+    tail_letrec,       //
+    tail_select,       //
+  };
+
+  auto operator <<(std::ostream &, instruction const&) -> std::ostream &;
+
+  auto instruction_length(instruction const&) -> std::size_t;
 } // namespace kernel
 } // namespace meevax
 

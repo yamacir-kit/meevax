@@ -32,7 +32,7 @@ Latest release is [here](https://github.com/yamacir-kit/meevax/releases).
 
 ### Features
 
--   Architecture - TR-SECD virtual machine.
+-   Architecture - SECD machine.
 -   Modern C++ compatible dynamic typing - Meevax provides RTTI-based language runtime library.
 
 ### Standards
@@ -64,8 +64,8 @@ Subset of R7RS-small.
 
 ### Software
 
--   [GCC](https://gcc.gnu.org/) (>= 7.5.0) or [Clang](https://clang.llvm.org/) (>= 9.0.0)
--   [CMake](https://cmake.org/) (>= 3.10.2)
+-   [GCC](https://gcc.gnu.org/) (>= 9.4.0) or [Clang](https://clang.llvm.org/) (>= 11.0.0)
+-   [CMake](https://cmake.org/) (>= 3.16.3)
 -   [GNU Make](http://savannah.gnu.org/projects/make)
 -   [GNU Binutils](https://www.gnu.org/software/binutils/)
 -   [GNU Multiple Precision Arithmetic Library (GMP)](https://gmplib.org/)
@@ -105,9 +105,9 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name        | Description
 |:-------------------|:--
-| `all` (default)    | Build shared-library `libmeevax.0.4.439.so` and executable `meevax`.
+| `all` (default)    | Build shared-library `libmeevax.0.4.465.so` and executable `meevax`.
 | `test`             | Test executable `meevax`.
-| `package`          | Generate debian package `meevax_0.4.439_amd64.deb`.
+| `package`          | Generate debian package `meevax_0.4.465_amd64.deb`.
 | `install`          | Copy files into `/usr/local` __(1)__.
 | `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
 | `safe-install.deb` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
@@ -122,7 +122,7 @@ __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's
 ## Usage
 
 ```
-Meevax Lisp System, version 0.4.439
+Meevax Lisp System, version 0.4.465
 
 Usage: meevax [OPTION...] [FILE...]
 

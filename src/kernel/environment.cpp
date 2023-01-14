@@ -65,14 +65,14 @@ inline namespace kernel
                  std::exchange(c, unit), d);
       }
 
-      let const result = execute(optimize(compile(context(), *this, expression, scope())));
+      let const result = execute(optimize(compile(*this, expression, scope())));
 
       if (d)
       {
         s = d[0];
         e = d[1];
         c = d[2];
-        d = list_tail(d, 3);
+        d = tail(d, 3);
       }
 
       return result;
