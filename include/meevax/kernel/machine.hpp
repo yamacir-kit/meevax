@@ -856,15 +856,7 @@ inline namespace kernel
 
     inline auto reraise(object const& x) -> object
     {
-      if (raise.is<null>())
-      {
-        throw x;
-        return unspecified;
-      }
-      else
-      {
-        return apply(raise, x);
-      }
+      return raise.is<null>() ? throw x : apply(raise, x);
     }
 
     [[deprecated]]
