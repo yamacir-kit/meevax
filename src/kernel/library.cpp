@@ -635,7 +635,7 @@ inline namespace kernel
         return car(xs).is<pair>();
       });
 
-      library.define<intrinsic>("cons", cons_, [](let const& xs)
+      library.define<procedure>("cons", [](let const& xs)
       {
         return cons(car(xs), cadr(xs));
       });
