@@ -1030,6 +1030,9 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
+      assert(current_expression.is<pair>());
+      assert(cdr(current_expression).is<null>());
+
       return cons(make(instruction::load_continuation),
                   current_continuation,
                   compile(current_environment,
