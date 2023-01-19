@@ -1035,8 +1035,7 @@ inline namespace kernel
                   compile(current_environment,
                           car(current_expression),
                           current_scope,
-                          cons(make(instruction::call),
-                               current_continuation),
+                          list(make(instruction::tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.
                           current_context));
     }
 

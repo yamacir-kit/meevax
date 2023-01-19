@@ -1,33 +1,36 @@
-(import (meevax experimental) ; disassemble
+(import (only (meevax experimental) disassemble)
+        (only (meevax function) closure?)
+        (only (meevax syntax) call-with-current-continuation!)
         (scheme base)
         (scheme write)
         (scheme process-context)
-        (srfi 78)
-        )
+        (srfi 78))
 
-(define (object->string x)
-  (parameterize ((current-output-port (open-output-string "")))
-    (write x)
-    (get-output-string (current-output-port))))
+(define (object-code f)
+  (if (closure? f)
+      (parameterize ((current-output-port (open-output-string "")))
+        (write (car f))
+        (get-output-string (current-output-port)))
+      ""))
 
 ; ------------------------------------------------------------------------------
 
-(define (f1)
+(define (f)
   (car '(a b)))
 
-(check (object->string (car f1))
+(check (object-code f)
   => "(load-constant ((a b)) \
        load-absolute #,(identity car) \
        tail-call)")
 
 ; ------------------------------------------------------------------------------
 
-(define (f2)
+(define (f)
   ((lambda (x)
      (+ x 1))
    42))
 
-(check (object->string (car f2))
+(check (object-code f)
   => "(load-constant (42) \
        load-closure (load-constant (1) \
                      load-relative #,(identity x) \
@@ -38,11 +41,11 @@
 
 ; ------------------------------------------------------------------------------
 
-(define (f3)
+(define (f)
   (let ((x 42))
     (+ x 1)))
 
-(check (object->string (car f3))
+(check (object-code f)
   => "(load-constant (42) \
        load-closure (load-constant (1) \
                      load-relative #,(identity x) \
@@ -58,7 +61,7 @@
   (define y 2)
   (+ x y))
 
-(check (object->string (car f))
+(check (object-code f)
   => "(load-constant (() ()) \
        load-closure (load-constant 1 \
                      store-relative #,(identity x) \
@@ -85,7 +88,7 @@
    '()
    '()))
 
-(check (object->string (car f))
+(check (object-code f)
   => "(load-constant (() ()) \
        load-closure (load-constant 1 \
                      store-relative #,(identity x) \
@@ -109,7 +112,7 @@
     (let ()
       (let () 42))))
 
-(check (object->string (car f))
+(check (object-code f)
   => "(load-constant () \
        load-closure (load-constant () \
                      load-closure (load-constant () \
@@ -126,7 +129,7 @@
            (b 2))
     (+ a b)))
 
-(check (object->string (car f))
+(check (object-code f)
   => "(dummy \
        load-constant (1 2) \
        load-closure (load-constant () \
@@ -145,7 +148,7 @@
          (+ 3 4)
          (+ 5 6)))
 
-(check (object->string (car f))
+(check (object-code f)
   => "(load-constant (1 2) \
        load-absolute #,(identity +) \
        call \
@@ -165,7 +168,7 @@
          (begin (+ 3 4))
          (begin (+ 5 6))))
 
-(check (object->string (car f))
+(check (object-code f)
   => "(load-constant (1 2) \
        load-absolute #,(identity +) \
        call \
@@ -180,6 +183,36 @@
 
 ; ------------------------------------------------------------------------------
 
+(define (f)
+  (call-with-current-continuation!
+    (lambda (return)
+      (return))))
+
+(check (object-code f)
+  => "(load-continuation (return) \
+       load-closure (load-constant () \
+                     load-relative #,(identity return) \
+                     tail-call) \
+       tail-call)")
+
+; ------------------------------------------------------------------------------
+
+(define (f)
+  (call-with-current-continuation
+    (lambda (return)
+      (return))))
+
+(check (object-code f)
+  => "(load-constant () \
+       load-closure (load-constant () \
+                     load-relative #,(identity return) \
+                     tail-call) \
+       cons \
+       load-absolute #,(identity call-with-current-continuation) \
+       tail-call)")
+
+; ------------------------------------------------------------------------------
+
 (check-report)
 
-(exit (check-passed? 9))
+(exit (check-passed? 11))
