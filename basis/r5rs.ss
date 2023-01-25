@@ -89,29 +89,27 @@
          ;     (call-with-current-continuation
          ;       (lambda (cc)
          ;         (apply cc xs)))))
-
-         (define <values> (list 'values))
-
-         (define (values? x)
-           (if (pair? x)
-               (eq? <values> (car x))
-               #f))
-
-         (define (values . xs)
-           (if (if (null? xs) #f
-                   (null? (cdr xs)))
-               (car xs)
-               (cons <values> xs)))
-
+         ;
          ; (define (call-with-values producer consumer)
          ;   (let-values ((xs (producer)))
          ;     (apply consumer xs)))
 
-         (define (call-with-values producer consumer)
-           (let ((vs (producer)))
+         (define <values> (list 'values))
+
+         (define (values . xs)
+           (if (and (pair? xs)
+                    (null? (cdr xs)))
+               (car xs)
+               (cons <values> xs)))
+
+         (define (call-with-values produce consume)
+           (define (values? x)
+             (and (pair? x)
+                  (eq? <values> (car x))))
+           (let ((vs (produce)))
              (if (values? vs)
-                 (apply consumer (cdr vs))
-                 (consumer vs))))
+                 (apply consume (cdr vs))
+                 (consume vs))))
 
          (define (scheme-report-environment version)
            (environment `(scheme ,(string->symbol (string-append "r" (number->string version) "rs")))))

@@ -468,7 +468,7 @@ inline namespace kernel
 
       case instruction::define: /* ---------------------------------------------
         *
-        *  (x') e (%define <identity> . c) d => (x' . s) e c d
+        *  (x') e (%define <identity> . c) d => (x') e c d
         *
         *  where <identity> = (<symbol> . x := x')
         *
