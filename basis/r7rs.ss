@@ -2,27 +2,17 @@
   (import (only (meevax error) error-object? read-error? file-error?)
           (only (meevax number) exact-integer?)
           (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
-          (only (meevax port)
-                binary-port?
-                textual-port?
-                port?
-                input-port
-                open?
-                output-port
-                flush
-                error-port
-                eof-object
-                )
+          (only (meevax port) binary-port? textual-port? port? input-port open? output-port flush error-port eof-object)
           (only (meevax read) get-char get-char! get-ready?)
           (only (meevax string) string-copy! vector->string)
           (only (meevax version) features)
           (only (meevax write) put-char put-string)
           (scheme r5rs)
-          (srfi 6) ; Basic String Ports
-          (srfi 11) ; Syntax for receiving multiple values
-          (srfi 23) ; Error reporting mechanism
-          (srfi 34) ; Exception Handling for Programs
-          (srfi 39) ; Parameter objects
+          (srfi 6)
+          (srfi 11)
+          (srfi 23)
+          (srfi 34)
+          (srfi 39)
           (srfi 211 explicit-renaming))
 
   (export quote
