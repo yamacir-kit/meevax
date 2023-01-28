@@ -1,6 +1,6 @@
 (define-library (scheme base)
   (import (only (meevax error) error-object? read-error? file-error?)
-          (only (meevax number) exact-integer?)
+          (only (meevax number) exact-integer? exact-integer-square-root)
           (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
           (only (meevax port) binary-port? textual-port? port? input-port open? output-port flush error-port eof-object)
           (only (meevax read) get-char get-char! get-ready?)
@@ -40,8 +40,7 @@
           min + * - / abs floor/ floor-quotient floor-remainder truncate/
           truncate-quotient truncate-remainder quotient remainder modulo gcd lcm
           numerator denominator floor ceiling truncate round rationalize square
-          ; exact-integer-sqrt
-          expt inexact exact number->string string->number
+          exact-integer-sqrt expt inexact exact number->string string->number
 
           ; 6.3. Booleans
           not boolean? boolean=?
@@ -164,7 +163,10 @@
          (define (square z)
            (* z z))
 
-         ; TODO exact-integer-sqrt
+         (define (exact-integer-sqrt k)
+           (let ((x (exact-integer-square-root k)))
+             (values (car x)
+                     (cdr x))))
 
          (define inexact exact->inexact)
 

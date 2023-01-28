@@ -615,6 +615,4 @@
            (%load (if (pair? environment)
                       (car environment)
                       (interaction-environment))
-                  filename))
-         )
-  )
+                  filename))))

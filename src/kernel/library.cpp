@@ -601,6 +601,17 @@ inline namespace kernel
         return apply_arithmetic<round>(car(xs));
       });
 
+      library.define<procedure>("exact-integer-square-root", [](let const& xs)
+      {
+        auto&& [s, r] = exact_integer_sqrt(car(xs).as<exact_integer>());
+        return cons(make(s), make(r));
+      });
+
+      library.define<procedure>("expt", [](let const& xs)
+      {
+        return apply_arithmetic<expt>(car(xs), cadr(xs));
+      });
+
       library.define<procedure>("exact", [](let const& xs)
       {
         return apply_arithmetic<exact>(car(xs));
@@ -609,11 +620,6 @@ inline namespace kernel
       library.define<procedure>("inexact", [](let const& xs)
       {
         return apply_arithmetic<inexact>(car(xs));
-      });
-
-      library.define<procedure>("expt", [](let const& xs)
-      {
-        return apply_arithmetic<expt>(car(xs), cadr(xs));
       });
 
       library.define<procedure>("char->integer", [](let const& xs)
