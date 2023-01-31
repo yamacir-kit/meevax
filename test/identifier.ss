@@ -53,8 +53,8 @@
 (define-syntax er-macro-transformer:compare
   (er-macro-transformer
     (lambda (form rename compare)
-      (let ((x (cadr form))
-            (y (rename x)))
+      (let* ((x (cadr form))
+             (y (rename x)))
         (check (identifier? x) => #t)
         (check (identifier? y) => #t)
         (check (symbol? x) => #t)

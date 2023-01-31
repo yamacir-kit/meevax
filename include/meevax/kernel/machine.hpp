@@ -472,6 +472,9 @@ inline namespace kernel
         *
         *  where <identity> = (<symbol> . x := x')
         *
+        *  NOTE: This instruction is a complete duplicate of the store-absolute
+        *  instruction and will be deprecated in the near future.
+        *
         * ------------------------------------------------------------------- */
         assert(cdr(s).template is<null>());
         assert(cadr(c).template is<absolute>());

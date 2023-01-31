@@ -47,12 +47,12 @@
                 (ans '() (cons (proc i) ans)))
              ((< i 0) ans)))
 
-         (define (cons* first . rest)
-           (let rec ((x first)
-                     (rest rest))
-             (if (pair? rest)
-                 (cons x (rec (car rest)
-                              (cdr rest)))
+         (define (cons* x . xs)
+           (let cons* ((x x)
+                       (xs xs))
+             (if (pair? xs)
+                 (cons x (cons* (car xs)
+                                (cdr xs)))
                  x)))
 
          (define (circular-list val1 . vals)
