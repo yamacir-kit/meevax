@@ -242,15 +242,10 @@
 
          (define error-object-irritants cdr)
 
-         ; (define (call-with-port port procedure)
-         ;   (let-values ((results (procedure port)))
-         ;     (close-port port)
-         ;     (apply values results)))
-
          (define (call-with-port port procedure)
-           (let ((result (procedure port)))
+           (let-values ((xs (procedure port)))
              (close-port port)
-             result))
+             (apply values xs)))
 
          (define input-port-open? open?)
 
