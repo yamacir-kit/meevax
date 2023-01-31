@@ -537,9 +537,10 @@
 
 ; ---- 5.3.3. ------------------------------------------------------------------
 
-; (define-values (x y) (integer-sqrt 17))
+(define-values (x y)
+  (exact-integer-sqrt 17))
 
-; (check (list x y) => (4 1))
+(check (list x y) => (4 1))
 
 ; (check (let ()
 ;          (define-values (x y)
@@ -1555,4 +1556,4 @@
 
 (check-report)
 
-(exit (check-passed? 395))
+(exit (check-passed? 396))

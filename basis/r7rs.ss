@@ -26,9 +26,7 @@
           letrec-syntax syntax-rules _ ... syntax-error
 
           ; 5.3. Variable definitions
-          define
-          ; define-values
-          define-syntax
+          define define-values define-syntax
           ; define-record-type
 
           ; 6.1. Equivalence predicates
@@ -143,7 +141,39 @@
              (lambda (form rename compare)
                (apply error (cdr form)))))
 
-         ; TODO define-values
+         (define-syntax define-values
+           (syntax-rules ()
+             ((define-values () expression)
+              (define dummy
+                (call-with-values (lambda () expression)
+                                  (lambda xs #f))))
+             ((define-values (identifier) expression)
+              (define identifier expression))
+             ((define-values (id-0 id-1 ... id-n) expression)
+              (begin (define id-0
+                       (call-with-values (lambda () expression) list))
+                     (define id-1
+                       (let ((x (cadr id-0)))
+                         (set-cdr! id-0 (cddr id-0))
+                         x)) ...
+                     (define id-n
+                       (let ((x (cadr id-0)))
+                         (set! id-0 (car id-0))
+                         x))))
+             ((define-values (id-0 id-1 ... . id-n) expression)
+              (begin (define id-0
+                       (call-with-values (lambda () expression) list))
+                     (define id-1
+                       (let ((x (cadr id-0)))
+                         (set-cdr! id-0 (cddr id-0))
+                         x)) ...
+                     (define id-n
+                       (let ((x (cdr id-0)))
+                         (set! id-0 (car id-0))
+                         x))))
+             ((define-values identifier expression)
+              (define identifier
+                (call-with-values (lambda () expression) list)))))
 
          (define (floor-quotient x y)
            (floor (/ x y)))
@@ -290,9 +320,7 @@
          (define (flush-output-port . port)
            (flush (if (pair? port)
                       (car port)
-                      (current-output-port))))
-         )
-  )
+                      (current-output-port))))))
 
 (define-library (scheme lazy)
   (import (srfi 45))
