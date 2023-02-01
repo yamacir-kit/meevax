@@ -260,9 +260,9 @@
                  (y x))
          y) => 5)
 
-; (check (let-values (((root rem)
-;                      (exact-integer-sqrt 32)))
-;          (* root rem)) => 35)
+(check (let-values (((root rem)
+                     (exact-integer-sqrt 32)))
+         (* root rem)) => 35)
 
 (check (let ((a 'a)
              (b 'b)
@@ -537,9 +537,10 @@
 
 ; ---- 5.3.3. ------------------------------------------------------------------
 
-; (define-values (x y) (integer-sqrt 17))
+(define-values (x y)
+  (exact-integer-sqrt 17))
 
-; (check (list x y) => (4 1))
+(check (list x y) => (4 1))
 
 ; (check (let ()
 ;          (define-values (x y)
@@ -984,9 +985,9 @@
 
 (check (sqrt -1) => +i)
 
-; (check (exact-integer-sqrt 4) => #,(values 2 0))
+(check (exact-integer-sqrt 4) => #,(values 2 0))
 
-; (check (exact-integer-sqrt 5) => #,(values 2 1))
+(check (exact-integer-sqrt 5) => #,(values 2 1))
 
 (check (string->number "100") => 100)
 
@@ -1555,4 +1556,4 @@
 
 (check-report)
 
-(exit (check-passed? 392))
+(exit (check-passed? 396))
