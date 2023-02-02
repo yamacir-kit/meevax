@@ -118,5 +118,15 @@ inline namespace kernel
   {
     return make(instruction::store_variadic);
   }
+
+  auto operator ==(variadic const&, variadic const&) -> bool
+  {
+    return false; // No viable comparison.
+  }
+
+  auto operator <<(std::ostream & os, variadic const& datum) -> std::ostream &
+  {
+    return os << datum.second;
+  }
 } // namespace kernel
 } // namespace meevax

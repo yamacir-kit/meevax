@@ -71,9 +71,9 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, relative const&) -> std::ostream &;
 
-  struct variadic : public relative // (<symbol> . <de Bruijn index>) = (<symbol> <integer> . <integer>)
+  struct variadic : public identity // (<symbol> . <de Bruijn index>) = (<symbol> <integer> . <integer>)
   {
-    using relative::relative;
+    using identity::identity;
 
     auto load(object const&) -> object &;
 
@@ -83,6 +83,10 @@ inline namespace kernel
 
     auto make_store_instruction() const -> object override;
   };
+
+  auto operator ==(variadic const&, variadic const&) -> bool;
+
+  auto operator <<(std::ostream &, variadic const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 
