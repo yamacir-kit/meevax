@@ -42,7 +42,12 @@ inline namespace kernel
 
     auto operator [](object const& variable) -> decltype(auto)
     {
-      return identify(variable).as<identity>().load(e);
+      assert(scope().is<null>());
+      assert(e.is<null>());
+      assert(identify(variable).is<absolute>());
+
+      // If scope is null, identify will always return absolute identity.
+      return identify(variable).as<absolute>().load();
     }
 
     auto operator [](std::string const& variable) -> decltype(auto)

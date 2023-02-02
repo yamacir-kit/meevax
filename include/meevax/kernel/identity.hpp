@@ -31,10 +31,6 @@ inline namespace kernel
 
     virtual auto is_free() const -> bool = 0;
 
-    virtual auto load(object const& e) -> object &;
-
-    virtual auto load(object const&) const -> object const& = 0;
-
     virtual auto make_load_instruction() const -> object = 0;
 
     virtual auto make_store_instruction() const -> object = 0;
@@ -48,9 +44,9 @@ inline namespace kernel
 
     auto is_free() const -> bool override;
 
-    auto load(object const& = unit) -> object & override;
+    auto load() -> object &;
 
-    auto load(object const& = unit) const -> object const& override;
+    auto load() const -> object const&;
 
     auto make_load_instruction() const -> object override;
 
@@ -74,9 +70,9 @@ inline namespace kernel
 
     auto is_free() const -> bool override;
 
-    auto load(object const&) -> object & override;
+    auto load(object const&) -> object &;
 
-    auto load(object const&) const -> object const& override;
+    auto load(object const&) const -> object const&;
 
     auto make_load_instruction() const -> object override;
 
@@ -91,9 +87,9 @@ inline namespace kernel
   {
     using relative::relative;
 
-    auto load(object const&) -> object & override;
+    auto load(object const&) -> object &;
 
-    auto load(object const&) const -> object const& override;
+    auto load(object const&) const -> object const&;
 
     auto make_load_instruction() const -> object override;
 

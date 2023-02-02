@@ -23,11 +23,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto identity::load(object const& e) -> object &
-  {
-    return const_cast<object &>(std::as_const(*this).load(e));
-  }
-
   auto absolute::is_bound() const -> bool
   {
     return not is_free();
@@ -35,10 +30,10 @@ inline namespace kernel
 
   auto absolute::is_free() const -> bool
   {
-    return eq(load(), undefined);
+    return load() == undefined;
   }
 
-  auto absolute::load(object const&) const -> object const&
+  auto absolute::load() const -> object const&
   {
     if (second.is_also<absolute>()) // NOTE: Only the (export (rename ...)) form makes an identity whose value is identity.
     {
@@ -51,7 +46,7 @@ inline namespace kernel
     }
   }
 
-  auto absolute::load(object const&) -> object &
+  auto absolute::load() -> object &
   {
     return const_cast<object &>(std::as_const(*this).load());
   }
