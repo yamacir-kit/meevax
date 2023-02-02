@@ -111,6 +111,11 @@ inline namespace kernel
     return false; // No viable comparison.
   }
 
+  auto operator <<(std::ostream & os, relative const& datum) -> std::ostream &
+  {
+    return os << datum.second;
+  }
+
   auto variadic::load(object const& e) const -> object const&
   {
     assert(car(second).template is<std::uint32_t>());

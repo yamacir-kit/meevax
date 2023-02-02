@@ -83,6 +83,8 @@ inline namespace kernel
 
   auto operator ==(relative const&, relative const&) -> bool;
 
+  auto operator <<(std::ostream &, relative const&) -> std::ostream &;
+
   struct variadic : public relative // (<symbol> . <de Bruijn index>) = (<symbol> <integer> . <integer>)
   {
     using relative::relative;

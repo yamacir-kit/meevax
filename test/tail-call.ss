@@ -33,7 +33,7 @@
 (check (object-code f)
   => "(load-constant (42) \
        load-closure (load-constant (1) \
-                     load-relative #,(identity x) \
+                     load-relative (0 . 0) \
                      cons \
                      load-absolute #,(identity +) \
                      tail-call) \
@@ -48,7 +48,7 @@
 (check (object-code f)
   => "(load-constant (42) \
        load-closure (load-constant (1) \
-                     load-relative #,(identity x) \
+                     load-relative (0 . 0) \
                      cons \
                      load-absolute #,(identity +) \
                      tail-call) \
@@ -64,15 +64,15 @@
 (check (object-code f)
   => "(load-constant (() ()) \
        load-closure (load-constant 1 \
-                     store-relative #,(identity x) \
+                     store-relative (0 . 0) \
                      drop \
                      load-constant 2 \
-                     store-relative #,(identity y) \
+                     store-relative (0 . 1) \
                      drop \
                      load-constant () \
-                     load-relative #,(identity y) \
+                     load-relative (0 . 1) \
                      cons \
-                     load-relative #,(identity x) \
+                     load-relative (0 . 0) \
                      cons \
                      load-absolute #,(identity +) \
                      tail-call) \
@@ -91,15 +91,15 @@
 (check (object-code f)
   => "(load-constant (() ()) \
        load-closure (load-constant 1 \
-                     store-relative #,(identity x) \
+                     store-relative (0 . 0) \
                      drop \
                      load-constant 2 \
-                     store-relative #,(identity y) \
+                     store-relative (0 . 1) \
                      drop \
                      load-constant () \
-                     load-relative #,(identity y) \
+                     load-relative (0 . 1) \
                      cons \
-                     load-relative #,(identity x) \
+                     load-relative (0 . 0) \
                      cons \
                      load-absolute #,(identity +) \
                      tail-call) \
@@ -133,9 +133,9 @@
   => "(dummy \
        load-constant (1 2) \
        load-closure (load-constant () \
-                     load-relative #,(identity b) \
+                     load-relative (0 . 1) \
                      cons \
-                     load-relative #,(identity a) \
+                     load-relative (0 . 0) \
                      cons \
                      load-absolute #,(identity +) \
                      tail-call) \
@@ -191,7 +191,7 @@
 (check (object-code f)
   => "(load-continuation (return) \
        load-closure (load-constant () \
-                     load-relative #,(identity return) \
+                     load-relative (0 . 0) \
                      tail-call) \
        tail-call)")
 
@@ -205,7 +205,7 @@
 (check (object-code f)
   => "(load-constant () \
        load-closure (load-constant () \
-                     load-relative #,(identity return) \
+                     load-relative (0 . 0) \
                      tail-call) \
        cons \
        load-absolute #,(identity call-with-current-continuation) \
