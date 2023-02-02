@@ -56,6 +56,8 @@ inline namespace kernel
 
   struct relative : public identity // de Bruijn index
   {
+    using index = std::uint32_t;
+
     using identity::identity;
 
     auto load(object const&) -> object &;
@@ -71,6 +73,8 @@ inline namespace kernel
 
   struct variadic : public identity // de Bruijn index
   {
+    using index = std::uint32_t;
+
     using identity::identity;
 
     auto load(object const&) -> object &;

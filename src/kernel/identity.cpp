@@ -69,10 +69,10 @@ inline namespace kernel
 
   auto relative::load(object const& e) const -> object const&
   {
-    assert(first.is<std::uint32_t>());
-    assert(second.is<std::uint32_t>());
+    assert(first.is<index>());
+    assert(second.is<index>());
 
-    return e[first.as<std::uint32_t>()][second.as<std::uint32_t>()];
+    return e[first.as<index>()][second.as<index>()];
   }
 
   auto relative::make_load_instruction() const -> object
@@ -97,10 +97,10 @@ inline namespace kernel
 
   auto variadic::load(object const& e) const -> object const&
   {
-    assert(first.is<std::uint32_t>());
-    assert(second.is<std::uint32_t>());
+    assert(first.is<index>());
+    assert(second.is<index>());
 
-    return tail(e[first.as<std::uint32_t>()], second.as<std::uint32_t>());
+    return tail(e[first.as<index>()], second.as<index>());
   }
 
   auto variadic::make_load_instruction() const -> object
