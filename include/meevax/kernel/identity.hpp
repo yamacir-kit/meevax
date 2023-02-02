@@ -27,10 +27,6 @@ inline namespace kernel
   {
     using pair::pair;
 
-    virtual auto is_bound() const -> bool = 0;
-
-    virtual auto is_free() const -> bool = 0;
-
     virtual auto make_load_instruction() const -> object = 0;
 
     virtual auto make_store_instruction() const -> object = 0;
@@ -39,10 +35,6 @@ inline namespace kernel
   struct absolute : public identity
   {
     using identity::identity;
-
-    auto is_bound() const -> bool override;
-
-    auto is_free() const -> bool override;
 
     auto load() -> object &;
 
@@ -65,10 +57,6 @@ inline namespace kernel
   struct relative : public identity // (<symbol> . <de Bruijn index>) = (<symbol> <integer> . <integer>)
   {
     using identity::identity;
-
-    auto is_bound() const -> bool override;
-
-    auto is_free() const -> bool override;
 
     auto load(object const&) -> object &;
 

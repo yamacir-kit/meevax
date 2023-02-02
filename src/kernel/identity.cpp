@@ -23,16 +23,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto absolute::is_bound() const -> bool
-  {
-    return not is_free();
-  }
-
-  auto absolute::is_free() const -> bool
-  {
-    return load() == undefined;
-  }
-
   auto absolute::load() const -> object const&
   {
     if (second.is_also<absolute>()) // NOTE: Only the (export (rename ...)) form makes an identity whose value is identity.
@@ -70,16 +60,6 @@ inline namespace kernel
   auto operator <<(std::ostream & os, absolute const& datum) -> std::ostream &
   {
     return os << datum.symbol();
-  }
-
-  auto relative::is_bound() const -> bool
-  {
-    return true;
-  }
-
-  auto relative::is_free() const -> bool
-  {
-    return false;
   }
 
   auto relative::load(object const& e) -> object &
