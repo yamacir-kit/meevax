@@ -49,11 +49,12 @@ inline namespace kernel
     return eq(load(), undefined);
   }
 
-  auto absolute::load(object const& e) const -> object const&
+  auto absolute::load(object const&) const -> object const&
   {
-    if (second.is_also<identity>()) // NOTE: Only the (export (rename ...)) form makes an identity whose value is identity.
+    if (second.is_also<absolute>()) // NOTE: Only the (export (rename ...)) form makes an identity whose value is identity.
     {
-      return second.as<identity>().load(e);
+      assert(second.is<absolute>());
+      return second.as<absolute>().load();
     }
     else
     {
