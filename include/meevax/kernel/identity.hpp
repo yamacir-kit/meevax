@@ -61,6 +61,8 @@ inline namespace kernel
     auto make_store_instruction() const -> object override;
   };
 
+  auto operator <<(std::ostream &, absolute const&) -> std::ostream &;
+
   struct keyword : public absolute
   {
     using absolute::absolute;

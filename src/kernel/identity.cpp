@@ -77,6 +77,11 @@ inline namespace kernel
     return make(instruction::store_absolute);
   }
 
+  auto operator <<(std::ostream & os, absolute const& datum) -> std::ostream &
+  {
+    return os << datum.symbol();
+  }
+
   auto relative::is_bound() const -> bool
   {
     return true;
