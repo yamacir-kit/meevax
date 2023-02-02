@@ -69,11 +69,10 @@ inline namespace kernel
 
   auto relative::load(object const& e) const -> object const&
   {
-    assert(car(second).template is<std::uint32_t>());
-    assert(cdr(second).template is<std::uint32_t>());
+    assert(first.is<std::uint32_t>());
+    assert(second.is<std::uint32_t>());
 
-    return e[car(second).template as<std::uint32_t>()]
-            [cdr(second).template as<std::uint32_t>()];
+    return e[first.as<std::uint32_t>()][second.as<std::uint32_t>()];
   }
 
   auto relative::make_load_instruction() const -> object
@@ -91,11 +90,6 @@ inline namespace kernel
     return false; // No viable comparison.
   }
 
-  auto operator <<(std::ostream & os, relative const& datum) -> std::ostream &
-  {
-    return os << datum.second;
-  }
-
   auto variadic::load(object const& e) -> object &
   {
     return const_cast<object &>(std::as_const(*this).load(e));
@@ -103,10 +97,10 @@ inline namespace kernel
 
   auto variadic::load(object const& e) const -> object const&
   {
-    assert(car(second).template is<std::uint32_t>());
-    assert(cdr(second).template is<std::uint32_t>());
+    assert(first.is<std::uint32_t>());
+    assert(second.is<std::uint32_t>());
 
-    return tail(e[car(second).template as<std::uint32_t>()], cdr(second).template as<std::uint32_t>());
+    return tail(e[first.as<std::uint32_t>()], second.as<std::uint32_t>());
   }
 
   auto variadic::make_load_instruction() const -> object
@@ -122,11 +116,6 @@ inline namespace kernel
   auto operator ==(variadic const&, variadic const&) -> bool
   {
     return false; // No viable comparison.
-  }
-
-  auto operator <<(std::ostream & os, variadic const& datum) -> std::ostream &
-  {
-    return os << datum.second;
   }
 } // namespace kernel
 } // namespace meevax

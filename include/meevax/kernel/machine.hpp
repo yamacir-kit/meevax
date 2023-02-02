@@ -169,9 +169,8 @@ inline namespace kernel
 
           auto offset = static_cast<std::uint32_t>(length(use_env_scope) - length(mac_env_scope));
 
-          return make<relative>(car(identity),
-                                make(cadr(identity).template as<std::uint32_t>() + offset),
-                                cddr(identity));
+          return make<relative>(make(car(identity).template as<std::uint32_t>() + offset),
+                                cdr(identity));
         }
         else if (identity.is<variadic>())
         {
@@ -181,9 +180,8 @@ inline namespace kernel
 
           auto offset = static_cast<std::uint32_t>(length(use_env_scope) - length(mac_env_scope));
 
-          return make<variadic>(car(identity),
-                                make(cadr(identity).template as<std::uint32_t>() + offset),
-                                cddr(identity));
+          return make<variadic>(make(car(identity).template as<std::uint32_t>() + offset),
+                                cdr(identity));
         }
         else
         {
@@ -851,20 +849,12 @@ inline namespace kernel
           }
           else if (inner.get().is<pair>() and eq(*inner, variable))
           {
-            // NOTE: A class that inherits from pair behaves as if it were `cons*` when given three or more arguments.
-            static_assert(std::is_base_of<pair, relative>::value);
-
-            return make<relative>(variable,
-                                  make(static_cast<std::uint32_t>(std::distance(std::begin(scope), outer))),
+            return make<relative>(make(static_cast<std::uint32_t>(std::distance(std::begin(scope), outer))),
                                   make(static_cast<std::uint32_t>(std::distance(std::begin(*outer), inner))));
           }
           else if (inner.get().is<symbol>() and eq(inner, variable))
           {
-            // NOTE: A class that inherits from pair behaves as if it were `cons*` when given three or more arguments.
-            static_assert(std::is_base_of<pair, variadic>::value);
-
-            return make<variadic>(variable,
-                                  make(static_cast<std::uint32_t>(std::distance(std::begin(scope), outer))),
+            return make<variadic>(make(static_cast<std::uint32_t>(std::distance(std::begin(scope), outer))),
                                   make(static_cast<std::uint32_t>(std::distance(std::begin(*outer), inner))));
           }
         }

@@ -32,7 +32,7 @@ inline namespace kernel
     virtual auto make_store_instruction() const -> object = 0;
   };
 
-  struct absolute : public identity
+  struct absolute : public identity // (<symbol> . <object>)
   {
     using identity::identity;
 
@@ -54,7 +54,7 @@ inline namespace kernel
     using absolute::absolute;
   };
 
-  struct relative : public identity // (<symbol> . <de Bruijn index>) = (<symbol> <integer> . <integer>)
+  struct relative : public identity // de Bruijn index
   {
     using identity::identity;
 
@@ -69,9 +69,7 @@ inline namespace kernel
 
   auto operator ==(relative const&, relative const&) -> bool;
 
-  auto operator <<(std::ostream &, relative const&) -> std::ostream &;
-
-  struct variadic : public identity // (<symbol> . <de Bruijn index>) = (<symbol> <integer> . <integer>)
+  struct variadic : public identity // de Bruijn index
   {
     using identity::identity;
 
@@ -85,8 +83,6 @@ inline namespace kernel
   };
 
   auto operator ==(variadic const&, variadic const&) -> bool;
-
-  auto operator <<(std::ostream &, variadic const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 
