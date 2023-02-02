@@ -34,11 +34,6 @@ inline namespace kernel
     return first;
   }
 
-  auto operator <<(std::ostream & os, identity const& datum) -> std::ostream &
-  {
-    return os << magenta("#,(") << blue("identity ") << datum.symbol() << magenta(")");
-  }
-
   auto absolute::is_bound() const -> bool
   {
     return not is_free();

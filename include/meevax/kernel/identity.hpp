@@ -42,8 +42,6 @@ inline namespace kernel
     virtual auto symbol() const -> object const&;
   };
 
-  auto operator <<(std::ostream & os, identity const&) -> std::ostream &;
-
   struct absolute : public identity
   {
     using identity::identity;
