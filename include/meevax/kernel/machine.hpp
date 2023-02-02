@@ -759,7 +759,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         assert(cadr(c).template is<relative>());
-        cadr(c).template as<identity>().load(e) = car(s);
+        cadr(c).template as<relative>().load(e) = car(s);
         c = cddr(c);
         goto fetch;
 
@@ -769,7 +769,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         assert(cadr(c).template is<variadic>());
-        cadr(c).template as<identity>().load(e) = car(s);
+        cadr(c).template as<variadic>().load(e) = car(s);
         c = cddr(c);
         goto fetch;
 

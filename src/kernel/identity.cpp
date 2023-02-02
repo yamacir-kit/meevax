@@ -51,9 +51,9 @@ inline namespace kernel
     }
   }
 
-  auto absolute::load(object const& e) -> object &
+  auto absolute::load(object const&) -> object &
   {
-    return const_cast<object &>(std::as_const(*this).load(e));
+    return const_cast<object &>(std::as_const(*this).load());
   }
 
   auto absolute::make_load_instruction() const -> object
@@ -87,6 +87,11 @@ inline namespace kernel
     return false;
   }
 
+  auto relative::load(object const& e) -> object &
+  {
+    return const_cast<object &>(std::as_const(*this).load(e));
+  }
+
   auto relative::load(object const& e) const -> object const&
   {
     assert(car(second).template is<std::uint32_t>());
@@ -114,6 +119,11 @@ inline namespace kernel
   auto operator <<(std::ostream & os, relative const& datum) -> std::ostream &
   {
     return os << datum.second;
+  }
+
+  auto variadic::load(object const& e) -> object &
+  {
+    return const_cast<object &>(std::as_const(*this).load(e));
   }
 
   auto variadic::load(object const& e) const -> object const&

@@ -74,6 +74,8 @@ inline namespace kernel
 
     auto is_free() const -> bool override;
 
+    auto load(object const&) -> object & override;
+
     auto load(object const&) const -> object const& override;
 
     auto make_load_instruction() const -> object override;
@@ -89,7 +91,9 @@ inline namespace kernel
   {
     using relative::relative;
 
-    auto load(object const& e) const -> object const& override;
+    auto load(object const&) -> object & override;
+
+    auto load(object const&) const -> object const& override;
 
     auto make_load_instruction() const -> object override;
 
