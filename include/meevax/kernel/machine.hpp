@@ -364,34 +364,41 @@ inline namespace kernel
       {
       case instruction::load_absolute: /* --------------------------------------
         *
-        *  s e (%load-absolute <absolute identity> . c) d => (x . s) e c d
+        *  s e (%load-absolute <absolute> . c) d => (x . s) e c d
         *
-        *  where <absolute identity> = (<symbol> . x)
+        *  where <absolute> = (<symbol> . x)
         *
         * ------------------------------------------------------------------- */
-        [[fallthrough]];
+        assert(cadr(c).template is<absolute>());
+        s = cons(cadr(c).template as<absolute>().load(), s);
+        c = cddr(c);
+        goto fetch;
 
       case instruction::load_relative: /* --------------------------------------
         *
-        *  s  e (%load-relative <relative identity> . c) d => (x . s) e c d
+        *  s  e (%load-relative <relative> . c) d => (x . s) e c d
         *
-        *  where <relative identity> = (<symbol> i . j)
+        *  where <relative> = (<symbol> i . j)
         *
         *        x = (list-ref (list-ref e i) j)
         *
         * ------------------------------------------------------------------- */
-        [[fallthrough]];
+        assert(cadr(c).template is<relative>());
+        s = cons(cadr(c).template as<relative>().load(e), s);
+        c = cddr(c);
+        goto fetch;
 
       case instruction::load_variadic: /* --------------------------------------
         *
-        *  s  e (%load-variadic <variadic identity> . c) d => (x . s) e c d
+        *  s  e (%load-variadic <variadic> . c) d => (x . s) e c d
         *
-        *  where <variadic identity> = (<symbol> i . j)
+        *  where <variadic> = (<symbol> i . j)
         *
         *        x = (list-tail (list-ref e i) j)
         *
         * ------------------------------------------------------------------- */
-        s = cons(cadr(c).template as<identity>().load(e), s);
+        assert(cadr(c).template is<variadic>());
+        s = cons(cadr(c).template as<variadic>().load(e), s);
         c = cddr(c);
         goto fetch;
 
@@ -734,25 +741,34 @@ inline namespace kernel
 
       case instruction::store_absolute: /* -------------------------------------
         *
-        *  (x . s) e (%store-absolute <absolute identity> . c) d => (x . s) e c d
+        *  (x . s) e (%store-absolute <absolute> . c) d => (x . s) e c d
         *
-        *  where <absolute identity> = (<symbol> . <object>:=x)
+        *  where <absolute> = (<symbol> . <object>)
+        *
+        *        (set-cdr! <absolute> x)
         *
         * ------------------------------------------------------------------- */
-        [[fallthrough]];
+        assert(cadr(c).template is<absolute>());
+        cadr(c).template as<absolute>().load() = car(s);
+        c = cddr(c);
+        goto fetch;
 
       case instruction::store_relative: /* -------------------------------------
         *
-        *  (x . s) e (%store-relative <relative identity> . c) d => (x . s) e c d
+        *  (x . s) e (%store-relative <relative> . c) d => (x . s) e c d
         *
         * ------------------------------------------------------------------- */
-        [[fallthrough]];
+        assert(cadr(c).template is<relative>());
+        cadr(c).template as<identity>().load(e) = car(s);
+        c = cddr(c);
+        goto fetch;
 
       case instruction::store_variadic: /* -------------------------------------
         *
-        *  (x . s) e (%store-variadic <variadic identity> . c) d => (x . s) e c d
+        *  (x . s) e (%store-variadic <variadic> . c) d => (x . s) e c d
         *
         * ------------------------------------------------------------------- */
+        assert(cadr(c).template is<variadic>());
         cadr(c).template as<identity>().load(e) = car(s);
         c = cddr(c);
         goto fetch;

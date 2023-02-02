@@ -51,9 +51,8 @@ inline namespace kernel
 
   auto absolute::load(object const& e) const -> object const&
   {
-    if (second.is_also<identity>())
+    if (second.is_also<identity>()) // NOTE: Only the (export (rename ...)) form makes an identity whose value is identity.
     {
-      // NOTE: Only the (export (rename ...)) form makes an identity whose value is identity.
       return second.as<identity>().load(e);
     }
     else
