@@ -38,8 +38,6 @@ inline namespace kernel
     virtual auto make_load_instruction() const -> object = 0;
 
     virtual auto make_store_instruction() const -> object = 0;
-
-    virtual auto symbol() const -> object const&;
   };
 
   struct absolute : public identity
@@ -57,6 +55,8 @@ inline namespace kernel
     auto make_load_instruction() const -> object override;
 
     auto make_store_instruction() const -> object override;
+
+    auto symbol() const -> object const&;
   };
 
   auto operator <<(std::ostream &, absolute const&) -> std::ostream &;

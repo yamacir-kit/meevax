@@ -28,12 +28,6 @@ inline namespace kernel
     return const_cast<object &>(std::as_const(*this).load(e));
   }
 
-  auto identity::symbol() const -> object const&
-  {
-    assert(first.is_also<identifier>());
-    return first;
-  }
-
   auto absolute::is_bound() const -> bool
   {
     return not is_free();
@@ -70,6 +64,12 @@ inline namespace kernel
   auto absolute::make_store_instruction() const -> object
   {
     return make(instruction::store_absolute);
+  }
+
+  auto absolute::symbol() const -> object const&
+  {
+    assert(first.is_also<identifier>());
+    return first;
   }
 
   auto operator <<(std::ostream & os, absolute const& datum) -> std::ostream &
