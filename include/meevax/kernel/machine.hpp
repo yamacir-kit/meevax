@@ -231,17 +231,45 @@ inline namespace kernel
       {
         if (current_expression.is<symbol>())
         {
-          let const& id = current_environment.identify(current_expression, current_scope);
-
-          return cons(id.as<identity>().make_load_instruction(), id,
-                      current_continuation);
+          if (let const& identity = current_environment.identify(current_expression, current_scope);
+              identity.is<relative>())
+          {
+            return cons(make(instruction::load_relative), identity,
+                        current_continuation);
+          }
+          else if (identity.is<variadic>())
+          {
+            return cons(make(instruction::load_variadic), identity,
+                        current_continuation);
+          }
+          else
+          {
+            assert(identity.is<absolute>()); // <Keyword> cannot appear.
+            return cons(make(instruction::load_absolute), identity,
+                        current_continuation);
+          }
         }
         else if (current_expression.is<syntactic_closure>())
         {
-          if (let const& id = std::as_const(current_environment).identify(current_expression, current_scope); is_truthy(id))
+          if (let const& identity = std::as_const(current_environment).identify(current_expression, current_scope);
+              is_truthy(identity))
           {
-            return cons(id.as<identity>().make_load_instruction(), id,
-                        current_continuation);
+            if (identity.is<relative>())
+            {
+              return cons(make(instruction::load_relative), identity,
+                          current_continuation);
+            }
+            else if (identity.is<variadic>())
+            {
+              return cons(make(instruction::load_variadic), identity,
+                          current_continuation);
+            }
+            else
+            {
+              assert(identity.is<absolute>()); // <Keyword> cannot appear.
+              return cons(make(instruction::load_absolute), identity,
+                          current_continuation);
+            }
           }
           else // The syntactic-closure encloses procedure call.
           {

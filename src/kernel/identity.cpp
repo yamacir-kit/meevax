@@ -41,11 +41,6 @@ inline namespace kernel
     return const_cast<object &>(std::as_const(*this).load());
   }
 
-  auto absolute::make_load_instruction() const -> object
-  {
-    return make(instruction::load_absolute);
-  }
-
   auto absolute::make_store_instruction() const -> object
   {
     return make(instruction::store_absolute);
@@ -75,11 +70,6 @@ inline namespace kernel
     return e[first.as<index>()][second.as<index>()];
   }
 
-  auto relative::make_load_instruction() const -> object
-  {
-    return make(instruction::load_relative);
-  }
-
   auto relative::make_store_instruction() const -> object
   {
     return make(instruction::store_relative);
@@ -101,11 +91,6 @@ inline namespace kernel
     assert(second.is<index>());
 
     return tail(e[first.as<index>()], second.as<index>());
-  }
-
-  auto variadic::make_load_instruction() const -> object
-  {
-    return make(instruction::load_variadic);
   }
 
   auto variadic::make_store_instruction() const -> object

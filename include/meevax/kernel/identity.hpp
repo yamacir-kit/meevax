@@ -27,8 +27,6 @@ inline namespace kernel
   {
     using pair::pair;
 
-    virtual auto make_load_instruction() const -> object = 0;
-
     virtual auto make_store_instruction() const -> object = 0;
   };
 
@@ -39,8 +37,6 @@ inline namespace kernel
     auto load() -> object &;
 
     auto load() const -> object const&;
-
-    auto make_load_instruction() const -> object override;
 
     auto make_store_instruction() const -> object override;
 
@@ -64,8 +60,6 @@ inline namespace kernel
 
     auto load(object const&) const -> object const&;
 
-    auto make_load_instruction() const -> object override;
-
     auto make_store_instruction() const -> object override;
   };
 
@@ -80,8 +74,6 @@ inline namespace kernel
     auto load(object const&) -> object &;
 
     auto load(object const&) const -> object const&;
-
-    auto make_load_instruction() const -> object override;
 
     auto make_store_instruction() const -> object override;
   };
