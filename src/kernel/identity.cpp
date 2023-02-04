@@ -25,7 +25,7 @@ inline namespace kernel
 {
   auto absolute::load() const -> object const&
   {
-    if (second.is_also<absolute>()) // NOTE: Only the (export (rename ...)) form makes an identity whose value is identity.
+    if (second.is<absolute>()) // NOTE: Only the (export (rename ...)) form makes an identity whose value is identity.
     {
       assert(second.is<absolute>());
       return second.as<absolute>().load();
@@ -39,11 +39,6 @@ inline namespace kernel
   auto absolute::load() -> object &
   {
     return const_cast<object &>(std::as_const(*this).load());
-  }
-
-  auto absolute::make_store_instruction() const -> object
-  {
-    return make(instruction::store_absolute);
   }
 
   auto absolute::symbol() const -> object const&
@@ -70,11 +65,6 @@ inline namespace kernel
     return e[first.as<index>()][second.as<index>()];
   }
 
-  auto relative::make_store_instruction() const -> object
-  {
-    return make(instruction::store_relative);
-  }
-
   auto variadic::load(object const& e) -> object &
   {
     return const_cast<object &>(std::as_const(*this).load(e));
@@ -86,11 +76,6 @@ inline namespace kernel
     assert(second.is<index>());
 
     return tail(e[first.as<index>()], second.as<index>());
-  }
-
-  auto variadic::make_store_instruction() const -> object
-  {
-    return make(instruction::store_variadic);
   }
 } // namespace kernel
 } // namespace meevax

@@ -925,13 +925,32 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      let const& id = current_environment.identify(car(current_expression), current_scope);
-
-      return compile(current_environment,
-                     cadr(current_expression),
-                     current_scope,
-                     cons(id.as<identity>().make_store_instruction(), id,
-                          current_continuation));
+      if (let const& identity = current_environment.identify(car(current_expression), current_scope);
+          identity.is<relative>())
+      {
+        return compile(current_environment,
+                       cadr(current_expression),
+                       current_scope,
+                       cons(make(instruction::store_relative), identity,
+                            current_continuation));
+      }
+      else if (identity.is<variadic>())
+      {
+        return compile(current_environment,
+                       cadr(current_expression),
+                       current_scope,
+                       cons(make(instruction::store_variadic), identity,
+                            current_continuation));
+      }
+      else
+      {
+        assert(identity.is<absolute>()); // <Keyword> cannot appear.
+        return compile(current_environment,
+                       cadr(current_expression),
+                       current_scope,
+                       cons(make(instruction::store_absolute), identity,
+                            current_continuation));
+      }
     }
 
     static SYNTAX(load_auxiliary) /* -------------------------------------------

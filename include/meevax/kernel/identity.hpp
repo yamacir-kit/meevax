@@ -26,8 +26,6 @@ inline namespace kernel
   struct identity : public virtual pair
   {
     using pair::pair;
-
-    virtual auto make_store_instruction() const -> object = 0;
   };
 
   struct absolute : public identity // (<symbol> . <object>)
@@ -37,8 +35,6 @@ inline namespace kernel
     auto load() -> object &;
 
     auto load() const -> object const&;
-
-    auto make_store_instruction() const -> object override;
 
     auto symbol() const -> object const&;
   };
@@ -59,8 +55,6 @@ inline namespace kernel
     auto load(object const&) -> object &;
 
     auto load(object const&) const -> object const&;
-
-    auto make_store_instruction() const -> object override;
   };
 
   struct variadic : public identity // de Bruijn index
@@ -72,8 +66,6 @@ inline namespace kernel
     auto load(object const&) -> object &;
 
     auto load(object const&) const -> object const&;
-
-    auto make_store_instruction() const -> object override;
   };
 } // namespace kernel
 } // namespace meevax
