@@ -28,7 +28,6 @@ inline namespace kernel
     {
       case instruction::call:              return os << "call";
       case instruction::cons:              return os << "cons";
-      case instruction::define:            return os << "define";
       case instruction::define_syntax:     return os << "define-syntax";
       case instruction::drop:              return os << "drop";
       case instruction::dummy:             return os << "dummy";
@@ -76,7 +75,6 @@ inline namespace kernel
       case instruction::tail_letrec:
         return 1;
 
-      case instruction::define:
       case instruction::define_syntax:
       case instruction::let_syntax:
       case instruction::letrec_syntax:

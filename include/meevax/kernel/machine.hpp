@@ -499,22 +499,6 @@ inline namespace kernel
         d = cdr(d);
         goto fetch;
 
-      case instruction::define: /* ---------------------------------------------
-        *
-        *  (x') e (%define <identity> . c) d => (x') e c d
-        *
-        *  where <identity> = (<symbol> . x := x')
-        *
-        *  NOTE: This instruction is a complete duplicate of the store-absolute
-        *  instruction and will be deprecated in the near future.
-        *
-        * ------------------------------------------------------------------- */
-        assert(cdr(s).template is<null>());
-        assert(cadr(c).template is<absolute>());
-        cadr(c).template as<absolute>().store(car(s));
-        c = cddr(c);
-        goto fetch;
-
       case instruction::define_syntax: /* --------------------------------------
         *
         *  (<closure>) e (%define <identity> . c) d => (x' . s) e c d
@@ -1196,7 +1180,7 @@ inline namespace kernel
           return compile(current_environment,
                          cons(make<syntax>("lambda", lambda), cdar(current_expression), cdr(current_expression)),
                          current_scope,
-                         cons(make(instruction::define), current_environment.identify(caar(current_expression), current_scope),
+                         cons(make(instruction::store_absolute), current_environment.identify(caar(current_expression), current_scope),
                               current_continuation));
         }
         else // (define x ...)
@@ -1204,7 +1188,7 @@ inline namespace kernel
           return compile(current_environment,
                          cdr(current_expression) ? cadr(current_expression) : unspecified,
                          current_scope,
-                         cons(make(instruction::define), current_environment.identify(car(current_expression), current_scope),
+                         cons(make(instruction::store_absolute), current_environment.identify(car(current_expression), current_scope),
                               current_continuation));
         }
       }
