@@ -167,9 +167,9 @@ inline namespace kernel
 
           assert(length(use_env_scope) >= length(mac_env_scope));
 
-          auto offset = static_cast<relative::index>(length(use_env_scope) - length(mac_env_scope));
+          auto offset = static_cast<identity::index>(length(use_env_scope) - length(mac_env_scope));
 
-          return make<relative>(make(car(identity).template as<relative::index>() + offset),
+          return make<relative>(make(car(identity).template as<identity::index>() + offset),
                                 cdr(identity));
         }
         else if (identity.is<variadic>())
@@ -178,9 +178,9 @@ inline namespace kernel
 
           assert(length(use_env_scope) >= length(mac_env_scope));
 
-          auto offset = static_cast<variadic::index>(length(use_env_scope) - length(mac_env_scope));
+          auto offset = static_cast<identity::index>(length(use_env_scope) - length(mac_env_scope));
 
-          return make<variadic>(make(car(identity).template as<variadic::index>() + offset),
+          return make<variadic>(make(car(identity).template as<identity::index>() + offset),
                                 cdr(identity));
         }
         else
@@ -877,13 +877,13 @@ inline namespace kernel
           }
           else if (inner.get().is<pair>() and eq(*inner, variable))
           {
-            return make<relative>(make(static_cast<relative::index>(std::distance(std::begin(scope), outer))),
-                                  make(static_cast<relative::index>(std::distance(std::begin(*outer), inner))));
+            return make<relative>(make(static_cast<identity::index>(std::distance(std::begin(scope), outer))),
+                                  make(static_cast<identity::index>(std::distance(std::begin(*outer), inner))));
           }
           else if (inner.get().is<symbol>() and eq(inner, variable))
           {
-            return make<variadic>(make(static_cast<variadic::index>(std::distance(std::begin(scope), outer))),
-                                  make(static_cast<variadic::index>(std::distance(std::begin(*outer), inner))));
+            return make<variadic>(make(static_cast<identity::index>(std::distance(std::begin(scope), outer))),
+                                  make(static_cast<identity::index>(std::distance(std::begin(*outer), inner))));
           }
         }
       }

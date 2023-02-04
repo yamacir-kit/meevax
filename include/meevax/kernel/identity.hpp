@@ -23,14 +23,15 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct identity : public virtual pair
+  struct identity
   {
-    using pair::pair;
+    using index = std::uint32_t;
   };
 
-  struct absolute : public identity // (<symbol> . <object>)
+  struct absolute : public identity
+                  , public virtual pair // (<symbol> . <object>)
   {
-    using identity::identity;
+    using pair::pair;
 
     auto load() -> object &;
 
@@ -46,22 +47,20 @@ inline namespace kernel
     using absolute::absolute;
   };
 
-  struct relative : public identity // de Bruijn index
+  struct relative : public identity
+                  , public virtual pair // de Bruijn index
   {
-    using index = std::uint32_t;
-
-    using identity::identity;
+    using pair::pair;
 
     auto load(object const&) -> object &;
 
     auto load(object const&) const -> object const&;
   };
 
-  struct variadic : public identity // de Bruijn index
+  struct variadic : public identity
+                  , public virtual pair // de Bruijn index
   {
-    using index = std::uint32_t;
-
-    using identity::identity;
+    using pair::pair;
 
     auto load(object const&) -> object &;
 
