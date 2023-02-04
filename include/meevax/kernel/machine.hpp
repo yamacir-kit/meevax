@@ -511,7 +511,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         assert(cdr(s).template is<null>());
         assert(cadr(c).template is<absolute>());
-        cadr(c).template as<absolute>().load() = car(s);
+        cadr(c).template as<absolute>().store(car(s));
         c = cddr(c);
         goto fetch;
 
@@ -525,7 +525,7 @@ inline namespace kernel
         assert(car(s).template is<closure>());
         assert(cdr(s).template is<null>());
         assert(cadr(c).template is<absolute>());
-        cadr(c).template as<absolute>().load() = make<transformer>(car(s), fork());
+        cadr(c).template as<absolute>().store(make<transformer>(car(s), fork()));
         c = cddr(c);
         goto fetch;
 
@@ -542,11 +542,9 @@ inline namespace kernel
 
           let const c_ = c;
 
-          for (let const& keyword_ : car(current_scope))
+          for (let const& k : car(current_scope))
           {
-            let & binding = keyword_.as<keyword>().load();
-
-            binding = make<transformer>(execute(binding), syntactic_environment);
+            k.as<keyword>().store(make<transformer>(execute(k.as<keyword>().load()), syntactic_environment));
           }
 
           c = c_;
@@ -775,7 +773,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         assert(cadr(c).template is<absolute>());
-        cadr(c).template as<absolute>().load() = car(s);
+        cadr(c).template as<absolute>().store(car(s));
         c = cddr(c);
         goto fetch;
 
@@ -785,7 +783,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         assert(cadr(c).template is<relative>());
-        cadr(c).template as<relative>().load(e) = car(s);
+        cadr(c).template as<relative>().store(car(s), e);
         c = cddr(c);
         goto fetch;
 
@@ -795,7 +793,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         assert(cadr(c).template is<variadic>());
-        cadr(c).template as<variadic>().load(e) = car(s);
+        cadr(c).template as<variadic>().store(car(s), e);
         c = cddr(c);
         goto fetch;
 

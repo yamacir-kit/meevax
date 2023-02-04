@@ -25,7 +25,7 @@ inline namespace kernel
 {
   auto absolute::load() const -> object const&
   {
-    if (second.is<absolute>()) // NOTE: Only the (export (rename ...)) form makes an identity whose value is identity.
+    if (second.is<absolute>()) // Only the (export (rename ...)) form makes an identity whose value is identity.
     {
       assert(second.is<absolute>());
       return second.as<absolute>().load();
@@ -36,9 +36,9 @@ inline namespace kernel
     }
   }
 
-  auto absolute::load() -> object &
+  auto absolute::store(object const& x) -> void
   {
-    return const_cast<object &>(std::as_const(*this).load());
+    second = x;
   }
 
   auto absolute::symbol() const -> object const&
@@ -52,22 +52,20 @@ inline namespace kernel
     return os << datum.symbol();
   }
 
-  auto relative::load(object const& e) -> object &
-  {
-    return const_cast<object &>(std::as_const(*this).load(e));
-  }
-
   auto relative::load(object const& e) const -> object const&
   {
     assert(first.is<index>());
     assert(second.is<index>());
 
-    return e[first.as<index>()][second.as<index>()];
+    return head(head(e, first.as<index>()), second.as<index>());
   }
 
-  auto variadic::load(object const& e) -> object &
+  auto relative::store(object const& x, object & e) const -> void
   {
-    return const_cast<object &>(std::as_const(*this).load(e));
+    assert(first.is<index>());
+    assert(second.is<index>());
+
+    head(head(e, first.as<index>()), second.as<index>()) = x;
   }
 
   auto variadic::load(object const& e) const -> object const&
@@ -75,7 +73,15 @@ inline namespace kernel
     assert(first.is<index>());
     assert(second.is<index>());
 
-    return tail(e[first.as<index>()], second.as<index>());
+    return tail(head(e, first.as<index>()), second.as<index>());
+  }
+
+  auto variadic::store(object const& x, object & e) const -> void
+  {
+    assert(first.is<index>());
+    assert(second.is<index>());
+
+    tail(head(e, first.as<index>()), second.as<index>()) = x;
   }
 } // namespace kernel
 } // namespace meevax

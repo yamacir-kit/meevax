@@ -33,9 +33,9 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto load() -> object &;
-
     auto load() const -> object const&;
+
+    auto store(object const&) -> void;
 
     auto symbol() const -> object const&;
   };
@@ -52,9 +52,9 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto load(object const&) -> object &;
-
     auto load(object const&) const -> object const&;
+
+    auto store(object const&, object &) const -> void;
   };
 
   struct variadic : public identity
@@ -62,9 +62,9 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto load(object const&) -> object &;
-
     auto load(object const&) const -> object const&;
+
+    auto store(object const&, object &) const -> void;
   };
 } // namespace kernel
 } // namespace meevax

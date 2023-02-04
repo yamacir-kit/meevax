@@ -164,9 +164,15 @@ inline namespace kernel
   };
 
   template <typename T, typename K, REQUIRES(std::is_integral<K>)>
-  auto tail(T&& x, K const k) -> object const&
+  auto tail(T&& x, K const k) -> decltype(x)
   {
-    return 0 < k ? tail(cdr(x), k - 1) : x;
+    return 0 < k ? tail(cdr(std::forward<decltype(x)>(x)), k - 1) : x;
+  }
+
+  template <typename... Ts>
+  auto head(Ts&&... xs) -> decltype(auto)
+  {
+    return car(tail(std::forward<decltype(xs)>(xs)...));
   }
 
   auto take(object const&, std::size_t) -> object;

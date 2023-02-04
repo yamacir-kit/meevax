@@ -21,9 +21,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto environment::define(object const& name, object const& value) -> void
+  auto environment::define(object const& variable, object const& value) -> void
   {
-    (*this)[name] = value;
+    assert(scope().is<null>());
+    assert(e.is<null>());
+    assert(identify(variable).is<absolute>());
+
+    return identify(variable).as<absolute>().store(value);
   }
 
   auto environment::define(std::string const& name, object const& value) -> void
