@@ -63,8 +63,6 @@ inline namespace kernel
     auto make_store_instruction() const -> object override;
   };
 
-  auto operator ==(relative const&, relative const&) -> bool;
-
   struct variadic : public identity // de Bruijn index
   {
     using index = std::uint32_t;
@@ -77,8 +75,6 @@ inline namespace kernel
 
     auto make_store_instruction() const -> object override;
   };
-
-  auto operator ==(variadic const&, variadic const&) -> bool;
 } // namespace kernel
 } // namespace meevax
 

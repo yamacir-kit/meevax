@@ -75,11 +75,6 @@ inline namespace kernel
     return make(instruction::store_relative);
   }
 
-  auto operator ==(relative const&, relative const&) -> bool
-  {
-    return false; // No viable comparison.
-  }
-
   auto variadic::load(object const& e) -> object &
   {
     return const_cast<object &>(std::as_const(*this).load(e));
@@ -96,11 +91,6 @@ inline namespace kernel
   auto variadic::make_store_instruction() const -> object
   {
     return make(instruction::store_variadic);
-  }
-
-  auto operator ==(variadic const&, variadic const&) -> bool
-  {
-    return false; // No viable comparison.
   }
 } // namespace kernel
 } // namespace meevax
