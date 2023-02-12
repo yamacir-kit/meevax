@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 
-#include <meevax/kernel/context.hpp>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
@@ -28,9 +27,11 @@ inline namespace kernel
 
   struct syntax
   {
-    using function_type = std::function<
-      auto (environment &, object const&, object const&, object const&, context) -> object
-    >;
+    using function_type = std::function<auto (environment &,
+                                              object const&,
+                                              object const&,
+                                              object const&,
+                                              object const&) -> object>;
 
     std::string const name;
 

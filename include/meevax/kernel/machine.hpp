@@ -205,7 +205,7 @@ inline namespace kernel
                         object const& current_expression,
                         object const& current_scope = unit,
                         object const& current_continuation = list(make(instruction::stop)),
-                        context       current_context = {}) -> object
+                        object const& current_tail = unspecified) -> object
     {
       if (current_expression.is<null>()) /* ------------------------------------
       *
@@ -302,7 +302,7 @@ inline namespace kernel
                        id.as<keyword>().load().as<transformer>().expand(current_expression, current_environment.fork(current_scope)),
                        current_scope,
                        current_continuation,
-                       current_context);
+                       current_tail);
       }
       else if (let const& applicant = id.is<absolute>() ? id.as<absolute>().load() : car(current_expression); applicant.is_also<syntax>())
       {
@@ -310,7 +310,7 @@ inline namespace kernel
                                               cdr(current_expression),
                                               current_scope,
                                               current_continuation,
-                                              current_context);
+                                              current_tail);
       }
       else if (applicant.is_also<transformer>())
       {
@@ -319,7 +319,7 @@ inline namespace kernel
                                                           current_environment.fork(current_scope)),
                        current_scope,
                        current_continuation,
-                       current_context);
+                       current_tail);
       }
       else /* ------------------------------------------------------------------
       *
@@ -364,7 +364,7 @@ inline namespace kernel
                        compile(current_environment,
                                car(current_expression),
                                current_scope,
-                               current_context.is_tail ? list(make(instruction::tail_call))
+                               current_tail.is<null>() ? list(make(instruction::tail_call))
                                                        : cons(make(instruction::call), current_continuation)));
       }
     }
@@ -892,7 +892,7 @@ inline namespace kernel
                                object const& current_expression,               \
               [[maybe_unused]] object const& current_scope,                    \
               [[maybe_unused]] object const& current_continuation,             \
-              [[maybe_unused]] context       current_context = {})             \
+              [[maybe_unused]] object const& current_tail = unspecified)       \
       -> object
 
     static SYNTAX(set) /* ------------------------------------------------------
@@ -1020,7 +1020,7 @@ inline namespace kernel
                        car(current_expression),
                        current_scope,
                        current_continuation,
-                       in_a_tail_context);
+                       cdr(current_expression));
       }
       else if (auto const& [binding_specs, sequence] = sweep(current_expression); binding_specs)
       {
@@ -1046,7 +1046,7 @@ inline namespace kernel
                             make_list(length(binding_specs), unit)),
                        current_scope,
                        current_continuation,
-                       in_a_tail_context);
+                       unit);
       }
       else
       {
@@ -1077,7 +1077,7 @@ inline namespace kernel
                           car(current_expression),
                           current_scope,
                           list(make(instruction::tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.
-                          current_context));
+                          current_tail));
     }
 
     static SYNTAX(if_) /* ------------------------------------------------------
@@ -1096,7 +1096,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (current_context.is_tail)
+      if (current_tail.is<null>())
       {
         assert(lexical_cast<std::string>(current_continuation) == "(return)");
 
@@ -1108,13 +1108,13 @@ inline namespace kernel
                                     cadr(current_expression),
                                     current_scope,
                                     current_continuation,
-                                    in_a_tail_context),
+                                    current_tail),
                             cddr(current_expression) ? compile(current_environment,
                                                                caddr(current_expression),
                                                                current_scope,
                                                                current_continuation,
-                                                               in_a_tail_context)
-                                                     : list(make(instruction::load_constant), unspecified,
+                                                               current_tail)
+                                                     : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
                                                             make(instruction::return_))));
       }
       else
@@ -1131,7 +1131,7 @@ inline namespace kernel
                                                                caddr(current_expression),
                                                                current_scope,
                                                                list(make(instruction::join)))
-                                                     : list(make(instruction::load_constant), unspecified,
+                                                     : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
                                                             make(instruction::join)),
                             current_continuation));
       }
@@ -1391,7 +1391,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      assert(not current_context.is_tail or lexical_cast<std::string>(current_continuation) == "(return)");
+      assert(not current_tail.is<null>() or lexical_cast<std::string>(current_continuation) == "(return)");
 
       auto const& [variables, inits] = unzip2(car(current_expression));
 
@@ -1402,7 +1402,7 @@ inline namespace kernel
                           lambda(current_environment,
                                  cons(variables, cdr(current_expression)), // (<formals> <body>)
                                  current_scope,
-                                 current_context.is_tail ? list(make(instruction::tail_letrec))
+                                 current_tail.is<null>() ? list(make(instruction::tail_letrec))
                                                          : cons(make(instruction::letrec), current_continuation))));
     }
 
@@ -1499,7 +1499,7 @@ inline namespace kernel
                        car(current_expression),
                        current_scope,
                        current_continuation,
-                       current_context);
+                       current_tail);
       }
       else
       {
@@ -1511,7 +1511,7 @@ inline namespace kernel
                                      cdr(current_expression), // rest expressions
                                      current_scope,
                                      current_continuation,
-                                     current_context)));
+                                     current_tail)));
       }
     }
 
