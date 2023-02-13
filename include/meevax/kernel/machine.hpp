@@ -1014,15 +1014,7 @@ inline namespace kernel
 
          where <body> = <definition>* <expression>* <tail expression>
       */
-      if (cdr(current_expression).is<null>()) // is tail-sequence
-      {
-        return compile(current_environment,
-                       car(current_expression),
-                       current_scope,
-                       current_continuation,
-                       cdr(current_expression));
-      }
-      else if (auto const& [binding_specs, sequence] = sweep(current_expression); binding_specs)
+      if (auto const& [binding_specs, sequence] = sweep(current_expression); binding_specs)
       {
         /*
            (letrec* <binding specs> <sequence>)
@@ -1047,6 +1039,14 @@ inline namespace kernel
                        current_scope,
                        current_continuation,
                        unit);
+      }
+      else if (cdr(current_expression).is<null>()) // is tail-sequence
+      {
+        return compile(current_environment,
+                       car(current_expression),
+                       current_scope,
+                       current_continuation,
+                       cdr(current_expression));
       }
       else
       {
@@ -1173,7 +1173,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (current_scope.is<null>())
+      if (current_scope.is<null>()) // R7RS 5.3.1. Top level definitions
       {
         if (car(current_expression).is<pair>()) // (define (f . <formals>) <body>)
         {
