@@ -1040,24 +1040,18 @@ inline namespace kernel
                        current_continuation,
                        unit);
       }
-      else if (cdr(current_expression).is<null>()) // is tail-sequence
-      {
-        return compile(current_environment,
-                       car(current_expression),
-                       current_scope,
-                       current_continuation,
-                       cdr(current_expression));
-      }
       else
       {
         return compile(current_environment,
                        car(current_expression),
                        current_scope,
-                       cons(make(instruction::drop),
-                            body(current_environment,
-                                 cdr(current_expression),
-                                 current_scope,
-                                 current_continuation)));
+                       cdr(current_expression).is<null>() ? current_continuation
+                                                          : cons(make(instruction::drop),
+                                                                 body(current_environment,
+                                                                      cdr(current_expression),
+                                                                      current_scope,
+                                                                      current_continuation)),
+                       cdr(current_expression));
       }
     }
 
