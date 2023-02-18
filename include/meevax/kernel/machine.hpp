@@ -1040,18 +1040,28 @@ inline namespace kernel
                        current_continuation,
                        unit);
       }
-      else
+      else if (cdr(current_expression).is<null>())
       {
         return compile(current_environment,
                        car(current_expression),
                        current_scope,
-                       cdr(current_expression).is<null>() ? current_continuation
-                                                          : cons(make(instruction::drop),
-                                                                 body(current_environment,
-                                                                      cdr(current_expression),
-                                                                      current_scope,
-                                                                      current_continuation)),
+                       current_continuation,
                        cdr(current_expression));
+      }
+      else
+      {
+        let const head = compile(current_environment,
+                                 car(current_expression),
+                                 current_scope,
+                                 unit,
+                                 cdr(current_expression));
+
+        return append2(head,
+                       cons(make(instruction::drop),
+                            body(current_environment,
+                                 cdr(current_expression),
+                                 current_scope,
+                                 current_continuation)));
       }
     }
 
@@ -1169,7 +1179,7 @@ inline namespace kernel
     {
       if (current_scope.is<null>()) // R7RS 5.3.1. Top level definitions
       {
-        if (car(current_expression).is<pair>()) // (define (f . <formals>) <body>)
+        if (car(current_expression).is<pair>()) // (define (<variable> . <formals>) <body>)
         {
           return compile(current_environment,
                          cons(make<syntax>("lambda", lambda), cdar(current_expression), cdr(current_expression)),
@@ -1177,7 +1187,7 @@ inline namespace kernel
                          cons(make(instruction::store_absolute), current_environment.identify(caar(current_expression), current_scope),
                               current_continuation));
         }
-        else // (define x ...)
+        else // (define <variable> <expression>)
         {
           return compile(current_environment,
                          cdr(current_expression) ? cadr(current_expression) : unspecified,
