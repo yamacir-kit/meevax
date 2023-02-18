@@ -175,6 +175,8 @@ inline namespace kernel
     return car(tail(std::forward<decltype(xs)>(xs)...));
   }
 
+  auto last(object const&) -> object const&;
+
   auto take(object const&, std::size_t) -> object;
 
   inline auto length = [](auto const& x) constexpr
