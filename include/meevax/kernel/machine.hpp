@@ -872,76 +872,13 @@ inline namespace kernel
       d = unit;
     }
 
+  public:
     #define SYNTAX(NAME)                                                       \
     auto NAME([[maybe_unused]] environment & current_environment,              \
                                object const& current_expression,               \
               [[maybe_unused]] object const& current_scope,                    \
               [[maybe_unused]] object const& current_continuation,             \
-              [[maybe_unused]] object const& current_tail = unspecified)       \
-      -> object
-
-    static SYNTAX(set) /* ------------------------------------------------------
-    *
-    *  (set! <variable> <expression>)                                    syntax
-    *
-    *  Semantics: <Expression> is evaluated, and the resulting value is stored
-    *  in the location to which <variable> is bound. It is an error if
-    *  <variable> is not bound either in some region enclosing the set!
-    *  expression or else globally. The result of the set! expression is
-    *  unspecified.
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      if (let const& identity = current_environment.identify(car(current_expression), current_scope);
-          identity.is<relative>())
-      {
-        return compile(current_environment,
-                       cadr(current_expression),
-                       current_scope,
-                       cons(make(instruction::store_relative), identity,
-                            current_continuation));
-      }
-      else if (identity.is<variadic>())
-      {
-        return compile(current_environment,
-                       cadr(current_expression),
-                       current_scope,
-                       cons(make(instruction::store_variadic), identity,
-                            current_continuation));
-      }
-      else
-      {
-        assert(identity.is<absolute>()); // <Keyword> cannot appear.
-        return compile(current_environment,
-                       cadr(current_expression),
-                       current_scope,
-                       cons(make(instruction::store_absolute), identity,
-                            current_continuation));
-      }
-    }
-
-    static SYNTAX(load_auxiliary) /* -------------------------------------------
-    *
-    *  (load-auxiliary <index>)                                          syntax
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      return cons(make(instruction::load_auxiliary), car(current_expression),
-                  current_continuation);
-    }
-
-    static SYNTAX(store_auxiliary) /* ------------------------------------------
-    *
-    *  (store-auxiliary <index> <expression>)                            syntax
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      return compile(current_environment,
-                     cadr(current_expression),
-                     current_scope,
-                     cons(make(instruction::store_auxiliary), car(current_expression),
-                          current_continuation));
-    }
+              [[maybe_unused]] object const& current_tail = unspecified) -> object
 
     static SYNTAX(body)
     {
@@ -1069,63 +1006,6 @@ inline namespace kernel
                           current_tail));
     }
 
-    static SYNTAX(if_) /* ------------------------------------------------------
-    *
-    *  (if <test> <consequent> <alternate>)                              syntax
-    *  (if <test> <consequent>)                                          syntax
-    *
-    *  Syntax: <Test>, <consequent>, and <alternate> are expressions.
-    *
-    *  Semantics: An if expression is evaluated as follows: first, <test> is
-    *  evaluated. If it yields a true value (see section 6.3), then
-    *  <consequent> is evaluated and its values are returned. Otherwise
-    *  <alternate> is evaluated and its values are returned. If <test> yields a
-    *  false value and no <alternate> is specified, then the result of the
-    *  expression is unspecified.
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      if (current_tail.is<null>())
-      {
-        assert(lexical_cast<std::string>(current_continuation) == "(return)");
-
-        return compile(current_environment,
-                       car(current_expression), // <test>
-                       current_scope,
-                       list(make(instruction::tail_select),
-                            compile(current_environment,
-                                    cadr(current_expression),
-                                    current_scope,
-                                    current_continuation,
-                                    current_tail),
-                            cddr(current_expression) ? compile(current_environment,
-                                                               caddr(current_expression),
-                                                               current_scope,
-                                                               current_continuation,
-                                                               current_tail)
-                                                     : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                            make(instruction::return_))));
-      }
-      else
-      {
-        return compile(current_environment,
-                       car(current_expression), // <test>
-                       current_scope,
-                       cons(make(instruction::select),
-                            compile(current_environment,
-                                    cadr(current_expression),
-                                    current_scope,
-                                    list(make(instruction::join))),
-                            cddr(current_expression) ? compile(current_environment,
-                                                               caddr(current_expression),
-                                                               current_scope,
-                                                               list(make(instruction::join)))
-                                                     : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                            make(instruction::join)),
-                            current_continuation));
-      }
-    }
-
     static SYNTAX(define) /* ---------------------------------------------------
     *
     *  A variable definition binds one or more identifiers and specifies an
@@ -1237,6 +1117,63 @@ inline namespace kernel
                           current_continuation));
     }
 
+    static SYNTAX(if_) /* ------------------------------------------------------
+    *
+    *  (if <test> <consequent> <alternate>)                              syntax
+    *  (if <test> <consequent>)                                          syntax
+    *
+    *  Syntax: <Test>, <consequent>, and <alternate> are expressions.
+    *
+    *  Semantics: An if expression is evaluated as follows: first, <test> is
+    *  evaluated. If it yields a true value (see section 6.3), then
+    *  <consequent> is evaluated and its values are returned. Otherwise
+    *  <alternate> is evaluated and its values are returned. If <test> yields a
+    *  false value and no <alternate> is specified, then the result of the
+    *  expression is unspecified.
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      if (current_tail.is<null>())
+      {
+        assert(lexical_cast<std::string>(current_continuation) == "(return)");
+
+        return compile(current_environment,
+                       car(current_expression), // <test>
+                       current_scope,
+                       list(make(instruction::tail_select),
+                            compile(current_environment,
+                                    cadr(current_expression),
+                                    current_scope,
+                                    current_continuation,
+                                    current_tail),
+                            cddr(current_expression) ? compile(current_environment,
+                                                               caddr(current_expression),
+                                                               current_scope,
+                                                               current_continuation,
+                                                               current_tail)
+                                                     : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
+                                                            make(instruction::return_))));
+      }
+      else
+      {
+        return compile(current_environment,
+                       car(current_expression), // <test>
+                       current_scope,
+                       cons(make(instruction::select),
+                            compile(current_environment,
+                                    cadr(current_expression),
+                                    current_scope,
+                                    list(make(instruction::join))),
+                            cddr(current_expression) ? compile(current_environment,
+                                                               caddr(current_expression),
+                                                               current_scope,
+                                                               list(make(instruction::join)))
+                                                     : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
+                                                            make(instruction::join)),
+                            current_continuation));
+      }
+    }
+
     static SYNTAX(lambda) /* ---------------------------------------------------
     *
     *  (lambda <formals> <body>)                                         syntax
@@ -1306,27 +1243,6 @@ inline namespace kernel
                   current_continuation);
     }
 
-    static SYNTAX(letrec_syntax) /* --------------------------------------------
-    *
-    *  (letrec-syntax <bingings> <body>)                                 syntax
-    *
-    *  Syntax: Same as for let-syntax.
-    *
-    *  Semantics: The <body> is expanded in the syntactic environment obtained
-    *  by extending the syntactic environment of the letrec-syntax expression
-    *  with macros whose keywords are the <keywords>s, bound to the specified
-    *  transformers. Each binding of a <keywords> has the <transformer spec>s
-    *  as well as the <body> within its region, so the transformers can
-    *  transcribe expressions into uses of the macros introduced by the
-    *  letrec-syntax expression.
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      return cons(make(instruction::letrec_syntax),
-                  make<syntactic_continuation>(current_expression, current_scope),
-                  current_continuation);
-    }
-
     static SYNTAX(letrec) /* ---------------------------------------------------
     *
     *  (letrec <bindings> <body>)                                        syntax
@@ -1384,6 +1300,59 @@ inline namespace kernel
                                                          : cons(make(instruction::letrec), current_continuation))));
     }
 
+    static SYNTAX(letrec_syntax) /* --------------------------------------------
+    *
+    *  (letrec-syntax <bingings> <body>)                                 syntax
+    *
+    *  Syntax: Same as for let-syntax.
+    *
+    *  Semantics: The <body> is expanded in the syntactic environment obtained
+    *  by extending the syntactic environment of the letrec-syntax expression
+    *  with macros whose keywords are the <keywords>s, bound to the specified
+    *  transformers. Each binding of a <keywords> has the <transformer spec>s
+    *  as well as the <body> within its region, so the transformers can
+    *  transcribe expressions into uses of the macros introduced by the
+    *  letrec-syntax expression.
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      return cons(make(instruction::letrec_syntax),
+                  make<syntactic_continuation>(current_expression, current_scope),
+                  current_continuation);
+    }
+
+    static SYNTAX(load_auxiliary) /* -------------------------------------------
+    *
+    *  (load-auxiliary <index>)                                          syntax
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      return cons(make(instruction::load_auxiliary), car(current_expression),
+                  current_continuation);
+    }
+
+    static SYNTAX(operand)
+    {
+      if (current_expression.is<pair>())
+      {
+        return operand(current_environment,
+                       cdr(current_expression),
+                       current_scope,
+                       compile(current_environment,
+                               car(current_expression),
+                               current_scope,
+                               cons(make(instruction::cons),
+                                    current_continuation)));
+      }
+      else
+      {
+        return compile(current_environment,
+                       current_expression,
+                       current_scope,
+                       current_continuation);
+      }
+    }
+
     static SYNTAX(quote) /* ----------------------------------------------------
     *
     *  (quote <datum>)                                                   syntax
@@ -1421,28 +1390,6 @@ inline namespace kernel
     {
       return cons(make(instruction::load_constant), car(current_expression),
                   current_continuation);
-    }
-
-    static SYNTAX(operand)
-    {
-      if (current_expression.is<pair>())
-      {
-        return operand(current_environment,
-                       cdr(current_expression),
-                       current_scope,
-                       compile(current_environment,
-                               car(current_expression),
-                               current_scope,
-                               cons(make(instruction::cons),
-                                    current_continuation)));
-      }
-      else
-      {
-        return compile(current_environment,
-                       current_expression,
-                       current_scope,
-                       current_continuation);
-      }
     }
 
     static SYNTAX(sequence) /* -------------------------------------------------
@@ -1491,6 +1438,58 @@ inline namespace kernel
                                      current_continuation,
                                      current_tail)));
       }
+    }
+
+    static SYNTAX(set) /* ------------------------------------------------------
+    *
+    *  (set! <variable> <expression>)                                    syntax
+    *
+    *  Semantics: <Expression> is evaluated, and the resulting value is stored
+    *  in the location to which <variable> is bound. It is an error if
+    *  <variable> is not bound either in some region enclosing the set!
+    *  expression or else globally. The result of the set! expression is
+    *  unspecified.
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      if (let const& identity = current_environment.identify(car(current_expression), current_scope); identity.is<relative>())
+      {
+        return compile(current_environment,
+                       cadr(current_expression),
+                       current_scope,
+                       cons(make(instruction::store_relative), identity,
+                            current_continuation));
+      }
+      else if (identity.is<variadic>())
+      {
+        return compile(current_environment,
+                       cadr(current_expression),
+                       current_scope,
+                       cons(make(instruction::store_variadic), identity,
+                            current_continuation));
+      }
+      else
+      {
+        assert(identity.is<absolute>()); // <Keyword> cannot appear.
+        return compile(current_environment,
+                       cadr(current_expression),
+                       current_scope,
+                       cons(make(instruction::store_absolute), identity,
+                            current_continuation));
+      }
+    }
+
+    static SYNTAX(store_auxiliary) /* ------------------------------------------
+    *
+    *  (store-auxiliary <index> <expression>)                            syntax
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      return compile(current_environment,
+                     cadr(current_expression),
+                     current_scope,
+                     cons(make(instruction::store_auxiliary), car(current_expression),
+                          current_continuation));
     }
 
     #undef SYNTAX
