@@ -1134,17 +1134,6 @@ inline namespace kernel
       }
     }
 
-    static SYNTAX(cons_)
-    {
-      return compile(current_environment,
-                     cadr(current_expression),
-                     current_scope,
-                     compile(current_environment,
-                             car(current_expression),
-                             current_scope,
-                             cons(make(instruction::cons), current_continuation)));
-    }
-
     static SYNTAX(define) /* ---------------------------------------------------
     *
     *  A variable definition binds one or more identifiers and specifies an
