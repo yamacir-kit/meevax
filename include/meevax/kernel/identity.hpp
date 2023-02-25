@@ -42,11 +42,6 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, absolute const&) -> std::ostream &;
 
-  struct keyword : public absolute
-  {
-    using absolute::absolute;
-  };
-
   struct relative : public identity
                   , public virtual pair // de Bruijn index
   {

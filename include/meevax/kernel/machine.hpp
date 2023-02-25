@@ -294,25 +294,11 @@ inline namespace kernel
                       current_continuation);
         }
       }
-      else if (let const& id = std::as_const(current_environment).identify(car(current_expression), current_scope); id.is<keyword>())
-      {
-        assert(id.as<keyword>().load().is_also<transformer>());
-
-        return compile(current_environment,
-                       id.as<keyword>().load().as<transformer>().expand(current_expression, current_environment.fork(current_scope)),
-                       current_scope,
-                       current_continuation,
-                       current_tail);
-      }
-      else if (let const& applicant = id.is<absolute>() ? id.as<absolute>().load() : car(current_expression); applicant.is_also<syntax>())
-      {
-        return applicant.as<syntax>().compile(current_environment,
-                                              cdr(current_expression),
-                                              current_scope,
-                                              current_continuation,
-                                              current_tail);
-      }
-      else if (applicant.is_also<transformer>())
+      else if (let const& identity = std::as_const(current_environment).identify(car(current_expression),
+                                                                                 current_scope),
+                          applicant = identity.is<absolute>() ? identity.as<absolute>().load()
+                                                              : car(current_expression);
+               applicant.is<transformer>())
       {
         return compile(current_environment,
                        applicant.as<transformer>().expand(current_expression,
@@ -320,6 +306,14 @@ inline namespace kernel
                        current_scope,
                        current_continuation,
                        current_tail);
+      }
+      else if (applicant.is<syntax>())
+      {
+        return applicant.as<syntax>().compile(current_environment,
+                                              cdr(current_expression),
+                                              current_scope,
+                                              current_continuation,
+                                              current_tail);
       }
       else /* ------------------------------------------------------------------
       *
@@ -528,7 +522,7 @@ inline namespace kernel
 
           for (let const& k : car(current_scope))
           {
-            k.as<keyword>().store(make<transformer>(execute(k.as<keyword>().load()), syntactic_environment));
+            k.as<absolute>().store(make<transformer>(execute(k.as<absolute>().load()), syntactic_environment));
           }
 
           c = c_;
@@ -853,7 +847,7 @@ inline namespace kernel
       {
         for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
         {
-          if (inner.get().is<pair>() and (*inner).is<keyword>() and eq((*inner).as<keyword>().symbol(), variable))
+          if (inner.get().is<pair>() and (*inner).is<absolute>() and eq((*inner).as<absolute>().symbol(), variable))
           {
             return *inner;
           }
@@ -964,9 +958,9 @@ inline namespace kernel
       {
         if (form.is<pair>())
         {
-          if (let const& id = std::as_const(current_environment).identify(car(form), current_scope); id.is<absolute>())
+          if (let const& identity = std::as_const(current_environment).identify(car(form), current_scope); identity.is<absolute>())
           {
-            if (let const& callee = id.as<absolute>().load(); callee.is<syntax>())
+            if (let const& callee = identity.as<absolute>().load(); callee.is<syntax>())
             {
               return callee.as<syntax>().name == "define";
             }
@@ -1317,10 +1311,10 @@ inline namespace kernel
     {
       auto make_keyword = [&](let const& binding)
       {
-        return make<keyword>(car(binding),
-                             compile(current_environment,
-                                     cadr(binding),
-                                     current_scope));
+        return make<absolute>(car(binding),
+                              compile(current_environment,
+                                      cadr(binding),
+                                      current_scope));
       };
 
       auto const [bindings, body]  = unpair(current_expression);
