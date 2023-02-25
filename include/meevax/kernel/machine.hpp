@@ -20,7 +20,6 @@
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/identity.hpp>
-#include <meevax/kernel/intrinsic.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
 
 namespace meevax
