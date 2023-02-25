@@ -19,7 +19,7 @@
 ;  IN THE SOFTWARE.
 
 (define-library (srfi 34)
-  (import (only (meevax dynamic-environment) load-auxiliary store-auxiliary)
+  (import (only (meevax dynamic-environment) load-auxiliary install)
           (only (meevax error) throw kernel-exception-handler-set!)
           (scheme r5rs))
 
@@ -29,7 +29,7 @@
            (load-auxiliary 2))
 
          (define (install-exception-handlers! handlers)
-           (store-auxiliary 2 handlers))
+           (install 2 handlers))
 
          (define (with-exception-handlers new-handlers thunk)
            (let ((old-handlers (current-exception-handlers)))

@@ -775,11 +775,12 @@ inline namespace kernel
         c = cddr(c);
         goto fetch;
 
-      case instruction::store_auxiliary: /* ------------------------------------
+      case instruction::install: /* --------------------------------------------
         *
-        *  (x . s) e (%store-auxiliary i . c) d => (x . s) e c d
+        *  (x . s) e (%intall i . c) d => (x . s) e c d
         *
         * ------------------------------------------------------------------- */
+        assert(cadr(c).template is<exact_integer>());
         a[cadr(c).template as<exact_integer>()] = car(s);
         c = cddr(c);
         goto fetch;
@@ -1165,6 +1166,19 @@ inline namespace kernel
       }
     }
 
+    static SYNTAX(install) /* --------------------------------------------------
+    *
+    *  (install <register name> <expression>)                            syntax
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      return compile(current_environment,
+                     cadr(current_expression),
+                     current_scope,
+                     cons(make(instruction::install), car(current_expression),
+                          current_continuation));
+    }
+
     static SYNTAX(lambda) /* ---------------------------------------------------
     *
     *  (lambda <formals> <body>)                                         syntax
@@ -1468,19 +1482,6 @@ inline namespace kernel
                        cons(make(instruction::store_absolute), identity,
                             current_continuation));
       }
-    }
-
-    static SYNTAX(store_auxiliary) /* ------------------------------------------
-    *
-    *  (store-auxiliary <index> <expression>)                            syntax
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      return compile(current_environment,
-                     cadr(current_expression),
-                     current_scope,
-                     cons(make(instruction::store_auxiliary), car(current_expression),
-                          current_continuation));
     }
 
     #undef SYNTAX

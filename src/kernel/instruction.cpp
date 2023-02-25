@@ -31,6 +31,7 @@ inline namespace kernel
       case instruction::define_syntax:     return os << "define-syntax";
       case instruction::drop:              return os << "drop";
       case instruction::dummy:             return os << "dummy";
+      case instruction::install:           return os << "install";
       case instruction::join:              return os << "join";
       case instruction::let_syntax:        return os << "let-syntax";
       case instruction::letrec:            return os << "letrec";
@@ -46,7 +47,6 @@ inline namespace kernel
       case instruction::select:            return os << "select";
       case instruction::stop:              return os << "stop";
       case instruction::store_absolute:    return os << "store-absolute";
-      case instruction::store_auxiliary:   return os << "store-auxiliary";
       case instruction::store_relative:    return os << "store-relative";
       case instruction::store_variadic:    return os << "store-variadic";
       case instruction::tail_call:         return os << "tail-call";
@@ -76,6 +76,7 @@ inline namespace kernel
         return 1;
 
       case instruction::define_syntax:
+      case instruction::install:
       case instruction::let_syntax:
       case instruction::letrec_syntax:
       case instruction::load_absolute:
@@ -86,7 +87,6 @@ inline namespace kernel
       case instruction::load_relative:
       case instruction::load_variadic:
       case instruction::store_absolute:
-      case instruction::store_auxiliary:
       case instruction::store_relative:
       case instruction::store_variadic:
         return 2;

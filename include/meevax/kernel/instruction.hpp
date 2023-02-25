@@ -30,6 +30,7 @@ inline namespace kernel
     define_syntax,     //
     drop,              //
     dummy,             // a.k.a DUM
+    install,           //
     join,              //
     let_syntax,        //
     letrec,            // a.k.a RAP
@@ -45,7 +46,6 @@ inline namespace kernel
     select,            // a.k.a SEL
     stop,              //
     store_absolute,    //
-    store_auxiliary,   //
     store_relative,    //
     store_variadic,    //
     tail_call,         //
