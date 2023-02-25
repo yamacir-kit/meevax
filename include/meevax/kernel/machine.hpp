@@ -362,11 +362,12 @@ inline namespace kernel
       }
     }
 
-    template <auto trace>
-    inline auto run_() -> object try
+    inline auto run() -> object try
     {
+      assert(c);
+
     fetch:
-      if constexpr (trace)
+      if constexpr (false)
       {
         std::cerr << faint("; s = ") << s << "\n"
                   << faint("; e = ") << e << "\n"
@@ -810,15 +811,6 @@ inline namespace kernel
     catch (error const& error)
     {
       return reraise(make(error));
-    }
-
-    bool trace = false;
-
-    inline auto run() -> object
-    {
-      assert(c);
-
-      return trace ? run_<true>() : run_<false>();
     }
 
     inline auto execute(object const& instructions) -> object

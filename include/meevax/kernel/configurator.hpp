@@ -51,7 +51,6 @@ inline namespace kernel
                    "  -h, --help             Display this help text and exit.\n"
                    "  -i, --interactive      Take over control of root environment.\n"
                    "  -l, --load=FILENAME    Same as -e '(load FILENAME)'\n"
-                   "  -t, --trace            Display stacks of virtual machine for each steps.\n"
                    "  -v, --version          Display version information and exit.\n"
                    "  -w, --write=OBJECT     Same as -e '(write OBJECT)'\n"
                 << std::flush;
@@ -96,11 +95,6 @@ inline namespace kernel
         option("(i|interactive)", []()
         {
           interactive = true;
-        }),
-
-        option("(t|trace)", [this]()
-        {
-          static_cast<Environment &>(*this).trace = true;
         }),
 
         option("(e|evaluate)", [this](let const& xs)

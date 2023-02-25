@@ -122,7 +122,7 @@ __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's
 ## Usage
 
 ```
-Meevax Lisp System, version ${PROJECT_VERSION}
+Meevax Lisp ${PROJECT_VERSION}
 
 Usage: meevax [OPTION...] [FILE...]
 
@@ -131,7 +131,6 @@ Options:
   -h, --help             Display this help text and exit.
   -i, --interactive      Take over control of root environment.
   -l, --load=FILENAME    Same as -e '(load FILENAME)'
-  -t, --trace            Display stacks of virtual machine for each steps.
   -v, --version          Display version information and exit.
   -w, --write=OBJECT     Same as -e '(write OBJECT)'
 ```
