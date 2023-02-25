@@ -28,6 +28,7 @@ inline namespace kernel
     {
       case instruction::call:              return os << "call";
       case instruction::cons:              return os << "cons";
+      case instruction::current:           return os << "current";
       case instruction::define_syntax:     return os << "define-syntax";
       case instruction::drop:              return os << "drop";
       case instruction::dummy:             return os << "dummy";
@@ -37,7 +38,6 @@ inline namespace kernel
       case instruction::letrec:            return os << "letrec";
       case instruction::letrec_syntax:     return os << "letrec-syntax";
       case instruction::load_absolute:     return os << "load-absolute";
-      case instruction::load_auxiliary:    return os << "load-auxiliary";
       case instruction::load_closure:      return os << "load-closure";
       case instruction::load_constant:     return os << "load-constant";
       case instruction::load_continuation: return os << "load-continuation";
@@ -75,12 +75,12 @@ inline namespace kernel
       case instruction::tail_letrec:
         return 1;
 
+      case instruction::current:
       case instruction::define_syntax:
       case instruction::install:
       case instruction::let_syntax:
       case instruction::letrec_syntax:
       case instruction::load_absolute:
-      case instruction::load_auxiliary:
       case instruction::load_closure:
       case instruction::load_constant:
       case instruction::load_continuation:

@@ -453,11 +453,12 @@ inline namespace kernel
         c = cddr(c);
         goto fetch;
 
-      case instruction::load_auxiliary: /* -------------------------------------
+      case instruction::current: /* --------------------------------------------
         *
-        *  s e (%load-auxiliary i . c) => (a[i] . s) e c d
+        *  s e (%current i . c) => (a[i] . s) e c d
         *
         * ------------------------------------------------------------------- */
+        assert(cadr(c).template is<exact_integer>());
         s = cons(a[cadr(c).template as<exact_integer>()], s);
         c = cddr(c);
         goto fetch;
@@ -998,6 +999,16 @@ inline namespace kernel
                           current_tail));
     }
 
+    static SYNTAX(current) /* --------------------------------------------------
+    *
+    *  (current <register name>)                                         syntax
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      return cons(make(instruction::current), car(current_expression),
+                  current_continuation);
+    }
+
     static SYNTAX(define) /* ---------------------------------------------------
     *
     *  A variable definition binds one or more identifiers and specifies an
@@ -1323,16 +1334,6 @@ inline namespace kernel
     {
       return cons(make(instruction::letrec_syntax),
                   make<syntactic_continuation>(current_expression, current_scope),
-                  current_continuation);
-    }
-
-    static SYNTAX(load_auxiliary) /* -------------------------------------------
-    *
-    *  (load-auxiliary <index>)                                          syntax
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      return cons(make(instruction::load_auxiliary), car(current_expression),
                   current_continuation);
     }
 

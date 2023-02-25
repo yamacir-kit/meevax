@@ -19,14 +19,14 @@
 ; SOFTWARE.
 
 (define-library (srfi 39)
-  (import (only (meevax dynamic-environment) load-auxiliary install)
+  (import (only (meevax dynamic-environment) current install)
           (scheme r5rs)
           (srfi 211 explicit-renaming))
 
   (export make-parameter parameterize)
 
   (begin (define (current-dynamic-bindings)
-           (load-auxiliary 1))
+           (current 1))
 
          (define (install-dynamic-bindings! bindings)
            (install 1 bindings))

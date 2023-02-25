@@ -1,6 +1,6 @@
 (define-library (scheme r5rs continuation)
   (import (meevax context)
-          (only (meevax dynamic-environment) load-auxiliary install)
+          (only (meevax dynamic-environment) current install)
           (only (meevax syntax) define-syntax call-with-current-continuation!)
           (except (scheme r4rs) call-with-current-continuation))
 
@@ -9,7 +9,7 @@
   ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
 
   (begin (define (current-dynamic-extents)
-           (load-auxiliary 0))
+           (current 0))
 
          (define (install-dynamic-extents! extents)
            (install 0 extents))

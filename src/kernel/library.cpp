@@ -150,7 +150,7 @@ inline namespace kernel
     define_library("(meevax dynamic-environment)", [](library & library)
     {
       library.define<syntax>("install", install);
-      library.define<syntax>("load-auxiliary", load_auxiliary);
+      library.define<syntax>("current", current);
     });
 
     define_library("(meevax comparator)", [](library & library)
