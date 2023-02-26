@@ -293,26 +293,42 @@ inline namespace kernel
                       current_continuation);
         }
       }
-      else if (let const& identity = std::as_const(current_environment).identify(car(current_expression),
-                                                                                 current_scope),
-                          applicant = identity.is<absolute>() ? identity.as<absolute>().load()
-                                                              : car(current_expression);
-               applicant.is<transformer>())
+      else if (car(current_expression).is<transformer>())
       {
         return compile(current_environment,
-                       applicant.as<transformer>().expand(current_expression,
-                                                          current_environment.fork(current_scope)),
+                       car(current_expression).as<transformer>().expand(current_expression,
+                                                                        current_environment.fork(current_scope)),
                        current_scope,
                        current_continuation,
                        current_tail);
       }
-      else if (applicant.is<syntax>())
+      else if (car(current_expression).is<syntax>())
       {
-        return applicant.as<syntax>().compile(current_environment,
-                                              cdr(current_expression),
-                                              current_scope,
-                                              current_continuation,
-                                              current_tail);
+        return car(current_expression).as<syntax>().compile(current_environment,
+                                                            cdr(current_expression),
+                                                            current_scope,
+                                                            current_continuation,
+                                                            current_tail);
+      }
+      else if (let const& identity = std::as_const(current_environment).identify(car(current_expression), current_scope);
+               identity.is<absolute>() and
+               identity.as<absolute>().load().is<transformer>())
+      {
+        return compile(current_environment,
+                       identity.as<absolute>().load().as<transformer>().expand(current_expression,
+                                                                               current_environment.fork(current_scope)),
+                       current_scope,
+                       current_continuation,
+                       current_tail);
+      }
+      else if (identity.is<absolute>() and
+               identity.as<absolute>().load().is<syntax>())
+      {
+        return identity.as<absolute>().load().as<syntax>().compile(current_environment,
+                                                                   cdr(current_expression),
+                                                                   current_scope,
+                                                                   current_continuation,
+                                                                   current_tail);
       }
       else /* ------------------------------------------------------------------
       *
@@ -817,7 +833,7 @@ inline namespace kernel
 
     inline auto execute(object const& instructions) -> object
     {
-      assert(not s);
+      assert(s.is<null>());
 
       c = instructions;
 
@@ -836,6 +852,8 @@ inline namespace kernel
 
     static auto identify(object const& variable, object const& scope) -> object
     {
+      assert(variable.is_also<identifier>());
+
       for (auto outer = std::begin(scope); outer != std::end(scope); ++outer)
       {
         for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)

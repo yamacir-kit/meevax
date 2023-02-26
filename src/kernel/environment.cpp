@@ -172,9 +172,9 @@ inline namespace kernel
     {
       return f;
     }
-    if (let const& id = std::as_const(*this).identify(variable, scope); is_truthy(id))
+    else if (let const& identity = std::as_const(*this).identify(variable, scope); is_truthy(identity))
     {
-      return id;
+      return identity;
     }
     else /* --------------------------------------------------------------------
     *
