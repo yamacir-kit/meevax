@@ -1380,16 +1380,9 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (car(current_expression).is<syntactic_closure>())
-      {
-        return cons(make(instruction::load_constant), car(current_expression).as<syntactic_closure>().expression,
-                    current_continuation);
-      }
-      else
-      {
-        return cons(make(instruction::load_constant), car(current_expression),
-                    current_continuation);
-      }
+      return cons(make(instruction::load_constant), car(current_expression).is<syntactic_closure>() ? car(current_expression).as<syntactic_closure>().expression
+                                                                                                    : car(current_expression),
+                  current_continuation);
     }
 
     static SYNTAX(quote_syntax)
