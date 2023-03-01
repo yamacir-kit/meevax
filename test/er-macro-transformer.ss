@@ -13,9 +13,9 @@
 (define-syntax swap!
   (traditional-macro-transformer
     (lambda (a b)
-      `(,let ((,x ,a))
-         (,set! ,a ,b)
-         (,set! ,b ,x)))))
+      `(let ((x ,a))
+         (set! ,a ,b)
+         (set! ,b x)))))
 
 (define x 1)
 
@@ -25,7 +25,7 @@
 
 (swap! x y)
 
-(check (cons x y) => (2 . 1))
+(check (cons x y) => (1 . 2))
 
 ; ------------------------------------------------------------------------------
 

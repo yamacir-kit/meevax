@@ -293,15 +293,6 @@ inline namespace kernel
                       current_continuation);
         }
       }
-      else if (car(current_expression).is<transformer>())
-      {
-        return compile(current_environment,
-                       car(current_expression).as<transformer>().expand(current_expression,
-                                                                        current_environment.fork(current_scope)),
-                       current_scope,
-                       current_continuation,
-                       current_tail);
-      }
       else if (car(current_expression).is<syntax>())
       {
         return car(current_expression).as<syntax>().compile(current_environment,
