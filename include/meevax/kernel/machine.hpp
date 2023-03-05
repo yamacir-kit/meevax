@@ -144,14 +144,15 @@ inline namespace kernel
     {
       let const syntactic_environment;
 
-      let const free_variables = unit;
+      let const free_variables; // Currently ignored
 
       let const expression;
 
       explicit syntactic_closure(let const& syntactic_environment,
-                                 let const&, // Currently ignored
+                                 let const& free_variables,
                                  let const& expression)
         : syntactic_environment { syntactic_environment }
+        , free_variables { free_variables }
         , expression { expression }
       {}
 
@@ -166,10 +167,10 @@ inline namespace kernel
            as else in a cond clause. A macro definition for syntax-rules would
            use free-identifier=? to look for literals in the input.
         */
-        return x.expression.is_also<identifier>() and
-               y.expression.is_also<identifier>() and
-               eqv(x.syntactic_environment.as<environment>().identify(x.expression),
-                   y.syntactic_environment.as<environment>().identify(y.expression));
+        return x.expression.template is_also<identifier>() and
+               y.expression.template is_also<identifier>() and
+               eqv(x.syntactic_environment.template as<environment>().identify(x.expression),
+                   y.syntactic_environment.template as<environment>().identify(y.expression));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
