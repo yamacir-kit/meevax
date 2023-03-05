@@ -13,14 +13,11 @@
   (export sc-macro-transformer rsc-macro-transformer make-syntactic-closure identifier?))
 
 (define-library (srfi 211 explicit-renaming)
-  (import (rename (meevax comparator)
-                  (identity=? eq?)
-                  (normally=? eqv?))
+  (import (meevax comparator)
           (meevax list)
           (meevax macro)
           (meevax pair)
-          (rename (meevax syntax)
-                  (sequence begin)))
+          (meevax syntax))
 
   (begin (define (er-macro-transformer f)
            (lambda (form use-env mac-env)
