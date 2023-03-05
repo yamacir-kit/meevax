@@ -243,7 +243,7 @@ inline namespace kernel
           }
           else
           {
-            assert(identity.is<absolute>()); // <Keyword> cannot appear.
+            assert(identity.is<absolute>());
             return cons(make(instruction::load_absolute), identity,
                         current_continuation);
           }
@@ -265,7 +265,7 @@ inline namespace kernel
             }
             else
             {
-              assert(identity.is<absolute>()); // <Keyword> cannot appear.
+              assert(identity.is<absolute>());
               return cons(make(instruction::load_absolute), identity,
                           current_continuation);
             }
@@ -866,7 +866,32 @@ inline namespace kernel
         }
       }
 
-      return variable.is<syntactic_closure>() ? variable.as<syntactic_closure>().identify_with_offset(scope) : f;
+      if (variable.is<syntactic_closure>())
+      {
+        let mac_env_scope = variable.as<syntactic_closure>()
+                                    .syntactic_environment
+                                    .template as<environment>()
+                                    .scope();
+
+        assert(length(scope) >= length(mac_env_scope));
+
+        auto offset = length(scope) - length(mac_env_scope);
+
+        for (auto i = 0; i < offset; ++i)
+        {
+          mac_env_scope = cons(unit, mac_env_scope);
+        }
+
+        return variable.as<syntactic_closure>()
+                       .syntactic_environment
+                       .template as<environment>()
+                       .identify(variable.as<syntactic_closure>().expression,
+                                 mac_env_scope);
+      }
+      else
+      {
+        return f;
+      }
     }
 
     inline auto reraise(object const& x) -> object
