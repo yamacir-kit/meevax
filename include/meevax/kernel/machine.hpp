@@ -158,36 +158,6 @@ inline namespace kernel
         , identity { syntactic_environment.as<environment>().identify(expression) }
       {}
 
-      auto identify_with_offset(object const& use_env_scope) -> object
-      {
-        if (identity.is<relative>())
-        {
-          let const& mac_env_scope = syntactic_environment.as<environment>().scope();
-
-          assert(length(use_env_scope) >= length(mac_env_scope));
-
-          auto offset = static_cast<identity::index>(length(use_env_scope) - length(mac_env_scope));
-
-          return make<relative>(make(car(identity).template as<identity::index>() + offset),
-                                cdr(identity));
-        }
-        else if (identity.is<variadic>())
-        {
-          let const& mac_env_scope = syntactic_environment.as<environment>().scope();
-
-          assert(length(use_env_scope) >= length(mac_env_scope));
-
-          auto offset = static_cast<identity::index>(length(use_env_scope) - length(mac_env_scope));
-
-          return make<variadic>(make(car(identity).template as<identity::index>() + offset),
-                                cdr(identity));
-        }
-        else
-        {
-          return identity;
-        }
-      }
-
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
       {
         return eqv(x.identity, y.identity);
