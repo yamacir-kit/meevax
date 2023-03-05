@@ -148,19 +148,28 @@ inline namespace kernel
 
       let const expression;
 
-      let const identity;
-
       explicit syntactic_closure(let const& syntactic_environment,
                                  let const&, // Currently ignored
                                  let const& expression)
         : syntactic_environment { syntactic_environment }
         , expression { expression }
-        , identity { syntactic_environment.as<environment>().identify(expression) }
       {}
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
       {
-        return eqv(x.identity, y.identity);
+        /*
+           (free-identifier=? id-1 id-2)                              procedure
+
+           Returns #t if the original occurrences of id-1 and id-2 have the
+           same binding, otherwise returns #f. free-identifier=? is used to
+           look for a literal identifier in the argument to a transformer, such
+           as else in a cond clause. A macro definition for syntax-rules would
+           use free-identifier=? to look for literals in the input.
+        */
+        return x.expression.is_also<identifier>() and
+               y.expression.is_also<identifier>() and
+               eqv(x.syntactic_environment.as<environment>().identify(x.expression),
+                   y.syntactic_environment.as<environment>().identify(y.expression));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
