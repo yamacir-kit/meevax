@@ -40,21 +40,6 @@ inline namespace kernel
 
     environment(environment const&) = default;
 
-    auto operator [](object const& variable) -> decltype(auto)
-    {
-      assert(scope().is<null>());
-      assert(e.is<null>());
-      assert(identify(variable).is<absolute>());
-
-      // If scope is null, identify will always return absolute identity.
-      return identify(variable).as<absolute>().load();
-    }
-
-    auto operator [](std::string const& variable) -> decltype(auto)
-    {
-      return (*this)[string_to_symbol(variable)];
-    }
-
     template <typename T, typename... Ts>
     auto declare(Ts&&... xs) -> decltype(auto)
     {
@@ -88,6 +73,10 @@ inline namespace kernel
     auto identify(object const&)                const -> object;
     auto identify(object const&, object const&)       -> object;
     auto identify(object const&)                      -> object;
+
+    auto operator [](object const&) -> object const&;
+
+    auto operator [](std::string const&) -> object const&;
   };
 
   auto operator <<(std::ostream &, environment const&) -> std::ostream &;

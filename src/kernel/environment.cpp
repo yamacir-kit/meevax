@@ -202,6 +202,21 @@ inline namespace kernel
     return identify(variable, scope());
   }
 
+  auto environment::operator [](object const& variable) -> object const&
+  {
+    assert(scope().is<null>());
+    assert(e.is<null>());
+    assert(identify(variable).is<absolute>());
+
+    // If scope is null, identify will always return absolute identity.
+    return identify(variable).as<absolute>().load();
+  }
+
+  auto environment::operator [](std::string const& variable) -> object const&
+  {
+    return (*this)[string_to_symbol(variable)];
+  }
+
   auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &
   {
     return os << magenta("#,(") << green("environment ") << faint("#;", &datum) << magenta(")");
