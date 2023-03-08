@@ -252,25 +252,9 @@ inline namespace kernel
           }
           else // The syntactic-closure is a syntactic-keyword.
           {
-            let mac_env_scope = current_expression.as<syntactic_closure>()
-                                                  .syntactic_environment
-                                                  .template as<environment>()
-                                                  .scope();
-
-            assert(length(current_scope) >= length(mac_env_scope));
-
-            auto const offset = length(current_scope) - length(mac_env_scope);
-
-            assert(eq(tail(current_scope, offset), mac_env_scope));
-
-            for (auto i = 0; i < offset; ++i)
-            {
-              mac_env_scope = cons(unit, mac_env_scope);
-            }
-
             return compile(current_expression.as<syntactic_closure>().syntactic_environment.template as<environment>(),
                            current_expression.as<syntactic_closure>().expression,
-                           mac_env_scope,
+                           current_expression.as<syntactic_closure>().syntactic_environment.template as<environment>().scope(),
                            current_continuation);
           }
         }
@@ -855,25 +839,13 @@ inline namespace kernel
 
       if (variable.is<syntactic_closure>())
       {
-        let mac_env_scope = variable.as<syntactic_closure>()
-                                    .syntactic_environment
-                                    .template as<environment>()
-                                    .scope();
-
-        assert(length(scope) >= length(mac_env_scope));
-
-        auto const offset = length(scope) - length(mac_env_scope);
-
-        for (auto i = 0; i < offset; ++i)
-        {
-          mac_env_scope = cons(unit, mac_env_scope);
-        }
-
         return variable.as<syntactic_closure>()
                        .syntactic_environment
                        .template as<environment>()
                        .identify(variable.as<syntactic_closure>().expression,
-                                 mac_env_scope);
+                                 variable.as<syntactic_closure>().syntactic_environment
+                                                                 .template as<environment>()
+                                                                 .scope());
       }
       else
       {

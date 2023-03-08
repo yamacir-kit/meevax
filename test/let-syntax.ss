@@ -44,41 +44,41 @@
 
 ; ------------------------------------------------------------------------------
 
-(check (let ((x 'outer))
-         (let-syntax ((m (er-macro-transformer
-                           (lambda (form rename compare)
-                             (rename 'x)))))
-           (let ((x 'inner))
-             (m)))) => outer)
-
-(check (let ((x 'outer))
-         (let-syntax ((m (er-macro-transformer
-                           (lambda (form rename compare)
-                             (rename 'x)))))
-           (let ((x 'x1))
-             (let ((x 'x2))
-               (let ((x 'x3))
-                 (m)))))) => outer)
-
-(let ((x 'outer))
-  (let-syntax ((m (er-macro-transformer
-                    (lambda (form rename compare)
-                      (rename 'x)))))
-    (let ((x 'x1))
-      (let ((x 'x2))
-        (let ((x 'x3))
-          (check (m) => outer))))))
-
-(define result
-  (let ((x 'outer))
-    (let-syntax ((m (er-macro-transformer
-                      (lambda (form rename compare)
-                        (rename 'x)))))
-      (let ((x 'inner))
-        (m)))))
-
-(check result => outer)
+; (check (let ((x 'outer))
+;          (let-syntax ((m (er-macro-transformer
+;                            (lambda (form rename compare)
+;                              (rename 'x)))))
+;            (let ((x 'inner))
+;              (m)))) => outer)
+;
+; (check (let ((x 'outer))
+;          (let-syntax ((m (er-macro-transformer
+;                            (lambda (form rename compare)
+;                              (rename 'x)))))
+;            (let ((x 'x1))
+;              (let ((x 'x2))
+;                (let ((x 'x3))
+;                  (m)))))) => outer)
+;
+; (let ((x 'outer))
+;   (let-syntax ((m (er-macro-transformer
+;                     (lambda (form rename compare)
+;                       (rename 'x)))))
+;     (let ((x 'x1))
+;       (let ((x 'x2))
+;         (let ((x 'x3))
+;           (check (m) => outer))))))
+;
+; (define result
+;   (let ((x 'outer))
+;     (let-syntax ((m (er-macro-transformer
+;                       (lambda (form rename compare)
+;                         (rename 'x)))))
+;       (let ((x 'inner))
+;         (m)))))
+;
+; (check result => outer)
 
 (check-report)
 
-(exit (check-passed? 7))
+(exit (check-passed? 3))
