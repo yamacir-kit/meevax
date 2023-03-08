@@ -231,7 +231,7 @@ inline namespace kernel
         else if (current_expression.is<syntactic_closure>())
         {
           if (let const& identity = std::as_const(current_environment).identify(current_expression, current_scope);
-              is_truthy(identity))
+              is_truthy(identity)) // The syntactic-closure is a variable
           {
             if (identity.is<relative>())
             {
@@ -250,11 +250,18 @@ inline namespace kernel
                           current_continuation);
             }
           }
-          else // The syntactic-closure encloses procedure call.
+          else // The syntactic-closure is a syntactic-keyword.
           {
-            let mac_env_scope = current_expression.as<syntactic_closure>().syntactic_environment.template as<environment>().scope();
+            let mac_env_scope = current_expression.as<syntactic_closure>()
+                                                  .syntactic_environment
+                                                  .template as<environment>()
+                                                  .scope();
 
-            auto offset = length(current_scope) - length(mac_env_scope);
+            assert(length(current_scope) >= length(mac_env_scope));
+
+            auto const offset = length(current_scope) - length(mac_env_scope);
+
+            assert(eq(tail(current_scope, offset), mac_env_scope));
 
             for (auto i = 0; i < offset; ++i)
             {
@@ -855,7 +862,7 @@ inline namespace kernel
 
         assert(length(scope) >= length(mac_env_scope));
 
-        auto offset = length(scope) - length(mac_env_scope);
+        auto const offset = length(scope) - length(mac_env_scope);
 
         for (auto i = 0; i < offset; ++i)
         {
