@@ -22,18 +22,19 @@
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/optimizer.hpp>
 #include <meevax/kernel/reader.hpp>
+#include <meevax/kernel/syntactic_environment.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  class environment : public virtual pair
+  class environment : public syntactic_environment
                     , public configurator<environment>
                     , public machine<environment>
                     , public optimizer
                     , public reader<environment>
   {
-    using pair::pair;
+    using syntactic_environment::syntactic_environment;
 
   public:
     environment(environment &&) = default;
