@@ -107,16 +107,6 @@ inline namespace kernel
     return copy;
   }
 
-  auto environment::global() const noexcept -> object const&
-  {
-    return second;
-  }
-
-  auto environment::global() noexcept -> object &
-  {
-    return second;
-  }
-
   auto environment::load(std::string const& s) -> object
   {
     if (let port = make<file_port>(s); port and port.as<file_port>().is_open())
@@ -133,16 +123,6 @@ inline namespace kernel
       throw file_error(make<string>("failed to open file"),
                        make<string>(s));
     }
-  }
-
-  auto environment::scope() const noexcept -> object const&
-  {
-    return first;
-  }
-
-  auto environment::scope() noexcept -> object &
-  {
-    return first;
   }
 
   auto environment::identify(object const& variable, object const& scope) const -> object

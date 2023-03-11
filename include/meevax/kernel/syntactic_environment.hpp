@@ -26,6 +26,26 @@ inline namespace kernel
   struct syntactic_environment : public virtual pair
   {
     using pair::pair;
+
+    auto global() const noexcept -> object const&
+    {
+      return second;
+    }
+
+    auto global() noexcept -> object &
+    {
+      return second;
+    }
+
+    auto scope() const noexcept -> object const&
+    {
+      return first;
+    }
+
+    auto scope() noexcept -> object &
+    {
+      return first;
+    }
   };
 } // namespace kernel
 } // namespace meevax
