@@ -156,16 +156,29 @@ inline namespace kernel
         , expression { expression }
       {}
 
+      auto compile(object const& current_continuation) const
+      {
+        return machine::compile(syntactic_environment.as<environment>(),
+                                expression,
+                                syntactic_environment.as<environment>().scope(),
+                                current_continuation);
+      }
+
+      auto identify() const
+      {
+        return syntactic_environment.as<environment>().identify(expression);
+      }
+
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
       {
         /*
-           (free-identifier=? id-1 id-2)                              procedure
+           (free-identifier=? id-1 id-2)                               procedure
 
-           Returns #t if the original occurrences of id-1 and id-2 have the
-           same binding, otherwise returns #f. free-identifier=? is used to
-           look for a literal identifier in the argument to a transformer, such
-           as else in a cond clause. A macro definition for syntax-rules would
-           use free-identifier=? to look for literals in the input.
+           Returns #t if the original occurrences of id-1 and id-2 have the same
+           binding, otherwise returns #f. free-identifier=? is used to look for
+           a literal identifier in the argument to a transformer, such as else
+           in a cond clause. A macro definition for syntax-rules would use
+           free-identifier=? to look for literals in the input.
         */
         return x.expression.template is_also<identifier>() and
                y.expression.template is_also<identifier>() and
@@ -210,8 +223,7 @@ inline namespace kernel
       {
         if (current_expression.is<symbol>())
         {
-          if (let const& identity = current_environment.identify(current_expression, current_scope);
-              identity.is<relative>())
+          if (let const& identity = current_environment.identify(current_expression, current_scope); identity.is<relative>())
           {
             return cons(make(instruction::load_relative), identity,
                         current_continuation);
@@ -230,8 +242,7 @@ inline namespace kernel
         }
         else if (current_expression.is<syntactic_closure>())
         {
-          if (let const& identity = std::as_const(current_environment).identify(current_expression, current_scope);
-              is_truthy(identity)) // The syntactic-closure is a variable
+          if (let const& identity = std::as_const(current_environment).identify(current_expression, current_scope); is_truthy(identity)) // The syntactic-closure is a variable
           {
             if (identity.is<relative>())
             {
@@ -252,10 +263,7 @@ inline namespace kernel
           }
           else // The syntactic-closure is a syntactic-keyword.
           {
-            return compile(current_expression.as<syntactic_closure>().syntactic_environment.template as<environment>(),
-                           current_expression.as<syntactic_closure>().expression,
-                           current_expression.as<syntactic_closure>().syntactic_environment.template as<environment>().scope(),
-                           current_continuation);
+            return current_expression.as<syntactic_closure>().compile(current_continuation);
           }
         }
         else // is <self-evaluating>
@@ -839,13 +847,7 @@ inline namespace kernel
 
       if (variable.is<syntactic_closure>())
       {
-        return variable.as<syntactic_closure>()
-                       .syntactic_environment
-                       .template as<environment>()
-                       .identify(variable.as<syntactic_closure>().expression,
-                                 variable.as<syntactic_closure>().syntactic_environment
-                                                                 .template as<environment>()
-                                                                 .scope());
+        return variable.as<syntactic_closure>().identify();
       }
       else
       {
