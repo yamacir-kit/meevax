@@ -166,7 +166,8 @@ inline namespace kernel
 
       auto identify() const
       {
-        return syntactic_environment.as<environment>().identify(expression);
+        return syntactic_environment.as<environment>().identify(expression,
+                                                                syntactic_environment.as<environment>().scope());
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -182,8 +183,10 @@ inline namespace kernel
         */
         return x.expression.template is_also<identifier>() and
                y.expression.template is_also<identifier>() and
-               eqv(x.syntactic_environment.template as<environment>().identify(x.expression),
-                   y.syntactic_environment.template as<environment>().identify(y.expression));
+               eqv(x.syntactic_environment.template as<environment>().identify(x.expression,
+                                                                               x.syntactic_environment.template as<environment>().scope()),
+                   y.syntactic_environment.template as<environment>().identify(y.expression,
+                                                                               y.syntactic_environment.template as<environment>().scope()));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &

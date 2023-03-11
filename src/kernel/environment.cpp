@@ -25,9 +25,8 @@ inline namespace kernel
   {
     assert(scope().is<null>());
     assert(e.is<null>());
-    assert(identify(variable).is<absolute>());
-
-    return identify(variable).as<absolute>().store(value);
+    assert(identify(variable, unit).is<absolute>());
+    return identify(variable, unit).as<absolute>().store(value);
   }
 
   auto environment::define(std::string const& name, object const& value) -> void
@@ -141,11 +140,6 @@ inline namespace kernel
     }
   }
 
-  auto environment::identify(object const& variable) const -> object
-  {
-    return identify(variable, scope());
-  }
-
   auto environment::identify(object const& variable, object const& scope) -> object
   {
     if (not variable.is_also<identifier>())
@@ -177,19 +171,12 @@ inline namespace kernel
     }
   }
 
-  auto environment::identify(object const& variable) -> object
-  {
-    return identify(variable, scope());
-  }
-
   auto environment::operator [](object const& variable) -> object const&
   {
     assert(scope().is<null>());
     assert(e.is<null>());
-    assert(identify(variable).is<absolute>());
-
-    // If scope is null, identify will always return absolute identity.
-    return identify(variable).as<absolute>().load();
+    assert(identify(variable, unit).is<absolute>());
+    return identify(variable, unit).as<absolute>().load();
   }
 
   auto environment::operator [](std::string const& variable) -> object const&

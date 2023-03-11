@@ -65,9 +65,7 @@ inline namespace kernel
     auto load(std::string const&) -> object;
 
     auto identify(object const&, object const&) const -> object;
-    auto identify(object const&)                const -> object;
     auto identify(object const&, object const&)       -> object;
-    auto identify(object const&)                      -> object;
 
     auto operator [](object const&) -> object const&;
 

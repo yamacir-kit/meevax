@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct syntactic_environment : public virtual pair
+  struct syntactic_environment : public virtual pair // (<local> . <global>)
   {
     using pair::pair;
 
