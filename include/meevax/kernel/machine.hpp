@@ -164,7 +164,7 @@ inline namespace kernel
                                 current_continuation);
       }
 
-      auto identify() const
+      auto identify() const -> object
       {
         return syntactic_environment.as<environment>().identify(expression,
                                                                 syntactic_environment.as<environment>().scope());
@@ -821,41 +821,6 @@ inline namespace kernel
                make(instruction::stop));
 
       return run();
-    }
-
-    static auto identify(object const& variable, object const& scope) -> object
-    {
-      assert(variable.is_also<identifier>());
-
-      for (auto outer = std::begin(scope); outer != std::end(scope); ++outer)
-      {
-        for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
-        {
-          if (inner.get().is<pair>() and (*inner).is<absolute>() and eq((*inner).as<absolute>().symbol(), variable))
-          {
-            return *inner;
-          }
-          else if (inner.get().is<pair>() and eq(*inner, variable))
-          {
-            return make<relative>(make(static_cast<identity::index>(std::distance(std::begin(scope), outer))),
-                                  make(static_cast<identity::index>(std::distance(std::begin(*outer), inner))));
-          }
-          else if (inner.get().is<symbol>() and eq(inner, variable))
-          {
-            return make<variadic>(make(static_cast<identity::index>(std::distance(std::begin(scope), outer))),
-                                  make(static_cast<identity::index>(std::distance(std::begin(*outer), inner))));
-          }
-        }
-      }
-
-      if (variable.is<syntactic_closure>())
-      {
-        return variable.as<syntactic_closure>().identify();
-      }
-      else
-      {
-        return f;
-      }
     }
 
     inline auto reraise(object const& x) -> object
