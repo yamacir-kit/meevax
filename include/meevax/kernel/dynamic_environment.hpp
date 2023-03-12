@@ -75,9 +75,9 @@ inline namespace kernel
        in the Meevax kernel to the exception handler of the language running on
        the Meevax kernel.
 
-       raise is set to null by default. In this default state, that is, if
-       raise is null, C++ exceptions thrown in the kernel are rethrown to the
-       outer environment.
+       raise is set to null by default. In this default state, that is, if raise
+       is null, C++ exceptions thrown in the kernel are rethrown to the outer
+       environment.
 
        Although raise can be set to any one-argument procedure by procedure
        `kernel-exception-handler-set!`, it is basically assumed to be set to
@@ -257,7 +257,7 @@ inline namespace kernel
 
           std::swap(c.as<pair>(),
                     Environment::compile(static_cast<Environment &>(*this),
-                                         cons(cons(make<syntax>("lambda", Environment::lambda),
+                                         cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda),
                                                    car(current_scope), // <formals>
                                                    current_expression), // <body>
                                               car(current_scope)),
@@ -283,7 +283,7 @@ inline namespace kernel
           for (let const& transformer_spec : transformer_specs)
           {
             let const c = Environment::compile(syntactic_environment.as<Environment>(),
-                                               cons(make<syntax>("define-syntax", Environment::define_syntax), transformer_spec),
+                                               cons(make<typename Environment::syntax>("define-syntax", Environment::define_syntax), transformer_spec),
                                                current_scope);
 
             syntactic_environment.as<Environment>().execute(c);
@@ -291,7 +291,7 @@ inline namespace kernel
 
           std::swap(c.as<pair>(),
                     Environment::compile(syntactic_environment.as<Environment>(),
-                                         cons(cons(make<syntax>("lambda", Environment::lambda), unit, body), unit), // (let () <body>)
+                                         cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda), unit, body), unit), // (let () <body>)
                                          current_scope,
                                          cddr(c)
                                         ).template as<pair>());

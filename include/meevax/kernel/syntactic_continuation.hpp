@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
-#include <meevax/kernel/syntax.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {

@@ -90,6 +90,29 @@ inline namespace kernel
     };
 
   public:
+    struct syntax
+    {
+      using compiler = std::function<auto (Environment &,
+                                           object const&,
+                                           object const&,
+                                           object const&,
+                                           object const&) -> object>;
+
+      std::string const name;
+
+      compiler const compile;
+
+      explicit syntax(std::string const& name, compiler const& compile)
+        : name { name }
+        , compile { compile }
+      {}
+
+      friend auto operator <<(std::ostream & os, syntax const& datum) -> std::ostream &
+      {
+        return os << magenta("#,(") << green("syntax ") << datum.name << magenta(")");
+      }
+    };
+
     static auto compile(Environment & current_environment,
                         object const& current_expression,
                         object const& current_scope = unit,
@@ -137,7 +160,7 @@ inline namespace kernel
                         current_continuation);
           }
         }
-        else if (current_expression.is<typename Environment::syntactic_closure>())
+        else if (current_expression.is<syntactic_closure>())
         {
           if (let const& identity = std::as_const(current_environment).identify(current_expression, current_scope); is_truthy(identity)) // The syntactic-closure is a variable
           {
@@ -160,7 +183,7 @@ inline namespace kernel
           }
           else // The syntactic-closure is a syntactic-keyword.
           {
-            return current_expression.as<typename Environment::syntactic_closure>().compile(current_continuation);
+            return current_expression.as<syntactic_closure>().compile(current_continuation);
           }
         }
         else // is <self-evaluating>
@@ -304,9 +327,9 @@ inline namespace kernel
           }
         }
 
-        if (variable.is<typename Environment::syntactic_closure>())
+        if (variable.is<syntactic_closure>())
         {
-          return variable.as<typename Environment::syntactic_closure>().identify();
+          return variable.as<syntactic_closure>().identify();
         }
         else
         {
