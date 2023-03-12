@@ -59,7 +59,8 @@ inline namespace kernel
 
     auto evaluate(object const&) -> object;
 
-    auto fork()              const -> object;
+    auto fork() const -> object;
+
     auto fork(object const&) const -> object;
 
     auto load(std::string const&) -> object;

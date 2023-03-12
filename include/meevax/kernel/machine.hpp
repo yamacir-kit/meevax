@@ -40,8 +40,6 @@ inline namespace kernel
       return static_cast<Environment const&>(*this).fork(std::forward<decltype(xs)>(xs)...);
     }
 
-    using environment = Environment; // hack
-
   protected:
     /*
        The SECD machine, which in its original form was invented by Landin,
@@ -159,16 +157,16 @@ inline namespace kernel
 
       auto compile(object const& current_continuation) const
       {
-        return machine::compile(syntactic_environment.as<environment>(),
-                                expression,
-                                syntactic_environment.as<environment>().scope(),
-                                current_continuation);
+        return syntactic_environment.as<Environment>().compile(syntactic_environment.as<Environment>(),
+                                                               expression,
+                                                               syntactic_environment.as<Environment>().scope(),
+                                                               current_continuation);
       }
 
       auto identify() const -> object
       {
-        return syntactic_environment.as<environment>().identify(expression,
-                                                                syntactic_environment.as<environment>().scope());
+        return syntactic_environment.as<Environment>().identify(expression,
+                                                                syntactic_environment.as<Environment>().scope());
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -184,10 +182,10 @@ inline namespace kernel
         */
         return x.expression.template is_also<identifier>() and
                y.expression.template is_also<identifier>() and
-               eqv(x.syntactic_environment.template as<environment>().identify(x.expression,
-                                                                               x.syntactic_environment.template as<environment>().scope()),
-                   y.syntactic_environment.template as<environment>().identify(y.expression,
-                                                                               y.syntactic_environment.template as<environment>().scope()));
+               eqv(x.syntactic_environment.template as<Environment>().identify(x.expression,
+                                                                               x.syntactic_environment.template as<Environment>().scope()),
+                   y.syntactic_environment.template as<Environment>().identify(y.expression,
+                                                                               y.syntactic_environment.template as<Environment>().scope()));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
@@ -197,7 +195,7 @@ inline namespace kernel
     };
 
   public:
-    static auto compile(environment & current_environment,
+    static auto compile(Environment & current_environment,
                         object const& current_expression,
                         object const& current_scope = unit,
                         object const& current_continuation = list(make(instruction::stop)),
@@ -519,7 +517,7 @@ inline namespace kernel
           c = c_;
 
           std::swap(c.as<pair>(),
-                    compile(static_cast<environment &>(*this),
+                    compile(static_cast<Environment &>(*this),
                             cons(cons(make<syntax>("lambda", lambda),
                                       car(current_scope), // <formals>
                                       current_expression), // <body>
@@ -545,15 +543,15 @@ inline namespace kernel
 
           for (let const& transformer_spec : transformer_specs)
           {
-            let const c = compile(syntactic_environment.as<environment>(),
+            let const c = compile(syntactic_environment.as<Environment>(),
                                   cons(make<syntax>("define-syntax", define_syntax), transformer_spec),
                                   current_scope);
 
-            syntactic_environment.as<environment>().execute(c);
+            syntactic_environment.as<Environment>().execute(c);
           }
 
           std::swap(c.as<pair>(),
-                    compile(syntactic_environment.as<environment>(),
+                    compile(syntactic_environment.as<Environment>(),
                             cons(cons(make<syntax>("lambda", lambda), unit, body), unit), // (let () <body>)
                             current_scope,
                             cddr(c)
@@ -831,7 +829,7 @@ inline namespace kernel
 
   public:
     #define SYNTAX(NAME)                                                       \
-    auto NAME([[maybe_unused]] environment & current_environment,              \
+    auto NAME([[maybe_unused]] Environment & current_environment,              \
                                object const& current_expression,               \
               [[maybe_unused]] object const& current_scope,                    \
               [[maybe_unused]] object const& current_continuation,             \
