@@ -144,10 +144,10 @@ inline namespace kernel
 
   template class configurator<environment>;
 
-  template class machine<environment>;
+  template class dynamic_environment<environment>;
 
   template class reader<environment>;
 
-  template struct syntactic_environment<environment>;
+  template class syntactic_environment<environment>;
 } // namespace kernel
 } // namespace meevax

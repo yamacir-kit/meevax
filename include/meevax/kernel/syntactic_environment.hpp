@@ -19,6 +19,7 @@
 
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/syntactic_continuation.hpp>
 #include <meevax/kernel/transformer.hpp>
 
 namespace meevax
@@ -26,9 +27,8 @@ namespace meevax
 inline namespace kernel
 {
   template <typename Environment>
-  struct syntactic_environment : public virtual pair // (<local> . <global>)
+  class syntactic_environment : public virtual pair // (<local> . <global>)
   {
-  private:
     friend Environment;
 
     using pair::pair;

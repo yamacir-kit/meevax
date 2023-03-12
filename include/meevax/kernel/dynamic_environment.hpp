@@ -14,13 +14,12 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_MACHINE_HPP
-#define INCLUDED_MEEVAX_KERNEL_MACHINE_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_DYNAMIC_ENVIRONMENT_HPP
+#define INCLUDED_MEEVAX_KERNEL_DYNAMIC_ENVIRONMENT_HPP
 
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/identity.hpp>
-#include <meevax/kernel/syntactic_continuation.hpp>
 #include <meevax/kernel/transformer.hpp>
 
 namespace meevax
@@ -28,11 +27,11 @@ namespace meevax
 inline namespace kernel
 {
   template <typename Environment>
-  class machine
+  class dynamic_environment
   {
     friend Environment;
 
-    machine()
+    dynamic_environment()
     {}
 
     template <typename... Ts>
@@ -573,4 +572,4 @@ inline namespace kernel
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_MACHINE_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_DYNAMIC_ENVIRONMENT_HPP
