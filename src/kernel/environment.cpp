@@ -147,5 +147,7 @@ inline namespace kernel
   template class machine<environment>;
 
   template class reader<environment>;
+
+  template struct syntactic_environment<environment>;
 } // namespace kernel
 } // namespace meevax

@@ -140,6 +140,7 @@ inline namespace kernel
       }
     };
 
+  public:
     struct syntactic_closure : public identifier
     {
       let const syntactic_environment;
