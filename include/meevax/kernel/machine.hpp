@@ -85,18 +85,9 @@ inline namespace kernel
     */
     let static inline raise = unit;
 
-    struct transformer
+    struct transformer : public virtual pair // (<expression> . <environment>)
     {
-      let const expression;
-
-      let const mac_env;
-
-      explicit transformer(object const& expression, object const& mac_env)
-        : expression { expression }
-        , mac_env { mac_env }
-      {
-        assert(expression.is<closure>());
-      }
+      using pair::pair;
 
       auto expand(object const& form, object const& use_env) /* ----------------
       *
@@ -129,7 +120,8 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        return Environment().apply(expression, form, use_env, mac_env);
+        assert(first.is<closure>());
+        return Environment().apply(first, form, use_env, second);
       }
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &

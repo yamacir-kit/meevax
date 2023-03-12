@@ -106,7 +106,7 @@ inline namespace kernel
       *
       * ----------------------------------------------------------------------- */
       {
-        return car(global() = make<absolute>(variable, undefined) | global());
+        return car(global() = cons(make<absolute>(variable, undefined), global()));
       }
     }
 
