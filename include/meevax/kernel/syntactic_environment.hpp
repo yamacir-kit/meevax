@@ -28,8 +28,12 @@ inline namespace kernel
   template <typename Environment>
   struct syntactic_environment : public virtual pair // (<local> . <global>)
   {
+  private:
+    friend Environment;
+
     using pair::pair;
 
+  protected:
     struct syntactic_closure : public identifier
     {
       let const syntactic_environment;
@@ -85,6 +89,7 @@ inline namespace kernel
       }
     };
 
+  public:
     static auto compile(Environment & current_environment,
                         object const& current_expression,
                         object const& current_scope = unit,
