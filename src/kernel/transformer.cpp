@@ -14,25 +14,15 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/closure.hpp>
+#include <meevax/kernel/transformer.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto closure::c() const -> object const&
+  auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
   {
-    return first;
-  }
-
-  auto closure::e() const -> object const&
-  {
-    return second;
-  }
-
-  auto operator <<(std::ostream & os, closure const& datum) -> std::ostream &
-  {
-    return os << magenta("#,(") << green("closure ") << faint("#;", &datum) << magenta(")");
+    return os << magenta("#,(") << green("transformer ") << faint("#;", &datum) << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

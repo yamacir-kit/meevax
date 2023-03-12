@@ -14,25 +14,22 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/closure.hpp>
+#ifndef INCLUDED_MEEVAX_KERNEL_TRANSFORMER_HPP
+#define INCLUDED_MEEVAX_KERNEL_TRANSFORMER_HPP
+
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto closure::c() const -> object const&
+  struct transformer : public virtual pair // (<expression> . <environment>)
   {
-    return first;
-  }
+    using pair::pair;
+  };
 
-  auto closure::e() const -> object const&
-  {
-    return second;
-  }
-
-  auto operator <<(std::ostream & os, closure const& datum) -> std::ostream &
-  {
-    return os << magenta("#,(") << green("closure ") << faint("#;", &datum) << magenta(")");
-  }
+  auto operator <<(std::ostream &, transformer const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_KERNEL_TRANSFORMER_HPP

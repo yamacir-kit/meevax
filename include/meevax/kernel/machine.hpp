@@ -21,6 +21,7 @@
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
+#include <meevax/kernel/transformer.hpp>
 
 namespace meevax
 {
@@ -84,51 +85,6 @@ inline namespace kernel
        R7RS Scheme's standard procedure `raise`.
     */
     let static inline raise = unit;
-
-    struct transformer : public virtual pair // (<expression> . <environment>)
-    {
-      using pair::pair;
-
-      auto expand(object const& form, object const& use_env) /* ----------------
-      *
-      *  Scheme programs can define and use new derived expression types,
-      *  called macros. Program-defined expression types have the syntax
-      *
-      *      (<keyword> <datum>...)
-      *
-      *  where <keyword> is an identifier that uniquely determines the
-      *  expression type. This identifier is called the syntactic keyword, or
-      *  simply keyword, of the macro. The number of the <datum>s, and their
-      *  syntax, depends on the expression type.
-      *
-      *  Each instance of a macro is called a use of the macro. The set of
-      *  rules that specifies how a use of a macro is transcribed into a more
-      *  primitive expression is called the transformer of the macro.
-      *
-      *  NOTE: <Transformer-spec> is implemented as a closure. Since closure::c
-      *  is terminated by the return instruction, it is necessary to put a stop
-      *  instruction in the dump register (this stop instruction is preset by
-      *  the constructor of the transformer).
-      *
-      *  NOTE: transformer::expand is never called recursively. This is because
-      *  in the normal macro expansion performed by machine::compile, control
-      *  is returned to machine::compile each time the macro is expanded one
-      *  step. As an exception, there are cases where this transformer is given
-      *  to the eval procedure as an <environment-spacifier>, but there is no
-      *  problem because the stack control at that time is performed by
-      *  environment::evaluate.
-      *
-      * --------------------------------------------------------------------- */
-      {
-        assert(first.is<closure>());
-        return Environment().apply(first, form, use_env, second);
-      }
-
-      friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
-      {
-        return os << magenta("#,(") << green("transformer ") << faint("#;", &datum) << magenta(")");
-      }
-    };
 
   public:
     struct syntactic_closure : public identifier
@@ -278,9 +234,29 @@ inline namespace kernel
                identity.is<absolute>() and
                identity.as<absolute>().load().is<transformer>())
       {
+        /*
+           Scheme programs can define and use new derived expression types,
+           called macros. Program-defined expression types have the syntax
+
+             (<keyword> <datum>...)
+
+           where <keyword> is an identifier that uniquely determines the
+           expression type. This identifier is called the syntactic keyword, or
+           simply keyword, of the macro. The number of the <datum>s, and their
+           syntax, depends on the expression type.
+
+           Each instance of a macro is called a use of the macro. The set of
+           rules that specifies how a use of a macro is transcribed into a more
+           primitive expression is called the transformer of the macro.
+        */
+        assert(car(identity.as<absolute>().load()).is<closure>());
+        assert(cdr(identity.as<absolute>().load()).is<Environment>());
+
         return compile(current_environment,
-                       identity.as<absolute>().load().as<transformer>().expand(current_expression,
-                                                                               current_environment.fork(current_scope)),
+                       Environment().apply(car(identity.as<absolute>().load()), // <closure>
+                                           current_expression,
+                                           current_environment.fork(current_scope),
+                                           cdr(identity.as<absolute>().load())), // <environment>
                        current_scope,
                        current_continuation,
                        current_tail);
@@ -344,9 +320,12 @@ inline namespace kernel
 
     inline auto run() -> object try
     {
-      assert(c);
+      assert(last(c).template is<instruction>());
+      assert(last(c).template as<instruction>() == instruction::stop);
 
     fetch:
+      assert(c);
+
       if constexpr (false)
       {
         std::cerr << faint("; s = ") << s << "\n"
@@ -795,11 +774,14 @@ inline namespace kernel
       return reraise(make(error));
     }
 
-    inline auto execute(object const& instructions) -> object
+    inline auto execute(object const& control) -> object
     {
       assert(s.is<null>());
 
-      c = instructions;
+      c = control;
+
+      assert(last(c).is<instruction>());
+      assert(last(c).as<instruction>() == instruction::stop);
 
       return run();
     }
