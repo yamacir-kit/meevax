@@ -19,7 +19,6 @@
 
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/syntactic_continuation.hpp>
 #include <meevax/kernel/transformer.hpp>
 
 namespace meevax
@@ -27,10 +26,8 @@ namespace meevax
 inline namespace kernel
 {
   template <typename Environment>
-  class syntactic_environment : public virtual pair // (<local> . <global>)
+  struct syntactic_environment : public virtual pair // (<local> . <global>)
   {
-    friend Environment;
-
     using pair::pair;
 
   protected:
@@ -767,9 +764,9 @@ inline namespace kernel
       auto const [bindings, body]  = unpair(current_expression);
 
       return cons(make(instruction::let_syntax),
-                  make<syntactic_continuation>(body,
-                                               cons(map1(make_keyword, bindings),
-                                                    current_scope)),
+                  cons(body,
+                       map1(make_keyword, bindings),
+                       current_scope),
                   current_continuation);
     }
 
@@ -847,7 +844,7 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       return cons(make(instruction::letrec_syntax),
-                  make<syntactic_continuation>(current_expression, current_scope),
+                  cons(current_expression, current_scope),
                   current_continuation);
     }
 

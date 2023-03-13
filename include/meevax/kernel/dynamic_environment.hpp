@@ -242,7 +242,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         [this]()
         {
-          auto [current_expression, current_scope] = unpair(cadr(c));
+          auto [body, current_scope] = unpair(cadr(c));
 
           let const syntactic_environment = fork(cdr(current_scope));
 
@@ -250,7 +250,8 @@ inline namespace kernel
 
           for (let const& k : car(current_scope))
           {
-            k.as<absolute>().store(make<transformer>(execute(k.as<absolute>().load()), syntactic_environment));
+            k.as<absolute>().store(make<transformer>(execute(k.as<absolute>().load()),
+                                                     syntactic_environment));
           }
 
           c = c_;
@@ -259,7 +260,7 @@ inline namespace kernel
                     Environment::compile(static_cast<Environment &>(*this),
                                          cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda),
                                                    car(current_scope), // <formals>
-                                                   current_expression), // <body>
+                                                   body),
                                               car(current_scope)),
                                          cdr(current_scope),
                                          cddr(c)
