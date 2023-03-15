@@ -237,21 +237,21 @@ inline namespace kernel
 
       case instruction::let_syntax: /* -----------------------------------------
         *
-        *  s e (%let-syntax <syntactic-continuation> . c) d => s e c' d
+        *  s e (%let-syntax (<body> . <syntactic-environment>) . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
         [this]()
         {
           auto [body, current_scope] = unpair(cadr(c));
 
-          let const syntactic_environment = fork(cdr(current_scope));
+          let const current_environment = fork(cdr(current_scope));
 
           let const c_ = c;
 
           for (let const& k : car(current_scope))
           {
             k.as<absolute>().store(make<transformer>(execute(k.as<absolute>().load()),
-                                                     syntactic_environment));
+                                                     current_environment));
           }
 
           c = c_;
@@ -270,7 +270,7 @@ inline namespace kernel
 
       case instruction::letrec_syntax: /* --------------------------------------
         *
-        *  s e (%letrec-syntax <syntactic-continuation> . c) d => s e c' d
+        *  s e (%letrec-syntax (<expression> . <syntactic-environment>) . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
         [this]() // DIRTY HACK!!!
@@ -279,19 +279,19 @@ inline namespace kernel
 
           auto && [transformer_specs, body] = unpair(current_expression);
 
-          let const syntactic_environment = fork(current_scope);
+          let const current_environment = fork(current_scope);
 
           for (let const& transformer_spec : transformer_specs)
           {
-            let const c = Environment::compile(syntactic_environment.as<Environment>(),
+            let const c = Environment::compile(current_environment.as<Environment>(),
                                                cons(make<typename Environment::syntax>("define-syntax", Environment::define_syntax), transformer_spec),
                                                current_scope);
 
-            syntactic_environment.as<Environment>().execute(c);
+            current_environment.as<Environment>().execute(c);
           }
 
           std::swap(c.as<pair>(),
-                    Environment::compile(syntactic_environment.as<Environment>(),
+                    Environment::compile(current_environment.as<Environment>(),
                                          cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda), unit, body), unit), // (let () <body>)
                                          current_scope,
                                          cddr(c)
