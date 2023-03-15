@@ -242,13 +242,13 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         [this]()
         {
-          auto [body, current_scope] = unpair(cadr(c));
+          auto [body, current_local] = unpair(cadr(c));
 
-          let const current_environment = fork(cdr(current_scope));
+          let const current_environment = fork(cdr(current_local));
 
           let const c_ = c;
 
-          for (let const& k : car(current_scope))
+          for (let const& k : car(current_local))
           {
             k.as<absolute>().store(make<transformer>(execute(k.as<absolute>().load()),
                                                      current_environment));
@@ -259,10 +259,10 @@ inline namespace kernel
           std::swap(c.as<pair>(),
                     Environment::compile(static_cast<Environment &>(*this),
                                          cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda),
-                                                   car(current_scope), // <formals>
+                                                   car(current_local), // <formals>
                                                    body),
-                                              car(current_scope)),
-                                         cdr(current_scope),
+                                              car(current_local)),
+                                         cdr(current_local),
                                          cddr(c)
                                         ).template as<pair>());
         }();
@@ -275,17 +275,17 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         [this]() // DIRTY HACK!!!
         {
-          auto && [current_expression, current_scope] = unpair(cadr(c));
+          auto && [current_expression, current_local] = unpair(cadr(c));
 
           auto && [transformer_specs, body] = unpair(current_expression);
 
-          let const current_environment = fork(current_scope);
+          let const current_environment = fork(current_local);
 
           for (let const& transformer_spec : transformer_specs)
           {
             let const c = Environment::compile(current_environment.as<Environment>(),
                                                cons(make<typename Environment::syntax>("define-syntax", Environment::define_syntax), transformer_spec),
-                                               current_scope);
+                                               current_local);
 
             current_environment.as<Environment>().execute(c);
           }
@@ -293,7 +293,7 @@ inline namespace kernel
           std::swap(c.as<pair>(),
                     Environment::compile(current_environment.as<Environment>(),
                                          cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda), unit, body), unit), // (let () <body>)
-                                         current_scope,
+                                         current_local,
                                          cddr(c)
                                         ).template as<pair>());
         }();

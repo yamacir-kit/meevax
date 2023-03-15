@@ -28,7 +28,7 @@ inline namespace kernel
   {
     auto identity = [&]()
     {
-      assert(library.scope().is<null>());
+      assert(library.local().is<null>());
 
       if (form.is<pair>())
       {

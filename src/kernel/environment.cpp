@@ -23,7 +23,7 @@ inline namespace kernel
 {
   auto environment::define(object const& variable, object const& value) -> void
   {
-    assert(scope().is<null>());
+    assert(local().is<null>());
     assert(e.is<null>());
     assert(identify(variable, unit).is<absolute>());
     return identify(variable, unit).as<absolute>().store(value);
@@ -68,7 +68,7 @@ inline namespace kernel
                  std::exchange(c, unit), d);
       }
 
-      let const result = execute(optimize(compile(*this, expression, scope())));
+      let const result = execute(optimize(compile(*this, expression, local())));
 
       if (d)
       {
@@ -99,10 +99,10 @@ inline namespace kernel
     return make<environment>(*this);
   }
 
-  auto environment::fork(object const& scope) const -> object
+  auto environment::fork(object const& local) const -> object
   {
     let const copy = make<environment>(*this);
-    copy.as<environment>().scope() = scope;
+    copy.as<environment>().local() = local;
     return copy;
   }
 
@@ -126,7 +126,7 @@ inline namespace kernel
 
   auto environment::operator [](object const& variable) -> object const&
   {
-    assert(scope().is<null>());
+    assert(local().is<null>());
     assert(e.is<null>());
     assert(identify(variable, unit).is<absolute>());
     return identify(variable, unit).as<absolute>().load();

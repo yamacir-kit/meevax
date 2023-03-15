@@ -51,14 +51,14 @@ inline namespace kernel
       {
         return syntactic_environment.as<Environment>().compile(syntactic_environment.as<Environment>(),
                                                                expression,
-                                                               syntactic_environment.as<Environment>().scope(),
+                                                               syntactic_environment.as<Environment>().local(),
                                                                current_continuation);
       }
 
       auto identify() const -> object
       {
         return syntactic_environment.as<Environment>().identify(expression,
-                                                                syntactic_environment.as<Environment>().scope());
+                                                                syntactic_environment.as<Environment>().local());
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -75,9 +75,9 @@ inline namespace kernel
         return x.expression.template is_also<identifier>() and
                y.expression.template is_also<identifier>() and
                eqv(x.syntactic_environment.template as<Environment>().identify(x.expression,
-                                                                               x.syntactic_environment.template as<Environment>().scope()),
+                                                                               x.syntactic_environment.template as<Environment>().local()),
                    y.syntactic_environment.template as<Environment>().identify(y.expression,
-                                                                               y.syntactic_environment.template as<Environment>().scope()));
+                                                                               y.syntactic_environment.template as<Environment>().local()));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
@@ -112,7 +112,7 @@ inline namespace kernel
 
     static auto compile(Environment & current_environment,
                         object const& current_expression,
-                        object const& current_scope = unit,
+                        object const& current_local = unit,
                         object const& current_continuation = list(make(instruction::stop)),
                         object const& current_tail = unspecified) -> object
     {
@@ -140,7 +140,7 @@ inline namespace kernel
       {
         if (current_expression.is<symbol>())
         {
-          if (let const& identity = current_environment.identify(current_expression, current_scope); identity.is<relative>())
+          if (let const& identity = current_environment.identify(current_expression, current_local); identity.is<relative>())
           {
             return cons(make(instruction::load_relative), identity,
                         current_continuation);
@@ -159,7 +159,7 @@ inline namespace kernel
         }
         else if (current_expression.is<syntactic_closure>())
         {
-          if (let const& identity = std::as_const(current_environment).identify(current_expression, current_scope); is_truthy(identity)) // The syntactic-closure is a variable
+          if (let const& identity = std::as_const(current_environment).identify(current_expression, current_local); is_truthy(identity)) // The syntactic-closure is a variable
           {
             if (identity.is<relative>())
             {
@@ -193,11 +193,11 @@ inline namespace kernel
       {
         return car(current_expression).as<syntax>().compile(current_environment,
                                                             cdr(current_expression),
-                                                            current_scope,
+                                                            current_local,
                                                             current_continuation,
                                                             current_tail);
       }
-      else if (let const& identity = std::as_const(current_environment).identify(car(current_expression), current_scope);
+      else if (let const& identity = std::as_const(current_environment).identify(car(current_expression), current_local);
                identity.is<absolute>() and
                identity.as<absolute>().load().is<transformer>())
       {
@@ -222,9 +222,9 @@ inline namespace kernel
         return compile(current_environment,
                        Environment().apply(car(identity.as<absolute>().load()), // <closure>
                                            current_expression,
-                                           current_environment.fork(current_scope),
+                                           current_environment.fork(current_local),
                                            cdr(identity.as<absolute>().load())), // <environment>
-                       current_scope,
+                       current_local,
                        current_continuation,
                        current_tail);
       }
@@ -233,7 +233,7 @@ inline namespace kernel
       {
         return identity.as<absolute>().load().as<syntax>().compile(current_environment,
                                                                    cdr(current_expression),
-                                                                   current_scope,
+                                                                   current_local,
                                                                    current_continuation,
                                                                    current_tail);
       }
@@ -276,10 +276,10 @@ inline namespace kernel
       {
         return operand(current_environment,
                        cdr(current_expression),
-                       current_scope,
+                       current_local,
                        compile(current_environment,
                                car(current_expression),
-                               current_scope,
+                               current_local,
                                current_tail.is<null>() ? list(make(instruction::tail_call))
                                                        : cons(make(instruction::call), current_continuation)));
       }
@@ -295,7 +295,7 @@ inline namespace kernel
       return second;
     }
 
-    auto identify(object const& variable, object const& scope) const -> object
+    auto identify(object const& variable, object const& local) const -> object
     {
       if (not variable.is_also<identifier>())
       {
@@ -303,7 +303,7 @@ inline namespace kernel
       }
       else
       {
-        for (auto outer = std::begin(scope); outer != std::end(scope); ++outer)
+        for (auto outer = std::begin(local); outer != std::end(local); ++outer)
         {
           for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
           {
@@ -313,12 +313,12 @@ inline namespace kernel
             }
             else if (inner.get().is<pair>() and eq(*inner, variable))
             {
-              return make<relative>(make(static_cast<identity::index>(std::distance(std::begin(scope), outer))),
+              return make<relative>(make(static_cast<identity::index>(std::distance(std::begin(local), outer))),
                                     make(static_cast<identity::index>(std::distance(std::begin(*outer), inner))));
             }
             else if (inner.get().is<symbol>() and eq(inner, variable))
             {
-              return make<variadic>(make(static_cast<identity::index>(std::distance(std::begin(scope), outer))),
+              return make<variadic>(make(static_cast<identity::index>(std::distance(std::begin(local), outer))),
                                     make(static_cast<identity::index>(std::distance(std::begin(*outer), inner))));
             }
           }
@@ -335,13 +335,13 @@ inline namespace kernel
       }
     }
 
-    auto identify(object const& variable, object const& scope)
+    auto identify(object const& variable, object const& local)
     {
       if (not variable.is_also<identifier>())
       {
         return f;
       }
-      else if (let const& identity = std::as_const(*this).identify(variable, scope); is_truthy(identity))
+      else if (let const& identity = std::as_const(*this).identify(variable, local); is_truthy(identity))
       {
         return identity;
       }
@@ -366,12 +366,12 @@ inline namespace kernel
       }
     }
 
-    auto scope() const noexcept -> object const&
+    auto local() const noexcept -> object const&
     {
       return first;
     }
 
-    auto scope() noexcept -> object &
+    auto local() noexcept -> object &
     {
       return first;
     }
@@ -380,7 +380,7 @@ inline namespace kernel
     #define SYNTAX(NAME)                                                       \
     auto NAME([[maybe_unused]] Environment & current_environment,              \
                                object const& current_expression,               \
-              [[maybe_unused]] object const& current_scope,                    \
+              [[maybe_unused]] object const& current_local,                    \
               [[maybe_unused]] object const& current_continuation,             \
               [[maybe_unused]] object const& current_tail = unspecified) -> object
 
@@ -390,7 +390,7 @@ inline namespace kernel
       {
         if (form.is<pair>())
         {
-          if (let const& identity = std::as_const(current_environment).identify(car(form), current_scope); identity.is<absolute>())
+          if (let const& identity = std::as_const(current_environment).identify(car(form), current_local); identity.is<absolute>())
           {
             if (let const& callee = identity.as<absolute>().load(); callee.is<syntax>())
             {
@@ -462,7 +462,7 @@ inline namespace kernel
                                               binding_specs),
                                          sequence)),
                             make_list(length(binding_specs), unit)),
-                       current_scope,
+                       current_local,
                        current_continuation,
                        unit);
       }
@@ -470,7 +470,7 @@ inline namespace kernel
       {
         return compile(current_environment,
                        car(current_expression),
-                       current_scope,
+                       current_local,
                        current_continuation,
                        cdr(current_expression));
       }
@@ -478,7 +478,7 @@ inline namespace kernel
       {
         let const head = compile(current_environment,
                                  car(current_expression),
-                                 current_scope,
+                                 current_local,
                                  unit,
                                  cdr(current_expression));
 
@@ -486,7 +486,7 @@ inline namespace kernel
                        cons(make(instruction::drop),
                             body(current_environment,
                                  cdr(current_expression),
-                                 current_scope,
+                                 current_local,
                                  current_continuation)));
       }
     }
@@ -505,7 +505,7 @@ inline namespace kernel
                   current_continuation,
                   compile(current_environment,
                           car(current_expression),
-                          current_scope,
+                          current_local,
                           list(make(instruction::tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.
                           current_tail));
     }
@@ -545,22 +545,22 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (current_scope.is<null>()) // R7RS 5.3.1. Top level definitions
+      if (current_local.is<null>()) // R7RS 5.3.1. Top level definitions
       {
         if (car(current_expression).is<pair>()) // (define (<variable> . <formals>) <body>)
         {
           return compile(current_environment,
                          cons(make<syntax>("lambda", lambda), cdar(current_expression), cdr(current_expression)),
-                         current_scope,
-                         cons(make(instruction::store_absolute), current_environment.identify(caar(current_expression), current_scope),
+                         current_local,
+                         cons(make(instruction::store_absolute), current_environment.identify(caar(current_expression), current_local),
                               current_continuation));
         }
         else // (define <variable> <expression>)
         {
           return compile(current_environment,
                          cdr(current_expression) ? cadr(current_expression) : unspecified,
-                         current_scope,
-                         cons(make(instruction::store_absolute), current_environment.identify(car(current_expression), current_scope),
+                         current_local,
+                         cons(make(instruction::store_absolute), current_environment.identify(car(current_expression), current_local),
                               current_continuation));
         }
       }
@@ -626,8 +626,8 @@ inline namespace kernel
     {
       return compile(current_environment,
                      cdr(current_expression) ? cadr(current_expression) : undefined,
-                     current_scope,
-                     cons(make(instruction::define_syntax), current_environment.identify(car(current_expression), current_scope),
+                     current_local,
+                     cons(make(instruction::define_syntax), current_environment.identify(car(current_expression), current_local),
                           current_continuation));
     }
 
@@ -653,16 +653,16 @@ inline namespace kernel
 
         return compile(current_environment,
                        car(current_expression), // <test>
-                       current_scope,
+                       current_local,
                        list(make(instruction::tail_select),
                             compile(current_environment,
                                     cadr(current_expression),
-                                    current_scope,
+                                    current_local,
                                     current_continuation,
                                     current_tail),
                             cddr(current_expression) ? compile(current_environment,
                                                                caddr(current_expression),
-                                                               current_scope,
+                                                               current_local,
                                                                current_continuation,
                                                                current_tail)
                                                      : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
@@ -672,15 +672,15 @@ inline namespace kernel
       {
         return compile(current_environment,
                        car(current_expression), // <test>
-                       current_scope,
+                       current_local,
                        cons(make(instruction::select),
                             compile(current_environment,
                                     cadr(current_expression),
-                                    current_scope,
+                                    current_local,
                                     list(make(instruction::join))),
                             cddr(current_expression) ? compile(current_environment,
                                                                caddr(current_expression),
-                                                               current_scope,
+                                                               current_local,
                                                                list(make(instruction::join)))
                                                      : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
                                                             make(instruction::join)),
@@ -696,7 +696,7 @@ inline namespace kernel
     {
       return compile(current_environment,
                      cadr(current_expression),
-                     current_scope,
+                     current_local,
                      cons(make(instruction::install), car(current_expression),
                           current_continuation));
     }
@@ -728,7 +728,7 @@ inline namespace kernel
       return cons(make(instruction::load_closure),
                   body(current_environment,
                        cdr(current_expression),
-                       cons(car(current_expression), current_scope), // Extend lexical scope.
+                       cons(car(current_expression), current_local), // Extend lexical scope.
                        list(make(instruction::return_))),
                   current_continuation);
     }
@@ -758,7 +758,7 @@ inline namespace kernel
         return make<absolute>(car(binding),
                               compile(current_environment,
                                       cadr(binding),
-                                      current_scope));
+                                      current_local));
       };
 
       auto const [bindings, body]  = unpair(current_expression);
@@ -766,7 +766,7 @@ inline namespace kernel
       return cons(make(instruction::let_syntax),
                   cons(body,
                        map1(make_keyword, bindings),
-                       current_scope),
+                       current_local),
                   current_continuation);
     }
 
@@ -819,10 +819,10 @@ inline namespace kernel
       return cons(make(instruction::dummy),
                   operand(current_environment,
                           inits,
-                          cons(variables, current_scope),
+                          cons(variables, current_local),
                           lambda(current_environment,
                                  cons(variables, cdr(current_expression)), // (<formals> <body>)
-                                 current_scope,
+                                 current_local,
                                  current_tail.is<null>() ? list(make(instruction::tail_letrec))
                                                          : cons(make(instruction::letrec), current_continuation))));
     }
@@ -844,7 +844,7 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       return cons(make(instruction::letrec_syntax),
-                  cons(current_expression, current_scope),
+                  cons(current_expression, current_local),
                   current_continuation);
     }
 
@@ -854,10 +854,10 @@ inline namespace kernel
       {
         return operand(current_environment,
                        cdr(current_expression),
-                       current_scope,
+                       current_local,
                        compile(current_environment,
                                car(current_expression),
-                               current_scope,
+                               current_local,
                                cons(make(instruction::cons),
                                     current_continuation)));
       }
@@ -865,7 +865,7 @@ inline namespace kernel
       {
         return compile(current_environment,
                        current_expression,
-                       current_scope,
+                       current_local,
                        current_continuation);
       }
     }
@@ -932,7 +932,7 @@ inline namespace kernel
       {
         return compile(current_environment,
                        car(current_expression),
-                       current_scope,
+                       current_local,
                        current_continuation,
                        current_tail);
       }
@@ -940,11 +940,11 @@ inline namespace kernel
       {
         return compile(current_environment,
                        car(current_expression), // head expression
-                       current_scope,
+                       current_local,
                        cons(make(instruction::drop), // pop result of head expression
                             sequence(current_environment,
                                      cdr(current_expression), // rest expressions
-                                     current_scope,
+                                     current_local,
                                      current_continuation,
                                      current_tail)));
       }
@@ -962,11 +962,11 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (let const& identity = current_environment.identify(car(current_expression), current_scope); identity.is<relative>())
+      if (let const& identity = current_environment.identify(car(current_expression), current_local); identity.is<relative>())
       {
         return compile(current_environment,
                        cadr(current_expression),
-                       current_scope,
+                       current_local,
                        cons(make(instruction::store_relative), identity,
                             current_continuation));
       }
@@ -974,7 +974,7 @@ inline namespace kernel
       {
         return compile(current_environment,
                        cadr(current_expression),
-                       current_scope,
+                       current_local,
                        cons(make(instruction::store_variadic), identity,
                             current_continuation));
       }
@@ -983,7 +983,7 @@ inline namespace kernel
         assert(identity.is<absolute>()); // <Keyword> cannot appear.
         return compile(current_environment,
                        cadr(current_expression),
-                       current_scope,
+                       current_local,
                        cons(make(instruction::store_absolute), identity,
                             current_continuation));
       }
