@@ -33,32 +33,39 @@ inline namespace kernel
   protected:
     struct syntactic_closure : public identifier
     {
-      let const syntactic_environment;
+      let const environment;
 
       let const free_variables; // Currently ignored
 
       let const expression;
 
-      explicit syntactic_closure(let const& syntactic_environment,
+      explicit syntactic_closure(let const& environment,
                                  let const& free_variables,
                                  let const& expression)
-        : syntactic_environment { syntactic_environment }
+        : environment { environment }
         , free_variables { free_variables }
         , expression { expression }
       {}
 
       auto compile(object const& current_continuation) const
       {
-        return syntactic_environment.as<Environment>().compile(syntactic_environment.as<Environment>(),
+        assert(environment.is<syntactic_environment>());
+
+        auto current_environment = Environment(car(environment),
+                                               cdr(environment));
+
+        return environment.as<syntactic_environment>().compile(current_environment,
                                                                expression,
-                                                               syntactic_environment.as<Environment>().local(),
+                                                               environment.as<syntactic_environment>().local(),
                                                                current_continuation);
       }
 
       auto identify() const -> object
       {
-        return syntactic_environment.as<Environment>().identify(expression,
-                                                                syntactic_environment.as<Environment>().local());
+        assert(environment.is<syntactic_environment>());
+
+        return environment.as<syntactic_environment>().identify(expression,
+                                                                environment.as<syntactic_environment>().local());
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -72,17 +79,18 @@ inline namespace kernel
            in a cond clause. A macro definition for syntax-rules would use
            free-identifier=? to look for literals in the input.
         */
+        assert(x.environment.template is<syntactic_environment>());
+        assert(y.environment.template is<syntactic_environment>());
+
         return x.expression.template is_also<identifier>() and
                y.expression.template is_also<identifier>() and
-               eqv(x.syntactic_environment.template as<Environment>().identify(x.expression,
-                                                                               x.syntactic_environment.template as<Environment>().local()),
-                   y.syntactic_environment.template as<Environment>().identify(y.expression,
-                                                                               y.syntactic_environment.template as<Environment>().local()));
+               eqv(x.environment.template as<syntactic_environment>().identify(x.expression, x.environment.template as<syntactic_environment>().local()),
+                   y.environment.template as<syntactic_environment>().identify(y.expression, y.environment.template as<syntactic_environment>().local()));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
       {
-        return os << magenta("#,(") << blue("make-syntactic-closure ") << datum.syntactic_environment << magenta(" '") << datum.free_variables << magenta("' ") << datum.expression << magenta(")");
+        return os << magenta("#,(") << blue("make-syntactic-closure ") << datum.environment << magenta(" '") << datum.free_variables << magenta("' ") << datum.expression << magenta(")");
       }
     };
 
@@ -217,13 +225,13 @@ inline namespace kernel
            primitive expression is called the transformer of the macro.
         */
         assert(car(identity.as<absolute>().load()).is<closure>());
-        assert(cdr(identity.as<absolute>().load()).is<Environment>());
+        assert(cdr(identity.as<absolute>().load()).is<syntactic_environment>());
 
         return compile(current_environment,
                        Environment().apply(car(identity.as<absolute>().load()), // <closure>
                                            current_expression,
-                                           current_environment.fork(current_local),
-                                           cdr(identity.as<absolute>().load())), // <environment>
+                                           current_environment.make_syntactic_environment(current_local),
+                                           cdr(identity.as<absolute>().load())), // <syntactic-environment>
                        current_local,
                        current_continuation,
                        current_tail);

@@ -94,18 +94,6 @@ inline namespace kernel
     }
   }
 
-  auto environment::fork() const -> object
-  {
-    return make<environment>(*this);
-  }
-
-  auto environment::fork(object const& local) const -> object
-  {
-    let const copy = make<environment>(*this);
-    copy.as<environment>().local() = local;
-    return copy;
-  }
-
   auto environment::load(std::string const& s) -> object
   {
     if (let port = make<file_port>(s); port and port.as<file_port>().is_open())

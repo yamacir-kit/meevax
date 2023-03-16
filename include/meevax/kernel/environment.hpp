@@ -59,11 +59,19 @@ inline namespace kernel
 
     auto evaluate(object const&) -> object;
 
-    auto fork() const -> object;
-
-    auto fork(object const&) const -> object;
-
     auto load(std::string const&) -> object;
+
+    // TODO REMOVE THIS MEMBER FUNCTION!!!
+    auto make_syntactic_environment() const
+    {
+      return make<syntactic_environment>(*this);
+    }
+
+    // TODO REMOVE THIS MEMBER FUNCTION!!!
+    auto make_syntactic_environment(object const& local) const
+    {
+      return make<syntactic_environment>(local, global());
+    }
 
     auto operator [](object const&) -> object const&;
 

@@ -35,9 +35,9 @@ inline namespace kernel
     {}
 
     template <typename... Ts>
-    auto fork(Ts&&... xs) const -> decltype(auto)
+    auto make_syntactic_environment(Ts&&... xs) const -> decltype(auto)
     {
-      return static_cast<Environment const&>(*this).fork(std::forward<decltype(xs)>(xs)...);
+      return static_cast<Environment const&>(*this).make_syntactic_environment(std::forward<decltype(xs)>(xs)...);
     }
 
   protected:
@@ -231,7 +231,7 @@ inline namespace kernel
         assert(car(s).template is<closure>());
         assert(cdr(s).template is<null>());
         assert(cadr(c).template is<absolute>());
-        cadr(c).template as<absolute>().store(make<transformer>(car(s), fork()));
+        cadr(c).template as<absolute>().store(make<transformer>(car(s), make_syntactic_environment()));
         c = cddr(c);
         goto fetch;
 
@@ -244,20 +244,23 @@ inline namespace kernel
         {
           auto [body, current_local] = unpair(cadr(c));
 
-          let const current_environment = fork(cdr(current_local));
+          let const syntactic_environment = make_syntactic_environment(cdr(current_local));
 
           let const c_ = c;
 
           for (let const& k : car(current_local))
           {
             k.as<absolute>().store(make<transformer>(execute(k.as<absolute>().load()),
-                                                     current_environment));
+                                                     syntactic_environment));
           }
 
           c = c_;
 
+          auto current_environment = Environment(cdr(current_local),
+                                                 static_cast<Environment const&>(*this).global());
+
           std::swap(c.as<pair>(),
-                    Environment::compile(static_cast<Environment &>(*this),
+                    Environment::compile(current_environment,
                                          cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda),
                                                    car(current_local), // <formals>
                                                    body),
@@ -279,19 +282,20 @@ inline namespace kernel
 
           auto && [transformer_specs, body] = unpair(current_expression);
 
-          let const current_environment = fork(current_local);
+          auto current_environment = Environment(cdr(current_local),
+                                                 static_cast<Environment const&>(*this).global());
 
           for (let const& transformer_spec : transformer_specs)
           {
-            let const c = Environment::compile(current_environment.as<Environment>(),
+            let const c = Environment::compile(current_environment,
                                                cons(make<typename Environment::syntax>("define-syntax", Environment::define_syntax), transformer_spec),
                                                current_local);
 
-            current_environment.as<Environment>().execute(c);
+            current_environment.execute(c);
           }
 
           std::swap(c.as<pair>(),
-                    Environment::compile(current_environment.as<Environment>(),
+                    Environment::compile(current_environment,
                                          cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda), unit, body), unit), // (let () <body>)
                                          current_local,
                                          cddr(c)
