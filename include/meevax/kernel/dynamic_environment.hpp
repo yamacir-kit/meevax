@@ -233,18 +233,18 @@ inline namespace kernel
 
       case instruction::let_syntax: /* -----------------------------------------
         *
-        *  s e (%let-syntax (<body> . <syntactic-environment>) . c) d => s e c' d
+        *  s e (%let-syntax (<body> . <local>) . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
         [this]()
         {
-          auto [body, current_local] = unpair(cadr(c));
+          auto [body, local] = unpair(cadr(c));
 
-          let const transformer_environment = make<syntactic_environment>(cdr(current_local), static_cast<Environment const&>(*this).global());
+          let const transformer_environment = make<syntactic_environment>(cdr(local), static_cast<Environment const&>(*this).global());
 
           let const c_ = c;
 
-          for (let const& k : car(current_local))
+          for (let const& k : car(local))
           {
             k.as<absolute>().store(make<transformer>(execute(k.as<absolute>().load()), transformer_environment));
           }
@@ -254,10 +254,10 @@ inline namespace kernel
           std::swap(c.as<pair>(),
                     Environment::compile(transformer_environment.as<syntactic_environment>(),
                                          cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda),
-                                                   car(current_local), // <formals>
+                                                   car(local), // <formals>
                                                    body),
-                                              car(current_local)),
-                                         cdr(current_local),
+                                              car(local)),
+                                         cdr(local),
                                          cddr(c)
                                         ).template as<pair>());
         }();
@@ -270,18 +270,18 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         [this]() // DIRTY HACK!!!
         {
-          auto && [current_expression, current_local] = unpair(cadr(c));
+          auto && [expression, local] = unpair(cadr(c));
 
-          auto && [transformer_specs, body] = unpair(current_expression);
+          auto && [transformer_specs, body] = unpair(expression);
 
-          auto current_environment = Environment(cdr(current_local),
+          auto current_environment = Environment(cdr(local),
                                                  static_cast<Environment const&>(*this).global());
 
           for (let const& transformer_spec : transformer_specs)
           {
             let const c = Environment::compile(static_cast<syntactic_environment &>(current_environment),
                                                cons(make<typename Environment::syntax>("define-syntax", Environment::define_syntax), transformer_spec),
-                                               current_local);
+                                               local);
 
             current_environment.execute(c);
           }
@@ -289,7 +289,7 @@ inline namespace kernel
           std::swap(c.as<pair>(),
                     Environment::compile(static_cast<syntactic_environment &>(current_environment),
                                          cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda), unit, body), unit), // (let () <body>)
-                                         current_local,
+                                         local,
                                          cddr(c)
                                         ).template as<pair>());
         }();

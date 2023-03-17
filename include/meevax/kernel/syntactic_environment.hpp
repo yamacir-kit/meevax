@@ -47,14 +47,14 @@ inline namespace kernel
         , expression { expression }
       {}
 
-      auto compile(object const& current_continuation) const
+      auto compile(object const& continuation) const
       {
         assert(environment.is<syntactic_environment>());
 
         return syntactic_environment::compile(environment.as<syntactic_environment>(),
                                               expression,
                                               environment.as<syntactic_environment>().local(),
-                                              current_continuation);
+                                              continuation);
       }
 
       auto identify() const -> object
@@ -94,17 +94,17 @@ inline namespace kernel
   public:
     struct syntax
     {
-      using compiler = std::function<auto (syntactic_environment &,
-                                           object const&,
-                                           object const&,
-                                           object const&,
-                                           object const&) -> object>;
+      using subcompiler = std::function<auto (syntactic_environment &,
+                                              object const&,
+                                              object const&,
+                                              object const&,
+                                              object const&) -> object>;
 
       std::string const name;
 
-      compiler const compile;
+      subcompiler const compile;
 
-      explicit syntax(std::string const& name, compiler const& compile)
+      explicit syntax(std::string const& name, subcompiler const& compile)
         : name { name }
         , compile { compile }
       {}
@@ -115,13 +115,13 @@ inline namespace kernel
       }
     };
 
-    static auto compile(syntactic_environment & current_syntactic_environment,
-                        object const& current_expression,
-                        object const& current_local = unit,
-                        object const& current_continuation = list(make(instruction::stop)),
-                        object const& current_tail = unspecified) -> object
+    static auto compile(syntactic_environment & compiler,
+                        object const& expression,
+                        object const& local = unit,
+                        object const& continuation = list(make(instruction::stop)),
+                        object const& ellipsis = unspecified) -> object
     {
-      if (current_expression.is<null>()) /* ------------------------------------
+      if (expression.is<null>()) /* --------------------------------------------
       *
       *  (<operator> <operand 1> ...)                                    syntax
       *
@@ -130,9 +130,9 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        return cons(make(instruction::load_constant), unit, current_continuation);
+        return cons(make(instruction::load_constant), unit, continuation);
       }
-      else if (not current_expression.is<pair>()) /* ---------------------------
+      else if (not expression.is<pair>()) /* -----------------------------------
       *
       *  <variable>                                                      syntax
       *
@@ -143,66 +143,59 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        if (current_expression.is<symbol>())
+        if (expression.is<symbol>())
         {
-          if (let const& identity = current_syntactic_environment.identify(current_expression, current_local); identity.is<relative>())
+          if (let const& identity = compiler.identify(expression, local); identity.is<relative>())
           {
-            return cons(make(instruction::load_relative), identity,
-                        current_continuation);
+            return cons(make(instruction::load_relative), identity, continuation);
           }
           else if (identity.is<variadic>())
           {
-            return cons(make(instruction::load_variadic), identity,
-                        current_continuation);
+            return cons(make(instruction::load_variadic), identity, continuation);
           }
           else
           {
             assert(identity.is<absolute>());
-            return cons(make(instruction::load_absolute), identity,
-                        current_continuation);
+            return cons(make(instruction::load_absolute), identity, continuation);
           }
         }
-        else if (current_expression.is<syntactic_closure>())
+        else if (expression.is<syntactic_closure>())
         {
-          if (let const& identity = std::as_const(current_syntactic_environment).identify(current_expression, current_local); is_truthy(identity)) // The syntactic-closure is a variable
+          if (let const& identity = std::as_const(compiler).identify(expression, local); is_truthy(identity)) // The syntactic-closure is a variable
           {
             if (identity.is<relative>())
             {
-              return cons(make(instruction::load_relative), identity,
-                          current_continuation);
+              return cons(make(instruction::load_relative), identity, continuation);
             }
             else if (identity.is<variadic>())
             {
-              return cons(make(instruction::load_variadic), identity,
-                          current_continuation);
+              return cons(make(instruction::load_variadic), identity, continuation);
             }
             else
             {
               assert(identity.is<absolute>());
-              return cons(make(instruction::load_absolute), identity,
-                          current_continuation);
+              return cons(make(instruction::load_absolute), identity, continuation);
             }
           }
           else // The syntactic-closure is a syntactic-keyword.
           {
-            return current_expression.as<syntactic_closure>().compile(current_continuation);
+            return expression.as<syntactic_closure>().compile(continuation);
           }
         }
         else // is <self-evaluating>
         {
-          return cons(make(instruction::load_constant), current_expression,
-                      current_continuation);
+          return cons(make(instruction::load_constant), expression, continuation);
         }
       }
-      else if (car(current_expression).is<syntax>())
+      else if (car(expression).is<syntax>())
       {
-        return car(current_expression).as<syntax>().compile(current_syntactic_environment,
-                                                            cdr(current_expression),
-                                                            current_local,
-                                                            current_continuation,
-                                                            current_tail);
+        return car(expression).as<syntax>().compile(compiler,
+                                                    cdr(expression),
+                                                    local,
+                                                    continuation,
+                                                    ellipsis);
       }
-      else if (let const& identity = std::as_const(current_syntactic_environment).identify(car(current_expression), current_local);
+      else if (let const& identity = std::as_const(compiler).identify(car(expression), local);
                identity.is<absolute>() and
                identity.as<absolute>().load().is<transformer>())
       {
@@ -224,24 +217,24 @@ inline namespace kernel
         assert(car(identity.as<absolute>().load()).is<closure>());
         assert(cdr(identity.as<absolute>().load()).is<syntactic_environment>());
 
-        return compile(current_syntactic_environment,
+        return compile(compiler,
                        Environment().apply(car(identity.as<absolute>().load()), // <closure>
-                                           current_expression,
-                                           make<syntactic_environment>(current_local,
-                                                                       current_syntactic_environment.global()),
+                                           expression,
+                                           make<syntactic_environment>(local,
+                                                                       compiler.global()),
                                            cdr(identity.as<absolute>().load())), // <syntactic-environment>
-                       current_local,
-                       current_continuation,
-                       current_tail);
+                       local,
+                       continuation,
+                       ellipsis);
       }
       else if (identity.is<absolute>() and
                identity.as<absolute>().load().is<syntax>())
       {
-        return identity.as<absolute>().load().as<syntax>().compile(current_syntactic_environment,
-                                                                   cdr(current_expression),
-                                                                   current_local,
-                                                                   current_continuation,
-                                                                   current_tail);
+        return identity.as<absolute>().load().as<syntax>().compile(compiler,
+                                                                   cdr(expression),
+                                                                   local,
+                                                                   continuation,
+                                                                   ellipsis);
       }
       else /* ------------------------------------------------------------------
       *
@@ -280,14 +273,14 @@ inline namespace kernel
       *
       * ------------------------------------------------------------------ */
       {
-        return operand(current_syntactic_environment,
-                       cdr(current_expression),
-                       current_local,
-                       compile(current_syntactic_environment,
-                               car(current_expression),
-                               current_local,
-                               current_tail.is<null>() ? list(make(instruction::tail_call))
-                                                       : cons(make(instruction::call), current_continuation)));
+        return operand(compiler,
+                       cdr(expression),
+                       local,
+                       compile(compiler,
+                               car(expression),
+                               local,
+                               ellipsis.is<null>() ? list(make(instruction::tail_call))
+                                                   : cons(make(instruction::call), continuation)));
       }
     }
 
@@ -384,11 +377,11 @@ inline namespace kernel
 
   public:
     #define SYNTAX(NAME)                                                       \
-    auto NAME([[maybe_unused]] syntactic_environment & current_syntactic_environment, \
-                               object const& current_expression,               \
-              [[maybe_unused]] object const& current_local,                    \
-              [[maybe_unused]] object const& current_continuation,             \
-              [[maybe_unused]] object const& current_tail = unspecified) -> object
+    auto NAME([[maybe_unused]] syntactic_environment & compiler,               \
+                               object const& expression,                       \
+              [[maybe_unused]] object const& local,                            \
+              [[maybe_unused]] object const& continuation,                     \
+              [[maybe_unused]] object const& ellipsis = unspecified) -> object \
 
     static SYNTAX(body)
     {
@@ -396,7 +389,7 @@ inline namespace kernel
       {
         if (form.is<pair>())
         {
-          if (let const& identity = std::as_const(current_syntactic_environment).identify(car(form), current_local); identity.is<absolute>())
+          if (let const& identity = std::as_const(compiler).identify(car(form), local); identity.is<absolute>())
           {
             if (let const& callee = identity.as<absolute>().load(); callee.is<syntax>())
             {
@@ -446,7 +439,7 @@ inline namespace kernel
 
          where <body> = <definition>* <expression>* <tail expression>
       */
-      if (auto const& [binding_specs, sequence] = sweep(current_expression); binding_specs)
+      if (auto const& [binding_specs, sequence] = sweep(expression); binding_specs)
       {
         /*
            (letrec* <binding specs> <sequence>)
@@ -458,7 +451,7 @@ inline namespace kernel
                                     ...
                                     (<variable n> <initial n>))
         */
-        return compile(current_syntactic_environment,
+        return compile(compiler,
                        cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs), // formals
                                  append2(map1([](let const& binding_spec)
@@ -468,32 +461,32 @@ inline namespace kernel
                                               binding_specs),
                                          sequence)),
                             make_list(length(binding_specs), unit)),
-                       current_local,
-                       current_continuation,
+                       local,
+                       continuation,
                        unit);
       }
-      else if (cdr(current_expression).is<null>())
+      else if (cdr(expression).is<null>())
       {
-        return compile(current_syntactic_environment,
-                       car(current_expression),
-                       current_local,
-                       current_continuation,
-                       cdr(current_expression));
+        return compile(compiler,
+                       car(expression),
+                       local,
+                       continuation,
+                       cdr(expression));
       }
       else
       {
-        let const head = compile(current_syntactic_environment,
-                                 car(current_expression),
-                                 current_local,
+        let const head = compile(compiler,
+                                 car(expression),
+                                 local,
                                  unit,
-                                 cdr(current_expression));
+                                 cdr(expression));
 
         return append2(head,
                        cons(make(instruction::drop),
-                            body(current_syntactic_environment,
-                                 cdr(current_expression),
-                                 current_local,
-                                 current_continuation)));
+                            body(compiler,
+                                 cdr(expression),
+                                 local,
+                                 continuation)));
       }
     }
 
@@ -504,16 +497,16 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      assert(current_expression.is<pair>());
-      assert(cdr(current_expression).is<null>());
+      assert(expression.is<pair>());
+      assert(cdr(expression).is<null>());
 
       return cons(make(instruction::load_continuation),
-                  current_continuation,
-                  compile(current_syntactic_environment,
-                          car(current_expression),
-                          current_local,
+                  continuation,
+                  compile(compiler,
+                          car(expression),
+                          local,
                           list(make(instruction::tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.
-                          current_tail));
+                          ellipsis));
     }
 
     static SYNTAX(current) /* --------------------------------------------------
@@ -522,8 +515,8 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return cons(make(instruction::current), car(current_expression),
-                  current_continuation);
+      return cons(make(instruction::current), car(expression),
+                  continuation);
     }
 
     static SYNTAX(define) /* ---------------------------------------------------
@@ -551,23 +544,23 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (current_local.is<null>()) // R7RS 5.3.1. Top level definitions
+      if (local.is<null>()) // R7RS 5.3.1. Top level definitions
       {
-        if (car(current_expression).is<pair>()) // (define (<variable> . <formals>) <body>)
+        if (car(expression).is<pair>()) // (define (<variable> . <formals>) <body>)
         {
-          return compile(current_syntactic_environment,
-                         cons(make<syntax>("lambda", lambda), cdar(current_expression), cdr(current_expression)),
-                         current_local,
-                         cons(make(instruction::store_absolute), current_syntactic_environment.identify(caar(current_expression), current_local),
-                              current_continuation));
+          return compile(compiler,
+                         cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
+                         local,
+                         cons(make(instruction::store_absolute), compiler.identify(caar(expression), local),
+                              continuation));
         }
         else // (define <variable> <expression>)
         {
-          return compile(current_syntactic_environment,
-                         cdr(current_expression) ? cadr(current_expression) : unspecified,
-                         current_local,
-                         cons(make(instruction::store_absolute), current_syntactic_environment.identify(car(current_expression), current_local),
-                              current_continuation));
+          return compile(compiler,
+                         cdr(expression) ? cadr(expression) : unspecified,
+                         local,
+                         cons(make(instruction::store_absolute), compiler.identify(car(expression), local),
+                              continuation));
         }
       }
       else
@@ -630,11 +623,11 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return compile(current_syntactic_environment,
-                     cdr(current_expression) ? cadr(current_expression) : undefined,
-                     current_local,
-                     cons(make(instruction::define_syntax), current_syntactic_environment.identify(car(current_expression), current_local),
-                          current_continuation));
+      return compile(compiler,
+                     cdr(expression) ? cadr(expression) : undefined,
+                     local,
+                     cons(make(instruction::define_syntax), compiler.identify(car(expression), local),
+                          continuation));
     }
 
     static SYNTAX(if_) /* ------------------------------------------------------
@@ -653,44 +646,44 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (current_tail.is<null>())
+      if (ellipsis.is<null>())
       {
-        assert(lexical_cast<std::string>(current_continuation) == "(return)");
+        assert(lexical_cast<std::string>(continuation) == "(return)");
 
-        return compile(current_syntactic_environment,
-                       car(current_expression), // <test>
-                       current_local,
+        return compile(compiler,
+                       car(expression), // <test>
+                       local,
                        list(make(instruction::tail_select),
-                            compile(current_syntactic_environment,
-                                    cadr(current_expression),
-                                    current_local,
-                                    current_continuation,
-                                    current_tail),
-                            cddr(current_expression) ? compile(current_syntactic_environment,
-                                                               caddr(current_expression),
-                                                               current_local,
-                                                               current_continuation,
-                                                               current_tail)
-                                                     : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                            make(instruction::return_))));
+                            compile(compiler,
+                                    cadr(expression),
+                                    local,
+                                    continuation,
+                                    ellipsis),
+                            cddr(expression) ? compile(compiler,
+                                                       caddr(expression),
+                                                       local,
+                                                       continuation,
+                                                       ellipsis)
+                                             : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
+                                                    make(instruction::return_))));
       }
       else
       {
-        return compile(current_syntactic_environment,
-                       car(current_expression), // <test>
-                       current_local,
+        return compile(compiler,
+                       car(expression), // <test>
+                       local,
                        cons(make(instruction::select),
-                            compile(current_syntactic_environment,
-                                    cadr(current_expression),
-                                    current_local,
+                            compile(compiler,
+                                    cadr(expression),
+                                    local,
                                     list(make(instruction::join))),
-                            cddr(current_expression) ? compile(current_syntactic_environment,
-                                                               caddr(current_expression),
-                                                               current_local,
-                                                               list(make(instruction::join)))
-                                                     : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                            make(instruction::join)),
-                            current_continuation));
+                            cddr(expression) ? compile(compiler,
+                                                       caddr(expression),
+                                                       local,
+                                                       list(make(instruction::join)))
+                                             : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
+                                                    make(instruction::join)),
+                            continuation));
       }
     }
 
@@ -700,11 +693,11 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return compile(current_syntactic_environment,
-                     cadr(current_expression),
-                     current_local,
-                     cons(make(instruction::install), car(current_expression),
-                          current_continuation));
+      return compile(compiler,
+                     cadr(expression),
+                     local,
+                     cons(make(instruction::install), car(expression),
+                          continuation));
     }
 
     static SYNTAX(lambda) /* ---------------------------------------------------
@@ -732,11 +725,11 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       return cons(make(instruction::load_closure),
-                  body(current_syntactic_environment,
-                       cdr(current_expression),
-                       cons(car(current_expression), current_local), // Extend lexical scope.
+                  body(compiler,
+                       cdr(expression),
+                       cons(car(expression), local), // Extend scope.
                        list(make(instruction::return_))),
-                  current_continuation);
+                  continuation);
     }
 
     static SYNTAX(let_syntax) /* -----------------------------------------------
@@ -762,18 +755,18 @@ inline namespace kernel
       auto make_keyword = [&](let const& binding)
       {
         return make<absolute>(car(binding),
-                              compile(current_syntactic_environment,
+                              compile(compiler,
                                       cadr(binding),
-                                      current_local));
+                                      local));
       };
 
-      auto const [bindings, body]  = unpair(current_expression);
+      auto const [bindings, body]  = unpair(expression);
 
       return cons(make(instruction::let_syntax),
                   cons(body,
                        map1(make_keyword, bindings),
-                       current_local),
-                  current_continuation);
+                       local),
+                  continuation);
     }
 
     static SYNTAX(letrec) /* ---------------------------------------------------
@@ -818,19 +811,19 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      assert(not current_tail.is<null>() or lexical_cast<std::string>(current_continuation) == "(return)");
+      assert(not ellipsis.is<null>() or lexical_cast<std::string>(continuation) == "(return)");
 
-      auto const& [variables, inits] = unzip2(car(current_expression));
+      auto const& [variables, inits] = unzip2(car(expression));
 
       return cons(make(instruction::dummy),
-                  operand(current_syntactic_environment,
+                  operand(compiler,
                           inits,
-                          cons(variables, current_local),
-                          lambda(current_syntactic_environment,
-                                 cons(variables, cdr(current_expression)), // (<formals> <body>)
-                                 current_local,
-                                 current_tail.is<null>() ? list(make(instruction::tail_letrec))
-                                                         : cons(make(instruction::letrec), current_continuation))));
+                          cons(variables, local),
+                          lambda(compiler,
+                                 cons(variables, cdr(expression)), // (<formals> <body>)
+                                 local,
+                                 ellipsis.is<null>() ? list(make(instruction::tail_letrec))
+                                                     : cons(make(instruction::letrec), continuation))));
     }
 
     static SYNTAX(letrec_syntax) /* --------------------------------------------
@@ -849,30 +842,29 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return cons(make(instruction::letrec_syntax),
-                  cons(current_expression, current_local),
-                  current_continuation);
+      return cons(make(instruction::letrec_syntax), cons(expression, local),
+                  continuation);
     }
 
     static SYNTAX(operand)
     {
-      if (current_expression.is<pair>())
+      if (expression.is<pair>())
       {
-        return operand(current_syntactic_environment,
-                       cdr(current_expression),
-                       current_local,
-                       compile(current_syntactic_environment,
-                               car(current_expression),
-                               current_local,
+        return operand(compiler,
+                       cdr(expression),
+                       local,
+                       compile(compiler,
+                               car(expression),
+                               local,
                                cons(make(instruction::cons),
-                                    current_continuation)));
+                                    continuation)));
       }
       else
       {
-        return compile(current_syntactic_environment,
-                       current_expression,
-                       current_local,
-                       current_continuation);
+        return compile(compiler,
+                       expression,
+                       local,
+                       continuation);
       }
     }
 
@@ -897,15 +889,15 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return cons(make(instruction::load_constant), car(current_expression).is<syntactic_closure>() ? car(current_expression).as<syntactic_closure>().expression
-                                                                                                    : car(current_expression),
-                  current_continuation);
+      return cons(make(instruction::load_constant), car(expression).is<syntactic_closure>() ? car(expression).as<syntactic_closure>().expression
+                                                                                            : car(expression),
+                  continuation);
     }
 
     static SYNTAX(quote_syntax)
     {
-      return cons(make(instruction::load_constant), car(current_expression),
-                  current_continuation);
+      return cons(make(instruction::load_constant), car(expression),
+                  continuation);
     }
 
     static SYNTAX(sequence) /* -------------------------------------------------
@@ -934,25 +926,25 @@ inline namespace kernel
     *
     * ---------------------------------------------------------------------- */
     {
-      if (cdr(current_expression).is<null>()) // is tail sequence
+      if (cdr(expression).is<null>()) // is tail sequence
       {
-        return compile(current_syntactic_environment,
-                       car(current_expression),
-                       current_local,
-                       current_continuation,
-                       current_tail);
+        return compile(compiler,
+                       car(expression),
+                       local,
+                       continuation,
+                       ellipsis);
       }
       else
       {
-        return compile(current_syntactic_environment,
-                       car(current_expression), // head expression
-                       current_local,
+        return compile(compiler,
+                       car(expression), // head expression
+                       local,
                        cons(make(instruction::drop), // pop result of head expression
-                            sequence(current_syntactic_environment,
-                                     cdr(current_expression), // rest expressions
-                                     current_local,
-                                     current_continuation,
-                                     current_tail)));
+                            sequence(compiler,
+                                     cdr(expression), // rest expressions
+                                     local,
+                                     continuation,
+                                     ellipsis)));
       }
     }
 
@@ -968,30 +960,30 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (let const& identity = current_syntactic_environment.identify(car(current_expression), current_local); identity.is<relative>())
+      if (let const& identity = compiler.identify(car(expression), local); identity.is<relative>())
       {
-        return compile(current_syntactic_environment,
-                       cadr(current_expression),
-                       current_local,
+        return compile(compiler,
+                       cadr(expression),
+                       local,
                        cons(make(instruction::store_relative), identity,
-                            current_continuation));
+                            continuation));
       }
       else if (identity.is<variadic>())
       {
-        return compile(current_syntactic_environment,
-                       cadr(current_expression),
-                       current_local,
+        return compile(compiler,
+                       cadr(expression),
+                       local,
                        cons(make(instruction::store_variadic), identity,
-                            current_continuation));
+                            continuation));
       }
       else
       {
         assert(identity.is<absolute>()); // <Keyword> cannot appear.
-        return compile(current_syntactic_environment,
-                       cadr(current_expression),
-                       current_local,
+        return compile(compiler,
+                       cadr(expression),
+                       local,
                        cons(make(instruction::store_absolute), identity,
-                            current_continuation));
+                            continuation));
       }
     }
 
