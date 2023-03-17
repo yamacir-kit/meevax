@@ -51,10 +51,9 @@ inline namespace kernel
       {
         assert(environment.is<syntactic_environment>());
 
-        return syntactic_environment::compile(environment.as<syntactic_environment>(),
-                                              expression,
-                                              environment.as<syntactic_environment>().local(),
-                                              continuation);
+        return environment.as<syntactic_environment>().compile(expression,
+                                                               environment.as<syntactic_environment>().local(),
+                                                               continuation);
       }
 
       auto identify() const -> object
@@ -94,17 +93,17 @@ inline namespace kernel
   public:
     struct syntax
     {
-      using subcompiler = std::function<auto (syntactic_environment &,
-                                              object const&,
-                                              object const&,
-                                              object const&,
-                                              object const&) -> object>;
+      using compiler = std::function<auto (syntactic_environment &,
+                                           object const& /* expression   */,
+                                           object const& /* local        */,
+                                           object const& /* continuation */,
+                                           object const& /* ellipsis     */) -> object>;
 
       std::string const name;
 
-      subcompiler const compile;
+      compiler const compile;
 
-      explicit syntax(std::string const& name, subcompiler const& compile)
+      explicit syntax(std::string const& name, compiler const& compile)
         : name { name }
         , compile { compile }
       {}
@@ -115,11 +114,10 @@ inline namespace kernel
       }
     };
 
-    static auto compile(syntactic_environment & compiler,
-                        object const& expression,
-                        object const& local = unit,
-                        object const& continuation = list(make(instruction::stop)),
-                        object const& ellipsis = unspecified) -> object
+    auto compile(object const& expression,
+                 object const& local,
+                 object const& continuation = list(make(instruction::stop)),
+                 object const& ellipsis = unspecified) -> object
     {
       if (expression.is<null>()) /* --------------------------------------------
       *
@@ -145,23 +143,26 @@ inline namespace kernel
       {
         if (expression.is<symbol>())
         {
-          if (let const& identity = compiler.identify(expression, local); identity.is<relative>())
+          if (let const& identity = identify(expression, local); identity.is<relative>())
           {
-            return cons(make(instruction::load_relative), identity, continuation);
+            return cons(make(instruction::load_relative), identity,
+                        continuation);
           }
           else if (identity.is<variadic>())
           {
-            return cons(make(instruction::load_variadic), identity, continuation);
+            return cons(make(instruction::load_variadic), identity,
+                        continuation);
           }
           else
           {
             assert(identity.is<absolute>());
-            return cons(make(instruction::load_absolute), identity, continuation);
+            return cons(make(instruction::load_absolute), identity,
+                        continuation);
           }
         }
         else if (expression.is<syntactic_closure>())
         {
-          if (let const& identity = std::as_const(compiler).identify(expression, local); is_truthy(identity)) // The syntactic-closure is a variable
+          if (let const& identity = std::as_const(*this).identify(expression, local); is_truthy(identity)) // The syntactic-closure is a variable
           {
             if (identity.is<relative>())
             {
@@ -189,13 +190,13 @@ inline namespace kernel
       }
       else if (car(expression).is<syntax>())
       {
-        return car(expression).as<syntax>().compile(compiler,
+        return car(expression).as<syntax>().compile(*this,
                                                     cdr(expression),
                                                     local,
                                                     continuation,
                                                     ellipsis);
       }
-      else if (let const& identity = std::as_const(compiler).identify(car(expression), local);
+      else if (let const& identity = std::as_const(*this).identify(car(expression), local);
                identity.is<absolute>() and
                identity.as<absolute>().load().is<transformer>())
       {
@@ -217,11 +218,9 @@ inline namespace kernel
         assert(car(identity.as<absolute>().load()).is<closure>());
         assert(cdr(identity.as<absolute>().load()).is<syntactic_environment>());
 
-        return compile(compiler,
-                       Environment().apply(car(identity.as<absolute>().load()), // <closure>
+        return compile(Environment().apply(car(identity.as<absolute>().load()), // <closure>
                                            expression,
-                                           make<syntactic_environment>(local,
-                                                                       compiler.global()),
+                                           make<syntactic_environment>(local, global()),
                                            cdr(identity.as<absolute>().load())), // <syntactic-environment>
                        local,
                        continuation,
@@ -230,7 +229,7 @@ inline namespace kernel
       else if (identity.is<absolute>() and
                identity.as<absolute>().load().is<syntax>())
       {
-        return identity.as<absolute>().load().as<syntax>().compile(compiler,
+        return identity.as<absolute>().load().as<syntax>().compile(*this,
                                                                    cdr(expression),
                                                                    local,
                                                                    continuation,
@@ -273,11 +272,10 @@ inline namespace kernel
       *
       * ------------------------------------------------------------------ */
       {
-        return operand(compiler,
+        return operand(*this,
                        cdr(expression),
                        local,
-                       compile(compiler,
-                               car(expression),
+                       compile(car(expression),
                                local,
                                ellipsis.is<null>() ? list(make(instruction::tail_call))
                                                    : cons(make(instruction::call), continuation)));
@@ -375,9 +373,15 @@ inline namespace kernel
       return first;
     }
 
+    template <typename... Ts, REQUIRES(std::is_same<std::decay_t<Ts>, object>...)>
+    auto operator ()(Ts&&... xs)
+    {
+      return compile(std::forward<decltype(xs)>(xs)...);
+    }
+
   public:
     #define SYNTAX(NAME)                                                       \
-    auto NAME([[maybe_unused]] syntactic_environment & compiler,               \
+    auto NAME([[maybe_unused]] syntactic_environment & compile,                \
                                object const& expression,                       \
               [[maybe_unused]] object const& local,                            \
               [[maybe_unused]] object const& continuation,                     \
@@ -389,7 +393,7 @@ inline namespace kernel
       {
         if (form.is<pair>())
         {
-          if (let const& identity = std::as_const(compiler).identify(car(form), local); identity.is<absolute>())
+          if (let const& identity = std::as_const(compile).identify(car(form), local); identity.is<absolute>())
           {
             if (let const& callee = identity.as<absolute>().load(); callee.is<syntax>())
             {
@@ -451,8 +455,7 @@ inline namespace kernel
                                     ...
                                     (<variable n> <initial n>))
         */
-        return compile(compiler,
-                       cons(cons(make<syntax>("lambda", lambda),
+        return compile(cons(cons(make<syntax>("lambda", lambda),
                                  unzip1(binding_specs), // formals
                                  append2(map1([](let const& binding_spec)
                                               {
@@ -467,23 +470,21 @@ inline namespace kernel
       }
       else if (cdr(expression).is<null>())
       {
-        return compile(compiler,
-                       car(expression),
+        return compile(car(expression),
                        local,
                        continuation,
                        cdr(expression));
       }
       else
       {
-        let const head = compile(compiler,
-                                 car(expression),
+        let const head = compile(car(expression),
                                  local,
                                  unit,
                                  cdr(expression));
 
         return append2(head,
                        cons(make(instruction::drop),
-                            body(compiler,
+                            body(compile,
                                  cdr(expression),
                                  local,
                                  continuation)));
@@ -502,8 +503,7 @@ inline namespace kernel
 
       return cons(make(instruction::load_continuation),
                   continuation,
-                  compile(compiler,
-                          car(expression),
+                  compile(car(expression),
                           local,
                           list(make(instruction::tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.
                           ellipsis));
@@ -548,18 +548,16 @@ inline namespace kernel
       {
         if (car(expression).is<pair>()) // (define (<variable> . <formals>) <body>)
         {
-          return compile(compiler,
-                         cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
+          return compile(cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
                          local,
-                         cons(make(instruction::store_absolute), compiler.identify(caar(expression), local),
+                         cons(make(instruction::store_absolute), compile.identify(caar(expression), local),
                               continuation));
         }
         else // (define <variable> <expression>)
         {
-          return compile(compiler,
-                         cdr(expression) ? cadr(expression) : unspecified,
+          return compile(cdr(expression) ? cadr(expression) : unspecified,
                          local,
-                         cons(make(instruction::store_absolute), compiler.identify(car(expression), local),
+                         cons(make(instruction::store_absolute), compile.identify(car(expression), local),
                               continuation));
         }
       }
@@ -623,10 +621,9 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return compile(compiler,
-                     cdr(expression) ? cadr(expression) : undefined,
+      return compile(cdr(expression) ? cadr(expression) : undefined,
                      local,
-                     cons(make(instruction::define_syntax), compiler.identify(car(expression), local),
+                     cons(make(instruction::define_syntax), compile.identify(car(expression), local),
                           continuation));
     }
 
@@ -650,17 +647,14 @@ inline namespace kernel
       {
         assert(lexical_cast<std::string>(continuation) == "(return)");
 
-        return compile(compiler,
-                       car(expression), // <test>
+        return compile(car(expression), // <test>
                        local,
                        list(make(instruction::tail_select),
-                            compile(compiler,
-                                    cadr(expression),
+                            compile(cadr(expression),
                                     local,
                                     continuation,
                                     ellipsis),
-                            cddr(expression) ? compile(compiler,
-                                                       caddr(expression),
+                            cddr(expression) ? compile(caddr(expression),
                                                        local,
                                                        continuation,
                                                        ellipsis)
@@ -669,16 +663,13 @@ inline namespace kernel
       }
       else
       {
-        return compile(compiler,
-                       car(expression), // <test>
+        return compile(car(expression), // <test>
                        local,
                        cons(make(instruction::select),
-                            compile(compiler,
-                                    cadr(expression),
+                            compile(cadr(expression),
                                     local,
                                     list(make(instruction::join))),
-                            cddr(expression) ? compile(compiler,
-                                                       caddr(expression),
+                            cddr(expression) ? compile(caddr(expression),
                                                        local,
                                                        list(make(instruction::join)))
                                              : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
@@ -693,8 +684,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return compile(compiler,
-                     cadr(expression),
+      return compile(cadr(expression),
                      local,
                      cons(make(instruction::install), car(expression),
                           continuation));
@@ -725,7 +715,7 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       return cons(make(instruction::load_closure),
-                  body(compiler,
+                  body(compile,
                        cdr(expression),
                        cons(car(expression), local), // Extend scope.
                        list(make(instruction::return_))),
@@ -755,9 +745,7 @@ inline namespace kernel
       auto make_keyword = [&](let const& binding)
       {
         return make<absolute>(car(binding),
-                              compile(compiler,
-                                      cadr(binding),
-                                      local));
+                              compile(cadr(binding), local));
       };
 
       auto const [bindings, body]  = unpair(expression);
@@ -816,10 +804,10 @@ inline namespace kernel
       auto const& [variables, inits] = unzip2(car(expression));
 
       return cons(make(instruction::dummy),
-                  operand(compiler,
+                  operand(compile,
                           inits,
                           cons(variables, local),
-                          lambda(compiler,
+                          lambda(compile,
                                  cons(variables, cdr(expression)), // (<formals> <body>)
                                  local,
                                  ellipsis.is<null>() ? list(make(instruction::tail_letrec))
@@ -850,21 +838,17 @@ inline namespace kernel
     {
       if (expression.is<pair>())
       {
-        return operand(compiler,
+        return operand(compile,
                        cdr(expression),
                        local,
-                       compile(compiler,
-                               car(expression),
+                       compile(car(expression),
                                local,
                                cons(make(instruction::cons),
                                     continuation)));
       }
       else
       {
-        return compile(compiler,
-                       expression,
-                       local,
-                       continuation);
+        return compile(expression, local, continuation);
       }
     }
 
@@ -928,19 +912,17 @@ inline namespace kernel
     {
       if (cdr(expression).is<null>()) // is tail sequence
       {
-        return compile(compiler,
-                       car(expression),
+        return compile(car(expression),
                        local,
                        continuation,
                        ellipsis);
       }
       else
       {
-        return compile(compiler,
-                       car(expression), // head expression
+        return compile(car(expression), // head expression
                        local,
                        cons(make(instruction::drop), // pop result of head expression
-                            sequence(compiler,
+                            sequence(compile,
                                      cdr(expression), // rest expressions
                                      local,
                                      continuation,
@@ -960,18 +942,16 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (let const& identity = compiler.identify(car(expression), local); identity.is<relative>())
+      if (let const& identity = compile.identify(car(expression), local); identity.is<relative>())
       {
-        return compile(compiler,
-                       cadr(expression),
+        return compile(cadr(expression),
                        local,
                        cons(make(instruction::store_relative), identity,
                             continuation));
       }
       else if (identity.is<variadic>())
       {
-        return compile(compiler,
-                       cadr(expression),
+        return compile(cadr(expression),
                        local,
                        cons(make(instruction::store_variadic), identity,
                             continuation));
@@ -979,8 +959,7 @@ inline namespace kernel
       else
       {
         assert(identity.is<absolute>()); // <Keyword> cannot appear.
-        return compile(compiler,
-                       cadr(expression),
+        return compile(cadr(expression),
                        local,
                        cons(make(instruction::store_absolute), identity,
                             continuation));

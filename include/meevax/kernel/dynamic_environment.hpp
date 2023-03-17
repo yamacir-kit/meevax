@@ -236,7 +236,7 @@ inline namespace kernel
         *  s e (%let-syntax (<body> . <local>) . c) d => s e c' d
         *
         * ------------------------------------------------------------------- */
-        [this]()
+        [this]() // DIRTY HACK!!!
         {
           auto [body, local] = unpair(cadr(c));
 
@@ -251,15 +251,19 @@ inline namespace kernel
 
           c = c_;
 
+          auto compile = [&](auto&&... xs)
+          {
+            return transformer_environment.as<syntactic_environment>().compile(std::forward<decltype(xs)>(xs)...);
+          };
+
           std::swap(c.as<pair>(),
-                    Environment::compile(transformer_environment.as<syntactic_environment>(),
-                                         cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda),
-                                                   car(local), // <formals>
-                                                   body),
-                                              car(local)),
-                                         cdr(local),
-                                         cddr(c)
-                                        ).template as<pair>());
+                    compile(cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda),
+                                      car(local), // <formals>
+                                      body),
+                                 car(local)),
+                            cdr(local),
+                            cddr(c)
+                           ).template as<pair>());
         }();
         goto fetch;
 
@@ -274,24 +278,26 @@ inline namespace kernel
 
           auto && [transformer_specs, body] = unpair(expression);
 
-          auto current_environment = Environment(cdr(local),
-                                                 static_cast<Environment const&>(*this).global());
+          auto transformer_environment = Environment(cdr(local), static_cast<Environment const&>(*this).global());
+
+          auto compile = [&](auto&&... xs)
+          {
+            return transformer_environment.compile(std::forward<decltype(xs)>(xs)...);
+          };
 
           for (let const& transformer_spec : transformer_specs)
           {
-            let const c = Environment::compile(static_cast<syntactic_environment &>(current_environment),
-                                               cons(make<typename Environment::syntax>("define-syntax", Environment::define_syntax), transformer_spec),
-                                               local);
+            let const c = compile(cons(make<typename Environment::syntax>("define-syntax", Environment::define_syntax), transformer_spec),
+                                  local);
 
-            current_environment.execute(c);
+            transformer_environment.execute(c);
           }
 
           std::swap(c.as<pair>(),
-                    Environment::compile(static_cast<syntactic_environment &>(current_environment),
-                                         cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda), unit, body), unit), // (let () <body>)
-                                         local,
-                                         cddr(c)
-                                        ).template as<pair>());
+                    compile(cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda), unit, body), unit), // (let () <body>)
+                            local,
+                            cddr(c)
+                           ).template as<pair>());
         }();
         goto fetch;
 
