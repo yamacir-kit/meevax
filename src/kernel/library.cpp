@@ -1121,7 +1121,7 @@ inline namespace kernel
     {
       library.define<syntax>("begin", sequence);
       library.define<syntax>("call-with-current-continuation!", call_with_current_continuation);
-      library.define<syntax>("define", machine::define);
+      library.define<syntax>("define", syntactic_environment::define);
       library.define<syntax>("define-syntax", define_syntax);
       library.define<syntax>("if", if_);
       library.define<syntax>("lambda", lambda);

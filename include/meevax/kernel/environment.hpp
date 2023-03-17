@@ -18,22 +18,23 @@
 #define INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
 
 #include <meevax/kernel/configurator.hpp>
+#include <meevax/kernel/dynamic_environment.hpp>
 #include <meevax/kernel/import_set.hpp>
-#include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/optimizer.hpp>
 #include <meevax/kernel/reader.hpp>
+#include <meevax/kernel/syntactic_environment.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  class environment : public virtual pair
-                    , public configurator<environment>
-                    , public machine<environment>
+  class environment : public configurator<environment>
+                    , public dynamic_environment<environment>
                     , public optimizer
                     , public reader<environment>
+                    , public syntactic_environment<environment>
   {
-    using pair::pair;
+    using syntactic_environment::syntactic_environment;
 
   public:
     environment(environment &&) = default;
@@ -58,21 +59,7 @@ inline namespace kernel
 
     auto evaluate(object const&) -> object;
 
-    auto fork()              const -> object;
-    auto fork(object const&) const -> object;
-
-    auto global() const noexcept -> object const&;
-    auto global()       noexcept -> object      &;
-
     auto load(std::string const&) -> object;
-
-    auto scope() const noexcept -> object const&;
-    auto scope()       noexcept -> object      &;
-
-    auto identify(object const&, object const&) const -> object;
-    auto identify(object const&)                const -> object;
-    auto identify(object const&, object const&)       -> object;
-    auto identify(object const&)                      -> object;
 
     auto operator [](object const&) -> object const&;
 
@@ -83,9 +70,11 @@ inline namespace kernel
 
   extern template class configurator<environment>;
 
-  extern template class machine<environment>;
+  extern template class dynamic_environment<environment>;
 
   extern template class reader<environment>;
+
+  extern template struct syntactic_environment<environment>;
 } // namespace kernel
 } // namespace meevax
 

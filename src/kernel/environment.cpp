@@ -23,11 +23,10 @@ inline namespace kernel
 {
   auto environment::define(object const& variable, object const& value) -> void
   {
-    assert(scope().is<null>());
+    assert(local().is<null>());
     assert(e.is<null>());
-    assert(identify(variable).is<absolute>());
-
-    return identify(variable).as<absolute>().store(value);
+    assert(identify(variable, unit).is<absolute>());
+    return identify(variable, unit).as<absolute>().store(value);
   }
 
   auto environment::define(std::string const& name, object const& value) -> void
@@ -69,7 +68,7 @@ inline namespace kernel
                  std::exchange(c, unit), d);
       }
 
-      let const result = execute(optimize(compile(*this, expression, scope())));
+      let const result = execute(optimize(compile(*this, expression, local())));
 
       if (d)
       {
@@ -95,28 +94,6 @@ inline namespace kernel
     }
   }
 
-  auto environment::fork() const -> object
-  {
-    return make<environment>(*this);
-  }
-
-  auto environment::fork(object const& scope) const -> object
-  {
-    let const copy = make<environment>(*this);
-    copy.as<environment>().scope() = scope;
-    return copy;
-  }
-
-  auto environment::global() const noexcept -> object const&
-  {
-    return second;
-  }
-
-  auto environment::global() noexcept -> object &
-  {
-    return second;
-  }
-
   auto environment::load(std::string const& s) -> object
   {
     if (let port = make<file_port>(s); port and port.as<file_port>().is_open())
@@ -135,81 +112,12 @@ inline namespace kernel
     }
   }
 
-  auto environment::scope() const noexcept -> object const&
-  {
-    return first;
-  }
-
-  auto environment::scope() noexcept -> object &
-  {
-    return first;
-  }
-
-  auto environment::identify(object const& variable, object const& scope) const -> object
-  {
-    if (not variable.is_also<identifier>())
-    {
-      return f;
-    }
-    else if (let const& identity = machine::identify(variable, scope); is_truthy(identity))
-    {
-      return identity;
-    }
-    else
-    {
-      return assq(variable, global());
-    }
-  }
-
-  auto environment::identify(object const& variable) const -> object
-  {
-    return identify(variable, scope());
-  }
-
-  auto environment::identify(object const& variable, object const& scope) -> object
-  {
-    if (not variable.is_also<identifier>())
-    {
-      return f;
-    }
-    else if (let const& identity = std::as_const(*this).identify(variable, scope); is_truthy(identity))
-    {
-      return identity;
-    }
-    else /* --------------------------------------------------------------------
-    *
-    *  At the outermost level of a program, a definition
-    *
-    *      (define <variable> <expression>)
-    *
-    *  has essentially the same effect as the assignment expression
-    *
-    *      (set! <variable> <expression>)
-    *
-    *  if <variable> is bound to a non-syntax value. However, if <variable> is
-    *  not bound, or is a syntactic keyword, then the definition will bind
-    *  <variable> to a new location before performing the assignment, whereas
-    *  it would be an error to perform a set! on an unbound variable.
-    *
-    * ----------------------------------------------------------------------- */
-    {
-      return car(global() = make<absolute>(variable, undefined) | global());
-    }
-  }
-
-  auto environment::identify(object const& variable) -> object
-  {
-    return identify(variable, scope());
-  }
-
   auto environment::operator [](object const& variable) -> object const&
   {
-    assert(scope().is<null>());
+    assert(local().is<null>());
     assert(e.is<null>());
-    assert(identify(variable).is<absolute>());
-
-    // If scope is null, identify will always return absolute identity.
-    return identify(variable).as<absolute>().load();
+    assert(identify(variable, unit).is<absolute>());
+    return identify(variable, unit).as<absolute>().load();
   }
 
   auto environment::operator [](std::string const& variable) -> object const&
@@ -224,8 +132,10 @@ inline namespace kernel
 
   template class configurator<environment>;
 
-  template class machine<environment>;
+  template class dynamic_environment<environment>;
 
   template class reader<environment>;
+
+  template struct syntactic_environment<environment>;
 } // namespace kernel
 } // namespace meevax
