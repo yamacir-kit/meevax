@@ -61,18 +61,6 @@ inline namespace kernel
 
     auto load(std::string const&) -> object;
 
-    // TODO REMOVE THIS MEMBER FUNCTION!!!
-    auto make_syntactic_environment() const
-    {
-      return make<syntactic_environment>(*this);
-    }
-
-    // TODO REMOVE THIS MEMBER FUNCTION!!!
-    auto make_syntactic_environment(object const& local) const
-    {
-      return make<syntactic_environment>(local, global());
-    }
-
     auto operator [](object const&) -> object const&;
 
     auto operator [](std::string const&) -> object const&;

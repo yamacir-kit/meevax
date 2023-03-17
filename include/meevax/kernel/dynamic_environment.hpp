@@ -34,12 +34,6 @@ inline namespace kernel
     dynamic_environment()
     {}
 
-    template <typename... Ts>
-    auto make_syntactic_environment(Ts&&... xs) const -> decltype(auto)
-    {
-      return static_cast<Environment const&>(*this).make_syntactic_environment(std::forward<decltype(xs)>(xs)...);
-    }
-
   protected:
     /*
        The SECD machine, which in its original form was invented by Landin,
@@ -90,6 +84,8 @@ inline namespace kernel
     {
       assert(last(c).template is<instruction>());
       assert(last(c).template as<instruction>() == instruction::stop);
+
+      using syntactic_environment = typename Environment::syntactic_environment;
 
     fetch:
       assert(c);
@@ -231,7 +227,7 @@ inline namespace kernel
         assert(car(s).template is<closure>());
         assert(cdr(s).template is<null>());
         assert(cadr(c).template is<absolute>());
-        cadr(c).template as<absolute>().store(make<transformer>(car(s), make_syntactic_environment()));
+        cadr(c).template as<absolute>().store(make<transformer>(car(s), make<syntactic_environment>(static_cast<Environment const&>(*this))));
         c = cddr(c);
         goto fetch;
 
@@ -244,20 +240,19 @@ inline namespace kernel
         {
           auto [body, current_local] = unpair(cadr(c));
 
-          let const syntactic_environment = make_syntactic_environment(cdr(current_local));
+          let const transformer_environment = make<syntactic_environment>(cdr(current_local), static_cast<Environment const&>(*this).global());
 
           let const c_ = c;
 
           for (let const& k : car(current_local))
           {
-            k.as<absolute>().store(make<transformer>(execute(k.as<absolute>().load()),
-                                                     syntactic_environment));
+            k.as<absolute>().store(make<transformer>(execute(k.as<absolute>().load()), transformer_environment));
           }
 
           c = c_;
 
           std::swap(c.as<pair>(),
-                    Environment::compile(syntactic_environment.as<typename Environment::syntactic_environment>(),
+                    Environment::compile(transformer_environment.as<syntactic_environment>(),
                                          cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda),
                                                    car(current_local), // <formals>
                                                    body),
@@ -284,7 +279,7 @@ inline namespace kernel
 
           for (let const& transformer_spec : transformer_specs)
           {
-            let const c = Environment::compile(static_cast<typename Environment::syntactic_environment &>(current_environment),
+            let const c = Environment::compile(static_cast<syntactic_environment &>(current_environment),
                                                cons(make<typename Environment::syntax>("define-syntax", Environment::define_syntax), transformer_spec),
                                                current_local);
 
@@ -292,7 +287,7 @@ inline namespace kernel
           }
 
           std::swap(c.as<pair>(),
-                    Environment::compile(static_cast<typename Environment::syntactic_environment &>(current_environment),
+                    Environment::compile(static_cast<syntactic_environment &>(current_environment),
                                          cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda), unit, body), unit), // (let () <body>)
                                          current_local,
                                          cddr(c)

@@ -51,10 +51,10 @@ inline namespace kernel
       {
         assert(environment.is<syntactic_environment>());
 
-        return environment.as<syntactic_environment>().compile(environment.as<syntactic_environment>(),
-                                                               expression,
-                                                               environment.as<syntactic_environment>().local(),
-                                                               current_continuation);
+        return syntactic_environment::compile(environment.as<syntactic_environment>(),
+                                              expression,
+                                              environment.as<syntactic_environment>().local(),
+                                              current_continuation);
       }
 
       auto identify() const -> object
