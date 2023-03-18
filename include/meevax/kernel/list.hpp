@@ -262,24 +262,21 @@ inline namespace kernel
       {
         return xs;
       }
-      else
+      else if (let const& head = car(xs),
+                          rest = cdr(xs); satisfy(head))
       {
-        if (let const& head = car(xs),
-                       rest = cdr(xs); satisfy(head))
+        if (let const& filtered = filter(filter, rest); eq(rest, filtered))
         {
-          if (let const& filtered = filter(filter, rest); eq(rest, filtered))
-          {
-            return xs;
-          }
-          else
-          {
-            return cons(head, filtered);
-          }
+          return xs;
         }
         else
         {
-          return filter(filter, rest);
+          return cons(head, filtered);
         }
+      }
+      else
+      {
+        return filter(filter, rest);
       }
     };
 

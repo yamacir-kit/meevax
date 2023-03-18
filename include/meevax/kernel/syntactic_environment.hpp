@@ -50,7 +50,6 @@ inline namespace kernel
       auto compile(object const& continuation) const
       {
         assert(environment.is<syntactic_environment>());
-
         return environment.as<syntactic_environment>().compile(expression,
                                                                environment.as<syntactic_environment>().local(),
                                                                continuation);
@@ -59,7 +58,6 @@ inline namespace kernel
       auto identify() const -> object
       {
         assert(environment.is<syntactic_environment>());
-
         return environment.as<syntactic_environment>().identify(expression,
                                                                 environment.as<syntactic_environment>().local());
       }
@@ -166,16 +164,19 @@ inline namespace kernel
           {
             if (identity.is<relative>())
             {
-              return cons(make(instruction::load_relative), identity, continuation);
+              return cons(make(instruction::load_relative), identity,
+                          continuation);
             }
             else if (identity.is<variadic>())
             {
-              return cons(make(instruction::load_variadic), identity, continuation);
+              return cons(make(instruction::load_variadic), identity,
+                          continuation);
             }
             else
             {
               assert(identity.is<absolute>());
-              return cons(make(instruction::load_absolute), identity, continuation);
+              return cons(make(instruction::load_absolute), identity,
+                          continuation);
             }
           }
           else // The syntactic-closure is a syntactic-keyword.
