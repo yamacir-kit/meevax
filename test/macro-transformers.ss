@@ -111,8 +111,138 @@
     (swap! x y)
     (check (cons x y) => (1 . 2))))
 
+; ---- LOCAL HYGIENIC MACRO DEFINITIONS ----------------------------------------
+
+(check (let ((x 'outer))
+         (let-syntax ((m (sc-macro-transformer
+                           (lambda (form environment)
+                             'x))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (let-syntax ((m (sc-macro-transformer
+                           (lambda (form environment)
+                             'x))))
+           (let ((x 'inner-1))
+             (let ((x 'inner-2))
+               (let ((x 'inner-3))
+                 (m)))))) => outer)
+
+(check (let ((x 'outer))
+         (let-syntax ((m (sc-macro-transformer
+                           (lambda (form environment)
+                             (let ((x 'transformer-1))
+                               (let ((x 'transformer-2))
+                                 (let ((x 'transformer-3))
+                                   'x)))))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (let-syntax ((m (sc-macro-transformer
+                           (lambda (form environment)
+                             (let ((x 'transformer-1))
+                               (let ((x 'transformer-2))
+                                 (let ((x 'transformer-3))
+                                   'x)))))))
+           (let ((x 'inner-1))
+             (let ((x 'inner-2))
+               (let ((x 'inner-3))
+                 (m)))))) => outer)
+
+(check (let ((x 'outer))
+         (let-syntax ((m (rsc-macro-transformer
+                           (lambda (form environment)
+                             (make-syntactic-closure environment '() 'x)))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (let-syntax ((m (rsc-macro-transformer
+                           (lambda (form environment)
+                             (make-syntactic-closure environment '() 'x)))))
+           (let ((x 'inner-1))
+             (let ((x 'inner-2))
+               (let ((x 'inner-3))
+                 (m)))))) => outer)
+
+(check (let ((x 'outer))
+         (let-syntax ((m (rsc-macro-transformer
+                           (lambda (form environment)
+                             (let ((x 'transformer-1))
+                               (let ((x 'transformer-2))
+                                 (let ((x 'transformer-3))
+                                   (make-syntactic-closure environment '() 'x))))))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (let-syntax ((m (rsc-macro-transformer
+                           (lambda (form environment)
+                             (let ((x 'transformer-1))
+                               (let ((x 'transformer-2))
+                                 (let ((x 'transformer-3))
+                                   (make-syntactic-closure environment '() 'x))))))))
+           (let ((x 'inner-1))
+             (let ((x 'inner-2))
+               (let ((x 'inner-3))
+                 (m)))))) => outer)
+
+(check (let ((x 'outer))
+         (let-syntax ((m (er-macro-transformer
+                           (lambda (form rename compare)
+                             (rename 'x)))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (let-syntax ((m (er-macro-transformer
+                           (lambda (form rename compare)
+                             (rename 'x)))))
+           (let ((x 'inner-1))
+             (let ((x 'inner-2))
+               (let ((x 'inner-3))
+                 (m)))))) => outer)
+
+(check (let ((x 'outer))
+         (let-syntax ((m (er-macro-transformer
+                           (lambda (form rename compare)
+                             (let ((x 'transformer-1))
+                               (let ((x 'transformer-2))
+                                 (let ((x 'transformer-3))
+                                   (rename 'x))))))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (let-syntax ((m (er-macro-transformer
+                           (lambda (form rename compare)
+                             (let ((x 'transformer-1))
+                               (let ((x 'transformer-2))
+                                 (let ((x 'transformer-3))
+                                   (rename 'x))))))))
+           (let ((x 'inner-1))
+             (let ((x 'inner-2))
+               (let ((x 'inner-3))
+                 (m)))))) => outer)
+
+(check (let ((x 'outer))
+         (let-syntax ((m (syntax-rules ()
+                           ((m) x))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (let-syntax ((m (syntax-rules ()
+                           ((m) x))))
+           (let ((x 'inner-1))
+             (let ((x 'inner-2))
+               (let ((x 'inner-3))
+                 (m)))))) => outer)
+
 ; ------------------------------------------------------------------------------
 
 (check-report)
 
-(exit (check-passed? 16))
+(exit (check-passed? 30))

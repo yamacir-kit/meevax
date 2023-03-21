@@ -223,10 +223,10 @@
            (when if (set! if 'now))
            if)) => now)
 
-; (check (let ((x 'outer))
-;          (let-syntax ((m (syntax-rules () ((m) x))))
-;            (let ((x 'inner))
-;              (m)))) => outer)
+(check (let ((x 'outer))
+         (let-syntax ((m (syntax-rules () ((m) x))))
+           (let ((x 'inner))
+             (m)))) => outer)
 
 (check (letrec-syntax ((my-or (syntax-rules ()
                                 ((my-or) #f)
@@ -954,4 +954,4 @@
 
 (check-report)
 
-(exit (check-passed? 284))
+(exit (check-passed? 285))

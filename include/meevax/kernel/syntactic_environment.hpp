@@ -62,6 +62,7 @@ inline namespace kernel
           }
         }
 
+        assert(false);
         return 0;
       }
 
@@ -85,7 +86,18 @@ inline namespace kernel
         }
         else
         {
-          return environment.as<syntactic_environment>().local();
+          auto use = distance(local, trunk);
+          auto mac = distance(environment.as<syntactic_environment>().local(), trunk);
+
+          if (mac < use)
+          {
+            return append2(make_list(use - mac),
+                           environment.as<syntactic_environment>().local());
+          }
+          else
+          {
+            return environment.as<syntactic_environment>().local();
+          }
         }
       }
 
@@ -124,7 +136,7 @@ inline namespace kernel
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
       {
-        if (datum.expression.is<symbol>())
+        if (datum.expression.template is<symbol>())
         {
           return os << underline(datum.expression);
         }
