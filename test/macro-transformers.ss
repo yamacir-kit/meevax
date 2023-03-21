@@ -1,0 +1,118 @@
+(import (scheme base)
+        (scheme cxr)
+        (scheme process-context)
+        (scheme write)
+        (srfi 78)
+        (only (srfi 211 syntactic-closures) make-syntactic-closure rsc-macro-transformer sc-macro-transformer)
+        (only (srfi 211 explicit-renaming) er-macro-transformer))
+
+(define (print . xs)
+  (for-each (lambda (x)
+              (display x))
+            xs)
+  (newline))
+
+; ---- GLOBAL HYGIENIC MACRO DEFINITIONS ---------------------------------------
+
+(define-syntax swap!
+  (sc-macro-transformer
+    (lambda (form environment)
+      (let ((a (make-syntactic-closure environment '() (cadr form)))
+            (b (make-syntactic-closure environment '() (caddr form))))
+        `(let ((x ,a))
+           (set! ,a ,b)
+           (set! ,b x))))))
+
+(let ((x 1)
+      (y 2))
+  (swap! x y)
+  (check (cons x y) => (2 . 1))
+  (swap! x y)
+  (check (cons x y) => (1 . 2))
+  (let ((a 'a)
+        (b 'b)
+        (let 'let)
+        (set! 'set!))
+    (swap! x y)
+    (check (cons x y) => (2 . 1))
+    (swap! x y)
+    (check (cons x y) => (1 . 2))))
+
+(define-syntax swap!
+  (rsc-macro-transformer
+    (lambda (form environment)
+      (let ((a (cadr form))
+            (b (caddr form))
+            (x (make-syntactic-closure environment '() 'x))
+            (let (make-syntactic-closure environment '() 'let))
+            (set! (make-syntactic-closure environment '() 'set!)))
+        `(,let ((,x ,a))
+           (,set! ,a ,b)
+           (,set! ,b ,x))))))
+
+(let ((x 1)
+      (y 2))
+  (swap! x y)
+  (check (cons x y) => (2 . 1))
+  (swap! x y)
+  (check (cons x y) => (1 . 2))
+  (let ((a 'a)
+        (b 'b)
+        (let 'let)
+        (set! 'set!))
+    (swap! x y)
+    (check (cons x y) => (2 . 1))
+    (swap! x y)
+    (check (cons x y) => (1 . 2))))
+
+(define-syntax swap!
+  (er-macro-transformer
+    (lambda (form rename compare)
+      (let ((a (cadr form))
+            (b (caddr form)))
+       `(,(rename 'let) ((,(rename 'x) ,a))
+          (,(rename 'set!) ,a ,b)
+          (,(rename 'set!) ,b ,(rename 'x)))))))
+
+(let ((x 1)
+      (y 2))
+  (swap! x y)
+  (check (cons x y) => (2 . 1))
+  (swap! x y)
+  (check (cons x y) => (1 . 2))
+  (let ((a 'a)
+        (b 'b)
+        (let 'let)
+        (set! 'set!))
+    (swap! x y)
+    (check (cons x y) => (2 . 1))
+    (swap! x y)
+    (check (cons x y) => (1 . 2))))
+
+(define-syntax swap!
+  (syntax-rules ()
+    ((swap! a b)
+     (let ((x a))
+       (set! a b)
+       (set! b x)))))
+
+(let ((x 1)
+      (y 2))
+  (swap! x y)
+  (check (cons x y) => (2 . 1))
+  (swap! x y)
+  (check (cons x y) => (1 . 2))
+  (let ((a 'a)
+        (b 'b)
+        (let 'let)
+        (set! 'set!))
+    (swap! x y)
+    (check (cons x y) => (2 . 1))
+    (swap! x y)
+    (check (cons x y) => (1 . 2))))
+
+; ------------------------------------------------------------------------------
+
+(check-report)
+
+(exit (check-passed? 16))

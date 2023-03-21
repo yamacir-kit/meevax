@@ -20,6 +20,7 @@
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/transformer.hpp>
+#include <meevax/utility/debug.hpp>
 
 namespace meevax
 {
@@ -35,7 +36,7 @@ inline namespace kernel
     {
       let const environment;
 
-      let const free_variables; // Currently ignored
+      let const free_variables; // Currently ignored.
 
       let const expression;
 
@@ -47,19 +48,58 @@ inline namespace kernel
         , expression { expression }
       {}
 
-      auto compile(object const& continuation) const
+      static auto distance(let x, let const& y)
       {
-        assert(environment.is<syntactic_environment>());
-        return environment.as<syntactic_environment>().compile(expression,
-                                                               environment.as<syntactic_environment>().local(),
-                                                               continuation);
+        for (auto distance = 0; x.is<pair>(); ++distance)
+        {
+          if (eq(x, y))
+          {
+            return distance;
+          }
+          else
+          {
+            x = cdr(x);
+          }
+        }
+
+        return 0;
       }
 
-      auto identify() const -> object
+      auto dummy(let const& local) const
+      {
+        if (let const trunk = common(local, environment.as<syntactic_environment>().local());
+            trunk.is<null>())
+        {
+          auto use = length(local);
+          auto mac = length(environment.as<syntactic_environment>().local());
+
+          if (mac < use)
+          {
+            return append2(make_list(use - mac),
+                           environment.as<syntactic_environment>().local());
+          }
+          else
+          {
+            return environment.as<syntactic_environment>().local();
+          }
+        }
+        else
+        {
+          return environment.as<syntactic_environment>().local();
+        }
+      }
+
+      auto compile(object const& local,
+                   object const& continuation) const
       {
         assert(environment.is<syntactic_environment>());
-        return environment.as<syntactic_environment>().identify(expression,
-                                                                environment.as<syntactic_environment>().local());
+        return environment.as<syntactic_environment>().compile(expression, dummy(local), continuation);
+      }
+
+      auto identify(object const& local) const -> object
+      {
+        assert(environment.is<syntactic_environment>());
+        return environment.as<syntactic_environment>().identify(expression, dummy(local));
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -84,7 +124,14 @@ inline namespace kernel
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
       {
-        return os << magenta("#,(") << blue("make-syntactic-closure ") << datum.environment << magenta(" '") << datum.free_variables << magenta("' ") << datum.expression << magenta(")");
+        if (datum.expression.is<symbol>())
+        {
+          return os << underline(datum.expression);
+        }
+        else
+        {
+          return os << magenta("#,(") << blue("make-syntactic-closure ") << faint("#;", &datum.environment) << magenta(" '") << datum.free_variables << magenta(" '") << datum.expression << magenta(")");
+        }
       }
     };
 
@@ -181,7 +228,7 @@ inline namespace kernel
           }
           else // The syntactic-closure is a syntactic-keyword.
           {
-            return expression.as<syntactic_closure>().compile(continuation);
+            return expression.as<syntactic_closure>().compile(local, continuation);
           }
         }
         else // is <self-evaluating>
@@ -324,7 +371,7 @@ inline namespace kernel
 
         if (variable.is<syntactic_closure>())
         {
-          return variable.as<syntactic_closure>().identify();
+          return variable.as<syntactic_closure>().identify(local);
         }
         else
         {

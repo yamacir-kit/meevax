@@ -113,9 +113,17 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         assert(cadr(c).template is<absolute>());
-        s = cons(cadr(c).template as<absolute>().load(), s);
-        c = cddr(c);
-        goto fetch;
+
+        if (let const& value = cadr(c).template as<absolute>().load(); value == undefined)
+        {
+          throw error(make<string>("undefined variable"), cadr(c).template as<absolute>().symbol());
+        }
+        else
+        {
+          s = cons(cadr(c).template as<absolute>().load(), s);
+          c = cddr(c);
+          goto fetch;
+        }
 
       case instruction::load_relative: /* --------------------------------------
         *
