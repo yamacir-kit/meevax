@@ -29,7 +29,6 @@ inline namespace kernel
       case instruction::call:              return os << "call";
       case instruction::cons:              return os << "cons";
       case instruction::current:           return os << "current";
-      case instruction::define_syntax:     return os << "define-syntax";
       case instruction::drop:              return os << "drop";
       case instruction::dummy:             return os << "dummy";
       case instruction::install:           return os << "install";
@@ -74,7 +73,6 @@ inline namespace kernel
         return 1;
 
       case instruction::current:
-      case instruction::define_syntax:
       case instruction::install:
       case instruction::load_absolute:
       case instruction::load_closure:

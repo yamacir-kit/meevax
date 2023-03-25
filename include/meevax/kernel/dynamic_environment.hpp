@@ -85,8 +85,6 @@ inline namespace kernel
       assert(last(c).template is<instruction>());
       assert(last(c).template as<instruction>() == instruction::stop);
 
-      using syntactic_environment = typename Environment::syntactic_environment;
-
     fetch:
       assert(c);
 
@@ -223,20 +221,6 @@ inline namespace kernel
         assert(cdr(c).template is<null>());
         c = car(d);
         d = cdr(d);
-        goto fetch;
-
-      case instruction::define_syntax: /* --------------------------------------
-        *
-        *  (<closure>) e (%define <identity> . c) d => (x' . s) e c d
-        *
-        *  where <identity> = (<symbol> . x := <transformer>)
-        *
-        * ------------------------------------------------------------------- */
-        assert(car(s).template is<closure>());
-        assert(cdr(s).template is<null>());
-        assert(cadr(c).template is<absolute>());
-        cadr(c).template as<absolute>().store(make<transformer>(car(s), make<syntactic_environment>(static_cast<Environment const&>(*this))));
-        c = cddr(c);
         goto fetch;
 
       case instruction::call:

@@ -61,7 +61,6 @@ inline namespace kernel
           }
         }
 
-        assert(false);
         return 0;
       }
 
@@ -684,10 +683,14 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return compile(cdr(expression) ? cadr(expression) : undefined,
-                     local,
-                     cons(make(instruction::define_syntax), compile.identify(car(expression), local),
-                          continuation));
+      compile.identify(car(expression), unit)
+             .template as<absolute>()
+             .store(make<transformer>(Environment().execute(compile(cadr(expression), local)),
+                                      make<syntactic_environment>(local, compile.global())));
+
+      assert(lexical_cast<std::string>(continuation) == "(stop)");
+
+      return continuation;
     }
 
     static SYNTAX(if_) /* ------------------------------------------------------
