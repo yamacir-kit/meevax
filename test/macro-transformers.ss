@@ -12,7 +12,7 @@
             xs)
   (newline))
 
-; ---- GLOBAL HYGIENIC MACRO DEFINITIONS ---------------------------------------
+; ---- DEFINE-SYNTAX -----------------------------------------------------------
 
 (define-syntax swap!
   (sc-macro-transformer
@@ -111,7 +111,7 @@
     (swap! x y)
     (check (cons x y) => (1 . 2))))
 
-; ---- LOCAL HYGIENIC MACRO DEFINITIONS ----------------------------------------
+; ---- LET-SYNTAX --------------------------------------------------------------
 
 (check (let ((x 'outer))
          (let-syntax ((m (sc-macro-transformer

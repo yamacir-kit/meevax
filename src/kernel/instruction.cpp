@@ -34,7 +34,6 @@ inline namespace kernel
       case instruction::dummy:             return os << "dummy";
       case instruction::install:           return os << "install";
       case instruction::join:              return os << "join";
-      case instruction::let_syntax:        return os << "let-syntax";
       case instruction::letrec:            return os << "letrec";
       case instruction::letrec_syntax:     return os << "letrec-syntax";
       case instruction::load_absolute:     return os << "load-absolute";
@@ -78,7 +77,6 @@ inline namespace kernel
       case instruction::current:
       case instruction::define_syntax:
       case instruction::install:
-      case instruction::let_syntax:
       case instruction::letrec_syntax:
       case instruction::load_absolute:
       case instruction::load_closure:

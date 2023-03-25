@@ -20,7 +20,6 @@
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/transformer.hpp>
-#include <meevax/utility/debug.hpp>
 
 namespace meevax
 {
@@ -74,6 +73,8 @@ inline namespace kernel
           auto use = length(local);
           auto mac = length(environment.as<syntactic_environment>().local());
 
+          assert(mac <= use);
+
           if (mac < use)
           {
             return append2(make_list(use - mac),
@@ -88,6 +89,8 @@ inline namespace kernel
         {
           auto use = distance(local, trunk);
           auto mac = distance(environment.as<syntactic_environment>().local(), trunk);
+
+          assert(mac <= use);
 
           if (mac < use)
           {
@@ -802,19 +805,28 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
+      let const let_syntax_syntactic_environment = make<syntactic_environment>(local, compile.global());
+
       auto make_keyword = [&](let const& binding)
       {
-        return make<absolute>(car(binding),
-                              compile(cadr(binding), local));
+        let const keyword          =  car(binding);
+        let const transformer_spec = cadr(binding);
+
+        return make<absolute>(keyword,
+                              make<transformer>(Environment().execute(compile(transformer_spec, local)),
+                                                let_syntax_syntactic_environment));
       };
 
-      auto const [bindings, body]  = unpair(expression);
+      let const bindings = car(expression);
+      let const body     = cdr(expression);
+      let const keywords = map1(make_keyword, bindings);
 
-      return cons(make(instruction::let_syntax),
-                  cons(body,
-                       map1(make_keyword, bindings),
-                       local),
-                  continuation);
+      return compile(cons(cons(make<syntax>("lambda", lambda),
+                               keywords, // <formals>
+                               body),
+                          unit), // dummy
+                     local,
+                     continuation);
     }
 
     static SYNTAX(letrec) /* ---------------------------------------------------

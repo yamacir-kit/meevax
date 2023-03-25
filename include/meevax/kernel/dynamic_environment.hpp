@@ -239,42 +239,6 @@ inline namespace kernel
         c = cddr(c);
         goto fetch;
 
-      case instruction::let_syntax: /* -----------------------------------------
-        *
-        *  s e (%let-syntax (<body> . <local>) . c) d => s e c' d
-        *
-        * ------------------------------------------------------------------- */
-        [this]() // DIRTY HACK!!!
-        {
-          auto [body, local] = unpair(cadr(c));
-
-          let const transformer_environment = make<syntactic_environment>(cdr(local), static_cast<Environment const&>(*this).global());
-
-          let const c_ = c;
-
-          for (let const& k : car(local))
-          {
-            k.as<absolute>().store(make<transformer>(execute(k.as<absolute>().load()), transformer_environment));
-          }
-
-          c = c_;
-
-          auto compile = [&](auto&&... xs)
-          {
-            return transformer_environment.as<syntactic_environment>().compile(std::forward<decltype(xs)>(xs)...);
-          };
-
-          std::swap(c.as<pair>(),
-                    compile(cons(cons(make<typename Environment::syntax>("lambda", Environment::lambda),
-                                      car(local), // <formals>
-                                      body),
-                                 car(local)),
-                            cdr(local),
-                            cddr(c)
-                           ).template as<pair>());
-        }();
-        goto fetch;
-
       case instruction::letrec_syntax: /* --------------------------------------
         *
         *  s e (%letrec-syntax (<expression> . <syntactic-environment>) . c) d => s e c' d
