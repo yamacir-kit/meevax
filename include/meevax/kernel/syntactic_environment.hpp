@@ -47,73 +47,24 @@ inline namespace kernel
         , expression { expression }
       {}
 
-      static auto distance(let x, let const& y)
+      auto align(let const& local) const
       {
-        for (auto distance = 0; x.is<pair>(); ++distance)
-        {
-          if (eq(x, y))
-          {
-            return distance;
-          }
-          else
-          {
-            x = cdr(x);
-          }
-        }
-
-        return 0;
-      }
-
-      auto dummy(let const& local) const
-      {
-        if (let const trunk = common(local, environment.as<syntactic_environment>().local());
-            trunk.is<null>())
-        {
-          auto use = length(local);
-          auto mac = length(environment.as<syntactic_environment>().local());
-
-          assert(mac <= use);
-
-          if (mac < use)
-          {
-            return append2(make_list(use - mac),
-                           environment.as<syntactic_environment>().local());
-          }
-          else
-          {
-            return environment.as<syntactic_environment>().local();
-          }
-        }
-        else
-        {
-          auto use = distance(local, trunk);
-          auto mac = distance(environment.as<syntactic_environment>().local(), trunk);
-
-          assert(mac <= use);
-
-          if (mac < use)
-          {
-            return append2(make_list(use - mac),
-                           environment.as<syntactic_environment>().local());
-          }
-          else
-          {
-            return environment.as<syntactic_environment>().local();
-          }
-        }
+        return append2(make_list(length(local) -
+                                 length(environment.as<syntactic_environment>().local())),
+                       environment.as<syntactic_environment>().local());
       }
 
       auto compile(object const& local,
                    object const& continuation) const
       {
         assert(environment.is<syntactic_environment>());
-        return environment.as<syntactic_environment>().compile(expression, dummy(local), continuation);
+        return environment.as<syntactic_environment>().compile(expression, align(local), continuation);
       }
 
-      auto identify(object const& local) const -> object
+      auto identify(object const& local) const
       {
         assert(environment.is<syntactic_environment>());
-        return environment.as<syntactic_environment>().identify(expression, dummy(local));
+        return environment.as<syntactic_environment>().identify(expression, align(local));
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool

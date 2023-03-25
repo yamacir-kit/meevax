@@ -241,8 +241,138 @@
                (let ((x 'inner-3))
                  (m)))))) => outer)
 
+; ---- LETREC-SYNTAX -----------------------------------------------------------
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (sc-macro-transformer
+                              (lambda (form environment)
+                                'x))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (sc-macro-transformer
+                              (lambda (form environment)
+                                'x))))
+           (let ((x 'inner-1))
+             (let ((x 'inner-2))
+               (let ((x 'inner-3))
+                 (m)))))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (sc-macro-transformer
+                              (lambda (form environment)
+                                (let ((x 'transformer-1))
+                                  (let ((x 'transformer-2))
+                                    (let ((x 'transformer-3))
+                                      'x)))))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (sc-macro-transformer
+                              (lambda (form environment)
+                                (let ((x 'transformer-1))
+                                  (let ((x 'transformer-2))
+                                    (let ((x 'transformer-3))
+                                      'x)))))))
+           (let ((x 'inner-1))
+             (let ((x 'inner-2))
+               (let ((x 'inner-3))
+                 (m)))))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (rsc-macro-transformer
+                              (lambda (form environment)
+                                (make-syntactic-closure environment '() 'x)))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (rsc-macro-transformer
+                              (lambda (form environment)
+                                (make-syntactic-closure environment '() 'x)))))
+           (let ((x 'inner-1))
+             (let ((x 'inner-2))
+               (let ((x 'inner-3))
+                 (m)))))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (rsc-macro-transformer
+                              (lambda (form environment)
+                                (let ((x 'transformer-1))
+                                  (let ((x 'transformer-2))
+                                    (let ((x 'transformer-3))
+                                      (make-syntactic-closure environment '() 'x))))))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (rsc-macro-transformer
+                              (lambda (form environment)
+                                (let ((x 'transformer-1))
+                                  (let ((x 'transformer-2))
+                                    (let ((x 'transformer-3))
+                                      (make-syntactic-closure environment '() 'x))))))))
+           (let ((x 'inner-1))
+             (let ((x 'inner-2))
+               (let ((x 'inner-3))
+                 (m)))))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (er-macro-transformer
+                              (lambda (form rename compare)
+                                (rename 'x)))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (er-macro-transformer
+                              (lambda (form rename compare)
+                                (rename 'x)))))
+           (let ((x 'inner-1))
+             (let ((x 'inner-2))
+               (let ((x 'inner-3))
+                 (m)))))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (er-macro-transformer
+                              (lambda (form rename compare)
+                                (let ((x 'transformer-1))
+                                  (let ((x 'transformer-2))
+                                    (let ((x 'transformer-3))
+                                      (rename 'x))))))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (er-macro-transformer
+                              (lambda (form rename compare)
+                                (let ((x 'transformer-1))
+                                  (let ((x 'transformer-2))
+                                    (let ((x 'transformer-3))
+                                      (rename 'x))))))))
+           (let ((x 'inner-1))
+             (let ((x 'inner-2))
+               (let ((x 'inner-3))
+                 (m)))))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (syntax-rules ()
+                              ((m) x))))
+           (let ((x 'inner))
+             (m)))) => outer)
+
+(check (let ((x 'outer))
+         (letrec-syntax ((m (syntax-rules ()
+                              ((m) x))))
+           (let ((x 'inner-1))
+             (let ((x 'inner-2))
+               (let ((x 'inner-3))
+                 (m)))))) => outer)
+
 ; ------------------------------------------------------------------------------
 
 (check-report)
 
-(exit (check-passed? 30))
+(exit (check-passed? 44))
