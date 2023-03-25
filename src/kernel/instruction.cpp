@@ -35,7 +35,6 @@ inline namespace kernel
       case instruction::install:           return os << "install";
       case instruction::join:              return os << "join";
       case instruction::letrec:            return os << "letrec";
-      case instruction::letrec_syntax:     return os << "letrec-syntax";
       case instruction::load_absolute:     return os << "load-absolute";
       case instruction::load_closure:      return os << "load-closure";
       case instruction::load_constant:     return os << "load-constant";
@@ -77,7 +76,6 @@ inline namespace kernel
       case instruction::current:
       case instruction::define_syntax:
       case instruction::install:
-      case instruction::letrec_syntax:
       case instruction::load_absolute:
       case instruction::load_closure:
       case instruction::load_constant:

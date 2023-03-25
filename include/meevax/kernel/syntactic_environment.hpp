@@ -805,7 +805,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      let const let_syntax_syntactic_environment = make<syntactic_environment>(local, compile.global());
+      let const environment = make<syntactic_environment>(local, compile.global());
 
       auto make_keyword = [&](let const& binding)
       {
@@ -814,7 +814,7 @@ inline namespace kernel
 
         return make<absolute>(keyword,
                               make<transformer>(Environment().execute(compile(transformer_spec, local)),
-                                                let_syntax_syntactic_environment));
+                                                environment));
       };
 
       let const bindings = car(expression);
@@ -902,8 +902,30 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      return cons(make(instruction::letrec_syntax), cons(expression, local),
-                  continuation);
+      let const environment = make<syntactic_environment>(unit, compile.global());
+
+      auto make_keyword = [&](let const& binding)
+      {
+        let const keyword          =  car(binding);
+        let const transformer_spec = cadr(binding);
+
+        return make<absolute>(keyword,
+                              make<transformer>(Environment().execute(compile(transformer_spec, local)),
+                                                environment));
+      };
+
+      let const bindings = car(expression);
+      let const body     = cdr(expression);
+      let const keywords = map1(make_keyword, bindings);
+
+      environment.as<syntactic_environment>().local() = cons(keywords, local);
+
+      return compile(cons(cons(make<syntax>("lambda", lambda),
+                               keywords, // <formals>
+                               body),
+                          unit), // dummy
+                     local,
+                     continuation);
     }
 
     static SYNTAX(operand)
