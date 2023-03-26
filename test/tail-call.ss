@@ -1,6 +1,6 @@
-(import (only (meevax experimental) disassemble)
+(import (only (meevax core) call-with-current-continuation!)
+        (only (meevax experimental) disassemble)
         (only (meevax function) closure?)
-        (only (meevax syntax) call-with-current-continuation!)
         (scheme base)
         (scheme write)
         (scheme process-context)

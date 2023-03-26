@@ -94,27 +94,35 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax function)", [](library & library)
+    define_library("(meevax comparator)", [](library & library)
     {
-      library.define<procedure>("closure?", [](let const& xs)
+      library.define<procedure>("eq?", [](let const& xs)
       {
-        return car(xs).is<closure>();
+        return eq(car(xs), cadr(xs));
       });
 
-      library.define<procedure>("continuation?", [](let const& xs)
+      library.define<procedure>("eqv?", [](let const& xs)
       {
-        return car(xs).is<continuation>();
+        return eqv(car(xs), cadr(xs));
       });
+    });
 
-      library.define<procedure>("foreign-function", [](let const& xs)
-      {
-        return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
-      });
-
-      library.define<procedure>("foreign-function?", [](let const& xs)
-      {
-        return car(xs).is<procedure>();
-      });
+    define_library("(meevax core)", [](library & library)
+    {
+      library.define<syntax>("begin", sequence);
+      library.define<syntax>("call-with-current-continuation!", call_with_current_continuation);
+      library.define<syntax>("current", current);
+      library.define<syntax>("define", syntactic_environment::define);
+      library.define<syntax>("define-syntax", define_syntax);
+      library.define<syntax>("if", if_);
+      library.define<syntax>("install", install);
+      library.define<syntax>("lambda", lambda);
+      library.define<syntax>("let-syntax", let_syntax);
+      library.define<syntax>("letrec", letrec);
+      library.define<syntax>("letrec-syntax", letrec_syntax);
+      library.define<syntax>("quote", quote);
+      library.define<syntax>("quote-syntax", quote_syntax);
+      library.define<syntax>("set!", set);
     });
 
     define_library("(meevax environment)", [](library & library)
@@ -144,19 +152,6 @@ inline namespace kernel
       library.define<procedure>("load", [](let const& xs)
       {
         return car(xs).as<environment>().load(cadr(xs).as<string>());
-      });
-    });
-
-    define_library("(meevax comparator)", [](library & library)
-    {
-      library.define<procedure>("eq?", [](let const& xs)
-      {
-        return eq(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("eqv?", [](let const& xs)
-      {
-        return eqv(car(xs), cadr(xs));
       });
     });
 
@@ -217,6 +212,29 @@ inline namespace kernel
       library.define<procedure>("ieee-float?", []()
       {
         return std::numeric_limits<double>::is_iec559;
+      });
+    });
+
+    define_library("(meevax function)", [](library & library)
+    {
+      library.define<procedure>("closure?", [](let const& xs)
+      {
+        return car(xs).is<closure>();
+      });
+
+      library.define<procedure>("continuation?", [](let const& xs)
+      {
+        return car(xs).is<continuation>();
+      });
+
+      library.define<procedure>("foreign-function", [](let const& xs)
+      {
+        return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
+      });
+
+      library.define<procedure>("foreign-function?", [](let const& xs)
+      {
+        return car(xs).is<procedure>();
       });
     });
 
@@ -1109,24 +1127,6 @@ inline namespace kernel
           return x;
         }
       });
-    });
-
-    define_library("(meevax syntax)", [](library & library)
-    {
-      library.define<syntax>("begin", sequence);
-      library.define<syntax>("call-with-current-continuation!", call_with_current_continuation);
-      library.define<syntax>("current", current);
-      library.define<syntax>("define", syntactic_environment::define);
-      library.define<syntax>("define-syntax", define_syntax);
-      library.define<syntax>("if", if_);
-      library.define<syntax>("install", install);
-      library.define<syntax>("lambda", lambda);
-      library.define<syntax>("let-syntax", let_syntax);
-      library.define<syntax>("letrec", letrec);
-      library.define<syntax>("letrec-syntax", letrec_syntax);
-      library.define<syntax>("quote", quote);
-      library.define<syntax>("quote-syntax", quote_syntax);
-      library.define<syntax>("set!", set);
     });
 
     define_library("(meevax vector)", [](library & library)

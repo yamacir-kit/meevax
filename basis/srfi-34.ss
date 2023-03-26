@@ -20,7 +20,7 @@
 
 (define-library (srfi 34)
   (import (only (meevax error) throw kernel-exception-handler-set!)
-          (only (meevax syntax) current install)
+          (only (meevax core) current install)
           (scheme r5rs))
 
   (export with-exception-handler raise raise-continuable guard)

@@ -2,8 +2,8 @@
         (scheme process-context)
         (scheme write)
         (srfi 78)
+        (only (meevax core) call-with-current-continuation!)
         (only (meevax experimental) disassemble)
-        (only (meevax syntax) call-with-current-continuation!)
         )
 
 ; ------------------------------------------------------------------------------

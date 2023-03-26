@@ -1,6 +1,6 @@
 (define-library (scheme r5rs continuation)
   (import (meevax context)
-          (only (meevax syntax) call-with-current-continuation! current define-syntax install)
+          (only (meevax core) call-with-current-continuation! current define-syntax install)
           (except (scheme r4rs) call-with-current-continuation))
 
   (export call-with-current-continuation dynamic-wind exit)
@@ -45,8 +45,8 @@
            (apply emergency-exit normally?))))
 
 (define-library (scheme r5rs)
-  (import (only (meevax environment) environment eval)
-          (only (meevax syntax) define-syntax let-syntax letrec-syntax)
+  (import (only (meevax core) define-syntax let-syntax letrec-syntax)
+          (only (meevax environment) environment eval)
           (except (scheme r4rs) call-with-current-continuation)
           (except (scheme r5rs continuation) exit)
           (srfi 149))

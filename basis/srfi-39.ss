@@ -19,7 +19,7 @@
 ; SOFTWARE.
 
 (define-library (srfi 39)
-  (import (only (meevax syntax) current install)
+  (import (only (meevax core) current install)
           (scheme r5rs)
           (srfi 211 explicit-renaming))
 
