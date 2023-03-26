@@ -14,32 +14,15 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
-#define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
-
-#include <meevax/kernel/syntax.hpp>
+#include <meevax/kernel/transformer.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct syntactic_continuation : public virtual pair
+  auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
   {
-    using pair::pair;
-
-    auto expression() const -> object const&
-    {
-      return first;
-    }
-
-    auto scope() const -> object const&
-    {
-      return second;
-    }
-  };
-
-  auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
+    return os << magenta("#,(") << green("transformer ") << faint("#;", &datum) << magenta(")");
+  }
 } // namespace kernel
 } // namespace meevax
-
-#endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP

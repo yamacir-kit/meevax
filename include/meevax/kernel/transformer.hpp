@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
-#define INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_TRANSFORMER_HPP
+#define INCLUDED_MEEVAX_KERNEL_TRANSFORMER_HPP
 
 #include <meevax/kernel/pair.hpp>
 
@@ -23,25 +23,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  class environment; // environment.hpp
-
-  struct syntax
+  struct transformer : public virtual pair // (<expression> . <environment>)
   {
-    using function_type = std::function<auto (environment &,
-                                              object const&,
-                                              object const&,
-                                              object const&,
-                                              object const&) -> object>;
-
-    std::string const name;
-
-    function_type const compile;
-
-    explicit syntax(std::string const&, function_type const&);
+    using pair::pair;
   };
 
-  auto operator <<(std::ostream &, syntax const&) -> std::ostream &;
+  auto operator <<(std::ostream &, transformer const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_TRANSFORMER_HPP

@@ -52,6 +52,11 @@ inline namespace kernel
     auto store(object const&, object &) const -> void;
   };
 
+  constexpr auto operator ==(relative const&, relative const&) -> bool
+  {
+    return false; // for free-identifier=?
+  }
+
   struct variadic : public identity
                   , public virtual pair // de Bruijn index
   {
@@ -61,6 +66,11 @@ inline namespace kernel
 
     auto store(object const&, object &) const -> void;
   };
+
+  constexpr auto operator ==(variadic const&, variadic const&) -> bool
+  {
+    return false; // for free-identifier=?
+  }
 } // namespace kernel
 } // namespace meevax
 

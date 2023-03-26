@@ -22,7 +22,6 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/procedure.hpp>
-#include <meevax/kernel/syntax.hpp>
 #include <meevax/kernel/version.hpp>
 
 namespace meevax
@@ -145,7 +144,7 @@ inline namespace kernel
 
       std::vector<object> expressions {};
 
-      let const quote = make<syntax>("quote", Environment::quote);
+      let const quote = make<typename Environment::syntax>("quote", Environment::quote);
 
       for (auto iter = std::begin(args); iter != std::end(args); ++iter)
       {

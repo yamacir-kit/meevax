@@ -13,12 +13,17 @@ auto main() -> int
       d = make<symbol>("d");
 
   assert(lexical_cast<std::string>(cons(a, unit)) == "(a)");
+
   assert(lexical_cast<std::string>(cons(list(a), list(b, c, d))) == "((a) b c d)");
+
   assert(lexical_cast<std::string>(cons(make<string>("a"), list(b, c))) == "(\"a\" b c)");
+
   assert(lexical_cast<std::string>(cons(a, make<exact_integer>(3))) == "(a . 3)");
+
   assert(lexical_cast<std::string>(cons(list(a, b), c)) == "((a b) . c)");
 
   assert(lexical_cast<std::string>(list(a, make<exact_integer>(3 + 4), c)) == "(a 7 c)");
+
   assert(lexical_cast<std::string>(list()) == "()");
 
   assert(lexical_cast<std::string>(xcons(list(b, c), a)) == "(a b c)");
@@ -27,16 +32,23 @@ auto main() -> int
 
   assert(lexical_cast<std::string>(list_tabulate(4, [](auto&&... xs) { return make<exact_integer>(xs...); })) == "(0 1 2 3)");
 
-  let x1 = list(a, b, c);
-  let x2 = list_copy(x1);
-  assert(lexical_cast<std::string>(x2) == "(a b c)");
-  assert(not eq(x1, x2));
+  {
+    let x1 = list(a, b, c);
 
-  let x = circular_list(a, b, c);
-  assert(car(x) == a);
-  assert(cadr(x) == b);
-  assert(caddr(x) == c);
-  assert(cadddr(x) == a);
+    let x2 = list_copy(x1);
+
+    assert(lexical_cast<std::string>(x2) == "(a b c)");
+    assert(not eq(x1, x2));
+  }
+
+  {
+    let x = circular_list(a, b, c);
+
+    assert(car(x) == a);
+    assert(cadr(x) == b);
+    assert(caddr(x) == c);
+    assert(cadddr(x) == a);
+  }
 
   {
     let x = list(a, b, c);
@@ -54,6 +66,29 @@ auto main() -> int
     {
       assert(iter->template is<symbol>());
     }
+  }
+
+  {
+    let const tail = list(make<symbol>("a"),
+                          make<symbol>("b"),
+                          make<symbol>("c"));
+
+    let const x = cons(make<symbol>("x1"),
+                       make<symbol>("x2"),
+                       make<symbol>("x3"), tail);
+
+    let const y = cons(make<symbol>("y1"),
+                       make<symbol>("y2"),
+                       make<symbol>("y3"), tail);
+
+    assert(common(tail, unit) == unit);
+    assert(common(unit, tail) == unit);
+
+    assert(common(x, tail) == tail);
+    assert(common(tail, x) == tail);
+
+    assert(common(x, y) == tail);
+    assert(common(y, x) == tail);
   }
 
   return EXIT_SUCCESS;
