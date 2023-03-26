@@ -1,7 +1,6 @@
 (define-library (scheme r5rs continuation)
   (import (meevax context)
-          (only (meevax dynamic-environment) current install)
-          (only (meevax syntax) define-syntax call-with-current-continuation!)
+          (only (meevax syntax) call-with-current-continuation! current define-syntax install)
           (except (scheme r4rs) call-with-current-continuation))
 
   (export call-with-current-continuation dynamic-wind exit)

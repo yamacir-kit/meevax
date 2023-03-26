@@ -147,12 +147,6 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax dynamic-environment)", [](library & library)
-    {
-      library.define<syntax>("install", install);
-      library.define<syntax>("current", current);
-    });
-
     define_library("(meevax comparator)", [](library & library)
     {
       library.define<procedure>("eq?", [](let const& xs)
@@ -1121,9 +1115,11 @@ inline namespace kernel
     {
       library.define<syntax>("begin", sequence);
       library.define<syntax>("call-with-current-continuation!", call_with_current_continuation);
+      library.define<syntax>("current", current);
       library.define<syntax>("define", syntactic_environment::define);
       library.define<syntax>("define-syntax", define_syntax);
       library.define<syntax>("if", if_);
+      library.define<syntax>("install", install);
       library.define<syntax>("lambda", lambda);
       library.define<syntax>("let-syntax", let_syntax);
       library.define<syntax>("letrec", letrec);

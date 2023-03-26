@@ -33,7 +33,7 @@ inline namespace kernel
   {
     friend Environment;
 
-    explicit configurator()
+    configurator()
     {}
 
   public:

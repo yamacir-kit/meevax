@@ -30,7 +30,6 @@ inline namespace kernel
   {
     using pair::pair;
 
-  protected:
     struct syntactic_closure : public identifier
     {
       let const environment;
@@ -100,7 +99,6 @@ inline namespace kernel
       }
     };
 
-  public:
     struct syntax
     {
       using compiler = std::function<auto (syntactic_environment &,
@@ -397,7 +395,7 @@ inline namespace kernel
     auto NAME([[maybe_unused]] syntactic_environment & compile,                \
                                object const& expression,                       \
               [[maybe_unused]] object const& local,                            \
-              [[maybe_unused]] object const& continuation,                     \
+                               object const& continuation,                     \
               [[maybe_unused]] object const& ellipsis = unspecified) -> object \
 
     static SYNTAX(body)

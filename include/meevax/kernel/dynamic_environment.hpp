@@ -57,9 +57,7 @@ inline namespace kernel
        Auxiliary register.
 
        a[0] is used for current-dynamic-extents (dynamic-wind).
-
        a[1] is used for current-dynamic-bindings (make-parameter and parameterize).
-
        a[2] is used for current-exception-handler (with-exception-handler, raise and raise-continuable).
     */
     std::array<let, 3> a;
