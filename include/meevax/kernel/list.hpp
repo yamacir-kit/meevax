@@ -284,8 +284,6 @@ inline namespace kernel
 
     return z(filter)(xs);
   };
-
-  auto common(object const&, object const&) -> object;
 } // namespace kernel
 } // namespace meevax
 

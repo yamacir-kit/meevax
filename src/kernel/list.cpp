@@ -77,21 +77,5 @@ inline namespace kernel
                              cons(cadr(x), b));
     }
   }
-
-  auto common(object const& xs, object const& ys) -> object
-  {
-    if (xs.is<null>() or ys.is<null>())
-    {
-      return unit;
-    }
-    else if (auto z = memq(car(xs), ys); not eq(z, f))
-    {
-      return z;
-    }
-    else
-    {
-      return common(cdr(xs), ys);
-    }
-  }
 } // namespace kernel
 } // namespace meevax

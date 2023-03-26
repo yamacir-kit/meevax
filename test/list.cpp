@@ -68,28 +68,5 @@ auto main() -> int
     }
   }
 
-  {
-    let const tail = list(make<symbol>("a"),
-                          make<symbol>("b"),
-                          make<symbol>("c"));
-
-    let const x = cons(make<symbol>("x1"),
-                       make<symbol>("x2"),
-                       make<symbol>("x3"), tail);
-
-    let const y = cons(make<symbol>("y1"),
-                       make<symbol>("y2"),
-                       make<symbol>("y3"), tail);
-
-    assert(common(tail, unit) == unit);
-    assert(common(unit, tail) == unit);
-
-    assert(common(x, tail) == tail);
-    assert(common(tail, x) == tail);
-
-    assert(common(x, y) == tail);
-    assert(common(y, x) == tail);
-  }
-
   return EXIT_SUCCESS;
 }
