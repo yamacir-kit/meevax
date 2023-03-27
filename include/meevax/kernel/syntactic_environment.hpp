@@ -128,7 +128,36 @@ inline namespace kernel
                                  object const& continuation,                   \
                 [[maybe_unused]] object const& ellipsis = unspecified) -> object
 
-      // NOTE: R7RS 4.1.1. Variable references is directly handled by syntactic_closure::compile.
+      static COMPILER(reference) /* --------------------------------------------
+      *
+      *  R7RS 4.1.1. Variable references
+      *
+      *  <variable>                                                      syntax
+      *
+      *  An expression consisting of a variable (section 3.1) is a variable
+      *  reference. The value of the variable reference is the value stored in
+      *  the location to which the variable is bound. It is an error to
+      *  reference an unbound variable.
+      *
+      * --------------------------------------------------------------------- */
+      {
+        if (let const& identity = compile.identify(expression, local); identity.is<relative>())
+        {
+          return cons(make(instruction::load_relative), identity,
+                      continuation);
+        }
+        else if (identity.is<variadic>())
+        {
+          return cons(make(instruction::load_variadic), identity,
+                      continuation);
+        }
+        else
+        {
+          assert(identity.is<absolute>());
+          return cons(make(instruction::load_absolute), identity,
+                      continuation);
+        }
+      }
 
       static COMPILER(quote) /* ------------------------------------------------
       *
@@ -819,43 +848,13 @@ inline namespace kernel
       {
         if (expression.is<symbol>())
         {
-          if (let const& identity = identify(expression, local); identity.is<relative>())
-          {
-            return cons(make(instruction::load_relative), identity,
-                        continuation);
-          }
-          else if (identity.is<variadic>())
-          {
-            return cons(make(instruction::load_variadic), identity,
-                        continuation);
-          }
-          else
-          {
-            assert(identity.is<absolute>());
-            return cons(make(instruction::load_absolute), identity,
-                        continuation);
-          }
+          return syntax::reference(*this, expression, local, continuation);
         }
         else if (expression.is<syntactic_closure>())
         {
           if (let const& identity = std::as_const(*this).identify(expression, local); is_truthy(identity)) // The syntactic-closure is a variable
           {
-            if (identity.is<relative>())
-            {
-              return cons(make(instruction::load_relative), identity,
-                          continuation);
-            }
-            else if (identity.is<variadic>())
-            {
-              return cons(make(instruction::load_variadic), identity,
-                          continuation);
-            }
-            else
-            {
-              assert(identity.is<absolute>());
-              return cons(make(instruction::load_absolute), identity,
-                          continuation);
-            }
+            return syntax::reference(*this, expression, local, continuation);
           }
           else // The syntactic-closure is a syntactic-keyword.
           {
