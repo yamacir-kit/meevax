@@ -193,7 +193,53 @@ inline namespace kernel
                     continuation);
       }
 
-      // NOTE: R7RS 4.1.3. Procedure calls is directly handled by syntactic_closure::compile.
+      static COMPILER(procedure_call) /* ---------------------------------------
+      *
+      *  R7RS 4.1.3. Procedure calls
+      *
+      *  (<operator> <operand 1> ...)                                    syntax
+      *
+      *  A procedure call is written by enclosing in parentheses an expression
+      *  for the procedure to be called followed by expressions for the
+      *  arguments to be passed to it. The operator and operand expressions are
+      *  evaluated (in an unspecified order) and the resulting procedure is
+      *  passed the resulting arguments.
+      *
+      *  The procedures in this document are available as the values of
+      *  variables exported by the standard libraries. For example, the
+      *  addition and multiplication procedures in the above examples are the
+      *  values of the variables + and * in the base library. New procedures
+      *  are created by evaluating lambda expressions (see section 4.1.4).
+      *
+      *  Procedure calls can return any number of values (see values in section
+      *  6.10). Most of the procedures defined in this report return one value
+      *  or, for procedures such as apply, pass on the values returned by a
+      *  call to one of their arguments. Exceptions are noted in the individual
+      *  descriptions.
+      *
+      *  Note: In contrast to other dialects of Lisp, the order of evaluation
+      *  is unspecified, and the operator expression and the operand
+      *  expressions are always evaluated with the same evaluation rules.
+      *
+      *  Note: Although the order of evaluation is otherwise unspecified, the
+      *  effect of any concurrent evaluation of the operator and operand
+      *  expressions is constrained to be consistent with some sequential order
+      *  of evaluation. The order of evaluation may be chosen differently for
+      *  each procedure call.
+      *
+      *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
+      *  expression evaluating to itself. In Scheme, it is an error.
+      *
+      * ------------------------------------------------------------------ */
+      {
+        return operand(compile,
+                       cdr(expression),
+                       local,
+                       compile(car(expression),
+                               local,
+                               ellipsis.is<null>() ? list(make(instruction::tail_call))
+                                                   : cons(make(instruction::call), continuation)));
+      }
 
       static COMPILER(operand)
       {
@@ -848,13 +894,13 @@ inline namespace kernel
       {
         if (expression.is<symbol>())
         {
-          return syntax::reference(*this, expression, local, continuation);
+          return syntax::reference(*this, expression, local, continuation, ellipsis);
         }
         else if (expression.is<syntactic_closure>())
         {
           if (let const& identity = std::as_const(*this).identify(expression, local); is_truthy(identity)) // The syntactic-closure is a variable
           {
-            return syntax::reference(*this, expression, local, continuation);
+            return syntax::reference(*this, expression, local, continuation, ellipsis);
           }
           else // The syntactic-closure is a syntactic-keyword.
           {
@@ -913,52 +959,9 @@ inline namespace kernel
                                                                    continuation,
                                                                    ellipsis);
       }
-      else /* ------------------------------------------------------------------
-      *
-      *  R7RS 4.1.3. Procedure calls
-      *
-      *  (<operator> <operand 1> ...)                                    syntax
-      *
-      *  A procedure call is written by enclosing in parentheses an expression
-      *  for the procedure to be called followed by expressions for the
-      *  arguments to be passed to it. The operator and operand expressions are
-      *  evaluated (in an unspecified order) and the resulting procedure is
-      *  passed the resulting arguments.
-      *
-      *  The procedures in this document are available as the values of
-      *  variables exported by the standard libraries. For example, the
-      *  addition and multiplication procedures in the above examples are the
-      *  values of the variables + and * in the base library. New procedures
-      *  are created by evaluating lambda expressions (see section 4.1.4).
-      *
-      *  Procedure calls can return any number of values (see values in section
-      *  6.10). Most of the procedures defined in this report return one value
-      *  or, for procedures such as apply, pass on the values returned by a
-      *  call to one of their arguments. Exceptions are noted in the individual
-      *  descriptions.
-      *
-      *  Note: In contrast to other dialects of Lisp, the order of evaluation
-      *  is unspecified, and the operator expression and the operand
-      *  expressions are always evaluated with the same evaluation rules.
-      *
-      *  Note: Although the order of evaluation is otherwise unspecified, the
-      *  effect of any concurrent evaluation of the operator and operand
-      *  expressions is constrained to be consistent with some sequential order
-      *  of evaluation. The order of evaluation may be chosen differently for
-      *  each procedure call.
-      *
-      *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
-      *  expression evaluating to itself. In Scheme, it is an error.
-      *
-      * ------------------------------------------------------------------ */
+      else
       {
-        return syntax::operand(*this,
-                               cdr(expression),
-                               local,
-                               compile(car(expression),
-                                       local,
-                                       ellipsis.is<null>() ? list(make(instruction::tail_call))
-                                                           : cons(make(instruction::call), continuation)));
+        return syntax::procedure_call(*this, expression, local, continuation, ellipsis);
       }
     }
 
