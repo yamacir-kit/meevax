@@ -109,20 +109,20 @@ inline namespace kernel
 
     define_library("(meevax core)", [](library & library)
     {
-      library.define<syntax>("begin", sequence);
-      library.define<syntax>("call-with-current-continuation!", call_with_current_continuation);
-      library.define<syntax>("current", current);
-      library.define<syntax>("define", syntactic_environment::define);
-      library.define<syntax>("define-syntax", define_syntax);
-      library.define<syntax>("if", if_);
-      library.define<syntax>("install", install);
-      library.define<syntax>("lambda", lambda);
-      library.define<syntax>("let-syntax", let_syntax);
-      library.define<syntax>("letrec", letrec);
-      library.define<syntax>("letrec-syntax", letrec_syntax);
-      library.define<syntax>("quote", quote);
-      library.define<syntax>("quote-syntax", quote_syntax);
-      library.define<syntax>("set!", set);
+      library.define<syntax>("begin",                           syntax::sequence);
+      library.define<syntax>("call-with-current-continuation!", syntax::call_with_current_continuation);
+      library.define<syntax>("current",                         syntax::current);
+      library.define<syntax>("define",                          syntax::define);
+      library.define<syntax>("define-syntax",                   syntax::define_syntax);
+      library.define<syntax>("if",                              syntax::conditional);
+      library.define<syntax>("install",                         syntax::install);
+      library.define<syntax>("lambda",                          syntax::lambda);
+      library.define<syntax>("let-syntax",                      syntax::let_syntax);
+      library.define<syntax>("letrec",                          syntax::letrec);
+      library.define<syntax>("letrec-syntax",                   syntax::letrec_syntax);
+      library.define<syntax>("quote",                           syntax::quote);
+      library.define<syntax>("quote-syntax",                    syntax::quote_syntax);
+      library.define<syntax>("set!",                            syntax::set);
     });
 
     define_library("(meevax environment)", [](library & library)
