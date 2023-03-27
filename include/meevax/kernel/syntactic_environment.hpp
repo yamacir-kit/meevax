@@ -759,22 +759,22 @@ inline namespace kernel
     {
       let const environment = make<syntactic_environment>(local, compile.global());
 
-      auto make_keyword = [&](let const& binding)
+      auto make_identity = [&](let const& syntax_spec)
       {
-        let const keyword          =  car(binding);
-        let const transformer_spec = cadr(binding);
+        let const keyword          =  car(syntax_spec);
+        let const transformer_spec = cadr(syntax_spec);
 
         return make<absolute>(keyword,
                               make<transformer>(Environment().execute(compile(transformer_spec, local)),
                                                 environment));
       };
 
-      let const bindings = car(expression);
-      let const body     = cdr(expression);
-      let const keywords = map1(make_keyword, bindings);
+      let const syntax_specs = car(expression);
+      let const body         = cdr(expression);
+      let const identities   = map1(make_identity, syntax_specs);
 
       return compile(cons(cons(make<syntax>("lambda", lambda),
-                               keywords, // <formals>
+                               identities, // <formals>
                                body),
                           unit), // dummy
                      local,
@@ -856,24 +856,24 @@ inline namespace kernel
     {
       let const environment = make<syntactic_environment>(unit, compile.global());
 
-      auto make_keyword = [&](let const& binding)
+      auto make_identity = [&](let const& syntax_spec)
       {
-        let const keyword          =  car(binding);
-        let const transformer_spec = cadr(binding);
+        let const keyword          =  car(syntax_spec);
+        let const transformer_spec = cadr(syntax_spec);
 
         return make<absolute>(keyword,
                               make<transformer>(Environment().execute(compile(transformer_spec, local)),
                                                 environment));
       };
 
-      let const bindings = car(expression);
-      let const body     = cdr(expression);
-      let const keywords = map1(make_keyword, bindings);
+      let const syntax_specs = car(expression);
+      let const body         = cdr(expression);
+      let const identities   = map1(make_identity, syntax_specs);
 
-      environment.as<syntactic_environment>().local() = cons(keywords, local);
+      environment.as<syntactic_environment>().local() = cons(identities, local);
 
       return compile(cons(cons(make<syntax>("lambda", lambda),
-                               keywords, // <formals>
+                               identities, // <formals>
                                body),
                           unit), // dummy
                      local,
