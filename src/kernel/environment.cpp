@@ -21,19 +21,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto environment::define(object const& variable, object const& value) -> void
-  {
-    assert(local().is<null>());
-    assert(e.is<null>());
-    assert(identify(variable, unit).is<absolute>());
-    return identify(variable, unit).as<absolute>().store(value);
-  }
-
-  auto environment::define(std::string const& name, object const& value) -> void
-  {
-    define(string_to_symbol(name), value);
-  }
-
   auto environment::evaluate(object const& expression) -> object try
   {
     if (car(expression).is<symbol>() and car(expression).as<symbol>() == "define-library")

@@ -965,6 +965,26 @@ inline namespace kernel
       }
     }
 
+    auto define(object const& variable, object const& value = undefined) -> void
+    {
+      assert(local().template is<null>());
+      assert(identify(variable, unit).template is<absolute>());
+      return identify(variable, unit).template as<absolute>().store(value);
+    }
+
+    template <typename T, typename... Ts>
+    auto define(std::string const& name, Ts&&... xs) -> void
+    {
+      if constexpr (std::is_constructible_v<T, std::string const&, Ts...>)
+      {
+        return define(string_to_symbol(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
+      }
+      else
+      {
+        return define(string_to_symbol(name), make<T>(std::forward<decltype(xs)>(xs)...));
+      }
+    }
+
     auto global() const noexcept -> object const&
     {
       return second;
@@ -1025,23 +1045,23 @@ inline namespace kernel
       {
         return identity;
       }
-      else /* --------------------------------------------------------------------
-      *
-      *  At the outermost level of a program, a definition
-      *
-      *      (define <variable> <expression>)
-      *
-      *  has essentially the same effect as the assignment expression
-      *
-      *      (set! <variable> <expression>)
-      *
-      *  if <variable> is bound to a non-syntax value. However, if <variable> is
-      *  not bound, or is a syntactic keyword, then the definition will bind
-      *  <variable> to a new location before performing the assignment, whereas
-      *  it would be an error to perform a set! on an unbound variable.
-      *
-      * ----------------------------------------------------------------------- */
+      else
       {
+        /*
+           At the outermost level of a program, a definition
+
+               (define <variable> <expression>)
+
+           has essentially the same effect as the assignment expression
+
+               (set! <variable> <expression>)
+
+           if <variable> is bound to a non-syntax value. However, if <variable>
+           is not bound, or is a syntactic keyword, then the definition will
+           bind <variable> to a new location before performing the assignment,
+           whereas it would be an error to perform a set! on an unbound
+           variable.
+        */
         return car(global() = cons(make<absolute>(variable, undefined), global()));
       }
     }
@@ -1056,6 +1076,7 @@ inline namespace kernel
       return first;
     }
 
+  private:
     template <typename... Ts, REQUIRES(std::is_same<std::decay_t<Ts>, object>...)>
     auto operator ()(Ts&&... xs)
     {

@@ -47,16 +47,6 @@ inline namespace kernel
       return std::decay_t<T>(std::forward<decltype(xs)>(xs)...).resolve(*this);
     }
 
-    auto define(object const&, object const& = undefined) -> void;
-
-    auto define(std::string const&, object const& = undefined) -> void;
-
-    template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs) -> void
-    {
-      define(name, make<T>(name, std::forward<decltype(xs)>(xs)...));
-    }
-
     auto evaluate(object const&) -> object;
 
     auto load(std::string const&) -> object;
