@@ -28,8 +28,6 @@ inline namespace kernel
   template <typename Environment>
   struct syntactic_environment : public virtual pair // (<local> . <global>)
   {
-    using pair::pair;
-
     struct syntactic_closure : public identifier
     {
       let const environment;
@@ -863,10 +861,11 @@ inline namespace kernel
       #undef COMPILER
     };
 
-    auto compile(object const& expression,
-                 object const& local,
-                 object const& continuation = list(make(instruction::stop)),
-                 object const& ellipsis = unspecified) -> object
+  private:
+    auto operator ()(object const& expression,
+                     object const& local,
+                     object const& continuation = list(make(instruction::stop)),
+                     object const& ellipsis = unspecified) -> object
     {
       if (expression.is<null>()) /* --------------------------------------------
       *
@@ -963,6 +962,15 @@ inline namespace kernel
       {
         return syntax::procedure_call(*this, expression, local, continuation, ellipsis);
       }
+    }
+
+  public:
+    using pair::pair;
+
+    template <typename... Ts>
+    auto compile(Ts&&... xs) -> decltype(auto)
+    {
+      return operator ()(std::forward<decltype(xs)>(xs)...);
     }
 
     auto define(object const& variable, object const& value = undefined) -> void
@@ -1074,13 +1082,6 @@ inline namespace kernel
     auto local() noexcept -> object &
     {
       return first;
-    }
-
-  private:
-    template <typename... Ts, REQUIRES(std::is_same<std::decay_t<Ts>, object>...)>
-    auto operator ()(Ts&&... xs)
-    {
-      return compile(std::forward<decltype(xs)>(xs)...);
     }
   };
 } // namespace kernel

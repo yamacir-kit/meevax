@@ -28,18 +28,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  class environment : public configurator<environment>
-                    , public dynamic_environment<environment>
-                    , public optimizer
-                    , public reader<environment>
-                    , public syntactic_environment<environment>
+  struct environment : public configurator<environment>
+                     , public dynamic_environment<environment>
+                     , public optimizer
+                     , public reader<environment>
+                     , public syntactic_environment<environment>
   {
     using syntactic_environment::syntactic_environment;
-
-  public:
-    environment(environment &&) = default;
-
-    environment(environment const&) = default;
 
     template <typename T, typename... Ts>
     auto declare(Ts&&... xs) -> decltype(auto)

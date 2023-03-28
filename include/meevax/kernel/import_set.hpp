@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  class environment;
+  struct environment;
 
   struct import_set
   {
