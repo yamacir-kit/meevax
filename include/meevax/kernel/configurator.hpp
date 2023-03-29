@@ -144,7 +144,7 @@ inline namespace kernel
 
       std::vector<object> expressions {};
 
-      let const quote = make<typename Environment::syntax>("quote", Environment::syntax::quote);
+      let const quote = Environment::rename("quote");
 
       for (auto iter = std::begin(args); iter != std::end(args); ++iter)
       {

@@ -97,6 +97,39 @@ inline namespace kernel
       }
     };
 
+    static auto core_syntactic_environment()
+    {
+      let static const core = []()
+      {
+        auto core = syntactic_environment();
+        core.template define<syntax>("begin"                          , syntax::sequence                      );
+        core.template define<syntax>("call-with-current-continuation!", syntax::call_with_current_continuation);
+        core.template define<syntax>("current"                        , syntax::current                       );
+        core.template define<syntax>("define"                         , syntax::define                        );
+        core.template define<syntax>("define-syntax"                  , syntax::define_syntax                 );
+        core.template define<syntax>("if"                             , syntax::conditional                   );
+        core.template define<syntax>("install"                        , syntax::install                       );
+        core.template define<syntax>("lambda"                         , syntax::lambda                        );
+        core.template define<syntax>("let-syntax"                     , syntax::let_syntax                    );
+        core.template define<syntax>("letrec"                         , syntax::letrec                        );
+        core.template define<syntax>("letrec-syntax"                  , syntax::letrec_syntax                 );
+        core.template define<syntax>("quote"                          , syntax::quote                         );
+        core.template define<syntax>("quote-syntax"                   , syntax::quote_syntax                  );
+        core.template define<syntax>("set!"                           , syntax::set                           );
+        return make(core);
+      }();
+
+      return core;
+    }
+
+    template <typename S>
+    static auto rename(S&& x)
+    {
+      return make<syntactic_closure>(core_syntactic_environment(),
+                                     unit,
+                                     string_to_symbol(std::forward<decltype(x)>(x)));
+    }
+
     struct syntax
     {
       using compiler = std::function<auto (syntactic_environment &,
@@ -348,7 +381,7 @@ inline namespace kernel
               if (cadr(*iter).template is<pair>()) // (define (<variable> . <formals>) . <body>)
               {
                 binding_specs = cons(list(caadr(*iter), // <variable>
-                                          cons(make<syntax>("lambda", lambda),
+                                          cons(rename("lambda"),
                                                cdadr(*iter), // <formals>
                                                cddr(*iter))), // <body>
                                      binding_specs);
@@ -383,11 +416,11 @@ inline namespace kernel
              where <binding specs> = ((<variable 1> <initial 1>) ...
                                       (<variable n> <initial n>))
           */
-          return compile(cons(cons(make<syntax>("lambda", lambda),
+          return compile(cons(cons(rename("lambda"),
                                    unzip1(binding_specs), // formals
                                    append2(map1([](let const& binding_spec)
                                                 {
-                                                  return cons(make<syntax>("set!", set), binding_spec);
+                                                  return cons(rename("set!"), binding_spec);
                                                 },
                                                 binding_specs),
                                            sequence)),
@@ -668,7 +701,7 @@ inline namespace kernel
         let const body         = cdr(expression);
         let const formals      = map1(make_formal, syntax_specs);
 
-        return compile(cons(cons(make<syntax>("lambda", lambda),
+        return compile(cons(cons(rename("lambda"),
                                  formals,
                                  body),
                             unit), // dummy
@@ -712,7 +745,7 @@ inline namespace kernel
 
         environment.as<syntactic_environment>().local() = cons(formals, local);
 
-        return compile(cons(cons(make<syntax>("lambda", lambda),
+        return compile(cons(cons(rename("lambda"),
                                  formals,
                                  body),
                             unit), // dummy
@@ -754,7 +787,7 @@ inline namespace kernel
         {
           if (car(expression).is<pair>()) // (define (<variable> . <formals>) <body>)
           {
-            return compile(cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
+            return compile(cons(rename("lambda"), cdar(expression), cdr(expression)),
                            local,
                            cons(make(instruction::store_absolute), compile.identify(caar(expression), local),
                                 continuation));
@@ -910,14 +943,6 @@ inline namespace kernel
         {
           return cons(make(instruction::load_constant), expression, continuation);
         }
-      }
-      else if (car(expression).is<syntax>())
-      {
-        return car(expression).as<syntax>().compile(*this,
-                                                    cdr(expression),
-                                                    local,
-                                                    continuation,
-                                                    ellipsis);
       }
       else if (let const& identity = std::as_const(*this).identify(car(expression), local);
                identity.is<absolute>() and
