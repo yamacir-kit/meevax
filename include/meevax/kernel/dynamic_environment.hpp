@@ -29,11 +29,6 @@ inline namespace kernel
   template <typename Environment>
   class dynamic_environment
   {
-    friend Environment;
-
-    dynamic_environment()
-    {}
-
   protected:
     /*
        The SECD machine, which in its original form was invented by Landin,

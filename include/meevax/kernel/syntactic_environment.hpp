@@ -132,6 +132,7 @@ inline namespace kernel
                                      string_to_symbol(std::forward<decltype(x)>(x)));
     }
 
+  protected:
     struct syntax
     {
       using compiler = std::function<auto (syntactic_environment &,
@@ -431,26 +432,17 @@ inline namespace kernel
                          continuation,
                          unit);
         }
-        else if (cdr(expression).is<null>())
+        else
         {
           return compile(car(expression),
                          local,
-                         continuation,
+                         cdr(expression).is<null>() ? continuation
+                                                    : cons(make(instruction::drop),
+                                                           body(compile,
+                                                                cdr(expression),
+                                                                local,
+                                                                continuation)),
                          cdr(expression));
-        }
-        else
-        {
-          let const head = compile(car(expression),
-                                   local,
-                                   unit,
-                                   cdr(expression));
-
-          return append2(head,
-                         cons(make(instruction::drop),
-                              body(compile,
-                                   cdr(expression),
-                                   local,
-                                   continuation)));
         }
       }
 

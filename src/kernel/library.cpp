@@ -438,7 +438,7 @@ inline namespace kernel
 
       library.define<procedure>("transformer?", [](let const& xs)
       {
-        return car(xs).is_also<transformer>();
+        return car(xs).is<transformer>();
       });
 
       library.define<procedure>("syntactic-closure?", [](let const& xs)
