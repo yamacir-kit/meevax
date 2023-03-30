@@ -28,15 +28,13 @@ inline namespace kernel
     {
       case instruction::call:              return os << "call";
       case instruction::cons:              return os << "cons";
-      case instruction::define_syntax:     return os << "define-syntax";
+      case instruction::current:           return os << "current";
       case instruction::drop:              return os << "drop";
       case instruction::dummy:             return os << "dummy";
+      case instruction::install:           return os << "install";
       case instruction::join:              return os << "join";
-      case instruction::let_syntax:        return os << "let-syntax";
       case instruction::letrec:            return os << "letrec";
-      case instruction::letrec_syntax:     return os << "letrec-syntax";
       case instruction::load_absolute:     return os << "load-absolute";
-      case instruction::load_auxiliary:    return os << "load-auxiliary";
       case instruction::load_closure:      return os << "load-closure";
       case instruction::load_constant:     return os << "load-constant";
       case instruction::load_continuation: return os << "load-continuation";
@@ -46,7 +44,6 @@ inline namespace kernel
       case instruction::select:            return os << "select";
       case instruction::stop:              return os << "stop";
       case instruction::store_absolute:    return os << "store-absolute";
-      case instruction::store_auxiliary:   return os << "store-auxiliary";
       case instruction::store_relative:    return os << "store-relative";
       case instruction::store_variadic:    return os << "store-variadic";
       case instruction::tail_call:         return os << "tail-call";
@@ -75,18 +72,15 @@ inline namespace kernel
       case instruction::tail_letrec:
         return 1;
 
-      case instruction::define_syntax:
-      case instruction::let_syntax:
-      case instruction::letrec_syntax:
+      case instruction::current:
+      case instruction::install:
       case instruction::load_absolute:
-      case instruction::load_auxiliary:
       case instruction::load_closure:
       case instruction::load_constant:
       case instruction::load_continuation:
       case instruction::load_relative:
       case instruction::load_variadic:
       case instruction::store_absolute:
-      case instruction::store_auxiliary:
       case instruction::store_relative:
       case instruction::store_variadic:
         return 2;

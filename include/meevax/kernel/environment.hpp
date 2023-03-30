@@ -18,42 +18,23 @@
 #define INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
 
 #include <meevax/kernel/configurator.hpp>
+#include <meevax/kernel/dynamic_environment.hpp>
 #include <meevax/kernel/import_set.hpp>
-#include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/optimizer.hpp>
 #include <meevax/kernel/reader.hpp>
+#include <meevax/kernel/syntactic_environment.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  class environment : public virtual pair
-                    , public configurator<environment>
-                    , public machine<environment>
-                    , public optimizer
-                    , public reader<environment>
+  struct environment : public configurator<environment>
+                     , public dynamic_environment<environment>
+                     , public optimizer
+                     , public reader<environment>
+                     , public syntactic_environment<environment>
   {
-    using pair::pair;
-
-  public:
-    environment(environment &&) = default;
-
-    environment(environment const&) = default;
-
-    auto operator [](object const& variable) -> decltype(auto)
-    {
-      assert(scope().is<null>());
-      assert(e.is<null>());
-      assert(identify(variable).is<absolute>());
-
-      // If scope is null, identify will always return absolute identity.
-      return identify(variable).as<absolute>().load();
-    }
-
-    auto operator [](std::string const& variable) -> decltype(auto)
-    {
-      return (*this)[string_to_symbol(variable)];
-    }
+    using syntactic_environment::syntactic_environment;
 
     template <typename T, typename... Ts>
     auto declare(Ts&&... xs) -> decltype(auto)
@@ -61,42 +42,24 @@ inline namespace kernel
       return std::decay_t<T>(std::forward<decltype(xs)>(xs)...).resolve(*this);
     }
 
-    auto define(object const&, object const& = undefined) -> void;
-
-    auto define(std::string const&, object const& = undefined) -> void;
-
-    template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs) -> void
-    {
-      define(name, make<T>(name, std::forward<decltype(xs)>(xs)...));
-    }
-
     auto evaluate(object const&) -> object;
-
-    auto fork()              const -> object;
-    auto fork(object const&) const -> object;
-
-    auto global() const noexcept -> object const&;
-    auto global()       noexcept -> object      &;
 
     auto load(std::string const&) -> object;
 
-    auto scope() const noexcept -> object const&;
-    auto scope()       noexcept -> object      &;
+    auto operator [](object const&) -> object const&;
 
-    auto identify(object const&, object const&) const -> object;
-    auto identify(object const&)                const -> object;
-    auto identify(object const&, object const&)       -> object;
-    auto identify(object const&)                      -> object;
+    auto operator [](std::string const&) -> object const&;
   };
 
   auto operator <<(std::ostream &, environment const&) -> std::ostream &;
 
   extern template class configurator<environment>;
 
-  extern template class machine<environment>;
+  extern template class dynamic_environment<environment>;
 
   extern template class reader<environment>;
+
+  extern template struct syntactic_environment<environment>;
 } // namespace kernel
 } // namespace meevax
 

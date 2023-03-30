@@ -22,7 +22,6 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/procedure.hpp>
-#include <meevax/kernel/syntax.hpp>
 #include <meevax/kernel/version.hpp>
 
 namespace meevax
@@ -34,7 +33,7 @@ inline namespace kernel
   {
     friend Environment;
 
-    explicit configurator()
+    configurator()
     {}
 
   public:
@@ -51,7 +50,6 @@ inline namespace kernel
                    "  -h, --help             Display this help text and exit.\n"
                    "  -i, --interactive      Take over control of root environment.\n"
                    "  -l, --load=FILENAME    Same as -e '(load FILENAME)'\n"
-                   "  -t, --trace            Display stacks of virtual machine for each steps.\n"
                    "  -v, --version          Display version information and exit.\n"
                    "  -w, --write=OBJECT     Same as -e '(write OBJECT)'\n"
                 << std::flush;
@@ -96,11 +94,6 @@ inline namespace kernel
         option("(i|interactive)", []()
         {
           interactive = true;
-        }),
-
-        option("(t|trace)", [this]()
-        {
-          static_cast<Environment &>(*this).trace = true;
         }),
 
         option("(e|evaluate)", [this](let const& xs)
@@ -151,7 +144,7 @@ inline namespace kernel
 
       std::vector<object> expressions {};
 
-      let const quote = make<syntax>("quote", Environment::quote);
+      let const quote = Environment::rename("quote");
 
       for (auto iter = std::begin(args); iter != std::end(args); ++iter)
       {
