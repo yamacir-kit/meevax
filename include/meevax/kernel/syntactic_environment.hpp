@@ -99,25 +99,27 @@ inline namespace kernel
 
     static auto core_syntactic_environment()
     {
-      let static const core = []()
+      auto bind = [](auto&& name, auto&& compiler)
       {
-        auto core = syntactic_environment();
-        core.template define<syntax>("begin"                          , syntax::sequence                      );
-        core.template define<syntax>("call-with-current-continuation!", syntax::call_with_current_continuation);
-        core.template define<syntax>("current"                        , syntax::current                       );
-        core.template define<syntax>("define"                         , syntax::define                        );
-        core.template define<syntax>("define-syntax"                  , syntax::define_syntax                 );
-        core.template define<syntax>("if"                             , syntax::conditional                   );
-        core.template define<syntax>("install"                        , syntax::install                       );
-        core.template define<syntax>("lambda"                         , syntax::lambda                        );
-        core.template define<syntax>("let-syntax"                     , syntax::let_syntax                    );
-        core.template define<syntax>("letrec"                         , syntax::letrec                        );
-        core.template define<syntax>("letrec-syntax"                  , syntax::letrec_syntax                 );
-        core.template define<syntax>("quote"                          , syntax::quote                         );
-        core.template define<syntax>("quote-syntax"                   , syntax::quote_syntax                  );
-        core.template define<syntax>("set!"                           , syntax::set                           );
-        return make(core);
-      }();
+        return make<absolute>(string_to_symbol(name), make<syntax>(name, compiler));
+      };
+
+      let static const core = make<syntactic_environment>(
+        list(),
+        list(bind("begin"                          , syntax::sequence                      ),
+             bind("call-with-current-continuation!", syntax::call_with_current_continuation),
+             bind("current"                        , syntax::current                       ),
+             bind("define"                         , syntax::define                        ),
+             bind("define-syntax"                  , syntax::define_syntax                 ),
+             bind("if"                             , syntax::conditional                   ),
+             bind("install"                        , syntax::install                       ),
+             bind("lambda"                         , syntax::lambda                        ),
+             bind("let-syntax"                     , syntax::let_syntax                    ),
+             bind("letrec"                         , syntax::letrec                        ),
+             bind("letrec-syntax"                  , syntax::letrec_syntax                 ),
+             bind("quote"                          , syntax::quote                         ),
+             bind("quote-syntax"                   , syntax::quote_syntax                  ),
+             bind("set!"                           , syntax::set                           )));
 
       return core;
     }
