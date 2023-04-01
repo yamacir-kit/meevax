@@ -1,4 +1,5 @@
 (import (scheme base)
+        (scheme cxr)
         (scheme process-context)
         (srfi 211 explicit-renaming)
         (srfi 78))
@@ -64,13 +65,58 @@
   (check x => a)
   (check y => b))
 
-; (define-syntax %define
-;   (er-macro-transformer
-;     (lambda (form rename compare)
-;       `(,(rename 'define) ,@(cdr form))
-;     )
-;   )
+(define-syntax %define
+  (er-macro-transformer
+    (lambda (form rename compare)
+      `(,(rename 'define) ,@(cdr form)))))
+
+(let ()
+  (%define x 'a)
+  (check x => a))
+
+(let ()
+  (begin (%define x 'a))
+  (check x => a))
+
+(let ()
+  (begin (begin (%define x 'a)))
+  (check x => a))
+
+(let ()
+  (begin (%define x 'a)
+         (%define y 'b))
+  (check x => a)
+  (check y => b))
+
+(let ()
+  (begin (begin (%define x 'a)
+                (%define y 'b)))
+  (check x => a)
+  (check y => b))
+
+(let ()
+  (begin (begin (%define x 'a))
+         (%define y 'b))
+  (check x => a)
+  (check y => b))
+
+(let ()
+  (begin (%define x 'a)
+         (begin (%define y 'b)))
+  (check x => a)
+  (check y => b))
+
+(define-syntax %define-2
+  (er-macro-transformer
+    (lambda (form rename compare)
+      `(,(rename 'begin) (,(rename 'define) ,(cadr form) ,@(cdddr form))
+                         (,(rename 'define) ,(caddr form) ,@(cdddr form))))))
+
+(let ()
+  (%define-2 x y 'z)
+  (check x => z)
+  (check y => z))
 
 (check-report)
 
-(exit (check-passed? 16))
+(exit (check-passed? 29))

@@ -371,6 +371,18 @@ inline namespace kernel
         }
         else if (let const& identity = compile.identify(car(definition_or_expression), local);
                  identity.is<absolute>() and
+                 identity.as<absolute>().load().is<transformer>())
+        {
+          return sweep(compile,
+                       binding_specs,
+                       cons(Environment().apply(car(identity.as<absolute>().load()), // <closure>
+                                                definition_or_expression,
+                                                make<syntactic_environment>(local, compile.global()),
+                                                cdr(identity.as<absolute>().load())), // <syntactic-environment>
+                            cdr(form)),
+                       local);
+        }
+        else if (identity.is<absolute>() and
                  identity.as<absolute>().load().is<syntax>() and
                  identity.as<absolute>().load().as<syntax>().name == "define")
         {
@@ -389,8 +401,7 @@ inline namespace kernel
             return sweep(compile,
                          cons(binding_spec, binding_specs),
                          cdr(form),
-                         local
-                         );
+                         local);
           }
           else
           {
@@ -488,15 +499,15 @@ inline namespace kernel
         }
         else
         {
-          return compile(car(expression),
+          return compile(car(sequence),
                          local,
-                         cdr(expression).is<null>() ? continuation
-                                                    : cons(make(instruction::drop),
-                                                           body(compile,
-                                                                cdr(expression),
-                                                                local,
-                                                                continuation)),
-                         cdr(expression));
+                         cdr(sequence).template is<null>() ? continuation
+                                                           : cons(make(instruction::drop),
+                                                                  body(compile,
+                                                                       cdr(sequence),
+                                                                       local,
+                                                                       continuation)),
+                         cdr(sequence));
         }
       }
 
