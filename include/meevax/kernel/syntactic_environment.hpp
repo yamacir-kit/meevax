@@ -124,12 +124,15 @@ inline namespace kernel
       return core;
     }
 
-    template <typename S>
-    static auto rename(S&& x)
+    static auto rename(object const& variable)
     {
-      return make<syntactic_closure>(core_syntactic_environment(),
-                                     unit,
-                                     string_to_symbol(std::forward<decltype(x)>(x)));
+      assert(variable.is<symbol>());
+      return make<syntactic_closure>(core_syntactic_environment(), unit, variable);
+    }
+
+    static auto rename(std::string const& variable)
+    {
+      return rename(string_to_symbol(variable));
     }
 
   protected:
@@ -352,63 +355,105 @@ inline namespace kernel
                     continuation);
       }
 
-      static COMPILER(body)
+      static auto sweep(syntactic_environment const& compile, // This function must not call compile.
+                        object const& binding_specs,
+                        object const& form,
+                        object const& local) -> pair
       {
-        auto is_definition = [&](object const& form)
+        if (not form.is<pair>())
         {
-          if (form.is<pair>())
-          {
-            if (let const& identity = std::as_const(compile).identify(car(form), local); identity.is<absolute>())
-            {
-              if (let const& callee = identity.as<absolute>().load(); callee.is<syntax>())
-              {
-                return callee.as<syntax>().name == "define";
-              }
-            }
-          }
-
-          return false;
-        };
-
-        auto sweep = [&](object const& form)
+          return pair(reverse(binding_specs), form); // Finish.
+        }
+        else if (let const& definition_or_expression = car(form);
+                 not definition_or_expression.is<pair>())
         {
-          /*
-             <binding specs> = ((<variable> (lambda <formals> <body>)) ...)
-          */
-          let binding_specs = unit;
-
-          for (auto iter = std::begin(form); iter != std::end(form); ++iter)
+          return pair(reverse(binding_specs), form); // Finish.
+        }
+        else if (let const& identity = compile.identify(car(definition_or_expression), local);
+                 identity.is<absolute>() and
+                 identity.as<absolute>().load().is<syntax>() and
+                 identity.as<absolute>().load().as<syntax>().name == "define")
+        {
+          // <deinition or expression> = (define ...)
+          if (let const& definition = definition_or_expression; cadr(definition).is<pair>())
           {
-            if (is_definition(*iter)) // (define ...)
-            {
-              if (cadr(*iter).template is<pair>()) // (define (<variable> . <formals>) . <body>)
-              {
-                binding_specs = cons(list(caadr(*iter), // <variable>
-                                          cons(rename("lambda"),
-                                               cdadr(*iter), // <formals>
-                                               cddr(*iter))), // <body>
-                                     binding_specs);
-              }
-              else // (define <variable> <expression>)
-              {
-                binding_specs = cons(cdr(*iter), binding_specs);
-              }
-            }
-            else
-            {
-              return std::make_pair(reverse(binding_specs), iter.get());
-            }
+            // <definition> = (define (<variable> . <formals>) <body>)
+            let const& variable = caadr(definition);
+            let const& formals  = cdadr(definition);
+            let const& body     =  cddr(definition);
+
+            let const lambda_expression = cons(rename("lambda"), formals, body);
+
+            let const binding_spec = list(variable, lambda_expression);
+
+            return sweep(compile,
+                         cons(binding_spec, binding_specs),
+                         cdr(form),
+                         local
+                         );
           }
+          else
+          {
+            // <definition> = (define <variable> <expression>)
+            let const binding_spec = cdr(definition);
 
-          return std::make_pair(reverse(binding_specs), unit);
-        };
+            return sweep(compile,
+                         cons(binding_spec, binding_specs),
+                         cdr(form),
+                         local
+                         );
+          }
+        }
+        else
+        {
+          return pair(reverse(binding_specs), form);
+        }
+      }
 
-        /*
-           (lambda <formals> <body>)
-
-           where <body> = <definition>* <expression>* <tail expression>
-        */
-        if (auto const& [binding_specs, sequence] = sweep(expression); binding_specs)
+      static COMPILER(body) /* -------------------------------------------------
+      *
+      *  5.3.2. Internal definitions
+      *
+      *  Definitions can occur at the beginning of a <body> (that is, the body
+      *  of a lambda, let, let*, letrec, letrec*, let-values, let*-values,
+      *  let-syntax, letrec-syntax, parameterize, guard, or case-lambda). Note
+      *  that such a body might not be apparent until after expansion of other
+      *  syntax. Such definitions are known as internal definitions as opposed
+      *  to the global definitions described above. The variables defined by
+      *  internal definitions are local to the <body>. That is, <variable> is
+      *  bound rather than assigned, and the region of the binding is the
+      *  entire <body>. For example,
+      *
+      *      (let ((x 5))
+      *        (define foo (lambda (y) (bar x y)))
+      *        (define bar (lambda (a b) (+ (* a b) a)))
+      *        (foo (+ x 3)))                                      => 45
+      *
+      *  An expanded <body> containing internal definitions can always be
+      *  converted into a completely equivalent letrec* expression. For example,
+      *  the let expression in the above example is equivalent to
+      *
+      *      (let ((x 5))
+      *        (letrec* ((foo (lambda (y) (bar x y)))
+      *                  (bar (lambda (a b) (+ (* a b) a))))
+      *          (foo (+ x 3))))
+      *
+      *  Just as for the equivalent letrec* expression, it is an error if it is
+      *  not possible to evaluate each <expression> of every internal
+      *  definition in a <body> without assigning or referring to the value of
+      *  the corresponding <variable> or the <variable> of any of the
+      *  definitions that follow it in <body>.
+      *
+      *  It is an error to define the same identifier more than once in the
+      *  same <body>.
+      *
+      *  Wherever an internal definition can occur, (begin <definition 1> ...)
+      *  is equivalent to the sequence of definitions that form the body of the
+      *  begin.
+      *
+      * --------------------------------------------------------------------- */
+      {
+        if (auto const& [binding_specs, sequence] = sweep(compile, unit, expression, local); binding_specs)
         {
           /*
              (letrec* <binding specs> <sequence>)
@@ -753,31 +798,24 @@ inline namespace kernel
 
       static COMPILER(define) /* -----------------------------------------------
       *
-      *  R7RS 5.3. Variable definitions
+      *  5.3.1. Top level definitions
       *
-      *  A variable definition binds one or more identifiers and specifies an
-      *  initial value for each of them. The simplest kind of variable
-      *  definition takes one of the following forms:
+      *  At the outermost level of a program, a definition
       *
-      *  (define <variable> <expression>)
-      *  (define (<variable> <formals>) <body>)
-      *  (define (<variable> . <formal>) <body>)
+      *      (define <variable> <expression>)
       *
-      *  <Formals> are either a sequence of zero or more variables, or a
-      *  sequence of one or more variables followed by a space-delimited period
-      *  and another variable (as in a lambda expression). This form is
-      *  equivalent to
+      *  has essentially the same effect as the assignment expression
       *
-      *      (define <variable>
-      *        (lambda (<formals>) <body>)).
+      *      (set! <variable> <expression>)
       *
-      *  <Formal> is a single variable. This form is equivalent to
-      *
-      *      (define <variable> (lambda <formal> <body>)).
+      *  if <variable> is bound to a non-syntax value. However, if <variable>
+      *  is not bound, or is a syntactic keyword, then the definition will bind
+      *  <variable> to a new location before performing the assignment, whereas
+      *  it would be an error to perform a set! on an unbound variable.
       *
       * --------------------------------------------------------------------- */
       {
-        if (local.is<null>()) // R7RS 5.3.1. Top level definitions
+        if (local.is<null>())
         {
           if (car(expression).is<pair>()) // (define (<variable> . <formals>) <body>)
           {
