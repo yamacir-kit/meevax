@@ -400,9 +400,18 @@ inline namespace kernel
             return sweep(compile,
                          cons(binding_spec, binding_specs),
                          cdr(form),
-                         local
-                         );
+                         local);
           }
+        }
+        else if (identity.is<absolute>() and
+                 identity.as<absolute>().load().is<syntax>() and
+                 identity.as<absolute>().load().as<syntax>().name == "begin")
+        {
+          return sweep(compile,
+                       binding_specs,
+                       append2(cdar(form),
+                               cdr(form)),
+                       local);
         }
         else
         {
