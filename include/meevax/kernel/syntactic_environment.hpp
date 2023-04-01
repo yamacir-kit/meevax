@@ -360,23 +360,18 @@ inline namespace kernel
                         object const& form,
                         object const& local) -> pair
       {
-        if (not form.is<pair>())
+        if (not form.is<pair>() or not car(form).is<pair>())
         {
           return pair(reverse(binding_specs), form); // Finish.
         }
-        else if (let const& definition_or_expression = car(form);
-                 not definition_or_expression.is<pair>())
-        {
-          return pair(reverse(binding_specs), form); // Finish.
-        }
-        else if (let const& identity = compile.identify(car(definition_or_expression), local);
+        else if (let const& identity = compile.identify(caar(form), local);
                  identity.is<absolute>() and
                  identity.as<absolute>().load().is<transformer>())
         {
           return sweep(compile,
                        binding_specs,
                        cons(Environment().apply(car(identity.as<absolute>().load()), // <closure>
-                                                definition_or_expression,
+                                                car(form),
                                                 make<syntactic_environment>(local, compile.global()),
                                                 cdr(identity.as<absolute>().load())), // <syntactic-environment>
                             cdr(form)),
@@ -384,32 +379,23 @@ inline namespace kernel
         }
         else if (identity.is<absolute>() and
                  identity.as<absolute>().load().is<syntax>() and
-                 identity.as<absolute>().load().as<syntax>().name == "define")
+                 identity.as<absolute>().load().as<syntax>().name == "define") // <form> = ((define ...) <definition or expression>*)
         {
-          // <deinition or expression> = (define ...)
-          if (let const& definition = definition_or_expression; cadr(definition).is<pair>())
+          if (let const& definition = car(form); cadr(definition).is<pair>()) // <form> = ((define (<variable> . <formals>) <body>) <definition or expression>*)
           {
-            // <definition> = (define (<variable> . <formals>) <body>)
-            let const& variable = caadr(definition);
-            let const& formals  = cdadr(definition);
-            let const& body     =  cddr(definition);
-
-            let const lambda_expression = cons(rename("lambda"), formals, body);
-
-            let const binding_spec = list(variable, lambda_expression);
-
             return sweep(compile,
-                         cons(binding_spec, binding_specs),
+                         cons(list(caadr(definition), // <variable>
+                                   cons(rename("lambda"),
+                                        cdadr(definition), // <formals>
+                                        cddr(definition))), // <body>
+                              binding_specs),
                          cdr(form),
                          local);
           }
-          else
+          else // <form> = ((define <variable> <expression>) <definition or expression>*)
           {
-            // <definition> = (define <variable> <expression>)
-            let const binding_spec = cdr(definition);
-
             return sweep(compile,
-                         cons(binding_spec, binding_specs),
+                         cons(cdr(definition), binding_specs),
                          cdr(form),
                          local);
           }
@@ -426,7 +412,7 @@ inline namespace kernel
         }
         else
         {
-          return pair(reverse(binding_specs), form);
+          return pair(reverse(binding_specs), form); // Finish.
         }
       }
 
