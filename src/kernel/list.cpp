@@ -20,6 +20,11 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto last(object const& xs) -> object const&
+  {
+    return cdr(xs).is<pair>() ? last(cdr(xs)) : car(xs);
+  }
+
   auto take(object const& x, std::size_t size) -> object
   {
     return 0 < size ? cons(car(x), take(cdr(x), --size)) : unit;

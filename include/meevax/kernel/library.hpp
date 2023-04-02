@@ -24,20 +24,25 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct library : public environment
+  class library : public environment
   {
-    let declarations = unit;
-
-    let subset = unit;
-
     template <typename T, typename = void>
-    struct is_library_declaration : public std::false_type
+    struct is_library_declaration
+      : public std::false_type
     {};
 
     template <typename T>
     struct is_library_declaration<T, std::void_t<decltype(std::declval<T>().resolve(std::declval<library &>()))>>
       : public std::true_type
     {};
+
+    template <typename T>
+    static constexpr auto is_library_declaration_v = is_library_declaration<T>::value;
+
+  public:
+    let declarations = unit;
+
+    let subset = unit;
 
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
     explicit library(F&& f)
@@ -52,7 +57,7 @@ inline namespace kernel
     template <typename T, typename... Ts>
     auto declare(Ts&&... xs) -> decltype(auto)
     {
-      if constexpr (is_library_declaration<std::decay_t<T>>::value)
+      if constexpr (is_library_declaration_v<T>)
       {
         return std::decay_t<T>(std::forward<decltype(xs)>(xs)...).resolve(*this);
       }

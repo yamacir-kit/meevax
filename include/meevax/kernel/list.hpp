@@ -74,16 +74,18 @@ inline namespace kernel
     return cons(std::forward<decltype(a)>(a), std::forward<decltype(d)>(d));
   };
 
-  inline auto make_list = [](std::size_t k, object const& x = unit)
+  inline auto make_list = [](auto k, object const& x = unit)
   {
-    let result = list();
+    assert(0 <= k);
 
-    for (std::size_t i = 0; i < k; ++i)
+    let xs = unit;
+
+    for (auto i = 0; i < k; ++i)
     {
-      result = cons(x, result);
+      xs = cons(x, xs);
     }
 
-    return result;
+    return xs;
   };
 
   inline auto list_tabulate = [](auto n, auto&& initialize)
@@ -175,6 +177,8 @@ inline namespace kernel
     return car(tail(std::forward<decltype(xs)>(xs)...));
   }
 
+  auto last(object const&) -> object const&;
+
   auto take(object const&, std::size_t) -> object;
 
   inline auto length = [](auto const& x) constexpr
@@ -260,24 +264,21 @@ inline namespace kernel
       {
         return xs;
       }
-      else
+      else if (let const& head = car(xs),
+                          rest = cdr(xs); satisfy(head))
       {
-        if (let const& head = car(xs),
-                       rest = cdr(xs); satisfy(head))
+        if (let const& filtered = filter(filter, rest); eq(rest, filtered))
         {
-          if (let const& filtered = filter(filter, rest); eq(rest, filtered))
-          {
-            return xs;
-          }
-          else
-          {
-            return cons(head, filtered);
-          }
+          return xs;
         }
         else
         {
-          return filter(filter, rest);
+          return cons(head, filtered);
         }
+      }
+      else
+      {
+        return filter(filter, rest);
       }
     };
 
