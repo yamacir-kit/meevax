@@ -1,6 +1,5 @@
 (define-library (srfi 11)
-  (import (scheme r5rs)
-          (srfi 211 explicit-renaming))
+  (import (scheme r5rs))
 
   (export let-values let*-values)
 

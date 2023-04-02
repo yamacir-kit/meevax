@@ -1,7 +1,6 @@
 (define-library (scheme r5rs continuation)
   (import (meevax context)
-          (only (meevax dynamic-environment) load-auxiliary store-auxiliary)
-          (only (meevax syntax) define-syntax call-with-current-continuation!)
+          (only (meevax core) call-with-current-continuation! current define-syntax install)
           (except (scheme r4rs) call-with-current-continuation))
 
   (export call-with-current-continuation dynamic-wind exit)
@@ -9,10 +8,10 @@
   ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
 
   (begin (define (current-dynamic-extents)
-           (load-auxiliary 0))
+           (current 0))
 
          (define (install-dynamic-extents! extents)
-           (store-auxiliary 0 extents))
+           (install 0 extents))
 
          (define (dynamic-wind before thunk after)
            (before)
@@ -46,8 +45,8 @@
            (apply emergency-exit normally?))))
 
 (define-library (scheme r5rs)
-  (import (only (meevax environment) environment eval)
-          (only (meevax syntax) define-syntax let-syntax letrec-syntax)
+  (import (only (meevax core) define-syntax let-syntax letrec-syntax)
+          (only (meevax environment) environment eval)
           (except (scheme r4rs) call-with-current-continuation)
           (except (scheme r5rs continuation) exit)
           (srfi 149))
@@ -89,29 +88,27 @@
          ;     (call-with-current-continuation
          ;       (lambda (cc)
          ;         (apply cc xs)))))
-
-         (define <values> (list 'values))
-
-         (define (values? x)
-           (if (pair? x)
-               (eq? <values> (car x))
-               #f))
-
-         (define (values . xs)
-           (if (if (null? xs) #f
-                   (null? (cdr xs)))
-               (car xs)
-               (cons <values> xs)))
-
+         ;
          ; (define (call-with-values producer consumer)
          ;   (let-values ((xs (producer)))
          ;     (apply consumer xs)))
 
-         (define (call-with-values producer consumer)
-           (let ((vs (producer)))
+         (define <values> (list 'values))
+
+         (define (values . xs)
+           (if (and (pair? xs)
+                    (null? (cdr xs)))
+               (car xs)
+               (cons <values> xs)))
+
+         (define (call-with-values produce consume)
+           (define (values? x)
+             (and (pair? x)
+                  (eq? <values> (car x))))
+           (let ((vs (produce)))
              (if (values? vs)
-                 (apply consumer (cdr vs))
-                 (consumer vs))))
+                 (apply consume (cdr vs))
+                 (consume vs))))
 
          (define (scheme-report-environment version)
            (environment `(scheme ,(string->symbol (string-append "r" (number->string version) "rs")))))

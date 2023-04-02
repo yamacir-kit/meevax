@@ -28,15 +28,17 @@ inline namespace kernel
   {
     auto identity = [&]()
     {
+      assert(library.local().is<null>());
+
       if (form.is<pair>())
       {
         assert(form[0].is<symbol>());
         assert(form[0].as<symbol>() == "rename");
-        return make<absolute>(form[2], library.identify(form[1]));
+        return make<absolute>(form[2], library.identify(form[1], unit));
       }
       else
       {
-        return library.identify(form);
+        return library.identify(form, unit);
       }
     };
 

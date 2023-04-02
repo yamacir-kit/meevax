@@ -23,76 +23,54 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct identity : public virtual pair
+  struct identity
+  {
+    using index = std::uint32_t;
+  };
+
+  struct absolute : public identity
+                  , public virtual pair // (<symbol> . <object>)
   {
     using pair::pair;
 
-    virtual auto is_bound() const -> bool = 0;
+    auto load() const -> object const&;
 
-    virtual auto is_free() const -> bool = 0;
+    auto store(object const&) -> void;
 
-    virtual auto load(object const& e) -> object &;
-
-    virtual auto load(object const&) const -> object const& = 0;
-
-    virtual auto make_load_instruction() const -> object = 0;
-
-    virtual auto make_store_instruction() const -> object = 0;
-
-    virtual auto symbol() const -> object const&;
+    auto symbol() const -> object const&;
   };
 
-  auto operator <<(std::ostream & os, identity const& datum) -> std::ostream &;
+  auto operator <<(std::ostream &, absolute const&) -> std::ostream &;
 
-  struct absolute : public identity
+  struct relative : public identity
+                  , public virtual pair // de Bruijn index
   {
-    using identity::identity;
+    using pair::pair;
 
-    auto is_bound() const -> bool override;
+    auto load(object const&) const -> object const&;
 
-    auto is_free() const -> bool override;
-
-    auto load(object const& = unit) -> object & override;
-
-    auto load(object const& = unit) const -> object const& override;
-
-    auto make_load_instruction() const -> object override;
-
-    auto make_store_instruction() const -> object override;
+    auto store(object const&, object &) const -> void;
   };
 
-  struct keyword : public absolute
+  constexpr auto operator ==(relative const&, relative const&) -> bool
   {
-    using absolute::absolute;
-  };
+    return false; // for free-identifier=?
+  }
 
-  struct relative : public identity // (<symbol> . <de Bruijn index>) = (<symbol> <integer> . <integer>)
+  struct variadic : public identity
+                  , public virtual pair // de Bruijn index
   {
-    using identity::identity;
+    using pair::pair;
 
-    auto is_bound() const -> bool override;
+    auto load(object const&) const -> object const&;
 
-    auto is_free() const -> bool override;
-
-    auto load(object const&) const -> object const& override;
-
-    auto make_load_instruction() const -> object override;
-
-    auto make_store_instruction() const -> object override;
+    auto store(object const&, object &) const -> void;
   };
 
-  auto operator ==(relative const&, relative const&) -> bool;
-
-  struct variadic : public relative // (<symbol> . <de Bruijn index>) = (<symbol> <integer> . <integer>)
+  constexpr auto operator ==(variadic const&, variadic const&) -> bool
   {
-    using relative::relative;
-
-    auto load(object const& e) const -> object const& override;
-
-    auto make_load_instruction() const -> object override;
-
-    auto make_store_instruction() const -> object override;
-  };
+    return false; // for free-identifier=?
+  }
 } // namespace kernel
 } // namespace meevax
 

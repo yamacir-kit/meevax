@@ -30,7 +30,7 @@ inline namespace kernel
     return second;
   }
 
-  auto operator <<(std::ostream & os, const closure& datum) -> std::ostream &
+  auto operator <<(std::ostream & os, closure const& datum) -> std::ostream &
   {
     return os << magenta("#,(") << green("closure ") << faint("#;", &datum) << magenta(")");
   }

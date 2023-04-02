@@ -1,37 +1,49 @@
 (import (scheme base)
-        (scheme write)
-        (srfi 78)
-        (only (meevax syntax) call-with-current-continuation!)
-        )
+        (scheme process-context)
+        (srfi 78))
 
-(define (values . xs)
-  (call-with-current-continuation!
-    (lambda (cc)
-      (cc . xs))))
+(check (values) => ((values)))
 
-(check (values 1 2) => 1)
+(check (values 1) => 1)
 
-(check (values 3 4) => 3)
+(check (values 1 2) => ((values) 1 2))
 
-(check (+ 1 (values 2 3)) => 3)
+(define-values a (values 1 2 3))
 
-(check (+ (values 1 2)
-          (values 3 4)) => 4)
+(define-values (b) (values 1))
 
-(let ((x (values 1 2 3)))
-  (check x => 1))
+(define-values (c d) (values 1 2))
 
-((lambda xs
-   (check xs => (1 2 3))
-  )
- (values 1 2 3)
- )
+(define-values (e f g) (values 1 2 3))
 
-; (check (begin 1 (values 2 3 4) 5) => 5)
+(define-values (h . i) (values 1 2 3))
 
-; (let ()
-;   (display "#1\n")
-;   (values 1 2 3)
-;   (display "#2\n"))
+(check a => (1 2 3))
 
+(check b => 1)
 
+(check c => 1)
+
+(check d => 2)
+
+(check e => 1)
+
+(check f => 2)
+
+(check g => 3)
+
+(check h => 1)
+
+(check i => (2 3))
+
+(let ((j 1)
+      (k 2)
+      (l 3))
+  (define-values (j k l) (values 4 5 6))
+  (check j => 4)
+  (check k => 5)
+  (check l => 6))
+
+(check-report)
+
+(exit (check-passed? 15))
