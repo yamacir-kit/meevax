@@ -369,16 +369,16 @@ inline namespace kernel
         {
           return sweep(compile,
                        binding_specs,
-                       cons(Environment().apply(identity.as<absolute>().load().as<transformer>().closure(),
+                       cons(Environment().apply(identity.as<absolute>().load<transformer>().closure(),
                                                 car(form),
                                                 make<syntactic_environment>(local, compile.global()),
-                                                identity.as<absolute>().load().as<transformer>().syntactic_environment()),
+                                                identity.as<absolute>().load<transformer>().syntactic_environment()),
                             cdr(form)),
                        local);
         }
         else if (identity.is<absolute>() and
                  identity.as<absolute>().load().is<syntax>() and
-                 identity.as<absolute>().load().as<syntax>().name == "define") // <form> = ((define ...) <definition or expression>*)
+                 identity.as<absolute>().load<syntax>().name == "define") // <form> = ((define ...) <definition or expression>*)
         {
           if (let const& definition = car(form); cadr(definition).is<pair>()) // <form> = ((define (<variable> . <formals>) <body>) <definition or expression>*)
           {
@@ -401,7 +401,7 @@ inline namespace kernel
         }
         else if (identity.is<absolute>() and
                  identity.as<absolute>().load().is<syntax>() and
-                 identity.as<absolute>().load().as<syntax>().name == "begin")
+                 identity.as<absolute>().load<syntax>().name == "begin")
         {
           return sweep(compile,
                        binding_specs,
@@ -999,13 +999,13 @@ inline namespace kernel
            rules that specifies how a use of a macro is transcribed into a more
            primitive expression is called the transformer of the macro.
         */
-        assert(identity.as<absolute>().load().as<transformer>().closure().is<closure>());
-        assert(identity.as<absolute>().load().as<transformer>().syntactic_environment().is<syntactic_environment>());
+        assert(identity.as<absolute>().load<transformer>().closure().is<closure>());
+        assert(identity.as<absolute>().load<transformer>().syntactic_environment().is<syntactic_environment>());
 
-        return compile(Environment().apply(identity.as<absolute>().load().as<transformer>().closure(),
+        return compile(Environment().apply(identity.as<absolute>().load<transformer>().closure(),
                                            expression,
                                            make<syntactic_environment>(local, global()),
-                                           identity.as<absolute>().load().as<transformer>().syntactic_environment()),
+                                           identity.as<absolute>().load<transformer>().syntactic_environment()),
                        local,
                        continuation,
                        ellipsis);
@@ -1013,11 +1013,7 @@ inline namespace kernel
       else if (identity.is<absolute>() and
                identity.as<absolute>().load().is<syntax>())
       {
-        return identity.as<absolute>().load().as<syntax>().compile(*this,
-                                                                   cdr(expression),
-                                                                   local,
-                                                                   continuation,
-                                                                   ellipsis);
+        return identity.as<absolute>().load<syntax>().compile(*this, cdr(expression), local, continuation, ellipsis);
       }
       else
       {

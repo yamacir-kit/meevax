@@ -35,6 +35,12 @@ inline namespace kernel
 
     auto load() const -> object const&;
 
+    template <typename T>
+    auto load() const -> decltype(auto)
+    {
+      return load().as<T>();
+    }
+
     auto store(object const&) -> void;
 
     auto symbol() const -> object const&;
