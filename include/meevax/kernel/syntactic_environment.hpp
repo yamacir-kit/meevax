@@ -135,7 +135,6 @@ inline namespace kernel
       return rename(string_to_symbol(variable));
     }
 
-  protected:
     struct syntax
     {
       using compiler = std::function<auto (syntactic_environment &,
@@ -370,10 +369,10 @@ inline namespace kernel
         {
           return sweep(compile,
                        binding_specs,
-                       cons(Environment().apply(car(identity.as<absolute>().load()), // <closure>
+                       cons(Environment().apply(identity.as<absolute>().load().as<transformer>().closure(),
                                                 car(form),
                                                 make<syntactic_environment>(local, compile.global()),
-                                                cdr(identity.as<absolute>().load())), // <syntactic-environment>
+                                                identity.as<absolute>().load().as<transformer>().syntactic_environment()),
                             cdr(form)),
                        local);
         }
@@ -932,7 +931,6 @@ inline namespace kernel
       #undef COMPILER
     };
 
-  private:
     auto operator ()(object const& expression,
                      object const& local,
                      object const& continuation = list(make(instruction::stop)),
@@ -1001,13 +999,13 @@ inline namespace kernel
            rules that specifies how a use of a macro is transcribed into a more
            primitive expression is called the transformer of the macro.
         */
-        assert(car(identity.as<absolute>().load()).is<closure>());
-        assert(cdr(identity.as<absolute>().load()).is<syntactic_environment>());
+        assert(identity.as<absolute>().load().as<transformer>().closure().is<closure>());
+        assert(identity.as<absolute>().load().as<transformer>().syntactic_environment().is<syntactic_environment>());
 
-        return compile(Environment().apply(car(identity.as<absolute>().load()), // <closure>
+        return compile(Environment().apply(identity.as<absolute>().load().as<transformer>().closure(),
                                            expression,
                                            make<syntactic_environment>(local, global()),
-                                           cdr(identity.as<absolute>().load())), // <syntactic-environment>
+                                           identity.as<absolute>().load().as<transformer>().syntactic_environment()),
                        local,
                        continuation,
                        ellipsis);
@@ -1027,7 +1025,6 @@ inline namespace kernel
       }
     }
 
-  public:
     using pair::pair;
 
     template <typename... Ts>
