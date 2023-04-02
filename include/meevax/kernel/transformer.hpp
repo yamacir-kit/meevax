@@ -14,20 +14,22 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_CONTEXT_HPP
-#define INCLUDED_MEEVAX_KERNEL_CONTEXT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_TRANSFORMER_HPP
+#define INCLUDED_MEEVAX_KERNEL_TRANSFORMER_HPP
+
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct context
+  struct transformer : public virtual pair // (<expression> . <environment>)
   {
-    bool is_tail = false;
+    using pair::pair;
   };
 
-  constexpr auto in_a_tail_context = context { true };
+  auto operator <<(std::ostream &, transformer const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_CONTEXT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_TRANSFORMER_HPP

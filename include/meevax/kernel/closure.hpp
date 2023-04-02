@@ -23,8 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct closure
-    : public virtual pair
+  struct closure : public virtual pair
   {
     using pair::pair;
 

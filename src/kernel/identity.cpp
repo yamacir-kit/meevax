@@ -23,37 +23,12 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto identity::load(object const& e) -> object &
+  auto absolute::load() const -> object const&
   {
-    return const_cast<object &>(std::as_const(*this).load(e));
-  }
-
-  auto identity::symbol() const -> object const&
-  {
-    assert(first.is_also<identifier>());
-    return first;
-  }
-
-  auto operator <<(std::ostream & os, identity const& datum) -> std::ostream &
-  {
-    return os << magenta("#,(") << blue("identity ") << datum.symbol() << magenta(")");
-  }
-
-  auto absolute::is_bound() const -> bool
-  {
-    return not is_free();
-  }
-
-  auto absolute::is_free() const -> bool
-  {
-    return eq(load(), undefined);
-  }
-
-  auto absolute::load(object const& e) const -> object const&
-  {
-    if (second.is_also<identity>()) // NOTE: Only the (export (rename ...)) form makes an identity whose value is identity.
+    if (second.is<absolute>()) // Only the (export (rename ...)) form makes an identity whose value is identity.
     {
-      return second.as<identity>().load(e);
+      assert(second.is<absolute>());
+      return second.as<absolute>().load();
     }
     else
     {
@@ -61,71 +36,59 @@ inline namespace kernel
     }
   }
 
-  auto absolute::load(object const& e) -> object &
+  auto absolute::store(object const& x) -> void
   {
-    return const_cast<object &>(std::as_const(*this).load(e));
+    second = x;
   }
 
-  auto absolute::make_load_instruction() const -> object
+  auto absolute::symbol() const -> object const&
   {
-    return make(instruction::load_absolute);
+    assert(first.is_also<identifier>());
+    return first;
   }
 
-  auto absolute::make_store_instruction() const -> object
+  auto operator <<(std::ostream & os, absolute const& datum) -> std::ostream &
   {
-    return make(instruction::store_absolute);
-  }
-
-  auto relative::is_bound() const -> bool
-  {
-    return true;
-  }
-
-  auto relative::is_free() const -> bool
-  {
-    return false;
+    if (datum.load() == undefined)
+    {
+      return os << faint(datum.symbol());
+    }
+    else
+    {
+      return os << blue(datum.symbol());
+    }
   }
 
   auto relative::load(object const& e) const -> object const&
   {
-    assert(car(second).template is<std::uint32_t>());
-    assert(cdr(second).template is<std::uint32_t>());
-
-    return e[car(second).template as<std::uint32_t>()]
-            [cdr(second).template as<std::uint32_t>()];
+    assert(first.is<index>());
+    assert(first.as<index>() < length(e));
+    assert(second.is<index>());
+    return head(head(e, first.as<index>()), second.as<index>());
   }
 
-  auto relative::make_load_instruction() const -> object
+  auto relative::store(object const& x, object & e) const -> void
   {
-    return make(instruction::load_relative);
-  }
-
-  auto relative::make_store_instruction() const -> object
-  {
-    return make(instruction::store_relative);
-  }
-
-  auto operator ==(relative const&, relative const&) -> bool
-  {
-    return false; // No viable comparison.
+    assert(first.is<index>());
+    assert(first.as<index>() < length(e));
+    assert(second.is<index>());
+    head(head(e, first.as<index>()), second.as<index>()) = x;
   }
 
   auto variadic::load(object const& e) const -> object const&
   {
-    assert(car(second).template is<std::uint32_t>());
-    assert(cdr(second).template is<std::uint32_t>());
-
-    return tail(e[car(second).template as<std::uint32_t>()], cdr(second).template as<std::uint32_t>());
+    assert(first.is<index>());
+    assert(first.as<index>() < length(e));
+    assert(second.is<index>());
+    return tail(head(e, first.as<index>()), second.as<index>());
   }
 
-  auto variadic::make_load_instruction() const -> object
+  auto variadic::store(object const& x, object & e) const -> void
   {
-    return make(instruction::load_variadic);
-  }
-
-  auto variadic::make_store_instruction() const -> object
-  {
-    return make(instruction::store_variadic);
+    assert(first.is<index>());
+    assert(first.as<index>() < length(e));
+    assert(second.is<index>());
+    tail(head(e, first.as<index>()), second.as<index>()) = x;
   }
 } // namespace kernel
 } // namespace meevax

@@ -14,28 +14,15 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_INTRINSIC_HPP
-#define INCLUDED_MEEVAX_KERNEL_INTRINSIC_HPP
-
-#include <meevax/kernel/procedure.hpp>
-#include <meevax/kernel/syntax.hpp>
+#include <meevax/kernel/transformer.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct intrinsic : public syntax
-                   , public procedure
+  auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
   {
-    template <typename F, typename G>
-    explicit intrinsic(std::string const& name, F&& f, G&& g)
-      : syntax    { name, std::forward<decltype(f)>(f) }
-      , procedure { name, std::forward<decltype(g)>(g) }
-    {}
-  };
-
-  auto operator <<(std::ostream &, intrinsic const&) -> std::ostream &;
+    return os << magenta("#,(") << green("transformer ") << faint("#;", &datum) << magenta(")");
+  }
 } // namespace kernel
 } // namespace meevax
-
-#endif // INCLUDED_MEEVAX_KERNEL_INTRINSIC_HPP

@@ -542,10 +542,10 @@
 
 (check (list x y) => (4 1))
 
-; (check (let ()
-;          (define-values (x y)
-;            (values 1 2))
-;          (+ x y)) => 3)
+(check (let ()
+         (define-values (x y)
+           (values 1 2))
+         (+ x y)) => 3)
 
 ; ---- 5.4. --------------------------------------------------------------------
 
@@ -1556,4 +1556,4 @@
 
 (check-report)
 
-(exit (check-passed? 396))
+(exit (check-passed? 397))

@@ -24,11 +24,10 @@
 ; THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 (define-library (srfi 149)
-  (import (only (meevax symbol) identifier->symbol)
-          (only (meevax syntax) define-syntax quote-syntax)
+  (import (only (meevax core) define-syntax quote-syntax)
+          (only (meevax symbol) identifier->symbol)
           (scheme r4rs)
-          (srfi 211 explicit-renaming)
-          )
+          (srfi 211 explicit-renaming))
 
   (export syntax-rules)
 

@@ -23,4 +23,4 @@ list_version()
   echo "\e[32m* v$(current_version)\e[0m"
 }
 
-update_version && list_version
+update_version
