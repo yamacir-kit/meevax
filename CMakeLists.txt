@@ -19,11 +19,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
-string(JOIN " " UNSTABLE_OPTIMIZATION_OPTIONS
-  # "-flto " # This optimization causes a SEGV when compiling with Clang 10.
-  # "-fmerge-all-constants " # This optimization is very effective in reducing binary size, but non-standard to the C++ standard.
-  # "-march=native " # This optimization causes "Illegal instruction" error (is Valgrind's bug) on CI.
-  # "-mtune=native "
+string(JOIN " " AGGRESSIVE_OPTIMIZATION_OPTIONS
+  # "-fdata-sections"
+  # "-ffunction-sections"
+  # "-flto" # This optimization causes a SEGV when compiling with Clang 10.
+  # "-fmerge-all-constants" # This optimization is very effective in reducing binary size, but non-standard to the C++ standard.
+  # "-march=native" # This optimization causes "Illegal instruction" error (is Valgrind's bug) on CI.
+  # "-mtune=native"
   )
 
 # NOTE: The `-gdwarf-4` option is set due to the following issues with Clang 14 and Valgrind versions below 3.20: https://bugzilla.mozilla.org/show_bug.cgi?id=1758782
@@ -31,7 +33,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -pipe")
 set(CMAKE_CXX_FLAGS_DEBUG          "-Og -gdwarf-4")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os           -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -gdwarf-4 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O2           -DNDEBUG ${UNSTABLE_OPTIMIZATION_OPTIONS}")
+set(CMAKE_CXX_FLAGS_RELEASE        "-O2           -DNDEBUG ${AGGRESSIVE_OPTIMIZATION_OPTIONS}")
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
