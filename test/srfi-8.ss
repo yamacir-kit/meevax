@@ -11,15 +11,15 @@
 
 (check (receive (q r) (truncate/ 13 4)
          (list q r))
-  => (3 1))
+  => '(3 1))
 
 (check (receive q/r (truncate/ 13 4)
          q/r)
-  => (3 1))
+  => '(3 1))
 
 (check (receive (q . rest) (truncate/ 13 4)
          (list q rest))
-  => (3 (1)))
+  => '(3 (1)))
 
 (check-report)
 

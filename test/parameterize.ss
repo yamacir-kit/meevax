@@ -12,30 +12,30 @@
 (check (procedure? p1) => #t)
 
 (check (parameterize ((p1 'parameterized))
-         (p1)) => parameterized)
+         (p1)) => 'parameterized)
 
-(check (p1) => default)
+(check (p1) => 'default)
 
 ; ------------------------------------------------------------------------------
 
-(define continuation)
+(define continuation #f)
 
-(define result)
+(define result #f)
 
 (parameterize ((p1 'parameterized))
   (call/cc (lambda (cc)
              (set! continuation cc)))
   (set! result (p1)))
 
-(check result => parameterized)
+(check result => 'parameterized)
 
-(check (p1) => default)
+(check (p1) => 'default)
 
 (continuation)
 
-(check result => parameterized)
+(check result => 'parameterized)
 
-(check (p1) => default)
+(check (p1) => 'default)
 
 ; ------------------------------------------------------------------------------
 
@@ -45,15 +45,15 @@
              (set! continuation cc)))
   (set! result (p1)))
 
-(check result => before-call/cc)
+(check result => 'before-call/cc)
 
-(check (p1) => default)
+(check (p1) => 'default)
 
 (continuation)
 
-(check result => before-call/cc)
+(check result => 'before-call/cc)
 
-(check (p1) => default)
+(check (p1) => 'default)
 
 ; ------------------------------------------------------------------------------
 
@@ -105,7 +105,7 @@
                     (lambda ()
                       (parameterize ((a 10)
                                      (b 'hoge))
-                        (list a b)))))) => error-raised)
+                        (list a b)))))) => 'error-raised)
 
 (check (a) => 1)
 

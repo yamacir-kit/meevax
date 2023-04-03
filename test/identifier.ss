@@ -18,6 +18,7 @@
 (check (identifier? 3) => #f)
 
 (check value => 42)
+
 (check (er-macro-transformer:rename value) => 42)
 
 (let ((value 3.14))
@@ -44,9 +45,9 @@
       (cons (rename 'car)
             (cdr form)))))
 
-(check (car '(a b)) => a)
+(check (car '(a b)) => 'a)
 
-(check (%car '(a b)) => a)
+(check (%car '(a b)) => 'a)
 
 ; ------------------------------------------------------------------------------
 
@@ -59,11 +60,7 @@
         (check (identifier? y) => #t)
         (check (symbol? x) => #t)
         (check (syntactic-closure? y) => #t)
-        (compare x (rename x))
-        )
-      )
-    )
-  )
+        (compare x (rename x))))))
 
 (check (er-macro-transformer:compare value) => #t)
 

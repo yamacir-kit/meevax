@@ -18,10 +18,10 @@
 (define fuga 'b)
 
 (let ((define cons))
-  (check (define hoge 'c) => (a . c))
-  (check (define fuga 'd) => (b . d))
-  (check hoge => a)
-  (check fuga => b))
+  (check (define hoge 'c) => '(a . c))
+  (check (define fuga 'd) => '(b . d))
+  (check hoge => 'a)
+  (check fuga => 'b))
 
 ; ------------------------------------------------------------------------------
 
@@ -31,39 +31,39 @@
 
 (let ()
   (define x 'a)
-  (check x => a))
+  (check x => 'a))
 
 (let ()
   (begin (define x 'a))
-  (check x => a))
+  (check x => 'a))
 
 (let ()
   (begin (begin (define x 'a)))
-  (check x => a))
+  (check x => 'a))
 
 (let ()
   (begin (define x 'a)
          (define y 'b))
-  (check x => a)
-  (check y => b))
+  (check x => 'a)
+  (check y => 'b))
 
 (let ()
   (begin (begin (define x 'a)
                 (define y 'b)))
-  (check x => a)
-  (check y => b))
+  (check x => 'a)
+  (check y => 'b))
 
 (let ()
   (begin (begin (define x 'a))
          (define y 'b))
-  (check x => a)
-  (check y => b))
+  (check x => 'a)
+  (check y => 'b))
 
 (let ()
   (begin (define x 'a)
          (begin (define y 'b)))
-  (check x => a)
-  (check y => b))
+  (check x => 'a)
+  (check y => 'b))
 
 (define-syntax %define
   (er-macro-transformer
@@ -72,39 +72,39 @@
 
 (let ()
   (%define x 'a)
-  (check x => a))
+  (check x => 'a))
 
 (let ()
   (begin (%define x 'a))
-  (check x => a))
+  (check x => 'a))
 
 (let ()
   (begin (begin (%define x 'a)))
-  (check x => a))
+  (check x => 'a))
 
 (let ()
   (begin (%define x 'a)
          (%define y 'b))
-  (check x => a)
-  (check y => b))
+  (check x => 'a)
+  (check y => 'b))
 
 (let ()
   (begin (begin (%define x 'a)
                 (%define y 'b)))
-  (check x => a)
-  (check y => b))
+  (check x => 'a)
+  (check y => 'b))
 
 (let ()
   (begin (begin (%define x 'a))
          (%define y 'b))
-  (check x => a)
-  (check y => b))
+  (check x => 'a)
+  (check y => 'b))
 
 (let ()
   (begin (%define x 'a)
          (begin (%define y 'b)))
-  (check x => a)
-  (check y => b))
+  (check x => 'a)
+  (check y => 'b))
 
 (define-syntax %define-2
   (er-macro-transformer
@@ -114,8 +114,8 @@
 
 (let ()
   (%define-2 x y 'z)
-  (check x => z)
-  (check y => z))
+  (check x => 'z)
+  (check y => 'z))
 
 (check-report)
 

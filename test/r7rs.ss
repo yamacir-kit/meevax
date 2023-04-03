@@ -75,23 +75,23 @@
 
 ; ---- 4.1.2. ------------------------------------------------------------------
 
-(check (quote a) => a)
+(check (quote a) => 'a)
 
 (check (quote #(a b c)) => #(a b c))
 
-(check (quote (+ 1 2)) => (+ 1 2))
+(check (quote (+ 1 2)) => '(+ 1 2))
 
-(check 'a => a)
+(check 'a => 'a)
 
 (check '#(a b c) => #(a b c))
 
-(check '() => ())
+(check '() => '())
 
-(check '(+ 1 2) => (+ 1 2))
+(check '(+ 1 2) => '(+ 1 2))
 
-(check '(quote a) => (quote a))
+(check '(quote a) => '(quote a))
 
-(check ''a  => (quote a))
+(check ''a  => '(quote a))
 
 (check '145932 => 145932)
 
@@ -142,15 +142,15 @@
 
 (check (add4 6) => 10)
 
-(check ((lambda x x) 3 4 5 6) => (3 4 5 6))
+(check ((lambda x x) 3 4 5 6) => '(3 4 5 6))
 
-(check ((lambda (x y . z) z) 3 4 5 6) => (5 6))
+(check ((lambda (x y . z) z) 3 4 5 6) => '(5 6))
 
 ; ---- 4.1.5. ------------------------------------------------------------------
 
-(check (if (> 3 2) 'yes 'no) => yes)
+(check (if (> 3 2) 'yes 'no) => 'yes)
 
-(check (if (> 2 3) 'yes 'no) => no)
+(check (if (> 2 3) 'yes 'no) => 'no)
 
 (check (if (> 3 2)
            (- 3 2)
@@ -169,27 +169,29 @@
 ; ---- 4.2.1. ------------------------------------------------------------------
 
 (check (cond ((> 3 2) 'greater)
-             ((< 3 2) 'less)) => greater)
+             ((< 3 2) 'less)) => 'greater)
 
 (check (cond ((> 3 3) 'greater)
              ((< 3 3) 'less)
-             (else 'equal)) => equal)
+             (else 'equal)) => 'equal)
 
 (check (cond ((assv 'b '((a 1) (b 2))) => cadr)
              (else #f)) => 2)
 
 (check (case (* 2 3)
          ((2 3 5 7) 'prime)
-         ((1 4 6 8 9) 'composite)) => composite)
+         ((1 4 6 8 9) 'composite)) => 'composite)
 
 (check (case (car '(c d))
          ((a) 'a)
-         ((b) 'b)) => #,(if #f #f))
+         ((b) 'b))
+  => (if #f #f))
 
 (check (case (car '(c d))
          ((a e i o u) 'vowel)
          ((w y) 'semivowel)
-         (else => (lambda (x) x))) => c)
+         (else => (lambda (x) x)))
+  => 'c)
 
 (check (and (= 2 2)
             (> 2 1)) => #t)
@@ -197,7 +199,7 @@
 (check (and (= 2 2)
             (< 2 1)) => #f)
 
-(check (and 1 2 'c '(f g)) => (f g))
+(check (and 1 2 'c '(f g)) => '(f g))
 
 (check (and) => #t)
 
@@ -210,45 +212,50 @@
 (check (or #f #f #f) => #f)
 
 (check (or (memq 'b '(a b c))
-           (/ 3 0)) => (b c))
+           (/ 3 0))
+  => '(b c))
 
 (check (when (= 1 1.0)
          (display "1")
-         (display "2")) => #,(if #f #f))
+         (display "2"))
+  => (if #f #f))
 
 (check (unless (= 1 1.0)
          (display "1")
-         (display "2")) => #,(if #f #f))
+         (display "2"))
+  => (if #f #f))
 
 ; ---- 4.2.2. ------------------------------------------------------------------
 
 (check (let ((x 2)
              (y 3))
-         (* x y)) => 6)
+         (* x y))
+  => 6)
 
 (check (let ((x 2)
              (y 3))
          (let ((x 7)
                (z (+ x y)))
-           (* z x))) => 35)
+           (* z x)))
+  => 35)
 
 (check (let ((x 2)
              (y 3))
          (let* ((x 7)
                 (z (+ x y)))
-           (* z x))) => 70)
+           (* z x)))
+  => 70)
 
-(check (letrec ((even?
-                  (lambda (n)
-                    (if (zero? n)
-                        #t
-                        (odd? (- n 1)))))
-                (odd?
-                  (lambda (n)
-                    (if (zero? n)
-                        #f
-                        (even? (- n 1))))))
-         (even? 88)) => #t)
+(check (letrec ((even? (lambda (n)
+                         (if (zero? n)
+                             #t
+                             (odd? (- n 1)))))
+                (odd? (lambda (n)
+                        (if (zero? n)
+                            #f
+                            (even? (- n 1))))))
+         (even? 88))
+  => #t)
 
 (check (letrec* ((p (lambda (x)
                       (+ 1 (q (- x 1)))))
@@ -258,11 +265,13 @@
                           (+ 1 (p (- y 1))))))
                  (x (p 5))
                  (y x))
-         y) => 5)
+         y)
+  => 5)
 
 (check (let-values (((root rem)
                      (exact-integer-sqrt 32)))
-         (* root rem)) => 35)
+         (* root rem))
+  => 35)
 
 (check (let ((a 'a)
              (b 'b)
@@ -270,7 +279,8 @@
              (y 'y))
          (let*-values (((a b) (values x y))
                        ((x y) (values a b)))
-           (list a b x y))) => (x y x y))
+           (list a b x y)))
+  => '(x y x y))
 
 ; ---- 4.2.3. ------------------------------------------------------------------
 
@@ -278,22 +288,26 @@
 
 (check (and (= x 0)
             (begin (set! x 5)
-                   (+ x 1))) => 6)
+                   (+ x 1)))
+  => 6)
 
 (check (begin (display "4 plus 1 equals ")
-              (display (+ 4 1))) => #,(if #f #f))
+              (display (+ 4 1)))
+  => (if #f #f))
 
 ; ---- 4.2.4. ------------------------------------------------------------------
 
 (check (do ((vec (make-vector 5))
             (i 0 (+ i 1)))
            ((= i 5) vec)
-         (vector-set! vec i i)) => #(0 1 2 3 4))
+         (vector-set! vec i i))
+  => #(0 1 2 3 4))
 
 (check (let ((x '(1 3 5 7 9)))
          (do ((x x (cdr x))
               (sum 0 (+ sum (car x))))
-           ((null? x) sum))) => 25)
+           ((null? x) sum)))
+  => 25)
 
 (check (let loop ((numbers '(3 -2 1 6 -5))
                   (nonneg '())
@@ -306,7 +320,8 @@
                ((< (car numbers) 0)
                 (loop (cdr numbers)
                       nonneg
-                      (cons (car numbers) neg))))) => ((6 1 3) (-5 -2)))
+                      (cons (car numbers) neg)))))
+  => '((6 1 3) (-5 -2)))
 
 ; ---- 4.2.5. ------------------------------------------------------------------
 
@@ -314,7 +329,8 @@
 
 (check (let ((p (delay (+ 1 2))))
          (list (force p)
-               (force p))) => (3 3))
+               (force p)))
+  => '(3 3))
 
 (define integers
   (letrec ((next (lambda (n)
@@ -383,12 +399,12 @@
 (define (f n)
   (number->string n (radix)))
 
-; (check (f 12) => "12")
+(check (f 12) => "12")
 
 ; (parameterize ((radix 2))
 ;   (check (f 12) => "1100")
 
-; (check (f 12) => "12")
+(check (f 12) => "12")
 
 ; (check (radix 16) => ???)
 
@@ -400,38 +416,41 @@
 ; (check (guard (condition
 ;                 ((assq 'a condition) => cdr)
 ;                 ((assq 'b condition)))
-;          (raise (list (cons 'a 42)))) => 42)
+;          (raise (list (cons 'a 42))))
+;   => 42)
 
 ; (check (guard (condition
 ;                 ((assq 'a condition) => cdr)
 ;                 ((assq 'b condition)))
-;          (raise (list (cons 'b 23)))) => (b . 23))
+;          (raise (list (cons 'b 23))))
+;   => '(b . 23))
 
 ; ---- 4.2.8. ------------------------------------------------------------------
 
-(check `(list ,(+ 1 2) 4) => (list 3 4))
+(check `(list ,(+ 1 2) 4) => '(list 3 4))
 
 (check (let ((name 'a))
-         `(list ,name ',name)) => (list a (quote a)))
+         `(list ,name ',name)) => '(list a (quote a)))
 
-(check `(a ,(+ 1 2) ,@(map abs '(4 -5 6)) b) => (a 3 4 5 6 b))
+(check `(a ,(+ 1 2) ,@(map abs '(4 -5 6)) b) => '(a 3 4 5 6 b))
 
-(check `((foo ,(- 10 3)) ,@(cdr '(c)) . ,(car '(cons))) => ((foo 7) . cons))
+(check `((foo ,(- 10 3)) ,@(cdr '(c)) . ,(car '(cons))) => '((foo 7) . cons))
 
 (check `#(10 5 ,(sqrt 4) ,@(map sqrt '(16 9)) 8) => #(10 5 2 4 3 8))
 
-(check `(a `(b ,(+ 1 2) ,(foo ,(+ 1 3) d) e) f) => (a `(b ,(+ 1 2) ,(foo 4 d) e) f))
+(check `(a `(b ,(+ 1 2) ,(foo ,(+ 1 3) d) e) f) => '(a `(b ,(+ 1 2) ,(foo 4 d) e) f))
 
 (check (let ((name1 'x)
              (name2 'y))
-         `(a `(b ,,name1 ,',name2 d) e)) => (a `(b ,x ,'y d) e))
+         `(a `(b ,,name1 ,',name2 d) e))
+  => '(a `(b ,x ,'y d) e))
 
 (check (let ((a 3))
-         `((1 2) ,a ,4 ,'five 6)) => ((1 2) 3 4 five 6))
+         `((1 2) ,a ,4 ,'five 6)) => '((1 2) 3 4 five 6))
 
-(check (quasiquote (list (unquote (+ 1 2)) 4)) => (list 3 4))
+(check (quasiquote (list (unquote (+ 1 2)) 4)) => '(list 3 4))
 
-(check '(quasiquote (list (unquote (+ 1 2)) 4)) => `(list ,(+ 1 2) 4))
+(check '(quasiquote (list (unquote (+ 1 2)) 4)) => '`(list ,(+ 1 2) 4))
 
 ; ---- 4.2.9. ------------------------------------------------------------------
 
@@ -455,13 +474,15 @@
                                               stmt2 ...))))))
          (let ((if #t))
            (given-that if (set! if 'now))
-           if)) => now)
+           if))
+  => 'now)
 
 (check (let ((x 'outer))
          (let-syntax ((m (syntax-rules ()
                            ((m) x))))
            (let ((x 'inner))
-             (m)))) => outer)
+             (m))))
+  => 'outer)
 
 (check (letrec-syntax ((my-or (syntax-rules ()
                                 ((my-or) #f)
@@ -479,7 +500,8 @@
            (my-or x
                   (let temp)
                   (if y)
-                  y))) => 7)
+                  y)))
+  => 7)
 
 ; ---- 4.3.2. ------------------------------------------------------------------
 
@@ -496,7 +518,8 @@
 (check (sequence 1 2 3 4) => 4)
 
 (check (let ((=> #f))
-         (cond (#t => 'ok))) => ok)
+         (cond (#t => 'ok)))
+  => 'ok)
 
 (define-syntax simple-let
   (syntax-rules ()
@@ -526,26 +549,29 @@
          (define bar
            (lambda (a b)
              (+ (* a b) a)))
-         (foo (+ x 3))) => 45)
+         (foo (+ x 3)))
+  => 45)
 
 (check (let ((x 5))
          (letrec* ((foo (lambda (y)
                           (bar x y)))
                    (bar (lambda (a b)
                           (+ (* a b) a))))
-           (foo (+ x 3)))) => 45)
+           (foo (+ x 3))))
+  => 45)
 
 ; ---- 5.3.3. ------------------------------------------------------------------
 
 (define-values (x y)
   (exact-integer-sqrt 17))
 
-(check (list x y) => (4 1))
+(check (list x y) => '(4 1))
 
 (check (let ()
          (define-values (x y)
            (values 1 2))
-         (+ x y)) => 3)
+         (+ x y))
+  => 3)
 
 ; ---- 5.4. --------------------------------------------------------------------
 
@@ -703,7 +729,8 @@
              (lambda () 2)) => #f)
 
 (check (let ((p (lambda (x) x)))
-         (eqv? p p)) => #t)
+         (eqv? p p))
+  => #t)
 
 (check (eqv? #f 'nil) => #f)
 
@@ -721,29 +748,29 @@
 
 (check (eqv? +nan.0 +nan.0) => #t) ; unspecified
 
-(define generate-counter
+(define gen-counter
   (lambda ()
     (let ((n 0))
       (lambda ()
         (set! n (+ n 1)) n))))
 
-(check (let ((g (generate-counter)))
+(check (let ((g (gen-counter)))
          (eqv? g g)) => #t)
 
-(check (eqv? (generate-counter)
-             (generate-counter)) => #f)
+(check (eqv? (gen-counter)
+             (gen-counter)) => #f)
 
-(define generate-loser
+(define gen-loser
   (lambda ()
     (let ((n 0))
       (lambda ()
         (set! n (+ n 1)) 27))))
 
-(check (let ((g (generate-loser)))
+(check (let ((g (gen-loser)))
          (eqv? g g)) => #t)
 
-(check (eqv? (generate-loser)
-             (generate-loser)) => #f) ; unspecified
+(check (eqv? (gen-loser)
+             (gen-loser)) => #f) ; unspecified
 
 (check (letrec ((f (lambda ()
                      (if (eqv? f g)
@@ -753,7 +780,8 @@
                      (if (eqv? f g)
                          'both
                          'g))))
-         (eqv? f g)) => #f) ; unspecified
+         (eqv? f g))
+  => #f) ; unspecified
 
 (check (letrec ((f (lambda ()
                      (if (eqv? f g)
@@ -763,7 +791,8 @@
                      (if (eqv? f g)
                          'g
                          'both))))
-         (eqv? f g)) => #f)
+         (eqv? f g))
+  => #f)
 
 (check (eqv? '(a) '(a)) => #t) ; unspecified
 
@@ -772,7 +801,8 @@
 (check (eqv? '(b) (cdr '(a b))) => #t) ; unspecified
 
 (check (let ((x '(a)))
-         (eqv? x x)) => #t)
+         (eqv? x x))
+  => #t)
 
 (check (eq? 'a 'a) => #t)
 
@@ -794,16 +824,20 @@
 (check (eq? car car) => #t)
 
 (check (let ((n (+ 2 3)))
-         (eq? n n)) => #t) ; unspecified
+         (eq? n n))
+  => #t) ; unspecified
 
 (check (let ((x '(a)))
-         (eq? x x)) => #t)
+         (eq? x x))
+  => #t)
 
 (check (let ((x '#()))
-         (eq? x x)) => #t)
+         (eq? x x))
+  => #t)
 
 (check (let ((p (lambda (x) x)))
-         (eq? p p)) => #t)
+         (eq? p p))
+  => #t)
 
 (check (equal? 'a 'a) => #t)
 
@@ -919,23 +953,23 @@
 
 (check (abs -7) => 7)
 
-(check (floor/ 5 2) => #,(values 2 1))
+(check (floor/ 5 2) => (values 2 1))
 
-(check (floor/ -5 2) => #,(values -3 1))
+(check (floor/ -5 2) => (values -3 1))
 
-(check (floor/ 5 -2) => #,(values -3 -1))
+(check (floor/ 5 -2) => (values -3 -1))
 
-(check (floor/ -5 -2) => #,(values 2 -1))
+(check (floor/ -5 -2) => (values 2 -1))
 
-(check (truncate/ 5 2) => #,(values 2 1))
+(check (truncate/ 5 2) => (values 2 1))
 
-(check (truncate/ -5 2) => #,(values -2 -1))
+(check (truncate/ -5 2) => (values -2 -1))
 
-(check (truncate/ 5 -2) => #,(values -2 1))
+(check (truncate/ 5 -2) => (values -2 1))
 
-(check (truncate/ -5 -2) => #,(values 2 -1))
+(check (truncate/ -5 -2) => (values 2 -1))
 
-(check (truncate/ -5.0 -2) => #,(values 2.0 -1.0))
+(check (truncate/ -5.0 -2) => (values 2.0 -1.0))
 
 (check (gcd 32 -36) => 4)
 
@@ -985,9 +1019,9 @@
 
 (check (sqrt -1) => +i)
 
-(check (exact-integer-sqrt 4) => #,(values 2 0))
+(check (exact-integer-sqrt 4) => (values 2 0))
 
-(check (exact-integer-sqrt 5) => #,(values 2 1))
+(check (exact-integer-sqrt 5) => (values 2 1))
 
 (check (string->number "100") => 100)
 
@@ -1035,17 +1069,17 @@
 
 (define y x)
 
-(check y => (a b c))
+(check y => '(a b c))
 
 (check (list? y) => #t)
 
 (check (set-cdr! x 4) => 4)
 
-(check x => (a . 4))
+(check x => '(a . 4))
 
 (check (eqv? x y) => #t)
 
-(check y => (a . 4))
+(check y => '(a . 4))
 
 (check (list? y) => #f)
 
@@ -1061,29 +1095,29 @@
 
 (check (pair? '#(a b)) => #f)
 
-(check (cons 'a '()) => (a))
+(check (cons 'a '()) => '(a))
 
-(check (cons '(a) '(b c d)) => ((a) b c d))
+(check (cons '(a) '(b c d)) => '((a) b c d))
 
-(check (cons "a" '(b c)) => ("a" b c))
+(check (cons "a" '(b c)) => '("a" b c))
 
-(check (cons 'a 3) => (a . 3))
+(check (cons 'a 3) => '(a . 3))
 
-(check (cons '(a b) 'c) => ((a b) . c))
+(check (cons '(a b) 'c) => '((a b) . c))
 
-(check (car '(a b c)) => a)
+(check (car '(a b c)) => 'a)
 
-(check (car '((a) b c d)) => (a))
+(check (car '((a) b c d)) => '(a))
 
 (check (car '(1 . 2)) => 1)
 
-(check (car '()) => ())
+(check (car '()) => '())
 
-(check (cdr '((a) b c d)) => (b c d))
+(check (cdr '((a) b c d)) => '(b c d))
 
 (check (cdr '(1 . 2)) => 2)
 
-(check (cdr '()) => ())
+(check (cdr '()) => '())
 
 (define (f)
   (list 'not-a-constant-list))
@@ -1102,13 +1136,14 @@
 
 (check (let ((x (list 'a)))
          (set-cdr! x x)
-         (list? x)) => #f)
+         (list? x))
+  => #f)
 
-(check (make-list 2 3) => (3 3))
+(check (make-list 2 3) => '(3 3))
 
-(check (list 'a (+ 3 4) 'c) => (a 7 c))
+(check (list 'a (+ 3 4) 'c) => '(a 7 c))
 
-(check (list) => ())
+(check (list) => '())
 
 (check (length '(a b c)) => 3)
 
@@ -1116,63 +1151,64 @@
 
 (check (length '()) => 0)
 
-(check (append '(x) '(y)) => (x y))
+(check (append '(x) '(y)) => '(x y))
 
-(check (append '(a) '(b c d)) => (a b c d))
+(check (append '(a) '(b c d)) => '(a b c d))
 
-(check (append '(a (b)) '((c))) => (a (b) (c)))
+(check (append '(a (b)) '((c))) => '(a (b) (c)))
 
-(check (append '(a b) '(c . d)) => (a b c . d))
+(check (append '(a b) '(c . d)) => '(a b c . d))
 
-(check (append '() 'a) => a)
+(check (append '() 'a) => 'a)
 
-(check (reverse '(a b c)) => (c b a))
+(check (reverse '(a b c)) => '(c b a))
 
-(check (reverse '(a (b c) d (e (f)))) =>  ((e (f)) d (b c) a))
+(check (reverse '(a (b c) d (e (f)))) => '((e (f)) d (b c) a))
 
-(check (list-ref '(a b c d) 2) => c)
+(check (list-ref '(a b c d) 2) => 'c)
 
-(check (list-ref '(a b c d) (exact (round 1.8))) => c)
+(check (list-ref '(a b c d) (exact (round 1.8))) => 'c)
 
 (check (let ((ls (list 'one 'two 'five!)))
          (list-set! ls 2 'three)
-         ls) => (one two three))
+         ls)
+  => '(one two three))
 
 (check (list-set! '(0 1 2) 1 "oops") => "oops")
 
-(check (memq 'a '(a b c)) => (a b c))
+(check (memq 'a '(a b c)) => '(a b c))
 
-(check (memq 'b '(a b c)) => (b c))
+(check (memq 'b '(a b c)) => '(b c))
 
 (check (memq 'a '(b c d)) => #f)
 
 (check (memq (list 'a) '(b (a) c)) => #f)
 
-(check (member (list 'a) '(b (a) c)) => ((a) c))
+(check (member (list 'a) '(b (a) c)) => '((a) c))
 
-(check (member "B" '("a" "b" "c") string-ci=?) => ("b" "c"))
+(check (member "B" '("a" "b" "c") string-ci=?) => '("b" "c"))
 
 (check (memq 101 '(100 101 102)) => #f) ; unspecified
 
-(check (memv 101 '(100 101 102)) => (101 102))
+(check (memv 101 '(100 101 102)) => '(101 102))
 
 (define e '((a 1) (b 2) (c 3)))
 
-(check (assq 'a e) => (a 1))
+(check (assq 'a e) => '(a 1))
 
-(check (assq 'b e) => (b 2))
+(check (assq 'b e) => '(b 2))
 
 (check (assq 'd e) => #f)
 
 (check (assq (list 'a) '(((a)) ((b)) ((c)))) => #f)
 
-(check (assoc (list 'a) '(((a)) ((b)) ((c)))) => ((a)))
+(check (assoc (list 'a) '(((a)) ((b)) ((c)))) => '((a)))
 
-(check (assoc 2.0 '((1 1) (2 4) (3 9)) =) => (2 4))
+(check (assoc 2.0 '((1 1) (2 4) (3 9)) =) => '(2 4))
 
 (check (assq 5 '((2 3) (5 7) (11 13))) => #f) ; unspecified
 
-(check (assv 5 '((2 3) (5 7) (11 13))) => (5 7))
+(check (assv 5 '((2 3) (5 7) (11 13))) => '(5 7))
 
 (define a '(1 8 2 8)) ; a may be immutable
 
@@ -1180,9 +1216,9 @@
 
 (set-car! b 3) ; b is mutable
 
-(check b => (3 8 2 8))
+(check b => '(3 8 2 8))
 
-(check a => (1 8 2 8))
+(check a => '(1 8 2 8))
 
 ; ---- 6.5. --------------------------------------------------------------------
 
@@ -1204,7 +1240,7 @@
 
 (check (symbol->string (string->symbol "Malvina")) => "Malvina")
 
-(check (string->symbol "mISSISSIppi") => mISSISSIppi)
+(check (string->symbol "mISSISSIppi") => 'mISSISSIppi)
 
 (check (eqv? 'bitBlt (string->symbol "bitBlt")) => #t)
 
@@ -1299,13 +1335,14 @@
                    (exact (round (* 2 (acos -1))))) => 13)
 
 (check (let ((vec (vector 0 '(2 2 2 2) "Anna")))
-         (vector-set! vec 1 '("Sue" "Sue")) vec) => #(0 ("Sue" "Sue") "Anna"))
+         (vector-set! vec 1 '("Sue" "Sue")) vec)
+  => #(0 ("Sue" "Sue") "Anna"))
 
 (check (vector-set! '#(0 1 2) 1 "doe") => "doe")
 
-(check (vector->list '#(dah dah didah)) => (dah dah didah))
+(check (vector->list '#(dah dah didah)) => '(dah dah didah))
 
-(check (vector->list '#(dah dah didah) 1 2) => (dah))
+(check (vector->list '#(dah dah didah) 1 2) => '(dah))
 
 (check (list->vector '(dididit dah)) => #(dididit dah))
 
@@ -1396,23 +1433,25 @@
 
 (check ((compose sqrt *) 12 75) => 30)
 
-(check (map cadr '((a b) (d e) (g h))) => (b e h))
+(check (map cadr '((a b) (d e) (g h))) => '(b e h))
 
-(check (map (lambda (n) (expt n n)) '(1 2 3 4 5)) => (1 4 27 256 3125))
+(check (map (lambda (n) (expt n n)) '(1 2 3 4 5)) => '(1 4 27 256 3125))
 
-(check (map + '(1 2 3) '(4 5 6 7)) => (5 7 9))
+(check (map + '(1 2 3) '(4 5 6 7)) => '(5 7 9))
 
 (check (let ((count 0))
          (map (lambda (ignored)
                 (set! count (+ count 1))
                 count)
-              '(a b c))) => (1 2 3))
+              '(a b c)))
+  => '(1 2 3))
 
 (check (string-map char-foldcase "AbdEgH") => "abdegh")
 
 (check (string-map (lambda (c)
                      (integer->char (+ 1 (char->integer c))))
-                   "HAL") => "IBM")
+                   "HAL")
+  => "IBM")
 
 ; (check (string-map (lambda (c k)
 ;                      ((if (eqv? k #\u) char-upcase char-downcase)
@@ -1439,7 +1478,8 @@
          (for-each (lambda (i)
                      (vector-set! v i (* i i)))
                    '(0 1 2 3 4))
-         v) => #(0 1 4 9 16))
+         v)
+  => #(0 1 4 9 16))
 
 ; (check (let ((v '()))
 ;          (string-for-each
@@ -1460,7 +1500,8 @@
                        (if (negative? x)
                            (exit x)))
                      '(54 0 37 -3 245 19))
-           #t)) => -3)
+           #t))
+  => -3)
 
 (define list-length
   (lambda (object)
@@ -1478,7 +1519,8 @@
 (check (list-length '(a b . c)) => #f)
 
 (check (call-with-values (lambda () (values 4 5))
-                         (lambda (a b) b)) => 5)
+                         (lambda (a b) b))
+  => 5)
 
 (check (call-with-values * -) => -1)
 
@@ -1496,8 +1538,8 @@
              (lambda () (add 'disconnect)))
            (if (< (length path) 4)
                (c 'talk2)
-               (reverse path)))) => (connect talk1 disconnect
-                                     connect talk2 disconnect))
+               (reverse path)))) => '(connect talk1 disconnect
+                                      connect talk2 disconnect))
 
 ; ---- 6.11. -------------------------------------------------------------------
 
@@ -1510,7 +1552,8 @@
                (newline)
                (k 'exception))
              (lambda ()
-               (+ 1 (raise 'an-error)))))) => exception)
+               (+ 1 (raise 'an-error))))))
+  => 'exception)
 
 ; (with-exception-handler
 ;   (lambda (x)
@@ -1526,7 +1569,7 @@
          (lambda ()
            (+ (raise-continuable "should be a number")
               23)))
-       => 65)
+  => 65)
 
 (define (null-list? l)
   (cond ((pair? l) #f)
@@ -1556,4 +1599,4 @@
 
 (check-report)
 
-(exit (check-passed? 397))
+(exit (check-passed? 399))
