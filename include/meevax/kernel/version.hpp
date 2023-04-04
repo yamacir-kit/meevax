@@ -25,14 +25,14 @@ namespace meevax
 {
 inline namespace kernel
 {
-  [[deprecated]]
-  auto gmp_version() -> object const&;
-
   auto version() -> object const&;
 
   auto major_version() -> object const&;
+
   auto minor_version() -> object const&;
+
   auto patch_version() -> object const&;
+
   auto exact_version() -> object const&;
 
   auto features() -> object const&;

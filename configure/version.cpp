@@ -20,15 +20,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto gmp_version() -> object const&
-  {
-    let static const version = make<symbol>(::gmp_version);
-    return version;
-  }
-
   auto version() -> object const&
   {
-    let static const version = make<symbol>("${PROJECT_VERSION}");
+    let static const version = string_to_symbol("${PROJECT_VERSION}");
     return version;
   }
 
@@ -52,26 +46,25 @@ inline namespace kernel
 
   auto exact_version() -> object const&
   {
-    let static const version = make<symbol>("${${PROJECT_NAME}_VERSION_EXACT}");
+    let static const version = string_to_symbol("${${PROJECT_NAME}_VERSION_EXACT}");
     return version;
   }
 
   auto features() -> object const&
   {
     let static const features = list(
-      make<symbol>("r4rs"),
-      make<symbol>("exact-closed"),
-      make<symbol>("exact-complex"),
-      make<symbol>("ieee-float"),
-      // make<symbol>("full-unicode"),
-      make<symbol>("ratios"),
-      make<symbol>("posix"),
-      make<symbol>("${CMAKE_SYSTEM_NAME}"),
-      make<symbol>("${CMAKE_SYSTEM_PROCESSOR}"),
+      string_to_symbol("r5rs"),
+      string_to_symbol("exact-closed"),
+      string_to_symbol("exact-complex"),
+      string_to_symbol("ieee-float"),
+      string_to_symbol("ratios"),
+      string_to_symbol("posix"),
+      string_to_symbol("${CMAKE_SYSTEM_NAME}"),
+      string_to_symbol("${CMAKE_SYSTEM_PROCESSOR}"),
       // TODO C memory model flags.
-      make<symbol>("${${PROJECT_NAME}_BYTE_ORDER}"),
-      make<symbol>("${PROJECT_NAME}"), // The name of this implementation.
-      make<symbol>("${PROJECT_NAME}-${PROJECT_VERSION}") // The name and version of this implementation.
+      string_to_symbol("${${PROJECT_NAME}_BYTE_ORDER}"),
+      string_to_symbol("${PROJECT_NAME}"), // The name of this implementation.
+      string_to_symbol("${PROJECT_NAME}-${PROJECT_VERSION}") // The name and version of this implementation.
       );
 
     return features;
