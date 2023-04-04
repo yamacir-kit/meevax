@@ -9,6 +9,7 @@
           (only (meevax write) put-char put-string)
           (scheme r5rs)
           (srfi 6)
+          (srfi 9)
           (srfi 11)
           (srfi 23)
           (srfi 34)
@@ -26,8 +27,7 @@
           letrec-syntax syntax-rules _ ... syntax-error
 
           ; 5.3. Variable definitions
-          define define-values define-syntax
-          ; define-record-type
+          define define-values define-syntax define-record-type
 
           ; 6.1. Equivalence predicates
           eqv? eq? equal?

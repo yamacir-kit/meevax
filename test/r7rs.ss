@@ -602,23 +602,24 @@
 
 ; ---- 5.5. --------------------------------------------------------------------
 
-; (define-record-type <pare>
-;   (kons x y)
-;   pare?
-;   (x kar set-kar!)
-;   (y kdr))
+(define-record-type <pare>
+  (kons x y)
+  pare?
+  (x kar set-kar!)
+  (y kdr))
 
-; (check (pare? (kons 1 2)) => #t)
+(check (pare? (kons 1 2)) => #t)
 
-; (check (pare? (cons 1 2)) => #f)
+(check (pare? (cons 1 2)) => #f)
 
-; (check (kar (kons 1 2)) => 1)
+(check (kar (kons 1 2)) => 1)
 
-; (check (kdr (kons 1 2)) => 2)
+(check (kdr (kons 1 2)) => 2)
 
-; (check (let ((k (kons 1 2)))
-;          (set-kar! k 3)
-;          (kar k)) => 3)
+(check (let ((k (kons 1 2)))
+         (set-kar! k 3)
+         (kar k))
+  => 3)
 
 ; ---- 5.6.2. ------------------------------------------------------------------
 
@@ -1599,4 +1600,4 @@
 
 (check-report)
 
-(exit (check-passed? 399))
+(exit (check-passed? 404))
