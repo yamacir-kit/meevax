@@ -16,13 +16,11 @@
 
 #include <meevax/kernel/basis.hpp>
 
-/* ---- Embedded Source Codes --------------------------------------------------
- *
- *  basis/hoge.ss
- *
- *  NOTE: readelf -a hoge.ss.o
- *
- * -------------------------------------------------------------------------- */
+/*
+   basis/hoge.ss
+
+   NOTE: readelf -a hoge.ss.o
+*/
 
 #define DEFINE_BINARY(FILENAME)                                                \
                                                                                \
@@ -49,6 +47,7 @@ DEFINE_BINARY(r7rs);
 DEFINE_BINARY(srfi_1);
 DEFINE_BINARY(srfi_6);
 DEFINE_BINARY(srfi_8);
+DEFINE_BINARY(srfi_9);
 DEFINE_BINARY(srfi_11);
 DEFINE_BINARY(srfi_23);
 DEFINE_BINARY(srfi_34);

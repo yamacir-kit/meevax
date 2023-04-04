@@ -1344,6 +1344,7 @@ inline namespace kernel
       srfi_1,  // List Library
       srfi_6,  // Basic String Ports
       srfi_8,  // receive: Binding to multiple values
+      srfi_9,  // Defining Record Types
       srfi_11, // Syntax for receiving multiple values
       srfi_23, // Error reporting mechanism
       srfi_34, // Exception Handling for Programs
