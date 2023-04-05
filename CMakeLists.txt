@@ -55,6 +55,10 @@ else()
   set(${PROJECT_NAME}_BYTE_ORDER "little-endian")
 endif()
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt ${CMAKE_CURRENT_BINARY_DIR}/help.txt)
+
+file(READ ${CMAKE_CURRENT_BINARY_DIR}/help.txt ${PROJECT_NAME}_HELP_TEXT)
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 

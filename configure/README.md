@@ -46,6 +46,7 @@ Subset of R7RS-small.
 | [  1](https://srfi.schemers.org/srfi-1/srfi-1.html)     | List Library                                           | [`(srfi 1)`](./basis/srfi-1.ss)                       |                   |
 | [  6](https://srfi.schemers.org/srfi-6/srfi-6.html)     | Basic String Ports                                     | [`(srfi 6)`](./basis/srfi-6.ss)                       | R7RS 6.13         |
 | [  8](https://srfi.schemers.org/srfi-8/srfi-8.html)     | receive: Binding to multiple values                    | [`(srfi 8)`](./basis/srfi-8.ss)                       |                   |
+| [  9](https://srfi.schemers.org/srfi-9/srfi-9.html)     | Defining Record Types                                  | [`(srfi 9)`](./basis/srfi-9.ss)                       | R7RS 5.5          |
 | [ 10](https://srfi.schemers.org/srfi-10/srfi-10.html)   | #, external form                                       |                                                       |                   |
 | [ 11](https://srfi.schemers.org/srfi-11/srfi-11.html)   | Syntax for receiving multiple values                   | [`(srfi 11)`](./basis/srfi-11.ss)                     | R7RS 4.2.2        |
 | [ 23](https://srfi.schemers.org/srfi-23/srfi-23.html)   | Error reporting mechanism                              | [`(srfi 23)`](./basis/srfi-23.ss)                     | R7RS 6.11         |
@@ -91,20 +92,11 @@ $ make install.deb
 ``` bash
 $ sudo apt remove meevax
 ```
-<!--
-or
-``` bash
-sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}
-sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
-sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}*
-sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
-```
--->
 
 ### CMake targets
 
 | Target Name        | Description
-|:-------------------|:--
+|--------------------|---
 | `all` (default)    | Build shared-library `libmeevax.${PROJECT_VERSION}.so` and executable `meevax`.
 | `test`             | Test executable `meevax`.
 | `package`          | Generate debian package `meevax_${PROJECT_VERSION}_amd64.deb`.

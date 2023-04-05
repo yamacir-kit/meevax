@@ -39,22 +39,6 @@ inline namespace kernel
   public:
     static inline auto interactive = true;
 
-    static auto display_help() -> void
-    {
-      std::cout << "Meevax Lisp " << version() << "\n"
-                << "\n"
-                   "Usage: meevax [OPTION...] [FILE...]\n"
-                   "\n"
-                   "Options:\n"
-                   "  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.\n"
-                   "  -h, --help             Display this help text and exit.\n"
-                   "  -i, --interactive      Take over control of root environment.\n"
-                   "  -l, --load=FILENAME    Same as -e '(load FILENAME)'\n"
-                   "  -v, --version          Display version information and exit.\n"
-                   "  -w, --write=OBJECT     Same as -e '(write OBJECT)'\n"
-                << std::flush;
-    }
-
     struct option
     {
       let const operation;
@@ -103,7 +87,7 @@ inline namespace kernel
 
         option("(h|help)", []()
         {
-          display_help();
+          help();
           throw success;
         }),
 
