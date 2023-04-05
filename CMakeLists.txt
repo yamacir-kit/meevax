@@ -66,22 +66,31 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT
 
 file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
 
-set(${PROJECT_NAME}_BASIS "")
+# set(${PROJECT_NAME}_BASIS "")
+#
+# foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
+#   get_filename_component(FILENAME ${EACH} NAME)
+#   get_filename_component(FILEPATH ${EACH} PATH)
+#   add_custom_command(
+#     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o
+#     WORKING_DIRECTORY ${FILEPATH}
+#     COMMAND ${CMAKE_OBJCOPY}
+#     ARGS -I binary
+#          -O elf64-x86-64
+#          -B i386
+#          ${FILENAME}
+#          ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
+#   list(APPEND ${PROJECT_NAME}_BASIS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
+# endforeach()
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
   get_filename_component(FILENAME ${EACH} NAME)
-  get_filename_component(FILEPATH ${EACH} PATH)
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o
-    WORKING_DIRECTORY ${FILEPATH}
-    COMMAND ${CMAKE_OBJCOPY}
-    ARGS -I binary
-         -O elf64-x86-64
-         -B i386
-         ${FILENAME}
-         ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
-  list(APPEND ${PROJECT_NAME}_BASIS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
+  message(STATUS "EACH = ${EACH}")
+  message(STATUS "FILENAME = ${FILENAME}")
+  file(READ ${EACH} ${PROJECT_NAME}_BASIS_${FILENAME})
 endforeach()
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/basis.cpp)
 
 # ---- Target kernel -----------------------------------------------------------
 
@@ -91,7 +100,7 @@ add_library(${PROJECT_NAME}::kernel ALIAS kernel)
 
 file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
-target_sources(kernel PRIVATE ${${PROJECT_NAME}_BASIS}
+target_sources(kernel # PRIVATE ${${PROJECT_NAME}_BASIS}
                       PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})
 
 target_include_directories(kernel PUBLIC

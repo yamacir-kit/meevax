@@ -1,2 +1,3 @@
 build
+src/kernel/basis.cpp
 src/kernel/version.cpp
