@@ -87,7 +87,7 @@ inline namespace kernel
 
         option("(h|help)", []()
         {
-          help();
+          std::cout << help() << std::flush;
           throw success;
         }),
 
