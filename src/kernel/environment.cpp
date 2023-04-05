@@ -81,16 +81,14 @@ inline namespace kernel
     }
   }
 
-  auto environment::load(std::string const& s) -> object
+  auto environment::load(std::string const& s) -> void
   {
-    if (let port = make<file_port>(s); port and port.as<file_port>().is_open())
+    if (auto input = file_port(s); input)
     {
-      for (let e = read(port); e != eof_object; e = read(port))
+      while (not input.eof())
       {
-        evaluate(e);
+        evaluate(read(input));
       }
-
-      return unspecified;
     }
     else
     {

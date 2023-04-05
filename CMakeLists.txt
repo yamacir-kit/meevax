@@ -10,9 +10,6 @@ project(meevax DESCRIPTION "A programmable programming language"
                LANGUAGES CXX
                VERSION ${CURRENT_VERSION})
 
-include(GNUInstallDirs)
-include(TestBigEndian)
-
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -35,6 +32,8 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os           -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -gdwarf-4 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE        "-O2           -DNDEBUG ${AGGRESSIVE_OPTIMIZATION_OPTIONS}")
 
+include(GNUInstallDirs)
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
@@ -48,7 +47,10 @@ else()
   set(${PROJECT_NAME}_VERSION_EXACT "")
 endif()
 
+include(TestBigEndian)
+
 TEST_BIG_ENDIAN(IS_BIG_ENDIAN) # Use CMAKE_CXX_BYTE_ORDER if CMake >= 3.20
+
 if(${IS_BIG_ENDIAN})
   set(${PROJECT_NAME}_BYTE_ORDER "big-endian")
 else()
@@ -62,31 +64,10 @@ file(READ ${CMAKE_CURRENT_BINARY_DIR}/help.txt ${PROJECT_NAME}_HELP_TEXT)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 
-# ---- Convert Basis-Library Sources to Binary ---------------------------------
-
 file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
-
-# set(${PROJECT_NAME}_BASIS "")
-#
-# foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
-#   get_filename_component(FILENAME ${EACH} NAME)
-#   get_filename_component(FILEPATH ${EACH} PATH)
-#   add_custom_command(
-#     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o
-#     WORKING_DIRECTORY ${FILEPATH}
-#     COMMAND ${CMAKE_OBJCOPY}
-#     ARGS -I binary
-#          -O elf64-x86-64
-#          -B i386
-#          ${FILENAME}
-#          ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
-#   list(APPEND ${PROJECT_NAME}_BASIS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
-# endforeach()
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
   get_filename_component(FILENAME ${EACH} NAME)
-  message(STATUS "EACH = ${EACH}")
-  message(STATUS "FILENAME = ${FILENAME}")
   file(READ ${EACH} ${PROJECT_NAME}_BASIS_${FILENAME})
 endforeach()
 
@@ -100,8 +81,7 @@ add_library(${PROJECT_NAME}::kernel ALIAS kernel)
 
 file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
-target_sources(kernel # PRIVATE ${${PROJECT_NAME}_BASIS}
-                      PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})
+target_sources(kernel PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})
 
 target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

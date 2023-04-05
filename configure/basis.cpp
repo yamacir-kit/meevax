@@ -20,22 +20,24 @@ namespace meevax
 {
 inline namespace kernel
 {
-  string_view const r4rs           = R"###(${${PROJECT_NAME}_BASIS_r4rs.ss})###";
-  string_view const r4rs_essential = R"###(${${PROJECT_NAME}_BASIS_r4rs-essential.ss})###";
-  string_view const r5rs           = R"###(${${PROJECT_NAME}_BASIS_r5rs.ss})###";
-  string_view const r7rs           = R"###(${${PROJECT_NAME}_BASIS_r7rs.ss})###";
-  string_view const srfi_1         = R"###(${${PROJECT_NAME}_BASIS_srfi-1.ss})###";
-  string_view const srfi_6         = R"###(${${PROJECT_NAME}_BASIS_srfi-6.ss})###";
-  string_view const srfi_8         = R"###(${${PROJECT_NAME}_BASIS_srfi-8.ss})###";
-  string_view const srfi_9         = R"###(${${PROJECT_NAME}_BASIS_srfi-9.ss})###";
-  string_view const srfi_11        = R"###(${${PROJECT_NAME}_BASIS_srfi-11.ss})###";
-  string_view const srfi_23        = R"###(${${PROJECT_NAME}_BASIS_srfi-23.ss})###";
-  string_view const srfi_34        = R"###(${${PROJECT_NAME}_BASIS_srfi-34.ss})###";
-  string_view const srfi_38        = R"###(${${PROJECT_NAME}_BASIS_srfi-38.ss})###";
-  string_view const srfi_39        = R"###(${${PROJECT_NAME}_BASIS_srfi-39.ss})###";
-  string_view const srfi_45        = R"###(${${PROJECT_NAME}_BASIS_srfi-45.ss})###";
-  string_view const srfi_78        = R"###(${${PROJECT_NAME}_BASIS_srfi-78.ss})###";
-  string_view const srfi_149       = R"###(${${PROJECT_NAME}_BASIS_srfi-149.ss})###";
-  string_view const srfi_211       = R"###(${${PROJECT_NAME}_BASIS_srfi-211.ss})###";
+  script const basis = R"###(
+${${PROJECT_NAME}_BASIS_r4rs.ss}
+${${PROJECT_NAME}_BASIS_r4rs-essential.ss}
+${${PROJECT_NAME}_BASIS_r5rs.ss}
+${${PROJECT_NAME}_BASIS_r7rs.ss}
+${${PROJECT_NAME}_BASIS_srfi-1.ss}
+${${PROJECT_NAME}_BASIS_srfi-6.ss}
+${${PROJECT_NAME}_BASIS_srfi-8.ss}
+${${PROJECT_NAME}_BASIS_srfi-9.ss}
+${${PROJECT_NAME}_BASIS_srfi-11.ss}
+${${PROJECT_NAME}_BASIS_srfi-23.ss}
+${${PROJECT_NAME}_BASIS_srfi-34.ss}
+${${PROJECT_NAME}_BASIS_srfi-38.ss}
+${${PROJECT_NAME}_BASIS_srfi-39.ss}
+${${PROJECT_NAME}_BASIS_srfi-45.ss}
+${${PROJECT_NAME}_BASIS_srfi-78.ss}
+${${PROJECT_NAME}_BASIS_srfi-149.ss}
+${${PROJECT_NAME}_BASIS_srfi-211.ss}
+)###";
 }
 }
