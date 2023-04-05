@@ -97,9 +97,9 @@ $ sudo apt remove meevax
 
 | Target Name        | Description
 |--------------------|---
-| `all` (default)    | Build shared-library `libmeevax.0.4.583.so` and executable `meevax`.
+| `all` (default)    | Build shared-library `libmeevax.0.4.584.so` and executable `meevax`.
 | `test`             | Test executable `meevax`.
-| `package`          | Generate debian package `meevax_0.4.583_amd64.deb`.
+| `package`          | Generate debian package `meevax_0.4.584_amd64.deb`.
 | `install`          | Copy files into `/usr/local` __(1)__.
 | `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
 | `safe-install.deb` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
@@ -114,17 +114,19 @@ __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's
 ## Usage
 
 ```
-Meevax Lisp 0.4.583
+Meevax Lisp 0.4.584
 
-Usage: meevax [OPTION...] [FILE...]
+Usage:
+  meevax [option...] [file...]
 
 Options:
-  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.
-  -h, --help             Display this help text and exit.
-  -i, --interactive      Take over control of root environment.
-  -l, --load=FILENAME    Same as -e '(load FILENAME)'
-  -v, --version          Display version information and exit.
-  -w, --write=OBJECT     Same as -e '(write OBJECT)'
+  -e, --evaluate=<string>  read and evaluate given on interaction-environment
+  -h, --help               display this help and exit
+  -i, --interactive        enter an interactive session
+  -l, --load=<filepath>    same as `(load (read <filepath>))`
+  -v, --version            display version information and exit
+  -w, --write=<string>     same as `(write (read <string>))`
+
 ```
 
 | Example                                    | Effects |

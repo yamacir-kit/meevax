@@ -114,17 +114,7 @@ __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's
 ## Usage
 
 ```
-Meevax Lisp ${PROJECT_VERSION}
-
-Usage: meevax [OPTION...] [FILE...]
-
-Options:
-  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.
-  -h, --help             Display this help text and exit.
-  -i, --interactive      Take over control of root environment.
-  -l, --load=FILENAME    Same as -e '(load FILENAME)'
-  -v, --version          Display version information and exit.
-  -w, --write=OBJECT     Same as -e '(write OBJECT)'
+${${PROJECT_NAME}_HELP_TEXT}
 ```
 
 | Example                                    | Effects |
