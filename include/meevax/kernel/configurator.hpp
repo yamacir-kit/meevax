@@ -36,28 +36,25 @@ inline namespace kernel
     configurator()
     {}
 
-  public:
-    static inline auto interactive = true;
-
     struct option
     {
-      let const operation;
+      std::regex const pattern;
 
-      bool const requires_an_argument;
+      using reader = std::function<object ()>;
+
+      using builder = std::function<object (reader)>;
+
+      std::function<object (std::function<object ()> const&)> build;
 
       template <typename S, typename F>
       explicit option(S&& s, F&& f)
-        : operation { make<procedure>(std::forward<decltype(s)>(s),
-                                      std::forward<decltype(f)>(f)) }
-        , requires_an_argument { not std::is_invocable_v<F> }
+        : pattern { std::forward<decltype(s)>(s) }
+        , build   { std::forward<decltype(f)>(f) }
       {}
-
-      template <typename... Ts>
-      auto match(Ts&&... xs) const
-      {
-        return std::regex_match(std::forward<decltype(xs)>(xs)..., std::regex(operation.as<procedure>().name));
-      }
     };
+
+  public:
+    static inline auto interactive = true;
 
     auto configure(const int argc, char const* const* const argv)
     {
@@ -68,45 +65,65 @@ inline namespace kernel
     {
       static std::regex const pattern { R"(--(\w[-\w]+)(=(.*))?|-([\w]+))" };
 
-      auto read = [](auto&&... xs)
-      {
-        return interaction_environment().as<Environment>().read(std::forward<decltype(xs)>(xs)...);
-      };
-
       std::vector<option> options
       {
-        option("(i|interactive)", []()
+        option("(i|interactive)", [](auto)
         {
-          interactive = true;
+          let static const f = make<procedure>("interactive", []()
+          {
+            interactive = true;
+          });
+
+          return list(f);
         }),
 
-        option("(e|evaluate)", [this](let const& xs)
+        option("(e|evaluate)", [](auto read)
         {
-          return static_cast<Environment &>(*this).evaluate(xs[0]);
+          return read();
         }),
 
-        option("(h|help)", []()
+        option("(h|help)", [](auto)
         {
-          std::cout << help() << std::flush;
-          throw success;
+          let static const f = make<procedure>("help", []()
+          {
+            std::cout << help() << std::flush;
+            throw success;
+          });
+
+          return list(f);
         }),
 
-        option("(l|load)", [this](let const& xs)
+        option("(l|load)", [this](auto read)
         {
-          static_cast<Environment &>(*this).load(xs[0].as<string>());
-          return unit;
+          let static const f = make<procedure>("load", [this](let const& xs)
+          {
+            static_cast<Environment &>(*this).load(xs[0].as<string>());
+            return unit;
+          });
+
+          return list(f, read());
         }),
 
-        option("(v|version)", []()
+        option("(v|version)", [](auto)
         {
-          std::cout << version() << std::endl;
-          throw success;
+          let static const f = make<procedure>("version", []()
+          {
+            std::cout << version() << std::endl;
+            throw success;
+          });
+
+          return list(f);
         }),
 
-        option("(w|write)", [](let const& xs)
+        option("(w|write)", [](auto read)
         {
-          std::cout << xs[0] << std::endl;
-          return unit;
+          let static const f = make<procedure>("write", [](let const& xs)
+          {
+            std::cout << xs[0] << std::endl;
+            return unit;
+          });
+
+          return list(f, read());
         }),
       };
 
@@ -114,7 +131,7 @@ inline namespace kernel
       {
         if (auto iter = std::find_if(std::begin(options), std::end(options), [&](auto&& option)
                         {
-                          return option.match(name);
+                          return std::regex_match(name, option.pattern);
                         });
             iter != std::end(options))
         {
@@ -128,61 +145,54 @@ inline namespace kernel
 
       std::vector<object> expressions {};
 
-      let const quote = Environment::rename("quote");
-
       for (auto iter = std::begin(args); iter != std::end(args); ++iter)
       {
         static std::regex const pattern { R"(--(\w[-\w]+)(?:=(.*))?|-([\w]+))" };
 
-        auto read_argument = [&]()
-        {
-          if (std::next(iter) != std::cend(args))
-          {
-            return read(*++iter);
-          }
-          else
-          {
-            throw error(make<string>("an argument required but not specified"),
-                        make<symbol>(*iter));
-          }
-        };
-
         if (std::smatch result; std::regex_match(*iter, result, pattern))
         {
+          auto read = [&]()
+          {
+            if (std::next(iter) != std::cend(args))
+            {
+              return interaction_environment().as<Environment>().read(*++iter);
+            }
+            else
+            {
+              throw error(make<string>("an argument required but not specified"),
+                          make<symbol>(*iter));
+            }
+          };
+
           if (result.length(3))
           {
             for (auto str3 = result.str(3); not str3.empty(); str3.erase(0, 1))
             {
-              if (auto&& option = search(str3.substr(0, 1)); option.requires_an_argument)
-              {
-                expressions.push_back(list(option.operation, list(quote, 1 < str3.length() ? read(str3.substr(1)) : read_argument())));
-                break;
-              }
-              else
-              {
-                expressions.push_back(list(option.operation));
-              }
+              expressions.push_back(search(str3.substr(0, 1)).build(read));
             }
           }
           else if (result.length(2))
           {
-            expressions.push_back(list(search(result.str(1)).operation, list(quote, read(result.str(2)))));
+            auto read = [result]()
+            {
+              return interaction_environment().as<Environment>().read(result.str(2));
+            };
+
+            expressions.push_back(search(result.str(1)).build(read));
           }
           else if (result.length(1))
           {
-            if (auto&& option = search(result.str(1)); option.requires_an_argument)
-            {
-              expressions.push_back(list(option.operation, list(quote, read_argument())));
-            }
-            else
-            {
-              expressions.push_back(list(option.operation));
-            }
+            expressions.push_back(search(result.str(1)).build(read));
           }
         }
         else
         {
-          expressions.push_back(list(search("load").operation, make<string>(*iter)));
+          auto read = [iter]()
+          {
+            return make<string>(*iter);
+          };
+
+          expressions.push_back(search("load").build(read));
           interactive = false;
         }
       }

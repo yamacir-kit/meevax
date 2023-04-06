@@ -28,6 +28,7 @@ inline namespace kernel
   template <typename Environment>
   struct syntactic_environment : public virtual pair // (<local> . <global>)
   {
+  protected:
     struct syntactic_closure : public identifier
     {
       let const environment;
@@ -931,6 +932,7 @@ inline namespace kernel
       #undef COMPILER
     };
 
+  public:
     auto operator ()(object const& expression,
                      object const& local,
                      object const& continuation = list(make(instruction::stop)),
