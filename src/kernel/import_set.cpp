@@ -138,17 +138,19 @@ inline namespace kernel
 
   auto import_set::resolve(environment & e) const -> void
   {
+    auto const redefinable = e.interactive or e == interaction_environment().as<environment>();
+
     for (let const& identity : identities)
     {
       assert(identity.is<absolute>());
 
-      if (let const& variable = identity.as<absolute>().symbol(); not eq(e[variable], undefined) and not e.interactive)
+      if (let const& variable = identity.as<absolute>().symbol(); eq(std::as_const(e).identify(variable, e.local()), f) or redefinable)
       {
-        throw error(make<string>("In a program or library declaration, it is an error to import the same identifier more than once with different bindings"), variable);
+        e.define(identity.as<absolute>().symbol(), identity.as<absolute>().load());
       }
       else
       {
-        e.define(identity.as<absolute>().symbol(), identity.as<absolute>().load());
+        throw error(make<string>("In a program or library declaration, it is an error to import the same identifier more than once with different bindings"), variable);
       }
     }
   }

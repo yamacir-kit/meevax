@@ -49,7 +49,7 @@ inline namespace kernel
     };
 
   public:
-    static inline auto interactive = true;
+    bool interactive = false;
 
     auto configure(const int argc, char const* const* const argv)
     {
@@ -62,9 +62,9 @@ inline namespace kernel
 
       std::vector<option> options
       {
-        option("(i|interactive)", [](auto)
+        option("(i|interactive)", [this](auto)
         {
-          let static const f = make<procedure>("interactive", []()
+          let const f = make<procedure>("", [this]()
           {
             interactive = true;
           });
@@ -79,7 +79,7 @@ inline namespace kernel
 
         option("(h|help)", [](auto)
         {
-          let static const f = make<procedure>("help", []()
+          let static const f = make<procedure>("", []()
           {
             std::cout << help() << std::flush;
             throw success;
@@ -90,7 +90,7 @@ inline namespace kernel
 
         option("(l|load)", [this](auto read)
         {
-          let static const f = make<procedure>("load", [this](let const& xs)
+          let const f = make<procedure>("", [this](let const& xs)
           {
             static_cast<Environment &>(*this).load(xs[0].as<string>());
             return unit;
@@ -101,7 +101,7 @@ inline namespace kernel
 
         option("(v|version)", [](auto)
         {
-          let static const f = make<procedure>("version", []()
+          let static const f = make<procedure>("", []()
           {
             std::cout << version() << std::endl;
             throw success;
@@ -112,7 +112,7 @@ inline namespace kernel
 
         option("(w|write)", [](auto read)
         {
-          let static const f = make<procedure>("write", [](let const& xs)
+          let static const f = make<procedure>("", [](let const& xs)
           {
             std::cout << xs[0] << std::endl;
             return unit;
@@ -182,17 +182,17 @@ inline namespace kernel
         }
         else
         {
-          auto read = [iter]()
+          let const f = make<procedure>("", [iter](let const&)
           {
-            return make<string>(*iter);
-          };
+            Environment().load(*iter);
+            return unspecified;
+          });
 
-          expressions.push_back(search("load").build(read));
-          interactive = false;
+          expressions.push_back(list(f));
         }
       }
 
-      for (auto&& expression : expressions)
+      for (let const& expression : expressions)
       {
         static_cast<Environment &>(*this).evaluate(expression);
       }
