@@ -844,7 +844,7 @@ inline namespace kernel
       {
         try
         {
-          return interaction_environment().as<environment>().read(car(xs));
+          return interaction_environment().as<environment>().read(car(xs).as<std::istream>());
         }
         catch (eof const&)
         {

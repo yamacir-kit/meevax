@@ -93,7 +93,6 @@ inline namespace kernel
           let const f = make<procedure>("", [this](let const& xs)
           {
             static_cast<Environment &>(*this).load(xs[0].as<string>());
-            return unit;
           });
 
           return list(f, read());
@@ -115,7 +114,6 @@ inline namespace kernel
           let static const f = make<procedure>("", [](let const& xs)
           {
             std::cout << xs[0] << std::endl;
-            return unit;
           });
 
           return list(f, read());
@@ -185,7 +183,6 @@ inline namespace kernel
           let const f = make<procedure>("", [iter](let const&)
           {
             Environment().load(*iter);
-            return unspecified;
           });
 
           expressions.push_back(list(f));
