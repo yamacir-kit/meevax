@@ -15,6 +15,7 @@
 */
 
 #include <meevax/kernel/describe.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int

@@ -20,7 +20,6 @@
 #include <regex>
 
 #include <meevax/kernel/error.hpp>
-#include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
@@ -39,10 +38,6 @@ inline namespace kernel
     struct option
     {
       std::regex const pattern;
-
-      using reader = std::function<object ()>;
-
-      using builder = std::function<object (reader)>;
 
       std::function<object (std::function<object ()> const&)> build;
 
@@ -155,7 +150,7 @@ inline namespace kernel
           {
             if (std::next(iter) != std::cend(args))
             {
-              return interaction_environment().as<Environment>().read(*++iter);
+              return static_cast<Environment &>(*this).read(*++iter);
             }
             else
             {
@@ -173,9 +168,9 @@ inline namespace kernel
           }
           else if (result.length(2))
           {
-            auto read = [result]()
+            auto read = [this, result]()
             {
-              return interaction_environment().as<Environment>().read(result.str(2));
+              return static_cast<Environment &>(*this).read(result.str(2));
             };
 
             expressions.push_back(search(result.str(1)).build(read));

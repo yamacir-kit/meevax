@@ -14,8 +14,9 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/library.hpp>
 #include <meevax/kernel/import_set.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
+#include <meevax/kernel/library.hpp>
 
 namespace meevax
 {
