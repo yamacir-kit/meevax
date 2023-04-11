@@ -156,38 +156,24 @@ include(CPack)
 
 enable_testing()
 
-macro(check TEST_NAME)
-  add_test(NAME ${TEST_NAME}
+file(GLOB ${PROJECT_NAME}_TEST_SS ${CMAKE_CURRENT_SOURCE_DIR}/test/*.ss)
+
+foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SS)
+  get_filename_component(FILENAME ${EACH} NAME_WE)
+  add_test(NAME ${FILENAME}
            COMMAND valgrind --error-exitcode=1 # = EXIT_FAILURE
                             --leak-check=full
                             --quiet
                             --show-leak-kinds=all
                    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax
-                   ${CMAKE_CURRENT_SOURCE_DIR}/test/${TEST_NAME}.ss)
-endmacro()
+                   ${EACH})
+endforeach()
 
-check(abandoned)
-check(chibi-basic)
-check(identifier)
-check(internal-definition)
-check(library-declaration)
-check(macro-transformers)
-check(numerical-operations)
-check(parameterize)
-check(r4rs)
-check(r4rs-appendix)
-check(r5rs)
-check(r7rs)
-check(sicp-1)
-check(srfi-8)
-check(tail-call)
-check(values)
-check(with-exception-handler)
+file(GLOB ${PROJECT_NAME}_TEST_CPP ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
 
-file(GLOB ${PROJECT_NAME}_TEST_CXX ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
-foreach(FILEPATH IN LISTS ${PROJECT_NAME}_TEST_CXX)
-  get_filename_component(FILENAME ${FILEPATH} NAME_WE)
-  add_executable(assert-${FILENAME} ${FILEPATH})
+foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_CPP)
+  get_filename_component(FILENAME ${EACH} NAME_WE)
+  add_executable(assert-${FILENAME} ${EACH})
   target_link_libraries(assert-${FILENAME} PRIVATE kernel)
   add_test(NAME assert-${FILENAME}
            COMMAND valgrind --error-exitcode=1 # = EXIT_FAILURE
