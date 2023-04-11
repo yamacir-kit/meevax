@@ -36,6 +36,8 @@ inline namespace kernel
   auto exact_version() -> object const&;
 
   auto features() -> object const&;
+
+  auto help() -> std::string const&;
 } // namespace kernel
 } // namespace meevax
 

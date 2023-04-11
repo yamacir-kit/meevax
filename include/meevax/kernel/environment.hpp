@@ -44,7 +44,7 @@ inline namespace kernel
 
     auto evaluate(object const&) -> object;
 
-    auto load(std::string const&) -> object;
+    auto load(std::string const&) -> void;
 
     auto operator [](object const&) -> object const&;
 

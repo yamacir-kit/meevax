@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/describe.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int
@@ -27,29 +27,20 @@ auto main(int const argc, char const* const* const argv) -> int
 
     auto&& main = interaction_environment().as<environment>();
 
+    main.declare<import_set>("(scheme base)");
+    main.declare<import_set>("(scheme char)");
+    main.declare<import_set>("(scheme complex)");
+    main.declare<import_set>("(scheme cxr)");
+    main.declare<import_set>("(scheme eval)");
+    main.declare<import_set>("(scheme inexact)");
+    main.declare<import_set>("(scheme lazy)");
+    main.declare<import_set>("(scheme load)");
+    main.declare<import_set>("(scheme process-context)");
+    main.declare<import_set>("(scheme read)");
+    main.declare<import_set>("(scheme repl)");
+    main.declare<import_set>("(scheme write)");
+
     main.configure(argc, argv);
-
-    if (main.interactive)
-    {
-      main.declare<import_set>("(scheme base)");
-      main.declare<import_set>("(scheme char)");
-      main.declare<import_set>("(scheme complex)");
-      main.declare<import_set>("(scheme cxr)");
-      main.declare<import_set>("(scheme eval)");
-      main.declare<import_set>("(scheme inexact)");
-      main.declare<import_set>("(scheme lazy)");
-      main.declare<import_set>("(scheme load)");
-      main.declare<import_set>("(scheme process-context)");
-      main.declare<import_set>("(scheme read)");
-      main.declare<import_set>("(scheme repl)");
-      main.declare<import_set>("(scheme write)");
-
-      main.define<procedure>("describe", [&](let const& xs)
-      {
-        describe(xs[0], xs[1]);
-        return unspecified;
-      });
-    }
 
     while (main.interactive and main.get_ready())
     {

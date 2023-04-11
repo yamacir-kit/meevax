@@ -69,5 +69,11 @@ inline namespace kernel
 
     return features;
   }
+
+  auto help() -> std::string const&
+  {
+    std::string static const help = R"(${${PROJECT_NAME}_HELP_TEXT})";
+    return help;
+  }
 } // namespace kernel
 } // namespace meevax
