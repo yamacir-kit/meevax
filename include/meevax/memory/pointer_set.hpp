@@ -46,28 +46,35 @@ inline namespace memory
   {
     static_assert(std::is_pointer_v<Pointer>);
 
-    static_assert(sizeof(std::uintptr_t) <= sizeof(std::uintmax_t));
-
-    static constexpr auto page_number_of(std::uintmax_t value) noexcept
+    struct compact_pointer
     {
-      return value / word_size;
+      std::uintptr_t const value;
+
+      static constexpr auto width = log2(alignof(std::remove_pointer_t<Pointer>)) - 1;
+
+      constexpr compact_pointer(Pointer p)
+        : value { reinterpret_cast<std::uintptr_t>(p) >> width }
+      {}
+
+      static constexpr auto restore(std::uintptr_t value)
+      {
+        return reinterpret_cast<Pointer>(value << width);
+      }
+
+      explicit constexpr operator Pointer() const noexcept
+      {
+        return reinterpret_cast<Pointer>(value << width);
+      }
+    };
+
+    static constexpr auto page_number_of(compact_pointer p) noexcept
+    {
+      return p.value / word_size;
     }
 
-    static constexpr auto word_number_of(std::uintmax_t value) noexcept
+    static constexpr auto word_number_of(compact_pointer p) noexcept
     {
-      return value - page_number_of(value) * word_size;
-    }
-
-    static constexpr auto always_zero_digits_length = log2(alignof(std::remove_pointer_t<Pointer>)) - 1;
-
-    static constexpr auto compress(Pointer p) noexcept -> std::uintmax_t
-    {
-      return reinterpret_cast<std::uintptr_t>(p) >> always_zero_digits_length;
-    }
-
-    static constexpr auto decompress(std::uintmax_t value) noexcept
-    {
-      return reinterpret_cast<Pointer>(value << always_zero_digits_length);
+      return p.value - page_number_of(p) * word_size;
     }
 
     struct page
@@ -115,8 +122,9 @@ inline namespace memory
 
       std::size_t page_size;
 
-      std::size_t page_index,
-                  word_index;
+      std::size_t page_index;
+
+      std::size_t word_index;
 
       explicit iterator(std::vector<page> const& pages,
                         std::size_t page_index_hint,
@@ -147,7 +155,7 @@ inline namespace memory
 
       auto operator *() const noexcept
       {
-        return decompress(pages[page_index].number * word_size + word_index);
+        return compact_pointer::restore(pages[page_index].number * word_size + word_index);
       }
 
       auto operator ++() noexcept -> auto &
@@ -235,9 +243,9 @@ inline namespace memory
       assert(begin() == end());
     }
 
-    auto lower_bound_page_of(std::uintmax_t value) noexcept
+    auto lower_bound_page_of(compact_pointer p) noexcept
     {
-      return std::lower_bound(std::begin(pages), std::end(pages), page_number_of(value));
+      return std::lower_bound(std::begin(pages), std::end(pages), page_number_of(p));
     }
 
     [[deprecated]]
@@ -253,29 +261,25 @@ inline namespace memory
 
     auto insert(Pointer p) noexcept
     {
-      const auto id = compress(p);
-
-      if (auto iter = lower_bound_page_of(id); iter != std::end(pages) and iter->number == page_number_of(id))
+      if (auto iter = lower_bound_page_of(p); iter != std::end(pages) and iter->number == page_number_of(p))
       {
-        (*iter)[word_number_of(id)] = true;
+        (*iter)[word_number_of(p)] = true;
       }
       else
       {
-        assert(iter == std::end(pages) or page_number_of(id) < iter->number);
-        iter = pages.emplace(iter, page_number_of(id));
-        (*iter)[word_number_of(id)] = true;
+        assert(iter == std::end(pages) or page_number_of(p) < iter->number);
+        iter = pages.emplace(iter, page_number_of(p));
+        (*iter)[word_number_of(p)] = true;
       }
     }
 
     auto erase(Pointer p) noexcept
     {
-      const auto id = compress(p);
-
-      auto iter = lower_bound_page_of(id);
+      auto iter = lower_bound_page_of(p);
 
       assert(iter != std::end(pages));
 
-      (*iter)[word_number_of(id)] = false;
+      (*iter)[word_number_of(p)] = false;
     }
 
     [[deprecated]]
@@ -297,13 +301,11 @@ inline namespace memory
 
     auto lower_bound(Pointer p) noexcept
     {
-      auto id = compress(p);
-
-      if (auto iter = lower_bound_page_of(id); iter != std::end(pages))
+      if (auto iter = lower_bound_page_of(p); iter != std::end(pages))
       {
         return iterator(pages,
                         std::distance(std::begin(pages), iter),
-                        word_number_of(id));
+                        word_number_of(p));
       }
       else
       {
