@@ -118,9 +118,7 @@ inline namespace memory
 
       using difference_type = std::ptrdiff_t;
 
-      page const* pages;
-
-      std::size_t page_size;
+      std::vector<page> const& pages;
 
       std::size_t page_index;
 
@@ -129,8 +127,7 @@ inline namespace memory
       explicit iterator(std::vector<page> const& pages,
                         std::size_t page_index_hint,
                         std::size_t word_index_hint) noexcept
-        : pages      { pages.data() }
-        , page_size  { pages.size() }
+        : pages      { pages }
         , page_index { page_index_hint }
         , word_index { word_index_hint }
       {
@@ -141,16 +138,14 @@ inline namespace memory
       }
 
       explicit iterator(std::vector<page> const& pages) noexcept
-        : pages      { pages.data() }
-        , page_size  { pages.size() }
-        , page_index { page_size }
+        : pages      { pages }
+        , page_index { pages.size() }
         , word_index { word_size }
       {}
 
       explicit operator bool() const noexcept
       {
-        return page_index < page_size and
-               word_index < word_size and pages[page_index][word_index];
+        return page_index < pages.size() and word_index < word_size and pages[page_index][word_index];
       }
 
       auto operator *() const noexcept
@@ -162,7 +157,7 @@ inline namespace memory
       {
         ++word_index;
 
-        for (; page_index < page_size; ++page_index)
+        for (; page_index < pages.size(); ++page_index)
         {
           for (auto&& word = pages[page_index]; word_index < word_size; ++word_index)
           {
@@ -175,7 +170,8 @@ inline namespace memory
           word_index = 0;
         }
 
-        page_index = page_size;
+        page_index = pages.size();
+
         word_index = word_size;
 
         return *this; // end
@@ -190,8 +186,9 @@ inline namespace memory
 
       auto operator --() noexcept -> auto &
       {
-        page_index = page_size <= page_index ? page_size - 1 : page_index;
-        word_index = word_size <= word_index ? word_size - 1 : word_index - 1;
+        page_index = std::min(pages.size() - 1, page_index);
+
+        word_index = std::min(word_size - 1, word_index - 1);
 
         /*
            NOTE: N4659 6.9.1.4
@@ -200,7 +197,7 @@ inline namespace memory
            n is the number of bits in the value representation of that
            particular size of integer.
         */
-        for (; page_index < page_size; --page_index)
+        for (; page_index < pages.size(); --page_index)
         {
           for (auto&& word = pages[page_index]; word_index < word_size; --word_index)
           {
