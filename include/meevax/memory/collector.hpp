@@ -43,7 +43,7 @@ inline namespace memory
 
       memory::header * header = nullptr;
 
-      explicit registration(memory::header * header)
+      explicit registration(memory::header * header) noexcept
         : header { header }
       {
         if (header)
@@ -52,7 +52,7 @@ inline namespace memory
         }
       }
 
-      auto reset(memory::header * after) -> void
+      auto reset(memory::header * after) noexcept -> void
       {
         if (auto before = std::exchange(header, after); not before and after)
         {
@@ -64,7 +64,7 @@ inline namespace memory
         }
       }
 
-      static auto locate(void * const data) -> memory::header *
+      static auto locate(void * const data) noexcept -> memory::header *
       {
         assert(data);
 
@@ -85,16 +85,16 @@ inline namespace memory
     protected:
       explicit constexpr registration() = default;
 
-      explicit registration(registration const& other)
+      explicit registration(registration const& other) noexcept
         : registration { other.header }
       {}
 
       template <typename Pointer>
-      explicit registration(Pointer const p)
+      explicit registration(Pointer const p) noexcept
         : registration { p ? locate(p) : nullptr }
       {}
 
-      ~registration()
+      ~registration() noexcept
       {
         if (header)
         {
@@ -102,18 +102,18 @@ inline namespace memory
         }
       }
 
-      auto reset()
+      auto reset() noexcept
       {
         reset(nullptr);
       }
 
       template <typename Pointer>
-      auto reset(Pointer const p) -> void
+      auto reset(Pointer const p) noexcept -> void
       {
         reset(p != nullptr ? locate(p) : nullptr);
       }
 
-      auto reset(registration const& other) -> void
+      auto reset(registration const& other) noexcept -> void
       {
         reset(other.header);
       }
