@@ -109,19 +109,19 @@ sudo apt remove meevax
 or if you installed with `make install`,
 
 ``` bash
-sudo rm -rf `/usr/local/bin/meevax`
-sudo rm -rf `/usr/local/include/meevax`
-sudo rm -rf `/usr/local/lib/libmeevax*`
-sudo rm -rf `/usr/local/share/meevax`
+sudo rm -rf /usr/local/bin/meevax
+sudo rm -rf /usr/local/include/meevax
+sudo rm -rf /usr/local/lib/libmeevax*
+sudo rm -rf /usr/local/share/meevax
 ```
 
 ### CMake targets
 
 | Target Name        | Description
 |--------------------|---
-| `all` (default)    | Build shared-library `libmeevax.0.4.598.so` and executable `meevax`
+| `all` (default)    | Build shared-library `libmeevax.0.4.599.so` and executable `meevax`
 | `test`             | Test executable `meevax`
-| `package`          | Generate debian package `meevax_0.4.598_amd64.deb`
+| `package`          | Generate debian package `meevax_0.4.599_amd64.deb`
 | `install`          | Copy files into `/usr/local`
 | `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
 | `safe-install.deb` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
@@ -129,7 +129,7 @@ sudo rm -rf `/usr/local/share/meevax`
 ## Usage
 
 ```
-Meevax Lisp 0.4.598
+Meevax Lisp 0.4.599
 
 Usage:
   meevax [option...] [file...]
