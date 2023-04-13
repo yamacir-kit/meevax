@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2022 Tatsuya Yamasaki.
+   Copyright 2018-2023 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -34,6 +34,12 @@ inline namespace kernel
     using pair::pair;
 
     auto load() const -> object const&;
+
+    template <typename T>
+    auto load() const -> decltype(auto)
+    {
+      return load().as<T>();
+    }
 
     auto store(object const&) -> void;
 

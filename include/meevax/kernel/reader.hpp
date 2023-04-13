@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2022 Tatsuya Yamasaki.
+   Copyright 2018-2023 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -84,11 +84,10 @@ inline namespace kernel
 
     inline auto get_ready() const
     {
-      assert(standard_input.is_also<std::istream>());
-      return static_cast<bool>(standard_input.as<std::istream>());
+      return static_cast<bool>(std::cin);
     }
 
-    inline auto read(std::istream & is) -> object
+    inline auto read(std::istream & is = std::cin) -> object
     {
       for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
       {
@@ -285,18 +284,7 @@ inline namespace kernel
       return eof_object;
     }
 
-    inline auto read(object const& x) -> decltype(auto)
-    {
-      assert(x.is_also<std::istream>());
-      return read(x.as<std::istream>());
-    }
-
-    inline auto read() -> decltype(auto)
-    {
-      return read(standard_input);
-    }
-
-    inline auto read(std::string const& s) -> object // NOTE: Specifying `decltype(auto)` causes a `undefined reference to ...` error in GCC-7.
+    inline auto read(std::string const& s) -> decltype(auto)
     {
       auto port = std::stringstream(s);
       return read(port);

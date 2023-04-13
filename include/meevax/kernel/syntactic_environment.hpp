@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2022 Tatsuya Yamasaki.
+   Copyright 2018-2023 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ inline namespace kernel
   template <typename Environment>
   struct syntactic_environment : public virtual pair // (<local> . <global>)
   {
+  protected:
     struct syntactic_closure : public identifier
     {
       let const environment;
@@ -135,7 +136,6 @@ inline namespace kernel
       return rename(string_to_symbol(variable));
     }
 
-  protected:
     struct syntax
     {
       using compiler = std::function<auto (syntactic_environment &,
@@ -370,16 +370,16 @@ inline namespace kernel
         {
           return sweep(compile,
                        binding_specs,
-                       cons(Environment().apply(car(identity.as<absolute>().load()), // <closure>
+                       cons(Environment().apply(identity.as<absolute>().load<transformer>().closure(),
                                                 car(form),
                                                 make<syntactic_environment>(local, compile.global()),
-                                                cdr(identity.as<absolute>().load())), // <syntactic-environment>
+                                                identity.as<absolute>().load<transformer>().syntactic_environment()),
                             cdr(form)),
                        local);
         }
         else if (identity.is<absolute>() and
                  identity.as<absolute>().load().is<syntax>() and
-                 identity.as<absolute>().load().as<syntax>().name == "define") // <form> = ((define ...) <definition or expression>*)
+                 identity.as<absolute>().load<syntax>().name == "define") // <form> = ((define ...) <definition or expression>*)
         {
           if (let const& definition = car(form); cadr(definition).is<pair>()) // <form> = ((define (<variable> . <formals>) <body>) <definition or expression>*)
           {
@@ -402,7 +402,7 @@ inline namespace kernel
         }
         else if (identity.is<absolute>() and
                  identity.as<absolute>().load().is<syntax>() and
-                 identity.as<absolute>().load().as<syntax>().name == "begin")
+                 identity.as<absolute>().load<syntax>().name == "begin")
         {
           return sweep(compile,
                        binding_specs,
@@ -932,7 +932,7 @@ inline namespace kernel
       #undef COMPILER
     };
 
-  private:
+  public:
     auto operator ()(object const& expression,
                      object const& local,
                      object const& continuation = list(make(instruction::stop)),
@@ -1001,13 +1001,13 @@ inline namespace kernel
            rules that specifies how a use of a macro is transcribed into a more
            primitive expression is called the transformer of the macro.
         */
-        assert(car(identity.as<absolute>().load()).is<closure>());
-        assert(cdr(identity.as<absolute>().load()).is<syntactic_environment>());
+        assert(identity.as<absolute>().load<transformer>().closure().is<closure>());
+        assert(identity.as<absolute>().load<transformer>().syntactic_environment().is<syntactic_environment>());
 
-        return compile(Environment().apply(car(identity.as<absolute>().load()), // <closure>
+        return compile(Environment().apply(identity.as<absolute>().load<transformer>().closure(),
                                            expression,
                                            make<syntactic_environment>(local, global()),
-                                           cdr(identity.as<absolute>().load())), // <syntactic-environment>
+                                           identity.as<absolute>().load<transformer>().syntactic_environment()),
                        local,
                        continuation,
                        ellipsis);
@@ -1015,11 +1015,7 @@ inline namespace kernel
       else if (identity.is<absolute>() and
                identity.as<absolute>().load().is<syntax>())
       {
-        return identity.as<absolute>().load().as<syntax>().compile(*this,
-                                                                   cdr(expression),
-                                                                   local,
-                                                                   continuation,
-                                                                   ellipsis);
+        return identity.as<absolute>().load<syntax>().compile(*this, cdr(expression), local, continuation, ellipsis);
       }
       else
       {
@@ -1027,7 +1023,6 @@ inline namespace kernel
       }
     }
 
-  public:
     using pair::pair;
 
     template <typename... Ts>

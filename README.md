@@ -46,6 +46,7 @@ Subset of R7RS-small.
 | [  1](https://srfi.schemers.org/srfi-1/srfi-1.html)     | List Library                                           | [`(srfi 1)`](./basis/srfi-1.ss)                       |                   |
 | [  6](https://srfi.schemers.org/srfi-6/srfi-6.html)     | Basic String Ports                                     | [`(srfi 6)`](./basis/srfi-6.ss)                       | R7RS 6.13         |
 | [  8](https://srfi.schemers.org/srfi-8/srfi-8.html)     | receive: Binding to multiple values                    | [`(srfi 8)`](./basis/srfi-8.ss)                       |                   |
+| [  9](https://srfi.schemers.org/srfi-9/srfi-9.html)     | Defining Record Types                                  | [`(srfi 9)`](./basis/srfi-9.ss)                       | R7RS 5.5          |
 | [ 10](https://srfi.schemers.org/srfi-10/srfi-10.html)   | #, external form                                       |                                                       |                   |
 | [ 11](https://srfi.schemers.org/srfi-11/srfi-11.html)   | Syntax for receiving multiple values                   | [`(srfi 11)`](./basis/srfi-11.ss)                     | R7RS 4.2.2        |
 | [ 23](https://srfi.schemers.org/srfi-23/srfi-23.html)   | Error reporting mechanism                              | [`(srfi 23)`](./basis/srfi-23.ss)                     | R7RS 6.11         |
@@ -91,23 +92,14 @@ $ make install.deb
 ``` bash
 $ sudo apt remove meevax
 ```
-<!--
-or
-``` bash
-sudo rm -rf /usr/local/bin/meevax
-sudo rm -rf /usr/local/include/meevax
-sudo rm -rf /usr/local/lib/libmeevax*
-sudo rm -rf /usr/local/share/meevax
-```
--->
 
 ### CMake targets
 
 | Target Name        | Description
-|:-------------------|:--
-| `all` (default)    | Build shared-library `libmeevax.0.4.567.so` and executable `meevax`.
+|--------------------|---
+| `all` (default)    | Build shared-library `libmeevax.0.4.597.so` and executable `meevax`.
 | `test`             | Test executable `meevax`.
-| `package`          | Generate debian package `meevax_0.4.567_amd64.deb`.
+| `package`          | Generate debian package `meevax_0.4.597_amd64.deb`.
 | `install`          | Copy files into `/usr/local` __(1)__.
 | `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
 | `safe-install.deb` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
@@ -122,17 +114,19 @@ __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's
 ## Usage
 
 ```
-Meevax Lisp 0.4.567
+Meevax Lisp 0.4.597
 
-Usage: meevax [OPTION...] [FILE...]
+Usage:
+  meevax [option...] [file...]
 
 Options:
-  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.
-  -h, --help             Display this help text and exit.
-  -i, --interactive      Take over control of root environment.
-  -l, --load=FILENAME    Same as -e '(load FILENAME)'
-  -v, --version          Display version information and exit.
-  -w, --write=OBJECT     Same as -e '(write OBJECT)'
+  -e, --evaluate=<string>  read and evaluate <string> on interaction-environment
+  -h, --help               display this help and exit
+  -i, --interactive        enter an interactive session
+  -l, --load=<file>        load <file> into interaction-environment
+  -v, --version            display version information and exit
+  -w, --write=<string>     same as `(write (read <string>))`
+
 ```
 
 | Example                                    | Effects |

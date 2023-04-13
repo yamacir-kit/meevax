@@ -10,20 +10,19 @@ project(meevax DESCRIPTION "A programmable programming language"
                LANGUAGES CXX
                VERSION ${CURRENT_VERSION})
 
-include(GNUInstallDirs)
-include(TestBigEndian)
-
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
-string(JOIN " " UNSTABLE_OPTIMIZATION_OPTIONS
-  # "-flto " # This optimization causes a SEGV when compiling with Clang 10.
-  # "-fmerge-all-constants " # This optimization is very effective in reducing binary size, but non-standard to the C++ standard.
-  # "-march=native " # This optimization causes "Illegal instruction" error (is Valgrind's bug) on CI.
-  # "-mtune=native "
+string(JOIN " " AGGRESSIVE_OPTIMIZATION_OPTIONS
+  # "-fdata-sections"
+  # "-ffunction-sections"
+  # "-flto" # This optimization causes a SEGV when compiling with Clang 10.
+  # "-fmerge-all-constants" # This optimization is very effective in reducing binary size, but non-standard to the C++ standard.
+  # "-march=native" # This optimization causes "Illegal instruction" error (is Valgrind's bug) on CI.
+  # "-mtune=native"
   )
 
 # NOTE: The `-gdwarf-4` option is set due to the following issues with Clang 14 and Valgrind versions below 3.20: https://bugzilla.mozilla.org/show_bug.cgi?id=1758782
@@ -31,7 +30,9 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -pipe")
 set(CMAKE_CXX_FLAGS_DEBUG          "-Og -gdwarf-4")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os           -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -gdwarf-4 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O2           -DNDEBUG ${UNSTABLE_OPTIMIZATION_OPTIONS}")
+set(CMAKE_CXX_FLAGS_RELEASE        "-O2           -DNDEBUG ${AGGRESSIVE_OPTIMIZATION_OPTIONS}")
+
+include(GNUInstallDirs)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
@@ -46,36 +47,31 @@ else()
   set(${PROJECT_NAME}_VERSION_EXACT "")
 endif()
 
+include(TestBigEndian)
+
 TEST_BIG_ENDIAN(IS_BIG_ENDIAN) # Use CMAKE_CXX_BYTE_ORDER if CMake >= 3.20
+
 if(${IS_BIG_ENDIAN})
   set(${PROJECT_NAME}_BYTE_ORDER "big-endian")
 else()
   set(${PROJECT_NAME}_BYTE_ORDER "little-endian")
 endif()
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt ${CMAKE_CURRENT_BINARY_DIR}/help.txt)
+
+file(READ ${CMAKE_CURRENT_BINARY_DIR}/help.txt ${PROJECT_NAME}_HELP_TEXT)
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 
-# ---- Convert Basis-Library Sources to Binary ---------------------------------
-
 file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
-
-set(${PROJECT_NAME}_BASIS "")
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
   get_filename_component(FILENAME ${EACH} NAME)
-  get_filename_component(FILEPATH ${EACH} PATH)
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o
-    WORKING_DIRECTORY ${FILEPATH}
-    COMMAND ${CMAKE_OBJCOPY}
-    ARGS -I binary
-         -O elf64-x86-64
-         -B i386
-         ${FILENAME}
-         ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
-  list(APPEND ${PROJECT_NAME}_BASIS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
+  file(READ ${EACH} ${PROJECT_NAME}_BASIS_${FILENAME})
 endforeach()
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/basis.cpp)
 
 # ---- Target kernel -----------------------------------------------------------
 
@@ -85,8 +81,7 @@ add_library(${PROJECT_NAME}::kernel ALIAS kernel)
 
 file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
-target_sources(kernel PRIVATE ${${PROJECT_NAME}_BASIS}
-                      PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})
+target_sources(kernel PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})
 
 target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -161,38 +156,24 @@ include(CPack)
 
 enable_testing()
 
-macro(check TEST_NAME)
-  add_test(NAME ${TEST_NAME}
+file(GLOB ${PROJECT_NAME}_TEST_SS ${CMAKE_CURRENT_SOURCE_DIR}/test/*.ss)
+
+foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SS)
+  get_filename_component(FILENAME ${EACH} NAME_WE)
+  add_test(NAME ${FILENAME}
            COMMAND valgrind --error-exitcode=1 # = EXIT_FAILURE
                             --leak-check=full
                             --quiet
                             --show-leak-kinds=all
                    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax
-                   ${CMAKE_CURRENT_SOURCE_DIR}/test/${TEST_NAME}.ss)
-endmacro()
+                   ${EACH})
+endforeach()
 
-check(abandoned)
-check(chibi-basic)
-check(identifier)
-check(internal-definition)
-check(library-declaration)
-check(macro-transformers)
-check(numerical-operations)
-check(parameterize)
-check(r4rs)
-check(r4rs-appendix)
-check(r5rs)
-check(r7rs)
-check(sicp-1)
-check(srfi-8)
-check(tail-call)
-check(values)
-check(with-exception-handler)
+file(GLOB ${PROJECT_NAME}_TEST_CPP ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
 
-file(GLOB ${PROJECT_NAME}_TEST_CXX ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
-foreach(FILEPATH IN LISTS ${PROJECT_NAME}_TEST_CXX)
-  get_filename_component(FILENAME ${FILEPATH} NAME_WE)
-  add_executable(assert-${FILENAME} ${FILEPATH})
+foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_CPP)
+  get_filename_component(FILENAME ${EACH} NAME_WE)
+  add_executable(assert-${FILENAME} ${EACH})
   target_link_libraries(assert-${FILENAME} PRIVATE kernel)
   add_test(NAME assert-${FILENAME}
            COMMAND valgrind --error-exitcode=1 # = EXIT_FAILURE

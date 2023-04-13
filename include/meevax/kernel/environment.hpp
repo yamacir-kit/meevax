@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2022 Tatsuya Yamasaki.
+   Copyright 2018-2023 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ inline namespace kernel
 
     auto evaluate(object const&) -> object;
 
-    auto load(std::string const&) -> object;
+    auto load(std::string const&) -> void;
 
     auto operator [](object const&) -> object const&;
 

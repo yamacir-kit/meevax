@@ -65,11 +65,11 @@
          (define-syntax guard
            (syntax-rules ()
              ((guard (var clause ...) e1 e2 ...)
-              ((call/cc
+              ((call-with-current-continuation
                  (lambda (guard-k)
                    (with-exception-handler
                      (lambda (condition)
-                       ((call/cc
+                       ((call-with-current-continuation
                           (lambda (handler-k)
                             (guard-k
                               (lambda ()

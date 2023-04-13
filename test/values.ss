@@ -2,11 +2,11 @@
         (scheme process-context)
         (srfi 78))
 
-(check (values) => ((values)))
+(check (values) => '((values)))
 
 (check (values 1) => 1)
 
-(check (values 1 2) => ((values) 1 2))
+(check (values 1 2) => '((values) 1 2))
 
 (define-values a (values 1 2 3))
 
@@ -18,7 +18,7 @@
 
 (define-values (h . i) (values 1 2 3))
 
-(check a => (1 2 3))
+(check a => '(1 2 3))
 
 (check b => 1)
 
@@ -34,7 +34,7 @@
 
 (check h => 1)
 
-(check i => (2 3))
+(check i => '(2 3))
 
 (let ((j 1)
       (k 2)

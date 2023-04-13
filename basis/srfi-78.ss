@@ -1,38 +1,33 @@
-; <PLAINTEXT>
-; Copyright (c) 2005-2006 Sebastian Egner.
-;
-; Permission is hereby granted, free of charge, to any person obtaining
-; a copy of this software and associated documentation files (the
-; ``Software''), to deal in the Software without restriction, including
-; without limitation the rights to use, copy, modify, merge, publish,
-; distribute, sublicense, and/or sell copies of the Software, and to
-; permit persons to whom the Software is furnished to do so, subject to
-; the following conditions:
-;
-; The above copyright notice and this permission notice shall be
-; included in all copies or substantial portions of the Software.
-;
-; THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-; EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-; MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-; NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-; LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-; OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-; WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#|
+   Copyright (C) Sebastian Egner (2005-2006). All Rights Reserved.
+
+   Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and associated documentation files (the "Software"),
+   to deal in the Software without restriction, including without limitation
+   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+   and/or sell copies of the Software, and to permit persons to whom the
+   Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+|#
 
 (define-library (srfi 78)
   (import (scheme base)
           (scheme cxr)
-          (scheme write)
-          (srfi 211 explicit-renaming))
+          (scheme write))
 
   (export check
           ; check-ec
-          check-report
-          check-set-mode!
-          check-reset!
-          check-passed?
-          )
+          check-passed? check-report check-reset! check-set-mode!)
 
   (begin (define check:write write)
 
@@ -146,33 +141,20 @@
              (else (error "unrecognized check:mode" check:mode)))
            (if #f #f))
 
-         ; (define-syntax check
-         ;   (syntax-rules (=>)
-         ;     ((check expr => expected)
-         ;      (check expr (=> equal?) expected))
-         ;     ((check expr (=> equal) expected)
-         ;      (if (>= check:mode 1)
-         ;          (check:proc 'expr (lambda () expr) equal expected)))))
-
          (define-syntax check
-           (er-macro-transformer
-             (lambda (form rename compare)
-               (cond ((compare (rename '=>) (caddr form))
-                      `(,(rename 'check) ,(cadr form) (,(rename '=>) ,(rename 'equal?)) ,(cadddr form)))
-                     ((compare (rename '=>) (caaddr form))
-                      (if (<= 1 check:mode)
-                          `(,(rename 'check:proc) ',(cadr form)
-                                                  (,(rename 'lambda) () ,(cadr form))
-                                                  ,(cadr (caddr form))
-                                                  ',(cadddr form))))
-                     (else (unspecified))))))
+           (syntax-rules (=>)
+             ((check expr => expected)
+              (check expr (=> equal?) expected))
+             ((check expr (=> equal) expected)
+              (if (>= check:mode 1)
+                  (check:proc 'expr (lambda () expr) equal expected)))))
 
          ; (define (check:proc-ec w)
          ;   (let ((correct? (car w))
          ;         (expression (cadr w))
          ;         (actual-result (caddr w))
          ;         (expected-result (cadddr w))
-         ;   (cases (car (cddddr w))))
+         ;         (cases (car (cddddr w))))
          ;     (if correct?
          ;         (begin (if (>= check:mode 100)
          ;                    (begin (check:report-expression expression)
@@ -184,41 +166,36 @@
          ;                           (check:report-actual-result actual-result)
          ;                           (check:report-failed expected-result)))
          ;                (check:add-failed! expression
-         ;           actual-result
-         ;           expected-result)))))
+         ;                                   actual-result
+         ;                                   expected-result)))))
          ;
          ; (define-syntax check-ec:make
          ;   (syntax-rules (=>)
          ;     ((check-ec:make qualifiers expr (=> equal) expected (arg ...))
          ;      (if (>= check:mode 1)
-         ;          (check:proc-ec
-         ;     (let ((cases 0))
-         ;       (let ((w (first-ec
-         ;           #f
-         ;           qualifiers
-         ;           (:let equal-pred equal)
-         ;           (:let expected-result expected)
-         ;           (:let actual-result
-         ;                             (let ((arg arg) ...) ; (*)
-         ;                               expr))
-         ;           (begin (set! cases (+ cases 1)))
-         ;           (if (not (equal-pred actual-result expected-result)))
-         ;           (list (list 'let (list (list 'arg arg) ...) 'expr)
-         ;           actual-result
-         ;           expected-result
-         ;           cases))))
-         ;         (if w
-         ;       (cons #f w)
-         ;       (list #t
-         ;       '(check-ec qualifiers
-         ;            expr (=> equal)
-         ;            expected (arg ...))
-         ;       (if #f #f)
-         ;             (if #f #f)
-         ;       cases)))))))))
-         ;
-         ; ; (*) is a compile-time check that (arg ...) is a list
-         ; ; of pairwise disjoint bound variables at this point.
+         ;          (check:proc-ec (let ((cases 0))
+         ;                           (let ((w (first-ec #f
+         ;                                              qualifiers
+         ;                                              (:let equal-pred equal)
+         ;                                              (:let expected-result expected)
+         ;                                              (:let actual-result
+         ;                                                    (let ((arg arg) ...)
+         ;                                                      expr))
+         ;                                              (begin (set! cases (+ cases 1)))
+         ;                                              (if (not (equal-pred actual-result expected-result)))
+         ;                                              (list (list 'let (list (list 'arg arg) ...) 'expr)
+         ;                                                    actual-result
+         ;                                                    expected-result
+         ;                                                    cases))))
+         ;                             (if w
+         ;                                 (cons #f w)
+         ;                                 (list #t
+         ;                                       '(check-ec qualifiers
+         ;                                                  expr (=> equal)
+         ;                                                  expected (arg ...))
+         ;                                       (if #f #f)
+         ;                                       (if #f #f)
+         ;                                       cases)))))))))
          ;
          ; (define-syntax check-ec
          ;   (syntax-rules (nested =>)
@@ -230,7 +207,6 @@
          ;      (check-ec:make (nested) expr (=> equal?) expected (arg ...)))
          ;     ((check-ec expr (=> equal) expected (arg ...))
          ;      (check-ec:make (nested) expr (=> equal) expected (arg ...)))
-         ;
          ;     ((check-ec qualifiers expr => expected)
          ;      (check-ec:make qualifiers expr (=> equal?) expected ()))
          ;     ((check-ec qualifiers expr (=> equal) expected)
@@ -239,10 +215,8 @@
          ;      (check-ec:make qualifiers expr (=> equal?) expected (arg ...)))
          ;     ((check-ec qualifiers expr (=> equal) expected (arg ...))
          ;      (check-ec:make qualifiers expr (=> equal) expected (arg ...)))
-         ;
          ;     ((check-ec (nested q1 ...) q etc ...)
          ;      (check-ec (nested q1 ... q) etc ...))
-         ;     ((check-ec q1 q2             etc ...)
-         ;      (check-ec (nested q1 q2)    etc ...))))
-         )
-  )
+         ;     ((check-ec q1 q2 etc ...)
+         ;      (check-ec (nested q1 q2) etc ...))))
+         ))

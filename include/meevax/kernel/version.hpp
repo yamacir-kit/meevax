@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2022 Tatsuya Yamasaki.
+   Copyright 2018-2023 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -25,17 +25,19 @@ namespace meevax
 {
 inline namespace kernel
 {
-  [[deprecated]]
-  auto gmp_version() -> object const&;
-
   auto version() -> object const&;
 
   auto major_version() -> object const&;
+
   auto minor_version() -> object const&;
+
   auto patch_version() -> object const&;
+
   auto exact_version() -> object const&;
 
   auto features() -> object const&;
+
+  auto help() -> std::string const&;
 } // namespace kernel
 } // namespace meevax
 

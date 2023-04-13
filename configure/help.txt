@@ -1,0 +1,12 @@
+Meevax Lisp ${PROJECT_VERSION}
+
+Usage:
+  meevax [option...] [file...]
+
+Options:
+  -e, --evaluate=<string>  read and evaluate <string> on interaction-environment
+  -h, --help               display this help and exit
+  -i, --interactive        enter an interactive session
+  -l, --load=<file>        load <file> into interaction-environment
+  -v, --version            display version information and exit
+  -w, --write=<string>     same as `(write (read <string>))`

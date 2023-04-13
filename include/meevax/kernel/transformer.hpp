@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2022 Tatsuya Yamasaki.
+   Copyright 2018-2023 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -23,9 +23,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct transformer : public virtual pair // (<expression> . <environment>)
+  struct transformer : public virtual pair // (<closure> . <syntactic_environment>)
   {
     using pair::pair;
+
+    auto closure() const -> object const&;
+
+    auto syntactic_environment() const -> object const&;
   };
 
   auto operator <<(std::ostream &, transformer const&) -> std::ostream &;

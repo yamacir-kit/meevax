@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2022 Tatsuya Yamasaki.
+   Copyright 2018-2023 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -81,16 +81,14 @@ inline namespace kernel
     }
   }
 
-  auto environment::load(std::string const& s) -> object
+  auto environment::load(std::string const& s) -> void
   {
-    if (let port = make<file_port>(s); port and port.as<file_port>().is_open())
+    if (auto input = file_port(s); input)
     {
-      for (let e = read(port); e != eof_object; e = read(port))
+      while (not input.eof())
       {
-        evaluate(e);
+        evaluate(read(input));
       }
-
-      return unspecified;
     }
     else
     {

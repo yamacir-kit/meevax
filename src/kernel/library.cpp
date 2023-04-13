@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2022 Tatsuya Yamasaki.
+   Copyright 2018-2023 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -844,7 +844,7 @@ inline namespace kernel
       {
         try
         {
-          return interaction_environment().as<environment>().read(car(xs));
+          return interaction_environment().as<environment>().read(car(xs).as<std::istream>());
         }
         catch (eof const&)
         {
@@ -1336,35 +1336,13 @@ inline namespace kernel
       });
     });
 
-    std::vector<string_view> const codes {
-      r4rs,
-      r4rs_essential,
-      r5rs,
-      r7rs,
-      srfi_1,  // List Library
-      srfi_6,  // Basic String Ports
-      srfi_8,  // receive: Binding to multiple values
-      srfi_11, // Syntax for receiving multiple values
-      srfi_23, // Error reporting mechanism
-      srfi_34, // Exception Handling for Programs
-      srfi_38, // External Representation for Data With Shared Structure
-      srfi_39, // Parameter objects
-      srfi_45,
-      srfi_78, // Lightweight testing
-      srfi_149,
-      srfi_211,
-    };
+    auto boot_loader = environment();
 
-    auto sandbox = environment();
-
-    for (auto const& code : codes)
+    if (auto input = std::stringstream(std::string(basis)); input)
     {
-      // NOTE: Since read performs a putback operation on a given stream, it must be copied and used.
-      auto port = std::stringstream(std::string(code));
-
-      for (let e = sandbox.read(port); e != eof_object; e = sandbox.read(port))
+      while (not input.eof())
       {
-        sandbox.evaluate(e);
+        boot_loader.evaluate(boot_loader.read(input));
       }
     }
   }

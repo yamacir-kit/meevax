@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2022 Tatsuya Yamasaki.
+   Copyright 2018-2023 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ inline namespace functional
   {
     return [f](auto&&... xs)
     {
-      return [f, xs = std::make_tuple(std::forward<decltype(xs)>(xs)...)](auto&&... ys)
+      return [f, xs = std::forward_as_tuple(xs...)](auto&&... ys)
       {
         return std::apply([&](auto&&... xs)
                           {

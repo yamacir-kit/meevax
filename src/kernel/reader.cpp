@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2022 Tatsuya Yamasaki.
+   Copyright 2018-2023 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 #include <regex>
 
-#include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/string.hpp>
 
@@ -223,7 +222,10 @@ inline namespace kernel
 
         case '\n':
         case '\r':
-          ignore(is, [](auto c) { return std::isspace(c); });
+          while (std::isspace(is.peek()))
+          {
+            is.ignore(1);
+          }
           break;
 
         default:

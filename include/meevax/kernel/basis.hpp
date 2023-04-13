@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2022 Tatsuya Yamasaki.
+   Copyright 2018-2023 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -24,27 +24,12 @@ namespace meevax
 inline namespace kernel
 {
   #if __cpp_lib_string_view
-  using string_view = std::string_view;
+  using script = std::string_view;
   #else
-  using string_view = std::experimental::string_view;
+  using script = std::experimental::string_view;
   #endif
 
-  extern string_view const r4rs;
-  extern string_view const r4rs_essential;
-  extern string_view const r5rs;
-  extern string_view const r7rs;
-  extern string_view const srfi_1;
-  extern string_view const srfi_6;
-  extern string_view const srfi_8;
-  extern string_view const srfi_11;
-  extern string_view const srfi_23;
-  extern string_view const srfi_34;
-  extern string_view const srfi_38;
-  extern string_view const srfi_39;
-  extern string_view const srfi_45;
-  extern string_view const srfi_78;
-  extern string_view const srfi_149;
-  extern string_view const srfi_211;
+  script extern const basis;
 } // namespace kernel
 } // namespace meevax
 

@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2022 Tatsuya Yamasaki.
+   Copyright 2018-2023 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -30,19 +30,24 @@ namespace meevax
 {
 inline namespace memory
 {
-  using float64 = double;
-
-  static_assert(std::numeric_limits<float64>::is_iec559 and sizeof(float64) == 8);
+  static_assert(std::numeric_limits<double>::is_iec559 and sizeof(double) == 8);
 
   template <typename T,
-            typename T_0b010 = std::integral_constant<std::uint32_t, 0b010>,
-            typename T_0b011 = std::integral_constant<std::uint32_t, 0b011>,
-            typename T_0b100 = std::integral_constant<std::uint32_t, 0b100>,
-            typename T_0b101 = std::integral_constant<std::uint32_t, 0b101>,
-            typename T_0b110 = std::integral_constant<std::uint32_t, 0b110>,
-            typename T_0b111 = std::integral_constant<std::uint32_t, 0b111>>
+            typename T1 = std::integral_constant<int, 1>,
+            typename T2 = std::integral_constant<int, 2>,
+            typename T3 = std::integral_constant<int, 3>,
+            typename T4 = std::integral_constant<int, 4>,
+            typename T5 = std::integral_constant<int, 5>,
+            typename T6 = std::integral_constant<int, 6>>
   struct nan_boxing_pointer
   {
+    static_assert(sizeof(T1) <= 4);
+    static_assert(sizeof(T2) <= 4);
+    static_assert(sizeof(T3) <= 4);
+    static_assert(sizeof(T4) <= 4);
+    static_assert(sizeof(T5) <= 4);
+    static_assert(sizeof(T6) <= 4);
+
     using element_type = std::decay_t<T>;
 
     using pointer = std::add_pointer_t<element_type>;
@@ -58,16 +63,16 @@ inline namespace memory
     static constexpr std::uintptr_t mask_signature    = 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
     static constexpr std::uintptr_t mask_payload      = 0b0000'0000'0000'0000'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111;
 
-    static constexpr std::uintptr_t signature_float64 = 0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t signature_pointer = 0b0111'1111'1111'1001'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t signature_T_0b010 = 0b0111'1111'1111'1010'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t signature_T_0b011 = 0b0111'1111'1111'1011'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t signature_T_0b100 = 0b0111'1111'1111'1100'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t signature_T_0b101 = 0b0111'1111'1111'1101'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t signature_T_0b110 = 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
-    static constexpr std::uintptr_t signature_T_0b111 = 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
+    static constexpr std::uintptr_t signature_double  = 0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
+    static constexpr std::uintptr_t signature_T1      = 0b0111'1111'1111'1001'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
+    static constexpr std::uintptr_t signature_T2      = 0b0111'1111'1111'1010'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
+    static constexpr std::uintptr_t signature_T3      = 0b0111'1111'1111'1011'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
+    static constexpr std::uintptr_t signature_T4      = 0b0111'1111'1111'1100'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
+    static constexpr std::uintptr_t signature_T5      = 0b0111'1111'1111'1101'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
+    static constexpr std::uintptr_t signature_T6      = 0b0111'1111'1111'1110'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
+    static constexpr std::uintptr_t signature_pointer = 0b0111'1111'1111'1111'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000;
 
-    explicit constexpr nan_boxing_pointer(nan_boxing_pointer const&) = default;
+    constexpr nan_boxing_pointer(nan_boxing_pointer const&) = default;
 
     auto reset(nan_boxing_pointer const& value) -> void
     {
@@ -84,19 +89,16 @@ inline namespace memory
     {                                                                          \
       data = reinterpret_cast<pointer>(                                        \
                signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value));     \
-    }                                                                          \
-                                                                               \
-    static_assert(std::is_same_v<TYPE, float64> or                             \
-                  std::is_same_v<TYPE, pointer> or sizeof(TYPE) <= 4)
+    } static_assert(true)
 
-    DEFINE(float64,          ); // 0b000
-    DEFINE(pointer, = nullptr); // 0b001
-    DEFINE(T_0b010,          );
-    DEFINE(T_0b011,          );
-    DEFINE(T_0b100,          );
-    DEFINE(T_0b101,          );
-    DEFINE(T_0b110,          );
-    DEFINE(T_0b111,          );
+    DEFINE(double,           );
+    DEFINE(T1,               );
+    DEFINE(T2,               );
+    DEFINE(T3,               );
+    DEFINE(T4,               );
+    DEFINE(T5,               );
+    DEFINE(T6,               );
+    DEFINE(pointer, = nullptr);
 
     #undef DEFINE
 
@@ -125,9 +127,9 @@ inline namespace memory
     template <typename U>
     auto as() const
     {
-      if constexpr (std::is_same_v<std::decay_t<U>, float64>)
+      if constexpr (std::is_same_v<std::decay_t<U>, double>)
       {
-        return bit_cast<float64>(data);
+        return bit_cast<double>(data);
       }
       else
       {
@@ -167,22 +169,20 @@ inline namespace memory
     {
       switch (signature())
       {
-      #define DEFINE(TYPE)                                                     \
-      case signature_##TYPE:                                                   \
-        return typeid(TYPE)
+      #define DEFINE(TYPE) case signature_##TYPE: return typeid(TYPE)
 
+      DEFINE(T1);
+      DEFINE(T2);
+      DEFINE(T3);
+      DEFINE(T4);
+      DEFINE(T5);
+      DEFINE(T6);
       DEFINE(pointer);
-      DEFINE(T_0b010);
-      DEFINE(T_0b011);
-      DEFINE(T_0b100);
-      DEFINE(T_0b101);
-      DEFINE(T_0b110);
-      DEFINE(T_0b111);
 
       #undef DEFINE
 
       default:
-        return typeid(float64);
+        return typeid(double);
       }
     }
 
@@ -202,18 +202,18 @@ inline namespace memory
         }                                                                      \
         static_assert(true)
 
+      DEFINE(T1);
+      DEFINE(T2);
+      DEFINE(T3);
+      DEFINE(T4);
+      DEFINE(T5);
+      DEFINE(T6);
       DEFINE(pointer);
-      DEFINE(T_0b010);
-      DEFINE(T_0b011);
-      DEFINE(T_0b100);
-      DEFINE(T_0b101);
-      DEFINE(T_0b110);
-      DEFINE(T_0b111);
 
       #undef DEFINE
 
       default:
-        if (auto value = as<float64>(); std::isnan(value))
+        if (auto value = as<double>(); std::isnan(value))
         {
           return os << cyan("+nan.0");
         }
