@@ -3,26 +3,37 @@
   <br/>
   <img src="https://github.com/yamacir-kit/meevax/wiki/svg/description.png" alt="A programmable programming lanugage."/>
 </p>
-<hr color=#c1ab05/>
+<hr/>
 <p align="center">
   <img src="https://github.com/yamacir-kit/meevax/actions/workflows/build.yaml/badge.svg"/>
   <img src="https://github.com/yamacir-kit/meevax/actions/workflows/release.yaml/badge.svg"/>
 </p>
 <p align="center">
-  <b><a href="#Overview" >Overview</a></b> &nbsp;|&nbsp;
-  <b><a href="#Requirements">Requirements</a></b> &nbsp;|&nbsp;
-  <b><a href="#Installation">Installation</a></b> &nbsp;|&nbsp;
-  <b><a href="#Usage">Usage</a></b> &nbsp;|&nbsp;
-  <b><a href="#License">License</a></b> &nbsp;|&nbsp;
-  <b><a href="#References">References</a></b>
+  <b>
+    <a href="#Overview">Overview</a>
+  </b>
+  &nbsp;|&nbsp;
+  <b>
+    <a href="#Installation">Installation</a>
+  </b>
+  &nbsp;|&nbsp;
+  <b>
+    <a href="#Usage">Usage</a>
+  </b>
+  &nbsp;|&nbsp;
+  <b>
+    <a href="#License">License</a>
+  </b>
+  &nbsp;|&nbsp;
+  <b>
+    <a href="#References">References</a>
+  </b>
 </p>
 
 ## Overview
 
 > Programming languages should be designed not by piling feature on top of feature, but by removing the weaknesses and restrictions that make additional features appear necessary.
-> <div align="right">
->   Revised<sup>7</sup> Report on the Algorithmic Language Scheme [1]
-> </div>
+> <div align="right">Revised<sup>7</sup> Report on the Algorithmic Language Scheme [1]</div>
 
 Meevax is an implementation of Lisp-1 programming language, supporting subset of the [Scheme](http://www.scheme-reports.org/) (R7RS) and [SRFI](https://srfi.schemers.org/)s.
 
@@ -61,9 +72,9 @@ Subset of R7RS-small.
 | [149](https://srfi.schemers.org/srfi-149/srfi-149.html) | Basic syntax-rules template extensions                 | [`(srfi 149)`](./basis/srfi-149.ss)                   | R7RS 4.3.2        |
 | [211](https://srfi.schemers.org/srfi-211/srfi-211.html) | Scheme Macro Libraries                                 | [`(srfi 211 explicit-renaming)`](./basis/srfi-211.ss) |                   |
 
-## Requirements
+## Installation
 
-### Software
+### Requirements
 
 -   [GCC](https://gcc.gnu.org/) (>= 9.4.0) or [Clang](https://clang.llvm.org/) (>= 11.0.0)
 -   [CMake](https://cmake.org/) (>= ${CMAKE_MINIMUM_REQUIRED_VERSION})
@@ -71,58 +82,55 @@ Subset of R7RS-small.
 -   [GNU Binutils](https://www.gnu.org/software/binutils/)
 -   [GNU Multiple Precision Arithmetic Library (GMP)](https://gmplib.org/)
 
-To install the above software, it is easy to use the following script.
-
-``` bash
-$ ./script/setup.sh
-```
-
-## Installation
-
 ### Install
 
 ``` bash
-$ cmake -B build -DCMAKE_BUILD_TYPE=Release
-$ cd build
-$ make install.deb
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cd build
+make install.deb
+```
+
+or
+
+``` bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cd build
+make install
 ```
 
 ### Uninstall
 
+If you installed with `make install.deb`,
+
 ``` bash
-$ sudo apt remove meevax
+sudo apt remove meevax
+```
+
+or if you installed with `make install`,
+
+``` bash
+sudo rm -rf `${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}`
+sudo rm -rf `${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}`
+sudo rm -rf `${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}*`
+sudo rm -rf `${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}`
 ```
 
 ### CMake targets
 
 | Target Name        | Description
 |--------------------|---
-| `all` (default)    | Build shared-library `libmeevax.${PROJECT_VERSION}.so` and executable `meevax`.
-| `test`             | Test executable `meevax`.
-| `package`          | Generate debian package `meevax_${PROJECT_VERSION}_amd64.deb`.
-| `install`          | Copy files into `/usr/local` __(1)__.
+| `all` (default)    | Build shared-library `libmeevax.${PROJECT_VERSION}.so` and executable `meevax`
+| `test`             | Test executable `meevax`
+| `package`          | Generate debian package `meevax_${PROJECT_VERSION}_amd64.deb`
+| `install`          | Copy files into `/usr/local`
 | `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
 | `safe-install.deb` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
-
-__(1)__ Meevax installed by `make install` cannot be uninstalled by the system's package manager (for example, `apt remove meevax`). You need to manually delete the following files to uninstall:
-
-- `${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}`
-- `${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}`
-- `${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}*`
-- `${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}`
 
 ## Usage
 
 ```
 ${${PROJECT_NAME}_HELP_TEXT}
 ```
-
-| Example                                    | Effects |
-|:-------------------------------------------|:--|
-| `$ meevax -i`                              | Start interactive session. You can exit the session by input `(exit)` or Ctrl+C or Ctrl+D.
-| `$ meevax foo.ss`                          | Evaluate a script `foo.ss`. |
-| `$ meevax -e '(+ 1 2 3)'`                  | Display `6`.
-| `$ meevax -e "(define home \"$HOME\")" -i` | Define value of shell-environment variable `$HOME` as string typed Scheme variable `home`, and then start interactive session on environment includes the variable `home`.
 
 ## License
 
@@ -134,5 +142,6 @@ See [LICENSE](./LICENSE).
 
 ### Resources
 
-*   [TinyScheme](http://tinyscheme.sourceforge.net/)
+*   [Chibi-Scheme](https://github.com/ashinn/chibi-scheme)
 *   [SECDR-Scheme](http://www.maroon.dti.ne.jp/nagar17/mulasame/)
+*   [TinyScheme](http://tinyscheme.sourceforge.net/)
