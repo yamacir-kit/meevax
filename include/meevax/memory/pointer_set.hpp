@@ -234,8 +234,6 @@ inline namespace memory
     explicit pointer_set()
       : pages {}
     {
-      pages.reserve(64);
-
       assert(pages.size() == 0);
       assert(begin() == end());
     }
@@ -243,12 +241,6 @@ inline namespace memory
     auto lower_bound_page_of(compact_pointer p) noexcept
     {
       return std::lower_bound(std::begin(pages), std::end(pages), page_number_of(p));
-    }
-
-    [[deprecated]]
-    auto page_count() const noexcept
-    {
-      return pages.size();
     }
 
     auto size() const noexcept

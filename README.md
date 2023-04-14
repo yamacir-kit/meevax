@@ -119,9 +119,9 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name        | Description
 |--------------------|---
-| `all` (default)    | Build shared-library `libmeevax.0.4.599.so` and executable `meevax`
+| `all` (default)    | Build shared-library `libmeevax.0.4.600.so` and executable `meevax`
 | `test`             | Test executable `meevax`
-| `package`          | Generate debian package `meevax_0.4.599_amd64.deb`
+| `package`          | Generate debian package `meevax_0.4.600_amd64.deb`
 | `install`          | Copy files into `/usr/local`
 | `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
 | `safe-install.deb` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
@@ -129,7 +129,7 @@ sudo rm -rf /usr/local/share/meevax
 ## Usage
 
 ```
-Meevax Lisp 0.4.599
+Meevax Lisp 0.4.600
 
 Usage:
   meevax [option...] [file...]

@@ -82,12 +82,12 @@ inline namespace kernel
   public:
     using char_type = typename std::istream::char_type;
 
-    inline auto get_ready() const
+    auto get_ready() const
     {
       return static_cast<bool>(std::cin);
     }
 
-    inline auto read(std::istream & is = std::cin) -> object
+    auto read(std::istream & is = std::cin) -> object
     {
       for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
       {
@@ -215,6 +215,32 @@ inline namespace kernel
         case '\'': // 0x27
           return list(string_to_symbol("quote"), read(is));
 
+        case '(':  // 0x28
+          try
+          {
+            if (let const& x = read(is); x == eof_object)
+            {
+              return x;
+            }
+            else
+            {
+              return cons(x, read(is.putback(c)));
+            }
+          }
+          catch (std::integral_constant<char_type, ')'> const&)
+          {
+            return unit;
+          }
+          catch (std::integral_constant<char_type, '.'> const&)
+          {
+            let const kdr = read(is);
+            is.ignore(std::numeric_limits<std::streamsize>::max(), ')');
+            return kdr;
+          }
+
+        case ')':  // 0x29
+          throw std::integral_constant<char_type, ')'>();
+
         case ',':  // 0x2C
           switch (is.peek())
           {
@@ -236,34 +262,12 @@ inline namespace kernel
         case '|':  // 0x7C
           return string_to_symbol(meevax::read<string>(is.putback(c)).as<string>());
 
-        case '(':
-        case '[':
-        case '{':
-          try
-          {
-            let const kar = read(is);
-            return cons(kar, read(is.putback(c)));
-          }
-          catch (std::integral_constant<char_type, ')'> const&) { return character::eq(c, '(') ? unit : throw; }
-          catch (std::integral_constant<char_type, ']'> const&) { return character::eq(c, '[') ? unit : throw; }
-          catch (std::integral_constant<char_type, '}'> const&) { return character::eq(c, '{') ? unit : throw; }
-          catch (std::integral_constant<char_type, '.'> const&)
-          {
-            let const kdr = read(is);
-
-            switch (c)
-            {
-            case '(': is.ignore(std::numeric_limits<std::streamsize>::max(), ')'); break;
-            case '[': is.ignore(std::numeric_limits<std::streamsize>::max(), ']'); break;
-            case '{': is.ignore(std::numeric_limits<std::streamsize>::max(), '}'); break;
-            }
-
-            return kdr;
-          }
-
-        case ')': throw std::integral_constant<char_type, ')'>();
-        case ']': throw std::integral_constant<char_type, ']'>();
-        case '}': throw std::integral_constant<char_type, '}'>();
+        case '[':  // 0x5B
+        case ']':  // 0x5D
+        case '{':  // 0x7B
+        case '}':  // 0x7D
+          throw read_error(make<string>("left and right square and curly brackets (braces) are reserved for possible future extensions to the language"),
+                           make<string>("\\#" + c));
 
         default:
           if (auto const& token = get_token(is.putback(c)); token == ".")
@@ -284,7 +288,7 @@ inline namespace kernel
       return eof_object;
     }
 
-    inline auto read(std::string const& s) -> decltype(auto)
+    auto read(std::string const& s) -> decltype(auto)
     {
       auto port = std::stringstream(s);
       return read(port);
