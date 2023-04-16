@@ -87,8 +87,7 @@ target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_link_libraries(kernel PRIVATE stdc++fs
-                             PRIVATE ${CMAKE_DL_LIBS}
+target_link_libraries(kernel PRIVATE ${CMAKE_DL_LIBS}
                              PUBLIC gmp)
 
 set_target_properties(kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
@@ -156,15 +155,20 @@ include(CPack)
 
 enable_testing()
 
+find_program(${PROJECT_NAME}_MEMORY_CHECK_COMMAND valgrind)
+
+set(${PROJECT_NAME}_MEMORY_CHECK_COMMAND_OPTIONS --error-exitcode=1 # = EXIT_FAILURE)
+                                                 --leak-check=full
+                                                 --quiet
+                                                 --show-leak-kinds=all)
+
 file(GLOB ${PROJECT_NAME}_TEST_SS ${CMAKE_CURRENT_SOURCE_DIR}/test/*.ss)
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SS)
   get_filename_component(FILENAME ${EACH} NAME_WE)
   add_test(NAME ${FILENAME}
-           COMMAND valgrind --error-exitcode=1 # = EXIT_FAILURE
-                            --leak-check=full
-                            --quiet
-                            --show-leak-kinds=all
+           COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
+                   ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND_OPTIONS}
                    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax
                    ${EACH})
 endforeach()
@@ -176,24 +180,22 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_CPP)
   add_executable(assert-${FILENAME} ${EACH})
   target_link_libraries(assert-${FILENAME} PRIVATE kernel)
   add_test(NAME assert-${FILENAME}
-           COMMAND valgrind --error-exitcode=1 # = EXIT_FAILURE
-                            --leak-check=full
-                            --quiet
-                            --show-leak-kinds=all
+           COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
+                   ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND_OPTIONS}
                    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assert-${FILENAME})
 endforeach()
 
 # ---- Additional Targets ------------------------------------------------------
 
-execute_process(COMMAND nproc OUTPUT_VARIABLE NPROC)
+execute_process(COMMAND nproc OUTPUT_VARIABLE ${PROJECT_NAME}_NPROC)
 
 add_custom_target(install.deb
-  COMMAND make -j ${NPROC}
-  COMMAND ${CMAKE_CPACK_COMMAND}
+  COMMAND ${CMAKE_MAKE_PROGRAM} -j${${PROJECT_NAME}_NPROC}
+  COMMAND ${CMAKE_MAKE_PROGRAM} package
   COMMAND sudo apt install ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb)
 
-add_custom_target(safe-install.deb
-  COMMAND make -j ${NPROC}
-  COMMAND ${CMAKE_CTEST_COMMAND} -j ${NPROC}
-  COMMAND ${CMAKE_CPACK_COMMAND}
+add_custom_target(develop
+  COMMAND ${CMAKE_MAKE_PROGRAM} -j${${PROJECT_NAME}_NPROC}
+  COMMAND ${CMAKE_MAKE_PROGRAM} test ARGS=-j${${PROJECT_NAME}_NPROC}
+  COMMAND ${CMAKE_MAKE_PROGRAM} package
   COMMAND sudo apt install ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb)
