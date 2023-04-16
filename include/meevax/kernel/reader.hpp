@@ -41,6 +41,13 @@ inline namespace kernel
   template <> auto read<character>(std::istream &) -> object;
   template <> auto read<string   >(std::istream &) -> object;
 
+  struct datum_label
+  {
+    std::uintptr_t value;
+  };
+
+  auto finish(object const&, std::uintptr_t) -> void;
+
   auto string_to_integer (std::string const&, int = 10) -> object;
   auto string_to_rational(std::string const&, int = 10) -> object;
   auto string_to_real    (std::string const&, int = 10) -> object;
@@ -55,29 +62,7 @@ inline namespace kernel
     explicit constexpr reader()
     {}
 
-    struct datum_label
-    {
-      std::uintptr_t value;
-    };
-
     std::unordered_map<std::uintptr_t, object> datum_labels;
-
-    auto finish(object const& xs, object const& datum) -> void
-    {
-      if (xs.is<pair>())
-      {
-        finish(car(xs), datum);
-
-        if (cdr(xs).is<datum_label>())
-        {
-          cdr(xs) = datum;
-        }
-        else
-        {
-          finish(cdr(xs), datum);
-        }
-      }
-    }
 
   public:
     using char_type = typename std::istream::char_type;
@@ -135,17 +120,22 @@ inline namespace kernel
               switch (auto c = is.get())
               {
               case '#':
-                return datum_labels.at(n);
+                if (auto iter = datum_labels.find(n); iter != std::end(datum_labels))
+                {
+                  return iter->second;
+                }
+                else
+                {
+                  throw read_error(make<string>("it is an error to attempt a forward reference"),
+                                   make<string>(lexical_cast<std::string>("#", n, std::char_traits<char_type>::to_char_type(c))));
+                }
 
               case '=':
-                if (auto && [iter, success] = datum_labels.emplace(n, make<datum_label>(n)); success)
+                if (auto [iter, success] = datum_labels.emplace(n, make<datum_label>(n)); success)
                 {
                   let result = read(is);
-
-                  finish(result, result);
-
+                  finish(result, n);
                   datum_labels.erase(n);
-
                   return result;
                 }
                 else
@@ -233,9 +223,9 @@ inline namespace kernel
           }
           catch (std::integral_constant<char_type, '.'> const&)
           {
-            let const kdr = read(is);
+            let const x = read(is);
             is.ignore(std::numeric_limits<std::streamsize>::max(), ')');
-            return kdr;
+            return x;
           }
 
         case ')':  // 0x29
@@ -267,7 +257,7 @@ inline namespace kernel
         case '{':  // 0x7B
         case '}':  // 0x7D
           throw read_error(make<string>("left and right square and curly brackets (braces) are reserved for possible future extensions to the language"),
-                           make<string>("\\#" + c));
+                           make<character>(c));
 
         default:
           if (auto const& token = get_token(is.putback(c)); token == ".")
