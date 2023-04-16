@@ -39,14 +39,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_B
 
 # ---- Configure ---------------------------------------------------------------
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
-  execute_process(COMMAND git rev-parse HEAD
-                  COMMAND tr -d "\n"
-                  OUTPUT_VARIABLE ${PROJECT_NAME}_VERSION_EXACT)
-else()
-  set(${PROJECT_NAME}_VERSION_EXACT "")
-endif()
-
 include(TestBigEndian)
 
 TEST_BIG_ENDIAN(IS_BIG_ENDIAN) # Use CMAKE_CXX_BYTE_ORDER if CMake >= 3.20

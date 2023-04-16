@@ -20,34 +20,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto version() -> object const&
+  auto help() noexcept -> std::string_view
   {
-    let static const version = string_to_symbol("${PROJECT_VERSION}");
-    return version;
-  }
-
-  auto major_version() -> object const&
-  {
-    let static const version = make<exact_integer>("${PROJECT_VERSION_MAJOR}");
-    return version;
-  }
-
-  auto minor_version() -> object const&
-  {
-    let static const version = make<exact_integer>("${PROJECT_VERSION_MINOR}");
-    return version;
-  }
-
-  auto patch_version() -> object const&
-  {
-    let static const version = make<exact_integer>("${PROJECT_VERSION_PATCH}");
-    return version;
-  }
-
-  auto exact_version() -> object const&
-  {
-    let static const version = string_to_symbol("${${PROJECT_NAME}_VERSION_EXACT}");
-    return version;
+    return R"(${${PROJECT_NAME}_HELP_TEXT})";
   }
 
   auto features() -> object const&
@@ -70,10 +45,10 @@ inline namespace kernel
     return features;
   }
 
-  auto help() -> std::string const&
+  auto version() -> object const&
   {
-    std::string static const help = R"(${${PROJECT_NAME}_HELP_TEXT})";
-    return help;
+    let static const version = string_to_symbol("${PROJECT_VERSION}");
+    return version;
   }
 } // namespace kernel
 } // namespace meevax
