@@ -102,7 +102,7 @@ inline namespace kernel
     {
       auto bind = [](auto&& name, auto&& compiler)
       {
-        return make<absolute>(string_to_symbol(name), make<syntax>(name, compiler));
+        return make<absolute>(make_symbol(name), make<syntax>(name, compiler));
       };
 
       let static const core = make<syntactic_environment>(
@@ -133,7 +133,7 @@ inline namespace kernel
 
     static auto rename(std::string const& variable)
     {
-      return rename(string_to_symbol(variable));
+      return rename(make_symbol(variable));
     }
 
     struct syntax
@@ -1043,11 +1043,11 @@ inline namespace kernel
     {
       if constexpr (std::is_constructible_v<T, std::string const&, Ts...>)
       {
-        return define(string_to_symbol(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
+        return define(make_symbol(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
       }
       else
       {
-        return define(string_to_symbol(name), make<T>(std::forward<decltype(xs)>(xs)...));
+        return define(make_symbol(name), make<T>(std::forward<decltype(xs)>(xs)...));
       }
     }
 

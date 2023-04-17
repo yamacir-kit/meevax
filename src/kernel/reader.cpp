@@ -265,16 +265,16 @@ inline namespace kernel
     return circulate(xs, xs, n);
   }
 
-  auto string_to_integer(std::string const& token, int radix) -> object
+  auto make_integer(std::string const& token, int radix) -> object
   {
     return make<exact_integer>(token, radix);
   }
 
-  auto string_to_rational(std::string const& token, int radix) -> object
+  auto make_rational(std::string const& token, int radix) -> object
   {
     try
     {
-      return string_to_integer(token, radix);
+      return make_integer(token, radix);
     }
     catch (...)
     {
@@ -282,11 +282,11 @@ inline namespace kernel
     }
   }
 
-  auto string_to_real(std::string const& token, int radix) -> object
+  auto make_real(std::string const& token, int radix) -> object
   {
     try
     {
-      return string_to_rational(token, radix);
+      return make_rational(token, radix);
     }
     catch (...)
     {
@@ -333,11 +333,11 @@ inline namespace kernel
     }
   }
 
-  auto string_to_complex(std::string const& token, int radix) -> object
+  auto make_complex(std::string const& token, int radix) -> object
   {
     try
     {
-      return string_to_real(token, radix);
+      return make_real(token, radix);
     }
     catch (...)
     {
@@ -345,11 +345,11 @@ inline namespace kernel
     }
   }
 
-  auto string_to_number(std::string const& token, int radix) -> object
+  auto make_number(std::string const& token, int radix) -> object
   {
     try
     {
-      return string_to_complex(token, radix);
+      return make_complex(token, radix);
     }
     catch (...)
     {

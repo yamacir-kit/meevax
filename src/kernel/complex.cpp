@@ -31,13 +31,13 @@ inline namespace kernel
 
     if (std::smatch result; std::regex_match(token, result, rectangular))
     {
-      std::get<0>(*this) = string_to_real(result[1].length() == 0 ?                 "0" : result.str(1), radix);
-      std::get<1>(*this) = string_to_real(result[2].length() == 1 ? result.str(2) + "1" : result.str(2), radix);
+      std::get<0>(*this) = make_real(result[1].length() == 0 ?                 "0" : result.str(1), radix);
+      std::get<1>(*this) = make_real(result[2].length() == 1 ? result.str(2) + "1" : result.str(2), radix);
     }
     else if (std::regex_match(token, result, polar))
     {
-      auto const magnitude = string_to_real(result.str(1), radix);
-      auto const angle     = string_to_real(result.str(2), radix);
+      auto const magnitude = make_real(result.str(1), radix);
+      auto const angle     = make_real(result.str(2), radix);
 
       std::get<0>(*this) = magnitude * apply_arithmetic<cos>(angle);
       std::get<1>(*this) = magnitude * apply_arithmetic<sin>(angle);

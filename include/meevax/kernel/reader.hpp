@@ -53,11 +53,11 @@ inline namespace kernel
 
   auto circulate(object const&, std::string const&) -> void;
 
-  auto string_to_integer (std::string const&, int = 10) -> object;
-  auto string_to_rational(std::string const&, int = 10) -> object;
-  auto string_to_real    (std::string const&, int = 10) -> object;
-  auto string_to_complex (std::string const&, int = 10) -> object;
-  auto string_to_number  (std::string const&, int = 10) -> object;
+  auto make_integer (std::string const&, int = 10) -> object;
+  auto make_rational(std::string const&, int = 10) -> object;
+  auto make_real    (std::string const&, int = 10) -> object;
+  auto make_complex (std::string const&, int = 10) -> object;
+  auto make_number  (std::string const&, int = 10) -> object;
 
   inline auto get_while = [](auto match, std::istream & input)
   {
@@ -120,7 +120,7 @@ inline namespace kernel
             return read(is), read(is);
 
           case '"':
-            return string_to_symbol(meevax::read<string>(is.putback(c)).as<string>());
+            return make_symbol(meevax::read<string>(is.putback(c)).as<string>());
 
           case '0':
           case '1':
@@ -186,7 +186,7 @@ inline namespace kernel
             }
 
           case 'b':
-            return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 2);
+            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 2);
 
           case 'c': // Common Lisp
             return [](let const& xs)
@@ -196,7 +196,7 @@ inline namespace kernel
             }(read(is));
 
           case 'd':
-            return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 10);
+            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 10);
 
           case 'e':
             return apply_arithmetic<exact>(read(is)); // NOTE: Same as #,(exact (read))
@@ -209,14 +209,14 @@ inline namespace kernel
             return apply_arithmetic<inexact>(read(is)); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 8);
+            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 8);
 
           case 't':
             get_token(is);
             return t;
 
           case 'x':
-            return string_to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 16);
+            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 16);
 
           case '(':
             is.putback(c);
@@ -234,7 +234,7 @@ inline namespace kernel
           }
 
         case '\'': // 0x27
-          return list(string_to_symbol("quote"), read(is));
+          return list(make_symbol("quote"), read(is));
 
         case '(':  // 0x28
           try
@@ -267,10 +267,10 @@ inline namespace kernel
           {
           case '@':
             is.ignore(1);
-            return list(string_to_symbol("unquote-splicing"), read(is));
+            return list(make_symbol("unquote-splicing"), read(is));
 
           default:
-            return list(string_to_symbol("unquote"), read(is));
+            return list(make_symbol("unquote"), read(is));
           }
 
         case ';':  // 0x3B
@@ -278,10 +278,10 @@ inline namespace kernel
           break;
 
         case '`':  // 0x60
-          return list(string_to_symbol("quasiquote"), read(is));
+          return list(make_symbol("quasiquote"), read(is));
 
         case '|':  // 0x7C
-          return string_to_symbol(meevax::read<string>(is.putback(c)).as<string>());
+          return make_symbol(meevax::read<string>(is.putback(c)).as<string>());
 
         case '[':  // 0x5B
         case ']':  // 0x5D
@@ -297,11 +297,11 @@ inline namespace kernel
           }
           else try
           {
-            return string_to_number(token, 10);
+            return make_number(token, 10);
           }
           catch (...)
           {
-            return string_to_symbol(token);
+            return make_symbol(token);
           }
         }
       }

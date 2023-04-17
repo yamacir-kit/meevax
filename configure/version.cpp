@@ -28,18 +28,18 @@ inline namespace kernel
   auto features() -> object const&
   {
     let static const features = list(
-      string_to_symbol("r5rs"),
-      string_to_symbol("exact-closed"),
-      string_to_symbol("exact-complex"),
-      string_to_symbol("ieee-float"),
-      string_to_symbol("ratios"),
-      string_to_symbol("posix"),
-      string_to_symbol("${CMAKE_SYSTEM_NAME}"),
-      string_to_symbol("${CMAKE_SYSTEM_PROCESSOR}"),
+      make_symbol("r5rs"),
+      make_symbol("exact-closed"),
+      make_symbol("exact-complex"),
+      make_symbol("ieee-float"),
+      make_symbol("ratios"),
+      make_symbol("posix"),
+      make_symbol("${CMAKE_SYSTEM_NAME}"),
+      make_symbol("${CMAKE_SYSTEM_PROCESSOR}"),
       // TODO C memory model flags.
-      string_to_symbol("${${PROJECT_NAME}_BYTE_ORDER}"),
-      string_to_symbol("${PROJECT_NAME}"), // The name of this implementation.
-      string_to_symbol("${PROJECT_NAME}-${PROJECT_VERSION}") // The name and version of this implementation.
+      make_symbol("${${PROJECT_NAME}_BYTE_ORDER}"),
+      make_symbol("${PROJECT_NAME}"), // The name of this implementation.
+      make_symbol("${PROJECT_NAME}-${PROJECT_VERSION}") // The name and version of this implementation.
       );
 
     return features;
@@ -47,7 +47,7 @@ inline namespace kernel
 
   auto version() -> object const&
   {
-    let static const version = string_to_symbol("${PROJECT_VERSION}");
+    let static const version = make_symbol("${PROJECT_VERSION}");
     return version;
   }
 } // namespace kernel

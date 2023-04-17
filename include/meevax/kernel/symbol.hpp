@@ -57,7 +57,7 @@ inline namespace kernel
 
   extern std::unordered_map<std::string, object> symbols;
 
-  auto string_to_symbol(std::string const&) -> object const&;
+  auto make_symbol(std::string const&) -> object const&;
 } // namespace kernel
 } // namespace meevax
 

@@ -107,7 +107,7 @@ inline namespace kernel
 
   auto environment::operator [](std::string const& variable) -> object const&
   {
-    return (*this)[string_to_symbol(variable)];
+    return (*this)[make_symbol(variable)];
   }
 
   auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &

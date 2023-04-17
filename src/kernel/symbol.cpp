@@ -56,7 +56,7 @@ inline namespace kernel
 
   std::unordered_map<std::string, object> symbols;
 
-  auto string_to_symbol(std::string const& name) -> object const&
+  auto make_symbol(std::string const& name) -> object const&
   {
     if (auto const iter = symbols.find(name); iter != std::end(symbols))
     {

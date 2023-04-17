@@ -78,7 +78,7 @@ inline namespace kernel
         {
           return map1([&](let const& identity)
                       {
-                        return make<absolute>(string_to_symbol(car(prefixes).as<symbol>() + identity.as<absolute>().symbol().as<symbol>()),
+                        return make<absolute>(make_symbol(car(prefixes).as<symbol>() + identity.as<absolute>().symbol().as<symbol>()),
                                               identity.as<absolute>().load());
                       },
                       resolve_library(import_set));
