@@ -72,25 +72,17 @@ inline namespace kernel
 
   auto write_simple(std::ostream & os, pair const& datum) -> std::ostream &
   {
-    os << magenta("(");
+    write_simple(os << magenta("("), car(datum));
 
-    write_simple(os, car(datum));
-
-    for (auto iter = std::begin(cdr(datum)); iter != unit; ++iter)
+    for (let xs = cdr(datum); xs != unit; xs = cdr(xs))
     {
-      if (iter.get().is<pair>())
+      if (xs.is<pair>())
       {
-        os << " ";
-
-        write_simple(os, *iter);
+        write_simple(os << " ", car(xs));
       }
-      else // iter is the last element of dotted-list.
+      else // xs is the last element of dotted-list.
       {
-        os << magenta(" . ");
-
-        write_simple(os, iter.get());
-
-        return os << magenta(")");
+        return write_simple(os << magenta(" . "), xs) << magenta(")");
       }
     }
 
@@ -110,9 +102,9 @@ inline namespace kernel
 
       os << magenta("#", n, "=(") << car(datum);
 
-      for (auto iter = std::begin(cdr(datum)); iter != end; ++iter)
+      for (auto xs = cdr(datum); xs != end; xs = cdr(xs))
       {
-        os << " " << *iter;
+        os << " " << car(xs);
       }
 
       return os << magenta(" . #", n, "#)");
