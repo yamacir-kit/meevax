@@ -59,6 +59,18 @@ inline namespace kernel
   auto string_to_complex (std::string const&, int = 10) -> object;
   auto string_to_number  (std::string const&, int = 10) -> object;
 
+  inline auto get_while = [](auto match, std::istream & input)
+  {
+    std::string result {};
+
+    while (match(input.peek()))
+    {
+      result.push_back(input.get());
+    }
+
+    return result;
+  };
+
   template <typename Environment>
   class reader
   {
@@ -120,18 +132,7 @@ inline namespace kernel
           case '7':
           case '8':
           case '9':
-            if (auto n = [](std::istream & input)
-                {
-                  std::string n {};
-
-                  while (std::isdigit(input.peek()))
-                  {
-                    n.push_back(input.get());
-                  }
-
-                  return n;
-                }(is.putback(c));
-                not std::empty(n))
+            if (auto n = get_while([](auto c) { return std::isdigit(c); }, is.putback(c)); not std::empty(n))
             {
               switch (auto c = is.get())
               {

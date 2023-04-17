@@ -26,16 +26,16 @@ inline namespace kernel
 {
   struct symbol : public identifier
   {
-    std::string const std_string;
+    std::string const name;
 
     template <typename... Ts>
     explicit symbol(Ts&&... xs)
-      : std_string { std::forward<decltype(xs)>(xs)... }
+      : name { std::forward<decltype(xs)>(xs)... }
     {}
 
     operator std::string() const noexcept
     {
-      return std_string;
+      return name;
     }
   };
 
@@ -52,7 +52,7 @@ inline namespace kernel
   template <typename T, REQUIRES(is_equality_comparable<std::string const&, T const&>)>
   auto operator ==(symbol const& a, T const& b) -> bool
   {
-    return a.std_string == b;
+    return a.name == b;
   }
 
   extern std::unordered_map<std::string, object> symbols;
