@@ -43,10 +43,15 @@ inline namespace kernel
 
   struct datum_label
   {
-    std::uintptr_t value;
+    std::string const n;
+
+    template <typename... Ts>
+    explicit datum_label(Ts&&... xs)
+      : n { std::forward<decltype(xs)>(xs)... }
+    {}
   };
 
-  auto finish(object const&, std::uintptr_t) -> void;
+  auto circulate(object const&, std::string const&) -> void;
 
   auto string_to_integer (std::string const&, int = 10) -> object;
   auto string_to_rational(std::string const&, int = 10) -> object;
@@ -62,7 +67,7 @@ inline namespace kernel
     explicit constexpr reader()
     {}
 
-    std::unordered_map<std::uintptr_t, object> datum_labels;
+    std::unordered_map<std::string, object> datum_labels;
 
   public:
     using char_type = typename std::istream::char_type;
@@ -115,7 +120,18 @@ inline namespace kernel
           case '7':
           case '8':
           case '9':
-            if (std::uintptr_t n = 0; is.putback(c) >> n)
+            if (auto n = [](std::istream & input)
+                {
+                  std::string n {};
+
+                  while (std::isdigit(input.peek()))
+                  {
+                    n.push_back(input.get());
+                  }
+
+                  return n;
+                }(is.putback(c));
+                not std::empty(n))
             {
               switch (auto c = is.get())
               {
@@ -133,15 +149,29 @@ inline namespace kernel
               case '=':
                 if (auto [iter, success] = datum_labels.emplace(n, make<datum_label>(n)); success)
                 {
-                  let result = read(is);
-                  finish(result, n);
-                  datum_labels.erase(n);
-                  return result;
+                  if (let const& xs = read(is); xs != iter->second)
+                  {
+                    circulate(xs, n);
+                    datum_labels.erase(n);
+                    return xs;
+                  }
+                  else
+                  {
+                    /*
+                       R7RS 2.4 Datum labels
+
+                       In addition, it is an error if the reference appears as
+                       the labelled object itself (as in #<n>=#<n>#), because
+                       the object labelled by #<n>= is not well defined in this
+                       case.
+                    */
+                    return unit;
+                  }
                 }
                 else
                 {
                   throw read_error(make<string>("duplicated datum-label declaration"),
-                                   make<exact_integer>(n));
+                                   make<string>(n));
                 }
 
               default:

@@ -243,26 +243,26 @@ inline namespace kernel
     throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
   }
 
-  auto finish(object const& xs, object const& x, std::uintptr_t value) -> void
+  auto circulate(object const& xs, object const& x, std::string const& n) -> void
   {
     if (xs.is<pair>())
     {
-      finish(car(xs), x, value);
+      circulate(car(xs), x, n);
 
-      if (cdr(xs).is<datum_label>() and cdr(xs).as<datum_label>().value == value)
+      if (cdr(xs).is<datum_label>() and cdr(xs).as<datum_label>().n == n)
       {
         cdr(xs) = x;
       }
       else
       {
-        finish(cdr(xs), x, value);
+        circulate(cdr(xs), x, n);
       }
     }
   }
 
-  auto finish(object const& xs, std::uintptr_t value) -> void
+  auto circulate(object const& xs, std::string const& n) -> void
   {
-    return finish(xs, xs, value);
+    return circulate(xs, xs, n);
   }
 
   auto string_to_integer(std::string const& token, int radix) -> object
