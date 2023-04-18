@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -eu
 
 # ./script/update.sh -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
 

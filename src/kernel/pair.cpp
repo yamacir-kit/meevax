@@ -46,9 +46,9 @@ inline namespace kernel
     return 0 < k ? second[--k] : first;
   }
 
-  auto label(object const& x, object const& y) -> object const&
+  auto find_circulation(object const& x, object const& y) -> object const&
   {
-    if (x.is<pair>() and cdr(x).is<pair>() and (cddr(x) == cdr(y) or label(cddr(x), cdr(y))))
+    if (x.is<pair>() and cdr(x).is<pair>() and (cddr(x) == cdr(y) or find_circulation(cddr(x), cdr(y))))
     {
       return cdddr(x);
     }
@@ -58,9 +58,9 @@ inline namespace kernel
     }
   }
 
-  auto label(pair const& x)
+  auto find_circulation(pair const& x)
   {
-    if (cdr(x).is<pair>() and (cddr(x) == cdr(x) or label(cddr(x), cdr(x))))
+    if (cdr(x).is<pair>() and (cddr(x) == cdr(x) or find_circulation(cddr(x), cdr(x))))
     {
       return cdddr(x);
     }
@@ -96,13 +96,13 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, pair const& datum) -> std::ostream &
   {
-    if (let const& end = label(datum))
+    if (let const& circulation = find_circulation(datum))
     {
-      auto n = reinterpret_cast<std::uintptr_t>(end.get());
+      auto n = reinterpret_cast<std::uintptr_t>(circulation.get());
 
       os << magenta("#", n, "=(") << car(datum);
 
-      for (auto xs = cdr(datum); xs != end; xs = cdr(xs))
+      for (auto xs = cdr(datum); xs != circulation; xs = cdr(xs))
       {
         os << " " << car(xs);
       }

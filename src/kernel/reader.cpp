@@ -15,6 +15,7 @@
 */
 
 #include <regex>
+#include <string_view>
 
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/string.hpp>
@@ -290,7 +291,7 @@ inline namespace kernel
     }
     catch (std::invalid_argument const&)
     {
-      std::unordered_map<std::string, double> static const constants
+      std::unordered_map<std::string_view, double> static const constants
       {
         // R7RS 7.1.1. Lexical structure
         { "+inf.0", +std::numeric_limits<double>::infinity()  },
