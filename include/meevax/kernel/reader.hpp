@@ -117,7 +117,8 @@ inline namespace kernel
             return static_cast<Environment &>(*this).evaluate(read(is));
 
           case ';': // SRFI 62
-            return read(is), read(is);
+            read(is);
+            return read(is);
 
           case '"':
             return make_symbol(meevax::read<string>(is.putback(c)).as<string>());
@@ -299,7 +300,7 @@ inline namespace kernel
           {
             return make_number(token, 10);
           }
-          catch (...)
+          catch (std::invalid_argument const&)
           {
             return make_symbol(token);
           }

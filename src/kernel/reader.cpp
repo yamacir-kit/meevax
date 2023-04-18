@@ -276,7 +276,7 @@ inline namespace kernel
     {
       return make_integer(token, radix);
     }
-    catch (...)
+    catch (std::invalid_argument const&)
     {
       return make(ratio(token, radix));
     }
@@ -288,7 +288,7 @@ inline namespace kernel
     {
       return make_rational(token, radix);
     }
-    catch (...)
+    catch (std::invalid_argument const&)
     {
       std::unordered_map<std::string, double> static const constants
       {
@@ -316,7 +316,7 @@ inline namespace kernel
         { "fl-1/sqrt-2",  M_SQRT1_2  },
       };
 
-      std::regex static const pattern { R"(([+-]?(?:\d+\.?|\d*\.\d+))([DEFLSdefls][+-]?\d+)?)" };
+      auto static const pattern = std::regex(R"(([+-]?(?:\d+\.?|\d*\.\d+))([DEFLSdefls][+-]?\d+)?)");
 
       if (auto iter = constants.find(token); iter != std::end(constants))
       {
@@ -339,7 +339,7 @@ inline namespace kernel
     {
       return make_real(token, radix);
     }
-    catch (...)
+    catch (std::invalid_argument const&)
     {
       return make(complex(token, radix));
     }
@@ -351,7 +351,7 @@ inline namespace kernel
     {
       return make_complex(token, radix);
     }
-    catch (...)
+    catch (std::invalid_argument const&)
     {
       throw std::invalid_argument("not a number");
     }
