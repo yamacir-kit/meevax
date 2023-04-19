@@ -46,9 +46,9 @@ inline namespace kernel
     return 0 < k ? second[--k] : first;
   }
 
-  auto label(object const& x, object const& y) -> object const&
+  auto find_circulation(object const& x, object const& y) -> object const&
   {
-    if (x.is<pair>() and cdr(x).is<pair>() and (cddr(x) == cdr(y) or label(cddr(x), cdr(y))))
+    if (x.is<pair>() and cdr(x).is<pair>() and (cddr(x) == cdr(y) or find_circulation(cddr(x), cdr(y))))
     {
       return cdddr(x);
     }
@@ -58,9 +58,9 @@ inline namespace kernel
     }
   }
 
-  auto label(pair const& x)
+  auto find_circulation(pair const& x)
   {
-    if (cdr(x).is<pair>() and (cddr(x) == cdr(x) or label(cddr(x), cdr(x))))
+    if (cdr(x).is<pair>() and (cddr(x) == cdr(x) or find_circulation(cddr(x), cdr(x))))
     {
       return cdddr(x);
     }
@@ -72,25 +72,17 @@ inline namespace kernel
 
   auto write_simple(std::ostream & os, pair const& datum) -> std::ostream &
   {
-    os << magenta("(");
+    write_simple(os << magenta("("), car(datum));
 
-    write_simple(os, car(datum));
-
-    for (auto iter = std::begin(cdr(datum)); iter != unit; ++iter)
+    for (let xs = cdr(datum); xs != unit; xs = cdr(xs))
     {
-      if (iter.get().is<pair>())
+      if (xs.is<pair>())
       {
-        os << " ";
-
-        write_simple(os, *iter);
+        write_simple(os << " ", car(xs));
       }
-      else // iter is the last element of dotted-list.
+      else // xs is the last element of dotted-list.
       {
-        os << magenta(" . ");
-
-        write_simple(os, iter.get());
-
-        return os << magenta(")");
+        return write_simple(os << magenta(" . "), xs) << magenta(")");
       }
     }
 
@@ -104,15 +96,15 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, pair const& datum) -> std::ostream &
   {
-    if (let const& end = label(datum))
+    if (let const& circulation = find_circulation(datum))
     {
-      auto n = reinterpret_cast<std::uintptr_t>(end.get());
+      auto n = reinterpret_cast<std::uintptr_t>(circulation.get());
 
       os << magenta("#", n, "=(") << car(datum);
 
-      for (auto iter = std::begin(cdr(datum)); iter != end; ++iter)
+      for (auto xs = cdr(datum); xs != circulation; xs = cdr(xs))
       {
-        os << " " << *iter;
+        os << " " << car(xs);
       }
 
       return os << magenta(" . #", n, "#)");

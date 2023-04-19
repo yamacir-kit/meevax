@@ -641,8 +641,8 @@ inline namespace kernel
 
       library.define<procedure>("string->number", [](let const& xs)
       {
-        return string_to_number(car(xs).as<string>(),
-                                cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10);
+        return make_number(car(xs).as<string>(),
+                           cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10);
       });
     });
 
@@ -1113,7 +1113,7 @@ inline namespace kernel
 
       library.define<procedure>("string->symbol", [](let const& xs)
       {
-        return string_to_symbol(car(xs).as<string>());
+        return make_symbol(car(xs).as<string>());
       });
 
       library.define<procedure>("identifier->symbol", [](let const& xs)

@@ -16,5 +16,5 @@ add_test(NAME ${PROJECT_NAME}
          COMMAND meevax ${PROJECT_NAME}.ss
          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_custom_target(demo COMMAND make
-                       COMMAND ${CMAKE_CTEST_COMMAND})
+add_custom_target(develop COMMAND ${CMAKE_MAKE_PROGRAM}
+                          COMMAND ${CMAKE_CTEST_COMMAND})

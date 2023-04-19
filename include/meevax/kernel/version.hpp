@@ -17,27 +17,20 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_VERSION_HPP
 #define INCLUDED_MEEVAX_KERNEL_VERSION_HPP
 
+#include <string_view>
+
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/number.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto version() -> object const&;
-
-  auto major_version() -> object const&;
-
-  auto minor_version() -> object const&;
-
-  auto patch_version() -> object const&;
-
-  auto exact_version() -> object const&;
+  auto help() noexcept -> std::string_view;
 
   auto features() -> object const&;
 
-  auto help() -> std::string const&;
+  auto version() -> object const&;
 } // namespace kernel
 } // namespace meevax
 

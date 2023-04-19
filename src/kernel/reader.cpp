@@ -15,6 +15,7 @@
 */
 
 #include <regex>
+#include <string_view>
 
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/string.hpp>
@@ -243,32 +244,54 @@ inline namespace kernel
     throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
   }
 
-  auto string_to_integer(std::string const& token, int radix) -> object
+  auto circulate(object const& xs, object const& x, std::string const& n) -> void
+  {
+    if (xs.is<pair>())
+    {
+      circulate(car(xs), x, n);
+
+      if (cdr(xs).is<datum_label>() and cdr(xs).as<datum_label>().n == n)
+      {
+        cdr(xs) = x;
+      }
+      else
+      {
+        circulate(cdr(xs), x, n);
+      }
+    }
+  }
+
+  auto circulate(object const& xs, std::string const& n) -> void
+  {
+    return circulate(xs, xs, n);
+  }
+
+  auto make_integer(std::string const& token, int radix) -> object
   {
     return make<exact_integer>(token, radix);
   }
 
-  auto string_to_rational(std::string const& token, int radix) -> object
+  auto make_rational(std::string const& token, int radix) -> object
   {
     try
     {
-      return string_to_integer(token, radix);
+      return make_integer(token, radix);
     }
-    catch (...)
+    catch (std::invalid_argument const&)
     {
       return make(ratio(token, radix));
     }
   }
 
-  auto string_to_real(std::string const& token, int radix) -> object
+  auto make_real(std::string const& token, int radix) -> object
   {
     try
     {
-      return string_to_rational(token, radix);
+      return make_rational(token, radix);
     }
-    catch (...)
+    catch (std::invalid_argument const&)
     {
-      std::unordered_map<std::string, double> static const constants
+      std::unordered_map<std::string_view, double> static const constants
       {
         // R7RS 7.1.1. Lexical structure
         { "+inf.0", +std::numeric_limits<double>::infinity()  },
@@ -294,7 +317,7 @@ inline namespace kernel
         { "fl-1/sqrt-2",  M_SQRT1_2  },
       };
 
-      std::regex static const pattern { R"(([+-]?(?:\d+\.?|\d*\.\d+))([DEFLSdefls][+-]?\d+)?)" };
+      auto static const pattern = std::regex(R"(([+-]?(?:\d+\.?|\d*\.\d+))([DEFLSdefls][+-]?\d+)?)");
 
       if (auto iter = constants.find(token); iter != std::end(constants))
       {
@@ -311,25 +334,25 @@ inline namespace kernel
     }
   }
 
-  auto string_to_complex(std::string const& token, int radix) -> object
+  auto make_complex(std::string const& token, int radix) -> object
   {
     try
     {
-      return string_to_real(token, radix);
+      return make_real(token, radix);
     }
-    catch (...)
+    catch (std::invalid_argument const&)
     {
       return make(complex(token, radix));
     }
   }
 
-  auto string_to_number(std::string const& token, int radix) -> object
+  auto make_number(std::string const& token, int radix) -> object
   {
     try
     {
-      return string_to_complex(token, radix);
+      return make_complex(token, radix);
     }
-    catch (...)
+    catch (std::invalid_argument const&)
     {
       throw std::invalid_argument("not a number");
     }

@@ -8,8 +8,7 @@
   (for-each (lambda (x)
               (display x))
             xs)
-  (newline)
-  )
+  (newline))
 
 (let ((x (list 'a 'b 'c)))
   (set-cdr! (cddr x) x)

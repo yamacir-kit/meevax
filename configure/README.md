@@ -124,7 +124,6 @@ sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 | `package`          | Generate debian package `meevax_${PROJECT_VERSION}_amd64.deb`
 | `install`          | Copy files into `/usr/local`
 | `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
-| `safe-install.deb` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
 
 ## Usage
 
