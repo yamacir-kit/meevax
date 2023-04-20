@@ -32,6 +32,7 @@ ${${PROJECT_NAME}_BASIS_srfi-8.ss}
 ${${PROJECT_NAME}_BASIS_srfi-9.ss}
 ${${PROJECT_NAME}_BASIS_srfi-11.ss}
 ${${PROJECT_NAME}_BASIS_srfi-23.ss}
+${${PROJECT_NAME}_BASIS_srfi-31.ss}
 ${${PROJECT_NAME}_BASIS_srfi-34.ss}
 ${${PROJECT_NAME}_BASIS_srfi-38.ss}
 ${${PROJECT_NAME}_BASIS_srfi-39.ss}
