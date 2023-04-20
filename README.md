@@ -70,7 +70,6 @@ Subset of R7RS-small.
 | [ 78](https://srfi.schemers.org/srfi-78/srfi-78.html)   | Lightweight testing                                    | [`(srfi 78)`](./basis/srfi-78.ss)                     | Except `check-ec` |
 | [ 87](https://srfi.schemers.org/srfi-87/srfi-87.html)   | => in case clauses                                     |                                                       | R7RS 4.2.1        |
 | [149](https://srfi.schemers.org/srfi-149/srfi-149.html) | Basic syntax-rules template extensions                 | [`(srfi 149)`](./basis/srfi-149.ss)                   | R7RS 4.3.2        |
-| [211](https://srfi.schemers.org/srfi-211/srfi-211.html) | Scheme Macro Libraries                                 | [`(srfi 211 explicit-renaming)`](./basis/srfi-211.ss) |                   |
 
 ## Installation
 
@@ -119,16 +118,16 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name        | Description
 |--------------------|---
-| `all` (default)    | Build shared-library `libmeevax.0.4.610.so` and executable `meevax`
+| `all` (default)    | Build shared-library `libmeevax.0.4.611.so` and executable `meevax`
 | `test`             | Test executable `meevax`
-| `package`          | Generate debian package `meevax_0.4.610_amd64.deb`
+| `package`          | Generate debian package `meevax_0.4.611_amd64.deb`
 | `install`          | Copy files into `/usr/local`
 | `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
 
 ## Usage
 
 ```
-Meevax Lisp 0.4.610
+Meevax Lisp 0.4.611
 
 Usage:
   meevax [option...] [file...]

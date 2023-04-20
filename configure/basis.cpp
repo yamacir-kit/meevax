@@ -21,6 +21,7 @@ namespace meevax
 inline namespace kernel
 {
   script const basis = R"###(
+${${PROJECT_NAME}_BASIS_meevax.ss}
 ${${PROJECT_NAME}_BASIS_r4rs.ss}
 ${${PROJECT_NAME}_BASIS_r4rs-essential.ss}
 ${${PROJECT_NAME}_BASIS_r5rs.ss}
@@ -37,7 +38,6 @@ ${${PROJECT_NAME}_BASIS_srfi-39.ss}
 ${${PROJECT_NAME}_BASIS_srfi-45.ss}
 ${${PROJECT_NAME}_BASIS_srfi-78.ss}
 ${${PROJECT_NAME}_BASIS_srfi-149.ss}
-${${PROJECT_NAME}_BASIS_srfi-211.ss}
 )###";
 }
 }

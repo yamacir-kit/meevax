@@ -6,6 +6,7 @@
                   (load %load))
           (meevax function)
           (meevax list)
+          (only (meevax macro-transformer) er-macro-transformer identifier?)
           (meevax number)
           (meevax pair)
           (meevax port)
@@ -15,8 +16,7 @@
           (meevax symbol)
           (meevax vector)
           (rename (meevax write)
-                  (write %write))
-          (srfi 211 explicit-renaming))
+                  (write %write)))
 
   (export quote lambda if set! cond case and or let letrec begin quasiquote
           define not boolean? eqv? eq? equal? pair? cons car cdr set-car!

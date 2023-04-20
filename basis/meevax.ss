@@ -1,6 +1,11 @@
-(define-library (srfi 211 syntactic-closures)
-  (import (meevax core)
-          (meevax macro))
+(define-library (meevax macro-transformer)
+  (import (meevax comparator)
+          (meevax core)
+          (meevax list)
+          (meevax macro)
+          (meevax pair))
+
+  (export make-syntactic-closure identifier? sc-macro-transformer rsc-macro-transformer er-macro-transformer)
 
   (begin (define (sc-macro-transformer f)
            (lambda (form use-env mac-env)
@@ -8,18 +13,9 @@
 
          (define (rsc-macro-transformer f)
            (lambda (form use-env mac-env)
-             (make-syntactic-closure use-env '() (f form mac-env)))))
+             (make-syntactic-closure use-env '() (f form mac-env))))
 
-  (export sc-macro-transformer rsc-macro-transformer make-syntactic-closure identifier?))
-
-(define-library (srfi 211 explicit-renaming)
-  (import (meevax comparator)
-          (meevax core)
-          (meevax list)
-          (meevax macro)
-          (meevax pair))
-
-  (begin (define (er-macro-transformer f)
+         (define (er-macro-transformer f)
            (lambda (form use-env mac-env)
              (define renames '())
              (define (rename x)
@@ -40,6 +36,4 @@
                          (make-syntactic-closure use-env '() x))
                      (if (syntactic-closure? y) y
                          (make-syntactic-closure use-env '() y))))
-             (f form rename compare))))
-
-  (export er-macro-transformer identifier?))
+             (f form rename compare)))))

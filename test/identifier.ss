@@ -1,8 +1,8 @@
 (import (only (meevax macro) syntactic-closure?)
+        (meevax macro-transformer)
         (scheme base)
         (scheme process-context)
-        (srfi 78)
-        (srfi 211 explicit-renaming))
+        (srfi 78))
 
 (define value 42)
 

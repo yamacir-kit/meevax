@@ -1,7 +1,7 @@
 (define-library (srfi 45) ; Based on r7rs reference implementation.
-  (import (scheme r4rs essential)
-          (only (meevax core) define-syntax)
-          (srfi 211 explicit-renaming))
+  (import (only (meevax core) define-syntax)
+          (only (meevax macro-transformer) er-macro-transformer)
+          (scheme r4rs essential))
 
   (export delay eager force lazy promise?)
 

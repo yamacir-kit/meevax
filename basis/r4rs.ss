@@ -1,14 +1,14 @@
 (define-library (scheme r4rs)
   (import (meevax inexact)
           (only (meevax core) define-syntax)
+          (only (meevax macro-transformer) er-macro-transformer)
           (only (meevax number) exact-integer? expt exact inexact ratio? ratio-numerator ratio-denominator)
           (only (meevax port) input-port output-port)
           (only (meevax read) get-ready?)
           (only (meevax string) string-copy)
           (only (meevax vector) vector-fill!)
           (scheme r4rs essential)
-          (srfi 45)
-          (srfi 211 explicit-renaming))
+          (srfi 45))
 
   (export quote lambda if set! cond case and or let let* letrec begin do delay
           quasiquote define not boolean? eqv? eq? equal? pair? cons car cdr

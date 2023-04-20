@@ -1,10 +1,11 @@
 (define-library (scheme base)
   (import (only (meevax error) error-object? read-error? file-error?)
+          (only (meevax macro-transformer) er-macro-transformer)
           (only (meevax number) exact-integer? exact-integer-square-root)
-          (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
           (only (meevax port) binary-port? textual-port? port? input-port open? output-port flush error-port eof-object)
           (only (meevax read) get-char get-char! get-ready?)
           (only (meevax string) string-copy! vector->string)
+          (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
           (only (meevax version) features)
           (only (meevax write) put-char put-string)
           (scheme r5rs)
@@ -13,8 +14,7 @@
           (srfi 11)
           (srfi 23)
           (srfi 34)
-          (srfi 39)
-          (srfi 211 explicit-renaming))
+          (srfi 39))
 
   (export ; 4.1. Primitive expression types
           quote lambda if set!
