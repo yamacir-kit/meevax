@@ -18,6 +18,7 @@
 #include <meevax/kernel/disassemble.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/numeric_vector.hpp>
 
 namespace meevax
 {
@@ -643,6 +644,25 @@ inline namespace kernel
       {
         return make_number(car(xs).as<string>(),
                            cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10);
+      });
+    });
+
+    define_library("(meevax numeric-vector)", [](library & library)
+    {
+      /*
+         1 byte is 8 bits in most environments, but there is no guarantee that
+         this will be the case in all environments. So the definition of
+         bytevector is not always equivalent to u8vector. If 1 byte is 8 bits,
+         the following bytevector and u8vector will be completely equivalent
+         types.
+      */
+      using bytevector = numeric_vector<char>;
+
+      using u8vector = numeric_vector<std::uint8_t>;
+
+      library.define<procedure>("bytevector?", [](let const& xs)
+      {
+        return xs[0].is<bytevector>();
       });
     });
 
