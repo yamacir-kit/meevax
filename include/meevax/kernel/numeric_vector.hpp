@@ -20,18 +20,12 @@
 #include <valarray>
 
 #include <meevax/kernel/list.hpp>
+#include <meevax/type_traits/widen.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  template <typename T>
-  using widen = std::conditional_t<std::is_arithmetic_v<T>,
-                                   std::conditional_t<std::is_integral_v<T>,
-                                                      std::conditional_t<std::is_signed_v<T>, std::intmax_t, std::uintmax_t>,
-                                                      double>,
-                                   void>;
-
   template <typename T>
   struct numeric_vector
   {
