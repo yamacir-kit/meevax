@@ -97,6 +97,18 @@ inline namespace kernel
     return codepoint;
   }
 
+  auto get_digits(std::istream & input) -> std::string
+  {
+    auto digits = std::string();
+
+    while (std::isdigit(input.peek()))
+    {
+      digits.push_back(input.get());
+    }
+
+    return std::empty(digits) ? "0" : digits;
+  }
+
   auto get_token(std::istream & is) -> std::string
   {
     auto token = std::string();
