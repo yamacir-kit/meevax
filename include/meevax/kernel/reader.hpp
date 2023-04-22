@@ -200,16 +200,16 @@ inline namespace kernel
             switch (auto digits = get_digits(is); std::stoi(digits))
             {
             case 8:
-              return make<numeric_vector<std::uint8_t>>(read(is));
+              return make<u8vector>(read(is));
 
             case 16:
-              return make<numeric_vector<std::uint16_t>>(read(is));
+              return make<u16vector>(read(is));
 
             case 32:
-              return make<numeric_vector<std::uint32_t>>(read(is));
+              return make<u32vector>(read(is));
 
             case 64:
-              return make<numeric_vector<std::uint64_t>>(read(is));
+              return make<u64vector>(read(is));
 
             default:
               throw read_error(make<string>("An unknown literal expression was encountered"),

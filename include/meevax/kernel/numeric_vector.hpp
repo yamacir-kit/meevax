@@ -69,6 +69,22 @@ inline namespace kernel
 
     return output << magenta(")");
   }
+
+  using s8vector = numeric_vector<std::int8_t>;
+
+  using u8vector = numeric_vector<std::uint8_t>;
+
+  using s16vector = numeric_vector<std::int16_t>;
+
+  using u16vector = numeric_vector<std::int16_t>;
+
+  using s32vector = numeric_vector<std::int32_t>;
+
+  using u32vector = numeric_vector<std::int32_t>;
+
+  using s64vector = numeric_vector<std::int64_t>;
+
+  using u64vector = numeric_vector<std::int64_t>;
 } // namespace kernel
 } // namespace meevax
 
