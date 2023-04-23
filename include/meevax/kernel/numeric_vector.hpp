@@ -20,7 +20,7 @@
 #include <valarray>
 
 #include <meevax/kernel/list.hpp>
-#include <meevax/type_traits/widen.hpp>
+#include <meevax/kernel/number.hpp>
 
 namespace meevax
 {
@@ -42,8 +42,59 @@ inline namespace kernel
       {
         let const x = car(xs);
         xs = cdr(xs);
-        return static_cast<widen<T>>(x.as<exact_integer>());
+        return input_cast(x);
       });
+    }
+
+    static auto tag() -> auto const&
+    {
+      auto static const tag = lexical_cast<std::string>(std::is_integral_v<T> ? std::is_signed_v<T> ? 's' : 'u' : 'f', sizeof(T) * CHAR_BIT);
+      return tag;
+    }
+
+    static auto input_cast(object const& x)
+    {
+      if constexpr (std::is_floating_point_v<T>)
+      {
+        if (let const number = apply_arithmetic<inexact>(x); number.is<double>())
+        {
+          return static_cast<T>(number.as<double>());
+        }
+        else if (number.is<float>())
+        {
+          return static_cast<T>(number.as<float>());
+        }
+        else
+        {
+          throw error(make<string>(lexical_cast<std::string>(tag(), "vector expects real numbers to store, but was given a value that is not")), x);
+        }
+      }
+      else
+      {
+        using widen = std::conditional_t<std::is_signed_v<T>, std::intmax_t, std::uintmax_t>;
+
+        if (x.is<exact_integer>())
+        {
+          return static_cast<widen>(x.as<exact_integer>());
+        }
+        else if (x.is<double>() and x.as<double>() == std::trunc(x.as<double>()))
+        {
+          return static_cast<widen>(x.as<double>());
+        }
+        else if (x.is<float>() and x.as<float>() == std::trunc(x.as<float>()))
+        {
+          return static_cast<widen>(x.as<float>());
+        }
+        else
+        {
+          throw error(make<string>(lexical_cast<std::string>(tag(), "vector expects integers to store, but was given a value that is not")), x);
+        }
+      }
+    }
+
+    static auto output_cast(T x)
+    {
+      return make<std::conditional_t<std::is_floating_point_v<T>, T, exact_integer>>(x);
     }
   };
 
@@ -58,7 +109,7 @@ inline namespace kernel
 
     for (auto const& value : datum.values)
     {
-      output << std::exchange(whitespace, " ") << cyan(static_cast<widen<T>>(value));
+      output << std::exchange(whitespace, " ") << cyan(numeric_vector<T>::output_cast(value));
     }
 
     return output << magenta(")");
@@ -79,6 +130,10 @@ inline namespace kernel
   using s64vector = numeric_vector<std::int64_t>;
 
   using u64vector = numeric_vector<std::int64_t>;
+
+  using f32vector = numeric_vector<float>;
+
+  using f64vector = numeric_vector<double>;
 } // namespace kernel
 } // namespace meevax
 

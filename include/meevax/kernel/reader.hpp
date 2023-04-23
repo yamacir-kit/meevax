@@ -183,8 +183,18 @@ inline namespace kernel
             return apply_arithmetic<exact>(read(is)); // NOTE: Same as #,(exact (read))
 
           case 'f':
-            get_token(is);
-            return f;
+            switch (auto const digits = get_digits(is); std::stoi(digits))
+            {
+            case 32:
+              return make<f32vector>(read(is));
+
+            case 64:
+              return make<f64vector>(read(is));
+
+            default:
+              get_token(is);
+              return f;
+            }
 
           case 'i':
             return apply_arithmetic<inexact>(read(is)); // NOTE: Same as #,(inexact (read))
@@ -192,12 +202,32 @@ inline namespace kernel
           case 'o':
             return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 8);
 
+          case 's':
+            switch (auto const digits = get_digits(is); std::stoi(digits))
+            {
+            case 8:
+              return make<s8vector>(read(is));
+
+            case 16:
+              return make<s16vector>(read(is));
+
+            case 32:
+              return make<s32vector>(read(is));
+
+            case 64:
+              return make<s64vector>(read(is));
+
+            default:
+              throw read_error(make<string>("An unknown literal expression was encountered"),
+                               make<string>(lexical_cast<std::string>("#s", digits)));
+            }
+
           case 't':
             get_token(is);
             return t;
 
           case 'u':
-            switch (auto digits = get_digits(is); std::stoi(digits))
+            switch (auto const digits = get_digits(is); std::stoi(digits))
             {
             case 8:
               return make<u8vector>(read(is));
@@ -213,7 +243,7 @@ inline namespace kernel
 
             default:
               throw read_error(make<string>("An unknown literal expression was encountered"),
-                               make<string>(lexical_cast<std::string>('#', c, digits)));
+                               make<string>(lexical_cast<std::string>("#u", digits)));
             }
 
           case 'x':

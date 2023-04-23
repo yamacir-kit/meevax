@@ -649,13 +649,7 @@ inline namespace kernel
 
     define_library("(meevax numeric-vector)", [](library & library)
     {
-      /*
-         1 byte is 8 bits in most environments, but there is no guarantee that
-         this will be the case in all environments. So the definition of
-         bytevector is not always equivalent to u8vector. If 1 byte is 8 bits,
-         bytevector and u8vector will be completely equivalent types.
-      */
-      using bytevector = numeric_vector<char>;
+      using bytevector = u8vector;
 
       library.define<procedure>("bytevector?", [](let const& xs)
       {
