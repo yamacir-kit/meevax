@@ -37,12 +37,12 @@ inline namespace kernel
   auto operator * (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_mul(q.value, ratio(a).value, b.value); return q; }
   auto operator / (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_div(q.value, ratio(a).value, b.value); return q; }
   auto operator % (exact_integer const&  , ratio const&  ) -> ratio { throw std::invalid_argument("unsupported operation"); }
-  auto operator ==(exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) == 0; }
-  auto operator !=(exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) != 0; }
-  auto operator < (exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) >  0; }
-  auto operator <=(exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) >= 0; }
-  auto operator > (exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) <  0; }
-  auto operator >=(exact_integer const& a, ratio const& b) -> bool  { return mpq_cmp_z(b.value, a.value) <= 0; }
+  auto operator ==(exact_integer const& a, ratio const& b) -> bool  { return 0 == mpq_cmp_z(b.value, a.value); }
+  auto operator !=(exact_integer const& a, ratio const& b) -> bool  { return 0 != mpq_cmp_z(b.value, a.value); }
+  auto operator < (exact_integer const& a, ratio const& b) -> bool  { return 0 <  mpq_cmp_z(b.value, a.value); }
+  auto operator <=(exact_integer const& a, ratio const& b) -> bool  { return 0 <= mpq_cmp_z(b.value, a.value); }
+  auto operator > (exact_integer const& a, ratio const& b) -> bool  { return 0 >  mpq_cmp_z(b.value, a.value); }
+  auto operator >=(exact_integer const& a, ratio const& b) -> bool  { return 0 >= mpq_cmp_z(b.value, a.value); }
 
   auto operator + (exact_integer const& a, float b) -> float { return inexact_cast(a) +  b; }
   auto operator - (exact_integer const& a, float b) -> float { return inexact_cast(a) -  b; }
