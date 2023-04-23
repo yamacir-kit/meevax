@@ -560,29 +560,42 @@ inline namespace kernel
 
       library.define<procedure>("+", [](let const& xs)
       {
-        return std::accumulate(std::begin(xs), std::end(xs), e0, plus());
+        return std::accumulate(std::begin(xs), std::end(xs), e0, std::plus());
       });
 
       library.define<procedure>("*", [](let const& xs)
       {
-        return std::accumulate(std::begin(xs), std::end(xs), e1, multiplies());
+        return std::accumulate(std::begin(xs), std::end(xs), e1, std::multiplies());
       });
 
-      #define DEFINE(SYMBOL, FUNCTION, BASIS)                                  \
-      library.define<procedure>(SYMBOL, [](let const& xs)                      \
-      {                                                                        \
-        return cdr(xs).is<pair>() ? std::accumulate(std::next(std::begin(xs)), std::end(xs), car(xs), [](auto&& a, auto&& b) \
-                                    {                                          \
-                                      return FUNCTION()(a, b);                 \
-                                    })                                         \
-                                  : FUNCTION()(BASIS, car(xs));                \
-      })
+      library.define<procedure>("-", [](let const& xs)
+      {
+        if (cdr(xs).is<pair>())
+        {
+          return std::accumulate(std::next(std::begin(xs)), std::end(xs), xs[0], std::minus());
+        }
+        else
+        {
+          return e0 - xs[0];
+        }
+      });
 
-      DEFINE("-", minus  , e0);
-      DEFINE("/", divides, e1);
-      DEFINE("%", modulus, e1);
+      library.define<procedure>("/", [](let const& xs)
+      {
+        if (cdr(xs).is<pair>())
+        {
+          return std::accumulate(std::next(std::begin(xs)), std::end(xs), xs[0], std::divides());
+        }
+        else
+        {
+          return e1 / xs[0];
+        }
+      });
 
-      #undef DEFINE
+      library.define<procedure>("%", [](let const& xs)
+      {
+        return xs[0] % xs[1];
+      });
 
       library.define<procedure>("ratio-numerator", [](let const& xs)
       {

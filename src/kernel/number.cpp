@@ -272,10 +272,27 @@ inline namespace kernel
   auto operator > (complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
   auto operator >=(complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
 
-  auto operator + (object const& x, object const& y) -> object { return arithmetic::apply<plus      >(x, y); }
-  auto operator - (object const& x, object const& y) -> object { return arithmetic::apply<minus     >(x, y); }
-  auto operator * (object const& x, object const& y) -> object { return arithmetic::apply<multiplies>(x, y); }
-  auto operator / (object const& x, object const& y) -> object { return arithmetic::apply<divides   >(x, y); }
-  auto operator % (object const& x, object const& y) -> object { return arithmetic::apply<modulus   >(x, y); }
+  struct modulus
+  {
+    template <typename T, typename U>
+    auto operator ()(T&& x, U&& y) const
+    {
+      if constexpr (std::is_floating_point_v<std::decay_t<T>> and
+                    std::is_floating_point_v<std::decay_t<U>>)
+      {
+        return std::fmod(x, y);
+      }
+      else
+      {
+        return x % y;
+      }
+    }
+  };
+
+  auto operator + (object const& x, object const& y) -> object { return arithmetic::apply<std::plus      <void>>(x, y); }
+  auto operator - (object const& x, object const& y) -> object { return arithmetic::apply<std::minus     <void>>(x, y); }
+  auto operator * (object const& x, object const& y) -> object { return arithmetic::apply<std::multiplies<void>>(x, y); }
+  auto operator / (object const& x, object const& y) -> object { return arithmetic::apply<std::divides   <void>>(x, y); }
+  auto operator % (object const& x, object const& y) -> object { return arithmetic::apply<     modulus         >(x, y); }
 } // namespace kernel
 } // namespace meevax

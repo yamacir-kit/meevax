@@ -286,31 +286,6 @@ inline namespace kernel
   auto operator / (object const&, object const&) -> object;
   auto operator % (object const&, object const&) -> object;
 
-  using plus = std::plus<void>;
-
-  using minus = std::minus<void>;
-
-  using multiplies = std::multiplies<void>;
-
-  using divides = std::divides<void>;
-
-  struct modulus
-  {
-    template <typename T, typename U>
-    auto operator ()(T&& x, U&& y) const
-    {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>> and
-                    std::is_floating_point_v<std::decay_t<U>>)
-      {
-        return std::fmod(x, y);
-      }
-      else
-      {
-        return x % y;
-      }
-    }
-  };
-
   struct equal_to
   {
     template <typename T, typename U>
