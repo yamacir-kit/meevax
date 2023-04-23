@@ -393,45 +393,48 @@ inline namespace kernel
     }
   };
 
-  template <typename F>
-  auto apply_arithmetic(object const& x) -> object
+  namespace arithmetic
   {
-    static const std::unordered_map<
-      std::type_index,
-      std::function<object (object const&)>
-    > apply
+    template <typename F>
+    auto apply(object const& x) -> object
     {
-      { typeid(exact_integer), application<F, exact_integer>() },
-      { typeid(ratio        ), application<F, ratio        >() },
-      { typeid(float        ), application<F, float        >() },
-      { typeid(double       ), application<F, double       >() },
-      { typeid(complex      ), application<F, complex      >() },
-    };
+      static const std::unordered_map<
+        std::type_index,
+        std::function<object (object const&)>
+      > apply
+      {
+        { typeid(exact_integer), application<F, exact_integer>() },
+        { typeid(ratio        ), application<F, ratio        >() },
+        { typeid(float        ), application<F, float        >() },
+        { typeid(double       ), application<F, double       >() },
+        { typeid(complex      ), application<F, complex      >() },
+      };
 
-    return apply.at(x.type())(x);
-  }
+      return apply.at(x.type())(x);
+    }
 
-  template <typename F>
-  auto apply_arithmetic(object const& x, object const& y) -> object
-  {
-    #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
-
-    static const std::unordered_map<
-      type_index<2>,
-      std::function<object (object const&, object const&)>
-    > apply
+    template <typename F>
+    auto apply(object const& x, object const& y) -> object
     {
-      APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, float), APPLY(exact_integer, double), APPLY(exact_integer, complex),
-      APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         float), APPLY(ratio,         double), APPLY(ratio,         complex),
-      APPLY(float,         exact_integer), APPLY(float,         ratio), APPLY(float,         float), APPLY(float,         double), APPLY(float,         complex),
-      APPLY(double,        exact_integer), APPLY(double,        ratio), APPLY(double,        float), APPLY(double,        double), APPLY(double,        complex),
-      APPLY(complex,       exact_integer), APPLY(complex,       ratio), APPLY(complex,       float), APPLY(complex,       double), APPLY(complex,       complex),
-    };
+      #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
 
-    #undef APPLY
+      static const std::unordered_map<
+        type_index<2>,
+        std::function<object (object const&, object const&)>
+      > apply
+      {
+        APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, float), APPLY(exact_integer, double), APPLY(exact_integer, complex),
+        APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         float), APPLY(ratio,         double), APPLY(ratio,         complex),
+        APPLY(float,         exact_integer), APPLY(float,         ratio), APPLY(float,         float), APPLY(float,         double), APPLY(float,         complex),
+        APPLY(double,        exact_integer), APPLY(double,        ratio), APPLY(double,        float), APPLY(double,        double), APPLY(double,        complex),
+        APPLY(complex,       exact_integer), APPLY(complex,       ratio), APPLY(complex,       float), APPLY(complex,       double), APPLY(complex,       complex),
+      };
 
-    return apply.at(type_index<2>(x.type(), y.type()))(x, y);
-  }
+      #undef APPLY
+
+      return apply.at(type_index<2>(x.type(), y.type()))(x, y);
+    }
+  } // inline namespace arithmetic
 
   template <typename T = double, typename U, REQUIRES(std::is_floating_point<T>)>
   auto inexact_cast(U&& x) -> decltype(auto)
@@ -457,8 +460,8 @@ inline namespace kernel
     {
       if constexpr (std::is_same_v<std::decay_t<T>, complex>)
       {
-        return complex(apply_arithmetic<exact>(x.real()),
-                       apply_arithmetic<exact>(x.imag()));
+        return complex(arithmetic::apply<exact>(x.real()),
+                       arithmetic::apply<exact>(x.imag()));
       }
       else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
@@ -478,8 +481,8 @@ inline namespace kernel
     {
       if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
       {
-        return complex(apply_arithmetic<inexact>(x.real()),
-                       apply_arithmetic<inexact>(x.imag()));
+        return complex(arithmetic::apply<inexact>(x.real()),
+                       arithmetic::apply<inexact>(x.imag()));
       }
       else
       {
@@ -504,7 +507,7 @@ inline namespace kernel
     {
       if constexpr (std::is_same_v<std::decay_t<T>, complex>)
       {
-        return apply_arithmetic<equal_to>(x.imag(), e0).template as<bool>();
+        return arithmetic::apply<equal_to>(x.imag(), e0).template as<bool>();
       }
       else
       {
@@ -537,7 +540,7 @@ inline namespace kernel
     {
       if constexpr (std::is_same_v<std::decay_t<T>, complex>)
       {
-        return apply_arithmetic<equal_to>(x.imag(), e0).template as<bool>() and apply_arithmetic<is_integer>(x.real()).template as<bool>();
+        return arithmetic::apply<equal_to>(x.imag(), e0).template as<bool>() and arithmetic::apply<is_integer>(x.real()).template as<bool>();
       }
       else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
@@ -561,8 +564,8 @@ inline namespace kernel
     {
       if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
       {
-        return apply_arithmetic<is_infinite>(x.real()).template as<bool>() or
-               apply_arithmetic<is_infinite>(x.imag()).template as<bool>();
+        return arithmetic::apply<is_infinite>(x.real()).template as<bool>() or
+               arithmetic::apply<is_infinite>(x.imag()).template as<bool>();
       }
       else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
@@ -591,8 +594,8 @@ inline namespace kernel
     {
       if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
       {
-        return apply_arithmetic<is_nan>(x.real()).template as<bool>() or
-               apply_arithmetic<is_nan>(x.imag()).template as<bool>();
+        return arithmetic::apply<is_nan>(x.real()).template as<bool>() or
+               arithmetic::apply<is_nan>(x.imag()).template as<bool>();
       }
       else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
       {
@@ -701,8 +704,8 @@ inline namespace kernel
       }                                                                        \
       else                                                                     \
       {                                                                        \
-        return complex(apply_arithmetic<ROUND>(x.real()),                      \
-                       apply_arithmetic<ROUND>(x.imag()));                     \
+        return complex(arithmetic::apply<ROUND>(x.real()),                     \
+                       arithmetic::apply<ROUND>(x.imag()));                    \
       }                                                                        \
     }                                                                          \
   }

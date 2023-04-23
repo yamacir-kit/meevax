@@ -39,8 +39,8 @@ inline namespace kernel
       auto const magnitude = make_real(result.str(1), radix);
       auto const angle     = make_real(result.str(2), radix);
 
-      std::get<0>(*this) = magnitude * apply_arithmetic<cos>(angle);
-      std::get<1>(*this) = magnitude * apply_arithmetic<sin>(angle);
+      std::get<0>(*this) = magnitude * arithmetic::apply<cos>(angle);
+      std::get<1>(*this) = magnitude * arithmetic::apply<sin>(angle);
     }
     else
     {
@@ -50,7 +50,7 @@ inline namespace kernel
 
   auto complex::canonicalize() const -> object
   {
-    if (apply_arithmetic<equal_to>(imag(), e0).as<bool>())
+    if (arithmetic::apply<equal_to>(imag(), e0).as<bool>())
     {
       return real();
     }
@@ -72,16 +72,16 @@ inline namespace kernel
 
   complex::operator std::complex<double>()
   {
-    assert(apply_arithmetic<is_real>(real()));
-    assert(apply_arithmetic<is_real>(imag()));
+    assert(arithmetic::apply<is_real>(real()));
+    assert(arithmetic::apply<is_real>(imag()));
 
-    return std::complex(apply_arithmetic<inexact>(real()).as<double>(),
-                        apply_arithmetic<inexact>(imag()).as<double>());
+    return std::complex(arithmetic::apply<inexact>(real()).as<double>(),
+                        arithmetic::apply<inexact>(imag()).as<double>());
   }
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &
   {
-    if (apply_arithmetic<equal_to>(z.imag(), e0).as<bool>())
+    if (arithmetic::apply<equal_to>(z.imag(), e0).as<bool>())
     {
       return os << z.real();
     }

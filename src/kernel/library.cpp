@@ -59,8 +59,8 @@ inline namespace kernel
     {
       library.define<procedure>("make-rectangular", [](let const& xs)
       {
-        assert(apply_arithmetic<is_real>(xs[0]));
-        assert(apply_arithmetic<is_real>(xs[1]));
+        assert(arithmetic::apply<is_real>(xs[0]));
+        assert(arithmetic::apply<is_real>(xs[1]));
 
         return make<complex>(xs[0], xs[1]);
       });
@@ -258,7 +258,7 @@ inline namespace kernel
       {
         try
         {
-          return apply_arithmetic<is_finite>(car(xs));
+          return arithmetic::apply<is_finite>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -270,7 +270,7 @@ inline namespace kernel
       {
         try
         {
-          return apply_arithmetic<is_infinite>(car(xs));
+          return arithmetic::apply<is_infinite>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -282,7 +282,7 @@ inline namespace kernel
       {
         try
         {
-          return apply_arithmetic<is_nan>(car(xs));
+          return arithmetic::apply<is_nan>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -292,79 +292,79 @@ inline namespace kernel
 
       library.define<procedure>("exp", [](let const& xs)
       {
-        return apply_arithmetic<exp>(car(xs));
+        return arithmetic::apply<exp>(car(xs));
       });
 
       library.define<procedure>("sqrt", [](let const& xs)
       {
-        return apply_arithmetic<sqrt>(car(xs));
+        return arithmetic::apply<sqrt>(car(xs));
       });
 
       library.define<procedure>("log", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? apply_arithmetic<log>(car(xs)) / apply_arithmetic<log>(cadr(xs))
-                                  : apply_arithmetic<log>(car(xs));
+        return cdr(xs).is<pair>() ? arithmetic::apply<log>(car(xs)) / arithmetic::apply<log>(cadr(xs))
+                                  : arithmetic::apply<log>(car(xs));
       });
 
       library.define<procedure>("sin", [](let const& xs)
       {
-        return apply_arithmetic<sin>(car(xs));
+        return arithmetic::apply<sin>(car(xs));
       });
 
       library.define<procedure>("cos", [](let const& xs)
       {
-        return apply_arithmetic<cos>(car(xs));
+        return arithmetic::apply<cos>(car(xs));
       });
 
       library.define<procedure>("tan", [](let const& xs)
       {
-        return apply_arithmetic<tan>(car(xs));
+        return arithmetic::apply<tan>(car(xs));
       });
 
       library.define<procedure>("asin", [](let const& xs)
       {
-        return apply_arithmetic<asin>(car(xs));
+        return arithmetic::apply<asin>(car(xs));
       });
 
       library.define<procedure>("acos", [](let const& xs)
       {
-        return apply_arithmetic<acos>(car(xs));
+        return arithmetic::apply<acos>(car(xs));
       });
 
       library.define<procedure>("atan", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? apply_arithmetic<atan2>(car(xs), cadr(xs))
-                                  : apply_arithmetic<atan>(car(xs));
+        return cdr(xs).is<pair>() ? arithmetic::apply<atan2>(car(xs), cadr(xs))
+                                  : arithmetic::apply<atan>(car(xs));
       });
 
       library.define<procedure>("sinh", [](let const& xs)
       {
-        return apply_arithmetic<sinh>(car(xs));
+        return arithmetic::apply<sinh>(car(xs));
       });
 
       library.define<procedure>("cosh", [](let const& xs)
       {
-        return apply_arithmetic<cosh>(car(xs));
+        return arithmetic::apply<cosh>(car(xs));
       });
 
       library.define<procedure>("tanh", [](let const& xs)
       {
-        return apply_arithmetic<tanh>(car(xs));
+        return arithmetic::apply<tanh>(car(xs));
       });
 
       library.define<procedure>("asinh", [](let const& xs)
       {
-        return apply_arithmetic<asinh>(car(xs));
+        return arithmetic::apply<asinh>(car(xs));
       });
 
       library.define<procedure>("acosh", [](let const& xs)
       {
-        return apply_arithmetic<acosh>(car(xs));
+        return arithmetic::apply<acosh>(car(xs));
       });
 
       library.define<procedure>("atanh", [](let const& xs)
       {
-        return apply_arithmetic<atanh>(car(xs));
+        return arithmetic::apply<atanh>(car(xs));
       });
     });
 
@@ -459,7 +459,7 @@ inline namespace kernel
       {
         try
         {
-          return apply_arithmetic<is_complex>(car(xs));
+          return arithmetic::apply<is_complex>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -471,7 +471,7 @@ inline namespace kernel
       {
         try
         {
-          return apply_arithmetic<is_complex>(car(xs));
+          return arithmetic::apply<is_complex>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -483,7 +483,7 @@ inline namespace kernel
       {
         try
         {
-          return apply_arithmetic<is_real>(car(xs));
+          return arithmetic::apply<is_real>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -495,7 +495,7 @@ inline namespace kernel
       {
         try
         {
-          return apply_arithmetic<is_rational>(car(xs));
+          return arithmetic::apply<is_rational>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -507,7 +507,7 @@ inline namespace kernel
       {
         try
         {
-          return apply_arithmetic<is_integer>(car(xs));
+          return arithmetic::apply<is_integer>(car(xs));
         }
         catch (std::out_of_range const&)
         {
@@ -546,7 +546,7 @@ inline namespace kernel
         return std::adjacent_find(                                             \
                  std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
                  {                                                             \
-                   return not apply_arithmetic<COMPARE>(a, b).as<bool>();      \
+                   return not arithmetic::apply<COMPARE>(a, b).as<bool>();     \
                  }) == std::end(xs);                                           \
       })
 
@@ -596,22 +596,22 @@ inline namespace kernel
 
       library.define<procedure>("floor", [](let const& xs)
       {
-        return apply_arithmetic<floor>(car(xs));
+        return arithmetic::apply<floor>(car(xs));
       });
 
       library.define<procedure>("ceiling", [](let const& xs)
       {
-        return apply_arithmetic<ceil>(car(xs));
+        return arithmetic::apply<ceil>(car(xs));
       });
 
       library.define<procedure>("truncate", [](let const& xs)
       {
-        return apply_arithmetic<trunc>(car(xs));
+        return arithmetic::apply<trunc>(car(xs));
       });
 
       library.define<procedure>("round", [](let const& xs)
       {
-        return apply_arithmetic<round>(car(xs));
+        return arithmetic::apply<round>(car(xs));
       });
 
       library.define<procedure>("exact-integer-square-root", [](let const& xs)
@@ -622,17 +622,17 @@ inline namespace kernel
 
       library.define<procedure>("expt", [](let const& xs)
       {
-        return apply_arithmetic<expt>(car(xs), cadr(xs));
+        return arithmetic::apply<expt>(car(xs), cadr(xs));
       });
 
       library.define<procedure>("exact", [](let const& xs)
       {
-        return apply_arithmetic<exact>(car(xs));
+        return arithmetic::apply<exact>(car(xs));
       });
 
       library.define<procedure>("inexact", [](let const& xs)
       {
-        return apply_arithmetic<inexact>(car(xs));
+        return arithmetic::apply<inexact>(car(xs));
       });
 
       library.define<procedure>("char->integer", [](let const& xs)
@@ -1034,16 +1034,16 @@ inline namespace kernel
         switch (cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10)
         {
         case 2:
-          return apply_arithmetic<number_to_string<2>>(car(xs));
+          return arithmetic::apply<number_to_string<2>>(car(xs));
 
         case 8:
-          return apply_arithmetic<number_to_string<8>>(car(xs));
+          return arithmetic::apply<number_to_string<8>>(car(xs));
 
         case 10: default:
-          return apply_arithmetic<number_to_string<10>>(car(xs));
+          return arithmetic::apply<number_to_string<10>>(car(xs));
 
         case 16:
-          return apply_arithmetic<number_to_string<16>>(car(xs));
+          return arithmetic::apply<number_to_string<16>>(car(xs));
         }
       });
 

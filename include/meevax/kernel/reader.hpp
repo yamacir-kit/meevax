@@ -180,7 +180,7 @@ inline namespace kernel
             return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 10);
 
           case 'e':
-            return apply_arithmetic<exact>(read(is)); // NOTE: Same as #,(exact (read))
+            return arithmetic::apply<exact>(read(is)); // NOTE: Same as #,(exact (read))
 
           case 'f':
             switch (auto const digits = get_digits(is); std::stoi(digits))
@@ -197,7 +197,7 @@ inline namespace kernel
             }
 
           case 'i':
-            return apply_arithmetic<inexact>(read(is)); // NOTE: Same as #,(inexact (read))
+            return arithmetic::apply<inexact>(read(is)); // NOTE: Same as #,(inexact (read))
 
           case 'o':
             return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 8);
