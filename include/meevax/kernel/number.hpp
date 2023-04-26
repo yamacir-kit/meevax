@@ -322,11 +322,8 @@ inline namespace kernel
 
   using greater_equal = std::greater_equal<void>;
 
-  template <typename F, typename... Ts>
-  struct application
+  namespace arithmetic
   {
-    static inline constexpr F f {};
-
     template <typename T>
     auto canonicalize(T&& x) -> decltype(auto)
     {
@@ -340,14 +337,7 @@ inline namespace kernel
       }
       else if constexpr (std::is_same_v<std::decay_t<T>, ratio>)
       {
-        if (x.denominator() == 1)
-        {
-          return make(x.numerator());
-        }
-        else
-        {
-          return make(std::forward<decltype(x)>(x));
-        }
+        return x.denominator() == 1 ? make(x.numerator()) : make(std::forward<decltype(x)>(x));
       }
       else
       {
@@ -355,21 +345,21 @@ inline namespace kernel
       }
     }
 
-    auto operator ()(object const& x) -> object
+    template <typename F, typename... Ts>
+    struct application
     {
-      return canonicalize(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
-    }
+      auto operator ()(object const& x) -> object
+      {
+        return canonicalize(F()(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
+      }
 
-    auto operator ()(object const& x,
-                     object const& y) -> object
-    {
-      return canonicalize(f(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
-                            y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
-    }
-  };
+      auto operator ()(object const& x, object const& y) -> object
+      {
+        return canonicalize(F()(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
+                                y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
+      }
+    };
 
-  namespace arithmetic
-  {
     template <typename F>
     auto apply(object const& x) -> object
     {
@@ -388,26 +378,74 @@ inline namespace kernel
       return apply.at(x.type())(x);
     }
 
+    template <typename...>
+    struct make_combination;
+
+    template <typename T, auto... Is>
+    struct make_combination<T, std::index_sequence<Is...>>
+    {
+      using type = std::tuple<std::pair<typename std::tuple_element_t<Is / std::tuple_size_v<T>, T>,
+                                        typename std::tuple_element_t<Is % std::tuple_size_v<T>, T>> ...>;
+    };
+
+    template <typename... Ts>
+    using combination = typename make_combination<std::tuple<Ts...>, std::make_index_sequence<sizeof...(Ts) * sizeof...(Ts)>>::type;
+
+    template <typename F, auto N>
+    struct apply_t
+    {
+      static inline std::unordered_map<
+        type_index<N>,
+        std::function<object (object const&, object const&)>
+      > data {};
+
+      template <typename Tuple, auto I = 0>
+      auto emplace()
+      {
+        if constexpr (I < std::tuple_size_v<Tuple>)
+        {
+          if constexpr (N == 2)
+          {
+            using element = std::tuple_element_t<I, Tuple>;
+
+            data.emplace(std::piecewise_construct,
+                         std::forward_as_tuple(typeid(std::tuple_element_t<0, element>),
+                                               typeid(std::tuple_element_t<1, element>)),
+                         std::forward_as_tuple(application<F, std::tuple_element_t<0, element>,
+                                                              std::tuple_element_t<1, element>>()));
+          }
+          else
+          {
+            // TODO unary
+          }
+
+          emplace<Tuple, I + 1>();
+        }
+      }
+
+      explicit apply_t()
+      {
+        if constexpr (N == 2)
+        {
+          emplace<combination<exact_integer, ratio, float, double, complex>>();
+        }
+        else
+        {
+          // TODO unary
+        }
+      }
+
+      auto operator ()(object const& x, object const& y) const -> decltype(auto)
+      {
+        return data.at(type_index<N>(x.type(), y.type()))(x, y);
+      }
+    };
+
     template <typename F>
     auto apply(object const& x, object const& y) -> object
     {
-      #define APPLY(T, U) { type_index<2>(typeid(T), typeid(U)), application<F, T, U>() }
-
-      static const std::unordered_map<
-        type_index<2>,
-        std::function<object (object const&, object const&)>
-      > apply
-      {
-        APPLY(exact_integer, exact_integer), APPLY(exact_integer, ratio), APPLY(exact_integer, float), APPLY(exact_integer, double), APPLY(exact_integer, complex),
-        APPLY(ratio,         exact_integer), APPLY(ratio,         ratio), APPLY(ratio,         float), APPLY(ratio,         double), APPLY(ratio,         complex),
-        APPLY(float,         exact_integer), APPLY(float,         ratio), APPLY(float,         float), APPLY(float,         double), APPLY(float,         complex),
-        APPLY(double,        exact_integer), APPLY(double,        ratio), APPLY(double,        float), APPLY(double,        double), APPLY(double,        complex),
-        APPLY(complex,       exact_integer), APPLY(complex,       ratio), APPLY(complex,       float), APPLY(complex,       double), APPLY(complex,       complex),
-      };
-
-      #undef APPLY
-
-      return apply.at(type_index<2>(x.type(), y.type()))(x, y);
+      static const auto apply = apply_t<F, 2>();
+      return apply(x, y);
     }
   } // inline namespace arithmetic
 
