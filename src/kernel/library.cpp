@@ -59,8 +59,8 @@ inline namespace kernel
     {
       library.define<procedure>("make-rectangular", [](let const& xs)
       {
-        assert(arithmetic::apply<is_real>(xs[0]));
-        assert(arithmetic::apply<is_real>(xs[1]));
+        assert(is_real(xs[0]));
+        assert(is_real(xs[1]));
 
         return make<complex>(xs[0], xs[1]);
       });
@@ -256,115 +256,94 @@ inline namespace kernel
     {
       library.define<procedure>("finite?", [](let const& xs)
       {
-        try
-        {
-          return arithmetic::apply<is_finite>(car(xs));
-        }
-        catch (std::out_of_range const&)
-        {
-          return f;
-        }
+        return is_finite(xs[0]);
       });
 
       library.define<procedure>("infinite?", [](let const& xs)
       {
-        try
-        {
-          return arithmetic::apply<is_infinite>(car(xs));
-        }
-        catch (std::out_of_range const&)
-        {
-          return f;
-        }
+        return is_infinite(xs[0]);
       });
 
       library.define<procedure>("nan?", [](let const& xs)
       {
-        try
-        {
-          return arithmetic::apply<is_nan>(car(xs));
-        }
-        catch (std::out_of_range const&)
-        {
-          return f;
-        }
+        return is_nan(xs[0]);
       });
 
       library.define<procedure>("exp", [](let const& xs)
       {
-        return arithmetic::apply<exp>(car(xs));
+        return exp(xs[0]);
       });
 
       library.define<procedure>("sqrt", [](let const& xs)
       {
-        return arithmetic::apply<sqrt>(car(xs));
+        return sqrt(xs[0]);
       });
 
       library.define<procedure>("log", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? arithmetic::apply<log>(car(xs)) / arithmetic::apply<log>(cadr(xs))
-                                  : arithmetic::apply<log>(car(xs));
+        return cdr(xs).is<pair>() ? log(xs[0]) / log(xs[1])
+                                  : log(xs[0]);
       });
 
       library.define<procedure>("sin", [](let const& xs)
       {
-        return arithmetic::apply<sin>(car(xs));
+        return sin(xs[0]);
       });
 
       library.define<procedure>("cos", [](let const& xs)
       {
-        return arithmetic::apply<cos>(car(xs));
+        return cos(xs[0]);
       });
 
       library.define<procedure>("tan", [](let const& xs)
       {
-        return arithmetic::apply<tan>(car(xs));
+        return tan(xs[0]);
       });
 
       library.define<procedure>("asin", [](let const& xs)
       {
-        return arithmetic::apply<asin>(car(xs));
+        return asin(xs[0]);
       });
 
       library.define<procedure>("acos", [](let const& xs)
       {
-        return arithmetic::apply<acos>(car(xs));
+        return acos(xs[0]);
       });
 
       library.define<procedure>("atan", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? arithmetic::apply<atan2>(car(xs), cadr(xs))
-                                  : arithmetic::apply<atan>(car(xs));
+        return cdr(xs).is<pair>() ? atan(xs[0], xs[1])
+                                  : atan(xs[0]);
       });
 
       library.define<procedure>("sinh", [](let const& xs)
       {
-        return arithmetic::apply<sinh>(car(xs));
+        return sinh(xs[0]);
       });
 
       library.define<procedure>("cosh", [](let const& xs)
       {
-        return arithmetic::apply<cosh>(car(xs));
+        return cosh(xs[0]);
       });
 
       library.define<procedure>("tanh", [](let const& xs)
       {
-        return arithmetic::apply<tanh>(car(xs));
+        return tanh(xs[0]);
       });
 
       library.define<procedure>("asinh", [](let const& xs)
       {
-        return arithmetic::apply<asinh>(car(xs));
+        return asinh(xs[0]);
       });
 
       library.define<procedure>("acosh", [](let const& xs)
       {
-        return arithmetic::apply<acosh>(car(xs));
+        return acosh(xs[0]);
       });
 
       library.define<procedure>("atanh", [](let const& xs)
       {
-        return arithmetic::apply<atanh>(car(xs));
+        return atanh(xs[0]);
       });
     });
 
@@ -457,62 +436,27 @@ inline namespace kernel
     {
       library.define<procedure>("number?", [](let const& xs)
       {
-        try
-        {
-          return arithmetic::apply<is_complex>(car(xs));
-        }
-        catch (std::out_of_range const&)
-        {
-          return f;
-        }
+        return is_complex(xs[0]);
       });
 
       library.define<procedure>("complex?", [](let const& xs)
       {
-        try
-        {
-          return arithmetic::apply<is_complex>(car(xs));
-        }
-        catch (std::out_of_range const&)
-        {
-          return f;
-        }
+        return is_complex(xs[0]);
       });
 
       library.define<procedure>("real?", [](let const& xs)
       {
-        try
-        {
-          return arithmetic::apply<is_real>(car(xs));
-        }
-        catch (std::out_of_range const&)
-        {
-          return f;
-        }
+        return is_real(xs[0]);
       });
 
       library.define<procedure>("rational?", [](let const& xs)
       {
-        try
-        {
-          return arithmetic::apply<is_rational>(car(xs));
-        }
-        catch (std::out_of_range const&)
-        {
-          return f;
-        }
+        return is_rational(xs[0]);
       });
 
       library.define<procedure>("integer?", [](let const& xs)
       {
-        try
-        {
-          return arithmetic::apply<is_integer>(car(xs));
-        }
-        catch (std::out_of_range const&)
-        {
-          return f;
-        }
+        return is_integer(xs[0]);
       });
 
       library.define<procedure>("exact-integer?", [](let const& xs)
@@ -540,23 +484,55 @@ inline namespace kernel
         return car(xs).is<double>();
       });
 
-      #define DEFINE(SYMBOL, COMPARE)                                          \
-      library.define<procedure>(#SYMBOL, [](let const& xs)                     \
-      {                                                                        \
-        return std::adjacent_find(                                             \
-                 std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
-                 {                                                             \
-                   return not arithmetic::apply<COMPARE>(a, b).as<bool>();     \
-                 }) == std::end(xs);                                           \
-      })
+      library.define<procedure>("=", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not arithmetic::apply<equal_to>(a, b).as<bool>();
+        };
 
-      DEFINE(= , equal_to     );
-      DEFINE(< , less         );
-      DEFINE(<=, less_equal   );
-      DEFINE(> , greater      );
-      DEFINE(>=, greater_equal);
+        return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
+      });
 
-      #undef DEFINE
+      library.define<procedure>("<", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not arithmetic::apply<std::less<void>>(a, b).as<bool>();
+        };
+
+        return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
+      });
+
+      library.define<procedure>("<=", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return arithmetic::apply<std::greater<void>>(a, b).as<bool>();
+        };
+
+        return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
+      });
+
+      library.define<procedure>(">", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not arithmetic::apply<std::greater<void>>(a, b).as<bool>();
+        };
+
+        return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
+      });
+
+      library.define<procedure>(">=", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return arithmetic::apply<std::less<void>>(a, b).as<bool>();
+        };
+
+        return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
+      });
 
       library.define<procedure>("+", [](let const& xs)
       {
@@ -609,54 +585,55 @@ inline namespace kernel
 
       library.define<procedure>("floor", [](let const& xs)
       {
-        return arithmetic::apply<floor>(car(xs));
+        return floor(xs[0]);
       });
 
       library.define<procedure>("ceiling", [](let const& xs)
       {
-        return arithmetic::apply<ceil>(car(xs));
+        return ceil(xs[0]);
       });
 
       library.define<procedure>("truncate", [](let const& xs)
       {
-        return arithmetic::apply<trunc>(car(xs));
+        return trunc(xs[0]);
       });
 
       library.define<procedure>("round", [](let const& xs)
       {
-        return arithmetic::apply<round>(car(xs));
+        return round(xs[0]);
       });
 
       library.define<procedure>("exact-integer-square-root", [](let const& xs)
       {
-        auto&& [s, r] = exact_integer_sqrt(car(xs).as<exact_integer>());
-        return cons(make(s), make(r));
+        auto&& [s, r] = exact_integer_sqrt(xs[0].as<exact_integer>());
+        return cons(make(std::forward<decltype(s)>(s)),
+                    make(std::forward<decltype(r)>(r)));
       });
 
       library.define<procedure>("expt", [](let const& xs)
       {
-        return arithmetic::apply<expt>(car(xs), cadr(xs));
+        return pow(xs[0], xs[1]);
       });
 
       library.define<procedure>("exact", [](let const& xs)
       {
-        return arithmetic::apply<exact>(car(xs));
+        return exact(xs[0]);
       });
 
       library.define<procedure>("inexact", [](let const& xs)
       {
-        return arithmetic::apply<inexact>(car(xs));
+        return inexact(xs[0]);
       });
 
       library.define<procedure>("char->integer", [](let const& xs)
       {
-        return make<exact_integer>(car(xs).as<character>().codepoint);
+        return make<exact_integer>(xs[0].as<character>().codepoint);
       });
 
       library.define<procedure>("string->number", [](let const& xs)
       {
-        return make_number(car(xs).as<string>(),
-                           cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10);
+        return make_number(xs[0].as<string>(),
+                           cdr(xs).is<pair>() ? xs[1].as<exact_integer>() : 10);
       });
     });
 
@@ -1029,11 +1006,11 @@ inline namespace kernel
                  }) == std::end(xs);                                           \
       }
 
-      library.define<procedure>("string=?",  STRING_COMPARE(equal_to     ));
-      library.define<procedure>("string<?",  STRING_COMPARE(less         ));
-      library.define<procedure>("string<=?", STRING_COMPARE(less_equal   ));
-      library.define<procedure>("string>?",  STRING_COMPARE(greater      ));
-      library.define<procedure>("string>=?", STRING_COMPARE(greater_equal));
+      library.define<procedure>("string=?",  STRING_COMPARE(std::equal_to     ));
+      library.define<procedure>("string<?",  STRING_COMPARE(std::less         ));
+      library.define<procedure>("string<=?", STRING_COMPARE(std::less_equal   ));
+      library.define<procedure>("string>?",  STRING_COMPARE(std::greater      ));
+      library.define<procedure>("string>=?", STRING_COMPARE(std::greater_equal));
 
       #undef STRING_COMPARE
 

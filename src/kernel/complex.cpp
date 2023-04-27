@@ -39,8 +39,8 @@ inline namespace kernel
       auto const magnitude = make_real(result.str(1), radix);
       auto const angle     = make_real(result.str(2), radix);
 
-      std::get<0>(*this) = magnitude * arithmetic::apply<cos>(angle);
-      std::get<1>(*this) = magnitude * arithmetic::apply<sin>(angle);
+      std::get<0>(*this) = magnitude * cos(angle);
+      std::get<1>(*this) = magnitude * sin(angle);
     }
     else
     {
@@ -72,11 +72,11 @@ inline namespace kernel
 
   complex::operator std::complex<double>()
   {
-    assert(arithmetic::apply<is_real>(real()));
-    assert(arithmetic::apply<is_real>(imag()));
+    assert(is_real(real()));
+    assert(is_real(imag()));
 
-    return std::complex(arithmetic::apply<inexact>(real()).as<double>(),
-                        arithmetic::apply<inexact>(imag()).as<double>());
+    return std::complex(inexact(real()).as<double>(),
+                        inexact(imag()).as<double>());
   }
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &

@@ -314,14 +314,6 @@ inline namespace kernel
     }
   };
 
-  using less = std::less<void>;
-
-  using less_equal = std::less_equal<void>;
-
-  using greater = std::greater<void>;
-
-  using greater_equal = std::greater_equal<void>;
-
   namespace arithmetic
   {
     template <typename T>
@@ -449,12 +441,12 @@ inline namespace kernel
     }
   } // inline namespace arithmetic
 
-  template <typename T = double, typename U, REQUIRES(std::is_floating_point<T>)>
-  auto inexact_cast(U&& x) -> decltype(auto)
+  template <typename T>
+  auto inexact_cast(T&& x) -> decltype(auto)
   {
     if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
     {
-      return std::complex<T>(std::forward<decltype(x)>(x));
+      return std::complex<double>(std::forward<decltype(x)>(x));
     }
     else if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
     {
@@ -462,300 +454,69 @@ inline namespace kernel
     }
     else
     {
-      return static_cast<T>(std::forward<decltype(x)>(x));
+      return static_cast<double>(std::forward<decltype(x)>(x));
     }
   }
 
-  struct exact
-  {
-    template <typename T>
-    auto operator ()(T&& x) const -> decltype(auto)
-    {
-      if constexpr (std::is_same_v<std::decay_t<T>, complex>)
-      {
-        return complex(arithmetic::apply<exact>(x.real()),
-                       arithmetic::apply<exact>(x.imag()));
-      }
-      else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
-      {
-        return ratio(std::forward<decltype(x)>(x));
-      }
-      else
-      {
-        return std::forward<decltype(x)>(x);
-      }
-    }
-  };
+  auto exact(object const&) -> object;
 
-  struct inexact
-  {
-    template <typename T>
-    auto operator ()(T&& x) const -> decltype(auto)
-    {
-      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
-      {
-        return complex(arithmetic::apply<inexact>(x.real()),
-                       arithmetic::apply<inexact>(x.imag()));
-      }
-      else
-      {
-        return inexact_cast(std::forward<decltype(x)>(x));
-      }
-    }
-  };
+  auto inexact(object const&) -> object;
 
-  struct is_complex
-  {
-    template <typename T>
-    constexpr auto operator ()(T&&) const
-    {
-      return true;
-    }
-  };
+  auto is_complex(object const&) -> bool;
 
-  struct is_real
-  {
-    template <typename T>
-    constexpr auto operator ()(T&& x) const
-    {
-      if constexpr (std::is_same_v<std::decay_t<T>, complex>)
-      {
-        return arithmetic::apply<equal_to>(x.imag(), e0).template as<bool>();
-      }
-      else
-      {
-        return true;
-      }
-    }
-  };
+  auto is_real(object const&) -> bool;
 
-  struct is_rational
-  {
-    template <typename T>
-    constexpr auto operator ()(T&& x) const
-    {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>>)
-      {
-        return not std::isnan(x) and not std::isinf(x);
-      }
-      else
-      {
-        return std::is_same_v<std::decay_t<T>, exact_integer> or
-               std::is_same_v<std::decay_t<T>, ratio>;
-      }
-    }
-  };
+  auto is_rational(object const&) -> bool;
 
-  struct is_integer
-  {
-    template <typename T>
-    constexpr auto operator ()(T&& x) const
-    {
-      if constexpr (std::is_same_v<std::decay_t<T>, complex>)
-      {
-        return arithmetic::apply<equal_to>(x.imag(), e0).template as<bool>() and arithmetic::apply<is_integer>(x.real()).template as<bool>();
-      }
-      else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
-      {
-        return x == std::trunc(x);
-      }
-      else if constexpr (std::is_same_v<std::decay_t<T>, ratio>)
-      {
-        return x.denominator() == 1;
-      }
-      else
-      {
-        return std::is_same_v<std::decay_t<T>, exact_integer>;
-      }
-    }
-  };
+  auto is_integer(object const&) -> bool;
 
-  struct is_infinite
-  {
-    template <typename T>
-    constexpr auto operator ()(T&& x) const
-    {
-      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
-      {
-        return arithmetic::apply<is_infinite>(x.real()).template as<bool>() or
-               arithmetic::apply<is_infinite>(x.imag()).template as<bool>();
-      }
-      else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
-      {
-        return std::isinf(x);
-      }
-      else
-      {
-        return false;
-      }
-    }
-  };
+  auto is_finite(object const&) -> bool;
 
-  struct is_finite
-  {
-    template <typename T>
-    constexpr auto operator ()(T&& x) const
-    {
-      return not std::invoke(is_infinite(), std::forward<decltype(x)>(x));
-    }
-  };
+  auto is_infinite(object const&) -> bool;
 
-  struct is_nan
-  {
-    template <typename T>
-    constexpr auto operator ()(T&& x) const
-    {
-      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
-      {
-        return arithmetic::apply<is_nan>(x.real()).template as<bool>() or
-               arithmetic::apply<is_nan>(x.imag()).template as<bool>();
-      }
-      else if constexpr (std::is_floating_point_v<std::decay_t<T>>)
-      {
-        return std::isnan(x);
-      }
-      else
-      {
-        return false;
-      }
-    }
-  };
+  auto is_nan(object const&) -> bool;
 
-  struct sqrt
-  {
-    template <typename T>
-    constexpr auto operator ()(T&& x) const -> decltype(auto)
-    {
-      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
-      {
-        auto const z = std::sqrt(inexact_cast(std::forward<decltype(x)>(x)));
-        return complex(make(z.real()), make(z.imag()));
-      }
-      else
-      {
-        auto sqrt = [](auto&& x)
-        {
-          if constexpr (std::is_same_v<std::decay_t<decltype(x)>, exact_integer>)
-          {
-            auto const [s, r] = exact_integer_sqrt(x);
-            return r == 0 ? make(s) : make(std::sqrt(inexact_cast(x)));
-          }
-          else
-          {
-            return make(std::sqrt(inexact_cast(x)));
-          }
-        };
+  auto sqrt(object const&) -> object;
 
-        return x < exact_integer(0) ? make<complex>(e0, sqrt(exact_integer(0) - x)) : sqrt(x);
-      }
-    }
-  };
+  auto pow(object const&, object const&) -> object;
 
-  struct expt
-  {
-    template <typename T, typename U>
-    auto operator ()(T&& x, U&& y) const -> decltype(auto)
-    {
-      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex> or
-                    std::is_same_v<std::decay_t<decltype(y)>, complex>)
-      {
-        auto const z = std::pow(inexact_cast(std::forward<decltype(x)>(x)),
-                                inexact_cast(std::forward<decltype(y)>(y)));
-        return complex(make(z.real()), make(z.imag()));
-      }
-      else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, exact_integer> and
-                         std::is_same_v<std::decay_t<decltype(y)>, exact_integer>)
-      {
-        exact_integer result {};
-        mpz_pow_ui(result.value, x.value, static_cast<unsigned long>(y));
-        return result;
-      }
-      else
-      {
-        return std::pow(inexact_cast(std::forward<decltype(x)>(x)),
-                        inexact_cast(std::forward<decltype(y)>(y)));
-      }
-    }
-  };
+  auto floor(object const&) -> object;
 
-  struct atan2
-  {
-    template <typename T, typename U>
-    auto operator ()(T&& x, U&& y) const -> decltype(auto)
-    {
-      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex> or
-                    std::is_same_v<std::decay_t<decltype(y)>, complex>)
-      {
-        throw std::invalid_argument("unsupported operation");
-        return e0; // dummy return value.
-      }
-      else
-      {
-        return std::atan2(inexact_cast(std::forward<decltype(x)>(x)),
-                          inexact_cast(std::forward<decltype(y)>(y)));
-      }
-    }
-  };
+  auto ceil(object const&) -> object;
 
-  #define DEFINE(ROUND)                                                        \
-  struct ROUND                                                                 \
-  {                                                                            \
-    template <typename T>                                                      \
-    constexpr auto operator ()(T&& x) const                                    \
-    {                                                                          \
-      if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)       \
-      {                                                                        \
-        return std::ROUND(inexact_cast(x));                                    \
-      }                                                                        \
-      else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, ratio>)     \
-      {                                                                        \
-        return exact_integer(std::ROUND(inexact_cast(x)));                     \
-      }                                                                        \
-      else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, exact_integer>) \
-      {                                                                        \
-        return std::forward<decltype(x)>(x);                                   \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-        return complex(arithmetic::apply<ROUND>(x.real()),                     \
-                       arithmetic::apply<ROUND>(x.imag()));                    \
-      }                                                                        \
-    }                                                                          \
-  }
+  auto trunc(object const&) -> object;
 
-  DEFINE(floor);
-  DEFINE(ceil);
-  DEFINE(trunc);
-  DEFINE(round);
+  auto round(object const&) -> object;
 
-  #undef DEFINE
+  auto sin(object const&) -> object;
 
-  #define DEFINE(CMATH)                                                        \
-  struct CMATH                                                                 \
-  {                                                                            \
-    template <typename T>                                                      \
-    auto operator ()(T&& x) const                                              \
-    {                                                                          \
-      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)        \
-      {                                                                        \
-        auto const z = std::CMATH(inexact_cast(std::forward<decltype(x)>(x))); \
-        return complex(make(z.real()), make(z.imag()));                        \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-        return std::CMATH(inexact_cast(std::forward<decltype(x)>(x)));         \
-      }                                                                        \
-    }                                                                          \
-  }
+  auto cos(object const&) -> object;
 
-  DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
-  DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
-  DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
+  auto tan(object const&) -> object;
 
-  DEFINE(exp);
-  DEFINE(log);
+  auto asin(object const&) -> object;
 
-  #undef DEFINE
+  auto acos(object const&) -> object;
+
+  auto atan(object const&) -> object;
+
+  auto atan(object const&, object const&) -> object;
+
+  auto sinh(object const&) -> object;
+
+  auto cosh(object const&) -> object;
+
+  auto tanh(object const&) -> object;
+
+  auto asinh(object const&) -> object;
+
+  auto acosh(object const&) -> object;
+
+  auto atanh(object const&) -> object;
+
+  auto exp(object const&) -> object;
+
+  auto log(object const&) -> object;
 
   template <auto Radix>
   struct number_to_string
