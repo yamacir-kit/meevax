@@ -283,34 +283,6 @@ inline namespace kernel
   auto operator / (object const&, object const&) -> object;
   auto operator % (object const&, object const&) -> object;
 
-  struct equal_to
-  {
-    template <typename T, typename U>
-    auto operator ()(T&& x, U&& y) const
-    {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>> and
-                    std::is_floating_point_v<std::decay_t<U>>)
-      {
-        if (std::isnan(x) and std::isnan(y))
-        {
-          return true;
-        }
-        else if (std::isinf(x) or std::isinf(y))
-        {
-          return x == y;
-        }
-        else
-        {
-          return std::abs(x - y) <= std::numeric_limits<decltype(std::declval<T>() - std::declval<U>())>::epsilon();
-        }
-      }
-      else
-      {
-        return x == y;
-      }
-    }
-  };
-
   namespace arithmetic
   {
     template <typename T>
@@ -396,6 +368,32 @@ inline namespace kernel
     else
     {
       return static_cast<double>(std::forward<decltype(x)>(x));
+    }
+  }
+
+  template <typename T, typename U>
+  auto inexact_equal(T const& x, U const& y)
+  {
+    if constexpr (std::is_floating_point_v<T> and
+                  std::is_floating_point_v<U>)
+    {
+      if (std::isnan(x) and std::isnan(y))
+      {
+        return true;
+      }
+      else if (std::isinf(x) or std::isinf(y))
+      {
+        return x == y;
+      }
+      else
+      {
+        using R = std::decay_t<decltype(std::declval<T>() - std::declval<U>())>;
+        return std::abs(x - y) <= std::numeric_limits<R>::epsilon();
+      }
+    }
+    else
+    {
+      return x == y;
     }
   }
 
