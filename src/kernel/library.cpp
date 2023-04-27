@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#include <numeric>
+
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/disassemble.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
