@@ -17,12 +17,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
-#include <memory> // std::unique_ptr
-
 #include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/ratio.hpp>
-#include <meevax/kernel/string.hpp>
 
 namespace meevax
 {
@@ -352,22 +349,20 @@ inline namespace kernel
       }
     };
 
-    template <typename F>
-    auto apply(object const& x) -> object
+    template <auto I = 0, typename F>
+    auto apply([[maybe_unused]] F f, object const& x) -> object
     {
-      static const std::unordered_map<
-        std::type_index,
-        std::function<object (object const&)>
-      > apply
-      {
-        { typeid(exact_integer), application<F, exact_integer>() },
-        { typeid(ratio        ), application<F, ratio        >() },
-        { typeid(float        ), application<F, float        >() },
-        { typeid(double       ), application<F, double       >() },
-        { typeid(complex      ), application<F, complex      >() },
-      };
+      using Ts = std::tuple<exact_integer, ratio, float, double, complex>;
 
-      return apply.at(x.type())(x);
+      if constexpr (I < std::tuple_size_v<Ts>)
+      {
+        using T = std::tuple_element_t<I, Ts>;
+        return x.is<T>() ? canonicalize(f(x.as<T>())) : apply<I + 1>(f, x);
+      }
+      else
+      {
+        throw std::out_of_range("not an number");
+      }
     }
 
     template <typename...>
@@ -518,33 +513,7 @@ inline namespace kernel
 
   auto log(object const&) -> object;
 
-  template <auto Radix>
-  struct number_to_string
-  {
-    template <typename T>
-    auto operator ()(T&& z) const
-    {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>>)
-      {
-        return string("TODO");
-      }
-      else if constexpr (std::is_same_v<std::decay_t<T>, exact_integer>)
-      {
-        auto free = [](char * data)
-        {
-          void (*free)(void *, std::size_t);
-          mp_get_memory_functions(nullptr, nullptr, &free);
-          std::invoke(free, static_cast<void *>(data), std::strlen(data) + 1);
-        };
-
-        return string(std::unique_ptr<char, decltype(free)>(mpz_get_str(nullptr, Radix, z.value), free).get());
-      }
-      else
-      {
-        return string("TODO");
-      }
-    }
-  };
+  auto number_to_string(object const&, int) -> object;
 } // namespace kernel
 } // namespace meevax
 

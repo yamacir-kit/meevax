@@ -606,6 +606,7 @@ inline namespace kernel
       library.define<procedure>("exact-integer-square-root", [](let const& xs)
       {
         auto&& [s, r] = exact_integer_sqrt(xs[0].as<exact_integer>());
+
         return cons(make(std::forward<decltype(s)>(s)),
                     make(std::forward<decltype(r)>(r)));
       });
@@ -1021,20 +1022,7 @@ inline namespace kernel
 
       library.define<procedure>("number->string", [](let const& xs)
       {
-        switch (cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>() : 10)
-        {
-        case 2:
-          return arithmetic::apply<number_to_string<2>>(car(xs));
-
-        case 8:
-          return arithmetic::apply<number_to_string<8>>(car(xs));
-
-        case 10: default:
-          return arithmetic::apply<number_to_string<10>>(car(xs));
-
-        case 16:
-          return arithmetic::apply<number_to_string<16>>(car(xs));
-        }
+        return number_to_string(xs[0], cdr(xs).is<pair>() ? xs[1].as<exact_integer>() : 10);
       });
 
       library.define<procedure>("list->string", [](let const& xs)
