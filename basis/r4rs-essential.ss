@@ -318,7 +318,7 @@
 
          (define (exact? z)
            (define (exact-complex? x)
-             (and (%complex? x)
+             (and (imaginary? x)
                   (exact? (real-part x))
                   (exact? (imag-part x))))
            (or (exact-complex? z)
@@ -327,7 +327,7 @@
 
          (define (inexact? z)
            (define (inexact-complex? x)
-             (and (%complex? x)
+             (and (imaginary? x)
                   (or (inexact? (real-part x))
                       (inexact? (imag-part x)))))
            (define (floating-point? z)

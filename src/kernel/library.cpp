@@ -463,27 +463,27 @@ inline namespace kernel
 
       library.define<procedure>("exact-integer?", [](let const& xs)
       {
-        return car(xs).is<exact_integer>();
+        return xs[0].is<exact_integer>();
       });
 
-      library.define<procedure>("%complex?", [](let const& xs)
+      library.define<procedure>("imaginary?", [](let const& xs)
       {
-        return car(xs).is<complex>();
+        return xs[0].is<complex>();
       });
 
       library.define<procedure>("ratio?", [](let const& xs)
       {
-        return car(xs).is<ratio>();
+        return xs[0].is<ratio>();
       });
 
       library.define<procedure>("single-float?", [](let const& xs)
       {
-        return car(xs).is<float>();
+        return xs[0].is<float>();
       });
 
       library.define<procedure>("double-float?", [](let const& xs)
       {
-        return car(xs).is<double>();
+        return xs[0].is<double>();
       });
 
       library.define<procedure>("=", [](let const& xs)

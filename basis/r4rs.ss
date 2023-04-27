@@ -108,10 +108,10 @@
                              (* radius (sin phi))))
 
          (define (real-part z)
-           (if (%complex? z) (car z) z))
+           (if (imaginary? z) (car z) z))
 
          (define (imag-part z)
-           (if (%complex? z) (cdr z) 0))
+           (if (imaginary? z) (cdr z) 0))
 
          (define (magnitude z)
            (sqrt (+ (square (real-part z))
