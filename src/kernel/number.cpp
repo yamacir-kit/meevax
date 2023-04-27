@@ -220,7 +220,7 @@ inline namespace kernel
   auto operator * (complex const& a, complex const& b) -> complex { return complex(a.real() * b.real() - a.imag() * b.imag(), a.imag() * b.real() + a.real() * b.imag()); }
   auto operator / (complex const& a, complex const& b) -> complex { auto x = a.real() * b.real() + a.imag() * b.imag(); auto y = a.imag() * b.real() - a.real() * b.imag(); auto d = b.real() * b.real() + b.imag() * b.imag(); return complex(x / d, y / d); }
   auto operator % (complex const&  , complex const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
-  auto operator ==(complex const& a, complex const& b) -> bool    { return arithmetic::apply<equal_to>(a.real(), b.real()).as<bool>() and arithmetic::apply<equal_to>(a.imag(), b.imag()).as<bool>(); }
+  auto operator ==(complex const& a, complex const& b) -> bool    { return numeric_equal(a.real(), b.real()) and numeric_equal(a.imag(), b.imag()); }
   auto operator !=(complex const& a, complex const& b) -> bool    { return not (a == b); }
   auto operator < (complex const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
   auto operator <=(complex const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
@@ -275,13 +275,35 @@ inline namespace kernel
   auto operator > (complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
   auto operator >=(complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
 
-  struct modulus
+  auto operator +(object const& x, object const& y) -> object
   {
-    template <typename T, typename U>
-    auto operator ()(T&& x, U&& y) const
+    return arithmetic::apply(std::plus(), x, y);
+  }
+
+  auto operator -(object const& x, object const& y) -> object
+  {
+    return arithmetic::apply(std::minus(), x, y);
+  }
+
+  auto operator *(object const& x, object const& y) -> object
+  {
+    return arithmetic::apply(std::multiplies(), x, y);
+  }
+
+  auto operator /(object const& x, object const& y) -> object
+  {
+    return arithmetic::apply(std::divides(), x, y);
+  }
+
+  auto operator % (object const& x, object const& y) -> object
+  {
+    auto f = [](auto&& x, auto&& y)
     {
-      if constexpr (std::is_floating_point_v<std::decay_t<T>> and
-                    std::is_floating_point_v<std::decay_t<U>>)
+      using T = std::decay_t<decltype(x)>;
+      using U = std::decay_t<decltype(y)>;
+
+      if constexpr (std::is_floating_point_v<T> and
+                    std::is_floating_point_v<U>)
       {
         return std::fmod(x, y);
       }
@@ -289,14 +311,50 @@ inline namespace kernel
       {
         return x % y;
       }
-    }
-  };
+    };
 
-  auto operator + (object const& x, object const& y) -> object { return arithmetic::apply<std::plus      <void>>(x, y); }
-  auto operator - (object const& x, object const& y) -> object { return arithmetic::apply<std::minus     <void>>(x, y); }
-  auto operator * (object const& x, object const& y) -> object { return arithmetic::apply<std::multiplies<void>>(x, y); }
-  auto operator / (object const& x, object const& y) -> object { return arithmetic::apply<std::divides   <void>>(x, y); }
-  auto operator % (object const& x, object const& y) -> object { return arithmetic::apply<     modulus         >(x, y); }
+    return arithmetic::apply(f, x, y);
+  }
+
+  auto numeric_equal(object const& x, object const& y) -> bool
+  {
+    try
+    {
+      auto f = [](auto&& x, auto&& y)
+      {
+        using T = std::decay_t<decltype(x)>;
+        using U = std::decay_t<decltype(y)>;
+
+        if constexpr (std::is_floating_point_v<T> and
+                      std::is_floating_point_v<U>)
+        {
+          if (std::isnan(x) and std::isnan(y))
+          {
+            return true;
+          }
+          else if (std::isinf(x) or std::isinf(y))
+          {
+            return x == y;
+          }
+          else
+          {
+            using R = std::decay_t<decltype(std::declval<T>() - std::declval<U>())>;
+            return std::abs(x - y) <= std::numeric_limits<R>::epsilon();
+          }
+        }
+        else
+        {
+          return x == y;
+        }
+      };
+
+      return arithmetic::apply(f, x, y).as<bool>();
+    }
+    catch (std::out_of_range const&)
+    {
+      return false;
+    }
+  }
 
   auto exact(object const& x) -> object
   {
@@ -369,7 +427,7 @@ inline namespace kernel
 
         if constexpr (std::is_same_v<T, complex>)
         {
-          return arithmetic::apply<equal_to>(x.imag(), e0).template as<bool>();
+          return numeric_equal(x.imag(), e0);
         }
         else
         {
@@ -423,7 +481,7 @@ inline namespace kernel
 
         if constexpr (std::is_same_v<T, complex>)
         {
-          return arithmetic::apply<equal_to>(x.imag(), e0).template as<bool>() and is_integer(x.real());
+          return numeric_equal(x.imag(), e0) and is_integer(x.real());
         }
         else if constexpr (std::is_floating_point_v<T>)
         {
@@ -551,20 +609,24 @@ inline namespace kernel
     return arithmetic::apply(f, x);
   }
 
-  struct pow_t
+  auto pow(object const& x, object const& y) -> object
   {
-    template <typename T, typename U>
-    auto operator ()(T&& x, U&& y) const -> decltype(auto)
+    auto f = [](auto&& x, auto&& y)
     {
-      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex> or
-                    std::is_same_v<std::decay_t<decltype(y)>, complex>)
+      using T = std::decay_t<decltype(x)>;
+      using U = std::decay_t<decltype(y)>;
+
+      if constexpr (std::is_same_v<T, complex> or
+                    std::is_same_v<U, complex>)
       {
         auto const z = std::pow(inexact_cast(std::forward<decltype(x)>(x)),
                                 inexact_cast(std::forward<decltype(y)>(y)));
-        return complex(make(z.real()), make(z.imag()));
+
+        return complex(make(z.real()),
+                       make(z.imag()));
       }
-      else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, exact_integer> and
-                         std::is_same_v<std::decay_t<decltype(y)>, exact_integer>)
+      else if constexpr (std::is_same_v<T, exact_integer> and
+                         std::is_same_v<U, exact_integer>)
       {
         exact_integer result {};
         mpz_pow_ui(result.value, x.value, static_cast<unsigned long>(y));
@@ -575,13 +637,9 @@ inline namespace kernel
         return std::pow(inexact_cast(std::forward<decltype(x)>(x)),
                         inexact_cast(std::forward<decltype(y)>(y)));
       }
-    }
-  };
+    };
 
-  auto pow(object const& a, object const& b) -> object
-  {
-    static const auto apply = arithmetic::apply_t<pow_t, 2>();
-    return apply(a, b);
+    return arithmetic::apply(f, x, y);
   }
 
   #define DEFINE(ROUND)                                                        \
@@ -654,13 +712,15 @@ inline namespace kernel
 
   #undef DEFINE
 
-  struct atan2_t
+  auto atan(object const& x, object const& y) -> object
   {
-    template <typename T, typename U>
-    auto operator ()(T&& x, U&& y) const -> decltype(auto)
+    auto f = [](auto&& x, auto&& y)
     {
-      if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex> or
-                    std::is_same_v<std::decay_t<decltype(y)>, complex>)
+      using T = std::decay_t<decltype(x)>;
+      using U = std::decay_t<decltype(y)>;
+
+      if constexpr (std::is_same_v<T, complex> or
+                    std::is_same_v<U, complex>)
       {
         throw std::invalid_argument("unsupported operation");
         return e0; // dummy return value.
@@ -670,13 +730,9 @@ inline namespace kernel
         return std::atan2(inexact_cast(std::forward<decltype(x)>(x)),
                           inexact_cast(std::forward<decltype(y)>(y)));
       }
-    }
-  };
+    };
 
-  auto atan(object const& a, object const& b) -> object
-  {
-    static const auto apply = arithmetic::apply_t<atan2_t, 2>();
-    return apply(a, b);
+    return arithmetic::apply(f, x, y);
   }
 
   auto number_to_string(object const& x, int radix) -> object

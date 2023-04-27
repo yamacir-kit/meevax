@@ -50,7 +50,7 @@ inline namespace kernel
 
   auto complex::canonicalize() const -> object
   {
-    if (arithmetic::apply<equal_to>(imag(), e0).as<bool>())
+    if (numeric_equal(imag(), e0))
     {
       return real();
     }
@@ -81,7 +81,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &
   {
-    if (arithmetic::apply<equal_to>(z.imag(), e0).as<bool>())
+    if (numeric_equal(z.imag(), e0))
     {
       return os << z.real();
     }

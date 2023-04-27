@@ -486,9 +486,9 @@ inline namespace kernel
 
       library.define<procedure>("=", [](let const& xs)
       {
-        auto compare = [](let const& a, let const& b)
+        auto compare = [](auto&&... xs)
         {
-          return not arithmetic::apply<equal_to>(a, b).as<bool>();
+          return not numeric_equal(std::forward<decltype(xs)>(xs)...);
         };
 
         return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
@@ -496,9 +496,9 @@ inline namespace kernel
 
       library.define<procedure>("<", [](let const& xs)
       {
-        auto compare = [](let const& a, let const& b)
+        auto compare = [](auto&&... xs)
         {
-          return not arithmetic::apply<std::less<void>>(a, b).as<bool>();
+          return not arithmetic::apply(std::less(), std::forward<decltype(xs)>(xs)...).template as<bool>();
         };
 
         return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
@@ -506,9 +506,9 @@ inline namespace kernel
 
       library.define<procedure>("<=", [](let const& xs)
       {
-        auto compare = [](let const& a, let const& b)
+        auto compare = [](auto&&... xs)
         {
-          return arithmetic::apply<std::greater<void>>(a, b).as<bool>();
+          return arithmetic::apply(std::greater(), std::forward<decltype(xs)>(xs)...).template as<bool>();
         };
 
         return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
@@ -516,9 +516,9 @@ inline namespace kernel
 
       library.define<procedure>(">", [](let const& xs)
       {
-        auto compare = [](let const& a, let const& b)
+        auto compare = [](auto&&... xs)
         {
-          return not arithmetic::apply<std::greater<void>>(a, b).as<bool>();
+          return not arithmetic::apply(std::greater(), std::forward<decltype(xs)>(xs)...).template as<bool>();
         };
 
         return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
@@ -526,9 +526,9 @@ inline namespace kernel
 
       library.define<procedure>(">=", [](let const& xs)
       {
-        auto compare = [](let const& a, let const& b)
+        auto compare = [](auto&&... xs)
         {
-          return arithmetic::apply<std::less<void>>(a, b).as<bool>();
+          return arithmetic::apply(std::less(), std::forward<decltype(xs)>(xs)...).template as<bool>();
         };
 
         return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);

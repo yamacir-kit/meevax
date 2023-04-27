@@ -334,21 +334,6 @@ inline namespace kernel
       }
     }
 
-    template <typename F, typename... Ts>
-    struct application
-    {
-      auto operator ()(object const& x) -> object
-      {
-        return canonicalize(F()(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>()));
-      }
-
-      auto operator ()(object const& x, object const& y) -> object
-      {
-        return canonicalize(F()(x.as<std::tuple_element_t<0, std::tuple<Ts...>>>(),
-                                y.as<std::tuple_element_t<1, std::tuple<Ts...>>>()));
-      }
-    };
-
     template <auto I = 0, typename F>
     auto apply([[maybe_unused]] F f, object const& x) -> object
     {
@@ -378,61 +363,22 @@ inline namespace kernel
     template <typename... Ts>
     using combination = typename make_combination<std::tuple<Ts...>, std::make_index_sequence<sizeof...(Ts) * sizeof...(Ts)>>::type;
 
-    template <typename F, auto N>
-    struct apply_t
+    template <auto I = 0, typename F>
+    auto apply([[maybe_unused]] F f, object const& x, object const& y) -> object
     {
-      static inline std::unordered_map<
-        type_index<N>,
-        std::function<object (object const&, object const&)>
-      > data {};
+      using Ts = combination<exact_integer, ratio, float, double, complex>;
 
-      template <typename Tuple, auto I = 0>
-      auto emplace()
+      if constexpr (I < std::tuple_size_v<Ts>)
       {
-        if constexpr (I < std::tuple_size_v<Tuple>)
-        {
-          if constexpr (N == 2)
-          {
-            using element = std::tuple_element_t<I, Tuple>;
+        using T = std::tuple_element_t<0, std::tuple_element_t<I, Ts>>;
+        using U = std::tuple_element_t<1, std::tuple_element_t<I, Ts>>;
 
-            data.emplace(std::piecewise_construct,
-                         std::forward_as_tuple(typeid(std::tuple_element_t<0, element>),
-                                               typeid(std::tuple_element_t<1, element>)),
-                         std::forward_as_tuple(application<F, std::tuple_element_t<0, element>,
-                                                              std::tuple_element_t<1, element>>()));
-          }
-          else
-          {
-            // TODO unary
-          }
-
-          emplace<Tuple, I + 1>();
-        }
+        return x.is<T>() and y.is<U>() ? canonicalize(f(x.as<T>(), y.as<U>())) : apply<I + 1>(f, x, y);
       }
-
-      explicit apply_t()
+      else
       {
-        if constexpr (N == 2)
-        {
-          emplace<combination<exact_integer, ratio, float, double, complex>>();
-        }
-        else
-        {
-          // TODO unary
-        }
+        throw std::out_of_range("not an number");
       }
-
-      auto operator ()(object const& x, object const& y) const -> decltype(auto)
-      {
-        return data.at(type_index<N>(x.type(), y.type()))(x, y);
-      }
-    };
-
-    template <typename F>
-    auto apply(object const& x, object const& y) -> object
-    {
-      static const auto apply = apply_t<F, 2>();
-      return apply(x, y);
     }
   } // inline namespace arithmetic
 
@@ -452,6 +398,8 @@ inline namespace kernel
       return static_cast<double>(std::forward<decltype(x)>(x));
     }
   }
+
+  auto numeric_equal(object const&, object const&) -> bool;
 
   auto exact(object const&) -> object;
 
