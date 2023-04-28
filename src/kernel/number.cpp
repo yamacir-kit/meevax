@@ -52,7 +52,7 @@ inline namespace kernel
   auto operator * (exact_integer const& a, float b) -> float { return inexact_cast(a) *  b; }
   auto operator / (exact_integer const& a, float b) -> float { return inexact_cast(a) /  b; }
   auto operator % (exact_integer const& a, float b) -> float { return std::remainder(inexact_cast(a), b); }
-  auto operator ==(exact_integer const& a, float b) -> bool  { return inexact_equal(inexact_cast(a), b); }
+  auto operator ==(exact_integer const& a, float b) -> bool  { return inexact_equals(inexact_cast(a), b); }
   auto operator !=(exact_integer const& a, float b) -> bool  { return not (a == b); }
   auto operator < (exact_integer const& a, float b) -> bool  { return inexact_cast(a) <  b; }
   auto operator <=(exact_integer const& a, float b) -> bool  { return inexact_cast(a) <= b; }
@@ -112,7 +112,7 @@ inline namespace kernel
   auto operator * (ratio const& a, float b) -> float { return inexact_cast(a) *  b; }
   auto operator / (ratio const& a, float b) -> float { return inexact_cast(a) /  b; }
   auto operator % (ratio const& a, float b) -> float { return std::remainder(inexact_cast(a), b); }
-  auto operator ==(ratio const& a, float b) -> bool  { return inexact_equal(inexact_cast(a), b); }
+  auto operator ==(ratio const& a, float b) -> bool  { return inexact_equals(inexact_cast(a), b); }
   auto operator !=(ratio const& a, float b) -> bool  { return not (a == b); }
   auto operator < (ratio const& a, float b) -> bool  { return inexact_cast(a) <  b; }
   auto operator <=(ratio const& a, float b) -> bool  { return inexact_cast(a) <= b; }
@@ -124,7 +124,7 @@ inline namespace kernel
   auto operator * (ratio const& a, double b) -> double { return inexact_cast(a) *  b; }
   auto operator / (ratio const& a, double b) -> double { return inexact_cast(a) /  b; }
   auto operator % (ratio const& a, double b) -> double { return std::remainder(inexact_cast(a), b); }
-  auto operator ==(ratio const& a, double b) -> bool   { return inexact_equal(inexact_cast(a), b); }
+  auto operator ==(ratio const& a, double b) -> bool   { return inexact_equals(inexact_cast(a), b); }
   auto operator !=(ratio const& a, double b) -> bool   { return not (a == b); }
   auto operator < (ratio const& a, double b) -> bool   { return inexact_cast(a) <  b; }
   auto operator <=(ratio const& a, double b) -> bool   { return inexact_cast(a) <= b; }
@@ -148,7 +148,7 @@ inline namespace kernel
   auto operator * (float a, exact_integer const& b) -> float { return a *  inexact_cast(b); }
   auto operator / (float a, exact_integer const& b) -> float { return a /  inexact_cast(b); }
   auto operator % (float a, exact_integer const& b) -> float { return std::remainder(a, inexact_cast(b)); }
-  auto operator ==(float a, exact_integer const& b) -> bool  { return inexact_equal(a, inexact_cast(b)); }
+  auto operator ==(float a, exact_integer const& b) -> bool  { return inexact_equals(a, inexact_cast(b)); }
   auto operator !=(float a, exact_integer const& b) -> bool  { return not (a == b); }
   auto operator < (float a, exact_integer const& b) -> bool  { return a <  inexact_cast(b); }
   auto operator <=(float a, exact_integer const& b) -> bool  { return a <= inexact_cast(b); }
@@ -160,7 +160,7 @@ inline namespace kernel
   auto operator * (float a, ratio const& b) -> float { return a *  inexact_cast(b); }
   auto operator / (float a, ratio const& b) -> float { return a /  inexact_cast(b); }
   auto operator % (float a, ratio const& b) -> float { return std::remainder(a, inexact_cast(b)); }
-  auto operator ==(float a, ratio const& b) -> bool  { return inexact_equal(a, inexact_cast(b)); }
+  auto operator ==(float a, ratio const& b) -> bool  { return inexact_equals(a, inexact_cast(b)); }
   auto operator !=(float a, ratio const& b) -> bool  { return not (a == b); }
   auto operator < (float a, ratio const& b) -> bool  { return a <  inexact_cast(b); }
   auto operator <=(float a, ratio const& b) -> bool  { return a <= inexact_cast(b); }
@@ -196,7 +196,7 @@ inline namespace kernel
   auto operator * (double a, ratio const& b) -> double { return a *  inexact_cast(b); }
   auto operator / (double a, ratio const& b) -> double { return a /  inexact_cast(b); }
   auto operator % (double a, ratio const& b) -> double { return std::remainder(a, inexact_cast(b)); }
-  auto operator ==(double a, ratio const& b) -> bool   { return inexact_equal(a, inexact_cast(b)); }
+  auto operator ==(double a, ratio const& b) -> bool   { return inexact_equals(a, inexact_cast(b)); }
   auto operator !=(double a, ratio const& b) -> bool   { return not (a == b); }
   auto operator < (double a, ratio const& b) -> bool   { return a <  inexact_cast(b); }
   auto operator <=(double a, ratio const& b) -> bool   { return a <= inexact_cast(b); }
@@ -220,7 +220,7 @@ inline namespace kernel
   auto operator * (complex const& a, complex const& b) -> complex { return complex(a.real() * b.real() - a.imag() * b.imag(), a.imag() * b.real() + a.real() * b.imag()); }
   auto operator / (complex const& a, complex const& b) -> complex { auto x = a.real() * b.real() + a.imag() * b.imag(); auto y = a.imag() * b.real() - a.real() * b.imag(); auto d = b.real() * b.real() + b.imag() * b.imag(); return complex(x / d, y / d); }
   auto operator % (complex const&  , complex const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
-  auto operator ==(complex const& a, complex const& b) -> bool    { return numeric_equal(a.real(), b.real()) and numeric_equal(a.imag(), b.imag()); }
+  auto operator ==(complex const& a, complex const& b) -> bool    { return equals(a.real(), b.real()) and equals(a.imag(), b.imag()); }
   auto operator !=(complex const& a, complex const& b) -> bool    { return not (a == b); }
   auto operator < (complex const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
   auto operator <=(complex const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
@@ -318,14 +318,39 @@ inline namespace kernel
 
 inline namespace number
 {
-  auto numeric_equal(object const& x, object const& y) -> bool
+  auto equals(object const& x, object const& y) -> bool
   {
     auto f = [](auto&&... xs)
     {
-      return inexact_equal(std::forward<decltype(xs)>(xs)...);
+      return inexact_equals(std::forward<decltype(xs)>(xs)...);
     };
 
     return test(f, x, y);
+  }
+
+  auto not_equals(object const& x, object const& y) -> bool
+  {
+    return not equals(x, y);
+  }
+
+  auto less_than(object const& x, object const& y) -> bool
+  {
+    return test(std::less(), x, y);
+  }
+
+  auto less_than_or_equals(object const& x, object const& y) -> bool
+  {
+    return not greater_than(x, y);
+  }
+
+  auto greater_than(object const& x, object const& y) -> bool
+  {
+    return test(std::greater(), x, y);
+  }
+
+  auto greater_than_or_equals(object const& x, object const& y) -> bool
+  {
+    return not less_than(x, y);
   }
 
   auto exact(object const& x) -> object
@@ -390,7 +415,7 @@ inline namespace number
 
       if constexpr (std::is_same_v<T, complex>)
       {
-        return numeric_equal(x.imag(), e0);
+        return equals(x.imag(), e0);
       }
       else
       {
@@ -430,7 +455,7 @@ inline namespace number
 
       if constexpr (std::is_same_v<T, complex>)
       {
-        return numeric_equal(x.imag(), e0) and is_integer(x.real());
+        return equals(x.imag(), e0) and is_integer(x.real());
       }
       else if constexpr (std::is_floating_point_v<T>)
       {

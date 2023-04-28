@@ -301,7 +301,7 @@ inline namespace kernel
   }
 
   template <typename T, typename U>
-  auto inexact_equal(T const& x, U const& y)
+  auto inexact_equals(T const& x, U const& y)
   {
     if constexpr (std::is_floating_point_v<T> and
                   std::is_floating_point_v<U>)
@@ -433,7 +433,17 @@ inline namespace number
     }
   }
 
-  auto numeric_equal(object const&, object const&) -> bool;
+  auto equals(object const&, object const&) -> bool;
+
+  auto not_equals(object const&, object const&) -> bool;
+
+  auto less_than(object const&, object const&) -> bool;
+
+  auto less_than_or_equals(object const&, object const&) -> bool;
+
+  auto greater_than(object const&, object const&) -> bool;
+
+  auto greater_than_or_equals(object const&, object const&) -> bool;
 
   auto exact(object const&) -> object;
 

@@ -488,52 +488,27 @@ inline namespace kernel
 
       library.define<procedure>("=", [](let const& xs)
       {
-        auto compare = [](auto&&... xs)
-        {
-          return not numeric_equal(std::forward<decltype(xs)>(xs)...);
-        };
-
-        return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
+        return std::adjacent_find(std::begin(xs), std::end(xs), not_equals) == std::end(xs);
       });
 
       library.define<procedure>("<", [](let const& xs)
       {
-        auto compare = [](auto&&... xs)
-        {
-          return not number::test(std::less(), std::forward<decltype(xs)>(xs)...);
-        };
-
-        return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
+        return std::adjacent_find(std::begin(xs), std::end(xs), greater_than_or_equals) == std::end(xs);
       });
 
       library.define<procedure>("<=", [](let const& xs)
       {
-        auto compare = [](auto&&... xs)
-        {
-          return number::test(std::greater(), std::forward<decltype(xs)>(xs)...);
-        };
-
-        return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
+        return std::adjacent_find(std::begin(xs), std::end(xs), greater_than) == std::end(xs);
       });
 
       library.define<procedure>(">", [](let const& xs)
       {
-        auto compare = [](auto&&... xs)
-        {
-          return not number::test(std::greater(), std::forward<decltype(xs)>(xs)...);
-        };
-
-        return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
+        return std::adjacent_find(std::begin(xs), std::end(xs), less_than_or_equals) == std::end(xs);
       });
 
       library.define<procedure>(">=", [](let const& xs)
       {
-        auto compare = [](auto&&... xs)
-        {
-          return number::test(std::less(), std::forward<decltype(xs)>(xs)...);
-        };
-
-        return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
+        return std::adjacent_find(std::begin(xs), std::end(xs), less_than) == std::end(xs);
       });
 
       library.define<procedure>("+", [](let const& xs)
