@@ -318,11 +318,18 @@ inline namespace kernel
     {
       using T = std::tuple_element_t<I, Ts>;
 
-      return x.is<T>() ? canonicalize(f(x.as<T>())) : apply<I + 1>(f, x);
+      if (x.is<T>())
+      {
+        return canonicalize(f(x.as<T>()));
+      }
+      else
+      {
+        return apply<I + 1>(f, x);
+      }
     }
     else
     {
-      throw std::out_of_range("not an number");
+      throw std::domain_error("not an number");
     }
   }
 
@@ -336,11 +343,18 @@ inline namespace kernel
       using T = std::tuple_element_t<0, std::tuple_element_t<I, Ts>>;
       using U = std::tuple_element_t<1, std::tuple_element_t<I, Ts>>;
 
-      return x.is<T>() and y.is<U>() ? canonicalize(f(x.as<T>(), y.as<U>())) : apply<I + 1>(f, x, y);
+      if (x.is<T>() and y.is<U>())
+      {
+        return canonicalize(f(x.as<T>(), y.as<U>()));
+      }
+      else
+      {
+        return apply<I + 1>(f, x, y);
+      }
     }
     else
     {
-      throw std::out_of_range("not an number");
+      throw std::domain_error("not an number");
     }
   }
 
