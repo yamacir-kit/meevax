@@ -306,22 +306,6 @@ inline namespace kernel
       }
     }
 
-    template <auto I = 0, typename F>
-    auto apply([[maybe_unused]] F f, object const& x) -> object
-    {
-      using Ts = std::tuple<exact_integer, ratio, float, double, complex>;
-
-      if constexpr (I < std::tuple_size_v<Ts>)
-      {
-        using T = std::tuple_element_t<I, Ts>;
-        return x.is<T>() ? canonicalize(f(x.as<T>())) : apply<I + 1>(f, x);
-      }
-      else
-      {
-        throw std::out_of_range("not an number");
-      }
-    }
-
     template <typename...>
     struct make_combination;
 
@@ -334,6 +318,23 @@ inline namespace kernel
 
     template <typename... Ts>
     using combination = typename make_combination<std::tuple<Ts...>, std::make_index_sequence<sizeof...(Ts) * sizeof...(Ts)>>::type;
+
+    template <auto I = 0, typename F>
+    auto apply([[maybe_unused]] F f, object const& x) -> object
+    {
+      using Ts = std::tuple<exact_integer, ratio, float, double, complex>;
+
+      if constexpr (I < std::tuple_size_v<Ts>)
+      {
+        using T = std::tuple_element_t<I, Ts>;
+
+        return x.is<T>() ? canonicalize(f(x.as<T>())) : apply<I + 1>(f, x);
+      }
+      else
+      {
+        throw std::out_of_range("not an number");
+      }
+    }
 
     template <auto I = 0, typename F>
     auto apply([[maybe_unused]] F f, object const& x, object const& y) -> object
@@ -350,6 +351,41 @@ inline namespace kernel
       else
       {
         throw std::out_of_range("not an number");
+      }
+    }
+
+    template <auto I = 0, typename F>
+    auto test([[maybe_unused]] F f, object const& x) -> bool
+    {
+      using Ts = std::tuple<exact_integer, ratio, float, double, complex>;
+
+      if constexpr (I < std::tuple_size_v<Ts>)
+      {
+        using T = std::tuple_element_t<I, Ts>;
+
+        return x.is<T>() ? f(x.as<T>()) : test<I + 1>(f, x);
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+    template <auto I = 0, typename F>
+    auto test([[maybe_unused]] F f, object const& x, object const& y) -> bool
+    {
+      using Ts = combination<exact_integer, ratio, float, double, complex>;
+
+      if constexpr (I < std::tuple_size_v<Ts>)
+      {
+        using T = std::tuple_element_t<0, std::tuple_element_t<I, Ts>>;
+        using U = std::tuple_element_t<1, std::tuple_element_t<I, Ts>>;
+
+        return x.is<T>() and y.is<U>() ? f(x.as<T>(), y.as<U>()) : test<I + 1>(f, x, y);
+      }
+      else
+      {
+        return false;
       }
     }
   } // inline namespace arithmetic

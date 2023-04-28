@@ -318,19 +318,12 @@ inline namespace kernel
 
   auto numeric_equal(object const& x, object const& y) -> bool
   {
-    try
+    auto f = [](auto&&... xs)
     {
-      auto f = [](auto&&... xs)
-      {
-        return inexact_equal(std::forward<decltype(xs)>(xs)...);
-      };
+      return inexact_equal(std::forward<decltype(xs)>(xs)...);
+    };
 
-      return arithmetic::apply(f, x, y).as<bool>();
-    }
-    catch (std::out_of_range const&)
-    {
-      return false;
-    }
+    return arithmetic::test(f, x, y);
   }
 
   auto exact(object const& x) -> object
@@ -379,107 +372,79 @@ inline namespace kernel
 
   auto is_complex(object const& x) -> bool
   {
-    try
+    auto f = [](auto&&)
     {
-      auto f = [](auto&&)
-      {
-        return true;
-      };
+      return true;
+    };
 
-      return arithmetic::apply(f, x).as<bool>();
-    }
-    catch (std::out_of_range const&)
-    {
-      return false;
-    }
+    return arithmetic::test(f, x);
   }
 
   auto is_real(object const& x) -> bool
   {
-    try
+    auto f = [](auto&& x)
     {
-      auto f = [](auto&& x)
+      using T = std::decay_t<decltype(x)>;
+
+      if constexpr (std::is_same_v<T, complex>)
       {
-        using T = std::decay_t<decltype(x)>;
+        return numeric_equal(x.imag(), e0);
+      }
+      else
+      {
+        return true;
+      }
+    };
 
-        if constexpr (std::is_same_v<T, complex>)
-        {
-          return numeric_equal(x.imag(), e0);
-        }
-        else
-        {
-          return true;
-        }
-      };
-
-      return arithmetic::apply(f, x).as<bool>();
-    }
-    catch (std::out_of_range const&)
-    {
-      return false;
-    }
+    return arithmetic::test(f, x);
   }
 
   auto is_rational(object const& x) -> bool
   {
-    try
+    auto f = [](auto&& x)
     {
-      auto f = [](auto&& x)
+      using T = std::decay_t<decltype(x)>;
+
+      if constexpr (std::is_floating_point_v<T>)
       {
-        using T = std::decay_t<decltype(x)>;
+        return not std::isnan(x) and
+               not std::isinf(x);
+      }
+      else
+      {
+        return std::is_same_v<T, exact_integer> or
+               std::is_same_v<T, ratio>;
+      }
+    };
 
-        if constexpr (std::is_floating_point_v<T>)
-        {
-          return not std::isnan(x) and
-                 not std::isinf(x);
-        }
-        else
-        {
-          return std::is_same_v<T, exact_integer> or
-                 std::is_same_v<T, ratio>;
-        }
-      };
-
-      return arithmetic::apply(f, x).as<bool>();
-    }
-    catch (std::out_of_range const&)
-    {
-      return false;
-    }
+    return arithmetic::test(f, x);
   }
 
   auto is_integer(object const& x) -> bool
   {
-    try
+    auto f = [](auto&& x)
     {
-      auto f = [](auto&& x)
+      using T = std::decay_t<decltype(x)>;
+
+      if constexpr (std::is_same_v<T, complex>)
       {
-        using T = std::decay_t<decltype(x)>;
+        return numeric_equal(x.imag(), e0) and is_integer(x.real());
+      }
+      else if constexpr (std::is_floating_point_v<T>)
+      {
+        return x == std::trunc(x);
+      }
+      else if constexpr (std::is_same_v<T, ratio>)
+      {
+        return x.denominator() == 1;
+      }
+      else
+      {
+        return std::is_same_v<T, exact_integer>;
+      }
+    };
 
-        if constexpr (std::is_same_v<T, complex>)
-        {
-          return numeric_equal(x.imag(), e0) and is_integer(x.real());
-        }
-        else if constexpr (std::is_floating_point_v<T>)
-        {
-          return x == std::trunc(x);
-        }
-        else if constexpr (std::is_same_v<T, ratio>)
-        {
-          return x.denominator() == 1;
-        }
-        else
-        {
-          return std::is_same_v<T, exact_integer>;
-        }
-      };
-
-      return arithmetic::apply(f, x).as<bool>();
-    }
-    catch (std::out_of_range const&)
-    {
-      return false;
-    }
+    return arithmetic::test(f, x);
   }
 
   auto is_finite(object const& x) -> bool
@@ -489,64 +454,50 @@ inline namespace kernel
 
   auto is_infinite(object const& x) -> bool
   {
-    try
+    auto f = [](auto&& x)
     {
-      auto f = [](auto&& x)
+      using T = std::decay_t<decltype(x)>;
+
+      if constexpr (std::is_same_v<T, complex>)
       {
-        using T = std::decay_t<decltype(x)>;
+        return is_infinite(x.real()) or
+               is_infinite(x.imag());
+      }
+      else if constexpr (std::is_floating_point_v<T>)
+      {
+        return std::isinf(std::forward<decltype(x)>(x));
+      }
+      else
+      {
+        return false;
+      }
+    };
 
-        if constexpr (std::is_same_v<T, complex>)
-        {
-          return is_infinite(x.real()) or
-                 is_infinite(x.imag());
-        }
-        else if constexpr (std::is_floating_point_v<T>)
-        {
-          return std::isinf(std::forward<decltype(x)>(x));
-        }
-        else
-        {
-          return false;
-        }
-      };
-
-      return arithmetic::apply(f, x).as<bool>();
-    }
-    catch (std::out_of_range const&)
-    {
-      return false;
-    }
+    return arithmetic::test(f, x);
   }
 
   auto is_nan(object const& x) -> bool
   {
-    try
+    auto f = [](auto&& x)
     {
-      auto f = [](auto&& x)
+      using T = std::decay_t<decltype(x)>;
+
+      if constexpr (std::is_same_v<T, complex>)
       {
-        using T = std::decay_t<decltype(x)>;
+        return is_nan(x.real()) or
+               is_nan(x.imag());
+      }
+      else if constexpr (std::is_floating_point_v<T>)
+      {
+        return std::isnan(std::forward<decltype(x)>(x));
+      }
+      else
+      {
+        return false;
+      }
+    };
 
-        if constexpr (std::is_same_v<T, complex>)
-        {
-          return is_nan(x.real()) or
-                 is_nan(x.imag());
-        }
-        else if constexpr (std::is_floating_point_v<T>)
-        {
-          return std::isnan(std::forward<decltype(x)>(x));
-        }
-        else
-        {
-          return false;
-        }
-      };
-
-      return arithmetic::apply(f, x).as<bool>();
-    }
-    catch (std::out_of_range const&)
-    {
-      return false;
-    }
+    return arithmetic::test(f, x);
   }
 
   auto sqrt(object const& x) -> object
