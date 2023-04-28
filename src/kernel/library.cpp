@@ -500,7 +500,7 @@ inline namespace kernel
       {
         auto compare = [](auto&&... xs)
         {
-          return not arithmetic::test(std::less(), std::forward<decltype(xs)>(xs)...);
+          return not number::test(std::less(), std::forward<decltype(xs)>(xs)...);
         };
 
         return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
@@ -510,7 +510,7 @@ inline namespace kernel
       {
         auto compare = [](auto&&... xs)
         {
-          return arithmetic::test(std::greater(), std::forward<decltype(xs)>(xs)...);
+          return number::test(std::greater(), std::forward<decltype(xs)>(xs)...);
         };
 
         return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
@@ -520,7 +520,7 @@ inline namespace kernel
       {
         auto compare = [](auto&&... xs)
         {
-          return not arithmetic::test(std::greater(), std::forward<decltype(xs)>(xs)...);
+          return not number::test(std::greater(), std::forward<decltype(xs)>(xs)...);
         };
 
         return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);
@@ -530,7 +530,7 @@ inline namespace kernel
       {
         auto compare = [](auto&&... xs)
         {
-          return arithmetic::test(std::less(), std::forward<decltype(xs)>(xs)...);
+          return number::test(std::less(), std::forward<decltype(xs)>(xs)...);
         };
 
         return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs);

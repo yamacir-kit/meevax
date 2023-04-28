@@ -277,22 +277,22 @@ inline namespace kernel
 
   auto operator +(object const& x, object const& y) -> object
   {
-    return arithmetic::apply(std::plus(), x, y);
+    return apply(std::plus(), x, y);
   }
 
   auto operator -(object const& x, object const& y) -> object
   {
-    return arithmetic::apply(std::minus(), x, y);
+    return apply(std::minus(), x, y);
   }
 
   auto operator *(object const& x, object const& y) -> object
   {
-    return arithmetic::apply(std::multiplies(), x, y);
+    return apply(std::multiplies(), x, y);
   }
 
   auto operator /(object const& x, object const& y) -> object
   {
-    return arithmetic::apply(std::divides(), x, y);
+    return apply(std::divides(), x, y);
   }
 
   auto operator % (object const& x, object const& y) -> object
@@ -313,9 +313,11 @@ inline namespace kernel
       }
     };
 
-    return arithmetic::apply(f, x, y);
+    return apply(f, x, y);
   }
 
+inline namespace number
+{
   auto numeric_equal(object const& x, object const& y) -> bool
   {
     auto f = [](auto&&... xs)
@@ -323,7 +325,7 @@ inline namespace kernel
       return inexact_equal(std::forward<decltype(xs)>(xs)...);
     };
 
-    return arithmetic::test(f, x, y);
+    return test(f, x, y);
   }
 
   auto exact(object const& x) -> object
@@ -347,7 +349,7 @@ inline namespace kernel
       }
     };
 
-    return arithmetic::apply(f, x);
+    return apply(f, x);
   }
 
   auto inexact(object const& x) -> object
@@ -367,7 +369,7 @@ inline namespace kernel
       }
     };
 
-    return arithmetic::apply(f, x);
+    return apply(f, x);
   }
 
   auto is_complex(object const& x) -> bool
@@ -377,7 +379,7 @@ inline namespace kernel
       return true;
     };
 
-    return arithmetic::test(f, x);
+    return test(f, x);
   }
 
   auto is_real(object const& x) -> bool
@@ -396,7 +398,7 @@ inline namespace kernel
       }
     };
 
-    return arithmetic::test(f, x);
+    return test(f, x);
   }
 
   auto is_rational(object const& x) -> bool
@@ -417,7 +419,7 @@ inline namespace kernel
       }
     };
 
-    return arithmetic::test(f, x);
+    return test(f, x);
   }
 
   auto is_integer(object const& x) -> bool
@@ -444,7 +446,7 @@ inline namespace kernel
       }
     };
 
-    return arithmetic::test(f, x);
+    return test(f, x);
   }
 
   auto is_finite(object const& x) -> bool
@@ -473,7 +475,7 @@ inline namespace kernel
       }
     };
 
-    return arithmetic::test(f, x);
+    return test(f, x);
   }
 
   auto is_nan(object const& x) -> bool
@@ -497,7 +499,7 @@ inline namespace kernel
       }
     };
 
-    return arithmetic::test(f, x);
+    return test(f, x);
   }
 
   auto sqrt(object const& x) -> object
@@ -534,7 +536,7 @@ inline namespace kernel
       }
     };
 
-    return arithmetic::apply(f, x);
+    return apply(f, x);
   }
 
   auto pow(object const& x, object const& y) -> object
@@ -567,7 +569,7 @@ inline namespace kernel
       }
     };
 
-    return arithmetic::apply(f, x, y);
+    return apply(f, x, y);
   }
 
   #define DEFINE(ROUND)                                                        \
@@ -596,7 +598,7 @@ inline namespace kernel
       }                                                                        \
     };                                                                         \
                                                                                \
-    return arithmetic::apply(f, x);                                            \
+    return apply(f, x);                                                        \
   }                                                                            \
   static_assert(true)
 
@@ -627,7 +629,7 @@ inline namespace kernel
       }                                                                        \
     };                                                                         \
                                                                                \
-    return arithmetic::apply(f, x);                                            \
+    return apply(f, x);                                                        \
   }                                                                            \
   static_assert(true)
 
@@ -660,7 +662,7 @@ inline namespace kernel
       }
     };
 
-    return arithmetic::apply(f, x, y);
+    return apply(f, x, y);
   }
 
   auto number_to_string(object const& x, int radix) -> object
@@ -683,7 +685,8 @@ inline namespace kernel
       }
     };
 
-    return arithmetic::apply(f, x);
+    return apply(f, x);
   }
+} // namespace number
 } // namespace kernel
 } // namespace meevax
