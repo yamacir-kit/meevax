@@ -275,6 +275,110 @@ inline namespace kernel
   auto operator > (complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
   auto operator >=(complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
 
+  template <typename...>
+  struct make_combination;
+
+  template <typename T, auto... Is>
+  struct make_combination<T, std::index_sequence<Is...>>
+  {
+    using type = std::tuple<std::pair<typename std::tuple_element_t<Is / std::tuple_size_v<T>, T>,
+                                      typename std::tuple_element_t<Is % std::tuple_size_v<T>, T>> ...>;
+  };
+
+  template <typename... Ts>
+  using combination = typename make_combination<std::tuple<Ts...>, std::make_index_sequence<sizeof...(Ts) * sizeof...(Ts)>>::type;
+
+  template <typename T>
+  auto canonicalize(T&& x) -> decltype(auto)
+  {
+    if constexpr (std::is_same_v<std::decay_t<T>, object>)
+    {
+      return std::forward<decltype(x)>(x);
+    }
+    else if constexpr (std::is_same_v<std::decay_t<T>, complex>)
+    {
+      return x.canonicalize();
+    }
+    else if constexpr (std::is_same_v<std::decay_t<T>, ratio>)
+    {
+      return x.denominator() == 1 ? make(x.numerator()) : make(std::forward<decltype(x)>(x));
+    }
+    else
+    {
+      return make(std::forward<decltype(x)>(x));
+    }
+  }
+
+  template <auto I = 0, typename F>
+  auto apply([[maybe_unused]] F f, object const& x) -> object
+  {
+    using Ts = std::tuple<exact_integer, ratio, float, double, complex>;
+
+    if constexpr (I < std::tuple_size_v<Ts>)
+    {
+      using T = std::tuple_element_t<I, Ts>;
+
+      return x.is<T>() ? canonicalize(f(x.as<T>())) : apply<I + 1>(f, x);
+    }
+    else
+    {
+      throw std::out_of_range("not an number");
+    }
+  }
+
+  template <auto I = 0, typename F>
+  auto apply([[maybe_unused]] F f, object const& x, object const& y) -> object
+  {
+    using Ts = combination<exact_integer, ratio, float, double, complex>;
+
+    if constexpr (I < std::tuple_size_v<Ts>)
+    {
+      using T = std::tuple_element_t<0, std::tuple_element_t<I, Ts>>;
+      using U = std::tuple_element_t<1, std::tuple_element_t<I, Ts>>;
+
+      return x.is<T>() and y.is<U>() ? canonicalize(f(x.as<T>(), y.as<U>())) : apply<I + 1>(f, x, y);
+    }
+    else
+    {
+      throw std::out_of_range("not an number");
+    }
+  }
+
+  template <auto I = 0, typename F>
+  auto test([[maybe_unused]] F f, object const& x) -> bool
+  {
+    using Ts = std::tuple<exact_integer, ratio, float, double, complex>;
+
+    if constexpr (I < std::tuple_size_v<Ts>)
+    {
+      using T = std::tuple_element_t<I, Ts>;
+
+      return x.is<T>() ? f(x.as<T>()) : test<I + 1>(f, x);
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  template <auto I = 0, typename F>
+  auto test([[maybe_unused]] F f, object const& x, object const& y) -> bool
+  {
+    using Ts = combination<exact_integer, ratio, float, double, complex>;
+
+    if constexpr (I < std::tuple_size_v<Ts>)
+    {
+      using T = std::tuple_element_t<0, std::tuple_element_t<I, Ts>>;
+      using U = std::tuple_element_t<1, std::tuple_element_t<I, Ts>>;
+
+      return x.is<T>() and y.is<U>() ? f(x.as<T>(), y.as<U>()) : test<I + 1>(f, x, y);
+    }
+    else
+    {
+      return false;
+    }
+  }
+
   auto operator +(object const& x, object const& y) -> object
   {
     return apply(std::plus(), x, y);
