@@ -110,24 +110,49 @@ inline namespace kernel
     return (*value)._mp_size;
   }
 
-  exact_integer::operator int() const
-  {
-    return static_cast<signed long>(*this);
-  }
-
-  exact_integer::operator signed long() const
+  exact_integer::operator std::int8_t() const
   {
     return mpz_get_si(value);
   }
 
-  exact_integer::operator unsigned long() const
+  exact_integer::operator std::int16_t() const
+  {
+    return mpz_get_si(value);
+  }
+
+  exact_integer::operator std::int32_t() const
+  {
+    return mpz_get_si(value);
+  }
+
+  exact_integer::operator std::int64_t() const
+  {
+    return mpz_get_si(value);
+  }
+
+  exact_integer::operator std::uint8_t() const
+  {
+    return mpz_get_ui(value);
+  }
+
+  exact_integer::operator std::uint16_t() const
+  {
+    return mpz_get_ui(value);
+  }
+
+  exact_integer::operator std::uint32_t() const
+  {
+    return mpz_get_ui(value);
+  }
+
+  exact_integer::operator std::uint64_t() const
   {
     return mpz_get_ui(value);
   }
 
   exact_integer::operator float() const
   {
-    return static_cast<double>(*this);
+    return mpz_get_d(value);
   }
 
   exact_integer::operator double() const

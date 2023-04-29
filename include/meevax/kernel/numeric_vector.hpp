@@ -52,43 +52,27 @@ inline namespace kernel
       return tag;
     }
 
-    static auto input_cast(object const& x)
+    template <auto I = 0>
+    static auto input_cast(object const& x) -> T
     {
-      if constexpr (std::is_floating_point_v<T>)
+      using acceptables = std::tuple<exact_integer, float, double>;
+
+      if constexpr (I < std::tuple_size_v<acceptables>)
       {
-        if (let const number = inexact(x); number.is<double>())
+        using acceptable = std::tuple_element_t<I, acceptables>;
+
+        if (x.is<acceptable>())
         {
-          return static_cast<T>(number.as<double>());
-        }
-        else if (number.is<float>())
-        {
-          return static_cast<T>(number.as<float>());
+          return static_cast<T>(x.as<acceptable>());
         }
         else
         {
-          throw error(make<string>(lexical_cast<std::string>(tag(), "vector expects real numbers to store, but was given a value that is not")), x);
+          return input_cast<I + 1>(x);
         }
       }
       else
       {
-        using widen = std::conditional_t<std::is_signed_v<T>, std::intmax_t, std::uintmax_t>;
-
-        if (x.is<exact_integer>())
-        {
-          return static_cast<widen>(x.as<exact_integer>());
-        }
-        else if (x.is<double>() and x.as<double>() == std::trunc(x.as<double>()))
-        {
-          return static_cast<widen>(x.as<double>());
-        }
-        else if (x.is<float>() and x.as<float>() == std::trunc(x.as<float>()))
-        {
-          return static_cast<widen>(x.as<float>());
-        }
-        else
-        {
-          throw error(make<string>(lexical_cast<std::string>(tag(), "vector expects integers to store, but was given a value that is not")), x);
-        }
+        throw error(make<string>(lexical_cast<std::string>(tag(), "vector expects real numbers to store, but was given a value that is not")), x);
       }
     }
 
