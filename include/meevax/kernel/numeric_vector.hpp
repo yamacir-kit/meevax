@@ -56,7 +56,7 @@ inline namespace kernel
     {
       if constexpr (std::is_floating_point_v<T>)
       {
-        if (let const number = apply_arithmetic<inexact>(x); number.is<double>())
+        if (let const number = inexact(x); number.is<double>())
         {
           return static_cast<T>(number.as<double>());
         }

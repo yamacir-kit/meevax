@@ -91,6 +91,21 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, exact_integer const&) -> std::ostream &;
 
+  struct gmp_free
+  {
+    void (*free)(void *, std::size_t);
+
+    explicit gmp_free()
+    {
+      mp_get_memory_functions(nullptr, nullptr, &free);
+    }
+
+    auto operator ()(char * data) const -> void
+    {
+      free(static_cast<void *>(data), std::strlen(data) + 1);
+    }
+  };
+
   auto exact_integer_sqrt(exact_integer const&) -> std::tuple<exact_integer, exact_integer>;
 
   let extern const e0, e1; // Frequently used exact-integer values.

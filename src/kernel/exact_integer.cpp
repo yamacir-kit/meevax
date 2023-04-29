@@ -158,14 +158,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, exact_integer const& datum) -> std::ostream &
   {
-    auto free = [](char * data)
-    {
-      void (*free)(void *, std::size_t);
-      mp_get_memory_functions(nullptr, nullptr, &free);
-      std::invoke(free, static_cast<void *>(data), std::strlen(data) + 1);
-    };
-
-    return os << cyan(std::unique_ptr<char, decltype(free)>(mpz_get_str(nullptr, 10, datum.value), free).get());
+    return os << cyan(std::unique_ptr<char, gmp_free>(mpz_get_str(nullptr, 10, datum.value)).get());
   }
 
   auto exact_integer_sqrt(exact_integer const& x) -> std::tuple<exact_integer, exact_integer>
