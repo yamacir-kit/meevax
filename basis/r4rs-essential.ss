@@ -497,16 +497,9 @@
            (list->string xs))
 
          (define (string-map f x . xs) ; r7rs
-           (define (string-map-1 x)
-             (list->string
-               (map f (string->list x))))
-           (define (string-map-n xs)
-             (map list->string
-                  (map (lambda (c) (map f c))
-                       (map string->list xs))))
            (if (null? xs)
-               (string-map-1 x)
-               (string-map-n (cons x xs))))
+               (list->string (map f (string->list x)))
+               (list->string (apply map f (map string->list (cons x xs))))))
 
          (define (string-foldcase s) ; r7rs
            (string-map char-downcase s))

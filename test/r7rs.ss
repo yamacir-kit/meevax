@@ -1454,26 +1454,29 @@
                    "HAL")
   => "IBM")
 
-; (check (string-map (lambda (c k)
-;                      ((if (eqv? k #\u) char-upcase char-downcase)
-;                       c))
-;                    "studlycaps xxx"
-;                    "ululululul") => "StUdLyCaPs")
+(check (string-map (lambda (c k)
+                     ((if (eqv? k #\u) char-upcase char-downcase)
+                      c))
+                   "studlycaps xxx"
+                   "ululululul")
+  => "StUdLyCaPs")
 
-; (check (vector-map cadr '#((a b) (d e) (g h))) => #(b e h))
+(check (vector-map cadr '#((a b) (d e) (g h))) => #(b e h))
 
-; (check (vector-map (lambda (n)
-;                      (expt n n))
-;                    '#(1 2 3 4 5)) => (1 4 27 256 3125))
+(check (vector-map (lambda (n)
+                     (expt n n))
+                   '#(1 2 3 4 5))
+  => #(1 4 27 256 3125))
 
-; (check (vector-map + '#(1 2 3) '#(4 5 6 7)) => #(5 7 9))
+(check (vector-map + '#(1 2 3) '#(4 5 6 7)) => #(5 7 9))
 
-; (check (let ((count 0))
-;          (vector-map
-;            (lambda (ignored)
-;              (set! count (+ count 1))
-;              count)
-;            '#(a b))) => #(1 2)) ; or #(2 1)
+(check (let ((count 0))
+         (vector-map
+           (lambda (ignored)
+             (set! count (+ count 1))
+             count)
+           '#(a b)))
+  => #(1 2)) ; or #(2 1)
 
 (check (let ((v (make-vector 5)))
          (for-each (lambda (i)
@@ -1600,4 +1603,4 @@
 
 (check-report)
 
-(exit (check-passed? 415))
+(exit (check-passed? 420))

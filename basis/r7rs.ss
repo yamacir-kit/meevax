@@ -73,9 +73,7 @@
           bytevector-append utf8->string string->utf8
 
           ; 6.10. Control features
-          procedure? apply map string-map
-          ; vector-map
-          for-each
+          procedure? apply map string-map vector-map for-each
           ; string-for-each vector-for-each
           call-with-current-continuation call/cc values call-with-values
           dynamic-wind
@@ -234,16 +232,14 @@
          (define string->utf8 string->u8vector)
 
          (define (string-map f x . xs)
-           (define (string-map-1 x)
-             (list->string
-               (map f (string->list x))))
-           (define (string-map-n xs)
-             (map list->string
-                  (map (lambda (c) (map f c))
-                       (map string->list xs))))
            (if (null? xs)
-               (string-map-1 x)
-               (string-map-n (cons x xs))))
+               (list->string (map f (string->list x)))
+               (list->string (apply map f (map string->list (cons x xs))))))
+
+         (define (vector-map f x . xs)
+           (if (null? xs)
+               (list->vector (map f (vector->list x)))
+               (list->vector (apply map f (map vector->list (cons x xs))))))
 
          (define call/cc call-with-current-continuation)
 
