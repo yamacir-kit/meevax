@@ -56,6 +56,7 @@ Subset of R7RS-small.
 |--------------------------------------------------------:|:-------------------------------------------------------|:------------------------------------------------------|:------------------|
 | [  1](https://srfi.schemers.org/srfi-1/srfi-1.html)     | List Library                                           | [`(srfi 1)`](./basis/srfi-1.ss)                       |                   |
 | [  6](https://srfi.schemers.org/srfi-6/srfi-6.html)     | Basic String Ports                                     | [`(srfi 6)`](./basis/srfi-6.ss)                       | R7RS 6.13         |
+| [  4](https://srfi.schemers.org/srfi-4/srfi-4.html)     | Homogeneous numeric vector datatypes                   | [`(srfi 4)`](./basis/srfi-4.ss)                       | R7RS 6.9          |
 | [  8](https://srfi.schemers.org/srfi-8/srfi-8.html)     | receive: Binding to multiple values                    | [`(srfi 8)`](./basis/srfi-8.ss)                       |                   |
 | [  9](https://srfi.schemers.org/srfi-9/srfi-9.html)     | Defining Record Types                                  | [`(srfi 9)`](./basis/srfi-9.ss)                       | R7RS 5.5          |
 | [ 10](https://srfi.schemers.org/srfi-10/srfi-10.html)   | #, external form                                       |                                                       |                   |
