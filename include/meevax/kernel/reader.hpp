@@ -63,17 +63,11 @@ inline namespace kernel
   auto make_number  (std::string const&, int = 10) -> object;
 
   template <typename Environment>
-  class reader
+  struct reader
   {
-    friend Environment;
-
-    explicit constexpr reader()
-    {}
+    using char_type = typename std::istream::char_type;
 
     std::unordered_map<std::string, object> datum_labels;
-
-  public:
-    using char_type = typename std::istream::char_type;
 
     auto get_ready() const
     {

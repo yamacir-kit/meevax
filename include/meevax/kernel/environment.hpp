@@ -53,11 +53,11 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, environment const&) -> std::ostream &;
 
-  extern template class configurator<environment>;
+  extern template struct configurator<environment>;
 
-  extern template class dynamic_environment<environment>;
+  extern template struct dynamic_environment<environment>;
 
-  extern template class reader<environment>;
+  extern template struct reader<environment>;
 
   extern template struct syntactic_environment<environment>;
 } // namespace kernel

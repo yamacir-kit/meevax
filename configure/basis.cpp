@@ -27,6 +27,7 @@ ${${PROJECT_NAME}_BASIS_r4rs-essential.ss}
 ${${PROJECT_NAME}_BASIS_r5rs.ss}
 ${${PROJECT_NAME}_BASIS_r7rs.ss}
 ${${PROJECT_NAME}_BASIS_srfi-1.ss}
+${${PROJECT_NAME}_BASIS_srfi-4.ss}
 ${${PROJECT_NAME}_BASIS_srfi-6.ss}
 ${${PROJECT_NAME}_BASIS_srfi-8.ss}
 ${${PROJECT_NAME}_BASIS_srfi-9.ss}

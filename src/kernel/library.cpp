@@ -1267,85 +1267,97 @@ inline namespace kernel
 
     define<library>("(meevax vector homogeneous)", [](library & library)
     {
-      library.define<procedure>("u8vector?", [](let const& xs)
-      {
-        return xs[0].is<u8vector>();
-      });
+      #define DEFINE_HOMOGENEOUS_VECTOR(TAG)                                   \
+      library.define<procedure>(#TAG "vector?", [](let const& xs)              \
+      {                                                                        \
+        return xs[0].is<TAG##vector>();                                        \
+      });                                                                      \
+                                                                               \
+      library.define<procedure>("make-" #TAG "vector", [](let const& xs)       \
+      {                                                                        \
+        return make<TAG##vector>(xs[0].as<exact_integer>(), tail(xs, 1).is<pair>() ? xs[1] : unspecified); \
+      });                                                                      \
+                                                                               \
+      library.define<procedure>(#TAG "vector", [](let const& xs)               \
+      {                                                                        \
+        return make<TAG##vector>(xs);                                          \
+      });                                                                      \
+                                                                               \
+      library.define<procedure>(#TAG "vector-length", [](let const& xs)        \
+      {                                                                        \
+        return make<exact_integer>(xs[0].as<TAG##vector>().values.size());     \
+      });                                                                      \
+                                                                               \
+      library.define<procedure>(#TAG "vector-ref", [](let const& xs)           \
+      {                                                                        \
+        return TAG##vector::output_cast(xs[0].as<TAG##vector>().values[xs[1].as<exact_integer>()]); \
+      });                                                                      \
+                                                                               \
+      library.define<procedure>(#TAG "vector-set!", [](let const& xs)          \
+      {                                                                        \
+        xs[0].as<TAG##vector>().values[xs[1].as<exact_integer>()] = TAG##vector::input_cast(xs[2]); \
+      });                                                                      \
+                                                                               \
+      library.define<procedure>(#TAG "vector-copy", [](let const& xs)          \
+      {                                                                        \
+        return make<TAG##vector>(xs[0].as<TAG##vector>(),                      \
+                                 tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : std::size_t(), \
+                                 tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().values.size()); \
+      });                                                                      \
+                                                                               \
+      library.define<procedure>(#TAG "vector-copy!", [](let const& xs)         \
+      {                                                                        \
+        auto copy = [](auto&& to, auto&& at, auto&& from, auto&& start, auto&& end) \
+        {                                                                      \
+          to[std::slice(at, end - start, 1)] = from[std::slice(start, end - start, 1)]; \
+        };                                                                     \
+                                                                               \
+        copy(xs[0].as<TAG##vector>().values,                                   \
+             xs[1].as<exact_integer>(),                                        \
+             xs[2].as<TAG##vector>().values,                                   \
+             tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0,           \
+             tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : xs[2].as<TAG##vector>().values.size()); \
+      });                                                                      \
+                                                                               \
+      library.define<procedure>(#TAG "vector-append", [](let const& xs)        \
+      {                                                                        \
+        return make<TAG##vector>(xs[0].as<TAG##vector>(),                      \
+                                 xs[1].as<TAG##vector>());                     \
+      });                                                                      \
+                                                                               \
+      library.define<procedure>(#TAG "vector->list", [](let const& xs)         \
+      {                                                                        \
+        auto list = [](auto&& v, auto&& a, auto&& b)                           \
+        {                                                                      \
+          auto xcons = [](auto&& x, auto&& y)                                  \
+          {                                                                    \
+            return cons(TAG##vector::output_cast(y), x);                       \
+          };                                                                   \
+                                                                               \
+          return reverse(std::accumulate(std::next(std::begin(v), a),          \
+                                         std::next(std::begin(v), b), unit, xcons)); \
+        };                                                                     \
+                                                                               \
+        return list(xs[0].as<TAG##vector>().values,                            \
+                    tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0,    \
+                    tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().values.size()); \
+      });                                                                      \
+                                                                               \
+      library.define<procedure>("list->" #TAG "vector", [](let const& xs)      \
+      {                                                                        \
+        return make<TAG##vector>(xs[0]);                                       \
+      })
 
-      library.define<procedure>("make-u8vector", [](let const& xs)
-      {
-        return make<u8vector>(xs[0].as<exact_integer>(), tail(xs, 1).is<pair>() ? xs[1] : unspecified);
-      });
-
-      library.define<procedure>("u8vector", [](let const& xs)
-      {
-        return make<u8vector>(xs);
-      });
-
-      library.define<procedure>("u8vector-length", [](let const& xs)
-      {
-        return make<exact_integer>(xs[0].as<u8vector>().values.size());
-      });
-
-      library.define<procedure>("u8vector-ref", [](let const& xs)
-      {
-        return u8vector::output_cast(xs[0].as<u8vector>().values[xs[1].as<exact_integer>()]);
-      });
-
-      library.define<procedure>("u8vector-set!", [](let const& xs)
-      {
-        xs[0].as<u8vector>().values[xs[1].as<exact_integer>()] = u8vector::input_cast(xs[2]);
-      });
-
-      library.define<procedure>("u8vector-copy", [](let const& xs)
-      {
-        return make<u8vector>(xs[0].as<u8vector>(),
-                              tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : std::size_t(),
-                              tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().values.size());
-      });
-
-      library.define<procedure>("u8vector-copy!", [](let const& xs)
-      {
-        auto copy = [](auto&& to, auto&& at, auto&& from, auto&& start, auto&& end)
-        {
-          to[std::slice(at, end - start, 1)] = from[std::slice(start, end - start, 1)];
-        };
-
-        copy(xs[0].as<u8vector>().values,
-             xs[1].as<exact_integer>(),
-             xs[2].as<u8vector>().values,
-             tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0,
-             tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : xs[2].as<u8vector>().values.size());
-      });
-
-      library.define<procedure>("u8vector-append", [](let const& xs)
-      {
-        return make<u8vector>(xs[0].as<u8vector>(),
-                              xs[1].as<u8vector>());
-      });
-
-      library.define<procedure>("u8vector->list", [](let const& xs)
-      {
-        auto list = [](auto&& v, auto&& a, auto&& b)
-        {
-          auto xcons = [](auto&& x, auto&& y)
-          {
-            return cons(u8vector::output_cast(y), x);
-          };
-
-          return reverse(std::accumulate(std::next(std::begin(v), a),
-                                         std::next(std::begin(v), b), unit, xcons));
-        };
-
-        return list(xs[0].as<u8vector>().values,
-                    tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0,
-                    tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().values.size());
-      });
-
-      library.define<procedure>("list->u8vector", [](let const& xs)
-      {
-        return make<u8vector>(xs[0]);
-      });
+      DEFINE_HOMOGENEOUS_VECTOR(f32);
+      DEFINE_HOMOGENEOUS_VECTOR(f64);
+      DEFINE_HOMOGENEOUS_VECTOR(s8);
+      DEFINE_HOMOGENEOUS_VECTOR(s16);
+      DEFINE_HOMOGENEOUS_VECTOR(s32);
+      DEFINE_HOMOGENEOUS_VECTOR(s64);
+      DEFINE_HOMOGENEOUS_VECTOR(u8);
+      DEFINE_HOMOGENEOUS_VECTOR(u16);
+      DEFINE_HOMOGENEOUS_VECTOR(u32);
+      DEFINE_HOMOGENEOUS_VECTOR(u64);
 
       library.define<procedure>("u8vector->string", [](let const& xs)
       {

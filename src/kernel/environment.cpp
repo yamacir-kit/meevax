@@ -115,11 +115,11 @@ inline namespace kernel
     return os << magenta("#,(") << green("environment ") << faint("#;", &datum) << magenta(")");
   }
 
-  template class configurator<environment>;
+  template struct configurator<environment>;
 
-  template class dynamic_environment<environment>;
+  template struct dynamic_environment<environment>;
 
-  template class reader<environment>;
+  template struct reader<environment>;
 
   template struct syntactic_environment<environment>;
 } // namespace kernel

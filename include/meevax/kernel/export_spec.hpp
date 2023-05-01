@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  class library;
+  struct library;
 
   struct export_spec
   {

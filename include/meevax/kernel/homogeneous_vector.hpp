@@ -119,25 +119,16 @@ inline namespace kernel
     return check(a.values == b.values);
   }
 
-  using s8vector = homogeneous_vector<std::int8_t>;
-
-  using u8vector = homogeneous_vector<std::uint8_t>;
-
-  using s16vector = homogeneous_vector<std::int16_t>;
-
-  using u16vector = homogeneous_vector<std::uint16_t>;
-
-  using s32vector = homogeneous_vector<std::int32_t>;
-
-  using u32vector = homogeneous_vector<std::uint32_t>;
-
-  using s64vector = homogeneous_vector<std::int64_t>;
-
-  using u64vector = homogeneous_vector<std::uint64_t>;
-
   using f32vector = homogeneous_vector<float>;
-
   using f64vector = homogeneous_vector<double>;
+  using s8vector = homogeneous_vector<std::int8_t>;
+  using s16vector = homogeneous_vector<std::int16_t>;
+  using s32vector = homogeneous_vector<std::int32_t>;
+  using s64vector = homogeneous_vector<std::int64_t>;
+  using u8vector = homogeneous_vector<std::uint8_t>;
+  using u16vector = homogeneous_vector<std::uint16_t>;
+  using u32vector = homogeneous_vector<std::uint32_t>;
+  using u64vector = homogeneous_vector<std::uint64_t>;
 } // namespace kernel
 } // namespace meevax
 
