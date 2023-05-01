@@ -20,8 +20,8 @@
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
+#include <meevax/kernel/homogeneous_vector.hpp>
 #include <meevax/kernel/number.hpp>
-#include <meevax/kernel/numeric_vector.hpp>
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>

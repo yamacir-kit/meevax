@@ -614,120 +614,6 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax numeric-vector)", [](library & library)
-    {
-      library.define<procedure>("u8vector?", [](let const& xs)
-      {
-        return xs[0].is<u8vector>();
-      });
-
-      library.define<procedure>("make-u8vector", [](let const& xs)
-      {
-        return make<u8vector>(xs[0].as<exact_integer>(), tail(xs, 1).is<pair>() ? xs[1] : unspecified);
-      });
-
-      library.define<procedure>("u8vector", [](let const& xs)
-      {
-        return make<u8vector>(xs);
-      });
-
-      library.define<procedure>("u8vector-length", [](let const& xs)
-      {
-        return make<exact_integer>(xs[0].as<u8vector>().values.size());
-      });
-
-      library.define<procedure>("u8vector-ref", [](let const& xs)
-      {
-        return u8vector::output_cast(xs[0].as<u8vector>().values[xs[1].as<exact_integer>()]);
-      });
-
-      library.define<procedure>("u8vector-set!", [](let const& xs)
-      {
-        xs[0].as<u8vector>().values[xs[1].as<exact_integer>()] = u8vector::input_cast(xs[2]);
-      });
-
-      library.define<procedure>("u8vector-copy", [](let const& xs)
-      {
-        return make<u8vector>(xs[0].as<u8vector>(),
-                              tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : std::size_t(),
-                              tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().values.size());
-      });
-
-      library.define<procedure>("u8vector-copy!", [](let const& xs)
-      {
-        auto copy = [](auto&& to, auto&& at, auto&& from, auto&& start, auto&& end)
-        {
-          to[std::slice(at, end - start, 1)] = from[std::slice(start, end - start, 1)];
-        };
-
-        copy(xs[0].as<u8vector>().values,
-             xs[1].as<exact_integer>(),
-             xs[2].as<u8vector>().values,
-             tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0,
-             tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : xs[2].as<u8vector>().values.size());
-      });
-
-      library.define<procedure>("u8vector-append", [](let const& xs)
-      {
-        return make<u8vector>(xs[0].as<u8vector>(),
-                              xs[1].as<u8vector>());
-      });
-
-      library.define<procedure>("u8vector->list", [](let const& xs)
-      {
-        auto list = [](auto&& v, auto&& a, auto&& b)
-        {
-          auto xcons = [](auto&& x, auto&& y)
-          {
-            return cons(u8vector::output_cast(y), x);
-          };
-
-          return reverse(std::accumulate(std::next(std::begin(v), a),
-                                         std::next(std::begin(v), b), unit, xcons));
-        };
-
-        return list(xs[0].as<u8vector>().values,
-                    tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0,
-                    tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().values.size());
-      });
-
-      library.define<procedure>("list->u8vector", [](let const& xs)
-      {
-        return make<u8vector>(xs[0]);
-      });
-
-      library.define<procedure>("utf8->string", [](let const& xs)
-      {
-        auto input = std::stringstream();
-
-        std::for_each(std::next(std::begin(xs[0].as<u8vector>().values), tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
-                      std::next(std::begin(xs[0].as<u8vector>().values), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().values.size()),
-                      [&](auto const& x)
-                      {
-                        input << x;
-                      });
-
-        auto output = string();
-
-        while (input.peek() != std::char_traits<char>::eof())
-        {
-          output.codepoints.emplace_back(get_codepoint(input));
-        }
-
-        return make(output);
-      });
-
-      library.define<procedure>("string->utf8", [](let const& xs)
-      {
-        auto convert = [](std::string const& s)
-        {
-          return make<u8vector>(reinterpret_cast<std::uint8_t const*>(s.data()), s.size());
-        };
-
-        return convert(xs[0].as<string>());
-      });
-    });
-
     define_library("(meevax pair)", [](library & library)
     {
       library.define<procedure>("pair?", [](let const& xs)
@@ -1371,6 +1257,120 @@ inline namespace kernel
         }
 
         return make(std::forward<decltype(v)>(v));
+      });
+    });
+
+    define_library("(meevax vector homogeneous)", [](library & library)
+    {
+      library.define<procedure>("u8vector?", [](let const& xs)
+      {
+        return xs[0].is<u8vector>();
+      });
+
+      library.define<procedure>("make-u8vector", [](let const& xs)
+      {
+        return make<u8vector>(xs[0].as<exact_integer>(), tail(xs, 1).is<pair>() ? xs[1] : unspecified);
+      });
+
+      library.define<procedure>("u8vector", [](let const& xs)
+      {
+        return make<u8vector>(xs);
+      });
+
+      library.define<procedure>("u8vector-length", [](let const& xs)
+      {
+        return make<exact_integer>(xs[0].as<u8vector>().values.size());
+      });
+
+      library.define<procedure>("u8vector-ref", [](let const& xs)
+      {
+        return u8vector::output_cast(xs[0].as<u8vector>().values[xs[1].as<exact_integer>()]);
+      });
+
+      library.define<procedure>("u8vector-set!", [](let const& xs)
+      {
+        xs[0].as<u8vector>().values[xs[1].as<exact_integer>()] = u8vector::input_cast(xs[2]);
+      });
+
+      library.define<procedure>("u8vector-copy", [](let const& xs)
+      {
+        return make<u8vector>(xs[0].as<u8vector>(),
+                              tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : std::size_t(),
+                              tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().values.size());
+      });
+
+      library.define<procedure>("u8vector-copy!", [](let const& xs)
+      {
+        auto copy = [](auto&& to, auto&& at, auto&& from, auto&& start, auto&& end)
+        {
+          to[std::slice(at, end - start, 1)] = from[std::slice(start, end - start, 1)];
+        };
+
+        copy(xs[0].as<u8vector>().values,
+             xs[1].as<exact_integer>(),
+             xs[2].as<u8vector>().values,
+             tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0,
+             tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : xs[2].as<u8vector>().values.size());
+      });
+
+      library.define<procedure>("u8vector-append", [](let const& xs)
+      {
+        return make<u8vector>(xs[0].as<u8vector>(),
+                              xs[1].as<u8vector>());
+      });
+
+      library.define<procedure>("u8vector->list", [](let const& xs)
+      {
+        auto list = [](auto&& v, auto&& a, auto&& b)
+        {
+          auto xcons = [](auto&& x, auto&& y)
+          {
+            return cons(u8vector::output_cast(y), x);
+          };
+
+          return reverse(std::accumulate(std::next(std::begin(v), a),
+                                         std::next(std::begin(v), b), unit, xcons));
+        };
+
+        return list(xs[0].as<u8vector>().values,
+                    tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0,
+                    tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().values.size());
+      });
+
+      library.define<procedure>("list->u8vector", [](let const& xs)
+      {
+        return make<u8vector>(xs[0]);
+      });
+
+      library.define<procedure>("u8vector->string", [](let const& xs)
+      {
+        auto input = std::stringstream();
+
+        std::for_each(std::next(std::begin(xs[0].as<u8vector>().values), tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                      std::next(std::begin(xs[0].as<u8vector>().values), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().values.size()),
+                      [&](auto const& x)
+                      {
+                        input << x;
+                      });
+
+        auto output = string();
+
+        while (input.peek() != std::char_traits<char>::eof())
+        {
+          output.codepoints.emplace_back(get_codepoint(input));
+        }
+
+        return make(output);
+      });
+
+      library.define<procedure>("string->u8vector", [](let const& xs)
+      {
+        auto convert = [](std::string const& s)
+        {
+          return make<u8vector>(reinterpret_cast<std::uint8_t const*>(s.data()), s.size());
+        };
+
+        return convert(xs[0].as<string>());
       });
     });
 

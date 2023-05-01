@@ -5,22 +5,10 @@
           (only (meevax port) binary-port? textual-port? port? input-port open? output-port flush error-port eof-object)
           (only (meevax read) get-char get-char! get-ready?)
           (only (meevax string) string-copy! vector->string)
+          (only (meevax vector homogeneous) u8vector? make-u8vector u8vector u8vector-length u8vector-ref u8vector-set! u8vector-copy u8vector-copy! u8vector-append u8vector->string string->u8vector)
           (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
           (only (meevax version) features)
           (only (meevax write) put-char put-string)
-          (only (meevax numeric-vector)
-                u8vector?
-                make-u8vector
-                u8vector
-                u8vector-length
-                u8vector-ref
-                u8vector-set!
-                u8vector-copy
-                u8vector-copy!
-                u8vector-append
-                utf8->string
-                string->utf8
-                )
           (scheme r5rs)
           (srfi 6)
           (srfi 9)
@@ -246,6 +234,10 @@
          (define bytevector-copy! u8vector-copy!)
 
          (define bytevector-append u8vector-append)
+
+         (define utf8->string u8vector->string)
+
+         (define string->utf8 string->u8vector)
 
          (define (string-map f x . xs)
            (define (string-map-1 x)

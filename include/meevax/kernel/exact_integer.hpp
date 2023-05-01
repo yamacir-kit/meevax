@@ -39,11 +39,21 @@ inline namespace kernel
 
     explicit exact_integer(mpz_t const) noexcept;
 
-    explicit exact_integer(int);
+    explicit exact_integer(std::int8_t);
 
-    explicit exact_integer(signed long);
+    explicit exact_integer(std::int16_t);
 
-    explicit exact_integer(unsigned long);
+    explicit exact_integer(std::int32_t);
+
+    explicit exact_integer(std::int64_t);
+
+    explicit exact_integer(std::uint8_t);
+
+    explicit exact_integer(std::uint16_t);
+
+    explicit exact_integer(std::uint32_t);
+
+    explicit exact_integer(std::uint64_t);
 
     explicit exact_integer(double);
 

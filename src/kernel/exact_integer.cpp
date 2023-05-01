@@ -53,23 +53,49 @@ inline namespace kernel
     mpz_init_set(value, z);
   }
 
-  exact_integer::exact_integer(int rhs)
-    : exact_integer(static_cast<signed long>(rhs))
-  {}
-
-  exact_integer::exact_integer(signed long rhs)
+  exact_integer::exact_integer(std::int8_t si)
   {
-    mpz_init_set_si(value, rhs);
+    mpz_init_set_si(value, si);
   }
 
-  exact_integer::exact_integer(unsigned long rhs)
+  exact_integer::exact_integer(std::int16_t si)
   {
-    mpz_init_set_ui(value, rhs);
+    mpz_init_set_si(value, si);
   }
 
-  exact_integer::exact_integer(double rhs)
+  exact_integer::exact_integer(std::int32_t si)
   {
-    mpz_init_set_d(value, rhs);
+    mpz_init_set_si(value, si);
+  }
+
+  exact_integer::exact_integer(std::int64_t si)
+  {
+    mpz_init_set_si(value, si);
+  }
+
+  exact_integer::exact_integer(std::uint8_t ui)
+  {
+    mpz_init_set_ui(value, ui);
+  }
+
+  exact_integer::exact_integer(std::uint16_t ui)
+  {
+    mpz_init_set_ui(value, ui);
+  }
+
+  exact_integer::exact_integer(std::uint32_t ui)
+  {
+    mpz_init_set_ui(value, ui);
+  }
+
+  exact_integer::exact_integer(std::uint64_t ui)
+  {
+    mpz_init_set_ui(value, ui);
+  }
+
+  exact_integer::exact_integer(double d)
+  {
+    mpz_init_set_d(value, d);
   }
 
   exact_integer::exact_integer(std::string const& s, int radix)

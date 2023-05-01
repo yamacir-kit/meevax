@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_NUMERIC_VECTOR_HPP
-#define INCLUDED_MEEVAX_KERNEL_NUMERIC_VECTOR_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_HOMOGENEOUS_VECTOR_HPP
+#define INCLUDED_MEEVAX_KERNEL_HOMOGENEOUS_VECTOR_HPP
 
 #include <valarray>
 
@@ -27,13 +27,13 @@ namespace meevax
 inline namespace kernel
 {
   template <typename T>
-  struct numeric_vector
+  struct homogeneous_vector
   {
     std::valarray<T> values;
 
-    explicit numeric_vector() = default;
+    explicit homogeneous_vector() = default;
 
-    explicit numeric_vector(object const& xs)
+    explicit homogeneous_vector(object const& xs)
       : values(length(xs))
     {
       std::generate(std::begin(values), std::end(values), [xs = xs]() mutable
@@ -44,22 +44,22 @@ inline namespace kernel
       });
     }
 
-    explicit numeric_vector(std::size_t size, object const& x)
+    explicit homogeneous_vector(std::size_t size, object const& x)
       : values(input_cast(x), size)
     {}
 
-    explicit numeric_vector(numeric_vector const& v, std::size_t begin, std::size_t end)
+    explicit homogeneous_vector(homogeneous_vector const& v, std::size_t begin, std::size_t end)
       : values(v.values[std::slice(begin, begin < end ? end - begin : 0, 1)])
     {}
 
-    explicit numeric_vector(numeric_vector const& a, numeric_vector const& b)
+    explicit homogeneous_vector(homogeneous_vector const& a, homogeneous_vector const& b)
       : values(a.values.size() + b.values.size())
     {
       values[std::slice(0, a.values.size(), 1)] = a.values;
       values[std::slice(a.values.size(), b.values.size(), 1)] = b.values;
     }
 
-    explicit numeric_vector(T const* data, std::size_t size)
+    explicit homogeneous_vector(T const* data, std::size_t size)
       : values(data, size)
     {}
 
@@ -92,7 +92,7 @@ inline namespace kernel
   };
 
   template <typename T>
-  auto operator <<(std::ostream & output, numeric_vector<T> const& datum) -> std::ostream &
+  auto operator <<(std::ostream & output, homogeneous_vector<T> const& datum) -> std::ostream &
   {
     static_assert(std::is_arithmetic_v<T>);
 
@@ -102,14 +102,14 @@ inline namespace kernel
 
     for (auto const& value : datum.values)
     {
-      output << std::exchange(whitespace, " ") << cyan(numeric_vector<T>::output_cast(value));
+      output << std::exchange(whitespace, " ") << cyan(homogeneous_vector<T>::output_cast(value));
     }
 
     return output << magenta(")");
   }
 
   template <typename T>
-  auto operator ==(numeric_vector<T> const& a, numeric_vector<T> const& b) -> bool
+  auto operator ==(homogeneous_vector<T> const& a, homogeneous_vector<T> const& b) -> bool
   {
     auto check = [](std::valarray<bool> const& xs)
     {
@@ -119,26 +119,26 @@ inline namespace kernel
     return check(a.values == b.values);
   }
 
-  using s8vector = numeric_vector<std::int8_t>;
+  using s8vector = homogeneous_vector<std::int8_t>;
 
-  using u8vector = numeric_vector<std::uint8_t>;
+  using u8vector = homogeneous_vector<std::uint8_t>;
 
-  using s16vector = numeric_vector<std::int16_t>;
+  using s16vector = homogeneous_vector<std::int16_t>;
 
-  using u16vector = numeric_vector<std::int16_t>;
+  using u16vector = homogeneous_vector<std::uint16_t>;
 
-  using s32vector = numeric_vector<std::int32_t>;
+  using s32vector = homogeneous_vector<std::int32_t>;
 
-  using u32vector = numeric_vector<std::int32_t>;
+  using u32vector = homogeneous_vector<std::uint32_t>;
 
-  using s64vector = numeric_vector<std::int64_t>;
+  using s64vector = homogeneous_vector<std::int64_t>;
 
-  using u64vector = numeric_vector<std::int64_t>;
+  using u64vector = homogeneous_vector<std::uint64_t>;
 
-  using f32vector = numeric_vector<float>;
+  using f32vector = homogeneous_vector<float>;
 
-  using f64vector = numeric_vector<double>;
+  using f64vector = homogeneous_vector<double>;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_NUMERIC_VECTOR_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_HOMOGENEOUS_VECTOR_HPP
