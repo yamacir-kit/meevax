@@ -19,13 +19,12 @@
 
   (export ; 4.1. Primitive expression types
           quote lambda if set!
-          ; include
-          ; include-ci
+          ; include include-ci
           cond else => case and or when unless
           ; cond-expand
-          let let* letrec letrec* let-values let*-values begin do make-parameter
-          parameterize guard quasiquote unquote unquote-splicing let-syntax
-          letrec-syntax syntax-rules _ ... syntax-error
+          let let* letrec letrec* let-values let*-values begin do
+          make-parameter parameterize guard quasiquote unquote unquote-splicing
+          let-syntax letrec-syntax syntax-rules _ ... syntax-error
 
           ; 5.3. Variable definitions
           define define-values define-syntax define-record-type
@@ -37,28 +36,31 @@
           number? complex? real? rational? integer? exact? inexact?
           exact-integer? = < > <= >= zero? positive? negative? odd? even? max
           min + * - / abs floor/ floor-quotient floor-remainder truncate/
-          truncate-quotient truncate-remainder quotient remainder modulo gcd lcm
-          numerator denominator floor ceiling truncate round rationalize square
-          exact-integer-sqrt expt inexact exact number->string string->number
+          truncate-quotient truncate-remainder quotient remainder modulo gcd
+          lcm numerator denominator floor ceiling truncate round rationalize
+          square exact-integer-sqrt expt inexact exact number->string
+          string->number
 
           ; 6.3. Booleans
           not boolean? boolean=?
 
           ; 6.4. Pairs and lists
           pair? cons car cdr set-car! set-cdr! caar cadr cdar cddr null? list?
-          make-list list length append reverse list-tail list-ref list-set! memq
-          memv member assq assv assoc list-copy
+          make-list list length append reverse list-tail list-ref list-set!
+          memq memv member assq assv assoc list-copy
 
           ; 6.5. Symbols
           symbol? symbol=? symbol->string string->symbol
 
           ; 6.6. Characters
-          char? char=? char<? char>? char<=? char>=? char->integer integer->char
+          char? char=? char<? char>? char<=? char>=? char->integer
+          integer->char
 
           ; 6.7. Strings
           string? make-string string string-length string-ref string-set!
-          string=? string>? string<? string<=? string>=? substring string-append
-          string->list list->string string-copy string-copy! string-fill!
+          string=? string>? string<? string<=? string>=? substring
+          string-append string->list list->string string-copy string-copy!
+          string-fill!
 
           ; 6.8. Vectors
           vector? make-vector vector vector-length vector-ref vector-set!
@@ -74,8 +76,7 @@
           procedure? apply map string-map
           ; vector-map
           for-each
-          ; string-for-each
-          ; vector-for-each
+          ; string-for-each vector-for-each
           call-with-current-continuation call/cc values call-with-values
           dynamic-wind
 
@@ -89,21 +90,14 @@
           current-output-port current-error-port close-port close-input-port
           close-output-port open-input-string open-output-string
           get-output-string
-          ; open-input-bytevector
-          ; open-output-bytevector
-          ; get-output-bytevector
+          ; open-input-bytevector open-output-bytevector get-output-bytevector
           read-char peek-char
           ; read-line
           eof-object? eof-object char-ready?
-          ; read-string
-          ; read-u8
-          ; peek-u8
-          ; u8-ready?
-          ; read-bytevector
+          ; read-string read-u8 peek-u8 u8-ready? read-bytevector
           ; read-bytevector!
           newline write-char write-string
-          ; write-u8
-          ; write-bytevector
+          ; write-u8 write-bytevector
           flush-output-port
 
           ; 6.14. System interface

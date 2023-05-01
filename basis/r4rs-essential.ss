@@ -20,27 +20,28 @@
 
   (export quote lambda if set! cond case and or let letrec begin quasiquote
           define not boolean? eqv? eq? equal? pair? cons car cdr set-car!
-          set-cdr! caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar
-          cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar
-          cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr null? list? list
-          length append reverse list-ref memq memv member assq assv assoc
-          symbol? symbol->string string->symbol number? complex? real? rational?
-          integer? exact? inexact? = < > <= >= zero? positive? negative? odd?
-          even? max min + * - / abs quotient remainder modulo gcd lcm floor
-          ceiling truncate round number->string string->number char? char=?
-          char<? char>? char<=? char>=? char-ci=? char-ci<? char-ci>? char-ci<=?
-          char-ci>=? char-alphabetic? char-numeric? char-whitespace?
-          char-upper-case? char-lower-case? char->integer integer->char
-          char-upcase char-downcase string? make-string string string-length
-          string-ref string-set! string=? string<? string>? string<=? string>=?
-          string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?
-          substring string-append string->list list->string vector? make-vector
-          vector vector-length vector-ref vector-set! vector->list list->vector
-          procedure? apply map for-each call-with-current-continuation
-          call-with-input-file call-with-output-file input-port? output-port?
-          current-input-port current-output-port open-input-file
-          open-output-file close-input-port close-output-port read read-char
-          peek-char eof-object? write display newline write-char load)
+          set-cdr! caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr
+          cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
+          cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr null? list?
+          list length append reverse list-ref memq memv member assq assv assoc
+          symbol? symbol->string string->symbol number? complex? real?
+          rational? integer? exact? inexact? = < > <= >= zero? positive?
+          negative? odd? even? max min + * - / abs quotient remainder modulo
+          gcd lcm floor ceiling truncate round number->string string->number
+          char? char=? char<? char>? char<=? char>=? char-ci=? char-ci<?
+          char-ci>? char-ci<=? char-ci>=? char-alphabetic? char-numeric?
+          char-whitespace? char-upper-case? char-lower-case? char->integer
+          integer->char char-upcase char-downcase string? make-string string
+          string-length string-ref string-set! string=? string<? string>?
+          string<=? string>=? string-ci=? string-ci<? string-ci>? string-ci<=?
+          string-ci>=? substring string-append string->list list->string
+          vector? make-vector vector vector-length vector-ref vector-set!
+          vector->list list->vector procedure? apply map for-each
+          call-with-current-continuation call-with-input-file
+          call-with-output-file input-port? output-port? current-input-port
+          current-output-port open-input-file open-output-file close-input-port
+          close-output-port read read-char peek-char eof-object? write display
+          newline write-char load)
 
   (begin (define (list . xs) xs)
 
