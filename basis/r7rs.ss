@@ -8,6 +8,19 @@
           (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
           (only (meevax version) features)
           (only (meevax write) put-char put-string)
+          (only (meevax numeric-vector)
+                u8vector?
+                make-u8vector
+                u8vector
+                u8vector-length
+                u8vector-ref
+                u8vector-set!
+                u8vector-copy
+                u8vector-copy!
+                u8vector-append
+                utf8->string
+                string->utf8
+                )
           (scheme r5rs)
           (srfi 6)
           (srfi 9)
@@ -65,17 +78,9 @@
           vector-copy! vector-append vector-fill!
 
           ; 6.9. Bytevectors
-          ; bytevector?
-          ; make-bytevector
-          ; bytevector
-          ; bytevector-length
-          ; bytevector-u8-ref
-          ; bytevector-u8-set!
-          ; bytevector-copy
-          ; bytevector-copy!
-          ; bytevector-append
-          ; utf8->string
-          ; string->utf8
+          bytevector? make-bytevector bytevector bytevector-length
+          bytevector-u8-ref bytevector-u8-set! bytevector-copy bytevector-copy!
+          bytevector-append utf8->string string->utf8
 
           ; 6.10. Control features
           procedure? apply map string-map
@@ -223,6 +228,24 @@
                  x)))
 
          (define symbol=? eqv?)
+
+         (define bytevector? u8vector?)
+
+         (define make-bytevector make-u8vector)
+
+         (define bytevector u8vector)
+
+         (define bytevector-length u8vector-length)
+
+         (define bytevector-u8-ref u8vector-ref)
+
+         (define bytevector-u8-set! u8vector-set!)
+
+         (define bytevector-copy u8vector-copy)
+
+         (define bytevector-copy! u8vector-copy!)
+
+         (define bytevector-append u8vector-append)
 
          (define (string-map f x . xs)
            (define (string-map-1 x)

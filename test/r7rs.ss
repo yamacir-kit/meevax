@@ -1381,37 +1381,37 @@
 
 ; ---- 6.9. --------------------------------------------------------------------
 
-; (check (bytevector? #u8(0 10 5)) => #t)
+(check (bytevector? #u8(0 10 5)) => #t)
 
-; (check (make-bytevector 2 12) => #u8(12 12))
+(check (make-bytevector 2 12) => #u8(12 12))
 
-; (check (bytevector 1 3 5 1 3 5) => #u8(1 3 5 1 3 5))
+(check (bytevector 1 3 5 1 3 5) => #u8(1 3 5 1 3 5))
 
-; (check (bytevector) => #u8())
+(check (bytevector) => #u8())
 
-; (check (bytevector-u8-ref '#u8(1 1 2 3 5 8 13 21) 5) => 8)
+(check (bytevector-u8-ref '#u8(1 1 2 3 5 8 13 21) 5) => 8)
 
-; (check (let ((bv (bytevector 1 2 3 4)))
-;          (bytevector-u8-set! bv 1 3)
-;          bv) => #u8(1 3 3 4))
+(check (let ((bv (bytevector 1 2 3 4)))
+         (bytevector-u8-set! bv 1 3)
+         bv) => #u8(1 3 3 4))
 
-; (define a #u8(1 2 3 4 5))
+(define a #u8(1 2 3 4 5))
 
-; (check (bytevector-copy a 2 4) => #u8(3 4))
+(check (bytevector-copy a 2 4) => #u8(3 4))
 
-; (define a (bytevector 1 2 3 4 5))
+(define a (bytevector 1 2 3 4 5))
 
-; (define b (bytevector 10 20 30 40 50))
+(define b (bytevector 10 20 30 40 50))
 
-; (bytevector-copy! b 1 a 0 2)
+(bytevector-copy! b 1 a 0 2)
 
-; (check b => #u8(10 1 2 40 50))
+(check b => #u8(10 1 2 40 50))
 
-; (check (bytevector-append #u8(0 1 2) #u8(3 4 5)) => #u8(0 1 2 3 4 5))
+(check (bytevector-append #u8(0 1 2) #u8(3 4 5)) => #u8(0 1 2 3 4 5))
 
-; (check (utf8->string #u8(#x41)) => "A")
+(check (utf8->string #u8(#x41)) => "A")
 
-; (check (string->utf8 "λ") => #u8(#xCE #xBB))
+(check (string->utf8 "λ") => #u8(#xCE #xBB))
 
 ; ---- 6.10. -------------------------------------------------------------------
 
@@ -1600,4 +1600,4 @@
 
 (check-report)
 
-(exit (check-passed? 404))
+(exit (check-passed? 415))

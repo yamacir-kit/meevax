@@ -34,10 +34,8 @@ inline namespace kernel
     explicit numeric_vector() = default;
 
     explicit numeric_vector(object const& xs)
-      : values {}
+      : values(length(xs))
     {
-      values.resize(length(xs));
-
       std::generate(std::begin(values), std::end(values), [xs = xs]() mutable
       {
         let const x = car(xs);
@@ -45,6 +43,25 @@ inline namespace kernel
         return input_cast(x);
       });
     }
+
+    explicit numeric_vector(std::size_t size, object const& x)
+      : values(input_cast(x), size)
+    {}
+
+    explicit numeric_vector(numeric_vector const& v, std::size_t begin, std::size_t end)
+      : values(v.values[std::slice(begin, begin < end ? end - begin : 0, 1)])
+    {}
+
+    explicit numeric_vector(numeric_vector const& a, numeric_vector const& b)
+      : values(a.values.size() + b.values.size())
+    {
+      values[std::slice(0, a.values.size(), 1)] = a.values;
+      values[std::slice(a.values.size(), b.values.size(), 1)] = b.values;
+    }
+
+    explicit numeric_vector(T const* data, std::size_t size)
+      : values(data, size)
+    {}
 
     static auto tag() -> auto const&
     {
@@ -55,20 +72,12 @@ inline namespace kernel
     template <auto I = 0>
     static auto input_cast(object const& x) -> T
     {
-      using acceptables = std::tuple<exact_integer, float, double>;
+      using Us = std::tuple<exact_integer, float, double>;
 
-      if constexpr (I < std::tuple_size_v<acceptables>)
+      if constexpr (I < std::tuple_size_v<Us>)
       {
-        using acceptable = std::tuple_element_t<I, acceptables>;
-
-        if (x.is<acceptable>())
-        {
-          return static_cast<T>(x.as<acceptable>());
-        }
-        else
-        {
-          return input_cast<I + 1>(x);
-        }
+        using U = std::tuple_element_t<I, Us>;
+        return x.is<U>() ? static_cast<T>(x.as<U>()) : input_cast<I + 1>(x);
       }
       else
       {
@@ -97,6 +106,17 @@ inline namespace kernel
     }
 
     return output << magenta(")");
+  }
+
+  template <typename T>
+  auto operator ==(numeric_vector<T> const& a, numeric_vector<T> const& b) -> bool
+  {
+    auto check = [](std::valarray<bool> const& xs)
+    {
+      return std::all_of(std::begin(xs), std::end(xs), [](auto x) { return x; });
+    };
+
+    return check(a.values == b.values);
   }
 
   using s8vector = numeric_vector<std::int8_t>;
