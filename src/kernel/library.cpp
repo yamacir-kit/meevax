@@ -18,7 +18,6 @@
 
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/disassemble.hpp>
-#include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
 
 namespace meevax
@@ -29,9 +28,9 @@ inline namespace kernel
     : declarations { declarations }
   {}
 
-  auto library::boot() -> void
+  auto boot() -> void
   {
-    define_library("(meevax character)", [](library & library)
+    define<library>("(meevax character)", [](library & library)
     {
       library.define<procedure>("char?", [](let const& xs)
       {
@@ -56,7 +55,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax complex)", [](library & library)
+    define<library>("(meevax complex)", [](library & library)
     {
       library.define<procedure>("make-rectangular", [](let const& xs)
       {
@@ -77,7 +76,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax context)", [](library & library)
+    define<library>("(meevax context)", [](library & library)
     {
       library.define<procedure>("emergency-exit", [](let const& xs) -> object
       {
@@ -96,7 +95,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax comparator)", [](library & library)
+    define<library>("(meevax comparator)", [](library & library)
     {
       library.define<procedure>("eq?", [](let const& xs)
       {
@@ -109,8 +108,10 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax core)", [](library & library)
+    define<library>("(meevax core)", [](library & library)
     {
+      using syntax = environment::syntax;
+
       library.define<syntax>("begin",                           syntax::sequence);
       library.define<syntax>("call-with-current-continuation!", syntax::call_with_current_continuation);
       library.define<syntax>("current",                         syntax::current);
@@ -127,7 +128,7 @@ inline namespace kernel
       library.define<syntax>("set!",                            syntax::set);
     });
 
-    define_library("(meevax environment)", [](library & library)
+    define<library>("(meevax environment)", [](library & library)
     {
       library.define<procedure>("environment", [](let const& xs)
       {
@@ -157,7 +158,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax error)", [](library & library)
+    define<library>("(meevax error)", [](library & library)
     {
       library.define<procedure>("throw", [](let const& xs) -> object
       {
@@ -186,11 +187,11 @@ inline namespace kernel
 
       library.define<procedure>("kernel-exception-handler-set!", [](let const& xs)
       {
-        return raise = car(xs);
+        return environment::raise = car(xs);
       });
     });
 
-    define_library("(meevax experimental)", [](library & library)
+    define<library>("(meevax experimental)", [](library & library)
     {
       library.define<procedure>("type-of", [](let const& xs)
       {
@@ -217,7 +218,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax function)", [](library & library)
+    define<library>("(meevax function)", [](library & library)
     {
       library.define<procedure>("closure?", [](let const& xs)
       {
@@ -240,7 +241,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax garbage-collector)", [](library & library)
+    define<library>("(meevax garbage-collector)", [](library & library)
     {
       library.define<procedure>("gc-collect", []()
       {
@@ -253,7 +254,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax inexact)", [](library & library)
+    define<library>("(meevax inexact)", [](library & library)
     {
       library.define<procedure>("finite?", [](let const& xs)
       {
@@ -348,7 +349,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax list)", [](library & library)
+    define<library>("(meevax list)", [](library & library)
     {
       library.define<procedure>("null?", [](let const& xs)
       {
@@ -410,8 +411,10 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax macro)", [](library & library)
+    define<library>("(meevax macro)", [](library & library)
     {
+      using syntactic_closure = environment::syntactic_closure;
+
       library.define<procedure>("identifier?", [](let const& xs)
       {
         return car(xs).is_also<identifier>();
@@ -433,7 +436,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax number)", [](library & library)
+    define<library>("(meevax number)", [](library & library)
     {
       library.define<procedure>("number?", [](let const& xs)
       {
@@ -614,7 +617,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax pair)", [](library & library)
+    define<library>("(meevax pair)", [](library & library)
     {
       library.define<procedure>("pair?", [](let const& xs)
       {
@@ -664,7 +667,7 @@ inline namespace kernel
       library.define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
     });
 
-    define_library("(meevax port)", [](library & library)
+    define<library>("(meevax port)", [](library & library)
     {
       library.define<procedure>("input-port?", [](let const& xs)
       {
@@ -749,7 +752,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax read)", [](library & library)
+    define<library>("(meevax read)", [](library & library)
     {
       library.define<procedure>("get-char", [](let const& xs)
       {
@@ -825,7 +828,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax string)", [](library & library)
+    define<library>("(meevax string)", [](library & library)
     {
       library.define<procedure>("string?", [](let const& xs)
       {
@@ -1059,7 +1062,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax symbol)", [](library & library)
+    define<library>("(meevax symbol)", [](library & library)
     {
       library.define<procedure>("symbol?", [](let const& xs)
       {
@@ -1070,6 +1073,8 @@ inline namespace kernel
       {
         return make_symbol(car(xs).as<string>());
       });
+
+      using syntactic_closure = environment::syntactic_closure;
 
       library.define<procedure>("identifier->symbol", [](let const& xs)
       {
@@ -1084,7 +1089,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax vector)", [](library & library)
+    define<library>("(meevax vector)", [](library & library)
     {
       library.define<procedure>("vector?", [](let const& xs)
       {
@@ -1260,7 +1265,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax vector homogeneous)", [](library & library)
+    define<library>("(meevax vector homogeneous)", [](library & library)
     {
       library.define<procedure>("u8vector?", [](let const& xs)
       {
@@ -1374,7 +1379,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax version)", [](library & library)
+    define<library>("(meevax version)", [](library & library)
     {
       library.define<procedure>("features", []()
       {
@@ -1382,7 +1387,7 @@ inline namespace kernel
       });
     });
 
-    define_library("(meevax write)", [](library & library)
+    define<library>("(meevax write)", [](library & library)
     {
       library.define<procedure>("put-char", [](let const& xs)
       {

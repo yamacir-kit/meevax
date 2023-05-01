@@ -25,7 +25,7 @@ auto main() -> int
 
   assert(gc_count == specials_count);
 
-  library::boot();
+  boot();
 
   symbols.clear();
 

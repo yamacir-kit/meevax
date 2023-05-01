@@ -14,7 +14,6 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int
@@ -23,7 +22,7 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    library::boot();
+    boot();
 
     auto&& main = interaction_environment().as<environment>();
 
