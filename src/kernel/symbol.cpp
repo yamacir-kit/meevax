@@ -54,15 +54,19 @@ inline namespace kernel
     }
   }
 
-  std::unordered_map<std::string, object> symbols;
+  auto symbols() -> std::unordered_map<std::string, object> &
+  {
+    static auto symbols = std::unordered_map<std::string, object>();
+    return symbols;
+  }
 
   auto make_symbol(std::string const& name) -> object const&
   {
-    if (auto const iter = symbols.find(name); iter != std::end(symbols))
+    if (auto const iter = symbols().find(name); iter != std::end(symbols()))
     {
       return iter->second;
     }
-    else if (auto const [iter, success] = symbols.emplace(name, make<symbol>(name)); success)
+    else if (auto const [iter, success] = symbols().emplace(name, make<symbol>(name)); success)
     {
       return iter->second;
     }

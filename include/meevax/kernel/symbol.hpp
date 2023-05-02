@@ -55,7 +55,7 @@ inline namespace kernel
     return a.name == b;
   }
 
-  extern std::unordered_map<std::string, object> symbols;
+  auto symbols() -> std::unordered_map<std::string, object> &;
 
   auto make_symbol(std::string const&) -> object const&;
 } // namespace kernel
