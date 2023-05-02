@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  std::vector<char const*> const extern basis;
+  auto basis() -> std::vector<char const*>;
 } // namespace kernel
 } // namespace meevax
 

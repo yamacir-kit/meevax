@@ -1424,7 +1424,7 @@ inline namespace kernel
 
     auto boot_loader = environment();
 
-    for (auto&& each : basis)
+    for (auto&& each : basis())
     {
       if (std::stringstream input { each }; input)
       {
