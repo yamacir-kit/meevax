@@ -81,8 +81,6 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, library const&) -> std::ostream &;
 
-  auto boot() -> void;
-
   /*
      In order to improve the usability of the help procedure, it is desirable
      to sort by library name in lexicographical order.
@@ -101,6 +99,8 @@ inline namespace kernel
       return interaction_environment().as<environment>().define<T>(name, std::forward<decltype(xs)>(xs)...);
     }
   }
+
+  auto boot() -> void;
 } // namespace kernel
 } // namespace meevax
 

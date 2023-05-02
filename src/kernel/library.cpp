@@ -28,6 +28,54 @@ inline namespace kernel
     : declarations { declarations }
   {}
 
+  auto library::evaluate(object const& declaration) -> void
+  {
+    if (declaration[0].is<symbol>() and declaration[0].as<symbol>() == "export")
+    {
+      for (let const& form : cdr(declaration))
+      {
+        declare<export_spec>(form);
+      }
+    }
+    else if (declaration[0].is<symbol>() and declaration[0].as<symbol>() == "begin")
+    {
+      for (let const& command_or_definition : cdr(declaration))
+      {
+        evaluate(command_or_definition);
+      }
+    }
+    else
+    {
+      environment::evaluate(declaration); // Non-standard extension.
+    }
+  }
+
+  auto library::resolve() -> object const&
+  {
+    if (not declarations.is<null>())
+    {
+      for (let const& declaration : declarations)
+      {
+        evaluate(declaration);
+      }
+
+      declarations = unit;
+    }
+
+    return subset;
+  }
+
+  auto operator <<(std::ostream & os, library const& library) -> std::ostream &
+  {
+    return os << library.global();
+  }
+
+  auto libraries() -> std::map<std::string, library> &
+  {
+    static auto libraries = std::map<std::string, library>();
+    return libraries;
+  }
+
   auto boot() -> void
   {
     define<library>("(meevax character)", [](library & library)
@@ -1434,54 +1482,6 @@ inline namespace kernel
         }
       }
     }
-  }
-
-  auto library::evaluate(object const& declaration) -> void
-  {
-    if (declaration[0].is<symbol>() and declaration[0].as<symbol>() == "export")
-    {
-      for (let const& form : cdr(declaration))
-      {
-        declare<export_spec>(form);
-      }
-    }
-    else if (declaration[0].is<symbol>() and declaration[0].as<symbol>() == "begin")
-    {
-      for (let const& command_or_definition : cdr(declaration))
-      {
-        evaluate(command_or_definition);
-      }
-    }
-    else
-    {
-      environment::evaluate(declaration); // Non-standard extension.
-    }
-  }
-
-  auto library::resolve() -> object const&
-  {
-    if (not declarations.is<null>())
-    {
-      for (let const& declaration : declarations)
-      {
-        evaluate(declaration);
-      }
-
-      declarations = unit;
-    }
-
-    return subset;
-  }
-
-  auto operator <<(std::ostream & os, library const& library) -> std::ostream &
-  {
-    return os << library.global();
-  }
-
-  auto libraries() -> std::map<std::string, library> &
-  {
-    static auto libraries = std::map<std::string, library>();
-    return libraries;
   }
 } // namespace kernel
 } // namespace meevax
