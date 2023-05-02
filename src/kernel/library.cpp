@@ -1478,6 +1478,10 @@ inline namespace kernel
     return os << library.global();
   }
 
-  std::map<std::string, library> libraries {};
+  auto libraries() -> std::map<std::string, library> &
+  {
+    static auto libraries = std::map<std::string, library>();
+    return libraries;
+  }
 } // namespace kernel
 } // namespace meevax

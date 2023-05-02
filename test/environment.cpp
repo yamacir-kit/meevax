@@ -33,9 +33,9 @@ auto main() -> int
 
   const_cast<object &>(interaction_environment()).reset(); // DIRTY HACK!
 
-  libraries.clear();
+  libraries().clear();
 
-  assert(libraries.empty());
+  assert(libraries().empty());
 
   gc.collect();
   gc.collect(); // for vector type

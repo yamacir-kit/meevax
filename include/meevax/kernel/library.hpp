@@ -45,9 +45,9 @@ inline namespace kernel
     let subset = unit;
 
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
-    explicit library(F&& f)
+    explicit library(F f)
     {
-      std::invoke(std::forward<decltype(f)>(f), *this);
+      f(*this);
     }
 
     explicit library(object const&);
@@ -84,17 +84,17 @@ inline namespace kernel
   auto boot() -> void;
 
   /*
-     NOTE: In order to improve the usability of the help procedure, it is
-     desirable to sort by library name in lexicographical order.
+     In order to improve the usability of the help procedure, it is desirable
+     to sort by library name in lexicographical order.
   */
-  extern std::map<std::string, library> libraries;
+  auto libraries() -> std::map<std::string, library> &;
 
   template <typename T, typename... Ts>
   auto define(std::string const& name, Ts&&... xs) -> decltype(auto)
   {
     if constexpr (std::is_same_v<T, library>)
     {
-      return libraries.emplace(name, std::forward<decltype(xs)>(xs)...);
+      return libraries().emplace(name, std::forward<decltype(xs)>(xs)...);
     }
     else
     {
