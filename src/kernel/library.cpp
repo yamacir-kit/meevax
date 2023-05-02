@@ -1424,11 +1424,14 @@ inline namespace kernel
 
     auto boot_loader = environment();
 
-    if (auto input = std::stringstream(std::string(basis)); input)
+    for (auto&& each : basis)
     {
-      while (not input.eof())
+      if (std::stringstream input { each }; input)
       {
-        boot_loader.evaluate(boot_loader.read(input));
+        while (not input.eof())
+        {
+          boot_loader.evaluate(boot_loader.read(input));
+        }
       }
     }
   }
