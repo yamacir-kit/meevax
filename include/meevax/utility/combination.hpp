@@ -14,26 +14,29 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_EXPORT_SPEC_HPP
-#define INCLUDED_MEEVAX_KERNEL_EXPORT_SPEC_HPP
+#ifndef INCLUDED_MEEVAX_UTILITY_COMBINATION_HPP
+#define INCLUDED_MEEVAX_UTILITY_COMBINATION_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <tuple>
+#include <utility>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct library;
+  template <typename...>
+  struct make_combination;
 
-  struct export_spec
+  template <typename T, auto... Is>
+  struct make_combination<T, std::index_sequence<Is...>>
   {
-    let const form;
-
-    explicit export_spec(object const&);
-
-    auto resolve(library &) const -> object const&;
+    using type = std::tuple<std::pair<typename std::tuple_element_t<Is / std::tuple_size_v<T>, T>,
+                                      typename std::tuple_element_t<Is % std::tuple_size_v<T>, T>> ...>;
   };
+
+  template <typename... Ts>
+  using combination = typename make_combination<std::tuple<Ts...>, std::make_index_sequence<sizeof...(Ts) * sizeof...(Ts)>>::type;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_EXPORT_SPEC_HPP
+#endif // INCLUDED_MEEVAX_UTILITY_COMBINATION_HPP

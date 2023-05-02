@@ -25,7 +25,7 @@ inline namespace kernel
   {
     if (car(expression).is<symbol>() and car(expression).as<symbol>() == "define-library")
     {
-      define_library(lexical_cast<std::string>(cadr(expression)), cddr(expression));
+      meevax::define<library>(lexical_cast<std::string>(cadr(expression)), cddr(expression));
       return cadr(expression);
     }
     else if (car(expression).is<symbol>() and car(expression).as<symbol>() == "import")
@@ -115,11 +115,11 @@ inline namespace kernel
     return os << magenta("#,(") << green("environment ") << faint("#;", &datum) << magenta(")");
   }
 
-  template class configurator<environment>;
+  template struct configurator<environment>;
 
-  template class dynamic_environment<environment>;
+  template struct dynamic_environment<environment>;
 
-  template class reader<environment>;
+  template struct reader<environment>;
 
   template struct syntactic_environment<environment>;
 } // namespace kernel

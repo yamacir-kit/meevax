@@ -28,13 +28,8 @@ namespace meevax
 inline namespace kernel
 {
   template <typename Environment>
-  class configurator
+  struct configurator
   {
-    friend Environment;
-
-    configurator()
-    {}
-
     struct option
     {
       std::regex const pattern;
@@ -48,7 +43,6 @@ inline namespace kernel
       {}
     };
 
-  public:
     bool interactive = false;
 
     auto configure(const int argc, char const* const* const argv)

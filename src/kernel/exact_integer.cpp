@@ -53,23 +53,49 @@ inline namespace kernel
     mpz_init_set(value, z);
   }
 
-  exact_integer::exact_integer(int rhs)
-    : exact_integer(static_cast<signed long>(rhs))
-  {}
-
-  exact_integer::exact_integer(signed long rhs)
+  exact_integer::exact_integer(std::int8_t si)
   {
-    mpz_init_set_si(value, rhs);
+    mpz_init_set_si(value, si);
   }
 
-  exact_integer::exact_integer(unsigned long rhs)
+  exact_integer::exact_integer(std::int16_t si)
   {
-    mpz_init_set_ui(value, rhs);
+    mpz_init_set_si(value, si);
   }
 
-  exact_integer::exact_integer(double rhs)
+  exact_integer::exact_integer(std::int32_t si)
   {
-    mpz_init_set_d(value, rhs);
+    mpz_init_set_si(value, si);
+  }
+
+  exact_integer::exact_integer(std::int64_t si)
+  {
+    mpz_init_set_si(value, si);
+  }
+
+  exact_integer::exact_integer(std::uint8_t ui)
+  {
+    mpz_init_set_ui(value, ui);
+  }
+
+  exact_integer::exact_integer(std::uint16_t ui)
+  {
+    mpz_init_set_ui(value, ui);
+  }
+
+  exact_integer::exact_integer(std::uint32_t ui)
+  {
+    mpz_init_set_ui(value, ui);
+  }
+
+  exact_integer::exact_integer(std::uint64_t ui)
+  {
+    mpz_init_set_ui(value, ui);
+  }
+
+  exact_integer::exact_integer(double d)
+  {
+    mpz_init_set_d(value, d);
   }
 
   exact_integer::exact_integer(std::string const& s, int radix)
@@ -110,24 +136,49 @@ inline namespace kernel
     return (*value)._mp_size;
   }
 
-  exact_integer::operator int() const
-  {
-    return static_cast<signed long>(*this);
-  }
-
-  exact_integer::operator signed long() const
+  exact_integer::operator std::int8_t() const
   {
     return mpz_get_si(value);
   }
 
-  exact_integer::operator unsigned long() const
+  exact_integer::operator std::int16_t() const
+  {
+    return mpz_get_si(value);
+  }
+
+  exact_integer::operator std::int32_t() const
+  {
+    return mpz_get_si(value);
+  }
+
+  exact_integer::operator std::int64_t() const
+  {
+    return mpz_get_si(value);
+  }
+
+  exact_integer::operator std::uint8_t() const
+  {
+    return mpz_get_ui(value);
+  }
+
+  exact_integer::operator std::uint16_t() const
+  {
+    return mpz_get_ui(value);
+  }
+
+  exact_integer::operator std::uint32_t() const
+  {
+    return mpz_get_ui(value);
+  }
+
+  exact_integer::operator std::uint64_t() const
   {
     return mpz_get_ui(value);
   }
 
   exact_integer::operator float() const
   {
-    return static_cast<double>(*this);
+    return mpz_get_d(value);
   }
 
   exact_integer::operator double() const
@@ -158,14 +209,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, exact_integer const& datum) -> std::ostream &
   {
-    auto free = [](char * data)
-    {
-      void (*free)(void *, std::size_t);
-      mp_get_memory_functions(nullptr, nullptr, &free);
-      std::invoke(free, static_cast<void *>(data), std::strlen(data) + 1);
-    };
-
-    return os << cyan(std::unique_ptr<char, decltype(free)>(mpz_get_str(nullptr, 10, datum.value), free).get());
+    return os << cyan(std::unique_ptr<char, gmp_free>(mpz_get_str(nullptr, 10, datum.value)).get());
   }
 
   auto exact_integer_sqrt(exact_integer const& x) -> std::tuple<exact_integer, exact_integer>

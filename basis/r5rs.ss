@@ -71,9 +71,9 @@
           make-string string string-length string-ref string-set! string=?
           string<? string>? string<=? string>=? string-ci=? string-ci<?
           string-ci>? string-ci<=? string-ci>=? substring string-append
-          string->list list->string string-copy string-fill! vector? make-vector
-          vector vector-length vector-ref vector-set! vector->list list->vector
-          vector-fill! procedure? apply map for-each force
+          string->list list->string string-copy string-fill! vector?
+          make-vector vector vector-length vector-ref vector-set! vector->list
+          list->vector vector-fill! procedure? apply map for-each force
           call-with-current-continuation values call-with-values dynamic-wind
           eval scheme-report-environment null-environment
           interaction-environment call-with-input-file call-with-output-file

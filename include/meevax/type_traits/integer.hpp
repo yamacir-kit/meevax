@@ -22,7 +22,7 @@
 
 namespace meevax
 {
-inline namespace memory
+inline namespace type_traits
 {
   template <auto Byte>
   using intN_t = std::conditional_t<Byte == 1, std::int8_t,
@@ -43,7 +43,7 @@ inline namespace memory
                   std::conditional_t<Byte == 2, std::uint16_t,
                   std::conditional_t<Byte == 4, std::uint32_t,
                   std::conditional_t<Byte == 8, std::uint64_t, void>>>>;
-} // namespace memory
+} // namespace type_traits
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_TYPE_TRAITS_INTEGER_HPP

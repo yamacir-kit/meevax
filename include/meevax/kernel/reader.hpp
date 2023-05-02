@@ -20,6 +20,7 @@
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
+#include <meevax/kernel/homogeneous_vector.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/symbol.hpp>
@@ -30,6 +31,8 @@ namespace meevax
 inline namespace kernel
 {
   auto get_codepoint(std::istream &) -> character::int_type;
+
+  auto get_digits(std::istream &) -> std::string;
 
   auto get_token(std::istream &) -> std::string;
 
@@ -59,30 +62,12 @@ inline namespace kernel
   auto make_complex (std::string const&, int = 10) -> object;
   auto make_number  (std::string const&, int = 10) -> object;
 
-  inline auto get_while = [](auto match, std::istream & input)
-  {
-    std::string result {};
-
-    while (match(input.peek()))
-    {
-      result.push_back(input.get());
-    }
-
-    return result;
-  };
-
   template <typename Environment>
-  class reader
+  struct reader
   {
-    friend Environment;
-
-    explicit constexpr reader()
-    {}
+    using char_type = typename std::istream::char_type;
 
     std::unordered_map<std::string, object> datum_labels;
-
-  public:
-    using char_type = typename std::istream::char_type;
 
     auto get_ready() const
     {
@@ -133,57 +118,46 @@ inline namespace kernel
           case '7':
           case '8':
           case '9':
-            if (auto n = get_while([](auto c) { return std::isdigit(c); }, is.putback(c)); not std::empty(n))
+            switch (auto n = get_digits(is.putback(c)); is.peek())
             {
-              switch (auto c = is.get())
+            case '#':
+              is.ignore(1);
+
+              if (auto iter = datum_labels.find(n); iter != std::end(datum_labels))
               {
-              case '#':
-                if (auto iter = datum_labels.find(n); iter != std::end(datum_labels))
-                {
-                  return iter->second;
-                }
-                else
-                {
-                  throw read_error(make<string>("it is an error to attempt a forward reference"),
-                                   make<string>(lexical_cast<std::string>("#", n, std::char_traits<char_type>::to_char_type(c))));
-                }
-
-              case '=':
-                if (auto [iter, success] = datum_labels.emplace(n, make<datum_label>(n)); success)
-                {
-                  if (let const& xs = read(is); xs != iter->second)
-                  {
-                    circulate(xs, n);
-                    datum_labels.erase(n);
-                    return xs;
-                  }
-                  else
-                  {
-                    /*
-                       R7RS 2.4 Datum labels
-
-                       In addition, it is an error if the reference appears as
-                       the labelled object itself (as in #<n>=#<n>#), because
-                       the object labelled by #<n>= is not well defined in this
-                       case.
-                    */
-                    return unit;
-                  }
-                }
-                else
-                {
-                  throw read_error(make<string>("duplicated datum-label declaration"),
-                                   make<string>(n));
-                }
-
-              default:
-                throw read_error(make<string>("unknown discriminator"),
-                                 make<string>(lexical_cast<std::string>("#", n, std::char_traits<char_type>::to_char_type(c))));
+                return iter->second;
               }
-            }
-            else
-            {
-              return eof_object;
+              else
+              {
+                throw read_error(make<string>("it is an error to attempt a forward reference"),
+                                 make<string>(lexical_cast<std::string>('#', n, '#')));
+              }
+
+            case '=':
+              is.ignore(1);
+
+              if (auto [iter, success] = datum_labels.emplace(n, make<datum_label>(n)); success)
+              {
+                if (let const& xs = read(is); xs != iter->second)
+                {
+                  circulate(xs, n);
+                  datum_labels.erase(n);
+                  return xs;
+                }
+                else
+                {
+                  return unit;
+                }
+              }
+              else
+              {
+                throw read_error(make<string>("duplicated datum-label declaration"),
+                                 make<string>(n));
+              }
+
+            default:
+              throw read_error(make<string>("unknown discriminator"),
+                               make<string>(lexical_cast<std::string>('#', n, is.get())));
             }
 
           case 'b':
@@ -200,21 +174,71 @@ inline namespace kernel
             return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 10);
 
           case 'e':
-            return apply_arithmetic<exact>(read(is)); // NOTE: Same as #,(exact (read))
+            return exact(read(is)); // NOTE: Same as #,(exact (read))
 
           case 'f':
-            get_token(is);
-            return f;
+            switch (auto const digits = get_digits(is); std::stoi(digits))
+            {
+            case 32:
+              return make<f32vector>(read(is));
+
+            case 64:
+              return make<f64vector>(read(is));
+
+            default:
+              get_token(is);
+              return f;
+            }
 
           case 'i':
-            return apply_arithmetic<inexact>(read(is)); // NOTE: Same as #,(inexact (read))
+            return inexact(read(is)); // NOTE: Same as #,(inexact (read))
 
           case 'o':
             return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 8);
 
+          case 's':
+            switch (auto const digits = get_digits(is); std::stoi(digits))
+            {
+            case 8:
+              return make<s8vector>(read(is));
+
+            case 16:
+              return make<s16vector>(read(is));
+
+            case 32:
+              return make<s32vector>(read(is));
+
+            case 64:
+              return make<s64vector>(read(is));
+
+            default:
+              throw read_error(make<string>("An unknown literal expression was encountered"),
+                               make<string>(lexical_cast<std::string>("#s", digits)));
+            }
+
           case 't':
             get_token(is);
             return t;
+
+          case 'u':
+            switch (auto const digits = get_digits(is); std::stoi(digits))
+            {
+            case 8:
+              return make<u8vector>(read(is));
+
+            case 16:
+              return make<u16vector>(read(is));
+
+            case 32:
+              return make<u32vector>(read(is));
+
+            case 64:
+              return make<u64vector>(read(is));
+
+            default:
+              throw read_error(make<string>("An unknown literal expression was encountered"),
+                               make<string>(lexical_cast<std::string>("#u", digits)));
+            }
 
           case 'x':
             return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 16);

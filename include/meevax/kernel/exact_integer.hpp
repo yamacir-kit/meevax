@@ -39,11 +39,21 @@ inline namespace kernel
 
     explicit exact_integer(mpz_t const) noexcept;
 
-    explicit exact_integer(int);
+    explicit exact_integer(std::int8_t);
 
-    explicit exact_integer(signed long);
+    explicit exact_integer(std::int16_t);
 
-    explicit exact_integer(unsigned long);
+    explicit exact_integer(std::int32_t);
+
+    explicit exact_integer(std::int64_t);
+
+    explicit exact_integer(std::uint8_t);
+
+    explicit exact_integer(std::uint16_t);
+
+    explicit exact_integer(std::uint32_t);
+
+    explicit exact_integer(std::uint64_t);
 
     explicit exact_integer(double);
 
@@ -55,17 +65,27 @@ inline namespace kernel
 
     auto operator=(std::string const&) -> exact_integer &;
 
-    operator int() const;
+    explicit operator bool() const;
 
-    operator signed long() const;
+    operator std::int8_t() const;
 
-    operator unsigned long() const;
+    operator std::int16_t() const;
+
+    operator std::int32_t() const;
+
+    operator std::int64_t() const;
+
+    operator std::uint8_t() const;
+
+    operator std::uint16_t() const;
+
+    operator std::uint32_t() const;
+
+    operator std::uint64_t() const;
 
     explicit operator float() const;
 
     explicit operator double() const;
-
-    explicit operator bool() const;
   };
 
   auto operator ==(exact_integer const&, int const) -> bool;
@@ -90,6 +110,21 @@ inline namespace kernel
   auto operator >=(exact_integer const&, unsigned long const) -> bool;
 
   auto operator <<(std::ostream &, exact_integer const&) -> std::ostream &;
+
+  struct gmp_free
+  {
+    void (*free)(void *, std::size_t);
+
+    explicit gmp_free()
+    {
+      mp_get_memory_functions(nullptr, nullptr, &free);
+    }
+
+    auto operator ()(char * data) const -> void
+    {
+      free(static_cast<void *>(data), std::strlen(data) + 1);
+    }
+  };
 
   auto exact_integer_sqrt(exact_integer const&) -> std::tuple<exact_integer, exact_integer>;
 
