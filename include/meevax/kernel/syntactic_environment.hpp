@@ -97,14 +97,14 @@ inline namespace kernel
       }
     };
 
-    static auto core_syntactic_environment()
+    static auto rename(std::string const& variable)
     {
       auto bind = [](auto&& name, auto&& compiler)
       {
         return make<absolute>(make_symbol(name), make<syntax>(name, compiler));
       };
 
-      let static const core = make<syntactic_environment>(
+      let static const core_syntactic_environment = make<syntactic_environment>(
         list(),
         list(bind("begin"                          , syntax::sequence                      ),
              bind("call-with-current-continuation!", syntax::call_with_current_continuation),
@@ -121,18 +121,7 @@ inline namespace kernel
              bind("quote-syntax"                   , syntax::quote_syntax                  ),
              bind("set!"                           , syntax::set                           )));
 
-      return core;
-    }
-
-    static auto rename(object const& variable)
-    {
-      assert(variable.is<symbol>());
-      return make<syntactic_closure>(core_syntactic_environment(), unit, variable);
-    }
-
-    static auto rename(std::string const& variable)
-    {
-      return rename(make_symbol(variable));
+      return make<syntactic_closure>(core_syntactic_environment, unit, make_symbol(variable));
     }
 
     struct syntax
@@ -229,7 +218,7 @@ inline namespace kernel
                     continuation);
       }
 
-      static COMPILER(procedure_call) /* ---------------------------------------
+      static COMPILER(call) /* -------------------------------------------------
       *
       *  R7RS 4.1.3. Procedure calls
       *
@@ -1017,7 +1006,7 @@ inline namespace kernel
       }
       else
       {
-        return syntax::procedure_call(*this, expression, local, continuation, ellipsis);
+        return syntax::call(*this, expression, local, continuation, ellipsis);
       }
     }
 
