@@ -64,31 +64,6 @@
 
          (kernel-exception-handler-set! raise)
 
-         (define-syntax guard
-           (syntax-rules ()
-             ((guard (var clause ...) e1 e2 ...)
-              ((call-with-current-continuation
-                 (lambda (guard-k)
-                   (with-exception-handler
-                     (lambda (condition)
-                       ((call-with-current-continuation
-                          (lambda (handler-k)
-                            (guard-k
-                              (lambda ()
-                                (let ((var condition))
-                                  (guard-aux
-                                    (handler-k
-                                      (lambda ()
-                                        (raise-continuable condition)))
-                                    clause ...))))))))
-                     (lambda ()
-                       (call-with-values
-                         (lambda () e1 e2 ...)
-                         (lambda args
-                           (guard-k
-                             (lambda ()
-                               (apply values args)))))))))))))
-
          (define-syntax guard-aux
            (syntax-rules (else =>)
              ((guard-aux reraise (else result1 result2 ...))
@@ -120,4 +95,25 @@
                          clause1 clause2 ...)
               (if test
                   (begin result1 result2 ...)
-                  (guard-aux reraise clause1 clause2 ...)))))))
+                  (guard-aux reraise clause1 clause2 ...)))))
+
+         (define-syntax guard
+           (syntax-rules ()
+             ((guard (var clause ...) e1 e2 ...)
+              ((call-with-current-continuation
+                 (lambda (guard-k)
+                   (with-exception-handler
+                     (lambda (condition)
+                       ((call-with-current-continuation
+                          (lambda (handler-k)
+                            (guard-k (lambda ()
+                                       (let ((var condition))
+                                         (guard-aux (handler-k (lambda ()
+                                                                 (raise-continuable condition)))
+                                                    clause ...))))))))
+                     (lambda ()
+                       (call-with-values
+                         (lambda () e1 e2 ...)
+                         (lambda args
+                           (guard-k (lambda ()
+                                      (apply values args)))))))))))))))

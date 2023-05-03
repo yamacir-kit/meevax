@@ -414,17 +414,17 @@
 
 ; ---- 4.2.7. ------------------------------------------------------------------
 
-; (check (guard (condition
-;                 ((assq 'a condition) => cdr)
-;                 ((assq 'b condition)))
-;          (raise (list (cons 'a 42))))
-;   => 42)
+(check (guard (condition
+                ((assq 'a condition) => cdr)
+                ((assq 'b condition)))
+         (raise (list (cons 'a 42))))
+  => 42)
 
-; (check (guard (condition
-;                 ((assq 'a condition) => cdr)
-;                 ((assq 'b condition)))
-;          (raise (list (cons 'b 23))))
-;   => '(b . 23))
+(check (guard (condition
+                ((assq 'a condition) => cdr)
+                ((assq 'b condition)))
+         (raise (list (cons 'b 23))))
+  => '(b . 23))
 
 ; ---- 4.2.8. ------------------------------------------------------------------
 
@@ -1561,11 +1561,15 @@
                (+ 1 (raise 'an-error))))))
   => 'exception)
 
-; (with-exception-handler
-;   (lambda (x)
-;     (display "something went wrong\n"))
-;   (lambda ()
-;     (+ 1 (raise 'an-error)))) => #,(error "uncaught exception" an-error)
+(check (call-with-current-continuation
+         (lambda (return)
+           (with-exception-handler
+             (lambda (x)
+               (display "something went wrong\n")
+               (return "something went wrong"))
+             (lambda ()
+               (+ 1 (raise 'an-error))))))
+  => "something went wrong")
 
 (check (with-exception-handler
          (lambda (con)
@@ -1605,4 +1609,4 @@
 
 (check-report)
 
-(exit (check-passed? 426))
+(exit (check-passed? 429))
