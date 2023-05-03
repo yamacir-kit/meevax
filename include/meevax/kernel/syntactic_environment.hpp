@@ -28,7 +28,6 @@ inline namespace kernel
   template <typename Environment>
   struct syntactic_environment : public virtual pair // (<local> . <global>)
   {
-  protected:
     struct syntactic_closure : public identifier
     {
       let const environment;
@@ -98,14 +97,14 @@ inline namespace kernel
       }
     };
 
-    static auto core_syntactic_environment()
+    static auto rename(std::string const& variable)
     {
       auto bind = [](auto&& name, auto&& compiler)
       {
-        return make<absolute>(string_to_symbol(name), make<syntax>(name, compiler));
+        return make<absolute>(make_symbol(name), make<syntax>(name, compiler));
       };
 
-      let static const core = make<syntactic_environment>(
+      let static const core_syntactic_environment = make<syntactic_environment>(
         list(),
         list(bind("begin"                          , syntax::sequence                      ),
              bind("call-with-current-continuation!", syntax::call_with_current_continuation),
@@ -122,18 +121,7 @@ inline namespace kernel
              bind("quote-syntax"                   , syntax::quote_syntax                  ),
              bind("set!"                           , syntax::set                           )));
 
-      return core;
-    }
-
-    static auto rename(object const& variable)
-    {
-      assert(variable.is<symbol>());
-      return make<syntactic_closure>(core_syntactic_environment(), unit, variable);
-    }
-
-    static auto rename(std::string const& variable)
-    {
-      return rename(string_to_symbol(variable));
+      return make<syntactic_closure>(core_syntactic_environment, unit, make_symbol(variable));
     }
 
     struct syntax
@@ -230,7 +218,7 @@ inline namespace kernel
                     continuation);
       }
 
-      static COMPILER(procedure_call) /* ---------------------------------------
+      static COMPILER(call) /* -------------------------------------------------
       *
       *  R7RS 4.1.3. Procedure calls
       *
@@ -932,7 +920,6 @@ inline namespace kernel
       #undef COMPILER
     };
 
-  public:
     auto operator ()(object const& expression,
                      object const& local,
                      object const& continuation = list(make(instruction::stop)),
@@ -1019,7 +1006,7 @@ inline namespace kernel
       }
       else
       {
-        return syntax::procedure_call(*this, expression, local, continuation, ellipsis);
+        return syntax::call(*this, expression, local, continuation, ellipsis);
       }
     }
 
@@ -1043,11 +1030,11 @@ inline namespace kernel
     {
       if constexpr (std::is_constructible_v<T, std::string const&, Ts...>)
       {
-        return define(string_to_symbol(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
+        return define(make_symbol(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
       }
       else
       {
-        return define(string_to_symbol(name), make<T>(std::forward<decltype(xs)>(xs)...));
+        return define(make_symbol(name), make<T>(std::forward<decltype(xs)>(xs)...));
       }
     }
 

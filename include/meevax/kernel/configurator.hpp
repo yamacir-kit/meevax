@@ -28,13 +28,8 @@ namespace meevax
 inline namespace kernel
 {
   template <typename Environment>
-  class configurator
+  struct configurator
   {
-    friend Environment;
-
-    configurator()
-    {}
-
     struct option
     {
       std::regex const pattern;
@@ -48,12 +43,18 @@ inline namespace kernel
       {}
     };
 
-  public:
     bool interactive = false;
+
+    std::vector<std::string> command_line;
 
     auto configure(const int argc, char const* const* const argv)
     {
-      return configure({ argv + 1, argv + argc });
+      for (auto i = 0; i < argc; ++i)
+      {
+        command_line.emplace_back(argv[i]);
+      }
+
+      return configure(command_line);
     }
 
     auto configure(std::vector<std::string> const& args) -> void
@@ -138,7 +139,7 @@ inline namespace kernel
 
       std::vector<object> expressions {};
 
-      for (auto iter = std::begin(args); iter != std::end(args); ++iter)
+      for (auto iter = std::next(std::begin(args)); iter != std::end(args); ++iter)
       {
         static std::regex const pattern { R"(--(\w[-\w]+)(?:=(.*))?|-([\w]+))" };
 

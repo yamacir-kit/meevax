@@ -1,42 +1,34 @@
-(import (scheme base)
+#|
+   Copyright (c) 2009-2018 Alex Shinn All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+   1. Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+   2. Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+   3. The name of the author may not be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+   WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+   MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+   EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+   OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+   WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+|#
+
+(import (meevax macro-transformer)
+        (scheme base)
         (scheme process-context)
-        (srfi 78)
-        (srfi 211 explicit-renaming))
+        (srfi 78))
 
-; ---- Chibi-Scheme's Basic Tests ----------------------------------------------
-;
-; NOTE
-;   Based on Chibi-Scheme's test codes at chibi-scheme/tests/basic/*.scm
-;
-; ORIGINAL LICENSE
-;   Copyright (c) 2009-2018 Alex Shinn
-;   All rights reserved.
-;
-;   Redistribution and use in source and binary forms, with or without
-;   modification, are permitted provided that the following conditions
-;   are met:
-;   1. Redistributions of source code must retain the above copyright
-;      notice, this list of conditions and the following disclaimer.
-;   2. Redistributions in binary form must reproduce the above copyright
-;      notice, this list of conditions and the following disclaimer in the
-;      documentation and/or other materials provided with the distribution.
-;   3. The name of the author may not be used to endorse or promote products
-;      derived from this software without specific prior written permission.
-;
-;   THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-;   IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-;   OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-;   IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-;   INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-;   NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-;   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-;   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-;   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-;   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-;
-; ------------------------------------------------------------------------------
-
-; ==== test00-fact-3.scm =======================================================
+; ---- chibi-scheme/tests/basic/test00-fact-3.scm ------------------------------
 
 (define (fact-aux x res)
   (if (= x 0) res
@@ -47,7 +39,7 @@
 
 (check (fact 3) => 6)
 
-; ==== test01-apply.scm ========================================================
+; ---- chibi-scheme/tests/basic/test01-apply.scm -------------------------------
 
 (define foo
   (lambda (a b c d e f g h)
@@ -72,7 +64,7 @@
 
 (check (apply foo 1 2 3 4 5 (list 6 7 8)) => 100)
 
-; ==== test02-closure.scm ======================================================
+; ---- chibi-scheme/tests/basic/test02-closure.scm -----------------------------
 
 (define (make-counter n)
   (lambda ()
@@ -95,7 +87,7 @@
 
 (check (g) => 103)
 
-; ==== test03-nested-closure.scm ===============================================
+; ---- chibi-scheme/tests/basic/test03-nested-closure.scm ----------------------
 
 (check ((lambda (a b)
           ((lambda (c d e)
@@ -104,7 +96,7 @@
         3 5)
   => 11357)
 
-; ==== test04-nested-let.scm ===================================================
+; ---- chibi-scheme/tests/basic/test04-nested-let.scm --------------------------
 
 (check (let ((a 3)
              (b 5))
@@ -114,14 +106,14 @@
            (+ e (* c 1000) (* a 100) (* b 10) d)))
   => 11357)
 
-; ==== test05-internal-define.scm ==============================================
+; ---- chibi-scheme/tests/basic/test05-internal-define.scm ---------------------
 
 (check (let ((a 1000))
          (define b (+ a 3))
          (cons a b))
   => '(1000 . 1003))
 
-; ==== test06-letrec.scm =======================================================
+; ---- chibi-scheme/tests/basic/test06-letrec.scm ------------------------------
 
 (check (letrec ((add (lambda (a b)
                        (+ a b))))
@@ -139,7 +131,7 @@
                (odd? 1000)))
   => '(#t #f #f))
 
-; ==== test07-mutation.scm =====================================================
+; ---- chibi-scheme/tests/basic/test07-mutation.scm ----------------------------
 
 (check (let ((a 3)
              (b 5))
@@ -150,7 +142,7 @@
            (+ e (* c 1000) (* a 100) (* b 10) d)))
   => 11357)
 
-; ==== test08-callcc.scm =======================================================
+; ---- chibi-scheme/tests/basic/test08-callcc.scm ------------------------------
 
 (define fail
   (lambda () 999999))
@@ -181,7 +173,7 @@
              (fail)))
   => 543)
 
-; ==== test09-hygiene.scm ======================================================
+; ---- chibi-scheme/tests/basic/test09-hygiene.scm -----------------------------
 
 (check (or 1) => 1)
 
@@ -215,7 +207,8 @@
                       (cons (rename 'myor) (cddr expr))))))))
 
 (check (let ((tmp 6))
-         (myor #f tmp)) => 6)
+         (myor #f tmp))
+  => 6)
 
 (check (let ((x 'outer))
          (let-syntax ((with-x
@@ -227,7 +220,7 @@
              (with-x z (z)))))
   => 'outer)
 
-; ==== test10-unhygiene.scm ====================================================
+; ---- chibi-scheme/tests/basic/test10-unhygiene.scm ---------------------------
 
 ; (define-syntax aif
 ;   (sc-macro-transformer

@@ -1,5 +1,5 @@
 #|
-   Copyright (C) John David Stone (1999). All Rights Reserved.
+   Copyright (C) Dr. Mirko Luedde (2002). All Rights Reserved.
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to
@@ -20,11 +20,12 @@
    IN THE SOFTWARE.
 |#
 
-(define-library (srfi 8)
+(define-library (srfi 31)
   (import (scheme base))
-  (export receive)
-  (begin (define-syntax receive
+  (export rec)
+  (begin (define-syntax rec
            (syntax-rules ()
-             ((receive formals expression body ...)
-              (call-with-values (lambda () expression)
-                                (lambda formals body ...)))))))
+             ((rec (name . variables) . body)
+              (letrec ((name (lambda variables . body))) name))
+             ((rec name expression)
+              (letrec ((name expression)) name))))))

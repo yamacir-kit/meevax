@@ -19,45 +19,45 @@
 
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/export_spec.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  class library : public environment
+  struct library : public environment
   {
     template <typename T, typename = void>
-    struct is_library_declaration
+    struct is_declaration
       : public std::false_type
     {};
 
     template <typename T>
-    struct is_library_declaration<T, std::void_t<decltype(std::declval<T>().resolve(std::declval<library &>()))>>
+    struct is_declaration<T, std::void_t<decltype(std::declval<T>().resolve(std::declval<library &>()))>>
       : public std::true_type
     {};
 
     template <typename T>
-    static constexpr auto is_library_declaration_v = is_library_declaration<T>::value;
+    static constexpr auto is_declaration_v = is_declaration<T>::value;
 
-  public:
     let declarations = unit;
 
     let subset = unit;
 
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
-    explicit library(F&& f)
+    explicit library(F f)
     {
-      std::invoke(std::forward<decltype(f)>(f), *this);
+      f(*this);
     }
 
     explicit library(object const&);
 
-    static auto boot() -> void;
+    friend auto boot() -> void;
 
     template <typename T, typename... Ts>
     auto declare(Ts&&... xs) -> decltype(auto)
     {
-      if constexpr (is_library_declaration_v<T>)
+      if constexpr (is_declaration_v<T>)
       {
         return std::decay_t<T>(std::forward<decltype(xs)>(xs)...).resolve(*this);
       }
@@ -82,16 +82,25 @@ inline namespace kernel
   auto operator <<(std::ostream &, library const&) -> std::ostream &;
 
   /*
-     NOTE: In order to improve the usability of the help procedure, it is
-     desirable to sort by library name in lexicographical order.
+     In order to improve the usability of the help procedure, it is desirable
+     to sort by library name in lexicographical order.
   */
-  extern std::map<std::string, library> libraries;
+  auto libraries() -> std::map<std::string, library> &;
 
-  template <typename... Ts>
-  auto define_library(std::string const& name, Ts&&... xs)
+  template <typename T, typename... Ts>
+  auto define(std::string const& name, Ts&&... xs) -> decltype(auto)
   {
-    return libraries.emplace(name, std::forward<decltype(xs)>(xs)...);
+    if constexpr (std::is_same_v<T, library>)
+    {
+      return libraries().emplace(name, std::forward<decltype(xs)>(xs)...);
+    }
+    else
+    {
+      return interaction_environment().as<environment>().define<T>(name, std::forward<decltype(xs)>(xs)...);
+    }
   }
+
+  auto boot() -> void;
 } // namespace kernel
 } // namespace meevax
 

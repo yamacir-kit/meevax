@@ -20,15 +20,15 @@
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/identity.hpp>
+#include <meevax/kernel/number.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
   template <typename Environment>
-  class dynamic_environment
+  struct dynamic_environment
   {
-  protected:
     /*
        The SECD machine, which in its original form was invented by Landin,
        derives its name from the designation of its four pricipal registers:
@@ -71,7 +71,6 @@ inline namespace kernel
     */
     let static inline raise = unit;
 
-  public:
     template <typename... Ts>
     auto apply(object const& f, Ts&&... xs) -> object
     {

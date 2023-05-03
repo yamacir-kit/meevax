@@ -1,9 +1,9 @@
-(import (scheme base)
+(import (meevax macro-transformer)
+        (scheme base)
         (scheme char)
         (scheme process-context)
         (scheme write)
-        (srfi 78)
-        (srfi 211 explicit-renaming))
+        (srfi 78))
 
 (define p1 (make-parameter 1))
 

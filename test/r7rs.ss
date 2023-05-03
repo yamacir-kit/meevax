@@ -1381,37 +1381,37 @@
 
 ; ---- 6.9. --------------------------------------------------------------------
 
-; (check (bytevector? #u8(0 10 5)) => #t)
+(check (bytevector? #u8(0 10 5)) => #t)
 
-; (check (make-bytevector 2 12) => #u8(12 12))
+(check (make-bytevector 2 12) => #u8(12 12))
 
-; (check (bytevector 1 3 5 1 3 5) => #u8(1 3 5 1 3 5))
+(check (bytevector 1 3 5 1 3 5) => #u8(1 3 5 1 3 5))
 
-; (check (bytevector) => #u8())
+(check (bytevector) => #u8())
 
-; (check (bytevector-u8-ref '#u8(1 1 2 3 5 8 13 21) 5) => 8)
+(check (bytevector-u8-ref '#u8(1 1 2 3 5 8 13 21) 5) => 8)
 
-; (check (let ((bv (bytevector 1 2 3 4)))
-;          (bytevector-u8-set! bv 1 3)
-;          bv) => #u8(1 3 3 4))
+(check (let ((bv (bytevector 1 2 3 4)))
+         (bytevector-u8-set! bv 1 3)
+         bv) => #u8(1 3 3 4))
 
-; (define a #u8(1 2 3 4 5))
+(define a #u8(1 2 3 4 5))
 
-; (check (bytevector-copy a 2 4) => #u8(3 4))
+(check (bytevector-copy a 2 4) => #u8(3 4))
 
-; (define a (bytevector 1 2 3 4 5))
+(define a (bytevector 1 2 3 4 5))
 
-; (define b (bytevector 10 20 30 40 50))
+(define b (bytevector 10 20 30 40 50))
 
-; (bytevector-copy! b 1 a 0 2)
+(bytevector-copy! b 1 a 0 2)
 
-; (check b => #u8(10 1 2 40 50))
+(check b => #u8(10 1 2 40 50))
 
-; (check (bytevector-append #u8(0 1 2) #u8(3 4 5)) => #u8(0 1 2 3 4 5))
+(check (bytevector-append #u8(0 1 2) #u8(3 4 5)) => #u8(0 1 2 3 4 5))
 
-; (check (utf8->string #u8(#x41)) => "A")
+(check (utf8->string #u8(#x41)) => "A")
 
-; (check (string->utf8 "λ") => #u8(#xCE #xBB))
+(check (string->utf8 "λ") => #u8(#xCE #xBB))
 
 ; ---- 6.10. -------------------------------------------------------------------
 
@@ -1454,26 +1454,29 @@
                    "HAL")
   => "IBM")
 
-; (check (string-map (lambda (c k)
-;                      ((if (eqv? k #\u) char-upcase char-downcase)
-;                       c))
-;                    "studlycaps xxx"
-;                    "ululululul") => "StUdLyCaPs")
+(check (string-map (lambda (c k)
+                     ((if (eqv? k #\u) char-upcase char-downcase)
+                      c))
+                   "studlycaps xxx"
+                   "ululululul")
+  => "StUdLyCaPs")
 
-; (check (vector-map cadr '#((a b) (d e) (g h))) => #(b e h))
+(check (vector-map cadr '#((a b) (d e) (g h))) => #(b e h))
 
-; (check (vector-map (lambda (n)
-;                      (expt n n))
-;                    '#(1 2 3 4 5)) => (1 4 27 256 3125))
+(check (vector-map (lambda (n)
+                     (expt n n))
+                   '#(1 2 3 4 5))
+  => #(1 4 27 256 3125))
 
-; (check (vector-map + '#(1 2 3) '#(4 5 6 7)) => #(5 7 9))
+(check (vector-map + '#(1 2 3) '#(4 5 6 7)) => #(5 7 9))
 
-; (check (let ((count 0))
-;          (vector-map
-;            (lambda (ignored)
-;              (set! count (+ count 1))
-;              count)
-;            '#(a b))) => #(1 2)) ; or #(2 1)
+(check (let ((count 0))
+         (vector-map
+           (lambda (ignored)
+             (set! count (+ count 1))
+             count)
+           '#(a b)))
+  => #(1 2)) ; or #(2 1)
 
 (check (let ((v (make-vector 5)))
          (for-each (lambda (i)
@@ -1600,4 +1603,4 @@
 
 (check-report)
 
-(exit (check-passed? 404))
+(exit (check-passed? 420))

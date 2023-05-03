@@ -63,8 +63,6 @@ inline namespace kernel
 
   ratio::ratio(std::string const& token, int radix)
   {
-    // std::regex static const pattern { "([+-]?[0-9a-f]+)/([0-9a-f]+)" };
-
     if (mpq_init(value); mpq_set_str(value, token.c_str(), radix))
     {
       mpq_clear(value);

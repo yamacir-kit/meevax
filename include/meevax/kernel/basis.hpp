@@ -17,19 +17,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_BASIS_HPP
 #define INCLUDED_MEEVAX_KERNEL_BASIS_HPP
 
-#include <string_view>
+#include <vector>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  #if __cpp_lib_string_view
-  using script = std::string_view;
-  #else
-  using script = std::experimental::string_view;
-  #endif
-
-  script extern const basis;
+  auto basis() -> std::vector<char const*>;
 } // namespace kernel
 } // namespace meevax
 

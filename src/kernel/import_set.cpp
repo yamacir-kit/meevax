@@ -78,7 +78,7 @@ inline namespace kernel
         {
           return map1([&](let const& identity)
                       {
-                        return make<absolute>(string_to_symbol(car(prefixes).as<symbol>() + identity.as<absolute>().symbol().as<symbol>()),
+                        return make<absolute>(make_symbol(car(prefixes).as<symbol>() + identity.as<absolute>().symbol().as<symbol>()),
                                               identity.as<absolute>().load());
                       },
                       resolve_library(import_set));
@@ -118,7 +118,7 @@ inline namespace kernel
       return rename(cadr(form))
                    (cddr(form));
     }
-    else if (auto iter = libraries.find(lexical_cast<std::string>(form)); iter != std::end(libraries))
+    else if (auto iter = libraries().find(lexical_cast<std::string>(form)); iter != std::end(libraries()))
     {
       return std::get<1>(*iter).resolve();
     }

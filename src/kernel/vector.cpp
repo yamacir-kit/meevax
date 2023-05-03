@@ -16,7 +16,6 @@
 
 #include <numeric>
 
-#include <meevax/algorithm/for_each.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/string.hpp>
@@ -46,9 +45,18 @@ inline namespace kernel
                       std::begin(rhs.objects), std::end(rhs.objects), equal);
   }
 
-  auto operator <<(std::ostream & os, vector const& datum) -> std::ostream &
+  auto operator <<(std::ostream & output, vector const& datum) -> std::ostream &
   {
-    return os << magenta("#(") << for_each(datum.objects) << magenta(")");
+    output << magenta("#(");
+
+    auto whitespace = "";
+
+    for (auto const& each : datum.objects)
+    {
+      output << std::exchange(whitespace, " ") << each;
+    }
+
+    return output << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

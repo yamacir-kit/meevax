@@ -22,11 +22,11 @@
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/profiler.hpp>
-#include <meevax/kernel/type_index.hpp>
 #include <meevax/memory/gc_pointer.hpp>
 #include <meevax/type_traits/is_array_subscriptable.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
+#include <meevax/utility/combination.hpp>
 #include <meevax/utility/demangle.hpp>
 
 namespace meevax

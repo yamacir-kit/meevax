@@ -5,11 +5,8 @@
         (srfi 78))
 
 (define (print . xs)
-  (for-each (lambda (x)
-              (display x))
-            xs)
-  (newline)
-  )
+  (for-each display xs)
+  (newline))
 
 (let ((x (list 'a 'b 'c)))
   (set-cdr! (cddr x) x)

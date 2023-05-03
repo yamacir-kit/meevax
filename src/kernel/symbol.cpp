@@ -24,45 +24,49 @@ inline namespace kernel
 {
   auto operator +(symbol const& a, symbol const& b) -> std::string
   {
-    return a.std_string + b.std_string;
+    return a.name + b.name;
   }
 
-  auto operator ==(symbol const& a, symbol const& b) -> bool { return a.std_string == b.std_string; }
-  auto operator !=(symbol const& a, symbol const& b) -> bool { return a.std_string != b.std_string; }
-  auto operator < (symbol const& a, symbol const& b) -> bool { return a.std_string <  b.std_string; }
-  auto operator <=(symbol const& a, symbol const& b) -> bool { return a.std_string <= b.std_string; }
-  auto operator > (symbol const& a, symbol const& b) -> bool { return a.std_string >  b.std_string; }
-  auto operator >=(symbol const& a, symbol const& b) -> bool { return a.std_string >= b.std_string; }
+  auto operator ==(symbol const& a, symbol const& b) -> bool { return a.name == b.name; }
+  auto operator !=(symbol const& a, symbol const& b) -> bool { return a.name != b.name; }
+  auto operator < (symbol const& a, symbol const& b) -> bool { return a.name <  b.name; }
+  auto operator <=(symbol const& a, symbol const& b) -> bool { return a.name <= b.name; }
+  auto operator > (symbol const& a, symbol const& b) -> bool { return a.name >  b.name; }
+  auto operator >=(symbol const& a, symbol const& b) -> bool { return a.name >= b.name; }
 
   auto operator <<(std::ostream & os, symbol const& datum) -> std::ostream &
   {
-    if (datum.std_string.empty())
+    if (datum.name.empty())
     {
       return os << "||";
     }
-    else if (auto iter = std::find_if(std::begin(datum.std_string), std::end(datum.std_string), [](auto c)
+    else if (auto iter = std::find_if(std::begin(datum.name), std::end(datum.name), [](auto c)
              {
                return std::iscntrl(c) or std::isspace(c);
              });
-             iter != std::end(datum.std_string))
+             iter != std::end(datum.name))
     {
-      return os << cyan("#") << string(datum.std_string);
+      return os << cyan("#") << string(datum.name);
     }
     else
     {
-      return os << datum.std_string;
+      return os << datum.name;
     }
   }
 
-  std::unordered_map<std::string, object> symbols;
-
-  auto string_to_symbol(std::string const& name) -> object const&
+  auto symbols() -> std::unordered_map<std::string, object> &
   {
-    if (auto const iter = symbols.find(name); iter != std::end(symbols))
+    static auto symbols = std::unordered_map<std::string, object>();
+    return symbols;
+  }
+
+  auto make_symbol(std::string const& name) -> object const&
+  {
+    if (auto const iter = symbols().find(name); iter != std::end(symbols()))
     {
       return iter->second;
     }
-    else if (auto const [iter, success] = symbols.emplace(name, make<symbol>(name)); success)
+    else if (auto const [iter, success] = symbols().emplace(name, make<symbol>(name)); success)
     {
       return iter->second;
     }

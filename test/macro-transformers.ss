@@ -1,15 +1,12 @@
-(import (scheme base)
+(import (meevax macro-transformer)
+        (scheme base)
         (scheme cxr)
         (scheme process-context)
         (scheme write)
-        (srfi 78)
-        (only (srfi 211 syntactic-closures) make-syntactic-closure rsc-macro-transformer sc-macro-transformer)
-        (only (srfi 211 explicit-renaming) er-macro-transformer))
+        (srfi 78))
 
 (define (print . xs)
-  (for-each (lambda (x)
-              (display x))
-            xs)
+  (for-each display xs)
   (newline))
 
 ; ---- DEFINE-SYNTAX -----------------------------------------------------------

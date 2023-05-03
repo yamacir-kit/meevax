@@ -25,15 +25,17 @@ auto main() -> int
 
   assert(gc_count == specials_count);
 
-  library::boot();
+  boot();
 
-  symbols.clear();
+  symbols().clear();
 
-  assert(symbols.empty());
+  assert(symbols().empty());
 
   const_cast<object &>(interaction_environment()).reset(); // DIRTY HACK!
 
-  libraries.clear();
+  libraries().clear();
+
+  assert(libraries().empty());
 
   gc.collect();
   gc.collect(); // for vector type
