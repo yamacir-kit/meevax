@@ -35,11 +35,6 @@ inline namespace kernel
     return output << magenta("#,(") << blue("standard-error-port") << magenta(")");
   }
 
-  auto operator <<(std::ostream & output, file_port const& datum) -> std::ostream &
-  {
-    return output << magenta("#,(") << blue("open ") << datum.name << magenta(")");
-  }
-
   auto operator <<(std::ostream & output, string_port const& datum) -> std::ostream &
   {
     return output << magenta("#,(") << blue("string->port ") << string(datum.stringstream.str()) << magenta(")");

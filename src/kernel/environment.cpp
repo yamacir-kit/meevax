@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#include <fstream>
+
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/library.hpp>
 

@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_PORT_HPP
 
-#include <fstream>
-
 #include <meevax/kernel/string.hpp>
 
 namespace meevax
@@ -88,32 +86,6 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, standard_error_port const&) -> std::ostream &;
-
-  struct file_port : public input_textual_port
-                   , public output_textual_port
-  {
-    string const name;
-
-    std::fstream fstream;
-
-    template <typename S, typename... Ts>
-    explicit file_port(S const& name, Ts&&... xs)
-      : name { name }
-      , fstream { name, std::forward<decltype(xs)>(xs)... }
-    {}
-
-    operator std::istream &() override
-    {
-      return fstream;
-    }
-
-    operator std::ostream &() override
-    {
-      return fstream;
-    }
-  };
-
-  auto operator <<(std::ostream &, file_port const&) -> std::ostream &;
 
   struct string_port : public input_textual_port
                      , public output_textual_port

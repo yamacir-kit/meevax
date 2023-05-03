@@ -22,7 +22,6 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/homogeneous_vector.hpp>
 #include <meevax/kernel/number.hpp>
-#include <meevax/kernel/port.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
 
