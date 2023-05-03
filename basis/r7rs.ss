@@ -515,16 +515,14 @@
   (export load))
 
 (define-library (scheme process-context)
-  (import (meevax context)
-          (scheme r5rs continuation)
-          )
+  (import (only (meevax context) emergency-exit)
+          (only (scheme r5rs continuation) exit)
+          (srfi 98))
   (export ; command-line
           exit
           emergency-exit
-          ; get-environment-variable
-          ; get-environment-variables
-          )
-  )
+          get-environment-variable
+          get-environment-variables))
 
 (define-library (scheme time)
   (export current-second

@@ -41,6 +41,7 @@ inline namespace kernel
       R"##(${${PROJECT_NAME}_BASIS_srfi-39.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_srfi-45.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_srfi-78.ss})##",
+      R"##(${${PROJECT_NAME}_BASIS_srfi-98.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_srfi-149.ss})##",
     };
   }

@@ -15,6 +15,7 @@
 */
 
 #include <numeric>
+#include <string_view>
 
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/disassemble.hpp>
@@ -1134,6 +1135,38 @@ inline namespace kernel
         {
           return x;
         }
+      });
+    });
+
+    define<library>("(meevax system)", [](library & library)
+    {
+      library.define<procedure>("get-environment-variable", [](let const& xs)
+      {
+        if (auto s = std::getenv(static_cast<std::string>(xs[0].as<string>()).c_str()))
+        {
+          return make<string>(s);
+        }
+        else
+        {
+          return f;
+        }
+      });
+
+      library.define<procedure>("get-environment-variables", [](let const&)
+      {
+        let alist = unit;
+
+        for (auto iter = environ; *iter; ++iter)
+        {
+          if (auto const position = std::string_view(*iter).find_first_of("="); position != std::string::npos)
+          {
+            alist = cons(cons(make<string>(std::string(*iter, position)),
+                              make<string>(std::string(*iter + position + 1))),
+                         alist);
+          }
+        }
+
+        return alist;
       });
     });
 
