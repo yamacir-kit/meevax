@@ -1,4 +1,5 @@
 (import (scheme base)
+        (scheme case-lambda)
         (scheme char)
         (scheme eval)
         (scheme file)
@@ -109,9 +110,9 @@
 
 (check #(a 10) => #(a 10))
 
-; (check '#u8(64 65) => #u8(64 65))
+(check '#u8(64 65) => #u8(64 65))
 
-; (check #u8(64 65) => #u8(64 65))
+(check #u8(64 65) => #u8(64 65))
 
 (check '#t => #t)
 
@@ -401,12 +402,12 @@
 
 (check (f 12) => "12")
 
-; (parameterize ((radix 2))
-;   (check (f 12) => "1100")
+(parameterize ((radix 2))
+  (check (f 12) => "1100"))
 
 (check (f 12) => "12")
 
-; (check (radix 16) => ???)
+(check (radix 16) => 16)
 
 ; (parameterize ((radix 0))
 ;   (f 12)) ; => error
@@ -688,22 +689,21 @@
                        (set! grid1 j k a))))
              (life-print grid1)))))
 
-(import ; (scheme base)
-        (only (example life) life)
+(import (only (example life) life)
         (rename (prefix (example grid) grid-)
                 (grid-make make-grid)))
 
-; (define grid (make-grid 24 24))
+(define grid (make-grid 24 24))
 
-; (grid-set! grid 1 1 #true)
+(grid-set! grid 1 1 #true)
 
-; (grid-set! grid 2 2 #true)
+(grid-set! grid 2 2 #true)
 
-; (grid-set! grid 3 0 #true)
+(grid-set! grid 3 0 #true)
 
-; (grid-set! grid 3 1 #true)
+(grid-set! grid 3 1 #true)
 
-; (grid-set! grid 3 2 #true)
+(grid-set! grid 3 2 #true)
 
 ; (life grid 80)
 
@@ -1485,18 +1485,20 @@
          v)
   => #(0 1 4 9 16))
 
-; (check (let ((v '()))
-;          (string-for-each
-;            (lambda (c)
-;              (set! v (cons (char->integer c) v)))
-;            "abcde")
-;          v) => #(101 100 99 98 97))
+(check (let ((v '()))
+         (string-for-each
+           (lambda (c)
+             (set! v (cons (char->integer c) v)))
+           "abcde")
+         v)
+  => '(101 100 99 98 97))
 
-; (check (let ((v (make-list 5)))
-;          (vector-for-each
-;            (lambda (i) (list-set! v i (* i i)))
-;            '#(0 1 2 3 4))
-;          v) => (0 1 4 9 16))
+(check (let ((v (make-list 5)))
+         (vector-for-each
+           (lambda (i) (list-set! v i (* i i)))
+           '#(0 1 2 3 4))
+         v)
+  => '(0 1 4 9 16))
 
 (check (call-with-current-continuation
          (lambda (exit)
@@ -1563,7 +1565,7 @@
 ;   (lambda (x)
 ;     (display "something went wrong\n"))
 ;   (lambda ()
-;     (+ 1 (raise 'an-error))))
+;     (+ 1 (raise 'an-error)))) => #,(error "uncaught exception" an-error)
 
 (check (with-exception-handler
          (lambda (con)
@@ -1603,4 +1605,4 @@
 
 (check-report)
 
-(exit (check-passed? 420))
+(exit (check-passed? 426))

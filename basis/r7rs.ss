@@ -73,10 +73,9 @@
           bytevector-append utf8->string string->utf8
 
           ; 6.10. Control features
-          procedure? apply map string-map vector-map for-each
-          ; string-for-each vector-for-each
-          call-with-current-continuation call/cc values call-with-values
-          dynamic-wind
+          procedure? apply map string-map vector-map for-each string-for-each
+          vector-for-each call-with-current-continuation call/cc values
+          call-with-values dynamic-wind
 
           ; 6.11. Exceptions
           with-exception-handler raise raise-continuable error error-object?
@@ -241,6 +240,16 @@
                (list->vector (map f (vector->list x)))
                (list->vector (apply map f (map vector->list (cons x xs))))))
 
+         (define (string-for-each f x . xs)
+           (if (null? xs)
+               (for-each f (string->list x))
+               (apply for-each f (map string->list (cons x xs)))))
+
+         (define (vector-for-each f x . xs)
+           (if (null? xs)
+               (for-each f (vector->list x))
+               (apply for-each f (map vector->list (cons x xs)))))
+
          (define call/cc call-with-current-continuation)
 
          (define error-object-message car)
@@ -334,7 +343,7 @@
              ((case-lambda (params body0 ...) ...)
               (lambda args
                 (let ((len (length args)))
-                  (let-syntax
+                  (letrec-syntax
                     ((cl (syntax-rules ::: ()
                            ((cl)
                             (error "no matching clause"))
