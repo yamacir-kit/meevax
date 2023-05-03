@@ -833,7 +833,7 @@ inline namespace kernel
 
       library.define<procedure>("flush", [](let const& xs)
       {
-        static_cast<std::ostream &>(xs[0].as<output_port>()) << std::flush;
+        xs[0].as<output_port>().flush();
       });
     });
 

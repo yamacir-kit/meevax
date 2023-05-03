@@ -42,6 +42,11 @@ inline namespace kernel
   struct output_port : public virtual port
   {
     virtual operator std::ostream &() = 0;
+
+    virtual auto flush() -> std::ostream &
+    {
+      return static_cast<std::ostream &>(*this) << std::flush;
+    }
   };
 
   struct input_textual_port : public virtual input_port

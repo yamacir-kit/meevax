@@ -14,10 +14,7 @@
    limitations under the License.
 */
 
-#include <ios>
-
 #include <meevax/kernel/port.hpp>
-#include <meevax/kernel/reader.hpp>
 
 namespace meevax
 {
