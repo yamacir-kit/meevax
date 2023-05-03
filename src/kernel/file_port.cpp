@@ -20,6 +20,11 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto file_port::is_open() const -> bool
+  {
+    return fstream.is_open();
+  }
+
   file_port::operator std::istream &()
   {
     return fstream;

@@ -39,6 +39,8 @@ inline namespace kernel
       , fstream { name, std::forward<decltype(xs)>(xs)... }
     {}
 
+    auto is_open() const -> bool override;
+
     operator std::istream &() override;
 
     operator std::ostream &() override;

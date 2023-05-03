@@ -779,14 +779,7 @@ inline namespace kernel
 
       library.define<procedure>("open?", [](let const& xs)
       {
-        if (let const& x = xs[0]; x.is<file_port>())
-        {
-          return x.as<file_port>().fstream.is_open();
-        }
-        else
-        {
-          return x.is_also<port>();
-        }
+        return xs[0].as<port>().is_open();
       });
 
       library.define<procedure>("input-port", []()

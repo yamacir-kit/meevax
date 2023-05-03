@@ -24,7 +24,12 @@ namespace meevax
 inline namespace kernel
 {
   struct port
-  {};
+  {
+    virtual auto is_open() const -> bool
+    {
+      return true;
+    }
+  };
 
   struct textual_port : public virtual port
   {};
