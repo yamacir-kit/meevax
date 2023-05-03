@@ -23,35 +23,29 @@ namespace meevax
 {
 inline namespace kernel
 {
-  #define DEFINE(NAME, STDIO)                                                  \
-  standard_##NAME##_port::standard_##NAME##_port()                             \
-  {                                                                            \
-    copyfmt(STDIO);                                                            \
-    clear(STDIO.rdstate());                                                    \
-    rdbuf(STDIO.rdbuf());                                                      \
-  }                                                                            \
-                                                                               \
-  auto operator <<(std::ostream & os, standard_##NAME##_port const&) -> std::ostream & \
-  {                                                                            \
-    return os << magenta("#,(") << #NAME "-port" << magenta(")");              \
-  }                                                                            \
-                                                                               \
-  let const standard_##NAME = make<standard_##NAME##_port>()
-
-  DEFINE(input,  std::cin );
-  DEFINE(output, std::cout);
-  DEFINE(error,  std::cerr);
-
-  #undef DEFINE
-
-  auto operator <<(std::ostream & os, file_port const& datum) -> std::ostream &
+  auto operator <<(std::ostream & output, standard_input_port const&) -> std::ostream &
   {
-    return os << magenta("#,(") << green("open ") << datum.name << magenta(")");
+    return output << magenta("#,(") << blue("standard-input-port") << magenta(")");
   }
 
-  auto operator <<(std::ostream & os, string_port const& datum) -> std::ostream &
+  auto operator <<(std::ostream & output, standard_output_port const&) -> std::ostream &
   {
-    return os << magenta("#,(") << green("string->port ") << string(datum.str()) << magenta(")");
+    return output << magenta("#,(") << blue("standard-output-port") << magenta(")");
+  }
+
+  auto operator <<(std::ostream & output, standard_error_port const&) -> std::ostream &
+  {
+    return output << magenta("#,(") << blue("standard-error-port") << magenta(")");
+  }
+
+  auto operator <<(std::ostream & output, file_port const& datum) -> std::ostream &
+  {
+    return output << magenta("#,(") << blue("open ") << datum.name << magenta(")");
+  }
+
+  auto operator <<(std::ostream & output, string_port const& datum) -> std::ostream &
+  {
+    return output << magenta("#,(") << blue("string->port ") << string(datum.stringstream.str()) << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

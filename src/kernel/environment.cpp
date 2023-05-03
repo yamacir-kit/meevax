@@ -83,7 +83,7 @@ inline namespace kernel
 
   auto environment::load(std::string const& s) -> void
   {
-    if (auto input = file_port(s); input)
+    if (auto input = std::ifstream(s); input)
     {
       while (not input.eof())
       {

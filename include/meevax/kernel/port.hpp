@@ -25,38 +25,105 @@ namespace meevax
 {
 inline namespace kernel
 {
-  #define DEFINE(NAME, BASE)                                                   \
-  struct NAME##_port : public BASE                                             \
-  {                                                                            \
-    explicit NAME##_port();                                                    \
-  };                                                                           \
-                                                                               \
-  auto operator <<(std::ostream &, NAME##_port const&) -> std::ostream &;      \
-                                                                               \
-  let extern const NAME
+  struct port
+  {};
 
-  DEFINE(standard_input,  std::istream);
-  DEFINE(standard_output, std::ostream);
-  DEFINE(standard_error,  std::ostream);
+  struct textual_port : public virtual port
+  {};
 
-  #undef DEFINE
+  struct binary_port : public virtual port
+  {};
 
-  struct file_port : public std::fstream
+  struct input_port : public virtual port
+  {
+    virtual operator std::istream &() = 0;
+  };
+
+  struct output_port : public virtual port
+  {
+    virtual operator std::ostream &() = 0;
+  };
+
+  struct standard_input_port : public input_port
+                             , public textual_port
+  {
+    operator std::istream &() override
+    {
+      return std::cin;
+    }
+  };
+
+  auto operator <<(std::ostream &, standard_input_port const&) -> std::ostream &;
+
+  struct standard_output_port : public output_port
+                              , public textual_port
+  {
+    operator std::ostream &() override
+    {
+      return std::cout;
+    }
+  };
+
+  auto operator <<(std::ostream &, standard_output_port const&) -> std::ostream &;
+
+  struct standard_error_port : public output_port
+                             , public textual_port
+  {
+    operator std::ostream &() override
+    {
+      return std::cerr;
+    }
+  };
+
+  auto operator <<(std::ostream &, standard_error_port const&) -> std::ostream &;
+
+  struct file_port : public input_port
+                   , public output_port
+                   , public textual_port
   {
     string const name;
 
-    template <typename String, typename... Ts>
-    explicit file_port(String const& name, Ts&&... xs)
-      : std::fstream { name, std::forward<decltype(xs)>(xs)... }
-      , name { name }
+    std::fstream fstream;
+
+    template <typename S, typename... Ts>
+    explicit file_port(S const& name, Ts&&... xs)
+      : name { name }
+      , fstream { name, std::forward<decltype(xs)>(xs)... }
     {}
+
+    operator std::istream &() override
+    {
+      return fstream;
+    }
+
+    operator std::ostream &() override
+    {
+      return fstream;
+    }
   };
 
   auto operator <<(std::ostream &, file_port const&) -> std::ostream &;
 
-  struct string_port : public std::stringstream
+  struct string_port : public input_port
+                     , public output_port
+                     , public textual_port
   {
-    using std::stringstream::stringstream;
+    std::stringstream stringstream;
+
+    template <typename... Ts>
+    explicit string_port(Ts&&... xs)
+      : stringstream { std::forward<decltype(xs)>(xs)... }
+    {}
+
+    operator std::istream &() override
+    {
+      return stringstream;
+    }
+
+    operator std::ostream &() override
+    {
+      return stringstream;
+    }
   };
 
   auto operator <<(std::ostream &, string_port const&) -> std::ostream &;
