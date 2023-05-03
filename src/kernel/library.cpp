@@ -127,7 +127,7 @@ inline namespace kernel
 
     define<library>("(meevax context)", [](library & library)
     {
-      library.define<procedure>("emergency-exit", [](let const& xs) -> object
+      library.define<procedure>("emergency-exit", [](let const& xs)
       {
         if (let const& status = car(xs); status.is<null>())
         {
@@ -141,6 +141,18 @@ inline namespace kernel
         {
           throw static_cast<int>(status.as<exact_integer>());
         }
+      });
+
+      library.define<procedure>("command-line", [](let const&)
+      {
+        let xs = unit;
+
+        for (auto&& each : interaction_environment().as<environment>().command_line)
+        {
+          xs = cons(make<string>(each), xs);
+        }
+
+        return reverse(xs);
       });
     });
 

@@ -515,10 +515,10 @@
   (export load))
 
 (define-library (scheme process-context)
-  (import (only (meevax context) emergency-exit)
+  (import (only (meevax context) command-line emergency-exit)
           (only (meevax continuation) exit)
           (srfi 98))
-  (export ; command-line
+  (export command-line
           exit
           emergency-exit
           get-environment-variable
