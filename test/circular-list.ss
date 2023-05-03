@@ -5,9 +5,7 @@
         (srfi 78))
 
 (define (print . xs)
-  (for-each (lambda (x)
-              (display x))
-            xs)
+  (for-each display xs)
   (newline))
 
 (let ((x (list 'a 'b 'c)))

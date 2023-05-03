@@ -2,6 +2,7 @@
   (import (meevax character)
           (meevax core)
           (meevax comparator)
+          (meevax continuation)
           (rename (meevax environment)
                   (load %load))
           (meevax function)
@@ -535,9 +536,6 @@
                  (for-each f x))
                (begin (apply map f x xs)
                       (if #f #f))))
-
-         (define (call-with-current-continuation f)
-           (call-with-current-continuation! f))
 
          (define (call-with-input-file path f) ; r7rs incompatible (values unsupported)
            (define (call-with-input-port port f)

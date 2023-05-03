@@ -516,7 +516,7 @@
 
 (define-library (scheme process-context)
   (import (only (meevax context) emergency-exit)
-          (only (scheme r5rs continuation) exit)
+          (only (meevax continuation) exit)
           (srfi 98))
   (export ; command-line
           exit

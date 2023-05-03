@@ -46,3 +46,62 @@
                    (assq x cache)))
                 (lambda (x y)
                   (identifier=? use-env x use-env y)))))))
+
+(define-library (meevax continuation)
+  (import (only (meevax context) emergency-exit)
+          (only (meevax comparator) eq?)
+          (only (meevax core) begin call-with-current-continuation! current define if install lambda)
+          (only (meevax pair) caar car cdar cdr cons pair?)
+          (only (meevax list) null?))
+
+  (export call-with-current-continuation dynamic-wind exit)
+
+  (begin (define (current-dynamic-extents)
+           (current 0))
+
+         (define (install-dynamic-extents! extents)
+           (install 0 extents))
+
+         (define (dynamic-wind before thunk after) ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
+           (before)
+           (install-dynamic-extents! (cons (cons before after)
+                                           (current-dynamic-extents)))
+           ((lambda (result) ; TODO let-values
+              (install-dynamic-extents! (cdr (current-dynamic-extents)))
+              (after)
+              result) ; TODO (apply values result)
+            (thunk)))
+
+         (define (call-with-current-continuation procedure)
+           (define (windup! from to)
+             (install-dynamic-extents! from)
+             (if (eq? from to)
+                 #t
+                 (if (null? from)
+                     (begin (windup! from (cdr to))
+                            ((caar to)))
+                     (if (null? to)
+                         (begin ((cdar from))
+                                (windup! (cdr from) to))
+                         (begin ((cdar from))
+                                (windup! (cdr from)
+                                         (cdr to))
+                                ((caar to))))))
+             (install-dynamic-extents! to))
+           ((lambda (dynamic-extents)
+              (call-with-current-continuation!
+                (lambda (continue)
+                  (procedure (lambda (x)
+                               (windup! (current-dynamic-extents) dynamic-extents)
+                               (continue x))))))
+            (current-dynamic-extents)))
+
+         (define (exit . xs)
+           (letrec ((for-each (lambda (f x)
+                                (if (pair? x)
+                                    (begin (f (car x))
+                                           (for-each f (cdr x)))))))
+             (for-each (lambda (before/after)
+                         ((cdr before/after)))
+                       (current-dynamic-extents))
+             (emergency-exit . xs)))))

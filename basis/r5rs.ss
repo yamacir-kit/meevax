@@ -1,54 +1,8 @@
-(define-library (scheme r5rs continuation)
-  (import (meevax context)
-          (only (meevax core) call-with-current-continuation! current define-syntax install)
-          (except (scheme r4rs) call-with-current-continuation))
-
-  (export call-with-current-continuation dynamic-wind exit)
-
-  ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
-
-  (begin (define (current-dynamic-extents)
-           (current 0))
-
-         (define (install-dynamic-extents! extents)
-           (install 0 extents))
-
-         (define (dynamic-wind before thunk after)
-           (before)
-           (install-dynamic-extents! (cons (cons before after)
-                                           (current-dynamic-extents)))
-           ((lambda (result) ; TODO let-values
-              (install-dynamic-extents! (cdr (current-dynamic-extents)))
-              (after)
-              result) ; TODO (apply values result)
-            (thunk)))
-
-         (define (call-with-current-continuation procedure)
-           (define (windup! from to)
-             (install-dynamic-extents! from)
-             (cond ((eq? from to))
-                   ((null? from) (windup! from (cdr to)) ((caar to)))
-                   ((null? to) ((cdar from)) (windup! (cdr from) to))
-                   (else ((cdar from)) (windup! (cdr from) (cdr to)) ((caar to))))
-             (install-dynamic-extents! to))
-           (let ((dynamic-extents (current-dynamic-extents)))
-             (call-with-current-continuation!
-               (lambda (continue)
-                 (procedure (lambda (x)
-                              (windup! (current-dynamic-extents) dynamic-extents)
-                              (continue x)))))))
-
-         (define (exit . normally?)
-           (for-each (lambda (before/after)
-                       ((cdr before/after)))
-                     (current-dynamic-extents))
-           (apply emergency-exit normally?))))
-
 (define-library (scheme r5rs)
-  (import (only (meevax core) define-syntax let-syntax letrec-syntax)
+  (import (only (meevax continuation) dynamic-wind)
+          (only (meevax core) define-syntax let-syntax letrec-syntax)
           (only (meevax environment) environment eval)
-          (except (scheme r4rs) call-with-current-continuation)
-          (except (scheme r5rs continuation) exit)
+          (scheme r4rs)
           (srfi 149))
 
   (export quote lambda if set! cond case and or let let* letrec begin do delay
