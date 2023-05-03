@@ -525,8 +525,9 @@
           get-environment-variables))
 
 (define-library (scheme time)
-  (export current-second
-          current-jiffy
-          jiffies-per-second
-          )
-  )
+  (import (only (meevax time) current-jiffy jiffies-per-second)
+          (only (scheme base) / define inexact))
+  (export current-second current-jiffy jiffies-per-second)
+  (begin (define (current-second)
+           (inexact (/ (current-jiffy)
+                       (jiffies-per-second))))))

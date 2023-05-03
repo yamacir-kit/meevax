@@ -14,12 +14,14 @@
    limitations under the License.
 */
 
+#include <chrono>
 #include <numeric>
 #include <string_view>
 
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/disassemble.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/utility/debug.hpp>
 
 namespace meevax
 {
@@ -1179,6 +1181,19 @@ inline namespace kernel
         }
 
         return alist;
+      });
+    });
+
+    define<library>("(meevax time)", [](library & library)
+    {
+      library.define<procedure>("current-jiffy", [](let const&)
+      {
+        return make<exact_integer>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+      });
+
+      library.define<procedure>("jiffies-per-second", [](let const&)
+      {
+        return make<exact_integer>(std::chrono::high_resolution_clock::period::den);
       });
     });
 
