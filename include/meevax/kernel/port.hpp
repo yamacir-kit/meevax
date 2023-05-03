@@ -44,8 +44,17 @@ inline namespace kernel
     virtual operator std::ostream &() = 0;
   };
 
-  struct standard_input_port : public input_port
-                             , public textual_port
+  struct input_textual_port : public virtual input_port
+                            , public virtual textual_port
+  {
+  };
+
+  struct output_textual_port : public virtual output_port
+                             , public virtual textual_port
+  {
+  };
+
+  struct standard_input_port : public input_textual_port
   {
     operator std::istream &() override
     {
@@ -55,8 +64,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, standard_input_port const&) -> std::ostream &;
 
-  struct standard_output_port : public output_port
-                              , public textual_port
+  struct standard_output_port : public output_textual_port
   {
     operator std::ostream &() override
     {
@@ -66,8 +74,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, standard_output_port const&) -> std::ostream &;
 
-  struct standard_error_port : public output_port
-                             , public textual_port
+  struct standard_error_port : public output_textual_port
   {
     operator std::ostream &() override
     {
@@ -77,9 +84,8 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, standard_error_port const&) -> std::ostream &;
 
-  struct file_port : public input_port
-                   , public output_port
-                   , public textual_port
+  struct file_port : public input_textual_port
+                   , public output_textual_port
   {
     string const name;
 
@@ -104,9 +110,8 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, file_port const&) -> std::ostream &;
 
-  struct string_port : public input_port
-                     , public output_port
-                     , public textual_port
+  struct string_port : public input_textual_port
+                     , public output_textual_port
   {
     std::stringstream stringstream;
 
