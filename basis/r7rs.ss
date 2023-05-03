@@ -444,28 +444,22 @@
   (export environment eval))
 
 (define-library (scheme file)
-  (import (only (scheme r5rs) call-with-input-file call-with-output-file open-input-file open-output-file)
-          (only (scheme base) define parameterize current-input-port current-output-port))
-  (export call-with-input-file
-          call-with-output-file
-          with-input-from-file
-          with-output-to-file
-          open-input-file
-          ; open-binary-input-file
-          open-output-file
-          ; open-binary-output-file
-          ; file-exists?
-          ; delete-file
-          )
+  (import (only (meevax file) delete-file file-exists?)
+          (only (scheme r5rs) call-with-input-file call-with-output-file open-input-file open-output-file)
+          (only (scheme base) current-input-port current-output-port define parameterize))
+
+  (export call-with-input-file call-with-output-file delete-file file-exists?
+          ; open-binary-input-file open-binary-output-file
+          open-input-file open-output-file with-input-from-file
+          with-output-to-file)
+
   (begin (define (with-input-from-file path thunk)
            (parameterize ((current-input-port (open-input-file path)))
              (thunk)))
 
          (define (with-output-to-file path thunk)
            (parameterize ((current-output-port (open-output-file path)))
-             (thunk)))
-         )
-  )
+             (thunk)))))
 
 (define-library (scheme read)
   (import (rename (meevax read)

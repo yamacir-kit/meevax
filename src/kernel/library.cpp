@@ -15,6 +15,7 @@
 */
 
 #include <chrono>
+#include <filesystem>
 #include <numeric>
 #include <string_view>
 
@@ -278,6 +279,29 @@ inline namespace kernel
       library.define<procedure>("ieee-float?", []()
       {
         return std::numeric_limits<double>::is_iec559;
+      });
+    });
+
+    define<library>("(meevax file)", [](library & library)
+    {
+      library.define<procedure>("file-exists?", [](let const& xs)
+      {
+        return std::filesystem::exists(static_cast<std::string>(xs[0].as<string>()));
+      });
+
+      library.define<procedure>("delete-file", [](let const& xs)
+      {
+        try
+        {
+          if (not std::filesystem::remove(static_cast<std::string>(xs[0].as<string>())))
+          {
+            throw file_error(make<string>("failed to remove file"), xs[0]);
+          }
+        }
+        catch (std::filesystem::filesystem_error const& e)
+        {
+          throw file_error(make<string>(e.what()), xs[0]);
+        }
       });
     });
 
