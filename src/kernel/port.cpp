@@ -155,25 +155,5 @@ inline namespace kernel
   {
     return output << magenta("#,(") << blue("standard-error-port") << magenta(")");
   }
-
-  string_port::operator std::istream &()
-  {
-    return stringstream;
-  }
-
-  string_port::operator std::ostream &()
-  {
-    return stringstream;
-  }
-
-  string_port::operator std::string()
-  {
-    return stringstream.str();
-  }
-
-  auto operator <<(std::ostream & output, string_port const& datum) -> std::ostream &
-  {
-    return output << magenta("#,(") << blue("string->port ") << string(datum.stringstream.str()) << magenta(")");
-  }
 } // namespace kernel
 } // namespace meevax
