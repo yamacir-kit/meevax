@@ -87,7 +87,7 @@ inline namespace kernel
   {
     try
     {
-      return interaction_environment().as<environment>().read(*this);
+      return interaction_environment().as<environment>().read(static_cast<std::istream &>(*this));
     }
     catch (eof const&)
     {
@@ -98,6 +98,12 @@ inline namespace kernel
   auto textual_input_port::get_ready() -> bool
   {
     return static_cast<bool>(static_cast<std::istream &>(*this));
+  }
+
+  textual_input_port::operator std::string()
+  {
+    return std::string(std::istreambuf_iterator<char>(*this),
+                       std::istreambuf_iterator<char>());
   }
 
   auto textual_output_port::put(character const& c) -> void
@@ -113,6 +119,11 @@ inline namespace kernel
   auto textual_output_port::write(object const& x) -> void
   {
     static_cast<std::ostream &>(*this) << x;
+  }
+
+  auto textual_output_port::write_simple(object const& x) -> void
+  {
+    meevax::write_simple(static_cast<std::ostream &>(*this), x);
   }
 
   standard_input_port::operator std::istream &()
@@ -153,6 +164,11 @@ inline namespace kernel
   string_port::operator std::ostream &()
   {
     return stringstream;
+  }
+
+  string_port::operator std::string()
+  {
+    return stringstream.str();
   }
 
   auto operator <<(std::ostream & output, string_port const& datum) -> std::ostream &

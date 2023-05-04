@@ -1080,18 +1080,7 @@ inline namespace kernel
 
       library.define<procedure>("port->string", [](let const& xs)
       {
-        if (xs[0].is<string_port>())
-        {
-          return make<string>(xs[0].as<string_port>().stringstream.str());
-        }
-        else
-        {
-          return make<string>(
-            std::string(
-              std::istreambuf_iterator<char>(
-                static_cast<std::istream &>(xs[0].as<input_port>())),
-              {}));
-        }
+        return make<string>(static_cast<std::string>(xs[0].as<textual_input_port>()));
       });
     });
 
@@ -1496,7 +1485,7 @@ inline namespace kernel
 
       library.define<procedure>("write-simple", [](let const& xs)
       {
-        write_simple(static_cast<std::ostream &>(xs[1].as<output_port>()), xs[0]);
+        xs[1].as<textual_output_port>().write_simple(xs[0]);
       });
     });
 

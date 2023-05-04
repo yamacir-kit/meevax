@@ -60,6 +60,8 @@ inline namespace kernel
     auto peek() -> object;
 
     auto read() -> object;
+
+    virtual operator std::string();
   };
 
   struct textual_output_port : public virtual textual_port, public virtual output_port
@@ -69,6 +71,8 @@ inline namespace kernel
     auto put(string const&) -> void;
 
     auto write(object const&) -> void;
+
+    auto write_simple(object const&) -> void;
   };
 
   struct standard_input_port : public textual_input_port
@@ -104,6 +108,8 @@ inline namespace kernel
     operator std::istream &() override;
 
     operator std::ostream &() override;
+
+    operator std::string() override;
   };
 
   auto operator <<(std::ostream &, string_port const&) -> std::ostream &;
