@@ -20,6 +20,11 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto file_port::close() -> void
+  {
+    return fstream.close();
+  }
+
   auto file_port::is_open() const -> bool
   {
     return fstream.is_open();

@@ -804,7 +804,7 @@ inline namespace kernel
 
       library.define<procedure>("close", [](let const& xs)
       {
-        xs[0].as<file_port>().fstream.close();
+        xs[0].as<port>().close();
       });
 
       library.define<procedure>("string->port", [](let const& xs)
@@ -833,63 +833,27 @@ inline namespace kernel
     {
       library.define<procedure>("get-char", [](let const& xs)
       {
-        try
-        {
-          auto const g = static_cast<std::istream &>(xs[0].as<input_port>()).tellg();
-          let c = make<character>(get_codepoint(static_cast<std::istream &>(xs[0].as<input_port>())));
-          static_cast<std::istream &>(xs[0].as<input_port>()).seekg(g);
-          return c;
-        }
-        catch (eof const&)
-        {
-          return eof_object;
-        }
+        return xs[0].as<textual_input_port>().peek();
       });
 
       library.define<procedure>("get-char!", [](let const& xs)
       {
-        try
-        {
-          return make<character>(get_codepoint(static_cast<std::istream &>(xs[0].as<input_port>())));
-        }
-        catch (eof const&)
-        {
-          return eof_object;
-        }
+        return xs[0].as<textual_input_port>().get();
       });
 
       library.define<procedure>("get-ready?", [](let const& xs)
       {
-        return static_cast<bool>(static_cast<std::istream &>(xs[0].as<input_port>()));
+        return xs[0].as<textual_input_port>().get_ready();
       });
 
       library.define<procedure>("get-string!", [](let const& xs)
       {
-        auto read_k = [](string & string, std::size_t k, std::istream & is)
-        {
-          for (std::size_t i = 0; i < k and is; ++i)
-          {
-            string.codepoints.emplace_back(get_codepoint(is));
-          }
-        };
-
-        let const s = make<string>();
-
-        read_k(s.as<string>(), xs[0].as<exact_integer>(), static_cast<std::istream &>(xs[1].as<input_port>()));
-
-        return s;
+        return xs[1].as<textual_input_port>().get(xs[0].as<exact_integer>());
       });
 
       library.define<procedure>("read", [](let const& xs)
       {
-        try
-        {
-          return interaction_environment().as<environment>().read(static_cast<std::istream &>(xs[0].as<input_port>()));
-        }
-        catch (eof const&)
-        {
-          return eof_object;
-        }
+        return xs[0].as<textual_input_port>().read();
       });
     });
 
@@ -1517,17 +1481,17 @@ inline namespace kernel
     {
       library.define<procedure>("put-char", [](let const& xs)
       {
-        static_cast<std::ostream &>(xs[1].as<output_port>()) << static_cast<std::string>(xs[0].as<character>());
+        xs[1].as<textual_output_port>().put(xs[0].as<character>());
       });
 
       library.define<procedure>("put-string", [](let const& xs)
       {
-        static_cast<std::ostream &>(xs[1].as<output_port>()) << static_cast<std::string>(xs[0].as<string>());
+        xs[1].as<textual_output_port>().put(xs[0].as<string>());
       });
 
       library.define<procedure>("write", [](let const& xs)
       {
-        static_cast<std::ostream &>(xs[1].as<output_port>()) << xs[0];
+        xs[1].as<textual_output_port>().write(xs[0]);
       });
 
       library.define<procedure>("write-simple", [](let const& xs)

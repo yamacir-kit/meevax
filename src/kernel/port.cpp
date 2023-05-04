@@ -14,15 +14,120 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/eof.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/port.hpp>
+#include <meevax/kernel/reader.hpp> // get_codepoint
 
 namespace meevax
 {
 inline namespace kernel
 {
+  auto port::is_open() const -> bool
+  {
+    return true;
+  }
+
+  auto port::close() -> void
+  {}
+
+  auto output_port::flush() -> std::ostream &
+  {
+    return static_cast<std::ostream &>(*this) << std::flush;
+  }
+
+  auto textual_input_port::get() -> object
+  {
+    try
+    {
+      return make<character>(get_codepoint(static_cast<std::istream &>(*this)));
+    }
+    catch (eof const&)
+    {
+      return eof_object;
+    }
+  }
+
+  auto textual_input_port::get(std::size_t size) -> object
+  {
+    try
+    {
+      auto s = string();
+
+      for (std::size_t i = 0; i < size; ++i)
+      {
+        s.codepoints.emplace_back(get_codepoint(*this));
+      }
+
+      return make(s);
+    }
+    catch (eof const&)
+    {
+      return eof_object;
+    }
+  }
+
+  auto textual_input_port::peek() -> object
+  {
+    try
+    {
+      auto g = static_cast<std::istream &>(*this).tellg();
+      let c = make<character>(get_codepoint(static_cast<std::istream &>(*this)));
+      static_cast<std::istream &>(*this).seekg(g);
+      return c;
+    }
+    catch (eof const&)
+    {
+      return eof_object;
+    }
+  }
+
+  auto textual_input_port::read() -> object
+  {
+    try
+    {
+      return interaction_environment().as<environment>().read(*this);
+    }
+    catch (eof const&)
+    {
+      return eof_object;
+    }
+  }
+
+  auto textual_input_port::get_ready() -> bool
+  {
+    return static_cast<bool>(static_cast<std::istream &>(*this));
+  }
+
+  auto textual_output_port::put(character const& c) -> void
+  {
+    static_cast<std::ostream &>(*this) << static_cast<std::string>(c);
+  }
+
+  auto textual_output_port::put(string const& s) -> void
+  {
+    static_cast<std::ostream &>(*this) << static_cast<std::string>(s);
+  }
+
+  auto textual_output_port::write(object const& x) -> void
+  {
+    static_cast<std::ostream &>(*this) << x;
+  }
+
+  standard_input_port::operator std::istream &()
+  {
+    return std::cin;
+  }
+
   auto operator <<(std::ostream & output, standard_input_port const&) -> std::ostream &
   {
     return output << magenta("#,(") << blue("standard-input-port") << magenta(")");
+  }
+
+  standard_output_port::operator std::ostream &()
+  {
+    return std::cout;
   }
 
   auto operator <<(std::ostream & output, standard_output_port const&) -> std::ostream &
@@ -30,9 +135,24 @@ inline namespace kernel
     return output << magenta("#,(") << blue("standard-output-port") << magenta(")");
   }
 
+  standard_error_port::operator std::ostream &()
+  {
+    return std::cerr;
+  }
+
   auto operator <<(std::ostream & output, standard_error_port const&) -> std::ostream &
   {
     return output << magenta("#,(") << blue("standard-error-port") << magenta(")");
+  }
+
+  string_port::operator std::istream &()
+  {
+    return stringstream;
+  }
+
+  string_port::operator std::ostream &()
+  {
+    return stringstream;
   }
 
   auto operator <<(std::ostream & output, string_port const& datum) -> std::ostream &

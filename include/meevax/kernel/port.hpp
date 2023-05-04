@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_PORT_HPP
 
+#include <meevax/kernel/character.hpp>
 #include <meevax/kernel/string.hpp>
 
 namespace meevax
@@ -25,10 +26,9 @@ inline namespace kernel
 {
   struct port
   {
-    virtual auto is_open() const -> bool
-    {
-      return true;
-    }
+    virtual auto is_open() const -> bool;
+
+    virtual auto close() -> void;
   };
 
   struct textual_port : public virtual port
@@ -44,56 +44,55 @@ inline namespace kernel
 
   struct output_port : public virtual port
   {
+    virtual auto flush() -> std::ostream &;
+
     virtual operator std::ostream &() = 0;
-
-    virtual auto flush() -> std::ostream &
-    {
-      return static_cast<std::ostream &>(*this) << std::flush;
-    }
   };
 
-  struct input_textual_port : public virtual input_port
-                            , public virtual textual_port
+  struct textual_input_port : public virtual textual_port, public virtual input_port
   {
+    auto get() -> object;
+
+    auto get(std::size_t) -> object;
+
+    auto get_ready() -> bool;
+
+    auto peek() -> object;
+
+    auto read() -> object;
   };
 
-  struct output_textual_port : public virtual output_port
-                             , public virtual textual_port
+  struct textual_output_port : public virtual textual_port, public virtual output_port
   {
+    auto put(character const&) -> void;
+
+    auto put(string const&) -> void;
+
+    auto write(object const&) -> void;
   };
 
-  struct standard_input_port : public input_textual_port
+  struct standard_input_port : public textual_input_port
   {
-    operator std::istream &() override
-    {
-      return std::cin;
-    }
+    operator std::istream &() override;
   };
 
   auto operator <<(std::ostream &, standard_input_port const&) -> std::ostream &;
 
-  struct standard_output_port : public output_textual_port
+  struct standard_output_port : public textual_output_port
   {
-    operator std::ostream &() override
-    {
-      return std::cout;
-    }
+    operator std::ostream &() override;
   };
 
   auto operator <<(std::ostream &, standard_output_port const&) -> std::ostream &;
 
-  struct standard_error_port : public output_textual_port
+  struct standard_error_port : public textual_output_port
   {
-    operator std::ostream &() override
-    {
-      return std::cerr;
-    }
+    operator std::ostream &() override;
   };
 
   auto operator <<(std::ostream &, standard_error_port const&) -> std::ostream &;
 
-  struct string_port : public input_textual_port
-                     , public output_textual_port
+  struct string_port : public textual_input_port, public textual_output_port
   {
     std::stringstream stringstream;
 
@@ -102,15 +101,9 @@ inline namespace kernel
       : stringstream { std::forward<decltype(xs)>(xs)... }
     {}
 
-    operator std::istream &() override
-    {
-      return stringstream;
-    }
+    operator std::istream &() override;
 
-    operator std::ostream &() override
-    {
-      return stringstream;
-    }
+    operator std::ostream &() override;
   };
 
   auto operator <<(std::ostream &, string_port const&) -> std::ostream &;

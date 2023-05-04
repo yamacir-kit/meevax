@@ -26,8 +26,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct file_port : public input_textual_port
-                   , public output_textual_port
+  struct file_port : public textual_input_port, public textual_output_port
   {
     string const name;
 
@@ -38,6 +37,8 @@ inline namespace kernel
       : name { name }
       , fstream { name, std::forward<decltype(xs)>(xs)... }
     {}
+
+    auto close() -> void override;
 
     auto is_open() const -> bool override;
 
