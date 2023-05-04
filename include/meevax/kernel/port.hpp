@@ -38,15 +38,11 @@ inline namespace kernel
   {};
 
   struct input_port : public virtual port
-  {
-    virtual operator std::istream &() = 0;
-  };
+  {};
 
   struct output_port : public virtual port
   {
-    virtual auto flush() -> std::ostream &;
-
-    virtual operator std::ostream &() = 0;
+    virtual auto flush() -> void = 0;
   };
 
   struct textual_input_port : public virtual textual_port, public virtual input_port
@@ -61,11 +57,15 @@ inline namespace kernel
 
     auto read() -> object;
 
+    explicit virtual operator std::istream &() = 0;
+
     explicit virtual operator std::string();
   };
 
   struct textual_output_port : public virtual textual_port, public virtual output_port
   {
+    auto flush() -> void override;
+
     auto put(character const&) -> void;
 
     auto put(string const&) -> void;
@@ -73,6 +73,16 @@ inline namespace kernel
     auto write(object const&) -> void;
 
     auto write_simple(object const&) -> void;
+
+    explicit virtual operator std::ostream &() = 0;
+  };
+
+  struct binary_input_port : public virtual binary_port, public virtual input_port
+  {
+  };
+
+  struct binary_output_port : public virtual binary_port, public virtual output_port
+  {
   };
 
   struct standard_input_port : public textual_input_port

@@ -32,11 +32,6 @@ inline namespace kernel
   auto port::close() -> void
   {}
 
-  auto output_port::flush() -> std::ostream &
-  {
-    return static_cast<std::ostream &>(*this) << std::flush;
-  }
-
   auto textual_input_port::get() -> object
   {
     try
@@ -57,7 +52,7 @@ inline namespace kernel
 
       for (std::size_t i = 0; i < size; ++i)
       {
-        s.codepoints.emplace_back(get_codepoint(*this));
+        s.codepoints.emplace_back(get_codepoint(static_cast<std::istream &>(*this)));
       }
 
       return make(s);
@@ -102,8 +97,13 @@ inline namespace kernel
 
   textual_input_port::operator std::string()
   {
-    return std::string(std::istreambuf_iterator<char>(*this),
+    return std::string(std::istreambuf_iterator<char>(static_cast<std::istream &>(*this)),
                        std::istreambuf_iterator<char>());
+  }
+
+  auto textual_output_port::flush() -> void
+  {
+    static_cast<std::ostream &>(*this) << std::flush;
   }
 
   auto textual_output_port::put(character const& c) -> void
