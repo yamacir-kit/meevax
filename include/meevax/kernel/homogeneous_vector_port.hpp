@@ -17,6 +17,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_HOMOGENEOUS_VECTOR_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_HOMOGENEOUS_VECTOR_PORT_HPP
 
+#include <deque>
+
+#include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/homogeneous_vector.hpp>
 #include <meevax/kernel/port.hpp>
 
@@ -27,16 +30,52 @@ inline namespace kernel
   template <typename T>
   struct homogeneous_vector_port : public binary_input_port, public binary_output_port
   {
-    std::vector<T> vector;
+    std::deque<T> deque;
 
     homogeneous_vector_port() = default;
 
     explicit homogeneous_vector_port(homogeneous_vector<T> const& v)
-      : vector(std::begin(v.values), std::end(v.values))
+      : deque(std::begin(v.values), std::end(v.values))
     {}
 
     auto flush() -> void override
     {}
+
+    auto get() -> object
+    {
+      if (deque.empty())
+      {
+        return eof_object;
+      }
+      else
+      {
+        let const x = make<exact_integer>(deque.front());
+        deque.pop_front();
+        return x;
+      }
+    }
+
+    auto get_ready() const -> bool
+    {
+      return not deque.empty();
+    }
+
+    auto peek() const -> object
+    {
+      if (deque.empty())
+      {
+        return eof_object;
+      }
+      else
+      {
+        return make<exact_integer>(deque.front());
+      }
+    }
+
+    auto put(object const& x)
+    {
+      deque.push_back(homogeneous_vector<T>::input_cast(x));
+    }
   };
 
   template <typename T>

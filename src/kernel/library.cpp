@@ -828,7 +828,8 @@ inline namespace kernel
 
       library.define<procedure>("get-output-u8vector", [](let const& xs)
       {
-        return make<u8vector>(xs[0].as<u8vector_port>().vector);
+        return make<u8vector>(std::begin(xs[0].as<u8vector_port>().deque),
+                              std::end(xs[0].as<u8vector_port>().deque));
       });
 
       library.define<procedure>("eof-object?", [](let const& xs)
@@ -857,6 +858,21 @@ inline namespace kernel
       library.define<procedure>("get-char!", [](let const& xs)
       {
         return xs[0].as<textual_input_port>().get();
+      });
+
+      library.define<procedure>("get-u8", [](let const& xs)
+      {
+        return xs[0].as<u8vector_port>().get();
+      });
+
+      library.define<procedure>("peek-u8", [](let const& xs)
+      {
+        return xs[0].as<u8vector_port>().peek();
+      });
+
+      library.define<procedure>("get-u8-ready?", [](let const& xs)
+      {
+        return xs[0].as<u8vector_port>().get_ready();
       });
 
       library.define<procedure>("get-ready?", [](let const& xs)
@@ -1489,6 +1505,11 @@ inline namespace kernel
       library.define<procedure>("put-string", [](let const& xs)
       {
         xs[1].as<textual_output_port>().put(xs[0].as<string>());
+      });
+
+      library.define<procedure>("put-u8", [](let const& xs)
+      {
+        xs[1].as<u8vector_port>().put(xs[0]);
       });
 
       library.define<procedure>("write", [](let const& xs)

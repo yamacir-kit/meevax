@@ -2,13 +2,13 @@
   (import (only (meevax error) error-object? read-error? file-error?)
           (only (meevax macro-transformer) er-macro-transformer)
           (only (meevax number) exact-integer? exact-integer-square-root)
-          (only (meevax port) binary-port? textual-port? port? input-port open? output-port flush error-port eof-object)
-          (only (meevax read) get-char get-char! get-ready?)
+          (only (meevax port) binary-port? eof-object error-port flush get-output-u8vector input-port open-u8vector open? output-port port? textual-port?)
+          (prefix (meevax read) %)
           (only (meevax string) string-copy! vector->string)
           (only (meevax vector homogeneous) u8vector? make-u8vector u8vector u8vector-length u8vector-ref u8vector-set! u8vector-copy u8vector-copy! u8vector-append u8vector->string string->u8vector)
           (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
           (only (meevax version) features)
-          (only (meevax write) put-char put-string)
+          (prefix (meevax write) %)
           (scheme r5rs)
           (srfi 6)
           (srfi 9)
@@ -86,15 +86,15 @@
           port? input-port-open? output-port-open? current-input-port
           current-output-port current-error-port close-port close-input-port
           close-output-port open-input-string open-output-string
-          get-output-string
-          ; open-input-bytevector open-output-bytevector get-output-bytevector
-          read-char peek-char
+          get-output-string open-input-bytevector open-output-bytevector
+          get-output-bytevector read-char peek-char
           ; read-line
-          eof-object? eof-object char-ready?
-          ; read-string read-u8 peek-u8 u8-ready? read-bytevector
+          eof-object? eof-object char-ready? read-string read-u8 peek-u8
+          u8-ready?
+          ; read-bytevector
           ; read-bytevector!
-          newline write-char write-string
-          ; write-u8 write-bytevector
+          newline write-char write-string write-u8
+          ; write-bytevector
           flush-output-port
 
           ; 6.14. System interface
@@ -297,31 +297,64 @@
                  ((output-port? x) (close-output-port x))
                  (else (if #f #f))))
 
+         (define open-input-bytevector open-u8vector)
+
+         (define open-output-bytevector open-u8vector)
+
+         (define get-output-bytevector get-output-u8vector)
+
          (define (read-char . x)
-           (get-char! (if (pair? x)
-                          (car x)
-                          (current-input-port))))
-
-         (define (peek-char . x)
-           (get-char (if (pair? x)
-                         (car x)
-                         (current-input-port))))
-
-         (define (char-ready? . x)
-           (get-ready? (if (pair? x)
+           (%get-char! (if (pair? x)
                            (car x)
                            (current-input-port))))
 
-         (define (write-char x . port)
-           (put-char x (if (pair? port)
-                           (car port)
-                           (current-output-port))))
+         (define (peek-char . x)
+           (%get-char (if (pair? x)
+                          (car x)
+                          (current-input-port))))
 
-         (define (write-string string . xs)
+         (define (char-ready? . x)
+           (%get-ready? (if (pair? x)
+                            (car x)
+                            (current-input-port))))
+
+         (define (read-string size . x)
+           (%get-string! size
+                         (if (pair? x)
+                             (car x)
+                             (current-input-port))))
+
+         (define (read-u8 . x)
+           (%get-u8 (if (pair? x)
+                        (car x)
+                        (current-input-port))))
+
+         (define (peek-u8 . x)
+           (%peek-u8 (if (pair? x)
+                         (car x)
+                         (current-input-port))))
+
+         (define (u8-ready? . x)
+           (%get-u8-ready? (if (pair? x)
+                               (car x)
+                               (current-input-port))))
+
+         (define (write-char x . xs)
+           (%put-char x (if (pair? xs)
+                            (car xs)
+                            (current-output-port))))
+
+         (define (write-string x . xs)
            (case (length xs)
-             ((0)  (put-string string (current-output-port)))
-             ((1)  (put-string string (car xs)))
-             (else (put-string (apply string-copy string (cdr xs)) (car xs)))))
+             ((0) (%put-string x (current-output-port)))
+             ((1) (%put-string x (car xs)))
+             (else (%put-string (apply string-copy x (cdr xs))
+                                (car xs)))))
+
+         (define (write-u8 x . xs)
+           (%put-u8 x (if (pair? xs)
+                          (car xs)
+                          (current-output-port))))
 
          (define (newline . port)
            (apply write-char #\newline port))
@@ -471,8 +504,7 @@
              (thunk)))))
 
 (define-library (scheme read)
-  (import (rename (meevax read)
-                  (read %read))
+  (import (prefix (meevax read) %)
           (scheme base))
   (export read)
   (begin (define (read . x)

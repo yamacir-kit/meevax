@@ -34,10 +34,10 @@ inline namespace kernel
 
     homogeneous_vector() = default;
 
-    explicit homogeneous_vector(object const& xs)
+    explicit homogeneous_vector(object xs)
       : values(length(xs))
     {
-      std::generate(std::begin(values), std::end(values), [xs = xs]() mutable
+      std::generate(std::begin(values), std::end(values), [&]() mutable
       {
         let const x = car(xs);
         xs = cdr(xs);
@@ -67,6 +67,13 @@ inline namespace kernel
     explicit homogeneous_vector(std::vector<T> const& v)
       : values(v.data(), v.size())
     {}
+
+    template <typename Iterator>
+    explicit homogeneous_vector(Iterator begin, Iterator end)
+      : values(std::distance(begin, end))
+    {
+      std::copy(begin, end, std::begin(values));
+    }
 
     static auto tag() -> auto const&
     {
