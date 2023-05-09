@@ -44,4 +44,3 @@ inline namespace kernel
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_STRING_PORT_HPP
-
