@@ -809,10 +809,15 @@ inline namespace kernel
         xs[0].as<port>().close();
       });
 
-      library.define<procedure>("string->port", [](let const& xs)
+      library.define<procedure>("open-string", [](let const& xs)
       {
         return xs.is<pair>() ? make<string_port>(xs[0].as<string>())
                              : make<string_port>();
+      });
+
+      library.define<procedure>("get-output-string", [](let const& xs)
+      {
+        return make<string>(xs[0].as<string_port>().stringstream.str());
       });
 
       library.define<procedure>("open-u8vector", [](let const& xs)
@@ -1089,11 +1094,6 @@ inline namespace kernel
                       });
 
         return make(s);
-      });
-
-      library.define<procedure>("port->string", [](let const& xs)
-      {
-        return make<string>(static_cast<std::string>(xs[0].as<textual_input_port>()));
       });
     });
 

@@ -58,8 +58,6 @@ inline namespace kernel
     auto read() -> object;
 
     explicit virtual operator std::istream &() = 0;
-
-    explicit virtual operator std::string();
   };
 
   struct textual_output_port : public virtual textual_port, public virtual output_port

@@ -95,12 +95,6 @@ inline namespace kernel
     return static_cast<bool>(static_cast<std::istream &>(*this));
   }
 
-  textual_input_port::operator std::string()
-  {
-    return std::string(std::istreambuf_iterator<char>(static_cast<std::istream &>(*this)),
-                       std::istreambuf_iterator<char>());
-  }
-
   auto textual_output_port::flush() -> void
   {
     static_cast<std::ostream &>(*this) << std::flush;

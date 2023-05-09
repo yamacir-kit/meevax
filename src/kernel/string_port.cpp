@@ -30,14 +30,9 @@ inline namespace kernel
     return stringstream;
   }
 
-  string_port::operator std::string()
-  {
-    return stringstream.str();
-  }
-
   auto operator <<(std::ostream & output, string_port const& datum) -> std::ostream &
   {
-    return output << magenta("#,(") << blue("string->port ") << string(datum.stringstream.str()) << magenta(")");
+    return output << magenta("#,(") << blue("open-string ") << string(datum.stringstream.str()) << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

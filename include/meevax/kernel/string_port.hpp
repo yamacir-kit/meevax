@@ -35,8 +35,6 @@ inline namespace kernel
     operator std::istream &() override;
 
     operator std::ostream &() override;
-
-    explicit operator std::string() override;
   };
 
   auto operator <<(std::ostream &, string_port const&) -> std::ostream &;
