@@ -304,14 +304,14 @@
          (define get-output-bytevector get-output-u8vector)
 
          (define (read-char . x)
-           (%get-char! (if (pair? x)
-                           (car x)
-                           (current-input-port))))
-
-         (define (peek-char . x)
            (%get-char (if (pair? x)
                           (car x)
                           (current-input-port))))
+
+         (define (peek-char . x)
+           (%peek-char (if (pair? x)
+                           (car x)
+                           (current-input-port))))
 
          (define (char-ready? . x)
            (%get-ready? (if (pair? x)

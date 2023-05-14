@@ -852,12 +852,17 @@ inline namespace kernel
     {
       library.define<procedure>("get-char", [](let const& xs)
       {
+        return xs[0].as<textual_input_port>().get();
+      });
+
+      library.define<procedure>("peek-char", [](let const& xs)
+      {
         return xs[0].as<textual_input_port>().peek();
       });
 
-      library.define<procedure>("get-char!", [](let const& xs)
+      library.define<procedure>("get-ready?", [](let const& xs)
       {
-        return xs[0].as<textual_input_port>().get();
+        return xs[0].as<textual_input_port>().get_ready();
       });
 
       library.define<procedure>("get-u8", [](let const& xs)
@@ -873,11 +878,6 @@ inline namespace kernel
       library.define<procedure>("get-u8-ready?", [](let const& xs)
       {
         return xs[0].as<u8vector_port>().get_ready();
-      });
-
-      library.define<procedure>("get-ready?", [](let const& xs)
-      {
-        return xs[0].as<textual_input_port>().get_ready();
       });
 
       library.define<procedure>("get-string!", [](let const& xs)
