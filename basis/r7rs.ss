@@ -90,9 +90,8 @@
           get-output-bytevector read-char peek-char
           ; read-line
           eof-object? eof-object char-ready? read-string read-u8 peek-u8
-          u8-ready? read-bytevector
-          ; read-bytevector!
-          newline write-char write-string write-u8
+          u8-ready? read-bytevector read-bytevector! newline write-char
+          write-string write-u8
           ; write-bytevector
           flush-output-port
 
@@ -343,6 +342,24 @@
                           (if (pair? xs)
                               (car xs)
                               (current-input-port))))
+
+         (define (read-bytevector! x . xs)
+           (let* ((port (if (pair? xs)
+                            (car xs)
+                            (current-input-port)))
+                  (start (if (and (pair? xs)
+                                  (pair? (cdr xs)))
+                             (cadr xs)
+                             0))
+                  (end (if (and (pair? xs)
+                                (pair? (cdr xs))
+                                (pair? (cddr xs)))
+                           (caddr xs)
+                           (bytevector-length x))))
+             (let ((v (read-bytevector (- end start) port)))
+               (if (eof-object? v)
+                   (eof-object)
+                   (bytevector-copy! x start v)))))
 
          (define (write-char x . xs)
            (%put-char x (if (pair? xs)

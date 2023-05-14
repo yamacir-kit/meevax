@@ -37,6 +37,11 @@
     (check (read-u8 input) => 5)
     (check (u8-ready? input) => #f)))
 
+(let ((a (open-input-bytevector #u8(1 2 3 4 5)))
+      (b (bytevector 10 20 30 40 50)))
+  (read-bytevector! b a 1 4)
+  (check b => #u8(10 1 2 3 50)))
+
 (check-report)
 
-(exit (check-passed? 22))
+(exit (check-passed? 23))
