@@ -1514,7 +1514,12 @@ inline namespace kernel
 
       library.define<procedure>("put-u8", [](let const& xs)
       {
-        xs[1].as<u8vector_port>().put(xs[0]);
+        xs[1].as<u8vector_port>().put(xs[0].as<exact_integer>());
+      });
+
+      library.define<procedure>("put-u8vector", [](let const& xs)
+      {
+        xs[1].as<binary_output_port>().put(xs[0].as<u8vector>());
       });
 
       library.define<procedure>("write", [](let const& xs)

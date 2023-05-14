@@ -18,6 +18,8 @@
 #define INCLUDED_MEEVAX_KERNEL_PORT_HPP
 
 #include <meevax/kernel/character.hpp>
+#include <meevax/kernel/homogeneous_vector.hpp>
+#include <meevax/kernel/number.hpp>
 #include <meevax/kernel/string.hpp>
 
 namespace meevax
@@ -90,7 +92,9 @@ inline namespace kernel
 
   struct binary_output_port : public virtual binary_port, public virtual output_port
   {
-    virtual auto put(object const&) -> void = 0;
+    virtual auto put(exact_integer const&) -> void = 0;
+
+    virtual auto put(u8vector const&) -> void = 0;
   };
 
   struct standard_input_port : public textual_input_port

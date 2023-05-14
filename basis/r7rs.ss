@@ -91,9 +91,7 @@
           ; read-line
           eof-object? eof-object char-ready? read-string read-u8 peek-u8
           u8-ready? read-bytevector read-bytevector! newline write-char
-          write-string write-u8
-          ; write-bytevector
-          flush-output-port
+          write-string write-u8 write-bytevector flush-output-port
 
           ; 6.14. System interface
           features)
@@ -344,10 +342,7 @@
                               (current-input-port))))
 
          (define (read-bytevector! x . xs)
-           (let* ((port (if (pair? xs)
-                            (car xs)
-                            (current-input-port)))
-                  (start (if (and (pair? xs)
+           (let* ((start (if (and (pair? xs)
                                   (pair? (cdr xs)))
                              (cadr xs)
                              0))
@@ -355,11 +350,14 @@
                                 (pair? (cdr xs))
                                 (pair? (cddr xs)))
                            (caddr xs)
-                           (bytevector-length x))))
-             (let ((v (read-bytevector (- end start) port)))
-               (if (eof-object? v)
-                   (eof-object)
-                   (bytevector-copy! x start v)))))
+                           (bytevector-length x)))
+                  (v (read-bytevector (- end start)
+                                      (if (pair? xs)
+                                          (car xs)
+                                          (current-input-port)))))
+             (if (eof-object? v)
+                 (eof-object)
+                 (bytevector-copy! x start v))))
 
          (define (write-char x . xs)
            (%put-char x (if (pair? xs)
@@ -367,23 +365,32 @@
                             (current-output-port))))
 
          (define (write-string x . xs)
-           (case (length xs)
-             ((0) (%put-string x (current-output-port)))
-             ((1) (%put-string x (car xs)))
-             (else (%put-string (apply string-copy x (cdr xs))
-                                (car xs)))))
+           (%put-string (if (< 1 (length x))
+                            (apply string-copy x (cdr xs))
+                            x)
+                        (if (pair? xs)
+                            (car xs)
+                            (current-output-port))))
 
          (define (write-u8 x . xs)
            (%put-u8 x (if (pair? xs)
                           (car xs)
                           (current-output-port))))
 
-         (define (newline . port)
-           (apply write-char #\newline port))
+         (define (write-bytevector x . xs)
+           (%put-u8vector (if (< 1 (length xs))
+                              (apply bytevector-copy x (cdr xs))
+                              x)
+                          (if (pair? xs)
+                              (car xs)
+                              (current-output-port))))
 
-         (define (flush-output-port . port)
-           (flush (if (pair? port)
-                      (car port)
+         (define (newline . xs)
+           (apply write-char #\newline xs))
+
+         (define (flush-output-port . xs)
+           (flush (if (pair? xs)
+                      (car xs)
                       (current-output-port))))))
 
 (define-library (scheme lazy)

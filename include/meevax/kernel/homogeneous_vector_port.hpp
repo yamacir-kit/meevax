@@ -86,9 +86,16 @@ inline namespace kernel
       }
     }
 
-    auto put(object const& x) -> void override
+    auto put(exact_integer const& x) -> void override
     {
-      deque.push_back(homogeneous_vector<T>::input_cast(x));
+      deque.push_back(static_cast<T>(x));
+    }
+
+    auto put(u8vector const& v) -> void override
+    {
+      std::copy(std::begin(v.values),
+                std::end(v.values),
+                std::back_inserter(deque));
     }
   };
 
