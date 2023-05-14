@@ -303,41 +303,41 @@
 
          (define get-output-bytevector get-output-u8vector)
 
-         (define (read-char . x)
-           (%get-char (if (pair? x)
-                          (car x)
+         (define (read-char . xs)
+           (%get-char (if (pair? xs)
+                          (car xs)
                           (current-input-port))))
 
-         (define (peek-char . x)
-           (%peek-char (if (pair? x)
-                           (car x)
+         (define (peek-char . xs)
+           (%peek-char (if (pair? xs)
+                           (car xs)
                            (current-input-port))))
 
-         (define (char-ready? . x)
-           (%get-ready? (if (pair? x)
-                            (car x)
+         (define (char-ready? . xs)
+           (%get-char-ready? (if (pair? xs)
+                                 (car xs)
+                                 (current-input-port))))
+
+         (define (read-string x . xs)
+           (%get-string x
+                        (if (pair? xs)
+                            (car xs)
                             (current-input-port))))
 
-         (define (read-string size . x)
-           (%get-string! size
-                         (if (pair? x)
-                             (car x)
-                             (current-input-port))))
-
-         (define (read-u8 . x)
-           (%get-u8 (if (pair? x)
-                        (car x)
+         (define (read-u8 . xs)
+           (%get-u8 (if (pair? xs)
+                        (car xs)
                         (current-input-port))))
 
-         (define (peek-u8 . x)
-           (%peek-u8 (if (pair? x)
-                         (car x)
+         (define (peek-u8 . xs)
+           (%peek-u8 (if (pair? xs)
+                         (car xs)
                          (current-input-port))))
 
-         (define (u8-ready? . x)
-           (%get-ready? (if (pair? x)
-                            (car x)
-                            (current-input-port))))
+         (define (u8-ready? . xs)
+           (%get-u8-ready? (if (pair? xs)
+                               (car xs)
+                               (current-input-port))))
 
          (define (write-char x . xs)
            (%put-char x (if (pair? xs)

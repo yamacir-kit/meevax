@@ -4,7 +4,7 @@
           (only (meevax macro-transformer) er-macro-transformer)
           (only (meevax number) exact-integer? expt exact inexact ratio? ratio-numerator ratio-denominator)
           (only (meevax port) input-port output-port)
-          (only (meevax read) get-ready?)
+          (prefix (meevax read) %)
           (only (meevax string) string-copy)
           (only (meevax vector) vector-fill!)
           (scheme r4rs essential)
@@ -164,6 +164,6 @@
              (set! %current-output-port previous-output-port)))
 
          (define (char-ready? . port)
-           (get-ready? (if (pair? port)
-                           (car port)
-                           (current-input-port))))))
+           (%get-char-ready? (if (pair? port)
+                                 (car port)
+                                 (current-input-port))))))

@@ -41,7 +41,7 @@ inline namespace kernel
     auto flush() -> void override
     {}
 
-    auto get() -> object
+    auto get() -> object override
     {
       if (deque.empty())
       {
@@ -60,7 +60,7 @@ inline namespace kernel
       return not deque.empty();
     }
 
-    auto peek() const -> object
+    auto peek() const -> object override
     {
       if (deque.empty())
       {
@@ -72,7 +72,7 @@ inline namespace kernel
       }
     }
 
-    auto put(object const& x)
+    auto put(object const& x) -> void override
     {
       deque.push_back(homogeneous_vector<T>::input_cast(x));
     }

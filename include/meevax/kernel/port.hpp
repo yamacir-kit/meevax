@@ -38,9 +38,7 @@ inline namespace kernel
   {};
 
   struct input_port : public virtual port
-  {
-    virtual auto get_ready() const -> bool = 0;
-  };
+  {};
 
   struct output_port : public virtual port
   {
@@ -53,7 +51,7 @@ inline namespace kernel
 
     auto get(std::size_t) -> object;
 
-    auto get_ready() const -> bool override;
+    auto get_ready() const -> bool;
 
     auto peek() -> object;
 
@@ -81,10 +79,16 @@ inline namespace kernel
 
   struct binary_input_port : public virtual binary_port, public virtual input_port
   {
+    virtual auto get() -> object = 0;
+
+    virtual auto get_ready() const -> bool = 0;
+
+    virtual auto peek() const -> object = 0;
   };
 
   struct binary_output_port : public virtual binary_port, public virtual output_port
   {
+    virtual auto put(object const&) -> void = 0;
   };
 
   struct standard_input_port : public textual_input_port
