@@ -87,11 +87,10 @@
           current-output-port current-error-port close-port close-input-port
           close-output-port open-input-string open-output-string
           get-output-string open-input-bytevector open-output-bytevector
-          get-output-bytevector read-char peek-char
-          ; read-line
-          eof-object? eof-object char-ready? read-string read-u8 peek-u8
-          u8-ready? read-bytevector read-bytevector! newline write-char
-          write-string write-u8 write-bytevector flush-output-port
+          get-output-bytevector read-char peek-char read-line eof-object?
+          eof-object char-ready? read-string read-u8 peek-u8 u8-ready?
+          read-bytevector read-bytevector! newline write-char write-string
+          write-u8 write-bytevector flush-output-port
 
           ; 6.14. System interface
           features)
@@ -308,6 +307,11 @@
            (%peek-char (if (pair? xs)
                            (car xs)
                            (current-input-port))))
+
+         (define (read-line . xs)
+           (%get-line (if (pair? xs)
+                          (car xs)
+                          (current-input-port))))
 
          (define (char-ready? . xs)
            (%get-char-ready? (if (pair? xs)

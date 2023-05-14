@@ -53,6 +53,8 @@ inline namespace kernel
 
     auto get(std::size_t) -> object;
 
+    auto get_line() -> object;
+
     auto get_ready() const -> bool;
 
     auto peek() -> object;

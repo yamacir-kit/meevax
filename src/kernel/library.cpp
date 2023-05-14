@@ -860,6 +860,11 @@ inline namespace kernel
         return xs[0].as<textual_input_port>().get_ready();
       });
 
+      library.define<procedure>("get-line", [](let const& xs)
+      {
+        return xs[0].as<textual_input_port>().get_line();
+      });
+
       library.define<procedure>("get-string", [](let const& xs)
       {
         return xs[1].as<textual_input_port>().get(xs[0].as<exact_integer>());
@@ -1514,7 +1519,7 @@ inline namespace kernel
 
       library.define<procedure>("put-u8", [](let const& xs)
       {
-        xs[1].as<u8vector_port>().put(xs[0].as<exact_integer>());
+        xs[1].as<binary_output_port>().put(xs[0].as<exact_integer>());
       });
 
       library.define<procedure>("put-u8vector", [](let const& xs)

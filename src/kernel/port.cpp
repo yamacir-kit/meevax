@@ -63,6 +63,23 @@ inline namespace kernel
     }
   }
 
+  auto textual_input_port::get_line() -> object
+  {
+    if (auto s = std::string(); std::getline(static_cast<std::istream &>(*this), s).eof())
+    {
+      return eof_object;
+    }
+    else
+    {
+      return make<string>(s);
+    }
+  }
+
+  auto textual_input_port::get_ready() const -> bool
+  {
+    return static_cast<bool>(static_cast<std::istream const&>(*this));
+  }
+
   auto textual_input_port::peek() -> object
   {
     try
@@ -88,11 +105,6 @@ inline namespace kernel
     {
       return eof_object;
     }
-  }
-
-  auto textual_input_port::get_ready() const -> bool
-  {
-    return static_cast<bool>(static_cast<std::istream const&>(*this));
   }
 
   auto textual_output_port::flush() -> void
