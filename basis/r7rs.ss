@@ -335,9 +335,9 @@
                          (current-input-port))))
 
          (define (u8-ready? . x)
-           (%get-u8-ready? (if (pair? x)
-                               (car x)
-                               (current-input-port))))
+           (%get-ready? (if (pair? x)
+                            (car x)
+                            (current-input-port))))
 
          (define (write-char x . xs)
            (%put-char x (if (pair? xs)

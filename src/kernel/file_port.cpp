@@ -35,6 +35,11 @@ inline namespace kernel
     return fstream;
   }
 
+  file_port::operator std::istream const&() const
+  {
+    return fstream;
+  }
+
   file_port::operator std::ostream &()
   {
     return fstream;

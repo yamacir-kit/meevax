@@ -25,6 +25,11 @@ inline namespace kernel
     return stringstream;
   }
 
+  string_port::operator std::istream const&() const
+  {
+    return stringstream;
+  }
+
   string_port::operator std::ostream &()
   {
     return stringstream;

@@ -34,6 +34,8 @@ inline namespace kernel
 
     operator std::istream &() override;
 
+    operator std::istream const&() const override;
+
     operator std::ostream &() override;
   };
 

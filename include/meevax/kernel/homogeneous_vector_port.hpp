@@ -55,7 +55,7 @@ inline namespace kernel
       }
     }
 
-    auto get_ready() const -> bool
+    auto get_ready() const -> bool override
     {
       return not deque.empty();
     }

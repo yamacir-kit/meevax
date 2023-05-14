@@ -90,9 +90,9 @@ inline namespace kernel
     }
   }
 
-  auto textual_input_port::get_ready() -> bool
+  auto textual_input_port::get_ready() const -> bool
   {
-    return static_cast<bool>(static_cast<std::istream &>(*this));
+    return static_cast<bool>(static_cast<std::istream const&>(*this));
   }
 
   auto textual_output_port::flush() -> void
@@ -121,6 +121,11 @@ inline namespace kernel
   }
 
   standard_input_port::operator std::istream &()
+  {
+    return std::cin;
+  }
+
+  standard_input_port::operator std::istream const&() const
   {
     return std::cin;
   }
