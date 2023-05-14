@@ -90,8 +90,7 @@
           get-output-bytevector read-char peek-char
           ; read-line
           eof-object? eof-object char-ready? read-string read-u8 peek-u8
-          u8-ready?
-          ; read-bytevector
+          u8-ready? read-bytevector
           ; read-bytevector!
           newline write-char write-string write-u8
           ; write-bytevector
@@ -338,6 +337,12 @@
            (%get-u8-ready? (if (pair? xs)
                                (car xs)
                                (current-input-port))))
+
+         (define (read-bytevector x . xs)
+           (%get-u8vector x
+                          (if (pair? xs)
+                              (car xs)
+                              (current-input-port))))
 
          (define (write-char x . xs)
            (%put-char x (if (pair? xs)

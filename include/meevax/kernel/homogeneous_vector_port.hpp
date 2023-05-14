@@ -55,6 +55,20 @@ inline namespace kernel
       }
     }
 
+    auto get(std::size_t size) -> object override
+    {
+      if (deque.size() < size)
+      {
+        return eof_object;
+      }
+      else
+      {
+        let const v =  make<homogeneous_vector<T>>(std::begin(deque), std::next(std::begin(deque), size));
+        deque.erase(std::begin(deque), std::next(std::begin(deque), size));
+        return v;
+      }
+    }
+
     auto get_ready() const -> bool override
     {
       return not deque.empty();

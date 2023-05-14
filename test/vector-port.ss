@@ -28,6 +28,15 @@
     (check (peek-u8 input) => (eof-object))
     (check (read-u8 input) => (eof-object))))
 
+(let ((input (open-input-bytevector #u8(0 1 2 3 4 5))))
+  (check (u8-ready? input) => #t)
+  (let ((v (read-bytevector 4 input)))
+    (check v => #u8(0 1 2 3))
+    (check (u8-ready? input) => #t)
+    (check (read-u8 input) => 4)
+    (check (read-u8 input) => 5)
+    (check (u8-ready? input) => #f)))
+
 (check-report)
 
-(exit (check-passed? 16))
+(exit (check-passed? 22))

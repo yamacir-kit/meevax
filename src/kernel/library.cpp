@@ -885,6 +885,11 @@ inline namespace kernel
         return xs[0].as<binary_input_port>().peek();
       });
 
+      library.define<procedure>("get-u8vector", [](let const& xs)
+      {
+        return xs[1].as<binary_input_port>().get(xs[0].as<exact_integer>());
+      });
+
       library.define<procedure>("read", [](let const& xs)
       {
         return xs[0].as<textual_input_port>().read();

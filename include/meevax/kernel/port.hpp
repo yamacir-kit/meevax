@@ -81,6 +81,8 @@ inline namespace kernel
   {
     virtual auto get() -> object = 0;
 
+    virtual auto get(std::size_t) -> object = 0;
+
     virtual auto get_ready() const -> bool = 0;
 
     virtual auto peek() const -> object = 0;
