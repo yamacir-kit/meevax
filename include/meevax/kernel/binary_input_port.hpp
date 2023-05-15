@@ -19,6 +19,7 @@
 
 #include <meevax/kernel/binary_port.hpp>
 #include <meevax/kernel/input_port.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {

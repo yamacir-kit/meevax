@@ -19,6 +19,7 @@
 #include <numeric>
 
 #include <meevax/kernel/basis.hpp>
+#include <meevax/kernel/binary_input_file_port.hpp>
 #include <meevax/kernel/disassemble.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
@@ -813,6 +814,11 @@ inline namespace kernel
       library.define<procedure>("open-output-file", [](let const& xs)
       {
         return make<output_file_port>(xs[0].as<string>());
+      });
+
+      library.define<procedure>("open-binary-input-file", [](let const& xs)
+      {
+        return make<binary_input_file_port>(xs[0].as<string>());
       });
 
       library.define<procedure>("close", [](let const& xs)

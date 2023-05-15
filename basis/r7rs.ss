@@ -519,12 +519,13 @@
   (export environment eval))
 
 (define-library (scheme file)
-  (import (only (meevax file) delete-file file-exists?)
+  (import (only (meevax file) delete-file file-exists? open-binary-input-file)
           (only (scheme r5rs) call-with-input-file call-with-output-file open-input-file open-output-file)
           (only (scheme base) current-input-port current-output-port define parameterize))
 
   (export call-with-input-file call-with-output-file delete-file file-exists?
-          ; open-binary-input-file open-binary-output-file
+          open-binary-input-file
+          ; open-binary-output-file
           open-input-file open-output-file with-input-from-file
           with-output-to-file)
 
