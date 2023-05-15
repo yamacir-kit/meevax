@@ -17,11 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_PORT_HPP
 
-#include <meevax/kernel/character.hpp>
-#include <meevax/kernel/homogeneous_vector.hpp>
-#include <meevax/kernel/number.hpp>
-#include <meevax/kernel/string.hpp>
-
 namespace meevax
 {
 inline namespace kernel
@@ -32,95 +27,6 @@ inline namespace kernel
 
     virtual auto close() -> void;
   };
-
-  struct textual_port : public virtual port
-  {};
-
-  struct binary_port : public virtual port
-  {};
-
-  struct input_port : public virtual port
-  {};
-
-  struct output_port : public virtual port
-  {
-    virtual auto flush() -> void = 0;
-  };
-
-  struct textual_input_port : public virtual textual_port, public virtual input_port
-  {
-    auto get() -> object;
-
-    auto get(std::size_t) -> object;
-
-    auto get_line() -> object;
-
-    auto get_ready() const -> bool;
-
-    auto peek() -> object;
-
-    auto read() -> object;
-
-    explicit virtual operator std::istream &() = 0;
-
-    explicit virtual operator std::istream const&() const = 0;
-  };
-
-  struct textual_output_port : public virtual textual_port, public virtual output_port
-  {
-    auto flush() -> void override;
-
-    auto put(character const&) -> void;
-
-    auto put(string const&) -> void;
-
-    auto write(object const&) -> void;
-
-    auto write_simple(object const&) -> void;
-
-    explicit virtual operator std::ostream &() = 0;
-  };
-
-  struct binary_input_port : public virtual binary_port, public virtual input_port
-  {
-    virtual auto get() -> object = 0;
-
-    virtual auto get(std::size_t) -> object = 0;
-
-    virtual auto get_ready() const -> bool = 0;
-
-    virtual auto peek() const -> object = 0;
-  };
-
-  struct binary_output_port : public virtual binary_port, public virtual output_port
-  {
-    virtual auto put(exact_integer const&) -> void = 0;
-
-    virtual auto put(u8vector const&) -> void = 0;
-  };
-
-  struct standard_input_port : public textual_input_port
-  {
-    operator std::istream &() override;
-
-    operator std::istream const&() const override;
-  };
-
-  auto operator <<(std::ostream &, standard_input_port const&) -> std::ostream &;
-
-  struct standard_output_port : public textual_output_port
-  {
-    operator std::ostream &() override;
-  };
-
-  auto operator <<(std::ostream &, standard_output_port const&) -> std::ostream &;
-
-  struct standard_error_port : public textual_output_port
-  {
-    operator std::ostream &() override;
-  };
-
-  auto operator <<(std::ostream &, standard_error_port const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

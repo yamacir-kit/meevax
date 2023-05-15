@@ -14,31 +14,27 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/string.hpp>
-#include <meevax/kernel/string_port.hpp>
+#ifndef INCLUDED_MEEVAX_KERNEL_BINARY_INPUT_PORT_HPP
+#define INCLUDED_MEEVAX_KERNEL_BINARY_INPUT_PORT_HPP
+
+#include <meevax/kernel/binary_port.hpp>
+#include <meevax/kernel/input_port.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  string_port::operator std::istream &()
+  struct binary_input_port : public virtual binary_port, public virtual input_port
   {
-    return stringstream;
-  }
+    virtual auto get() -> object = 0;
 
-  string_port::operator std::istream const&() const
-  {
-    return stringstream;
-  }
+    virtual auto get(std::size_t) -> object = 0;
 
-  string_port::operator std::ostream &()
-  {
-    return stringstream;
-  }
+    virtual auto get_ready() const -> bool = 0;
 
-  auto operator <<(std::ostream & output, string_port const& datum) -> std::ostream &
-  {
-    return output << magenta("#,(") << blue("open-string ") << string(datum.stringstream.str()) << magenta(")");
-  }
+    virtual auto peek() -> object = 0;
+  };
 } // namespace kernel
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_KERNEL_BINARY_INPUT_PORT_HPP

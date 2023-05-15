@@ -14,31 +14,35 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/string.hpp>
-#include <meevax/kernel/string_port.hpp>
+#include <meevax/kernel/textual_output_port.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  string_port::operator std::istream &()
+  auto textual_output_port::flush() -> void
   {
-    return stringstream;
+    static_cast<std::ostream &>(*this) << std::flush;
   }
 
-  string_port::operator std::istream const&() const
+  auto textual_output_port::put(character const& c) -> void
   {
-    return stringstream;
+    static_cast<std::ostream &>(*this) << static_cast<std::string>(c);
   }
 
-  string_port::operator std::ostream &()
+  auto textual_output_port::put(string const& s) -> void
   {
-    return stringstream;
+    static_cast<std::ostream &>(*this) << static_cast<std::string>(s);
   }
 
-  auto operator <<(std::ostream & output, string_port const& datum) -> std::ostream &
+  auto textual_output_port::write(object const& x) -> void
   {
-    return output << magenta("#,(") << blue("open-string ") << string(datum.stringstream.str()) << magenta(")");
+    static_cast<std::ostream &>(*this) << x;
+  }
+
+  auto textual_output_port::write_simple(object const& x) -> void
+  {
+    meevax::write_simple(static_cast<std::ostream &>(*this), x);
   }
 } // namespace kernel
 } // namespace meevax

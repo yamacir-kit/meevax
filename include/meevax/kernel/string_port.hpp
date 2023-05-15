@@ -17,7 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_STRING_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_STRING_PORT_HPP
 
-#include <meevax/kernel/port.hpp>
+#include <meevax/kernel/textual_input_port.hpp>
+#include <meevax/kernel/textual_output_port.hpp>
 
 namespace meevax
 {

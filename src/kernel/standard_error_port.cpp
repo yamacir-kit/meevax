@@ -14,31 +14,20 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/string.hpp>
-#include <meevax/kernel/string_port.hpp>
+#include <meevax/kernel/standard_error_port.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  string_port::operator std::istream &()
+  standard_error_port::operator std::ostream &()
   {
-    return stringstream;
+    return std::cerr;
   }
 
-  string_port::operator std::istream const&() const
+  auto operator <<(std::ostream & output, standard_error_port const&) -> std::ostream &
   {
-    return stringstream;
-  }
-
-  string_port::operator std::ostream &()
-  {
-    return stringstream;
-  }
-
-  auto operator <<(std::ostream & output, string_port const& datum) -> std::ostream &
-  {
-    return output << magenta("#,(") << blue("open-string ") << string(datum.stringstream.str()) << magenta(")");
+    return output << magenta("#,(") << blue("standard-error") << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

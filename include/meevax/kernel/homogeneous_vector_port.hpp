@@ -19,9 +19,9 @@
 
 #include <deque>
 
+#include <meevax/kernel/binary_input_port.hpp>
+#include <meevax/kernel/binary_output_port.hpp>
 #include <meevax/kernel/eof.hpp>
-#include <meevax/kernel/homogeneous_vector.hpp>
-#include <meevax/kernel/port.hpp>
 
 namespace meevax
 {
@@ -74,7 +74,7 @@ inline namespace kernel
       return not deque.empty();
     }
 
-    auto peek() const -> object override
+    auto peek() -> object override
     {
       if (deque.empty())
       {

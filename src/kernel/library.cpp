@@ -23,6 +23,9 @@
 #include <meevax/kernel/file_port.hpp>
 #include <meevax/kernel/homogeneous_vector_port.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/standard_error_port.hpp>
+#include <meevax/kernel/standard_input_port.hpp>
+#include <meevax/kernel/standard_output_port.hpp>
 #include <meevax/kernel/string_port.hpp>
 
 namespace meevax
