@@ -22,11 +22,12 @@
 #include <meevax/kernel/disassemble.hpp>
 #include <meevax/kernel/file_port.hpp>
 #include <meevax/kernel/homogeneous_vector_port.hpp>
+#include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/output_string_port.hpp>
 #include <meevax/kernel/standard_error_port.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
 #include <meevax/kernel/standard_output_port.hpp>
-#include <meevax/kernel/string_port.hpp>
 
 namespace meevax
 {
@@ -812,15 +813,19 @@ inline namespace kernel
         xs[0].as<port>().close();
       });
 
-      library.define<procedure>("open-string", [](let const& xs)
+      library.define<procedure>("open-input-string", [](let const& xs)
       {
-        return xs.is<pair>() ? make<string_port>(xs[0].as<string>())
-                             : make<string_port>();
+        return make<input_string_port>(xs[0].as<string>());
+      });
+
+      library.define<procedure>("open-output-string", [](let const&)
+      {
+        return make<output_string_port>();
       });
 
       library.define<procedure>("get-output-string", [](let const& xs)
       {
-        return make<string>(xs[0].as<string_port>().stringstream.str());
+        return make<string>(xs[0].as<output_string_port>().ostringstream.str());
       });
 
       library.define<procedure>("open-u8vector", [](let const& xs)

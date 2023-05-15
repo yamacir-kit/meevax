@@ -14,31 +14,31 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/string.hpp>
-#include <meevax/kernel/string_port.hpp>
+#ifndef INCLUDED_MEEVAX_KERNEL_INPUT_STRING_PORT_HPP
+#define INCLUDED_MEEVAX_KERNEL_INPUT_STRING_PORT_HPP
+
+#include <meevax/kernel/textual_input_port.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  string_port::operator std::istream &()
+  struct input_string_port : public textual_input_port
   {
-    return stringstream;
-  }
+    std::istringstream istringstream;
 
-  string_port::operator std::istream const&() const
-  {
-    return stringstream;
-  }
+    template <typename... Ts>
+    explicit input_string_port(Ts&&... xs)
+      : istringstream { std::forward<decltype(xs)>(xs)... }
+    {}
 
-  string_port::operator std::ostream &()
-  {
-    return stringstream;
-  }
+    operator std::istream &() override;
 
-  auto operator <<(std::ostream & output, string_port const& datum) -> std::ostream &
-  {
-    return output << magenta("#,(") << blue("open-string ") << string(datum.stringstream.str()) << magenta(")");
-  }
+    operator std::istream const&() const override;
+  };
+
+  auto operator <<(std::ostream &, input_string_port const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_KERNEL_INPUT_STRING_PORT_HPP
