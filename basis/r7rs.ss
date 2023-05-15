@@ -2,7 +2,7 @@
   (import (only (meevax error) error-object? read-error? file-error?)
           (only (meevax macro-transformer) er-macro-transformer)
           (only (meevax number) exact-integer? exact-integer-square-root)
-          (only (meevax port) binary-port? eof-object error-port flush get-output-u8vector input-port open-u8vector open? output-port port? textual-port?)
+          (only (meevax port) binary-port? eof-object error-port flush get-output-u8vector input-port open-input-u8vector open-output-u8vector open? output-port port? textual-port?)
           (prefix (meevax read) %)
           (only (meevax string) string-copy! vector->string)
           (only (meevax vector homogeneous) u8vector? make-u8vector u8vector u8vector-length u8vector-ref u8vector-set! u8vector-copy u8vector-copy! u8vector-append u8vector->string string->u8vector)
@@ -292,9 +292,9 @@
                  ((output-port? x) (close-output-port x))
                  (else (if #f #f))))
 
-         (define open-input-bytevector open-u8vector)
+         (define open-input-bytevector open-input-u8vector)
 
-         (define open-output-bytevector open-u8vector)
+         (define open-output-bytevector open-output-u8vector)
 
          (define get-output-bytevector get-output-u8vector)
 

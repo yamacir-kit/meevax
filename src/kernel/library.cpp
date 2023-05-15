@@ -20,11 +20,12 @@
 
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/disassemble.hpp>
-#include <meevax/kernel/homogeneous_vector_port.hpp>
 #include <meevax/kernel/input_file_port.hpp>
+#include <meevax/kernel/input_homogeneous_vector_port.hpp>
 #include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/output_file_port.hpp>
+#include <meevax/kernel/output_homogeneous_vector_port.hpp>
 #include <meevax/kernel/output_string_port.hpp>
 #include <meevax/kernel/standard_error_port.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
@@ -834,16 +835,20 @@ inline namespace kernel
         return make<string>(xs[0].as<output_string_port>().ostringstream.str());
       });
 
-      library.define<procedure>("open-u8vector", [](let const& xs)
+      library.define<procedure>("open-input-u8vector", [](let const& xs)
       {
-        return xs.is<pair>() ? make<homogeneous_vector_port<std::uint8_t>>(xs[0].as<u8vector>())
-                             : make<homogeneous_vector_port<std::uint8_t>>();
+        return make<input_u8vector_port>(xs[0].as<u8vector>());
+      });
+
+      library.define<procedure>("open-output-u8vector", [](let const&)
+      {
+        return make<output_u8vector_port>();
       });
 
       library.define<procedure>("get-output-u8vector", [](let const& xs)
       {
-        return make<u8vector>(std::begin(xs[0].as<u8vector_port>().deque),
-                              std::end(xs[0].as<u8vector_port>().deque));
+        return make<u8vector>(std::begin(xs[0].as<output_u8vector_port>().deque),
+                              std::end(xs[0].as<output_u8vector_port>().deque));
       });
 
       library.define<procedure>("eof-object?", [](let const& xs)

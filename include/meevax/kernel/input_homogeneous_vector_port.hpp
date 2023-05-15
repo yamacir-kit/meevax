@@ -14,31 +14,26 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_HOMOGENEOUS_VECTOR_PORT_HPP
-#define INCLUDED_MEEVAX_KERNEL_HOMOGENEOUS_VECTOR_PORT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_INPUT_HOMOGENEOUS_VECTOR_PORT_HPP
+#define INCLUDED_MEEVAX_KERNEL_INPUT_HOMOGENEOUS_VECTOR_PORT_HPP
 
 #include <deque>
 
 #include <meevax/kernel/binary_input_port.hpp>
-#include <meevax/kernel/binary_output_port.hpp>
 #include <meevax/kernel/eof.hpp>
+#include <meevax/kernel/homogeneous_vector.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
   template <typename T>
-  struct homogeneous_vector_port : public binary_input_port, public binary_output_port
+  struct input_homogeneous_vector_port : public binary_input_port
   {
     std::deque<T> deque;
 
-    homogeneous_vector_port() = default;
-
-    explicit homogeneous_vector_port(homogeneous_vector<T> const& v)
+    explicit input_homogeneous_vector_port(homogeneous_vector<T> const& v)
       : deque(std::begin(v.values), std::end(v.values))
-    {}
-
-    auto flush() -> void override
     {}
 
     auto get() -> object override
@@ -85,28 +80,16 @@ inline namespace kernel
         return make<exact_integer>(deque.front());
       }
     }
-
-    auto put(exact_integer const& x) -> void override
-    {
-      deque.push_back(static_cast<T>(x));
-    }
-
-    auto put(u8vector const& v) -> void override
-    {
-      std::copy(std::begin(v.values),
-                std::end(v.values),
-                std::back_inserter(deque));
-    }
   };
 
   template <typename T>
-  auto operator <<(std::ostream & output, homogeneous_vector_port<T> const&) -> std::ostream &
+  auto operator <<(std::ostream & output, input_homogeneous_vector_port<T> const&) -> std::ostream &
   {
-    return output << magenta("#,(") << blue("open-", homogeneous_vector<T>::tag(), "vector") << magenta(")");
+    return output << magenta("#,(") << blue("open-input-", homogeneous_vector<T>::tag(), "vector") << magenta(")");
   }
 
-  using u8vector_port = homogeneous_vector_port<std::uint8_t>;
+  using input_u8vector_port = input_homogeneous_vector_port<std::uint8_t>;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_HOMOGENEOUS_VECTOR_PORT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_INPUT_HOMOGENEOUS_VECTOR_PORT_HPP
