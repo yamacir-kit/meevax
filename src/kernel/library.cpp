@@ -790,17 +790,17 @@ inline namespace kernel
         return xs[0].as<port>().is_open();
       });
 
-      library.define<procedure>("input-port", []()
+      library.define<procedure>("standard-input-port", []()
       {
         return make<standard_input_port>();
       });
 
-      library.define<procedure>("output-port", []()
+      library.define<procedure>("standard-output-port", []()
       {
         return make<standard_output_port>();
       });
 
-      library.define<procedure>("error-port", []()
+      library.define<procedure>("standard-error-port", []()
       {
         return make<standard_error_port>();
       });
@@ -847,8 +847,7 @@ inline namespace kernel
 
       library.define<procedure>("get-output-u8vector", [](let const& xs)
       {
-        return make<u8vector>(std::begin(xs[0].as<output_u8vector_port>().deque),
-                              std::end(xs[0].as<output_u8vector_port>().deque));
+        return make<u8vector>(xs[0].as<output_u8vector_port>().vector);
       });
 
       library.define<procedure>("eof-object?", [](let const& xs)

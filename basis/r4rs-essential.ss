@@ -524,9 +524,9 @@
                result))
            (call-with-output-port (open-output-file path) f))
 
-         (define current-input-port input-port)
+         (define current-input-port standard-input-port)
 
-         (define current-output-port output-port)
+         (define current-output-port standard-output-port)
 
          (define close-input-port close)
 

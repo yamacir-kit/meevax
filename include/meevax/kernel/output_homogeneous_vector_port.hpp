@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_OUTPUT_HOMOGENEOUS_VECTOR_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_OUTPUT_HOMOGENEOUS_VECTOR_PORT_HPP
 
-#include <deque>
-
 #include <meevax/kernel/binary_output_port.hpp>
 #include <meevax/kernel/eof.hpp>
 
@@ -29,7 +27,7 @@ inline namespace kernel
   template <typename T>
   struct output_homogeneous_vector_port : public binary_output_port
   {
-    std::deque<T> deque;
+    std::vector<T> vector;
 
     output_homogeneous_vector_port() = default;
 
@@ -38,14 +36,12 @@ inline namespace kernel
 
     auto put(exact_integer const& x) -> void override
     {
-      deque.push_back(static_cast<T>(x));
+      vector.push_back(x);
     }
 
     auto put(u8vector const& v) -> void override
     {
-      std::copy(std::begin(v.values),
-                std::end(v.values),
-                std::back_inserter(deque));
+      std::copy(std::begin(v.values), std::end(v.values), std::back_inserter(vector));
     }
   };
 

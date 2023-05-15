@@ -2,7 +2,7 @@
   (import (only (meevax error) error-object? read-error? file-error?)
           (only (meevax macro-transformer) er-macro-transformer)
           (only (meevax number) exact-integer? exact-integer-square-root)
-          (only (meevax port) binary-port? eof-object error-port flush get-output-u8vector input-port open-input-u8vector open-output-u8vector open? output-port port? textual-port?)
+          (only (meevax port) binary-port? eof-object flush get-output-u8vector open-input-u8vector open-output-u8vector open? port? standard-error-port standard-input-port standard-output-port textual-port?)
           (prefix (meevax read) %)
           (only (meevax string) string-copy! vector->string)
           (only (meevax vector homogeneous) u8vector? make-u8vector u8vector u8vector-length u8vector-ref u8vector-set! u8vector-copy u8vector-copy! u8vector-append u8vector->string string->u8vector)
@@ -261,30 +261,30 @@
          (define output-port-open? open?)
 
          (define current-input-port
-           (make-parameter (input-port)
+           (make-parameter (standard-input-port)
              (lambda (x)
                (cond ((not (input-port? x))
-                      (error "current-input-port: not input-port" x))
+                      (error "not an input-port" x))
                      ((not (input-port-open? x))
-                      (error "current-input-port: not input-port-open" x))
+                      (error "not an opened input-port" x))
                      (else x)))))
 
          (define current-output-port
-           (make-parameter (output-port)
+           (make-parameter (standard-output-port)
              (lambda (x)
                (cond ((not (output-port? x))
-                      (error "current-output-port: not output-port" x))
+                      (error "not an output-port" x))
                      ((not (output-port-open? x))
-                      (error "current-output-port: not output-port-open" x))
+                      (error "not an opened output-port" x))
                      (else x)))))
 
          (define current-error-port
-           (make-parameter (error-port)
+           (make-parameter (standard-error-port)
              (lambda (x)
                (cond ((not (output-port? x))
-                      (error "current-error-port: not output-port" x))
+                      (error "not an output-port" x))
                      ((not (output-port-open? x))
-                      (error "current-error-port: not output-port-open" x))
+                      (error "not an opened output-port" x))
                      (else x)))))
 
          (define (close-port x)
