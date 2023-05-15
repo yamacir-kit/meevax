@@ -528,10 +528,6 @@
 
          (define current-output-port output-port)
 
-         (define open-input-file open)
-
-         (define open-output-file open)
-
          (define close-input-port close)
 
          (define close-output-port close)

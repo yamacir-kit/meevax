@@ -14,28 +14,28 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_FILE_PORT_HPP
-#define INCLUDED_MEEVAX_KERNEL_FILE_PORT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_INPUT_FILE_PORT_HPP
+#define INCLUDED_MEEVAX_KERNEL_INPUT_FILE_PORT_HPP
 
 #include <fstream>
 
+#include <meevax/kernel/string.hpp>
 #include <meevax/kernel/textual_input_port.hpp>
-#include <meevax/kernel/textual_output_port.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct file_port : public textual_input_port, public textual_output_port
+  struct input_file_port : public textual_input_port
   {
     string const name;
 
-    std::fstream fstream;
+    std::ifstream ifstream;
 
-    template <typename S, typename... Ts>
-    explicit file_port(S const& name, Ts&&... xs)
-      : name { name }
-      , fstream { name, std::forward<decltype(xs)>(xs)... }
+    template <typename T, typename... Ts>
+    explicit input_file_port(T&& x, Ts&&... xs)
+      : name { std::forward<decltype(x)>(x) }
+      , ifstream { name, std::forward<decltype(xs)>(xs)... }
     {}
 
     auto close() -> void override;
@@ -45,12 +45,10 @@ inline namespace kernel
     operator std::istream &() override;
 
     operator std::istream const&() const override;
-
-    operator std::ostream &() override;
   };
 
-  auto operator <<(std::ostream &, file_port const&) -> std::ostream &;
+  auto operator <<(std::ostream &, input_file_port const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_FILE_PORT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_INPUT_FILE_PORT_HPP

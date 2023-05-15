@@ -1,0 +1,48 @@
+/*
+   Copyright 2018-2023 Tatsuya Yamasaki.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
+#include <meevax/kernel/input_file_port.hpp>
+
+namespace meevax
+{
+inline namespace kernel
+{
+  auto input_file_port::close() -> void
+  {
+    return ifstream.close();
+  }
+
+  auto input_file_port::is_open() const -> bool
+  {
+    return ifstream.is_open();
+  }
+
+  input_file_port::operator std::istream &()
+  {
+    return ifstream;
+  }
+
+  input_file_port::operator std::istream const&() const
+  {
+    return ifstream;
+  }
+
+  auto operator <<(std::ostream & output, input_file_port const& datum) -> std::ostream &
+  {
+    return output << magenta("#,(") << blue("open-input-file ") << datum.name << magenta(")");
+  }
+} // namespace kernel
+} // namespace meevax

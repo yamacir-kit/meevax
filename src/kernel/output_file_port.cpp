@@ -14,40 +14,30 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/file_port.hpp>
+#include <meevax/kernel/output_file_port.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto file_port::close() -> void
+  auto output_file_port::close() -> void
   {
-    return fstream.close();
+    return ofstream.close();
   }
 
-  auto file_port::is_open() const -> bool
+  auto output_file_port::is_open() const -> bool
   {
-    return fstream.is_open();
+    return ofstream.is_open();
   }
 
-  file_port::operator std::istream &()
+  output_file_port::operator std::ostream &()
   {
-    return fstream;
+    return ofstream;
   }
 
-  file_port::operator std::istream const&() const
+  auto operator <<(std::ostream & output, output_file_port const& datum) -> std::ostream &
   {
-    return fstream;
-  }
-
-  file_port::operator std::ostream &()
-  {
-    return fstream;
-  }
-
-  auto operator <<(std::ostream & output, file_port const& datum) -> std::ostream &
-  {
-    return output << magenta("#,(") << blue("open ") << datum.name << magenta(")");
+    return output << magenta("#,(") << blue("open-output-file ") << datum.name << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

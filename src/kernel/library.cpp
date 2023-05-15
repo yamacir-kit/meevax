@@ -20,10 +20,11 @@
 
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/disassemble.hpp>
-#include <meevax/kernel/file_port.hpp>
 #include <meevax/kernel/homogeneous_vector_port.hpp>
+#include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/output_file_port.hpp>
 #include <meevax/kernel/output_string_port.hpp>
 #include <meevax/kernel/standard_error_port.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
@@ -803,9 +804,14 @@ inline namespace kernel
         return make<standard_error_port>();
       });
 
-      library.define<procedure>("open", [](let const& xs)
+      library.define<procedure>("open-input-file", [](let const& xs)
       {
-        return make<file_port>(xs[0].as<string>());
+        return make<input_file_port>(xs[0].as<string>());
+      });
+
+      library.define<procedure>("open-output-file", [](let const& xs)
+      {
+        return make<output_file_port>(xs[0].as<string>());
       });
 
       library.define<procedure>("close", [](let const& xs)
