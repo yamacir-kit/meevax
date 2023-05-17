@@ -14,45 +14,43 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_BINARY_INPUT_FILE_PORT_HPP
-#define INCLUDED_MEEVAX_KERNEL_BINARY_INPUT_FILE_PORT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_BINARY_OUTPUT_FILE_PORT_HPP
+#define INCLUDED_MEEVAX_KERNEL_BINARY_OUTPUT_FILE_PORT_HPP
 
 #include <fstream>
 
-#include <meevax/kernel/binary_input_port.hpp>
+#include <meevax/kernel/binary_output_port.hpp>
 #include <meevax/kernel/string.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct binary_input_file_port : public binary_input_port
+  struct binary_output_file_port : public binary_output_port
   {
     string const name;
 
-    std::ifstream ifstream;
+    std::ofstream ofstream;
 
     template <typename T, typename... Ts>
-    explicit binary_input_file_port(T&& x, Ts&&... xs)
+    explicit binary_output_file_port(T&& x, Ts&&... xs)
       : name { std::forward<decltype(x)>(x) }
-      , ifstream { name, (std::ios::binary | ... | std::forward<decltype(xs)>(xs)) }
+      , ofstream { name, (std::ios::binary | ... | std::forward<decltype(xs)>(xs)) }
     {}
 
     auto close() -> void override;
 
-    auto get() -> object override;
-
-    auto get(std::size_t) -> object override;
-
-    auto get_ready() const -> bool override;
+    auto flush() -> void override;
 
     auto is_open() const -> bool override;
 
-    auto peek() -> object override;
+    auto put(exact_integer const&) -> void override;
+
+    auto put(u8vector const&) -> void override;
   };
 
-  auto operator <<(std::ostream &, binary_input_file_port const&) -> std::ostream &;
+  auto operator <<(std::ostream &, binary_output_file_port const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_BINARY_INPUT_FILE_PORT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_BINARY_OUTPUT_FILE_PORT_HPP

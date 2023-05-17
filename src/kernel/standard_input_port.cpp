@@ -20,6 +20,14 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto standard_input_port::is_open() const -> bool
+  {
+    return true;
+  }
+
+  auto standard_input_port::close() -> void
+  {}
+
   standard_input_port::operator std::istream &()
   {
     return std::cin;

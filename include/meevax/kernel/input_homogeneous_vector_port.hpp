@@ -36,6 +36,9 @@ inline namespace kernel
       : deque(std::begin(v.values), std::end(v.values))
     {}
 
+    auto close() -> void override
+    {}
+
     auto get() -> object override
     {
       if (deque.empty())
@@ -67,6 +70,11 @@ inline namespace kernel
     auto get_ready() const -> bool override
     {
       return not deque.empty();
+    }
+
+    auto is_open() const -> bool override
+    {
+      return true;
     }
 
     auto peek() -> object override

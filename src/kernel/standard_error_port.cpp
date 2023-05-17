@@ -20,6 +20,14 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto standard_error_port::close() -> void
+  {}
+
+  auto standard_error_port::is_open() const -> bool
+  {
+    return true;
+  }
+
   standard_error_port::operator std::ostream &()
   {
     return std::cerr;

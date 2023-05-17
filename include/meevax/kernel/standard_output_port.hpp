@@ -25,6 +25,10 @@ inline namespace kernel
 {
   struct standard_output_port : public textual_output_port
   {
+    auto close() -> void override;
+
+    auto is_open() const -> bool override;
+
     operator std::ostream &() override;
   };
 

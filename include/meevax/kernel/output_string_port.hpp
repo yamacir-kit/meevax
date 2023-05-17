@@ -32,6 +32,10 @@ inline namespace kernel
       : ostringstream { std::forward<decltype(xs)>(xs)... }
     {}
 
+    auto close() -> void override;
+
+    auto is_open() const -> bool override;
+
     operator std::ostream &() override;
   };
 

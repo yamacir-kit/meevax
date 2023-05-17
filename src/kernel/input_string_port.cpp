@@ -21,6 +21,14 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto input_string_port::close() -> void
+  {}
+
+  auto input_string_port::is_open() const -> bool
+  {
+    return true;
+  }
+
   input_string_port::operator std::istream &()
   {
     return istringstream;

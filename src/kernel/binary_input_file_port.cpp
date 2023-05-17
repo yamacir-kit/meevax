@@ -34,9 +34,9 @@ inline namespace kernel
 
   auto binary_input_file_port::get() -> object
   {
-    if (std::uint8_t i = 0; ifstream.read(reinterpret_cast<char *>(&i), 1))
+    if (std::uint8_t buffer = 0; ifstream.read(reinterpret_cast<char *>(&buffer), 1))
     {
-      return make<exact_integer>(i);
+      return make<exact_integer>(buffer);
     }
     else
     {
@@ -46,13 +46,14 @@ inline namespace kernel
 
   auto binary_input_file_port::get(std::size_t size) -> object
   {
-    if (auto v = std::vector<std::uint8_t>(size); ifstream.read(reinterpret_cast<char *>(v.data()), size))
+    if (auto buffer = std::vector<std::uint8_t>(size); ifstream.read(reinterpret_cast<char *>(buffer.data()), size))
     {
-      return make<u8vector>(v);
+      return make<u8vector>(buffer);
     }
     else
     {
-      return eof_object;
+      buffer.resize(ifstream.gcount());
+      return make<u8vector>(buffer);
     }
   }
 
@@ -64,6 +65,11 @@ inline namespace kernel
   auto binary_input_file_port::peek() -> object
   {
     return get_ready() ? make<exact_integer>(ifstream.peek()) : eof_object;
+  }
+
+  auto operator <<(std::ostream & output, binary_input_file_port const& datum) -> std::ostream &
+  {
+    return output << magenta("#,(") << blue("open-binary-input-file ", datum.name) << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

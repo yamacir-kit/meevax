@@ -23,9 +23,9 @@ inline namespace kernel
 {
   struct port
   {
-    virtual auto is_open() const -> bool;
+    virtual auto close() -> void = 0;
 
-    virtual auto close() -> void;
+    virtual auto is_open() const -> bool = 0;
   };
 } // namespace kernel
 } // namespace meevax

@@ -31,8 +31,16 @@ inline namespace kernel
 
     output_homogeneous_vector_port() = default;
 
+    auto close() -> void override
+    {}
+
     auto flush() -> void override
     {}
+
+    auto is_open() const -> bool override
+    {
+      return true;
+    }
 
     auto put(exact_integer const& x) -> void override
     {

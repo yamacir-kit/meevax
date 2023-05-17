@@ -20,6 +20,14 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto standard_output_port::close() -> void
+  {}
+
+  auto standard_output_port::is_open() const -> bool
+  {
+    return true;
+  }
+
   standard_output_port::operator std::ostream &()
   {
     return std::cout;

@@ -21,6 +21,14 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto output_string_port::close() -> void
+  {}
+
+  auto output_string_port::is_open() const -> bool
+  {
+    return true;
+  }
+
   output_string_port::operator std::ostream &()
   {
     return ostringstream;

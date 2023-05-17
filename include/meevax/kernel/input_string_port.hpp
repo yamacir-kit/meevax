@@ -32,6 +32,10 @@ inline namespace kernel
       : istringstream { std::forward<decltype(xs)>(xs)... }
     {}
 
+    auto close() -> void override;
+
+    auto is_open() const -> bool override;
+
     operator std::istream &() override;
 
     operator std::istream const&() const override;
