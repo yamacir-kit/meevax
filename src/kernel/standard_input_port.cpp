@@ -14,20 +14,33 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
-#define INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#include <meevax/kernel/standard_input_port.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct port
+  auto standard_input_port::is_open() const -> bool
   {
-    virtual auto close() -> void = 0;
+    return true;
+  }
 
-    virtual auto is_open() const -> bool = 0;
-  };
+  auto standard_input_port::close() -> void
+  {}
+
+  standard_input_port::operator std::istream &()
+  {
+    return std::cin;
+  }
+
+  standard_input_port::operator std::istream const&() const
+  {
+    return std::cin;
+  }
+
+  auto operator <<(std::ostream & output, standard_input_port const&) -> std::ostream &
+  {
+    return output << magenta("#,(") << blue("standard-input") << magenta(")");
+  }
 } // namespace kernel
 } // namespace meevax
-
-#endif // INCLUDED_MEEVAX_KERNEL_PORT_HPP

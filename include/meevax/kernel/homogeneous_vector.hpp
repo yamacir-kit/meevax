@@ -19,6 +19,7 @@
 
 #include <valarray>
 
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
 
@@ -31,12 +32,12 @@ inline namespace kernel
   {
     std::valarray<T> values;
 
-    explicit homogeneous_vector() = default;
+    homogeneous_vector() = default;
 
-    explicit homogeneous_vector(object const& xs)
+    explicit homogeneous_vector(object xs)
       : values(length(xs))
     {
-      std::generate(std::begin(values), std::end(values), [xs = xs]() mutable
+      std::generate(std::begin(values), std::end(values), [&]() mutable
       {
         let const x = car(xs);
         xs = cdr(xs);
@@ -62,6 +63,17 @@ inline namespace kernel
     explicit homogeneous_vector(T const* data, std::size_t size)
       : values(data, size)
     {}
+
+    explicit homogeneous_vector(std::vector<T> const& v)
+      : values(v.data(), v.size())
+    {}
+
+    template <typename Iterator>
+    explicit homogeneous_vector(Iterator begin, Iterator end)
+      : values(std::distance(begin, end))
+    {
+      std::copy(begin, end, std::begin(values));
+    }
 
     static auto tag() -> auto const&
     {
@@ -96,7 +108,7 @@ inline namespace kernel
   {
     static_assert(std::is_arithmetic_v<T>);
 
-    output << magenta("#", std::is_integral_v<T> ? std::is_signed_v<T> ? 's' : 'u' : 'f', sizeof(T) * CHAR_BIT, "(");
+    output << magenta("#", homogeneous_vector<T>::tag(), "(");
 
     auto whitespace = "";
 
@@ -120,14 +132,23 @@ inline namespace kernel
   }
 
   using f32vector = homogeneous_vector<float>;
+
   using f64vector = homogeneous_vector<double>;
-  using s8vector = homogeneous_vector<std::int8_t>;
+
+  using s8vector  = homogeneous_vector<std::int8_t>;
+
   using s16vector = homogeneous_vector<std::int16_t>;
+
   using s32vector = homogeneous_vector<std::int32_t>;
+
   using s64vector = homogeneous_vector<std::int64_t>;
-  using u8vector = homogeneous_vector<std::uint8_t>;
+
+  using u8vector  = homogeneous_vector<std::uint8_t>;
+
   using u16vector = homogeneous_vector<std::uint16_t>;
+
   using u32vector = homogeneous_vector<std::uint32_t>;
+
   using u64vector = homogeneous_vector<std::uint64_t>;
 } // namespace kernel
 } // namespace meevax

@@ -14,20 +14,38 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
-#define INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_TEXTUAL_INPUT_PORT_HPP
+#define INCLUDED_MEEVAX_KERNEL_TEXTUAL_INPUT_PORT_HPP
+
+#include <istream>
+
+#include <meevax/kernel/input_port.hpp>
+#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/textual_port.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct port
+  struct textual_input_port : public virtual textual_port, public virtual input_port
   {
-    virtual auto close() -> void = 0;
+    auto get() -> object;
 
-    virtual auto is_open() const -> bool = 0;
+    auto get(std::size_t) -> object;
+
+    auto get_line() -> object;
+
+    auto get_ready() const -> bool;
+
+    auto peek() -> object;
+
+    auto read() -> object;
+
+    explicit virtual operator std::istream &() = 0;
+
+    explicit virtual operator std::istream const&() const = 0;
   };
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_TEXTUAL_INPUT_PORT_HPP

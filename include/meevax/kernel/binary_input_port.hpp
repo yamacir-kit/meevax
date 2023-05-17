@@ -14,20 +14,28 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
-#define INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_BINARY_INPUT_PORT_HPP
+#define INCLUDED_MEEVAX_KERNEL_BINARY_INPUT_PORT_HPP
+
+#include <meevax/kernel/binary_port.hpp>
+#include <meevax/kernel/input_port.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct port
+  struct binary_input_port : public virtual binary_port, public virtual input_port
   {
-    virtual auto close() -> void = 0;
+    virtual auto get() -> object = 0;
 
-    virtual auto is_open() const -> bool = 0;
+    virtual auto get(std::size_t) -> object = 0;
+
+    virtual auto get_ready() const -> bool = 0;
+
+    virtual auto peek() -> object = 0;
   };
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_BINARY_INPUT_PORT_HPP
