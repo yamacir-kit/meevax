@@ -33,7 +33,7 @@ inline namespace kernel
     std::deque<T> deque;
 
     explicit input_homogeneous_vector_port(homogeneous_vector<T> const& v)
-      : deque(std::begin(v.values), std::end(v.values))
+      : deque(std::begin(v.valarray), std::end(v.valarray))
     {}
 
     auto close() -> void override

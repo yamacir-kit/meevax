@@ -1421,24 +1421,24 @@ inline namespace kernel
                                                                                \
       library.define<procedure>(#TAG "vector-length", [](let const& xs)        \
       {                                                                        \
-        return make<exact_integer>(xs[0].as<TAG##vector>().values.size());     \
+        return make<exact_integer>(xs[0].as<TAG##vector>().valarray.size());   \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-ref", [](let const& xs)           \
       {                                                                        \
-        return TAG##vector::output_cast(xs[0].as<TAG##vector>().values[xs[1].as<exact_integer>()]); \
+        return TAG##vector::output_cast(xs[0].as<TAG##vector>().valarray[xs[1].as<exact_integer>()]); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-set!", [](let const& xs)          \
       {                                                                        \
-        xs[0].as<TAG##vector>().values[xs[1].as<exact_integer>()] = TAG##vector::input_cast(xs[2]); \
+        xs[0].as<TAG##vector>().valarray[xs[1].as<exact_integer>()] = TAG##vector::input_cast(xs[2]); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-copy", [](let const& xs)          \
       {                                                                        \
         return make<TAG##vector>(xs[0].as<TAG##vector>(),                      \
                                  tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : std::size_t(), \
-                                 tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().values.size()); \
+                                 tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().valarray.size()); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-copy!", [](let const& xs)         \
@@ -1448,11 +1448,11 @@ inline namespace kernel
           to[std::slice(at, end - start, 1)] = from[std::slice(start, end - start, 1)]; \
         };                                                                     \
                                                                                \
-        copy(xs[0].as<TAG##vector>().values,                                   \
+        copy(xs[0].as<TAG##vector>().valarray,                                 \
              xs[1].as<exact_integer>(),                                        \
-             xs[2].as<TAG##vector>().values,                                   \
+             xs[2].as<TAG##vector>().valarray,                                 \
              tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0,           \
-             tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : xs[2].as<TAG##vector>().values.size()); \
+             tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : xs[2].as<TAG##vector>().valarray.size()); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-append", [](let const& xs)        \
@@ -1474,9 +1474,9 @@ inline namespace kernel
                                          std::next(std::begin(v), b), unit, xcons)); \
         };                                                                     \
                                                                                \
-        return list(xs[0].as<TAG##vector>().values,                            \
+        return list(xs[0].as<TAG##vector>().valarray,                          \
                     tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0,    \
-                    tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().values.size()); \
+                    tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().valarray.size()); \
       });                                                                      \
                                                                                \
       library.define<procedure>("list->" #TAG "vector", [](let const& xs)      \
@@ -1499,8 +1499,8 @@ inline namespace kernel
       {
         auto input = std::stringstream();
 
-        std::for_each(std::next(std::begin(xs[0].as<u8vector>().values), tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
-                      std::next(std::begin(xs[0].as<u8vector>().values), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().values.size()),
+        std::for_each(std::next(std::begin(xs[0].as<u8vector>().valarray), tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                      std::next(std::begin(xs[0].as<u8vector>().valarray), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().valarray.size()),
                       [&](auto const& x)
                       {
                         input << x;

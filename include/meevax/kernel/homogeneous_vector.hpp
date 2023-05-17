@@ -30,14 +30,14 @@ inline namespace kernel
   template <typename T>
   struct homogeneous_vector
   {
-    std::valarray<T> values;
+    std::valarray<T> valarray;
 
     homogeneous_vector() = default;
 
     explicit homogeneous_vector(object xs)
-      : values(length(xs))
+      : valarray(length(xs))
     {
-      std::generate(std::begin(values), std::end(values), [&]() mutable
+      std::generate(std::begin(valarray), std::end(valarray), [&]() mutable
       {
         let const x = car(xs);
         xs = cdr(xs);
@@ -46,33 +46,33 @@ inline namespace kernel
     }
 
     explicit homogeneous_vector(std::size_t size, object const& x)
-      : values(input_cast(x), size)
+      : valarray(input_cast(x), size)
     {}
 
     explicit homogeneous_vector(homogeneous_vector const& v, std::size_t begin, std::size_t end)
-      : values(v.values[std::slice(begin, begin < end ? end - begin : 0, 1)])
+      : valarray(v.valarray[std::slice(begin, begin < end ? end - begin : 0, 1)])
     {}
 
     explicit homogeneous_vector(homogeneous_vector const& a, homogeneous_vector const& b)
-      : values(a.values.size() + b.values.size())
+      : valarray(a.valarray.size() + b.valarray.size())
     {
-      values[std::slice(0, a.values.size(), 1)] = a.values;
-      values[std::slice(a.values.size(), b.values.size(), 1)] = b.values;
+      valarray[std::slice(0, a.valarray.size(), 1)] = a.valarray;
+      valarray[std::slice(a.valarray.size(), b.valarray.size(), 1)] = b.valarray;
     }
 
     explicit homogeneous_vector(T const* data, std::size_t size)
-      : values(data, size)
+      : valarray(data, size)
     {}
 
     explicit homogeneous_vector(std::vector<T> const& v)
-      : values(v.data(), v.size())
+      : valarray(v.data(), v.size())
     {}
 
     template <typename Iterator>
     explicit homogeneous_vector(Iterator begin, Iterator end)
-      : values(std::distance(begin, end))
+      : valarray(std::distance(begin, end))
     {
-      std::copy(begin, end, std::begin(values));
+      std::copy(begin, end, std::begin(valarray));
     }
 
     static auto tag() -> auto const&
@@ -112,7 +112,7 @@ inline namespace kernel
 
     auto whitespace = "";
 
-    for (auto const& value : datum.values)
+    for (auto const& value : datum.valarray)
     {
       output << std::exchange(whitespace, " ") << cyan(homogeneous_vector<T>::output_cast(value));
     }
@@ -128,7 +128,7 @@ inline namespace kernel
       return std::all_of(std::begin(xs), std::end(xs), [](auto x) { return x; });
     };
 
-    return check(a.values == b.values);
+    return check(a.valarray == b.valarray);
   }
 
   using f32vector = homogeneous_vector<float>;
