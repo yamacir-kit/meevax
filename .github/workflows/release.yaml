@@ -12,6 +12,6 @@ jobs:
       - run: ./script/setup.sh
       - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --target package
-      - run: gh release create v${{ env.VERSION }} build/meevax_${{ env.VERSION }}_amd64.deb --generate-notes --title "Version ${{ env.VERSION }}"
+      - run: gh release create v${{ env.VERSION }} build/meevax_${{ env.VERSION }}_amd64.deb --title "Version ${{ env.VERSION }}"
         env:
          GH_TOKEN: ${{ github.token }}
