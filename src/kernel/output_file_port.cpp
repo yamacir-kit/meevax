@@ -14,20 +14,30 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
-#define INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#include <meevax/kernel/output_file_port.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct port
+  auto output_file_port::close() -> void
   {
-    virtual auto close() -> void = 0;
+    return ofstream.close();
+  }
 
-    virtual auto is_open() const -> bool = 0;
-  };
+  auto output_file_port::is_open() const -> bool
+  {
+    return ofstream.is_open();
+  }
+
+  output_file_port::operator std::ostream &()
+  {
+    return ofstream;
+  }
+
+  auto operator <<(std::ostream & output, output_file_port const& datum) -> std::ostream &
+  {
+    return output << magenta("#,(") << blue("open-output-file ") << datum.name << magenta(")");
+  }
 } // namespace kernel
 } // namespace meevax
-
-#endif // INCLUDED_MEEVAX_KERNEL_PORT_HPP

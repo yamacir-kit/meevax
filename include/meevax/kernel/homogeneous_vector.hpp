@@ -19,6 +19,7 @@
 
 #include <valarray>
 
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
 
@@ -29,14 +30,14 @@ inline namespace kernel
   template <typename T>
   struct homogeneous_vector
   {
-    std::valarray<T> values;
+    std::valarray<T> valarray;
 
-    explicit homogeneous_vector() = default;
+    homogeneous_vector() = default;
 
-    explicit homogeneous_vector(object const& xs)
-      : values(length(xs))
+    explicit homogeneous_vector(object xs)
+      : valarray(length(xs))
     {
-      std::generate(std::begin(values), std::end(values), [xs = xs]() mutable
+      std::generate(std::begin(valarray), std::end(valarray), [&]() mutable
       {
         let const x = car(xs);
         xs = cdr(xs);
@@ -45,23 +46,34 @@ inline namespace kernel
     }
 
     explicit homogeneous_vector(std::size_t size, object const& x)
-      : values(input_cast(x), size)
+      : valarray(input_cast(x), size)
     {}
 
     explicit homogeneous_vector(homogeneous_vector const& v, std::size_t begin, std::size_t end)
-      : values(v.values[std::slice(begin, begin < end ? end - begin : 0, 1)])
+      : valarray(v.valarray[std::slice(begin, begin < end ? end - begin : 0, 1)])
     {}
 
     explicit homogeneous_vector(homogeneous_vector const& a, homogeneous_vector const& b)
-      : values(a.values.size() + b.values.size())
+      : valarray(a.valarray.size() + b.valarray.size())
     {
-      values[std::slice(0, a.values.size(), 1)] = a.values;
-      values[std::slice(a.values.size(), b.values.size(), 1)] = b.values;
+      valarray[std::slice(0, a.valarray.size(), 1)] = a.valarray;
+      valarray[std::slice(a.valarray.size(), b.valarray.size(), 1)] = b.valarray;
     }
 
     explicit homogeneous_vector(T const* data, std::size_t size)
-      : values(data, size)
+      : valarray(data, size)
     {}
+
+    explicit homogeneous_vector(std::vector<T> const& v)
+      : valarray(v.data(), v.size())
+    {}
+
+    template <typename Iterator>
+    explicit homogeneous_vector(Iterator begin, Iterator end)
+      : valarray(std::distance(begin, end))
+    {
+      std::copy(begin, end, std::begin(valarray));
+    }
 
     static auto tag() -> auto const&
     {
@@ -96,11 +108,11 @@ inline namespace kernel
   {
     static_assert(std::is_arithmetic_v<T>);
 
-    output << magenta("#", std::is_integral_v<T> ? std::is_signed_v<T> ? 's' : 'u' : 'f', sizeof(T) * CHAR_BIT, "(");
+    output << magenta("#", homogeneous_vector<T>::tag(), "(");
 
     auto whitespace = "";
 
-    for (auto const& value : datum.values)
+    for (auto const& value : datum.valarray)
     {
       output << std::exchange(whitespace, " ") << cyan(homogeneous_vector<T>::output_cast(value));
     }
@@ -116,18 +128,27 @@ inline namespace kernel
       return std::all_of(std::begin(xs), std::end(xs), [](auto x) { return x; });
     };
 
-    return check(a.values == b.values);
+    return check(a.valarray == b.valarray);
   }
 
   using f32vector = homogeneous_vector<float>;
+
   using f64vector = homogeneous_vector<double>;
-  using s8vector = homogeneous_vector<std::int8_t>;
+
+  using s8vector  = homogeneous_vector<std::int8_t>;
+
   using s16vector = homogeneous_vector<std::int16_t>;
+
   using s32vector = homogeneous_vector<std::int32_t>;
+
   using s64vector = homogeneous_vector<std::int64_t>;
-  using u8vector = homogeneous_vector<std::uint8_t>;
+
+  using u8vector  = homogeneous_vector<std::uint8_t>;
+
   using u16vector = homogeneous_vector<std::uint16_t>;
+
   using u32vector = homogeneous_vector<std::uint32_t>;
+
   using u64vector = homogeneous_vector<std::uint64_t>;
 } // namespace kernel
 } // namespace meevax

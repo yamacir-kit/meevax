@@ -14,12 +14,24 @@
    limitations under the License.
 */
 
+#include <chrono>
+#include <filesystem>
 #include <numeric>
-#include <string_view>
 
 #include <meevax/kernel/basis.hpp>
+#include <meevax/kernel/binary_input_file_port.hpp>
+#include <meevax/kernel/binary_output_file_port.hpp>
 #include <meevax/kernel/disassemble.hpp>
+#include <meevax/kernel/input_file_port.hpp>
+#include <meevax/kernel/input_homogeneous_vector_port.hpp>
+#include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/output_file_port.hpp>
+#include <meevax/kernel/output_homogeneous_vector_port.hpp>
+#include <meevax/kernel/output_string_port.hpp>
+#include <meevax/kernel/standard_error_port.hpp>
+#include <meevax/kernel/standard_input_port.hpp>
+#include <meevax/kernel/standard_output_port.hpp>
 
 namespace meevax
 {
@@ -257,7 +269,6 @@ inline namespace kernel
       library.define<procedure>("type-of", [](let const& xs)
       {
         std::cout << car(xs).type().name() << std::endl;
-        return standard_output;
       });
 
       library.define<procedure>("disassemble", [](let const& xs)
@@ -269,13 +280,34 @@ inline namespace kernel
             disassemble(std::cout, car(f));
           }
         }
-
-        return standard_output;
       });
 
       library.define<procedure>("ieee-float?", []()
       {
         return std::numeric_limits<double>::is_iec559;
+      });
+    });
+
+    define<library>("(meevax file)", [](library & library)
+    {
+      library.define<procedure>("file-exists?", [](let const& xs)
+      {
+        return std::filesystem::exists(static_cast<std::string>(xs[0].as<string>()));
+      });
+
+      library.define<procedure>("delete-file", [](let const& xs)
+      {
+        try
+        {
+          if (not std::filesystem::remove(static_cast<std::string>(xs[0].as<string>())))
+          {
+            throw file_error(make<string>("failed to remove file"), xs[0]);
+          }
+        }
+        catch (std::filesystem::filesystem_error const& e)
+        {
+          throw file_error(make<string>(e.what()), xs[0]);
+        }
       });
     });
 
@@ -732,74 +764,107 @@ inline namespace kernel
     {
       library.define<procedure>("input-port?", [](let const& xs)
       {
-        return car(xs).is_also<std::istream>();
+        return xs[0].is_also<input_port>();
       });
 
       library.define<procedure>("output-port?", [](let const& xs)
       {
-        return car(xs).is_also<std::ostream>();
+        return xs[0].is_also<output_port>();
       });
 
-      library.define<procedure>("binary-port?", []()
+      library.define<procedure>("binary-port?", [](let const& xs)
       {
-        return false;
+        return xs[0].is_also<binary_port>();
       });
 
       library.define<procedure>("textual-port?", [](let const& xs)
       {
-        return car(xs).is_also<std::ios>();
+        return xs[0].is_also<textual_port>();
       });
 
       library.define<procedure>("port?", [](let const& xs)
       {
-        return car(xs).is_also<std::ios>();
+        return xs[0].is_also<port>();
       });
 
       library.define<procedure>("open?", [](let const& xs)
       {
-        if (let const& x = car(xs); x.is<file_port>())
-        {
-          return x.as<file_port>().is_open();
-        }
-        else
-        {
-          return x.is_also<std::ios>();
-        }
+        return xs[0].as<port>().is_open();
       });
 
-      library.define<procedure>("input-port", []()
+      library.define<procedure>("standard-input-port", []()
       {
-        return standard_input;
+        return make<standard_input_port>();
       });
 
-      library.define<procedure>("output-port", []()
+      library.define<procedure>("standard-output-port", []()
       {
-        return standard_output;
+        return make<standard_output_port>();
       });
 
-      library.define<procedure>("error-port", []()
+      library.define<procedure>("standard-error-port", []()
       {
-        return standard_error;
+        return make<standard_error_port>();
       });
 
-      library.define<procedure>("open", [](let const& xs)
+      library.define<procedure>("open-input-file", [](let const& xs)
       {
-        return make<file_port>(car(xs).as<string>());
+        return make<input_file_port>(xs[0].as<string>());
+      });
+
+      library.define<procedure>("open-output-file", [](let const& xs)
+      {
+        return make<output_file_port>(xs[0].as<string>());
+      });
+
+      library.define<procedure>("open-binary-input-file", [](let const& xs)
+      {
+        return make<binary_input_file_port>(xs[0].as<string>());
+      });
+
+      library.define<procedure>("open-binary-output-file", [](let const& xs)
+      {
+        return make<binary_output_file_port>(xs[0].as<string>());
       });
 
       library.define<procedure>("close", [](let const& xs)
       {
-        car(xs).as<file_port>().close();
+        xs[0].as<port>().close();
       });
 
-      library.define<procedure>("string->port", [](let const& xs)
+      library.define<procedure>("open-input-string", [](let const& xs)
       {
-        return xs.is<pair>() ? make<string_port>(car(xs).as<string>()) : make<string_port>();
+        return make<input_string_port>(xs[0].as<string>());
+      });
+
+      library.define<procedure>("open-output-string", [](let const&)
+      {
+        return make<output_string_port>();
+      });
+
+      library.define<procedure>("get-output-string", [](let const& xs)
+      {
+        return make<string>(xs[0].as<output_string_port>().ostringstream.str());
+      });
+
+      library.define<procedure>("open-input-u8vector", [](let const& xs)
+      {
+        return make<input_u8vector_port>(xs[0].as<u8vector>());
+      });
+
+      library.define<procedure>("open-output-u8vector", [](let const&)
+      {
+        return make<output_u8vector_port>();
+      });
+
+      library.define<procedure>("get-output-u8vector", [](let const& xs)
+      {
+        return make<u8vector>(xs[0].as<output_u8vector_port>().vector);
       });
 
       library.define<procedure>("eof-object?", [](let const& xs)
       {
-        return car(xs).is<eof>();
+        return xs[0].is<eof>();
       });
 
       library.define<procedure>("eof-object", []()
@@ -809,7 +874,7 @@ inline namespace kernel
 
       library.define<procedure>("flush", [](let const& xs)
       {
-        car(xs).as<std::ostream>() << std::flush;
+        xs[0].as<output_port>().flush();
       });
     });
 
@@ -817,75 +882,52 @@ inline namespace kernel
     {
       library.define<procedure>("get-char", [](let const& xs)
       {
-        try
-        {
-          auto const g = car(xs).as<std::istream>().tellg();
-          let c = make<character>(get_codepoint(car(xs).as<std::istream>()));
-          car(xs).as<std::istream>().seekg(g);
-          return c;
-        }
-        catch (eof const&)
-        {
-          return eof_object;
-        }
-        catch (read_error const& error)
-        {
-          return make(error);
-        }
+        return xs[0].as<textual_input_port>().get();
       });
 
-      library.define<procedure>("get-char!", [](let const& xs)
+      library.define<procedure>("get-char-ready?", [](let const& xs)
       {
-        try
-        {
-          return make<character>(get_codepoint(car(xs).as<std::istream>()));
-        }
-        catch (eof const&)
-        {
-          return eof_object;
-        }
-        catch (read_error const& error)
-        {
-          return make(error);
-        }
+        return xs[0].as<textual_input_port>().get_ready();
       });
 
-      library.define<procedure>("get-ready?", [](let const& xs)
+      library.define<procedure>("get-line", [](let const& xs)
       {
-        return static_cast<bool>(car(xs).as<std::istream>());
+        return xs[0].as<textual_input_port>().get_line();
       });
 
-      library.define<procedure>("get-string!", [](let const& xs)
+      library.define<procedure>("get-string", [](let const& xs)
       {
-        auto read_k = [](string & string, std::size_t k, std::istream & is)
-        {
-          for (std::size_t i = 0; i < k and is; ++i)
-          {
-            string.codepoints.emplace_back(get_codepoint(is));
-          }
-        };
+        return xs[1].as<textual_input_port>().get(xs[0].as<exact_integer>());
+      });
 
-        let const s = make<string>();
+      library.define<procedure>("peek-char", [](let const& xs)
+      {
+        return xs[0].as<textual_input_port>().peek();
+      });
 
-        read_k(s.as<string>(), car(xs).as<exact_integer>(), cadr(xs).as<std::istream>());
+      library.define<procedure>("get-u8", [](let const& xs)
+      {
+        return xs[0].as<binary_input_port>().get();
+      });
 
-        return s;
+      library.define<procedure>("get-u8-ready?", [](let const& xs)
+      {
+        return xs[0].as<binary_input_port>().get_ready();
+      });
+
+      library.define<procedure>("peek-u8", [](let const& xs)
+      {
+        return xs[0].as<binary_input_port>().peek();
+      });
+
+      library.define<procedure>("get-u8vector", [](let const& xs)
+      {
+        return xs[1].as<binary_input_port>().get(xs[0].as<exact_integer>());
       });
 
       library.define<procedure>("read", [](let const& xs)
       {
-        try
-        {
-          return interaction_environment().as<environment>().read(car(xs).as<std::istream>());
-        }
-        catch (eof const&)
-        {
-          return eof_object;
-        }
-        catch (read_error const& error)
-        {
-          return make(error);
-        }
+        return xs[0].as<textual_input_port>().read();
       });
     });
 
@@ -1109,18 +1151,6 @@ inline namespace kernel
 
         return make(s);
       });
-
-      library.define<procedure>("port->string", [](let const& xs)
-      {
-        if (car(xs).is<string_port>())
-        {
-          return make<string>(car(xs).as<string_port>().str());
-        }
-        else
-        {
-          return make<string>(std::string(std::istreambuf_iterator<char>(car(xs).as<std::istream>()), {}));
-        }
-      });
     });
 
     define<library>("(meevax symbol)", [](library & library)
@@ -1179,6 +1209,19 @@ inline namespace kernel
         }
 
         return alist;
+      });
+    });
+
+    define<library>("(meevax time)", [](library & library)
+    {
+      library.define<procedure>("current-jiffy", [](let const&)
+      {
+        return make<exact_integer>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+      });
+
+      library.define<procedure>("jiffies-per-second", [](let const&)
+      {
+        return make<exact_integer>(std::chrono::high_resolution_clock::period::den);
       });
     });
 
@@ -1378,24 +1421,24 @@ inline namespace kernel
                                                                                \
       library.define<procedure>(#TAG "vector-length", [](let const& xs)        \
       {                                                                        \
-        return make<exact_integer>(xs[0].as<TAG##vector>().values.size());     \
+        return make<exact_integer>(xs[0].as<TAG##vector>().valarray.size());   \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-ref", [](let const& xs)           \
       {                                                                        \
-        return TAG##vector::output_cast(xs[0].as<TAG##vector>().values[xs[1].as<exact_integer>()]); \
+        return TAG##vector::output_cast(xs[0].as<TAG##vector>().valarray[xs[1].as<exact_integer>()]); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-set!", [](let const& xs)          \
       {                                                                        \
-        xs[0].as<TAG##vector>().values[xs[1].as<exact_integer>()] = TAG##vector::input_cast(xs[2]); \
+        xs[0].as<TAG##vector>().valarray[xs[1].as<exact_integer>()] = TAG##vector::input_cast(xs[2]); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-copy", [](let const& xs)          \
       {                                                                        \
         return make<TAG##vector>(xs[0].as<TAG##vector>(),                      \
                                  tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : std::size_t(), \
-                                 tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().values.size()); \
+                                 tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().valarray.size()); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-copy!", [](let const& xs)         \
@@ -1405,11 +1448,11 @@ inline namespace kernel
           to[std::slice(at, end - start, 1)] = from[std::slice(start, end - start, 1)]; \
         };                                                                     \
                                                                                \
-        copy(xs[0].as<TAG##vector>().values,                                   \
+        copy(xs[0].as<TAG##vector>().valarray,                                 \
              xs[1].as<exact_integer>(),                                        \
-             xs[2].as<TAG##vector>().values,                                   \
+             xs[2].as<TAG##vector>().valarray,                                 \
              tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0,           \
-             tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : xs[2].as<TAG##vector>().values.size()); \
+             tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : xs[2].as<TAG##vector>().valarray.size()); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-append", [](let const& xs)        \
@@ -1431,9 +1474,9 @@ inline namespace kernel
                                          std::next(std::begin(v), b), unit, xcons)); \
         };                                                                     \
                                                                                \
-        return list(xs[0].as<TAG##vector>().values,                            \
+        return list(xs[0].as<TAG##vector>().valarray,                          \
                     tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0,    \
-                    tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().values.size()); \
+                    tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().valarray.size()); \
       });                                                                      \
                                                                                \
       library.define<procedure>("list->" #TAG "vector", [](let const& xs)      \
@@ -1456,8 +1499,8 @@ inline namespace kernel
       {
         auto input = std::stringstream();
 
-        std::for_each(std::next(std::begin(xs[0].as<u8vector>().values), tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
-                      std::next(std::begin(xs[0].as<u8vector>().values), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().values.size()),
+        std::for_each(std::next(std::begin(xs[0].as<u8vector>().valarray), tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+                      std::next(std::begin(xs[0].as<u8vector>().valarray), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().valarray.size()),
                       [&](auto const& x)
                       {
                         input << x;
@@ -1496,22 +1539,32 @@ inline namespace kernel
     {
       library.define<procedure>("put-char", [](let const& xs)
       {
-        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
+        xs[1].as<textual_output_port>().put(xs[0].as<character>());
       });
 
       library.define<procedure>("put-string", [](let const& xs)
       {
-        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
+        xs[1].as<textual_output_port>().put(xs[0].as<string>());
+      });
+
+      library.define<procedure>("put-u8", [](let const& xs)
+      {
+        xs[1].as<binary_output_port>().put(xs[0].as<exact_integer>());
+      });
+
+      library.define<procedure>("put-u8vector", [](let const& xs)
+      {
+        xs[1].as<binary_output_port>().put(xs[0].as<u8vector>());
       });
 
       library.define<procedure>("write", [](let const& xs)
       {
-        xs[1].as<std::ostream>() << xs[0];
+        xs[1].as<textual_output_port>().write(xs[0]);
       });
 
       library.define<procedure>("write-simple", [](let const& xs)
       {
-        write_simple(xs[1].as<std::ostream>(), xs[0]);
+        xs[1].as<textual_output_port>().write_simple(xs[0]);
       });
     });
 

@@ -14,20 +14,33 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
-#define INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_OUTPUT_STRING_PORT_HPP
+#define INCLUDED_MEEVAX_KERNEL_OUTPUT_STRING_PORT_HPP
+
+#include <meevax/kernel/textual_output_port.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct port
+  struct output_string_port : public textual_output_port
   {
-    virtual auto close() -> void = 0;
+    std::ostringstream ostringstream;
 
-    virtual auto is_open() const -> bool = 0;
+    template <typename... Ts>
+    explicit output_string_port(Ts&&... xs)
+      : ostringstream { std::forward<decltype(xs)>(xs)... }
+    {}
+
+    auto close() -> void override;
+
+    auto is_open() const -> bool override;
+
+    operator std::ostream &() override;
   };
+
+  auto operator <<(std::ostream &, output_string_port const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_OUTPUT_STRING_PORT_HPP

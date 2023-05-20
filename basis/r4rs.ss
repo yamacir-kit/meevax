@@ -3,8 +3,8 @@
           (only (meevax core) define-syntax)
           (only (meevax macro-transformer) er-macro-transformer)
           (only (meevax number) exact-integer? expt exact inexact ratio? ratio-numerator ratio-denominator)
-          (only (meevax port) input-port output-port)
-          (only (meevax read) get-ready?)
+          (prefix (meevax port) %)
+          (prefix (meevax read) %)
           (only (meevax string) string-copy)
           (only (meevax vector) vector-fill!)
           (scheme r4rs essential)
@@ -143,13 +143,15 @@
                    (begin (string-set! s k c)
                           (rec (- k 1)))))))
 
-         (define %current-input-port (input-port))
+         (define %current-input-port (%standard-input-port))
 
-         (define (current-input-port) %current-input-port)
+         (define (current-input-port)
+           %current-input-port)
 
-         (define %current-output-port (output-port))
+         (define %current-output-port (%standard-output-port))
 
-         (define (current-output-port) %current-output-port)
+         (define (current-output-port)
+           %current-output-port)
 
          (define (with-input-from-file path thunk)
            (let ((previous-input-port (current-input-port)))
@@ -164,6 +166,6 @@
              (set! %current-output-port previous-output-port)))
 
          (define (char-ready? . port)
-           (get-ready? (if (pair? port)
-                           (car port)
-                           (current-input-port))))))
+           (%get-char-ready? (if (pair? port)
+                                 (car port)
+                                 (current-input-port))))))

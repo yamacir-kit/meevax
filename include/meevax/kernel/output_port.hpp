@@ -14,20 +14,20 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
-#define INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_OUTPUT_PORT_HPP
+#define INCLUDED_MEEVAX_KERNEL_OUTPUT_PORT_HPP
+
+#include <meevax/kernel/port.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct port
+  struct output_port : public virtual port
   {
-    virtual auto close() -> void = 0;
-
-    virtual auto is_open() const -> bool = 0;
+    virtual auto flush() -> void = 0;
   };
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_OUTPUT_PORT_HPP

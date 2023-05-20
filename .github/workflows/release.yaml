@@ -12,19 +12,6 @@ jobs:
       - run: ./script/setup.sh
       - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --target package
-      - uses: actions/create-release@v1
-        id: create-release
+      - run: gh release create v${{ env.VERSION }} build/meevax_${{ env.VERSION }}_amd64.deb --generate-notes --title "Version ${{ env.VERSION }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          release_name: Version ${{ env.VERSION }}
-          tag_name: v${{ env.VERSION }}
-      - uses: actions/upload-release-asset@v1
-        id: upload-release-asset
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_content_type: application/zip
-          asset_name: meevax_${{ env.VERSION }}_amd64.deb
-          asset_path: build/meevax_${{ env.VERSION }}_amd64.deb
+         GH_TOKEN: ${{ github.token }}

@@ -14,20 +14,24 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
-#define INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_BINARY_OUTPUT_PORT_HPP
+#define INCLUDED_MEEVAX_KERNEL_BINARY_OUTPUT_PORT_HPP
+
+#include <meevax/kernel/binary_port.hpp>
+#include <meevax/kernel/homogeneous_vector.hpp>
+#include <meevax/kernel/output_port.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct port
+  struct binary_output_port : public virtual binary_port, public virtual output_port
   {
-    virtual auto close() -> void = 0;
+    virtual auto put(exact_integer const&) -> void = 0;
 
-    virtual auto is_open() const -> bool = 0;
+    virtual auto put(u8vector const&) -> void = 0;
   };
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_BINARY_OUTPUT_PORT_HPP

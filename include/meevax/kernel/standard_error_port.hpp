@@ -14,20 +14,26 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
-#define INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_STANDARD_ERROR_PORT_HPP
+#define INCLUDED_MEEVAX_KERNEL_STANDARD_ERROR_PORT_HPP
+
+#include <meevax/kernel/textual_output_port.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct port
+  struct standard_error_port : public textual_output_port
   {
-    virtual auto close() -> void = 0;
+    auto close() -> void override;
 
-    virtual auto is_open() const -> bool = 0;
+    auto is_open() const -> bool override;
+
+    operator std::ostream &() override;
   };
+
+  auto operator <<(std::ostream &, standard_error_port const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_STANDARD_ERROR_PORT_HPP

@@ -14,20 +14,35 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
-#define INCLUDED_MEEVAX_KERNEL_PORT_HPP
+#include <meevax/kernel/input_file_port.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct port
+  auto input_file_port::close() -> void
   {
-    virtual auto close() -> void = 0;
+    return ifstream.close();
+  }
 
-    virtual auto is_open() const -> bool = 0;
-  };
+  auto input_file_port::is_open() const -> bool
+  {
+    return ifstream.is_open();
+  }
+
+  input_file_port::operator std::istream &()
+  {
+    return ifstream;
+  }
+
+  input_file_port::operator std::istream const&() const
+  {
+    return ifstream;
+  }
+
+  auto operator <<(std::ostream & output, input_file_port const& datum) -> std::ostream &
+  {
+    return output << magenta("#,(") << blue("open-input-file ") << datum.name << magenta(")");
+  }
 } // namespace kernel
 } // namespace meevax
-
-#endif // INCLUDED_MEEVAX_KERNEL_PORT_HPP

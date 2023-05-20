@@ -31,12 +31,14 @@ auto main(int const argc, char const* const* const argv) -> int
     main.declare<import_set>("(scheme complex)");
     main.declare<import_set>("(scheme cxr)");
     main.declare<import_set>("(scheme eval)");
+    main.declare<import_set>("(scheme file)");
     main.declare<import_set>("(scheme inexact)");
     main.declare<import_set>("(scheme lazy)");
     main.declare<import_set>("(scheme load)");
     main.declare<import_set>("(scheme process-context)");
     main.declare<import_set>("(scheme read)");
     main.declare<import_set>("(scheme repl)");
+    main.declare<import_set>("(scheme time)");
     main.declare<import_set>("(scheme write)");
 
     main.configure(argc, argv);
