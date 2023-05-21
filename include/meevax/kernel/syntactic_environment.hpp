@@ -576,7 +576,57 @@ inline namespace kernel
         }
       }
 
-      // NOTE: R7RS 4.1.7. Inclusion is not unimplemented yet.
+      static COMPILER(include) /* ----------------------------------------------
+      *
+      *  R7RS  4.1.7. Inclusion
+      *
+      *  (include <string 1> <string 2> ...)                             syntax
+      *  (include-ci <string 1> <string 2> ...)                          syntax
+      *
+      *  Semantics: Both include and include-ci take one or more filenames
+      *  expressed as string literals, apply an implementation-specific
+      *  algorithm to find corresponding files, read the contents of the files
+      *  in the specified order as if by repeated applications of read, and
+      *  effectively re- place the include or include-ci expression with a
+      *  begin expression containing what was read from the files. The
+      *  difference between the two is that include-ci reads each file as if it
+      *  began with the #!fold-case directive, while include does not.
+      *
+      *  Note: Implementations are encouraged to search for files in the
+      *  directory which contains the including file, and to provide a way for
+      *  users to specify other directories to search.
+      *
+      * --------------------------------------------------------------------- */
+      {
+        auto include = [](auto&& recur,
+                          auto&& input,
+                          object const& filenames,
+                          object const& xs = unit) -> object
+        {
+          if (let const& x = Environment().read(input); not x.is<eof>())
+          {
+            return recur(recur, input, filenames, cons(x, xs));
+          }
+          else if (not filenames.is<null>())
+          {
+            return recur(recur,
+                         std::ifstream(car(filenames).as<string>()),
+                         cdr(filenames),
+                         xs);
+          }
+          else
+          {
+            return reverse(xs);
+          }
+        };
+
+        return sequence(compile,
+                        include(include,
+                                std::ifstream(car(expression).as<string>()), // The syntax include takes at least one filename.
+                                cdr(expression)),
+                        local,
+                        continuation);
+      }
 
       // NOTE: R7RS 4.2.1. Conditionals are implemented as macros.
 

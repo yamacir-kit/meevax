@@ -1,5 +1,6 @@
 (define-library (scheme base)
-  (import (only (meevax error) error-object? read-error? file-error?)
+  (import (only (meevax core) include)
+          (only (meevax error) error-object? read-error? file-error?)
           (only (meevax macro-transformer) er-macro-transformer)
           (only (meevax number) exact-integer? exact-integer-square-root)
           (only (meevax port) binary-port? eof-object flush get-output-u8vector open-input-u8vector open-output-u8vector open? port? standard-error-port standard-input-port standard-output-port textual-port?)
@@ -18,8 +19,8 @@
           (srfi 39))
 
   (export ; 4.1. Primitive expression types
-          quote lambda if set!
-          ; include include-ci
+          quote lambda if set! include
+          ; include-ci
           cond else => case and or when unless
           ; cond-expand
           let let* letrec letrec* let-values let*-values begin do
