@@ -22,6 +22,7 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/homogeneous_vector.hpp>
 #include <meevax/kernel/number.hpp>
+#include <meevax/kernel/standard_input_port.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
 
@@ -73,7 +74,7 @@ inline namespace kernel
       return static_cast<bool>(std::cin);
     }
 
-    auto read(std::istream & is = std::cin) -> object
+    auto read(std::istream & is) -> object
     {
       for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
       {
@@ -331,6 +332,12 @@ inline namespace kernel
       }
 
       return eof_object;
+    }
+
+    auto read() -> decltype(auto)
+    {
+      auto port = standard_input_port();
+      return read(port);
     }
 
     auto read(std::string const& s) -> decltype(auto)
