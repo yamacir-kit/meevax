@@ -90,7 +90,9 @@ auto main() -> int
 
     auto const gc_count = gc.count();
 
-    let const v = make<vector>(module.read("(a b c)"));
+    auto port = input_string_port("(a b c)");
+
+    let const v = make<vector>(module.read(port));
 
     assert(v.is<vector>());
     assert(v.as<vector>().objects.size() == 3);
@@ -138,7 +140,9 @@ auto main() -> int
 
     auto const gc_count = gc.count();
 
-    let const v = module.read("#(a b c)");
+    auto port = input_string_port("#(a b c)");
+
+    let const v = module.read(port);
 
     assert(v.is<vector>());
     assert(v.as<vector>().objects.size() == 3);
@@ -181,7 +185,9 @@ auto main() -> int
       return make<vector>(xs);
     });
 
-    module.evaluate(module.read("(vector 1 2 3)"));
+    auto port = input_string_port("(vector 1 2 3)");
+
+    module.evaluate(module.read(port));
   }
 
   return EXIT_SUCCESS;

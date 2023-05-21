@@ -270,7 +270,7 @@ inline namespace kernel
             }
             else
             {
-              return cons(x, read(is.putback(c)));
+              return cons(x, read(is.putback(c))); // modifying putback (https://en.cppreference.com/w/cpp/io/basic_istream/putback)
             }
           }
           catch (std::integral_constant<char_type, ')'> const&)
@@ -337,12 +337,6 @@ inline namespace kernel
     auto read() -> decltype(auto)
     {
       auto port = standard_input_port();
-      return read(port);
-    }
-
-    auto read(std::string const& s) -> decltype(auto)
-    {
-      auto port = std::stringstream(s);
       return read(port);
     }
   };

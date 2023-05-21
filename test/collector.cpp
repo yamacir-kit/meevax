@@ -207,7 +207,9 @@ auto main() -> int
 
     const auto gc_count = gc.count();
 
-    module.read("(a a a)");
+    auto port = input_string_port("(a a a)");
+
+    module.read(port);
 
     gc.collect();
 

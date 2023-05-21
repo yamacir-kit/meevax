@@ -20,6 +20,7 @@
 #include <regex>
 
 #include <meevax/kernel/error.hpp>
+#include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
@@ -149,7 +150,8 @@ inline namespace kernel
           {
             if (std::next(iter) != std::cend(args))
             {
-              return static_cast<Environment &>(*this).read(*++iter);
+              auto port = input_string_port(*++iter);
+              return static_cast<Environment &>(*this).read(port);
             }
             else
             {
@@ -169,7 +171,8 @@ inline namespace kernel
           {
             auto read = [this, result]()
             {
-              return static_cast<Environment &>(*this).read(result.str(2));
+              auto port = input_string_port(result.str(2));
+              return static_cast<Environment &>(*this).read(port);
             };
 
             expressions.push_back(search(result.str(1)).build(read));

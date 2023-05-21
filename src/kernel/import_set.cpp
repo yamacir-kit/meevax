@@ -133,7 +133,13 @@ inline namespace kernel
   {}
 
   import_set::import_set(std::string const& library_name)
-    : import_set { interaction_environment().as<environment>().read(library_name) }
+    : import_set {
+        [&]()
+        {
+          auto port = input_string_port(library_name);
+          return interaction_environment().as<environment>().read(port);
+        }()
+      }
   {}
 
   auto import_set::resolve(environment & e) const -> void
