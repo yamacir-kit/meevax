@@ -15,10 +15,10 @@
 */
 
 #include <meevax/kernel/error.hpp>
+#include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/string.hpp>
-#include <meevax/kernel/vector.hpp>
 
 namespace meevax
 {
@@ -26,7 +26,9 @@ inline namespace kernel
 {
   string::string(std::string const& s)
   {
-    for (auto port = std::stringstream(s); not character::is_eof(port.peek()); codepoints.emplace_back(get_codepoint(port)));
+    for (auto input = input_string_port(s);
+         not character::is_eof(static_cast<std::istream &>(input).peek());
+         codepoints.emplace_back(get_codepoint(input)));
   }
 
   string::string(std::size_t const k, character const& c)

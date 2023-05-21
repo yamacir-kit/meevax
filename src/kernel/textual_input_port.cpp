@@ -29,7 +29,7 @@ inline namespace kernel
   {
     try
     {
-      return make<character>(get_codepoint(static_cast<std::istream &>(*this)));
+      return make<character>(get_codepoint(*this));
     }
     catch (eof const&)
     {
@@ -45,7 +45,7 @@ inline namespace kernel
 
       for (std::size_t i = 0; i < size; ++i)
       {
-        s.codepoints.emplace_back(get_codepoint(static_cast<std::istream &>(*this)));
+        s.codepoints.emplace_back(get_codepoint(*this));
       }
 
       return make(s);
@@ -78,7 +78,7 @@ inline namespace kernel
     try
     {
       auto g = static_cast<std::istream &>(*this).tellg();
-      let c = make<character>(get_codepoint(static_cast<std::istream &>(*this)));
+      let c = make<character>(get_codepoint(*this));
       static_cast<std::istream &>(*this).seekg(g);
       return c;
     }
@@ -92,7 +92,7 @@ inline namespace kernel
   {
     try
     {
-      return interaction_environment().as<environment>().read(static_cast<std::istream &>(*this));
+      return interaction_environment().as<environment>().read(*this);
     }
     catch (eof const&)
     {

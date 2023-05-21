@@ -17,6 +17,8 @@
 #include <fstream>
 
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/import_set.hpp>
+#include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/library.hpp>
 
 namespace meevax
@@ -85,9 +87,9 @@ inline namespace kernel
 
   auto environment::load(std::string const& s) -> void
   {
-    if (auto input = std::ifstream(s); input)
+    if (auto input = input_file_port(s); input.is_open() and input.get_ready())
     {
-      while (not input.eof())
+      while (not static_cast<std::istream &>(input).eof())
       {
         evaluate(read(input));
       }

@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
 #include <meevax/kernel/eof.hpp>
-#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/homogeneous_vector.hpp>
 #include <meevax/kernel/number.hpp>
@@ -30,19 +29,19 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto get_codepoint(std::istream &) -> character::int_type;
+  auto get_codepoint(textual_input_port &) -> character::int_type;
 
-  auto get_digits(std::istream &) -> std::string;
+  auto get_digits(textual_input_port &) -> std::string;
 
-  auto get_token(std::istream &) -> std::string;
+  auto get_token(textual_input_port &) -> std::string;
 
-  auto ignore_nested_block_comment(std::istream &) -> std::istream &;
+  auto ignore_nested_block_comment(textual_input_port &) -> std::istream &;
 
   template <typename T>
-  auto read(std::istream &) -> object;
+  auto read(textual_input_port &) -> object;
 
-  template <> auto read<character>(std::istream &) -> object;
-  template <> auto read<string   >(std::istream &) -> object;
+  template <> auto read<character>(textual_input_port &) -> object;
+  template <> auto read<string   >(textual_input_port &) -> object;
 
   struct datum_label
   {
@@ -74,8 +73,10 @@ inline namespace kernel
       return static_cast<bool>(std::cin);
     }
 
-    auto read(std::istream & is) -> object
+    auto read(textual_input_port & input) -> object
     {
+      auto & is = static_cast<std::istream &>(input);
+
       for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
       {
         switch (auto const c = *head)
@@ -89,24 +90,26 @@ inline namespace kernel
           break;
 
         case '"':  // 0x22
-          return meevax::read<string>(is.putback(c));
+          is.putback(c);
+          return meevax::read<string>(input);
 
         case '#':  // 0x23
           switch (auto const c = is.get())
           {
           case '!': // SRFI 22
             is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            return read(is);
+            return read(input);
 
           case ',': // SRFI 10
-            return static_cast<Environment &>(*this).evaluate(read(is));
+            return static_cast<Environment &>(*this).evaluate(read(input));
 
           case ';': // SRFI 62
-            read(is);
-            return read(is);
+            read(input);
+            return read(input);
 
           case '"':
-            return make_symbol(meevax::read<string>(is.putback(c)).as<string>());
+            is.putback(c);
+            return make_symbol(meevax::read<string>(input).as<string>());
 
           case '0':
           case '1':
@@ -118,7 +121,9 @@ inline namespace kernel
           case '7':
           case '8':
           case '9':
-            switch (auto n = get_digits(is.putback(c)); is.peek())
+            is.putback(c);
+
+            switch (auto n = get_digits(input); is.peek())
             {
             case '#':
               is.ignore(1);
@@ -138,7 +143,7 @@ inline namespace kernel
 
               if (auto [iter, success] = datum_labels.emplace(n, make<datum_label>(n)); success)
               {
-                if (let const& xs = read(is); xs != iter->second)
+                if (let const& xs = read(input); xs != iter->second)
                 {
                   circulate(xs, n);
                   datum_labels.erase(n);
@@ -161,55 +166,55 @@ inline namespace kernel
             }
 
           case 'b':
-            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 2);
+            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : get_token(input), 2);
 
           case 'c': // Common Lisp
             return [](let const& xs)
             {
               return make<complex>(tail(xs, 0).is<pair>() ? xs[0] : e0,
                                    tail(xs, 1).is<pair>() ? xs[1] : e0);
-            }(read(is));
+            }(read(input));
 
           case 'd':
-            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 10);
+            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : get_token(input), 10);
 
           case 'e':
-            return exact(read(is)); // NOTE: Same as #,(exact (read))
+            return exact(read(input)); // NOTE: Same as #,(exact (read))
 
           case 'f':
-            switch (auto const digits = get_digits(is); std::stoi(digits))
+            switch (auto const digits = get_digits(input); std::stoi(digits))
             {
             case 32:
-              return make<f32vector>(read(is));
+              return make<f32vector>(read(input));
 
             case 64:
-              return make<f64vector>(read(is));
+              return make<f64vector>(read(input));
 
             default:
-              get_token(is);
+              get_token(input);
               return f;
             }
 
           case 'i':
-            return inexact(read(is)); // NOTE: Same as #,(inexact (read))
+            return inexact(read(input)); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 8);
+            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : get_token(input), 8);
 
           case 's':
-            switch (auto const digits = get_digits(is); std::stoi(digits))
+            switch (auto const digits = get_digits(input); std::stoi(digits))
             {
             case 8:
-              return make<s8vector>(read(is));
+              return make<s8vector>(read(input));
 
             case 16:
-              return make<s16vector>(read(is));
+              return make<s16vector>(read(input));
 
             case 32:
-              return make<s32vector>(read(is));
+              return make<s32vector>(read(input));
 
             case 64:
-              return make<s64vector>(read(is));
+              return make<s64vector>(read(input));
 
             default:
               throw read_error(make<string>("An unknown literal expression was encountered"),
@@ -217,23 +222,23 @@ inline namespace kernel
             }
 
           case 't':
-            get_token(is);
+            get_token(input);
             return t;
 
           case 'u':
-            switch (auto const digits = get_digits(is); std::stoi(digits))
+            switch (auto const digits = get_digits(input); std::stoi(digits))
             {
             case 8:
-              return make<u8vector>(read(is));
+              return make<u8vector>(read(input));
 
             case 16:
-              return make<u16vector>(read(is));
+              return make<u16vector>(read(input));
 
             case 32:
-              return make<u32vector>(read(is));
+              return make<u32vector>(read(input));
 
             case 64:
-              return make<u64vector>(read(is));
+              return make<u64vector>(read(input));
 
             default:
               throw read_error(make<string>("An unknown literal expression was encountered"),
@@ -241,36 +246,37 @@ inline namespace kernel
             }
 
           case 'x':
-            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : get_token(is), 16);
+            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : get_token(input), 16);
 
           case '(':
             is.putback(c);
-            return make<vector>(read(is));
+            return make<vector>(read(input));
 
           case '\\':
-            return meevax::read<character>(is);
+            return meevax::read<character>(input);
 
           case '|': // SRFI 30
-            ignore_nested_block_comment(is);
-            return read(is);
+            ignore_nested_block_comment(input);
+            return read(input);
 
           default:
             throw read_error(make<string>("unknown discriminator"), make<character>(c));
           }
 
         case '\'': // 0x27
-          return list(make_symbol("quote"), read(is));
+          return list(make_symbol("quote"), read(input));
 
         case '(':  // 0x28
           try
           {
-            if (let const& x = read(is); x == eof_object)
+            if (let const& x = read(input); x.is<eof>())
             {
               return x;
             }
             else
             {
-              return cons(x, read(is.putback(c))); // modifying putback (https://en.cppreference.com/w/cpp/io/basic_istream/putback)
+              is.putback(c);
+              return cons(x, read(input)); // modifying putback (https://en.cppreference.com/w/cpp/io/basic_istream/putback)
             }
           }
           catch (std::integral_constant<char_type, ')'> const&)
@@ -279,7 +285,7 @@ inline namespace kernel
           }
           catch (std::integral_constant<char_type, '.'> const&)
           {
-            let const x = read(is);
+            let const x = read(input);
             is.ignore(std::numeric_limits<std::streamsize>::max(), ')');
             return x;
           }
@@ -292,10 +298,10 @@ inline namespace kernel
           {
           case '@':
             is.ignore(1);
-            return list(make_symbol("unquote-splicing"), read(is));
+            return list(make_symbol("unquote-splicing"), read(input));
 
           default:
-            return list(make_symbol("unquote"), read(is));
+            return list(make_symbol("unquote"), read(input));
           }
 
         case ';':  // 0x3B
@@ -303,10 +309,11 @@ inline namespace kernel
           break;
 
         case '`':  // 0x60
-          return list(make_symbol("quasiquote"), read(is));
+          return list(make_symbol("quasiquote"), read(input));
 
         case '|':  // 0x7C
-          return make_symbol(meevax::read<string>(is.putback(c)).as<string>());
+          is.putback(c);
+          return make_symbol(meevax::read<string>(input).as<string>());
 
         case '[':  // 0x5B
         case ']':  // 0x5D
@@ -316,7 +323,9 @@ inline namespace kernel
                            make<character>(c));
 
         default:
-          if (auto const& token = get_token(is.putback(c)); token == ".")
+          is.putback(c);
+
+          if (auto const& token = get_token(input); token == ".")
           {
             throw std::integral_constant<char_type, '.'>();
           }
@@ -336,8 +345,8 @@ inline namespace kernel
 
     auto read() -> decltype(auto)
     {
-      auto port = standard_input_port();
-      return read(port);
+      auto input = standard_input_port();
+      return read(input);
     }
   };
 } // namespace kernel

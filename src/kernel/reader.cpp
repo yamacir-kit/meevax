@@ -52,7 +52,7 @@ inline namespace kernel
                                           '}'); // 0x7D
   }
 
-  auto get_codepoint(std::istream & is) -> character::int_type /* --------------
+  auto get_codepoint(textual_input_port & input) -> character::int_type /* -----
   *
   *  00000000 -- 0000007F: 0xxxxxxx
   *  00000080 -- 000007FF: 110xxxxx 10xxxxxx
@@ -62,6 +62,8 @@ inline namespace kernel
   * ------------------------------------------------------------------------- */
   {
     character::int_type codepoint = 0;
+
+    auto & is = static_cast<std::istream &>(input); // TEMPORARY
 
     if (auto const c = is.peek(); character::is_eof(c))
     {
@@ -97,20 +99,24 @@ inline namespace kernel
     return codepoint;
   }
 
-  auto get_digits(std::istream & input) -> std::string
+  auto get_digits(textual_input_port & input) -> std::string
   {
     auto digits = std::string();
 
-    while (std::isdigit(input.peek()))
+    auto & is = static_cast<std::istream &>(input);
+
+    while (std::isdigit(is.peek()))
     {
-      digits.push_back(input.get());
+      digits.push_back(is.get());
     }
 
     return std::empty(digits) ? "0" : digits;
   }
 
-  auto get_token(std::istream & is) -> std::string
+  auto get_token(textual_input_port & input) -> std::string
   {
+    auto & is = static_cast<std::istream &>(input);
+
     auto token = std::string();
 
     while (not is_special_character(is.peek()))
@@ -121,8 +127,10 @@ inline namespace kernel
     return token;
   }
 
-  auto ignore_nested_block_comment(std::istream & is) -> std::istream &
+  auto ignore_nested_block_comment(textual_input_port & input) -> std::istream &
   {
+    auto & is = static_cast<std::istream &>(input);
+
     while (not character::is_eof(is.peek())) switch (is.get())
     {
     case '#':
@@ -130,7 +138,7 @@ inline namespace kernel
       {
       case '|':
         is.ignore(1);
-        ignore_nested_block_comment(is);
+        ignore_nested_block_comment(input);
         [[fallthrough]];
 
       default:
@@ -156,8 +164,10 @@ inline namespace kernel
   }
 
   template <>
-  auto read<character>(std::istream & is) -> object
+  auto read<character>(textual_input_port & input) -> object
   {
+    auto & is = static_cast<std::istream &>(input);
+
     std::unordered_map<std::string, character::int_type> static const character_names {
       { "alarm"    , 0x07 },
       { "backspace", 0x08 },
@@ -170,7 +180,7 @@ inline namespace kernel
       { "tab"      , 0x09 },
     };
 
-    switch (auto token = get_token(is); token.length())
+    switch (auto token = get_token(input); token.length())
     {
     case 0:
       assert(is_special_character(is.peek()));
@@ -202,13 +212,15 @@ inline namespace kernel
   }
 
   template <>
-  auto read<string>(std::istream & is) -> object
+  auto read<string>(textual_input_port & input) -> object
   {
+    auto & is = static_cast<std::istream &>(input);
+
     auto s = string();
 
     auto const quotation_mark = is.get();
 
-    for (auto codepoint = get_codepoint(is); not character::is_eof(codepoint); codepoint = get_codepoint(is))
+    for (auto codepoint = get_codepoint(input); not character::is_eof(codepoint); codepoint = get_codepoint(input))
     {
       if (codepoint == quotation_mark)
       {
@@ -217,7 +229,7 @@ inline namespace kernel
       else switch (codepoint)
       {
       case '\\':
-        switch (auto const codepoint = get_codepoint(is); codepoint)
+        switch (auto const codepoint = get_codepoint(input); codepoint)
         {
         case 'a': s.codepoints.emplace_back('\a'); break;
         case 'b': s.codepoints.emplace_back('\b'); break;

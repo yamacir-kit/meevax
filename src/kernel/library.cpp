@@ -22,15 +22,13 @@
 #include <meevax/kernel/binary_input_file_port.hpp>
 #include <meevax/kernel/binary_output_file_port.hpp>
 #include <meevax/kernel/disassemble.hpp>
-#include <meevax/kernel/input_file_port.hpp>
+#include <meevax/kernel/import_set.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
-#include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/output_file_port.hpp>
 #include <meevax/kernel/output_homogeneous_vector_port.hpp>
 #include <meevax/kernel/output_string_port.hpp>
 #include <meevax/kernel/standard_error_port.hpp>
-#include <meevax/kernel/standard_input_port.hpp>
 #include <meevax/kernel/standard_output_port.hpp>
 
 namespace meevax
@@ -1498,18 +1496,20 @@ inline namespace kernel
 
       library.define<procedure>("u8vector->string", [](let const& xs)
       {
-        auto input = std::stringstream();
+        auto buffer = std::ostringstream();
 
         std::for_each(std::next(std::begin(xs[0].as<u8vector>().valarray), tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
                       std::next(std::begin(xs[0].as<u8vector>().valarray), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().valarray.size()),
                       [&](auto const& x)
                       {
-                        input << x;
+                        buffer << x;
                       });
+
+        auto input = input_string_port(buffer.str());
 
         auto output = string();
 
-        while (input.peek() != std::char_traits<char>::eof())
+        while (static_cast<std::istream &>(input).peek() != std::char_traits<char>::eof())
         {
           output.codepoints.emplace_back(get_codepoint(input));
         }
@@ -1573,9 +1573,9 @@ inline namespace kernel
 
     for (auto&& each : basis())
     {
-      if (std::stringstream input { each }; input)
+      if (auto input = input_string_port(each); input.get_ready())
       {
-        while (not input.eof())
+        while (not static_cast<std::istream &>(input).eof())
         {
           boot_loader.evaluate(boot_loader.read(input));
         }

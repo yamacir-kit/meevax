@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/import_set.hpp>
 #include <meevax/kernel/library.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int

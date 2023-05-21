@@ -19,7 +19,6 @@
 
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/dynamic_environment.hpp>
-#include <meevax/kernel/import_set.hpp>
 #include <meevax/kernel/optimizer.hpp>
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
