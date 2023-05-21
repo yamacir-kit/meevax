@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 
+#include <fstream> // for syntax `include` and `include-ci`
+
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/transformer.hpp>
