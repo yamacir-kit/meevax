@@ -19,6 +19,7 @@
 
 #include <istream>
 
+#include <meevax/kernel/character.hpp>
 #include <meevax/kernel/input_port.hpp>
 #include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/textual_port.hpp>
@@ -32,6 +33,8 @@ inline namespace kernel
     auto get() -> object;
 
     auto get(std::size_t) -> object;
+
+    auto get_codepoint() -> character::int_type;
 
     auto get_line() -> object;
 

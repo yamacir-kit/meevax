@@ -28,7 +28,7 @@ inline namespace kernel
   {
     for (auto input = input_string_port(s);
          not character::is_eof(static_cast<std::istream &>(input).peek());
-         codepoints.emplace_back(get_codepoint(input)));
+         codepoints.emplace_back(input.get_codepoint()));
   }
 
   string::string(std::size_t const k, character const& c)

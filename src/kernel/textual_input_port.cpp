@@ -17,7 +17,6 @@
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
-#include <meevax/kernel/reader.hpp> // get_codepoint
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/textual_input_port.hpp>
 
@@ -29,7 +28,7 @@ inline namespace kernel
   {
     try
     {
-      return make<character>(get_codepoint(*this));
+      return make<character>(get_codepoint());
     }
     catch (eof const&)
     {
@@ -45,7 +44,7 @@ inline namespace kernel
 
       for (std::size_t i = 0; i < size; ++i)
       {
-        s.codepoints.emplace_back(get_codepoint(*this));
+        s.codepoints.emplace_back(get_codepoint());
       }
 
       return make(s);
@@ -54,6 +53,53 @@ inline namespace kernel
     {
       return eof_object;
     }
+  }
+
+  auto textual_input_port::get_codepoint() -> character::int_type
+  {
+    /*
+       00000000 -- 0000007F: 0xxxxxxx
+       00000080 -- 000007FF: 110xxxxx 10xxxxxx
+       00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
+       00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+    */
+
+    character::int_type codepoint = 0;
+
+    auto & istream = static_cast<std::istream &>(*this);
+
+    if (auto const c = istream.peek(); character::is_eof(c))
+    {
+      throw eof();
+    }
+    else if (0x00 <= c and c <= 0x7F) // 7 bit
+    {
+      codepoint = istream.get();
+    }
+    else if (0xC2 <= c and c <= 0xDF) // 11 bit
+    {
+      codepoint |= istream.get() bitand 0b0001'1111; codepoint <<= 6;
+      codepoint |= istream.get() bitand 0b0011'1111;
+    }
+    else if (0xE0 <= c and c <= 0xEF) // 16 bit
+    {
+      codepoint |= istream.get() bitand 0b0000'1111; codepoint <<= 6;
+      codepoint |= istream.get() bitand 0b0011'1111; codepoint <<= 6;
+      codepoint |= istream.get() bitand 0b0011'1111;
+    }
+    else if (0xF0 <= c and c <= 0xF4) // 21 bit
+    {
+      codepoint |= istream.get() bitand 0b0000'0111; codepoint <<= 6;
+      codepoint |= istream.get() bitand 0b0011'1111; codepoint <<= 6;
+      codepoint |= istream.get() bitand 0b0011'1111; codepoint <<= 6;
+      codepoint |= istream.get() bitand 0b0011'1111;
+    }
+    else
+    {
+      throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
+    }
+
+    return codepoint;
   }
 
   auto textual_input_port::get_line() -> object
@@ -78,7 +124,7 @@ inline namespace kernel
     try
     {
       auto g = static_cast<std::istream &>(*this).tellg();
-      let c = make<character>(get_codepoint(*this));
+      let c = make<character>(get_codepoint());
       static_cast<std::istream &>(*this).seekg(g);
       return c;
     }

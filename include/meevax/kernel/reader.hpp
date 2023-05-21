@@ -29,8 +29,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto get_codepoint(textual_input_port &) -> character::int_type;
-
   auto get_digits(textual_input_port &) -> std::string;
 
   auto get_token(textual_input_port &) -> std::string;

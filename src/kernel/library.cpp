@@ -1511,7 +1511,7 @@ inline namespace kernel
 
         while (static_cast<std::istream &>(input).peek() != std::char_traits<char>::eof())
         {
-          output.codepoints.emplace_back(get_codepoint(input));
+          output.codepoints.emplace_back(input.get_codepoint());
         }
 
         return make(output);
