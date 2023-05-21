@@ -662,6 +662,16 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
+        /*
+           The top-level sequential expression may contain macro definitions.
+           In that case, the macro definition must be compiled before the macro
+           is used (the evaluation order of function arguments in C++ is not
+           specified, but in most environments they are evaluated from right to
+           left). Therefore, the first expression is compiled separately and
+           then combined with the compiled result of the remaining expressions
+           by append2.
+        */
+
         if (cdr(expression).is<null>()) // is tail sequence
         {
           return compile(car(expression),
@@ -669,13 +679,23 @@ inline namespace kernel
                          continuation,
                          ellipsis);
         }
+        else if (let const head = compile(car(expression), // Head expression or definition
+                                          local,
+                                          unit);
+                 head.is<null>()) // The syntax define-syntax creates a transformer from transformer-spec at compile time and registers it in the global environment. The syntax define-syntax is effectively a compile-time side-effect of the syntax environment and does nothing at run-time.
+        {
+          return sequence(compile,
+                          cdr(expression), // rest expressions
+                          local,
+                          continuation,
+                          ellipsis);
+        }
         else
         {
-          return compile(car(expression), // head expression
-                         local,
-                         cons(make(instruction::drop), // pop result of head expression
+          return append2(head,
+                         cons(make(instruction::drop), // Pop result of head expression
                               sequence(compile,
-                                       cdr(expression), // rest expressions
+                                       cdr(expression), // Rest expression or definitions
                                        local,
                                        continuation,
                                        ellipsis)));
@@ -875,7 +895,7 @@ inline namespace kernel
         return continuation;
       }
 
-      // NOTE: R7RS 5.5. Record-type definitions is not implemented yet.
+      // NOTE: R7RS 5.5. Record-type definitions is implemented as macros.
 
       static COMPILER(call_with_current_continuation) /* -----------------------
       *
