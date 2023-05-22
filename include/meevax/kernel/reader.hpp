@@ -152,9 +152,9 @@ inline namespace kernel
         }
       };
 
-      for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
+      while (not character::is_eof(is.peek()))
       {
-        switch (auto const c = *head)
+        switch (auto const c1 = is.peek())
         {
         case '\t': // 0x09
         case '\n': // 0x0A
@@ -162,28 +162,29 @@ inline namespace kernel
         case '\f': // 0x0C
         case '\r': // 0x0D
         case ' ':  // 0x20
+          is.ignore(1);
           break;
 
         case '"':  // 0x22
-          is.putback(c);
           return make(take_surrounded());
 
         case '#':  // 0x23
-          switch (auto const c = is.get())
+          switch (auto const c2 = is.ignore(1).peek())
           {
           case '!': // SRFI 22
             is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             return read(input);
 
           case ',': // SRFI 10
+            is.ignore(1);
             return static_cast<Environment &>(*this).evaluate(read(input));
 
           case ';': // SRFI 62
-            read(input);
+            is.ignore(1);
+            read(input); // Discard an expression.
             return read(input);
 
           case '"':
-            is.putback(c);
             return make_symbol(take_surrounded());
 
           case '0':
@@ -196,8 +197,6 @@ inline namespace kernel
           case '7':
           case '8':
           case '9':
-            is.putback(c);
-
             switch (auto n = input.take_digits(); is.peek())
             {
             case '#':
@@ -241,9 +240,10 @@ inline namespace kernel
             }
 
           case 'b':
-            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : input.take_token(), 2);
+            return make_number(is.ignore(1).peek() == '#' ? lexical_cast<std::string>(read(input)) : input.take_token(), 2);
 
           case 'c': // Common Lisp
+            is.ignore(1);
             return [](let const& xs)
             {
               return make<complex>(tail(xs, 0).is<pair>() ? xs[0] : e0,
@@ -251,12 +251,15 @@ inline namespace kernel
             }(read(input));
 
           case 'd':
-            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : input.take_token(), 10);
+            return make_number(is.ignore(1).peek() == '#' ? lexical_cast<std::string>(read(input)) : input.take_token(), 10);
 
           case 'e':
+            is.ignore(1);
             return exact(read(input)); // NOTE: Same as #,(exact (read))
 
           case 'f':
+            is.ignore(1);
+
             switch (auto const digits = input.take_digits(); std::stoi(digits))
             {
             case 32:
@@ -271,12 +274,15 @@ inline namespace kernel
             }
 
           case 'i':
+            is.ignore(1);
             return inexact(read(input)); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : input.take_token(), 8);
+            return make_number(is.ignore(1).peek() == '#' ? lexical_cast<std::string>(read(input)) : input.take_token(), 8);
 
           case 's':
+            is.ignore(1);
+
             switch (auto const digits = input.take_digits(); std::stoi(digits))
             {
             case 8:
@@ -301,6 +307,8 @@ inline namespace kernel
             return t;
 
           case 'u':
+            is.ignore(1);
+
             switch (auto const digits = input.take_digits(); std::stoi(digits))
             {
             case 8:
@@ -321,37 +329,41 @@ inline namespace kernel
             }
 
           case 'x':
-            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : input.take_token(), 16);
+            return make_number(is.ignore(1).peek() == '#' ? lexical_cast<std::string>(read(input)) : input.take_token(), 16);
 
           case '(':
-            is.putback(c);
             return make<vector>(read(input));
 
           case '\\':
+            is.ignore(1);
             return read_character();
 
           case '|': // SRFI 30
+            is.ignore(1);
             input.take_nested_block_comment();
             return read(input);
 
           default:
-            throw read_error(make<string>("unknown discriminator"), make<character>(c));
+            throw read_error(make<string>("unknown discriminator"), make<character>(c2));
           }
 
         case '\'': // 0x27
+          is.ignore(1);
           return list(make_symbol("quote"), read(input));
 
         case '(':  // 0x28
           try
           {
+            is.ignore(1);
+
             if (let const& x = read(input); x.is<eof>())
             {
               return x;
             }
             else
             {
-              is.putback(c);
-              return cons(x, read(input)); // modifying putback (https://en.cppreference.com/w/cpp/io/basic_istream/putback)
+              is.putback('('); // modifying putback (https://en.cppreference.com/w/cpp/io/basic_istream/putback)
+              return cons(x, read(input));
             }
           }
           catch (std::integral_constant<char_type, ')'> const&)
@@ -366,10 +378,11 @@ inline namespace kernel
           }
 
         case ')':  // 0x29
+          is.ignore(1);
           throw std::integral_constant<char_type, ')'>();
 
         case ',':  // 0x2C
-          switch (is.peek())
+          switch (is.ignore(1); is.peek())
           {
           case '@':
             is.ignore(1);
@@ -384,10 +397,10 @@ inline namespace kernel
           break;
 
         case '`':  // 0x60
+          is.ignore(1);
           return list(make_symbol("quasiquote"), read(input));
 
         case '|':  // 0x7C
-          is.putback(c);
           return make_symbol(take_surrounded());
 
         case '[':  // 0x5B
@@ -395,11 +408,9 @@ inline namespace kernel
         case '{':  // 0x7B
         case '}':  // 0x7D
           throw read_error(make<string>("left and right square and curly brackets (braces) are reserved for possible future extensions to the language"),
-                           make<character>(c));
+                           make<character>(c1));
 
         default:
-          is.putback(c);
-
           if (auto const& token = input.take_token(); token == ".")
           {
             throw std::integral_constant<char_type, '.'>();
