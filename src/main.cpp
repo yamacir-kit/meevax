@@ -16,6 +16,7 @@
 
 #include <meevax/kernel/import_set.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/standard_input_port.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int
 {
@@ -44,11 +45,11 @@ auto main(int const argc, char const* const* const argv) -> int
 
     main.configure(argc, argv);
 
-    while (main.interactive and standard_input_port().get_ready())
+    for (auto input = standard_input_port(); main.interactive and input.get_ready(); )
     {
       try
       {
-        std::cout << u8"\u03bb> " << main.evaluate(main.read()) << std::endl;
+        std::cout << u8"\u03bb> " << main.evaluate(input.read()) << std::endl;
       }
       catch (error const& error)
       {

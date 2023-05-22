@@ -203,13 +203,9 @@ auto main() -> int
 
   // read list
   {
-    auto module = environment();
-
     const auto gc_count = gc.count();
 
-    auto port = input_string_port("(a a a)");
-
-    module.read(port);
+    input_string_port("(a a a)").read();
 
     gc.collect();
 

@@ -91,7 +91,7 @@ inline namespace kernel
     {
       while (not static_cast<std::istream &>(input).eof())
       {
-        evaluate(read(input));
+        evaluate(input.read());
       }
     }
     else
@@ -122,8 +122,6 @@ inline namespace kernel
   template struct configurator<environment>;
 
   template struct dynamic_environment<environment>;
-
-  template struct reader<environment>;
 
   template struct syntactic_environment<environment>;
 } // namespace kernel

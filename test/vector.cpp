@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/vector.hpp>
 
 auto main() -> int
 {
@@ -86,13 +87,9 @@ auto main() -> int
 
   // list->vector
   {
-    auto module = environment();
-
     auto const gc_count = gc.count();
 
-    auto port = input_string_port("(a b c)");
-
-    let const v = make<vector>(module.read(port));
+    let const v = make<vector>(input_string_port("(a b c)").read());
 
     assert(v.is<vector>());
     assert(v.as<vector>().objects.size() == 3);
@@ -136,13 +133,9 @@ auto main() -> int
 
   // vector literal
   {
-    auto module = environment();
-
     auto const gc_count = gc.count();
 
-    auto port = input_string_port("#(a b c)");
-
-    let const v = module.read(port);
+    let const v = input_string_port("#(a b c)").read();
 
     assert(v.is<vector>());
     assert(v.as<vector>().objects.size() == 3);
@@ -185,9 +178,7 @@ auto main() -> int
       return make<vector>(xs);
     });
 
-    auto port = input_string_port("(vector 1 2 3)");
-
-    module.evaluate(module.read(port));
+    module.evaluate(input_string_port("(vector 1 2 3)").read());
   }
 
   return EXIT_SUCCESS;

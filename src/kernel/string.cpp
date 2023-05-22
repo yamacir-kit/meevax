@@ -17,7 +17,6 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/string.hpp>
 
 namespace meevax

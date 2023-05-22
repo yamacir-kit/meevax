@@ -71,8 +71,7 @@ inline namespace kernel
     auto define(std::string const& name, Ts&&... xs) -> void
     {
       environment::define<T>(name, std::forward<decltype(xs)>(xs)...);
-      auto port = input_string_port(name);
-      declare<export_spec>(read(port));
+      declare<export_spec>(input_string_port(name).read());
     }
 
     auto evaluate(object const&) -> void;

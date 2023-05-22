@@ -20,7 +20,6 @@
 #include <istream>
 
 #include <meevax/kernel/input_port.hpp>
-#include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/textual_port.hpp>
 
@@ -30,6 +29,8 @@ inline namespace kernel
 {
   struct textual_input_port : public virtual textual_port, public virtual input_port
   {
+    std::unordered_map<std::string, object> datum_labels;
+
     auto get() -> object; // character or eof
 
     auto get(std::size_t) -> object; // string or eof

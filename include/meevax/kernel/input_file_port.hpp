@@ -19,7 +19,6 @@
 
 #include <fstream>
 
-#include <meevax/kernel/string.hpp>
 #include <meevax/kernel/textual_input_port.hpp>
 
 namespace meevax

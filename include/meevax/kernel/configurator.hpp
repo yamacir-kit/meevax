@@ -150,8 +150,7 @@ inline namespace kernel
           {
             if (std::next(iter) != std::cend(args))
             {
-              auto port = input_string_port(*++iter);
-              return static_cast<Environment &>(*this).read(port);
+              return input_string_port(*++iter).read();
             }
             else
             {
@@ -169,10 +168,9 @@ inline namespace kernel
           }
           else if (result.length(2))
           {
-            auto read = [this, result]()
+            auto read = [result]()
             {
-              auto port = input_string_port(result.str(2));
-              return static_cast<Environment &>(*this).read(port);
+              return input_string_port(result.str(2)).read();
             };
 
             expressions.push_back(search(result.str(1)).build(read));

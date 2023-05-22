@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 
+#include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/input_file_port.hpp> // for syntax `include` and `include-ci`
 #include <meevax/kernel/list.hpp>
@@ -604,7 +605,7 @@ inline namespace kernel
                           object const& filenames,
                           object const& xs = unit) -> object
         {
-          if (let const& x = Environment().read(input); not x.is<eof>())
+          if (let const& x = input.read(); not x.is<eof>())
           {
             return recur(recur, input, filenames, cons(x, xs));
           }

@@ -29,7 +29,9 @@
 #include <meevax/kernel/output_homogeneous_vector_port.hpp>
 #include <meevax/kernel/output_string_port.hpp>
 #include <meevax/kernel/standard_error_port.hpp>
+#include <meevax/kernel/standard_input_port.hpp>
 #include <meevax/kernel/standard_output_port.hpp>
+#include <meevax/kernel/vector.hpp>
 
 namespace meevax
 {
@@ -1577,7 +1579,7 @@ inline namespace kernel
       {
         while (not static_cast<std::istream &>(input).eof())
         {
-          boot_loader.evaluate(boot_loader.read(input));
+          boot_loader.evaluate(input.read());
         }
       }
     }
