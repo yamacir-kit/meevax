@@ -44,7 +44,7 @@ auto main(int const argc, char const* const* const argv) -> int
 
     main.configure(argc, argv);
 
-    while (main.interactive and main.get_ready())
+    while (main.interactive and standard_input_port().get_ready())
     {
       try
       {

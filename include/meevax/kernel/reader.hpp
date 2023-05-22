@@ -54,11 +54,6 @@ inline namespace kernel
 
     std::unordered_map<std::string, object> datum_labels;
 
-    auto get_ready() const
-    {
-      return static_cast<bool>(std::cin);
-    }
-
     auto read(textual_input_port & input) -> object
     {
       auto & is = static_cast<std::istream &>(input);
@@ -152,11 +147,6 @@ inline namespace kernel
           }
           else
           {
-            for (auto iter = std::rbegin(token); iter != std::rend(token); ++iter)
-            {
-              is.putback(*iter);
-            }
-
             throw read_error(make<string>("not a character"), make<string>("\\#" + token));
           }
         }
