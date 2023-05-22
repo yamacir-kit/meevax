@@ -41,12 +41,6 @@ inline namespace kernel
 
   auto circulate(object const&, std::string const&) -> void;
 
-  auto make_integer (std::string const&, int = 10) -> object;
-  auto make_rational(std::string const&, int = 10) -> object;
-  auto make_real    (std::string const&, int = 10) -> object;
-  auto make_complex (std::string const&, int = 10) -> object;
-  auto make_number  (std::string const&, int = 10) -> object;
-
   template <typename Environment>
   struct reader
   {
