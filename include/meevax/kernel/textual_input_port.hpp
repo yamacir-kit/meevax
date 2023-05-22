@@ -30,19 +30,25 @@ inline namespace kernel
 {
   struct textual_input_port : public virtual textual_port, public virtual input_port
   {
-    auto get() -> object;
+    auto get() -> object; // character or eof
 
-    auto get(std::size_t) -> object;
+    auto get(std::size_t) -> object; // string or eof
 
-    auto get_codepoint() -> character::int_type;
-
-    auto get_line() -> object;
+    auto get_line() -> object; // string or eof
 
     auto get_ready() const -> bool;
 
     auto peek() -> object;
 
     auto read() -> object;
+
+    auto take_codepoint() -> character::int_type;
+
+    auto take_digits() -> std::string;
+
+    auto take_nested_block_comment() -> void; // TODO return std::string
+
+    auto take_token() -> std::string;
 
     explicit virtual operator std::istream &() = 0;
 

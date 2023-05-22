@@ -24,11 +24,39 @@ namespace meevax
 {
 inline namespace kernel
 {
+  constexpr auto is_special_character(character::int_type c)
+  {
+    auto one_of = [c](auto... xs) constexpr
+    {
+      return (character::eq(c, xs) or ...);
+    };
+
+    return character::is_eof(c) or one_of('\t', // 0x09
+                                          '\n', // 0x0A
+                                          '\v', // 0x0B
+                                          '\f', // 0x0C
+                                          '\r', // 0x0D
+                                          ' ',  // 0x20
+                                          '"',  // 0x22
+                                          '#',  // 0x23
+                                          '\'', // 0x27
+                                          '(',  // 0x28
+                                          ')',  // 0x29
+                                          ',',  // 0x2C
+                                          ';',  // 0x3B
+                                          '[',  // 0x5B
+                                          ']',  // 0x5D
+                                          '`',  // 0x60
+                                          '{',  // 0x7B
+                                          '|',  // 0x7C
+                                          '}'); // 0x7D
+  }
+
   auto textual_input_port::get() -> object
   {
     try
     {
-      return make<character>(get_codepoint());
+      return make<character>(take_codepoint());
     }
     catch (eof const&)
     {
@@ -44,7 +72,7 @@ inline namespace kernel
 
       for (std::size_t i = 0; i < size; ++i)
       {
-        s.codepoints.emplace_back(get_codepoint());
+        s.codepoints.emplace_back(take_codepoint());
       }
 
       return make(s);
@@ -55,7 +83,51 @@ inline namespace kernel
     }
   }
 
-  auto textual_input_port::get_codepoint() -> character::int_type
+  auto textual_input_port::get_line() -> object
+  {
+    if (auto s = std::string(); std::getline(static_cast<std::istream &>(*this), s).eof())
+    {
+      return eof_object;
+    }
+    else
+    {
+      return make<string>(s);
+    }
+  }
+
+  auto textual_input_port::get_ready() const -> bool
+  {
+    return static_cast<bool>(static_cast<std::istream const&>(*this));
+  }
+
+  auto textual_input_port::peek() -> object
+  {
+    try
+    {
+      auto g = static_cast<std::istream &>(*this).tellg();
+      let c = make<character>(take_codepoint());
+      static_cast<std::istream &>(*this).seekg(g);
+      return c;
+    }
+    catch (eof const&)
+    {
+      return eof_object;
+    }
+  }
+
+  auto textual_input_port::read() -> object
+  {
+    try
+    {
+      return interaction_environment().as<environment>().read(*this);
+    }
+    catch (eof const&)
+    {
+      return eof_object;
+    }
+  }
+
+  auto textual_input_port::take_codepoint() -> character::int_type
   {
     /*
        00000000 -- 0000007F: 0xxxxxxx
@@ -102,48 +174,65 @@ inline namespace kernel
     return codepoint;
   }
 
-  auto textual_input_port::get_line() -> object
+  auto textual_input_port::take_digits() -> std::string
   {
-    if (auto s = std::string(); std::getline(static_cast<std::istream &>(*this), s).eof())
-    {
-      return eof_object;
-    }
-    else
-    {
-      return make<string>(s);
-    }
+    auto digits = std::string();
+
+    for (auto & istream = static_cast<std::istream &>(*this);
+         std::isdigit(istream.peek());
+         digits.push_back(istream.get()));
+
+    return std::empty(digits) ? "0" : digits;
   }
 
-  auto textual_input_port::get_ready() const -> bool
+  auto textual_input_port::take_nested_block_comment() -> void
   {
-    return static_cast<bool>(static_cast<std::istream const&>(*this));
+    auto & istream = static_cast<std::istream &>(*this);
+
+    while (not character::is_eof(istream.peek()))
+    {
+      switch (istream.get())
+      {
+      case '#':
+        switch (istream.peek())
+        {
+        case '|':
+          istream.ignore(1);
+          take_nested_block_comment();
+          [[fallthrough]];
+
+        default:
+          continue;
+        }
+
+      case '|':
+        switch (istream.peek())
+        {
+        case '#':
+          istream.ignore(1);
+          return;
+
+        default:
+          continue;
+        }
+
+      default:
+        continue;
+      }
+    }
+
+    throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
   }
 
-  auto textual_input_port::peek() -> object
+  auto textual_input_port::take_token() -> std::string
   {
-    try
-    {
-      auto g = static_cast<std::istream &>(*this).tellg();
-      let c = make<character>(get_codepoint());
-      static_cast<std::istream &>(*this).seekg(g);
-      return c;
-    }
-    catch (eof const&)
-    {
-      return eof_object;
-    }
-  }
+    auto token = std::string();
 
-  auto textual_input_port::read() -> object
-  {
-    try
-    {
-      return interaction_environment().as<environment>().read(*this);
-    }
-    catch (eof const&)
-    {
-      return eof_object;
-    }
+    for (auto & istream = static_cast<std::istream &>(*this);
+         not is_special_character(istream.peek());
+         token.push_back(istream.get()));
+
+    return token;
   }
 } // namespace kernel
 } // namespace meevax

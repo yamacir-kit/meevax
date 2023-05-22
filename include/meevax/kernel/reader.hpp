@@ -29,18 +29,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto get_digits(textual_input_port &) -> std::string;
-
-  auto get_token(textual_input_port &) -> std::string;
-
-  auto ignore_nested_block_comment(textual_input_port &) -> std::istream &;
-
-  template <typename T>
-  auto read(textual_input_port &) -> object;
-
-  template <> auto read<character>(textual_input_port &) -> object;
-  template <> auto read<string   >(textual_input_port &) -> object;
-
   struct datum_label
   {
     std::string const n;
@@ -75,6 +63,105 @@ inline namespace kernel
     {
       auto & is = static_cast<std::istream &>(input);
 
+      auto take_surrounded = [&]()
+      {
+        auto s = string();
+
+        auto const quotation_mark = is.get();
+
+        for (auto codepoint = input.take_codepoint(); not character::is_eof(codepoint); codepoint = input.take_codepoint())
+        {
+          if (codepoint == quotation_mark)
+          {
+            return s;
+          }
+          else switch (codepoint)
+          {
+          case '\\':
+            switch (auto const codepoint = input.take_codepoint(); codepoint)
+            {
+            case 'a': s.codepoints.emplace_back('\a'); break;
+            case 'b': s.codepoints.emplace_back('\b'); break;
+            case 'f': s.codepoints.emplace_back('\f'); break;
+            case 'n': s.codepoints.emplace_back('\n'); break;
+            case 'r': s.codepoints.emplace_back('\r'); break;
+            case 't': s.codepoints.emplace_back('\t'); break;
+            case 'v': s.codepoints.emplace_back('\v'); break;
+            case 'x':
+              if (auto token = std::string(); std::getline(is, token, ';'))
+              {
+                s.codepoints.emplace_back(lexical_cast<character::int_type>(std::hex, token));
+              }
+              break;
+
+            case '\n':
+            case '\r':
+              while (std::isspace(is.peek()))
+              {
+                is.ignore(1);
+              }
+              break;
+
+            default:
+              s.codepoints.emplace_back(codepoint);
+              break;
+            }
+            break;
+
+          default:
+            s.codepoints.emplace_back(codepoint);
+            break;
+          }
+        }
+
+        throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
+      };
+
+      auto read_character = [&]()
+      {
+        std::unordered_map<std::string, character::int_type> static const names {
+          { "alarm"    , 0x07 },
+          { "backspace", 0x08 },
+          { "delete"   , 0x7F },
+          { "escape"   , 0x1B },
+          { "newline"  , 0x0A },
+          { "null"     , 0x00 },
+          { "return"   , 0x0D },
+          { "space"    , 0x20 },
+          { "tab"      , 0x09 },
+        };
+
+        switch (auto token = input.take_token(); token.length())
+        {
+        case 0:
+          // assert(is_special_character(is.peek()));
+          return make<character>(is.get());
+
+        case 1:
+          assert(std::isprint(token.front()));
+          return make<character>(token.front());
+
+        default:
+          if (auto iter = names.find(token); iter != std::end(names))
+          {
+            return make<character>(iter->second);
+          }
+          else if (token[0] == 'x' and 1 < token.length())
+          {
+            return make<character>(lexical_cast<character::int_type>(std::hex, token.substr(1)));
+          }
+          else
+          {
+            for (auto iter = std::rbegin(token); iter != std::rend(token); ++iter)
+            {
+              is.putback(*iter);
+            }
+
+            throw read_error(make<string>("not a character"), make<string>("\\#" + token));
+          }
+        }
+      };
+
       for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
       {
         switch (auto const c = *head)
@@ -89,7 +176,7 @@ inline namespace kernel
 
         case '"':  // 0x22
           is.putback(c);
-          return meevax::read<string>(input);
+          return make(take_surrounded());
 
         case '#':  // 0x23
           switch (auto const c = is.get())
@@ -107,7 +194,7 @@ inline namespace kernel
 
           case '"':
             is.putback(c);
-            return make_symbol(meevax::read<string>(input).as<string>());
+            return make_symbol(take_surrounded());
 
           case '0':
           case '1':
@@ -121,7 +208,7 @@ inline namespace kernel
           case '9':
             is.putback(c);
 
-            switch (auto n = get_digits(input); is.peek())
+            switch (auto n = input.take_digits(); is.peek())
             {
             case '#':
               is.ignore(1);
@@ -164,7 +251,7 @@ inline namespace kernel
             }
 
           case 'b':
-            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : get_token(input), 2);
+            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : input.take_token(), 2);
 
           case 'c': // Common Lisp
             return [](let const& xs)
@@ -174,13 +261,13 @@ inline namespace kernel
             }(read(input));
 
           case 'd':
-            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : get_token(input), 10);
+            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : input.take_token(), 10);
 
           case 'e':
             return exact(read(input)); // NOTE: Same as #,(exact (read))
 
           case 'f':
-            switch (auto const digits = get_digits(input); std::stoi(digits))
+            switch (auto const digits = input.take_digits(); std::stoi(digits))
             {
             case 32:
               return make<f32vector>(read(input));
@@ -189,7 +276,7 @@ inline namespace kernel
               return make<f64vector>(read(input));
 
             default:
-              get_token(input);
+              input.take_token();
               return f;
             }
 
@@ -197,10 +284,10 @@ inline namespace kernel
             return inexact(read(input)); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : get_token(input), 8);
+            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : input.take_token(), 8);
 
           case 's':
-            switch (auto const digits = get_digits(input); std::stoi(digits))
+            switch (auto const digits = input.take_digits(); std::stoi(digits))
             {
             case 8:
               return make<s8vector>(read(input));
@@ -220,11 +307,11 @@ inline namespace kernel
             }
 
           case 't':
-            get_token(input);
+            input.take_token();
             return t;
 
           case 'u':
-            switch (auto const digits = get_digits(input); std::stoi(digits))
+            switch (auto const digits = input.take_digits(); std::stoi(digits))
             {
             case 8:
               return make<u8vector>(read(input));
@@ -244,17 +331,17 @@ inline namespace kernel
             }
 
           case 'x':
-            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : get_token(input), 16);
+            return make_number(is.peek() == '#' ? lexical_cast<std::string>(read(input)) : input.take_token(), 16);
 
           case '(':
             is.putback(c);
             return make<vector>(read(input));
 
           case '\\':
-            return meevax::read<character>(input);
+            return read_character();
 
           case '|': // SRFI 30
-            ignore_nested_block_comment(input);
+            input.take_nested_block_comment();
             return read(input);
 
           default:
@@ -311,7 +398,7 @@ inline namespace kernel
 
         case '|':  // 0x7C
           is.putback(c);
-          return make_symbol(meevax::read<string>(input).as<string>());
+          return make_symbol(take_surrounded());
 
         case '[':  // 0x5B
         case ']':  // 0x5D
@@ -323,7 +410,7 @@ inline namespace kernel
         default:
           is.putback(c);
 
-          if (auto const& token = get_token(input); token == ".")
+          if (auto const& token = input.take_token(); token == ".")
           {
             throw std::integral_constant<char_type, '.'>();
           }
