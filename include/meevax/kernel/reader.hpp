@@ -126,7 +126,12 @@ inline namespace kernel
           { "tab"      , 0x09 },
         };
 
-        switch (auto token = input.take_token(); token.length())
+        if (auto buffer = std::string(2, '\0'); not is.read(buffer.data(), buffer.size()) or buffer != "#\\")
+        {
+          throw read_error(make<string>("not a character"),
+                           make<string>(buffer));
+        }
+        else switch (auto token = input.take_token(); token.length())
         {
         case 0:
           // assert(is_special_character(is.peek()));
@@ -147,7 +152,8 @@ inline namespace kernel
           }
           else
           {
-            throw read_error(make<string>("not a character"), make<string>("\\#" + token));
+            throw read_error(make<string>("not a character"),
+                             make<string>("\\#" + token));
           }
         }
       };
@@ -335,7 +341,7 @@ inline namespace kernel
             return make<vector>(read(input));
 
           case '\\':
-            is.ignore(1);
+            is.putback(c1);
             return read_character();
 
           case '|': // SRFI 30
