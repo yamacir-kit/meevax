@@ -19,9 +19,9 @@
 
 #include <istream>
 
-#include <meevax/kernel/character.hpp>
 #include <meevax/kernel/input_port.hpp>
 #include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/string.hpp>
 #include <meevax/kernel/textual_port.hpp>
 
 namespace meevax
@@ -41,6 +41,10 @@ inline namespace kernel
     auto peek() -> object;
 
     auto read() -> object;
+
+    auto read_character_literal() -> character;
+
+    auto read_string_literal() -> string;
 
     auto take_codepoint() -> character::int_type;
 

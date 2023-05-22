@@ -127,6 +127,110 @@ inline namespace kernel
     }
   }
 
+  auto textual_input_port::read_character_literal() -> character
+  {
+    std::unordered_map<std::string, character::int_type> static const names {
+      { "alarm"    , 0x07 },
+      { "backspace", 0x08 },
+      { "delete"   , 0x7F },
+      { "escape"   , 0x1B },
+      { "newline"  , 0x0A },
+      { "null"     , 0x00 },
+      { "return"   , 0x0D },
+      { "space"    , 0x20 },
+      { "tab"      , 0x09 },
+    };
+
+    auto & is = static_cast<std::istream &>(*this);
+
+    if (auto buffer = std::string(2, '\0'); not is.read(buffer.data(), buffer.size()) or buffer != "#\\")
+    {
+      throw read_error(make<string>("not a character"),
+                       make<string>(buffer));
+    }
+    else switch (auto token = take_token(); token.length())
+    {
+    case 0:
+      assert(is_special_character(is.peek()));
+      return character(is.get());
+
+    case 1:
+      assert(std::isprint(token.front()));
+      return character(token.front());
+
+    default:
+      if (auto iter = names.find(token); iter != std::end(names))
+      {
+        return character(iter->second);
+      }
+      else if (token[0] == 'x' and 1 < token.length())
+      {
+        return character(lexical_cast<character::int_type>(std::hex, token.substr(1)));
+      }
+      else
+      {
+        throw read_error(make<string>("not a character"),
+                         make<string>("\\#" + token));
+      }
+    }
+  }
+
+  auto textual_input_port::read_string_literal() -> string
+  {
+    auto s = string();
+
+    auto & is = static_cast<std::istream &>(*this);
+
+    auto const quotation_mark = is.get();
+
+    for (auto codepoint = take_codepoint(); not character::is_eof(codepoint); codepoint = take_codepoint())
+    {
+      if (codepoint == quotation_mark)
+      {
+        return s;
+      }
+      else switch (codepoint)
+      {
+      case '\\':
+        switch (auto const codepoint = take_codepoint(); codepoint)
+        {
+        case 'a': s.codepoints.emplace_back('\a'); break;
+        case 'b': s.codepoints.emplace_back('\b'); break;
+        case 'f': s.codepoints.emplace_back('\f'); break;
+        case 'n': s.codepoints.emplace_back('\n'); break;
+        case 'r': s.codepoints.emplace_back('\r'); break;
+        case 't': s.codepoints.emplace_back('\t'); break;
+        case 'v': s.codepoints.emplace_back('\v'); break;
+        case 'x':
+                  if (auto token = std::string(); std::getline(is, token, ';'))
+                  {
+                    s.codepoints.emplace_back(lexical_cast<character::int_type>(std::hex, token));
+                  }
+                  break;
+
+        case '\n':
+        case '\r':
+                  while (std::isspace(is.peek()))
+                  {
+                    is.ignore(1);
+                  }
+                  break;
+
+        default:
+                  s.codepoints.emplace_back(codepoint);
+                  break;
+        }
+        break;
+
+      default:
+        s.codepoints.emplace_back(codepoint);
+        break;
+      }
+    }
+
+    throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
+  }
+
   auto textual_input_port::take_codepoint() -> character::int_type
   {
     /*
