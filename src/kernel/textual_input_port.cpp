@@ -582,21 +582,21 @@ inline namespace kernel
     }
     else
     {
-      throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
+      throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
     }
 
     return codepoint;
   }
 
-  auto textual_input_port::take_digits() -> std::string
+  auto textual_input_port::take_digits() -> string
   {
-    auto digits = std::string();
+    auto s = string();
 
     for (auto & istream = static_cast<std::istream &>(*this);
          std::isdigit(istream.peek());
-         digits.push_back(istream.get()));
+         s.codepoints.emplace_back(take_codepoint()));
 
-    return std::empty(digits) ? "0" : digits;
+    return std::empty(s) ? string("0") : s;
   }
 
   auto textual_input_port::take_nested_block_comment() -> void

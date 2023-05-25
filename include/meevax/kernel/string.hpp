@@ -27,11 +27,13 @@ inline namespace kernel
   {
     std::vector<character> codepoints;
 
-    explicit string() = default;
+    string() = default;
 
     explicit string(std::string const&);
 
     explicit string(std::size_t const, character const&);
+
+    auto empty() const -> bool;
 
     operator std::string() const;
   };

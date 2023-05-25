@@ -34,6 +34,11 @@ inline namespace kernel
     : codepoints { k, c }
   {}
 
+  auto string::empty() const -> bool
+  {
+    return codepoints.empty();
+  }
+
   string::operator std::string() const
   {
     std::string result;
