@@ -257,14 +257,6 @@ inline namespace kernel
           case 'b':
             return make_number(is.ignore(1).peek() == '#' ? lexical_cast<std::string>(read()) : take_token(), 2);
 
-          case 'c': // Common Lisp
-            is.ignore(1);
-            return [](let const& xs)
-            {
-              return make<complex>(tail(xs, 0).is<pair>() ? xs[0] : e0,
-                                   tail(xs, 1).is<pair>() ? xs[1] : e0);
-            }(read());
-
           case 'd':
             return make_number(is.ignore(1).peek() == '#' ? lexical_cast<std::string>(read()) : take_token(), 10);
 
