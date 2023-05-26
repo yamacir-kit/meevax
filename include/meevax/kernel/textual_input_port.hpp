@@ -43,6 +43,8 @@ inline namespace kernel
 
     auto peek() -> object;
 
+    auto peek_codepoint() -> character::int_type;
+
     auto read() -> object;
 
     auto read_character_literal() -> character;

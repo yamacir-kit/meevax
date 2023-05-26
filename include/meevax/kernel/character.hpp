@@ -37,6 +37,11 @@ inline namespace kernel
       : codepoint { codepoint }
     {}
 
+    static constexpr auto eof()
+    {
+      return std::char_traits<char_type>::eof();
+    }
+
     static constexpr auto eq(int_type const& c1, int_type const& c2)
     {
       return std::char_traits<char_type>::eq_int_type(c1, c2);
@@ -49,7 +54,7 @@ inline namespace kernel
 
     static constexpr auto is_eof(int_type const& c)
     {
-      return eq(std::char_traits<char_type>::eof(), c);
+      return eq(eof(), c);
     }
 
     inline constexpr operator int_type() const

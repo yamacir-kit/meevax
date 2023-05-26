@@ -88,13 +88,13 @@ inline namespace kernel
 
   auto textual_input_port::get() -> object
   {
-    try
-    {
-      return make<character>(take_codepoint());
-    }
-    catch (eof const&)
+    if (auto c = take_codepoint(); character::is_eof(c))
     {
       return eof_object;
+    }
+    else
+    {
+      return make<character>(c);
     }
   }
 
@@ -136,309 +136,307 @@ inline namespace kernel
 
   auto textual_input_port::peek() -> object
   {
-    try
-    {
-      auto g = static_cast<std::istream &>(*this).tellg();
-      let c = make<character>(take_codepoint());
-      static_cast<std::istream &>(*this).seekg(g);
-      return c;
-    }
-    catch (eof const&)
+    if (auto c = peek_codepoint(); character::is_eof(c))
     {
       return eof_object;
     }
+    else
+    {
+      return make<character>(c);
+    }
+  }
+
+  auto textual_input_port::peek_codepoint() -> character::int_type
+  {
+    auto g = static_cast<std::istream &>(*this).tellg();
+    auto c = take_codepoint();
+    static_cast<std::istream &>(*this).seekg(g);
+    return c;
   }
 
   auto textual_input_port::read() -> object
   {
-    try
+    auto & is = static_cast<std::istream &>(*this);
+
+    while (not character::is_eof(is.peek()))
     {
-      auto & is = static_cast<std::istream &>(*this);
-
-      while (not character::is_eof(is.peek()))
+      switch (auto const c1 = is.peek())
       {
-        switch (auto const c1 = is.peek())
+      case '\t': // 0x09
+      case '\n': // 0x0A
+      case '\v': // 0x0B
+      case '\f': // 0x0C
+      case '\r': // 0x0D
+      case ' ':  // 0x20
+        is.ignore(1);
+        break;
+
+      case '"':  // 0x22
+        return make(read_string_literal());
+
+      case '#':  // 0x23
+        switch (auto const c2 = is.ignore(1).peek())
         {
-        case '\t': // 0x09
-        case '\n': // 0x0A
-        case '\v': // 0x0B
-        case '\f': // 0x0C
-        case '\r': // 0x0D
-        case ' ':  // 0x20
+        case '!': // SRFI 22
+          if (auto token = take_token(); token == "!fold-case")
+          {
+            fold_case = true;
+          }
+          else if (token == "!no-fold-case")
+          {
+            fold_case = false;
+          }
+          else
+          {
+            is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          }
+
+          return read();
+
+        case ',': // SRFI 10
           is.ignore(1);
-          break;
+          return interaction_environment().as<environment>().evaluate(read());
 
-        case '"':  // 0x22
-          return make(read_string_literal());
-
-        case '#':  // 0x23
-          switch (auto const c2 = is.ignore(1).peek())
-          {
-          case '!': // SRFI 22
-            if (auto token = take_token(); token == "!fold-case")
-            {
-              fold_case = true;
-            }
-            else if (token == "!no-fold-case")
-            {
-              fold_case = false;
-            }
-            else
-            {
-              is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            }
-
-            return read();
-
-          case ',': // SRFI 10
-            is.ignore(1);
-            return interaction_environment().as<environment>().evaluate(read());
-
-          case ';': // SRFI 62
-            is.ignore(1);
-            read(); // Discard an expression.
-            return read();
-
-          case '"':
-            return make_symbol(read_string_literal());
-
-          case '0':
-          case '1':
-          case '2':
-          case '3':
-          case '4':
-          case '5':
-          case '6':
-          case '7':
-          case '8':
-          case '9':
-            switch (auto n = take_digits(); is.peek())
-            {
-            case '#':
-              is.ignore(1);
-
-              if (auto iter = datum_labels.find(n); iter != std::end(datum_labels))
-              {
-                return iter->second;
-              }
-              else
-              {
-                throw read_error(make<string>("it is an error to attempt a forward reference"),
-                                 make<string>(lexical_cast<std::string>('#', n, '#')));
-              }
-
-            case '=':
-              is.ignore(1);
-
-              if (auto [iter, success] = datum_labels.emplace(n, make<datum_label>(n)); success)
-              {
-                if (let const& xs = read(); xs != iter->second)
-                {
-                  circulate(xs, n);
-                  datum_labels.erase(n);
-                  return xs;
-                }
-                else
-                {
-                  return unit;
-                }
-              }
-              else
-              {
-                throw read_error(make<string>("duplicated datum-label declaration"),
-                                 make<string>(n));
-              }
-
-            default:
-              throw read_error(make<string>("unknown discriminator"),
-                               make<string>(lexical_cast<std::string>('#', n, is.get())));
-            }
-
-          case 'b':
-            return make_number(is.ignore(1).peek() == '#' ? lexical_cast<std::string>(read()) : take_token(), 2);
-
-          case 'd':
-            return make_number(is.ignore(1).peek() == '#' ? lexical_cast<std::string>(read()) : take_token(), 10);
-
-          case 'e':
-            is.ignore(1);
-            return exact(read()); // NOTE: Same as #,(exact (read))
-
-          case 'f':
-            is.ignore(1);
-
-            switch (auto const digits = take_digits(); std::stoi(digits))
-            {
-            case 32:
-              return make<f32vector>(read());
-
-            case 64:
-              return make<f64vector>(read());
-
-            default:
-              take_token();
-              return f;
-            }
-
-          case 'i':
-            is.ignore(1);
-            return inexact(read()); // NOTE: Same as #,(inexact (read))
-
-          case 'o':
-            return make_number(is.ignore(1).peek() == '#' ? lexical_cast<std::string>(read()) : take_token(), 8);
-
-          case 's':
-            is.ignore(1);
-
-            switch (auto const digits = take_digits(); std::stoi(digits))
-            {
-            case 8:
-              return make<s8vector>(read());
-
-            case 16:
-              return make<s16vector>(read());
-
-            case 32:
-              return make<s32vector>(read());
-
-            case 64:
-              return make<s64vector>(read());
-
-            default:
-              throw read_error(make<string>("An unknown literal expression was encountered"),
-                               make<string>(lexical_cast<std::string>("#s", digits)));
-            }
-
-          case 't':
-            take_token();
-            return t;
-
-          case 'u':
-            is.ignore(1);
-
-            switch (auto const digits = take_digits(); std::stoi(digits))
-            {
-            case 8:
-              return make<u8vector>(read());
-
-            case 16:
-              return make<u16vector>(read());
-
-            case 32:
-              return make<u32vector>(read());
-
-            case 64:
-              return make<u64vector>(read());
-
-            default:
-              throw read_error(make<string>("An unknown literal expression was encountered"),
-                               make<string>(lexical_cast<std::string>("#u", digits)));
-            }
-
-          case 'x':
-            return make_number(is.ignore(1).peek() == '#' ? lexical_cast<std::string>(read()) : take_token(), 16);
-
-          case '(':
-            return make<vector>(read());
-
-          case '\\':
-            is.putback(c1);
-            return make(read_character_literal());
-
-          case '|': // SRFI 30
-            is.ignore(1);
-            take_nested_block_comment();
-            return read();
-
-          default:
-            throw read_error(make<string>("unknown discriminator"), make<character>(c2));
-          }
-
-        case '\'': // 0x27
+        case ';': // SRFI 62
           is.ignore(1);
-          return list(make_symbol("quote"), read());
+          read(); // Discard an expression.
+          return read();
 
-        case '(':  // 0x28
-          try
-          {
-            is.ignore(1);
-
-            if (let const& x = read(); x.is<eof>())
-            {
-              return x;
-            }
-            else
-            {
-              is.putback('('); // modifying putback (https://en.cppreference.com/w/cpp/io/basic_istream/putback)
-              return cons(x, read());
-            }
-          }
-          catch (std::integral_constant<char, ')'> const&)
-          {
-            return unit;
-          }
-          catch (std::integral_constant<char, '.'> const&)
-          {
-            let const x = read();
-            is.ignore(std::numeric_limits<std::streamsize>::max(), ')');
-            return x;
-          }
-
-        case ')':  // 0x29
-          is.ignore(1);
-          throw std::integral_constant<char, ')'>();
-
-        case ',':  // 0x2C
-          switch (is.ignore(1); is.peek())
-          {
-          case '@':
-            is.ignore(1);
-            return list(make_symbol("unquote-splicing"), read());
-
-          default:
-            return list(make_symbol("unquote"), read());
-          }
-
-        case ';':  // 0x3B
-          is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-          break;
-
-        case '`':  // 0x60
-          is.ignore(1);
-          return list(make_symbol("quasiquote"), read());
-
-        case '|':  // 0x7C
+        case '"':
           return make_symbol(read_string_literal());
 
-        case '[':  // 0x5B
-        case ']':  // 0x5D
-        case '{':  // 0x7B
-        case '}':  // 0x7D
-          throw read_error(make<string>("left and right square and curly brackets (braces) are reserved for possible future extensions to the language"),
-                           make<character>(c1));
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+          switch (auto n = take_digits(); is.peek())
+          {
+          case '#':
+            is.ignore(1);
+
+            if (auto iter = datum_labels.find(n); iter != std::end(datum_labels))
+            {
+              return iter->second;
+            }
+            else
+            {
+              throw read_error(make<string>("it is an error to attempt a forward reference"),
+                               make<string>(lexical_cast<std::string>('#', n, '#')));
+            }
+
+          case '=':
+            is.ignore(1);
+
+            if (auto [iter, success] = datum_labels.emplace(n, make<datum_label>(n)); success)
+            {
+              if (let const& xs = read(); xs != iter->second)
+              {
+                circulate(xs, n);
+                datum_labels.erase(n);
+                return xs;
+              }
+              else
+              {
+                return unit;
+              }
+            }
+            else
+            {
+              throw read_error(make<string>("duplicated datum-label declaration"),
+                               make<string>(n));
+            }
+
+          default:
+            throw read_error(make<string>("unknown discriminator"),
+                             make<string>(lexical_cast<std::string>('#', n, is.get())));
+          }
+
+        case 'b':
+          return make_number(is.ignore(1).peek() == '#' ? lexical_cast<std::string>(read()) : take_token(), 2);
+
+        case 'd':
+          return make_number(is.ignore(1).peek() == '#' ? lexical_cast<std::string>(read()) : take_token(), 10);
+
+        case 'e':
+          is.ignore(1);
+          return exact(read()); // NOTE: Same as #,(exact (read))
+
+        case 'f':
+          is.ignore(1);
+
+          switch (auto const digits = take_digits(); std::stoi(digits))
+          {
+          case 32:
+            return make<f32vector>(read());
+
+          case 64:
+            return make<f64vector>(read());
+
+          default:
+            take_token();
+            return f;
+          }
+
+        case 'i':
+          is.ignore(1);
+          return inexact(read()); // NOTE: Same as #,(inexact (read))
+
+        case 'o':
+          return make_number(is.ignore(1).peek() == '#' ? lexical_cast<std::string>(read()) : take_token(), 8);
+
+        case 's':
+          is.ignore(1);
+
+          switch (auto const digits = take_digits(); std::stoi(digits))
+          {
+          case 8:
+            return make<s8vector>(read());
+
+          case 16:
+            return make<s16vector>(read());
+
+          case 32:
+            return make<s32vector>(read());
+
+          case 64:
+            return make<s64vector>(read());
+
+          default:
+            throw read_error(make<string>("An unknown literal expression was encountered"),
+                             make<string>(lexical_cast<std::string>("#s", digits)));
+          }
+
+        case 't':
+          take_token();
+          return t;
+
+        case 'u':
+          is.ignore(1);
+
+          switch (auto const digits = take_digits(); std::stoi(digits))
+          {
+          case 8:
+            return make<u8vector>(read());
+
+          case 16:
+            return make<u16vector>(read());
+
+          case 32:
+            return make<u32vector>(read());
+
+          case 64:
+            return make<u64vector>(read());
+
+          default:
+            throw read_error(make<string>("An unknown literal expression was encountered"),
+                             make<string>(lexical_cast<std::string>("#u", digits)));
+          }
+
+        case 'x':
+          return make_number(is.ignore(1).peek() == '#' ? lexical_cast<std::string>(read()) : take_token(), 16);
+
+        case '(':
+          return make<vector>(read());
+
+        case '\\':
+          is.putback(c1);
+          return make(read_character_literal());
+
+        case '|': // SRFI 30
+          is.ignore(1);
+          take_nested_block_comment();
+          return read();
 
         default:
-          if (auto const& token = take_token(); token == ".")
+          throw read_error(make<string>("unknown discriminator"), make<character>(c2));
+        }
+
+      case '\'': // 0x27
+        is.ignore(1);
+        return list(make_symbol("quote"), read());
+
+      case '(':  // 0x28
+        try
+        {
+          is.ignore(1);
+
+          if (let const& x = read(); x.is<eof>())
           {
-            throw std::integral_constant<char, '.'>();
+            return x;
           }
-          else try
+          else
           {
-            return make_number(token, 10);
-          }
-          catch (std::invalid_argument const&)
-          {
-            return make_symbol(token);
+            is.putback('('); // modifying putback (https://en.cppreference.com/w/cpp/io/basic_istream/putback)
+            return cons(x, read());
           }
         }
-      }
+        catch (std::integral_constant<char, ')'> const&)
+        {
+          return unit;
+        }
+        catch (std::integral_constant<char, '.'> const&)
+        {
+          let const x = read();
+          is.ignore(std::numeric_limits<std::streamsize>::max(), ')');
+          return x;
+        }
 
-      return eof_object;
+      case ')':  // 0x29
+        is.ignore(1);
+        throw std::integral_constant<char, ')'>();
+
+      case ',':  // 0x2C
+        switch (is.ignore(1); is.peek())
+        {
+        case '@':
+          is.ignore(1);
+          return list(make_symbol("unquote-splicing"), read());
+
+        default:
+          return list(make_symbol("unquote"), read());
+        }
+
+      case ';':  // 0x3B
+        is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        break;
+
+      case '`':  // 0x60
+        is.ignore(1);
+        return list(make_symbol("quasiquote"), read());
+
+      case '|':  // 0x7C
+        return make_symbol(read_string_literal());
+
+      case '[':  // 0x5B
+      case ']':  // 0x5D
+      case '{':  // 0x7B
+      case '}':  // 0x7D
+        throw read_error(make<string>("left and right square and curly brackets (braces) are reserved for possible future extensions to the language"),
+                         make<character>(c1));
+
+      default:
+        if (auto const& token = take_token(); token == ".")
+        {
+          throw std::integral_constant<char, '.'>();
+        }
+        else try
+        {
+          return make_number(token, 10);
+        }
+        catch (std::invalid_argument const&)
+        {
+          return make_symbol(token);
+        }
+      }
     }
-    catch (eof const&)
-    {
-      return eof_object;
-    }
+
+    return eof_object;
   }
 
   auto textual_input_port::read_character_literal() -> character
@@ -560,7 +558,7 @@ inline namespace kernel
 
     if (auto const c = istream.peek(); character::is_eof(c))
     {
-      throw eof();
+      return character::eof();
     }
     else if (0x00 <= c and c <= 0x7F) // 7 bit
     {
