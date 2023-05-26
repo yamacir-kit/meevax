@@ -100,20 +100,20 @@ inline namespace kernel
 
   auto textual_input_port::get(std::size_t size) -> object
   {
-    try
+    if (character::is_eof(static_cast<std::istream &>(*this).peek()))
+    {
+      return eof_object;
+    }
+    else
     {
       auto s = string();
 
-      for (std::size_t i = 0; i < size; ++i)
+      for (std::size_t i = 0; i < size and not character::is_eof(static_cast<std::istream &>(*this).peek()); ++i)
       {
         s.codepoints.emplace_back(take_codepoint());
       }
 
       return make(s);
-    }
-    catch (eof const&)
-    {
-      return eof_object;
     }
   }
 
@@ -175,7 +175,19 @@ inline namespace kernel
           switch (auto const c2 = is.ignore(1).peek())
           {
           case '!': // SRFI 22
-            is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            if (auto token = take_token(); token == "!fold-case")
+            {
+              fold_case = true;
+            }
+            else if (token == "!no-fold-case")
+            {
+              fold_case = false;
+            }
+            else
+            {
+              is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+
             return read();
 
           case ',': // SRFI 10
@@ -588,15 +600,16 @@ inline namespace kernel
     return codepoint;
   }
 
-  auto textual_input_port::take_digits() -> string
+  auto textual_input_port::take_digits() -> std::string
   {
-    auto s = string();
+    auto s = std::string();
 
     for (auto & istream = static_cast<std::istream &>(*this);
          std::isdigit(istream.peek());
-         s.codepoints.emplace_back(take_codepoint()));
+         s.push_back(istream.get()))
+    {}
 
-    return std::empty(s) ? string("0") : s;
+    return s.length() ? s : "0";
   }
 
   auto textual_input_port::take_nested_block_comment() -> void
@@ -644,7 +657,8 @@ inline namespace kernel
 
     for (auto & istream = static_cast<std::istream &>(*this);
          not is_special_character(istream.peek());
-         token.push_back(istream.get()));
+         token.push_back(fold_case ? std::tolower(istream.get()) : istream.get()))
+    {}
 
     return token;
   }

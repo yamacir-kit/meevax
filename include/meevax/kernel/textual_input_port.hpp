@@ -31,6 +31,8 @@ inline namespace kernel
   {
     std::unordered_map<std::string, object> datum_labels;
 
+    bool fold_case = false;
+
     auto get() -> object; // character or eof
 
     auto get(std::size_t) -> object; // string or eof
@@ -49,7 +51,7 @@ inline namespace kernel
 
     auto take_codepoint() -> character::int_type;
 
-    auto take_digits() -> string;
+    auto take_digits() -> std::string;
 
     auto take_nested_block_comment() -> void; // TODO return std::string
 

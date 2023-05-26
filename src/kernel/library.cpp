@@ -1507,16 +1507,7 @@ inline namespace kernel
                         buffer << x;
                       });
 
-        auto input = input_string_port(buffer.str());
-
-        auto output = string();
-
-        while (static_cast<std::istream &>(input).peek() != std::char_traits<char>::eof())
-        {
-          output.codepoints.emplace_back(input.take_codepoint());
-        }
-
-        return make(output);
+        return input_string_port(buffer.str()).get(std::numeric_limits<std::size_t>::max());
       });
 
       library.define<procedure>("string->u8vector", [](let const& xs)
