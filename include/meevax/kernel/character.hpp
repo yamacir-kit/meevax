@@ -52,7 +52,12 @@ inline namespace kernel
       return std::char_traits<char_type>::eq_int_type(codepoint, c);
     }
 
-    static constexpr auto is_eof(int_type const& c)
+    static constexpr auto is_ascii(int_type c)
+    {
+      return 0x00 <= c and c <= 0x7F;
+    }
+
+    static constexpr auto is_eof(int_type c)
     {
       return eq(eof(), c);
     }

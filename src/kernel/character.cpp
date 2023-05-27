@@ -23,38 +23,38 @@ inline namespace kernel
 {
   character::operator std::string() const
   {
-    std::array<char, 5> bytes {};
+    auto chars = std::array<char, 5>();
 
-    if (auto value = codepoint; value <= 0x7F)
+    if (codepoint <= 0x7F)
     {
-      bytes[0] = (value bitand 0x7F);
+      chars[0] = (codepoint & 0x7F);
     }
-    else if (value <= 0x7FF)
+    else if (codepoint <= 0x7FF)
     {
-      bytes[1] = 0x80 | (value bitand 0x3F); value >>= 6;
-      bytes[0] = 0xC0 | (value bitand 0x1F);
+      chars[1] = 0x80 | (codepoint >>  0 & 0x3F);
+      chars[0] = 0xC0 | (codepoint >>  6 & 0x1F);
     }
-    else if (value <= 0xFFFF)
+    else if (codepoint <= 0xFFFF)
     {
-      bytes[2] = 0x80 | (value bitand 0x3F); value >>= 6;
-      bytes[1] = 0x80 | (value bitand 0x3F); value >>= 6;
-      bytes[0] = 0xE0 | (value bitand 0x0F);
+      chars[2] = 0x80 | (codepoint >>  0 & 0x3F);
+      chars[1] = 0x80 | (codepoint >>  6 & 0x3F);
+      chars[0] = 0xE0 | (codepoint >> 12 & 0x0F);
     }
-    else if (value <= 0x10FFFF)
+    else if (codepoint <= 0x10FFFF)
     {
-      bytes[3] = 0x80 | (value bitand 0x3F); value >>= 6;
-      bytes[2] = 0x80 | (value bitand 0x3F); value >>= 6;
-      bytes[1] = 0x80 | (value bitand 0x3F); value >>= 6;
-      bytes[0] = 0xF0 | (value bitand 0x07);
+      chars[3] = 0x80 | (codepoint >>  0 & 0x3F);
+      chars[2] = 0x80 | (codepoint >>  6 & 0x3F);
+      chars[1] = 0x80 | (codepoint >> 12 & 0x3F);
+      chars[0] = 0xF0 | (codepoint >> 18 & 0x07);
     }
     else
     {
-      bytes[2] = static_cast<char>(0xEF);
-      bytes[1] = static_cast<char>(0xBF);
-      bytes[0] = static_cast<char>(0xBD);
+      chars[2] = std::char_traits<char_type>::to_char_type(0xEF);
+      chars[1] = std::char_traits<char_type>::to_char_type(0xBF);
+      chars[0] = std::char_traits<char_type>::to_char_type(0xBD);
     }
 
-    return bytes.data();
+    return chars.data();
   }
 
   auto operator <<(std::ostream & os, character const& datum) -> std::ostream &
@@ -78,11 +78,11 @@ inline namespace kernel
     }
   }
 
-  static_assert(std::is_pod<character>::value);
+  static_assert(std::is_pod_v<character>);
 
-  static_assert(std::is_standard_layout<character>::value);
+  static_assert(std::is_standard_layout_v<character>);
 
-  static_assert(std::is_trivial<character>::value);
+  static_assert(std::is_trivial_v<character>);
 
   static_assert(4 <= sizeof(character::int_type));
 } // namespace kernel
