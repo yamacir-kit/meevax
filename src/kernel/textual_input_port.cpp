@@ -441,48 +441,42 @@ inline namespace kernel
 
   auto textual_input_port::read_character_literal() -> character
   {
-    std::unordered_map<std::string, character::int_type> static const names {
-      { "alarm"    , 0x07 },
-      { "backspace", 0x08 },
-      { "delete"   , 0x7F },
-      { "escape"   , 0x1B },
-      { "newline"  , 0x0A },
-      { "null"     , 0x00 },
-      { "return"   , 0x0D },
-      { "space"    , 0x20 },
-      { "tab"      , 0x09 },
-    };
-
     auto & is = static_cast<std::istream &>(*this);
 
-    if (auto buffer = std::string(2, '\0'); not is.read(buffer.data(), buffer.size()) or buffer != "#\\")
+    is.ignore(2); // sharp and backslash
+
+    if (auto c = take_codepoint(); is_special_character(is.peek())) // #\<character>
     {
-      throw read_error(make<string>("not a character"),
-                       make<string>(buffer));
+      return character(c);
     }
-    else switch (auto token = take_token(); token.length())
+    else if (c == 'x') // #\x<hex scalar value>
     {
-    case 0:
-      assert(is_special_character(is.peek()));
-      return character(is.get());
+      return character(lexical_cast<character::int_type>(std::hex, take_token()));
+    }
+    else // #\<character name>
+    {
+      std::unordered_map<std::string, character::int_type> static const names {
+        { "alarm"    , 0x07 },
+        { "backspace", 0x08 },
+        { "delete"   , 0x7F },
+        { "escape"   , 0x1B },
+        { "newline"  , 0x0A },
+        { "null"     , 0x00 },
+        { "return"   , 0x0D },
+        { "space"    , 0x20 },
+        { "tab"      , 0x09 },
+      };
 
-    case 1:
-      assert(std::isprint(token.front()));
-      return character(token.front());
+      auto name = static_cast<std::string>(character(c)) + take_token();
 
-    default:
-      if (auto iter = names.find(token); iter != std::end(names))
+      if (auto iter = names.find(name); iter != std::end(names))
       {
         return character(iter->second);
       }
-      else if (token[0] == 'x' and 1 < token.length())
-      {
-        return character(lexical_cast<character::int_type>(std::hex, token.substr(1)));
-      }
       else
       {
-        throw read_error(make<string>("not a character"),
-                         make<string>("\\#" + token));
+        throw read_error(make<string>("unknown character name"),
+                         make<string>("\\#" + name));
       }
     }
   }
@@ -558,7 +552,7 @@ inline namespace kernel
 
     if (auto const c = istream.peek(); character::is_eof(c))
     {
-      return character::eof();
+      codepoint = istream.get();
     }
     else if (0x00 <= c and c <= 0x7F) // 7 bit
     {
