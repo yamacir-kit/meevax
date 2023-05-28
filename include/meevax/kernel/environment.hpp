@@ -19,9 +19,7 @@
 
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/dynamic_environment.hpp>
-#include <meevax/kernel/import_set.hpp>
 #include <meevax/kernel/optimizer.hpp>
-#include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
 
 namespace meevax
@@ -31,7 +29,6 @@ inline namespace kernel
   struct environment : public configurator<environment>
                      , public dynamic_environment<environment>
                      , public optimizer
-                     , public reader<environment>
                      , public syntactic_environment<environment>
   {
     using syntactic_environment::syntactic_environment;
@@ -56,8 +53,6 @@ inline namespace kernel
   extern template struct configurator<environment>;
 
   extern template struct dynamic_environment<environment>;
-
-  extern template struct reader<environment>;
 
   extern template struct syntactic_environment<environment>;
 } // namespace kernel

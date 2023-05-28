@@ -17,9 +17,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 
-#include <fstream> // for syntax `include` and `include-ci`
-
+#include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/identity.hpp>
+#include <meevax/kernel/input_file_port.hpp> // for syntax `include` and `include-ci`
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/transformer.hpp>
 
@@ -605,14 +605,14 @@ inline namespace kernel
                           object const& filenames,
                           object const& xs = unit) -> object
         {
-          if (let const& x = Environment().read(input); not x.is<eof>())
+          if (let const& x = input.read(); not x.is<eof>())
           {
             return recur(recur, input, filenames, cons(x, xs));
           }
           else if (not filenames.is<null>())
           {
             return recur(recur,
-                         std::ifstream(car(filenames).as<string>()),
+                         input_file_port(car(filenames).as<string>()),
                          cdr(filenames),
                          xs);
           }
@@ -624,7 +624,7 @@ inline namespace kernel
 
         return sequence(compile,
                         include(include,
-                                std::ifstream(car(expression).as<string>()), // The syntax include takes at least one filename.
+                                input_file_port(car(expression).as<string>()), // The syntax include takes at least one filename.
                                 cdr(expression)),
                         local,
                         continuation);

@@ -283,6 +283,16 @@ inline namespace kernel
   auto operator / (object const&, object const&) -> object;
   auto operator % (object const&, object const&) -> object;
 
+  auto make_integer(std::string const&, int = 10) -> object;
+
+  auto make_rational(std::string const&, int = 10) -> object;
+
+  auto make_real(std::string const&, int = 10) -> object;
+
+  auto make_complex(std::string const&, int = 10) -> object;
+
+  auto make_number(std::string const&, int = 10) -> object;
+
   template <typename T>
   auto inexact_cast(T&& x) -> decltype(auto)
   {

@@ -30,13 +30,10 @@ inline namespace type_traits
                  std::conditional_t<Byte == 4, std::int32_t,
                  std::conditional_t<Byte == 8, std::int64_t, void>>>>;
 
-  static_assert(std::is_same<intN_t<1>, std::int8_t>::value);
-  static_assert(std::is_same<intN_t<2>, std::int16_t>::value);
-  static_assert(std::is_same<intN_t<4>, std::int32_t>::value);
-  static_assert(std::is_same<intN_t<8>, std::int64_t>::value);
-
-  static_assert(std::is_same<intN_t<sizeof(float)>, std::int32_t>::value);
-  static_assert(std::is_same<intN_t<sizeof(double)>, std::int64_t>::value);
+  static_assert(std::is_same_v<intN_t<1>, std::int8_t>);
+  static_assert(std::is_same_v<intN_t<2>, std::int16_t>);
+  static_assert(std::is_same_v<intN_t<4>, std::int32_t>);
+  static_assert(std::is_same_v<intN_t<8>, std::int64_t>);
 
   template <auto Byte>
   using uintN_t = std::conditional_t<Byte == 1, std::uint8_t,
