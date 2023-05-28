@@ -191,7 +191,7 @@ inline namespace kernel
       library.define<syntax>("define",                          syntax::define);
       library.define<syntax>("define-syntax",                   syntax::define_syntax);
       library.define<syntax>("if",                              syntax::conditional);
-      library.define<syntax>("include",                         syntax::include);
+      library.define<syntax>("include",                         syntax::include<true>);
       library.define<syntax>("include-case-insensitive",        syntax::include<false>);
       library.define<syntax>("install",                         syntax::install);
       library.define<syntax>("lambda",                          syntax::lambda);
