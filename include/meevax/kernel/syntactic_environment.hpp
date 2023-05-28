@@ -17,7 +17,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 
+#include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/identity.hpp>
+#include <meevax/kernel/input_file_port.hpp> // for syntax `include` and `include-ci`
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/transformer.hpp>
 
@@ -576,7 +578,62 @@ inline namespace kernel
         }
       }
 
-      // NOTE: R7RS 4.1.7. Inclusion is not unimplemented yet.
+      template <auto case_sensitive = true>
+      static COMPILER(include) /* ----------------------------------------------
+      *
+      *  R7RS  4.1.7. Inclusion
+      *
+      *  (include <string 1> <string 2> ...)                             syntax
+      *  (include-ci <string 1> <string 2> ...)                          syntax
+      *
+      *  Semantics: Both include and include-ci take one or more filenames
+      *  expressed as string literals, apply an implementation-specific
+      *  algorithm to find corresponding files, read the contents of the files
+      *  in the specified order as if by repeated applications of read, and
+      *  effectively re- place the include or include-ci expression with a
+      *  begin expression containing what was read from the files. The
+      *  difference between the two is that include-ci reads each file as if it
+      *  began with the #!fold-case directive, while include does not.
+      *
+      *  Note: Implementations are encouraged to search for files in the
+      *  directory which contains the including file, and to provide a way for
+      *  users to specify other directories to search.
+      *
+      * --------------------------------------------------------------------- */
+      {
+        auto open = [](object const& name)
+        {
+          auto port = input_file_port(name.as<string>());
+          port.case_sensitive = case_sensitive;
+          return port;
+        };
+
+        auto include = [&](auto&& recur,
+                           auto&& input,
+                           object const& filenames,
+                           object const& xs = unit) -> object
+        {
+          if (let const& x = input.read(); not x.is<eof>())
+          {
+            return recur(recur, input, filenames, cons(x, xs));
+          }
+          else if (not filenames.is<null>())
+          {
+            return recur(recur, open(car(filenames)), cdr(filenames), xs);
+          }
+          else
+          {
+            return reverse(xs);
+          }
+        };
+
+        return sequence(compile,
+                        include(include,
+                                open(car(expression)), // The syntax include takes at least one filename.
+                                cdr(expression)),
+                        local,
+                        continuation);
+      }
 
       // NOTE: R7RS 4.2.1. Conditionals are implemented as macros.
 
@@ -662,6 +719,16 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
+        /*
+           The top-level sequential expression may contain macro definitions.
+           In that case, the macro definition must be compiled before the macro
+           is used (the evaluation order of function arguments in C++ is not
+           specified, but in most environments they are evaluated from right to
+           left). Therefore, the first expression is compiled separately and
+           then combined with the compiled result of the remaining expressions
+           by append2.
+        */
+
         if (cdr(expression).is<null>()) // is tail sequence
         {
           return compile(car(expression),
@@ -669,13 +736,23 @@ inline namespace kernel
                          continuation,
                          ellipsis);
         }
+        else if (let const head = compile(car(expression), // Head expression or definition
+                                          local,
+                                          unit);
+                 head.is<null>()) // The syntax define-syntax creates a transformer from transformer-spec at compile time and registers it in the global environment. The syntax define-syntax is effectively a compile-time side-effect of the syntax environment and does nothing at run-time.
+        {
+          return sequence(compile,
+                          cdr(expression), // rest expressions
+                          local,
+                          continuation,
+                          ellipsis);
+        }
         else
         {
-          return compile(car(expression), // head expression
-                         local,
-                         cons(make(instruction::drop), // pop result of head expression
+          return append2(head,
+                         cons(make(instruction::drop), // Pop result of head expression
                               sequence(compile,
-                                       cdr(expression), // rest expressions
+                                       cdr(expression), // Rest expression or definitions
                                        local,
                                        continuation,
                                        ellipsis)));
@@ -875,7 +952,7 @@ inline namespace kernel
         return continuation;
       }
 
-      // NOTE: R7RS 5.5. Record-type definitions is not implemented yet.
+      // NOTE: R7RS 5.5. Record-type definitions is implemented as macros.
 
       static COMPILER(call_with_current_continuation) /* -----------------------
       *

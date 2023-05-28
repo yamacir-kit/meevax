@@ -25,11 +25,16 @@ inline namespace kernel
 {
   struct input_string_port : public textual_input_port
   {
-    std::istringstream istringstream;
+    /*
+       The current read implementation relies on a modifying putback to
+       std::istream, so it must be a stream with a stream buffer that is not
+       input-only.
+    */
+    std::stringstream stringstream;
 
     template <typename... Ts>
     explicit input_string_port(Ts&&... xs)
-      : istringstream { std::forward<decltype(xs)>(xs)... }
+      : stringstream { std::forward<decltype(xs)>(xs)... }
     {}
 
     auto close() -> void override;

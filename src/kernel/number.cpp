@@ -15,6 +15,8 @@
 */
 
 #include <memory> // std::unique_ptr
+#include <regex>
+#include <string_view>
 
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/string.hpp>
@@ -419,6 +421,98 @@ inline namespace kernel
     };
 
     return apply(f, x, y);
+  }
+
+  auto make_integer(std::string const& literal, int radix) -> object
+  {
+    return make<exact_integer>(literal, radix);
+  }
+
+  auto make_rational(std::string const& literal, int radix) -> object
+  {
+    try
+    {
+      return make_integer(literal, radix);
+    }
+    catch (std::invalid_argument const&)
+    {
+      return make(ratio(literal, radix));
+    }
+  }
+
+  auto make_real(std::string const& literal, int radix) -> object
+  {
+    try
+    {
+      return make_rational(literal, radix);
+    }
+    catch (std::invalid_argument const&)
+    {
+      std::unordered_map<std::string_view, double> static const constants
+      {
+        // R7RS 7.1.1. Lexical structure
+        { "+inf.0", +std::numeric_limits<double>::infinity()  },
+        { "-inf.0", -std::numeric_limits<double>::infinity()  },
+        { "+nan.0", +std::numeric_limits<double>::quiet_NaN() },
+        { "-nan.0", -std::numeric_limits<double>::quiet_NaN() },
+
+        // SRFI-144
+        { "fl-e",         M_E        },
+        { "fl-log2-e",    M_LOG2E    },
+        { "fl-log10-e",   M_LOG10E   },
+        { "fl-log-2",     M_LN2      },
+        { "fl-1/log-2",   M_LN2      },
+        { "fl-log-10",    M_LN10     },
+        { "fl-1/log-10",  M_LN10     },
+        { "fl-pi",        M_PI       },
+        { "fl-1/pi",      M_1_PI     },
+        { "fl-pi/2",      M_PI_2     },
+        { "fl-pi/4",      M_PI_4     },
+        { "fl-2/pi",      M_2_PI     },
+        { "fl-2/sqrt-pi", M_2_SQRTPI },
+        { "fl-sqrt-2",    M_SQRT2    },
+        { "fl-1/sqrt-2",  M_SQRT1_2  },
+      };
+
+      auto static const pattern = std::regex(R"(([+-]?(?:\d+\.?|\d*\.\d+))([DEFLSdefls][+-]?\d+)?)");
+
+      if (auto iter = constants.find(literal); iter != std::end(constants))
+      {
+        return make(iter->second);
+      }
+      else if (std::regex_match(literal, pattern))
+      {
+        return make(lexical_cast<double>(literal));
+      }
+      else
+      {
+        throw std::invalid_argument("not a real number");
+      }
+    }
+  }
+
+  auto make_complex(std::string const& literal, int radix) -> object
+  {
+    try
+    {
+      return make_real(literal, radix);
+    }
+    catch (std::invalid_argument const&)
+    {
+      return make(complex(literal, radix));
+    }
+  }
+
+  auto make_number(std::string const& literal, int radix) -> object
+  {
+    try
+    {
+      return make_complex(literal, radix);
+    }
+    catch (std::invalid_argument const&)
+    {
+      throw std::invalid_argument("not a number");
+    }
   }
 
 inline namespace number

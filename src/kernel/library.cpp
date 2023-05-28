@@ -22,9 +22,8 @@
 #include <meevax/kernel/binary_input_file_port.hpp>
 #include <meevax/kernel/binary_output_file_port.hpp>
 #include <meevax/kernel/disassemble.hpp>
-#include <meevax/kernel/input_file_port.hpp>
+#include <meevax/kernel/import_set.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
-#include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/output_file_port.hpp>
 #include <meevax/kernel/output_homogeneous_vector_port.hpp>
@@ -32,6 +31,7 @@
 #include <meevax/kernel/standard_error_port.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
 #include <meevax/kernel/standard_output_port.hpp>
+#include <meevax/kernel/vector.hpp>
 
 namespace meevax
 {
@@ -191,6 +191,8 @@ inline namespace kernel
       library.define<syntax>("define",                          syntax::define);
       library.define<syntax>("define-syntax",                   syntax::define_syntax);
       library.define<syntax>("if",                              syntax::conditional);
+      library.define<syntax>("include",                         syntax::include<true>);
+      library.define<syntax>("include-case-insensitive",        syntax::include<false>);
       library.define<syntax>("install",                         syntax::install);
       library.define<syntax>("lambda",                          syntax::lambda);
       library.define<syntax>("let-syntax",                      syntax::let_syntax);
@@ -1497,23 +1499,16 @@ inline namespace kernel
 
       library.define<procedure>("u8vector->string", [](let const& xs)
       {
-        auto input = std::stringstream();
+        auto buffer = std::ostringstream();
 
         std::for_each(std::next(std::begin(xs[0].as<u8vector>().valarray), tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
                       std::next(std::begin(xs[0].as<u8vector>().valarray), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().valarray.size()),
                       [&](auto const& x)
                       {
-                        input << x;
+                        buffer << x;
                       });
 
-        auto output = string();
-
-        while (input.peek() != std::char_traits<char>::eof())
-        {
-          output.codepoints.emplace_back(get_codepoint(input));
-        }
-
-        return make(output);
+        return input_string_port(buffer.str()).get(std::numeric_limits<std::size_t>::max());
       });
 
       library.define<procedure>("string->u8vector", [](let const& xs)
@@ -1572,11 +1567,11 @@ inline namespace kernel
 
     for (auto&& each : basis())
     {
-      if (std::stringstream input { each }; input)
+      if (auto input = input_string_port(each); input.get_ready())
       {
-        while (not input.eof())
+        while (not static_cast<std::istream &>(input).eof())
         {
-          boot_loader.evaluate(boot_loader.read(input));
+          boot_loader.evaluate(input.read());
         }
       }
     }

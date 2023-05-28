@@ -37,6 +37,11 @@ inline namespace kernel
       : codepoint { codepoint }
     {}
 
+    static constexpr auto eof()
+    {
+      return std::char_traits<char_type>::eof();
+    }
+
     static constexpr auto eq(int_type const& c1, int_type const& c2)
     {
       return std::char_traits<char_type>::eq_int_type(c1, c2);
@@ -47,9 +52,14 @@ inline namespace kernel
       return std::char_traits<char_type>::eq_int_type(codepoint, c);
     }
 
-    static constexpr auto is_eof(int_type const& c)
+    static constexpr auto is_ascii(int_type c)
     {
-      return eq(std::char_traits<char_type>::eof(), c);
+      return 0x00 <= c and c <= 0x7F;
+    }
+
+    static constexpr auto is_eof(int_type c)
+    {
+      return eq(eof(), c);
     }
 
     inline constexpr operator int_type() const
