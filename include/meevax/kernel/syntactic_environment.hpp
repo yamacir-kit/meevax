@@ -48,9 +48,9 @@ inline namespace kernel
 
       auto align(let const& local) const
       {
-        return append2(make_list(length(local) -
-                                 length(environment.as<syntactic_environment>().local())),
-                       environment.as<syntactic_environment>().local());
+        return append(make_list(length(local) -
+                                length(environment.as<syntactic_environment>().local())),
+                      environment.as<syntactic_environment>().local());
       }
 
       auto compile(object const& local,
@@ -396,8 +396,7 @@ inline namespace kernel
         {
           return sweep(compile,
                        binding_specs,
-                       append2(cdar(form),
-                               cdr(form)),
+                       append(cdar(form), cdr(form)),
                        local);
         }
         else
@@ -460,14 +459,15 @@ inline namespace kernel
              where <binding specs> = ((<variable 1> <initial 1>) ...
                                       (<variable n> <initial n>))
           */
+          auto assignment = [](let const& binding_spec)
+          {
+            return cons(rename("set!"), binding_spec);
+          };
+
           return compile(cons(cons(rename("lambda"),
-                                   unzip1(binding_specs), // formals
-                                   append2(map1([](let const& binding_spec)
-                                                {
-                                                  return cons(rename("set!"), binding_spec);
-                                                },
-                                                binding_specs),
-                                           sequence)),
+                                   map(car, binding_specs), // formals
+                                   append(map(assignment, binding_specs),
+                                          sequence)),
                               make_list(length(binding_specs), unit)),
                          local,
                          continuation,
@@ -673,14 +673,14 @@ inline namespace kernel
       {
         assert(not ellipsis.is<null>() or lexical_cast<std::string>(continuation) == "(return)");
 
-        auto const& [variables, inits] = unzip2(car(expression));
+        let const formals = map(car, car(expression));
 
         return cons(make(instruction::dummy),
                     operand(compile,
-                            inits,
-                            cons(variables, local),
+                            map(cadr, car(expression)),
+                            cons(formals, local),
                             lambda(compile,
-                                   cons(variables, cdr(expression)), // (<formals> <body>)
+                                   cons(formals, cdr(expression)), // (<formals> <body>)
                                    local,
                                    ellipsis.is<null>() ? list(make(instruction::tail_letrec))
                                                        : cons(make(instruction::letrec), continuation))));
@@ -726,7 +726,7 @@ inline namespace kernel
            specified, but in most environments they are evaluated from right to
            left). Therefore, the first expression is compiled separately and
            then combined with the compiled result of the remaining expressions
-           by append2.
+           by append.
         */
 
         if (cdr(expression).is<null>()) // is tail sequence
@@ -749,13 +749,13 @@ inline namespace kernel
         }
         else
         {
-          return append2(head,
-                         cons(make(instruction::drop), // Pop result of head expression
-                              sequence(compile,
-                                       cdr(expression), // Rest expression or definitions
-                                       local,
-                                       continuation,
-                                       ellipsis)));
+          return append(head,
+                        cons(make(instruction::drop), // Pop result of head expression
+                             sequence(compile,
+                                      cdr(expression), // Rest expression or definitions
+                                      local,
+                                      continuation,
+                                      ellipsis)));
         }
       }
 
@@ -797,23 +797,17 @@ inline namespace kernel
       {
         let const environment = make<syntactic_environment>(local, compile.global());
 
-        auto make_formal = [&](let const& syntax_spec)
+        auto formal = [&](let const& syntax_spec)
         {
-          let const keyword          =  car(syntax_spec);
-          let const transformer_spec = cadr(syntax_spec);
-
-          return make<absolute>(keyword,
-                                make<transformer>(Environment().execute(compile(transformer_spec, local)),
+          return make<absolute>(car(syntax_spec), // <keyword>
+                                make<transformer>(Environment().execute(compile(cadr(syntax_spec), // <transformer spec>
+                                                                                local)),
                                                   environment));
         };
 
-        let const syntax_specs = car(expression);
-        let const body         = cdr(expression);
-        let const formals      = map1(make_formal, syntax_specs);
-
         return compile(cons(cons(rename("lambda"),
-                                 formals,
-                                 body),
+                                 map(formal, car(expression)), // <formals>
+                                 cdr(expression)), // <body>
                             unit), // dummy
                        local,
                        continuation);
@@ -839,25 +833,21 @@ inline namespace kernel
       {
         let const environment = make<syntactic_environment>(unit, compile.global());
 
-        auto make_formal = [&](let const& syntax_spec)
+        auto formal = [&](let const& syntax_spec)
         {
-          let const keyword          =  car(syntax_spec);
-          let const transformer_spec = cadr(syntax_spec);
-
-          return make<absolute>(keyword,
-                                make<transformer>(Environment().execute(compile(transformer_spec, local)),
+          return make<absolute>(car(syntax_spec), // <keyword>
+                                make<transformer>(Environment().execute(compile(cadr(syntax_spec), // <transformer spec>
+                                                                                local)),
                                                   environment));
         };
 
-        let const syntax_specs = car(expression);
-        let const body         = cdr(expression);
-        let const formals      = map1(make_formal, syntax_specs);
+        let const formals = map(formal, car(expression));
 
         environment.as<syntactic_environment>().local() = cons(formals, local);
 
         return compile(cons(cons(rename("lambda"),
                                  formals,
-                                 body),
+                                 cdr(expression)), // <body>
                             unit), // dummy
                        local,
                        continuation);

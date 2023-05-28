@@ -104,7 +104,7 @@ inline namespace kernel
           }
           else
           {
-            return append2(take(c, length), continuation);
+            return append(take(c, length), continuation);
           }
         }
       }

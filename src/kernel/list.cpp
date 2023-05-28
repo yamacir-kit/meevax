@@ -20,6 +20,11 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto make_list(std::size_t size, object const& x) -> object
+  {
+    return 0 < size ? cons(x, make_list(--size, x)) : unit;
+  }
+
   auto last(object const& xs) -> object const&
   {
     return cdr(xs).is<pair>() ? last(cdr(xs)) : car(xs);
@@ -30,51 +35,70 @@ inline namespace kernel
     return 0 < size ? cons(car(x), take(cdr(x), --size)) : unit;
   }
 
-  auto append2(object const& x, object const& y) -> object
+  auto length(object const& xs) -> std::size_t
   {
-    return x.is<null>() ? y : cons(car(x), append2(cdr(x), y));
+    return std::distance(std::begin(xs), std::end(xs));
   }
 
-  auto reverse(object const& x) -> object
+  auto append(object const& x, object const& y) -> object
   {
-    return x ? append2(reverse(cdr(x)), list(car(x))) : unit;
-  }
-
-  auto zip(object const& x, object const& y) -> object
-  {
-    if (x.is<null>() and y.is<null>())
+    if (x.is<pair>())
     {
-      return unit;
-    }
-    else if (x.is<pair>() and y.is<pair>())
-    {
-      return list(car(x), car(y)) | zip(cdr(x), cdr(y));
+      return cons(car(x), append(cdr(x), y));
     }
     else
     {
-      return unit;
+      return y;
     }
   }
 
-  auto unzip1(object const& xs) -> object
+  auto reverse(object const& xs, object const& a) -> object
   {
-    return map1(car, xs);
-  }
-
-  auto unzip2(object const& xs) -> std::tuple<object, object>
-  {
-    if (xs.is<null>())
+    if (xs.is<pair>())
     {
-      return std::make_tuple(unit, unit);
+      return reverse(cdr(xs), cons(car(xs), a));
     }
     else
     {
-      auto const& x = car(xs);
+      return a;
+    }
+  }
 
-      auto const& [a, b] = unzip2(cdr(xs));
+  auto memq(object const& x, object const& xs) -> object
+  {
+    if (xs.is<pair>())
+    {
+      if (eq(x, car(xs)))
+      {
+        return xs;
+      }
+      else
+      {
+        return memq(x, cdr(xs));
+      }
+    }
+    else
+    {
+      return f;
+    }
+  }
 
-      return std::make_tuple(cons( car(x), a),
-                             cons(cadr(x), b));
+  auto assq(object const& x, object const& xs) -> object
+  {
+    if (xs.is<pair>())
+    {
+      if (eq(x, caar(xs)))
+      {
+        return car(xs);
+      }
+      else
+      {
+        return assq(x, cdr(xs));
+      }
+    }
+    else
+    {
+      return f;
     }
   }
 } // namespace kernel

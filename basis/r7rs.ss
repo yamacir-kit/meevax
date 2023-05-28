@@ -2,12 +2,13 @@
   (import (only (meevax core) include include-case-insensitive)
           (only (meevax error) error-object? read-error? file-error?)
           (only (meevax macro-transformer) er-macro-transformer)
+          (only (meevax list) make-list)
           (only (meevax number) exact-integer? exact-integer-square-root)
           (only (meevax port) binary-port? eof-object flush get-output-u8vector open-input-u8vector open-output-u8vector open? port? standard-error-port standard-input-port standard-output-port textual-port?)
           (prefix (meevax read) %)
-          (only (meevax string) string-copy! vector->string)
+          (only (meevax string) string-copy!)
           (only (meevax vector homogeneous) u8vector? make-u8vector u8vector u8vector-length u8vector-ref u8vector-set! u8vector-copy u8vector-copy! u8vector-append u8vector->string string->u8vector)
-          (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
+          (only (meevax vector) vector-append vector-copy vector-copy! vector->string string->vector)
           (only (meevax version) features)
           (prefix (meevax write) %)
           (scheme r5rs)
@@ -186,12 +187,6 @@
          (define exact inexact->exact)
 
          (define boolean=? eqv?)
-
-         (define (make-list k . x)
-           (let ((x (if (pair? x) (car x) #f)))
-             (do ((i k (- i 1))
-                  (xs '() (cons x xs)))
-                 ((<= i 0) xs))))
 
          (define (list-set! xs k x)
            (set-car! (list-tail xs k) x))

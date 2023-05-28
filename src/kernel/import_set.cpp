@@ -76,12 +76,12 @@ inline namespace kernel
       {
         return [=](let const& prefixes)
         {
-          return map1([&](let const& identity)
-                      {
-                        return make<absolute>(make_symbol(car(prefixes).as<symbol>() + identity.as<absolute>().symbol().as<symbol>()),
-                                              identity.as<absolute>().load());
-                      },
-                      resolve_library(import_set));
+          return map([&](let const& identity)
+                     {
+                       return make<absolute>(make_symbol(car(prefixes).as<symbol>() + identity.as<absolute>().symbol().as<symbol>()),
+                                             identity.as<absolute>().load());
+                     },
+                     resolve_library(import_set));
         };
       };
 
@@ -99,19 +99,19 @@ inline namespace kernel
       {
         return [=](let const& renamings)
         {
-          return map1([&](let const& identity)
-                      {
-                        if (let const& renaming = assq(identity.as<absolute>().symbol(), renamings); is_truthy(renaming))
-                        {
-                          assert(cadr(renaming).is<symbol>());
-                          return make<absolute>(cadr(renaming), identity.as<absolute>().load());
-                        }
-                        else
-                        {
-                          return identity;
-                        }
-                      },
-                      resolve_library(import_set));
+          return map([&](let const& identity)
+                     {
+                       if (let const& renaming = assq(identity.as<absolute>().symbol(), renamings); is_truthy(renaming))
+                       {
+                         assert(cadr(renaming).is<symbol>());
+                         return make<absolute>(cadr(renaming), identity.as<absolute>().load());
+                       }
+                       else
+                       {
+                         return identity;
+                       }
+                     },
+                     resolve_library(import_set));
         };
       };
 

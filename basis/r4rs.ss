@@ -1,6 +1,7 @@
 (define-library (scheme r4rs)
   (import (meevax inexact)
           (only (meevax core) define-syntax)
+          (only (meevax list) list-tail)
           (only (meevax macro-transformer) er-macro-transformer)
           (only (meevax number) exact-integer? expt exact inexact ratio? ratio-numerator ratio-denominator)
           (prefix (meevax port) %)
@@ -120,13 +121,6 @@
          (define (angle z)
            (atan (imag-part z)
                  (real-part z)))
-
-         (define (list-tail x k)
-           (let list-tail ((x x)
-                           (k k))
-             (if (zero? k) x
-                 (list-tail (cdr x)
-                            (- k 1)))))
 
          (define (string-fill! s c . o)
            (let ((start (if (and (pair? o)

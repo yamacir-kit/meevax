@@ -52,83 +52,6 @@ inline namespace kernel
     return get<1>(std::forward<decltype(x)>(x));
   };
 
-  template <typename T, typename U, REQUIRES(std::is_convertible<T, object>,
-                                             std::is_convertible<U, object>)>
-  auto operator |(T&& x, U&& y) -> decltype(auto)
-  {
-    return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
-  }
-
-  inline auto cons = [](auto&&... xs) constexpr
-  {
-    return (std::forward<decltype(xs)>(xs) | ...);
-  };
-
-  inline auto list = [](auto&& ... xs) constexpr
-  {
-    return (std::forward<decltype(xs)>(xs) | ... | unit);
-  };
-
-  inline auto xcons = [](auto&& d, auto&& a) constexpr
-  {
-    return cons(std::forward<decltype(a)>(a), std::forward<decltype(d)>(d));
-  };
-
-  inline auto make_list = [](auto k, object const& x = unit)
-  {
-    assert(0 <= k);
-
-    let xs = unit;
-
-    for (auto i = 0; i < k; ++i)
-    {
-      xs = cons(x, xs);
-    }
-
-    return xs;
-  };
-
-  inline auto list_tabulate = [](auto n, auto&& initialize)
-  {
-    let x = list();
-
-    while (0 <= --n)
-    {
-      x = cons(initialize(n), x);
-    }
-
-    return x;
-  };
-
-  inline auto list_copy = [](auto const& x)
-  {
-    auto copy = [](auto&& rec, object const& x) -> object
-    {
-      if (x.is<pair>())
-      {
-        return cons(car(x), rec(rec, cdr(x)));
-      }
-      else
-      {
-        return x;
-      }
-    };
-
-    return z(copy)(x);
-  };
-
-  inline auto circular_list = [](auto&&... xs)
-  {
-    let x = list(std::forward<decltype(xs)>(xs)...);
-
-    if (auto const length = std::distance(std::cbegin(x), std::cend(x)); 0 < length)
-    {
-      cdr(std::next(std::begin(x), length - 1)) = x;
-    }
-
-    return x;
-  };
-
   inline constexpr auto caar = compose(car, car);
   inline constexpr auto cadr = compose(car, cdr);
   inline constexpr auto cdar = compose(cdr, car);
@@ -160,15 +83,34 @@ inline namespace kernel
   inline constexpr auto cdddar = compose(cdr, cddar);
   inline constexpr auto cddddr = compose(cdr, cdddr);
 
-  inline auto unpair = [](object const& x) // a.k.a car+cdr (SRFI 1)
+  template <typename T, typename U, REQUIRES(std::is_convertible<T, object>,
+                                             std::is_convertible<U, object>)>
+  auto operator |(T&& x, U&& y) -> decltype(auto)
   {
-    return std::forward_as_tuple(car(x), cdr(x));
+    return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
+  }
+
+  inline auto cons = [](auto&&... xs) constexpr
+  {
+    return (xs | ...);
   };
 
-  template <typename T, typename K, REQUIRES(std::is_integral<K>)>
-  auto tail(T&& x, K const k) -> decltype(x)
+  inline auto list = [](auto&&... xs) constexpr
   {
-    return 0 < k ? tail(cdr(std::forward<decltype(x)>(x)), k - 1) : x;
+    return (xs | ... | unit);
+  };
+
+  inline auto xcons = [](auto&& d, auto&& a) constexpr
+  {
+    return cons(std::forward<decltype(a)>(a), std::forward<decltype(d)>(d));
+  };
+
+  auto make_list(std::size_t, object const& = unit) -> object;
+
+  template <typename T>
+  auto tail(T&& x, std::size_t size) -> decltype(x)
+  {
+    return 0 < size ? tail(cdr(std::forward<decltype(x)>(x)), --size) : x;
   }
 
   template <typename... Ts>
@@ -181,109 +123,48 @@ inline namespace kernel
 
   auto take(object const&, std::size_t) -> object;
 
-  inline auto length = [](auto const& x) constexpr
-  {
-    return std::distance(std::cbegin(x), std::cend(x));
-  };
+  auto length(object const&) -> std::size_t;
 
-  auto append2(object const&, object const&) -> object;
+  auto append(object const&, object const&) -> object;
 
-  auto reverse(object const&) -> object;
-
-  auto zip(object const&, object const&) -> object;
-
-  auto unzip1(object const& xs) -> object;
-
-  auto unzip2(object const& xs) -> std::tuple<object, object>;
+  auto reverse(object const&, object const& = unit) -> object;
 
   template <typename F>
-  auto map1(F&& f, object const& x) -> object
+  auto map(F f, object const& xs) -> object
   {
-    return x.is<null>() ? unit : cons(f(car(x)), map1(f, cdr(x)));
+    if (xs.is<pair>())
+    {
+      return cons(f(car(xs)), map(f, cdr(xs)));
+    }
+    else
+    {
+      return unit;
+    }
   }
 
-  inline auto find = [](object const& xs, auto&& compare) constexpr -> object const&
+  auto memq(object const&, object const&) -> object;
+
+  auto assq(object const&, object const&) -> object;
+
+  template <typename F>
+  auto filter(F f, object const& xs) -> object
   {
-    if (auto&& iter = std::find_if(std::begin(xs), std::end(xs), compare); iter)
+    if (xs.is<pair>())
     {
-      return *iter;
-    }
-    else
-    {
-      return f;
-    }
-  };
-
-  inline auto assoc = [](object const& x, object const& xs, auto&& compare)
-  {
-    return find(xs, [&](auto&& each) { return compare(x, car(each)); });
-  };
-
-  inline auto assv = [](auto&&... xs)
-  {
-    return assoc(std::forward<decltype(xs)>(xs)..., eqv);
-  };
-
-  inline auto assq = [](auto&&... xs)
-  {
-    return assoc(std::forward<decltype(xs)>(xs)..., eq);
-  };
-
-  inline auto alist_cons = [](auto&& key, auto&& datum, auto&& alist)
-  {
-    return cons(cons(key, datum), alist);
-  };
-
-  inline auto member = [](object const& x, object const& xs, auto&& compare)
-  {
-    if (auto&& iter = std::find_if(std::begin(xs), std::end(xs), [&](auto&& each) { return compare(x, each); }); iter)
-    {
-      return iter.get();
-    }
-    else
-    {
-      return f;
-    }
-  };
-
-  inline auto memv = [](auto&&... xs)
-  {
-    return member(std::forward<decltype(xs)>(xs)..., eqv);
-  };
-
-  inline auto memq = [](auto&&... xs)
-  {
-    return member(std::forward<decltype(xs)>(xs)..., eq);
-  };
-
-  inline auto filter = [](auto&& satisfy, object const& xs)
-  {
-    auto filter = [&](auto&& filter, let const& xs)
-    {
-      if (xs.is<null>())
+      if (f(car(xs)))
       {
-        return xs;
-      }
-      else if (let const& head = car(xs),
-                          rest = cdr(xs); satisfy(head))
-      {
-        if (let const& filtered = filter(filter, rest); eq(rest, filtered))
-        {
-          return xs;
-        }
-        else
-        {
-          return cons(head, filtered);
-        }
+        return cons(car(xs), filter(f, cdr(xs)));
       }
       else
       {
-        return filter(filter, rest);
+        return filter(f, cdr(xs));
       }
-    };
-
-    return z(filter)(xs);
-  };
+    }
+    else
+    {
+      return unit;
+    }
+  }
 } // namespace kernel
 } // namespace meevax
 

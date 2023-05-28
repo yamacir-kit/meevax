@@ -30,26 +30,6 @@ auto main() -> int
 
   assert(lexical_cast<std::string>(make_list(4, c)) == "(c c c c)");
 
-  assert(lexical_cast<std::string>(list_tabulate(4, [](auto&&... xs) { return make<exact_integer>(xs...); })) == "(0 1 2 3)");
-
-  {
-    let x1 = list(a, b, c);
-
-    let x2 = list_copy(x1);
-
-    assert(lexical_cast<std::string>(x2) == "(a b c)");
-    assert(not eq(x1, x2));
-  }
-
-  {
-    let x = circular_list(a, b, c);
-
-    assert(car(x) == a);
-    assert(cadr(x) == b);
-    assert(caddr(x) == c);
-    assert(cadddr(x) == a);
-  }
-
   {
     let x = list(a, b, c);
 
