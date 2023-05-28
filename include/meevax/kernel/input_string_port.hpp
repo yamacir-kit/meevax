@@ -30,7 +30,7 @@ inline namespace kernel
        std::istream, so it must be a stream with a stream buffer that is not
        input-only.
     */
-   std::stringstream stringstream;
+    std::stringstream stringstream;
 
     template <typename... Ts>
     explicit input_string_port(Ts&&... xs)

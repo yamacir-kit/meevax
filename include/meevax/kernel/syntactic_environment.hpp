@@ -578,6 +578,7 @@ inline namespace kernel
         }
       }
 
+      template <auto case_sensitive = true>
       static COMPILER(include) /* ----------------------------------------------
       *
       *  R7RS  4.1.7. Inclusion
@@ -600,10 +601,17 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        auto include = [](auto&& recur,
-                          auto&& input,
-                          object const& filenames,
-                          object const& xs = unit) -> object
+        auto open = [](object const& name)
+        {
+          auto port = input_file_port(name.as<string>());
+          port.case_sensitive = case_sensitive;
+          return port;
+        };
+
+        auto include = [&](auto&& recur,
+                           auto&& input,
+                           object const& filenames,
+                           object const& xs = unit) -> object
         {
           if (let const& x = input.read(); not x.is<eof>())
           {
@@ -611,10 +619,7 @@ inline namespace kernel
           }
           else if (not filenames.is<null>())
           {
-            return recur(recur,
-                         input_file_port(car(filenames).as<string>()),
-                         cdr(filenames),
-                         xs);
+            return recur(recur, open(car(filenames)), cdr(filenames), xs);
           }
           else
           {
@@ -624,7 +629,7 @@ inline namespace kernel
 
         return sequence(compile,
                         include(include,
-                                input_file_port(car(expression).as<string>()), // The syntax include takes at least one filename.
+                                open(car(expression)), // The syntax include takes at least one filename.
                                 cdr(expression)),
                         local,
                         continuation);

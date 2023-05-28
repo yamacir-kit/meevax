@@ -31,7 +31,7 @@ inline namespace kernel
   {
     std::unordered_map<std::string, object> datum_labels;
 
-    bool fold_case = false;
+    bool case_sensitive = true;
 
     auto get() -> object; // character or eof
 

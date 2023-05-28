@@ -196,11 +196,11 @@ inline namespace kernel
         case '!': // SRFI 22
           if (auto token = take_token(); token == "!fold-case")
           {
-            fold_case = true;
+            case_sensitive = false;
           }
           else if (token == "!no-fold-case")
           {
-            fold_case = false;
+            case_sensitive = true;
           }
           else
           {
@@ -631,7 +631,7 @@ inline namespace kernel
 
     for (auto & istream = static_cast<std::istream &>(*this);
          not is_special_character(istream.peek());
-         token.push_back(fold_case ? std::tolower(istream.get()) : istream.get()))
+         token.push_back(case_sensitive ? istream.get() : std::tolower(istream.get())))
     {}
 
     return token;
