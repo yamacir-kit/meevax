@@ -31,7 +31,7 @@
 
 (check (p1) => 'default)
 
-(continuation)
+(continuation (if #f #f))
 
 (check result => 'parameterized)
 
@@ -49,7 +49,7 @@
 
 (check (p1) => 'default)
 
-(continuation)
+(continuation (if #f #f))
 
 (check result => 'before-call/cc)
 
@@ -80,7 +80,7 @@
 
 (check (p3) => -1)
 
-(continuation)
+(continuation (if #f #f))
 
 (check result => 5)
 

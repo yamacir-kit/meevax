@@ -378,8 +378,8 @@ inline namespace kernel
 
       library.define<procedure>("log", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? log(xs[0]) / log(xs[1])
-                                  : log(xs[0]);
+        return 1 < length(xs) ? log(xs[0]) / log(xs[1])
+                              : log(xs[0]);
       });
 
       library.define<procedure>("sin", [](let const& xs)
@@ -409,8 +409,8 @@ inline namespace kernel
 
       library.define<procedure>("atan", [](let const& xs)
       {
-        return cdr(xs).is<pair>() ? atan(xs[0], xs[1])
-                                  : atan(xs[0]);
+        return 1 < length(xs) ? atan(xs[0], xs[1])
+                              : atan(xs[0]);
       });
 
       library.define<procedure>("sinh", [](let const& xs)
@@ -453,7 +453,7 @@ inline namespace kernel
 
       library.define<procedure>("make-list", [](let const& xs)
       {
-        return make_list(xs[0].as<exact_integer>(), cdr(xs).is<pair>() ? xs[1] : f);
+        return make_list(xs[0].as<exact_integer>(), 1 < length(xs) ? xs[1] : f);
       });
 
       library.define<procedure>("length", [](let const& xs)
@@ -693,8 +693,7 @@ inline namespace kernel
 
       library.define<procedure>("string->number", [](let const& xs)
       {
-        return make_number(xs[0].as<string>(),
-                           cdr(xs).is<pair>() ? xs[1].as<exact_integer>() : 10);
+        return make_number(xs[0].as<string>(), 1 < length(xs) ? xs[1].as<exact_integer>() : 10);
       });
     });
 
@@ -939,7 +938,7 @@ inline namespace kernel
         */
 
         return make<string>(xs[0].as<exact_integer>(),
-                            tail(xs, 1).is<pair>() ? xs[1].as<character>() : character());
+                            1 < length(xs) ? xs[1].as<character>() : character());
       });
 
       library.define<procedure>("string-length", [](let const& xs)
@@ -1018,8 +1017,8 @@ inline namespace kernel
 
         auto&& s = string();
 
-        std::copy(std::next(std::begin(xs[0].as<string>().codepoints), tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
-                  std::next(std::begin(xs[0].as<string>().codepoints), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<string>().codepoints.size()),
+        std::copy(std::next(std::begin(xs[0].as<string>().codepoints), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
+                  std::next(std::begin(xs[0].as<string>().codepoints), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<string>().codepoints.size()),
                   std::back_inserter(s.codepoints));
 
         return make(s);
@@ -1051,9 +1050,9 @@ inline namespace kernel
 
         s1.reserve(s1.size() + s2.size());
 
-        std::copy(std::next(std::begin(s2), tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
-                  std::next(std::begin(s2), tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : s2.size()),
-                  std::next(std::begin(s1),                          xs[1].as<exact_integer>()));
+        std::copy(std::next(std::begin(s2), 3 < length(xs) ? xs[3].as<exact_integer>() : 0),
+                  std::next(std::begin(s2), 4 < length(xs) ? xs[4].as<exact_integer>() : s2.size()),
+                  std::next(std::begin(s1), xs[1].as<exact_integer>()));
       });
 
       #define STRING_COMPARE(COMPARE)                                          \
@@ -1087,7 +1086,7 @@ inline namespace kernel
 
       library.define<procedure>("number->string", [](let const& xs)
       {
-        return number_to_string(xs[0], cdr(xs).is<pair>() ? xs[1].as<exact_integer>() : 10);
+        return number_to_string(xs[0], 1 < length(xs) ? xs[1].as<exact_integer>() : 10);
       });
 
       library.define<procedure>("string->list", [](let const& xs)
@@ -1108,8 +1107,8 @@ inline namespace kernel
            are inverses so far as equal? is concerned.
         */
 
-        return std::accumulate(std::prev(std::rend(xs[0].as<string>().codepoints), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<string>().codepoints.size()),
-                               std::prev(std::rend(xs[0].as<string>().codepoints), tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+        return std::accumulate(std::prev(std::rend(xs[0].as<string>().codepoints), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<string>().codepoints.size()),
+                               std::prev(std::rend(xs[0].as<string>().codepoints), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
                                unit,
                                [](let const& xs, character const& c)
                                {
@@ -1227,7 +1226,7 @@ inline namespace kernel
            initial contents of each element is unspecified.
         */
 
-        return make<vector>(xs[0].as<exact_integer>(), tail(xs, 1).is<pair>() ? xs[1] : unspecified);
+        return make<vector>(xs[0].as<exact_integer>(), 1 < length(xs) ? xs[1] : unspecified);
       });
 
       library.define<procedure>("vector-append", [](let const& xs)
@@ -1266,8 +1265,8 @@ inline namespace kernel
 
         auto&& v = vector();
 
-        std::copy(std::next(std::begin(xs[0].as<vector>().objects), tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
-                  std::next(std::begin(xs[0].as<vector>().objects), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+        std::copy(std::next(std::begin(xs[0].as<vector>().objects), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
+                  std::next(std::begin(xs[0].as<vector>().objects), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
                   std::back_inserter(v.objects));
 
         return make(std::forward<decltype(v)>(v));
@@ -1299,9 +1298,9 @@ inline namespace kernel
 
         v1.reserve(v1.size() + v2.size());
 
-        std::copy(std::next(std::begin(v2), tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0),
-                  std::next(std::begin(v2), tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : v1.size()),
-                  std::next(std::begin(v1),                          xs[1].as<exact_integer>()));
+        std::copy(std::next(std::begin(v2), 3 < length(xs) ? xs[3].as<exact_integer>() : 0),
+                  std::next(std::begin(v2), 4 < length(xs) ? xs[4].as<exact_integer>() : v1.size()),
+                  std::next(std::begin(v1), xs[1].as<exact_integer>()));
       });
 
       library.define<procedure>("vector-length", [](let const& xs)
@@ -1350,15 +1349,15 @@ inline namespace kernel
            between start and end.
         */
 
-        std::fill(std::next(std::begin(xs[0].as<vector>().objects), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : 0),
-                  std::next(std::begin(xs[0].as<vector>().objects), tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : xs[0].as<vector>().objects.size()),
-                  tail(xs, 1).is<pair>() ? xs[1] : unspecified);
+        std::fill(std::next(std::begin(xs[0].as<vector>().objects), 2 < length(xs) ? xs[2].as<exact_integer>() : 0),
+                  std::next(std::begin(xs[0].as<vector>().objects), 3 < length(xs) ? xs[3].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+                  1 < length(xs) ? xs[1] : unspecified);
       });
 
       library.define<procedure>("vector->list", [](let const& xs)
       {
-        return std::accumulate(std::prev(std::rend(xs[0].as<vector>().objects), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
-                               std::prev(std::rend(xs[0].as<vector>().objects), tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
+        return std::accumulate(std::prev(std::rend(xs[0].as<vector>().objects), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+                               std::prev(std::rend(xs[0].as<vector>().objects), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
                                unit,
                                xcons);
       });
@@ -1372,8 +1371,8 @@ inline namespace kernel
       {
         auto&& s = string();
 
-        std::for_each(std::next(std::begin(xs[0].as<vector>().objects), tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
-                      std::next(std::begin(xs[0].as<vector>().objects), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+        std::for_each(std::next(std::begin(xs[0].as<vector>().objects), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
+                      std::next(std::begin(xs[0].as<vector>().objects), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
                       [&](let const& x)
                       {
                         s.codepoints.push_back(x.as<character>());
@@ -1405,7 +1404,7 @@ inline namespace kernel
                                                                                \
       library.define<procedure>("make-" #TAG "vector", [](let const& xs)       \
       {                                                                        \
-        return make<TAG##vector>(xs[0].as<exact_integer>(), tail(xs, 1).is<pair>() ? xs[1] : unspecified); \
+        return make<TAG##vector>(xs[0].as<exact_integer>(), 1 < length(xs) ? xs[1] : unspecified); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector", [](let const& xs)               \
@@ -1431,8 +1430,8 @@ inline namespace kernel
       library.define<procedure>(#TAG "vector-copy", [](let const& xs)          \
       {                                                                        \
         return make<TAG##vector>(xs[0].as<TAG##vector>(),                      \
-                                 tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : std::size_t(), \
-                                 tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().valarray.size()); \
+                                 1 < length(xs) ? xs[1].as<exact_integer>() : std::size_t(), \
+                                 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().valarray.size()); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-copy!", [](let const& xs)         \
@@ -1445,8 +1444,8 @@ inline namespace kernel
         copy(xs[0].as<TAG##vector>().valarray,                                 \
              xs[1].as<exact_integer>(),                                        \
              xs[2].as<TAG##vector>().valarray,                                 \
-             tail(xs, 3).is<pair>() ? xs[3].as<exact_integer>() : 0,           \
-             tail(xs, 4).is<pair>() ? xs[4].as<exact_integer>() : xs[2].as<TAG##vector>().valarray.size()); \
+             3 < length(xs) ? xs[3].as<exact_integer>() : 0,                   \
+             4 < length(xs) ? xs[4].as<exact_integer>() : xs[2].as<TAG##vector>().valarray.size()); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-append", [](let const& xs)        \
@@ -1469,8 +1468,8 @@ inline namespace kernel
         };                                                                     \
                                                                                \
         return list(xs[0].as<TAG##vector>().valarray,                          \
-                    tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0,    \
-                    tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().valarray.size()); \
+                    1 < length(xs) ? xs[1].as<exact_integer>() : 0,            \
+                    2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().valarray.size()); \
       });                                                                      \
                                                                                \
       library.define<procedure>("list->" #TAG "vector", [](let const& xs)      \
@@ -1493,8 +1492,8 @@ inline namespace kernel
       {
         auto buffer = std::ostringstream();
 
-        std::for_each(std::next(std::begin(xs[0].as<u8vector>().valarray), tail(xs, 1).is<pair>() ? xs[1].as<exact_integer>() : 0),
-                      std::next(std::begin(xs[0].as<u8vector>().valarray), tail(xs, 2).is<pair>() ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().valarray.size()),
+        std::for_each(std::next(std::begin(xs[0].as<u8vector>().valarray), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
+                      std::next(std::begin(xs[0].as<u8vector>().valarray), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().valarray.size()),
                       [&](auto const& x)
                       {
                         buffer << x;

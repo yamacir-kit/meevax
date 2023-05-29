@@ -939,7 +939,8 @@ inline namespace kernel
 
         assert(lexical_cast<std::string>(continuation) == "(stop)");
 
-        return continuation;
+        return cons(make(instruction::load_constant), unspecified,
+                    continuation);
       }
 
       // NOTE: R7RS 5.5. Record-type definitions is implemented as macros.
