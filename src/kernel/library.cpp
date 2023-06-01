@@ -43,14 +43,14 @@ inline namespace kernel
 
   auto library::evaluate(object const& declaration) -> void
   {
-    if (declaration[0].is<symbol>() and declaration[0].as<symbol>() == "export")
+    if (declaration.is<pair>() and declaration[0].is<symbol>() and declaration[0].as<symbol>() == "export")
     {
       for (let const& form : cdr(declaration))
       {
         declare<export_spec>(form);
       }
     }
-    else if (declaration[0].is<symbol>() and declaration[0].as<symbol>() == "begin")
+    else if (declaration.is<pair>() and declaration[0].is<symbol>() and declaration[0].as<symbol>() == "begin")
     {
       for (let const& command_or_definition : cdr(declaration))
       {

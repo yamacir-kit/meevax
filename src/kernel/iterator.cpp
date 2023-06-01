@@ -20,6 +20,10 @@ namespace meevax
 {
 inline namespace kernel
 {
+  iterator::iterator(object const& x)
+    : std::reference_wrapper<const object> { std::cref(x) }
+  {}
+
   auto iterator::operator *() const -> iterator::const_reference
   {
     return car(*this);
@@ -68,13 +72,13 @@ namespace std
 
   auto cend(meevax::object const&) -> meevax::iterator const&
   {
-    static meevax::iterator const cend { meevax::unit };
+    static auto const cend = meevax::iterator(meevax::unit);
     return cend;
   }
 
   auto end(meevax::object const&) -> meevax::iterator const&
   {
-    static meevax::iterator const end { meevax::unit };
+    static auto const end = meevax::iterator(meevax::unit);
     return end;
   }
 } // namespace std

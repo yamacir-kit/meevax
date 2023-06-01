@@ -1124,23 +1124,25 @@ inline namespace kernel
       }
       else
       {
-        for (auto outer = std::begin(local); outer != std::end(local); ++outer)
+        auto i = identity::index(0);
+
+        for (auto outer = local; not outer.is<null>(); ++i, outer = cdr(outer))
         {
-          for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
+          auto j = identity::index(0);
+
+          for (auto inner = outer.is<pair>() ? car(outer) : unit; not inner.is<null>(); ++j, inner = inner.is<pair>() ? cdr(inner) : unit)
           {
-            if (inner.get().is<pair>() and (*inner).is<absolute>() and eq((*inner).as<absolute>().symbol(), variable))
+            if (inner.is<pair>() and car(inner).is<absolute>() and eq(car(inner).as<absolute>().symbol(), variable))
             {
-              return *inner;
+              return car(inner);
             }
-            else if (inner.get().is<pair>() and eq(*inner, variable))
+            else if (inner.is<pair>() and eq(car(inner), variable))
             {
-              return make<relative>(make(static_cast<identity::index>(std::distance(std::begin(local), outer))),
-                                    make(static_cast<identity::index>(std::distance(std::begin(*outer), inner))));
+              return make<relative>(make(i), make(j));
             }
-            else if (inner.get().is<symbol>() and eq(inner, variable))
+            else if (inner.is<symbol>() and eq(inner, variable))
             {
-              return make<variadic>(make(static_cast<identity::index>(std::distance(std::begin(local), outer))),
-                                    make(static_cast<identity::index>(std::distance(std::begin(*outer), inner))));
+              return make<variadic>(make(i), make(j));
             }
           }
         }

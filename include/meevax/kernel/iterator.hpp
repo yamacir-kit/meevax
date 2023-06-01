@@ -39,9 +39,7 @@ inline namespace kernel
 
     using size_type = std::size_t;
 
-    iterator(object const& x)
-      : std::reference_wrapper<const object> { std::cref(x) }
-    {}
+    iterator(object const&);
 
     auto operator *() const -> const_reference;
 
@@ -50,11 +48,6 @@ inline namespace kernel
     auto operator ++() -> iterator &;
 
     auto operator ++(int) -> iterator;
-
-    operator bool() const
-    {
-      return static_cast<bool>(get());
-    }
   };
 
   auto operator ==(iterator const&, iterator const&) noexcept -> bool;

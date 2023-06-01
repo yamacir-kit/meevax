@@ -30,7 +30,7 @@ inline namespace kernel
   {
     if constexpr (std::is_same_v<std::decay_t<T>, iterator>)
     {
-      return std::get<N>(*x.get());
+      return get<N>(x.get());
     }
     else if constexpr (std::is_same_v<std::decay_t<T>, object>)
     {
@@ -123,7 +123,7 @@ inline namespace kernel
 
   auto take(object const&, std::size_t) -> object;
 
-  auto length(object const&) -> std::size_t;
+  auto length(object const&, std::size_t = 0) -> std::size_t;
 
   auto append(object const&, object const&) -> object;
 
