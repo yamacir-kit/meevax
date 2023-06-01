@@ -1242,9 +1242,9 @@ inline namespace kernel
 
         for (let const& x : xs)
         {
-          for (let const& object : x.as<vector>().objects)
+          for (let const& object : x.as<vector>().vector)
           {
-            v.objects.push_back(object);
+            v.vector.push_back(object);
           }
         }
 
@@ -1265,9 +1265,9 @@ inline namespace kernel
 
         auto&& v = vector();
 
-        std::copy(std::next(std::begin(xs[0].as<vector>().objects), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
-                  std::next(std::begin(xs[0].as<vector>().objects), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
-                  std::back_inserter(v.objects));
+        std::copy(std::next(std::begin(xs[0].as<vector>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
+                  std::next(std::begin(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().vector.size()),
+                  std::back_inserter(v.vector));
 
         return make(std::forward<decltype(v)>(v));
       });
@@ -1292,9 +1292,9 @@ inline namespace kernel
            direction in such circumstances.
         */
 
-        auto&& v1 = xs[0].as<vector>().objects;
+        auto&& v1 = xs[0].as<vector>().vector;
 
-        auto&& v2 = xs[2].as<vector>().objects;
+        auto&& v2 = xs[2].as<vector>().vector;
 
         v1.reserve(v1.size() + v2.size());
 
@@ -1311,7 +1311,7 @@ inline namespace kernel
            Returns the number of elements in vector as an exact integer.
         */
 
-        return make<exact_integer>(xs[0].as<vector>().objects.size());
+        return make<exact_integer>(xs[0].as<vector>().vector.size());
       });
 
       library.define<procedure>("vector-ref", [](let const& xs)
@@ -1335,7 +1335,7 @@ inline namespace kernel
            procedure stores obj in element k of vector.
         */
 
-        return xs[0].as<vector>().objects[xs[1].as<exact_integer>()] = xs[2];
+        return xs[0].as<vector>().vector[xs[1].as<exact_integer>()] = xs[2];
       });
 
       library.define<procedure>("vector-fill!", [](let const& xs)
@@ -1349,15 +1349,15 @@ inline namespace kernel
            between start and end.
         */
 
-        std::fill(std::next(std::begin(xs[0].as<vector>().objects), 2 < length(xs) ? xs[2].as<exact_integer>() : 0),
-                  std::next(std::begin(xs[0].as<vector>().objects), 3 < length(xs) ? xs[3].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+        std::fill(std::next(std::begin(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : 0),
+                  std::next(std::begin(xs[0].as<vector>().vector), 3 < length(xs) ? xs[3].as<exact_integer>() : xs[0].as<vector>().vector.size()),
                   1 < length(xs) ? xs[1] : unspecified);
       });
 
       library.define<procedure>("vector->list", [](let const& xs)
       {
-        return std::accumulate(std::prev(std::rend(xs[0].as<vector>().objects), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
-                               std::prev(std::rend(xs[0].as<vector>().objects), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
+        return std::accumulate(std::prev(std::rend(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().vector.size()),
+                               std::prev(std::rend(xs[0].as<vector>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
                                unit,
                                xcons);
       });
@@ -1371,8 +1371,8 @@ inline namespace kernel
       {
         auto&& s = string();
 
-        std::for_each(std::next(std::begin(xs[0].as<vector>().objects), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
-                      std::next(std::begin(xs[0].as<vector>().objects), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().objects.size()),
+        std::for_each(std::next(std::begin(xs[0].as<vector>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
+                      std::next(std::begin(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().vector.size()),
                       [&](let const& x)
                       {
                         s.codepoints.push_back(x.as<character>());
@@ -1387,7 +1387,7 @@ inline namespace kernel
 
         for (auto&& character : xs[0].as<string>().codepoints)
         {
-          v.objects.push_back(make(character));
+          v.vector.push_back(make(character));
         }
 
         return make(std::forward<decltype(v)>(v));

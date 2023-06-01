@@ -30,7 +30,7 @@ inline namespace kernel
   {
     if constexpr (std::is_same_v<std::decay_t<T>, iterator>)
     {
-      return get<N>(x.get());
+      return get<N>(x.reference_wrapper.get());
     }
     else if constexpr (std::is_same_v<std::decay_t<T>, object>)
     {

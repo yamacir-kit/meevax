@@ -25,33 +25,33 @@ namespace meevax
 {
 inline namespace kernel
 {
-  vector::vector(object const& x)
+  heterogeneous_vector::heterogeneous_vector(object const& x)
   {
-    std::copy(std::begin(x), std::end(x), std::back_inserter(objects));
+    std::copy(std::begin(x), std::end(x), std::back_inserter(vector));
   }
 
-  vector::vector(std::size_t k, object const& fill)
-    : objects { k, fill }
+  heterogeneous_vector::heterogeneous_vector(std::size_t size, object const& x)
+    : vector { size, x }
   {}
 
-  auto vector::operator [](std::size_t k) const -> object const&
+  auto heterogeneous_vector::operator [](std::size_t index) const -> object const&
   {
-    return objects[k];
+    return vector[index];
   }
 
-  auto operator ==(vector const& lhs, vector const& rhs) -> bool
+  auto operator ==(heterogeneous_vector const& v, heterogeneous_vector const& u) -> bool
   {
-    return std::equal(std::begin(lhs.objects), std::end(lhs.objects),
-                      std::begin(rhs.objects), std::end(rhs.objects), equal);
+    return std::equal(std::begin(v.vector), std::end(v.vector),
+                      std::begin(u.vector), std::end(u.vector), equal);
   }
 
-  auto operator <<(std::ostream & output, vector const& datum) -> std::ostream &
+  auto operator <<(std::ostream & output, heterogeneous_vector const& datum) -> std::ostream &
   {
     output << magenta("#(");
 
     auto whitespace = "";
 
-    for (auto const& each : datum.objects)
+    for (auto const& each : datum.vector)
     {
       output << std::exchange(whitespace, " ") << each;
     }
