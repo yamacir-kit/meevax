@@ -25,15 +25,13 @@ inline namespace kernel
 {
   struct string
   {
-    std::vector<character> codepoints;
+    std::vector<character> vector;
 
     string() = default;
 
     explicit string(std::string const&);
 
     explicit string(std::size_t const, character const&);
-
-    auto empty() const -> bool;
 
     operator std::string() const;
   };

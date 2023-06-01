@@ -27,23 +27,18 @@ inline namespace kernel
   {
     for (auto input = input_string_port(s);
          not character::is_eof(static_cast<std::istream &>(input).peek());
-         codepoints.emplace_back(input.take_codepoint()));
+         vector.emplace_back(input.take_codepoint()));
   }
 
-  string::string(std::size_t const k, character const& c)
-    : codepoints { k, c }
+  string::string(std::size_t const size, character const& c)
+    : vector { size, c }
   {}
-
-  auto string::empty() const -> bool
-  {
-    return codepoints.empty();
-  }
 
   string::operator std::string() const
   {
     std::string result;
 
-    for (character const& each : codepoints)
+    for (character const& each : vector)
     {
       result.append(static_cast<std::string>(each));
     }
@@ -53,8 +48,8 @@ inline namespace kernel
 
   auto operator ==(string const& s1, string const& s2) -> bool
   {
-    return std::equal(std::begin(s1.codepoints), std::end(s1.codepoints),
-                      std::begin(s2.codepoints), std::end(s2.codepoints));
+    return std::equal(std::begin(s1.vector), std::end(s1.vector),
+                      std::begin(s2.vector), std::end(s2.vector));
   }
 
   auto operator <<(std::ostream & os, string const& datum) -> std::ostream &
@@ -86,7 +81,7 @@ inline namespace kernel
 
     os << cyan("\"");
 
-    for (auto const& each : datum.codepoints)
+    for (auto const& each : datum.vector)
     {
       put(each);
     }

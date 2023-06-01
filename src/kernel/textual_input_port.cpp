@@ -110,7 +110,7 @@ inline namespace kernel
 
       while (size-- and not character::is_eof(static_cast<std::istream &>(*this).peek()))
       {
-        s.codepoints.emplace_back(take_codepoint());
+        s.vector.emplace_back(take_codepoint());
       }
 
       return make(s);
@@ -498,17 +498,17 @@ inline namespace kernel
       case '\\':
         switch (auto const codepoint = take_codepoint(); codepoint)
         {
-        case 'a': s.codepoints.emplace_back('\a'); break;
-        case 'b': s.codepoints.emplace_back('\b'); break;
-        case 'f': s.codepoints.emplace_back('\f'); break;
-        case 'n': s.codepoints.emplace_back('\n'); break;
-        case 'r': s.codepoints.emplace_back('\r'); break;
-        case 't': s.codepoints.emplace_back('\t'); break;
-        case 'v': s.codepoints.emplace_back('\v'); break;
+        case 'a': s.vector.emplace_back('\a'); break;
+        case 'b': s.vector.emplace_back('\b'); break;
+        case 'f': s.vector.emplace_back('\f'); break;
+        case 'n': s.vector.emplace_back('\n'); break;
+        case 'r': s.vector.emplace_back('\r'); break;
+        case 't': s.vector.emplace_back('\t'); break;
+        case 'v': s.vector.emplace_back('\v'); break;
         case 'x':
           if (auto token = std::string(); std::getline(is, token, ';'))
           {
-            s.codepoints.emplace_back(lexical_cast<character::int_type>(std::hex, token));
+            s.vector.emplace_back(lexical_cast<character::int_type>(std::hex, token));
           }
           break;
 
@@ -521,13 +521,13 @@ inline namespace kernel
           break;
 
         default:
-          s.codepoints.emplace_back(codepoint);
+          s.vector.emplace_back(codepoint);
           break;
         }
         break;
 
       default:
-        s.codepoints.emplace_back(codepoint);
+        s.vector.emplace_back(codepoint);
         break;
       }
     }

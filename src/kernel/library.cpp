@@ -949,7 +949,7 @@ inline namespace kernel
            Returns the number of characters in the given string.
         */
 
-        return make<exact_integer>(xs[0].as<string>().codepoints.size());
+        return make<exact_integer>(xs[0].as<string>().vector.size());
       });
 
       library.define<procedure>("string-ref", [](let const& xs)
@@ -964,7 +964,7 @@ inline namespace kernel
            execute in constant time.
         */
 
-        return make(xs[0].as<string>().codepoints.at(xs[1].as<exact_integer>()));
+        return make(xs[0].as<string>().vector.at(xs[1].as<exact_integer>()));
       });
 
       library.define<procedure>("string-set!", [](let const& xs)
@@ -978,7 +978,7 @@ inline namespace kernel
            is no requirement for this procedure to execute in constant time.
         */
 
-        xs[0].as<string>().codepoints.at(xs[1].as<exact_integer>()) = xs[2].as<character>();
+        xs[0].as<string>().vector.at(xs[1].as<exact_integer>()) = xs[2].as<character>();
 
         return xs[0];
       });
@@ -996,9 +996,9 @@ inline namespace kernel
 
         for (let const& x : xs)
         {
-          std::copy(std::begin(x.as<string>().codepoints),
-                    std::end(x.as<string>().codepoints),
-                    std::back_inserter(s.codepoints));
+          std::copy(std::begin(x.as<string>().vector),
+                    std::end(x.as<string>().vector),
+                    std::back_inserter(s.vector));
         }
 
         return make(std::forward<decltype(s)>(s));
@@ -1017,9 +1017,9 @@ inline namespace kernel
 
         auto&& s = string();
 
-        std::copy(std::next(std::begin(xs[0].as<string>().codepoints), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
-                  std::next(std::begin(xs[0].as<string>().codepoints), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<string>().codepoints.size()),
-                  std::back_inserter(s.codepoints));
+        std::copy(std::next(std::begin(xs[0].as<string>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
+                  std::next(std::begin(xs[0].as<string>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<string>().vector.size()),
+                  std::back_inserter(s.vector));
 
         return make(s);
       });
@@ -1044,9 +1044,9 @@ inline namespace kernel
            direction in such circumstances.
         */
 
-        auto&& s1 = xs[0].as<string>().codepoints;
+        auto&& s1 = xs[0].as<string>().vector;
 
-        auto&& s2 = xs[2].as<string>().codepoints;
+        auto&& s2 = xs[2].as<string>().vector;
 
         s1.reserve(s1.size() + s2.size());
 
@@ -1061,8 +1061,8 @@ inline namespace kernel
         return std::adjacent_find(                                             \
                  std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
                  {                                                             \
-                   return not COMPARE()(a.as_const<string>().codepoints,       \
-                                        b.as_const<string>().codepoints);      \
+                   return not COMPARE()(a.as_const<string>().vector,           \
+                                        b.as_const<string>().vector);          \
                  }) == std::end(xs);                                           \
       }
 
@@ -1107,8 +1107,8 @@ inline namespace kernel
            are inverses so far as equal? is concerned.
         */
 
-        return std::accumulate(std::prev(std::rend(xs[0].as<string>().codepoints), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<string>().codepoints.size()),
-                               std::prev(std::rend(xs[0].as<string>().codepoints), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
+        return std::accumulate(std::prev(std::rend(xs[0].as<string>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<string>().vector.size()),
+                               std::prev(std::rend(xs[0].as<string>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
                                unit,
                                [](let const& xs, character const& c)
                                {
@@ -1122,7 +1122,7 @@ inline namespace kernel
 
         for (let const& x : xs[0])
         {
-          s.codepoints.push_back(x.as<character>());
+          s.vector.push_back(x.as<character>());
         }
 
         return make(std::forward<decltype(s)>(s));
@@ -1375,7 +1375,7 @@ inline namespace kernel
                       std::next(std::begin(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().vector.size()),
                       [&](let const& x)
                       {
-                        s.codepoints.push_back(x.as<character>());
+                        s.vector.push_back(x.as<character>());
                       });
 
         return make(s);
@@ -1385,7 +1385,7 @@ inline namespace kernel
       {
         auto&& v = vector();
 
-        for (auto&& character : xs[0].as<string>().codepoints)
+        for (auto&& character : xs[0].as<string>().vector)
         {
           v.vector.push_back(make(character));
         }
