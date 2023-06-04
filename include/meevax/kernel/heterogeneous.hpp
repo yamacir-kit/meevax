@@ -129,9 +129,9 @@ inline namespace kernel
     template <typename U>
     inline auto as() const -> decltype(auto)
     {
-      if constexpr (std::is_class_v<U>)
+      if constexpr (std::is_class_v<std::decay_t<U>>)
       {
-        if (auto data = dynamic_cast<std::add_pointer_t<U>>(get()); data)
+        if (auto data = dynamic_cast<std::add_pointer_t<std::decay_t<U>>>(get()); data)
         {
           return *data;
         }
@@ -202,9 +202,9 @@ inline namespace kernel
 
     inline auto operator [](std::size_t k) const -> heterogeneous const&
     {
-      if (dereferenceable())
+      if (dereferenceable() and *this)
       {
-        return *this ? get()->operator [](k) : *this; // throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
+        return get()->operator [](k);
       }
       else
       {
