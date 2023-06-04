@@ -139,17 +139,13 @@
                        (else x)))
                (expand (cadr form) 0))))
 
+         (define (every f xs)
+           (if (pair? xs)
+               (and (f (car xs))
+                    (every f (cdr xs)))
+               #t))
+
          (define (map f x . xs)
-           (define (every f x)
-             (if (pair? x)
-                 (letrec ((every (lambda (f x)
-                                   (if (null? (cdr x))
-                                       (f (car x))
-                                       (if (f (car x))
-                                           (every f (cdr x))
-                                           #f)))))
-                   (every f x))
-                 #t))
            (define (map f x a)
              (if (pair? x)
                  (map f

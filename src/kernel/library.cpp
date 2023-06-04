@@ -444,6 +444,21 @@ inline namespace kernel
       });
     });
 
+    define<library>("(meevax library)", [](library & library)
+    {
+      library.define<procedure>("libraries", [](let const&)
+      {
+        let xs = unit;
+
+        for (auto&& [name, library] : libraries())
+        {
+          xs = cons(input_string_port(name).read(), xs);
+        }
+
+        return xs;
+      });
+    });
+
     define<library>("(meevax list)", [](library & library)
     {
       library.define<procedure>("null?", [](let const& xs)
@@ -1369,7 +1384,7 @@ inline namespace kernel
 
       library.define<procedure>("vector->string", [](let const& xs)
       {
-        auto&& s = string();
+        auto s = string();
 
         std::for_each(std::next(std::begin(xs[0].as<vector>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
                       std::next(std::begin(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().vector.size()),
@@ -1383,14 +1398,14 @@ inline namespace kernel
 
       library.define<procedure>("string->vector", [](let const& xs)
       {
-        auto&& v = vector();
+        auto v = vector();
 
         for (auto&& character : xs[0].as<string>().vector)
         {
           v.vector.push_back(make(character));
         }
 
-        return make(std::forward<decltype(v)>(v));
+        return make(v);
       });
     });
 

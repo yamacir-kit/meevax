@@ -54,6 +54,7 @@ Subset of R7RS-small.
 
 | Number                                                  | Title                                                  | Library name                        | Note              |
 |--------------------------------------------------------:|:-------------------------------------------------------|:------------------------------------|:------------------|
+| [  0](https://srfi.schemers.org/srfi-0/srfi-0.html)     | Feature-based conditional expansion construct          | [`(srfi 0)`](./basis/srfi-0.ss)     | R7RS 4.2.1        |
 | [  1](https://srfi.schemers.org/srfi-1/srfi-1.html)     | List Library                                           | [`(srfi 1)`](./basis/srfi-1.ss)     |                   |
 | [  6](https://srfi.schemers.org/srfi-6/srfi-6.html)     | Basic String Ports                                     | [`(srfi 6)`](./basis/srfi-6.ss)     | R7RS 6.13         |
 | [  4](https://srfi.schemers.org/srfi-4/srfi-4.html)     | Homogeneous numeric vector datatypes                   | [`(srfi 4)`](./basis/srfi-4.ss)     | R7RS 6.9          |
@@ -121,16 +122,16 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name        | Description
 |--------------------|---
-| `all` (default)    | Build shared-library `libmeevax.0.4.716.so` and executable `meevax`
+| `all` (default)    | Build shared-library `libmeevax.0.4.717.so` and executable `meevax`
 | `test`             | Test executable `meevax`
-| `package`          | Generate debian package `meevax_0.4.716_amd64.deb`
+| `package`          | Generate debian package `meevax_0.4.717_amd64.deb`
 | `install`          | Copy files into `/usr/local`
 | `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
 
 ## Usage
 
 ```
-Meevax Lisp 0.4.716
+Meevax Lisp 0.4.717
 
 Usage:
   meevax [option...] [file...]

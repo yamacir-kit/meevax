@@ -12,6 +12,7 @@
           (only (meevax version) features)
           (prefix (meevax write) %)
           (scheme r5rs)
+          (srfi 0)
           (srfi 6)
           (srfi 9)
           (srfi 11)
@@ -21,11 +22,10 @@
 
   (export ; 4.1. Primitive expression types
           quote lambda if set! include include-ci cond else => case and or when
-          unless
-          ; cond-expand
-          let let* letrec letrec* let-values let*-values begin do
-          make-parameter parameterize guard quasiquote unquote unquote-splicing
-          let-syntax letrec-syntax syntax-rules _ ... syntax-error
+          unless cond-expand let let* letrec letrec* let-values let*-values
+          begin do make-parameter parameterize guard quasiquote unquote
+          unquote-splicing let-syntax letrec-syntax syntax-rules _ ...
+          syntax-error
 
           ; 5.3. Variable definitions
           define define-values define-syntax define-record-type
