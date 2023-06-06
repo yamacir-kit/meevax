@@ -937,8 +937,6 @@ inline namespace kernel
                .store(make<transformer>(Environment().execute(compile(cadr(expression), local)),
                                         make<syntactic_environment>(local, compile.global())));
 
-        assert(lexical_cast<std::string>(continuation) == "(stop)");
-
         return cons(make(instruction::load_constant), unspecified,
                     continuation);
       }
