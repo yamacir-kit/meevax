@@ -10,6 +10,8 @@
   (begin (define (f) 'f)
          (define (g) 'g)))
 
+(define-library (empty))
+
 (import (test 1))
 
 (check (f) => 'f)
@@ -18,6 +20,7 @@
 
 (with-output-to-file "/tmp/hoge.ss"
   (lambda ()
+    (write '(import (empty)))
     (write '(define-syntax swap!
               (syntax-rules ()
                 ((swap! a b)

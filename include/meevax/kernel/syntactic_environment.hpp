@@ -17,9 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 
-#include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/identity.hpp>
-#include <meevax/kernel/input_file_port.hpp> // for syntax `include` and `include-ci`
+#include <meevax/kernel/include.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/transformer.hpp>
 
@@ -578,7 +577,6 @@ inline namespace kernel
         }
       }
 
-      template <auto case_sensitive = true>
       static COMPILER(include) /* ----------------------------------------------
       *
       *  R7RS  4.1.7. Inclusion
@@ -601,36 +599,16 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        auto open = [](object const& name)
-        {
-          auto port = input_file_port(name.as<string>());
-          port.case_sensitive = case_sensitive;
-          return port;
-        };
-
-        auto include = [&](auto&& include,
-                           auto&& input,
-                           object const& filenames,
-                           object const& xs = unit) -> object
-        {
-          if (let const& x = input.read(); not x.is<eof>())
-          {
-            return include(include, input, filenames, cons(x, xs));
-          }
-          else if (not filenames.is<null>())
-          {
-            return include(include, open(car(filenames)), cdr(filenames), xs);
-          }
-          else
-          {
-            return reverse(xs);
-          }
-        };
-
         return sequence(compile,
-                        include(include,
-                                open(car(expression)), // The syntax include takes at least one filename.
-                                cdr(expression)),
+                        meevax::include(expression),
+                        local,
+                        continuation);
+      }
+
+      static COMPILER(include_case_insensitive)
+      {
+        return sequence(compile,
+                        meevax::include(expression, false),
                         local,
                         continuation);
       }

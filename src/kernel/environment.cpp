@@ -27,16 +27,39 @@ inline namespace kernel
 {
   auto environment::evaluate(object const& expression) -> object try
   {
-    if (expression.is<pair>() and car(expression).is<symbol>() and car(expression).as<symbol>() == "define-library")
+    auto is = [&](auto name)
+    {
+      return expression.is<pair>() and expression[0].is<symbol>() and expression[0].as<symbol>() == name;
+    };
+
+    if (is("define-library"))
     {
       meevax::define<library>(lexical_cast<std::string>(cadr(expression)), cddr(expression));
       return cadr(expression);
     }
-    else if (expression.is<pair>() and car(expression).is<symbol>() and car(expression).as<symbol>() == "import")
+    else if (is("import"))
     {
       for (let const& form : cdr(expression))
       {
         declare<import_set>(form);
+      }
+
+      return unspecified;
+    }
+    else if (is("include"))
+    {
+      for (let const& command_or_definition : include(cdr(expression), true))
+      {
+        evaluate(command_or_definition);
+      }
+
+      return unspecified;
+    }
+    else if (is("include-ci"))
+    {
+      for (let const& command_or_definition : include(cdr(expression), false))
+      {
+        evaluate(command_or_definition);
       }
 
       return unspecified;
