@@ -36,7 +36,7 @@ inline namespace kernel
     template <typename T, typename... Ts>
     auto declare(Ts&&... xs) -> decltype(auto)
     {
-      return std::decay_t<T>(std::forward<decltype(xs)>(xs)...).resolve(*this);
+      return std::invoke(std::decay_t<T>(std::forward<decltype(xs)>(xs)...), *this);
     }
 
     auto evaluate(object const&) -> object;

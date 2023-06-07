@@ -5,7 +5,7 @@
         (srfi 78))
 
 (define-library (test 1)
-  (import (scheme base))
+  (import (only (scheme base) define quote))
   (export f (rename g h))
   (begin (define (f) 'f)
          (define (g) 'g)))

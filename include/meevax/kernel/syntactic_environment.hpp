@@ -608,18 +608,18 @@ inline namespace kernel
           return port;
         };
 
-        auto include = [&](auto&& recur,
+        auto include = [&](auto&& include,
                            auto&& input,
                            object const& filenames,
                            object const& xs = unit) -> object
         {
           if (let const& x = input.read(); not x.is<eof>())
           {
-            return recur(recur, input, filenames, cons(x, xs));
+            return include(include, input, filenames, cons(x, xs));
           }
           else if (not filenames.is<null>())
           {
-            return recur(recur, open(car(filenames)), cdr(filenames), xs);
+            return include(include, open(car(filenames)), cdr(filenames), xs);
           }
           else
           {

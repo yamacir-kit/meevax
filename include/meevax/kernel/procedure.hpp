@@ -17,8 +17,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
-#include <meevax/kernel/list.hpp>
+#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/ghost.hpp>
+#include <meevax/kernel/list.hpp>
 
 namespace meevax
 {

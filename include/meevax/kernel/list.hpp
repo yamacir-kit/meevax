@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_LIST_HPP
 #define INCLUDED_MEEVAX_KERNEL_LIST_HPP
 
-#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/comparator.hpp>
 #include <meevax/kernel/iterator.hpp>
 

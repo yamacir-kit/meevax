@@ -31,7 +31,7 @@ inline namespace kernel
 
     explicit export_spec(object const&);
 
-    auto resolve(library &) const -> object const&;
+    auto operator ()(library &) const -> void;
   };
 } // namespace kernel
 } // namespace meevax

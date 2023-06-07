@@ -33,7 +33,7 @@ inline namespace kernel
 
     explicit import_set(std::string const&);
 
-    auto resolve(environment &) const -> void;
+    auto operator ()(environment &) const -> void;
   };
 } // namespace kernel
 } // namespace meevax
