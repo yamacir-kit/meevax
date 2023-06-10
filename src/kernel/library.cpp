@@ -60,7 +60,14 @@ inline namespace kernel
     {
       for (let const& command_or_definition : cdr(declaration))
       {
-        evaluate(command_or_definition);
+        environment::evaluate(command_or_definition);
+      }
+    }
+    else if (is("include-library-declarations"))
+    {
+      for (let const& library_declaration : include(cdr(declaration)))
+      {
+        evaluate(library_declaration);
       }
     }
     else
