@@ -146,17 +146,17 @@ inline namespace kernel
   auto assq(object const&, object const&) -> object;
 
   template <typename F>
-  auto filter(F f, object const& xs) -> object
+  auto filter(F test, object const& xs) -> object
   {
     if (xs.is<pair>())
     {
-      if (f(car(xs)))
+      if (test(car(xs)))
       {
-        return cons(car(xs), filter(f, cdr(xs)));
+        return cons(car(xs), filter(test, cdr(xs)));
       }
       else
       {
-        return filter(f, cdr(xs));
+        return filter(test, cdr(xs));
       }
     }
     else

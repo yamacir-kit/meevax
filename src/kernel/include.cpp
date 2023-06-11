@@ -34,7 +34,7 @@ inline namespace kernel
 
     if (names.is<pair>())
     {
-      auto include_aux = [&](auto&& include_aux, auto&& input, object const& xs) -> object
+      auto include_aux = [&](auto include_aux, auto&& input, object const& xs) -> object
       {
         if (let const& x = input.read(); not x.is<eof>())
         {

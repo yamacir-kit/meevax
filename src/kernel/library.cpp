@@ -70,6 +70,13 @@ inline namespace kernel
         evaluate(library_declaration);
       }
     }
+    else if (is("cond-expand"))
+    {
+      for (let const& library_declaration : implementation_dependent(cdr(declaration)))
+      {
+        evaluate(library_declaration);
+      }
+    }
     else
     {
       environment::evaluate(declaration); // Non-standard extension.
@@ -204,6 +211,7 @@ inline namespace kernel
       library.define<syntax>("define",                          syntax::define);
       library.define<syntax>("define-syntax",                   syntax::define_syntax);
       library.define<syntax>("if",                              syntax::conditional);
+      library.define<syntax>("implementation-dependent",        syntax::implementation_dependent);
       library.define<syntax>("include",                         syntax::include);
       library.define<syntax>("include-case-insensitive",        syntax::include_case_insensitive);
       library.define<syntax>("install",                         syntax::install);

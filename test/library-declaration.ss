@@ -53,6 +53,17 @@
 
 (check b => 45.14)
 
+(define-library (test 4)
+  (export c)
+  (cond-expand
+    (meevax (import (meevax core))
+            (begin (define c 100)))
+    (else)))
+
+(import (test 4))
+
+(check c => 100)
+
 (check-report)
 
-(exit (check-passed? 4))
+(exit (check-passed? 5))

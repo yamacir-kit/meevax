@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 
 #include <meevax/kernel/identity.hpp>
+#include <meevax/kernel/implementation_dependent.hpp>
 #include <meevax/kernel/include.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/transformer.hpp>
@@ -602,7 +603,8 @@ inline namespace kernel
         return sequence(compile,
                         meevax::include(expression),
                         local,
-                        continuation);
+                        continuation,
+                        ellipsis);
       }
 
       static COMPILER(include_case_insensitive)
@@ -610,10 +612,61 @@ inline namespace kernel
         return sequence(compile,
                         meevax::include(expression, false),
                         local,
-                        continuation);
+                        continuation,
+                        ellipsis);
       }
 
-      // NOTE: R7RS 4.2.1. Conditionals are implemented as macros.
+      static COMPILER(implementation_dependent) /* -----------------------------
+      *
+      *  R7RS 4.2.1. Conditionals
+      *
+      *  (cond-expand <ce-clause 1> <ce-clause 2> ...)                   syntax
+      *
+      *  Syntax: The cond-expand expression type provides a way to statically
+      *  expand different expressions depending on the implementation. A
+      *  <ce-clause> takes the following form: (<feature requirement>
+      *  <expression> ...)
+      *
+      *  The last clause can be an "else clause," which has the form (else
+      *  <expression> ...)
+      *
+      *  A <feature requirement> takes one of the following forms:
+      *
+      *  - <feature identifier>
+      *  - (library <library name>)
+      *  - (and <feature requirement> ...)
+      *  - (or <feature requirement> ...)
+      *  - (not <feature requirement>)
+      *
+      *  Semantics: Each implementation maintains a list of feature identifiers
+      *  which are present, as well as a list of libraries which can be
+      *  imported. The value of a <feature requirement> is determined by
+      *  replacing each <feature identifier> and (library <library name>) on
+      *  the implementation's lists with #t, and all other feature identifiers
+      *  and library names with #f, then evaluating the resulting expression as
+      *  a Scheme boolean expression under the normal interpretation of and,
+      *  or, and not.
+      *
+      *  A cond-expand is then expanded by evaluating the <feature
+      *  requirement>s of successive <ce-clause>s in order until one of them
+      *  returns #t. When a true clause is found, the corresponding
+      *  <expression>s are expanded to a begin, and the remaining clauses are
+      *  ignored. If none of the <feature requirement>s evaluate to #t, then if
+      *  there is an else clause, its <expression>s are included. Otherwise,
+      *  the behavior of the cond-expand is unspecified. Unlike cond,
+      *  cond-expand does not depend on the value of any variables.
+      *
+      *  The exact features provided are implementation-defined, but for
+      *  portability a core set of features is given in appendix B.
+      *
+      * --------------------------------------------------------------------- */
+      {
+        return sequence(compile,
+                        meevax::implementation_dependent(expression),
+                        local,
+                        continuation,
+                        ellipsis);
+      }
 
       static COMPILER(letrec) /* -----------------------------------------------
       *
