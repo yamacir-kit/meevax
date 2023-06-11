@@ -47,16 +47,16 @@ extern "C"
 
   let make_hoge(let const& xs)
   {
-    return make<hoge>(car(xs).as<exact_integer>());
+    return make<hoge>(xs[0].as<exact_integer>());
   }
 
   let is_hoge(let const& xs)
   {
-    return car(xs).is<hoge>() ? t : f;
+    return xs[0].is<hoge>() ? t : f;
   }
 
   let hoge_value(let const& xs)
   {
-    return make<exact_integer>(car(xs).as<hoge>().value);
+    return make<exact_integer>(xs[0].as<hoge>().value);
   }
 }

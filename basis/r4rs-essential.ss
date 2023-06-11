@@ -14,8 +14,7 @@
           (meevax string)
           (meevax symbol)
           (meevax vector)
-          (rename (meevax write)
-                  (write %write)))
+          (prefix (meevax write) %))
 
   (export quote lambda if set! cond case and or let letrec begin quasiquote
           define not boolean? eqv? eq? equal? pair? cons car cdr set-car!
@@ -140,34 +139,25 @@
                        (else x)))
                (expand (cadr form) 0))))
 
-         (define (reverse xs)
-           (if (null? xs) '()
-               (append (reverse (cdr xs))
-                       (list (car xs)))))
+         (define (every f xs)
+           (if (pair? xs)
+               (and (f (car xs))
+                    (every f (cdr xs)))
+               #t))
 
          (define (map f x . xs)
-           (define (every f x)
-             (if (pair? x)
-                 (letrec ((every (lambda (f x)
-                                   (if (null? (cdr x))
-                                       (f (car x))
-                                       (if (f (car x))
-                                           (every f (cdr x))
-                                           #f)))))
-                   (every f x))
-                 #t))
-           (define (map f x stack)
+           (define (map f x a)
              (if (pair? x)
                  (map f
                       (cdr x)
-                      (cons (f (car x)) stack))
-                 (reverse stack)))
-           (define (map* f xs stack)
+                      (cons (f (car x)) a))
+                 (reverse a)))
+           (define (map* f xs a)
              (if (every pair? xs)
                  (map* f
                        (map cdr xs '())
-                       (cons (apply f (map car xs '())) stack))
-                 (reverse stack)))
+                       (cons (apply f (map car xs '())) a))
+                 (reverse a)))
            (if (null? xs)
                (map f x '())
                (map* f (cons x xs) '())))
@@ -221,31 +211,12 @@
                        (null? x)))
                  (null? x))))
 
-         (define (length x)
-           (let length ((x x)
-                        (k 0))
-             (if (pair? x)
-                 (length (cdr x)
-                         (+ k 1))
-                 k)))
-
-         (define (list-ref x k)
-           (let list-ref ((x x)
-                          (k k))
-             (if (zero? k)
-                 (car x)
-                 (list-ref (cdr x)
-                           (- k 1)))))
-
          (define (member o x . c)
            (let ((compare (if (pair? c) (car c) equal?)))
              (let member ((x x))
                (and (pair? x)
                     (if (compare o (car x)) x
                         (member (cdr x)))))))
-
-         (define (memq o x)
-           (member o x eq?))
 
          (define (memv o x)
            (member o x eqv?))
@@ -284,9 +255,6 @@
                    (if (compare key (caar alist))
                        (car alist)
                        (assoc (cdr alist)))))))
-
-         (define (assq key alist)
-           (assoc key alist eq?))
 
          (define (assv key alist)
            (assoc key alist eqv?))
@@ -553,17 +521,17 @@
                          (current-output-port))))
 
          (define (write-char x . port)
-           (put-char x (if (pair? port)
-                           (car port)
-                           (current-output-port))))
+           (%put-char x (if (pair? port)
+                            (car port)
+                            (current-output-port))))
 
          (define (display x . xs)
            (cond ((char? x)
                   (apply write-char x xs))
                  ((string? x)
-                  (put-string x (if (pair? xs) ; NOTE: The procedure write-string is not defined in R4RS.
-                                    (car xs)
-                                    (current-output-port))))
+                  (%put-string x (if (pair? xs) ; NOTE: The procedure write-string is not defined in R4RS.
+                                     (car xs)
+                                     (current-output-port))))
                  (else (apply write x xs))))
 
          (define (newline . port)

@@ -18,6 +18,8 @@
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 
 #include <meevax/kernel/identity.hpp>
+#include <meevax/kernel/implementation_dependent.hpp>
+#include <meevax/kernel/include.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/transformer.hpp>
 
@@ -46,9 +48,9 @@ inline namespace kernel
 
       auto align(let const& local) const
       {
-        return append2(make_list(length(local) -
-                                 length(environment.as<syntactic_environment>().local())),
-                       environment.as<syntactic_environment>().local());
+        return append(make_list(length(local) -
+                                length(environment.as<syntactic_environment>().local())),
+                      environment.as<syntactic_environment>().local());
       }
 
       auto compile(object const& local,
@@ -394,8 +396,7 @@ inline namespace kernel
         {
           return sweep(compile,
                        binding_specs,
-                       append2(cdar(form),
-                               cdr(form)),
+                       append(cdar(form), cdr(form)),
                        local);
         }
         else
@@ -458,14 +459,15 @@ inline namespace kernel
              where <binding specs> = ((<variable 1> <initial 1>) ...
                                       (<variable n> <initial n>))
           */
+          auto assignment = [](let const& binding_spec)
+          {
+            return cons(rename("set!"), binding_spec);
+          };
+
           return compile(cons(cons(rename("lambda"),
-                                   unzip1(binding_specs), // formals
-                                   append2(map1([](let const& binding_spec)
-                                                {
-                                                  return cons(rename("set!"), binding_spec);
-                                                },
-                                                binding_specs),
-                                           sequence)),
+                                   map(car, binding_specs), // formals
+                                   append(map(assignment, binding_specs),
+                                          sequence)),
                               make_list(length(binding_specs), unit)),
                          local,
                          continuation,
@@ -576,9 +578,95 @@ inline namespace kernel
         }
       }
 
-      // NOTE: R7RS 4.1.7. Inclusion is not unimplemented yet.
+      static COMPILER(include) /* ----------------------------------------------
+      *
+      *  R7RS  4.1.7. Inclusion
+      *
+      *  (include <string 1> <string 2> ...)                             syntax
+      *  (include-ci <string 1> <string 2> ...)                          syntax
+      *
+      *  Semantics: Both include and include-ci take one or more filenames
+      *  expressed as string literals, apply an implementation-specific
+      *  algorithm to find corresponding files, read the contents of the files
+      *  in the specified order as if by repeated applications of read, and
+      *  effectively re- place the include or include-ci expression with a
+      *  begin expression containing what was read from the files. The
+      *  difference between the two is that include-ci reads each file as if it
+      *  began with the #!fold-case directive, while include does not.
+      *
+      *  Note: Implementations are encouraged to search for files in the
+      *  directory which contains the including file, and to provide a way for
+      *  users to specify other directories to search.
+      *
+      * --------------------------------------------------------------------- */
+      {
+        return sequence(compile,
+                        meevax::include(expression),
+                        local,
+                        continuation,
+                        ellipsis);
+      }
 
-      // NOTE: R7RS 4.2.1. Conditionals are implemented as macros.
+      static COMPILER(include_case_insensitive)
+      {
+        return sequence(compile,
+                        meevax::include(expression, false),
+                        local,
+                        continuation,
+                        ellipsis);
+      }
+
+      static COMPILER(implementation_dependent) /* -----------------------------
+      *
+      *  R7RS 4.2.1. Conditionals
+      *
+      *  (cond-expand <ce-clause 1> <ce-clause 2> ...)                   syntax
+      *
+      *  Syntax: The cond-expand expression type provides a way to statically
+      *  expand different expressions depending on the implementation. A
+      *  <ce-clause> takes the following form: (<feature requirement>
+      *  <expression> ...)
+      *
+      *  The last clause can be an "else clause," which has the form (else
+      *  <expression> ...)
+      *
+      *  A <feature requirement> takes one of the following forms:
+      *
+      *  - <feature identifier>
+      *  - (library <library name>)
+      *  - (and <feature requirement> ...)
+      *  - (or <feature requirement> ...)
+      *  - (not <feature requirement>)
+      *
+      *  Semantics: Each implementation maintains a list of feature identifiers
+      *  which are present, as well as a list of libraries which can be
+      *  imported. The value of a <feature requirement> is determined by
+      *  replacing each <feature identifier> and (library <library name>) on
+      *  the implementation's lists with #t, and all other feature identifiers
+      *  and library names with #f, then evaluating the resulting expression as
+      *  a Scheme boolean expression under the normal interpretation of and,
+      *  or, and not.
+      *
+      *  A cond-expand is then expanded by evaluating the <feature
+      *  requirement>s of successive <ce-clause>s in order until one of them
+      *  returns #t. When a true clause is found, the corresponding
+      *  <expression>s are expanded to a begin, and the remaining clauses are
+      *  ignored. If none of the <feature requirement>s evaluate to #t, then if
+      *  there is an else clause, its <expression>s are included. Otherwise,
+      *  the behavior of the cond-expand is unspecified. Unlike cond,
+      *  cond-expand does not depend on the value of any variables.
+      *
+      *  The exact features provided are implementation-defined, but for
+      *  portability a core set of features is given in appendix B.
+      *
+      * --------------------------------------------------------------------- */
+      {
+        return sequence(compile,
+                        meevax::implementation_dependent(expression),
+                        local,
+                        continuation,
+                        ellipsis);
+      }
 
       static COMPILER(letrec) /* -----------------------------------------------
       *
@@ -616,14 +704,14 @@ inline namespace kernel
       {
         assert(not ellipsis.is<null>() or lexical_cast<std::string>(continuation) == "(return)");
 
-        auto const& [variables, inits] = unzip2(car(expression));
+        let const formals = map(car, car(expression));
 
         return cons(make(instruction::dummy),
                     operand(compile,
-                            inits,
-                            cons(variables, local),
+                            map(cadr, car(expression)),
+                            cons(formals, local),
                             lambda(compile,
-                                   cons(variables, cdr(expression)), // (<formals> <body>)
+                                   cons(formals, cdr(expression)), // (<formals> <body>)
                                    local,
                                    ellipsis.is<null>() ? list(make(instruction::tail_letrec))
                                                        : cons(make(instruction::letrec), continuation))));
@@ -662,6 +750,16 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
+        /*
+           The top-level sequential expression may contain macro definitions.
+           In that case, the macro definition must be compiled before the macro
+           is used (the evaluation order of function arguments in C++ is not
+           specified, but in most environments they are evaluated from right to
+           left). Therefore, the first expression is compiled separately and
+           then combined with the compiled result of the remaining expressions
+           by append.
+        */
+
         if (cdr(expression).is<null>()) // is tail sequence
         {
           return compile(car(expression),
@@ -669,16 +767,26 @@ inline namespace kernel
                          continuation,
                          ellipsis);
         }
+        else if (let const head = compile(car(expression), // Head expression or definition
+                                          local,
+                                          unit);
+                 head.is<null>()) // The syntax define-syntax creates a transformer from transformer-spec at compile time and registers it in the global environment. The syntax define-syntax is effectively a compile-time side-effect of the syntax environment and does nothing at run-time.
+        {
+          return sequence(compile,
+                          cdr(expression), // rest expressions
+                          local,
+                          continuation,
+                          ellipsis);
+        }
         else
         {
-          return compile(car(expression), // head expression
-                         local,
-                         cons(make(instruction::drop), // pop result of head expression
-                              sequence(compile,
-                                       cdr(expression), // rest expressions
-                                       local,
-                                       continuation,
-                                       ellipsis)));
+          return append(head,
+                        cons(make(instruction::drop), // Pop result of head expression
+                             sequence(compile,
+                                      cdr(expression), // Rest expression or definitions
+                                      local,
+                                      continuation,
+                                      ellipsis)));
         }
       }
 
@@ -720,23 +828,17 @@ inline namespace kernel
       {
         let const environment = make<syntactic_environment>(local, compile.global());
 
-        auto make_formal = [&](let const& syntax_spec)
+        auto formal = [&](let const& syntax_spec)
         {
-          let const keyword          =  car(syntax_spec);
-          let const transformer_spec = cadr(syntax_spec);
-
-          return make<absolute>(keyword,
-                                make<transformer>(Environment().execute(compile(transformer_spec, local)),
+          return make<absolute>(car(syntax_spec), // <keyword>
+                                make<transformer>(Environment().execute(compile(cadr(syntax_spec), // <transformer spec>
+                                                                                local)),
                                                   environment));
         };
 
-        let const syntax_specs = car(expression);
-        let const body         = cdr(expression);
-        let const formals      = map1(make_formal, syntax_specs);
-
         return compile(cons(cons(rename("lambda"),
-                                 formals,
-                                 body),
+                                 map(formal, car(expression)), // <formals>
+                                 cdr(expression)), // <body>
                             unit), // dummy
                        local,
                        continuation);
@@ -762,25 +864,21 @@ inline namespace kernel
       {
         let const environment = make<syntactic_environment>(unit, compile.global());
 
-        auto make_formal = [&](let const& syntax_spec)
+        auto formal = [&](let const& syntax_spec)
         {
-          let const keyword          =  car(syntax_spec);
-          let const transformer_spec = cadr(syntax_spec);
-
-          return make<absolute>(keyword,
-                                make<transformer>(Environment().execute(compile(transformer_spec, local)),
+          return make<absolute>(car(syntax_spec), // <keyword>
+                                make<transformer>(Environment().execute(compile(cadr(syntax_spec), // <transformer spec>
+                                                                                local)),
                                                   environment));
         };
 
-        let const syntax_specs = car(expression);
-        let const body         = cdr(expression);
-        let const formals      = map1(make_formal, syntax_specs);
+        let const formals = map(formal, car(expression));
 
         environment.as<syntactic_environment>().local() = cons(formals, local);
 
         return compile(cons(cons(rename("lambda"),
                                  formals,
-                                 body),
+                                 cdr(expression)), // <body>
                             unit), // dummy
                        local,
                        continuation);
@@ -870,12 +968,11 @@ inline namespace kernel
                .store(make<transformer>(Environment().execute(compile(cadr(expression), local)),
                                         make<syntactic_environment>(local, compile.global())));
 
-        assert(lexical_cast<std::string>(continuation) == "(stop)");
-
-        return continuation;
+        return cons(make(instruction::load_constant), unspecified,
+                    continuation);
       }
 
-      // NOTE: R7RS 5.5. Record-type definitions is not implemented yet.
+      // NOTE: R7RS 5.5. Record-type definitions is implemented as macros.
 
       static COMPILER(call_with_current_continuation) /* -----------------------
       *
@@ -1056,23 +1153,25 @@ inline namespace kernel
       }
       else
       {
-        for (auto outer = std::begin(local); outer != std::end(local); ++outer)
+        auto i = identity::index(0);
+
+        for (auto outer = local; not outer.is<null>(); ++i, outer = cdr(outer))
         {
-          for (auto inner = std::begin(*outer); inner != std::end(*outer); ++inner)
+          auto j = identity::index(0);
+
+          for (auto inner = outer.is<pair>() ? car(outer) : unit; not inner.is<null>(); ++j, inner = inner.is<pair>() ? cdr(inner) : unit)
           {
-            if (inner.get().is<pair>() and (*inner).is<absolute>() and eq((*inner).as<absolute>().symbol(), variable))
+            if (inner.is<pair>() and car(inner).is<absolute>() and eq(car(inner).as<absolute>().symbol(), variable))
             {
-              return *inner;
+              return car(inner);
             }
-            else if (inner.get().is<pair>() and eq(*inner, variable))
+            else if (inner.is<pair>() and eq(car(inner), variable))
             {
-              return make<relative>(make(static_cast<identity::index>(std::distance(std::begin(local), outer))),
-                                    make(static_cast<identity::index>(std::distance(std::begin(*outer), inner))));
+              return make<relative>(make(i), make(j));
             }
-            else if (inner.get().is<symbol>() and eq(inner, variable))
+            else if (inner.is<symbol>() and eq(inner, variable))
             {
-              return make<variadic>(make(static_cast<identity::index>(std::distance(std::begin(local), outer))),
-                                    make(static_cast<identity::index>(std::distance(std::begin(*outer), inner))));
+              return make<variadic>(make(i), make(j));
             }
           }
         }

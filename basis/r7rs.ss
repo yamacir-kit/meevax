@@ -1,15 +1,18 @@
 (define-library (scheme base)
-  (import (only (meevax error) error-object? read-error? file-error?)
+  (import (only (meevax core) include include-case-insensitive)
+          (only (meevax error) error-object? read-error? file-error?)
           (only (meevax macro-transformer) er-macro-transformer)
+          (only (meevax list) make-list)
           (only (meevax number) exact-integer? exact-integer-square-root)
           (only (meevax port) binary-port? eof-object flush get-output-u8vector open-input-u8vector open-output-u8vector open? port? standard-error-port standard-input-port standard-output-port textual-port?)
           (prefix (meevax read) %)
-          (only (meevax string) string-copy! vector->string)
+          (only (meevax string) string-copy!)
           (only (meevax vector homogeneous) u8vector? make-u8vector u8vector u8vector-length u8vector-ref u8vector-set! u8vector-copy u8vector-copy! u8vector-append u8vector->string string->u8vector)
-          (only (meevax vector) vector-append vector-copy vector-copy! string->vector)
+          (only (meevax vector) vector-append vector-copy vector-copy! vector->string string->vector)
           (only (meevax version) features)
           (prefix (meevax write) %)
           (scheme r5rs)
+          (srfi 0)
           (srfi 6)
           (srfi 9)
           (srfi 11)
@@ -18,13 +21,11 @@
           (srfi 39))
 
   (export ; 4.1. Primitive expression types
-          quote lambda if set!
-          ; include include-ci
-          cond else => case and or when unless
-          ; cond-expand
-          let let* letrec letrec* let-values let*-values begin do
-          make-parameter parameterize guard quasiquote unquote unquote-splicing
-          let-syntax letrec-syntax syntax-rules _ ... syntax-error
+          quote lambda if set! include include-ci cond else => case and or when
+          unless cond-expand let let* letrec letrec* let-values let*-values
+          begin do make-parameter parameterize guard quasiquote unquote
+          unquote-splicing let-syntax letrec-syntax syntax-rules _ ...
+          syntax-error
 
           ; 5.3. Variable definitions
           define define-values define-syntax define-record-type
@@ -95,7 +96,9 @@
           ; 6.14. System interface
           features)
 
-  (begin (define-syntax when
+  (begin (define include-ci include-case-insensitive)
+
+         (define-syntax when
            (er-macro-transformer
              (lambda (form rename compare)
                `(,(rename 'if) ,(cadr form)
@@ -184,12 +187,6 @@
          (define exact inexact->exact)
 
          (define boolean=? eqv?)
-
-         (define (make-list k . x)
-           (let ((x (if (pair? x) (car x) #f)))
-             (do ((i k (- i 1))
-                  (xs '() (cons x xs)))
-                 ((<= i 0) xs))))
 
          (define (list-set! xs k x)
            (set-car! (list-tail xs k) x))
@@ -521,7 +518,7 @@
 (define-library (scheme file)
   (import (only (meevax file) delete-file file-exists?)
           (only (meevax port) open-binary-input-file open-binary-output-file)
-          (only (scheme base) current-input-port current-output-port define parameterize)
+          (only (scheme base) close-input-port close-output-port current-input-port current-output-port define parameterize)
           (only (scheme r5rs) call-with-input-file call-with-output-file open-input-file open-output-file))
 
   (export call-with-input-file call-with-output-file delete-file file-exists?

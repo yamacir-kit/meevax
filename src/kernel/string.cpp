@@ -15,10 +15,9 @@
 */
 
 #include <meevax/kernel/error.hpp>
+#include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/string.hpp>
-#include <meevax/kernel/vector.hpp>
 
 namespace meevax
 {
@@ -26,18 +25,20 @@ inline namespace kernel
 {
   string::string(std::string const& s)
   {
-    for (auto port = std::stringstream(s); not character::is_eof(port.peek()); codepoints.emplace_back(get_codepoint(port)));
+    for (auto input = input_string_port(s);
+         not character::is_eof(static_cast<std::istream &>(input).peek());
+         vector.emplace_back(input.take_codepoint()));
   }
 
-  string::string(std::size_t const k, character const& c)
-    : codepoints { k, c }
+  string::string(std::size_t const size, character const& c)
+    : vector { size, c }
   {}
 
   string::operator std::string() const
   {
     std::string result;
 
-    for (character const& each : codepoints)
+    for (character const& each : vector)
     {
       result.append(static_cast<std::string>(each));
     }
@@ -47,8 +48,8 @@ inline namespace kernel
 
   auto operator ==(string const& s1, string const& s2) -> bool
   {
-    return std::equal(std::begin(s1.codepoints), std::end(s1.codepoints),
-                      std::begin(s2.codepoints), std::end(s2.codepoints));
+    return std::equal(std::begin(s1.vector), std::end(s1.vector),
+                      std::begin(s2.vector), std::end(s2.vector));
   }
 
   auto operator <<(std::ostream & os, string const& datum) -> std::ostream &
@@ -80,7 +81,7 @@ inline namespace kernel
 
     os << cyan("\"");
 
-    for (auto const& each : datum.codepoints)
+    for (auto const& each : datum.vector)
     {
       put(each);
     }

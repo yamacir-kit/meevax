@@ -14,32 +14,18 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_STRING_HPP
-#define INCLUDED_MEEVAX_KERNEL_STRING_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_IMPLEMENTATION_DEPENDENT_HPP
+#define INCLUDED_MEEVAX_KERNEL_IMPLEMENTATION_DEPENDENT_HPP
 
-#include <meevax/kernel/character.hpp>
+#include <meevax/kernel/error.hpp>
+#include <meevax/kernel/list.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct string
-  {
-    std::vector<character> vector;
-
-    string() = default;
-
-    explicit string(std::string const&);
-
-    explicit string(std::size_t const, character const&);
-
-    operator std::string() const;
-  };
-
-  auto operator ==(string const&, string const&) -> bool;
-
-  auto operator <<(std::ostream &, string const&) -> std::ostream &;
+  auto implementation_dependent(object const&) -> object;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_STRING_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_IMPLEMENTATION_DEPENDENT_HPP

@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/vector.hpp>
 
 auto main() -> int
 {
@@ -17,31 +18,31 @@ auto main() -> int
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 3);
+    assert(v.as<vector>().vector.size() == 3);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 3);
+    assert(v.as<vector>().vector.size() == 3);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 3);
+    assert(v.as<vector>().vector.size() == 3);
     assert(gc.count() == gc_count + 4);
 
-    v.as<vector>().objects.clear();
+    v.as<vector>().vector.clear();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 0);
+    assert(v.as<vector>().vector.size() == 0);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 0);
+    assert(v.as<vector>().vector.size() == 0);
     assert(gc.count() == gc_count + 1);
   }
 
@@ -54,31 +55,31 @@ auto main() -> int
                                     make<symbol>("c")));
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 3);
+    assert(v.as<vector>().vector.size() == 3);
     assert(gc.count() == gc_count + 7);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 3);
+    assert(v.as<vector>().vector.size() == 3);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 3);
+    assert(v.as<vector>().vector.size() == 3);
     assert(gc.count() == gc_count + 4);
 
-    v.as<vector>().objects.clear();
+    v.as<vector>().vector.clear();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 0);
+    assert(v.as<vector>().vector.size() == 0);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 0);
+    assert(v.as<vector>().vector.size() == 0);
     assert(gc.count() == gc_count + 1);
   }
 
@@ -86,46 +87,44 @@ auto main() -> int
 
   // list->vector
   {
-    auto module = environment();
-
     auto const gc_count = gc.count();
 
-    let const v = make<vector>(module.read("(a b c)"));
+    let const v = make<vector>(input_string_port("(a b c)").read());
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 3);
-    assert(v.as<vector>().objects[0].as<symbol>() == "a");
-    assert(v.as<vector>().objects[1].as<symbol>() == "b");
-    assert(v.as<vector>().objects[2].as<symbol>() == "c");
+    assert(v.as<vector>().vector.size() == 3);
+    assert(v.as<vector>().vector[0].as<symbol>() == "a");
+    assert(v.as<vector>().vector[1].as<symbol>() == "b");
+    assert(v.as<vector>().vector[2].as<symbol>() == "c");
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 3);
-    assert(v.as<vector>().objects[0].as<symbol>() == "a");
-    assert(v.as<vector>().objects[1].as<symbol>() == "b");
-    assert(v.as<vector>().objects[2].as<symbol>() == "c");
+    assert(v.as<vector>().vector.size() == 3);
+    assert(v.as<vector>().vector[0].as<symbol>() == "a");
+    assert(v.as<vector>().vector[1].as<symbol>() == "b");
+    assert(v.as<vector>().vector[2].as<symbol>() == "c");
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 3);
-    assert(v.as<vector>().objects[0].as<symbol>() == "a");
-    assert(v.as<vector>().objects[1].as<symbol>() == "b");
-    assert(v.as<vector>().objects[2].as<symbol>() == "c");
+    assert(v.as<vector>().vector.size() == 3);
+    assert(v.as<vector>().vector[0].as<symbol>() == "a");
+    assert(v.as<vector>().vector[1].as<symbol>() == "b");
+    assert(v.as<vector>().vector[2].as<symbol>() == "c");
     assert(gc.count() == gc_count + 4);
 
-    v.as<vector>().objects.clear();
+    v.as<vector>().vector.clear();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 0);
+    assert(v.as<vector>().vector.size() == 0);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 0);
+    assert(v.as<vector>().vector.size() == 0);
   }
 
   symbols().clear();
@@ -134,37 +133,35 @@ auto main() -> int
 
   // vector literal
   {
-    auto module = environment();
-
     auto const gc_count = gc.count();
 
-    let const v = module.read("#(a b c)");
+    let const v = input_string_port("#(a b c)").read();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 3);
+    assert(v.as<vector>().vector.size() == 3);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 3);
+    assert(v.as<vector>().vector.size() == 3);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 3);
+    assert(v.as<vector>().vector.size() == 3);
     assert(gc.count() == gc_count + 4);
 
-    v.as<vector>().objects.clear();
+    v.as<vector>().vector.clear();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 0);
+    assert(v.as<vector>().vector.size() == 0);
     assert(gc.count() == gc_count + 4);
 
     gc.collect();
 
     assert(v.is<vector>());
-    assert(v.as<vector>().objects.size() == 0);
+    assert(v.as<vector>().vector.size() == 0);
     assert(gc.count() == gc_count + 4);
   }
 
@@ -181,7 +178,7 @@ auto main() -> int
       return make<vector>(xs);
     });
 
-    module.evaluate(module.read("(vector 1 2 3)"));
+    module.evaluate(input_string_port("(vector 1 2 3)").read());
   }
 
   return EXIT_SUCCESS;

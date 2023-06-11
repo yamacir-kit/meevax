@@ -24,7 +24,7 @@ inline namespace kernel
     : form { form }
   {}
 
-  auto export_spec::resolve(library & library) const -> object const&
+  auto export_spec::operator ()(library & library) const -> void
   {
     auto identity = [&]()
     {
@@ -34,15 +34,18 @@ inline namespace kernel
       {
         assert(form[0].is<symbol>());
         assert(form[0].as<symbol>() == "rename");
+        assert(form[1].is_also<identifier>());
+        assert(form[2].is_also<identifier>());
         return make<absolute>(form[2], library.identify(form[1], unit));
       }
       else
       {
+        assert(form.is_also<identifier>());
         return library.identify(form, unit);
       }
     };
 
-    return library.subset = cons(identity(), library.subset);
+    library.subset = cons(identity(), library.subset);
   }
 } // namespace kernel
 } // namespace meevax

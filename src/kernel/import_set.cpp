@@ -22,7 +22,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto resolve_library(object const& form) -> object
+  auto resolve(object const& form) -> object
   {
     if (form[0].as<symbol>() == "only") /* -------------------------------------
     *
@@ -38,7 +38,7 @@ inline namespace kernel
                         {
                           return is_truthy(memq(identity.as<absolute>().symbol(), identities));
                         },
-                        resolve_library(import_set));
+                        resolve(import_set));
         };
       };
 
@@ -59,7 +59,7 @@ inline namespace kernel
                         {
                           return not is_truthy(memq(identity.as<absolute>().symbol(), identities));
                         },
-                        resolve_library(import_set));
+                        resolve(import_set));
         };
       };
 
@@ -76,12 +76,12 @@ inline namespace kernel
       {
         return [=](let const& prefixes)
         {
-          return map1([&](let const& identity)
-                      {
-                        return make<absolute>(make_symbol(car(prefixes).as<symbol>() + identity.as<absolute>().symbol().as<symbol>()),
-                                              identity.as<absolute>().load());
-                      },
-                      resolve_library(import_set));
+          return map([&](let const& identity)
+                     {
+                       return make<absolute>(make_symbol(car(prefixes).as<symbol>() + identity.as<absolute>().symbol().as<symbol>()),
+                                             identity.as<absolute>().load());
+                     },
+                     resolve(import_set));
         };
       };
 
@@ -99,19 +99,19 @@ inline namespace kernel
       {
         return [=](let const& renamings)
         {
-          return map1([&](let const& identity)
-                      {
-                        if (let const& renaming = assq(identity.as<absolute>().symbol(), renamings); is_truthy(renaming))
-                        {
-                          assert(cadr(renaming).is<symbol>());
-                          return make<absolute>(cadr(renaming), identity.as<absolute>().load());
-                        }
-                        else
-                        {
-                          return identity;
-                        }
-                      },
-                      resolve_library(import_set));
+          return map([&](let const& identity)
+                     {
+                       if (let const& renaming = assq(identity.as<absolute>().symbol(), renamings); is_truthy(renaming))
+                       {
+                         assert(cadr(renaming).is<symbol>());
+                         return make<absolute>(cadr(renaming), identity.as<absolute>().load());
+                       }
+                       else
+                       {
+                         return identity;
+                       }
+                     },
+                     resolve(import_set));
         };
       };
 
@@ -129,14 +129,14 @@ inline namespace kernel
   }
 
   import_set::import_set(object const& form)
-    : identities { resolve_library(form) }
+    : identities { resolve(form) }
   {}
 
   import_set::import_set(std::string const& library_name)
-    : import_set { interaction_environment().as<environment>().read(library_name) }
+    : import_set { input_string_port(library_name).read() }
   {}
 
-  auto import_set::resolve(environment & e) const -> void
+  auto import_set::operator ()(environment & e) const -> void
   {
     auto const redefinable = e.interactive or e == interaction_environment().as<environment>();
 

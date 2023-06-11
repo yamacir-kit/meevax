@@ -44,23 +44,27 @@
            (with-exception-handlers (cons handler (current-exception-handlers)) thunk))
 
          (define (raise x)
-           (let ((inner (car (current-exception-handlers)))
-                 (outer (cdr (current-exception-handlers))))
-             (with-exception-handlers outer
-               (lambda ()
-                 (if (procedure? inner)
-                     (inner x)
-                     (throw x))
-                 (throw x)))))
+           (if (pair? (current-exception-handlers))
+               (let ((inner (car (current-exception-handlers)))
+                     (outer (cdr (current-exception-handlers))))
+                 (with-exception-handlers outer
+                   (lambda ()
+                     (if (procedure? inner)
+                         (inner x)
+                         (throw x))
+                     (throw x))))
+               (throw x)))
 
          (define (raise-continuable x)
-           (let ((inner (car (current-exception-handlers)))
-                 (outer (cdr (current-exception-handlers))))
-             (with-exception-handlers outer
-               (lambda ()
-                 (if (procedure? inner)
-                     (inner x)
-                     (throw x))))))
+           (if (pair? (current-exception-handlers))
+               (let ((inner (car (current-exception-handlers)))
+                     (outer (cdr (current-exception-handlers))))
+                 (with-exception-handlers outer
+                   (lambda ()
+                     (if (procedure? inner)
+                         (inner x)
+                         (throw x)))))
+               (throw x)))
 
          (kernel-exception-handler-set! raise)
 

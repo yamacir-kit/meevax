@@ -20,6 +20,10 @@ namespace meevax
 {
 inline namespace kernel
 {
+  iterator::iterator(object const& x)
+    : reference_wrapper { std::cref(x) }
+  {}
+
   auto iterator::operator *() const -> iterator::const_reference
   {
     return car(*this);
@@ -32,7 +36,8 @@ inline namespace kernel
 
   auto iterator::operator ++() -> iterator &
   {
-    return *this = cdr(*this);
+    reference_wrapper = cdr(*this);
+    return *this;
   }
 
   auto iterator::operator ++(int) -> iterator
@@ -42,14 +47,14 @@ inline namespace kernel
     return copy;
   }
 
-  auto operator ==(iterator const& lhs, iterator const& rhs) noexcept -> bool
+  auto operator ==(iterator const& a, iterator const& b) noexcept -> bool
   {
-    return lhs.get() == rhs.get();
+    return a.reference_wrapper.get() == b.reference_wrapper.get();
   }
 
-  auto operator !=(iterator const& lhs, iterator const& rhs) noexcept -> bool
+  auto operator !=(iterator const& a, iterator const& b) noexcept -> bool
   {
-    return not (lhs == rhs);
+    return not (a == b);
   }
 } // namespace kernel
 } // namespace meevax
@@ -68,13 +73,13 @@ namespace std
 
   auto cend(meevax::object const&) -> meevax::iterator const&
   {
-    static meevax::iterator const cend { meevax::unit };
+    static auto const cend = meevax::iterator(meevax::unit);
     return cend;
   }
 
   auto end(meevax::object const&) -> meevax::iterator const&
   {
-    static meevax::iterator const end { meevax::unit };
+    static auto const end = meevax::iterator(meevax::unit);
     return end;
   }
 } // namespace std

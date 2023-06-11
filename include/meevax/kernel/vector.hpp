@@ -23,22 +23,24 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct vector
+  struct heterogeneous_vector
   {
-    std::vector<object> objects;
+    std::vector<object> vector;
 
-    explicit vector() = default;
+    explicit heterogeneous_vector() = default;
 
-    explicit vector(object const&);
+    explicit heterogeneous_vector(object const&);
 
-    explicit vector(std::size_t, object const&);
+    explicit heterogeneous_vector(std::size_t, object const&);
 
     auto operator [](std::size_t) const -> object const&;
   };
 
-  auto operator ==(vector const&, vector const&) -> bool;
+  auto operator ==(heterogeneous_vector const&, heterogeneous_vector const&) -> bool;
 
-  auto operator <<(std::ostream &, vector const&) -> std::ostream &;
+  auto operator <<(std::ostream &, heterogeneous_vector const&) -> std::ostream &;
+
+  using vector = heterogeneous_vector;
 } // namespace kernel
 } // namespace meevax
 

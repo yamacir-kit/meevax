@@ -28,6 +28,7 @@ inline namespace kernel
       R"##(${${PROJECT_NAME}_BASIS_r4rs.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_r5rs.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_r7rs.ss})##",
+      R"##(${${PROJECT_NAME}_BASIS_srfi-0.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_srfi-1.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_srfi-4.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_srfi-6.ss})##",

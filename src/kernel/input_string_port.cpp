@@ -31,17 +31,17 @@ inline namespace kernel
 
   input_string_port::operator std::istream &()
   {
-    return istringstream;
+    return stringstream;
   }
 
   input_string_port::operator std::istream const&() const
   {
-    return istringstream;
+    return stringstream;
   }
 
   auto operator <<(std::ostream & output, input_string_port const& datum) -> std::ostream &
   {
-    return output << magenta("#,(") << blue("open-input-string ") << string(datum.istringstream.str()) << magenta(")");
+    return output << magenta("#,(") << blue("open-input-string ") << string(datum.stringstream.str()) << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

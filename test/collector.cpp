@@ -139,6 +139,18 @@ auto main() -> int
 
       assert(gc.count() == gc_count + 3);
 
+      auto circular_list = [](auto&&... xs)
+      {
+        let x = list(std::forward<decltype(xs)>(xs)...);
+
+        if (auto const length = std::distance(std::cbegin(x), std::cend(x)); 0 < length)
+        {
+          cdr(std::next(std::begin(x), length - 1)) = x;
+        }
+
+        return x;
+      };
+
       return circular_list(a, b, c);
     };
 
@@ -203,11 +215,9 @@ auto main() -> int
 
   // read list
   {
-    auto module = environment();
-
     const auto gc_count = gc.count();
 
-    module.read("(a a a)");
+    input_string_port("(a a a)").read();
 
     gc.collect();
 

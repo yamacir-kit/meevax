@@ -17,6 +17,8 @@
 #include <fstream>
 
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/import_set.hpp>
+#include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/library.hpp>
 
 namespace meevax
@@ -25,16 +27,39 @@ inline namespace kernel
 {
   auto environment::evaluate(object const& expression) -> object try
   {
-    if (car(expression).is<symbol>() and car(expression).as<symbol>() == "define-library")
+    auto is = [&](auto name)
+    {
+      return expression.is<pair>() and expression[0].is<symbol>() and expression[0].as<symbol>() == name;
+    };
+
+    if (is("define-library"))
     {
       meevax::define<library>(lexical_cast<std::string>(cadr(expression)), cddr(expression));
       return cadr(expression);
     }
-    else if (car(expression).is<symbol>() and car(expression).as<symbol>() == "import")
+    else if (is("import"))
     {
       for (let const& form : cdr(expression))
       {
         declare<import_set>(form);
+      }
+
+      return unspecified;
+    }
+    else if (is("include"))
+    {
+      for (let const& command_or_definition : include(cdr(expression), true))
+      {
+        evaluate(command_or_definition);
+      }
+
+      return unspecified;
+    }
+    else if (is("include-ci"))
+    {
+      for (let const& command_or_definition : include(cdr(expression), false))
+      {
+        evaluate(command_or_definition);
       }
 
       return unspecified;
@@ -85,11 +110,11 @@ inline namespace kernel
 
   auto environment::load(std::string const& s) -> void
   {
-    if (auto input = std::ifstream(s); input)
+    if (auto input = input_file_port(s); input.is_open() and input.get_ready())
     {
-      while (not input.eof())
+      while (not static_cast<std::istream &>(input).eof())
       {
-        evaluate(read(input));
+        evaluate(input.read());
       }
     }
     else
@@ -120,8 +145,6 @@ inline namespace kernel
   template struct configurator<environment>;
 
   template struct dynamic_environment<environment>;
-
-  template struct reader<environment>;
 
   template struct syntactic_environment<environment>;
 } // namespace kernel
