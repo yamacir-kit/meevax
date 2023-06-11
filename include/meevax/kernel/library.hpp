@@ -27,27 +27,14 @@ inline namespace kernel
 {
   struct library : public environment
   {
-    template <typename T, typename = void>
-    struct is_declaration
-      : public std::false_type
-    {};
-
-    template <typename T>
-    struct is_declaration<T, std::void_t<decltype(std::declval<T>().resolve(std::declval<library &>()))>>
-      : public std::true_type
-    {};
-
-    template <typename T>
-    static constexpr auto is_declaration_v = is_declaration<T>::value;
-
     let declarations = unit;
 
     let subset = unit;
 
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
-    explicit library(F f)
+    explicit library(F declare)
     {
-      f(*this);
+      declare(*this);
     }
 
     explicit library(object const&);
@@ -57,9 +44,9 @@ inline namespace kernel
     template <typename T, typename... Ts>
     auto declare(Ts&&... xs) -> decltype(auto)
     {
-      if constexpr (is_declaration_v<T>)
+      if constexpr (std::is_invocable_v<T, library &>)
       {
-        return std::decay_t<T>(std::forward<decltype(xs)>(xs)...).resolve(*this);
+        return std::invoke(std::decay_t<T>(std::forward<decltype(xs)>(xs)...), *this);
       }
       else
       {

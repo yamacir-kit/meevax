@@ -24,7 +24,7 @@ inline namespace kernel
     : form { form }
   {}
 
-  auto export_spec::resolve(library & library) const -> object const&
+  auto export_spec::operator ()(library & library) const -> void
   {
     auto identity = [&]()
     {
@@ -45,7 +45,7 @@ inline namespace kernel
       }
     };
 
-    return library.subset = cons(identity(), library.subset);
+    library.subset = cons(identity(), library.subset);
   }
 } // namespace kernel
 } // namespace meevax

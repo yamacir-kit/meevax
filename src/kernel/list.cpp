@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/list.hpp>
 
 namespace meevax

@@ -518,7 +518,7 @@
 (define-library (scheme file)
   (import (only (meevax file) delete-file file-exists?)
           (only (meevax port) open-binary-input-file open-binary-output-file)
-          (only (scheme base) current-input-port current-output-port define parameterize)
+          (only (scheme base) close-input-port close-output-port current-input-port current-output-port define parameterize)
           (only (scheme r5rs) call-with-input-file call-with-output-file open-input-file open-output-file))
 
   (export call-with-input-file call-with-output-file delete-file file-exists?

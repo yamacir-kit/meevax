@@ -23,6 +23,7 @@
 #include <meevax/kernel/binary_output_file_port.hpp>
 #include <meevax/kernel/disassemble.hpp>
 #include <meevax/kernel/import_set.hpp>
+#include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/output_file_port.hpp>
@@ -43,18 +44,37 @@ inline namespace kernel
 
   auto library::evaluate(object const& declaration) -> void
   {
-    if (declaration.is<pair>() and declaration[0].is<symbol>() and declaration[0].as<symbol>() == "export")
+    auto is = [&](auto name)
+    {
+      return declaration.is<pair>() and declaration[0].is<symbol>() and declaration[0].as<symbol>() == name;
+    };
+
+    if (is("export"))
     {
       for (let const& form : cdr(declaration))
       {
         declare<export_spec>(form);
       }
     }
-    else if (declaration.is<pair>() and declaration[0].is<symbol>() and declaration[0].as<symbol>() == "begin")
+    else if (is("begin"))
     {
       for (let const& command_or_definition : cdr(declaration))
       {
-        evaluate(command_or_definition);
+        environment::evaluate(command_or_definition);
+      }
+    }
+    else if (is("include-library-declarations"))
+    {
+      for (let const& library_declaration : include(cdr(declaration)))
+      {
+        evaluate(library_declaration);
+      }
+    }
+    else if (is("cond-expand"))
+    {
+      for (let const& library_declaration : implementation_dependent(cdr(declaration)))
+      {
+        evaluate(library_declaration);
       }
     }
     else
@@ -191,8 +211,9 @@ inline namespace kernel
       library.define<syntax>("define",                          syntax::define);
       library.define<syntax>("define-syntax",                   syntax::define_syntax);
       library.define<syntax>("if",                              syntax::conditional);
-      library.define<syntax>("include",                         syntax::include<true>);
-      library.define<syntax>("include-case-insensitive",        syntax::include<false>);
+      library.define<syntax>("implementation-dependent",        syntax::implementation_dependent);
+      library.define<syntax>("include",                         syntax::include);
+      library.define<syntax>("include-case-insensitive",        syntax::include_case_insensitive);
       library.define<syntax>("install",                         syntax::install);
       library.define<syntax>("lambda",                          syntax::lambda);
       library.define<syntax>("let-syntax",                      syntax::let_syntax);

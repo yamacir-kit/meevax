@@ -14,28 +14,18 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_IMPORT_SET_HPP
-#define INCLUDED_MEEVAX_KERNEL_IMPORT_SET_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_IMPLEMENTATION_DEPENDENT_HPP
+#define INCLUDED_MEEVAX_KERNEL_IMPLEMENTATION_DEPENDENT_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/error.hpp>
+#include <meevax/kernel/list.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct environment;
-
-  struct import_set
-  {
-    let const identities;
-
-    explicit import_set(object const&);
-
-    explicit import_set(std::string const&);
-
-    auto operator ()(environment &) const -> void;
-  };
+  auto implementation_dependent(object const&) -> object;
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_IMPORT_SET_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_IMPLEMENTATION_DEPENDENT_HPP

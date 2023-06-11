@@ -27,6 +27,7 @@
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/utility/combination.hpp>
+#include <meevax/utility/debug.hpp>
 #include <meevax/utility/demangle.hpp>
 
 namespace meevax
