@@ -1,4 +1,4 @@
-(import (only (meevax macro) syntactic-closure?)
+(import (only (meevax syntactic-closure) syntactic-closure?)
         (meevax macro-transformer)
         (scheme base)
         (scheme process-context)

@@ -513,31 +513,6 @@ inline namespace kernel
       });
     });
 
-    define<library>("(meevax macro)", [](library & library)
-    {
-      using syntactic_closure = environment::syntactic_closure;
-
-      library.define<procedure>("identifier?", [](let const& xs)
-      {
-        return xs[0].is_also<identifier>();
-      });
-
-      library.define<procedure>("transformer?", [](let const& xs)
-      {
-        return xs[0].is<transformer>();
-      });
-
-      library.define<procedure>("syntactic-closure?", [](let const& xs)
-      {
-        return xs[0].is<syntactic_closure>();
-      });
-
-      library.define<procedure>("make-syntactic-closure", [](let const& xs)
-      {
-        return make<syntactic_closure>(xs[0], xs[1], xs[2]);
-      });
-    });
-
     define<library>("(meevax number)", [](library & library)
     {
       library.define<procedure>("number?", [](let const& xs)
@@ -1169,6 +1144,31 @@ inline namespace kernel
         {
           return x;
         }
+      });
+    });
+
+    define<library>("(meevax syntactic-closure)", [](library & library)
+    {
+      using syntactic_closure = environment::syntactic_closure;
+
+      library.define<procedure>("identifier?", [](let const& xs)
+      {
+        return xs[0].is_also<identifier>();
+      });
+
+      library.define<procedure>("transformer?", [](let const& xs)
+      {
+        return xs[0].is<transformer>();
+      });
+
+      library.define<procedure>("syntactic-closure?", [](let const& xs)
+      {
+        return xs[0].is<syntactic_closure>();
+      });
+
+      library.define<procedure>("make-syntactic-closure", [](let const& xs)
+      {
+        return make<syntactic_closure>(xs[0], xs[1], xs[2]);
       });
     });
 
