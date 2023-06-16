@@ -465,21 +465,6 @@ inline namespace kernel
       });
     });
 
-    define<library>("(meevax library)", [](library & library)
-    {
-      library.define<procedure>("libraries", [](let const&)
-      {
-        let xs = unit;
-
-        for (auto&& [name, library] : libraries())
-        {
-          xs = cons(input_string_port(name).read(), xs);
-        }
-
-        return xs;
-      });
-    });
-
     define<library>("(meevax list)", [](library & library)
     {
       library.define<procedure>("null?", [](let const& xs)
