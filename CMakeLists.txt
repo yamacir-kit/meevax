@@ -17,8 +17,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 string(JOIN " " AGGRESSIVE_OPTIMIZATION_OPTIONS
-  # "-fdata-sections"
-  # "-ffunction-sections"
   # "-flto" # This optimization causes a SEGV when compiling with Clang 10.
   # "-fmerge-all-constants" # This optimization is very effective in reducing binary size, but non-standard to the C++ standard.
   # "-march=native" # This optimization causes "Illegal instruction" error (is Valgrind's bug) on CI.
@@ -134,14 +132,13 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
 
 # ---- Target package ----------------------------------------------------------
 
+set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Tatsuya Yamasaki")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 set(CPACK_GENERATOR DEB)
 set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
 set(CPACK_RESOURCE_FILE_README  ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 set(CPACK_THREADS 0)
-
-set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Tatsuya Yamasaki")
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
 include(CPack)
 

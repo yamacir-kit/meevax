@@ -368,8 +368,45 @@
                (let ((x 'inner-3))
                  (m)))))) => 'outer)
 
+(check ((lambda xs
+          (letrec-syntax ((m (syntax-rules ()
+                               ((m) xs))))
+            (let ((x 'inner))
+              (m))))
+        'outer)
+  => '(outer))
+
+(check ((lambda xs
+          (let ((x 'x))
+            (letrec-syntax ((m (syntax-rules ()
+                                 ((m) xs))))
+              (let ((x 'inner))
+                (m)))))
+        'outer)
+  => '(outer))
+
+; ------------------------------------------------------------------------------
+
+(define f
+  (lambda xs
+    (letrec-syntax ((m (syntax-rules ()
+                         ((m) xs))))
+      (m))))
+
+(check (f 1 2 3) => '(1 2 3))
+
+(define-syntax macro
+  (syntax-rules ()
+    ((macro)
+     (lambda xs
+       (letrec-syntax ((inner-macro (syntax-rules ()
+                                      ((inner-macro) xs))))
+         (inner-macro))))))
+
+(check ((macro) 1 2 3) => '(1 2 3))
+
 ; ------------------------------------------------------------------------------
 
 (check-report)
 
-(exit (check-passed? 44))
+(exit (check-passed? 48))

@@ -46,7 +46,7 @@ inline namespace kernel
         , expression { expression }
       {}
 
-      auto align(let const& local) const
+      auto align_with(let const& local) const
       {
         return append(make_list(length(local) -
                                 length(environment.as<syntactic_environment>().local())),
@@ -57,13 +57,13 @@ inline namespace kernel
                    object const& continuation) const
       {
         assert(environment.is<syntactic_environment>());
-        return environment.as<syntactic_environment>().compile(expression, align(local), continuation);
+        return environment.as<syntactic_environment>().compile(expression, align_with(local), continuation);
       }
 
       auto identify(object const& local) const
       {
         assert(environment.is<syntactic_environment>());
-        return environment.as<syntactic_environment>().identify(expression, align(local));
+        return environment.as<syntactic_environment>().identify(expression, align_with(local));
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -1155,7 +1155,7 @@ inline namespace kernel
       {
         auto i = identity::index(0);
 
-        for (auto outer = local; not outer.is<null>(); ++i, outer = cdr(outer))
+        for (auto outer = local; outer.is<pair>(); ++i, outer = cdr(outer))
         {
           auto j = identity::index(0);
 
@@ -1169,7 +1169,7 @@ inline namespace kernel
             {
               return make<relative>(make(i), make(j));
             }
-            else if (inner.is<symbol>() and eq(inner, variable))
+            else if (inner.is_also<identifier>() and eq(inner, variable))
             {
               return make<variadic>(make(i), make(j));
             }
