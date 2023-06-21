@@ -159,7 +159,7 @@
              (thunk)
              (set! %current-output-port previous-output-port)))
 
-         (define (char-ready? . port)
-           (%get-char-ready? (if (pair? port)
-                                 (car port)
+         (define (char-ready? . xs)
+           (%get-char-ready? (if (pair? xs)
+                                 (car xs)
                                  (current-input-port))))))

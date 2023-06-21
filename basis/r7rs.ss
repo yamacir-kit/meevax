@@ -395,26 +395,8 @@
                       (current-output-port))))))
 
 (define-library (scheme case-lambda)
-  (import (scheme base))
-  (export case-lambda)
-  (begin (define-syntax case-lambda
-           (syntax-rules ()
-             ((case-lambda (params body0 ...) ...)
-              (lambda args
-                (let ((len (length args)))
-                  (letrec-syntax
-                    ((cl (syntax-rules ::: ()
-                           ((cl)
-                            (error "no matching clause"))
-                           ((cl ((p :::) . body) . rest)
-                            (if (= len (length '(p :::)))
-                                (apply (lambda (p :::) . body) args)
-                                (cl . rest)))
-                           ((cl ((p ::: . tail) . body) . rest)
-                            (if (>= len (length '(p :::)))
-                                (apply (lambda (p ::: . tail) . body) args)
-                                (cl . rest))))))
-                    (cl (params body0 ...) ...)))))))))
+  (import (srfi 16))
+  (export case-lambda))
 
 (define-library (scheme char)
   (import (only (meevax character) digit-value)
@@ -519,11 +501,11 @@
 
 (define-library (scheme read)
   (import (prefix (meevax read) %)
-          (scheme base))
+          (only (scheme base) define if pair? car current-input-port))
   (export read)
-  (begin (define (read . x)
-           (%read (if (pair? x)
-                      (car x)
+  (begin (define (read . xs)
+           (%read (if (pair? xs)
+                      (car xs)
                       (current-input-port))))))
 
 (define-library (scheme repl)
@@ -545,19 +527,19 @@
 
   (export write write-shared write-simple display)
 
-  (begin (define (write x . port)
-           (%write x (if (pair? port)
-                         (car port)
+  (begin (define (write x . xs)
+           (%write x (if (pair? xs)
+                         (car xs)
                          (current-output-port))))
 
-         (define (write-shared x . port)
-           (write-with-shared-structure x (if (pair? port)
-                                              (car port)
+         (define (write-shared x . xs)
+           (write-with-shared-structure x (if (pair? xs)
+                                              (car xs)
                                               (current-output-port))))
 
-         (define (write-simple x . port)
-           (%write-simple x (if (pair? port)
-                                (car port)
+         (define (write-simple x . xs)
+           (%write-simple x (if (pair? xs)
+                                (car xs)
                                 (current-output-port))))
 
          (define (display x . xs)
