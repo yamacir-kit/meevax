@@ -29,6 +29,7 @@ auto main(int const argc, char const* const* const argv) -> int
     auto&& main = interaction_environment().as<environment>();
 
     main.declare<import_set>("(scheme base)");
+    main.declare<import_set>("(scheme case-lambda)");
     main.declare<import_set>("(scheme char)");
     main.declare<import_set>("(scheme complex)");
     main.declare<import_set>("(scheme cxr)");
