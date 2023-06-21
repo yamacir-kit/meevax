@@ -1,33 +1,7 @@
 <p align="center">
-  <img src="https://github.com/yamacir-kit/meevax/wiki/svg/meevax-logo.v8.png" alt="Meevax Lisp System"/>
+  <img src="https://github.com/yamacir-kit/meevax/wiki/svg/meevax-logo.v9.png" alt="Meevax Lisp System"/>
   <br/>
   <img src="https://github.com/yamacir-kit/meevax/wiki/svg/description.png" alt="A programmable programming lanugage."/>
-</p>
-<hr/>
-<p align="center">
-  <img src="https://github.com/yamacir-kit/meevax/actions/workflows/build.yaml/badge.svg"/>
-  <img src="https://github.com/yamacir-kit/meevax/actions/workflows/release.yaml/badge.svg"/>
-</p>
-<p align="center">
-  <b>
-    <a href="#Overview">Overview</a>
-  </b>
-  &nbsp;|&nbsp;
-  <b>
-    <a href="#Installation">Installation</a>
-  </b>
-  &nbsp;|&nbsp;
-  <b>
-    <a href="#Usage">Usage</a>
-  </b>
-  &nbsp;|&nbsp;
-  <b>
-    <a href="#License">License</a>
-  </b>
-  &nbsp;|&nbsp;
-  <b>
-    <a href="#References">References</a>
-  </b>
 </p>
 
 ## Overview
@@ -40,6 +14,9 @@ Meevax is an implementation of Lisp-1 programming language, supporting subset of
 ### Releases
 
 Latest release is [here](https://github.com/yamacir-kit/meevax/releases).
+
+<img src="https://github.com/yamacir-kit/meevax/actions/workflows/build.yaml/badge.svg"/>
+<img src="https://github.com/yamacir-kit/meevax/actions/workflows/release.yaml/badge.svg"/>
 
 ### Features
 

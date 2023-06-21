@@ -394,10 +394,6 @@
                       (car xs)
                       (current-output-port))))))
 
-(define-library (scheme lazy)
-  (import (srfi 45))
-  (export delay (rename lazy delay-force) force promise? (rename eager make-promise)))
-
 (define-library (scheme case-lambda)
   (import (scheme base))
   (export case-lambda)
@@ -420,10 +416,27 @@
                                 (cl . rest))))))
                     (cl (params body0 ...) ...)))))))))
 
-(define-library (scheme inexact)
-  (import (only (meevax inexact) finite? infinite? nan?)
-          (only (scheme r5rs) exp log sin cos tan asin acos atan sqrt))
-  (export finite? infinite? nan? exp log sin cos tan asin acos atan sqrt))
+(define-library (scheme char)
+  (import (only (meevax character) digit-value)
+          (only (scheme r5rs) char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=? char-alphabetic? char-numeric? char-whitespace? char-upper-case? char-lower-case? char-upcase char-downcase string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?)
+          (only (scheme base) define string-map))
+
+  (export char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=? char-alphabetic?
+          char-numeric? char-whitespace? char-upper-case? char-lower-case?
+          digit-value char-upcase char-downcase char-foldcase string-ci=?
+          string-ci<? string-ci>? string-ci<=? string-ci>=? string-upcase
+          string-downcase string-foldcase)
+
+  (begin (define char-foldcase char-downcase)
+
+         (define (string-upcase x)
+           (string-map char-upcase x))
+
+         (define (string-downcase x)
+           (string-map char-downcase x))
+
+         (define (string-foldcase x)
+           (string-map char-foldcase x))))
 
 (define-library (scheme complex)
   (import (meevax complex)
@@ -457,60 +470,6 @@
           cddar caddar cdddar
           cdddr cadddr cddddr))
 
-(define-library (scheme char)
-  (import (only (meevax character) digit-value)
-          (only (scheme r5rs)
-                char-ci=?
-                char-ci<?
-                char-ci>?
-                char-ci<=?
-                char-ci>=?
-                char-alphabetic?
-                char-numeric?
-                char-whitespace?
-                char-upper-case?
-                char-lower-case?
-                char-upcase
-                char-downcase
-                string-ci=?
-                string-ci<?
-                string-ci>?
-                string-ci<=?
-                string-ci>=?)
-          (only (scheme base) define string-map))
-
-  (export char-ci=?
-          char-ci<?
-          char-ci>?
-          char-ci<=?
-          char-ci>=?
-          char-alphabetic?
-          char-numeric?
-          char-whitespace?
-          char-upper-case?
-          char-lower-case?
-          digit-value
-          char-upcase
-          char-downcase
-          (rename char-downcase char-foldcase)
-          string-ci=?
-          string-ci<?
-          string-ci>?
-          string-ci<=?
-          string-ci>=?
-          string-upcase
-          string-downcase
-          string-foldcase)
-
-  (begin (define (string-upcase x)
-           (string-map char-upcase x))
-
-         (define (string-downcase x)
-           (string-map char-downcase x))
-
-         (define (string-foldcase x)
-           (string-map char-foldcase x))))
-
 (define-library (scheme eval)
   (import (only (meevax environment) environment eval))
   (export environment eval))
@@ -535,6 +494,29 @@
              (thunk)
              (close-output-port (current-output-port))))))
 
+(define-library (scheme inexact)
+  (import (only (meevax inexact) finite? infinite? nan?)
+          (only (scheme r5rs) exp log sin cos tan asin acos atan sqrt))
+  (export finite? infinite? nan? exp log sin cos tan asin acos atan sqrt))
+
+(define-library (scheme lazy)
+  (import (srfi 45))
+  (export delay (rename lazy delay-force) force promise? (rename eager make-promise)))
+
+(define-library (scheme load)
+  (import (only (scheme r5rs) load))
+  (export load))
+
+(define-library (scheme process-context)
+  (import (only (meevax context) command-line emergency-exit)
+          (only (meevax continuation) exit)
+          (srfi 98))
+  (export command-line
+          exit
+          emergency-exit
+          get-environment-variable
+          get-environment-variables))
+
 (define-library (scheme read)
   (import (prefix (meevax read) %)
           (scheme base))
@@ -548,10 +530,20 @@
   (import (only (meevax environment) interaction-environment))
   (export interaction-environment))
 
+(define-library (scheme time)
+  (import (only (meevax time) current-jiffy jiffies-per-second)
+          (only (scheme base) / define inexact))
+  (export current-second current-jiffy jiffies-per-second)
+  (begin (define (current-second)
+           (inexact (/ (current-jiffy)
+                       (jiffies-per-second))))))
+
 (define-library (scheme write)
   (import (prefix (meevax write) %)
           (scheme base)
-          (srfi 38))
+          (only (srfi 38) write-with-shared-structure))
+
+  (export write write-shared write-simple display)
 
   (begin (define (write x . port)
            (%write x (if (pair? port)
@@ -573,28 +565,4 @@
                   (apply write-char x xs))
                  ((string? x)
                   (apply write-string x xs))
-                 (else (apply write x xs)))))
-
-  (export write write-shared write-simple display))
-
-(define-library (scheme load)
-  (import (only (scheme r5rs) load))
-  (export load))
-
-(define-library (scheme process-context)
-  (import (only (meevax context) command-line emergency-exit)
-          (only (meevax continuation) exit)
-          (srfi 98))
-  (export command-line
-          exit
-          emergency-exit
-          get-environment-variable
-          get-environment-variables))
-
-(define-library (scheme time)
-  (import (only (meevax time) current-jiffy jiffies-per-second)
-          (only (scheme base) / define inexact))
-  (export current-second current-jiffy jiffies-per-second)
-  (begin (define (current-second)
-           (inexact (/ (current-jiffy)
-                       (jiffies-per-second))))))
+                 (else (apply write x xs))))))

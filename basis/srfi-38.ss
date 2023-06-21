@@ -24,6 +24,11 @@
   (import (scheme r5rs)
           (srfi 23))
 
+  (export write-with-shared-structure
+          (rename write-with-shared-structure write/ss)
+          read-with-shared-structure
+          (rename read-with-shared-structure read/ss))
+
   ;;; A printer that shows all sharing of substructures.  Uses the Common
   ;;; Lisp print-circle notation: #n# refers to a previous substructure
   ;;; labeled with #n=.   Takes O(n^2) time.
@@ -115,6 +120,7 @@
                                      (alist alist (scan (vector-ref obj i) alist)))
                                   ((= i len) alist))))
                              (else alist))))))
+
            (write-obj obj (acons 'dummy 0 (scan obj '())))
 
            ;; We don't want to return the big alist that write-obj just returned.
@@ -125,6 +131,7 @@
              (if (null? optional-port) (current-input-port) (car optional-port)))
 
            (define (read-char*) (read-char port))
+
            (define (peek-char*) (peek-char port))
 
            (define (looking-at? c)
@@ -342,9 +349,4 @@
                             (if (procedure? elt)
                                 (vector-set! obj i (unthunk elt))
                                 (fill-in-parts elt))))))))
-             obj)))
-
-  (export write-with-shared-structure
-          (rename write-with-shared-structure write/ss)
-          read-with-shared-structure
-          (rename read-with-shared-structure read/ss)))
+             obj))))
