@@ -26,14 +26,6 @@ inline namespace kernel
   struct continuation : public virtual pair
   {
     using pair::pair;
-
-    auto s() const -> object const&;
-
-    auto e() const -> object const&;
-
-    auto c() const -> object const&;
-
-    auto d() const -> object const&;
   };
 
   auto operator <<(std::ostream &, continuation const&) -> std::ostream &;

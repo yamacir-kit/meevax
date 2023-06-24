@@ -20,11 +20,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto continuation::s() const -> object const& { return   car(*this); }
-  auto continuation::e() const -> object const& { return  cadr(*this); }
-  auto continuation::c() const -> object const& { return caddr(*this); }
-  auto continuation::d() const -> object const& { return cdddr(*this); }
-
   auto operator <<(std::ostream & os, continuation const& datum) -> std::ostream &
   {
     return os << magenta("#,(") << green("continuation ") << faint(";#", std::addressof(datum)) << magenta(")");

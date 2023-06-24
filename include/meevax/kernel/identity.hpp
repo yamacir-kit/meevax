@@ -52,10 +52,6 @@ inline namespace kernel
                   , public virtual pair // de Bruijn index
   {
     using pair::pair;
-
-    auto load(object const&) const -> object const&;
-
-    auto store(object const&, object &) const -> void;
   };
 
   constexpr auto operator ==(relative const&, relative const&) -> bool
@@ -67,10 +63,6 @@ inline namespace kernel
                   , public virtual pair // de Bruijn index
   {
     using pair::pair;
-
-    auto load(object const&) const -> object const&;
-
-    auto store(object const&, object &) const -> void;
   };
 
   constexpr auto operator ==(variadic const&, variadic const&) -> bool

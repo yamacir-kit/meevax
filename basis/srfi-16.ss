@@ -1,5 +1,5 @@
 (define-library (srfi 16)
-  (import (only (scheme r5rs) = >= apply define-syntax error if lambda length let letrec-syntax quote syntax-rules)
+  (import (only (scheme r5rs) define-syntax syntax-rules lambda let length letrec-syntax error if = quote >= apply)
           (only (srfi 23) error))
   (export case-lambda)
   (begin (define-syntax case-lambda

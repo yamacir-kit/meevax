@@ -148,12 +148,12 @@ inline namespace kernel
 
       library.define<procedure>("real-part", [](let const& xs)
       {
-        return xs[0].as<complex>().real();
+        return car(xs[0]);
       });
 
       library.define<procedure>("imag-part", [](let const& xs)
       {
-        return xs[0].as<complex>().imag();
+        return cdr(xs[0]);
       });
     });
 

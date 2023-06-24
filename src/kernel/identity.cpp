@@ -58,37 +58,5 @@ inline namespace kernel
       return os << blue(datum.symbol());
     }
   }
-
-  auto relative::load(object const& e) const -> object const&
-  {
-    assert(first.is<index>());
-    assert(first.as<index>() < length(e));
-    assert(second.is<index>());
-    return head(head(e, first.as<index>()), second.as<index>());
-  }
-
-  auto relative::store(object const& x, object & e) const -> void
-  {
-    assert(first.is<index>());
-    assert(first.as<index>() < length(e));
-    assert(second.is<index>());
-    head(head(e, first.as<index>()), second.as<index>()) = x;
-  }
-
-  auto variadic::load(object const& e) const -> object const&
-  {
-    assert(first.is<index>());
-    assert(first.as<index>() < length(e));
-    assert(second.is<index>());
-    return tail(head(e, first.as<index>()), second.as<index>());
-  }
-
-  auto variadic::store(object const& x, object & e) const -> void
-  {
-    assert(first.is<index>());
-    assert(first.as<index>() < length(e));
-    assert(second.is<index>());
-    tail(head(e, first.as<index>()), second.as<index>()) = x;
-  }
 } // namespace kernel
 } // namespace meevax

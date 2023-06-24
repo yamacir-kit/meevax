@@ -20,16 +20,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto transformer::closure() const -> object const&
-  {
-    return first;
-  }
-
-  auto transformer::syntactic_environment() const -> object const&
-  {
-    return second;
-  }
-
   auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
   {
     return os << magenta("#,(") << green("transformer ") << faint("#;", &datum) << magenta(")");

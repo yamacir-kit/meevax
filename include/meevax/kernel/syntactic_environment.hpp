@@ -48,9 +48,11 @@ inline namespace kernel
 
       auto align_with(let const& local) const
       {
+        assert(environment.is<syntactic_environment>());
+
         return append(make_list(length(local) -
-                                length(environment.as<syntactic_environment>().local())),
-                      environment.as<syntactic_environment>().local());
+                                length(car(environment))),
+                      car(environment));
       }
 
       auto compile(object const& local,
@@ -82,8 +84,8 @@ inline namespace kernel
 
         return x.expression.template is_also<identifier>() and
                y.expression.template is_also<identifier>() and
-               eqv(x.environment.template as<syntactic_environment>().identify(x.expression, x.environment.template as<syntactic_environment>().local()),
-                   y.environment.template as<syntactic_environment>().identify(y.expression, y.environment.template as<syntactic_environment>().local()));
+               eqv(x.environment.template as<syntactic_environment>().identify(x.expression, car(x.environment)),
+                   y.environment.template as<syntactic_environment>().identify(y.expression, car(y.environment)));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
@@ -360,10 +362,10 @@ inline namespace kernel
         {
           return sweep(compile,
                        binding_specs,
-                       cons(Environment().apply(identity.as<absolute>().load<transformer>().closure(),
+                       cons(Environment().apply(car(identity.as<absolute>().load()),
                                                 car(form),
                                                 make<syntactic_environment>(local, compile.global()),
-                                                identity.as<absolute>().load<transformer>().syntactic_environment()),
+                                                cdr(identity.as<absolute>().load())),
                             cdr(form)),
                        local);
         }
@@ -874,7 +876,7 @@ inline namespace kernel
 
         let const formals = map(formal, car(expression));
 
-        environment.as<syntactic_environment>().local() = cons(formals, local);
+        car(environment) = cons(formals, local);
 
         return compile(cons(cons(rename("lambda"),
                                  formals,
@@ -1085,13 +1087,13 @@ inline namespace kernel
            rules that specifies how a use of a macro is transcribed into a more
            primitive expression is called the transformer of the macro.
         */
-        assert(identity.as<absolute>().load<transformer>().closure().is<closure>());
-        assert(identity.as<absolute>().load<transformer>().syntactic_environment().is<syntactic_environment>());
+        assert(car(identity.as<absolute>().load()).is<closure>());
+        assert(cdr(identity.as<absolute>().load()).is<syntactic_environment>());
 
-        return compile(Environment().apply(identity.as<absolute>().load<transformer>().closure(),
+        return compile(Environment().apply(car(identity.as<absolute>().load()),
                                            expression,
                                            make<syntactic_environment>(local, global()),
-                                           identity.as<absolute>().load<transformer>().syntactic_environment()),
+                                           cdr(identity.as<absolute>().load())),
                        local,
                        continuation,
                        ellipsis);

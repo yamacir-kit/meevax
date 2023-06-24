@@ -26,10 +26,6 @@ inline namespace kernel
   struct transformer : public virtual pair // (<closure> . <syntactic_environment>)
   {
     using pair::pair;
-
-    auto closure() const -> object const&;
-
-    auto syntactic_environment() const -> object const&;
   };
 
   auto operator <<(std::ostream &, transformer const&) -> std::ostream &;

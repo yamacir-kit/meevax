@@ -20,16 +20,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto closure::c() const -> object const&
-  {
-    return first;
-  }
-
-  auto closure::e() const -> object const&
-  {
-    return second;
-  }
-
   auto operator <<(std::ostream & os, closure const& datum) -> std::ostream &
   {
     return os << magenta("#,(") << green("closure ") << faint("#;", &datum) << magenta(")");
