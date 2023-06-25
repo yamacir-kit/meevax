@@ -84,8 +84,8 @@ inline namespace kernel
 
         return x.expression.template is_also<identifier>() and
                y.expression.template is_also<identifier>() and
-               eqv(x.environment.template as<syntactic_environment>().identify(x.expression, car(x.environment)),
-                   y.environment.template as<syntactic_environment>().identify(y.expression, car(y.environment)));
+               eqv(x.identify(car(x.environment)),
+                   y.identify(car(y.environment)));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
@@ -1054,7 +1054,7 @@ inline namespace kernel
         }
         else if (expression.is<syntactic_closure>())
         {
-          if (let const& identity = std::as_const(*this).identify(expression, local); is_truthy(identity)) // The syntactic-closure is a variable
+          if (let const& identity = std::as_const(*this).identify(expression, local); is_truthy(identity)) // The syntactic-closure is an alias
           {
             return syntax::reference(*this, expression, local, continuation, ellipsis);
           }
