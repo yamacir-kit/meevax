@@ -134,7 +134,7 @@ inline namespace kernel
                                            object const& /* expression   */,
                                            object const& /* local        */,
                                            object const& /* continuation */,
-                                           object const& /* ellipsis     */) -> object>;
+                                           bool          /* tail         */) -> object>;
 
       std::string const name;
 
@@ -155,7 +155,7 @@ inline namespace kernel
                                  object const& expression,                     \
                 [[maybe_unused]] object const& local,                          \
                                  object const& continuation,                   \
-                [[maybe_unused]] object const& ellipsis = unspecified) -> object
+                [[maybe_unused]] bool tail = false) -> object
 
       static COMPILER(reference) /* --------------------------------------------
       *
@@ -266,8 +266,8 @@ inline namespace kernel
                        local,
                        compile(car(expression),
                                local,
-                               ellipsis.is<null>() ? list(make(instruction::tail_call))
-                                                   : cons(make(instruction::call), continuation)));
+                               tail ? list(make(instruction::tail_call))
+                                    : cons(make(instruction::call), continuation)));
       }
 
       static COMPILER(operand)
@@ -473,7 +473,7 @@ inline namespace kernel
                               make_list(length(binding_specs), unit)),
                          local,
                          continuation,
-                         unit);
+                         true);
         }
         else
         {
@@ -485,7 +485,7 @@ inline namespace kernel
                                                                        cdr(sequence),
                                                                        local,
                                                                        continuation)),
-                         cdr(sequence));
+                         cdr(sequence).template is<null>());
         }
       }
 
@@ -507,7 +507,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        if (ellipsis.is<null>())
+        if (tail)
         {
           assert(lexical_cast<std::string>(continuation) == "(return)");
 
@@ -517,11 +517,11 @@ inline namespace kernel
                               compile(cadr(expression),
                                       local,
                                       continuation,
-                                      ellipsis),
+                                      tail),
                               cddr(expression) ? compile(caddr(expression),
                                                          local,
                                                          continuation,
-                                                         ellipsis)
+                                                         tail)
                                                : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
                                                       make(instruction::return_))));
         }
@@ -606,7 +606,7 @@ inline namespace kernel
                         meevax::include(expression),
                         local,
                         continuation,
-                        ellipsis);
+                        tail);
       }
 
       static COMPILER(include_case_insensitive)
@@ -615,7 +615,7 @@ inline namespace kernel
                         meevax::include(expression, false),
                         local,
                         continuation,
-                        ellipsis);
+                        tail);
       }
 
       static COMPILER(implementation_dependent) /* -----------------------------
@@ -667,7 +667,7 @@ inline namespace kernel
                         meevax::implementation_dependent(expression),
                         local,
                         continuation,
-                        ellipsis);
+                        tail);
       }
 
       static COMPILER(letrec) /* -----------------------------------------------
@@ -704,7 +704,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        assert(not ellipsis.is<null>() or lexical_cast<std::string>(continuation) == "(return)");
+        assert(not tail or lexical_cast<std::string>(continuation) == "(return)");
 
         let const formals = map(car, car(expression));
 
@@ -715,8 +715,8 @@ inline namespace kernel
                             lambda(compile,
                                    cons(formals, cdr(expression)), // (<formals> <body>)
                                    local,
-                                   ellipsis.is<null>() ? list(make(instruction::tail_letrec))
-                                                       : cons(make(instruction::letrec), continuation))));
+                                   tail ? list(make(instruction::tail_letrec))
+                                        : cons(make(instruction::letrec), continuation))));
       }
 
       // NOTE: Binding constructs other than letrec are implemented as macros.
@@ -767,7 +767,7 @@ inline namespace kernel
           return compile(car(expression),
                          local,
                          continuation,
-                         ellipsis);
+                         tail);
         }
         else if (let const head = compile(car(expression), // Head expression or definition
                                           local,
@@ -778,7 +778,7 @@ inline namespace kernel
                           cdr(expression), // rest expressions
                           local,
                           continuation,
-                          ellipsis);
+                          tail);
         }
         else
         {
@@ -788,7 +788,7 @@ inline namespace kernel
                                       cdr(expression), // Rest expression or definitions
                                       local,
                                       continuation,
-                                      ellipsis)));
+                                      tail)));
         }
       }
 
@@ -991,7 +991,7 @@ inline namespace kernel
                     compile(car(expression),
                             local,
                             list(make(instruction::tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.
-                            ellipsis));
+                            tail));
       }
 
       static COMPILER(current) /* ----------------------------------------------
@@ -1022,7 +1022,7 @@ inline namespace kernel
     auto operator ()(object const& expression,
                      object const& local,
                      object const& continuation = list(make(instruction::stop)),
-                     object const& ellipsis = unspecified) -> object
+                     bool tail = false) -> object
     {
       if (expression.is<null>()) /* --------------------------------------------
       *
@@ -1050,13 +1050,13 @@ inline namespace kernel
       {
         if (expression.is<symbol>())
         {
-          return syntax::reference(*this, expression, local, continuation, ellipsis);
+          return syntax::reference(*this, expression, local, continuation, tail);
         }
         else if (expression.is<syntactic_closure>())
         {
           if (let const& identity = std::as_const(*this).identify(expression, local); is_truthy(identity)) // The syntactic-closure is an alias
           {
-            return syntax::reference(*this, expression, local, continuation, ellipsis);
+            return syntax::reference(*this, expression, local, continuation, tail);
           }
           else // The syntactic-closure is a syntactic-keyword.
           {
@@ -1096,16 +1096,16 @@ inline namespace kernel
                                            cdr(identity.as<absolute>().load())),
                        local,
                        continuation,
-                       ellipsis);
+                       tail);
       }
       else if (identity.is<absolute>() and
                identity.as<absolute>().load().is<syntax>())
       {
-        return identity.as<absolute>().load<syntax>().compile(*this, cdr(expression), local, continuation, ellipsis);
+        return identity.as<absolute>().load<syntax>().compile(*this, cdr(expression), local, continuation, tail);
       }
       else
       {
-        return syntax::call(*this, expression, local, continuation, ellipsis);
+        return syntax::call(*this, expression, local, continuation, tail);
       }
     }
 
