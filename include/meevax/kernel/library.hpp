@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 
 #include <meevax/kernel/environment.hpp>
-#include <meevax/kernel/export_spec.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 
 namespace meevax
@@ -28,8 +27,6 @@ inline namespace kernel
   struct library : public environment
   {
     let declarations = unit;
-
-    let subset = unit;
 
     let export_specs = unit;
 
