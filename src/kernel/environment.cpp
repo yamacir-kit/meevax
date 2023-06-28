@@ -128,8 +128,8 @@ inline namespace kernel
   {
     assert(local().is<null>());
     assert(e.is<null>());
-    assert(identify(variable, unit).is<absolute>());
-    return identify(variable, unit).as<absolute>().load();
+    assert(identify(variable, unit, unit).is<absolute>());
+    return identify(variable, unit, unit).as<absolute>().load();
   }
 
   auto environment::operator [](std::string const& variable) -> object const&
