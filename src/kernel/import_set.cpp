@@ -144,7 +144,7 @@ inline namespace kernel
     {
       assert(identity.is<absolute>());
 
-      if (let const& variable = identity.as<absolute>().symbol(); eq(std::as_const(e).identify(variable, e.local(), unit), f) or redefinable)
+      if (let const& variable = identity.as<absolute>().symbol(); eq(std::as_const(e).identify(variable, e.bound_variables(), unit), f) or redefinable)
       {
         e.define(identity.as<absolute>().symbol(), identity.as<absolute>().load());
       }

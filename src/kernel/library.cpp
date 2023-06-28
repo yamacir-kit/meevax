@@ -100,7 +100,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, library const& library) -> std::ostream &
   {
-    return os << library.global();
+    return os << library.free_variables();
   }
 
   auto libraries() -> std::map<std::string, library> &

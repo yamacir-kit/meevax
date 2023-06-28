@@ -82,7 +82,7 @@ inline namespace kernel
                  std::exchange(c, unit), d);
       }
 
-      let const result = execute(optimize(compile(expression, local())));
+      let const result = execute(optimize(compile(expression, bound_variables())));
 
       if (d)
       {
@@ -126,7 +126,7 @@ inline namespace kernel
 
   auto environment::operator [](object const& variable) -> object const&
   {
-    assert(local().is<null>());
+    assert(bound_variables().is<null>());
     assert(e.is<null>());
     assert(identify(variable, unit, unit).is<absolute>());
     return identify(variable, unit, unit).as<absolute>().load();

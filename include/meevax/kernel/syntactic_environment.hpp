@@ -28,7 +28,7 @@ namespace meevax
 inline namespace kernel
 {
   template <typename Environment>
-  struct syntactic_environment : public virtual pair // (<local> . <global>)
+  struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
   {
     struct syntactic_closure : public identifier
     {
@@ -379,7 +379,7 @@ inline namespace kernel
                        binding_specs,
                        cons(Environment().apply(car(identity.as<absolute>().load()),
                                                 car(form),
-                                                make<syntactic_environment>(bound_variables, compile.global()),
+                                                make<syntactic_environment>(bound_variables, compile.free_variables()),
                                                 cdr(identity.as<absolute>().load())),
                             cdr(form)),
                        bound_variables,
@@ -869,7 +869,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        let const environment = make<syntactic_environment>(bound_variables, compile.global());
+        let const environment = make<syntactic_environment>(bound_variables, compile.free_variables());
 
         auto formal = [&](let const& syntax_spec)
         {
@@ -906,7 +906,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        let const environment = make<syntactic_environment>(unit, compile.global());
+        let const environment = make<syntactic_environment>(unit, compile.free_variables());
 
         auto formal = [&](let const& syntax_spec)
         {
@@ -1013,7 +1013,7 @@ inline namespace kernel
         compile.identify(car(expression), unit, unit)
                .template as<absolute>()
                .store(make<transformer>(Environment().execute(compile(cadr(expression), bound_variables)),
-                                        make<syntactic_environment>(bound_variables, compile.global())));
+                                        make<syntactic_environment>(bound_variables, compile.free_variables())));
 
         return cons(make(instruction::load_constant), unspecified,
                     continuation);
@@ -1140,7 +1140,7 @@ inline namespace kernel
 
         return compile(Environment().apply(car(identity.as<absolute>().load()),
                                            expression,
-                                           make<syntactic_environment>(bound_variables, global()),
+                                           make<syntactic_environment>(bound_variables, this->free_variables()),
                                            cdr(identity.as<absolute>().load())),
                        bound_variables,
                        free_variables,
@@ -1168,7 +1168,7 @@ inline namespace kernel
 
     auto define(object const& variable, object const& value = undefined) -> void
     {
-      assert(local().template is<null>());
+      assert(bound_variables().template is<null>());
       assert(identify(variable, unit, unit).template is<absolute>());
       return identify(variable, unit, unit).template as<absolute>().store(value);
     }
@@ -1186,12 +1186,12 @@ inline namespace kernel
       }
     }
 
-    auto global() const noexcept -> object const&
+    auto free_variables() const noexcept -> object const&
     {
       return second;
     }
 
-    auto global() noexcept -> object &
+    auto free_variables() noexcept -> object &
     {
       return second;
     }
@@ -1235,7 +1235,7 @@ inline namespace kernel
         }
         else
         {
-          return assq(variable, global());
+          return assq(variable, this->free_variables());
         }
       }
     }
@@ -1269,16 +1269,16 @@ inline namespace kernel
            whereas it would be an error to perform a set! on an unbound
            variable.
         */
-        return car(global() = cons(make<absolute>(variable, undefined), global()));
+        return car(this->free_variables() = cons(make<absolute>(variable, undefined), this->free_variables()));
       }
     }
 
-    auto local() const noexcept -> object const&
+    auto bound_variables() const noexcept -> object const&
     {
       return first;
     }
 
-    auto local() noexcept -> object &
+    auto bound_variables() noexcept -> object &
     {
       return first;
     }
