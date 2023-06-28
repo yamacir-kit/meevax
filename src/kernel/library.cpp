@@ -82,14 +82,12 @@ inline namespace kernel
 
   auto library::resolve() -> object
   {
-    if (not declarations.is<null>())
+    if (let const unresolved_declarations = std::exchange(declarations, unit); unresolved_declarations.is<pair>())
     {
-      for (let const& declaration : declarations)
+      for (let const& unresolved_declaration : unresolved_declarations)
       {
-        evaluate(declaration);
+        evaluate(unresolved_declaration);
       }
-
-      declarations = unit;
     }
 
     assert(bound_variables().is<null>());

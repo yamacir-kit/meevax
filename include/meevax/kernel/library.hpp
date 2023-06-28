@@ -41,19 +41,6 @@ inline namespace kernel
     friend auto boot() -> void;
 
     template <typename T, typename... Ts>
-    auto declare(Ts&&... xs) -> decltype(auto)
-    {
-      if constexpr (std::is_invocable_v<T, library &>)
-      {
-        return std::invoke(std::decay_t<T>(std::forward<decltype(xs)>(xs)...), *this);
-      }
-      else
-      {
-        return environment::declare<T>(std::forward<decltype(xs)>(xs)...);
-      }
-    }
-
-    template <typename T, typename... Ts>
     auto define(std::string const& name, Ts&&... xs) -> void
     {
       environment::define<T>(name, std::forward<decltype(xs)>(xs)...);
