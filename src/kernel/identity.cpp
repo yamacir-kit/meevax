@@ -25,15 +25,8 @@ inline namespace kernel
 {
   auto absolute::load() const -> object const&
   {
-    if (second.is<absolute>()) // Only the (export (rename ...)) form makes an identity whose value is identity.
-    {
-      assert(second.is<absolute>());
-      return second.as<absolute>().load();
-    }
-    else
-    {
-      return second;
-    }
+    assert(not second.is<absolute>());
+    return second;
   }
 
   auto absolute::store(object const& x) -> void
