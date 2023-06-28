@@ -51,10 +51,7 @@ inline namespace kernel
 
     if (is("export"))
     {
-      for (let const& form : cdr(declaration))
-      {
-        declare<export_spec>(form);
-      }
+      export_specs = append(cdr(declaration), export_specs);
     }
     else if (is("begin"))
     {
@@ -83,7 +80,7 @@ inline namespace kernel
     }
   }
 
-  auto library::resolve() -> object const&
+  auto library::resolve() -> object
   {
     if (not declarations.is<null>())
     {
@@ -95,7 +92,27 @@ inline namespace kernel
       declarations = unit;
     }
 
-    return subset;
+    assert(bound_variables().is<null>());
+
+    return map([this](let const& export_spec)
+               {
+                 if (export_spec.is<pair>())
+                 {
+                   assert(car(export_spec).is<symbol>());
+                   assert(car(export_spec).as<symbol>() == "rename");
+                   assert(cadr(export_spec).is_also<identifier>());
+                   assert(caddr(export_spec).is_also<identifier>());
+                   return make<absolute>(caddr(export_spec),
+                                         identify(cadr(export_spec), unit, unit)
+                                         );
+                 }
+                 else
+                 {
+                   assert(export_spec.is_also<identifier>());
+                   return identify(export_spec, unit, unit);
+                 }
+               },
+               export_specs);
   }
 
   auto operator <<(std::ostream & os, library const& library) -> std::ostream &

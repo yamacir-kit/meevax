@@ -25,7 +25,7 @@ inline namespace kernel
 {
   struct library;
 
-  struct export_spec
+  struct [[deprecated]] export_spec
   {
     let const form;
 

@@ -49,5 +49,3 @@ inline namespace kernel
   }
 } // namespace kernel
 } // namespace meevax
-
-

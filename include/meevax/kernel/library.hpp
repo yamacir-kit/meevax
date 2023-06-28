@@ -31,6 +31,8 @@ inline namespace kernel
 
     let subset = unit;
 
+    let export_specs = unit;
+
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
     explicit library(F declare)
     {
@@ -58,12 +60,12 @@ inline namespace kernel
     auto define(std::string const& name, Ts&&... xs) -> void
     {
       environment::define<T>(name, std::forward<decltype(xs)>(xs)...);
-      declare<export_spec>(input_string_port(name).read());
+      export_specs = cons(input_string_port(name).read(), export_specs);
     }
 
     auto evaluate(object const&) -> void;
 
-    auto resolve() -> object const&;
+    auto resolve() -> object;
   };
 
   auto operator <<(std::ostream &, library const&) -> std::ostream &;
