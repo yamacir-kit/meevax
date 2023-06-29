@@ -22,7 +22,6 @@
 #include <meevax/kernel/binary_input_file_port.hpp>
 #include <meevax/kernel/binary_output_file_port.hpp>
 #include <meevax/kernel/disassemble.hpp>
-#include <meevax/kernel/import_set.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
 #include <meevax/kernel/library.hpp>
@@ -242,14 +241,14 @@ inline namespace kernel
     {
       library.define<procedure>("environment", [](let const& xs)
       {
-        let const e = make<environment>();
+        auto e = environment();
 
         for (let const& x : xs)
         {
-          e.as<environment>().declare<import_set>(x);
+          e.import(x);
         }
 
-        return e;
+        return make(e);
       });
 
       library.define<procedure>("eval", [](let const& xs)

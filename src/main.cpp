@@ -14,7 +14,6 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/import_set.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
 
@@ -26,23 +25,23 @@ auto main(int const argc, char const* const* const argv) -> int
   {
     boot();
 
-    auto&& main = interaction_environment().as<environment>();
+    auto & main = interaction_environment().as<environment>();
 
-    main.declare<import_set>("(scheme base)");
-    main.declare<import_set>("(scheme case-lambda)");
-    main.declare<import_set>("(scheme char)");
-    main.declare<import_set>("(scheme complex)");
-    main.declare<import_set>("(scheme cxr)");
-    main.declare<import_set>("(scheme eval)");
-    main.declare<import_set>("(scheme file)");
-    main.declare<import_set>("(scheme inexact)");
-    main.declare<import_set>("(scheme lazy)");
-    main.declare<import_set>("(scheme load)");
-    main.declare<import_set>("(scheme process-context)");
-    main.declare<import_set>("(scheme read)");
-    main.declare<import_set>("(scheme repl)");
-    main.declare<import_set>("(scheme time)");
-    main.declare<import_set>("(scheme write)");
+    main.import("(scheme base)");
+    main.import("(scheme case-lambda)");
+    main.import("(scheme char)");
+    main.import("(scheme complex)");
+    main.import("(scheme cxr)");
+    main.import("(scheme eval)");
+    main.import("(scheme file)");
+    main.import("(scheme inexact)");
+    main.import("(scheme lazy)");
+    main.import("(scheme load)");
+    main.import("(scheme process-context)");
+    main.import("(scheme read)");
+    main.import("(scheme repl)");
+    main.import("(scheme time)");
+    main.import("(scheme write)");
 
     main.configure(argc, argv);
 
