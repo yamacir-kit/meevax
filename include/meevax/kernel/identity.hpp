@@ -28,22 +28,10 @@ inline namespace kernel
     using index = std::uint32_t;
   };
 
-  struct absolute : public virtual pair // (<symbol> . <object>)
+  struct absolute : public virtual pair // (<identifier> . <object>)
                   , public identity
   {
     using pair::pair;
-
-    auto load() const -> object const&;
-
-    template <typename T>
-    auto load() const -> decltype(auto)
-    {
-      return load().as<T>();
-    }
-
-    auto store(object const&) -> void;
-
-    auto symbol() const -> object const&;
   };
 
   auto operator <<(std::ostream &, absolute const&) -> std::ostream &;

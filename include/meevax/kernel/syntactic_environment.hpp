@@ -373,21 +373,21 @@ inline namespace kernel
         }
         else if (let const& identity = compile.identify(caar(form), bound_variables, free_variables);
                  identity.is<absolute>() and
-                 identity.as<absolute>().load().is<transformer>())
+                 cdr(identity).is<transformer>())
         {
           return sweep(compile,
                        binding_specs,
-                       cons(Environment().apply(car(identity.as<absolute>().load()),
+                       cons(Environment().apply(cadr(identity),
                                                 car(form),
                                                 make<syntactic_environment>(bound_variables, compile.free_variables()),
-                                                cdr(identity.as<absolute>().load())),
+                                                cddr(identity)),
                             cdr(form)),
                        bound_variables,
                        free_variables);
         }
         else if (identity.is<absolute>() and
-                 identity.as<absolute>().load().is<syntax>() and
-                 identity.as<absolute>().load<syntax>().name == "define") // <form> = ((define ...) <definition or expression>*)
+                 cdr(identity).is<syntax>() and
+                 cdr(identity).as<syntax>().name == "define") // <form> = ((define ...) <definition or expression>*)
         {
           if (let const& definition = car(form); cadr(definition).is<pair>()) // <form> = ((define (<variable> . <formals>) <body>) <definition or expression>*)
           {
@@ -411,8 +411,8 @@ inline namespace kernel
           }
         }
         else if (identity.is<absolute>() and
-                 identity.as<absolute>().load().is<syntax>() and
-                 identity.as<absolute>().load<syntax>().name == "begin")
+                 cdr(identity).is<syntax>() and
+                 cdr(identity).as<syntax>().name == "begin")
         {
           return sweep(compile,
                        binding_specs,
@@ -1010,10 +1010,12 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        compile.identify(car(expression), unit, unit)
-               .template as<absolute>()
-               .store(make<transformer>(Environment().execute(compile(cadr(expression), bound_variables)),
-                                        make<syntactic_environment>(bound_variables, compile.free_variables())));
+        let const identity = compile.identify(car(expression), unit, unit);
+
+        cdr(identity) = make<transformer>(Environment().execute(compile(cadr(expression),
+                                                                        bound_variables)),
+                                          make<syntactic_environment>(bound_variables,
+                                                                      compile.free_variables()));
 
         return cons(make(instruction::load_constant), unspecified,
                     continuation);
@@ -1117,8 +1119,7 @@ inline namespace kernel
         }
       }
       else if (let const& identity = std::as_const(*this).identify(car(expression), bound_variables, free_variables);
-               identity.is<absolute>() and
-               identity.as<absolute>().load().is<transformer>())
+               identity.is<absolute>() and cdr(identity).is<transformer>())
       {
         /*
            Scheme programs can define and use new derived expression types,
@@ -1135,22 +1136,21 @@ inline namespace kernel
            rules that specifies how a use of a macro is transcribed into a more
            primitive expression is called the transformer of the macro.
         */
-        assert(car(identity.as<absolute>().load()).is<closure>());
-        assert(cdr(identity.as<absolute>().load()).is<syntactic_environment>());
+        assert(cadr(identity).is<closure>());
+        assert(cddr(identity).is<syntactic_environment>());
 
-        return compile(Environment().apply(car(identity.as<absolute>().load()),
+        return compile(Environment().apply(cadr(identity),
                                            expression,
                                            make<syntactic_environment>(bound_variables, this->free_variables()),
-                                           cdr(identity.as<absolute>().load())),
+                                           cddr(identity)),
                        bound_variables,
                        free_variables,
                        continuation,
                        tail);
       }
-      else if (identity.is<absolute>() and
-               identity.as<absolute>().load().is<syntax>())
+      else if (identity.is<absolute>() and cdr(identity).is<syntax>())
       {
-        return identity.as<absolute>().load<syntax>().compile(*this, cdr(expression), bound_variables, free_variables, continuation, tail);
+        return cdr(identity).as<syntax>().compile(*this, cdr(expression), bound_variables, free_variables, continuation, tail);
       }
       else
       {
@@ -1170,7 +1170,7 @@ inline namespace kernel
     {
       assert(bound_variables().template is<null>());
       assert(identify(variable, unit, unit).template is<absolute>());
-      return identify(variable, unit, unit).template as<absolute>().store(value);
+      cdr(identify(variable, unit, unit)) = value;
     }
 
     template <typename T, typename... Ts>
@@ -1214,7 +1214,7 @@ inline namespace kernel
 
           for (auto inner = outer.is<pair>() ? car(outer) : unit; not inner.is<null>(); ++j, inner = inner.is<pair>() ? cdr(inner) : unit)
           {
-            if (inner.is<pair>() and car(inner).is<absolute>() and eq(car(inner).as<absolute>().symbol(), variable))
+            if (inner.is<pair>() and car(inner).is<absolute>() and eq(caar(inner), variable))
             {
               return car(inner);
             }

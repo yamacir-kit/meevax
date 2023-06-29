@@ -129,7 +129,7 @@ inline namespace kernel
     assert(bound_variables().is<null>());
     assert(e.is<null>());
     assert(identify(variable, unit, unit).is<absolute>());
-    return identify(variable, unit, unit).as<absolute>().load();
+    return cdr(identify(variable, unit, unit));
   }
 
   auto environment::operator [](std::string const& variable) -> object const&

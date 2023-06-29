@@ -101,7 +101,7 @@ inline namespace kernel
                    assert(cadr(export_spec).is_also<identifier>());
                    assert(caddr(export_spec).is_also<identifier>());
                    return make<absolute>(caddr(export_spec),
-                                         identify(cadr(export_spec), unit, unit).as<absolute>().load());
+                                         cdr(identify(cadr(export_spec), unit, unit)));
                  }
                  else
                  {

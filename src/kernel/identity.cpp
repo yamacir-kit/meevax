@@ -16,39 +16,20 @@
 
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identity.hpp>
-#include <meevax/kernel/list.hpp>
-#include <meevax/kernel/symbol.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto absolute::load() const -> object const&
-  {
-    assert(not second.is<absolute>());
-    return second;
-  }
-
-  auto absolute::store(object const& x) -> void
-  {
-    second = x;
-  }
-
-  auto absolute::symbol() const -> object const&
-  {
-    assert(first.is_also<identifier>());
-    return first;
-  }
-
   auto operator <<(std::ostream & os, absolute const& datum) -> std::ostream &
   {
-    if (datum.load() == undefined)
+    if (datum.second == undefined)
     {
-      return os << faint(datum.symbol());
+      return os << faint(datum.first);
     }
     else
     {
-      return os << blue(datum.symbol());
+      return os << blue(datum.first);
     }
   }
 } // namespace kernel

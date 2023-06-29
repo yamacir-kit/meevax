@@ -36,7 +36,8 @@ inline namespace kernel
         {
           return filter([&](let const& identity)
                         {
-                          return is_truthy(memq(identity.as<absolute>().symbol(), identities));
+                          assert(identity.is<absolute>());
+                          return is_truthy(memq(car(identity), identities));
                         },
                         resolve(import_set));
         };
@@ -57,7 +58,8 @@ inline namespace kernel
         {
           return filter([&](let const& identity)
                         {
-                          return not is_truthy(memq(identity.as<absolute>().symbol(), identities));
+                          assert(identity.is<absolute>());
+                          return not is_truthy(memq(car(identity), identities));
                         },
                         resolve(import_set));
         };
@@ -78,8 +80,9 @@ inline namespace kernel
         {
           return map([&](let const& identity)
                      {
-                       return make<absolute>(make_symbol(car(prefixes).as<symbol>() + identity.as<absolute>().symbol().as<symbol>()),
-                                             identity.as<absolute>().load());
+                       assert(identity.is<absolute>());
+                       return make<absolute>(make_symbol(lexical_cast<std::string>(car(prefixes)) + lexical_cast<std::string>(car(identity))),
+                                             cdr(identity));
                      },
                      resolve(import_set));
         };
@@ -101,10 +104,13 @@ inline namespace kernel
         {
           return map([&](let const& identity)
                      {
-                       if (let const& renaming = assq(identity.as<absolute>().symbol(), renamings); is_truthy(renaming))
+                       assert(identity.is<absolute>());
+                       assert(car(identity).is_also<identifier>());
+
+                       if (let const& renaming = assq(car(identity), renamings); is_truthy(renaming))
                        {
                          assert(cadr(renaming).is<symbol>());
-                         return make<absolute>(cadr(renaming), identity.as<absolute>().load());
+                         return make<absolute>(cadr(renaming), cdr(identity));
                        }
                        else
                        {
@@ -144,9 +150,10 @@ inline namespace kernel
     {
       assert(identity.is<absolute>());
 
-      if (let const& variable = identity.as<absolute>().symbol(); eq(std::as_const(e).identify(variable, e.bound_variables(), unit), f) or redefinable)
+      if (let const& variable = car(identity); eq(std::as_const(e).identify(variable, e.bound_variables(), unit), f) or redefinable)
       {
-        e.define(identity.as<absolute>().symbol(), identity.as<absolute>().load());
+        e.define(car(identity),
+                 cdr(identity));
       }
       else
       {
