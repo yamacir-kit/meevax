@@ -251,19 +251,6 @@ inline namespace kernel
     }
   }
 
-  auto environment::operator [](object const& variable) -> object const&
-  {
-    assert(bound_variables().is<null>());
-    assert(e.is<null>());
-    assert(identify(variable, unit, unit).is<absolute>());
-    return cdr(identify(variable, unit, unit));
-  }
-
-  auto environment::operator [](std::string const& variable) -> object const&
-  {
-    return (*this)[make_symbol(variable)];
-  }
-
   auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &
   {
     return os << magenta("#,(") << green("environment ") << faint("#;", &datum) << magenta(")");
