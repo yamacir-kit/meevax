@@ -37,8 +37,6 @@ inline namespace kernel
 
     auto import(object const&) -> void;
 
-    auto import(std::string const&) -> void;
-
     auto load(std::string const&) -> void;
 
     auto operator [](object const&) -> object const&;

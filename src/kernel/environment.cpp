@@ -235,11 +235,6 @@ inline namespace kernel
     }
   }
 
-  auto environment::import(std::string const& import_set) -> void
-  {
-    import(input_string_port(import_set).read());
-  }
-
   auto environment::load(std::string const& s) -> void
   {
     if (auto input = input_file_port(s); input.is_open() and input.get_ready())

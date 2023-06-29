@@ -20,6 +20,7 @@
 auto main(int const argc, char const* const* const argv) -> int
 {
   using namespace meevax;
+  using namespace meevax::literals;
 
   return with_exception_handler([&]()
   {
@@ -27,21 +28,21 @@ auto main(int const argc, char const* const* const argv) -> int
 
     auto & main = interaction_environment().as<environment>();
 
-    main.import("(scheme base)");
-    main.import("(scheme case-lambda)");
-    main.import("(scheme char)");
-    main.import("(scheme complex)");
-    main.import("(scheme cxr)");
-    main.import("(scheme eval)");
-    main.import("(scheme file)");
-    main.import("(scheme inexact)");
-    main.import("(scheme lazy)");
-    main.import("(scheme load)");
-    main.import("(scheme process-context)");
-    main.import("(scheme read)");
-    main.import("(scheme repl)");
-    main.import("(scheme time)");
-    main.import("(scheme write)");
+    main.import("(scheme base)"_read);
+    main.import("(scheme case-lambda)"_read);
+    main.import("(scheme char)"_read);
+    main.import("(scheme complex)"_read);
+    main.import("(scheme cxr)"_read);
+    main.import("(scheme eval)"_read);
+    main.import("(scheme file)"_read);
+    main.import("(scheme inexact)"_read);
+    main.import("(scheme lazy)"_read);
+    main.import("(scheme load)"_read);
+    main.import("(scheme process-context)"_read);
+    main.import("(scheme read)"_read);
+    main.import("(scheme repl)"_read);
+    main.import("(scheme time)"_read);
+    main.import("(scheme write)"_read);
 
     main.configure(argc, argv);
 
