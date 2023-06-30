@@ -43,5 +43,13 @@ inline namespace kernel
   {
     return output << magenta("#,(") << blue("open-input-string ") << string(datum.stringstream.str()) << magenta(")");
   }
+
+namespace literals
+{
+  auto operator ""_read(char const* s, std::size_t) -> object
+  {
+    return input_string_port(s).read();
+  }
+} // namespace literals
 } // namespace kernel
 } // namespace meevax

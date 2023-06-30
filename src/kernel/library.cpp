@@ -22,7 +22,6 @@
 #include <meevax/kernel/binary_input_file_port.hpp>
 #include <meevax/kernel/binary_output_file_port.hpp>
 #include <meevax/kernel/disassemble.hpp>
-#include <meevax/kernel/import_set.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
 #include <meevax/kernel/library.hpp>
@@ -51,10 +50,7 @@ inline namespace kernel
 
     if (is("export"))
     {
-      for (let const& form : cdr(declaration))
-      {
-        declare<export_spec>(form);
-      }
+      export_specs = append(cdr(declaration), export_specs);
     }
     else if (is("begin"))
     {
@@ -83,19 +79,36 @@ inline namespace kernel
     }
   }
 
-  auto library::resolve() -> object const&
+  auto library::resolve() -> object
   {
-    if (not declarations.is<null>())
+    if (let const unresolved_declarations = std::exchange(declarations, unit); unresolved_declarations.is<pair>())
     {
-      for (let const& declaration : declarations)
+      for (let const& unresolved_declaration : unresolved_declarations)
       {
-        evaluate(declaration);
+        evaluate(unresolved_declaration);
       }
-
-      declarations = unit;
     }
 
-    return subset;
+    assert(bound_variables().is<null>());
+
+    return map([this](let const& export_spec)
+               {
+                 if (export_spec.is<pair>())
+                 {
+                   assert(car(export_spec).is<symbol>());
+                   assert(car(export_spec).as<symbol>() == "rename");
+                   assert(cadr(export_spec).is_also<identifier>());
+                   assert(caddr(export_spec).is_also<identifier>());
+                   return make<absolute>(caddr(export_spec),
+                                         cdr(identify(cadr(export_spec), unit, unit)));
+                 }
+                 else
+                 {
+                   assert(export_spec.is_also<identifier>());
+                   return identify(export_spec, unit, unit);
+                 }
+               },
+               export_specs);
   }
 
   auto operator <<(std::ostream & os, library const& library) -> std::ostream &
@@ -228,14 +241,14 @@ inline namespace kernel
     {
       library.define<procedure>("environment", [](let const& xs)
       {
-        let const e = make<environment>();
+        auto e = environment();
 
         for (let const& x : xs)
         {
-          e.as<environment>().declare<import_set>(x);
+          e.import(x);
         }
 
-        return e;
+        return make(e);
       });
 
       library.define<procedure>("eval", [](let const& xs)

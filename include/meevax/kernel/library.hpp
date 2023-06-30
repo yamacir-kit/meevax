@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 
 #include <meevax/kernel/environment.hpp>
-#include <meevax/kernel/export_spec.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 
 namespace meevax
@@ -29,7 +28,7 @@ inline namespace kernel
   {
     let declarations = unit;
 
-    let subset = unit;
+    let export_specs = unit;
 
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
     explicit library(F declare)
@@ -42,28 +41,15 @@ inline namespace kernel
     friend auto boot() -> void;
 
     template <typename T, typename... Ts>
-    auto declare(Ts&&... xs) -> decltype(auto)
-    {
-      if constexpr (std::is_invocable_v<T, library &>)
-      {
-        return std::invoke(std::decay_t<T>(std::forward<decltype(xs)>(xs)...), *this);
-      }
-      else
-      {
-        return environment::declare<T>(std::forward<decltype(xs)>(xs)...);
-      }
-    }
-
-    template <typename T, typename... Ts>
     auto define(std::string const& name, Ts&&... xs) -> void
     {
       environment::define<T>(name, std::forward<decltype(xs)>(xs)...);
-      declare<export_spec>(input_string_port(name).read());
+      export_specs = cons(input_string_port(name).read(), export_specs);
     }
 
     auto evaluate(object const&) -> void;
 
-    auto resolve() -> object const&;
+    auto resolve() -> object;
   };
 
   auto operator <<(std::ostream &, library const&) -> std::ostream &;
