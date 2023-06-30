@@ -34,15 +34,15 @@ inline namespace kernel
     {
       let const environment;
 
-      let const free_variables; // Currently ignored.
+      let const free_names; // Currently ignored.
 
       let const expression;
 
       explicit syntactic_closure(let const& environment,
-                                 let const& free_variables,
+                                 let const& free_names,
                                  let const& expression)
         : environment { environment }
-        , free_variables { free_variables }
+        , free_names { free_names }
         , expression { expression }
       {}
 
@@ -62,7 +62,7 @@ inline namespace kernel
         assert(environment.is<syntactic_environment>());
         return environment.as<syntactic_environment>().compile(expression,
                                                                align_with(bound_variables),
-                                                               append(this->free_variables, free_variables),
+                                                               append(this->free_names, free_variables),
                                                                continuation);
       }
 
@@ -72,7 +72,7 @@ inline namespace kernel
         assert(environment.is<syntactic_environment>());
         return environment.as<syntactic_environment>().identify(expression,
                                                                 align_with(bound_variables),
-                                                                append(this->free_variables, free_variables));
+                                                                append(this->free_names, free_variables));
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -91,8 +91,8 @@ inline namespace kernel
 
         return x.expression.template is_also<identifier>() and
                y.expression.template is_also<identifier>() and
-               eqv(x.identify(car(x.environment), x.free_variables),
-                   y.identify(car(y.environment), y.free_variables));
+               eqv(x.identify(car(x.environment), x.free_names),
+                   y.identify(car(y.environment), y.free_names));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
@@ -103,7 +103,7 @@ inline namespace kernel
         }
         else
         {
-          return os << magenta("#,(") << blue("make-syntactic-closure ") << faint("#;", &datum.environment) << magenta(" '") << datum.free_variables << magenta(" '") << datum.expression << magenta(")");
+          return os << magenta("#,(") << blue("make-syntactic-closure ") << faint("#;", &datum.environment) << magenta(" '") << datum.free_names << magenta(" '") << datum.expression << magenta(")");
         }
       }
     };
