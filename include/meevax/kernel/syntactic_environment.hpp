@@ -30,49 +30,38 @@ inline namespace kernel
   template <typename Environment>
   struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
   {
-    struct syntactic_closure : public identifier
+    struct syntactic_closure : public virtual pair // (<syntactic-environment> <free-names> . <expression>)
+                             , public identifier
     {
-      let const environment;
-
-      let const free_names; // Currently ignored.
-
-      let const expression;
-
-      explicit syntactic_closure(let const& environment,
-                                 let const& free_names,
-                                 let const& expression)
-        : environment { environment }
-        , free_names { free_names }
-        , expression { expression }
-      {}
-
       auto align_with(let const& bound_variables) const
       {
-        assert(environment.is<syntactic_environment>());
+        assert(length(caar(*this)) <= length(bound_variables));
 
         return append(make_list(length(bound_variables) -
-                                length(car(environment))),
-                      car(environment));
+                                length(caar(*this))),
+                      caar(*this));
       }
 
       auto compile(object const& bound_variables,
                    object const& free_variables,
                    object const& continuation) const
       {
-        assert(environment.is<syntactic_environment>());
-        return environment.as<syntactic_environment>().compile(expression,
-                                                               align_with(bound_variables),
-                                                               append(this->free_names, free_variables),
-                                                               continuation);
+        assert(car(*this).template is<syntactic_environment>());
+
+        return car(*this).template as<syntactic_environment>().compile(cddr(*this),
+                                                                       align_with(bound_variables),
+                                                                       append(cadr(*this), free_variables),
+                                                                       continuation);
       }
 
       auto identify(object const& bound_variables,
                     object const& free_variables) const
       {
-        assert(environment.is<syntactic_environment>());
-        return environment.as<syntactic_environment>().identify(expression,
-                                                                align_with(bound_variables),
-                                                                append(this->free_names, free_variables));
+        assert(car(*this).template is<syntactic_environment>());
+
+        return car(*this).template as<syntactic_environment>().identify(cddr(*this),
+                                                                        align_with(bound_variables),
+                                                                        append(cadr(*this), free_variables));
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -86,24 +75,24 @@ inline namespace kernel
            in a cond clause. A macro definition for syntax-rules would use
            free-identifier=? to look for literals in the input.
         */
-        assert(x.environment.template is<syntactic_environment>());
-        assert(y.environment.template is<syntactic_environment>());
+        assert(car(x).template is<syntactic_environment>());
+        assert(car(y).template is<syntactic_environment>());
 
-        return x.expression.template is_also<identifier>() and
-               y.expression.template is_also<identifier>() and
-               eqv(x.identify(car(x.environment), x.free_names),
-                   y.identify(car(y.environment), y.free_names));
+        return cddr(x).template is_also<identifier>() and
+               cddr(y).template is_also<identifier>() and
+               eqv(x.identify(caar(x), unit),
+                   y.identify(caar(y), unit));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
       {
-        if (datum.expression.template is<symbol>())
+        if (cddr(datum).template is_also<identifier>())
         {
-          return os << underline(datum.expression);
+          return os << underline(cddr(datum));
         }
         else
         {
-          return os << magenta("#,(") << blue("make-syntactic-closure ") << faint("#;", &datum.environment) << magenta(" '") << datum.free_names << magenta(" '") << datum.expression << magenta(")");
+          return os << magenta("#,(") << blue("make-syntactic-closure ") << faint("#;", car(datum).get()) << magenta(" '") << cadr(datum) << magenta(" '") << cddr(datum) << magenta(")");
         }
       }
     };
@@ -220,8 +209,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        return cons(make(instruction::load_constant), car(expression).is<syntactic_closure>() ? car(expression).as<syntactic_closure>().expression
-                                                                                              : car(expression),
+        return cons(make(instruction::load_constant), car(expression).is<syntactic_closure>() ? cddar(expression) : car(expression),
                     continuation);
       }
 

@@ -1151,7 +1151,7 @@ inline namespace kernel
       {
         if (let const& x = xs[0]; x.is<syntactic_closure>())
         {
-          return x.as<syntactic_closure>().expression;
+          return cddr(x);
         }
         else
         {
