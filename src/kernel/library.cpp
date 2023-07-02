@@ -45,7 +45,7 @@ inline namespace kernel
   {
     auto is = [&](auto name)
     {
-      return declaration.is<pair>() and declaration[0].is<symbol>() and declaration[0].as<symbol>() == name;
+      return declaration.is<pair>() and car(declaration).is<symbol>() and car(declaration).as<symbol>() == name;
     };
 
     if (is("export"))
@@ -88,8 +88,6 @@ inline namespace kernel
         evaluate(unresolved_declaration);
       }
     }
-
-    assert(bound_variables().is<null>());
 
     return map([this](let const& export_spec)
                {

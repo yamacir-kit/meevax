@@ -30,6 +30,13 @@ inline namespace kernel
   template <typename Environment>
   struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
   {
+    /*
+                          A Syntactic Closures Macro Facility
+
+                                    by Chris Hanson
+
+                                    9 November 1991
+    */
     struct syntactic_closure : public virtual pair // (<syntactic-environment> <free-names> . <expression>)
                              , public identifier
     {
@@ -67,13 +74,13 @@ inline namespace kernel
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
       {
         /*
-           (free-identifier=? id-1 id-2)                               procedure
+           (free-identifier=? id-1 id-2)                              procedure
 
-           Returns #t if the original occurrences of id-1 and id-2 have the same
-           binding, otherwise returns #f. free-identifier=? is used to look for
-           a literal identifier in the argument to a transformer, such as else
-           in a cond clause. A macro definition for syntax-rules would use
-           free-identifier=? to look for literals in the input.
+           Returns #t if the original occurrences of id-1 and id-2 have the
+           same binding, otherwise returns #f. free-identifier=? is used to
+           look for a literal identifier in the argument to a transformer, such
+           as else in a cond clause. A macro definition for syntax-rules would
+           use free-identifier=? to look for literals in the input.
         */
         assert(car(x).template is<syntactic_environment>());
         assert(car(y).template is<syntactic_environment>());
@@ -894,7 +901,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        let const environment = make<syntactic_environment>(unit, compile.free_variables());
+        let const environment = make<syntactic_environment>(bound_variables, compile.free_variables());
 
         auto formal = [&](let const& syntax_spec)
         {
@@ -1057,7 +1064,7 @@ inline namespace kernel
     };
 
     auto operator ()(object const& expression,
-                     object const& bound_variables,
+                     object const& bound_variables = unit, // list of <formals>
                      object const& free_variables = unit,
                      object const& continuation = list(make(instruction::stop)),
                      bool tail = false) -> object
@@ -1156,7 +1163,6 @@ inline namespace kernel
 
     auto define(object const& variable, object const& value = undefined) -> void
     {
-      assert(bound_variables().template is<null>());
       assert(identify(variable, unit, unit).template is<absolute>());
       cdr(identify(variable, unit, unit)) = value;
     }

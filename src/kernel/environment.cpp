@@ -79,7 +79,7 @@ inline namespace kernel
                  std::exchange(c, unit), d);
       }
 
-      let const result = execute(optimize(compile(expression, bound_variables())));
+      let const result = execute(optimize(compile(expression)));
 
       if (d)
       {
@@ -223,7 +223,7 @@ inline namespace kernel
     {
       assert(identity.is<absolute>());
 
-      if (not is_truthy(std::as_const(*this).identify(car(identity), bound_variables(), unit)) or interactive)
+      if (not is_truthy(std::as_const(*this).identify(car(identity), unit, unit)) or interactive)
       {
         define(car(identity),
                cdr(identity));
