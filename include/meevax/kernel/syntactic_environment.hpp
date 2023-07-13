@@ -30,13 +30,6 @@ inline namespace kernel
   template <typename Environment>
   struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
   {
-    /*
-                          A Syntactic Closures Macro Facility
-
-                                    by Chris Hanson
-
-                                    9 November 1991
-    */
     struct syntactic_closure : public virtual pair // (<syntactic-environment> <free-names> . <expression>)
                              , public identifier
     {
@@ -47,28 +40,6 @@ inline namespace kernel
         return append(make_list(length(bound_variables) -
                                 length(caar(*this))),
                       caar(*this));
-      }
-
-      auto compile(object const& bound_variables,
-                   object const& free_variables,
-                   object const& continuation) const
-      {
-        assert(car(*this).template is<syntactic_environment>());
-
-        return car(*this).template as<syntactic_environment>().compile(cddr(*this),
-                                                                       align_with(bound_variables),
-                                                                       append(cadr(*this), free_variables),
-                                                                       continuation);
-      }
-
-      auto identify(object const& bound_variables,
-                    object const& free_variables) const
-      {
-        assert(car(*this).template is<syntactic_environment>());
-
-        return car(*this).template as<syntactic_environment>().identify(cddr(*this),
-                                                                        align_with(bound_variables),
-                                                                        append(cadr(*this), free_variables));
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -87,8 +58,14 @@ inline namespace kernel
 
         return cddr(x).template is_also<identifier>() and
                cddr(y).template is_also<identifier>() and
-               eqv(x.identify(caar(x), unit),
-                   y.identify(caar(y), unit));
+               eqv(car(x).template as<syntactic_environment>()
+                         .identify(cddr(x),
+                                   caar(x),
+                                   unit),
+                   car(y).template as<syntactic_environment>()
+                         .identify(cddr(y),
+                                   caar(y),
+                                   unit));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
@@ -1103,9 +1080,14 @@ inline namespace kernel
           {
             return syntax::reference(*this, expression, bound_variables, free_variables, continuation, tail);
           }
-          else // The syntactic-closure is a syntactic-keyword.
+          else
           {
-            return expression.as<syntactic_closure>().compile(bound_variables, free_variables, continuation);
+            return car(expression).as<syntactic_environment>()
+                                  .compile(cddr(expression),
+                                           expression.as<syntactic_closure>()
+                                                     .align_with(bound_variables),
+                                           unit,
+                                           continuation);
           }
         }
         else // is <self-evaluating>
@@ -1225,7 +1207,11 @@ inline namespace kernel
 
         if (variable.is<syntactic_closure>())
         {
-          return variable.as<syntactic_closure>().identify(bound_variables, free_variables);
+          return car(variable).as<syntactic_environment>()
+                              .identify(cddr(variable),
+                                        variable.as<syntactic_closure>()
+                                                 .align_with(bound_variables),
+                                        unit);
         }
         else
         {
