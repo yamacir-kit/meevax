@@ -33,15 +33,6 @@ inline namespace kernel
     struct syntactic_closure : public virtual pair // (<syntactic-environment> <free-names> . <expression>)
                              , public identifier
     {
-      auto align_with(let const& bound_variables) const
-      {
-        assert(length(caar(*this)) <= length(bound_variables));
-
-        return append(make_list(length(bound_variables) -
-                                length(caar(*this))),
-                      caar(*this));
-      }
-
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
       {
         /*
@@ -80,33 +71,6 @@ inline namespace kernel
         }
       }
     };
-
-    static auto rename(std::string const& variable)
-    {
-      auto bind = [](auto&& name, auto&& compiler)
-      {
-        return make<absolute>(make_symbol(name), make<syntax>(name, compiler));
-      };
-
-      let static const core_syntactic_environment = make<syntactic_environment>(
-        list(),
-        list(bind("begin"                          , syntax::sequence                      ),
-             bind("call-with-current-continuation!", syntax::call_with_current_continuation),
-             bind("current"                        , syntax::current                       ),
-             bind("define"                         , syntax::define                        ),
-             bind("define-syntax"                  , syntax::define_syntax                 ),
-             bind("if"                             , syntax::conditional                   ),
-             bind("install"                        , syntax::install                       ),
-             bind("lambda"                         , syntax::lambda                        ),
-             bind("let-syntax"                     , syntax::let_syntax                    ),
-             bind("letrec"                         , syntax::letrec                        ),
-             bind("letrec-syntax"                  , syntax::letrec_syntax                 ),
-             bind("quote"                          , syntax::quote                         ),
-             bind("quote-syntax"                   , syntax::quote_syntax                  ),
-             bind("set!"                           , syntax::set                           )));
-
-      return make<syntactic_closure>(core_syntactic_environment, unit, make_symbol(variable));
-    }
 
     struct syntax
     {
@@ -1084,8 +1048,7 @@ inline namespace kernel
           {
             return car(expression).as<syntactic_environment>()
                                   .compile(cddr(expression),
-                                           expression.as<syntactic_closure>()
-                                                     .align_with(bound_variables),
+                                           unify(caar(expression), bound_variables),
                                            unit,
                                            continuation);
           }
@@ -1137,20 +1100,30 @@ inline namespace kernel
 
     using pair::pair;
 
+    inline auto bound_variables() const noexcept -> object const&
+    {
+      return first;
+    }
+
+    inline auto bound_variables() noexcept -> object &
+    {
+      return first;
+    }
+
     template <typename... Ts>
-    auto compile(Ts&&... xs) -> decltype(auto)
+    inline auto compile(Ts&&... xs) -> decltype(auto)
     {
       return operator ()(std::forward<decltype(xs)>(xs)...);
     }
 
-    auto define(object const& variable, object const& value = undefined) -> void
+    inline auto define(object const& variable, object const& value = undefined) -> void
     {
       assert(identify(variable, unit, unit).template is<absolute>());
       cdr(identify(variable, unit, unit)) = value;
     }
 
     template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs) -> void
+    inline auto define(std::string const& name, Ts&&... xs) -> void
     {
       if constexpr (std::is_constructible_v<T, std::string const&, Ts...>)
       {
@@ -1162,19 +1135,19 @@ inline namespace kernel
       }
     }
 
-    auto free_variables() const noexcept -> object const&
+    inline auto free_variables() const noexcept -> object const&
     {
       return second;
     }
 
-    auto free_variables() noexcept -> object &
+    inline auto free_variables() noexcept -> object &
     {
       return second;
     }
 
-    auto identify(object const& variable,
-                  object const& bound_variables,
-                  object const& free_variables) const -> object
+    inline auto identify(object const& variable,
+                         object const& bound_variables,
+                         object const& free_variables) const -> object
     {
       if (not variable.is_also<identifier>())
       {
@@ -1209,8 +1182,7 @@ inline namespace kernel
         {
           return car(variable).as<syntactic_environment>()
                               .identify(cddr(variable),
-                                        variable.as<syntactic_closure>()
-                                                 .align_with(bound_variables),
+                                        unify(caar(variable), bound_variables),
                                         unit);
         }
         else
@@ -1220,9 +1192,9 @@ inline namespace kernel
       }
     }
 
-    auto identify(object const& variable,
-                  object const& bound_variables,
-                  object const& free_variables)
+    inline auto identify(object const& variable,
+                         object const& bound_variables,
+                         object const& free_variables)
     {
       if (not variable.is_also<identifier>())
       {
@@ -1253,14 +1225,83 @@ inline namespace kernel
       }
     }
 
-    auto bound_variables() const noexcept -> object const&
+    static auto rename(std::string const& variable)
     {
-      return first;
+      auto bind = [](auto&& name, auto&& compiler)
+      {
+        return make<absolute>(make_symbol(name), make<syntax>(name, compiler));
+      };
+
+      let static const core_syntactic_environment = make<syntactic_environment>(
+        list(),
+        list(bind("begin"                          , syntax::sequence                      ),
+             bind("call-with-current-continuation!", syntax::call_with_current_continuation),
+             bind("current"                        , syntax::current                       ),
+             bind("define"                         , syntax::define                        ),
+             bind("define-syntax"                  , syntax::define_syntax                 ),
+             bind("if"                             , syntax::conditional                   ),
+             bind("install"                        , syntax::install                       ),
+             bind("lambda"                         , syntax::lambda                        ),
+             bind("let-syntax"                     , syntax::let_syntax                    ),
+             bind("letrec"                         , syntax::letrec                        ),
+             bind("letrec-syntax"                  , syntax::letrec_syntax                 ),
+             bind("quote"                          , syntax::quote                         ),
+             bind("quote-syntax"                   , syntax::quote_syntax                  ),
+             bind("set!"                           , syntax::set                           )));
+
+      return make<syntactic_closure>(core_syntactic_environment, unit, make_symbol(variable));
     }
 
-    auto bound_variables() noexcept -> object &
+    static auto unify(object const& a, object const& b) -> object
     {
-      return first;
+      /*
+         Consider the following case where an expression that uses a local
+         macro is given:
+
+           (let ((x 'outer))
+             (let-syntax ((m (sc-macro-transformer
+                               (lambda (form environment)
+                                 'x))))
+               (let ((x 'inner))
+                 (m))))
+
+         Where, the bound variables that the syntactic closure returned by
+         sc-macro-transformer encloses are ((x)), and the bound variables when
+         using the local macro m are ((x) (m) (x)).
+
+         The result of the expansion of local macro m must be a reference to
+         the local variable x that binds the symbol "outer" and not the one
+         that binds the symbol "inner". That is, the operand of the relative
+         loading instruction resulting from the expansion of the local macro m
+         must be de Bruijn index (2 . 0).
+
+         However, since syntactic_closure::identify searches bound variables
+         from inside to outside to create de Bruijn index, it straightforwardly
+         uses bound variables ((x) (m) (x)) when using local macro m would
+         result in index (0 . 0).
+
+         This problem is specific to cases where the syntactic closure encloses
+         an expression that refers to a local variable. Such a synthetic
+         closure can only be created by a local macro, and its use is limited
+         to the environment inside the local macro definition. Therefore, there
+         is a common tail between the bound variables that the
+         syntactic-closure inserted by the local macro encloses and the bound
+         variables when the local macro is used.
+
+         By searching for the common tail of the two bound variables and cons a
+         dummy environment in front of the list to match the length of the
+         longer bound variables, we can create bound variables that lead to an
+         appropriate de Bruijn index. In the example above, this is (() ()
+         (x)).
+      */
+      let xs = longest_common_tail(a, b);
+
+      for (auto offset = std::max(length(a), length(b)) - length(xs); 0 < offset; --offset)
+      {
+        xs = cons(unit, xs);
+      }
+
+      return xs;
     }
   };
 } // namespace kernel
