@@ -1046,10 +1046,29 @@ inline namespace kernel
           }
           else
           {
+            auto extend = [=](let const& free_variables)
+            {
+              let xs = free_variables;
+
+              for (let const& free_variable : cadr(expression))
+              {
+                let const inject = make<procedure>("inject", [=](let const& xs)
+                {
+                  return identify(free_variable,
+                                  unify(bound_variables, xs),
+                                  free_variables);
+                });
+
+                xs = cons(cons(free_variable, inject), xs);
+              }
+
+              return xs;
+            };
+
             return car(expression).as<syntactic_environment>()
                                   .compile(cddr(expression),
                                            unify(caar(expression), bound_variables),
-                                           unit,
+                                           extend(free_variables),
                                            continuation);
           }
         }
@@ -1152,6 +1171,10 @@ inline namespace kernel
       if (not variable.is_also<identifier>())
       {
         return f;
+      }
+      else if (let const& x = assq(variable, free_variables); is_truthy(x))
+      {
+        return cdr(x).as<procedure>().call(bound_variables);
       }
       else
       {
@@ -1275,18 +1298,10 @@ inline namespace kernel
          loading instruction resulting from the expansion of the local macro m
          must be de Bruijn index (2 . 0).
 
-         However, since syntactic_closure::identify searches bound variables
-         from inside to outside to create de Bruijn index, it straightforwardly
-         uses bound variables ((x) (m) (x)) when using local macro m would
-         result in index (0 . 0).
-
-         This problem is specific to cases where the syntactic closure encloses
-         an expression that refers to a local variable. Such a synthetic
-         closure can only be created by a local macro, and its use is limited
-         to the environment inside the local macro definition. Therefore, there
-         is a common tail between the bound variables that the
-         syntactic-closure inserted by the local macro encloses and the bound
-         variables when the local macro is used.
+         However, since syntactic_environment::identify searches bound
+         variables from inside to outside to create de Bruijn index, it
+         straightforwardly uses bound variables ((x) (m) (x)) when using local
+         macro m would result in index (0 . 0).
 
          By searching for the common tail of the two bound variables and cons a
          dummy environment in front of the list to match the length of the
@@ -1295,6 +1310,8 @@ inline namespace kernel
          (x)).
       */
       let xs = longest_common_tail(a, b);
+
+      assert(length(xs) <= std::min(length(a), length(b)));
 
       for (auto offset = std::max(length(a), length(b)) - length(xs); 0 < offset; --offset)
       {

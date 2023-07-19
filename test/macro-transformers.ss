@@ -407,6 +407,40 @@
 
 ; ------------------------------------------------------------------------------
 
+(define-syntax aif
+  (sc-macro-transformer
+    (lambda (form at-use)
+      (let ((test (make-syntactic-closure at-use '() (cadr form)))
+            (consequent (make-syntactic-closure at-use '(it) (caddr form)))
+            (alternative (if (null? (cdddr form))
+                             (if #f #f)
+                             (make-syntactic-closure at-use '() (cadddr form)))))
+        `(let ((it ,test))
+           (if it ,consequent ,alternative))))))
+
+(check (aif (memq 'b '(a b c))
+            (car it))
+  => 'b)
+
+(check (aif (memq 'b '(a b c))
+            (let ((it 'inner))
+              (car it)))
+  => 'b)
+
+(check (aif (memq 'b '(a b c))
+            (let ((it 'inner-1))
+              (let ((it 'inner-0))
+                (car it))))
+  => 'b)
+
+(check (let ((it 'outer))
+         (aif (memq 'b '(a b c))
+              (let ((it 'inner))
+                (car it))))
+  => 'b)
+
+; ------------------------------------------------------------------------------
+
 (check-report)
 
-(exit (check-passed? 48))
+(exit (check-passed? 52))
