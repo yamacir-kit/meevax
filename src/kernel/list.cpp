@@ -102,5 +102,19 @@ inline namespace kernel
       return f;
     }
   }
+
+  auto longest_common_tail(let const& a, let const& b) -> object const&
+  {
+    if (a.is<null>() or b.is<null>() or eq(a, b))
+    {
+      return a;
+    }
+    else
+    {
+      let const& x = longest_common_tail(a, cdr(b));
+      let const& y = longest_common_tail(cdr(a), b);
+      return length(x) < length(y) ? y : x;
+    }
+  }
 } // namespace kernel
 } // namespace meevax

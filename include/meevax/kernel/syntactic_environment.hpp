@@ -28,113 +28,58 @@ namespace meevax
 inline namespace kernel
 {
   template <typename Environment>
-  struct syntactic_environment : public virtual pair // (<local> . <global>)
+  struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
   {
-    struct syntactic_closure : public identifier
+    struct syntactic_closure : public virtual pair // (<syntactic-environment> <free-names> . <expression>)
+                             , public identifier
     {
-      let const environment;
-
-      let const free_variables; // Currently ignored.
-
-      let const expression;
-
-      explicit syntactic_closure(let const& environment,
-                                 let const& free_variables,
-                                 let const& expression)
-        : environment { environment }
-        , free_variables { free_variables }
-        , expression { expression }
-      {}
-
-      auto align_with(let const& local) const
-      {
-        assert(environment.is<syntactic_environment>());
-
-        return append(make_list(length(local) -
-                                length(car(environment))),
-                      car(environment));
-      }
-
-      auto compile(object const& local,
-                   object const& continuation) const
-      {
-        assert(environment.is<syntactic_environment>());
-        return environment.as<syntactic_environment>().compile(expression, align_with(local), continuation);
-      }
-
-      auto identify(object const& local) const
-      {
-        assert(environment.is<syntactic_environment>());
-        return environment.as<syntactic_environment>().identify(expression, align_with(local));
-      }
-
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
       {
         /*
-           (free-identifier=? id-1 id-2)                               procedure
+           (free-identifier=? id-1 id-2)                              procedure
 
-           Returns #t if the original occurrences of id-1 and id-2 have the same
-           binding, otherwise returns #f. free-identifier=? is used to look for
-           a literal identifier in the argument to a transformer, such as else
-           in a cond clause. A macro definition for syntax-rules would use
-           free-identifier=? to look for literals in the input.
+           Returns #t if the original occurrences of id-1 and id-2 have the
+           same binding, otherwise returns #f. free-identifier=? is used to
+           look for a literal identifier in the argument to a transformer, such
+           as else in a cond clause. A macro definition for syntax-rules would
+           use free-identifier=? to look for literals in the input.
         */
-        assert(x.environment.template is<syntactic_environment>());
-        assert(y.environment.template is<syntactic_environment>());
+        assert(car(x).template is<syntactic_environment>());
+        assert(car(y).template is<syntactic_environment>());
 
-        return x.expression.template is_also<identifier>() and
-               y.expression.template is_also<identifier>() and
-               eqv(x.environment.template as<syntactic_environment>().identify(x.expression, car(x.environment)),
-                   y.environment.template as<syntactic_environment>().identify(y.expression, car(y.environment)));
+        return cddr(x).template is_also<identifier>() and
+               cddr(y).template is_also<identifier>() and
+               eqv(car(x).template as<syntactic_environment>()
+                         .identify(cddr(x),
+                                   caar(x),
+                                   unit),
+                   car(y).template as<syntactic_environment>()
+                         .identify(cddr(y),
+                                   caar(y),
+                                   unit));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
       {
-        if (datum.expression.template is<symbol>())
+        if (cddr(datum).template is_also<identifier>())
         {
-          return os << underline(datum.expression);
+          return os << underline(cddr(datum));
         }
         else
         {
-          return os << magenta("#,(") << blue("make-syntactic-closure ") << faint("#;", &datum.environment) << magenta(" '") << datum.free_variables << magenta(" '") << datum.expression << magenta(")");
+          return os << magenta("#,(") << blue("make-syntactic-closure ") << faint("#;", car(datum).get()) << magenta(" '") << cadr(datum) << magenta(" '") << cddr(datum) << magenta(")");
         }
       }
     };
 
-    static auto rename(std::string const& variable)
-    {
-      auto bind = [](auto&& name, auto&& compiler)
-      {
-        return make<absolute>(make_symbol(name), make<syntax>(name, compiler));
-      };
-
-      let static const core_syntactic_environment = make<syntactic_environment>(
-        list(),
-        list(bind("begin"                          , syntax::sequence                      ),
-             bind("call-with-current-continuation!", syntax::call_with_current_continuation),
-             bind("current"                        , syntax::current                       ),
-             bind("define"                         , syntax::define                        ),
-             bind("define-syntax"                  , syntax::define_syntax                 ),
-             bind("if"                             , syntax::conditional                   ),
-             bind("install"                        , syntax::install                       ),
-             bind("lambda"                         , syntax::lambda                        ),
-             bind("let-syntax"                     , syntax::let_syntax                    ),
-             bind("letrec"                         , syntax::letrec                        ),
-             bind("letrec-syntax"                  , syntax::letrec_syntax                 ),
-             bind("quote"                          , syntax::quote                         ),
-             bind("quote-syntax"                   , syntax::quote_syntax                  ),
-             bind("set!"                           , syntax::set                           )));
-
-      return make<syntactic_closure>(core_syntactic_environment, unit, make_symbol(variable));
-    }
-
     struct syntax
     {
       using compiler = std::function<auto (syntactic_environment &,
-                                           object const& /* expression   */,
-                                           object const& /* local        */,
-                                           object const& /* continuation */,
-                                           object const& /* ellipsis     */) -> object>;
+                                           object const& /* expression      */,
+                                           object const& /* bound_variables */,
+                                           object const& /* free_variables  */,
+                                           object const& /* continuation    */,
+                                           bool          /* tail            */) -> object>;
 
       std::string const name;
 
@@ -153,9 +98,10 @@ inline namespace kernel
       #define COMPILER(NAME)                                                   \
       auto NAME([[maybe_unused]] syntactic_environment & compile,              \
                                  object const& expression,                     \
-                [[maybe_unused]] object const& local,                          \
+                [[maybe_unused]] object const& bound_variables,                \
+                [[maybe_unused]] object const& free_variables,                 \
                                  object const& continuation,                   \
-                [[maybe_unused]] object const& ellipsis = unspecified) -> object
+                [[maybe_unused]] bool tail = false) -> object
 
       static COMPILER(reference) /* --------------------------------------------
       *
@@ -170,7 +116,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        if (let const& identity = compile.identify(expression, local); identity.is<relative>())
+        if (let const& identity = compile.identify(expression, bound_variables, free_variables); identity.is<relative>())
         {
           return cons(make(instruction::load_relative), identity,
                       continuation);
@@ -211,8 +157,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        return cons(make(instruction::load_constant), car(expression).is<syntactic_closure>() ? car(expression).as<syntactic_closure>().expression
-                                                                                              : car(expression),
+        return cons(make(instruction::load_constant), car(expression).is<syntactic_closure>() ? cddar(expression) : car(expression),
                     continuation);
       }
 
@@ -263,11 +208,13 @@ inline namespace kernel
       {
         return operand(compile,
                        cdr(expression),
-                       local,
+                       bound_variables,
+                       free_variables,
                        compile(car(expression),
-                               local,
-                               ellipsis.is<null>() ? list(make(instruction::tail_call))
-                                                   : cons(make(instruction::call), continuation)));
+                               bound_variables,
+                               free_variables,
+                               tail ? list(make(instruction::tail_call))
+                                    : cons(make(instruction::call), continuation)));
       }
 
       static COMPILER(operand)
@@ -276,15 +223,17 @@ inline namespace kernel
         {
           return operand(compile,
                          cdr(expression),
-                         local,
+                         bound_variables,
+                         free_variables,
                          compile(car(expression),
-                                 local,
+                                 bound_variables,
+                                 free_variables,
                                  cons(make(instruction::cons),
                                       continuation)));
         }
         else
         {
-          return compile(expression, local, continuation);
+          return compile(expression, bound_variables, free_variables, continuation);
         }
       }
 
@@ -342,7 +291,8 @@ inline namespace kernel
         return cons(make(instruction::load_closure),
                     body(compile,
                          cdr(expression),
-                         cons(car(expression), local), // Extend scope.
+                         cons(car(expression), bound_variables), // Extend scope.
+                         free_variables,
                          list(make(instruction::return_))),
                     continuation);
       }
@@ -350,28 +300,30 @@ inline namespace kernel
       static auto sweep(syntactic_environment const& compile, // This function must not call compile.
                         object const& binding_specs,
                         object const& form,
-                        object const& local) -> pair
+                        object const& bound_variables,
+                        object const& free_variables) -> pair
       {
         if (not form.is<pair>() or not car(form).is<pair>())
         {
           return pair(reverse(binding_specs), form); // Finish.
         }
-        else if (let const& identity = compile.identify(caar(form), local);
+        else if (let const& identity = compile.identify(caar(form), bound_variables, free_variables);
                  identity.is<absolute>() and
-                 identity.as<absolute>().load().is<transformer>())
+                 cdr(identity).is<transformer>())
         {
           return sweep(compile,
                        binding_specs,
-                       cons(Environment().apply(car(identity.as<absolute>().load()),
+                       cons(Environment().apply(cadr(identity),
                                                 car(form),
-                                                make<syntactic_environment>(local, compile.global()),
-                                                cdr(identity.as<absolute>().load())),
+                                                make<syntactic_environment>(bound_variables, compile.free_variables()),
+                                                cddr(identity)),
                             cdr(form)),
-                       local);
+                       bound_variables,
+                       free_variables);
         }
         else if (identity.is<absolute>() and
-                 identity.as<absolute>().load().is<syntax>() and
-                 identity.as<absolute>().load<syntax>().name == "define") // <form> = ((define ...) <definition or expression>*)
+                 cdr(identity).is<syntax>() and
+                 cdr(identity).as<syntax>().name == "define") // <form> = ((define ...) <definition or expression>*)
         {
           if (let const& definition = car(form); cadr(definition).is<pair>()) // <form> = ((define (<variable> . <formals>) <body>) <definition or expression>*)
           {
@@ -382,24 +334,27 @@ inline namespace kernel
                                         cddr(definition))), // <body>
                               binding_specs),
                          cdr(form),
-                         local);
+                         bound_variables,
+                         free_variables);
           }
           else // <form> = ((define <variable> <expression>) <definition or expression>*)
           {
             return sweep(compile,
                          cons(cdr(definition), binding_specs),
                          cdr(form),
-                         local);
+                         bound_variables,
+                         free_variables);
           }
         }
         else if (identity.is<absolute>() and
-                 identity.as<absolute>().load().is<syntax>() and
-                 identity.as<absolute>().load<syntax>().name == "begin")
+                 cdr(identity).is<syntax>() and
+                 cdr(identity).as<syntax>().name == "begin")
         {
           return sweep(compile,
                        binding_specs,
                        append(cdar(form), cdr(form)),
-                       local);
+                       bound_variables,
+                       free_variables);
         }
         else
         {
@@ -450,7 +405,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        if (auto const& [binding_specs, sequence] = sweep(compile, unit, expression, local); binding_specs)
+        if (auto const& [binding_specs, sequence] = sweep(compile, unit, expression, bound_variables, free_variables); binding_specs)
         {
           /*
              (letrec* <binding specs> <sequence>)
@@ -471,21 +426,24 @@ inline namespace kernel
                                    append(map(assignment, binding_specs),
                                           sequence)),
                               make_list(length(binding_specs), unit)),
-                         local,
+                         bound_variables,
+                         free_variables,
                          continuation,
-                         unit);
+                         true);
         }
         else
         {
           return compile(car(sequence),
-                         local,
+                         bound_variables,
+                         free_variables,
                          cdr(sequence).template is<null>() ? continuation
                                                            : cons(make(instruction::drop),
                                                                   body(compile,
                                                                        cdr(sequence),
-                                                                       local,
+                                                                       bound_variables,
+                                                                       free_variables,
                                                                        continuation)),
-                         cdr(sequence));
+                         cdr(sequence).template is<null>());
         }
       }
 
@@ -507,34 +465,40 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        if (ellipsis.is<null>())
+        if (tail)
         {
           assert(lexical_cast<std::string>(continuation) == "(return)");
 
           return compile(car(expression), // <test>
-                         local,
+                         bound_variables,
+                         free_variables,
                          list(make(instruction::tail_select),
                               compile(cadr(expression),
-                                      local,
+                                      bound_variables,
+                                      free_variables,
                                       continuation,
-                                      ellipsis),
+                                      tail),
                               cddr(expression) ? compile(caddr(expression),
-                                                         local,
+                                                         bound_variables,
+                                                         free_variables,
                                                          continuation,
-                                                         ellipsis)
+                                                         tail)
                                                : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
                                                       make(instruction::return_))));
         }
         else
         {
           return compile(car(expression), // <test>
-                         local,
+                         bound_variables,
+                         free_variables,
                          cons(make(instruction::select),
                               compile(cadr(expression),
-                                      local,
+                                      bound_variables,
+                                      free_variables,
                                       list(make(instruction::join))),
                               cddr(expression) ? compile(caddr(expression),
-                                                         local,
+                                                         bound_variables,
+                                                         free_variables,
                                                          list(make(instruction::join)))
                                                : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
                                                       make(instruction::join)),
@@ -556,25 +520,29 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        if (let const& identity = compile.identify(car(expression), local); identity.is<relative>())
+        if (let const& identity = compile.identify(car(expression), bound_variables, free_variables); identity.is<relative>())
         {
           return compile(cadr(expression),
-                         local,
+                         bound_variables,
+                         free_variables,
                          cons(make(instruction::store_relative), identity,
                               continuation));
         }
         else if (identity.is<variadic>())
         {
           return compile(cadr(expression),
-                         local,
+                         bound_variables,
+                         free_variables,
                          cons(make(instruction::store_variadic), identity,
                               continuation));
         }
         else
         {
           assert(identity.is<absolute>());
+
           return compile(cadr(expression),
-                         local,
+                         bound_variables,
+                         free_variables,
                          cons(make(instruction::store_absolute), identity,
                               continuation));
         }
@@ -604,18 +572,20 @@ inline namespace kernel
       {
         return sequence(compile,
                         meevax::include(expression),
-                        local,
+                        bound_variables,
+                        free_variables,
                         continuation,
-                        ellipsis);
+                        tail);
       }
 
       static COMPILER(include_case_insensitive)
       {
         return sequence(compile,
                         meevax::include(expression, false),
-                        local,
+                        bound_variables,
+                        free_variables,
                         continuation,
-                        ellipsis);
+                        tail);
       }
 
       static COMPILER(implementation_dependent) /* -----------------------------
@@ -665,9 +635,10 @@ inline namespace kernel
       {
         return sequence(compile,
                         meevax::implementation_dependent(expression),
-                        local,
+                        bound_variables,
+                        free_variables,
                         continuation,
-                        ellipsis);
+                        tail);
       }
 
       static COMPILER(letrec) /* -----------------------------------------------
@@ -704,19 +675,21 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        assert(not ellipsis.is<null>() or lexical_cast<std::string>(continuation) == "(return)");
+        assert(not tail or lexical_cast<std::string>(continuation) == "(return)");
 
         let const formals = map(car, car(expression));
 
         return cons(make(instruction::dummy),
                     operand(compile,
                             map(cadr, car(expression)),
-                            cons(formals, local),
+                            cons(formals, bound_variables),
+                            free_variables,
                             lambda(compile,
                                    cons(formals, cdr(expression)), // (<formals> <body>)
-                                   local,
-                                   ellipsis.is<null>() ? list(make(instruction::tail_letrec))
-                                                       : cons(make(instruction::letrec), continuation))));
+                                   bound_variables,
+                                   free_variables,
+                                   tail ? list(make(instruction::tail_letrec))
+                                        : cons(make(instruction::letrec), continuation))));
       }
 
       // NOTE: Binding constructs other than letrec are implemented as macros.
@@ -765,20 +738,23 @@ inline namespace kernel
         if (cdr(expression).is<null>()) // is tail sequence
         {
           return compile(car(expression),
-                         local,
+                         bound_variables,
+                         free_variables,
                          continuation,
-                         ellipsis);
+                         tail);
         }
         else if (let const head = compile(car(expression), // Head expression or definition
-                                          local,
+                                          bound_variables,
+                                          free_variables,
                                           unit);
                  head.is<null>()) // The syntax define-syntax creates a transformer from transformer-spec at compile time and registers it in the global environment. The syntax define-syntax is effectively a compile-time side-effect of the syntax environment and does nothing at run-time.
         {
           return sequence(compile,
                           cdr(expression), // rest expressions
-                          local,
+                          bound_variables,
+                          free_variables,
                           continuation,
-                          ellipsis);
+                          tail);
         }
         else
         {
@@ -786,9 +762,10 @@ inline namespace kernel
                         cons(make(instruction::drop), // Pop result of head expression
                              sequence(compile,
                                       cdr(expression), // Rest expression or definitions
-                                      local,
+                                      bound_variables,
+                                      free_variables,
                                       continuation,
-                                      ellipsis)));
+                                      tail)));
         }
       }
 
@@ -828,13 +805,13 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        let const environment = make<syntactic_environment>(local, compile.global());
+        let const environment = make<syntactic_environment>(bound_variables, compile.free_variables());
 
         auto formal = [&](let const& syntax_spec)
         {
           return make<absolute>(car(syntax_spec), // <keyword>
                                 make<transformer>(Environment().execute(compile(cadr(syntax_spec), // <transformer spec>
-                                                                                local)),
+                                                                                bound_variables)),
                                                   environment));
         };
 
@@ -842,7 +819,8 @@ inline namespace kernel
                                  map(formal, car(expression)), // <formals>
                                  cdr(expression)), // <body>
                             unit), // dummy
-                       local,
+                       bound_variables,
+                       free_variables,
                        continuation);
       }
 
@@ -864,25 +842,26 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        let const environment = make<syntactic_environment>(unit, compile.global());
+        let const environment = make<syntactic_environment>(bound_variables, compile.free_variables());
 
         auto formal = [&](let const& syntax_spec)
         {
           return make<absolute>(car(syntax_spec), // <keyword>
                                 make<transformer>(Environment().execute(compile(cadr(syntax_spec), // <transformer spec>
-                                                                                local)),
+                                                                                bound_variables)),
                                                   environment));
         };
 
         let const formals = map(formal, car(expression));
 
-        car(environment) = cons(formals, local);
+        car(environment) = cons(formals, bound_variables);
 
         return compile(cons(cons(rename("lambda"),
                                  formals,
                                  cdr(expression)), // <body>
                             unit), // dummy
-                       local,
+                       bound_variables,
+                       free_variables,
                        continuation);
       }
 
@@ -909,20 +888,22 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        if (local.is<null>())
+        if (bound_variables.is<null>())
         {
           if (car(expression).is<pair>()) // (define (<variable> . <formals>) <body>)
           {
             return compile(cons(rename("lambda"), cdar(expression), cdr(expression)),
-                           local,
-                           cons(make(instruction::store_absolute), compile.identify(caar(expression), local),
+                           bound_variables,
+                           free_variables,
+                           cons(make(instruction::store_absolute), compile.identify(caar(expression), bound_variables, free_variables),
                                 continuation));
           }
           else // (define <variable> <expression>)
           {
             return compile(cdr(expression) ? cadr(expression) : unspecified,
-                           local,
-                           cons(make(instruction::store_absolute), compile.identify(car(expression), local),
+                           bound_variables,
+                           free_variables,
+                           cons(make(instruction::store_absolute), compile.identify(car(expression), bound_variables, free_variables),
                                 continuation));
           }
         }
@@ -965,10 +946,12 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        compile.identify(car(expression), unit)
-               .template as<absolute>()
-               .store(make<transformer>(Environment().execute(compile(cadr(expression), local)),
-                                        make<syntactic_environment>(local, compile.global())));
+        let const identity = compile.identify(car(expression), unit, unit);
+
+        cdr(identity) = make<transformer>(Environment().execute(compile(cadr(expression),
+                                                                        bound_variables)),
+                                          make<syntactic_environment>(bound_variables,
+                                                                      compile.free_variables()));
 
         return cons(make(instruction::load_constant), unspecified,
                     continuation);
@@ -989,9 +972,10 @@ inline namespace kernel
         return cons(make(instruction::load_continuation),
                     continuation,
                     compile(car(expression),
-                            local,
+                            bound_variables,
+                            free_variables,
                             list(make(instruction::tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.
-                            ellipsis));
+                            tail));
       }
 
       static COMPILER(current) /* ----------------------------------------------
@@ -1011,7 +995,8 @@ inline namespace kernel
       * --------------------------------------------------------------------- */
       {
         return compile(cadr(expression),
-                       local,
+                       bound_variables,
+                       free_variables,
                        cons(make(instruction::install), car(expression),
                             continuation));
       }
@@ -1020,9 +1005,10 @@ inline namespace kernel
     };
 
     auto operator ()(object const& expression,
-                     object const& local,
+                     object const& bound_variables = unit, // list of <formals>
+                     object const& free_variables = unit,
                      object const& continuation = list(make(instruction::stop)),
-                     object const& ellipsis = unspecified) -> object
+                     bool tail = false) -> object
     {
       if (expression.is<null>()) /* --------------------------------------------
       *
@@ -1050,17 +1036,40 @@ inline namespace kernel
       {
         if (expression.is<symbol>())
         {
-          return syntax::reference(*this, expression, local, continuation, ellipsis);
+          return syntax::reference(*this, expression, bound_variables, free_variables, continuation, tail);
         }
         else if (expression.is<syntactic_closure>())
         {
-          if (let const& identity = std::as_const(*this).identify(expression, local); is_truthy(identity)) // The syntactic-closure is a variable
+          if (let const& identity = std::as_const(*this).identify(expression, bound_variables, free_variables); is_truthy(identity)) // The syntactic-closure is an alias
           {
-            return syntax::reference(*this, expression, local, continuation, ellipsis);
+            return syntax::reference(*this, expression, bound_variables, free_variables, continuation, tail);
           }
-          else // The syntactic-closure is a syntactic-keyword.
+          else
           {
-            return expression.as<syntactic_closure>().compile(local, continuation);
+            auto extend = [=](let const& free_variables)
+            {
+              let xs = free_variables;
+
+              for (let const& free_variable : cadr(expression))
+              {
+                let const inject = make<procedure>("inject", [=](let const& xs)
+                {
+                  return identify(free_variable,
+                                  unify(bound_variables, xs),
+                                  free_variables);
+                });
+
+                xs = cons(cons(free_variable, inject), xs);
+              }
+
+              return xs;
+            };
+
+            return car(expression).as<syntactic_environment>()
+                                  .compile(cddr(expression),
+                                           unify(caar(expression), bound_variables),
+                                           extend(free_variables),
+                                           continuation);
           }
         }
         else // is <self-evaluating>
@@ -1068,9 +1077,8 @@ inline namespace kernel
           return cons(make(instruction::load_constant), expression, continuation);
         }
       }
-      else if (let const& identity = std::as_const(*this).identify(car(expression), local);
-               identity.is<absolute>() and
-               identity.as<absolute>().load().is<transformer>())
+      else if (let const& identity = std::as_const(*this).identify(car(expression), bound_variables, free_variables);
+               identity.is<absolute>() and cdr(identity).is<transformer>())
       {
         /*
            Scheme programs can define and use new derived expression types,
@@ -1087,45 +1095,54 @@ inline namespace kernel
            rules that specifies how a use of a macro is transcribed into a more
            primitive expression is called the transformer of the macro.
         */
-        assert(car(identity.as<absolute>().load()).is<closure>());
-        assert(cdr(identity.as<absolute>().load()).is<syntactic_environment>());
+        assert(cadr(identity).is<closure>());
+        assert(cddr(identity).is<syntactic_environment>());
 
-        return compile(Environment().apply(car(identity.as<absolute>().load()),
+        return compile(Environment().apply(cadr(identity),
                                            expression,
-                                           make<syntactic_environment>(local, global()),
-                                           cdr(identity.as<absolute>().load())),
-                       local,
+                                           make<syntactic_environment>(bound_variables, this->free_variables()),
+                                           cddr(identity)),
+                       bound_variables,
+                       free_variables,
                        continuation,
-                       ellipsis);
+                       tail);
       }
-      else if (identity.is<absolute>() and
-               identity.as<absolute>().load().is<syntax>())
+      else if (identity.is<absolute>() and cdr(identity).is<syntax>())
       {
-        return identity.as<absolute>().load<syntax>().compile(*this, cdr(expression), local, continuation, ellipsis);
+        return cdr(identity).as<syntax>().compile(*this, cdr(expression), bound_variables, free_variables, continuation, tail);
       }
       else
       {
-        return syntax::call(*this, expression, local, continuation, ellipsis);
+        return syntax::call(*this, expression, bound_variables, free_variables, continuation, tail);
       }
     }
 
     using pair::pair;
 
+    inline auto bound_variables() const noexcept -> object const&
+    {
+      return first;
+    }
+
+    inline auto bound_variables() noexcept -> object &
+    {
+      return first;
+    }
+
     template <typename... Ts>
-    auto compile(Ts&&... xs) -> decltype(auto)
+    inline auto compile(Ts&&... xs) -> decltype(auto)
     {
       return operator ()(std::forward<decltype(xs)>(xs)...);
     }
 
-    auto define(object const& variable, object const& value = undefined) -> void
+    inline auto define(object const& variable, object const& value = undefined) -> void
     {
-      assert(local().template is<null>());
-      assert(identify(variable, unit).template is<absolute>());
-      return identify(variable, unit).template as<absolute>().store(value);
+      assert(identify(variable, unit, unit).template is<absolute>());
+      cdr(identify(variable, unit, unit)) = value;
     }
 
     template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs) -> void
+    inline auto define(std::string const& name, Ts&&... xs) -> void
     {
       if constexpr (std::is_constructible_v<T, std::string const&, Ts...>)
       {
@@ -1137,33 +1154,39 @@ inline namespace kernel
       }
     }
 
-    auto global() const noexcept -> object const&
+    inline auto free_variables() const noexcept -> object const&
     {
       return second;
     }
 
-    auto global() noexcept -> object &
+    inline auto free_variables() noexcept -> object &
     {
       return second;
     }
 
-    auto identify(object const& variable, object const& local) const -> object
+    inline auto identify(object const& variable,
+                         object const& bound_variables,
+                         object const& free_variables) const -> object
     {
       if (not variable.is_also<identifier>())
       {
         return f;
       }
+      else if (let const& x = assq(variable, free_variables); is_truthy(x))
+      {
+        return cdr(x).as<procedure>().call(bound_variables);
+      }
       else
       {
         auto i = identity::index(0);
 
-        for (auto outer = local; outer.is<pair>(); ++i, outer = cdr(outer))
+        for (auto outer = bound_variables; outer.is<pair>(); ++i, outer = cdr(outer))
         {
           auto j = identity::index(0);
 
           for (auto inner = outer.is<pair>() ? car(outer) : unit; not inner.is<null>(); ++j, inner = inner.is<pair>() ? cdr(inner) : unit)
           {
-            if (inner.is<pair>() and car(inner).is<absolute>() and eq(car(inner).as<absolute>().symbol(), variable))
+            if (inner.is<pair>() and car(inner).is<absolute>() and eq(caar(inner), variable))
             {
               return car(inner);
             }
@@ -1180,22 +1203,27 @@ inline namespace kernel
 
         if (variable.is<syntactic_closure>())
         {
-          return variable.as<syntactic_closure>().identify(local);
+          return car(variable).as<syntactic_environment>()
+                              .identify(cddr(variable),
+                                        unify(caar(variable), bound_variables),
+                                        unit);
         }
         else
         {
-          return assq(variable, global());
+          return assq(variable, this->free_variables());
         }
       }
     }
 
-    auto identify(object const& variable, object const& local)
+    inline auto identify(object const& variable,
+                         object const& bound_variables,
+                         object const& free_variables)
     {
       if (not variable.is_also<identifier>())
       {
         return f;
       }
-      else if (let const& identity = std::as_const(*this).identify(variable, local); is_truthy(identity))
+      else if (let const& identity = std::as_const(*this).identify(variable, bound_variables, free_variables); is_truthy(identity))
       {
         return identity;
       }
@@ -1216,18 +1244,81 @@ inline namespace kernel
            whereas it would be an error to perform a set! on an unbound
            variable.
         */
-        return car(global() = cons(make<absolute>(variable, undefined), global()));
+        return car(this->free_variables() = cons(make<absolute>(variable, undefined), this->free_variables()));
       }
     }
 
-    auto local() const noexcept -> object const&
+    static auto rename(std::string const& variable)
     {
-      return first;
+      auto bind = [](auto&& name, auto&& compiler)
+      {
+        return make<absolute>(make_symbol(name), make<syntax>(name, compiler));
+      };
+
+      let static const core_syntactic_environment = make<syntactic_environment>(
+        list(),
+        list(bind("begin"                          , syntax::sequence                      ),
+             bind("call-with-current-continuation!", syntax::call_with_current_continuation),
+             bind("current"                        , syntax::current                       ),
+             bind("define"                         , syntax::define                        ),
+             bind("define-syntax"                  , syntax::define_syntax                 ),
+             bind("if"                             , syntax::conditional                   ),
+             bind("install"                        , syntax::install                       ),
+             bind("lambda"                         , syntax::lambda                        ),
+             bind("let-syntax"                     , syntax::let_syntax                    ),
+             bind("letrec"                         , syntax::letrec                        ),
+             bind("letrec-syntax"                  , syntax::letrec_syntax                 ),
+             bind("quote"                          , syntax::quote                         ),
+             bind("quote-syntax"                   , syntax::quote_syntax                  ),
+             bind("set!"                           , syntax::set                           )));
+
+      return make<syntactic_closure>(core_syntactic_environment, unit, make_symbol(variable));
     }
 
-    auto local() noexcept -> object &
+    static auto unify(object const& a, object const& b) -> object
     {
-      return first;
+      /*
+         Consider the following case where an expression that uses a local
+         macro is given:
+
+           (let ((x 'outer))
+             (let-syntax ((m (sc-macro-transformer
+                               (lambda (form environment)
+                                 'x))))
+               (let ((x 'inner))
+                 (m))))
+
+         Where, the bound variables that the syntactic closure returned by
+         sc-macro-transformer encloses are ((x)), and the bound variables when
+         using the local macro m are ((x) (m) (x)).
+
+         The result of the expansion of local macro m must be a reference to
+         the local variable x that binds the symbol "outer" and not the one
+         that binds the symbol "inner". That is, the operand of the relative
+         loading instruction resulting from the expansion of the local macro m
+         must be de Bruijn index (2 . 0).
+
+         However, since syntactic_environment::identify searches bound
+         variables from inside to outside to create de Bruijn index, it
+         straightforwardly uses bound variables ((x) (m) (x)) when using local
+         macro m would result in index (0 . 0).
+
+         By searching for the common tail of the two bound variables and cons a
+         dummy environment in front of the list to match the length of the
+         longer bound variables, we can create bound variables that lead to an
+         appropriate de Bruijn index. In the example above, this is (() ()
+         (x)).
+      */
+      let xs = longest_common_tail(a, b);
+
+      assert(length(xs) <= std::min(length(a), length(b)));
+
+      for (auto offset = std::max(length(a), length(b)) - length(xs); 0 < offset; --offset)
+      {
+        xs = cons(unit, xs);
+      }
+
+      return xs;
     }
   };
 } // namespace kernel

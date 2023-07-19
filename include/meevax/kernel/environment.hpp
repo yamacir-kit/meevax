@@ -33,19 +33,11 @@ inline namespace kernel
   {
     using syntactic_environment::syntactic_environment;
 
-    template <typename T, typename... Ts>
-    auto declare(Ts&&... xs) -> decltype(auto)
-    {
-      return std::invoke(std::decay_t<T>(std::forward<decltype(xs)>(xs)...), *this);
-    }
-
     auto evaluate(object const&) -> object;
 
+    auto import(object const&) -> void;
+
     auto load(std::string const&) -> void;
-
-    auto operator [](object const&) -> object const&;
-
-    auto operator [](std::string const&) -> object const&;
   };
 
   auto operator <<(std::ostream &, environment const&) -> std::ostream &;

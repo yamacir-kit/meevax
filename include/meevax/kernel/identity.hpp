@@ -28,28 +28,16 @@ inline namespace kernel
     using index = std::uint32_t;
   };
 
-  struct absolute : public identity
-                  , public virtual pair // (<symbol> . <object>)
+  struct absolute : public virtual pair // (<identifier> . <object>)
+                  , public identity
   {
     using pair::pair;
-
-    auto load() const -> object const&;
-
-    template <typename T>
-    auto load() const -> decltype(auto)
-    {
-      return load().as<T>();
-    }
-
-    auto store(object const&) -> void;
-
-    auto symbol() const -> object const&;
   };
 
   auto operator <<(std::ostream &, absolute const&) -> std::ostream &;
 
-  struct relative : public identity
-                  , public virtual pair // de Bruijn index
+  struct relative : public virtual pair // de Bruijn index
+                  , public identity
   {
     using pair::pair;
   };
@@ -59,8 +47,8 @@ inline namespace kernel
     return false; // for free-identifier=?
   }
 
-  struct variadic : public identity
-                  , public virtual pair // de Bruijn index
+  struct variadic : public virtual pair // de Bruijn index
+                  , public identity
   {
     using pair::pair;
   };

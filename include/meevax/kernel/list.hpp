@@ -164,6 +164,8 @@ inline namespace kernel
       return unit;
     }
   }
+
+  auto longest_common_tail(let const&, let const&) -> object const&;
 } // namespace kernel
 } // namespace meevax
 
