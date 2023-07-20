@@ -26,7 +26,7 @@ inline namespace kernel
   constexpr auto success = EXIT_SUCCESS;
   constexpr auto failure = EXIT_FAILURE;
 
-  struct error : public virtual pair
+  struct error : public virtual pair // (<message> . <irritants>)
   {
     using pair::pair;
 

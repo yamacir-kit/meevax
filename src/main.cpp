@@ -14,34 +14,35 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/import_set.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
 
 auto main(int const argc, char const* const* const argv) -> int
 {
   using namespace meevax;
+  using namespace meevax::literals;
 
   return with_exception_handler([&]()
   {
     boot();
 
-    auto&& main = interaction_environment().as<environment>();
+    auto & main = interaction_environment().as<environment>();
 
-    main.declare<import_set>("(scheme base)");
-    main.declare<import_set>("(scheme char)");
-    main.declare<import_set>("(scheme complex)");
-    main.declare<import_set>("(scheme cxr)");
-    main.declare<import_set>("(scheme eval)");
-    main.declare<import_set>("(scheme file)");
-    main.declare<import_set>("(scheme inexact)");
-    main.declare<import_set>("(scheme lazy)");
-    main.declare<import_set>("(scheme load)");
-    main.declare<import_set>("(scheme process-context)");
-    main.declare<import_set>("(scheme read)");
-    main.declare<import_set>("(scheme repl)");
-    main.declare<import_set>("(scheme time)");
-    main.declare<import_set>("(scheme write)");
+    main.import("(scheme base)"_read);
+    main.import("(scheme case-lambda)"_read);
+    main.import("(scheme char)"_read);
+    main.import("(scheme complex)"_read);
+    main.import("(scheme cxr)"_read);
+    main.import("(scheme eval)"_read);
+    main.import("(scheme file)"_read);
+    main.import("(scheme inexact)"_read);
+    main.import("(scheme lazy)"_read);
+    main.import("(scheme load)"_read);
+    main.import("(scheme process-context)"_read);
+    main.import("(scheme read)"_read);
+    main.import("(scheme repl)"_read);
+    main.import("(scheme time)"_read);
+    main.import("(scheme write)"_read);
 
     main.configure(argc, argv);
 

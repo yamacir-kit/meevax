@@ -394,36 +394,31 @@
                       (car xs)
                       (current-output-port))))))
 
-(define-library (scheme lazy)
-  (import (srfi 45))
-  (export delay (rename lazy delay-force) force promise? (rename eager make-promise)))
-
 (define-library (scheme case-lambda)
-  (import (scheme base))
-  (export case-lambda)
-  (begin (define-syntax case-lambda
-           (syntax-rules ()
-             ((case-lambda (params body0 ...) ...)
-              (lambda args
-                (let ((len (length args)))
-                  (letrec-syntax
-                    ((cl (syntax-rules ::: ()
-                           ((cl)
-                            (error "no matching clause"))
-                           ((cl ((p :::) . body) . rest)
-                            (if (= len (length '(p :::)))
-                                (apply (lambda (p :::) . body) args)
-                                (cl . rest)))
-                           ((cl ((p ::: . tail) . body) . rest)
-                            (if (>= len (length '(p :::)))
-                                (apply (lambda (p ::: . tail) . body) args)
-                                (cl . rest))))))
-                    (cl (params body0 ...) ...)))))))))
+  (import (srfi 16))
+  (export case-lambda))
 
-(define-library (scheme inexact)
-  (import (only (meevax inexact) finite? infinite? nan?)
-          (only (scheme r5rs) exp log sin cos tan asin acos atan sqrt))
-  (export finite? infinite? nan? exp log sin cos tan asin acos atan sqrt))
+(define-library (scheme char)
+  (import (only (meevax character) digit-value)
+          (only (scheme r5rs) char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=? char-alphabetic? char-numeric? char-whitespace? char-upper-case? char-lower-case? char-upcase char-downcase string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?)
+          (only (scheme base) define string-map))
+
+  (export char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=? char-alphabetic?
+          char-numeric? char-whitespace? char-upper-case? char-lower-case?
+          digit-value char-upcase char-downcase char-foldcase string-ci=?
+          string-ci<? string-ci>? string-ci<=? string-ci>=? string-upcase
+          string-downcase string-foldcase)
+
+  (begin (define char-foldcase char-downcase)
+
+         (define (string-upcase x)
+           (string-map char-upcase x))
+
+         (define (string-downcase x)
+           (string-map char-downcase x))
+
+         (define (string-foldcase x)
+           (string-map char-foldcase x))))
 
 (define-library (scheme complex)
   (import (meevax complex)
@@ -457,60 +452,6 @@
           cddar caddar cdddar
           cdddr cadddr cddddr))
 
-(define-library (scheme char)
-  (import (only (meevax character) digit-value)
-          (only (scheme r5rs)
-                char-ci=?
-                char-ci<?
-                char-ci>?
-                char-ci<=?
-                char-ci>=?
-                char-alphabetic?
-                char-numeric?
-                char-whitespace?
-                char-upper-case?
-                char-lower-case?
-                char-upcase
-                char-downcase
-                string-ci=?
-                string-ci<?
-                string-ci>?
-                string-ci<=?
-                string-ci>=?)
-          (only (scheme base) define string-map))
-
-  (export char-ci=?
-          char-ci<?
-          char-ci>?
-          char-ci<=?
-          char-ci>=?
-          char-alphabetic?
-          char-numeric?
-          char-whitespace?
-          char-upper-case?
-          char-lower-case?
-          digit-value
-          char-upcase
-          char-downcase
-          (rename char-downcase char-foldcase)
-          string-ci=?
-          string-ci<?
-          string-ci>?
-          string-ci<=?
-          string-ci>=?
-          string-upcase
-          string-downcase
-          string-foldcase)
-
-  (begin (define (string-upcase x)
-           (string-map char-upcase x))
-
-         (define (string-downcase x)
-           (string-map char-downcase x))
-
-         (define (string-foldcase x)
-           (string-map char-foldcase x))))
-
 (define-library (scheme eval)
   (import (only (meevax environment) environment eval))
   (export environment eval))
@@ -535,47 +476,14 @@
              (thunk)
              (close-output-port (current-output-port))))))
 
-(define-library (scheme read)
-  (import (prefix (meevax read) %)
-          (scheme base))
-  (export read)
-  (begin (define (read . x)
-           (%read (if (pair? x)
-                      (car x)
-                      (current-input-port))))))
+(define-library (scheme inexact)
+  (import (only (meevax inexact) finite? infinite? nan?)
+          (only (scheme r5rs) exp log sin cos tan asin acos atan sqrt))
+  (export finite? infinite? nan? exp log sin cos tan asin acos atan sqrt))
 
-(define-library (scheme repl)
-  (import (only (meevax environment) interaction-environment))
-  (export interaction-environment))
-
-(define-library (scheme write)
-  (import (prefix (meevax write) %)
-          (scheme base)
-          (srfi 38))
-
-  (begin (define (write x . port)
-           (%write x (if (pair? port)
-                         (car port)
-                         (current-output-port))))
-
-         (define (write-shared x . port)
-           (write-with-shared-structure x (if (pair? port)
-                                              (car port)
-                                              (current-output-port))))
-
-         (define (write-simple x . port)
-           (%write-simple x (if (pair? port)
-                                (car port)
-                                (current-output-port))))
-
-         (define (display x . xs)
-           (cond ((char? x)
-                  (apply write-char x xs))
-                 ((string? x)
-                  (apply write-string x xs))
-                 (else (apply write x xs)))))
-
-  (export write write-shared write-simple display))
+(define-library (scheme lazy)
+  (import (srfi 45))
+  (export delay (rename lazy delay-force) force promise? (rename eager make-promise)))
 
 (define-library (scheme load)
   (import (only (scheme r5rs) load))
@@ -591,6 +499,19 @@
           get-environment-variable
           get-environment-variables))
 
+(define-library (scheme read)
+  (import (prefix (meevax read) %)
+          (only (scheme base) define if pair? car current-input-port))
+  (export read)
+  (begin (define (read . xs)
+           (%read (if (pair? xs)
+                      (car xs)
+                      (current-input-port))))))
+
+(define-library (scheme repl)
+  (import (only (meevax environment) interaction-environment))
+  (export interaction-environment))
+
 (define-library (scheme time)
   (import (only (meevax time) current-jiffy jiffies-per-second)
           (only (scheme base) / define inexact))
@@ -598,3 +519,32 @@
   (begin (define (current-second)
            (inexact (/ (current-jiffy)
                        (jiffies-per-second))))))
+
+(define-library (scheme write)
+  (import (prefix (meevax write) %)
+          (scheme base)
+          (only (srfi 38) write-with-shared-structure))
+
+  (export write write-shared write-simple display)
+
+  (begin (define (write x . xs)
+           (%write x (if (pair? xs)
+                         (car xs)
+                         (current-output-port))))
+
+         (define (write-shared x . xs)
+           (write-with-shared-structure x (if (pair? xs)
+                                              (car xs)
+                                              (current-output-port))))
+
+         (define (write-simple x . xs)
+           (%write-simple x (if (pair? xs)
+                                (car xs)
+                                (current-output-port))))
+
+         (define (display x . xs)
+           (cond ((char? x)
+                  (apply write-char x xs))
+                 ((string? x)
+                  (apply write-string x xs))
+                 (else (apply write x xs))))))

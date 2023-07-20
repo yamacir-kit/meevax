@@ -16,79 +16,21 @@
 
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identity.hpp>
-#include <meevax/kernel/list.hpp>
-#include <meevax/kernel/symbol.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto absolute::load() const -> object const&
-  {
-    if (second.is<absolute>()) // Only the (export (rename ...)) form makes an identity whose value is identity.
-    {
-      assert(second.is<absolute>());
-      return second.as<absolute>().load();
-    }
-    else
-    {
-      return second;
-    }
-  }
-
-  auto absolute::store(object const& x) -> void
-  {
-    second = x;
-  }
-
-  auto absolute::symbol() const -> object const&
-  {
-    assert(first.is_also<identifier>());
-    return first;
-  }
-
   auto operator <<(std::ostream & os, absolute const& datum) -> std::ostream &
   {
-    if (datum.load() == undefined)
+    if (datum.second == undefined)
     {
-      return os << faint(datum.symbol());
+      return os << faint(datum.first);
     }
     else
     {
-      return os << blue(datum.symbol());
+      return os << blue(datum.first);
     }
-  }
-
-  auto relative::load(object const& e) const -> object const&
-  {
-    assert(first.is<index>());
-    assert(first.as<index>() < length(e));
-    assert(second.is<index>());
-    return head(head(e, first.as<index>()), second.as<index>());
-  }
-
-  auto relative::store(object const& x, object & e) const -> void
-  {
-    assert(first.is<index>());
-    assert(first.as<index>() < length(e));
-    assert(second.is<index>());
-    head(head(e, first.as<index>()), second.as<index>()) = x;
-  }
-
-  auto variadic::load(object const& e) const -> object const&
-  {
-    assert(first.is<index>());
-    assert(first.as<index>() < length(e));
-    assert(second.is<index>());
-    return tail(head(e, first.as<index>()), second.as<index>());
-  }
-
-  auto variadic::store(object const& x, object & e) const -> void
-  {
-    assert(first.is<index>());
-    assert(first.as<index>() < length(e));
-    assert(second.is<index>());
-    tail(head(e, first.as<index>()), second.as<index>()) = x;
   }
 } // namespace kernel
 } // namespace meevax

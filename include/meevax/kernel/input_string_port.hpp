@@ -47,6 +47,11 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, input_string_port const&) -> std::ostream &;
+
+namespace literals
+{
+  auto operator ""_read(char const*, std::size_t) -> object;
+} // namespace literals
 } // namespace kernel
 } // namespace meevax
 

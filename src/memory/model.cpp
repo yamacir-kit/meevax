@@ -14,28 +14,41 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_IMPORT_SET_HPP
-#define INCLUDED_MEEVAX_KERNEL_IMPORT_SET_HPP
+#include <cstring>
+#include <stdexcept>
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/memory/model.hpp>
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace memory
 {
-  struct environment;
-
-  struct import_set
+  auto model::name() -> char const*
   {
-    let const identities;
-
-    explicit import_set(object const&);
-
-    explicit import_set(std::string const&);
-
-    auto operator ()(environment &) const -> void;
-  };
-} // namespace kernel
+    if (std::strcmp(value, lp32) == 0)
+    {
+      return "lp32";
+    }
+    else if (std::strcmp(value, ilp32) == 0)
+    {
+      return "ilp32";
+    }
+    else if (std::strcmp(value, llp64) == 0)
+    {
+      return "llp64";
+    }
+    else if (std::strcmp(value, lp64) == 0)
+    {
+      return "lp64";
+    }
+    else if (std::strcmp(value, ilp64) == 0)
+    {
+      return "ilp64";
+    }
+    else
+    {
+      throw std::logic_error("unknown C data model");
+    }
+  }
+} // namespace memory
 } // namespace meevax
-
-#endif // INCLUDED_MEEVAX_KERNEL_IMPORT_SET_HPP

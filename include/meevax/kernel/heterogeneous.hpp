@@ -130,7 +130,11 @@ inline namespace kernel
     template <typename U>
     inline auto as() const -> decltype(auto)
     {
-      if constexpr (std::is_class_v<std::decay_t<U>>)
+      if constexpr (std::is_same_v<std::decay_t<U>, Top>)
+      {
+        return Pointer<Top, Ts...>::operator *();
+      }
+      else if constexpr (std::is_class_v<std::decay_t<U>>)
       {
         if (auto data = dynamic_cast<std::add_pointer_t<std::decay_t<U>>>(get()); data)
         {

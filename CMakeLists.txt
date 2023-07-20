@@ -17,8 +17,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 string(JOIN " " AGGRESSIVE_OPTIMIZATION_OPTIONS
-  # "-fdata-sections"
-  # "-ffunction-sections"
   # "-flto" # This optimization causes a SEGV when compiling with Clang 10.
   # "-fmerge-all-constants" # This optimization is very effective in reducing binary size, but non-standard to the C++ standard.
   # "-march=native" # This optimization causes "Illegal instruction" error (is Valgrind's bug) on CI.
@@ -49,9 +47,11 @@ else()
   set(${PROJECT_NAME}_BYTE_ORDER "little-endian")
 endif()
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt ${CMAKE_CURRENT_BINARY_DIR}/help.txt)
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt ${PROJECT_NAME}_HELP_UNCONFIGURED)
 
-file(READ ${CMAKE_CURRENT_BINARY_DIR}/help.txt ${PROJECT_NAME}_HELP_TEXT)
+string(CONFIGURE ${${PROJECT_NAME}_HELP_UNCONFIGURED} ${PROJECT_NAME}_HELP)
+
+string(TOLOWER ${CMAKE_SYSTEM_NAME} ${PROJECT_NAME}_SYSTEM_NAME)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
@@ -132,14 +132,13 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
 
 # ---- Target package ----------------------------------------------------------
 
+set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Tatsuya Yamasaki")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 set(CPACK_GENERATOR DEB)
 set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
 set(CPACK_RESOURCE_FILE_README  ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 set(CPACK_THREADS 0)
-
-set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Tatsuya Yamasaki")
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
 include(CPack)
 

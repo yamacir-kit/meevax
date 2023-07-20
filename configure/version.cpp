@@ -15,6 +15,7 @@
 */
 
 #include <meevax/kernel/version.hpp>
+#include <meevax/memory/model.hpp>
 
 namespace meevax
 {
@@ -22,7 +23,7 @@ inline namespace kernel
 {
   auto help() noexcept -> std::string_view
   {
-    return R"(${${PROJECT_NAME}_HELP_TEXT})";
+    return R"(${${PROJECT_NAME}_HELP})";
   }
 
   auto features() -> object const&
@@ -32,15 +33,15 @@ inline namespace kernel
       make_symbol("exact-closed"),
       make_symbol("exact-complex"),
       make_symbol("ieee-float"),
+      make_symbol("full-unicode"),
       make_symbol("ratios"),
       make_symbol("posix"),
-      make_symbol("${CMAKE_SYSTEM_NAME}"),
+      make_symbol("${${PROJECT_NAME}_SYSTEM_NAME}"),
       make_symbol("${CMAKE_SYSTEM_PROCESSOR}"),
-      // TODO C memory model flags.
+      make_symbol(memory::model::name()),
       make_symbol("${${PROJECT_NAME}_BYTE_ORDER}"),
-      make_symbol("${PROJECT_NAME}"), // The name of this implementation.
-      make_symbol("${PROJECT_NAME}-${PROJECT_VERSION}") // The name and version of this implementation.
-      );
+      make_symbol("${PROJECT_NAME}"),
+      make_symbol("${PROJECT_NAME}-${PROJECT_VERSION}"));
 
     return features;
   }

@@ -69,13 +69,13 @@ inline namespace memory
     auto is_root_object = [begin = std::begin(headers)](registration * given)
     {
       /*
-         If the given `registration` is a non-root object, then an object
-         containing this `registration` as a data member exists somewhere in
+         If the given registration is a non-root object, then an object
+         containing this registration as a data member exists somewhere in
          memory.
 
-         Containing the `registration` as a data member means that the address
-         of the `registration` is contained in the interval of the object's
-         base-address ~ base-address + object-size. The `header` is present to
+         Containing the registration as a data member means that the address of
+         the registration is contained in the interval of the object's
+         base-address ~ base-address + object-size. The header is present to
          keep track of the base-address and size of the object needed here.
       */
       auto iter = headers.lower_bound(reinterpret_cast<header *>(given));

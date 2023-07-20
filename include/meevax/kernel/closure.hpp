@@ -26,10 +26,6 @@ inline namespace kernel
   struct closure : public virtual pair
   {
     using pair::pair;
-
-    auto c() const -> object const&;
-
-    auto e() const -> object const&;
   };
 
   auto operator <<(std::ostream &, closure const&) -> std::ostream &;

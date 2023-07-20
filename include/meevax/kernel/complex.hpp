@@ -25,7 +25,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct complex : public virtual pair
+  struct complex : public virtual pair // (<real> . <imaginary>)
   {
     using pair::pair;
 

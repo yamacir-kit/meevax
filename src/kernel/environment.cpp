@@ -14,10 +14,7 @@
    limitations under the License.
 */
 
-#include <fstream>
-
 #include <meevax/kernel/environment.hpp>
-#include <meevax/kernel/import_set.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/library.hpp>
 
@@ -29,7 +26,7 @@ inline namespace kernel
   {
     auto is = [&](auto name)
     {
-      return expression.is<pair>() and expression[0].is<symbol>() and expression[0].as<symbol>() == name;
+      return expression.is<pair>() and car(expression).is<symbol>() and car(expression).as<symbol>() == name;
     };
 
     if (is("define-library"))
@@ -39,9 +36,9 @@ inline namespace kernel
     }
     else if (is("import"))
     {
-      for (let const& form : cdr(expression))
+      for (let const& import_set : cdr(expression))
       {
-        declare<import_set>(form);
+        import(import_set);
       }
 
       return unspecified;
@@ -82,7 +79,7 @@ inline namespace kernel
                  std::exchange(c, unit), d);
       }
 
-      let const result = execute(optimize(compile(expression, local())));
+      let const result = execute(optimize(compile(expression)));
 
       if (d)
       {
@@ -108,6 +105,136 @@ inline namespace kernel
     }
   }
 
+  auto resolve(object const& form) -> object
+  {
+    if (form[0].as<symbol>() == "only") /* -------------------------------------
+    *
+    *  <declaration> = (only <import set> <identifier> ...)
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      auto only = [](let const& import_set)
+      {
+        return [=](let const& identities)
+        {
+          return filter([&](let const& identity)
+                        {
+                          assert(identity.is<absolute>());
+                          return is_truthy(memq(car(identity), identities));
+                        },
+                        resolve(import_set));
+        };
+      };
+
+      return only(cadr(form))
+                 (cddr(form));
+    }
+    else if (form[0].as<symbol>() == "except") /* ------------------------------
+    *
+    *  <declaration> = (except <import set> <identifier> ...)
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      auto except = [](let const& import_set)
+      {
+        return [=](let const& identities)
+        {
+          return filter([&](let const& identity)
+                        {
+                          assert(identity.is<absolute>());
+                          return not is_truthy(memq(car(identity), identities));
+                        },
+                        resolve(import_set));
+        };
+      };
+
+      return except(cadr(form))
+                   (cddr(form));
+    }
+    else if (form[0].as<symbol>() == "prefix") /* ------------------------------
+    *
+    *  <declaration> = (prefix <import set> <identifier>)
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      auto prefix = [](let const& import_set)
+      {
+        return [=](let const& prefixes)
+        {
+          return map([&](let const& identity)
+                     {
+                       assert(identity.is<absolute>());
+                       return make<absolute>(make_symbol(lexical_cast<std::string>(car(prefixes)) + lexical_cast<std::string>(car(identity))),
+                                             cdr(identity));
+                     },
+                     resolve(import_set));
+        };
+      };
+
+      return prefix(cadr(form))
+                   (cddr(form));
+    }
+    else if (form[0].as<symbol>() == "rename") /* ------------------------------
+    *
+    *  <declaration> = (rename <import set>
+    *                          (<identifier 1> <identifier 2>) ...)
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      auto rename = [](let const& import_set)
+      {
+        return [=](let const& renamings)
+        {
+          return map([&](let const& identity)
+                     {
+                       assert(identity.is<absolute>());
+                       assert(car(identity).is_also<identifier>());
+
+                       if (let const& renaming = assq(car(identity), renamings); is_truthy(renaming))
+                       {
+                         assert(cadr(renaming).is<symbol>());
+                         return make<absolute>(cadr(renaming), cdr(identity));
+                       }
+                       else
+                       {
+                         return identity;
+                       }
+                     },
+                     resolve(import_set));
+        };
+      };
+
+      return rename(cadr(form))
+                   (cddr(form));
+    }
+    else if (auto iter = libraries().find(lexical_cast<std::string>(form)); iter != std::end(libraries()))
+    {
+      return std::get<1>(*iter).resolve();
+    }
+    else
+    {
+      throw error(make<string>("No such library"), form);
+    }
+  }
+
+  auto environment::import(object const& import_set) -> void
+  {
+    for (let const& identity : resolve(import_set))
+    {
+      assert(identity.is<absolute>());
+
+      if (not is_truthy(std::as_const(*this).identify(car(identity), unit, unit)) or interactive)
+      {
+        define(car(identity),
+               cdr(identity));
+      }
+      else
+      {
+        throw error(make<string>("in a program or library declaration, it is an error to import the same identifier more than once with different bindings"), identity);
+      }
+    }
+  }
+
   auto environment::load(std::string const& s) -> void
   {
     if (auto input = input_file_port(s); input.is_open() and input.get_ready())
@@ -122,19 +249,6 @@ inline namespace kernel
       throw file_error(make<string>("failed to open file"),
                        make<string>(s));
     }
-  }
-
-  auto environment::operator [](object const& variable) -> object const&
-  {
-    assert(local().is<null>());
-    assert(e.is<null>());
-    assert(identify(variable, unit).is<absolute>());
-    return identify(variable, unit).as<absolute>().load();
-  }
-
-  auto environment::operator [](std::string const& variable) -> object const&
-  {
-    return (*this)[make_symbol(variable)];
   }
 
   auto operator <<(std::ostream & os, environment const& datum) -> std::ostream &

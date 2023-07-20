@@ -368,8 +368,79 @@
                (let ((x 'inner-3))
                  (m)))))) => 'outer)
 
+(check ((lambda xs
+          (letrec-syntax ((m (syntax-rules ()
+                               ((m) xs))))
+            (let ((x 'inner))
+              (m))))
+        'outer)
+  => '(outer))
+
+(check ((lambda xs
+          (let ((x 'x))
+            (letrec-syntax ((m (syntax-rules ()
+                                 ((m) xs))))
+              (let ((x 'inner))
+                (m)))))
+        'outer)
+  => '(outer))
+
+; ------------------------------------------------------------------------------
+
+(define f
+  (lambda xs
+    (letrec-syntax ((m (syntax-rules ()
+                         ((m) xs))))
+      (m))))
+
+(check (f 1 2 3) => '(1 2 3))
+
+(define-syntax macro
+  (syntax-rules ()
+    ((macro)
+     (lambda xs
+       (letrec-syntax ((inner-macro (syntax-rules ()
+                                      ((inner-macro) xs))))
+         (inner-macro))))))
+
+(check ((macro) 1 2 3) => '(1 2 3))
+
+; ------------------------------------------------------------------------------
+
+(define-syntax aif
+  (sc-macro-transformer
+    (lambda (form at-use)
+      (let ((test (make-syntactic-closure at-use '() (cadr form)))
+            (consequent (make-syntactic-closure at-use '(it) (caddr form)))
+            (alternative (if (null? (cdddr form))
+                             (if #f #f)
+                             (make-syntactic-closure at-use '() (cadddr form)))))
+        `(let ((it ,test))
+           (if it ,consequent ,alternative))))))
+
+(check (aif (memq 'b '(a b c))
+            (car it))
+  => 'b)
+
+(check (aif (memq 'b '(a b c))
+            (let ((it 'inner))
+              (car it)))
+  => 'b)
+
+(check (aif (memq 'b '(a b c))
+            (let ((it 'inner-1))
+              (let ((it 'inner-0))
+                (car it))))
+  => 'b)
+
+(check (let ((it 'outer))
+         (aif (memq 'b '(a b c))
+              (let ((it 'inner))
+                (car it))))
+  => 'b)
+
 ; ------------------------------------------------------------------------------
 
 (check-report)
 
-(exit (check-passed? 44))
+(exit (check-passed? 52))

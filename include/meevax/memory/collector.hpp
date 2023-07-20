@@ -41,7 +41,10 @@ inline namespace memory
     {
       friend class collector;
 
+    protected:
       memory::header * header = nullptr;
+
+      explicit constexpr registration() = default;
 
       explicit registration(memory::header * header) noexcept
         : header { header }
@@ -52,7 +55,15 @@ inline namespace memory
         }
       }
 
-      auto reset(memory::header * after) noexcept -> void
+      ~registration() noexcept
+      {
+        if (header)
+        {
+          registry.erase(this);
+        }
+      }
+
+      auto reset(memory::header * after = nullptr) noexcept -> void
       {
         if (auto before = std::exchange(header, after); not before and after)
         {
@@ -66,9 +77,11 @@ inline namespace memory
 
       static auto locate(void * const data) noexcept -> memory::header *
       {
-        assert(data);
-
-        if (cache->contains(data)) // Heuristic-based optimization.
+        if (not data)
+        {
+          return nullptr;
+        }
+        else if (cache->contains(data)) // Heuristic-based optimization.
         {
           return cache;
         }
@@ -80,42 +93,6 @@ inline namespace memory
         {
           return nullptr;
         }
-      }
-
-    protected:
-      explicit constexpr registration() = default;
-
-      explicit registration(registration const& other) noexcept
-        : registration { other.header }
-      {}
-
-      template <typename Pointer>
-      explicit registration(Pointer const p) noexcept
-        : registration { p ? locate(p) : nullptr }
-      {}
-
-      ~registration() noexcept
-      {
-        if (header)
-        {
-          registry.erase(this);
-        }
-      }
-
-      auto reset() noexcept
-      {
-        reset(nullptr);
-      }
-
-      template <typename Pointer>
-      auto reset(Pointer const p) noexcept -> void
-      {
-        reset(p != nullptr ? locate(p) : nullptr);
-      }
-
-      auto reset(registration const& other) noexcept -> void
-      {
-        reset(other.header);
       }
     };
 

@@ -14,26 +14,28 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_EXPORT_SPEC_HPP
-#define INCLUDED_MEEVAX_KERNEL_EXPORT_SPEC_HPP
-
-#include <meevax/kernel/pair.hpp>
+#ifndef INCLUDED_MEEVAX_MEMORY_MODEL_HPP
+#define INCLUDED_MEEVAX_MEMORY_MODEL_HPP
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace memory
 {
-  struct library;
-
-  struct export_spec
+  struct model
   {
-    let const form;
+    static constexpr char  lp32[] { 1, 2, 2, 4, 4, 0 };
+    static constexpr char ilp32[] { 1, 2, 4, 4, 4, 0 };
+    static constexpr char llp64[] { 1, 2, 4, 4, 8, 0 };
+    static constexpr char  lp64[] { 1, 2, 4, 8, 8, 0 };
+    static constexpr char ilp64[] { 1, 2, 8, 8, 8, 0 };
 
-    explicit export_spec(object const&);
+    static constexpr char value[] {
+      sizeof(char), sizeof(short), sizeof(int), sizeof(long), sizeof(void *), 0
+    };
 
-    auto operator ()(library &) const -> void;
+    static auto name() -> char const*;
   };
-} // namespace kernel
+} // namespace memory
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_EXPORT_SPEC_HPP
+#endif // INCLUDED_MEEVAX_MEMORY_MODEL_HPP

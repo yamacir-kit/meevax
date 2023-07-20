@@ -35,6 +35,7 @@ inline namespace kernel
       R"##(${${PROJECT_NAME}_BASIS_srfi-8.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_srfi-9.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_srfi-11.ss})##",
+      R"##(${${PROJECT_NAME}_BASIS_srfi-16.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_srfi-23.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_srfi-31.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_srfi-34.ss})##",
@@ -46,5 +47,5 @@ inline namespace kernel
       R"##(${${PROJECT_NAME}_BASIS_srfi-149.ss})##",
     };
   }
-}
-}
+} // namespace kernel
+} // namespace meevax

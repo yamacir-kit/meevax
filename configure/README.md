@@ -1,33 +1,7 @@
 <p align="center">
-  <img src="https://github.com/yamacir-kit/meevax/wiki/svg/meevax-logo.v8.png" alt="Meevax Lisp System"/>
+  <img src="https://github.com/yamacir-kit/meevax/wiki/svg/meevax-logo.v9.png" alt="Meevax Lisp System"/>
   <br/>
   <img src="https://github.com/yamacir-kit/meevax/wiki/svg/description.png" alt="A programmable programming lanugage."/>
-</p>
-<hr/>
-<p align="center">
-  <img src="https://github.com/yamacir-kit/meevax/actions/workflows/build.yaml/badge.svg"/>
-  <img src="https://github.com/yamacir-kit/meevax/actions/workflows/release.yaml/badge.svg"/>
-</p>
-<p align="center">
-  <b>
-    <a href="#Overview">Overview</a>
-  </b>
-  &nbsp;|&nbsp;
-  <b>
-    <a href="#Installation">Installation</a>
-  </b>
-  &nbsp;|&nbsp;
-  <b>
-    <a href="#Usage">Usage</a>
-  </b>
-  &nbsp;|&nbsp;
-  <b>
-    <a href="#License">License</a>
-  </b>
-  &nbsp;|&nbsp;
-  <b>
-    <a href="#References">References</a>
-  </b>
 </p>
 
 ## Overview
@@ -40,6 +14,9 @@ Meevax is an implementation of Lisp-1 programming language, supporting subset of
 ### Releases
 
 Latest release is [here](https://github.com/yamacir-kit/meevax/releases).
+
+<img src="https://github.com/yamacir-kit/meevax/actions/workflows/build.yaml/badge.svg"/>
+<img src="https://github.com/yamacir-kit/meevax/actions/workflows/release.yaml/badge.svg"/>
 
 ### Features
 
@@ -56,12 +33,13 @@ Subset of R7RS-small.
 |--------------------------------------------------------:|:-------------------------------------------------------|:------------------------------------|:------------------|
 | [  0](https://srfi.schemers.org/srfi-0/srfi-0.html)     | Feature-based conditional expansion construct          | [`(srfi 0)`](./basis/srfi-0.ss)     | R7RS 4.2.1        |
 | [  1](https://srfi.schemers.org/srfi-1/srfi-1.html)     | List Library                                           | [`(srfi 1)`](./basis/srfi-1.ss)     |                   |
-| [  6](https://srfi.schemers.org/srfi-6/srfi-6.html)     | Basic String Ports                                     | [`(srfi 6)`](./basis/srfi-6.ss)     | R7RS 6.13         |
 | [  4](https://srfi.schemers.org/srfi-4/srfi-4.html)     | Homogeneous numeric vector datatypes                   | [`(srfi 4)`](./basis/srfi-4.ss)     | R7RS 6.9          |
+| [  6](https://srfi.schemers.org/srfi-6/srfi-6.html)     | Basic String Ports                                     | [`(srfi 6)`](./basis/srfi-6.ss)     | R7RS 6.13         |
 | [  8](https://srfi.schemers.org/srfi-8/srfi-8.html)     | receive: Binding to multiple values                    | [`(srfi 8)`](./basis/srfi-8.ss)     |                   |
 | [  9](https://srfi.schemers.org/srfi-9/srfi-9.html)     | Defining Record Types                                  | [`(srfi 9)`](./basis/srfi-9.ss)     | R7RS 5.5          |
 | [ 10](https://srfi.schemers.org/srfi-10/srfi-10.html)   | #, external form                                       |                                     |                   |
 | [ 11](https://srfi.schemers.org/srfi-11/srfi-11.html)   | Syntax for receiving multiple values                   | [`(srfi 11)`](./basis/srfi-11.ss)   | R7RS 4.2.2        |
+| [ 16](https://srfi.schemers.org/srfi-16/srfi-16.html)   | Syntax for procedures of variable arity                | [`(srfi 16)`](./basis/srfi-16.ss)   | R7RS 4.2.9        |
 | [ 23](https://srfi.schemers.org/srfi-23/srfi-23.html)   | Error reporting mechanism                              | [`(srfi 23)`](./basis/srfi-23.ss)   | R7RS 6.11         |
 | [ 30](https://srfi.schemers.org/srfi-30/srfi-30.html)   | Nested Multi-line Comments                             |                                     | R7RS 2.2          |
 | [ 31](https://srfi.schemers.org/srfi-31/srfi-31.html)   | A special form rec for recursive evaluation            | [`(srfi 31)`](./basis/srfi-31.ss)   |                   |
@@ -131,7 +109,7 @@ sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 ## Usage
 
 ```
-${${PROJECT_NAME}_HELP_TEXT}
+${${PROJECT_NAME}_HELP}
 ```
 
 ## License

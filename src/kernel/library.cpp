@@ -22,7 +22,6 @@
 #include <meevax/kernel/binary_input_file_port.hpp>
 #include <meevax/kernel/binary_output_file_port.hpp>
 #include <meevax/kernel/disassemble.hpp>
-#include <meevax/kernel/import_set.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
 #include <meevax/kernel/library.hpp>
@@ -46,15 +45,12 @@ inline namespace kernel
   {
     auto is = [&](auto name)
     {
-      return declaration.is<pair>() and declaration[0].is<symbol>() and declaration[0].as<symbol>() == name;
+      return declaration.is<pair>() and car(declaration).is<symbol>() and car(declaration).as<symbol>() == name;
     };
 
     if (is("export"))
     {
-      for (let const& form : cdr(declaration))
-      {
-        declare<export_spec>(form);
-      }
+      export_specs = append(cdr(declaration), export_specs);
     }
     else if (is("begin"))
     {
@@ -83,24 +79,39 @@ inline namespace kernel
     }
   }
 
-  auto library::resolve() -> object const&
+  auto library::resolve() -> object
   {
-    if (not declarations.is<null>())
+    if (let const unresolved_declarations = std::exchange(declarations, unit); unresolved_declarations.is<pair>())
     {
-      for (let const& declaration : declarations)
+      for (let const& unresolved_declaration : unresolved_declarations)
       {
-        evaluate(declaration);
+        evaluate(unresolved_declaration);
       }
-
-      declarations = unit;
     }
 
-    return subset;
+    return map([this](let const& export_spec)
+               {
+                 if (export_spec.is<pair>())
+                 {
+                   assert(car(export_spec).is<symbol>());
+                   assert(car(export_spec).as<symbol>() == "rename");
+                   assert(cadr(export_spec).is_also<identifier>());
+                   assert(caddr(export_spec).is_also<identifier>());
+                   return make<absolute>(caddr(export_spec),
+                                         cdr(identify(cadr(export_spec), unit, unit)));
+                 }
+                 else
+                 {
+                   assert(export_spec.is_also<identifier>());
+                   return identify(export_spec, unit, unit);
+                 }
+               },
+               export_specs);
   }
 
   auto operator <<(std::ostream & os, library const& library) -> std::ostream &
   {
-    return os << library.global();
+    return os << library.free_variables();
   }
 
   auto libraries() -> std::map<std::string, library> &
@@ -148,12 +159,12 @@ inline namespace kernel
 
       library.define<procedure>("real-part", [](let const& xs)
       {
-        return xs[0].as<complex>().real();
+        return car(xs[0]);
       });
 
       library.define<procedure>("imag-part", [](let const& xs)
       {
-        return xs[0].as<complex>().imag();
+        return cdr(xs[0]);
       });
     });
 
@@ -228,14 +239,14 @@ inline namespace kernel
     {
       library.define<procedure>("environment", [](let const& xs)
       {
-        let const e = make<environment>();
+        auto e = environment();
 
         for (let const& x : xs)
         {
-          e.as<environment>().declare<import_set>(x);
+          e.import(x);
         }
 
-        return e;
+        return make(e);
       });
 
       library.define<procedure>("eval", [](let const& xs)
@@ -465,21 +476,6 @@ inline namespace kernel
       });
     });
 
-    define<library>("(meevax library)", [](library & library)
-    {
-      library.define<procedure>("libraries", [](let const&)
-      {
-        let xs = unit;
-
-        for (auto&& [name, library] : libraries())
-        {
-          xs = cons(input_string_port(name).read(), xs);
-        }
-
-        return xs;
-      });
-    });
-
     define<library>("(meevax list)", [](library & library)
     {
       library.define<procedure>("null?", [](let const& xs)
@@ -525,31 +521,6 @@ inline namespace kernel
       library.define<procedure>("assq", [](let const& xs)
       {
         return assq(xs[0], xs[1]);
-      });
-    });
-
-    define<library>("(meevax macro)", [](library & library)
-    {
-      using syntactic_closure = environment::syntactic_closure;
-
-      library.define<procedure>("identifier?", [](let const& xs)
-      {
-        return xs[0].is_also<identifier>();
-      });
-
-      library.define<procedure>("transformer?", [](let const& xs)
-      {
-        return xs[0].is<transformer>();
-      });
-
-      library.define<procedure>("syntactic-closure?", [](let const& xs)
-      {
-        return xs[0].is<syntactic_closure>();
-      });
-
-      library.define<procedure>("make-syntactic-closure", [](let const& xs)
-      {
-        return make<syntactic_closure>(xs[0], xs[1], xs[2]);
       });
     });
 
@@ -1178,12 +1149,37 @@ inline namespace kernel
       {
         if (let const& x = xs[0]; x.is<syntactic_closure>())
         {
-          return x.as<syntactic_closure>().expression;
+          return cddr(x);
         }
         else
         {
           return x;
         }
+      });
+    });
+
+    define<library>("(meevax syntactic-closure)", [](library & library)
+    {
+      using syntactic_closure = environment::syntactic_closure;
+
+      library.define<procedure>("identifier?", [](let const& xs)
+      {
+        return xs[0].is_also<identifier>();
+      });
+
+      library.define<procedure>("transformer?", [](let const& xs)
+      {
+        return xs[0].is<transformer>();
+      });
+
+      library.define<procedure>("syntactic-closure?", [](let const& xs)
+      {
+        return xs[0].is<syntactic_closure>();
+      });
+
+      library.define<procedure>("make-syntactic-closure", [](let const& xs)
+      {
+        return make<syntactic_closure>(xs[0], xs[1], xs[2]);
       });
     });
 

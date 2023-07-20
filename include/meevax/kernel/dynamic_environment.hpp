@@ -134,13 +134,13 @@ inline namespace kernel
           * ----------------------------------------------------------------- */
           assert(cadr(c).template is<absolute>());
 
-          if (let const& value = cadr(c).template as<absolute>().load(); value == undefined)
+          if (let const& x = cdadr(c); x == undefined)
           {
-            throw error(make<string>("undefined variable"), cadr(c).template as<absolute>().symbol());
+            throw error(make<string>("undefined variable"), caadr(c));
           }
           else
           {
-            s = cons(cadr(c).template as<absolute>().load(), s);
+            s = cons(x, s);
             c = cddr(c);
             goto fetch;
           }
@@ -149,28 +149,58 @@ inline namespace kernel
           *
           *  s  e (%load-relative <relative> . c) d => (x . s) e c d
           *
-          *  where <relative> = (<symbol> i . j)
+          *  where <relative> = (i . j)
           *
           *        x = (list-ref (list-ref e i) j)
           *
           * ----------------------------------------------------------------- */
-          assert(cadr(c).template is<relative>());
-          s = cons(cadr(c).template as<relative>().load(e), s);
-          c = cddr(c);
+          {
+            let const& operand = cadr(c);
+
+            assert(operand.is<relative>());
+
+            using index = relative::index;
+
+            assert(car(operand).is<index>());
+            assert(cdr(operand).is<index>());
+
+            auto i = car(operand).as<index>();
+            auto j = cdr(operand).as<index>();
+
+            assert(i < length(e));
+
+            s = cons(head(head(e, i), j), s);
+            c = cddr(c);
+          }
           goto fetch;
 
         case instruction::load_variadic: /* ------------------------------------
           *
           *  s  e (%load-variadic <variadic> . c) d => (x . s) e c d
           *
-          *  where <variadic> = (<symbol> i . j)
+          *  where <variadic> = (i . j)
           *
           *        x = (list-tail (list-ref e i) j)
           *
           * ----------------------------------------------------------------- */
-          assert(cadr(c).template is<variadic>());
-          s = cons(cadr(c).template as<variadic>().load(e), s);
-          c = cddr(c);
+          {
+            let const& operand = cadr(c);
+
+            assert(operand.is<variadic>());
+
+            using index = variadic::index;
+
+            assert(car(operand).is<index>());
+            assert(cdr(operand).is<index>());
+
+            auto i = car(operand).as<index>();
+            auto j = cdr(operand).as<index>();
+
+            assert(i < length(e));
+
+            s = cons(tail(head(e, i), j), s);
+            c = cddr(c);
+          }
           goto fetch;
 
         case instruction::load_constant: /* ------------------------------------
@@ -256,8 +286,8 @@ inline namespace kernel
           {
             assert(tail(c, 1).template is<pair>());
             d = cons(cddr(s), e, cdr(c), d);
-            c =               callee.as<closure>().c();
-            e = cons(cadr(s), callee.as<closure>().e());
+            c = car(callee);
+            e = cons(cadr(s), cdr(callee));
             s = unit;
             goto fetch;
           }
@@ -284,10 +314,10 @@ inline namespace kernel
           {
             assert(tail(s, 2).template is<null>());
             assert(tail(c, 1).template is<pair>());
-            s = cons(caadr(s), callee.as<continuation>().s());
-            e =                callee.as<continuation>().e();
-            c =                callee.as<continuation>().c();
-            d =                callee.as<continuation>().d();
+            s = cons(caadr(s), car(callee));
+            e = cadr(callee);
+            c = caddr(callee);
+            d = cdddr(callee);
             goto fetch;
           }
           else
@@ -306,8 +336,8 @@ inline namespace kernel
           {
             assert(tail(s, 2).template is<null>());
             assert(tail(c, 1).template is<null>());
-            c =               callee.as<closure>().c();
-            e = cons(cadr(s), callee.as<closure>().e());
+            c = car(callee);
+            e = cons(cadr(s), cdr(callee));
             s = unit;
             goto fetch;
           }
@@ -337,10 +367,10 @@ inline namespace kernel
           {
             assert(tail(s, 2).template is<null>());
             assert(tail(c, 1).template is<null>());
-            s = cons(caadr(s), callee.as<continuation>().s());
-            e =                callee.as<continuation>().e();
-            c =                callee.as<continuation>().c();
-            d =                callee.as<continuation>().d();
+            s = cons(caadr(s), car(callee));
+            e = cadr(callee);
+            c = caddr(callee);
+            d = cdddr(callee);
             goto fetch;
           }
           else
@@ -426,7 +456,7 @@ inline namespace kernel
           *
           * ----------------------------------------------------------------- */
           assert(cadr(c).template is<absolute>());
-          cadr(c).template as<absolute>().store(car(s));
+          cdadr(c) = car(s);
           c = cddr(c);
           goto fetch;
 
@@ -435,9 +465,25 @@ inline namespace kernel
           *  (x . s) e (%store-relative <relative> . c) d => (x . s) e c d
           *
           * ----------------------------------------------------------------- */
-          assert(cadr(c).template is<relative>());
-          cadr(c).template as<relative>().store(car(s), e);
-          c = cddr(c);
+          {
+            let const& operand = cadr(c);
+
+            assert(operand.is<relative>());
+
+            using index = relative::index;
+
+            assert(car(operand).is<index>());
+            assert(cdr(operand).is<index>());
+
+            auto i = car(operand).as<index>();
+            auto j = cdr(operand).as<index>();
+
+            assert(i < length(e));
+
+            head(head(e, i), j) = car(s);
+
+            c = cddr(c);
+          }
           goto fetch;
 
         case instruction::store_variadic: /* -----------------------------------
@@ -445,9 +491,25 @@ inline namespace kernel
           *  (x . s) e (%store-variadic <variadic> . c) d => (x . s) e c d
           *
           * ----------------------------------------------------------------- */
-          assert(cadr(c).template is<variadic>());
-          cadr(c).template as<variadic>().store(car(s), e);
-          c = cddr(c);
+          {
+            let const& operand = cadr(c);
+
+            assert(operand.is<variadic>());
+
+            using index = variadic::index;
+
+            assert(car(operand).is<index>());
+            assert(cdr(operand).is<index>());
+
+            auto i = car(operand).as<index>();
+            auto j = cdr(operand).as<index>();
+
+            assert(i < length(e));
+
+            tail(head(e, i), j) = car(s);
+
+            c = cddr(c);
+          }
           goto fetch;
 
         case instruction::install: /* ------------------------------------------

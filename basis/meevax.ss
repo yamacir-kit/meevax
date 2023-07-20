@@ -2,8 +2,8 @@
   (import (only (meevax comparator) eq? eqv?)
           (only (meevax core) begin define if lambda quote set!)
           (only (meevax list) null?)
-          (only (meevax macro) identifier? syntactic-closure? make-syntactic-closure)
-          (only (meevax pair) cons car cdr caar cdar))
+          (only (meevax pair) cons car cdr caar cdar)
+          (only (meevax syntactic-closure) identifier? syntactic-closure? make-syntactic-closure))
 
   (export make-syntactic-closure
           identifier?
