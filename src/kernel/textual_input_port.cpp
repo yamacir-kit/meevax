@@ -15,7 +15,6 @@
 */
 
 #include <meevax/kernel/environment.hpp>
-#include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/homogeneous_vector.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/string.hpp>
@@ -26,6 +25,50 @@ namespace meevax
 {
 inline namespace kernel
 {
+  textual_input_port::iterator::iterator(textual_input_port & input)
+    : input { std::addressof(input) }
+    , value { input.read() }
+  {}
+
+  auto textual_input_port::iterator::operator *() -> reference
+  {
+    return value;
+  }
+
+  auto textual_input_port::iterator::operator ->() -> pointer
+  {
+    return &value;
+  }
+
+  auto textual_input_port::iterator::operator ++() -> iterator &
+  {
+    if (input)
+    {
+      value = input->read();
+    }
+
+    return *this;
+  }
+
+  auto textual_input_port::iterator::operator ++(int) -> iterator
+  {
+    auto copy = *this;
+    operator ++();
+    return copy;
+  }
+
+  auto operator ==(textual_input_port::iterator const& a,
+                   textual_input_port::iterator const& b) -> bool
+  {
+    return eqv(a.value, b.value);
+  }
+
+  auto operator !=(textual_input_port::iterator const& a,
+                   textual_input_port::iterator const& b) -> bool
+  {
+    return not (a == b);
+  }
+
   constexpr auto is_special_character(character::int_type c)
   {
     auto one_of = [c](auto... xs) constexpr
@@ -84,6 +127,16 @@ inline namespace kernel
   auto circulate(object const& xs, std::string const& n) -> void
   {
     return circulate(xs, xs, n);
+  }
+
+  auto textual_input_port::begin() -> iterator
+  {
+    return iterator(*this);
+  }
+
+  auto textual_input_port::end() -> iterator
+  {
+    return iterator();
   }
 
   auto textual_input_port::get() -> object

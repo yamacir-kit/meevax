@@ -1588,14 +1588,11 @@ inline namespace kernel
 
     auto boot_loader = environment();
 
-    for (auto&& each : basis())
+    for (auto each : basis())
     {
-      if (auto input = input_string_port(each); input.get_ready())
+      for (let const& x : input_string_port(each))
       {
-        while (not static_cast<std::istream &>(input).eof())
-        {
-          boot_loader.evaluate(input.read());
-        }
+        boot_loader.evaluate(x);
       }
     }
   }

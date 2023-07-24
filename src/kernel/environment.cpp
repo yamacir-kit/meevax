@@ -237,11 +237,11 @@ inline namespace kernel
 
   auto environment::load(std::string const& s) -> void
   {
-    if (auto input = input_file_port(s); input.is_open() and input.get_ready())
+    if (auto input = input_file_port(s); input.is_open())
     {
-      while (not static_cast<std::istream &>(input).eof())
+      for (let const& x : input)
       {
-        evaluate(input.read());
+        evaluate(x);
       }
     }
     else
