@@ -187,6 +187,11 @@ inline namespace kernel
     return static_cast<bool>(static_cast<std::istream const&>(*this));
   }
 
+  auto textual_input_port::good() const -> bool
+  {
+    return static_cast<std::istream const&>(*this).good();
+  }
+
   auto textual_input_port::ignore(std::size_t size) -> textual_input_port &
   {
     while (size-- and not character::is_eof(peek_codepoint()))

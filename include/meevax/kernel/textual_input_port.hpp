@@ -79,6 +79,8 @@ inline namespace kernel
 
     auto get_ready() const -> bool;
 
+    auto good() const -> bool;
+
     auto ignore(std::size_t) -> textual_input_port &;
 
     auto peek() -> object;
