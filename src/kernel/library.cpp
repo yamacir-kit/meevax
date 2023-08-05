@@ -172,11 +172,11 @@ inline namespace kernel
     {
       library.define<procedure>("emergency-exit", [](let const& xs)
       {
-        if (let const& status = xs[0]; status.is<null>())
+        if (xs.is<null>())
         {
           throw success;
         }
-        else if (status.is<bool>())
+        else if (let const& status = car(xs); status.is<bool>())
         {
           throw is_truthy(status) ? success : failure;
         }
