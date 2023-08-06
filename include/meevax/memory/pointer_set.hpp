@@ -42,10 +42,12 @@ inline namespace memory
   static_assert(log2(0b0100) - 1 == 2);
   static_assert(log2(0b1000) - 1 == 3);
 
-  template <typename Pointer, std::size_t Capacity = 8 * 1024 * 16>
+  template <typename Pointer, std::size_t Capacity = 64 * 1024>
   class pointer_set
   {
     static_assert(std::is_pointer_v<Pointer>);
+
+    static_assert(Capacity % (sizeof(std::uintmax_t) * 8) == 0);
 
     struct compact_pointer
     {
@@ -57,14 +59,14 @@ inline namespace memory
         : value { reinterpret_cast<std::uintptr_t>(p) >> width }
       {}
 
-      constexpr auto page_number() noexcept
+      constexpr auto offset() const noexcept
       {
-        return value / Capacity;
+        return (value / Capacity) * Capacity;
       }
 
-      constexpr auto index() noexcept
+      constexpr auto index() const noexcept
       {
-        return value - page_number() * Capacity;
+        return value - offset();
       }
 
       static constexpr auto to_pointer(std::uintptr_t value)
@@ -78,16 +80,18 @@ inline namespace memory
       }
     };
 
-    struct page
+    struct chunk
     {
-      std::size_t number;
+      std::size_t offset;
 
       bool data[Capacity];
 
-      explicit constexpr page(std::size_t number)
-        : number { number }
+      explicit constexpr chunk(compact_pointer const p)
+        : offset { p.offset() }
         , data { false }
-      {}
+      {
+        data[p.index()] = true;
+      }
 
       constexpr auto operator [](std::size_t index) const noexcept -> decltype(auto)
       {
@@ -99,20 +103,20 @@ inline namespace memory
         return data[index];
       }
 
-      constexpr auto operator <(std::size_t other_page_number) noexcept
+      constexpr auto operator <(compact_pointer p) noexcept
       {
-        return number < other_page_number;
+        return offset < p.offset();
       }
 
-      friend auto operator <<(std::ostream & output, page const& page) -> std::ostream &
+      friend auto operator <<(std::ostream & output, chunk const& chunk) -> std::ostream &
       {
         for (std::size_t i = 0; i < Capacity; )
         {
-          output << reinterpret_cast<void *>(page.number * Capacity + i) << ":";
+          output << reinterpret_cast<void *>(chunk.offset + i) << ":";
 
           for (auto j = i + 64; i < j; ++i)
           {
-            output << (i % 8 ? "" : " ") << (page.data[i] ? "\x1b[31m1\x1b[0m" : "0");
+            output << (i % 8 ? "" : " ") << (chunk.data[i] ? "\x1b[31m1\x1b[0m" : "0");
           }
 
           output << std::endl;
@@ -122,7 +126,7 @@ inline namespace memory
       }
     };
 
-    std::vector<page> pages;
+    std::vector<chunk> chunks;
 
   public:
     struct iterator
@@ -137,48 +141,41 @@ inline namespace memory
 
       using difference_type = std::ptrdiff_t;
 
-      std::vector<page> const& pages;
+      std::vector<chunk> const& chunks;
 
       std::size_t i, j;
 
-      explicit iterator(std::vector<page> const& pages,
-                        std::size_t i,
-                        std::size_t j) noexcept
-        : pages { pages }
-        , i     { i }
-        , j     { j }
+      explicit iterator(std::vector<chunk> const& chunks, std::size_t i, std::size_t j) noexcept
+        : chunks { chunks }
+        , i      { i }
+        , j      { j }
       {
-        auto valid = [&]()
-        {
-          return i < pages.size() and j < Capacity and pages[i][j];
-        };
-
-        if (not valid())
+        if (not (i < chunks.size() and j < Capacity and chunks[i][j]))
         {
           operator ++();
         }
       }
 
-      explicit iterator(std::vector<page> const& pages) noexcept
-        : pages { pages }
-        , i     { pages.size() }
-        , j     { Capacity }
+      explicit iterator(std::vector<chunk> const& chunks) noexcept
+        : chunks { chunks }
+        , i      { chunks.size() }
+        , j      { Capacity }
       {}
 
       auto operator *() const noexcept
       {
-        return compact_pointer::to_pointer(pages[i].number * Capacity + j);
+        return compact_pointer::to_pointer(chunks[i].offset + j);
       }
 
       auto operator ++() noexcept -> auto &
       {
         ++j;
 
-        for (; i < pages.size(); ++i)
+        for (; i < chunks.size(); ++i)
         {
           for (; j < Capacity; ++j)
           {
-            if (pages[i][j])
+            if (chunks[i][j])
             {
               return *this;
             }
@@ -187,7 +184,7 @@ inline namespace memory
           j = 0;
         }
 
-        i = pages.size();
+        i = chunks.size();
 
         j = Capacity;
 
@@ -203,7 +200,7 @@ inline namespace memory
 
       auto operator --() noexcept -> auto &
       {
-        i = std::min(pages.size() - 1, i);
+        i = std::min(chunks.size() - 1, i);
 
         j = std::min(Capacity - 1, j - 1);
 
@@ -214,11 +211,11 @@ inline namespace memory
            n is the number of bits in the value representation of that
            particular size of integer.
         */
-        for (; i < pages.size(); --i)
+        for (; i < chunks.size(); --i)
         {
           for (; j < Capacity; --j)
           {
-            if (pages[i][j])
+            if (chunks[i][j])
             {
               return *this;
             }
@@ -249,15 +246,15 @@ inline namespace memory
     };
 
     explicit pointer_set()
-      : pages {}
+      : chunks {}
     {
-      assert(pages.size() == 0);
+      assert(chunks.size() == 0);
       assert(begin() == end());
     }
 
-    auto lower_bound_page_of(compact_pointer p) noexcept
+    auto lower_bound_chunk(compact_pointer p) noexcept
     {
-      return std::lower_bound(std::begin(pages), std::end(pages), p.page_number());
+      return std::lower_bound(std::begin(chunks), std::end(chunks), p);
     }
 
     auto size() const noexcept
@@ -267,24 +264,21 @@ inline namespace memory
 
     auto insert(compact_pointer p) noexcept
     {
-      if (auto iter = lower_bound_page_of(p); iter != std::end(pages) and iter->number == p.page_number())
+      if (auto iter = lower_bound_chunk(p); iter != std::end(chunks) and iter->offset == p.offset())
       {
         (*iter)[p.index()] = true;
       }
       else
       {
-        assert(iter == std::end(pages) or p.page_number() < iter->number);
-        iter = pages.emplace(iter, p.page_number());
-        (*iter)[p.index()] = true;
+        assert(iter == std::end(chunks) or p.offset() < iter->offset);
+        chunks.emplace(iter, p);
       }
     }
 
     auto erase(compact_pointer p) noexcept
     {
-      auto iter = lower_bound_page_of(p);
-
-      assert(iter != std::end(pages));
-
+      auto iter = lower_bound_chunk(p);
+      assert(iter != std::end(chunks));
       (*iter)[p.index()] = false;
     }
 
@@ -297,19 +291,19 @@ inline namespace memory
 
     auto begin() const noexcept
     {
-      return iterator(pages, 0, 0);
+      return iterator(chunks, 0, 0);
     }
 
     auto end() const noexcept
     {
-      return iterator(pages);
+      return iterator(chunks);
     }
 
     auto lower_bound(compact_pointer p) noexcept
     {
-      if (auto iter = lower_bound_page_of(p); iter != std::end(pages))
+      if (auto iter = lower_bound_chunk(p); iter != std::end(chunks))
       {
-        return iterator(pages, std::distance(std::begin(pages), iter), p.index());
+        return iterator(chunks, std::distance(std::begin(chunks), iter), p.index());
       }
       else
       {
@@ -321,11 +315,11 @@ inline namespace memory
     {
       output << "size = " << pointer_set.size() << std::endl;
 
-      output << "density = " << (pointer_set.size() / double(pointer_set.pages.size() * Capacity)) << std::endl;
+      output << "density = " << (pointer_set.size() / double(pointer_set.chunks.size() * Capacity)) << std::endl;
 
-      for (auto && page : pointer_set.pages)
+      for (auto && chunk : pointer_set.chunks)
       {
-        output << page << std::endl;
+        output << chunk << std::endl;
       }
 
       return output;
