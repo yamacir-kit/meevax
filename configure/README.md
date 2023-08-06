@@ -15,9 +15,6 @@ Meevax is an implementation of Lisp-1 programming language, supporting subset of
 
 Latest release is [here](https://github.com/yamacir-kit/meevax/releases).
 
-<img src="https://github.com/yamacir-kit/meevax/actions/workflows/build.yaml/badge.svg"/>
-<img src="https://github.com/yamacir-kit/meevax/actions/workflows/release.yaml/badge.svg"/>
-
 ### Features
 
 -   Architecture - SECD machine.
