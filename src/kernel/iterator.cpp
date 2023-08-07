@@ -24,12 +24,12 @@ inline namespace kernel
     : reference_wrapper { std::cref(x) }
   {}
 
-  auto iterator::operator *() const -> iterator::const_reference
+  auto iterator::operator *() const -> const_reference
   {
     return car(*this);
   }
 
-  auto iterator::operator ->() const -> iterator::pointer
+  auto iterator::operator ->() const -> pointer
   {
     return &car(*this);
   }

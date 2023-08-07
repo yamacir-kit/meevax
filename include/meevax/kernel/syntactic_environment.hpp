@@ -298,10 +298,10 @@ inline namespace kernel
       }
 
       static auto sweep(syntactic_environment const& compile, // This function must not call compile.
-                        object const& binding_specs,
                         object const& form,
                         object const& bound_variables,
-                        object const& free_variables) -> pair
+                        object const& free_variables,
+                        object const& binding_specs = unit) -> pair
       {
         if (not form.is<pair>() or not car(form).is<pair>())
         {
@@ -312,14 +312,14 @@ inline namespace kernel
                  cdr(identity).is<transformer>())
         {
           return sweep(compile,
-                       binding_specs,
                        cons(Environment().apply(cadr(identity),
                                                 car(form),
                                                 make<syntactic_environment>(bound_variables, compile.free_variables()),
                                                 cddr(identity)),
                             cdr(form)),
                        bound_variables,
-                       free_variables);
+                       free_variables,
+                       binding_specs);
         }
         else if (identity.is<absolute>() and
                  cdr(identity).is<syntax>() and
@@ -328,22 +328,22 @@ inline namespace kernel
           if (let const& definition = car(form); cadr(definition).is<pair>()) // <form> = ((define (<variable> . <formals>) <body>) <definition or expression>*)
           {
             return sweep(compile,
+                         cdr(form),
+                         bound_variables,
+                         free_variables,
                          cons(list(caadr(definition), // <variable>
                                    cons(rename("lambda"),
                                         cdadr(definition), // <formals>
                                         cddr(definition))), // <body>
-                              binding_specs),
-                         cdr(form),
-                         bound_variables,
-                         free_variables);
+                              binding_specs));
           }
           else // <form> = ((define <variable> <expression>) <definition or expression>*)
           {
             return sweep(compile,
-                         cons(cdr(definition), binding_specs),
                          cdr(form),
                          bound_variables,
-                         free_variables);
+                         free_variables,
+                         cons(cdr(definition), binding_specs));
           }
         }
         else if (identity.is<absolute>() and
@@ -351,10 +351,10 @@ inline namespace kernel
                  cdr(identity).as<syntax>().name == "begin")
         {
           return sweep(compile,
-                       binding_specs,
                        append(cdar(form), cdr(form)),
                        bound_variables,
-                       free_variables);
+                       free_variables,
+                       binding_specs);
         }
         else
         {
@@ -405,7 +405,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        if (auto const& [binding_specs, sequence] = sweep(compile, unit, expression, bound_variables, free_variables); binding_specs)
+        if (auto const& [binding_specs, sequence] = sweep(compile, expression, bound_variables, free_variables); binding_specs)
         {
           /*
              (letrec* <binding specs> <sequence>)
