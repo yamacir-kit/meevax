@@ -41,42 +41,46 @@ inline namespace kernel
     : declarations { declarations }
   {}
 
-  auto library::evaluate(object const& declaration) -> void
+  auto library::evaluate(object const& declaration) -> object
   {
-    auto is = [&](auto name)
+    if (declaration.is<pair>() and car(declaration).is<symbol>())
     {
-      return declaration.is<pair>() and car(declaration).is<symbol>() and car(declaration).as<symbol>() == name;
-    };
+      if (auto&& name = car(declaration).as<symbol>().name; name == "export")
+      {
+        export_specs = append(cdr(declaration), export_specs);
 
-    if (is("export"))
-    {
-      export_specs = append(cdr(declaration), export_specs);
-    }
-    else if (is("begin"))
-    {
-      for (let const& command_or_definition : cdr(declaration))
+        return unspecified;
+      }
+      else if (name == "begin")
       {
-        environment::evaluate(command_or_definition);
+        for (let const& command_or_definition : cdr(declaration))
+        {
+          environment::evaluate(command_or_definition);
+        }
+
+        return unspecified;
+      }
+      else if (name == "include-library-declarations")
+      {
+        for (let const& library_declaration : include(cdr(declaration)))
+        {
+          evaluate(library_declaration);
+        }
+
+        return unspecified;
+      }
+      else if (name == "cond-expand")
+      {
+        for (let const& library_declaration : implementation_dependent(cdr(declaration)))
+        {
+          evaluate(library_declaration);
+        }
+
+        return unspecified;
       }
     }
-    else if (is("include-library-declarations"))
-    {
-      for (let const& library_declaration : include(cdr(declaration)))
-      {
-        evaluate(library_declaration);
-      }
-    }
-    else if (is("cond-expand"))
-    {
-      for (let const& library_declaration : implementation_dependent(cdr(declaration)))
-      {
-        evaluate(library_declaration);
-      }
-    }
-    else
-    {
-      environment::evaluate(declaration); // Non-standard extension.
-    }
+
+    return environment::evaluate(declaration); // Non-standard extension.
   }
 
   auto library::resolve() -> object

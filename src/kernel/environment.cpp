@@ -26,10 +26,11 @@ inline namespace kernel
   {
     if (expression.is<pair>() and car(expression).is<symbol>())
     {
-      if (auto const& name = car(expression).as<symbol>().name; name == "define-library")
+      if (auto&& name = car(expression).as<symbol>().name; name == "define-library")
       {
         meevax::define<library>(lexical_cast<std::string>(cadr(expression)), cddr(expression));
-        return cadr(expression);
+
+        return unspecified;
       }
       else if (name == "import")
       {
