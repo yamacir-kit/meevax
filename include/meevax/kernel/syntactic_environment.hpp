@@ -380,8 +380,8 @@ inline namespace kernel
       *        (foo (+ x 3)))                                      => 45
       *
       *  An expanded <body> containing internal definitions can always be
-      *  converted into a completely equivalent letrec* expression. For example,
-      *  the let expression in the above example is equivalent to
+      *  converted into a completely equivalent letrec* expression. For
+      *  example, the let expression in the above example is equivalent to
       *
       *      (let ((x 5))
       *        (letrec* ((foo (lambda (y) (bar x y)))
