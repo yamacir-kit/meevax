@@ -6,10 +6,16 @@
 
 ## Overview
 
-> Programming languages should be designed not by piling feature on top of feature, but by removing the weaknesses and restrictions that make additional features appear necessary.
-> <div align="right">Revised<sup>7</sup> Report on the Algorithmic Language Scheme [1]</div>
+> Programming languages should be designed not by piling feature on top of
+> feature, but by removing the weaknesses and restrictions that make additional
+> features appear necessary.
+> <div align="right">
+>   Revised<sup>7</sup> Report on the Algorithmic Language Scheme [1]
+> </div>
 
-Meevax is an implementation of Lisp-1 programming language, supporting subset of the [Scheme](http://www.scheme-reports.org/) (R7RS) and [SRFI](https://srfi.schemers.org/)s.
+Meevax is an implementation of Lisp-1 programming language, supporting subset
+of the [Scheme](http://www.scheme-reports.org/) (R7RS) and
+[SRFI](https://srfi.schemers.org/)s.
 
 ### Releases
 
@@ -17,8 +23,9 @@ Latest release is [here](https://github.com/yamacir-kit/meevax/releases).
 
 ### Features
 
--   Architecture - SECD machine.
--   Modern C++ compatible dynamic typing - Meevax provides RTTI-based language runtime library.
+- Architecture - SECD machine.
+- Modern C++ compatible dynamic typing - Meevax provides RTTI-based language
+  runtime library.
 
 ### Standards
 
@@ -54,18 +61,19 @@ Subset of R7RS-small.
 
 ### Requirements
 
--   [GCC](https://gcc.gnu.org/) (>= 9.4.0) or [Clang](https://clang.llvm.org/) (>= 11.0.0)
--   [CMake](https://cmake.org/) (>= 3.16.3)
--   [GNU Make](http://savannah.gnu.org/projects/make)
--   [GNU Binutils](https://www.gnu.org/software/binutils/)
--   [GNU Multiple Precision Arithmetic Library (GMP)](https://gmplib.org/)
+- [GCC](https://gcc.gnu.org/) (>= 9.4.0) or [Clang](https://clang.llvm.org/) (>= 11.0.0)
+- [CMake](https://cmake.org/) (>= 3.16.3)
+- [GNU Make](http://savannah.gnu.org/projects/make)
+- [GNU Binutils](https://www.gnu.org/software/binutils/)
+- [GNU Multiple Precision Arithmetic Library (GMP)](https://gmplib.org/)
 
 ### Install
 
 ``` bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cd build
-make install.deb
+make package
+sudo apt install build/meevax_0.4.762_amd64.deb
 ```
 
 or
@@ -78,7 +86,7 @@ make install
 
 ### Uninstall
 
-If you installed with `make install.deb`,
+If you installed with `sudo apt install`,
 
 ``` bash
 sudo apt remove meevax
@@ -95,18 +103,17 @@ sudo rm -rf /usr/local/share/meevax
 
 ### CMake targets
 
-| Target Name        | Description
-|--------------------|---
-| `all` (default)    | Build shared-library `libmeevax.0.4.761.so` and executable `meevax`
-| `test`             | Test executable `meevax`
-| `package`          | Generate debian package `meevax_0.4.761_amd64.deb`
-| `install`          | Copy files into `/usr/local`
-| `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
+| Target Name     | Description
+|-----------------|-------------
+| `all` (default) | Build shared-library `libmeevax.0.4.762.so` and executable `meevax`
+| `test`          | Test executable `meevax`
+| `package`       | Generate debian package `meevax_0.4.762_amd64.deb`
+| `install`       | Copy files into `/usr/local` directly
 
 ## Usage
 
 ```
-Meevax Lisp 0.4.761
+Meevax Lisp 0.4.762
 
 Usage:
   meevax [option...] [file...]
@@ -131,6 +138,6 @@ See [LICENSE](./LICENSE).
 
 ### Resources
 
-*   [Chibi-Scheme](https://github.com/ashinn/chibi-scheme)
-*   [SECDR-Scheme](http://www.maroon.dti.ne.jp/nagar17/mulasame/)
-*   [TinyScheme](http://tinyscheme.sourceforge.net/)
+* [Chibi-Scheme](https://github.com/ashinn/chibi-scheme)
+* [SECDR-Scheme](http://www.maroon.dti.ne.jp/nagar17/mulasame/)
+* [TinyScheme](http://tinyscheme.sourceforge.net/)

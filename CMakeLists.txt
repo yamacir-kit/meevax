@@ -180,11 +180,6 @@ endforeach()
 
 execute_process(COMMAND nproc OUTPUT_VARIABLE ${PROJECT_NAME}_NPROC)
 
-add_custom_target(install.deb
-  COMMAND ${CMAKE_MAKE_PROGRAM} -j${${PROJECT_NAME}_NPROC}
-  COMMAND ${CMAKE_MAKE_PROGRAM} package
-  COMMAND sudo apt install ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb)
-
 add_custom_target(develop
   COMMAND ${CMAKE_MAKE_PROGRAM} -j${${PROJECT_NAME}_NPROC}
   COMMAND ${CMAKE_MAKE_PROGRAM} test ARGS=-j${${PROJECT_NAME}_NPROC}
