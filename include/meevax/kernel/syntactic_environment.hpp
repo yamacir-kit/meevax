@@ -303,56 +303,55 @@ inline namespace kernel
                         object const& free_variables,
                         object const& binding_specs = unit) -> pair
       {
-        if (not form.is<pair>() or not car(form).is<pair>())
+        if (form.is<pair>() and car(form).is<pair>())
         {
-          return pair(reverse(binding_specs), form); // Finish.
-        }
-        else if (let const& identity = compile.identify(caar(form), bound_variables, free_variables); identity.is<absolute>())
-        {
-          if (let const& value = cdr(identity); value.is<transformer>())
+          if (let const& identity = compile.identify(caar(form), bound_variables, free_variables); identity.is<absolute>())
           {
-            return sweep(compile,
-                         cons(Environment().apply(cadr(identity),
-                                                  car(form),
-                                                  make<syntactic_environment>(bound_variables, compile.free_variables()),
-                                                  cddr(identity)),
-                              cdr(form)),
-                         bound_variables,
-                         free_variables,
-                         binding_specs);
-          }
-          else if (value.is<syntax>())
-          {
-            if (auto const& name = value.as<syntax>().name; name == "define") // <form> = ((define ...) <definition or expression>*)
-            {
-              if (let const& definition = car(form); cadr(definition).is<pair>()) // <form> = ((define (<variable> . <formals>) <body>) <definition or expression>*)
-              {
-                return sweep(compile,
-                             cdr(form),
-                             bound_variables,
-                             free_variables,
-                             cons(list(caadr(definition), // <variable>
-                                       cons(rename("lambda"),
-                                            cdadr(definition), // <formals>
-                                            cddr(definition))), // <body>
-                                  binding_specs));
-              }
-              else // <form> = ((define <variable> <expression>) <definition or expression>*)
-              {
-                return sweep(compile,
-                             cdr(form),
-                             bound_variables,
-                             free_variables,
-                             cons(cdr(definition), binding_specs));
-              }
-            }
-            else if (name == "begin")
+            if (let const& value = cdr(identity); value.is<transformer>())
             {
               return sweep(compile,
-                           append(cdar(form), cdr(form)),
+                           cons(Environment().apply(cadr(identity),
+                                                    car(form),
+                                                    make<syntactic_environment>(bound_variables, compile.free_variables()),
+                                                    cddr(identity)),
+                                cdr(form)),
                            bound_variables,
                            free_variables,
                            binding_specs);
+            }
+            else if (value.is<syntax>())
+            {
+              if (auto const& name = value.as<syntax>().name; name == "begin")
+              {
+                return sweep(compile,
+                             append(cdar(form), cdr(form)),
+                             bound_variables,
+                             free_variables,
+                             binding_specs);
+              }
+              else if (name == "define") // <form> = ((define ...) <definition or expression>*)
+              {
+                if (let const& definition = car(form); cadr(definition).is<pair>()) // <form> = ((define (<variable> . <formals>) <body>) <definition or expression>*)
+                {
+                  return sweep(compile,
+                               cdr(form),
+                               bound_variables,
+                               free_variables,
+                               cons(list(caadr(definition), // <variable>
+                                         cons(rename("lambda"),
+                                              cdadr(definition), // <formals>
+                                              cddr(definition))), // <body>
+                                    binding_specs));
+                }
+                else // <form> = ((define <variable> <expression>) <definition or expression>*)
+                {
+                  return sweep(compile,
+                               cdr(form),
+                               bound_variables,
+                               free_variables,
+                               cons(cdr(definition), binding_specs));
+                }
+              }
             }
           }
         }
