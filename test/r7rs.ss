@@ -576,16 +576,17 @@
 
 ; ---- 5.4. --------------------------------------------------------------------
 
-; (check (let ((x 1)
-;              (y 2))
-;          (define-syntax swap!
-;            (syntax-rules ()
-;              ((swap! a b)
-;               (let ((tmp a))
-;                 (set! a b)
-;                 (set! b tmp)))))
-;          (swap! x y)
-;          (list x y)) => (2 1))
+(check (let ((x 1)
+             (y 2))
+         (define-syntax swap!
+           (syntax-rules ()
+             ((swap! a b)
+              (let ((tmp a))
+                (set! a b)
+                (set! b tmp)))))
+         (swap! x y)
+         (list x y))
+  => '(2 1))
 
 ; (define define 3) ; error
 
@@ -1609,4 +1610,4 @@
 
 (check-report)
 
-(exit (check-passed? 429))
+(exit (check-passed? 430))

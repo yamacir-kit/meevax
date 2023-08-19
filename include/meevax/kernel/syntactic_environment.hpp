@@ -352,11 +352,21 @@ inline namespace kernel
                                cons(cdr(definition), binding_specs));
                 }
               }
+              else if (name == "define-syntax") // <form> = ((define-syntax <keyword> <transformer spec>) <definition or expression>*)
+              {
+                return sweep(compile,
+                             cdr(form),
+                             bound_variables,
+                             free_variables,
+                             cons(list(make<absolute>(cadar(form), // <keyword>
+                                                      caddar(form))), // <transformer spec>
+                                  binding_specs));
+              }
             }
           }
         }
 
-        return pair(reverse(binding_specs), form); // Finish.
+        return pair(binding_specs, form); // Finish.
       }
 
       static COMPILER(body) /* -------------------------------------------------
@@ -402,7 +412,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        if (auto const& [binding_specs, sequence] = sweep(compile, expression, bound_variables, free_variables); binding_specs)
+        if (auto [binding_specs, sequence] = sweep(compile, expression, bound_variables, free_variables); binding_specs)
         {
           /*
              (letrec* <binding specs> <sequence>)
@@ -413,15 +423,36 @@ inline namespace kernel
              where <binding specs> = ((<variable 1> <initial 1>) ...
                                       (<variable n> <initial n>))
           */
-          auto assignment = [](let const& binding_spec)
-          {
-            return cons(rename("set!"), binding_spec);
-          };
+          let formals = unit;
 
-          return compile(cons(cons(rename("lambda"),
-                                   map(car, binding_specs), // formals
-                                   append(map(assignment, binding_specs),
-                                          sequence)),
+          let body = sequence;
+
+          for (let const& binding_spec : binding_specs) // The order of the list `binding_specs` returned from the function `sweep` is the reverse of the definition order.
+          {
+            let const& variable = car(binding_spec);
+
+            formals = cons(variable, formals);
+
+            if (not variable.is<absolute>())
+            {
+              body = cons(cons(rename("set!"), binding_spec), body);
+            }
+          }
+
+          let const current_environment = make<syntactic_environment>(cons(formals, bound_variables),
+                                                                      compile.free_variables());
+
+          for (let const& formal : formals)
+          {
+            if (formal.is<absolute>())
+            {
+              cdr(formal) = make<transformer>(Environment().execute(compile(cdr(formal), // <transformer spec>
+                                                                            car(current_environment))),
+                                              current_environment);
+            }
+          }
+
+          return compile(cons(cons(rename("lambda"), formals, body),
                               make_list(length(binding_specs), unit)),
                          bound_variables,
                          free_variables,
