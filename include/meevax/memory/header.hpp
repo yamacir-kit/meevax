@@ -33,10 +33,14 @@ inline namespace memory
 
     virtual ~header() = default;
 
-    auto contains(void const* const data) const noexcept -> bool
+    auto contains(std::uintptr_t address) const noexcept
     {
-      const auto address = reinterpret_cast<std::uintptr_t>(data);
       return lower_address() <= address and address < upper_address();
+    }
+
+    auto contains(void const* const data) const noexcept
+    {
+      return contains(reinterpret_cast<std::uintptr_t>(data));
     }
 
     auto mark() noexcept -> void

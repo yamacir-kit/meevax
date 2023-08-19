@@ -23,9 +23,9 @@ inline namespace memory
 {
   class marker
   {
-    static inline bool phase;
+    static inline std::size_t phase;
 
-    bool value;
+    std::size_t value;
 
   public:
     struct initializer
@@ -49,7 +49,7 @@ inline namespace memory
 
     static auto toggle() noexcept
     {
-      return phase = not phase;
+      ++phase;
     }
   };
 

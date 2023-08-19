@@ -1,7 +1,7 @@
 (define-library (meevax macro-transformer)
   (import (only (meevax comparator) eq? eqv?)
           (only (meevax core) begin define if lambda quote set!)
-          (only (meevax list) null?)
+          (only (meevax list) assq null?)
           (only (meevax pair) cons car cdr caar cdar)
           (only (meevax syntactic-closure) identifier? syntactic-closure? make-syntactic-closure))
 
@@ -19,13 +19,6 @@
          (define (rsc-macro-transformer f)
            (lambda (form use-env mac-env)
              (make-syntactic-closure use-env '() (f form mac-env))))
-
-         (define (assq x alist)
-           (if (null? alist)
-               #f
-               (if (eq? x (caar alist))
-                   (car alist)
-                   (assq x (cdr alist)))))
 
          (define (identifier=? environment1 identifier1
                                environment2 identifier2)
