@@ -29,21 +29,21 @@ inline namespace kernel
 
     using value_type = object;
 
-    using reference = std::add_lvalue_reference_t<value_type>;
+    using reference = object &;
 
-    using const_reference = std::add_const_t<reference>;
+    using const_reference = object const&;
 
-    using pointer = std::add_pointer_t<value_type>;
+    using pointer = object *;
 
     using difference_type = std::ptrdiff_t;
 
     using size_type = std::size_t;
 
-    std::reference_wrapper<object const> reference_wrapper;
+    pair * pare;
 
     explicit iterator(object const&);
 
-    auto operator *() const -> const_reference;
+    auto operator *() const -> reference;
 
     auto operator ->() const -> pointer;
 

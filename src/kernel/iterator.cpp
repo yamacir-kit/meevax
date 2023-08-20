@@ -21,22 +21,22 @@ namespace meevax
 inline namespace kernel
 {
   iterator::iterator(object const& x)
-    : reference_wrapper { std::cref(x) }
+    : pare { x.get() }
   {}
 
-  auto iterator::operator *() const -> const_reference
+  auto iterator::operator *() const -> reference
   {
-    return car(*this);
+    return pare->first;
   }
 
   auto iterator::operator ->() const -> pointer
   {
-    return &car(*this);
+    return &pare->first;
   }
 
   auto iterator::operator ++() -> iterator &
   {
-    reference_wrapper = cdr(*this);
+    pare = pare->second.get();
     return *this;
   }
 
@@ -49,7 +49,7 @@ inline namespace kernel
 
   auto operator ==(iterator const& a, iterator const& b) noexcept -> bool
   {
-    return a.reference_wrapper.get() == b.reference_wrapper.get();
+    return a.pare == b.pare;
   }
 
   auto operator !=(iterator const& a, iterator const& b) noexcept -> bool
