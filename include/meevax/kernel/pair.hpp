@@ -45,6 +45,69 @@ inline namespace kernel
 
   struct pair : public std::pair<object, object>
   {
+    template <auto ReadOnly>
+    struct forward_iterator
+    {
+      using iterator_category = std::forward_iterator_tag;
+
+      using value_type = object;
+
+      using reference = std::add_lvalue_reference_t<std::conditional_t<ReadOnly, std::add_const_t<value_type>, value_type>>;
+
+      using pointer = std::add_pointer_t<reference>;
+
+      using difference_type = std::ptrdiff_t;
+
+      using size_type = std::size_t;
+
+      std::conditional_t<ReadOnly, pair const*, pair *> pare = nullptr;
+
+      forward_iterator() = default;
+
+      explicit constexpr forward_iterator(decltype(pare) pare)
+        : pare { pare }
+      {}
+
+      constexpr auto operator *() const -> reference
+      {
+        return pare->first;
+      }
+
+      constexpr auto operator ->() const -> pointer
+      {
+        return &pare->first;
+      }
+
+      auto operator ++() -> decltype(auto)
+      {
+        pare = pare->second.get();
+        return *this;
+      }
+
+      auto operator ++(int) -> decltype(auto)
+      {
+        auto copy = *this;
+        operator ++();
+        return copy;
+      }
+
+      friend constexpr auto operator ==(forward_iterator const& a,
+                                        forward_iterator const& b) noexcept -> bool
+      {
+        return a.pare == b.pare;
+      }
+
+      friend constexpr auto operator !=(forward_iterator const& a,
+                                        forward_iterator const& b) noexcept -> bool
+      {
+        return a.pare != b.pare;
+      }
+    };
+
+    using iterator = forward_iterator<false>;
+
+    using const_iterator = forward_iterator<true>;
+
     explicit pair(object const& = unit, object const& = unit);
 
     template <typename... Ts, typename = std::enable_if_t<(1 < sizeof...(Ts))>>

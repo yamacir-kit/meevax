@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_LIST_HPP
 
 #include <meevax/kernel/comparator.hpp>
-#include <meevax/kernel/iterator.hpp>
 
 namespace meevax
 {
@@ -27,7 +26,7 @@ inline namespace kernel
   template <auto N, typename T>
   auto get(T&& x) -> decltype(auto)
   {
-    if constexpr (std::is_same_v<std::decay_t<T>, iterator>)
+    if constexpr (std::is_same_v<std::decay_t<T>, pair::iterator>)
     {
       return std::get<N>(*x.pare);
     }

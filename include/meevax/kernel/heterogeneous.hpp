@@ -104,6 +104,26 @@ inline namespace kernel
     using Pointer<Top, Ts...>::dereferenceable;
     using Pointer<Top, Ts...>::get;
 
+    inline auto begin() const
+    {
+      return typename Top::iterator(get());
+    }
+
+    inline auto end() const
+    {
+      return typename Top::iterator(nullptr);
+    }
+
+    inline auto cbegin() const
+    {
+      return typename Top::const_iterator(get());
+    }
+
+    inline auto cend() const
+    {
+      return typename Top::const_iterator(nullptr);
+    }
+
     template <typename Bound, typename... Us>
     static auto allocate(Us&&... xs)
     {
