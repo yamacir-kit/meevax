@@ -101,28 +101,10 @@ inline namespace kernel
 
   public:
     using Pointer<Top, Ts...>::Pointer;
+
     using Pointer<Top, Ts...>::dereferenceable;
+
     using Pointer<Top, Ts...>::get;
-
-    inline auto begin() const
-    {
-      return typename Top::iterator(get());
-    }
-
-    inline auto end() const
-    {
-      return typename Top::iterator(nullptr);
-    }
-
-    inline auto cbegin() const
-    {
-      return typename Top::const_iterator(get());
-    }
-
-    inline auto cend() const
-    {
-      return typename Top::const_iterator(nullptr);
-    }
 
     template <typename Bound, typename... Us>
     static auto allocate(Us&&... xs)
@@ -156,7 +138,7 @@ inline namespace kernel
       }
       else if constexpr (std::is_class_v<std::decay_t<U>>)
       {
-        if (auto data = dynamic_cast<std::add_pointer_t<std::decay_t<U>>>(get()); data)
+        if (auto data = dynamic_cast<std::add_pointer_t<U>>(get()); data)
         {
           return *data;
         }
@@ -240,6 +222,36 @@ inline namespace kernel
     friend auto operator <<(std::ostream & os, heterogeneous const& datum) -> std::ostream &
     {
       return datum.write(os);
+    }
+
+    inline auto begin()
+    {
+      return dereferenceable() and *this ? get()->begin() : typename Top::iterator();
+    }
+
+    inline auto begin() const
+    {
+      return dereferenceable() and *this ? get()->cbegin() : typename Top::const_iterator();
+    }
+
+    inline auto cbegin() const
+    {
+      return dereferenceable() and *this ? get()->cbegin() : typename Top::const_iterator();
+    }
+
+    inline auto end()
+    {
+      return dereferenceable() and *this ? get()->end() : typename Top::iterator();
+    }
+
+    inline auto end() const
+    {
+      return dereferenceable() and *this ? get()->cend() : typename Top::const_iterator();
+    }
+
+    inline auto cend() const
+    {
+      return dereferenceable() and *this ? get()->cend() : typename Top::const_iterator();
     }
   };
 } // namespace kernel

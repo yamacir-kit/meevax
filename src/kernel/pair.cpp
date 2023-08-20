@@ -70,6 +70,21 @@ inline namespace kernel
     }
   }
 
+  auto pair::end() -> iterator
+  {
+    return iterator(find_circulation(*this).get());
+  }
+
+  auto pair::end() const -> const_iterator
+  {
+    return const_iterator(find_circulation(*this).get());
+  }
+
+  auto pair::cend() const -> const_iterator
+  {
+    return std::as_const(*this).end();
+  }
+
   auto write_simple(std::ostream & os, pair const& datum) -> std::ostream &
   {
     write_simple(os << magenta("("), car(datum));
@@ -96,15 +111,17 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, pair const& datum) -> std::ostream &
   {
-    if (let const& circulation = find_circulation(datum))
+    if (auto end = datum.cend(); end != pair::const_iterator())
     {
-      auto n = reinterpret_cast<std::uintptr_t>(circulation.get());
+      auto n = reinterpret_cast<std::uintptr_t>(end.pare);
 
-      os << magenta("#", n, "=(") << car(datum);
+      auto iter = datum.cbegin();
 
-      for (auto xs = cdr(datum); xs != circulation; xs = cdr(xs))
+      os << magenta("#", n, "=(") << *iter;
+
+      while (++iter != end)
       {
-        os << " " << car(xs);
+        os << " " << *iter;
       }
 
       return os << magenta(" . #", n, "#)");

@@ -124,6 +124,27 @@ inline namespace kernel
     virtual auto write(std::ostream &) const -> std::ostream &;
 
     virtual auto operator [](std::size_t) const -> object const&;
+
+    constexpr auto begin() -> iterator
+    {
+      return iterator(this);
+    }
+
+    constexpr auto begin() const -> const_iterator
+    {
+      return const_iterator(this);
+    }
+
+    auto end() -> iterator;
+
+    auto end() const -> const_iterator;
+
+    constexpr auto cbegin() const -> const_iterator
+    {
+      return std::as_const(*this).begin();
+    }
+
+    auto cend() const -> const_iterator;
   };
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;
