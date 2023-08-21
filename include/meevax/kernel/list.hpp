@@ -121,7 +121,7 @@ inline namespace kernel
 
   auto take(object const&, std::size_t) -> object;
 
-  auto length(object const&, std::size_t = 0) -> std::size_t;
+  auto length(object const&) -> std::size_t;
 
   auto append(object const&, object const&) -> object;
 
