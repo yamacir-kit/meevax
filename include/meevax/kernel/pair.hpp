@@ -60,27 +60,36 @@ inline namespace kernel
 
       using size_type = std::size_t;
 
-      std::conditional_t<ReadOnly, pair const*, pair *> pare = nullptr;
+      using node_type = std::conditional_t<ReadOnly, pair const*, pair *>;
+
+      node_type current = nullptr;
+
+      node_type initial = nullptr;
 
       forward_iterator() = default;
 
-      explicit constexpr forward_iterator(decltype(pare) pare)
-        : pare { pare }
+      explicit constexpr forward_iterator(node_type current)
+        : current { current }
+        , initial { current }
       {}
 
       constexpr auto operator *() const -> reference
       {
-        return pare->first;
+        return current->first;
       }
 
       constexpr auto operator ->() const -> pointer
       {
-        return &pare->first;
+        return &current->first;
       }
 
       auto operator ++() -> decltype(auto)
       {
-        pare = pare->second.get();
+        if (current = current->second.get(); current == initial)
+        {
+          current = nullptr;
+        }
+
         return *this;
       }
 
@@ -94,13 +103,13 @@ inline namespace kernel
       friend constexpr auto operator ==(forward_iterator const& a,
                                         forward_iterator const& b) noexcept -> bool
       {
-        return a.pare == b.pare;
+        return a.current == b.current;
       }
 
       friend constexpr auto operator !=(forward_iterator const& a,
                                         forward_iterator const& b) noexcept -> bool
       {
-        return a.pare != b.pare;
+        return a.current != b.current;
       }
     };
 
@@ -125,26 +134,35 @@ inline namespace kernel
 
     virtual auto operator [](std::size_t) const -> object const&;
 
-    constexpr auto begin() -> iterator
+    constexpr auto begin() noexcept
     {
       return iterator(this);
     }
 
-    constexpr auto begin() const -> const_iterator
+    constexpr auto begin() const noexcept
     {
       return const_iterator(this);
     }
 
-    auto end() -> iterator;
+    constexpr auto end() noexcept
+    {
+      return iterator(nullptr);
+    }
 
-    auto end() const -> const_iterator;
+    constexpr auto end() const noexcept
+    {
+      return const_iterator(nullptr);
+    }
 
     constexpr auto cbegin() const -> const_iterator
     {
       return std::as_const(*this).begin();
     }
 
-    auto cend() const -> const_iterator;
+    constexpr auto cend() const noexcept
+    {
+      return std::as_const(*this).end();
+    }
   };
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;

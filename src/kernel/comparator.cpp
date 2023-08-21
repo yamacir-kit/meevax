@@ -28,7 +28,8 @@ inline namespace kernel
     }
     else if (x.is<pair>() and y.is<pair>())
     {
-      return equal(car(x), car(y)) and equal(cdr(x), cdr(y));
+      return std::equal(x.cbegin(), x.cend(),
+                        y.cbegin(), y.cend(), equal);
     }
     else
     {

@@ -62,9 +62,10 @@
 
 ; ---- 2.4. --------------------------------------------------------------------
 
-; (check (let ((x (list 'a 'b 'c)))
-;          (set-cdr! (cddr x) x)
-;          x) => #0=(a b c . #0#)) ; TODO circular-list comparison
+(check (let ((x (list 'a 'b 'c)))
+         (set-cdr! (cddr x) x)
+         x)
+  => '#0=(a b c . #0#))
 
 ; #1=(begin (display #\x) #1#) ; MUST BE ERROR
 
@@ -1610,4 +1611,4 @@
 
 (check-report)
 
-(exit (check-passed? 430))
+(exit (check-passed? 431))

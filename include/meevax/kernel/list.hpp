@@ -28,7 +28,7 @@ inline namespace kernel
   {
     if constexpr (std::is_same_v<std::decay_t<T>, pair::iterator>)
     {
-      return std::get<N>(*x.pare);
+      return std::get<N>(*x.current);
     }
     else if constexpr (std::is_same_v<std::decay_t<T>, object>)
     {

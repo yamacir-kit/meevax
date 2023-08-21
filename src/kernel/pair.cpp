@@ -46,45 +46,6 @@ inline namespace kernel
     return 0 < k ? second[--k] : first;
   }
 
-  auto find_circulation(object const& x, object const& y) -> object const&
-  {
-    if (x.is<pair>() and cdr(x).is<pair>() and (cddr(x) == cdr(y) or find_circulation(cddr(x), cdr(y))))
-    {
-      return cdddr(x);
-    }
-    else
-    {
-      return unit;
-    }
-  }
-
-  auto find_circulation(pair const& x)
-  {
-    if (cdr(x).is<pair>() and (cddr(x) == cdr(x) or find_circulation(cddr(x), cdr(x))))
-    {
-      return cdddr(x);
-    }
-    else
-    {
-      return unit;
-    }
-  }
-
-  auto pair::end() -> iterator
-  {
-    return iterator(find_circulation(*this).get());
-  }
-
-  auto pair::end() const -> const_iterator
-  {
-    return const_iterator(find_circulation(*this).get());
-  }
-
-  auto pair::cend() const -> const_iterator
-  {
-    return std::as_const(*this).end();
-  }
-
   auto write_simple(std::ostream & os, pair const& datum) -> std::ostream &
   {
     write_simple(os << magenta("("), car(datum));
@@ -111,20 +72,31 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, pair const& datum) -> std::ostream &
   {
-    if (auto end = datum.cend(); end != pair::const_iterator())
+    auto is_circular_list = [](auto begin)
     {
-      auto n = reinterpret_cast<std::uintptr_t>(end.pare);
-
-      auto iter = datum.cbegin();
-
-      os << magenta("#", n, "=(") << *iter;
-
-      while (++iter != end)
+      for (auto pare = begin->second.get(); pare; pare = pare->second.get())
       {
-        os << " " << *iter;
+        if (pare == begin)
+        {
+          return true;
+        }
       }
 
-      return os << magenta(" . #", n, "#)");
+      return false;
+    };
+
+    if (is_circular_list(&datum))
+    {
+      auto n = reinterpret_cast<std::uintptr_t>(&datum);
+
+      os << magenta("#", n, "=(");
+
+      for (auto&& x : datum)
+      {
+        os << x << " ";
+      }
+
+      return os << magenta(". #", n, "#)");
     }
     else
     {

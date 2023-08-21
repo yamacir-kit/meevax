@@ -1,4 +1,5 @@
 (import (scheme base)
+        (scheme cxr)
         (scheme process-context)
         (scheme write)
         (only (srfi 1) circular-list?)
@@ -8,8 +9,18 @@
   (for-each display xs)
   (newline))
 
+(let ((x (list 'a 'b 'c 'd)))
+  (set-cdr! (cdddr x) x)
+  (check (circular-list? x) => #t)
+  (print #\newline "x is " x))
+
 (let ((x (list 'a 'b 'c)))
   (set-cdr! (cddr x) x)
+  (check (circular-list? x) => #t)
+  (print #\newline "x is " x))
+
+(let ((x (list 'a 'b)))
+  (set-cdr! (cdr x) x)
   (check (circular-list? x) => #t)
   (print #\newline "x is " x))
 
@@ -41,4 +52,4 @@
 
 (check-report)
 
-(exit (check-passed? 4))
+(exit (check-passed? 6))
