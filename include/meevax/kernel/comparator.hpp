@@ -33,7 +33,11 @@ inline namespace kernel
     return eq(x, y) or x.compare(y);
   };
 
-  auto equal(object const&, object const&) -> bool;
+  inline auto equal = [](auto const& x, auto const& y)
+  {
+    return eqv(x, y) or std::equal(x.cbegin(), x.cend(),
+                                   y.cbegin(), y.cend(), equal);
+  };
 } // namespace kernel
 } // namespace meevax
 
