@@ -22,18 +22,8 @@ inline namespace kernel
 {
   auto equal(object const& x, object const& y) -> bool
   {
-    if (x.is<null>() and y.is<null>())
-    {
-      return true;
-    }
-    else if (x.is<pair>() and y.is<pair>())
-    {
-      return equal(car(x), car(y)) and equal(cdr(x), cdr(y));
-    }
-    else
-    {
-      return eqv(x, y);
-    }
+    return eqv(x, y) or std::equal(x.cbegin(), x.cend(),
+                                   y.cbegin(), y.cend(), equal);
   }
 } // namespace kernel
 } // namespace meevax

@@ -214,6 +214,11 @@ inline namespace kernel
       {
         return eqv(xs[0], xs[1]);
       });
+
+      library.define<procedure>("equal?", [](let const& xs)
+      {
+        return equal(xs[0], xs[1]);
+      });
     });
 
     define<library>("(meevax core)", [](library & library)
