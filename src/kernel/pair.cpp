@@ -46,30 +46,6 @@ inline namespace kernel
     return 0 < k ? second[--k] : first;
   }
 
-  auto write_simple(std::ostream & os, pair const& datum) -> std::ostream &
-  {
-    write_simple(os << magenta("("), car(datum));
-
-    for (let xs = cdr(datum); xs != unit; xs = cdr(xs))
-    {
-      if (xs.is<pair>())
-      {
-        write_simple(os << " ", car(xs));
-      }
-      else // xs is the last element of dotted-list.
-      {
-        return write_simple(os << magenta(" . "), xs) << magenta(")");
-      }
-    }
-
-    return os << magenta(")");
-  }
-
-  auto write_simple(std::ostream & os, object const& x) -> std::ostream &
-  {
-    return x.is<pair>() ? write_simple(os, x.as<pair>()) : os << x;
-  }
-
   auto operator <<(std::ostream & os, pair const& datum) -> std::ostream &
   {
     auto is_circular_list = [&]()

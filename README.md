@@ -73,7 +73,7 @@ Subset of R7RS-small.
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cd build
 make package
-sudo apt install build/meevax_0.4.776_amd64.deb
+sudo apt install build/meevax_0.4.777_amd64.deb
 ```
 
 or
@@ -105,15 +105,15 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name     | Description
 |-----------------|-------------
-| `all` (default) | Build shared-library `libmeevax.0.4.776.so` and executable `meevax`
+| `all` (default) | Build shared-library `libmeevax.0.4.777.so` and executable `meevax`
 | `test`          | Test executable `meevax`
-| `package`       | Generate debian package `meevax_0.4.776_amd64.deb`
+| `package`       | Generate debian package `meevax_0.4.777_amd64.deb`
 | `install`       | Copy files into `/usr/local` directly
 
 ## Usage
 
 ```
-Meevax Lisp 0.4.776
+Meevax Lisp 0.4.777
 
 Usage:
   meevax [option...] [file...]

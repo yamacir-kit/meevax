@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/list.hpp>
 #include <meevax/kernel/textual_output_port.hpp>
 
 namespace meevax
@@ -42,7 +43,36 @@ inline namespace kernel
 
   auto textual_output_port::write_simple(object const& x) -> void
   {
-    meevax::write_simple(static_cast<std::ostream &>(*this), x);
+    if (auto & os = static_cast<std::ostream &>(*this); x.is<pair>())
+    {
+      os << magenta("(");
+
+      write_simple(car(x));
+
+      for (let rest = cdr(x); not rest.is<null>(); rest = cdr(rest))
+      {
+        if (rest.is<pair>())
+        {
+          os << " ";
+
+          write_simple(car(rest));
+        }
+        else // xs is the last element of dotted-list.
+        {
+          os << magenta(" . ");
+
+          write_simple(rest);
+
+          os << magenta(")");
+        }
+      }
+
+      os << magenta(")");
+    }
+    else
+    {
+      os << x;
+    }
   }
 } // namespace kernel
 } // namespace meevax
