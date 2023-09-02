@@ -72,11 +72,11 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, pair const& datum) -> std::ostream &
   {
-    auto is_circular_list = [](auto begin)
+    auto is_circular_list = [&]()
     {
-      for (auto pare = begin->second.get(); pare; pare = pare->second.get())
+      for (auto rest = datum.second.get(); rest; rest = rest->second.get())
       {
-        if (pare == begin)
+        if (rest == &datum)
         {
           return true;
         }
@@ -85,7 +85,7 @@ inline namespace kernel
       return false;
     };
 
-    if (is_circular_list(&datum))
+    if (is_circular_list())
     {
       auto n = reinterpret_cast<std::uintptr_t>(&datum);
 
@@ -100,7 +100,21 @@ inline namespace kernel
     }
     else
     {
-      return write_simple(os, datum);
+      os << magenta("(") << car(datum);
+
+      for (let xs = cdr(datum); xs != unit; xs = cdr(xs))
+      {
+        if (xs.is<pair>())
+        {
+          os << " " << car(xs);
+        }
+        else // xs is the last element of dotted-list.
+        {
+          return os << magenta(" . ") << xs << magenta(")");
+        }
+      }
+
+      return os << magenta(")");
     }
   }
 } // namespace kernel
