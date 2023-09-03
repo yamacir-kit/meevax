@@ -14,47 +14,15 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_MARKER_HPP
-#define INCLUDED_MEEVAX_MEMORY_MARKER_HPP
+#include <meevax/kernel/box.hpp>
 
 namespace meevax
 {
-inline namespace memory
+inline namespace kernel
 {
-  class marker
+  auto operator <<(std::ostream & os, box const& datum) -> std::ostream &
   {
-    static inline std::size_t phase;
-
-    std::size_t value;
-
-  public:
-    struct initializer
-    {
-      explicit initializer();
-    };
-
-    explicit marker() noexcept
-      : value { phase }
-    {}
-
-    auto mark() noexcept
-    {
-      value = phase;
-    }
-
-    auto marked() const noexcept
-    {
-      return value == phase;
-    }
-
-    static auto toggle() noexcept
-    {
-      ++phase;
-    }
-  };
-
-  static marker::initializer initializer;
-} // namespace memory
+    return os << magenta("#,(") << green("box ") << datum.first << magenta(")");
+  }
+} // namespace kernel
 } // namespace meevax
-
-#endif // INCLUDED_MEEVAX_MEMORY_MARKER_HPP

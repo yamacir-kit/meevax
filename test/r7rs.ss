@@ -50,8 +50,8 @@
 ; ---- 2.2. --------------------------------------------------------------------
 
 #|
-  The FACT procedure computes the factorial
-  of a non-negative integer.
+   The FACT procedure computes the factorial
+   of a non-negative integer.
 |#
 (define fact
   (lambda (n)
@@ -62,9 +62,10 @@
 
 ; ---- 2.4. --------------------------------------------------------------------
 
-; (check (let ((x (list 'a 'b 'c)))
-;          (set-cdr! (cddr x) x)
-;          x) => #0=(a b c . #0#)) ; TODO circular-list comparison
+(check (let ((x (list 'a 'b 'c)))
+         (set-cdr! (cddr x) x)
+         x)
+  => '#0=(a b c . #0#))
 
 ; #1=(begin (display #\x) #1#) ; MUST BE ERROR
 
@@ -576,16 +577,17 @@
 
 ; ---- 5.4. --------------------------------------------------------------------
 
-; (check (let ((x 1)
-;              (y 2))
-;          (define-syntax swap!
-;            (syntax-rules ()
-;              ((swap! a b)
-;               (let ((tmp a))
-;                 (set! a b)
-;                 (set! b tmp)))))
-;          (swap! x y)
-;          (list x y)) => (2 1))
+(check (let ((x 1)
+             (y 2))
+         (define-syntax swap!
+           (syntax-rules ()
+             ((swap! a b)
+              (let ((tmp a))
+                (set! a b)
+                (set! b tmp)))))
+         (swap! x y)
+         (list x y))
+  => '(2 1))
 
 ; (define define 3) ; error
 
@@ -854,8 +856,8 @@
 (check (equal? (make-vector 5 'a)
                (make-vector 5 'a)) => #t)
 
-; (check (equal? '#1=(a b . #1#)
-;                '#2=(a b a b . #2#)) => #t)
+(check (equal? '#1=(a b . #1#)
+               '#2=(a b a b . #2#)) => #t)
 
 (check (equal? (lambda (x) x)
                (lambda (y) y)) => #f) ; unspecified
@@ -1609,4 +1611,4 @@
 
 (check-report)
 
-(exit (check-passed? 429))
+(exit (check-passed? 432))

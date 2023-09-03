@@ -44,17 +44,18 @@ auto main(int const argc, char const* const* const argv) -> int
     main.import("(scheme time)"_read);
     main.import("(scheme write)"_read);
 
-    main.configure(argc, argv);
-
-    for (auto input = standard_input_port(); main.interactive and input.get_ready(); )
+    if (main.configure(argc, argv); main.interactive)
     {
-      try
+      while (standard_input_port().good())
       {
-        std::cout << u8"\u03bb> " << main.evaluate(input.read()) << std::endl;
-      }
-      catch (error const& error)
-      {
-        std::cerr << error << std::endl;
+        try
+        {
+          std::cout << u8"\u03bb> " << main.evaluate(standard_input_port().read()) << std::endl;
+        }
+        catch (error const& error)
+        {
+          std::cerr << error << std::endl;
+        }
       }
     }
 

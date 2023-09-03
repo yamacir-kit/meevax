@@ -1,4 +1,5 @@
 (import (scheme base)
+        (scheme write)
         (scheme process-context))
 
 (define (tarai x y z)
@@ -7,6 +8,7 @@
              (tarai (- y 1) z x)
              (tarai (- z 1) x y))))
 
-(tarai 11 6 0)
+(display (tarai 11 6 0))
+(newline)
 
 (exit)

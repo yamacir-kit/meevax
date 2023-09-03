@@ -29,17 +29,33 @@ inline namespace memory
 {
   struct header
   {
+    marker reacheable;
+
     virtual ~header() = default;
 
-    virtual auto mark() noexcept -> void = 0;
+    auto contains(std::uintptr_t address) const noexcept
+    {
+      return lower_address() <= address and address < upper_address();
+    }
 
-    virtual auto marked() const noexcept -> bool = 0;
+    auto contains(void const* const data) const noexcept
+    {
+      return contains(reinterpret_cast<std::uintptr_t>(data));
+    }
+
+    auto mark() noexcept -> void
+    {
+      reacheable.mark();
+    }
+
+    auto marked() const noexcept -> bool
+    {
+      return reacheable.marked();
+    }
 
     virtual auto lower_address() const noexcept -> std::uintptr_t = 0;
 
     virtual auto upper_address() const noexcept -> std::uintptr_t = 0;
-
-    virtual auto contains(void const* const data) const noexcept -> bool = 0;
   };
 
   template <typename T>
@@ -47,30 +63,12 @@ inline namespace memory
   {
     T object;
 
-    marker reacheable;
-
     template <typename... Ts>
     explicit body(Ts&&... xs)
       : object { std::forward<decltype(xs)>(xs)... }
     {}
 
     ~body() override = default;
-
-    auto mark() noexcept -> void override
-    {
-      reacheable.mark();
-    }
-
-    auto marked() const noexcept -> bool override
-    {
-      return reacheable.marked();
-    }
-
-    auto contains(void const* const data) const noexcept -> bool override
-    {
-      const auto address = reinterpret_cast<std::uintptr_t>(data);
-      return lower_address() <= address and address < upper_address();
-    }
 
     auto lower_address() const noexcept -> std::uintptr_t override
     {

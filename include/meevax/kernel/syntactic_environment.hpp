@@ -298,68 +298,75 @@ inline namespace kernel
       }
 
       static auto sweep(syntactic_environment const& compile, // This function must not call compile.
-                        object const& binding_specs,
                         object const& form,
                         object const& bound_variables,
-                        object const& free_variables) -> pair
+                        object const& free_variables,
+                        object const& binding_specs = unit) -> pair
       {
-        if (not form.is<pair>() or not car(form).is<pair>())
+        if (form.is<pair>() and car(form).is<pair>())
         {
-          return pair(reverse(binding_specs), form); // Finish.
-        }
-        else if (let const& identity = compile.identify(caar(form), bound_variables, free_variables);
-                 identity.is<absolute>() and
-                 cdr(identity).is<transformer>())
-        {
-          return sweep(compile,
-                       binding_specs,
-                       cons(Environment().apply(cadr(identity),
-                                                car(form),
-                                                make<syntactic_environment>(bound_variables, compile.free_variables()),
-                                                cddr(identity)),
-                            cdr(form)),
-                       bound_variables,
-                       free_variables);
-        }
-        else if (identity.is<absolute>() and
-                 cdr(identity).is<syntax>() and
-                 cdr(identity).as<syntax>().name == "define") // <form> = ((define ...) <definition or expression>*)
-        {
-          if (let const& definition = car(form); cadr(definition).is<pair>()) // <form> = ((define (<variable> . <formals>) <body>) <definition or expression>*)
+          if (let const& identity = compile.identify(caar(form), bound_variables, free_variables); identity.is<absolute>())
           {
-            return sweep(compile,
-                         cons(list(caadr(definition), // <variable>
-                                   cons(rename("lambda"),
-                                        cdadr(definition), // <formals>
-                                        cddr(definition))), // <body>
-                              binding_specs),
-                         cdr(form),
-                         bound_variables,
-                         free_variables);
+            if (let const& value = cdr(identity); value.is<transformer>())
+            {
+              return sweep(compile,
+                           cons(Environment().apply(cadr(identity),
+                                                    car(form),
+                                                    make<syntactic_environment>(bound_variables, compile.free_variables()),
+                                                    cddr(identity)),
+                                cdr(form)),
+                           bound_variables,
+                           free_variables,
+                           binding_specs);
+            }
+            else if (value.is<syntax>())
+            {
+              if (auto const& name = value.as<syntax>().name; name == "begin")
+              {
+                return sweep(compile,
+                             append(cdar(form), cdr(form)),
+                             bound_variables,
+                             free_variables,
+                             binding_specs);
+              }
+              else if (name == "define") // <form> = ((define ...) <definition or expression>*)
+              {
+                if (let const& definition = car(form); cadr(definition).is<pair>()) // <form> = ((define (<variable> . <formals>) <body>) <definition or expression>*)
+                {
+                  return sweep(compile,
+                               cdr(form),
+                               bound_variables,
+                               free_variables,
+                               cons(list(caadr(definition), // <variable>
+                                         cons(rename("lambda"),
+                                              cdadr(definition), // <formals>
+                                              cddr(definition))), // <body>
+                                    binding_specs));
+                }
+                else // <form> = ((define <variable> <expression>) <definition or expression>*)
+                {
+                  return sweep(compile,
+                               cdr(form),
+                               bound_variables,
+                               free_variables,
+                               cons(cdr(definition), binding_specs));
+                }
+              }
+              else if (name == "define-syntax") // <form> = ((define-syntax <keyword> <transformer spec>) <definition or expression>*)
+              {
+                return sweep(compile,
+                             cdr(form),
+                             bound_variables,
+                             free_variables,
+                             cons(list(make<absolute>(cadar(form), // <keyword>
+                                                      caddar(form))), // <transformer spec>
+                                  binding_specs));
+              }
+            }
           }
-          else // <form> = ((define <variable> <expression>) <definition or expression>*)
-          {
-            return sweep(compile,
-                         cons(cdr(definition), binding_specs),
-                         cdr(form),
-                         bound_variables,
-                         free_variables);
-          }
         }
-        else if (identity.is<absolute>() and
-                 cdr(identity).is<syntax>() and
-                 cdr(identity).as<syntax>().name == "begin")
-        {
-          return sweep(compile,
-                       binding_specs,
-                       append(cdar(form), cdr(form)),
-                       bound_variables,
-                       free_variables);
-        }
-        else
-        {
-          return pair(reverse(binding_specs), form); // Finish.
-        }
+
+        return pair(binding_specs, form); // Finish.
       }
 
       static COMPILER(body) /* -------------------------------------------------
@@ -382,8 +389,8 @@ inline namespace kernel
       *        (foo (+ x 3)))                                      => 45
       *
       *  An expanded <body> containing internal definitions can always be
-      *  converted into a completely equivalent letrec* expression. For example,
-      *  the let expression in the above example is equivalent to
+      *  converted into a completely equivalent letrec* expression. For
+      *  example, the let expression in the above example is equivalent to
       *
       *      (let ((x 5))
       *        (letrec* ((foo (lambda (y) (bar x y)))
@@ -405,7 +412,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        if (auto const& [binding_specs, sequence] = sweep(compile, unit, expression, bound_variables, free_variables); binding_specs)
+        if (auto [binding_specs, sequence] = sweep(compile, expression, bound_variables, free_variables); binding_specs)
         {
           /*
              (letrec* <binding specs> <sequence>)
@@ -416,15 +423,36 @@ inline namespace kernel
              where <binding specs> = ((<variable 1> <initial 1>) ...
                                       (<variable n> <initial n>))
           */
-          auto assignment = [](let const& binding_spec)
-          {
-            return cons(rename("set!"), binding_spec);
-          };
+          let formals = unit;
 
-          return compile(cons(cons(rename("lambda"),
-                                   map(car, binding_specs), // formals
-                                   append(map(assignment, binding_specs),
-                                          sequence)),
+          let body = sequence;
+
+          for (let const& binding_spec : binding_specs) // The order of the list `binding_specs` returned from the function `sweep` is the reverse of the definition order.
+          {
+            let const& variable = car(binding_spec);
+
+            formals = cons(variable, formals);
+
+            if (not variable.is<absolute>())
+            {
+              body = cons(cons(rename("set!"), binding_spec), body);
+            }
+          }
+
+          let const current_environment = make<syntactic_environment>(cons(formals, bound_variables),
+                                                                      compile.free_variables());
+
+          for (let const& formal : formals)
+          {
+            if (formal.is<absolute>())
+            {
+              cdr(formal) = make<transformer>(Environment().execute(compile(cdr(formal), // <transformer spec>
+                                                                            car(current_environment))),
+                                              current_environment);
+            }
+          }
+
+          return compile(cons(cons(rename("lambda"), formals, body),
                               make_list(length(binding_specs), unit)),
                          bound_variables,
                          free_variables,

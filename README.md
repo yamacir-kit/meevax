@@ -6,22 +6,26 @@
 
 ## Overview
 
-> Programming languages should be designed not by piling feature on top of feature, but by removing the weaknesses and restrictions that make additional features appear necessary.
-> <div align="right">Revised<sup>7</sup> Report on the Algorithmic Language Scheme [1]</div>
+> Programming languages should be designed not by piling feature on top of
+> feature, but by removing the weaknesses and restrictions that make additional
+> features appear necessary.
+> <div align="right">
+>   Revised<sup>7</sup> Report on the Algorithmic Language Scheme [1]
+> </div>
 
-Meevax is an implementation of Lisp-1 programming language, supporting subset of the [Scheme](http://www.scheme-reports.org/) (R7RS) and [SRFI](https://srfi.schemers.org/)s.
+Meevax is an implementation of Lisp-1 programming language, supporting subset
+of the [Scheme](http://www.scheme-reports.org/) (R7RS) and
+[SRFI](https://srfi.schemers.org/)s.
 
 ### Releases
 
 Latest release is [here](https://github.com/yamacir-kit/meevax/releases).
 
-<img src="https://github.com/yamacir-kit/meevax/actions/workflows/build.yaml/badge.svg"/>
-<img src="https://github.com/yamacir-kit/meevax/actions/workflows/release.yaml/badge.svg"/>
-
 ### Features
 
--   Architecture - SECD machine.
--   Modern C++ compatible dynamic typing - Meevax provides RTTI-based language runtime library.
+- Architecture - SECD machine.
+- Modern C++ compatible dynamic typing - Meevax provides RTTI-based language
+  runtime library.
 
 ### Standards
 
@@ -51,24 +55,26 @@ Subset of R7RS-small.
 | [ 78](https://srfi.schemers.org/srfi-78/srfi-78.html)   | Lightweight testing                                    | [`(srfi 78)`](./basis/srfi-78.ss)   | Except `check-ec` |
 | [ 87](https://srfi.schemers.org/srfi-87/srfi-87.html)   | => in case clauses                                     |                                     | R7RS 4.2.1        |
 | [ 98](https://srfi.schemers.org/srfi-98/srfi-98.html)   | An interface to access environment variables           | [`(srfi 98)`](./basis/srfi-98.ss)   | R7RS 6.14         |
+| [111](https://srfi.schemers.org/srfi-111/srfi-111.html) | Boxes                                                  | [`(srfi 111)`](./basis/srfi-111.ss) |                   |
 | [149](https://srfi.schemers.org/srfi-149/srfi-149.html) | Basic syntax-rules template extensions                 | [`(srfi 149)`](./basis/srfi-149.ss) | R7RS 4.3.2        |
 
 ## Installation
 
 ### Requirements
 
--   [GCC](https://gcc.gnu.org/) (>= 9.4.0) or [Clang](https://clang.llvm.org/) (>= 11.0.0)
--   [CMake](https://cmake.org/) (>= 3.16.3)
--   [GNU Make](http://savannah.gnu.org/projects/make)
--   [GNU Binutils](https://www.gnu.org/software/binutils/)
--   [GNU Multiple Precision Arithmetic Library (GMP)](https://gmplib.org/)
+- [GCC](https://gcc.gnu.org/) (>= 9.4.0) or [Clang](https://clang.llvm.org/) (>= 11.0.0)
+- [CMake](https://cmake.org/) (>= 3.16.3)
+- [GNU Make](http://savannah.gnu.org/projects/make)
+- [GNU Binutils](https://www.gnu.org/software/binutils/)
+- [GNU Multiple Precision Arithmetic Library (GMP)](https://gmplib.org/)
 
 ### Install
 
 ``` bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cd build
-make install.deb
+make package
+sudo apt install build/meevax_0.4.779_amd64.deb
 ```
 
 or
@@ -81,7 +87,7 @@ make install
 
 ### Uninstall
 
-If you installed with `make install.deb`,
+If you installed with `sudo apt install`,
 
 ``` bash
 sudo apt remove meevax
@@ -98,18 +104,17 @@ sudo rm -rf /usr/local/share/meevax
 
 ### CMake targets
 
-| Target Name        | Description
-|--------------------|---
-| `all` (default)    | Build shared-library `libmeevax.0.4.752.so` and executable `meevax`
-| `test`             | Test executable `meevax`
-| `package`          | Generate debian package `meevax_0.4.752_amd64.deb`
-| `install`          | Copy files into `/usr/local`
-| `install.deb`      | `all` + `package` + `sudo apt install <meevax>.deb`
+| Target Name     | Description
+|-----------------|-------------
+| `all` (default) | Build shared-library `libmeevax.0.4.779.so` and executable `meevax`
+| `test`          | Test executable `meevax`
+| `package`       | Generate debian package `meevax_0.4.779_amd64.deb`
+| `install`       | Copy files into `/usr/local` directly
 
 ## Usage
 
 ```
-Meevax Lisp 0.4.752
+Meevax Lisp 0.4.779
 
 Usage:
   meevax [option...] [file...]
@@ -134,6 +139,6 @@ See [LICENSE](./LICENSE).
 
 ### Resources
 
-*   [Chibi-Scheme](https://github.com/ashinn/chibi-scheme)
-*   [SECDR-Scheme](http://www.maroon.dti.ne.jp/nagar17/mulasame/)
-*   [TinyScheme](http://tinyscheme.sourceforge.net/)
+* [Chibi-Scheme](https://github.com/ashinn/chibi-scheme)
+* [SECDR-Scheme](http://www.maroon.dti.ne.jp/nagar17/mulasame/)
+* [TinyScheme](http://tinyscheme.sourceforge.net/)

@@ -36,9 +36,9 @@ inline namespace kernel
     return 0 < size ? cons(car(x), take(cdr(x), --size)) : unit;
   }
 
-  auto length(object const& xs, std::size_t size) -> std::size_t
+  auto length(object const& xs) -> std::size_t
   {
-    return xs.is<pair>() ? length(cdr(xs), ++size) : size;
+    return std::distance(xs.begin(), xs.end());
   }
 
   auto append(object const& x, object const& y) -> object

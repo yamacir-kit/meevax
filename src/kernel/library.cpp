@@ -21,6 +21,7 @@
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/binary_input_file_port.hpp>
 #include <meevax/kernel/binary_output_file_port.hpp>
+#include <meevax/kernel/box.hpp>
 #include <meevax/kernel/disassemble.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
@@ -41,42 +42,46 @@ inline namespace kernel
     : declarations { declarations }
   {}
 
-  auto library::evaluate(object const& declaration) -> void
+  auto library::evaluate(object const& declaration) -> object
   {
-    auto is = [&](auto name)
+    if (declaration.is<pair>() and car(declaration).is<symbol>())
     {
-      return declaration.is<pair>() and car(declaration).is<symbol>() and car(declaration).as<symbol>() == name;
-    };
+      if (auto&& name = car(declaration).as<symbol>().name; name == "export")
+      {
+        export_specs = append(cdr(declaration), export_specs);
 
-    if (is("export"))
-    {
-      export_specs = append(cdr(declaration), export_specs);
-    }
-    else if (is("begin"))
-    {
-      for (let const& command_or_definition : cdr(declaration))
+        return unspecified;
+      }
+      else if (name == "begin")
       {
-        environment::evaluate(command_or_definition);
+        for (let const& command_or_definition : cdr(declaration))
+        {
+          environment::evaluate(command_or_definition);
+        }
+
+        return unspecified;
+      }
+      else if (name == "include-library-declarations")
+      {
+        for (let const& library_declaration : include(cdr(declaration)))
+        {
+          evaluate(library_declaration);
+        }
+
+        return unspecified;
+      }
+      else if (name == "cond-expand")
+      {
+        for (let const& library_declaration : implementation_dependent(cdr(declaration)))
+        {
+          evaluate(library_declaration);
+        }
+
+        return unspecified;
       }
     }
-    else if (is("include-library-declarations"))
-    {
-      for (let const& library_declaration : include(cdr(declaration)))
-      {
-        evaluate(library_declaration);
-      }
-    }
-    else if (is("cond-expand"))
-    {
-      for (let const& library_declaration : implementation_dependent(cdr(declaration)))
-      {
-        evaluate(library_declaration);
-      }
-    }
-    else
-    {
-      environment::evaluate(declaration); // Non-standard extension.
-    }
+
+    return environment::evaluate(declaration); // Non-standard extension.
   }
 
   auto library::resolve() -> object
@@ -122,6 +127,29 @@ inline namespace kernel
 
   auto boot() -> void
   {
+    define<library>("(meevax box)", [](library & library)
+    {
+      library.define<procedure>("box", [](let const& xs)
+      {
+        return make<box>(car(xs));
+      });
+
+      library.define<procedure>("box?", [](let const& xs)
+      {
+        return car(xs).is<box>();
+      });
+
+      library.define<procedure>("box-ref", [](let const& xs)
+      {
+        return caar(xs);
+      });
+
+      library.define<procedure>("box-set!", [](let const& xs)
+      {
+        return caar(xs) = cadr(xs);
+      });
+    });
+
     define<library>("(meevax character)", [](library & library)
     {
       library.define<procedure>("char?", [](let const& xs)
@@ -172,11 +200,11 @@ inline namespace kernel
     {
       library.define<procedure>("emergency-exit", [](let const& xs)
       {
-        if (let const& status = xs[0]; status.is<null>())
+        if (xs.is<null>())
         {
           throw success;
         }
-        else if (status.is<bool>())
+        else if (let const& status = car(xs); status.is<bool>())
         {
           throw is_truthy(status) ? success : failure;
         }
@@ -209,6 +237,11 @@ inline namespace kernel
       library.define<procedure>("eqv?", [](let const& xs)
       {
         return eqv(xs[0], xs[1]);
+      });
+
+      library.define<procedure>("equal?", [](let const& xs)
+      {
+        return equal(xs[0], xs[1]);
       });
     });
 
@@ -1588,14 +1621,11 @@ inline namespace kernel
 
     auto boot_loader = environment();
 
-    for (auto&& each : basis())
+    for (auto each : basis())
     {
-      if (auto input = input_string_port(each); input.get_ready())
+      for (let const& x : input_string_port(each))
       {
-        while (not static_cast<std::istream &>(input).eof())
-        {
-          boot_loader.evaluate(input.read());
-        }
+        boot_loader.evaluate(x);
       }
     }
   }

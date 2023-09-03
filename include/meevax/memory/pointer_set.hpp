@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_MEMORY_POINTER_SET_HPP
 
 #include <algorithm>
-#include <array>
 #include <cassert>
 #include <cstdint>
 #include <iterator>
@@ -41,10 +40,14 @@ inline namespace memory
   static_assert(log2(0b0100) - 1 == 2);
   static_assert(log2(0b1000) - 1 == 3);
 
-  template <typename Pointer, std::size_t word_size = 8 * 1024 * 16>
+  template <typename Pointer, std::size_t Capacity = 1024 * 1024>
   class pointer_set
   {
     static_assert(std::is_pointer_v<Pointer>);
+
+    static constexpr auto width = sizeof(std::uintmax_t) * 8;
+
+    static_assert(Capacity % width == 0);
 
     struct compact_pointer
     {
@@ -56,54 +59,52 @@ inline namespace memory
         : value { reinterpret_cast<std::uintptr_t>(p) >> width }
       {}
 
-      static constexpr auto restore(std::uintptr_t value)
+      constexpr auto offset() const noexcept
       {
-        return reinterpret_cast<Pointer>(value << width);
+        return (value / Capacity) * Capacity;
       }
 
-      explicit constexpr operator Pointer() const noexcept
+      constexpr auto index() const noexcept
+      {
+        return value - offset();
+      }
+
+      static constexpr auto to_pointer(std::uintptr_t value)
       {
         return reinterpret_cast<Pointer>(value << width);
       }
     };
 
-    static constexpr auto page_number_of(compact_pointer p) noexcept
+    struct chunk
     {
-      return p.value / word_size;
-    }
+      std::size_t offset;
 
-    static constexpr auto word_number_of(compact_pointer p) noexcept
-    {
-      return p.value - page_number_of(p) * word_size;
-    }
+      bool data[Capacity];
 
-    struct page
-    {
-      std::size_t number;
-
-      std::array<bool, word_size> word {};
-
-      explicit constexpr page(std::size_t number)
-        : number { number }
-      {}
+      explicit constexpr chunk(compact_pointer const p)
+        : offset { p.offset() }
+        , data { false }
+      {
+        data[p.index()] = true;
+      }
 
       constexpr auto operator [](std::size_t index) const noexcept -> decltype(auto)
       {
-        return word[index];
+        return data[index];
       }
 
       constexpr auto operator [](std::size_t index) noexcept -> decltype(auto)
       {
-        return word[index];
+        return data[index];
       }
 
-      constexpr auto operator <(std::size_t other_page_number) noexcept
+      constexpr auto operator <(compact_pointer p) noexcept
       {
-        return number < other_page_number;
+        return offset < p.offset();
       }
     };
 
-    std::vector<page> pages;
+    std::vector<chunk> chunks;
 
   public:
     struct iterator
@@ -118,61 +119,52 @@ inline namespace memory
 
       using difference_type = std::ptrdiff_t;
 
-      std::vector<page> const& pages;
+      std::vector<chunk> const& chunks;
 
-      std::size_t page_index;
+      std::size_t i, j;
 
-      std::size_t word_index;
-
-      explicit iterator(std::vector<page> const& pages,
-                        std::size_t page_index_hint,
-                        std::size_t word_index_hint) noexcept
-        : pages      { pages }
-        , page_index { page_index_hint }
-        , word_index { word_index_hint }
+      explicit iterator(std::vector<chunk> const& chunks,
+                        std::size_t i,
+                        std::size_t j) noexcept
+        : chunks { chunks }
+        , i      { i }
+        , j      { j }
       {
-        if (not operator bool())
+        if (not (i < chunks.size() and j < Capacity and chunks[i][j]))
         {
           operator ++();
         }
       }
 
-      explicit iterator(std::vector<page> const& pages) noexcept
-        : pages      { pages }
-        , page_index { pages.size() }
-        , word_index { word_size }
+      explicit iterator(std::vector<chunk> const& chunks) noexcept
+        : chunks { chunks }
+        , i      { chunks.size() }
+        , j      { Capacity }
       {}
-
-      explicit operator bool() const noexcept
-      {
-        return page_index < pages.size() and word_index < word_size and pages[page_index][word_index];
-      }
 
       auto operator *() const noexcept
       {
-        return compact_pointer::restore(pages[page_index].number * word_size + word_index);
+        return compact_pointer::to_pointer(chunks[i].offset + j);
       }
 
       auto operator ++() noexcept -> auto &
       {
-        ++word_index;
+        ++j;
 
-        for (; page_index < pages.size(); ++page_index)
+        for (; i < chunks.size(); ++i, j = 0)
         {
-          for (auto&& word = pages[page_index]; word_index < word_size; ++word_index)
+          for (; j < Capacity; ++j)
           {
-            if (word[word_index])
+            if (chunks[i][j])
             {
               return *this;
             }
           }
-
-          word_index = 0;
         }
 
-        page_index = pages.size();
+        i = chunks.size();
 
-        word_index = word_size;
+        j = Capacity;
 
         return *this; // end
       }
@@ -186,9 +178,9 @@ inline namespace memory
 
       auto operator --() noexcept -> auto &
       {
-        page_index = std::min(pages.size() - 1, page_index);
+        i = std::min(chunks.size() - 1, i);
 
-        word_index = std::min(word_size - 1, word_index - 1);
+        j = std::min(Capacity - 1, j - 1);
 
         /*
            NOTE: N4659 6.9.1.4
@@ -197,17 +189,15 @@ inline namespace memory
            n is the number of bits in the value representation of that
            particular size of integer.
         */
-        for (; page_index < pages.size(); --page_index)
+        for (; i < chunks.size(); --i, j = Capacity - 1)
         {
-          for (auto&& word = pages[page_index]; word_index < word_size; --word_index)
+          for (; j < Capacity; --j)
           {
-            if (word[word_index])
+            if (chunks[i][j])
             {
               return *this;
             }
           }
-
-          word_index = word_size - 1;
         }
 
         return *this;
@@ -220,27 +210,27 @@ inline namespace memory
         return copy;
       }
 
-      auto operator ==(iterator const& rhs) noexcept
+      auto operator ==(iterator const& rhs) const noexcept
       {
-        return page_index == rhs.page_index and word_index == rhs.word_index;
+        return i == rhs.i and j == rhs.j;
       }
 
-      auto operator !=(iterator const& rhs) noexcept
+      auto operator !=(iterator const& rhs) const noexcept
       {
         return not operator ==(rhs);
       }
     };
 
     explicit pointer_set()
-      : pages {}
+      : chunks {}
     {
-      assert(pages.size() == 0);
+      assert(chunks.size() == 0);
       assert(begin() == end());
     }
 
-    auto lower_bound_page_of(compact_pointer p) noexcept
+    auto lower_bound_chunk(compact_pointer p) noexcept
     {
-      return std::lower_bound(std::begin(pages), std::end(pages), page_number_of(p));
+      return std::lower_bound(chunks.begin(), chunks.end(), p);
     }
 
     auto size() const noexcept
@@ -248,53 +238,41 @@ inline namespace memory
       return std::distance(begin(), end());
     }
 
-    auto insert(Pointer p) noexcept
+    auto insert(compact_pointer p) noexcept
     {
-      if (auto iter = lower_bound_page_of(p); iter != std::end(pages) and iter->number == page_number_of(p))
+      if (auto iter = lower_bound_chunk(p); iter != chunks.end() and iter->offset == p.offset())
       {
-        (*iter)[word_number_of(p)] = true;
+        (*iter)[p.index()] = true;
       }
       else
       {
-        assert(iter == std::end(pages) or page_number_of(p) < iter->number);
-        iter = pages.emplace(iter, page_number_of(p));
-        (*iter)[word_number_of(p)] = true;
+        assert(iter == chunks.end() or p.offset() < iter->offset);
+        chunks.emplace(iter, p);
       }
     }
 
-    auto erase(Pointer p) noexcept
+    auto erase(compact_pointer p) noexcept
     {
-      auto iter = lower_bound_page_of(p);
-
-      assert(iter != std::end(pages));
-
-      (*iter)[word_number_of(p)] = false;
-    }
-
-    [[deprecated]]
-    auto erase(iterator iter) noexcept
-    {
-      erase(*iter);
-      return ++iter;
+      auto iter = lower_bound_chunk(p);
+      assert(iter != chunks.end());
+      (*iter)[p.index()] = false;
     }
 
     auto begin() const noexcept
     {
-      return iterator(pages, 0, 0);
+      return iterator(chunks, 0, 0);
     }
 
     auto end() const noexcept
     {
-      return iterator(pages);
+      return iterator(chunks);
     }
 
-    auto lower_bound(Pointer p) noexcept
+    auto lower_bound(compact_pointer p) noexcept
     {
-      if (auto iter = lower_bound_page_of(p); iter != std::end(pages))
+      if (auto iter = lower_bound_chunk(p); iter != chunks.end())
       {
-        return iterator(pages,
-                        std::distance(std::begin(pages), iter),
-                        word_number_of(p));
+        return iterator(chunks, std::distance(chunks.begin(), iter), p.index());
       }
       else
       {

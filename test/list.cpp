@@ -48,5 +48,15 @@ auto main() -> int
     }
   }
 
+  {
+    let x = list(a, b);
+    cddr(x) = x;
+
+    let y = list(a, b, a, b);
+    cddddr(y) = y;
+
+    assert(equal(x, y));
+  }
+
   return EXIT_SUCCESS;
 }

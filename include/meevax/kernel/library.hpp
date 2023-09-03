@@ -47,7 +47,7 @@ inline namespace kernel
       export_specs = cons(input_string_port(name).read(), export_specs);
     }
 
-    auto evaluate(object const&) -> void;
+    auto evaluate(object const&) -> object;
 
     auto resolve() -> object;
   };

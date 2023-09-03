@@ -14,47 +14,22 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_MARKER_HPP
-#define INCLUDED_MEEVAX_MEMORY_MARKER_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_BOX_HPP
+#define INCLUDED_MEEVAX_KERNEL_BOX_HPP
+
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
-inline namespace memory
+inline namespace kernel
 {
-  class marker
+  struct box : public virtual pair // (value . unit)
   {
-    static inline std::size_t phase;
-
-    std::size_t value;
-
-  public:
-    struct initializer
-    {
-      explicit initializer();
-    };
-
-    explicit marker() noexcept
-      : value { phase }
-    {}
-
-    auto mark() noexcept
-    {
-      value = phase;
-    }
-
-    auto marked() const noexcept
-    {
-      return value == phase;
-    }
-
-    static auto toggle() noexcept
-    {
-      ++phase;
-    }
+    using pair::pair;
   };
 
-  static marker::initializer initializer;
-} // namespace memory
+  auto operator <<(std::ostream &, box const&) -> std::ostream &;
+} // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_MEMORY_MARKER_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_BOX_HPP

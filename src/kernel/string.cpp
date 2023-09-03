@@ -25,9 +25,13 @@ inline namespace kernel
 {
   string::string(std::string const& s)
   {
-    for (auto input = input_string_port(s);
-         not character::is_eof(static_cast<std::istream &>(input).peek());
-         vector.emplace_back(input.take_codepoint()));
+    if (auto input = input_string_port(s); input.get_ready())
+    {
+      for (auto c = input.take_codepoint(); not character::is_eof(c); c = input.take_codepoint())
+      {
+        vector.emplace_back(c);
+      }
+    }
   }
 
   string::string(std::size_t const size, character const& c)

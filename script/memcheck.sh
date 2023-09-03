@@ -5,4 +5,4 @@ valgrind --tool=memcheck \
          --leak-check=full \
          --quiet \
          --show-leak-kinds=all \
-         meevax "$@"
+         ./build/bin/meevax "$@"

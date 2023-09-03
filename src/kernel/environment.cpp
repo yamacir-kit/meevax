@@ -24,73 +24,72 @@ inline namespace kernel
 {
   auto environment::evaluate(object const& expression) -> object try
   {
-    auto is = [&](auto name)
+    if (expression.is<pair>() and car(expression).is<symbol>())
     {
-      return expression.is<pair>() and car(expression).is<symbol>() and car(expression).as<symbol>() == name;
-    };
-
-    if (is("define-library"))
-    {
-      meevax::define<library>(lexical_cast<std::string>(cadr(expression)), cddr(expression));
-      return cadr(expression);
-    }
-    else if (is("import"))
-    {
-      for (let const& import_set : cdr(expression))
+      if (auto&& name = car(expression).as<symbol>().name; name == "define-library")
       {
-        import(import_set);
-      }
+        meevax::define<library>(lexical_cast<std::string>(cadr(expression)), cddr(expression));
 
-      return unspecified;
+        return unspecified;
+      }
+      else if (name == "import")
+      {
+        for (let const& import_set : cdr(expression))
+        {
+          import(import_set);
+        }
+
+        return unspecified;
+      }
+      else if (name == "include")
+      {
+        for (let const& command_or_definition : include(cdr(expression), true))
+        {
+          evaluate(command_or_definition);
+        }
+
+        return unspecified;
+      }
+      else if (name == "include-ci")
+      {
+        for (let const& command_or_definition : include(cdr(expression), false))
+        {
+          evaluate(command_or_definition);
+        }
+
+        return unspecified;
+      }
     }
-    else if (is("include"))
+
+    /*
+       In most cases, the s, e, c, and d registers are all null when evaluate
+       is called. However, if environment::evaluate of the same environment is
+       called during the execution of environment::evaluate, this is not the
+       case, so it is necessary to save the register. For example, situations
+       like evaluating
+
+         (eval <expression> (interaction-environment))
+
+       in the REPL.
+    */
+    if (s or e or c)
     {
-      for (let const& command_or_definition : include(cdr(expression), true))
-      {
-        evaluate(command_or_definition);
-      }
-
-      return unspecified;
+      d = cons(std::exchange(s, unit),
+               std::exchange(e, unit),
+               std::exchange(c, unit), d);
     }
-    else if (is("include-ci"))
+
+    let const result = execute(optimize(compile(expression)));
+
+    if (d)
     {
-      for (let const& command_or_definition : include(cdr(expression), false))
-      {
-        evaluate(command_or_definition);
-      }
-
-      return unspecified;
+      s = d[0];
+      e = d[1];
+      c = d[2];
+      d = tail(d, 3);
     }
-    else
-    {
-      /*
-         In most cases, the s, e, c, and d registers are all null when evaluate
-         is called. However, if environment::evaluate of the same environment
-         is called during the execution of environment::evaluate, this is not
-         the case, so it is necessary to save the register. For example,
-         situations like evaluating
-           (eval <expression> (interaction-environment))
-         in the REPL.
-      */
-      if (s or e or c)
-      {
-        d = cons(std::exchange(s, unit),
-                 std::exchange(e, unit),
-                 std::exchange(c, unit), d);
-      }
 
-      let const result = execute(optimize(compile(expression)));
-
-      if (d)
-      {
-        s = d[0];
-        e = d[1];
-        c = d[2];
-        d = tail(d, 3);
-      }
-
-      return result;
-    }
+    return result;
   }
   catch (object const& x)
   {
@@ -237,11 +236,11 @@ inline namespace kernel
 
   auto environment::load(std::string const& s) -> void
   {
-    if (auto input = input_file_port(s); input.is_open() and input.get_ready())
+    if (auto input = input_file_port(s); input.is_open())
     {
-      while (not static_cast<std::istream &>(input).eof())
+      for (let const& x : input)
       {
-        evaluate(input.read());
+        evaluate(x);
       }
     }
     else
