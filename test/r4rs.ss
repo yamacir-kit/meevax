@@ -727,7 +727,7 @@
 
 (check (rationalize (inexact->exact .3) 1/10) => 1/3) ; exact
 
-(check (rationalize .3  1/10) => #,(/ 1.0 3.0)) ; inexact
+(check (rationalize .3  1/10) => (/ 1.0 3.0)) ; inexact
 
 (check (string->number "100") => 100)
 

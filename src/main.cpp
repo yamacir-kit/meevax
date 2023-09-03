@@ -24,41 +24,42 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    boot();
-
-    auto & main = interaction_environment().as<environment>();
-
-    main.import("(scheme base)"_read);
-    main.import("(scheme case-lambda)"_read);
-    main.import("(scheme char)"_read);
-    main.import("(scheme complex)"_read);
-    main.import("(scheme cxr)"_read);
-    main.import("(scheme eval)"_read);
-    main.import("(scheme file)"_read);
-    main.import("(scheme inexact)"_read);
-    main.import("(scheme lazy)"_read);
-    main.import("(scheme load)"_read);
-    main.import("(scheme process-context)"_read);
-    main.import("(scheme read)"_read);
-    main.import("(scheme repl)"_read);
-    main.import("(scheme time)"_read);
-    main.import("(scheme write)"_read);
-
-    if (main.configure(argc, argv); main.interactive)
+    auto interact = [&](auto & environment)
     {
-      while (standard_input_port().good())
+      if (environment.configure(argc, argv); environment.interactive)
       {
-        try
+        environment.import("(scheme base)"_read);
+        environment.import("(scheme case-lambda)"_read);
+        environment.import("(scheme char)"_read);
+        environment.import("(scheme complex)"_read);
+        environment.import("(scheme cxr)"_read);
+        environment.import("(scheme eval)"_read);
+        environment.import("(scheme file)"_read);
+        environment.import("(scheme inexact)"_read);
+        environment.import("(scheme lazy)"_read);
+        environment.import("(scheme load)"_read);
+        environment.import("(scheme process-context)"_read);
+        environment.import("(scheme read)"_read);
+        environment.import("(scheme repl)"_read);
+        environment.import("(scheme time)"_read);
+        environment.import("(scheme write)"_read);
+
+        while (standard_input_port().good())
         {
-          std::cout << u8"\u03bb> " << main.evaluate(standard_input_port().read()) << std::endl;
-        }
-        catch (error const& error)
-        {
-          std::cerr << error << std::endl;
+          try
+          {
+            std::cout << u8"\u03bb> " << environment.evaluate(standard_input_port().read()) << std::endl;
+          }
+          catch (error const& error)
+          {
+            std::cerr << error << std::endl;
+          }
         }
       }
-    }
+    };
 
-    return success;
+    boot();
+
+    interact(interaction_environment().as<environment>());
   });
 }

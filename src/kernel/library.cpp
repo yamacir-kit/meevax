@@ -202,11 +202,11 @@ inline namespace kernel
       {
         if (xs.is<null>())
         {
-          throw success;
+          throw EXIT_SUCCESS;
         }
         else if (let const& status = car(xs); status.is<bool>())
         {
-          throw is_truthy(status) ? success : failure;
+          throw is_truthy(status) ? EXIT_SUCCESS : EXIT_FAILURE;
         }
         else
         {

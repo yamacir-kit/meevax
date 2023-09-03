@@ -84,7 +84,7 @@ inline namespace kernel
           let static const f = make<procedure>("", []()
           {
             std::cout << help() << std::flush;
-            throw success;
+            throw EXIT_SUCCESS;
           });
 
           return list(f);
@@ -105,7 +105,7 @@ inline namespace kernel
           let static const f = make<procedure>("", []()
           {
             std::cout << version() << std::endl;
-            throw success;
+            throw EXIT_SUCCESS;
           });
 
           return list(f);

@@ -23,9 +23,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  constexpr auto success = EXIT_SUCCESS;
-  constexpr auto failure = EXIT_FAILURE;
-
   struct error : public virtual pair // (<message> . <irritants>)
   {
     using pair::pair;
@@ -66,22 +63,23 @@ inline namespace kernel
   {
     try
     {
-      return thunk();
+      thunk();
+      return EXIT_SUCCESS;
     }
     catch (int const status) // NOTE: emergency-exit
     {
       gc.clear();
       return status;
     }
-    catch (error const& error) // NOTE: system-error
+    catch (error const& error)
     {
       std::cerr << error << std::endl;
-      return failure;
+      return EXIT_FAILURE;
     }
     catch (std::exception const& exception)
     {
       std::cerr << error(make<string>(exception.what())) << std::endl;
-      return failure;
+      return EXIT_FAILURE;
     }
   }
 } // namespace kernel
