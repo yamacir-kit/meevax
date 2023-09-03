@@ -856,8 +856,8 @@
 (check (equal? (make-vector 5 'a)
                (make-vector 5 'a)) => #t)
 
-; (check (equal? '#1=(a b . #1#)
-;                '#2=(a b a b . #2#)) => #t)
+(check (equal? '#1=(a b . #1#)
+               '#2=(a b a b . #2#)) => #t)
 
 (check (equal? (lambda (x) x)
                (lambda (y) y)) => #f) ; unspecified
@@ -1611,4 +1611,4 @@
 
 (check-report)
 
-(exit (check-passed? 431))
+(exit (check-passed? 432))

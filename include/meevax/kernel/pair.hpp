@@ -169,4 +169,13 @@ inline namespace kernel
 } // namespace kernel
 } // namespace meevax
 
+template <>
+struct std::hash<meevax::object>
+{
+  auto operator ()(meevax::object const& x) const noexcept
+  {
+    return std::hash<decltype(x.get())>()(x.get());
+  }
+};
+
 #endif // INCLUDED_MEEVAX_KERNEL_PAIR_HPP
