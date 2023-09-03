@@ -313,9 +313,6 @@
                        (else (rec (if (< (car xs) x) (car xs) x)
                                   (cdr xs)))))))
 
-         (define (abs n)
-           (if (< n 0) (- n) n))
-
          (define (quotient x y)
            (truncate (/ x y)))
 

@@ -369,6 +369,8 @@ inline namespace number
 
   auto is_nan(object const&) -> bool;
 
+  auto abs(object const&) -> object;
+
   auto sqrt(object const&) -> object;
 
   auto pow(object const&, object const&) -> object;

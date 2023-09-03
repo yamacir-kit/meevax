@@ -673,6 +673,11 @@ inline namespace kernel
         return xs[0] % xs[1];
       });
 
+      library.define<procedure>("abs", [](let const& xs)
+      {
+        return abs(xs[0]);
+      });
+
       library.define<procedure>("ratio-numerator", [](let const& xs)
       {
         return make(xs[0].as<ratio>().numerator());

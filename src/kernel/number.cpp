@@ -726,6 +726,32 @@ inline namespace number
     return test(f, x);
   }
 
+  auto abs(object const& x) -> object
+  {
+    auto f = [](auto&& x)
+    {
+      using T = std::decay_t<decltype(x)>;
+
+      if constexpr (std::is_same_v<T, exact_integer>)
+      {
+        exact_integer i {};
+        mpz_abs(i.value, x.value);
+        return i;
+      }
+      else if constexpr (std::is_arithmetic_v<T>)
+      {
+        return std::abs(std::forward<decltype(x)>(x));
+      }
+      else
+      {
+        static auto const zero = static_cast<exact_integer>(0);
+        return x < zero ? zero - x : x;
+      }
+    };
+
+    return apply(f, x);
+  }
+
   auto sqrt(object const& x) -> object
   {
     auto f = [](auto&& x)
