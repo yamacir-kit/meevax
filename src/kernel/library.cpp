@@ -21,6 +21,7 @@
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/binary_input_file_port.hpp>
 #include <meevax/kernel/binary_output_file_port.hpp>
+#include <meevax/kernel/box.hpp>
 #include <meevax/kernel/disassemble.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
@@ -126,6 +127,29 @@ inline namespace kernel
 
   auto boot() -> void
   {
+    define<library>("(meevax box)", [](library & library)
+    {
+      library.define<procedure>("box", [](let const& xs)
+      {
+        return make<box>(car(xs));
+      });
+
+      library.define<procedure>("box?", [](let const& xs)
+      {
+        return car(xs).is<box>();
+      });
+
+      library.define<procedure>("box-ref", [](let const& xs)
+      {
+        return caar(xs);
+      });
+
+      library.define<procedure>("box-set!", [](let const& xs)
+      {
+        return caar(xs) = cadr(xs);
+      });
+    });
+
     define<library>("(meevax character)", [](library & library)
     {
       library.define<procedure>("char?", [](let const& xs)

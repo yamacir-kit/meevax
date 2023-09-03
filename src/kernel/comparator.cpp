@@ -14,35 +14,18 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/box.hpp>
 #include <meevax/kernel/list.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct box : public virtual pair // (value . unit)
-  {
-    auto unbox() -> object &
-    {
-      return first;
-    }
-
-    auto unbox() const -> object const&
-    {
-      return first;
-    }
-
-    auto set(object const& x) -> object const&
-    {
-      return first = x;
-    }
-  };
-
   auto find(let const& b) -> object const&
   {
-    if (let x = b.as<box>().unbox(); x.is<box>())
+    if (let & x = car(b); x.is<box>())
     {
-      return b.as<box>().set(find(x));
+      return x = find(x);
     }
     else
     {
@@ -50,9 +33,6 @@ inline namespace kernel
     }
   }
 
-  /*
-     Efficient Nondestructive Equality Checking for Trees and Graphs
-  */
   auto union_find(object const& x, object const& y, std::unordered_map<object, object> & forest)
   {
     using rank = std::uint32_t;
@@ -68,16 +48,16 @@ inline namespace kernel
         }
         else
         {
-          if (auto rank_x = root_x.as<box>().unbox().as<rank>(),
-                   rank_y = root_y.as<box>().unbox().as<rank>(); rank_x > rank_y)
+          if (auto rank_x = car(root_x).as<rank>(),
+                   rank_y = car(root_y).as<rank>(); rank_x > rank_y)
           {
-            root_x.as<box>().set(make<rank>(rank_x + rank_y));
-            root_y.as<box>().set(root_x);
+            car(root_x) = make<rank>(rank_x + rank_y);
+            car(root_y) = root_x;
           }
           else
           {
-            root_x.as<box>().set(root_y);
-            root_y.as<box>().set(make<rank>(rank_x + rank_y));
+            car(root_x) = root_y;
+            car(root_y) = make<rank>(rank_x + rank_y);
           }
         }
       }
@@ -103,6 +83,9 @@ inline namespace kernel
     return false;
   }
 
+  /*
+     Efficient Nondestructive Equality Checking for Trees and Graphs
+  */
   auto equal(object const& x, object const& y, std::unordered_map<object, object> & forest) -> bool
   {
     return eqv(x, y) or (x.is<pair>() and
