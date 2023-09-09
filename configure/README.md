@@ -104,12 +104,12 @@ sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 
 ### CMake targets
 
-| Target Name     | Description
-|-----------------|-------------
-| `all` (default) | Build shared-library `libmeevax.${PROJECT_VERSION}.so` and executable `meevax`
-| `test`          | Test executable `meevax`
-| `package`       | Generate debian package `meevax_${PROJECT_VERSION}_amd64.deb`
-| `install`       | Copy files into `${CMAKE_INSTALL_PREFIX}` directly
+| Target Name | Description
+|-------------|-------------
+| `all`       | Build shared-library `libmeevax.${PROJECT_VERSION}.so` and executable `meevax`
+| `test`      | Test executable `meevax`
+| `package`   | Generate debian package `meevax_${PROJECT_VERSION}_amd64.deb`
+| `install`   | Copy files into `${CMAKE_INSTALL_PREFIX}` directly
 
 ## Usage
 

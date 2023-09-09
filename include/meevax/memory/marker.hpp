@@ -47,7 +47,7 @@ inline namespace memory
       return value == phase;
     }
 
-    static auto toggle() noexcept
+    static auto clear() noexcept
     {
       ++phase;
     }
