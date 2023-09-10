@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/boot.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
 

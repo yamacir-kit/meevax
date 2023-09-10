@@ -1,6 +1,7 @@
 #undef NDEBUG
 
 #include <cassert>
+#include <meevax/kernel/boot.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
