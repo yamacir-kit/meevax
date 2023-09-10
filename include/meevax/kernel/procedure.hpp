@@ -102,11 +102,11 @@ inline namespace kernel
     }
   };
 
-  struct modifier : public procedure // mutation-procedure
+  struct mutation : public procedure
   {
     auto (*call)(object &) -> void;
 
-    explicit modifier(std::string const& name, auto (*call)(object &) -> void)
+    explicit mutation(std::string const& name, auto (*call)(object &) -> void)
       : procedure { name }
       , call { call }
     {}

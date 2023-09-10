@@ -144,7 +144,7 @@ inline namespace kernel
         return caar(xs);
       });
 
-      library.define<modifier>("box-set!", [](let & xs)
+      library.define<mutation>("box-set!", [](let & xs)
       {
         caar(xs) = cadr(xs);
       });
@@ -788,12 +788,12 @@ inline namespace kernel
       library.define<accessor>("cdddar", [](let const& xs) -> auto const& { return cdddar(xs[0]); });
       library.define<accessor>("cddddr", [](let const& xs) -> auto const& { return cddddr(xs[0]); });
 
-      library.define<modifier>("set-car!", [](let & xs)
+      library.define<mutation>("set-car!", [](let & xs)
       {
         caar(xs) = cadr(xs);
       });
 
-      library.define<modifier>("set-cdr!", [](let & xs)
+      library.define<mutation>("set-cdr!", [](let & xs)
       {
         cdar(xs) = cadr(xs);
       });
@@ -1019,7 +1019,7 @@ inline namespace kernel
         return make(xs[0].as<string>().vector.at(xs[1].as<exact_integer>()));
       });
 
-      library.define<modifier>("string-set!", [](let & xs)
+      library.define<mutation>("string-set!", [](let & xs)
       {
         /*
            (string-set! string k char)                                procedure
@@ -1401,7 +1401,7 @@ inline namespace kernel
         return xs[0][xs[1].as<exact_integer>()];
       });
 
-      library.define<modifier>("vector-set!", [](let & xs)
+      library.define<mutation>("vector-set!", [](let & xs)
       {
         /*
            (vector-set! vector k obj)                                 procedure
@@ -1413,7 +1413,7 @@ inline namespace kernel
         xs[0].as<vector>().vector[xs[1].as<exact_integer>()] = xs[2];
       });
 
-      library.define<modifier>("vector-fill!", [](let & xs)
+      library.define<mutation>("vector-fill!", [](let & xs)
       {
         /*
            (vector-fill! vector fill)                                 procedure
@@ -1509,7 +1509,7 @@ inline namespace kernel
                                  2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().valarray.size()); \
       });                                                                      \
                                                                                \
-      library.define<modifier>(#TAG "vector-copy!", [](let & xs)               \
+      library.define<mutation>(#TAG "vector-copy!", [](let & xs)               \
       {                                                                        \
         auto copy = [](auto&& to, auto&& at, auto&& from, auto&& start, auto&& end) \
         {                                                                      \
