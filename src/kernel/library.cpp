@@ -129,7 +129,7 @@ inline namespace kernel
   {
     define<library>("(meevax box)", [](library & library)
     {
-      library.define<procedure>("box", [](let const& xs)
+      library.define<function>("box", [](let const& xs)
       {
         return make<box>(car(xs));
       });
@@ -139,7 +139,7 @@ inline namespace kernel
         return car(xs).is<box>();
       });
 
-      library.define<procedure>("box-ref", [](let const& xs)
+      library.define<accessor>("box-ref", [](let const& xs) -> auto const&
       {
         return caar(xs);
       });
@@ -157,7 +157,7 @@ inline namespace kernel
         return xs[0].is<character>();
       });
 
-      library.define<procedure>("digit-value", [](let const& xs)
+      library.define<function>("digit-value", [](let const& xs)
       {
         if (auto c = xs[0].as<character>(); std::isdigit(c.codepoint))
         {
@@ -169,7 +169,7 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("integer->char", [](let const& xs)
+      library.define<function>("integer->char", [](let const& xs)
       {
         return make<character>(xs[0].as<exact_integer>());
       });
@@ -177,7 +177,7 @@ inline namespace kernel
 
     define<library>("(meevax complex)", [](library & library)
     {
-      library.define<procedure>("make-rectangular", [](let const& xs)
+      library.define<function>("make-rectangular", [](let const& xs)
       {
         assert(is_real(xs[0]));
         assert(is_real(xs[1]));
@@ -185,12 +185,12 @@ inline namespace kernel
         return make<complex>(xs[0], xs[1]);
       });
 
-      library.define<procedure>("real-part", [](let const& xs)
+      library.define<accessor>("real-part", [](let const& xs) -> auto const&
       {
         return car(xs[0]);
       });
 
-      library.define<procedure>("imag-part", [](let const& xs)
+      library.define<accessor>("imag-part", [](let const& xs) -> auto const&
       {
         return cdr(xs[0]);
       });
@@ -214,7 +214,7 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("command-line", [](let const&)
+      library.define<thunk>("command-line", []()
       {
         let xs = unit;
 
@@ -270,7 +270,7 @@ inline namespace kernel
 
     define<library>("(meevax environment)", [](library & library)
     {
-      library.define<procedure>("environment", [](let const& xs)
+      library.define<function>("environment", [](let const& xs)
       {
         auto e = environment();
 
@@ -282,7 +282,7 @@ inline namespace kernel
         return make(e);
       });
 
-      library.define<procedure>("eval", [](let const& xs)
+      library.define<function>("eval", [](let const& xs)
       {
         return xs[1].as<environment>().evaluate(xs[0]);
       });
@@ -300,12 +300,12 @@ inline namespace kernel
 
     define<library>("(meevax error)", [](library & library)
     {
-      library.define<procedure>("throw", [](let const& xs) -> object
+      library.define<command>("throw", [](let const& xs)
       {
         throw xs[0];
       });
 
-      library.define<procedure>("error-object", [](let const& xs)
+      library.define<function>("error-object", [](let const& xs)
       {
         return make<error>(xs[0], cdr(xs));
       });
@@ -325,15 +325,15 @@ inline namespace kernel
         return xs[0].is<file_error>();
       });
 
-      library.define<procedure>("kernel-exception-handler-set!", [](let const& xs)
+      library.define<command>("kernel-exception-handler-set!", [](let const& xs)
       {
-        return environment::raise = xs[0];
+        environment::raise = xs[0];
       });
     });
 
     define<library>("(meevax experimental)", [](library & library)
     {
-      library.define<procedure>("type-of", [](let const& xs)
+      library.define<function>("type-of", [](let const& xs)
       {
         return make<string>(xs[0].type().name());
       });
@@ -390,14 +390,14 @@ inline namespace kernel
         return xs[0].is<continuation>();
       });
 
-      library.define<procedure>("foreign-function", [](let const& xs)
+      library.define<function>("foreign-function", [](let const& xs)
       {
         return make<procedure>(xs[1].as<string>(), xs[0].as<string>());
       });
 
       library.define<predicate>("foreign-function?", [](let const& xs)
       {
-        return xs[0].is<procedure>();
+        return xs[0].is_also<procedure>();
       });
     });
 
@@ -431,79 +431,79 @@ inline namespace kernel
         return is_nan(xs[0]);
       });
 
-      library.define<procedure>("exp", [](let const& xs)
+      library.define<function>("exp", [](let const& xs)
       {
         return exp(xs[0]);
       });
 
-      library.define<procedure>("sqrt", [](let const& xs)
+      library.define<function>("sqrt", [](let const& xs)
       {
         return sqrt(xs[0]);
       });
 
-      library.define<procedure>("log", [](let const& xs)
+      library.define<function>("log", [](let const& xs)
       {
         return 1 < length(xs) ? log(xs[0]) / log(xs[1])
                               : log(xs[0]);
       });
 
-      library.define<procedure>("sin", [](let const& xs)
+      library.define<function>("sin", [](let const& xs)
       {
         return sin(xs[0]);
       });
 
-      library.define<procedure>("cos", [](let const& xs)
+      library.define<function>("cos", [](let const& xs)
       {
         return cos(xs[0]);
       });
 
-      library.define<procedure>("tan", [](let const& xs)
+      library.define<function>("tan", [](let const& xs)
       {
         return tan(xs[0]);
       });
 
-      library.define<procedure>("asin", [](let const& xs)
+      library.define<function>("asin", [](let const& xs)
       {
         return asin(xs[0]);
       });
 
-      library.define<procedure>("acos", [](let const& xs)
+      library.define<function>("acos", [](let const& xs)
       {
         return acos(xs[0]);
       });
 
-      library.define<procedure>("atan", [](let const& xs)
+      library.define<function>("atan", [](let const& xs)
       {
         return 1 < length(xs) ? atan(xs[0], xs[1])
                               : atan(xs[0]);
       });
 
-      library.define<procedure>("sinh", [](let const& xs)
+      library.define<function>("sinh", [](let const& xs)
       {
         return sinh(xs[0]);
       });
 
-      library.define<procedure>("cosh", [](let const& xs)
+      library.define<function>("cosh", [](let const& xs)
       {
         return cosh(xs[0]);
       });
 
-      library.define<procedure>("tanh", [](let const& xs)
+      library.define<function>("tanh", [](let const& xs)
       {
         return tanh(xs[0]);
       });
 
-      library.define<procedure>("asinh", [](let const& xs)
+      library.define<function>("asinh", [](let const& xs)
       {
         return asinh(xs[0]);
       });
 
-      library.define<procedure>("acosh", [](let const& xs)
+      library.define<function>("acosh", [](let const& xs)
       {
         return acosh(xs[0]);
       });
 
-      library.define<procedure>("atanh", [](let const& xs)
+      library.define<function>("atanh", [](let const& xs)
       {
         return atanh(xs[0]);
       });
@@ -516,42 +516,42 @@ inline namespace kernel
         return xs[0].is<null>();
       });
 
-      library.define<procedure>("make-list", [](let const& xs)
+      library.define<function>("make-list", [](let const& xs)
       {
         return make_list(xs[0].as<exact_integer>(), 1 < length(xs) ? xs[1] : f);
       });
 
-      library.define<procedure>("length", [](let const& xs)
+      library.define<function>("length", [](let const& xs)
       {
         return make<exact_integer>(length(xs[0]));
       });
 
-      library.define<procedure>("append", [](let const& xs)
+      library.define<function>("append", [](let const& xs)
       {
         return std::accumulate(std::begin(xs), std::end(xs), unit, append);
       });
 
-      library.define<procedure>("reverse", [](let const& xs)
+      library.define<function>("reverse", [](let const& xs)
       {
         return reverse(xs[0]);
       });
 
-      library.define<procedure>("list-tail", [](let const& xs)
+      library.define<accessor>("list-tail", [](let const& xs) -> auto const&
       {
         return tail(xs[0], xs[1].as<exact_integer>());
       });
 
-      library.define<procedure>("list-ref", [](let const& xs)
+      library.define<accessor>("list-ref", [](let const& xs) -> auto const&
       {
         return xs[0][xs[1].as<exact_integer>()];
       });
 
-      library.define<procedure>("memq", [](let const& xs)
+      library.define<accessor>("memq", [](let const& xs) -> auto const&
       {
         return memq(xs[0], xs[1]);
       });
 
-      library.define<procedure>("assq", [](let const& xs)
+      library.define<accessor>("assq", [](let const& xs) -> auto const&
       {
         return assq(xs[0], xs[1]);
       });
@@ -634,17 +634,17 @@ inline namespace kernel
         return std::adjacent_find(std::begin(xs), std::end(xs), less_than) == std::end(xs);
       });
 
-      library.define<procedure>("+", [](let const& xs)
+      library.define<function>("+", [](let const& xs)
       {
         return std::accumulate(std::begin(xs), std::end(xs), e0, std::plus());
       });
 
-      library.define<procedure>("*", [](let const& xs)
+      library.define<function>("*", [](let const& xs)
       {
         return std::accumulate(std::begin(xs), std::end(xs), e1, std::multiplies());
       });
 
-      library.define<procedure>("-", [](let const& xs)
+      library.define<function>("-", [](let const& xs)
       {
         if (cdr(xs).is<pair>())
         {
@@ -656,7 +656,7 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("/", [](let const& xs)
+      library.define<function>("/", [](let const& xs)
       {
         if (cdr(xs).is<pair>())
         {
@@ -668,47 +668,47 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("%", [](let const& xs)
+      library.define<function>("%", [](let const& xs)
       {
         return xs[0] % xs[1];
       });
 
-      library.define<procedure>("abs", [](let const& xs)
+      library.define<function>("abs", [](let const& xs)
       {
         return abs(xs[0]);
       });
 
-      library.define<procedure>("ratio-numerator", [](let const& xs)
+      library.define<function>("ratio-numerator", [](let const& xs)
       {
         return make(xs[0].as<ratio>().numerator());
       });
 
-      library.define<procedure>("ratio-denominator", [](let const& xs)
+      library.define<function>("ratio-denominator", [](let const& xs)
       {
         return make(xs[0].as<ratio>().denominator());
       });
 
-      library.define<procedure>("floor", [](let const& xs)
+      library.define<function>("floor", [](let const& xs)
       {
         return floor(xs[0]);
       });
 
-      library.define<procedure>("ceiling", [](let const& xs)
+      library.define<function>("ceiling", [](let const& xs)
       {
         return ceil(xs[0]);
       });
 
-      library.define<procedure>("truncate", [](let const& xs)
+      library.define<function>("truncate", [](let const& xs)
       {
         return trunc(xs[0]);
       });
 
-      library.define<procedure>("round", [](let const& xs)
+      library.define<function>("round", [](let const& xs)
       {
         return round(xs[0]);
       });
 
-      library.define<procedure>("exact-integer-square-root", [](let const& xs)
+      library.define<function>("exact-integer-square-root", [](let const& xs)
       {
         auto&& [s, r] = exact_integer_sqrt(xs[0].as<exact_integer>());
 
@@ -716,27 +716,27 @@ inline namespace kernel
                     make(std::forward<decltype(r)>(r)));
       });
 
-      library.define<procedure>("expt", [](let const& xs)
+      library.define<function>("expt", [](let const& xs)
       {
         return pow(xs[0], xs[1]);
       });
 
-      library.define<procedure>("exact", [](let const& xs)
+      library.define<function>("exact", [](let const& xs)
       {
         return exact(xs[0]);
       });
 
-      library.define<procedure>("inexact", [](let const& xs)
+      library.define<function>("inexact", [](let const& xs)
       {
         return inexact(xs[0]);
       });
 
-      library.define<procedure>("char->integer", [](let const& xs)
+      library.define<function>("char->integer", [](let const& xs)
       {
         return make<exact_integer>(xs[0].as<character>().codepoint);
       });
 
-      library.define<procedure>("string->number", [](let const& xs)
+      library.define<function>("string->number", [](let const& xs)
       {
         return make_number(xs[0].as<string>(), 1 < length(xs) ? xs[1].as<exact_integer>() : 10);
       });
@@ -749,44 +749,44 @@ inline namespace kernel
         return xs[0].is<pair>();
       });
 
-      library.define<procedure>("cons", [](let const& xs)
+      library.define<function>("cons", [](let const& xs)
       {
         return cons(xs[0], xs[1]);
       });
 
-      library.define<procedure>("car", [](let const& xs) { return car(xs[0]); });
-      library.define<procedure>("cdr", [](let const& xs) { return cdr(xs[0]); });
+      library.define<accessor>("car", [](let const& xs) -> auto const& { return car(xs[0]); });
+      library.define<accessor>("cdr", [](let const& xs) -> auto const& { return cdr(xs[0]); });
 
-      library.define<procedure>("caar", [](let const& xs) { return caar(xs[0]); });
-      library.define<procedure>("cadr", [](let const& xs) { return cadr(xs[0]); });
-      library.define<procedure>("cdar", [](let const& xs) { return cdar(xs[0]); });
-      library.define<procedure>("cddr", [](let const& xs) { return cddr(xs[0]); });
+      library.define<accessor>("caar", [](let const& xs) -> auto const& { return caar(xs[0]); });
+      library.define<accessor>("cadr", [](let const& xs) -> auto const& { return cadr(xs[0]); });
+      library.define<accessor>("cdar", [](let const& xs) -> auto const& { return cdar(xs[0]); });
+      library.define<accessor>("cddr", [](let const& xs) -> auto const& { return cddr(xs[0]); });
 
-      library.define<procedure>("caaar", [](let const& xs) { return caaar(xs[0]); });
-      library.define<procedure>("caadr", [](let const& xs) { return caadr(xs[0]); });
-      library.define<procedure>("cadar", [](let const& xs) { return cadar(xs[0]); });
-      library.define<procedure>("caddr", [](let const& xs) { return caddr(xs[0]); });
-      library.define<procedure>("cdaar", [](let const& xs) { return cdaar(xs[0]); });
-      library.define<procedure>("cdadr", [](let const& xs) { return cdadr(xs[0]); });
-      library.define<procedure>("cddar", [](let const& xs) { return cddar(xs[0]); });
-      library.define<procedure>("cdddr", [](let const& xs) { return cdddr(xs[0]); });
+      library.define<accessor>("caaar", [](let const& xs) -> auto const& { return caaar(xs[0]); });
+      library.define<accessor>("caadr", [](let const& xs) -> auto const& { return caadr(xs[0]); });
+      library.define<accessor>("cadar", [](let const& xs) -> auto const& { return cadar(xs[0]); });
+      library.define<accessor>("caddr", [](let const& xs) -> auto const& { return caddr(xs[0]); });
+      library.define<accessor>("cdaar", [](let const& xs) -> auto const& { return cdaar(xs[0]); });
+      library.define<accessor>("cdadr", [](let const& xs) -> auto const& { return cdadr(xs[0]); });
+      library.define<accessor>("cddar", [](let const& xs) -> auto const& { return cddar(xs[0]); });
+      library.define<accessor>("cdddr", [](let const& xs) -> auto const& { return cdddr(xs[0]); });
 
-      library.define<procedure>("caaaar", [](let const& xs) { return caaaar(xs[0]); });
-      library.define<procedure>("caaadr", [](let const& xs) { return caaadr(xs[0]); });
-      library.define<procedure>("caadar", [](let const& xs) { return caadar(xs[0]); });
-      library.define<procedure>("caaddr", [](let const& xs) { return caaddr(xs[0]); });
-      library.define<procedure>("cadaar", [](let const& xs) { return cadaar(xs[0]); });
-      library.define<procedure>("cadadr", [](let const& xs) { return cadadr(xs[0]); });
-      library.define<procedure>("caddar", [](let const& xs) { return caddar(xs[0]); });
-      library.define<procedure>("cadddr", [](let const& xs) { return cadddr(xs[0]); });
-      library.define<procedure>("cdaaar", [](let const& xs) { return cdaaar(xs[0]); });
-      library.define<procedure>("cdaadr", [](let const& xs) { return cdaadr(xs[0]); });
-      library.define<procedure>("cdadar", [](let const& xs) { return cdadar(xs[0]); });
-      library.define<procedure>("cdaddr", [](let const& xs) { return cdaddr(xs[0]); });
-      library.define<procedure>("cddaar", [](let const& xs) { return cddaar(xs[0]); });
-      library.define<procedure>("cddadr", [](let const& xs) { return cddadr(xs[0]); });
-      library.define<procedure>("cdddar", [](let const& xs) { return cdddar(xs[0]); });
-      library.define<procedure>("cddddr", [](let const& xs) { return cddddr(xs[0]); });
+      library.define<accessor>("caaaar", [](let const& xs) -> auto const& { return caaaar(xs[0]); });
+      library.define<accessor>("caaadr", [](let const& xs) -> auto const& { return caaadr(xs[0]); });
+      library.define<accessor>("caadar", [](let const& xs) -> auto const& { return caadar(xs[0]); });
+      library.define<accessor>("caaddr", [](let const& xs) -> auto const& { return caaddr(xs[0]); });
+      library.define<accessor>("cadaar", [](let const& xs) -> auto const& { return cadaar(xs[0]); });
+      library.define<accessor>("cadadr", [](let const& xs) -> auto const& { return cadadr(xs[0]); });
+      library.define<accessor>("caddar", [](let const& xs) -> auto const& { return caddar(xs[0]); });
+      library.define<accessor>("cadddr", [](let const& xs) -> auto const& { return cadddr(xs[0]); });
+      library.define<accessor>("cdaaar", [](let const& xs) -> auto const& { return cdaaar(xs[0]); });
+      library.define<accessor>("cdaadr", [](let const& xs) -> auto const& { return cdaadr(xs[0]); });
+      library.define<accessor>("cdadar", [](let const& xs) -> auto const& { return cdadar(xs[0]); });
+      library.define<accessor>("cdaddr", [](let const& xs) -> auto const& { return cdaddr(xs[0]); });
+      library.define<accessor>("cddaar", [](let const& xs) -> auto const& { return cddaar(xs[0]); });
+      library.define<accessor>("cddadr", [](let const& xs) -> auto const& { return cddadr(xs[0]); });
+      library.define<accessor>("cdddar", [](let const& xs) -> auto const& { return cdddar(xs[0]); });
+      library.define<accessor>("cddddr", [](let const& xs) -> auto const& { return cddddr(xs[0]); });
 
       library.define<modifier>("set-car!", [](let & xs)
       {
@@ -846,22 +846,22 @@ inline namespace kernel
         return make<standard_error_port>();
       });
 
-      library.define<procedure>("open-input-file", [](let const& xs)
+      library.define<function>("open-input-file", [](let const& xs)
       {
         return make<input_file_port>(xs[0].as<string>());
       });
 
-      library.define<procedure>("open-output-file", [](let const& xs)
+      library.define<function>("open-output-file", [](let const& xs)
       {
         return make<output_file_port>(xs[0].as<string>());
       });
 
-      library.define<procedure>("open-binary-input-file", [](let const& xs)
+      library.define<function>("open-binary-input-file", [](let const& xs)
       {
         return make<binary_input_file_port>(xs[0].as<string>());
       });
 
-      library.define<procedure>("open-binary-output-file", [](let const& xs)
+      library.define<function>("open-binary-output-file", [](let const& xs)
       {
         return make<binary_output_file_port>(xs[0].as<string>());
       });
@@ -871,32 +871,32 @@ inline namespace kernel
         xs[0].as<port>().close();
       });
 
-      library.define<procedure>("open-input-string", [](let const& xs)
+      library.define<function>("open-input-string", [](let const& xs)
       {
         return make<input_string_port>(xs[0].as<string>());
       });
 
-      library.define<procedure>("open-output-string", [](let const&)
+      library.define<function>("open-output-string", [](let const&)
       {
         return make<output_string_port>();
       });
 
-      library.define<procedure>("get-output-string", [](let const& xs)
+      library.define<function>("get-output-string", [](let const& xs)
       {
         return make<string>(xs[0].as<output_string_port>().ostringstream.str());
       });
 
-      library.define<procedure>("open-input-u8vector", [](let const& xs)
+      library.define<function>("open-input-u8vector", [](let const& xs)
       {
         return make<input_u8vector_port>(xs[0].as<u8vector>());
       });
 
-      library.define<procedure>("open-output-u8vector", [](let const&)
+      library.define<function>("open-output-u8vector", [](let const&)
       {
         return make<output_u8vector_port>();
       });
 
-      library.define<procedure>("get-output-u8vector", [](let const& xs)
+      library.define<function>("get-output-u8vector", [](let const& xs)
       {
         return make<u8vector>(xs[0].as<output_u8vector_port>().vector);
       });
@@ -919,7 +919,7 @@ inline namespace kernel
 
     define<library>("(meevax read)", [](library & library)
     {
-      library.define<procedure>("get-char", [](let const& xs)
+      library.define<function>("get-char", [](let const& xs)
       {
         return xs[0].as<textual_input_port>().get();
       });
@@ -929,22 +929,22 @@ inline namespace kernel
         return xs[0].as<textual_input_port>().get_ready();
       });
 
-      library.define<procedure>("get-line", [](let const& xs)
+      library.define<function>("get-line", [](let const& xs)
       {
         return xs[0].as<textual_input_port>().get_line();
       });
 
-      library.define<procedure>("get-string", [](let const& xs)
+      library.define<function>("get-string", [](let const& xs)
       {
         return xs[1].as<textual_input_port>().get(xs[0].as<exact_integer>());
       });
 
-      library.define<procedure>("peek-char", [](let const& xs)
+      library.define<function>("peek-char", [](let const& xs)
       {
         return xs[0].as<textual_input_port>().peek();
       });
 
-      library.define<procedure>("get-u8", [](let const& xs)
+      library.define<function>("get-u8", [](let const& xs)
       {
         return xs[0].as<binary_input_port>().get();
       });
@@ -954,17 +954,17 @@ inline namespace kernel
         return xs[0].as<binary_input_port>().get_ready();
       });
 
-      library.define<procedure>("peek-u8", [](let const& xs)
+      library.define<function>("peek-u8", [](let const& xs)
       {
         return xs[0].as<binary_input_port>().peek();
       });
 
-      library.define<procedure>("get-u8vector", [](let const& xs)
+      library.define<function>("get-u8vector", [](let const& xs)
       {
         return xs[1].as<binary_input_port>().get(xs[0].as<exact_integer>());
       });
 
-      library.define<procedure>("read", [](let const& xs)
+      library.define<function>("read", [](let const& xs)
       {
         return xs[0].as<textual_input_port>().read();
       });
@@ -977,7 +977,7 @@ inline namespace kernel
         return xs[0].is<string>();
       });
 
-      library.define<procedure>("make-string", [](let const& xs)
+      library.define<function>("make-string", [](let const& xs)
       {
         /*
            (make-string k)                                            procedure
@@ -993,7 +993,7 @@ inline namespace kernel
                             1 < length(xs) ? xs[1].as<character>() : character());
       });
 
-      library.define<procedure>("string-length", [](let const& xs)
+      library.define<function>("string-length", [](let const& xs)
       {
         /*
            (string-length string)                                     procedure
@@ -1004,7 +1004,7 @@ inline namespace kernel
         return make<exact_integer>(xs[0].as<string>().vector.size());
       });
 
-      library.define<procedure>("string-ref", [](let const& xs)
+      library.define<function>("string-ref", [](let const& xs)
       {
         /*
            (string-ref string k)                                      procedure
@@ -1019,7 +1019,7 @@ inline namespace kernel
         return make(xs[0].as<string>().vector.at(xs[1].as<exact_integer>()));
       });
 
-      library.define<procedure>("string-set!", [](let const& xs)
+      library.define<modifier>("string-set!", [](let & xs)
       {
         /*
            (string-set! string k char)                                procedure
@@ -1031,11 +1031,9 @@ inline namespace kernel
         */
 
         xs[0].as<string>().vector.at(xs[1].as<exact_integer>()) = xs[2].as<character>();
-
-        return xs[0];
       });
 
-      library.define<procedure>("string-append", [](let const& xs)
+      library.define<function>("string-append", [](let const& xs)
       {
         /*
            (string-append string ...)                                 procedure
@@ -1056,7 +1054,7 @@ inline namespace kernel
         return make(std::forward<decltype(s)>(s));
       });
 
-      library.define<procedure>("string-copy", [](let const& xs)
+      library.define<function>("string-copy", [](let const& xs)
       {
         /*
            (string-copy string)                                       procedure
@@ -1126,22 +1124,22 @@ inline namespace kernel
 
       #undef STRING_COMPARE
 
-      library.define<procedure>("symbol->string", [](let const& xs)
+      library.define<function>("symbol->string", [](let const& xs)
       {
         return make<string>(xs[0].as<symbol>());
       });
 
-      library.define<procedure>("string->symbol", [](let const& xs)
+      library.define<function>("string->symbol", [](let const& xs)
       {
         return make_symbol(xs[0].as<string>());
       });
 
-      library.define<procedure>("number->string", [](let const& xs)
+      library.define<function>("number->string", [](let const& xs)
       {
         return number_to_string(xs[0], 1 < length(xs) ? xs[1].as<exact_integer>() : 10);
       });
 
-      library.define<procedure>("string->list", [](let const& xs)
+      library.define<function>("string->list", [](let const& xs)
       {
         /*
            (string->list string)                                      procedure
@@ -1168,7 +1166,7 @@ inline namespace kernel
                                });
       });
 
-      library.define<procedure>("list->string", [](let const& xs)
+      library.define<function>("list->string", [](let const& xs)
       {
         auto&& s = string();
 
@@ -1190,7 +1188,7 @@ inline namespace kernel
 
       using syntactic_closure = environment::syntactic_closure;
 
-      library.define<procedure>("identifier->symbol", [](let const& xs)
+      library.define<function>("identifier->symbol", [](let const& xs)
       {
         if (let const& x = xs[0]; x.is<syntactic_closure>())
         {
@@ -1222,7 +1220,7 @@ inline namespace kernel
         return xs[0].is<syntactic_closure>();
       });
 
-      library.define<procedure>("make-syntactic-closure", [](let const& xs)
+      library.define<function>("make-syntactic-closure", [](let const& xs)
       {
         return make<syntactic_closure>(xs[0], xs[1], xs[2]);
       });
@@ -1230,7 +1228,7 @@ inline namespace kernel
 
     define<library>("(meevax system)", [](library & library)
     {
-      library.define<procedure>("get-environment-variable", [](let const& xs)
+      library.define<function>("get-environment-variable", [](let const& xs)
       {
         if (auto s = std::getenv(static_cast<std::string>(xs[0].as<string>()).c_str()))
         {
@@ -1242,7 +1240,7 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("get-environment-variables", [](let const&)
+      library.define<thunk>("get-environment-variables", []()
       {
         let alist = unit;
 
@@ -1262,12 +1260,12 @@ inline namespace kernel
 
     define<library>("(meevax time)", [](library & library)
     {
-      library.define<procedure>("current-jiffy", [](let const&)
+      library.define<thunk>("current-jiffy", []()
       {
         return make<exact_integer>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
       });
 
-      library.define<procedure>("jiffies-per-second", [](let const&)
+      library.define<thunk>("jiffies-per-second", []()
       {
         return make<exact_integer>(std::chrono::high_resolution_clock::period::den);
       });
@@ -1280,7 +1278,7 @@ inline namespace kernel
         return xs[0].is<vector>();
       });
 
-      library.define<procedure>("vector", [](let const& xs)
+      library.define<function>("vector", [](let const& xs)
       {
         /*
            (vector obj ...)                                           procedure
@@ -1292,7 +1290,7 @@ inline namespace kernel
         return make<vector>(xs);
       });
 
-      library.define<procedure>("make-vector", [](let const& xs)
+      library.define<function>("make-vector", [](let const& xs)
       {
         /*
            (make-vector k)                                            procedure
@@ -1306,7 +1304,7 @@ inline namespace kernel
         return make<vector>(xs[0].as<exact_integer>(), 1 < length(xs) ? xs[1] : unspecified);
       });
 
-      library.define<procedure>("vector-append", [](let const& xs)
+      library.define<function>("vector-append", [](let const& xs)
       {
         /*
            (vector-append vector ...)                                 procedure
@@ -1328,7 +1326,7 @@ inline namespace kernel
         return make(std::forward<decltype(v)>(v));
       });
 
-      library.define<procedure>("vector-copy", [](let const& xs)
+      library.define<function>("vector-copy", [](let const& xs)
       {
         /*
            (vector-copy vector)                                       procedure
@@ -1380,7 +1378,7 @@ inline namespace kernel
                   std::next(std::begin(v1), xs[1].as<exact_integer>()));
       });
 
-      library.define<procedure>("vector-length", [](let const& xs)
+      library.define<function>("vector-length", [](let const& xs)
       {
         /*
            (vector-length vector)                                     procedure
@@ -1391,7 +1389,7 @@ inline namespace kernel
         return make<exact_integer>(xs[0].as<vector>().vector.size());
       });
 
-      library.define<procedure>("vector-ref", [](let const& xs)
+      library.define<accessor>("vector-ref", [](let const& xs) -> auto const&
       {
         /*
            (vector-ref vector k)                                      procedure
@@ -1403,7 +1401,7 @@ inline namespace kernel
         return xs[0][xs[1].as<exact_integer>()];
       });
 
-      library.define<procedure>("vector-set!", [](let const& xs)
+      library.define<modifier>("vector-set!", [](let & xs)
       {
         /*
            (vector-set! vector k obj)                                 procedure
@@ -1412,10 +1410,10 @@ inline namespace kernel
            procedure stores obj in element k of vector.
         */
 
-        return xs[0].as<vector>().vector[xs[1].as<exact_integer>()] = xs[2];
+        xs[0].as<vector>().vector[xs[1].as<exact_integer>()] = xs[2];
       });
 
-      library.define<command>("vector-fill!", [](let const& xs)
+      library.define<modifier>("vector-fill!", [](let & xs)
       {
         /*
            (vector-fill! vector fill)                                 procedure
@@ -1431,7 +1429,7 @@ inline namespace kernel
                   1 < length(xs) ? xs[1] : unspecified);
       });
 
-      library.define<procedure>("vector->list", [](let const& xs)
+      library.define<function>("vector->list", [](let const& xs)
       {
         return std::accumulate(std::prev(std::rend(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().vector.size()),
                                std::prev(std::rend(xs[0].as<vector>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
@@ -1439,12 +1437,12 @@ inline namespace kernel
                                xcons);
       });
 
-      library.define<procedure>("list->vector", [](let const& xs)
+      library.define<function>("list->vector", [](let const& xs)
       {
         return make<vector>(xs[0]);
       });
 
-      library.define<procedure>("vector->string", [](let const& xs)
+      library.define<function>("vector->string", [](let const& xs)
       {
         auto s = string();
 
@@ -1458,7 +1456,7 @@ inline namespace kernel
         return make(s);
       });
 
-      library.define<procedure>("string->vector", [](let const& xs)
+      library.define<function>("string->vector", [](let const& xs)
       {
         auto v = vector();
 
@@ -1479,22 +1477,22 @@ inline namespace kernel
         return xs[0].is<TAG##vector>();                                        \
       });                                                                      \
                                                                                \
-      library.define<procedure>("make-" #TAG "vector", [](let const& xs)       \
+      library.define<function>("make-" #TAG "vector", [](let const& xs)        \
       {                                                                        \
         return make<TAG##vector>(xs[0].as<exact_integer>(), 1 < length(xs) ? xs[1] : unspecified); \
       });                                                                      \
                                                                                \
-      library.define<procedure>(#TAG "vector", [](let const& xs)               \
+      library.define<function>(#TAG "vector", [](let const& xs)                \
       {                                                                        \
         return make<TAG##vector>(xs);                                          \
       });                                                                      \
                                                                                \
-      library.define<procedure>(#TAG "vector-length", [](let const& xs)        \
+      library.define<function>(#TAG "vector-length", [](let const& xs)         \
       {                                                                        \
         return make<exact_integer>(xs[0].as<TAG##vector>().valarray.size());   \
       });                                                                      \
                                                                                \
-      library.define<procedure>(#TAG "vector-ref", [](let const& xs)           \
+      library.define<function>(#TAG "vector-ref", [](let const& xs)            \
       {                                                                        \
         return TAG##vector::output_cast(xs[0].as<TAG##vector>().valarray[xs[1].as<exact_integer>()]); \
       });                                                                      \
@@ -1504,14 +1502,14 @@ inline namespace kernel
         xs[0].as<TAG##vector>().valarray[xs[1].as<exact_integer>()] = TAG##vector::input_cast(xs[2]); \
       });                                                                      \
                                                                                \
-      library.define<procedure>(#TAG "vector-copy", [](let const& xs)          \
+      library.define<function>(#TAG "vector-copy", [](let const& xs)           \
       {                                                                        \
         return make<TAG##vector>(xs[0].as<TAG##vector>(),                      \
                                  1 < length(xs) ? xs[1].as<exact_integer>() : std::size_t(), \
                                  2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().valarray.size()); \
       });                                                                      \
                                                                                \
-      library.define<command>(#TAG "vector-copy!", [](let const& xs)           \
+      library.define<modifier>(#TAG "vector-copy!", [](let & xs)               \
       {                                                                        \
         auto copy = [](auto&& to, auto&& at, auto&& from, auto&& start, auto&& end) \
         {                                                                      \
@@ -1525,13 +1523,13 @@ inline namespace kernel
              4 < length(xs) ? xs[4].as<exact_integer>() : xs[2].as<TAG##vector>().valarray.size()); \
       });                                                                      \
                                                                                \
-      library.define<procedure>(#TAG "vector-append", [](let const& xs)        \
+      library.define<function>(#TAG "vector-append", [](let const& xs)         \
       {                                                                        \
         return make<TAG##vector>(xs[0].as<TAG##vector>(),                      \
                                  xs[1].as<TAG##vector>());                     \
       });                                                                      \
                                                                                \
-      library.define<procedure>(#TAG "vector->list", [](let const& xs)         \
+      library.define<function>(#TAG "vector->list", [](let const& xs)          \
       {                                                                        \
         auto list = [](auto&& v, auto&& a, auto&& b)                           \
         {                                                                      \
@@ -1549,7 +1547,7 @@ inline namespace kernel
                     2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().valarray.size()); \
       });                                                                      \
                                                                                \
-      library.define<procedure>("list->" #TAG "vector", [](let const& xs)      \
+      library.define<function>("list->" #TAG "vector", [](let const& xs)       \
       {                                                                        \
         return make<TAG##vector>(xs[0]);                                       \
       })
@@ -1565,7 +1563,7 @@ inline namespace kernel
       DEFINE_HOMOGENEOUS_VECTOR(u32);
       DEFINE_HOMOGENEOUS_VECTOR(u64);
 
-      library.define<procedure>("u8vector->string", [](let const& xs)
+      library.define<function>("u8vector->string", [](let const& xs)
       {
         auto buffer = std::ostringstream();
 
@@ -1579,7 +1577,7 @@ inline namespace kernel
         return input_string_port(buffer.str()).get(std::numeric_limits<std::size_t>::max());
       });
 
-      library.define<procedure>("string->u8vector", [](let const& xs)
+      library.define<function>("string->u8vector", [](let const& xs)
       {
         auto convert = [](std::string const& s)
         {

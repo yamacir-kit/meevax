@@ -65,7 +65,7 @@ inline namespace kernel
     }
   }
 
-  auto memq(object const& x, object const& xs) -> object
+  auto memq(object const& x, object const& xs) -> object const&
   {
     if (xs.is<pair>())
     {
@@ -84,7 +84,7 @@ inline namespace kernel
     }
   }
 
-  auto assq(object const& x, object const& xs) -> object
+  auto assq(object const& x, object const& xs) -> object const&
   {
     if (xs.is<pair>())
     {

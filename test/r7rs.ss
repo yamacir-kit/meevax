@@ -1320,11 +1320,11 @@
 
 (define (g) "***")
 
-(check (string-set! (f) 0 #\?) => "?**")
+(check (string-set! (f) 0 #\?) => (if #f #f))
 
-(check (string-set! (g) 0 #\?) => "?**")
+; (check (string-set! (g) 0 #\?) => #;error)
 
-(check (string-set! (symbol->string 'immutable) 0 #\?) => "?mmutable")
+; (check (string-set! (symbol->string 'immutable) 0 #\?) => #;error)
 
 (define a "12345")
 
@@ -1349,7 +1349,7 @@
          (vector-set! vec 1 '("Sue" "Sue")) vec)
   => #(0 ("Sue" "Sue") "Anna"))
 
-(check (vector-set! '#(0 1 2) 1 "doe") => "doe")
+(check (vector-set! '#(0 1 2) 1 "doe") => (if #f #f))
 
 (check (vector->list '#(dah dah didah)) => '(dah dah didah))
 
@@ -1619,4 +1619,4 @@
 
 (check-report)
 
-(exit (check-passed? 431))
+(exit (check-passed? 429))

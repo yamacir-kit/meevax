@@ -56,69 +56,95 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
 
-  struct predicate : public procedure
+  struct function : public procedure
   {
-    bool (*test)(object const&);
+    auto (*call)(object const&) -> object;
 
-    template <typename Tester>
-    explicit predicate(std::string const& name, Tester test)
+    explicit function(std::string const& name, auto (*call)(object const&) -> object)
       : procedure { name, [](let const&) { return unspecified; } }
-      , test { test }
+      , call { call }
     {}
 
     auto operator ()(object & xs) const -> object override
     {
-      return test(xs) ? t : f;
+      return call(xs);
+    }
+  };
+
+  struct accessor : public procedure
+  {
+    auto (*call)(object const&) -> object const&;
+
+    explicit accessor(std::string const& name, auto (*call)(object const&) -> object const&)
+      : procedure { name, [](let const&) { return unspecified; } }
+      , call { call }
+    {}
+
+    auto operator ()(object & xs) const -> object override
+    {
+      return call(xs);
+    }
+  };
+
+  struct predicate : public procedure
+  {
+    auto (*call)(object const&) -> bool;
+
+    explicit predicate(std::string const& name, auto (*call)(object const&) -> bool)
+      : procedure { name, [](let const&) { return unspecified; } }
+      , call { call }
+    {}
+
+    auto operator ()(object & xs) const -> object override
+    {
+      return call(xs) ? t : f;
     }
   };
 
   struct modifier : public procedure // mutation-procedure
   {
-    void (*modify)(object &);
+    auto (*call)(object &) -> void;
 
-    template <typename Modifier>
-    explicit modifier(std::string const& name, Modifier modify)
+    explicit modifier(std::string const& name, auto (*call)(object &) -> void)
       : procedure { name, [](let const&) { return unspecified; } }
-      , modify { modify }
+      , call { call }
     {}
 
     auto operator ()(object & xs) const -> object override
     {
-      modify(xs);
+      call(xs);
       return unspecified;
     }
   };
 
   struct command : public procedure
   {
-    void (*function)(object const&);
+    auto (*call)(object const&) -> void;
 
-    template <typename Name, typename Function>
-    explicit command(Name&& name, Function function)
-      : procedure { std::forward<decltype(name)>(name), [](let const&) { return unspecified; } }
-      , function { function }
+    explicit command(std::string const& name, auto (*call)(object const&) -> void)
+      : procedure { name, [](let const&) { return unspecified; } }
+      , call { call }
     {}
 
     auto operator ()(object & xs) const -> object override
     {
-      function(xs);
+      call(xs);
       return unspecified;
     }
   };
 
   struct thunk : public procedure
   {
-    object (*function)();
+    auto (*call)() -> object;
 
-    template <typename Name, typename Function>
-    explicit thunk(Name&& name, Function function)
-      : procedure { std::forward<decltype(name)>(name), [](let const&) { return unspecified; } }
-      , function { function }
+    explicit thunk(std::string const& name, auto (*call)() -> object)
+      : procedure { name, [](let const&) { return unspecified; } }
+      , call { call }
     {}
 
     auto operator ()(object &) const -> object override
     {
-      return function();
+      return call();
     }
   };
 } // namespace kernel
