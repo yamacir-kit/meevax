@@ -70,20 +70,20 @@ inline namespace kernel
         }
     {}
 
-    template <typename F, std::enable_if_t<
-                            std::is_same_v<std::invoke_result_t<F, let const&>, void>,
-                            std::nullptr_t
-                          > = nullptr>
-    explicit procedure(std::string const& name, F&& f)
-      : name { name }
-      , function {
-          [f](auto&&... xs)
-          {
-            f(std::forward<decltype(xs)>(xs)...);
-            return unspecified;
-          }
-        }
-    {}
+    // template <typename F, std::enable_if_t<
+    //                         std::is_same_v<std::invoke_result_t<F, let const&>, void>,
+    //                         std::nullptr_t
+    //                       > = nullptr>
+    // explicit procedure(std::string const& name, F&& f)
+    //   : name { name }
+    //   , function {
+    //       [f](auto&&... xs)
+    //       {
+    //         f(std::forward<decltype(xs)>(xs)...);
+    //         return unspecified;
+    //       }
+    //     }
+    // {}
 
     template <typename F, std::enable_if_t<
                             std::is_same_v<std::invoke_result_t<F>, void>,
@@ -143,6 +143,23 @@ inline namespace kernel
     auto operator ()(object & xs) const -> object override
     {
       modify(xs);
+      return unspecified;
+    }
+  };
+
+  struct command : public procedure
+  {
+    void (*function)(object const&);
+
+    template <typename Name, typename Function>
+    explicit command(Name&& name, Function function)
+      : procedure { std::forward<decltype(name)>(name), []() {} }
+      , function { function }
+    {}
+
+    auto operator ()(object & xs) const -> object override
+    {
+      function(xs);
       return unspecified;
     }
   };

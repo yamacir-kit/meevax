@@ -198,7 +198,7 @@ inline namespace kernel
 
     define<library>("(meevax context)", [](library & library)
     {
-      library.define<procedure>("emergency-exit", [](let const& xs)
+      library.define<command>("emergency-exit", [](let const& xs)
       {
         if (xs.is<null>())
         {
@@ -292,7 +292,7 @@ inline namespace kernel
         return interaction_environment();
       });
 
-      library.define<procedure>("load", [](let const& xs)
+      library.define<command>("load", [](let const& xs)
       {
         return xs[0].as<environment>().load(xs[1].as<string>());
       });
@@ -335,10 +335,10 @@ inline namespace kernel
     {
       library.define<procedure>("type-of", [](let const& xs)
       {
-        std::cout << xs[0].type().name() << std::endl;
+        return make<string>(xs[0].type().name());
       });
 
-      library.define<procedure>("disassemble", [](let const& xs)
+      library.define<command>("disassemble", [](let const& xs)
       {
         if (0 < length(xs))
         {
@@ -362,7 +362,7 @@ inline namespace kernel
         return std::filesystem::exists(static_cast<std::string>(xs[0].as<string>()));
       });
 
-      library.define<procedure>("delete-file", [](let const& xs)
+      library.define<command>("delete-file", [](let const& xs)
       {
         try
         {
@@ -866,7 +866,7 @@ inline namespace kernel
         return make<binary_output_file_port>(xs[0].as<string>());
       });
 
-      library.define<procedure>("close", [](let const& xs)
+      library.define<command>("close", [](let const& xs)
       {
         xs[0].as<port>().close();
       });
@@ -911,7 +911,7 @@ inline namespace kernel
         return eof_object;
       });
 
-      library.define<procedure>("flush", [](let const& xs)
+      library.define<command>("flush", [](let const& xs)
       {
         xs[0].as<output_port>().flush();
       });
@@ -1076,7 +1076,7 @@ inline namespace kernel
         return make(s);
       });
 
-      library.define<procedure>("string-copy!", [](let const& xs)
+      library.define<command>("string-copy!", [](let const& xs)
       {
         /*
            (string-copy! to at from)                                  procedure
@@ -1349,7 +1349,7 @@ inline namespace kernel
         return make(std::forward<decltype(v)>(v));
       });
 
-      library.define<procedure>("vector-copy!", [](let const& xs)
+      library.define<command>("vector-copy!", [](let const& xs)
       {
         /*
            (vector-copy! to at from)                                  procedure
@@ -1415,7 +1415,7 @@ inline namespace kernel
         return xs[0].as<vector>().vector[xs[1].as<exact_integer>()] = xs[2];
       });
 
-      library.define<procedure>("vector-fill!", [](let const& xs)
+      library.define<command>("vector-fill!", [](let const& xs)
       {
         /*
            (vector-fill! vector fill)                                 procedure
@@ -1499,7 +1499,7 @@ inline namespace kernel
         return TAG##vector::output_cast(xs[0].as<TAG##vector>().valarray[xs[1].as<exact_integer>()]); \
       });                                                                      \
                                                                                \
-      library.define<procedure>(#TAG "vector-set!", [](let const& xs)          \
+      library.define<command>(#TAG "vector-set!", [](let const& xs)            \
       {                                                                        \
         xs[0].as<TAG##vector>().valarray[xs[1].as<exact_integer>()] = TAG##vector::input_cast(xs[2]); \
       });                                                                      \
@@ -1511,7 +1511,7 @@ inline namespace kernel
                                  2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().valarray.size()); \
       });                                                                      \
                                                                                \
-      library.define<procedure>(#TAG "vector-copy!", [](let const& xs)         \
+      library.define<command>(#TAG "vector-copy!", [](let const& xs)           \
       {                                                                        \
         auto copy = [](auto&& to, auto&& at, auto&& from, auto&& start, auto&& end) \
         {                                                                      \
@@ -1600,32 +1600,32 @@ inline namespace kernel
 
     define<library>("(meevax write)", [](library & library)
     {
-      library.define<procedure>("put-char", [](let const& xs)
+      library.define<command>("put-char", [](let const& xs)
       {
         xs[1].as<textual_output_port>().put(xs[0].as<character>());
       });
 
-      library.define<procedure>("put-string", [](let const& xs)
+      library.define<command>("put-string", [](let const& xs)
       {
         xs[1].as<textual_output_port>().put(xs[0].as<string>());
       });
 
-      library.define<procedure>("put-u8", [](let const& xs)
+      library.define<command>("put-u8", [](let const& xs)
       {
         xs[1].as<binary_output_port>().put(xs[0].as<exact_integer>());
       });
 
-      library.define<procedure>("put-u8vector", [](let const& xs)
+      library.define<command>("put-u8vector", [](let const& xs)
       {
         xs[1].as<binary_output_port>().put(xs[0].as<u8vector>());
       });
 
-      library.define<procedure>("write", [](let const& xs)
+      library.define<command>("write", [](let const& xs)
       {
         xs[1].as<textual_output_port>().write(xs[0]);
       });
 
-      library.define<procedure>("write-simple", [](let const& xs)
+      library.define<command>("write-simple", [](let const& xs)
       {
         xs[1].as<textual_output_port>().write_simple(xs[0]);
       });
