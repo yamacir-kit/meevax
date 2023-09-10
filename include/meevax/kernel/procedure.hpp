@@ -25,43 +25,44 @@ namespace meevax
 {
 inline namespace kernel
 {
-  #define PROCEDURE(...) meevax::object __VA_ARGS__(meevax::object const& xs)
-
   struct procedure
   {
     std::string const name;
 
-    std::function<PROCEDURE()> const function;
-
-    template <typename F, std::enable_if_t<
-                            std::is_same_v<std::invoke_result_t<F, let const&>, object>,
-                            std::nullptr_t
-                          > = nullptr>
-    explicit procedure(std::string const& name, F&& f)
+    explicit procedure(std::string const& name)
       : name { name }
-      , function { std::forward<decltype(f)>(f) }
     {}
 
-    explicit procedure(std::string const&, std::string const&);
-
-    static auto dlopen(std::string const&) -> void *;
-
-    static auto dlsym(std::string const&, void * const) -> PROCEDURE((*));
-
-    virtual auto operator ()(object & xs = unit) const -> object
-    {
-      return function(xs);
-    }
+    virtual auto operator ()(object & = unit) const -> object = 0;
   };
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
+
+  #define FUNCTION(...) auto __VA_ARGS__(meevax::object const& xs) -> meevax::object
 
   struct function : public procedure
   {
     auto (*call)(object const&) -> object;
 
     explicit function(std::string const& name, auto (*call)(object const&) -> object)
-      : procedure { name, [](let const&) { return unspecified; } }
+      : procedure { name }
+      , call { call }
+    {}
+
+    explicit function(std::string const&, std::string const&);
+
+    auto operator ()(object & xs) const -> object override
+    {
+      return call(xs);
+    }
+  };
+
+  struct function_object : public procedure
+  {
+    std::function<FUNCTION()> const call;
+
+    explicit function_object(std::string const& name, std::function<FUNCTION()> const& call)
+      : procedure { name }
       , call { call }
     {}
 
@@ -76,7 +77,7 @@ inline namespace kernel
     auto (*call)(object const&) -> object const&;
 
     explicit accessor(std::string const& name, auto (*call)(object const&) -> object const&)
-      : procedure { name, [](let const&) { return unspecified; } }
+      : procedure { name }
       , call { call }
     {}
 
@@ -91,7 +92,7 @@ inline namespace kernel
     auto (*call)(object const&) -> bool;
 
     explicit predicate(std::string const& name, auto (*call)(object const&) -> bool)
-      : procedure { name, [](let const&) { return unspecified; } }
+      : procedure { name }
       , call { call }
     {}
 
@@ -106,7 +107,7 @@ inline namespace kernel
     auto (*call)(object &) -> void;
 
     explicit modifier(std::string const& name, auto (*call)(object &) -> void)
-      : procedure { name, [](let const&) { return unspecified; } }
+      : procedure { name }
       , call { call }
     {}
 
@@ -122,7 +123,7 @@ inline namespace kernel
     auto (*call)(object const&) -> void;
 
     explicit command(std::string const& name, auto (*call)(object const&) -> void)
-      : procedure { name, [](let const&) { return unspecified; } }
+      : procedure { name }
       , call { call }
     {}
 
@@ -138,7 +139,7 @@ inline namespace kernel
     auto (*call)() -> object;
 
     explicit thunk(std::string const& name, auto (*call)() -> object)
-      : procedure { name, [](let const&) { return unspecified; } }
+      : procedure { name }
       , call { call }
     {}
 

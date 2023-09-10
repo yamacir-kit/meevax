@@ -31,12 +31,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  procedure::procedure(std::string const& name, std::string const& libfoo_so)
-    : name { name }
-    , function { dlsym(name, dlopen(libfoo_so)) }
-  {}
-
-  auto procedure::dlopen(std::string const& libfoo_so) -> void *
+  auto dlopen(std::string const& libfoo_so) -> void *
   {
     auto dlclose = [](void * const handle)
     {
@@ -72,17 +67,21 @@ inline namespace kernel
     }
   }
 
-  auto procedure::dlsym(std::string const& name, void * const handle) -> PROCEDURE((*))
+  auto dlsym(std::string const& name, void * const handle) -> FUNCTION((*))
   {
     if (auto address = ::dlsym(handle, name.c_str()); address)
     {
-      return reinterpret_cast<PROCEDURE((*))>(address);
+      return reinterpret_cast<FUNCTION((*))>(address);
     }
     else
     {
       throw file_error(make<string>(::dlerror()));
     }
   }
+
+  function::function(std::string const& name, std::string const& libfoo_so)
+    : function { name, dlsym(name, dlopen(libfoo_so)) }
+  {}
 
   auto operator <<(std::ostream & os, procedure const& datum) -> std::ostream &
   {

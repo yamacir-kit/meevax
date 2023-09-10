@@ -173,7 +173,7 @@ auto main() -> int
   {
     auto module = environment();
 
-    module.define<procedure>("vector", [](let const& xs)
+    module.define<function>("vector", [](let const& xs)
     {
       return make<vector>(xs);
     });

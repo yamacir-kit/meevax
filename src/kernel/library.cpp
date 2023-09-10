@@ -392,7 +392,7 @@ inline namespace kernel
 
       library.define<function>("foreign-function", [](let const& xs)
       {
-        return make<procedure>(xs[1].as<string>(), xs[0].as<string>());
+        return make<function>(xs[1].as<string>(), xs[0].as<string>());
       });
 
       library.define<predicate>("foreign-function?", [](let const& xs)
