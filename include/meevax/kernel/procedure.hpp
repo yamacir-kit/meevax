@@ -57,20 +57,6 @@ inline namespace kernel
     {}
 
     template <typename F, std::enable_if_t<
-                            std::is_same_v<std::invoke_result_t<F, let const&>, bool>,
-                            std::nullptr_t
-                          > = nullptr>
-    explicit procedure(std::string const& name, F&& f)
-      : name { name }
-      , function {
-          [f](auto&&... xs)
-          {
-            return f(std::forward<decltype(xs)>(xs)...) ? t : meevax::f;
-          }
-        }
-    {}
-
-    template <typename F, std::enable_if_t<
                             std::is_same_v<std::invoke_result_t<F>, bool>,
                             std::nullptr_t
                           > = nullptr>
@@ -128,7 +114,23 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
 
-  struct modifier : public procedure
+  struct predicate : public procedure
+  {
+    bool (*test)(object const&);
+
+    template <typename Tester>
+    explicit predicate(std::string const& name, Tester test)
+      : procedure { name, []() {} }
+      , test { test }
+    {}
+
+    auto operator ()(object & xs) const -> object override
+    {
+      return test(xs) ? t : f;
+    }
+  };
+
+  struct modifier : public procedure // mutation-procedure
   {
     void (*modify)(object &);
 
