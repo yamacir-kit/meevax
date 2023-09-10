@@ -42,71 +42,13 @@ inline namespace kernel
       , function { std::forward<decltype(f)>(f) }
     {}
 
-    template <typename F, std::enable_if_t<
-                            std::is_same_v<std::invoke_result_t<F>, object>,
-                            std::nullptr_t
-                          > = nullptr>
-    explicit procedure(std::string const& name, F&& f)
-      : name { name }
-      , function {
-          [f](auto&&...)
-          {
-            return f();
-          }
-        }
-    {}
-
-    template <typename F, std::enable_if_t<
-                            std::is_same_v<std::invoke_result_t<F>, bool>,
-                            std::nullptr_t
-                          > = nullptr>
-    explicit procedure(std::string const& name, F&& f)
-      : name { name }
-      , function {
-          [f](auto&&...)
-          {
-            return f() ? t : meevax::f;
-          }
-        }
-    {}
-
-    // template <typename F, std::enable_if_t<
-    //                         std::is_same_v<std::invoke_result_t<F, let const&>, void>,
-    //                         std::nullptr_t
-    //                       > = nullptr>
-    // explicit procedure(std::string const& name, F&& f)
-    //   : name { name }
-    //   , function {
-    //       [f](auto&&... xs)
-    //       {
-    //         f(std::forward<decltype(xs)>(xs)...);
-    //         return unspecified;
-    //       }
-    //     }
-    // {}
-
-    template <typename F, std::enable_if_t<
-                            std::is_same_v<std::invoke_result_t<F>, void>,
-                            std::nullptr_t
-                          > = nullptr>
-    explicit procedure(std::string const& name, F&& f)
-      : name { name }
-      , function {
-          [f](auto&&...)
-          {
-            f();
-            return unspecified;
-          }
-        }
-    {}
-
     explicit procedure(std::string const&, std::string const&);
 
     static auto dlopen(std::string const&) -> void *;
 
     static auto dlsym(std::string const&, void * const) -> PROCEDURE((*));
 
-    virtual auto operator ()(object & xs) const -> object
+    virtual auto operator ()(object & xs = unit) const -> object
     {
       return function(xs);
     }
@@ -120,7 +62,7 @@ inline namespace kernel
 
     template <typename Tester>
     explicit predicate(std::string const& name, Tester test)
-      : procedure { name, []() {} }
+      : procedure { name, [](let const&) { return unspecified; } }
       , test { test }
     {}
 
@@ -136,7 +78,7 @@ inline namespace kernel
 
     template <typename Modifier>
     explicit modifier(std::string const& name, Modifier modify)
-      : procedure { name, []() {} }
+      : procedure { name, [](let const&) { return unspecified; } }
       , modify { modify }
     {}
 
@@ -153,7 +95,7 @@ inline namespace kernel
 
     template <typename Name, typename Function>
     explicit command(Name&& name, Function function)
-      : procedure { std::forward<decltype(name)>(name), []() {} }
+      : procedure { std::forward<decltype(name)>(name), [](let const&) { return unspecified; } }
       , function { function }
     {}
 
@@ -161,6 +103,22 @@ inline namespace kernel
     {
       function(xs);
       return unspecified;
+    }
+  };
+
+  struct thunk : public procedure
+  {
+    object (*function)();
+
+    template <typename Name, typename Function>
+    explicit thunk(Name&& name, Function function)
+      : procedure { std::forward<decltype(name)>(name), [](let const&) { return unspecified; } }
+      , function { function }
+    {}
+
+    auto operator ()(object &) const -> object override
+    {
+      return function();
     }
   };
 } // namespace kernel

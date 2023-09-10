@@ -287,7 +287,7 @@ inline namespace kernel
         return xs[1].as<environment>().evaluate(xs[0]);
       });
 
-      library.define<procedure>("interaction-environment", []()
+      library.define<thunk>("interaction-environment", []()
       {
         return interaction_environment();
       });
@@ -349,7 +349,7 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("ieee-float?", []()
+      library.define<thunk>("ieee-float?", []()
       {
         return std::numeric_limits<double>::is_iec559 ? t : f;
       });
@@ -403,12 +403,12 @@ inline namespace kernel
 
     define<library>("(meevax garbage-collector)", [](library & library)
     {
-      library.define<procedure>("gc-collect", []()
+      library.define<command>("gc-collect", [](let const&)
       {
         gc.collect();
       });
 
-      library.define<procedure>("gc-count", []()
+      library.define<thunk>("gc-count", []()
       {
         return make<exact_integer>(gc.count());
       });
@@ -831,17 +831,17 @@ inline namespace kernel
         return xs[0].as<port>().is_open();
       });
 
-      library.define<procedure>("standard-input-port", []()
+      library.define<thunk>("standard-input-port", []()
       {
         return make<standard_input_port>();
       });
 
-      library.define<procedure>("standard-output-port", []()
+      library.define<thunk>("standard-output-port", []()
       {
         return make<standard_output_port>();
       });
 
-      library.define<procedure>("standard-error-port", []()
+      library.define<thunk>("standard-error-port", []()
       {
         return make<standard_error_port>();
       });
@@ -906,7 +906,7 @@ inline namespace kernel
         return xs[0].is<eof>();
       });
 
-      library.define<procedure>("eof-object", []()
+      library.define<thunk>("eof-object", []()
       {
         return eof_object;
       });
@@ -1592,7 +1592,7 @@ inline namespace kernel
 
     define<library>("(meevax version)", [](library & library)
     {
-      library.define<procedure>("features", []()
+      library.define<thunk>("features", []()
       {
         return features();
       });

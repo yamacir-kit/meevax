@@ -66,9 +66,10 @@ inline namespace kernel
       {
         option("(i|interactive)", [this](auto)
         {
-          let const f = make<procedure>("", [this]()
+          let const f = make<procedure>("", [this](let const&)
           {
             interactive = true;
+            return unspecified;
           });
 
           return list(f);
@@ -81,7 +82,7 @@ inline namespace kernel
 
         option("(h|help)", [](auto)
         {
-          let static const f = make<procedure>("", []()
+          let static const f = make<command>("", [](let const&)
           {
             std::cout << help() << std::flush;
             throw EXIT_SUCCESS;
@@ -103,7 +104,7 @@ inline namespace kernel
 
         option("(v|version)", [](auto)
         {
-          let static const f = make<procedure>("", []()
+          let static const f = make<command>("", [](let const&)
           {
             std::cout << version() << std::endl;
             throw EXIT_SUCCESS;
@@ -114,10 +115,9 @@ inline namespace kernel
 
         option("(w|write)", [](auto read)
         {
-          let static const f = make<procedure>("", [](let const& xs)
+          let static const f = make<command>("", [](let const& xs)
           {
             std::cout << xs[0] << std::endl;
-            return unspecified;
           });
 
           return list(f, read());
