@@ -408,7 +408,9 @@
 
 (check (f 12) => "12")
 
-(check (radix 16) => 16)
+(check (begin (radix 16)
+              (radix))
+  => 16)
 
 ; (parameterize ((radix 0))
 ;   (f 12)) ; => error
@@ -1076,7 +1078,9 @@
 
 (check (list? y) => #t)
 
-(check (set-cdr! x 4) => 4)
+(check (begin (set-cdr! x 4)
+              (cdr x))
+  => 4)
 
 (check x => '(a . 4))
 
@@ -1127,9 +1131,13 @@
 
 (define (g) '(constant-list))
 
-(check (set-car! (f) 3) => 3)
+(check (begin (set-car! (f) 3)
+              (car (f)))
+  => 3)
 
-(check (set-car! (g) 3) => 3)
+(check (begin (set-car! (g) 3)
+              (car (g)))
+  => 3)
 
 (check (list? '(a b c)) => #t)
 
@@ -1177,7 +1185,7 @@
          ls)
   => '(one two three))
 
-(check (list-set! '(0 1 2) 1 "oops") => "oops")
+; (check (list-set! '(0 1 2) 1 "oops") => #;error)
 
 (check (memq 'a '(a b c)) => '(a b c))
 
@@ -1611,4 +1619,4 @@
 
 (check-report)
 
-(exit (check-passed? 432))
+(exit (check-passed? 431))

@@ -612,9 +612,13 @@
 
 (define (g) '(constant-list))
 
-(check (set-car! (f) 3) => 3)
+(check (begin (set-car! (f) 3)
+              (car (f)))
+  => 3)
 
-(check (set-car! (g) 3) => 3)
+(check (begin (set-car! (g) 3)
+              (car (g)))
+  => 3)
 
 (check (list? '(a b c)) => #t)
 

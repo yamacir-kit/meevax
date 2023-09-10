@@ -79,7 +79,7 @@ inline namespace kernel
     {}
   };
 
-  auto circulate(object const& xs, object const& x, std::string const& n) -> void
+  auto circulate(object & xs, object const& x, std::string const& n) -> void
   {
     if (xs.is<pair>())
     {
@@ -96,7 +96,7 @@ inline namespace kernel
     }
   }
 
-  auto circulate(object const& xs, std::string const& n) -> void
+  auto circulate(object & xs, std::string const& n) -> void
   {
     return circulate(xs, xs, n);
   }
@@ -279,7 +279,7 @@ inline namespace kernel
 
             if (auto [iter, success] = datum_labels.emplace(label, make<datum_label>(label)); success)
             {
-              if (let const& xs = read(); xs != iter->second)
+              if (let xs = read(); xs != iter->second)
               {
                 circulate(xs, label);
                 datum_labels.erase(label);

@@ -442,7 +442,7 @@ inline namespace kernel
           let const current_environment = make<syntactic_environment>(cons(formals, bound_variables),
                                                                       compile.free_variables());
 
-          for (let const& formal : formals)
+          for (let & formal : formals)
           {
             if (formal.is<absolute>())
             {
@@ -870,7 +870,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        let const environment = make<syntactic_environment>(bound_variables, compile.free_variables());
+        let environment = make<syntactic_environment>(bound_variables, compile.free_variables());
 
         auto formal = [&](let const& syntax_spec)
         {
@@ -974,7 +974,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        let const identity = compile.identify(car(expression), unit, unit);
+        let identity = compile.identify(car(expression), unit, unit);
 
         cdr(identity) = make<transformer>(Environment().execute(compile(cadr(expression),
                                                                         bound_variables)),
@@ -1032,6 +1032,8 @@ inline namespace kernel
       #undef COMPILER
     };
 
+    using injector = std::function<object (object const&)>;
+
     auto operator ()(object const& expression,
                      object const& bound_variables = unit, // list of <formals>
                      object const& free_variables = unit,
@@ -1080,7 +1082,7 @@ inline namespace kernel
 
               for (let const& free_variable : cadr(expression))
               {
-                let const inject = make<procedure>("inject", [=](let const& xs)
+                let const inject = make<injector>([=](let const& xs)
                 {
                   return identify(free_variable,
                                   unify(bound_variables, xs),
@@ -1202,7 +1204,7 @@ inline namespace kernel
       }
       else if (let const& x = assq(variable, free_variables); is_truthy(x))
       {
-        return cdr(x).as<procedure>().call(bound_variables);
+        return cdr(x).as<injector>()(bound_variables);
       }
       else
       {

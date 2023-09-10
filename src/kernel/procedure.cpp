@@ -33,7 +33,7 @@ inline namespace kernel
 {
   procedure::procedure(std::string const& name, std::string const& libfoo_so)
     : name { name }
-    , call { dlsym(name, dlopen(libfoo_so)) }
+    , function { dlsym(name, dlopen(libfoo_so)) }
   {}
 
   auto procedure::dlopen(std::string const& libfoo_so) -> void *

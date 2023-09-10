@@ -11,7 +11,9 @@
 
 (check (p1) => 1)
 
-(check (p1 2) => 2)
+(check (begin (p1 2)
+              (p1))
+  => 2)
 
 (check (p1) => 2)
 

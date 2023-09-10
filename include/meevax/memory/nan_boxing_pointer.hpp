@@ -41,12 +41,12 @@ inline namespace memory
             typename T6 = std::integral_constant<int, 6>>
   struct nan_boxing_pointer
   {
-    static_assert(sizeof(T1) <= 4);
-    static_assert(sizeof(T2) <= 4);
-    static_assert(sizeof(T3) <= 4);
-    static_assert(sizeof(T4) <= 4);
-    static_assert(sizeof(T5) <= 4);
-    static_assert(sizeof(T6) <= 4);
+    static_assert(sizeof(T1) <= 6 or std::is_pointer_v<T1>);
+    static_assert(sizeof(T2) <= 6 or std::is_pointer_v<T2>);
+    static_assert(sizeof(T3) <= 6 or std::is_pointer_v<T3>);
+    static_assert(sizeof(T4) <= 6 or std::is_pointer_v<T4>);
+    static_assert(sizeof(T5) <= 6 or std::is_pointer_v<T5>);
+    static_assert(sizeof(T6) <= 6 or std::is_pointer_v<T6>);
 
     using element_type = std::decay_t<T>;
 
@@ -114,7 +114,12 @@ inline namespace memory
       return get();
     }
 
-    auto operator *() const -> decltype(auto)
+    auto operator *() const -> auto const&
+    {
+      return *get();
+    }
+
+    auto operator *() -> auto &
     {
       return *get();
     }

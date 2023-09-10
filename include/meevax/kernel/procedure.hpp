@@ -31,7 +31,7 @@ inline namespace kernel
   {
     std::string const name;
 
-    std::function<PROCEDURE()> const call;
+    std::function<PROCEDURE()> const function;
 
     template <typename F, std::enable_if_t<
                             std::is_same_v<std::invoke_result_t<F, let const&>, object>,
@@ -39,7 +39,7 @@ inline namespace kernel
                           > = nullptr>
     explicit procedure(std::string const& name, F&& f)
       : name { name }
-      , call { std::forward<decltype(f)>(f) }
+      , function { std::forward<decltype(f)>(f) }
     {}
 
     template <typename F, std::enable_if_t<
@@ -48,7 +48,7 @@ inline namespace kernel
                           > = nullptr>
     explicit procedure(std::string const& name, F&& f)
       : name { name }
-      , call {
+      , function {
           [f](auto&&...)
           {
             return f();
@@ -62,7 +62,7 @@ inline namespace kernel
                           > = nullptr>
     explicit procedure(std::string const& name, F&& f)
       : name { name }
-      , call {
+      , function {
           [f](auto&&... xs)
           {
             return f(std::forward<decltype(xs)>(xs)...) ? t : meevax::f;
@@ -76,7 +76,7 @@ inline namespace kernel
                           > = nullptr>
     explicit procedure(std::string const& name, F&& f)
       : name { name }
-      , call {
+      , function {
           [f](auto&&...)
           {
             return f() ? t : meevax::f;
@@ -90,7 +90,7 @@ inline namespace kernel
                           > = nullptr>
     explicit procedure(std::string const& name, F&& f)
       : name { name }
-      , call {
+      , function {
           [f](auto&&... xs)
           {
             f(std::forward<decltype(xs)>(xs)...);
@@ -105,7 +105,7 @@ inline namespace kernel
                           > = nullptr>
     explicit procedure(std::string const& name, F&& f)
       : name { name }
-      , call {
+      , function {
           [f](auto&&...)
           {
             f();
@@ -119,9 +119,31 @@ inline namespace kernel
     static auto dlopen(std::string const&) -> void *;
 
     static auto dlsym(std::string const&, void * const) -> PROCEDURE((*));
+
+    virtual auto operator ()(object & xs) const -> object
+    {
+      return function(xs);
+    }
   };
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
+
+  struct modifier : public procedure
+  {
+    void (*modify)(object &);
+
+    template <typename Modifier>
+    explicit modifier(std::string const& name, Modifier modify)
+      : procedure { name, []() {} }
+      , modify { modify }
+    {}
+
+    auto operator ()(object & xs) const -> object override
+    {
+      modify(xs);
+      return unspecified;
+    }
+  };
 } // namespace kernel
 } // namespace meevax
 

@@ -144,9 +144,9 @@ inline namespace kernel
         return caar(xs);
       });
 
-      library.define<procedure>("box-set!", [](let const& xs)
+      library.define<modifier>("box-set!", [](let & xs)
       {
-        return caar(xs) = cadr(xs);
+        caar(xs) = cadr(xs);
       });
     });
 
@@ -788,8 +788,15 @@ inline namespace kernel
       library.define<procedure>("cdddar", [](let const& xs) { return cdddar(xs[0]); });
       library.define<procedure>("cddddr", [](let const& xs) { return cddddr(xs[0]); });
 
-      library.define<procedure>("set-car!", [](auto&& xs) { return car(xs[0]) = xs[1]; });
-      library.define<procedure>("set-cdr!", [](auto&& xs) { return cdr(xs[0]) = xs[1]; });
+      library.define<modifier>("set-car!", [](let & xs)
+      {
+        caar(xs) = cadr(xs);
+      });
+
+      library.define<modifier>("set-cdr!", [](let & xs)
+      {
+        cdar(xs) = cadr(xs);
+      });
     });
 
     define<library>("(meevax port)", [](library & library)

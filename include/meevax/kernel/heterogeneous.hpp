@@ -154,6 +154,30 @@ inline namespace kernel
     }
 
     template <typename U>
+    inline auto as() -> decltype(auto)
+    {
+      if constexpr (std::is_same_v<std::decay_t<U>, Top>)
+      {
+        return Pointer<Top, Ts...>::operator *();
+      }
+      else if constexpr (std::is_class_v<std::decay_t<U>>)
+      {
+        if (auto data = dynamic_cast<std::add_pointer_t<U>>(get()); data)
+        {
+          return *data;
+        }
+        else
+        {
+          throw std::runtime_error(lexical_cast<std::string>("no viable conversion from ", demangle(type()), " to ", demangle(typeid(U))));
+        }
+      }
+      else
+      {
+        return Pointer<Top, Ts...>::template as<U>();
+      }
+    }
+
+    template <typename U>
     inline auto as_const() const -> decltype(auto)
     {
       return as<std::add_const_t<U>>();
