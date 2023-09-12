@@ -66,7 +66,7 @@ inline namespace kernel
       {
         option("(i|interactive)", [this](auto)
         {
-          let const f = make<function_object>("", [this](let const&)
+          let const f = make<functor>("", [this](let const&)
           {
             interactive = true;
             return unspecified;
@@ -93,7 +93,7 @@ inline namespace kernel
 
         option("(l|load)", [this](auto read)
         {
-          let const f = make<function_object>("", [this](let const& xs)
+          let const f = make<functor>("", [this](let const& xs)
           {
             static_cast<Environment &>(*this).load(xs[0].as<string>());
             return unspecified;
@@ -184,7 +184,7 @@ inline namespace kernel
         }
         else
         {
-          let const f = make<function_object>("", [iter](let const&)
+          let const f = make<functor>("", [iter](let const&)
           {
             Environment().load(*iter);
             return unspecified;

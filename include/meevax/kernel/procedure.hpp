@@ -57,11 +57,11 @@ inline namespace kernel
     }
   };
 
-  struct function_object : public procedure
+  struct functor : public procedure
   {
     std::function<FUNCTION()> const call;
 
-    explicit function_object(std::string const& name, std::function<FUNCTION()> const& call)
+    explicit functor(std::string const& name, std::function<FUNCTION()> const& call)
       : procedure { name }
       , call { call }
     {}

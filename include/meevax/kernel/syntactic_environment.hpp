@@ -366,7 +366,7 @@ inline namespace kernel
           }
         }
 
-        return pair(binding_specs, form); // Finish.
+        return pair(binding_specs, form);
       }
 
       static COMPILER(body) /* -------------------------------------------------

@@ -8,7 +8,7 @@
              (tarai (- y 1) z x)
              (tarai (- z 1) x y))))
 
-(display (tarai 10 5 0))
+(display (tarai 11 6 0))
 (newline)
 
 (exit)
