@@ -98,7 +98,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, library const& library) -> std::ostream &
   {
-    return os << library.free_variables();
+    return os << library.second; // free-variables
   }
 
   auto libraries() -> std::map<std::string, library> &

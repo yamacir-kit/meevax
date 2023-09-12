@@ -310,10 +310,10 @@ inline namespace kernel
             if (let const& value = cdr(identity); value.is<transformer>())
             {
               return sweep(compile,
-                           cons(Environment().apply(cadr(identity),
+                           cons(Environment().apply(cadr(identity), // <closure>
                                                     car(form),
-                                                    make<syntactic_environment>(bound_variables, compile.free_variables()),
-                                                    cddr(identity)),
+                                                    make<syntactic_environment>(bound_variables, compile.second), // use-env
+                                                    cddr(identity)), // mac-env
                                 cdr(form)),
                            bound_variables,
                            free_variables,
@@ -440,7 +440,7 @@ inline namespace kernel
           }
 
           let const current_environment = make<syntactic_environment>(cons(formals, bound_variables),
-                                                                      compile.free_variables());
+                                                                      compile.second);
 
           for (let & formal : formals)
           {
@@ -833,7 +833,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        let const environment = make<syntactic_environment>(bound_variables, compile.free_variables());
+        let const environment = make<syntactic_environment>(bound_variables, compile.second);
 
         auto formal = [&](let const& syntax_spec)
         {
@@ -870,7 +870,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        let environment = make<syntactic_environment>(bound_variables, compile.free_variables());
+        let environment = make<syntactic_environment>(bound_variables, compile.second);
 
         auto formal = [&](let const& syntax_spec)
         {
@@ -979,7 +979,7 @@ inline namespace kernel
         cdr(identity) = make<transformer>(Environment().execute(compile(cadr(expression),
                                                                         bound_variables)),
                                           make<syntactic_environment>(bound_variables,
-                                                                      compile.free_variables()));
+                                                                      compile.second));
 
         return cons(make(instruction::load_constant), unspecified,
                     continuation);
@@ -1107,57 +1107,47 @@ inline namespace kernel
           return cons(make(instruction::load_constant), expression, continuation);
         }
       }
-      else if (let const& identity = std::as_const(*this).identify(car(expression), bound_variables, free_variables);
-               identity.is<absolute>() and cdr(identity).is<transformer>())
+      else if (let const& identity = std::as_const(*this).identify(car(expression), bound_variables, free_variables); identity.is<absolute>())
       {
-        /*
-           Scheme programs can define and use new derived expression types,
-           called macros. Program-defined expression types have the syntax
+        if (cdr(identity).is<transformer>())
+        {
+          /*
+             Scheme programs can define and use new derived expression types,
+             called macros. Program-defined expression types have the syntax
 
-             (<keyword> <datum>...)
+               (<keyword> <datum>...)
 
-           where <keyword> is an identifier that uniquely determines the
-           expression type. This identifier is called the syntactic keyword, or
-           simply keyword, of the macro. The number of the <datum>s, and their
-           syntax, depends on the expression type.
+             where <keyword> is an identifier that uniquely determines the
+             expression type. This identifier is called the syntactic keyword,
+             or simply keyword, of the macro. The number of the <datum>s, and
+             their syntax, depends on the expression type.
 
-           Each instance of a macro is called a use of the macro. The set of
-           rules that specifies how a use of a macro is transcribed into a more
-           primitive expression is called the transformer of the macro.
-        */
-        assert(cadr(identity).is<closure>());
-        assert(cddr(identity).is<syntactic_environment>());
+             Each instance of a macro is called a use of the macro. The set of
+             rules that specifies how a use of a macro is transcribed into a
+             more primitive expression is called the transformer of the macro.
+          */
+          assert(cadr(identity).is<closure>());
+          assert(cddr(identity).is<syntactic_environment>());
 
-        return compile(Environment().apply(cadr(identity),
-                                           expression,
-                                           make<syntactic_environment>(bound_variables, this->free_variables()),
-                                           cddr(identity)),
-                       bound_variables,
-                       free_variables,
-                       continuation,
-                       tail);
+          return compile(Environment().apply(cadr(identity),
+                                             expression,
+                                             make<syntactic_environment>(bound_variables, second),
+                                             cddr(identity)),
+                         bound_variables,
+                         free_variables,
+                         continuation,
+                         tail);
+        }
+        else if (cdr(identity).is<syntax>())
+        {
+          return cdr(identity).as<syntax>().compile(*this, cdr(expression), bound_variables, free_variables, continuation, tail);
+        }
       }
-      else if (identity.is<absolute>() and cdr(identity).is<syntax>())
-      {
-        return cdr(identity).as<syntax>().compile(*this, cdr(expression), bound_variables, free_variables, continuation, tail);
-      }
-      else
-      {
-        return syntax::call(*this, expression, bound_variables, free_variables, continuation, tail);
-      }
+
+      return syntax::call(*this, expression, bound_variables, free_variables, continuation, tail);
     }
 
     using pair::pair;
-
-    inline auto bound_variables() const noexcept -> object const&
-    {
-      return first;
-    }
-
-    inline auto bound_variables() noexcept -> object &
-    {
-      return first;
-    }
 
     template <typename... Ts>
     inline auto compile(Ts&&... xs) -> decltype(auto)
@@ -1184,16 +1174,6 @@ inline namespace kernel
       }
     }
 
-    inline auto free_variables() const noexcept -> object const&
-    {
-      return second;
-    }
-
-    inline auto free_variables() noexcept -> object &
-    {
-      return second;
-    }
-
     inline auto identify(object const& variable,
                          object const& bound_variables,
                          object const& free_variables) const -> object
@@ -1216,13 +1196,16 @@ inline namespace kernel
 
           for (auto inner = outer.is<pair>() ? car(outer) : unit; not inner.is<null>(); ++j, inner = inner.is<pair>() ? cdr(inner) : unit)
           {
-            if (inner.is<pair>() and car(inner).is<absolute>() and eq(caar(inner), variable))
+            if (inner.is<pair>())
             {
-              return car(inner);
-            }
-            else if (inner.is<pair>() and eq(car(inner), variable))
-            {
-              return make<relative>(make(i), make(j));
+              if (car(inner).is<absolute>() and eq(caar(inner), variable))
+              {
+                return car(inner);
+              }
+              else if (eq(car(inner), variable))
+              {
+                return make<relative>(make(i), make(j));
+              }
             }
             else if (inner.is_also<identifier>() and eq(inner, variable))
             {
@@ -1240,7 +1223,7 @@ inline namespace kernel
         }
         else
         {
-          return assq(variable, this->free_variables());
+          return assq(variable, second);
         }
       }
     }
@@ -1274,7 +1257,7 @@ inline namespace kernel
            whereas it would be an error to perform a set! on an unbound
            variable.
         */
-        return car(this->free_variables() = cons(make<absolute>(variable, undefined), this->free_variables()));
+        return car(second = cons(make<absolute>(variable, undefined), second));
       }
     }
 
