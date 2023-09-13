@@ -23,7 +23,6 @@
 #include <meevax/kernel/binary_output_file_port.hpp>
 #include <meevax/kernel/boot.hpp>
 #include <meevax/kernel/box.hpp>
-#include <meevax/kernel/disassemble.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
 #include <meevax/kernel/library.hpp>
@@ -242,30 +241,6 @@ inline namespace kernel
       library.define<command>("kernel-exception-handler-set!", [](let const& xs)
       {
         environment::raise = xs[0];
-      });
-    });
-
-    define<library>("(meevax experimental)", [](library & library)
-    {
-      library.define<function>("type-of", [](let const& xs)
-      {
-        return make<string>(xs[0].type().name());
-      });
-
-      library.define<command>("disassemble", [](let const& xs)
-      {
-        if (0 < length(xs))
-        {
-          if (let const& f = xs[0]; f.is<closure>())
-          {
-            disassemble(std::cout, car(f));
-          }
-        }
-      });
-
-      library.define<thunk>("ieee-float?", []()
-      {
-        return std::numeric_limits<double>::is_iec559 ? t : f;
       });
     });
 

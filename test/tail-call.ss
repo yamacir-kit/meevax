@@ -1,5 +1,4 @@
 (import (only (meevax core) call-with-current-continuation!)
-        (only (meevax experimental) disassemble)
         (only (meevax function) closure?)
         (scheme base)
         (scheme write)
