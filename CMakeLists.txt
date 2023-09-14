@@ -47,6 +47,24 @@ else()
   set(${PROJECT_NAME}_BYTE_ORDER "little-endian")
 endif()
 
+set(${PROJECT_NAME}_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/configure/UnicodeData.txt)
+set(${PROJECT_NAME}_OBJECTS "")
+foreach(EACH IN LISTS ${PROJECT_NAME}_RESOURCES)
+  get_filename_component(FILENAME ${EACH} NAME)
+  get_filename_component(FILEPATH ${EACH} PATH)
+  message(STATUS "Copying resource ${EACH} as ")
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o
+    WORKING_DIRECTORY ${FILEPATH}
+    COMMAND ${CMAKE_OBJCOPY}
+    ARGS -I binary
+         -O elf64-x86-64
+         -B i386
+         ${FILENAME}
+         ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
+  list(APPEND ${PROJECT_NAME}_OBJECTS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
+endforeach()
+
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt ${PROJECT_NAME}_HELP_UNCONFIGURED)
 
 string(CONFIGURE ${${PROJECT_NAME}_HELP_UNCONFIGURED} ${PROJECT_NAME}_HELP)
@@ -73,7 +91,8 @@ add_library(${PROJECT_NAME}::kernel ALIAS kernel)
 
 file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
-target_sources(kernel PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})
+target_sources(kernel PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES}
+                      PRIVATE ${${PROJECT_NAME}_OBJECTS})
 
 target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
