@@ -1,3 +1,4 @@
 build
+include/meevax/kernel/digit_value.hpp
 src/kernel/basis.cpp
 src/kernel/version.cpp

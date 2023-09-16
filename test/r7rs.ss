@@ -1299,11 +1299,11 @@
 
 (check (digit-value #\3) => 3)
 
-; (check (digit-value #\x0664) => 4)
+(check (digit-value #\x0664) => 4)
 
-; (check (digit-value #\x0AE6) => 0)
+(check (digit-value #\x0AE6) => 0)
 
-; (check (digit-value #\x0EA6) => #f) ; BUG: MEMORY-LEAK
+(check (digit-value #\x0EA6) => #f)
 
 ; ---- 6.7. --------------------------------------------------------------------
 
@@ -1619,4 +1619,4 @@
 
 (check-report)
 
-(exit (check-passed? 429))
+(exit (check-passed? 432))

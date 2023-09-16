@@ -47,41 +47,25 @@ else()
   set(${PROJECT_NAME}_BYTE_ORDER "little-endian")
 endif()
 
-set(${PROJECT_NAME}_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/configure/UnicodeData.txt)
-set(${PROJECT_NAME}_OBJECTS "")
-foreach(EACH IN LISTS ${PROJECT_NAME}_RESOURCES)
-  get_filename_component(FILENAME ${EACH} NAME)
-  get_filename_component(FILEPATH ${EACH} PATH)
-  message(STATUS "Copying resource ${EACH} as ")
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o
-    WORKING_DIRECTORY ${FILEPATH}
-    COMMAND ${CMAKE_OBJCOPY}
-    ARGS -I binary
-         -O elf64-x86-64
-         -B i386
-         ${FILENAME}
-         ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
-  list(APPEND ${PROJECT_NAME}_OBJECTS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
-endforeach()
-
-file(READ ${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt ${PROJECT_NAME}_HELP_UNCONFIGURED)
-
-string(CONFIGURE ${${PROJECT_NAME}_HELP_UNCONFIGURED} ${PROJECT_NAME}_HELP)
-
-string(TOLOWER ${CMAKE_SYSTEM_NAME} ${PROJECT_NAME}_SYSTEM_NAME)
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
+execute_process(
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --digit-value
+  OUTPUT_VARIABLE ${PROJECT_NAME}_DIGIT_VALUE)
 
 file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt ${PROJECT_NAME}_HELP_UNCONFIGURED)
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/digit_value.hpp ${${PROJECT_NAME}_DIGIT_VALUE})
+
+string(CONFIGURE ${${PROJECT_NAME}_HELP_UNCONFIGURED} ${PROJECT_NAME}_HELP)
+string(TOLOWER ${CMAKE_SYSTEM_NAME} ${PROJECT_NAME}_SYSTEM_NAME)
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
   get_filename_component(FILENAME ${EACH} NAME)
   file(READ ${EACH} ${PROJECT_NAME}_BASIS_${FILENAME})
 endforeach()
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/basis.cpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.cpp   ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/basis.cpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 
 # ---- Target kernel -----------------------------------------------------------
 

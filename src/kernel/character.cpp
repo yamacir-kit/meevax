@@ -14,13 +14,31 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/error.hpp>
+#include <meevax/kernel/number.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
+  auto character::digit_value() const -> object const&
+  {
+    static const std::unordered_map<character::int_type, object> table {
+      #include <meevax/kernel/digit_value.hpp>
+    };
+
+    if (auto iterator = table.find(codepoint); iterator != table.end())
+    {
+      return iterator->second;
+    }
+    else
+    {
+      return f;
+    }
+  }
+
   character::operator std::string() const
   {
     auto chars = std::array<char, 5>();

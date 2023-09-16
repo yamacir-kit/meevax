@@ -72,14 +72,7 @@ inline namespace kernel
 
       library.define<function>("digit-value", [](let const& xs)
       {
-        if (auto c = xs[0].as<character>(); std::isdigit(c.codepoint))
-        {
-          return make<exact_integer>(c.codepoint - '0');
-        }
-        else
-        {
-          return f;
-        }
+        return xs[0].as<character>().digit_value();
       });
 
       library.define<function>("integer->char", [](let const& xs)

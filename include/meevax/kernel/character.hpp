@@ -47,10 +47,12 @@ inline namespace kernel
       return std::char_traits<char_type>::eq_int_type(c1, c2);
     }
 
-    inline constexpr auto eq(int_type const& c) const
+    constexpr auto eq(int_type const& c) const
     {
       return std::char_traits<char_type>::eq_int_type(codepoint, c);
     }
+
+    auto digit_value() const -> object const&;
 
     static constexpr auto is_ascii(int_type c)
     {
@@ -62,7 +64,7 @@ inline namespace kernel
       return eq(eof(), c);
     }
 
-    inline constexpr operator int_type() const
+    constexpr operator int_type() const
     {
       return codepoint;
     }
