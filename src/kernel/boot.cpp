@@ -70,6 +70,31 @@ inline namespace kernel
         return xs[0].is<character>();
       });
 
+      library.define<predicate>("char-alphabetic?", [](let const& xs)
+      {
+        return xs[0].as<character>().property().is_letter();
+      });
+
+      library.define<predicate>("char-numeric?", [](let const& xs)
+      {
+        return xs[0].as<character>().property().is_numeric();
+      });
+
+      library.define<predicate>("char-whitespace?", [](let const& xs)
+      {
+        return xs[0].as<character>().property().is_whitespace();
+      });
+
+      library.define<predicate>("char-upper-case?", [](let const& xs)
+      {
+        return xs[0].as<character>().property().is_upper_case();
+      });
+
+      library.define<predicate>("char-lower-case?", [](let const& xs)
+      {
+        return xs[0].as<character>().property().is_lower_case();
+      });
+
       library.define<function>("digit-value", [](let const& xs)
       {
         return xs[0].as<character>().digit_value();

@@ -1,4 +1,5 @@
 build
 include/meevax/kernel/digit_value.hpp
+include/meevax/unicode
 src/kernel/basis.cpp
 src/kernel/version.cpp
