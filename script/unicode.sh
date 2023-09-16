@@ -25,20 +25,10 @@ substitute()
   sed -E "s/$unicode_data/$1/g" "$(git rev-parse --show-toplevel)/configure/UnicodeData.txt"
 }
 
-digit_value()
-{
-  substitute '{ 0x\1, make_number("\9") },' | grep -e '{ .\+, make_number(".\+") },'
-}
-
-property()
-{
-  substitute 'case 0x\1: return \3;'
-}
-
 for each in "$@"
 do
   case "$each" in
-    --digit-value ) digit_value ;;
-    --property ) property ;;
+    --digit-value ) substitute '{ 0x\1, make_number("\9") },' | grep -e '{ .\+, make_number(".\+") },' ;;
+    --property    ) substitute 'case 0x\1: return \3;' ;;
   esac
 done
