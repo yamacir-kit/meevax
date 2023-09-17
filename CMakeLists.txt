@@ -47,23 +47,29 @@ else()
   set(${PROJECT_NAME}_BYTE_ORDER "little-endian")
 endif()
 
-file(READ ${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt ${PROJECT_NAME}_HELP_UNCONFIGURED)
-
-string(CONFIGURE ${${PROJECT_NAME}_HELP_UNCONFIGURED} ${PROJECT_NAME}_HELP)
-
-string(TOLOWER ${CMAKE_SYSTEM_NAME} ${PROJECT_NAME}_SYSTEM_NAME)
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --digit-value OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DIGIT_VALUE)
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --downcase    OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DOWNCASE)
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --property    OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_PROPERTY)
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --upcase      OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_UPCASE)
 
 file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt ${PROJECT_NAME}_HELP_UNCONFIGURED)
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/digit_value.hpp "${${PROJECT_NAME}_UNICODE_DIGIT_VALUE}")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/downcase.hpp    "${${PROJECT_NAME}_UNICODE_DOWNCASE}")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/property.hpp    "${${PROJECT_NAME}_UNICODE_PROPERTY}")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/upcase.hpp      "${${PROJECT_NAME}_UNICODE_UPCASE}")
+
+string(CONFIGURE ${${PROJECT_NAME}_HELP_UNCONFIGURED} ${PROJECT_NAME}_HELP)
+string(TOLOWER ${CMAKE_SYSTEM_NAME} ${PROJECT_NAME}_SYSTEM_NAME)
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
   get_filename_component(FILENAME ${EACH} NAME)
   file(READ ${EACH} ${PROJECT_NAME}_BASIS_${FILENAME})
 endforeach()
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/basis.cpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.cpp   ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/basis.cpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 
 # ---- Target kernel -----------------------------------------------------------
 
@@ -73,7 +79,8 @@ add_library(${PROJECT_NAME}::kernel ALIAS kernel)
 
 file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
-target_sources(kernel PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})
+target_sources(kernel PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES}
+                      PRIVATE ${${PROJECT_NAME}_OBJECTS})
 
 target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

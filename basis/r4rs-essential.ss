@@ -389,40 +389,6 @@
          (define (char-ci>=? x . xs)
            (char-ci-compare x xs >=))
 
-         (define (char-alphabetic? x)
-           (<= (char->integer #\a)
-               (char->integer (char-downcase x))
-               (char->integer #\z)))
-
-         (define (char-numeric? x)
-           (<= (char->integer #\0)
-               (char->integer x)
-               (char->integer #\9)))
-
-         (define (char-whitespace? x)
-           (or (eqv? x #\space)
-               (eqv? x #\tab)
-               (eqv? x #\newline)
-               (eqv? x #\return)))
-
-         (define (char-upper-case? x)
-           (<= (char->integer #\A)
-               (char->integer x)
-               (char->integer #\Z)))
-
-         (define (char-lower-case? x)
-           (<= (char->integer #\a)
-               (char->integer x)
-               (char->integer #\z)))
-
-         (define (char-downcase c)
-           (if (char-lower-case? c) c
-               (integer->char (+ (char->integer c) 32))))
-
-         (define (char-upcase c)
-           (if (char-upper-case? c) c
-               (integer->char (- (char->integer c) 32))))
-
          (define (string . xs)
            (list->string xs))
 

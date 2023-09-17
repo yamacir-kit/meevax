@@ -70,21 +70,55 @@ inline namespace kernel
         return xs[0].is<character>();
       });
 
+      library.define<predicate>("char-alphabetic?", [](let const& xs)
+      {
+        return xs[0].as<character>().property().is_letter();
+      });
+
+      library.define<predicate>("char-numeric?", [](let const& xs)
+      {
+        return xs[0].as<character>().property().is_numeric();
+      });
+
+      library.define<predicate>("char-whitespace?", [](let const& xs)
+      {
+        return xs[0].as<character>().property().is_whitespace();
+      });
+
+      library.define<predicate>("char-upper-case?", [](let const& xs)
+      {
+        return xs[0].as<character>().property().is_upper_case();
+      });
+
+      library.define<predicate>("char-lower-case?", [](let const& xs)
+      {
+        return xs[0].as<character>().property().is_lower_case();
+      });
+
       library.define<function>("digit-value", [](let const& xs)
       {
-        if (auto c = xs[0].as<character>(); std::isdigit(c.codepoint))
-        {
-          return make<exact_integer>(c.codepoint - '0');
-        }
-        else
-        {
-          return f;
-        }
+        auto digit_value = xs[0].as<character>().digit_value();
+        return digit_value ? make<exact_integer>(*digit_value) : f;
+      });
+
+      library.define<function>("char->integer", [](let const& xs)
+      {
+        return make<exact_integer>(xs[0].as<character>().codepoint);
       });
 
       library.define<function>("integer->char", [](let const& xs)
       {
         return make<character>(xs[0].as<exact_integer>());
+      });
+
+      library.define<function>("char-upcase", [](let const& xs)
+      {
+        return make<character>(xs[0].as<character>().upcase());
+      });
+
+      library.define<function>("char-downcase", [](let const& xs)
+      {
+        return make<character>(xs[0].as<character>().downcase());
       });
     });
 
@@ -618,11 +652,6 @@ inline namespace kernel
       library.define<function>("inexact", [](let const& xs)
       {
         return inexact(xs[0]);
-      });
-
-      library.define<function>("char->integer", [](let const& xs)
-      {
-        return make<exact_integer>(xs[0].as<character>().codepoint);
       });
 
       library.define<function>("string->number", [](let const& xs)

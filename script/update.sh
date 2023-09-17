@@ -13,9 +13,9 @@ build()
 
 echo "0.4.$(($(git rev-list --no-merges --count HEAD) - 2854))" > "$root/VERSION"
 
-if dpkg -s meevax
+if dpkg --status meevax
 then
-  sudo dpkg -r meevax
+  sudo dpkg --purge meevax
 fi
 
 build "$root" "$@"

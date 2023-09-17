@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
+#include <optional>
+
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
@@ -30,6 +32,89 @@ inline namespace kernel
     using int_type = std::char_traits<char_type>::int_type;
 
     int_type codepoint;
+
+    struct property_code
+    {
+      enum value_type
+      {
+        Cc, // Other, Control
+        Cf, // Other, Format
+        Cn, // Other, Not Assigned (no characters in the file have this property)
+        Co, // Other, Private Use
+        Cs, // Other, Surrogate
+        Ll, // Letter, Lowercase
+        Lm, // Letter, Modifier
+        Lo, // Letter, Other
+        Lt, // Letter, Titlecase
+        Lu, // Letter, Uppercase
+        Mc, // Mark, Spacing Combining
+        Me, // Mark, Enclosing
+        Mn, // Mark, Non-Spacing
+        Nd, // Number, Decimal Digit
+        Nl, // Number, Letter
+        No, // Number, Other
+        Pc, // Punctuation, Connector
+        Pd, // Punctuation, Dash
+        Pe, // Punctuation, Close
+        Pf, // Punctuation, Final quote (may behave like Ps or Pe depending on usage)
+        Pi, // Punctuation, Initial quote (may behave like Ps or Pe depending on usage)
+        Po, // Punctuation, Other
+        Ps, // Punctuation, Open
+        Sc, // Symbol, Currency
+        Sk, // Symbol, Modifier
+        Sm, // Symbol, Math
+        So, // Symbol, Other
+        Zl, // Separator, Line
+        Zp, // Separator, Paragraph
+        Zs, // Separator, Space
+      } value;
+
+      constexpr property_code(value_type value)
+        : value { value }
+      {}
+
+      static constexpr auto from(int_type codepoint)
+      {
+        switch (codepoint)
+        {
+        #include <meevax/unicode/property.hpp>
+
+        default:
+          return Cc;
+        }
+      }
+
+      template <typename... Ts>
+      constexpr auto is_any_of(Ts&&... xs) const noexcept
+      {
+        return ((value == xs) or ...);
+      }
+
+      constexpr auto is_letter() const noexcept
+      {
+        return is_any_of(Ll, Lm, Lo, Lt, Lu);
+      }
+
+      constexpr auto is_lower_case() const noexcept
+      {
+        return value == Ll;
+      }
+
+      constexpr auto is_numeric() const noexcept
+      {
+        return value == Nd;
+      }
+
+      constexpr auto is_upper_case() const noexcept
+      {
+        return value == Lu;
+      }
+
+      constexpr auto is_whitespace() const noexcept
+      {
+        return value == Zs;
+      }
+    };
 
     explicit character() = default;
 
@@ -47,9 +132,31 @@ inline namespace kernel
       return std::char_traits<char_type>::eq_int_type(c1, c2);
     }
 
-    inline constexpr auto eq(int_type const& c) const
+    constexpr auto eq(int_type const& c) const
     {
       return std::char_traits<char_type>::eq_int_type(codepoint, c);
+    }
+
+    constexpr auto digit_value() const noexcept -> std::optional<int>
+    {
+      switch (codepoint)
+      {
+      #include <meevax/unicode/digit_value.hpp>
+
+      default:
+        return std::nullopt;
+      }
+    }
+
+    constexpr auto downcase() const noexcept
+    {
+      switch (codepoint)
+      {
+      #include <meevax/unicode/downcase.hpp>
+
+      default:
+        return codepoint;
+      }
     }
 
     static constexpr auto is_ascii(int_type c)
@@ -62,7 +169,23 @@ inline namespace kernel
       return eq(eof(), c);
     }
 
-    inline constexpr operator int_type() const
+    constexpr auto property() const noexcept -> property_code
+    {
+      return property_code::from(codepoint);
+    }
+
+    constexpr auto upcase() const noexcept
+    {
+      switch (codepoint)
+      {
+      #include <meevax/unicode/upcase.hpp>
+
+      default:
+        return codepoint;
+      }
+    }
+
+    constexpr operator int_type() const
     {
       return codepoint;
     }

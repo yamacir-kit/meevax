@@ -14,8 +14,10 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/error.hpp>
+#include <meevax/kernel/number.hpp>
 
 namespace meevax
 {
