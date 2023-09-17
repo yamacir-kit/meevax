@@ -104,6 +104,11 @@ inline namespace kernel
       {
         return make<character>(xs[0].as<exact_integer>());
       });
+
+      library.define<function>("char-upcase", [](let const& xs)
+      {
+        return make<character>(xs[0].as<character>().upcase());
+      });
     });
 
     define<library>("(meevax complex)", [](library & library)

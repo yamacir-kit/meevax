@@ -393,10 +393,6 @@
            (if (char-lower-case? c) c
                (integer->char (+ (char->integer c) 32))))
 
-         (define (char-upcase c)
-           (if (char-upper-case? c) c
-               (integer->char (- (char->integer c) 32))))
-
          (define (string . xs)
            (list->string xs))
 

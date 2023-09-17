@@ -137,11 +137,6 @@ inline namespace kernel
 
     auto digit_value() const -> object const&;
 
-    constexpr auto property() const noexcept -> property_code
-    {
-      return property_code::from(codepoint);
-    }
-
     static constexpr auto is_ascii(int_type c)
     {
       return 0x00 <= c and c <= 0x7F;
@@ -150,6 +145,22 @@ inline namespace kernel
     static constexpr auto is_eof(int_type c)
     {
       return eq(eof(), c);
+    }
+
+    constexpr auto property() const noexcept -> property_code
+    {
+      return property_code::from(codepoint);
+    }
+
+    constexpr auto upcase() const noexcept
+    {
+      switch (codepoint)
+      {
+      #include <meevax/unicode/upcase.hpp>
+
+      default:
+        return codepoint;
+      }
     }
 
     constexpr operator int_type() const
