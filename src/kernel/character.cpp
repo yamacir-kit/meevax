@@ -23,22 +23,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto character::digit_value() const -> object const&
-  {
-    static const std::unordered_map<character::int_type, object> table {
-      #include <meevax/unicode/digit_value.hpp>
-    };
-
-    if (auto iterator = table.find(codepoint); iterator != table.end())
-    {
-      return iterator->second;
-    }
-    else
-    {
-      return f;
-    }
-  }
-
   character::operator std::string() const
   {
     auto chars = std::array<char, 5>();

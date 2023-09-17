@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
+#include <optional>
+
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
@@ -135,7 +137,16 @@ inline namespace kernel
       return std::char_traits<char_type>::eq_int_type(codepoint, c);
     }
 
-    auto digit_value() const -> object const&;
+    constexpr auto digit_value() const noexcept -> std::optional<int>
+    {
+      switch (codepoint)
+      {
+      #include <meevax/unicode/digit_value.hpp>
+
+      default:
+        return std::nullopt;
+      }
+    }
 
     constexpr auto downcase() const noexcept
     {

@@ -97,7 +97,8 @@ inline namespace kernel
 
       library.define<function>("digit-value", [](let const& xs)
       {
-        return xs[0].as<character>().digit_value();
+        auto digit_value = xs[0].as<character>().digit_value();
+        return digit_value ? make<exact_integer>(*digit_value) : f;
       });
 
       library.define<function>("integer->char", [](let const& xs)
