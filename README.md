@@ -74,7 +74,7 @@ Subset of R7RS-small.
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cd build
 make package
-sudo apt install build/meevax_0.4.804_amd64.deb
+sudo apt install build/meevax_0.4.805_amd64.deb
 ```
 
 or
@@ -106,27 +106,24 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name | Description
 |-------------|-------------
-| `all`       | Build shared-library `libmeevax.0.4.804.so` and executable `meevax`
+| `all`       | Build shared-library `libmeevax.0.4.805.so` and executable `meevax`
 | `test`      | Test executable `meevax`
-| `package`   | Generate debian package `meevax_0.4.804_amd64.deb`
+| `package`   | Generate debian package `meevax_0.4.805_amd64.deb`
 | `install`   | Copy files into `/usr/local` directly
 
 ## Usage
 
 ```
-Meevax Lisp 0.4.804
-
 Usage:
-  meevax [option...] [file...]
+  meevax [OPTION...] [FILE...]
 
 Options:
-  -e, --evaluate=<string>  read and evaluate <string> on interaction-environment
-  -h, --help               display this help and exit
-  -i, --interactive        enter an interactive session
-  -l, --load=<file>        load <file> into interaction-environment
-  -v, --version            display version information and exit
-  -w, --write=<string>     same as `(write (read <string>))`
-
+  -e, --evaluate=STRING  read and evaluate STRING on interaction-environment
+  -h, --help             display this help and exit
+  -i, --interactive      enter an interactive session
+  -l, --load=FILE        load FILE into interaction-environment
+  -v, --version          display version information and exit
+  -w, --write=STRING     same as `(write (read STRING))`
 ```
 
 ## License

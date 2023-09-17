@@ -84,7 +84,7 @@ inline namespace kernel
         {
           let static const f = make<command>("", [](let const&)
           {
-            std::cout << help() << std::flush;
+            std::cout << help() << std::endl;
             throw EXIT_SUCCESS;
           });
 
