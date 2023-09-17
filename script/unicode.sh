@@ -31,6 +31,7 @@ do
   case "$each" in
     --digit-value ) substitute '{ 0x\1, make_number("\9") },' | grep -e '{ .\+, make_number(".\+") },' ;;
     --property    ) substitute 'case 0x\1: return \3;' ;;
-    --upcase      ) sed -E 's/^([^;]*);([^;]*;){11}([^;]*);.*$/case 0x\1: return 0x\3;/g' "$input" | grep -e 'case 0x.\+: return 0x.\+;'
+    --upcase      ) sed -E 's/^([^;]*);([^;]*;){11}([^;]*).*$/case 0x\1: return 0x\3;/g' "$input" | grep -e 'case 0x.\+: return 0x.\+;' ;;
+    --downcase    ) sed -E 's/^([^;]*);([^;]*;){12}([^;]*).*$/case 0x\1: return 0x\3;/g' "$input" | grep -e 'case 0x.\+: return 0x.\+;' ;;
   esac
 done

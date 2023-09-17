@@ -389,10 +389,6 @@
          (define (char-ci>=? x . xs)
            (char-ci-compare x xs >=))
 
-         (define (char-downcase c)
-           (if (char-lower-case? c) c
-               (integer->char (+ (char->integer c) 32))))
-
          (define (string . xs)
            (list->string xs))
 

@@ -109,6 +109,11 @@ inline namespace kernel
       {
         return make<character>(xs[0].as<character>().upcase());
       });
+
+      library.define<function>("char-downcase", [](let const& xs)
+      {
+        return make<character>(xs[0].as<character>().downcase());
+      });
     });
 
     define<library>("(meevax complex)", [](library & library)

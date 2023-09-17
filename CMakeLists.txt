@@ -47,21 +47,15 @@ else()
   set(${PROJECT_NAME}_BYTE_ORDER "little-endian")
 endif()
 
-execute_process(
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --digit-value
-  OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DIGIT_VALUE)
-
-execute_process(
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --property
-  OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_PROPERTY)
-
-execute_process(
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --upcase
-  OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_UPCASE)
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --digit-value OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DIGIT_VALUE)
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --downcase    OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DOWNCASE)
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --property    OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_PROPERTY)
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --upcase      OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_UPCASE)
 
 file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt ${PROJECT_NAME}_HELP_UNCONFIGURED)
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/digit_value.hpp "${${PROJECT_NAME}_UNICODE_DIGIT_VALUE}")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/downcase.hpp    "${${PROJECT_NAME}_UNICODE_DOWNCASE}")
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/property.hpp    "${${PROJECT_NAME}_UNICODE_PROPERTY}")
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/upcase.hpp      "${${PROJECT_NAME}_UNICODE_UPCASE}")
 

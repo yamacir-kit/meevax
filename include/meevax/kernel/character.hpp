@@ -137,6 +137,17 @@ inline namespace kernel
 
     auto digit_value() const -> object const&;
 
+    constexpr auto downcase() const noexcept
+    {
+      switch (codepoint)
+      {
+      #include <meevax/unicode/downcase.hpp>
+
+      default:
+        return codepoint;
+      }
+    }
+
     static constexpr auto is_ascii(int_type c)
     {
       return 0x00 <= c and c <= 0x7F;
