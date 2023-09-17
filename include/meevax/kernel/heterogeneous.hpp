@@ -21,7 +21,6 @@
 #include <meevax/functional/compose.hpp>
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
-#include <meevax/kernel/profiler.hpp>
 #include <meevax/memory/gc_pointer.hpp>
 #include <meevax/type_traits/is_array_subscriptable.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
@@ -109,12 +108,6 @@ inline namespace kernel
     template <typename Bound, typename... Us>
     static auto allocate(Us&&... xs)
     {
-      if constexpr (profiler::count_allocations)
-      {
-        current_profiler().allocation_counts[typeid(Bound)]++;
-        current_profiler().allocation_counts[typeid(void)]++;
-      }
-
       if constexpr (std::is_same_v<Bound, Top>)
       {
         return heterogeneous(gc.make<Top>(std::forward<decltype(xs)>(xs)...));
