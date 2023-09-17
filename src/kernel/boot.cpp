@@ -101,6 +101,11 @@ inline namespace kernel
         return digit_value ? make<exact_integer>(*digit_value) : f;
       });
 
+      library.define<function>("char->integer", [](let const& xs)
+      {
+        return make<exact_integer>(xs[0].as<character>().codepoint);
+      });
+
       library.define<function>("integer->char", [](let const& xs)
       {
         return make<character>(xs[0].as<exact_integer>());
@@ -647,11 +652,6 @@ inline namespace kernel
       library.define<function>("inexact", [](let const& xs)
       {
         return inexact(xs[0]);
-      });
-
-      library.define<function>("char->integer", [](let const& xs)
-      {
-        return make<exact_integer>(xs[0].as<character>().codepoint);
       });
 
       library.define<function>("string->number", [](let const& xs)
