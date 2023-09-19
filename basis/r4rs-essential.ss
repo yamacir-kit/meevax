@@ -1,5 +1,6 @@
 (define-library (scheme r4rs essential)
-  (import (meevax character)
+  (import (only (meevax boolean) boolean? not)
+          (meevax character)
           (meevax core)
           (only (meevax comparator) eq? eqv? equal?)
           (meevax continuation)
@@ -215,13 +216,6 @@
                                        (,(cadr form) ,@(map cadr (caddr form))))
                    `((,(rename 'lambda) ,(map car (cadr form)) ,@(cddr form))
                      ,@(map cadr (cadr form)))))))
-
-         (define (not x)
-           (if x #f #t))
-
-         (define (boolean? x)
-           (or (eq? x #t)
-               (eq? x #f)))
 
          (define (list? x)
            (let list? ((x x)

@@ -40,6 +40,19 @@ inline namespace kernel
 {
   auto boot() -> void
   {
+    define<library>("(meevax boolean)", [](library & library)
+    {
+      library.define<predicate>("boolean?", [](let const& xs)
+      {
+        return xs[0].is<bool>();
+      });
+
+      library.define<predicate>("not", [](let const& xs)
+      {
+        return not is_truthy(xs[0]);
+      });
+    });
+
     define<library>("(meevax box)", [](library & library)
     {
       library.define<function>("box", [](let const& xs)
