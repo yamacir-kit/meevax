@@ -230,16 +230,6 @@
                        (null? x)))
                  (null? x))))
 
-         (define (member o x . c) ; Chibi-Scheme
-           (let ((compare (if (pair? c) (car c) equal?)))
-             (let member ((x x))
-               (and (pair? x)
-                    (if (compare o (car x)) x
-                        (member (cdr x)))))))
-
-         (define (memv o x)
-           (member o x eqv?))
-
          (define-syntax case ; Chibi-Scheme
            (er-macro-transformer
              (lambda (form rename compare)
@@ -265,18 +255,20 @@
                `(,(rename 'let) ((,(rename 'result) ,(cadr form)))
                                 ,(each-clause (cddr form))))))
 
+         (define (member x xs . compare) ; Chibi-Scheme
+           (let ((compare (if (pair? compare) (car compare) equal?)))
+             (let member ((xs xs))
+               (and (pair? xs)
+                    (if (compare x (car xs)) xs
+                        (member (cdr xs)))))))
+
          (define (assoc key alist . compare) ; Chibi-Scheme
-           (let ((compare (if (pair? compare)
-                              (car compare)
-                              equal?)))
+           (let ((compare (if (pair? compare) (car compare) equal?)))
              (let assoc ((alist alist))
                (if (null? alist) #f
                    (if (compare key (caar alist))
                        (car alist)
                        (assoc (cdr alist)))))))
-
-         (define (assv key alist)
-           (assoc key alist eqv?))
 
          (define (exact? z)
            (define (exact-complex? x)

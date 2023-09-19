@@ -487,9 +487,19 @@ inline namespace kernel
         return memq(xs[0], xs[1]);
       });
 
+      library.define<accessor>("memv", [](let const& xs) -> auto const&
+      {
+        return memv(xs[0], xs[1]);
+      });
+
       library.define<accessor>("assq", [](let const& xs) -> auto const&
       {
         return assq(xs[0], xs[1]);
+      });
+
+      library.define<accessor>("assv", [](let const& xs) -> auto const&
+      {
+        return assv(xs[0], xs[1]);
       });
     });
 
