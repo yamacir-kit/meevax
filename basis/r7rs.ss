@@ -421,25 +421,9 @@
            (string-map char-foldcase x))))
 
 (define-library (scheme complex)
-  (import (meevax complex)
-          (scheme base)
-          (scheme inexact))
-
-  (export make-rectangular make-polar real-part imag-part magnitude angle)
-
-  (begin (define (make-polar magnitude angle)
-           (make-rectangular (* magnitude (cos angle))
-                             (* magnitude (sin angle))))
-
-         (define (magnitude z)
-           (let ((re (real-part z))
-                 (im (imag-part z)))
-             (sqrt (+ (* re re)
-                      (* im im)))))
-
-         (define (angle z)
-           (atan (imag-part z)
-                 (real-part z)))))
+  (import (only (meevax complex) make-rectangular real-part imag-part)
+          (only (scheme r5rs) make-polar magnitude angle))
+  (export make-rectangular make-polar real-part imag-part magnitude angle))
 
 (define-library (scheme cxr)
   (import (meevax pair))

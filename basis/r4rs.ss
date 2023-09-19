@@ -41,6 +41,40 @@
           close-output-port read read-char peek-char eof-object? char-ready?
           write display newline write-char load)
 
+  #|
+     This library contains many procedure and syntax definitions copied from
+     Chibi-Scheme's script lib/init-7.scm. The definitions marked
+     "Chibi-Scheme" in this file are those. Such definitions are subject to the
+     following Chibi-Scheme license.
+
+     ---
+
+     Copyright (c) 2009-2021 Alex Shinn
+     All rights reserved.
+
+     Redistribution and use in source and binary forms, with or without
+     modification, are permitted provided that the following conditions are
+     met:
+     1. Redistributions of source code must retain the above copyright notice,
+        this list of conditions and the following disclaimer.
+     2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+     3. The name of the author may not be used to endorse or promote products
+        derived from this software without specific prior written permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+     WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+     EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+     TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+     PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+     LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+     NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  |#
+
   (begin (define-syntax let*
            (er-macro-transformer
              (lambda (form rename compare)
@@ -50,7 +84,7 @@
                                     (,(rename 'let*) ,(cdadr form)
                                                      ,@(cddr form)))))))
 
-         (define-syntax do
+         (define-syntax do ; Chibi-Scheme
            (er-macro-transformer
              (lambda (form rename compare)
                (let ((body `(,(rename 'begin) ,@(cdddr form)
@@ -72,18 +106,18 @@
                                                        (,(rename 'begin) ,@(cdaddr form))
                                                        ,body)))))))
 
-         (define (numerator x)
+         (define (numerator x) ; Chibi-Scheme
            (cond ((ratio? x) (ratio-numerator x))
                  ((exact? x) x)
                  (else (inexact (numerator (exact x))))))
 
-         (define (denominator x)
+         (define (denominator x) ; Chibi-Scheme
            (cond ((ratio? x) (ratio-denominator x))
                  ((exact? x) 1)
                  ((integer? x) 1.0)
                  (else (inexact (denominator (exact x))))))
 
-         (define (rationalize x e) ; from Chibi-Scheme lib/scheme/extras.scm (https://ml.cddddr.org/scheme/msg01498.html)
+         (define (rationalize x e) ; Chibi-Scheme lib/scheme/extras.scm (https://ml.cddddr.org/scheme/msg01498.html)
            (define (simplest-rational x y return)
              (let ((fx (floor x))
                    (fy (floor y)))
@@ -103,10 +137,10 @@
                  (e (abs e)))
              (simplest-rational (- x e) (+ x e) return)))
 
-         (define (make-rectangular x y)
+         (define (make-rectangular x y) ; Chibi-Scheme
            (+ x (* y (sqrt -1))))
 
-         (define (make-polar radius phi)
+         (define (make-polar radius phi) ; Chibi-Scheme
            (make-rectangular (* radius (cos phi))
                              (* radius (sin phi))))
 
@@ -116,15 +150,15 @@
          (define (imag-part z)
            (if (imaginary? z) (cdr z) 0))
 
-         (define (magnitude z)
+         (define (magnitude z) ; Chibi-Scheme
            (sqrt (+ (square (real-part z))
                     (square (imag-part z)))))
 
-         (define (angle z)
+         (define (angle z) ; Chibi-Scheme
            (atan (imag-part z)
                  (real-part z)))
 
-         (define (string-fill! s c . o)
+         (define (string-fill! s c . o) ; Chibi-Scheme
            (let ((start (if (and (pair? o)
                                  (exact-integer? (car o)))
                             (car o)
