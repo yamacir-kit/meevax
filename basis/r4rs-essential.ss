@@ -76,9 +76,7 @@
      SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   |#
 
-  (begin (define (list . xs) xs) ; Chibi-Scheme
-
-         (define-syntax cond ; Chibi-Scheme
+  (begin (define-syntax cond ; Chibi-Scheme
            (er-macro-transformer
              (lambda (form rename compare)
                (if (null? (cdr form))
@@ -207,7 +205,7 @@
                                      (car xs))))
                   (reverse (cons x xs))))))
 
-         (define-syntax let
+         (define-syntax let ; Chibi-Scheme
            (er-macro-transformer
              (lambda (form rename compare)
                (if (identifier? (cadr form))

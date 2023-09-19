@@ -452,6 +452,11 @@ inline namespace kernel
         return xs[0].is<null>();
       });
 
+      library.define<accessor>("list", [](let const& xs) -> auto const&
+      {
+        return xs;
+      });
+
       library.define<function>("make-list", [](let const& xs)
       {
         return make_list(xs[0].as<exact_integer>(), 1 < length(xs) ? xs[1] : f);
