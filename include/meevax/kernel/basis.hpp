@@ -24,6 +24,8 @@ namespace meevax
 inline namespace kernel
 {
   auto basis() -> std::vector<char const*>;
+
+  auto boot(std::vector<char const*> const&) -> void;
 } // namespace kernel
 } // namespace meevax
 

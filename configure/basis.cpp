@@ -15,6 +15,9 @@
 */
 
 #include <meevax/kernel/basis.hpp>
+#include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/input_string_port.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
 
 namespace meevax
 {
@@ -47,6 +50,17 @@ inline namespace kernel
       R"##(${${PROJECT_NAME}_BASIS_srfi-111.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_srfi-149.ss})##",
     };
+  }
+
+  auto boot(std::vector<char const*> const& libraries) -> void
+  {
+    for (auto&& library : libraries)
+    {
+      for (let const& x : input_string_port(library))
+      {
+        interaction_environment().as<environment>().evaluate(x);
+      }
+    }
   }
 } // namespace kernel
 } // namespace meevax

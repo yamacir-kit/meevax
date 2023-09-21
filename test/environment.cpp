@@ -1,6 +1,7 @@
 #undef NDEBUG
 
 #include <cassert>
+#include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/boot.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
@@ -25,6 +26,7 @@ auto main() -> int
   assert(gc_count == specials_count);
 
   boot();
+  boot(basis());
 
   symbols().clear();
 
