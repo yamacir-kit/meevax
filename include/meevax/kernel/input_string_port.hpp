@@ -50,7 +50,7 @@ inline namespace kernel
 
 namespace literals
 {
-  auto operator ""_read(char const*, std::size_t) -> object;
+  auto operator ""_r(char const*, std::size_t) -> object;
 } // namespace literals
 } // namespace kernel
 } // namespace meevax

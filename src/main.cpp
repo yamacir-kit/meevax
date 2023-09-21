@@ -25,31 +25,31 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    auto interact = [&](auto & environment)
+    auto interact = [&](environment & e)
     {
-      if (environment.configure(argc, argv); environment.interactive)
+      if (e.configure(argc, argv); e.interactive)
       {
-        environment.import("(scheme base)"_read);
-        environment.import("(scheme case-lambda)"_read);
-        environment.import("(scheme char)"_read);
-        environment.import("(scheme complex)"_read);
-        environment.import("(scheme cxr)"_read);
-        environment.import("(scheme eval)"_read);
-        environment.import("(scheme file)"_read);
-        environment.import("(scheme inexact)"_read);
-        environment.import("(scheme lazy)"_read);
-        environment.import("(scheme load)"_read);
-        environment.import("(scheme process-context)"_read);
-        environment.import("(scheme read)"_read);
-        environment.import("(scheme repl)"_read);
-        environment.import("(scheme time)"_read);
-        environment.import("(scheme write)"_read);
+        e.import("(scheme base)"_r);
+        e.import("(scheme case-lambda)"_r);
+        e.import("(scheme char)"_r);
+        e.import("(scheme complex)"_r);
+        e.import("(scheme cxr)"_r);
+        e.import("(scheme eval)"_r);
+        e.import("(scheme file)"_r);
+        e.import("(scheme inexact)"_r);
+        e.import("(scheme lazy)"_r);
+        e.import("(scheme load)"_r);
+        e.import("(scheme process-context)"_r);
+        e.import("(scheme read)"_r);
+        e.import("(scheme repl)"_r);
+        e.import("(scheme time)"_r);
+        e.import("(scheme write)"_r);
 
         while (standard_input_port().good())
         {
           try
           {
-            std::cout << u8"\u03bb> " << environment.evaluate(standard_input_port().read()) << std::endl;
+            std::cout << u8"\u03bb> " << e.evaluate(standard_input_port().read()) << std::endl;
           }
           catch (error const& error)
           {

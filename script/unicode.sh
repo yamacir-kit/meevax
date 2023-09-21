@@ -23,8 +23,8 @@ input="$(git rev-parse --show-toplevel)/configure/UnicodeData.txt"
 for each in "$@"
 do
   case "$each" in
-    --property    ) sed -E 's/^([^;]*);([^;]*;){01}([^;]*).*$/case 0x\1: return \3;/g'   "$input" ;;
-    --digit-value ) sed -E 's/^([^;]*);([^;]*;){06}([^;]*).*$/case 0x\1: return \3;/g'   "$input" | grep -e 'case 0x.\+: return .\+;' ;;
+    --property    ) sed -E 's/^([^;]*);([^;]*;){01}([^;]*).*$/case 0x\1: return   \3;/g' "$input"                                       ;;
+    --digit-value ) sed -E 's/^([^;]*);([^;]*;){06}([^;]*).*$/case 0x\1: return   \3;/g' "$input" | grep -e 'case 0x.\+: return   .\+;' ;;
     --upcase      ) sed -E 's/^([^;]*);([^;]*;){11}([^;]*).*$/case 0x\1: return 0x\3;/g' "$input" | grep -e 'case 0x.\+: return 0x.\+;' ;;
     --downcase    ) sed -E 's/^([^;]*);([^;]*;){12}([^;]*).*$/case 0x\1: return 0x\3;/g' "$input" | grep -e 'case 0x.\+: return 0x.\+;' ;;
   esac
