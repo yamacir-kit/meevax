@@ -75,14 +75,13 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT
 
 # ---- Target kernel -----------------------------------------------------------
 
-add_library(kernel SHARED "")
+add_library(kernel SHARED)
 
 add_library(${PROJECT_NAME}::kernel ALIAS kernel)
 
 file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
-target_sources(kernel PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES}
-                      PRIVATE ${${PROJECT_NAME}_OBJECTS})
+target_sources(kernel PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})
 
 target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -98,7 +97,9 @@ set_target_properties(kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename lib
 
 # ---- Target shell ------------------------------------------------------------
 
-add_executable(shell ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+add_executable(shell)
+
+target_sources(shell PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 target_link_libraries(shell PRIVATE kernel)
 
