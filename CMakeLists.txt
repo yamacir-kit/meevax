@@ -70,7 +70,6 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
 endforeach()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.hpp   ${CMAKE_CURRENT_SOURCE_DIR}/include/meevax/kernel/basis.hpp)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 
 # ---- Target kernel -----------------------------------------------------------
@@ -95,13 +94,24 @@ set_target_properties(kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename lib
                                         SOVERSION   ${PROJECT_VERSION_MAJOR}
                                         LINK_FLAGS_RELEASE -s)
 
+# ---- Target basis ------------------------------------------------------------
+
+add_library(basis INTERFACE)
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/meevax/basis/scheme.hpp)
+
+target_include_directories(basis INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 # ---- Target shell ------------------------------------------------------------
 
 add_executable(shell)
 
 target_sources(shell PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-target_link_libraries(shell PRIVATE kernel)
+target_link_libraries(shell PRIVATE kernel
+                            PRIVATE basis)
 
 set_target_properties(shell PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename shell => meevax
                                        LINK_FLAGS_RELEASE -s)
@@ -179,7 +189,8 @@ file(GLOB ${PROJECT_NAME}_TEST_CPP ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_CPP)
   get_filename_component(FILENAME ${EACH} NAME_WE)
   add_executable(assert-${FILENAME} ${EACH})
-  target_link_libraries(assert-${FILENAME} PRIVATE kernel)
+  target_link_libraries(assert-${FILENAME} PRIVATE kernel
+                                           PRIVATE basis)
   add_test(NAME assert-${FILENAME}
            COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
                    ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND_OPTIONS}
