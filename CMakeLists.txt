@@ -70,7 +70,7 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
 endforeach()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.cpp   ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/basis.cpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.hpp   ${CMAKE_CURRENT_SOURCE_DIR}/include/meevax/kernel/basis.hpp)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 
 # ---- Target kernel -----------------------------------------------------------

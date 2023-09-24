@@ -17,11 +17,26 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_BOOT_HPP
 #define INCLUDED_MEEVAX_KERNEL_BOOT_HPP
 
+#include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
+
 namespace meevax
 {
 inline namespace kernel
 {
   auto boot() -> void;
+
+  template <typename Sources>
+  auto boot(Sources const& sources) -> void
+  {
+    for (auto&& source : sources)
+    {
+      for (let const& x : input_string_port(source))
+      {
+        interaction_environment().as<environment>().evaluate(x);
+      }
+    }
+  }
 } // namespace kernel
 } // namespace meevax
 

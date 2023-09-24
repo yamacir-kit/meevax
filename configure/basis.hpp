@@ -14,18 +14,24 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/basis.hpp>
-#include <meevax/kernel/environment.hpp>
-#include <meevax/kernel/input_string_port.hpp>
-#include <meevax/kernel/interaction_environment.hpp>
+#ifndef INCLUDED_MEEVAX_KERNEL_BASIS_HPP
+#define INCLUDED_MEEVAX_KERNEL_BASIS_HPP
+
+#include <array>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto basis() -> std::vector<char const*>
+  template <typename... Ts>
+  constexpr auto make_array(Ts&&... xs) -> std::array<std::decay_t<std::common_type_t<Ts...>>, sizeof...(Ts)>
   {
-    return {
+    return { std::forward<decltype(xs)>(xs)... };
+  }
+
+  constexpr auto basis()
+  {
+    return make_array(
       R"##(${${PROJECT_NAME}_BASIS_meevax.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_r4rs-essential.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_r4rs.ss})##",
@@ -48,19 +54,9 @@ inline namespace kernel
       R"##(${${PROJECT_NAME}_BASIS_srfi-78.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_srfi-98.ss})##",
       R"##(${${PROJECT_NAME}_BASIS_srfi-111.ss})##",
-      R"##(${${PROJECT_NAME}_BASIS_srfi-149.ss})##",
-    };
-  }
-
-  auto boot(std::vector<char const*> const& libraries) -> void
-  {
-    for (auto&& library : libraries)
-    {
-      for (let const& x : input_string_port(library))
-      {
-        interaction_environment().as<environment>().evaluate(x);
-      }
-    }
+      R"##(${${PROJECT_NAME}_BASIS_srfi-149.ss})##");
   }
 } // namespace kernel
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_KERNEL_BASIS_HPP
