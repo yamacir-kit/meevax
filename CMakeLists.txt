@@ -186,6 +186,7 @@ file(GLOB ${PROJECT_NAME}_TEST_CPP ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_CPP)
   get_filename_component(FILENAME ${EACH} NAME_WE)
   add_executable(assert-${FILENAME} ${EACH})
+  add_dependencies(assert-${FILENAME} basis)
   target_link_libraries(assert-${FILENAME} PRIVATE kernel)
   add_test(NAME assert-${FILENAME}
            COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
