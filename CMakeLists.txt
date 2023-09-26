@@ -97,8 +97,7 @@ target_link_libraries(format PRIVATE kernel)
 
 add_custom_target(basis
   DEPENDS format
-  COMMAND ${CMAKE_COMMAND} -DREPOSITORY_ROOT=${CMAKE_CURRENT_SOURCE_DIR}
-                           -P ${CMAKE_CURRENT_SOURCE_DIR}/basis/configure.cmake)
+  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/basis/configure.cmake)
 
 # ---- Target shell ------------------------------------------------------------
 
