@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.16.3) # Ubuntu 20.04 LTS default
 
 execute_process(
-  COMMAND head -c -1 ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
+  COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
+  COMMAND tr -d "\n"
   OUTPUT_VARIABLE CURRENT_VERSION)
 
 project(meevax DESCRIPTION "A programmable programming language"
@@ -43,27 +44,30 @@ else()
   set(${PROJECT_NAME}_BYTE_ORDER "little-endian")
 endif()
 
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --digit-value OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DIGIT_VALUE)
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --downcase    OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DOWNCASE)
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --property    OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_PROPERTY)
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --upcase      OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_UPCASE)
+
 execute_process(
   COMMAND head -c -1 ${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt
   OUTPUT_VARIABLE ${PROJECT_NAME}_HELP)
+
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/digit_value.hpp "${${PROJECT_NAME}_UNICODE_DIGIT_VALUE}")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/downcase.hpp    "${${PROJECT_NAME}_UNICODE_DOWNCASE}")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/property.hpp    "${${PROJECT_NAME}_UNICODE_PROPERTY}")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/upcase.hpp      "${${PROJECT_NAME}_UNICODE_UPCASE}")
 
 string(TOLOWER ${CMAKE_SYSTEM_NAME} ${PROJECT_NAME}_SYSTEM_NAME)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 
-# ---- Target unicode ----------------------------------------------------------
-
-add_custom_target(unicode
-  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/configure/UnicodeData.cmake)
-
 # ---- Target kernel -----------------------------------------------------------
 
 add_library(kernel SHARED)
 
 add_library(${PROJECT_NAME}::kernel ALIAS kernel)
-
-add_dependencies(kernel unicode)
 
 file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
@@ -76,11 +80,10 @@ target_include_directories(kernel PUBLIC
 target_link_libraries(kernel PRIVATE ${CMAKE_DL_LIBS}
                              PUBLIC gmp)
 
-set_target_properties(kernel PROPERTIES
-  OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
-  VERSION     ${PROJECT_VERSION}
-  SOVERSION   ${PROJECT_VERSION_MAJOR}
-  LINK_FLAGS_RELEASE -s)
+set_target_properties(kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
+                                        VERSION     ${PROJECT_VERSION}
+                                        SOVERSION   ${PROJECT_VERSION_MAJOR}
+                                        LINK_FLAGS_RELEASE -s)
 
 # ---- Target format -----------------------------------------------------------
 
@@ -94,7 +97,7 @@ target_link_libraries(format PRIVATE kernel)
 
 add_custom_target(basis
   DEPENDS format
-  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.cmake)
+  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/basis/configure.cmake)
 
 # ---- Target shell ------------------------------------------------------------
 
@@ -106,9 +109,8 @@ target_sources(shell PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 target_link_libraries(shell PRIVATE kernel)
 
-set_target_properties(shell PROPERTIES
-  OUTPUT_NAME ${PROJECT_NAME} # Rename shell => meevax
-  LINK_FLAGS_RELEASE -s)
+set_target_properties(shell PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename shell => meevax
+                                       LINK_FLAGS_RELEASE -s)
 
 # ---- CMake Package -----------------------------------------------------------
 
