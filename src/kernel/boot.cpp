@@ -18,7 +18,6 @@
 #include <filesystem>
 #include <numeric>
 
-#include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/binary_input_file_port.hpp>
 #include <meevax/kernel/binary_output_file_port.hpp>
 #include <meevax/kernel/boot.hpp>
@@ -1574,16 +1573,6 @@ inline namespace kernel
         xs[1].as<textual_output_port>().write_simple(xs[0]);
       });
     });
-
-    auto boot_loader = environment();
-
-    for (auto each : basis())
-    {
-      for (let const& x : input_string_port(each))
-      {
-        boot_loader.evaluate(x);
-      }
-    }
   }
 } // namespace kernel
 } // namespace meevax

@@ -20,7 +20,6 @@
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/implementation_dependent.hpp>
 #include <meevax/kernel/include.hpp>
-#include <meevax/kernel/list.hpp>
 #include <meevax/kernel/transformer.hpp>
 
 namespace meevax

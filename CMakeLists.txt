@@ -10,11 +10,7 @@ project(meevax DESCRIPTION "A programmable programming language"
                LANGUAGES CXX
                VERSION ${CURRENT_VERSION})
 
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_VERBOSE_MAKEFILE OFF)
+include(GNUInstallDirs)
 
 string(JOIN " " AGGRESSIVE_OPTIMIZATION_OPTIONS
   # "-flto" # This optimization causes a SEGV when compiling with Clang 10.
@@ -23,17 +19,18 @@ string(JOIN " " AGGRESSIVE_OPTIMIZATION_OPTIONS
   # "-mtune=native"
   )
 
-# NOTE: The `-gdwarf-4` option is set due to the following issues with Clang 14 and Valgrind versions below 3.20: https://bugzilla.mozilla.org/show_bug.cgi?id=1758782
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -pipe")
-set(CMAKE_CXX_FLAGS_DEBUG          "-Og -gdwarf-4")
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_FLAGS_DEBUG          "-Og -gdwarf-4") # NOTE: The `-gdwarf-4` option is set due to the following issues with Clang 14 and Valgrind versions below 3.20: https://bugzilla.mozilla.org/show_bug.cgi?id=1758782
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os           -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -gdwarf-4 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE        "-O2           -DNDEBUG ${AGGRESSIVE_OPTIMIZATION_OPTIONS}")
-
-include(GNUInstallDirs)
-
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -gdwarf-4 -DNDEBUG")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -pipe")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 # ---- Configure ---------------------------------------------------------------
 
@@ -63,26 +60,18 @@ file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/upcase.hp
 
 string(TOLOWER ${CMAKE_SYSTEM_NAME} ${PROJECT_NAME}_SYSTEM_NAME)
 
-file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
-foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
-  get_filename_component(FILENAME ${EACH} NAME)
-  file(READ ${EACH} ${PROJECT_NAME}_BASIS_${FILENAME})
-endforeach()
-
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.cpp   ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/basis.cpp)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 
 # ---- Target kernel -----------------------------------------------------------
 
-add_library(kernel SHARED "")
+add_library(kernel SHARED)
 
 add_library(${PROJECT_NAME}::kernel ALIAS kernel)
 
 file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
-target_sources(kernel PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES}
-                      PRIVATE ${${PROJECT_NAME}_OBJECTS})
+target_sources(kernel PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})
 
 target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -96,9 +85,27 @@ set_target_properties(kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename lib
                                         SOVERSION   ${PROJECT_VERSION_MAJOR}
                                         LINK_FLAGS_RELEASE -s)
 
+# ---- Target format -----------------------------------------------------------
+
+add_executable(format)
+
+target_sources(format PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/format.cpp)
+
+target_link_libraries(format PRIVATE kernel)
+
+# ---- Target basis ------------------------------------------------------------
+
+add_custom_target(basis
+  DEPENDS format
+  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/basis/configure.cmake)
+
 # ---- Target shell ------------------------------------------------------------
 
-add_executable(shell ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+add_executable(shell)
+
+add_dependencies(shell basis)
+
+target_sources(shell PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 target_link_libraries(shell PRIVATE kernel)
 
@@ -178,6 +185,7 @@ file(GLOB ${PROJECT_NAME}_TEST_CPP ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_CPP)
   get_filename_component(FILENAME ${EACH} NAME_WE)
   add_executable(assert-${FILENAME} ${EACH})
+  add_dependencies(assert-${FILENAME} basis)
   target_link_libraries(assert-${FILENAME} PRIVATE kernel)
   add_test(NAME assert-${FILENAME}
            COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}

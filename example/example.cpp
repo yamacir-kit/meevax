@@ -1,3 +1,4 @@
+#include <meevax/basis/scheme.hpp>
 #include <meevax/kernel/environment.hpp>
 
 using namespace meevax; // NOTE: DIRTY HACK

@@ -14,17 +14,16 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_BASIS_HPP
-#define INCLUDED_MEEVAX_KERNEL_BASIS_HPP
+#include <meevax/kernel/input_file_port.hpp>
 
-#include <vector>
-
-namespace meevax
+auto main(int const, char const* const* const argv) -> int
 {
-inline namespace kernel
-{
-  auto basis() -> std::vector<char const*>;
-} // namespace kernel
-} // namespace meevax
+  using namespace meevax;
 
-#endif // INCLUDED_MEEVAX_KERNEL_BASIS_HPP
+  for (let const& x : input_file_port(argv[1]))
+  {
+    std::cout << x << std::flush;
+  }
+
+  return EXIT_SUCCESS;
+}
