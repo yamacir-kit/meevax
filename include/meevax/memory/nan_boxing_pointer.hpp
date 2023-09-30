@@ -195,11 +195,11 @@ inline namespace memory
     {
       switch (signature())
       {
-      #define DEFINE(TYPE)                                                     \
+      #define CASE(TYPE)                                                       \
       case signature_##TYPE:                                                   \
         if constexpr (std::is_same_v<TYPE, bool>)                              \
         {                                                                      \
-          return os << std::boolalpha << yellow('#', as<TYPE>());              \
+          return os << yellow('#', as<TYPE>() ? 't' : 'f');                    \
         }                                                                      \
         else                                                                   \
         {                                                                      \
@@ -207,15 +207,15 @@ inline namespace memory
         }                                                                      \
         static_assert(true)
 
-      DEFINE(T1);
-      DEFINE(T2);
-      DEFINE(T3);
-      DEFINE(T4);
-      DEFINE(T5);
-      DEFINE(T6);
-      DEFINE(pointer);
+      CASE(T1);
+      CASE(T2);
+      CASE(T3);
+      CASE(T4);
+      CASE(T5);
+      CASE(T6);
+      CASE(pointer);
 
-      #undef DEFINE
+      #undef CASE
 
       default:
         if (auto value = as<double>(); std::isnan(value))
