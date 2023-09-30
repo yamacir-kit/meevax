@@ -128,6 +128,7 @@ inline namespace kernel
     }
   };
 
+  [[deprecated]]
   let extern const e0, e1; // Frequently used exact-integer values.
 } // namespace kernel
 } // namespace meevax

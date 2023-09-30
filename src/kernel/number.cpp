@@ -307,14 +307,7 @@ inline namespace kernel
     {
       using T = std::tuple_element_t<I, Ts>;
 
-      if (x.is<T>())
-      {
-        return canonicalize(f(x.as<T>()));
-      }
-      else
-      {
-        return apply<I + 1>(f, x);
-      }
+      return x.is<T>() ? canonicalize(f(x.as<T>())) : apply<I + 1>(f, x);
     }
     else
     {
@@ -332,14 +325,7 @@ inline namespace kernel
       using T = std::tuple_element_t<0, std::tuple_element_t<I, Ts>>;
       using U = std::tuple_element_t<1, std::tuple_element_t<I, Ts>>;
 
-      if (x.is<T>() and y.is<U>())
-      {
-        return canonicalize(f(x.as<T>(), y.as<U>()));
-      }
-      else
-      {
-        return apply<I + 1>(f, x, y);
-      }
+      return x.is<T>() and y.is<U>() ? canonicalize(f(x.as<T>(), y.as<U>())) : apply<I + 1>(f, x, y);
     }
     else
     {
@@ -902,8 +888,8 @@ inline namespace number
       if constexpr (std::is_same_v<T, complex> or
                     std::is_same_v<U, complex>)
       {
-        throw std::invalid_argument("unsupported operation");
-        return e0; // dummy return value.
+        throw std::invalid_argument("not a real number");
+        return std::numeric_limits<double>::quiet_NaN();
       }
       else
       {
