@@ -660,7 +660,7 @@ inline namespace kernel
 
       library.define<function>("exact-integer-square-root", [](let const& xs)
       {
-        auto&& [s, r] = exact_integer_sqrt(xs[0].as<exact_integer>());
+        auto&& [s, r] = xs[0].as<exact_integer>().square_root();
 
         return cons(make(std::forward<decltype(s)>(s)),
                     make(std::forward<decltype(r)>(r)));

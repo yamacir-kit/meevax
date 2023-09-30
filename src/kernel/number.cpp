@@ -771,7 +771,7 @@ inline namespace number
         {
           if constexpr (std::is_same_v<T, exact_integer>)
           {
-            auto const [s, r] = exact_integer_sqrt(x);
+            auto const [s, r] = x.square_root();
 
             return r == 0 ? make(s) : make(std::sqrt(inexact_cast(x)));
           }
