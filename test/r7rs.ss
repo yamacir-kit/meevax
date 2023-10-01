@@ -408,7 +408,9 @@
 
 (check (f 12) => "12")
 
-(check (radix 16) => 16)
+(check (begin (radix 16)
+              (radix))
+  => 16)
 
 ; (parameterize ((radix 0))
 ;   (f 12)) ; => error
@@ -1076,7 +1078,9 @@
 
 (check (list? y) => #t)
 
-(check (set-cdr! x 4) => 4)
+(check (begin (set-cdr! x 4)
+              (cdr x))
+  => 4)
 
 (check x => '(a . 4))
 
@@ -1127,9 +1131,13 @@
 
 (define (g) '(constant-list))
 
-(check (set-car! (f) 3) => 3)
+(check (begin (set-car! (f) 3)
+              (car (f)))
+  => 3)
 
-(check (set-car! (g) 3) => 3)
+(check (begin (set-car! (g) 3)
+              (car (g)))
+  => 3)
 
 (check (list? '(a b c)) => #t)
 
@@ -1177,7 +1185,7 @@
          ls)
   => '(one two three))
 
-(check (list-set! '(0 1 2) 1 "oops") => "oops")
+; (check (list-set! '(0 1 2) 1 "oops") => #;error)
 
 (check (memq 'a '(a b c)) => '(a b c))
 
@@ -1291,11 +1299,11 @@
 
 (check (digit-value #\3) => 3)
 
-; (check (digit-value #\x0664) => 4)
+(check (digit-value #\x0664) => 4)
 
-; (check (digit-value #\x0AE6) => 0)
+(check (digit-value #\x0AE6) => 0)
 
-; (check (digit-value #\x0EA6) => #f) ; BUG: MEMORY-LEAK
+(check (digit-value #\x0EA6) => #f)
 
 ; ---- 6.7. --------------------------------------------------------------------
 
@@ -1312,11 +1320,11 @@
 
 (define (g) "***")
 
-(check (string-set! (f) 0 #\?) => "?**")
+(check (string-set! (f) 0 #\?) => (if #f #f))
 
-(check (string-set! (g) 0 #\?) => "?**")
+; (check (string-set! (g) 0 #\?) => #;error)
 
-(check (string-set! (symbol->string 'immutable) 0 #\?) => "?mmutable")
+; (check (string-set! (symbol->string 'immutable) 0 #\?) => #;error)
 
 (define a "12345")
 
@@ -1341,7 +1349,7 @@
          (vector-set! vec 1 '("Sue" "Sue")) vec)
   => #(0 ("Sue" "Sue") "Anna"))
 
-(check (vector-set! '#(0 1 2) 1 "doe") => "doe")
+(check (vector-set! '#(0 1 2) 1 "doe") => (if #f #f))
 
 (check (vector->list '#(dah dah didah)) => '(dah dah didah))
 

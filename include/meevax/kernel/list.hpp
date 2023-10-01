@@ -140,9 +140,13 @@ inline namespace kernel
     }
   }
 
-  auto memq(object const&, object const&) -> object;
+  auto memq(object const&, object const&) -> object const&;
 
-  auto assq(object const&, object const&) -> object;
+  auto memv(object const&, object const&) -> object const&;
+
+  auto assq(object const&, object const&) -> object const&;
+
+  auto assv(object const&, object const&) -> object const&;
 
   template <typename F>
   auto filter(F test, object const& xs) -> object

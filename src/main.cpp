@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#include <meevax/basis/scheme.hpp>
+#include <meevax/kernel/boot.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
 
@@ -22,35 +24,31 @@ auto main(int const argc, char const* const* const argv) -> int
   using namespace meevax;
   using namespace meevax::literals;
 
-  return with_exception_handler([&]()
+  auto interact = [&](environment & e)
   {
-    boot();
-
-    auto & main = interaction_environment().as<environment>();
-
-    main.import("(scheme base)"_read);
-    main.import("(scheme case-lambda)"_read);
-    main.import("(scheme char)"_read);
-    main.import("(scheme complex)"_read);
-    main.import("(scheme cxr)"_read);
-    main.import("(scheme eval)"_read);
-    main.import("(scheme file)"_read);
-    main.import("(scheme inexact)"_read);
-    main.import("(scheme lazy)"_read);
-    main.import("(scheme load)"_read);
-    main.import("(scheme process-context)"_read);
-    main.import("(scheme read)"_read);
-    main.import("(scheme repl)"_read);
-    main.import("(scheme time)"_read);
-    main.import("(scheme write)"_read);
-
-    if (main.configure(argc, argv); main.interactive)
+    if (e.configure(argc, argv); e.interactive)
     {
+      e.import("(scheme base)"_r);
+      e.import("(scheme case-lambda)"_r);
+      e.import("(scheme char)"_r);
+      e.import("(scheme complex)"_r);
+      e.import("(scheme cxr)"_r);
+      e.import("(scheme eval)"_r);
+      e.import("(scheme file)"_r);
+      e.import("(scheme inexact)"_r);
+      e.import("(scheme lazy)"_r);
+      e.import("(scheme load)"_r);
+      e.import("(scheme process-context)"_r);
+      e.import("(scheme read)"_r);
+      e.import("(scheme repl)"_r);
+      e.import("(scheme time)"_r);
+      e.import("(scheme write)"_r);
+
       while (standard_input_port().good())
       {
         try
         {
-          std::cout << u8"\u03bb> " << main.evaluate(standard_input_port().read()) << std::endl;
+          std::cout << u8"\u03bb> " << e.evaluate(standard_input_port().read()) << std::endl;
         }
         catch (error const& error)
         {
@@ -58,7 +56,12 @@ auto main(int const argc, char const* const* const argv) -> int
         }
       }
     }
+  };
 
-    return success;
+  return with_exception_handler([&]()
+  {
+    boot();
+    boot(basis());
+    interact(interaction_environment().as<environment>());
   });
 }

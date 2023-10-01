@@ -111,6 +111,38 @@ inline namespace kernel
 
   auto operator !=(textual_input_port::iterator const&,
                    textual_input_port::iterator const&) -> bool;
+
+  constexpr auto is_special_character(character::int_type c)
+  {
+    auto one_of = [c](auto... xs) constexpr
+    {
+      return (character::eq(c, xs) or ...);
+    };
+
+    /*
+       A special character is a character that is treated specially by
+       textual_input_port::read.
+    */
+    return character::is_eof(c) or one_of('\t', // 0x09
+                                          '\n', // 0x0A
+                                          '\v', // 0x0B
+                                          '\f', // 0x0C
+                                          '\r', // 0x0D
+                                          ' ',  // 0x20
+                                          '"',  // 0x22
+                                          '#',  // 0x23
+                                          '\'', // 0x27
+                                          '(',  // 0x28
+                                          ')',  // 0x29
+                                          ',',  // 0x2C
+                                          ';',  // 0x3B
+                                          '[',  // 0x5B
+                                          ']',  // 0x5D
+                                          '`',  // 0x60
+                                          '{',  // 0x7B
+                                          '|',  // 0x7C
+                                          '}'); // 0x7D
+  }
 } // namespace kernel
 } // namespace meevax
 

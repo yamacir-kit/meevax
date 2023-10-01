@@ -69,34 +69,6 @@ inline namespace kernel
     return not (a == b);
   }
 
-  constexpr auto is_special_character(character::int_type c)
-  {
-    auto one_of = [c](auto... xs) constexpr
-    {
-      return (character::eq(c, xs) or ...);
-    };
-
-    return character::is_eof(c) or one_of('\t', // 0x09
-                                          '\n', // 0x0A
-                                          '\v', // 0x0B
-                                          '\f', // 0x0C
-                                          '\r', // 0x0D
-                                          ' ',  // 0x20
-                                          '"',  // 0x22
-                                          '#',  // 0x23
-                                          '\'', // 0x27
-                                          '(',  // 0x28
-                                          ')',  // 0x29
-                                          ',',  // 0x2C
-                                          ';',  // 0x3B
-                                          '[',  // 0x5B
-                                          ']',  // 0x5D
-                                          '`',  // 0x60
-                                          '{',  // 0x7B
-                                          '|',  // 0x7C
-                                          '}'); // 0x7D
-  }
-
   struct datum_label
   {
     std::string const n;
@@ -107,7 +79,7 @@ inline namespace kernel
     {}
   };
 
-  auto circulate(object const& xs, object const& x, std::string const& n) -> void
+  auto circulate(object & xs, object const& x, std::string const& n) -> void
   {
     if (xs.is<pair>())
     {
@@ -124,7 +96,7 @@ inline namespace kernel
     }
   }
 
-  auto circulate(object const& xs, std::string const& n) -> void
+  auto circulate(object & xs, std::string const& n) -> void
   {
     return circulate(xs, xs, n);
   }
@@ -307,7 +279,7 @@ inline namespace kernel
 
             if (auto [iter, success] = datum_labels.emplace(label, make<datum_label>(label)); success)
             {
-              if (let const& xs = read(); xs != iter->second)
+              if (let xs = read(); xs != iter->second)
               {
                 circulate(xs, label);
                 datum_labels.erase(label);

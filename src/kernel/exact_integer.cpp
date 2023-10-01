@@ -186,6 +186,13 @@ inline namespace kernel
     return mpz_get_d(value);
   }
 
+  auto exact_integer::square_root() const -> std::tuple<exact_integer, exact_integer>
+  {
+    exact_integer s, r;
+    mpz_rootrem(s.value, r.value, value, 2);
+    return std::make_tuple(s, r);
+  }
+
   auto operator ==(exact_integer const& a, int const b) -> bool { return a == static_cast<signed long>(b); }
   auto operator !=(exact_integer const& a, int const b) -> bool { return a != static_cast<signed long>(b); }
   auto operator < (exact_integer const& a, int const b) -> bool { return a <  static_cast<signed long>(b); }
@@ -210,13 +217,6 @@ inline namespace kernel
   auto operator <<(std::ostream & os, exact_integer const& datum) -> std::ostream &
   {
     return os << cyan(std::unique_ptr<char, gmp_free>(mpz_get_str(nullptr, 10, datum.value)).get());
-  }
-
-  auto exact_integer_sqrt(exact_integer const& x) -> std::tuple<exact_integer, exact_integer>
-  {
-    exact_integer s, r;
-    mpz_rootrem(s.value, r.value, x.value, 2);
-    return std::make_tuple(s, r);
   }
 } // namespace kernel
 } // namespace meevax

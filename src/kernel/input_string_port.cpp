@@ -46,7 +46,7 @@ inline namespace kernel
 
 namespace literals
 {
-  auto operator ""_read(char const* s, std::size_t) -> object
+  auto operator ""_r(char const* s, std::size_t) -> object
   {
     return input_string_port(s).read();
   }

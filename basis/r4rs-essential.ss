@@ -1,5 +1,6 @@
 (define-library (scheme r4rs essential)
-  (import (meevax character)
+  (import (only (meevax boolean) boolean? not)
+          (meevax character)
           (meevax core)
           (only (meevax comparator) eq? eqv? equal?)
           (meevax continuation)
@@ -41,9 +42,41 @@
           close-output-port read read-char peek-char eof-object? write display
           newline write-char load)
 
-  (begin (define (list . xs) xs)
+  #|
+     This library contains many procedure and syntax definitions copied from
+     Chibi-Scheme's script lib/init-7.scm. The definitions marked
+     "Chibi-Scheme" in this file are those. Such definitions are subject to the
+     following Chibi-Scheme license.
 
-         (define-syntax cond
+     ---
+
+     Copyright (c) 2009-2021 Alex Shinn
+     All rights reserved.
+
+     Redistribution and use in source and binary forms, with or without
+     modification, are permitted provided that the following conditions are
+     met:
+     1. Redistributions of source code must retain the above copyright notice,
+        this list of conditions and the following disclaimer.
+     2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+     3. The name of the author may not be used to endorse or promote products
+        derived from this software without specific prior written permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+     WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+     EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+     TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+     PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+     LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+     NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  |#
+
+  (begin (define-syntax cond ; Chibi-Scheme
            (er-macro-transformer
              (lambda (form rename compare)
                (if (null? (cdr form))
@@ -69,7 +102,7 @@
                                     (cons (rename 'cond) (cddr form))))))
                     (cadr form))))))
 
-         (define-syntax and
+         (define-syntax and ; Chibi-Scheme
            (er-macro-transformer
              (lambda (form rename compare)
                (cond ((null? (cdr form)))
@@ -81,7 +114,7 @@
                                        (cddr form))
                                  #f))))))
 
-         (define-syntax or
+         (define-syntax or ; Chibi-Scheme
            (er-macro-transformer
              (lambda (form rename compare)
                (cond ((null? (cdr form)) #f)
@@ -96,7 +129,7 @@
                                                    (cddr form))))
                                  (cadr form)))))))
 
-         (define-syntax quasiquote
+         (define-syntax quasiquote ; Chibi-Scheme
            (er-macro-transformer
              (lambda (form rename compare)
                (define (expand x depth)
@@ -145,7 +178,7 @@
                     (every f (cdr xs)))
                #t))
 
-         (define (map f x . xs)
+         (define (map f x . xs) ; Chibi-Scheme
            (define (map f x a)
              (if (pair? x)
                  (map f
@@ -162,7 +195,7 @@
                (map f x '())
                (map* f (cons x xs) '())))
 
-         (define (apply f x . xs)
+         (define (apply f x . xs) ; Chibi-Scheme
            (letrec ((apply (lambda (f xs)
                              (f . xs))))
              (if (null? xs)
@@ -172,7 +205,7 @@
                                      (car xs))))
                   (reverse (cons x xs))))))
 
-         (define-syntax let ; named-let inessential
+         (define-syntax let ; Chibi-Scheme
            (er-macro-transformer
              (lambda (form rename compare)
                (if (identifier? (cadr form))
@@ -181,13 +214,6 @@
                                        (,(cadr form) ,@(map cadr (caddr form))))
                    `((,(rename 'lambda) ,(map car (cadr form)) ,@(cddr form))
                      ,@(map cadr (cadr form)))))))
-
-         (define (not x)
-           (if x #f #t))
-
-         (define (boolean? x)
-           (or (eq? x #t)
-               (eq? x #f)))
 
          (define (list? x)
            (let list? ((x x)
@@ -202,17 +228,7 @@
                        (null? x)))
                  (null? x))))
 
-         (define (member o x . c)
-           (let ((compare (if (pair? c) (car c) equal?)))
-             (let member ((x x))
-               (and (pair? x)
-                    (if (compare o (car x)) x
-                        (member (cdr x)))))))
-
-         (define (memv o x)
-           (member o x eqv?))
-
-         (define-syntax case
+         (define-syntax case ; Chibi-Scheme
            (er-macro-transformer
              (lambda (form rename compare)
                (define (body xs)
@@ -237,18 +253,20 @@
                `(,(rename 'let) ((,(rename 'result) ,(cadr form)))
                                 ,(each-clause (cddr form))))))
 
-         (define (assoc key alist . compare)
-           (let ((compare (if (pair? compare)
-                              (car compare)
-                              equal?)))
+         (define (member x xs . compare) ; Chibi-Scheme
+           (let ((compare (if (pair? compare) (car compare) equal?)))
+             (let member ((xs xs))
+               (and (pair? xs)
+                    (if (compare x (car xs)) xs
+                        (member (cdr xs)))))))
+
+         (define (assoc key alist . compare) ; Chibi-Scheme
+           (let ((compare (if (pair? compare) (car compare) equal?)))
              (let assoc ((alist alist))
                (if (null? alist) #f
                    (if (compare key (caar alist))
                        (car alist)
                        (assoc (cdr alist)))))))
-
-         (define (assv key alist)
-           (assoc key alist eqv?))
 
          (define (exact? z)
            (define (exact-complex? x)
@@ -285,7 +303,7 @@
          (define (even? n)
            (= (remainder n 2) 0))
 
-         (define (max x . xs)
+         (define (max x . xs) ; Chibi-Scheme
            (define (max-aux x xs)
              (if (null? xs)
                  (inexact x)
@@ -299,7 +317,7 @@
                        (else (rec (if (< x (car xs)) (car xs) x)
                                   (cdr xs)))))))
 
-         (define (min x . xs)
+         (define (min x . xs) ; Chibi-Scheme
            (define (min-aux x xs)
              (if (null? xs)
                  (inexact x)
@@ -313,9 +331,6 @@
                        (else (rec (if (< (car xs) x) (car xs) x)
                                   (cdr xs)))))))
 
-         (define (abs n)
-           (if (< n 0) (- n) n))
-
          (define (quotient x y)
            (truncate (/ x y)))
 
@@ -324,7 +339,7 @@
          (define (modulo x y)
            (% (+ y (% x y)) y))
 
-         (define (gcd . xs)
+         (define (gcd . xs) ; Chibi-Scheme
            (define (gcd-2 a b)
              (if (zero? b)
                  (abs a)
@@ -335,7 +350,7 @@
                  (if (null? ns) n
                      (rec (gcd-2 n (car ns)) (cdr ns))))))
 
-         (define (lcm . xs)
+         (define (lcm . xs) ; Chibi-Scheme
            (define (lcm-2 a b)
              (abs (quotient (* a b) (gcd a b))))
            (if (null? xs) 1
@@ -344,7 +359,7 @@
                  (if (null? ns) n
                      (rec (lcm-2 n (car ns)) (cdr ns))))))
 
-         (define (char-compare x xs compare)
+         (define (char-compare x xs compare) ; Chibi-Scheme
            (let rec ((compare compare)
                      (lhs (char->integer x))
                      (xs xs))
@@ -353,22 +368,22 @@
                    (and (compare lhs rhs)
                         (rec compare rhs (cdr xs)))))))
 
-         (define (char=? x . xs)
+         (define (char=? x . xs) ; Chibi-Scheme
            (char-compare x xs =))
 
-         (define (char<? x . xs)
+         (define (char<? x . xs) ; Chibi-Scheme
            (char-compare x xs <))
 
-         (define (char>? x . xs)
+         (define (char>? x . xs) ; Chibi-Scheme
            (char-compare x xs >))
 
-         (define (char<=? x . xs)
+         (define (char<=? x . xs) ; Chibi-Scheme
            (char-compare x xs <=))
 
-         (define (char>=? x . xs)
+         (define (char>=? x . xs) ; Chibi-Scheme
            (char-compare x xs >=))
 
-         (define (char-ci-compare x xs compare)
+         (define (char-ci-compare x xs compare) ; Chibi-Scheme
            (let rec ((compare compare)
                      (lhs (char->integer (char-downcase x)))
                      (xs xs))
@@ -377,64 +392,30 @@
                    (and (compare lhs rhs)
                         (rec compare rhs (cdr xs)))))))
 
-         (define (char-ci=? x . xs)
+         (define (char-ci=? x . xs) ; Chibi-Scheme
            (char-ci-compare x xs =))
 
-         (define (char-ci<? x . xs)
+         (define (char-ci<? x . xs) ; Chibi-Scheme
            (char-ci-compare x xs <))
 
-         (define (char-ci>? x . xs)
+         (define (char-ci>? x . xs) ; Chibi-Scheme
            (char-ci-compare x xs >))
 
-         (define (char-ci<=? x . xs)
+         (define (char-ci<=? x . xs) ; Chibi-Scheme
            (char-ci-compare x xs <=))
 
-         (define (char-ci>=? x . xs)
+         (define (char-ci>=? x . xs) ; Chibi-Scheme
            (char-ci-compare x xs >=))
 
-         (define (char-alphabetic? x)
-           (<= (char->integer #\a)
-               (char->integer (char-downcase x))
-               (char->integer #\z)))
-
-         (define (char-numeric? x)
-           (<= (char->integer #\0)
-               (char->integer x)
-               (char->integer #\9)))
-
-         (define (char-whitespace? x)
-           (or (eqv? x #\space)
-               (eqv? x #\tab)
-               (eqv? x #\newline)
-               (eqv? x #\return)))
-
-         (define (char-upper-case? x)
-           (<= (char->integer #\A)
-               (char->integer x)
-               (char->integer #\Z)))
-
-         (define (char-lower-case? x)
-           (<= (char->integer #\a)
-               (char->integer x)
-               (char->integer #\z)))
-
-         (define (char-downcase c)
-           (if (char-lower-case? c) c
-               (integer->char (+ (char->integer c) 32))))
-
-         (define (char-upcase c)
-           (if (char-upper-case? c) c
-               (integer->char (- (char->integer c) 32))))
-
-         (define (string . xs)
+         (define (string . xs) ; Chibi-Scheme
            (list->string xs))
 
-         (define (string-map f x . xs) ; r7rs
+         (define (string-map f x . xs) ; R7RS
            (if (null? xs)
                (list->string (map f (string->list x)))
                (list->string (apply map f (map string->list (cons x xs))))))
 
-         (define (string-foldcase s) ; r7rs
+         (define (string-foldcase s) ; R7RS
            (string-map char-downcase s))
 
          (define (string-ci=? . xs)
@@ -459,7 +440,7 @@
                (continuation? x)
                (foreign-function? x)))
 
-         (define (for-each f x . xs)
+         (define (for-each f x . xs) ; Chibi-Scheme
            (if (null? xs)
                (letrec ((for-each (lambda (f x)
                                     (if (pair? x)
@@ -469,14 +450,14 @@
                (begin (apply map f x xs)
                       (if #f #f))))
 
-         (define (call-with-input-file path f) ; r7rs incompatible (values unsupported)
+         (define (call-with-input-file path f) ; R7RS incompatible (values unsupported)
            (define (call-with-input-port port f)
              (let ((result (f port)))
                (close-input-port port)
                result))
            (call-with-input-port (open-input-file path) f))
 
-         (define (call-with-output-file path f) ; r7rs incompatible (values unsupported)
+         (define (call-with-output-file path f) ; R7RS incompatible (values unsupported)
            (define (call-with-output-port port f)
              (let ((result (f port)))
                (close-output-port port)

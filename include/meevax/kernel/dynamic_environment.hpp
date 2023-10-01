@@ -118,11 +118,6 @@ inline namespace kernel
                     << faint("; d = ") << d << "\n" << std::endl;
         }
 
-        if constexpr (profiler::count_instruction_fetch)
-        {
-          current_profiler().instruction_fetchs[car(c).template as<instruction>()]++;
-        }
-
         switch (car(c).template as<instruction>())
         {
         case instruction::load_absolute: /* ------------------------------------
@@ -300,7 +295,7 @@ inline namespace kernel
           * ----------------------------------------------------------------- */
           {
             assert(tail(c, 1).template is<pair>());
-            s = cons(callee.as<procedure>().call(cadr(s)), cddr(s));
+            s = cons(callee.as<procedure>()(cadr(s)), cddr(s));
             c = cdr(c);
             goto fetch;
           }
@@ -351,7 +346,7 @@ inline namespace kernel
           {
             assert(tail(s, 2).template is<null>());
             assert(tail(c, 1).template is<null>());
-            s = cons(callee.as<procedure>().call(cadr(s)), car(d));
+            s = cons(callee.as<procedure>()(cadr(s)), car(d));
             e = cadr(d);
             c = caddr(d);
             d = cdddr(d);

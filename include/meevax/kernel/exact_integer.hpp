@@ -86,6 +86,8 @@ inline namespace kernel
     explicit operator float() const;
 
     explicit operator double() const;
+
+    auto square_root() const -> std::tuple<exact_integer, exact_integer>;
   };
 
   auto operator ==(exact_integer const&, int const) -> bool;
@@ -125,8 +127,6 @@ inline namespace kernel
       free(static_cast<void *>(data), std::strlen(data) + 1);
     }
   };
-
-  auto exact_integer_sqrt(exact_integer const&) -> std::tuple<exact_integer, exact_integer>;
 
   let extern const e0, e1; // Frequently used exact-integer values.
 } // namespace kernel

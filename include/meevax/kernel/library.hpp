@@ -72,8 +72,6 @@ inline namespace kernel
       return interaction_environment().as<environment>().define<T>(name, std::forward<decltype(xs)>(xs)...);
     }
   }
-
-  auto boot() -> void;
 } // namespace kernel
 } // namespace meevax
 

@@ -33,16 +33,22 @@
 
   (begin (define %number->string number->string)
 
-         (define (length* ls)
-           (let ((r (length ls)))
-             (cond ((positive? r) r) ; no worry
-                   ((= r -2) #f) ; -2 is circular list so return #f
-                   (else (let loop ((i 0) (ls ls))
-                           (if (not (pair? ls)) i
-                               (loop (+ i 1) (cdr ls))))))))
+         (define (length* ls1) ; Chibi-Scheme's sexp_length_op (sexp.c)
+           (if (not (pair? ls1))
+               0
+               (let length* ((ls1 ls1)
+                             (ls2 (cdr ls1))
+                             (res 1))
+                 (if (and (pair? ls2)
+                          (pair? (cdr ls2)))
+                     (if (eq? ls1 ls2)
+                         #f
+                         (length* (cdr ls1)
+                                  (cddr ls2)
+                                  (+ res 2)))
+                     (+ res (if (pair? ls2) 1 0))))))
 
-         (define (cons-source kar kdr source)
-           (cons kar kdr))
+         (define cons-source cons)
 
          (define syntax-quote quote-syntax)
 

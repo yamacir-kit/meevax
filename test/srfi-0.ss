@@ -8,7 +8,7 @@
          (r6rs 'r6rs)
          (r7rs 'r7rs)
          (else 'unknown))
-  => 'r5rs)
+  => 'r7rs)
 
 (check (cond-expand
          ((library (scheme base)) 'supported)
@@ -26,9 +26,9 @@
   => 'standard)
 
 (check (cond-expand
-         ((not r5rs) 'not-r5rs)
-         (else 'r5rs))
-  => 'r5rs)
+         ((not r7rs) 'not-r7rs)
+         (else 'r7rs))
+  => 'r7rs)
 
 (check (cond-expand
          ((and (library (scheme base))

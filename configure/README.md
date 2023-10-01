@@ -1,21 +1,27 @@
-<p align="center">
-  <img src="https://github.com/yamacir-kit/meevax/wiki/svg/meevax-logo.v9.png" alt="Meevax Lisp System"/>
-  <br/>
-  <img src="https://github.com/yamacir-kit/meevax/wiki/svg/description.png" alt="A programmable programming lanugage."/>
-</p>
-
 ## Overview
 
 > Programming languages should be designed not by piling feature on top of
 > feature, but by removing the weaknesses and restrictions that make additional
 > features appear necessary.
-> <div align="right">
->   Revised<sup>7</sup> Report on the Algorithmic Language Scheme [1]
-> </div>
+> <div align="right">Revised<sup>7</sup> Report on the Algorithmic Language Scheme</div>
 
-Meevax is an implementation of Lisp-1 programming language, supporting subset
-of the [Scheme](http://www.scheme-reports.org/) (R7RS) and
-[SRFI](https://srfi.schemers.org/)s.
+Meevax is an implementation of Lisp-1 programming language, supporting the
+latest [Scheme](http://www.scheme-reports.org/) language standard and some
+[SRFI](https://srfi.schemers.org/)s (SRFI; Scheme requests for implementation).
+This implementation is focused on integration with modern C++ and practicality:
+it not only works as an interpreter with support for the latest Scheme
+standard, but also provides a flexible Lisp-1 kernel as a C++ library. The
+library is installed as a CMake package for [easy
+linking](./example/CMakeLists.txt), and [any C++ classes can be used from
+Lisp-1 scripts](./example/example.ss) [via simple stubs](example/example.cpp).
+
+However, as the major version indicates, this implementation is still in its
+infancy. Its performance is significantly inferior to that of common Scheme
+implementations. For example, in a microbenchmark comparison with Chibi Scheme,
+which can be embedded into C, Meevax takes more than 40x longer to compute than
+Chibi Scheme. We will try to improve the performance in future development, but
+we do not recommend using Meevax for anything other than toy programs, at least
+at this time.
 
 ### Releases
 
@@ -23,13 +29,32 @@ Latest release is [here](https://github.com/yamacir-kit/meevax/releases).
 
 ### Features
 
-- Architecture - SECD machine.
-- Modern C++ compatible dynamic typing - Meevax provides RTTI-based language
-  runtime library.
+- Traditional SECD machine [[Landin 1964](#Landin-1964)].
+- Low-level hygienic macro system, known as *syntactic closures* [[Bawden and
+  Rees 1988](#Bawden-and-Rees-1988); [Hanson 1991](#Hanson-1991)] and *explicit
+  renaming* [[Clinger 1991](#Clinger-1991)]. For these, the well-known macro
+  transformers `sc-macro-transformer`, `rsc-macro-transformer`, and
+  `er-macro-transformer` from the library [`(meevax
+  macro-transformer)`](./basis/meevax.ss) are provided. Note that these are
+  non-Scheme standards.
+- C++ friendly precise garbage collection [[Kempf 2001a](#Kempf-2001a); [Kempf
+  2001b](#Kempf-2001b)]
 
 ### Standards
 
-Subset of R7RS-small.
+Meevax can be used as an interpreter that supports the Scheme standard specified by the following report:
+
+- Revised<sup>4</sup> Report on the Algorithmic Language Scheme (R4RS) [[Clinger and Rees 1991a](#Clinger-and-Rees-1991a)]
+- Revised<sup>5</sup> Report on the Algorithmic Language Scheme (R5RS) [[Kelsey, Clinger and Rees 1998](#Kelsey-Clinger-and-Rees-1998)]
+- Revised<sup>7</sup> Report on the Algorithmic Language Scheme (R7RS) [[Shinn, Cowan and Glecker 2013](#Shinn-Cowan-and-Glecker-2013)]
+
+Procedures for each standard are provided by the following R7RS-style libraries:
+
+| Language | Library name |
+|:--------:|--------------|
+| R4RS     | [`(scheme r4rs)`](./basis/r4rs.ss)
+| R5RS     | [`(scheme r5rs)`](./basis/r5rs.ss)
+| R7RS     | [`(scheme base)`](./basis/r7rs.ss) [`(scheme case-lambda)`](./basis/r7rs.ss) [`(scheme char)`](./basis/r7rs.ss) [`(scheme complex)`](./basis/r7rs.ss) [`(scheme cxr)`](./basis/r7rs.ss) [`(scheme eval)`](./basis/r7rs.ss) [`(scheme file)`](./basis/r7rs.ss) [`(scheme inexact)`](./basis/r7rs.ss) [`(scheme lazy)`](./basis/r7rs.ss) [`(scheme load)`](./basis/r7rs.ss) [`(scheme process-context)`](./basis/r7rs.ss) [`(scheme read)`](./basis/r7rs.ss) [`(scheme repl)`](./basis/r7rs.ss) [`(scheme time)`](./basis/r7rs.ss) [`(scheme write)`](./basis/r7rs.ss) [`(scheme r5rs)`](./basis/r5rs.ss)
 
 ### SRFIs
 
@@ -104,12 +129,12 @@ sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 
 ### CMake targets
 
-| Target Name     | Description
-|-----------------|-------------
-| `all` (default) | Build shared-library `libmeevax.${PROJECT_VERSION}.so` and executable `meevax`
-| `test`          | Test executable `meevax`
-| `package`       | Generate debian package `meevax_${PROJECT_VERSION}_amd64.deb`
-| `install`       | Copy files into `${CMAKE_INSTALL_PREFIX}` directly
+| Target Name | Description
+|-------------|-------------
+| `all`       | Build shared-library `libmeevax.${PROJECT_VERSION}.so` and executable `meevax`
+| `test`      | Test executable `meevax`
+| `package`   | Generate debian package `meevax_${PROJECT_VERSION}_amd64.deb`
+| `install`   | Copy files into `${CMAKE_INSTALL_PREFIX}` directly
 
 ## Usage
 
@@ -123,10 +148,18 @@ See [LICENSE](./LICENSE).
 
 ## References
 
-- [1] A.shinn, J.Cowan, A. A. Greckler, editors, "[Revised<sup>7</sup> Report on the Algorithmic Language Scheme](https://bitbucket.org/cowan/r7rs/raw/tip/rnrs/r7rs.pdf)", Technical report, 2013.
-
-### Resources
-
-* [Chibi-Scheme](https://github.com/ashinn/chibi-scheme)
-* [SECDR-Scheme](http://www.maroon.dti.ne.jp/nagar17/mulasame/)
-* [TinyScheme](http://tinyscheme.sourceforge.net/)
+| Authors                                                                                               | Year | Title                                                                                                                                     | Journal Title / Publisher                                                                                                                                 | Pages          |
+|-------------------------------------------------------------------------------------------------------|:----:|-------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
+| <a id="McCarthy-1960"               ></a> John McCarthy                                               | 1960 | [Recursive functions of symbolic expressions and their computation by machine, Part I](https://dl.acm.org/doi/10.1145/367177.367199)      | [Communications of the ACM, Volume 3, Issue 4](https://dl.acm.org/toc/cacm/1960/3/4)                                                                      | 184&#x2011;195 |
+| <a id="Landin-1964"                 ></a> P. J. Landin                                                | 1964 | [The Mechanical Evaluation of Expressions](https://academic.oup.com/comjnl/article/6/4/308/375725)                                        | [The Computor Journal, Volume 6, Issue 4](https://academic.oup.com/comjnl/issue/6/4)                                                                      | 308&#x2011;320 |
+| <a id="Henderson-1980"              ></a> Peter Henderson                                             | 1980 | [Functional Programming: Application and Implementation](https://archive.org/details/functionalprogra0000hend/mode/2up)                   | Prentice Hall                                                                                                                                             |                |
+| <a id="Bawden-and-Rees-1988"        ></a> Alan Bawden and Jonathan Rees                               | 1988 | [Syntactic Closures](https://dl.acm.org/doi/10.1145/62678.62687)                                                                          | [LFP '88: Proceedings of the 1988 ACM Conference on LISP and Functional Programming](https://dl.acm.org/doi/proceedings/10.1145/62678)                    | 86&#x2011;95   |
+| <a id="Clinger-and-Rees-1991a"      ></a> William Clinger and Jonathan Rees (Editors)                 | 1991 | [Revised<sup>4</sup> Report on the Algorithmic Language Scheme](https://dl.acm.org/doi/10.1145/382130.382133)                             | [ACM SIGPLAN LISP Pointers, Volume IV, Issue 3](https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/3)                                                    | 1&#x2011;55    |
+| <a id="Hanson-1991"                 ></a> Chris Hanson                                                | 1991 | [A Syntactic Closures Macro Facility](https://dl.acm.org/doi/10.1145/1317265.1317267)                                                     | [ACM SIGPLAN LISP Pointers, Volume IV, Issue 4](https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/4)                                                    | 9&#x2011;16    |
+| <a id="Clinger-1991"                ></a> William Clinger                                             | 1991 | [Hygienic Macros Through Explicit Renaming](https://dl.acm.org/doi/10.1145/1317265.1317269)                                               | [ACM SIGPLAN LISP Pointers, Volume IV, Issue 4](https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/4)                                                    | 25&#x2011;28   |
+| <a id="Clinger-and-Rees-1991b"      ></a> William Clinger and Jonathan Rees                           | 1991 | [Macros That Work](https://dl.acm.org/doi/10.1145/99583.99607)                                                                            | [POPL '91: Proceedings of the 18th ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages](https://dl.acm.org/doi/proceedings/10.1145/99583) | 155&#x2011;162 |
+| <a id="Kelsey-Clinger-and-Rees-1998"></a> Rechard Kelsey, William Clinger and Jonathan Rees (Editors) | 1998 | [Revised<sup>5</sup> Report on the Algorithmic Language Scheme](https://dl.acm.org/doi/10.1145/290229.290234)                             | [ACM SIGPLAN Notices, Volume 33, Issue 9](https://dl.acm.org/toc/sigplan/1998/33/9)                                                                       | 26&#x2011;76   |
+| <a id="Kempf-2001a"                 ></a> William E. Kempf                                            | 2001 | [A garbage collection framework for C++](https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C)                   | https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C                                                                             |                |
+| <a id="Kempf-2001b"                 ></a> William E. Kempf                                            | 2001 | [A garbage collection framework for C++ - Part II](https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II) | https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II                                                                     |                |
+| <a id="Adams-and-Dybvig-2008"       ></a> Michael D. Adams and R. Kent Dybvig                         | 2008 | [Efficient Nondestructive Equality Checking for Trees and Graphs](https://dl.acm.org/doi/10.1145/1411204.1411230)                         | [ICFP '08: Proceedings of the 13th ACM SIGPLAN International Conference on Functional Programming](https://dl.acm.org/doi/proceedings/10.1145/1411204)    | 179&#x2011;188 |
+| <a id="Shinn-Cowan-and-Glecker-2013"></a> Alex Shinn, John Cowan and Arthur A. Gleckler (Editors)     | 2013 | [Revised<sup>7</sup> Report on the Algorithmic Language Scheme](https://standards.scheme.org/official/r7rs.pdf)                           | http://www.scheme-reports.org/                                                                                                                            |                |

@@ -1,3 +1,4 @@
 build
-src/kernel/basis.cpp
+include/meevax/basis
+include/meevax/unicode
 src/kernel/version.cpp

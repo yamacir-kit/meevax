@@ -21,7 +21,6 @@
 #include <meevax/functional/compose.hpp>
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
-#include <meevax/kernel/profiler.hpp>
 #include <meevax/memory/gc_pointer.hpp>
 #include <meevax/type_traits/is_array_subscriptable.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
@@ -109,12 +108,6 @@ inline namespace kernel
     template <typename Bound, typename... Us>
     static auto allocate(Us&&... xs)
     {
-      if constexpr (profiler::count_allocations)
-      {
-        current_profiler().allocation_counts[typeid(Bound)]++;
-        current_profiler().allocation_counts[typeid(void)]++;
-      }
-
       if constexpr (std::is_same_v<Bound, Top>)
       {
         return heterogeneous(gc.make<Top>(std::forward<decltype(xs)>(xs)...));
@@ -131,6 +124,30 @@ inline namespace kernel
 
     template <typename U>
     inline auto as() const -> decltype(auto)
+    {
+      if constexpr (std::is_same_v<std::decay_t<U>, Top>)
+      {
+        return Pointer<Top, Ts...>::operator *();
+      }
+      else if constexpr (std::is_class_v<std::decay_t<U>>)
+      {
+        if (auto data = dynamic_cast<std::add_pointer_t<U>>(get()); data)
+        {
+          return *data;
+        }
+        else
+        {
+          throw std::runtime_error(lexical_cast<std::string>("no viable conversion from ", demangle(type()), " to ", demangle(typeid(U))));
+        }
+      }
+      else
+      {
+        return Pointer<Top, Ts...>::template as<U>();
+      }
+    }
+
+    template <typename U>
+    inline auto as() -> decltype(auto)
     {
       if constexpr (std::is_same_v<std::decay_t<U>, Top>)
       {

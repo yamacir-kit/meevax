@@ -14,17 +14,30 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_DISASSEMBLE_HPP
-#define INCLUDED_MEEVAX_KERNEL_DISASSEMBLE_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_BOOT_HPP
+#define INCLUDED_MEEVAX_KERNEL_BOOT_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto disassemble(std::ostream &, object const&, std::size_t = 1) -> void;
+  auto boot() -> void;
+
+  template <typename Sources>
+  auto boot(Sources const& sources) -> void
+  {
+    for (auto&& source : sources)
+    {
+      for (let const& x : input_string_port(source))
+      {
+        interaction_environment().as<environment>().evaluate(x);
+      }
+    }
+  }
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_DISASSEMBLE_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_BOOT_HPP

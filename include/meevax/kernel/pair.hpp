@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
 #include <meevax/kernel/heterogeneous.hpp>
+#include <meevax/kernel/instruction.hpp>
 
 namespace meevax
 {

@@ -307,14 +307,7 @@ inline namespace kernel
     {
       using T = std::tuple_element_t<I, Ts>;
 
-      if (x.is<T>())
-      {
-        return canonicalize(f(x.as<T>()));
-      }
-      else
-      {
-        return apply<I + 1>(f, x);
-      }
+      return x.is<T>() ? canonicalize(f(x.as<T>())) : apply<I + 1>(f, x);
     }
     else
     {
@@ -332,14 +325,7 @@ inline namespace kernel
       using T = std::tuple_element_t<0, std::tuple_element_t<I, Ts>>;
       using U = std::tuple_element_t<1, std::tuple_element_t<I, Ts>>;
 
-      if (x.is<T>() and y.is<U>())
-      {
-        return canonicalize(f(x.as<T>(), y.as<U>()));
-      }
-      else
-      {
-        return apply<I + 1>(f, x, y);
-      }
+      return x.is<T>() and y.is<U>() ? canonicalize(f(x.as<T>(), y.as<U>())) : apply<I + 1>(f, x, y);
     }
     else
     {
@@ -726,6 +712,32 @@ inline namespace number
     return test(f, x);
   }
 
+  auto abs(object const& x) -> object
+  {
+    auto f = [](auto&& x)
+    {
+      using T = std::decay_t<decltype(x)>;
+
+      if constexpr (std::is_same_v<T, exact_integer>)
+      {
+        exact_integer i {};
+        mpz_abs(i.value, x.value);
+        return i;
+      }
+      else if constexpr (std::is_arithmetic_v<T>)
+      {
+        return std::abs(std::forward<decltype(x)>(x));
+      }
+      else
+      {
+        static auto const zero = static_cast<exact_integer>(0);
+        return x < zero ? zero - x : x;
+      }
+    };
+
+    return apply(f, x);
+  }
+
   auto sqrt(object const& x) -> object
   {
     auto f = [](auto&& x)
@@ -745,7 +757,7 @@ inline namespace number
         {
           if constexpr (std::is_same_v<T, exact_integer>)
           {
-            auto const [s, r] = exact_integer_sqrt(x);
+            auto const [s, r] = x.square_root();
 
             return r == 0 ? make(s) : make(std::sqrt(inexact_cast(x)));
           }
@@ -876,8 +888,8 @@ inline namespace number
       if constexpr (std::is_same_v<T, complex> or
                     std::is_same_v<U, complex>)
       {
-        throw std::invalid_argument("unsupported operation");
-        return e0; // dummy return value.
+        throw std::invalid_argument("not a real number");
+        return std::numeric_limits<double>::quiet_NaN();
       }
       else
       {

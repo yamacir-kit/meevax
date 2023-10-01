@@ -64,7 +64,7 @@ inline namespace memory
 
   auto collector::mark() -> void
   {
-    marker::toggle();
+    marker::clear();
 
     auto is_root_object = [begin = std::begin(headers)](registration * given)
     {

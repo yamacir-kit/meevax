@@ -21,7 +21,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto find(let const& b) -> object const&
+  auto find(object & b) -> object const&
   {
     if (let & x = car(b); x.is<box>())
     {

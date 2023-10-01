@@ -41,12 +41,12 @@ inline namespace memory
             typename T6 = std::integral_constant<int, 6>>
   struct nan_boxing_pointer
   {
-    static_assert(sizeof(T1) <= 4);
-    static_assert(sizeof(T2) <= 4);
-    static_assert(sizeof(T3) <= 4);
-    static_assert(sizeof(T4) <= 4);
-    static_assert(sizeof(T5) <= 4);
-    static_assert(sizeof(T6) <= 4);
+    static_assert(sizeof(T1) <= 6 or std::is_pointer_v<T1>);
+    static_assert(sizeof(T2) <= 6 or std::is_pointer_v<T2>);
+    static_assert(sizeof(T3) <= 6 or std::is_pointer_v<T3>);
+    static_assert(sizeof(T4) <= 6 or std::is_pointer_v<T4>);
+    static_assert(sizeof(T5) <= 6 or std::is_pointer_v<T5>);
+    static_assert(sizeof(T6) <= 6 or std::is_pointer_v<T6>);
 
     using element_type = std::decay_t<T>;
 
@@ -114,7 +114,12 @@ inline namespace memory
       return get();
     }
 
-    auto operator *() const -> decltype(auto)
+    auto operator *() const -> auto const&
+    {
+      return *get();
+    }
+
+    auto operator *() -> auto &
     {
       return *get();
     }
@@ -190,11 +195,11 @@ inline namespace memory
     {
       switch (signature())
       {
-      #define DEFINE(TYPE)                                                     \
+      #define CASE(TYPE)                                                       \
       case signature_##TYPE:                                                   \
         if constexpr (std::is_same_v<TYPE, bool>)                              \
         {                                                                      \
-          return os << std::boolalpha << yellow('#', as<TYPE>());              \
+          return os << yellow('#', as<TYPE>() ? 't' : 'f');                    \
         }                                                                      \
         else                                                                   \
         {                                                                      \
@@ -202,15 +207,15 @@ inline namespace memory
         }                                                                      \
         static_assert(true)
 
-      DEFINE(T1);
-      DEFINE(T2);
-      DEFINE(T3);
-      DEFINE(T4);
-      DEFINE(T5);
-      DEFINE(T6);
-      DEFINE(pointer);
+      CASE(T1);
+      CASE(T2);
+      CASE(T3);
+      CASE(T4);
+      CASE(T5);
+      CASE(T6);
+      CASE(pointer);
 
-      #undef DEFINE
+      #undef CASE
 
       default:
         if (auto value = as<double>(); std::isnan(value))

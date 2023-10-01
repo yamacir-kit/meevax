@@ -65,7 +65,7 @@ inline namespace kernel
     }
   }
 
-  auto memq(object const& x, object const& xs) -> object
+  auto memq(object const& x, object const& xs) -> object const&
   {
     if (xs.is<pair>())
     {
@@ -84,7 +84,26 @@ inline namespace kernel
     }
   }
 
-  auto assq(object const& x, object const& xs) -> object
+  auto memv(object const& x, object const& xs) -> object const&
+  {
+    if (xs.is<pair>())
+    {
+      if (eqv(x, car(xs)))
+      {
+        return xs;
+      }
+      else
+      {
+        return memv(x, cdr(xs));
+      }
+    }
+    else
+    {
+      return f;
+    }
+  }
+
+  auto assq(object const& x, object const& xs) -> object const&
   {
     if (xs.is<pair>())
     {
@@ -95,6 +114,25 @@ inline namespace kernel
       else
       {
         return assq(x, cdr(xs));
+      }
+    }
+    else
+    {
+      return f;
+    }
+  }
+
+  auto assv(object const& x, object const& xs) -> object const&
+  {
+    if (xs.is<pair>())
+    {
+      if (eqv(x, caar(xs)))
+      {
+        return car(xs);
+      }
+      else
+      {
+        return assv(x, cdr(xs));
       }
     }
     else

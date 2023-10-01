@@ -66,9 +66,10 @@ inline namespace kernel
       {
         option("(i|interactive)", [this](auto)
         {
-          let const f = make<procedure>("", [this]()
+          let const f = make<functor>("", [this](let const&)
           {
             interactive = true;
+            return unspecified;
           });
 
           return list(f);
@@ -81,10 +82,10 @@ inline namespace kernel
 
         option("(h|help)", [](auto)
         {
-          let static const f = make<procedure>("", []()
+          let static const f = make<command>("", [](let const&)
           {
-            std::cout << help() << std::flush;
-            throw success;
+            std::cout << help() << std::endl;
+            throw EXIT_SUCCESS;
           });
 
           return list(f);
@@ -92,9 +93,10 @@ inline namespace kernel
 
         option("(l|load)", [this](auto read)
         {
-          let const f = make<procedure>("", [this](let const& xs)
+          let const f = make<functor>("", [this](let const& xs)
           {
             static_cast<Environment &>(*this).load(xs[0].as<string>());
+            return unspecified;
           });
 
           return list(f, read());
@@ -102,10 +104,10 @@ inline namespace kernel
 
         option("(v|version)", [](auto)
         {
-          let static const f = make<procedure>("", []()
+          let static const f = make<command>("", [](let const&)
           {
             std::cout << version() << std::endl;
-            throw success;
+            throw EXIT_SUCCESS;
           });
 
           return list(f);
@@ -113,7 +115,7 @@ inline namespace kernel
 
         option("(w|write)", [](auto read)
         {
-          let static const f = make<procedure>("", [](let const& xs)
+          let static const f = make<command>("", [](let const& xs)
           {
             std::cout << xs[0] << std::endl;
           });
@@ -182,9 +184,10 @@ inline namespace kernel
         }
         else
         {
-          let const f = make<procedure>("", [iter](let const&)
+          let const f = make<functor>("", [iter](let const&)
           {
             Environment().load(*iter);
+            return unspecified;
           });
 
           expressions.push_back(list(f));

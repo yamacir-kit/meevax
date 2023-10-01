@@ -17,6 +17,7 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
+#include <meevax/kernel/textual_input_port.hpp>
 
 namespace meevax
 {
@@ -40,11 +41,7 @@ inline namespace kernel
     {
       return os << "||";
     }
-    else if (auto iter = std::find_if(std::begin(datum.name), std::end(datum.name), [](auto c)
-             {
-               return std::iscntrl(c) or std::isspace(c);
-             });
-             iter != std::end(datum.name))
+    else if (std::find_if(datum.name.begin(), datum.name.end(), is_special_character) != datum.name.end())
     {
       return os << cyan("#") << string(datum.name);
     }
