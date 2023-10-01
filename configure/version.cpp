@@ -29,7 +29,7 @@ inline namespace kernel
   auto features() -> object const&
   {
     let static const features = list(
-      make_symbol("r5rs"),
+      make_symbol("r7rs"),
       make_symbol("exact-closed"),
       make_symbol("exact-complex"),
       make_symbol("ieee-float"),
