@@ -1,16 +1,15 @@
-#include <meevax/basis/scheme.hpp>
 #include <meevax/kernel/environment.hpp>
 
 using namespace meevax; // NOTE: DIRTY HACK
 
 extern "C"
 {
-  let length_of_arguments(let const& xs)
+  auto length_of_arguments(object const& xs)
   {
     return make<exact_integer>(length(xs));
   }
 
-  let dummy_procedure(let const& xs)
+  auto dummy_procedure(object const& xs)
   {
     std::cout << "\n; calling C++ function via foreign-function-interface." << std::endl;
 
@@ -46,17 +45,17 @@ extern "C"
     }
   };
 
-  let make_hoge(let const& xs)
+  auto make_hoge(object const& xs)
   {
     return make<hoge>(xs[0].as<exact_integer>());
   }
 
-  let is_hoge(let const& xs)
+  auto is_hoge(object const& xs)
   {
     return xs[0].is<hoge>() ? t : f;
   }
 
-  let hoge_value(let const& xs)
+  auto hoge_value(object const& xs)
   {
     return make<exact_integer>(xs[0].as<hoge>().value);
   }
