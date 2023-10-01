@@ -11,7 +11,7 @@ build()
   cmake --build "$1/build" --target develop
 }
 
-echo "0.4.$(($(git rev-list --no-merges --count HEAD) - 2854))" > "$root/VERSION"
+echo "0.5.$(($(git rev-list --no-merges --count HEAD) - 3681))" > "$root/VERSION"
 
 if dpkg --status meevax
 then
