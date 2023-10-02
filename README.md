@@ -99,7 +99,7 @@ Procedures for each standard are provided by the following R7RS-style libraries:
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cd build
 make package
-sudo apt install build/meevax_0.5.1_amd64.deb
+sudo apt install build/meevax_0.5.2_amd64.deb
 ```
 
 or
@@ -131,9 +131,9 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name | Description
 |-------------|-------------
-| `all`       | Build shared-library `libmeevax.0.5.1.so` and executable `meevax`
+| `all`       | Build shared-library `libmeevax.0.5.2.so` and executable `meevax`
 | `test`      | Test executable `meevax`
-| `package`   | Generate debian package `meevax_0.5.1_amd64.deb`
+| `package`   | Generate debian package `meevax_0.5.2_amd64.deb`
 | `install`   | Copy files into `/usr/local` directly
 
 ## Usage
@@ -158,7 +158,7 @@ See [LICENSE](./LICENSE).
 ## References
 
 | Authors                                                                                               | Year | Title                                                                                                                                     | Journal Title / Publisher                                                                                                                                 | Pages          |
-|-------------------------------------------------------------------------------------------------------|:----:|-------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
+|-------------------------------------------------------------------------------------------------------|:----:|-------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------:|
 | <a id="McCarthy-1960"               ></a> John McCarthy                                               | 1960 | [Recursive functions of symbolic expressions and their computation by machine, Part I](https://dl.acm.org/doi/10.1145/367177.367199)      | [Communications of the ACM, Volume 3, Issue 4](https://dl.acm.org/toc/cacm/1960/3/4)                                                                      | 184&#x2011;195 |
 | <a id="Landin-1964"                 ></a> P. J. Landin                                                | 1964 | [The Mechanical Evaluation of Expressions](https://academic.oup.com/comjnl/article/6/4/308/375725)                                        | [The Computor Journal, Volume 6, Issue 4](https://academic.oup.com/comjnl/issue/6/4)                                                                      | 308&#x2011;320 |
 | <a id="Henderson-1980"              ></a> Peter Henderson                                             | 1980 | [Functional Programming: Application and Implementation](https://archive.org/details/functionalprogra0000hend/mode/2up)                   | Prentice Hall                                                                                                                                             |                |
