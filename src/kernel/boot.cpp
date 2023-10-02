@@ -315,6 +315,12 @@ inline namespace kernel
 
     define<library>("(meevax function)", [](library & library)
     {
+      library.define<predicate>("procedure?", [](let const& xs)
+      {
+        let const& x = xs[0];
+        return x.is<closure>() or x.is<continuation>() or x.is_also<procedure>();
+      });
+
       library.define<predicate>("closure?", [](let const& xs)
       {
         return xs[0].is<closure>();
@@ -325,14 +331,14 @@ inline namespace kernel
         return xs[0].is<continuation>();
       });
 
-      library.define<function>("foreign-function", [](let const& xs)
-      {
-        return make<function>(xs[1].as<string>(), xs[0].as<string>());
-      });
-
       library.define<predicate>("foreign-function?", [](let const& xs)
       {
         return xs[0].is_also<procedure>();
+      });
+
+      library.define<function>("foreign-function", [](let const& xs)
+      {
+        return make<function>(xs[1].as<string>(), xs[0].as<string>());
       });
     });
 

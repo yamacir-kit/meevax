@@ -37,11 +37,11 @@
 (define-library (scheme r4rs)
   (import (only (meevax boolean) boolean? not)
           (meevax character)
-          (meevax core)
+          (only (meevax core) begin define define-syntax if lambda letrec quote set!)
           (only (meevax comparator) eq? eqv? equal?)
-          (meevax continuation)
-          (prefix (meevax environment) %)
-          (meevax function)
+          (only (meevax continuation) call-with-current-continuation)
+          (prefix (only (meevax environment) load) %)
+          (only (meevax function) procedure?)
           (meevax inexact)
           (meevax list)
           (only (meevax macro-transformer) er-macro-transformer identifier?)
@@ -548,11 +548,6 @@
                (if (<= start k)
                    (begin (string-set! s k c)
                           (rec (- k 1)))))))
-
-         (define (procedure? x)
-           (or (closure? x)
-               (continuation? x)
-               (foreign-function? x)))
 
          (define (for-each f x . xs) ; Chibi-Scheme
            (if (null? xs)
