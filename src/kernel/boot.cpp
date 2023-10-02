@@ -613,6 +613,16 @@ inline namespace kernel
         return is_negative(xs[0]);
       });
 
+      library.define<predicate>("odd?", [](let const& xs)
+      {
+        return is_odd(xs[0]);
+      });
+
+      library.define<predicate>("even?", [](let const& xs)
+      {
+        return is_even(xs[0]);
+      });
+
       library.define<function>("+", [](let const& xs)
       {
         return std::accumulate(std::begin(xs), std::end(xs), e0, std::plus());

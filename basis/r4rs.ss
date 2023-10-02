@@ -50,7 +50,7 @@
                 number? complex? real? rational? integer?
                 exact? inexact?
                 = < > <= >=
-                zero? positive? negative?
+                zero? positive? negative? odd? even?
                 + * - /
                 abs
                 quotient remainder modulo
@@ -324,12 +324,6 @@
                    (if (compare key (caar alist))
                        (car alist)
                        (assoc (cdr alist)))))))
-
-         (define (odd? n)
-           (not (even? n)))
-
-         (define (even? n)
-           (= (remainder n 2) 0))
 
          (define (max x . xs) ; Chibi-Scheme
            (define (max-aux x xs)

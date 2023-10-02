@@ -751,6 +751,17 @@ inline namespace number
     return less_than(x, e0);
   }
 
+  auto is_odd(object const& x) -> bool
+  {
+    return not is_even(x);
+  }
+
+  auto is_even(object const& x) -> bool
+  {
+    let static const e2 = make<exact_integer>(2);
+    return is_zero(remainder(x, e2));
+  }
+
   auto abs(object const& x) -> object
   {
     auto f = [](auto&& x)
