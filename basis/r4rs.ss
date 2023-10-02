@@ -51,6 +51,7 @@
                 exact? inexact?
                 = < > <= >=
                 zero? positive? negative? odd? even?
+                max min
                 + * - /
                 abs
                 quotient remainder modulo
@@ -324,34 +325,6 @@
                    (if (compare key (caar alist))
                        (car alist)
                        (assoc (cdr alist)))))))
-
-         (define (max x . xs) ; Chibi-Scheme
-           (define (max-aux x xs)
-             (if (null? xs)
-                 (inexact x)
-                 (max-aux (if (< x (car xs)) (car xs) x)
-                          (cdr xs))))
-           (if (inexact? x)
-               (max-aux x xs)
-               (let rec ((x x) (xs xs))
-                 (cond ((null? xs) x)
-                       ((inexact? (car xs)) (max-aux x xs))
-                       (else (rec (if (< x (car xs)) (car xs) x)
-                                  (cdr xs)))))))
-
-         (define (min x . xs) ; Chibi-Scheme
-           (define (min-aux x xs)
-             (if (null? xs)
-                 (inexact x)
-                 (min-aux (if (< (car xs) x) (car xs) x)
-                          (cdr xs))))
-           (if (inexact? x)
-               (min-aux x xs)
-               (let rec ((x x) (xs xs))
-                 (cond ((null? xs) x)
-                       ((inexact? (car xs)) (min-aux x xs))
-                       (else (rec (if (< (car xs) x) (car xs) x)
-                                  (cdr xs)))))))
 
          (define (gcd . xs) ; Chibi-Scheme
            (define (gcd-2 a b)

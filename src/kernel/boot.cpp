@@ -623,6 +623,30 @@ inline namespace kernel
         return is_even(xs[0]);
       });
 
+      library.define<function>("max", [](let const& xs)
+      {
+        if (auto iter = std::max_element(xs.begin(), xs.end(), less_than); iter != xs.end())
+        {
+          return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
+        }
+        else
+        {
+          throw error(make<string>("procedure max requires at least one argument"));
+        }
+      });
+
+      library.define<function>("min", [](let const& xs)
+      {
+        if (auto iter = std::min_element(xs.begin(), xs.end(), less_than); iter != xs.end())
+        {
+          return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
+        }
+        else
+        {
+          throw error(make<string>("procedure min requires at least one argument"));
+        }
+      });
+
       library.define<function>("+", [](let const& xs)
       {
         return std::accumulate(std::begin(xs), std::end(xs), e0, std::plus());
