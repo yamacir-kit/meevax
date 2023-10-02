@@ -379,6 +379,10 @@ inline namespace number
 
   auto pow(object const&, object const&) -> object;
 
+  auto numerator(object const&) -> object;
+
+  auto denominator(object const&) -> object;
+
   auto floor(object const&) -> object;
 
   auto ceil(object const&) -> object;

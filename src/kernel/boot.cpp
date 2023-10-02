@@ -573,18 +573,6 @@ inline namespace kernel
         return xs[0].is<exact_integer>();
       });
 
-      // TODO REMOVE
-      library.define<predicate>("imaginary?", [](let const& xs)
-      {
-        return xs[0].is<complex>();
-      });
-
-      // TODO REMOVE
-      library.define<predicate>("ratio?", [](let const& xs)
-      {
-        return xs[0].is<ratio>();
-      });
-
       library.define<predicate>("=", [](let const& xs)
       {
         return std::adjacent_find(std::begin(xs), std::end(xs), not_equals) == std::end(xs);
@@ -659,14 +647,14 @@ inline namespace kernel
       // TODO REMAINDER
       // TODO MODULO
 
-      library.define<function>("ratio-numerator", [](let const& xs)
+      library.define<function>("numerator", [](let const& xs)
       {
-        return make(xs[0].as<ratio>().numerator());
+        return numerator(xs[0]);
       });
 
-      library.define<function>("ratio-denominator", [](let const& xs)
+      library.define<function>("denominator", [](let const& xs)
       {
-        return make(xs[0].as<ratio>().denominator());
+        return denominator(xs[0]);
       });
 
       library.define<function>("floor", [](let const& xs)

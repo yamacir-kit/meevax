@@ -832,6 +832,42 @@ inline namespace number
     return apply(f, x, y);
   }
 
+  auto numerator(object const& x) -> object
+  {
+    if (x.is<ratio>())
+    {
+      return make(x.as<ratio>().numerator());
+    }
+    else if (is_exact(x))
+    {
+      return x;
+    }
+    else
+    {
+      return inexact(numerator(exact(x)));
+    }
+  }
+
+  auto denominator(object const& x) -> object
+  {
+    if (x.is<ratio>())
+    {
+      return make(x.as<ratio>().denominator());
+    }
+    else if (is_exact(x))
+    {
+      return e1;
+    }
+    else if (is_integer(x))
+    {
+      return make(1.0);
+    }
+    else
+    {
+      return inexact(denominator(exact(x)));
+    }
+  }
+
   #define DEFINE(ROUND)                                                        \
   auto ROUND(object const& x) -> object                                        \
   {                                                                            \

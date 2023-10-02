@@ -47,19 +47,13 @@
           (meevax list)
           (only (meevax macro-transformer) er-macro-transformer identifier?)
           (only (meevax number)
-                number?
-                complex?
-                real?
-                rational?
-                integer?
-                exact?
-                inexact?
+                number? complex? real? rational? integer?
+                exact? inexact?
                 = < > <= >=
                 + * - /
                 abs
                 % ; deprecated
-                ratio-numerator ; deprecated
-                ratio-denominator ; deprecated
+                numerator denominator
                 floor ceiling truncate round
                 expt
                 exact inexact
@@ -67,7 +61,6 @@
 
                 ; to be removed
                 exact-integer? ; r7rs
-                ratio?
                 )
           (meevax pair)
           (meevax port)
@@ -401,17 +394,6 @@
                          (ns (cdr xs)))
                  (if (null? ns) n
                      (rec (lcm-2 n (car ns)) (cdr ns))))))
-
-         (define (numerator x) ; Chibi-Scheme
-           (cond ((ratio? x) (ratio-numerator x))
-                 ((exact? x) x)
-                 (else (inexact (numerator (exact x))))))
-
-         (define (denominator x) ; Chibi-Scheme
-           (cond ((ratio? x) (ratio-denominator x))
-                 ((exact? x) 1)
-                 ((integer? x) 1.0)
-                 (else (inexact (denominator (exact x))))))
 
          (define (rationalize x e) ; IEEE Std 1178-1990 ANNEX C.4
            (define (simplest-rational x y)
