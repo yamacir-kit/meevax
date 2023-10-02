@@ -545,6 +545,11 @@ inline namespace kernel
         return is_exact(xs[0]);
       });
 
+      library.define<predicate>("inexact?", [](let const& xs)
+      {
+        return is_inexact(xs[0]);
+      });
+
       library.define<predicate>("exact-integer?", [](let const& xs)
       {
         return xs[0].is<exact_integer>();

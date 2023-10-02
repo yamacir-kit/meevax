@@ -365,6 +365,8 @@ inline namespace number
 
   auto is_exact(object const&) -> bool;
 
+  auto is_inexact(object const&) -> bool;
+
   auto is_finite(object const&) -> bool;
 
   auto is_infinite(object const&) -> bool;

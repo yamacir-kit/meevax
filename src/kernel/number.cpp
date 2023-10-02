@@ -678,6 +678,11 @@ inline namespace number
     return test(f, x);
   }
 
+  auto is_inexact(object const& x) -> bool
+  {
+    return not is_exact(x);
+  }
+
   auto is_finite(object const& x) -> bool
   {
     return not is_infinite(x);
