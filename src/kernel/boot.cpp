@@ -144,14 +144,32 @@ inline namespace kernel
         return make<complex>(xs[0], xs[1]);
       });
 
+      library.define<function>("make-polar", [](let const& xs)
+      {
+        let const& radius = xs[0], angle = xs[1];
+
+        return make<complex>(radius * cos(angle),
+                             radius * sin(angle));
+      });
+
       library.define<accessor>("real-part", [](let const& xs) -> auto const&
       {
-        return car(xs[0]);
+        return real_part(xs[0]);
       });
 
       library.define<accessor>("imag-part", [](let const& xs) -> auto const&
       {
-        return cdr(xs[0]);
+        return imag_part(xs[0]);
+      });
+
+      library.define<function>("magnitude", [](let const& xs)
+      {
+        return magnitude(xs[0]);
+      });
+
+      library.define<function>("angle", [](let const& xs)
+      {
+        return angle(xs[0]);
       });
     });
 
@@ -565,18 +583,6 @@ inline namespace kernel
       library.define<predicate>("ratio?", [](let const& xs)
       {
         return xs[0].is<ratio>();
-      });
-
-      // TODO REMOVE
-      library.define<predicate>("single-float?", [](let const& xs)
-      {
-        return xs[0].is<float>();
-      });
-
-      // TODO REMOVE
-      library.define<predicate>("double-float?", [](let const& xs)
-      {
-        return xs[0].is<double>();
       });
 
       library.define<predicate>("=", [](let const& xs)

@@ -39,6 +39,7 @@
           (meevax character)
           (only (meevax core) begin define define-syntax if lambda letrec quote set!)
           (only (meevax comparator) eq? eqv? equal?)
+          (only (meevax complex) make-rectangular make-polar real-part imag-part magnitude angle)
           (only (meevax continuation) call-with-current-continuation)
           (prefix (only (meevax environment) load) %)
           (only (meevax function) procedure?)
@@ -66,10 +67,7 @@
 
                 ; to be removed
                 exact-integer? ; r7rs
-                imaginary?
                 ratio?
-                single-float?
-                double-float?
                 )
           (meevax pair)
           (meevax port)
@@ -441,27 +439,6 @@
                              0.0))))
            (simplest-rational (- x e)
                               (+ x e)))
-
-         (define (make-rectangular x y) ; Chibi-Scheme
-           (+ x (* y (sqrt -1))))
-
-         (define (make-polar radius phi) ; Chibi-Scheme
-           (make-rectangular (* radius (cos phi))
-                             (* radius (sin phi))))
-
-         (define (real-part z)
-           (if (imaginary? z) (car z) z))
-
-         (define (imag-part z)
-           (if (imaginary? z) (cdr z) 0))
-
-         (define (magnitude z) ; Chibi-Scheme
-           (sqrt (+ (square (real-part z))
-                    (square (imag-part z)))))
-
-         (define (angle z) ; Chibi-Scheme
-           (atan (imag-part z)
-                 (real-part z)))
 
          (define (char-compare x xs compare) ; Chibi-Scheme
            (let rec ((compare compare)
