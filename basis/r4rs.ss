@@ -51,6 +51,7 @@
                 real?
                 rational?
                 integer?
+                exact?
                 = < > <= >=
                 + * - /
                 abs
@@ -330,15 +331,6 @@
                    (if (compare key (caar alist))
                        (car alist)
                        (assoc (cdr alist)))))))
-
-         (define (exact? z)
-           (define (exact-complex? x)
-             (and (imaginary? x)
-                  (exact? (real-part x))
-                  (exact? (imag-part x))))
-           (or (exact-complex? z)
-               (ratio? z)
-               (exact-integer? z)))
 
          (define (inexact? z)
            (define (inexact-complex? x)
