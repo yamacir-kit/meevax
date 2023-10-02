@@ -659,6 +659,25 @@ inline namespace number
     return test(f, x);
   }
 
+  auto is_exact(object const& x) -> bool
+  {
+    auto f = [](auto const& x)
+    {
+      using T = std::decay_t<decltype(x)>;
+
+      if constexpr (std::is_same_v<T, complex>)
+      {
+        return is_exact(x.real()) and is_exact(x.imag());
+      }
+      else
+      {
+        return std::is_same_v<T, ratio> or std::is_same_v<T, exact_integer>;
+      }
+    };
+
+    return test(f, x);
+  }
+
   auto is_finite(object const& x) -> bool
   {
     return not is_infinite(x);

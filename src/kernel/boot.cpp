@@ -540,26 +540,35 @@ inline namespace kernel
         return is_integer(xs[0]);
       });
 
+      library.define<predicate>("exact?", [](let const& xs)
+      {
+        return is_exact(xs[0]);
+      });
+
       library.define<predicate>("exact-integer?", [](let const& xs)
       {
         return xs[0].is<exact_integer>();
       });
 
+      // TODO REMOVE
       library.define<predicate>("imaginary?", [](let const& xs)
       {
         return xs[0].is<complex>();
       });
 
+      // TODO REMOVE
       library.define<predicate>("ratio?", [](let const& xs)
       {
         return xs[0].is<ratio>();
       });
 
+      // TODO REMOVE
       library.define<predicate>("single-float?", [](let const& xs)
       {
         return xs[0].is<float>();
       });
 
+      // TODO REMOVE
       library.define<predicate>("double-float?", [](let const& xs)
       {
         return xs[0].is<double>();
@@ -624,6 +633,7 @@ inline namespace kernel
         }
       });
 
+      // TODO RENAME
       library.define<function>("%", [](let const& xs)
       {
         return xs[0] % xs[1];
@@ -633,6 +643,10 @@ inline namespace kernel
       {
         return abs(xs[0]);
       });
+
+      // TODO QUOTIENT
+      // TODO REMAINDER
+      // TODO MODULO
 
       library.define<function>("ratio-numerator", [](let const& xs)
       {

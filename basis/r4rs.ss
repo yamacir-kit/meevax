@@ -42,10 +42,33 @@
           (only (meevax continuation) call-with-current-continuation)
           (prefix (only (meevax environment) load) %)
           (only (meevax function) procedure?)
-          (meevax inexact)
+          (only (meevax inexact) exp log sqrt sin cos tan asin acos atan)
           (meevax list)
           (only (meevax macro-transformer) er-macro-transformer identifier?)
-          (meevax number)
+          (only (meevax number)
+                number?
+                complex?
+                real?
+                rational?
+                integer?
+                = < > <= >=
+                + * - /
+                abs
+                % ; deprecated
+                ratio-numerator ; deprecated
+                ratio-denominator ; deprecated
+                floor ceiling truncate round
+                expt
+                exact inexact
+                string->number
+
+                ; to be removed
+                exact-integer? ; r7rs
+                imaginary?
+                ratio?
+                single-float?
+                double-float?
+                )
           (meevax pair)
           (meevax port)
           (prefix (meevax read) %)
