@@ -598,6 +598,11 @@ inline namespace kernel
         return std::adjacent_find(std::begin(xs), std::end(xs), less_than) == std::end(xs);
       });
 
+      library.define<predicate>("zero?", [](let const& xs)
+      {
+        return is_zero(xs[0]);
+      });
+
       library.define<function>("+", [](let const& xs)
       {
         return std::accumulate(std::begin(xs), std::end(xs), e0, std::plus());

@@ -50,6 +50,7 @@
                 number? complex? real? rational? integer?
                 exact? inexact?
                 = < > <= >=
+                zero?
                 + * - /
                 abs
                 quotient remainder modulo
@@ -323,9 +324,6 @@
                    (if (compare key (caar alist))
                        (car alist)
                        (assoc (cdr alist)))))))
-
-         (define (zero? n)
-           (= n 0))
 
          (define (positive? n)
            (> n 0))

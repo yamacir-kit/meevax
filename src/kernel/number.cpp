@@ -736,6 +736,11 @@ inline namespace number
     return test(f, x);
   }
 
+  auto is_zero(object const& x) -> bool
+  {
+    return equals(x, e0);
+  }
+
   auto abs(object const& x) -> object
   {
     auto f = [](auto&& x)

@@ -373,6 +373,8 @@ inline namespace number
 
   auto is_nan(object const&) -> bool;
 
+  auto is_zero(object const&) -> bool;
+
   auto abs(object const&) -> object;
 
   auto quotient(object const&, object const&) -> object;
