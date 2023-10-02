@@ -50,7 +50,7 @@
                 number? complex? real? rational? integer?
                 exact? inexact?
                 = < > <= >=
-                zero?
+                zero? positive? negative?
                 + * - /
                 abs
                 quotient remainder modulo
@@ -324,12 +324,6 @@
                    (if (compare key (caar alist))
                        (car alist)
                        (assoc (cdr alist)))))))
-
-         (define (positive? n)
-           (> n 0))
-
-         (define (negative? n)
-           (< n 0))
 
          (define (odd? n)
            (not (even? n)))

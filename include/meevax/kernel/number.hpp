@@ -375,6 +375,10 @@ inline namespace number
 
   auto is_zero(object const&) -> bool;
 
+  auto is_positive(object const&) -> bool;
+
+  auto is_negative(object const&) -> bool;
+
   auto abs(object const&) -> object;
 
   auto quotient(object const&, object const&) -> object;

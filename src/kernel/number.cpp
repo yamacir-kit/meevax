@@ -741,6 +741,16 @@ inline namespace number
     return equals(x, e0);
   }
 
+  auto is_positive(object const& x) -> bool
+  {
+    return less_than(e0, x);
+  }
+
+  auto is_negative(object const& x) -> bool
+  {
+    return less_than(x, e0);
+  }
+
   auto abs(object const& x) -> object
   {
     auto f = [](auto&& x)

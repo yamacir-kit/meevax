@@ -603,6 +603,16 @@ inline namespace kernel
         return is_zero(xs[0]);
       });
 
+      library.define<predicate>("positive?", [](let const& xs)
+      {
+        return is_positive(xs[0]);
+      });
+
+      library.define<predicate>("negative?", [](let const& xs)
+      {
+        return is_negative(xs[0]);
+      });
+
       library.define<function>("+", [](let const& xs)
       {
         return std::accumulate(std::begin(xs), std::end(xs), e0, std::plus());
