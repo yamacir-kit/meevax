@@ -632,20 +632,25 @@ inline namespace kernel
         }
       });
 
-      // TODO RENAME
-      library.define<function>("%", [](let const& xs)
-      {
-        return xs[0] % xs[1];
-      });
-
       library.define<function>("abs", [](let const& xs)
       {
         return abs(xs[0]);
       });
 
-      // TODO QUOTIENT
-      // TODO REMAINDER
-      // TODO MODULO
+      library.define<function>("quotient", [](let const& xs)
+      {
+        return quotient(xs[0], xs[1]);
+      });
+
+      library.define<function>("remainder", [](let const& xs)
+      {
+        return remainder(xs[0], xs[1]);
+      });
+
+      library.define<function>("modulo", [](let const& xs)
+      {
+        return modulo(xs[0], xs[1]);
+      });
 
       library.define<function>("numerator", [](let const& xs)
       {

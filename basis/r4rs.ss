@@ -52,7 +52,7 @@
                 = < > <= >=
                 + * - /
                 abs
-                % ; deprecated
+                quotient remainder modulo
                 numerator denominator
                 floor ceiling truncate round
                 expt
@@ -366,14 +366,6 @@
                        ((inexact? (car xs)) (min-aux x xs))
                        (else (rec (if (< (car xs) x) (car xs) x)
                                   (cdr xs)))))))
-
-         (define (quotient x y)
-           (truncate (/ x y)))
-
-         (define remainder %)
-
-         (define (modulo x y)
-           (% (+ y (% x y)) y))
 
          (define (gcd . xs) ; Chibi-Scheme
            (define (gcd-2 a b)

@@ -762,6 +762,21 @@ inline namespace number
     return apply(f, x);
   }
 
+  auto quotient(object const& x, object const& y) -> object
+  {
+    return trunc(x / y);
+  }
+
+  auto remainder(object const& x, object const& y) -> object
+  {
+    return x % y;
+  }
+
+  auto modulo(object const& x, object const& y) -> object
+  {
+    return ((x % y) + y) % y;
+  }
+
   auto sqrt(object const& x) -> object
   {
     auto f = [](auto&& x)

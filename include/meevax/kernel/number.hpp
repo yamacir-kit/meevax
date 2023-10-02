@@ -375,6 +375,12 @@ inline namespace number
 
   auto abs(object const&) -> object;
 
+  auto quotient(object const&, object const&) -> object;
+
+  auto remainder(object const&, object const&) -> object;
+
+  auto modulo(object const&, object const&) -> object;
+
   auto sqrt(object const&) -> object;
 
   auto pow(object const&, object const&) -> object;
