@@ -82,6 +82,56 @@ inline namespace kernel
         return xs[0].is<character>();
       });
 
+      library.define<predicate>("char=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().codepoint == b.as<character>().codepoint);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char<?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().codepoint < b.as<character>().codepoint);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char>?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().codepoint > b.as<character>().codepoint);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char<=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().codepoint <= b.as<character>().codepoint);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char>=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().codepoint >= b.as<character>().codepoint);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
       library.define<predicate>("char-alphabetic?", [](let const& xs)
       {
         return xs[0].as<character>().property().is_letter();
