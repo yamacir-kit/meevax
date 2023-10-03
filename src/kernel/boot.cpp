@@ -132,6 +132,56 @@ inline namespace kernel
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
       });
 
+      library.define<predicate>("char-ci=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().downcase() == b.as<character>().downcase());
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char-ci<?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().downcase() < b.as<character>().downcase());
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char-ci>?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().downcase() > b.as<character>().downcase());
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char-ci<=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().downcase() <= b.as<character>().downcase());
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char-ci>=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().downcase() >= b.as<character>().downcase());
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
       library.define<predicate>("char-alphabetic?", [](let const& xs)
       {
         return xs[0].as<character>().property().is_letter();

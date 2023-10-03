@@ -36,13 +36,7 @@
 
 (define-library (scheme r4rs)
   (import (only (meevax boolean) boolean? not)
-          (only (meevax character)
-                char?
-                char=? char<? char>? char<=? char>=?
-                char-alphabetic? char-numeric? char-whitespace? char-upper-case? char-lower-case?
-                char->integer integer->char
-                char-upcase char-downcase
-                )
+          (only (meevax character) char? char=? char<? char>? char<=? char>=? char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=? char-alphabetic? char-numeric? char-whitespace? char-upper-case? char-lower-case? char->integer integer->char char-upcase char-downcase)
           (only (meevax core) begin define define-syntax if lambda letrec quote set!)
           (only (meevax comparator) eq? eqv? equal?)
           (only (meevax complex) make-rectangular make-polar real-part imag-part magnitude angle)
@@ -341,30 +335,6 @@
                              0.0))))
            (simplest-rational (- x e)
                               (+ x e)))
-
-         (define (char-ci-compare x xs compare) ; Chibi-Scheme
-           (let rec ((compare compare)
-                     (lhs (char->integer (char-downcase x)))
-                     (xs xs))
-             (if (null? xs) #t
-                 (let ((rhs (char->integer (char-downcase (car xs)))))
-                   (and (compare lhs rhs)
-                        (rec compare rhs (cdr xs)))))))
-
-         (define (char-ci=? x . xs) ; Chibi-Scheme
-           (char-ci-compare x xs =))
-
-         (define (char-ci<? x . xs) ; Chibi-Scheme
-           (char-ci-compare x xs <))
-
-         (define (char-ci>? x . xs) ; Chibi-Scheme
-           (char-ci-compare x xs >))
-
-         (define (char-ci<=? x . xs) ; Chibi-Scheme
-           (char-ci-compare x xs <=))
-
-         (define (char-ci>=? x . xs) ; Chibi-Scheme
-           (char-ci-compare x xs >=))
 
          (define (string . xs) ; Chibi-Scheme
            (list->string xs))
