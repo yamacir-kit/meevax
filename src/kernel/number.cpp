@@ -18,6 +18,7 @@
 #include <regex>
 #include <string_view>
 
+#include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/string.hpp>
 
@@ -762,6 +763,30 @@ inline namespace number
     return is_zero(remainder(x, e2));
   }
 
+  auto max(object const& xs) -> object
+  {
+    if (auto iter = std::max_element(xs.begin(), xs.end(), less_than); iter != xs.end())
+    {
+      return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
+    }
+    else
+    {
+      return unspecified;
+    }
+  }
+
+  auto min(object const& xs) -> object
+  {
+    if (auto iter = std::min_element(xs.begin(), xs.end(), less_than); iter != xs.end())
+    {
+      return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
+    }
+    else
+    {
+      return unspecified;
+    }
+  }
+
   auto abs(object const& x) -> object
   {
     auto f = [](auto&& x)
@@ -801,6 +826,16 @@ inline namespace number
   auto modulo(object const& x, object const& y) -> object
   {
     return ((x % y) + y) % y;
+  }
+
+  auto gcd(object const& x, object const& y) -> object
+  {
+    return is_zero(y) ? abs(x) : gcd(y, remainder(x, y));
+  }
+
+  auto lcm(object const& x, object const& y) -> object
+  {
+    return abs(quotient(x * y, gcd(x, y)));
   }
 
   auto sqrt(object const& x) -> object

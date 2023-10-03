@@ -55,6 +55,7 @@
                 + * - /
                 abs
                 quotient remainder modulo
+                gcd lcm
                 numerator denominator
                 floor ceiling truncate round
                 expt
@@ -325,26 +326,6 @@
                    (if (compare key (caar alist))
                        (car alist)
                        (assoc (cdr alist)))))))
-
-         (define (gcd . xs) ; Chibi-Scheme
-           (define (gcd-2 a b)
-             (if (zero? b)
-                 (abs a)
-                 (gcd b (remainder a b))))
-           (if (null? xs) 0
-               (let rec ((n  (car xs))
-                         (ns (cdr xs)))
-                 (if (null? ns) n
-                     (rec (gcd-2 n (car ns)) (cdr ns))))))
-
-         (define (lcm . xs) ; Chibi-Scheme
-           (define (lcm-2 a b)
-             (abs (quotient (* a b) (gcd a b))))
-           (if (null? xs) 1
-               (let rec ((n  (car xs))
-                         (ns (cdr xs)))
-                 (if (null? ns) n
-                     (rec (lcm-2 n (car ns)) (cdr ns))))))
 
          (define (rationalize x e) ; IEEE Std 1178-1990 ANNEX C.4
            (define (simplest-rational x y)

@@ -383,6 +383,10 @@ inline namespace number
 
   auto is_even(object const&) -> bool;
 
+  auto max(object const&) -> object;
+
+  auto min(object const&) -> object;
+
   auto abs(object const&) -> object;
 
   auto quotient(object const&, object const&) -> object;
@@ -390,6 +394,10 @@ inline namespace number
   auto remainder(object const&, object const&) -> object;
 
   auto modulo(object const&, object const&) -> object;
+
+  auto gcd(object const&, object const&) -> object;
+
+  auto lcm(object const&, object const&) -> object;
 
   auto sqrt(object const&) -> object;
 

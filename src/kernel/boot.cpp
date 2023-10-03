@@ -625,26 +625,12 @@ inline namespace kernel
 
       library.define<function>("max", [](let const& xs)
       {
-        if (auto iter = std::max_element(xs.begin(), xs.end(), less_than); iter != xs.end())
-        {
-          return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
-        }
-        else
-        {
-          throw error(make<string>("procedure max requires at least one argument"));
-        }
+        return max(xs);
       });
 
       library.define<function>("min", [](let const& xs)
       {
-        if (auto iter = std::min_element(xs.begin(), xs.end(), less_than); iter != xs.end())
-        {
-          return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
-        }
-        else
-        {
-          throw error(make<string>("procedure min requires at least one argument"));
-        }
+        return min(xs);
       });
 
       library.define<function>("+", [](let const& xs)
@@ -699,6 +685,36 @@ inline namespace kernel
       library.define<function>("modulo", [](let const& xs)
       {
         return modulo(xs[0], xs[1]);
+      });
+
+      library.define<function>("gcd", [](let const& xs)
+      {
+        switch (length(xs))
+        {
+        case 0:
+          return e0;
+
+        case 1:
+          return xs[0];
+
+        default:
+          return std::accumulate(cdr(xs).begin(), xs.end(), xs[0], gcd);
+        }
+      });
+
+      library.define<function>("lcm", [](let const& xs)
+      {
+        switch (length(xs))
+        {
+        case 0:
+          return e1;
+
+        case 1:
+          return xs[0];
+
+        default:
+          return std::accumulate(cdr(xs).begin(), xs.end(), xs[0], lcm);
+        }
       });
 
       library.define<function>("numerator", [](let const& xs)
