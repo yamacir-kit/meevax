@@ -770,9 +770,34 @@ inline namespace kernel
         return inexact(xs[0]);
       });
 
+      library.define<function>("number->string", [](let const& xs)
+      {
+        switch (length(xs))
+        {
+        case 1:
+          return number_to_string(xs[0], 10);
+
+        case 2:
+          return number_to_string(xs[0], xs[1].as<exact_integer>());
+
+        default:
+          throw error(make<string>("procedure number->string takes one or two arugments, but got"), xs);
+        }
+      });
+
       library.define<function>("string->number", [](let const& xs)
       {
-        return make_number(xs[0].as<string>(), 1 < length(xs) ? xs[1].as<exact_integer>() : 10);
+        switch (length(xs))
+        {
+        case 1:
+          return make_number(xs[0].as<string>(), 10);
+
+        case 2:
+          return make_number(xs[0].as<string>(), xs[1].as<exact_integer>());
+
+        default:
+          throw error(make<string>("procedure string->number takes one or two arugments, but got"), xs);
+        }
       });
     });
 
@@ -1139,6 +1164,33 @@ inline namespace kernel
                   std::next(std::begin(s1), xs[1].as<exact_integer>()));
       });
 
+      library.define<mutation>("string-fill!", [](let & xs)
+      {
+        switch (length(xs))
+        {
+        case 2:
+          std::fill(xs[0].as<string>().vector.begin(),
+                    xs[0].as<string>().vector.end(),
+                    xs[1].as<character>());
+          break;
+
+        case 3:
+          std::fill(std::next(xs[0].as<string>().vector.begin(),
+                              xs[2].as<exact_integer>()),
+                    xs[0].as<string>().vector.end(),
+                    xs[1].as<character>());
+          break;
+
+        case 4:
+          std::fill(std::next(xs[0].as<string>().vector.begin(),
+                              xs[2].as<exact_integer>()),
+                    std::next(xs[0].as<string>().vector.begin(),
+                              xs[3].as<exact_integer>()),
+                    xs[1].as<character>());
+          break;
+        }
+      });
+
       #define STRING_COMPARE(COMPARE)                                          \
       [](let const& xs)                                                        \
       {                                                                        \
@@ -1166,11 +1218,6 @@ inline namespace kernel
       library.define<function>("string->symbol", [](let const& xs)
       {
         return make_symbol(xs[0].as<string>());
-      });
-
-      library.define<function>("number->string", [](let const& xs)
-      {
-        return number_to_string(xs[0], 1 < length(xs) ? xs[1].as<exact_integer>() : 10);
       });
 
       library.define<function>("string->list", [](let const& xs)
@@ -1449,18 +1496,29 @@ inline namespace kernel
 
       library.define<mutation>("vector-fill!", [](let & xs)
       {
-        /*
-           (vector-fill! vector fill)                                 procedure
-           (vector-fill! vector fill start)                           procedure
-           (vector-fill! vector fill start end)                       procedure
+        switch (length(xs))
+        {
+        case 2:
+          std::fill(xs[0].as<vector>().vector.begin(),
+                    xs[0].as<vector>().vector.end(),
+                    xs[1]);
+          break;
 
-           The vector-fill! procedure stores fill in the elements of vector
-           between start and end.
-        */
+        case 3:
+          std::fill(std::next(xs[0].as<vector>().vector.begin(),
+                              xs[2].as<exact_integer>()),
+                    xs[0].as<vector>().vector.end(),
+                    xs[1]);
+          break;
 
-        std::fill(std::next(std::begin(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : 0),
-                  std::next(std::begin(xs[0].as<vector>().vector), 3 < length(xs) ? xs[3].as<exact_integer>() : xs[0].as<vector>().vector.size()),
-                  1 < length(xs) ? xs[1] : unspecified);
+        case 4:
+          std::fill(std::next(xs[0].as<vector>().vector.begin(),
+                              xs[2].as<exact_integer>()),
+                    std::next(xs[0].as<vector>().vector.begin(),
+                              xs[3].as<exact_integer>()),
+                    xs[1]);
+          break;
+        }
       });
 
       library.define<function>("vector->list", [](let const& xs)

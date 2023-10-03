@@ -46,25 +46,7 @@
           (only (meevax inexact) exp log sqrt sin cos tan asin acos atan)
           (meevax list)
           (only (meevax macro-transformer) er-macro-transformer identifier?)
-          (only (meevax number)
-                number? complex? real? rational? integer?
-                exact? inexact?
-                = < > <= >=
-                zero? positive? negative? odd? even?
-                max min
-                + * - /
-                abs
-                quotient remainder modulo
-                gcd lcm
-                numerator denominator
-                floor ceiling truncate round
-                expt
-                exact inexact
-                string->number
-
-                ; to be removed
-                exact-integer? ; r7rs
-                )
+          (only (meevax number) number? complex? real? rational? integer? exact? inexact? = < > <= >= zero? positive? negative? odd? even? max min + * - / abs quotient remainder modulo gcd lcm numerator denominator floor ceiling truncate round expt exact inexact number->string string->number)
           (meevax pair)
           (meevax port)
           (prefix (meevax read) %)
@@ -429,21 +411,6 @@
            (apply string>=? (map string-foldcase xs)))
 
          (define substring string-copy)
-
-         (define (string-fill! s c . o) ; Chibi-Scheme
-           (let ((start (if (and (pair? o)
-                                 (exact-integer? (car o)))
-                            (car o)
-                            0))
-                 (end (if (and (pair? o)
-                               (pair? (cdr o))
-                               (exact-integer? (cadr o)))
-                          (cadr o)
-                          (string-length s))))
-             (let rec ((k (- end 1)))
-               (if (<= start k)
-                   (begin (string-set! s k c)
-                          (rec (- k 1)))))))
 
          (define (for-each f x . xs) ; Chibi-Scheme
            (if (null? xs)
