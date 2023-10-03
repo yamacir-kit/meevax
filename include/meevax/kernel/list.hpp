@@ -105,6 +105,8 @@ inline namespace kernel
 
   auto make_list(std::size_t, object const& = unit) -> object;
 
+  auto is_list(object const&) -> bool;
+
   template <typename T>
   auto tail(T&& x, std::size_t size) -> decltype(x)
   {

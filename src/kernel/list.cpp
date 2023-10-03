@@ -26,6 +26,33 @@ inline namespace kernel
     return 0 < size ? cons(x, make_list(--size, x)) : unit;
   }
 
+  auto is_list(object const& x0, object const& y0) -> bool
+  {
+    if (x0.is<pair>())
+    {
+      if (let const& x1 = cdr(x0); x1.is<pair>())
+      {
+        let const& x2 = cdr(x1),
+                   y1 = cdr(y0);
+
+        return not eq(x2, y1) and is_list(x2, y1);
+      }
+      else
+      {
+        return x1.is<null>();
+      }
+    }
+    else
+    {
+      return x0.is<null>();
+    }
+  }
+
+  auto is_list(object const& xs) -> bool
+  {
+    return is_list(xs, xs);
+  }
+
   auto last(object const& xs) -> object const&
   {
     return cdr(xs).is<pair>() ? last(cdr(xs)) : car(xs);

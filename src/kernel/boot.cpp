@@ -575,6 +575,11 @@ inline namespace kernel
         return xs[0].is<null>();
       });
 
+      library.define<predicate>("list?", [](let const& xs)
+      {
+        return is_list(xs[0]);
+      });
+
       library.define<accessor>("list", [](let const& xs) -> auto const&
       {
         return xs;

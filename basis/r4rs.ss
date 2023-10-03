@@ -44,7 +44,18 @@
           (prefix (only (meevax environment) load) %)
           (only (meevax function) procedure?)
           (only (meevax inexact) exp log sqrt sin cos tan asin acos atan)
-          (meevax list)
+          (only (meevax list)
+                null?
+                list?
+                list
+                length
+                append
+                reverse
+                list-tail
+                list-ref
+                memq memv
+                assq assv
+                )
           (only (meevax macro-transformer) er-macro-transformer identifier?)
           (only (meevax number) number? complex? real? rational? integer? exact? inexact? = < > <= >= zero? positive? negative? odd? even? max min + * - / abs quotient remainder modulo gcd lcm numerator denominator floor ceiling truncate round expt exact inexact number->string string->number)
           (meevax pair)
@@ -280,19 +291,6 @@
                                              ,(each-clause (cdr clauses))))))
                `(,(rename 'let) ((,(rename 'result) ,(cadr form)))
                                 ,(each-clause (cddr form))))))
-
-         (define (list? x)
-           (let list? ((x x)
-                       (lag x))
-             (if (pair? x)
-                 (let ((x (cdr x)))
-                   (if (pair? x)
-                       (let ((x (cdr x))
-                             (lag (cdr lag)))
-                         (and (not (eq? x lag))
-                              (list? x lag)))
-                       (null? x)))
-                 (null? x))))
 
          (define (member x xs . compare) ; Chibi-Scheme
            (let ((compare (if (pair? compare) (car compare) equal?)))
