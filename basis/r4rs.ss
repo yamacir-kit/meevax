@@ -37,33 +37,35 @@
 (define-library (scheme r4rs)
   (import (only (meevax boolean) boolean? not)
           (only (meevax character) char? char=? char<? char>? char<=? char>=? char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=? char-alphabetic? char-numeric? char-whitespace? char-upper-case? char-lower-case? char->integer integer->char char-upcase char-downcase)
-          (only (meevax core) begin define define-syntax if lambda letrec quote set!)
           (only (meevax comparator) eq? eqv? equal?)
           (only (meevax complex) make-rectangular make-polar real-part imag-part magnitude angle)
           (only (meevax continuation) call-with-current-continuation)
-          (prefix (only (meevax environment) load) %)
+          (only (meevax core) begin define define-syntax if lambda letrec quote set!)
           (only (meevax function) procedure?)
           (only (meevax inexact) exp log sqrt sin cos tan asin acos atan)
-          (only (meevax list)
-                null?
-                list?
-                list
-                length
-                append
-                reverse
-                list-tail
-                list-ref
-                memq memv
-                assq assv
-                )
+          (only (meevax list) null? list? list length append reverse list-tail list-ref memq memv assq assv)
           (only (meevax macro-transformer) er-macro-transformer identifier?)
           (only (meevax number) number? complex? real? rational? integer? exact? inexact? = < > <= >= zero? positive? negative? odd? even? max min + * - / abs quotient remainder modulo gcd lcm numerator denominator floor ceiling truncate round expt exact inexact number->string string->number)
-          (meevax pair)
+          (only (meevax pair) pair? cons car cdr set-car! set-cdr! caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr)
           (meevax port)
-          (prefix (meevax read) %)
-          (meevax string)
-          (meevax symbol)
+          (only (meevax string)
+                string?
+                make-string string
+                string-length string-ref string-set!
+                string=? string<? string>? string<=? string>=?
+                ; string-ci=?
+                ; string-ci<?
+                ; string-ci>?
+                ; string-ci<=?
+                ; string-ci>=?
+                string-append
+                string->list list->string
+                string-copy string-fill!
+                )
+          (only (meevax symbol) symbol? symbol->string string->symbol)
           (meevax vector)
+          (prefix (only (meevax environment) load) %)
+          (prefix (meevax read) %)
           (prefix (meevax write) %)
           (only (srfi 45) delay force))
 
@@ -87,15 +89,16 @@
           char-downcase string? make-string string string-length string-ref
           string-set! string=? string<? string>? string<=? string>=?
           string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?
-          substring string-append string->list list->string string-copy
-          string-fill! vector? make-vector vector vector-length vector-ref
-          vector-set! vector->list list->vector vector-fill! procedure? apply
-          map for-each force call-with-current-continuation
-          call-with-input-file call-with-output-file input-port? output-port?
-          current-input-port current-output-port with-input-from-file
-          with-output-to-file open-input-file open-output-file close-input-port
-          close-output-port read read-char peek-char eof-object? char-ready?
-          write display newline write-char load)
+          (rename string-copy substring) string-append string->list
+          list->string string-copy string-fill! vector? make-vector vector
+          vector-length vector-ref vector-set! vector->list list->vector
+          vector-fill! procedure? apply map for-each force
+          call-with-current-continuation call-with-input-file
+          call-with-output-file input-port? output-port? current-input-port
+          current-output-port with-input-from-file with-output-to-file
+          open-input-file open-output-file close-input-port close-output-port
+          read read-char peek-char eof-object? char-ready? write display
+          newline write-char load)
 
   (begin (define-syntax cond ; Chibi-Scheme
            (er-macro-transformer
@@ -334,9 +337,6 @@
            (simplest-rational (- x e)
                               (+ x e)))
 
-         (define (string . xs) ; Chibi-Scheme
-           (list->string xs))
-
          (define (string-map f x . xs) ; R7RS
            (if (null? xs)
                (list->string (map f (string->list x)))
@@ -359,8 +359,6 @@
 
          (define (string-ci>=? . xs)
            (apply string>=? (map string-foldcase xs)))
-
-         (define substring string-copy)
 
          (define (for-each f x . xs) ; Chibi-Scheme
            (if (null? xs)

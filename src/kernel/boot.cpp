@@ -1143,130 +1143,215 @@ inline namespace kernel
 
       library.define<function>("make-string", [](let const& xs)
       {
-        /*
-           (make-string k)                                            procedure
-           (make-string k char)                                       procedure
+        switch (length(xs))
+        {
+        case 1:
+          return make<string>(xs[0].as<exact_integer>(), character());
 
-           The make-string procedure returns a newly allocated string of length
-           k. If char is given, then all the characters of the string are
-           initialized to char, otherwise the contents of the string are
-           unspecified.
-        */
+        case 2:
+          return make<string>(xs[0].as<exact_integer>(), xs[1].as<character>());
 
-        return make<string>(xs[0].as<exact_integer>(),
-                            1 < length(xs) ? xs[1].as<character>() : character());
+        default:
+          throw error(make<string>("procedure make-string takes one or two arugments, but got"), xs);
+        }
+      });
+
+      library.define<function>("string", [](let const& xs)
+      {
+        let s = make<string>();
+
+        for (let const& x : xs)
+        {
+          s.as<string>().vector.push_back(x.as<character>());
+        }
+
+        return s;
       });
 
       library.define<function>("string-length", [](let const& xs)
       {
-        /*
-           (string-length string)                                     procedure
-
-           Returns the number of characters in the given string.
-        */
-
         return make<exact_integer>(xs[0].as<string>().vector.size());
       });
 
       library.define<function>("string-ref", [](let const& xs)
       {
-        /*
-           (string-ref string k)                                      procedure
-
-           It is an error if k is not a valid index of string.
-
-           The string-ref procedure returns character k of string using
-           zero-origin indexing. There is no requirement for this procedure to
-           execute in constant time.
-        */
-
         return make(xs[0].as<string>().vector.at(xs[1].as<exact_integer>()));
       });
 
       library.define<mutation>("string-set!", [](let & xs)
       {
-        /*
-           (string-set! string k char)                                procedure
-
-           It is an error if k is not a valid index of string.
-
-           The string-set! procedure stores char in element k of string. There
-           is no requirement for this procedure to execute in constant time.
-        */
-
         xs[0].as<string>().vector.at(xs[1].as<exact_integer>()) = xs[2].as<character>();
+      });
+
+      library.define<predicate>("string=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<string>().vector == b.as<string>().vector);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string<?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<string>().vector < b.as<string>().vector);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string>?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<string>().vector > b.as<string>().vector);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string<=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<string>().vector <= b.as<string>().vector);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string>=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<string>().vector >= b.as<string>().vector);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
       });
 
       library.define<function>("string-append", [](let const& xs)
       {
-        /*
-           (string-append string ...)                                 procedure
-
-           Returns a newly allocated string whose characters are the
-           concatenation of the characters in the given strings.
-        */
-
-        auto&& s = string();
+        let s = make<string>();
 
         for (let const& x : xs)
         {
-          std::copy(std::begin(x.as<string>().vector),
-                    std::end(x.as<string>().vector),
-                    std::back_inserter(s.vector));
+          s.as<string>().vector.insert(s.as<string>().vector.end(),
+                                       x.as<string>().vector.begin(),
+                                       x.as<string>().vector.end());
         }
 
-        return make(std::forward<decltype(s)>(s));
+        return s;
+      });
+
+      library.define<function>("string->list", [](let const& xs)
+      {
+        auto push = [](let const& xs, character const& c)
+        {
+          return cons(make(c), xs);
+        };
+
+        switch (length(xs))
+        {
+        case 1:
+          return std::accumulate(xs[0].as<string>().vector.rbegin(),
+                                 xs[0].as<string>().vector.rend(),
+                                 unit,
+                                 push);
+
+        case 2:
+          return std::accumulate(xs[0].as<string>().vector.rbegin(),
+                                 std::prev(xs[0].as<string>().vector.rend(),
+                                           xs[1].as<exact_integer>()),
+                                 unit,
+                                 push);
+
+        case 3:
+          return std::accumulate(std::prev(xs[0].as<string>().vector.rend(),
+                                           xs[2].as<exact_integer>()),
+                                 std::prev(xs[0].as<string>().vector.rend(),
+                                           xs[1].as<exact_integer>()),
+                                 unit,
+                                 push);
+
+        default:
+          throw error(make<string>("procedure string->list takes one to three arugments, but got"), xs);
+        }
+      });
+
+      library.define<function>("list->string", [](let const& xs)
+      {
+        let s = make<string>();
+
+        for (let const& x : xs[0])
+        {
+          s.as<string>().vector.push_back(x.as<character>());
+        }
+
+        return s;
       });
 
       library.define<function>("string-copy", [](let const& xs)
       {
-        /*
-           (string-copy string)                                       procedure
-           (string-copy string start)                                 procedure
-           (string-copy string start end)                             procedure
+        switch (length(xs))
+        {
+        case 1:
+          return make<string>(xs[0].as<string>().vector.begin(),
+                              xs[0].as<string>().vector.end());
 
-           Returns a newly allocated copy of the part of the given string
-           between start and end.
-        */
+        case 2:
+          return make<string>(std::next(xs[0].as<string>().vector.begin(),
+                                        xs[1].as<exact_integer>()),
+                              xs[0].as<string>().vector.end());
 
-        auto&& s = string();
+        case 3:
+          return make<string>(std::next(xs[0].as<string>().vector.begin(),
+                                        xs[1].as<exact_integer>()),
+                              std::next(xs[0].as<string>().vector.begin(),
+                                        xs[2].as<exact_integer>()));
 
-        std::copy(std::next(std::begin(xs[0].as<string>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
-                  std::next(std::begin(xs[0].as<string>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<string>().vector.size()),
-                  std::back_inserter(s.vector));
-
-        return make(s);
+        default:
+          throw error(make<string>("procedure string-copy takes one to three arugments, but got"), xs);
+        }
       });
 
       library.define<command>("string-copy!", [](let const& xs)
       {
-        /*
-           (string-copy! to at from)                                  procedure
-           (string-copy! to at from start)                            procedure
-           (string-copy! to at from start end)                        procedure
+        xs[0].as<string>().vector.reserve(xs[0].as<string>().vector.size() +
+                                          xs[2].as<string>().vector.size());
 
-           It is an error if at is less than zero or greater than the length of
-           to. It is also an error if (- (string-length to) at) is less than (-
-           end start).
+        switch (length(xs))
+        {
+        case 3:
+          std::copy(xs[2].as<string>().vector.begin(),
+                    xs[2].as<string>().vector.end(),
+                    std::next(xs[0].as<string>().vector.begin(),
+                              xs[1].as<exact_integer>()));
+          break;
 
-           Copies the characters of string from between start and end to string
-           to, starting at at. The order in which characters are copied is
-           unspecified, except that if the source and destination overlap,
-           copying takes place as if the source is first copied into a
-           temporary string and then into the destination. This can be achieved
-           without allocating storage by making sure to copy in the correct
-           direction in such circumstances.
-        */
+        case 4:
+          std::copy(std::next(xs[2].as<string>().vector.begin(),
+                              xs[3].as<exact_integer>()),
+                    xs[2].as<string>().vector.end(),
+                    std::next(xs[0].as<string>().vector.begin(),
+                              xs[1].as<exact_integer>()));
+          break;
 
-        auto&& s1 = xs[0].as<string>().vector;
+        case 5:
+          std::copy(std::next(xs[2].as<string>().vector.begin(),
+                              xs[3].as<exact_integer>()),
+                    std::next(xs[2].as<string>().vector.begin(),
+                              xs[4].as<exact_integer>()),
+                    std::next(xs[0].as<string>().vector.begin(),
+                              xs[1].as<exact_integer>()));
+          break;
 
-        auto&& s2 = xs[2].as<string>().vector;
-
-        s1.reserve(s1.size() + s2.size());
-
-        std::copy(std::next(std::begin(s2), 3 < length(xs) ? xs[3].as<exact_integer>() : 0),
-                  std::next(std::begin(s2), 4 < length(xs) ? xs[4].as<exact_integer>() : s2.size()),
-                  std::next(std::begin(s1), xs[1].as<exact_integer>()));
+        default:
+          throw error(make<string>("procedure string-copy takes three to five arugments, but got"), xs);
+        }
       });
 
       library.define<mutation>("string-fill!", [](let & xs)
@@ -1293,27 +1378,19 @@ inline namespace kernel
                               xs[3].as<exact_integer>()),
                     xs[1].as<character>());
           break;
+
+        default:
+          throw error(make<string>("procedure string-fill! takes one to three arugments, but got"), xs);
         }
       });
+    });
 
-      #define STRING_COMPARE(COMPARE)                                          \
-      [](let const& xs)                                                        \
-      {                                                                        \
-        return std::adjacent_find(                                             \
-                 std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
-                 {                                                             \
-                   return not COMPARE()(a.as_const<string>().vector,           \
-                                        b.as_const<string>().vector);          \
-                 }) == std::end(xs);                                           \
-      }
-
-      library.define<predicate>("string=?",  STRING_COMPARE(std::equal_to     ));
-      library.define<predicate>("string<?",  STRING_COMPARE(std::less         ));
-      library.define<predicate>("string<=?", STRING_COMPARE(std::less_equal   ));
-      library.define<predicate>("string>?",  STRING_COMPARE(std::greater      ));
-      library.define<predicate>("string>=?", STRING_COMPARE(std::greater_equal));
-
-      #undef STRING_COMPARE
+    define<library>("(meevax symbol)", [](library & library)
+    {
+      library.define<predicate>("symbol?", [](let const& xs)
+      {
+        return xs[0].is<symbol>();
+      });
 
       library.define<function>("symbol->string", [](let const& xs)
       {
@@ -1325,58 +1402,9 @@ inline namespace kernel
         return make_symbol(xs[0].as<string>());
       });
 
-      library.define<function>("string->list", [](let const& xs)
-      {
-        /*
-           (string->list string)                                      procedure
-           (string->list string start)                                procedure
-           (string->list string start end)                            procedure
-
-           (list->string list)                                        procedure
-
-           It is an error if any element of list is not a character.
-
-           The string->list procedure returns a newly allocated list of the
-           characters of string between start and end. list->string returns a
-           newly allocated string formed from the elements in the list list. In
-           both procedures, order is preserved. string->list and list->string
-           are inverses so far as equal? is concerned.
-        */
-
-        return std::accumulate(std::prev(std::rend(xs[0].as<string>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<string>().vector.size()),
-                               std::prev(std::rend(xs[0].as<string>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
-                               unit,
-                               [](let const& xs, character const& c)
-                               {
-                                 return cons(make(c), xs);
-                               });
-      });
-
-      library.define<function>("list->string", [](let const& xs)
-      {
-        auto&& s = string();
-
-        for (let const& x : xs[0])
-        {
-          s.vector.push_back(x.as<character>());
-        }
-
-        return make(std::forward<decltype(s)>(s));
-      });
-    });
-
-    define<library>("(meevax symbol)", [](library & library)
-    {
-      library.define<predicate>("symbol?", [](let const& xs)
-      {
-        return xs[0].is<symbol>();
-      });
-
-      using syntactic_closure = environment::syntactic_closure;
-
       library.define<function>("identifier->symbol", [](let const& xs)
       {
-        if (let const& x = xs[0]; x.is<syntactic_closure>())
+        if (let const& x = xs[0]; x.is<environment::syntactic_closure>())
         {
           return cddr(x);
         }
