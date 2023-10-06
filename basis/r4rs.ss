@@ -48,20 +48,7 @@
           (only (meevax number) number? complex? real? rational? integer? exact? inexact? = < > <= >= zero? positive? negative? odd? even? max min + * - / abs quotient remainder modulo gcd lcm numerator denominator floor ceiling truncate round expt exact inexact number->string string->number)
           (only (meevax pair) pair? cons car cdr set-car! set-cdr! caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr)
           (meevax port)
-          (only (meevax string)
-                string?
-                make-string string
-                string-length string-ref string-set!
-                string=? string<? string>? string<=? string>=?
-                ; string-ci=?
-                ; string-ci<?
-                ; string-ci>?
-                ; string-ci<=?
-                ; string-ci>=?
-                string-append
-                string->list list->string
-                string-copy string-fill!
-                )
+          (only (meevax string) string? make-string string string-length string-ref string-set! string=? string<? string>? string<=? string>=? string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=? string-append string->list list->string string-copy string-fill!)
           (only (meevax symbol) symbol? symbol->string string->symbol)
           (meevax vector)
           (prefix (only (meevax environment) load) %)
@@ -336,29 +323,6 @@
                              0.0))))
            (simplest-rational (- x e)
                               (+ x e)))
-
-         (define (string-map f x . xs) ; R7RS
-           (if (null? xs)
-               (list->string (map f (string->list x)))
-               (list->string (apply map f (map string->list (cons x xs))))))
-
-         (define (string-foldcase s) ; R7RS
-           (string-map char-downcase s))
-
-         (define (string-ci=? . xs)
-           (apply string=? (map string-foldcase xs)))
-
-         (define (string-ci<? . xs)
-           (apply string<? (map string-foldcase xs)))
-
-         (define (string-ci>? . xs)
-           (apply string>? (map string-foldcase xs)))
-
-         (define (string-ci<=? . xs)
-           (apply string<=? (map string-foldcase xs)))
-
-         (define (string-ci>=? . xs)
-           (apply string>=? (map string-foldcase xs)))
 
          (define (for-each f x . xs) ; Chibi-Scheme
            (if (null? xs)

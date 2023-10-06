@@ -1233,6 +1233,86 @@ inline namespace kernel
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
       });
 
+      library.define<predicate>("string-ci=?", [](let const& xs)
+      {
+        auto compare = [](let const& s1, let const& s2)
+        {
+          auto compare = [](auto const& c1, auto const& c2)
+          {
+            return c1.downcase() == c2.downcase();
+          };
+
+          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
+                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string-ci<?", [](let const& xs)
+      {
+        auto compare = [](let const& s1, let const& s2)
+        {
+          auto compare = [](auto const& c1, auto const& c2)
+          {
+            return c1.downcase() < c2.downcase();
+          };
+
+          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
+                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string-ci>?", [](let const& xs)
+      {
+        auto compare = [](let const& s1, let const& s2)
+        {
+          auto compare = [](auto const& c1, auto const& c2)
+          {
+            return c1.downcase() > c2.downcase();
+          };
+
+          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
+                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string-ci<=?", [](let const& xs)
+      {
+        auto compare = [](let const& s1, let const& s2)
+        {
+          auto compare = [](auto const& c1, auto const& c2)
+          {
+            return c1.downcase() <= c2.downcase();
+          };
+
+          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
+                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string-ci>=?", [](let const& xs)
+      {
+        auto compare = [](let const& s1, let const& s2)
+        {
+          auto compare = [](auto const& c1, auto const& c2)
+          {
+            return c1.downcase() >= c2.downcase();
+          };
+
+          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
+                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
       library.define<function>("string-append", [](let const& xs)
       {
         let s = make<string>();
