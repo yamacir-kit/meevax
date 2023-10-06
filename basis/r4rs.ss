@@ -50,7 +50,7 @@
           (meevax port)
           (only (meevax string) string? make-string string string-length string-ref string-set! string=? string<? string>? string<=? string>=? string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=? string-append string->list list->string string-copy string-fill!)
           (only (meevax symbol) symbol? symbol->string string->symbol)
-          (meevax vector)
+          (only (meevax vector) vector? make-vector vector vector-length vector-ref vector-set! vector->list list->vector vector-fill!)
           (prefix (only (meevax environment) load) %)
           (prefix (meevax read) %)
           (prefix (meevax write) %)

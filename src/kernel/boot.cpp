@@ -1574,137 +1574,195 @@ inline namespace kernel
 
       library.define<function>("vector", [](let const& xs)
       {
-        /*
-           (vector obj ...)                                           procedure
-
-           Returns a newly allocated vector whose elements contain the given
-           arguments. It is analogous to list.
-        */
-
         return make<vector>(xs);
       });
 
       library.define<function>("make-vector", [](let const& xs)
       {
-        /*
-           (make-vector k)                                            procedure
-           (make-vector k fill)                                       procedure
-
-           Returns a newly allocated vector of k elements. If a second argument
-           is given, then each element is initialized to fill. Otherwise the
-           initial contents of each element is unspecified.
-        */
-
-        return make<vector>(xs[0].as<exact_integer>(), 1 < length(xs) ? xs[1] : unspecified);
-      });
-
-      library.define<function>("vector-append", [](let const& xs)
-      {
-        /*
-           (vector-append vector ...)                                 procedure
-
-           Returns a newly allocated vector whose elements are the
-           concatenation of the elements of the given vectors.
-        */
-
-        auto&& v = vector();
-
-        for (let const& x : xs)
+        switch (length(xs))
         {
-          for (let const& object : x.as<vector>().vector)
-          {
-            v.vector.push_back(object);
-          }
+        case 1:
+          return make<vector>(xs[0].as<exact_integer>(), unspecified);
+
+        case 2:
+          return make<vector>(xs[0].as<exact_integer>(), xs[1]);
+
+        default:
+          throw error(make<string>("procedure make-vector takes one or two arugments, but got"), xs);
         }
-
-        return make(std::forward<decltype(v)>(v));
-      });
-
-      library.define<function>("vector-copy", [](let const& xs)
-      {
-        /*
-           (vector-copy vector)                                       procedure
-           (vector-copy vector start)                                 procedure
-           (vector-copy vector start end)                             procedure
-
-           Returns a newly allocated copy of the elements of the given vector
-           between start and end. The elements of the new vector are the same
-           (in the sense of eqv?) as the elements of the old.
-        */
-
-        auto&& v = vector();
-
-        std::copy(std::next(std::begin(xs[0].as<vector>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
-                  std::next(std::begin(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().vector.size()),
-                  std::back_inserter(v.vector));
-
-        return make(std::forward<decltype(v)>(v));
-      });
-
-      library.define<command>("vector-copy!", [](let const& xs)
-      {
-        /*
-           (vector-copy! to at from)                                  procedure
-           (vector-copy! to at from start)                            procedure
-           (vector-copy! to at from start end)                        procedure
-
-           It is an error if at is less than zero or greater than the length of
-           to. It is also an error if (- (vector-length to) at) is less than (-
-           end start).
-
-           Copies the elements of vector from between start and end to vector
-           to, starting at at. The order in which elements are copied is
-           unspecified, except that if the source and destination overlap,
-           copying takes place as if the source is first copied into a
-           temporary vector and then into the destination. This can be achieved
-           without allocating storage by making sure to copy in the correct
-           direction in such circumstances.
-        */
-
-        auto&& v1 = xs[0].as<vector>().vector;
-
-        auto&& v2 = xs[2].as<vector>().vector;
-
-        v1.reserve(v1.size() + v2.size());
-
-        std::copy(std::next(std::begin(v2), 3 < length(xs) ? xs[3].as<exact_integer>() : 0),
-                  std::next(std::begin(v2), 4 < length(xs) ? xs[4].as<exact_integer>() : v1.size()),
-                  std::next(std::begin(v1), xs[1].as<exact_integer>()));
       });
 
       library.define<function>("vector-length", [](let const& xs)
       {
-        /*
-           (vector-length vector)                                     procedure
-
-           Returns the number of elements in vector as an exact integer.
-        */
-
         return make<exact_integer>(xs[0].as<vector>().vector.size());
       });
 
       library.define<accessor>("vector-ref", [](let const& xs) -> auto const&
       {
-        /*
-           (vector-ref vector k)                                      procedure
-
-           It is an error if k is not a valid index of vector. The vector-ref
-           procedure returns the contents of element k of vector.
-        */
-
         return xs[0][xs[1].as<exact_integer>()];
       });
 
       library.define<mutation>("vector-set!", [](let & xs)
       {
-        /*
-           (vector-set! vector k obj)                                 procedure
-
-           It is an error if k is not a valid index of vector. The vector-set!
-           procedure stores obj in element k of vector.
-        */
-
         xs[0].as<vector>().vector[xs[1].as<exact_integer>()] = xs[2];
+      });
+
+      library.define<function>("vector->list", [](let const& xs)
+      {
+        switch (length(xs))
+        {
+        case 1:
+          return std::accumulate(xs[0].as<vector>().vector.rbegin(),
+                                 xs[0].as<vector>().vector.rend(),
+                                 unit,
+                                 xcons);
+
+        case 2:
+          return std::accumulate(xs[0].as<vector>().vector.rbegin(),
+                                 std::prev(xs[0].as<vector>().vector.rend(),
+                                           xs[1].as<exact_integer>()),
+                                 unit,
+                                 xcons);
+
+        case 3:
+          return std::accumulate(std::prev(xs[0].as<vector>().vector.rend(),
+                                           xs[2].as<exact_integer>()),
+                                 std::prev(xs[0].as<vector>().vector.rend(),
+                                           xs[1].as<exact_integer>()),
+                                 unit,
+                                 xcons);
+
+        default:
+          throw error(make<string>("procedure vector->list takes one to three arugments, but got"), xs);
+        }
+      });
+
+      library.define<function>("list->vector", [](let const& xs)
+      {
+        return make<vector>(xs[0]);
+      });
+
+      library.define<function>("vector->string", [](let const& xs)
+      {
+        let s = make<string>();
+
+        auto push_back = [&](let const& x)
+        {
+          s.as<string>().vector.push_back(x.as<character>());
+        };
+
+        switch (length(xs))
+        {
+        case 1:
+          std::for_each(xs[0].as<vector>().vector.begin(),
+                        xs[0].as<vector>().vector.end(),
+                        push_back);
+          return s;
+
+        case 2:
+          std::for_each(std::next(xs[0].as<vector>().vector.begin(),
+                                  xs[1].as<exact_integer>()),
+                        xs[0].as<vector>().vector.end(),
+                        push_back);
+          return s;
+
+        case 3:
+          std::for_each(std::next(xs[0].as<vector>().vector.begin(),
+                                  xs[1].as<exact_integer>()),
+                        std::next(xs[0].as<vector>().vector.begin(),
+                                  xs[2].as<exact_integer>()),
+                        push_back);
+          return s;
+
+        default:
+          throw error(make<string>("procedure vector->list takes one to three arugments, but got"), xs);
+        }
+      });
+
+      library.define<function>("string->vector", [](let const& xs)
+      {
+        let v = make<vector>();
+
+        for (auto character : xs[0].as<string>().vector)
+        {
+          v.as<vector>().vector.push_back(make(character));
+        }
+
+        return v;
+      });
+
+      library.define<function>("vector-copy", [](let const& xs)
+      {
+        switch (length(xs))
+        {
+        case 1:
+          return make<vector>(xs[0].as<vector>().vector.begin(),
+                              xs[0].as<vector>().vector.end());
+
+        case 2:
+          return make<vector>(std::next(xs[0].as<vector>().vector.begin(),
+                                        xs[1].as<exact_integer>()),
+                              xs[0].as<vector>().vector.end());
+
+        case 3:
+          return make<vector>(std::next(xs[0].as<vector>().vector.begin(),
+                                        xs[1].as<exact_integer>()),
+                              std::next(xs[0].as<vector>().vector.begin(),
+                                        xs[2].as<exact_integer>()));
+
+        default:
+          throw error(make<string>("procedure vector-copy takes one to three arugments, but got"), xs);
+        }
+      });
+
+      library.define<command>("vector-copy!", [](let const& xs)
+      {
+        xs[0].as<vector>().vector.reserve(xs[0].as<vector>().vector.size() +
+                                          xs[2].as<vector>().vector.size());
+
+        switch (length(xs))
+        {
+        case 3:
+          std::copy(xs[2].as<vector>().vector.begin(),
+                    xs[2].as<vector>().vector.end(),
+                    std::next(xs[0].as<vector>().vector.begin(),
+                              xs[1].as<exact_integer>()));
+          break;
+
+        case 4:
+          std::copy(std::next(xs[2].as<vector>().vector.begin(),
+                              xs[3].as<exact_integer>()),
+                    xs[2].as<vector>().vector.end(),
+                    std::next(xs[0].as<vector>().vector.begin(),
+                              xs[1].as<exact_integer>()));
+          break;
+
+        case 5:
+          std::copy(std::next(xs[2].as<vector>().vector.begin(),
+                              xs[3].as<exact_integer>()),
+                    std::next(xs[2].as<vector>().vector.begin(),
+                              xs[4].as<exact_integer>()),
+                    std::next(xs[0].as<vector>().vector.begin(),
+                              xs[1].as<exact_integer>()));
+          break;
+
+        default:
+          throw error(make<string>("procedure vector-copy takes three to five arugments, but got"), xs);
+        }
+      });
+
+      library.define<function>("vector-append", [](let const& xs)
+      {
+        let v = make<vector>();
+
+        for (let const& x : xs)
+        {
+          v.as<vector>().vector.insert(v.as<vector>().vector.end(),
+                                       x.as<vector>().vector.begin(),
+                                       x.as<vector>().vector.end());
+        }
+
+        return v;
       });
 
       library.define<mutation>("vector-fill!", [](let & xs)
@@ -1732,45 +1790,6 @@ inline namespace kernel
                     xs[1]);
           break;
         }
-      });
-
-      library.define<function>("vector->list", [](let const& xs)
-      {
-        return std::accumulate(std::prev(std::rend(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().vector.size()),
-                               std::prev(std::rend(xs[0].as<vector>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
-                               unit,
-                               xcons);
-      });
-
-      library.define<function>("list->vector", [](let const& xs)
-      {
-        return make<vector>(xs[0]);
-      });
-
-      library.define<function>("vector->string", [](let const& xs)
-      {
-        auto s = string();
-
-        std::for_each(std::next(std::begin(xs[0].as<vector>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
-                      std::next(std::begin(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().vector.size()),
-                      [&](let const& x)
-                      {
-                        s.vector.push_back(x.as<character>());
-                      });
-
-        return make(s);
-      });
-
-      library.define<function>("string->vector", [](let const& xs)
-      {
-        auto v = vector();
-
-        for (auto&& character : xs[0].as<string>().vector)
-        {
-          v.vector.push_back(make(character));
-        }
-
-        return make(v);
       });
     });
 
