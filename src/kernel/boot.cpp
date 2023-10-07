@@ -1071,7 +1071,7 @@ inline namespace kernel
 
       library.define<procedure>("procedure", [](let const& xs)
       {
-        return make<procedure>(xs[1].as<string>(), xs[0].as<string>());
+        return make<procedure>(xs[0].as<string>(), xs[1].as<symbol>());
       });
     });
 

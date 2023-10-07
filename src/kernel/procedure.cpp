@@ -84,8 +84,8 @@ inline namespace kernel
     }
   }
 
-  procedure::procedure(std::string const& name, std::string const& libfoo_so)
-    : procedure { name, dlsym(name, dlopen(libfoo_so)) }
+  procedure::procedure(std::string const& filename, std::string const& symbol)
+    : procedure { name, dlsym(symbol, dlopen(filename)) }
   {}
 } // namespace kernel
 } // namespace meevax

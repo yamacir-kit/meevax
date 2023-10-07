@@ -7,7 +7,7 @@
 ; ------------------------------------------------------------------------------
 
 (define dummy-procedure
-  (procedure "build/libexample.so" "dummy_procedure"))
+  (procedure "build/libexample.so" 'dummy_procedure))
 
 (check (procedure? dummy-procedure) => #t)
 
@@ -16,7 +16,7 @@
 ; ------------------------------------------------------------------------------
 
 (define length-of-arguments
-  (procedure "build/libexample.so" "length_of_arguments"))
+  (procedure "build/libexample.so" 'length_of_arguments))
 
 (check (procedure? length-of-arguments) => #t)
 
@@ -25,13 +25,13 @@
 ; ------------------------------------------------------------------------------
 
 (define make-hoge
-  (procedure "build/libexample.so" "make_hoge"))
+  (procedure "build/libexample.so" 'make_hoge))
 
 (define hoge?
-  (procedure "build/libexample.so" "is_hoge"))
+  (procedure "build/libexample.so" 'is_hoge))
 
 (define hoge-value
-  (procedure "build/libexample.so" "hoge_value"))
+  (procedure "build/libexample.so" 'hoge_value))
 
 (check (procedure? make-hoge) => #t)
 
