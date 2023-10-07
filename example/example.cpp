@@ -4,7 +4,7 @@ using namespace meevax; // NOTE: DIRTY HACK
 
 extern "C"
 {
-  auto length_of_arguments(object const& xs)
+  auto arity(object const& xs)
   {
     return make<exact_integer>(length(xs));
   }

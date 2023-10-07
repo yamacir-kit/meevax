@@ -15,12 +15,12 @@
 
 ; ------------------------------------------------------------------------------
 
-(define length-of-arguments
-  (procedure "build/libexample.so" 'length_of_arguments))
+(define arity
+  (procedure "build/libexample.so" 'arity))
 
-(check (procedure? length-of-arguments) => #t)
+(check (procedure? arity) => #t)
 
-(check (length-of-arguments 'hoge 42 #(1 2 3) 3.14) => 4)
+(check (arity 'hoge 42 #(1 2 3) 3.14) => 4)
 
 ; ------------------------------------------------------------------------------
 
