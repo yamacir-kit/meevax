@@ -4,12 +4,12 @@ using namespace meevax; // NOTE: DIRTY HACK
 
 extern "C"
 {
-  auto arity(object const& xs)
+  auto arity(object & xs)
   {
     return make<exact_integer>(length(xs));
   }
 
-  auto dummy_procedure(object const& xs)
+  auto dummy_procedure(object & xs)
   {
     std::cout << "\n; calling C++ function." << std::endl;
 
@@ -45,17 +45,17 @@ extern "C"
     }
   };
 
-  auto make_hoge(object const& xs)
+  auto make_hoge(object & xs)
   {
     return make<hoge>(xs[0].as<exact_integer>());
   }
 
-  auto is_hoge(object const& xs)
+  auto is_hoge(object & xs)
   {
     return xs[0].is<hoge>() ? t : f;
   }
 
-  auto hoge_value(object const& xs)
+  auto hoge_value(object & xs)
   {
     return make<exact_integer>(xs[0].as<hoge>().value);
   }

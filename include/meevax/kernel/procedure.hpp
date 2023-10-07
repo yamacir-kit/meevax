@@ -85,7 +85,7 @@ inline namespace kernel
     }
   };
 
-  using procedure_pointer = auto (*)(object const&) -> object;
+  using procedure_pointer = auto (*)(object &) -> object;
 
   auto dlopen(std::string const&) -> void *;
 
