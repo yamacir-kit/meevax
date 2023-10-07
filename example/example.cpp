@@ -11,7 +11,7 @@ extern "C"
 
   auto dummy_procedure(object const& xs)
   {
-    std::cout << "\n; calling C++ function via foreign-function-interface." << std::endl;
+    std::cout << "\n; calling C++ function." << std::endl;
 
     std::size_t count = 0;
 

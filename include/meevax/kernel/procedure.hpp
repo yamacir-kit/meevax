@@ -25,31 +25,29 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct procedure
+  struct callable
   {
     std::string const name;
 
-    explicit procedure(std::string const& name)
+    explicit callable(std::string const& name)
       : name { name }
     {}
 
     virtual auto operator ()(object & = unit) const -> object = 0;
   };
 
-  auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
+  auto operator <<(std::ostream &, callable const&) -> std::ostream &;
 
-  #define FUNCTION(...) auto __VA_ARGS__(meevax::object const& xs) -> meevax::object
-
-  struct function : public procedure
+  struct procedure : public callable
   {
     auto (*call)(object const&) -> object;
 
-    explicit function(std::string const& name, auto (*call)(object const&) -> object)
-      : procedure { name }
+    explicit procedure(std::string const& name, auto (*call)(object const&) -> object)
+      : callable { name }
       , call { call }
     {}
 
-    explicit function(std::string const&, std::string const&);
+    explicit procedure(std::string const&, std::string const&);
 
     auto operator ()(object & xs) const -> object override
     {
@@ -57,12 +55,14 @@ inline namespace kernel
     }
   };
 
-  struct functor : public procedure
+  struct functor : public callable
   {
+    #define FUNCTION(...) auto __VA_ARGS__(meevax::object const& xs) -> meevax::object
+
     std::function<FUNCTION()> const call;
 
     explicit functor(std::string const& name, std::function<FUNCTION()> const& call)
-      : procedure { name }
+      : callable { name }
       , call { call }
     {}
 
@@ -72,12 +72,12 @@ inline namespace kernel
     }
   };
 
-  struct accessor : public procedure
+  struct accessor : public callable
   {
     auto (*call)(object const&) -> object const&;
 
     explicit accessor(std::string const& name, auto (*call)(object const&) -> object const&)
-      : procedure { name }
+      : callable { name }
       , call { call }
     {}
 
@@ -87,12 +87,12 @@ inline namespace kernel
     }
   };
 
-  struct predicate : public procedure
+  struct predicate : public callable
   {
     auto (*call)(object const&) -> bool;
 
     explicit predicate(std::string const& name, auto (*call)(object const&) -> bool)
-      : procedure { name }
+      : callable { name }
       , call { call }
     {}
 
@@ -102,12 +102,12 @@ inline namespace kernel
     }
   };
 
-  struct mutation : public procedure
+  struct mutation : public callable
   {
     auto (*call)(object &) -> void;
 
     explicit mutation(std::string const& name, auto (*call)(object &) -> void)
-      : procedure { name }
+      : callable { name }
       , call { call }
     {}
 
@@ -118,12 +118,12 @@ inline namespace kernel
     }
   };
 
-  struct command : public procedure
+  struct command : public callable
   {
     auto (*call)(object const&) -> void;
 
     explicit command(std::string const& name, auto (*call)(object const&) -> void)
-      : procedure { name }
+      : callable { name }
       , call { call }
     {}
 
@@ -134,12 +134,12 @@ inline namespace kernel
     }
   };
 
-  struct thunk : public procedure
+  struct thunk : public callable
   {
     auto (*call)() -> object;
 
     explicit thunk(std::string const& name, auto (*call)() -> object)
-      : procedure { name }
+      : callable { name }
       , call { call }
     {}
 

@@ -286,16 +286,16 @@ inline namespace kernel
             s = unit;
             goto fetch;
           }
-          else if (callee.is_also<procedure>()) /* -----------------------------
+          else if (callee.is_also<callable>()) /* ------------------------------
           *
-          *  (<procedure> xs . s) e (%call . c) d => (x . s) e c d
+          *  (<callable> xs . s) e (%call . c) d => (x . s) e c d
           *
           *  where x = procedure(xs)
           *
           * ----------------------------------------------------------------- */
           {
             assert(tail(c, 1).template is<pair>());
-            s = cons(callee.as<procedure>()(cadr(s)), cddr(s));
+            s = cons(callee.as<callable>()(cadr(s)), cddr(s));
             c = cdr(c);
             goto fetch;
           }
@@ -336,9 +336,9 @@ inline namespace kernel
             s = unit;
             goto fetch;
           }
-          else if (callee.is_also<procedure>()) /* -----------------------------
+          else if (callee.is_also<callable>()) /* ------------------------------
           *
-          *  (<procedure> xs) e (%tail-call) (s' e' c' . d) => (x . s') e' c' d
+          *  (<callable> xs) e (%tail-call) (s' e' c' . d) => (x . s') e' c' d
           *
           *  where x = procedure(xs)
           *
@@ -346,7 +346,7 @@ inline namespace kernel
           {
             assert(tail(s, 2).template is<null>());
             assert(tail(c, 1).template is<null>());
-            s = cons(callee.as<procedure>()(cadr(s)), car(d));
+            s = cons(callee.as<callable>()(cadr(s)), car(d));
             e = cadr(d);
             c = caddr(d);
             d = cdddr(d);

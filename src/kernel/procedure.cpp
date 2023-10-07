@@ -31,6 +31,11 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto operator <<(std::ostream & os, callable const& datum) -> std::ostream &
+  {
+    return os << magenta("#,(") << green("procedure") << " " << symbol(datum.name) << magenta(")");
+  }
+
   auto dlopen(std::string const& libfoo_so) -> void *
   {
     auto dlclose = [](void * const handle)
@@ -79,13 +84,8 @@ inline namespace kernel
     }
   }
 
-  function::function(std::string const& name, std::string const& libfoo_so)
-    : function { name, dlsym(name, dlopen(libfoo_so)) }
+  procedure::procedure(std::string const& name, std::string const& libfoo_so)
+    : procedure { name, dlsym(name, dlopen(libfoo_so)) }
   {}
-
-  auto operator <<(std::ostream & os, procedure const& datum) -> std::ostream &
-  {
-    return os << magenta("#,(") << green("procedure") << " " << symbol(datum.name) << magenta(")");
-  }
 } // namespace kernel
 } // namespace meevax
