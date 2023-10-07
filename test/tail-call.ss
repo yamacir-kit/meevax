@@ -1,5 +1,5 @@
 (import (only (meevax core) call-with-current-continuation!)
-        (only (meevax function) closure?)
+        (only (meevax procedure) closure?)
         (scheme base)
         (scheme write)
         (scheme process-context)

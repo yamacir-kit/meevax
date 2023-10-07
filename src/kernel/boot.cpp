@@ -431,35 +431,6 @@ inline namespace kernel
       });
     });
 
-    define<library>("(meevax function)", [](library & library)
-    {
-      library.define<predicate>("procedure?", [](let const& xs)
-      {
-        let const& x = xs[0];
-        return x.is<closure>() or x.is<continuation>() or x.is_also<procedure>();
-      });
-
-      library.define<predicate>("closure?", [](let const& xs)
-      {
-        return xs[0].is<closure>();
-      });
-
-      library.define<predicate>("continuation?", [](let const& xs)
-      {
-        return xs[0].is<continuation>();
-      });
-
-      library.define<predicate>("foreign-function?", [](let const& xs)
-      {
-        return xs[0].is_also<procedure>();
-      });
-
-      library.define<function>("foreign-function", [](let const& xs)
-      {
-        return make<function>(xs[1].as<string>(), xs[0].as<string>());
-      });
-    });
-
     define<library>("(meevax garbage-collector)", [](library & library)
     {
       library.define<command>("gc-collect", [](let const&)
@@ -1078,6 +1049,34 @@ inline namespace kernel
       library.define<command>("flush", [](let const& xs)
       {
         xs[0].as<output_port>().flush();
+      });
+    });
+
+    define<library>("(meevax procedure)", [](library & library)
+    {
+      library.define<predicate>("procedure?", [](let const& xs)
+      {
+        return xs[0].is<closure>() or xs[0].is<continuation>() or xs[0].is_also<procedure>();
+      });
+
+      library.define<predicate>("closure?", [](let const& xs)
+      {
+        return xs[0].is<closure>();
+      });
+
+      library.define<predicate>("continuation?", [](let const& xs)
+      {
+        return xs[0].is<continuation>();
+      });
+
+      library.define<predicate>("foreign-function?", [](let const& xs)
+      {
+        return xs[0].is_also<procedure>();
+      });
+
+      library.define<function>("foreign-function", [](let const& xs)
+      {
+        return make<function>(xs[1].as<string>(), xs[0].as<string>());
       });
     });
 

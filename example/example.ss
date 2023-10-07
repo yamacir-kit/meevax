@@ -1,4 +1,4 @@
-(import (only (meevax function) foreign-function? foreign-function)
+(import (only (meevax procedure) foreign-function? foreign-function)
         (scheme base)
         (scheme process-context)
         (scheme write)
