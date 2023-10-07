@@ -71,20 +71,16 @@ inline namespace kernel
     }
   }
 
-  auto dlsym(std::string const& symbol, void * const handle) -> FUNCTION((*))
+  auto dlsym(std::string const& symbol, void * const handle) -> procedure_pointer
   {
     if (auto address = ::dlsym(handle, symbol.c_str()); address)
     {
-      return reinterpret_cast<FUNCTION((*))>(address);
+      return reinterpret_cast<procedure_pointer>(address);
     }
     else
     {
       throw file_error(make<string>(::dlerror()));
     }
   }
-
-  procedure::procedure(std::string const& filename, std::string const& symbol)
-    : procedure { filename, dlsym(symbol, dlopen(filename)) }
-  {}
 } // namespace kernel
 } // namespace meevax

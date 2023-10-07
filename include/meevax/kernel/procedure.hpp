@@ -38,116 +38,58 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, callable const&) -> std::ostream &;
 
+  template <typename, typename Callee>
   struct procedure : public callable
   {
-    auto (*call)(object const&) -> object;
+    Callee call;
 
-    explicit procedure(std::string const& name, auto (*call)(object const&) -> object)
-      : callable { name }
-      , call { call }
-    {}
-
-    explicit procedure(std::string const&, std::string const&);
-
-    auto operator ()(object & xs) const -> object override
-    {
-      return call(xs);
-    }
-  };
-
-  struct functor : public callable
-  {
-    #define FUNCTION(...) auto __VA_ARGS__(meevax::object const& xs) -> meevax::object
-
-    std::function<FUNCTION()> const call;
-
-    explicit functor(std::string const& name, std::function<FUNCTION()> const& call)
+    explicit procedure(std::string const& name, Callee call)
       : callable { name }
       , call { call }
     {}
 
     auto operator ()(object & xs) const -> object override
     {
-      return call(xs);
+      if constexpr (std::is_invocable_v<Callee>)
+      {
+        if constexpr (std::is_same_v<std::invoke_result_t<Callee>, void>)
+        {
+          call();
+          return unspecified;
+        }
+        else if constexpr (std::is_same_v<std::invoke_result_t<Callee>, bool>)
+        {
+          return call() ? t : f;
+        }
+        else
+        {
+          return call();
+        }
+      }
+      else
+      {
+        if constexpr (std::is_same_v<std::invoke_result_t<Callee, object &>, void>)
+        {
+          call(xs);
+          return unspecified;
+        }
+        else if constexpr (std::is_same_v<std::invoke_result_t<Callee, object &>, bool>)
+        {
+          return call(xs) ? t : f;
+        }
+        else
+        {
+          return call(xs);
+        }
+      }
     }
   };
 
-  struct accessor : public callable
-  {
-    auto (*call)(object const&) -> object const&;
+  using procedure_pointer = auto (*)(object const&) -> object;
 
-    explicit accessor(std::string const& name, auto (*call)(object const&) -> object const&)
-      : callable { name }
-      , call { call }
-    {}
+  auto dlopen(std::string const&) -> void *;
 
-    auto operator ()(object & xs) const -> object override
-    {
-      return call(xs);
-    }
-  };
-
-  struct predicate : public callable
-  {
-    auto (*call)(object const&) -> bool;
-
-    explicit predicate(std::string const& name, auto (*call)(object const&) -> bool)
-      : callable { name }
-      , call { call }
-    {}
-
-    auto operator ()(object & xs) const -> object override
-    {
-      return call(xs) ? t : f;
-    }
-  };
-
-  struct mutation : public callable
-  {
-    auto (*call)(object &) -> void;
-
-    explicit mutation(std::string const& name, auto (*call)(object &) -> void)
-      : callable { name }
-      , call { call }
-    {}
-
-    auto operator ()(object & xs) const -> object override
-    {
-      call(xs);
-      return unspecified;
-    }
-  };
-
-  struct command : public callable
-  {
-    auto (*call)(object const&) -> void;
-
-    explicit command(std::string const& name, auto (*call)(object const&) -> void)
-      : callable { name }
-      , call { call }
-    {}
-
-    auto operator ()(object & xs) const -> object override
-    {
-      call(xs);
-      return unspecified;
-    }
-  };
-
-  struct thunk : public callable
-  {
-    auto (*call)() -> object;
-
-    explicit thunk(std::string const& name, auto (*call)() -> object)
-      : callable { name }
-      , call { call }
-    {}
-
-    auto operator ()(object &) const -> object override
-    {
-      return call();
-    }
-  };
+  auto dlsym(std::string const&, void * const) -> procedure_pointer;
 } // namespace kernel
 } // namespace meevax
 
