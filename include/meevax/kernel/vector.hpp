@@ -33,6 +33,11 @@ inline namespace kernel
 
     explicit heterogeneous_vector(std::size_t, object const&);
 
+    template <typename Iterator>
+    explicit heterogeneous_vector(Iterator begin, Iterator end)
+      : vector { begin, end }
+    {}
+
     auto operator [](std::size_t) const -> object const&;
   };
 

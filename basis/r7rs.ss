@@ -421,8 +421,7 @@
            (string-map char-foldcase x))))
 
 (define-library (scheme complex)
-  (import (only (meevax complex) make-rectangular real-part imag-part)
-          (only (scheme r5rs) make-polar magnitude angle))
+  (import (only (scheme r5rs) make-rectangular make-polar real-part imag-part magnitude angle))
   (export make-rectangular make-polar real-part imag-part magnitude angle))
 
 (define-library (scheme cxr)

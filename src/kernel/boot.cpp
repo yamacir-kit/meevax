@@ -82,6 +82,106 @@ inline namespace kernel
         return xs[0].is<character>();
       });
 
+      library.define<predicate>("char=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().codepoint == b.as<character>().codepoint);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char<?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().codepoint < b.as<character>().codepoint);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char>?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().codepoint > b.as<character>().codepoint);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char<=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().codepoint <= b.as<character>().codepoint);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char>=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().codepoint >= b.as<character>().codepoint);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char-ci=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().downcase() == b.as<character>().downcase());
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char-ci<?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().downcase() < b.as<character>().downcase());
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char-ci>?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().downcase() > b.as<character>().downcase());
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char-ci<=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().downcase() <= b.as<character>().downcase());
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("char-ci>=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<character>().downcase() >= b.as<character>().downcase());
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
       library.define<predicate>("char-alphabetic?", [](let const& xs)
       {
         return xs[0].as<character>().property().is_letter();
@@ -144,14 +244,32 @@ inline namespace kernel
         return make<complex>(xs[0], xs[1]);
       });
 
+      library.define<function>("make-polar", [](let const& xs)
+      {
+        let const& radius = xs[0], angle = xs[1];
+
+        return make<complex>(radius * cos(angle),
+                             radius * sin(angle));
+      });
+
       library.define<accessor>("real-part", [](let const& xs) -> auto const&
       {
-        return car(xs[0]);
+        return real_part(xs[0]);
       });
 
       library.define<accessor>("imag-part", [](let const& xs) -> auto const&
       {
-        return cdr(xs[0]);
+        return imag_part(xs[0]);
+      });
+
+      library.define<function>("magnitude", [](let const& xs)
+      {
+        return magnitude(xs[0]);
+      });
+
+      library.define<function>("angle", [](let const& xs)
+      {
+        return angle(xs[0]);
       });
     });
 
@@ -315,6 +433,12 @@ inline namespace kernel
 
     define<library>("(meevax function)", [](library & library)
     {
+      library.define<predicate>("procedure?", [](let const& xs)
+      {
+        let const& x = xs[0];
+        return x.is<closure>() or x.is<continuation>() or x.is_also<procedure>();
+      });
+
       library.define<predicate>("closure?", [](let const& xs)
       {
         return xs[0].is<closure>();
@@ -325,14 +449,14 @@ inline namespace kernel
         return xs[0].is<continuation>();
       });
 
-      library.define<function>("foreign-function", [](let const& xs)
-      {
-        return make<function>(xs[1].as<string>(), xs[0].as<string>());
-      });
-
       library.define<predicate>("foreign-function?", [](let const& xs)
       {
         return xs[0].is_also<procedure>();
+      });
+
+      library.define<function>("foreign-function", [](let const& xs)
+      {
+        return make<function>(xs[1].as<string>(), xs[0].as<string>());
       });
     });
 
@@ -451,6 +575,11 @@ inline namespace kernel
         return xs[0].is<null>();
       });
 
+      library.define<predicate>("list?", [](let const& xs)
+      {
+        return is_list(xs[0]);
+      });
+
       library.define<accessor>("list", [](let const& xs) -> auto const&
       {
         return xs;
@@ -534,29 +663,19 @@ inline namespace kernel
         return is_integer(xs[0]);
       });
 
+      library.define<predicate>("exact?", [](let const& xs)
+      {
+        return is_exact(xs[0]);
+      });
+
+      library.define<predicate>("inexact?", [](let const& xs)
+      {
+        return is_inexact(xs[0]);
+      });
+
       library.define<predicate>("exact-integer?", [](let const& xs)
       {
         return xs[0].is<exact_integer>();
-      });
-
-      library.define<predicate>("imaginary?", [](let const& xs)
-      {
-        return xs[0].is<complex>();
-      });
-
-      library.define<predicate>("ratio?", [](let const& xs)
-      {
-        return xs[0].is<ratio>();
-      });
-
-      library.define<predicate>("single-float?", [](let const& xs)
-      {
-        return xs[0].is<float>();
-      });
-
-      library.define<predicate>("double-float?", [](let const& xs)
-      {
-        return xs[0].is<double>();
       });
 
       library.define<predicate>("=", [](let const& xs)
@@ -582,6 +701,41 @@ inline namespace kernel
       library.define<predicate>(">=", [](let const& xs)
       {
         return std::adjacent_find(std::begin(xs), std::end(xs), less_than) == std::end(xs);
+      });
+
+      library.define<predicate>("zero?", [](let const& xs)
+      {
+        return is_zero(xs[0]);
+      });
+
+      library.define<predicate>("positive?", [](let const& xs)
+      {
+        return is_positive(xs[0]);
+      });
+
+      library.define<predicate>("negative?", [](let const& xs)
+      {
+        return is_negative(xs[0]);
+      });
+
+      library.define<predicate>("odd?", [](let const& xs)
+      {
+        return is_odd(xs[0]);
+      });
+
+      library.define<predicate>("even?", [](let const& xs)
+      {
+        return is_even(xs[0]);
+      });
+
+      library.define<function>("max", [](let const& xs)
+      {
+        return max(xs);
+      });
+
+      library.define<function>("min", [](let const& xs)
+      {
+        return min(xs);
       });
 
       library.define<function>("+", [](let const& xs)
@@ -618,24 +772,64 @@ inline namespace kernel
         }
       });
 
-      library.define<function>("%", [](let const& xs)
-      {
-        return xs[0] % xs[1];
-      });
-
       library.define<function>("abs", [](let const& xs)
       {
         return abs(xs[0]);
       });
 
-      library.define<function>("ratio-numerator", [](let const& xs)
+      library.define<function>("quotient", [](let const& xs)
       {
-        return make(xs[0].as<ratio>().numerator());
+        return quotient(xs[0], xs[1]);
       });
 
-      library.define<function>("ratio-denominator", [](let const& xs)
+      library.define<function>("remainder", [](let const& xs)
       {
-        return make(xs[0].as<ratio>().denominator());
+        return remainder(xs[0], xs[1]);
+      });
+
+      library.define<function>("modulo", [](let const& xs)
+      {
+        return modulo(xs[0], xs[1]);
+      });
+
+      library.define<function>("gcd", [](let const& xs)
+      {
+        switch (length(xs))
+        {
+        case 0:
+          return e0;
+
+        case 1:
+          return xs[0];
+
+        default:
+          return std::accumulate(cdr(xs).begin(), xs.end(), xs[0], gcd);
+        }
+      });
+
+      library.define<function>("lcm", [](let const& xs)
+      {
+        switch (length(xs))
+        {
+        case 0:
+          return e1;
+
+        case 1:
+          return xs[0];
+
+        default:
+          return std::accumulate(cdr(xs).begin(), xs.end(), xs[0], lcm);
+        }
+      });
+
+      library.define<function>("numerator", [](let const& xs)
+      {
+        return numerator(xs[0]);
+      });
+
+      library.define<function>("denominator", [](let const& xs)
+      {
+        return denominator(xs[0]);
       });
 
       library.define<function>("floor", [](let const& xs)
@@ -681,9 +875,34 @@ inline namespace kernel
         return inexact(xs[0]);
       });
 
+      library.define<function>("number->string", [](let const& xs)
+      {
+        switch (length(xs))
+        {
+        case 1:
+          return number_to_string(xs[0], 10);
+
+        case 2:
+          return number_to_string(xs[0], xs[1].as<exact_integer>());
+
+        default:
+          throw error(make<string>("procedure number->string takes one or two arugments, but got"), xs);
+        }
+      });
+
       library.define<function>("string->number", [](let const& xs)
       {
-        return make_number(xs[0].as<string>(), 1 < length(xs) ? xs[1].as<exact_integer>() : 10);
+        switch (length(xs))
+        {
+        case 1:
+          return make_number(xs[0].as<string>(), 10);
+
+        case 2:
+          return make_number(xs[0].as<string>(), xs[1].as<exact_integer>());
+
+        default:
+          throw error(make<string>("procedure string->number takes one or two arugments, but got"), xs);
+        }
       });
     });
 
@@ -924,150 +1143,334 @@ inline namespace kernel
 
       library.define<function>("make-string", [](let const& xs)
       {
-        /*
-           (make-string k)                                            procedure
-           (make-string k char)                                       procedure
+        switch (length(xs))
+        {
+        case 1:
+          return make<string>(xs[0].as<exact_integer>(), character());
 
-           The make-string procedure returns a newly allocated string of length
-           k. If char is given, then all the characters of the string are
-           initialized to char, otherwise the contents of the string are
-           unspecified.
-        */
+        case 2:
+          return make<string>(xs[0].as<exact_integer>(), xs[1].as<character>());
 
-        return make<string>(xs[0].as<exact_integer>(),
-                            1 < length(xs) ? xs[1].as<character>() : character());
+        default:
+          throw error(make<string>("procedure make-string takes one or two arugments, but got"), xs);
+        }
+      });
+
+      library.define<function>("string", [](let const& xs)
+      {
+        let s = make<string>();
+
+        for (let const& x : xs)
+        {
+          s.as<string>().vector.push_back(x.as<character>());
+        }
+
+        return s;
       });
 
       library.define<function>("string-length", [](let const& xs)
       {
-        /*
-           (string-length string)                                     procedure
-
-           Returns the number of characters in the given string.
-        */
-
         return make<exact_integer>(xs[0].as<string>().vector.size());
       });
 
       library.define<function>("string-ref", [](let const& xs)
       {
-        /*
-           (string-ref string k)                                      procedure
-
-           It is an error if k is not a valid index of string.
-
-           The string-ref procedure returns character k of string using
-           zero-origin indexing. There is no requirement for this procedure to
-           execute in constant time.
-        */
-
         return make(xs[0].as<string>().vector.at(xs[1].as<exact_integer>()));
       });
 
       library.define<mutation>("string-set!", [](let & xs)
       {
-        /*
-           (string-set! string k char)                                procedure
-
-           It is an error if k is not a valid index of string.
-
-           The string-set! procedure stores char in element k of string. There
-           is no requirement for this procedure to execute in constant time.
-        */
-
         xs[0].as<string>().vector.at(xs[1].as<exact_integer>()) = xs[2].as<character>();
+      });
+
+      library.define<predicate>("string=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<string>().vector == b.as<string>().vector);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string<?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<string>().vector < b.as<string>().vector);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string>?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<string>().vector > b.as<string>().vector);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string<=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<string>().vector <= b.as<string>().vector);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string>=?", [](let const& xs)
+      {
+        auto compare = [](let const& a, let const& b)
+        {
+          return not (a.as<string>().vector >= b.as<string>().vector);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string-ci=?", [](let const& xs)
+      {
+        auto compare = [](let const& s1, let const& s2)
+        {
+          auto compare = [](auto const& c1, auto const& c2)
+          {
+            return c1.downcase() == c2.downcase();
+          };
+
+          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
+                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string-ci<?", [](let const& xs)
+      {
+        auto compare = [](let const& s1, let const& s2)
+        {
+          auto compare = [](auto const& c1, auto const& c2)
+          {
+            return c1.downcase() < c2.downcase();
+          };
+
+          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
+                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string-ci>?", [](let const& xs)
+      {
+        auto compare = [](let const& s1, let const& s2)
+        {
+          auto compare = [](auto const& c1, auto const& c2)
+          {
+            return c1.downcase() > c2.downcase();
+          };
+
+          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
+                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string-ci<=?", [](let const& xs)
+      {
+        auto compare = [](let const& s1, let const& s2)
+        {
+          auto compare = [](auto const& c1, auto const& c2)
+          {
+            return c1.downcase() <= c2.downcase();
+          };
+
+          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
+                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      });
+
+      library.define<predicate>("string-ci>=?", [](let const& xs)
+      {
+        auto compare = [](let const& s1, let const& s2)
+        {
+          auto compare = [](auto const& c1, auto const& c2)
+          {
+            return c1.downcase() >= c2.downcase();
+          };
+
+          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
+                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+        };
+
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
       });
 
       library.define<function>("string-append", [](let const& xs)
       {
-        /*
-           (string-append string ...)                                 procedure
-
-           Returns a newly allocated string whose characters are the
-           concatenation of the characters in the given strings.
-        */
-
-        auto&& s = string();
+        let s = make<string>();
 
         for (let const& x : xs)
         {
-          std::copy(std::begin(x.as<string>().vector),
-                    std::end(x.as<string>().vector),
-                    std::back_inserter(s.vector));
+          s.as<string>().vector.insert(s.as<string>().vector.end(),
+                                       x.as<string>().vector.begin(),
+                                       x.as<string>().vector.end());
         }
 
-        return make(std::forward<decltype(s)>(s));
+        return s;
+      });
+
+      library.define<function>("string->list", [](let const& xs)
+      {
+        auto push = [](let const& xs, character const& c)
+        {
+          return cons(make(c), xs);
+        };
+
+        switch (length(xs))
+        {
+        case 1:
+          return std::accumulate(xs[0].as<string>().vector.rbegin(),
+                                 xs[0].as<string>().vector.rend(),
+                                 unit,
+                                 push);
+
+        case 2:
+          return std::accumulate(xs[0].as<string>().vector.rbegin(),
+                                 std::prev(xs[0].as<string>().vector.rend(),
+                                           xs[1].as<exact_integer>()),
+                                 unit,
+                                 push);
+
+        case 3:
+          return std::accumulate(std::prev(xs[0].as<string>().vector.rend(),
+                                           xs[2].as<exact_integer>()),
+                                 std::prev(xs[0].as<string>().vector.rend(),
+                                           xs[1].as<exact_integer>()),
+                                 unit,
+                                 push);
+
+        default:
+          throw error(make<string>("procedure string->list takes one to three arugments, but got"), xs);
+        }
+      });
+
+      library.define<function>("list->string", [](let const& xs)
+      {
+        let s = make<string>();
+
+        for (let const& x : xs[0])
+        {
+          s.as<string>().vector.push_back(x.as<character>());
+        }
+
+        return s;
       });
 
       library.define<function>("string-copy", [](let const& xs)
       {
-        /*
-           (string-copy string)                                       procedure
-           (string-copy string start)                                 procedure
-           (string-copy string start end)                             procedure
+        switch (length(xs))
+        {
+        case 1:
+          return make<string>(xs[0].as<string>().vector.begin(),
+                              xs[0].as<string>().vector.end());
 
-           Returns a newly allocated copy of the part of the given string
-           between start and end.
-        */
+        case 2:
+          return make<string>(std::next(xs[0].as<string>().vector.begin(),
+                                        xs[1].as<exact_integer>()),
+                              xs[0].as<string>().vector.end());
 
-        auto&& s = string();
+        case 3:
+          return make<string>(std::next(xs[0].as<string>().vector.begin(),
+                                        xs[1].as<exact_integer>()),
+                              std::next(xs[0].as<string>().vector.begin(),
+                                        xs[2].as<exact_integer>()));
 
-        std::copy(std::next(std::begin(xs[0].as<string>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
-                  std::next(std::begin(xs[0].as<string>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<string>().vector.size()),
-                  std::back_inserter(s.vector));
-
-        return make(s);
+        default:
+          throw error(make<string>("procedure string-copy takes one to three arugments, but got"), xs);
+        }
       });
 
       library.define<command>("string-copy!", [](let const& xs)
       {
-        /*
-           (string-copy! to at from)                                  procedure
-           (string-copy! to at from start)                            procedure
-           (string-copy! to at from start end)                        procedure
+        xs[0].as<string>().vector.reserve(xs[0].as<string>().vector.size() +
+                                          xs[2].as<string>().vector.size());
 
-           It is an error if at is less than zero or greater than the length of
-           to. It is also an error if (- (string-length to) at) is less than (-
-           end start).
+        switch (length(xs))
+        {
+        case 3:
+          std::copy(xs[2].as<string>().vector.begin(),
+                    xs[2].as<string>().vector.end(),
+                    std::next(xs[0].as<string>().vector.begin(),
+                              xs[1].as<exact_integer>()));
+          break;
 
-           Copies the characters of string from between start and end to string
-           to, starting at at. The order in which characters are copied is
-           unspecified, except that if the source and destination overlap,
-           copying takes place as if the source is first copied into a
-           temporary string and then into the destination. This can be achieved
-           without allocating storage by making sure to copy in the correct
-           direction in such circumstances.
-        */
+        case 4:
+          std::copy(std::next(xs[2].as<string>().vector.begin(),
+                              xs[3].as<exact_integer>()),
+                    xs[2].as<string>().vector.end(),
+                    std::next(xs[0].as<string>().vector.begin(),
+                              xs[1].as<exact_integer>()));
+          break;
 
-        auto&& s1 = xs[0].as<string>().vector;
+        case 5:
+          std::copy(std::next(xs[2].as<string>().vector.begin(),
+                              xs[3].as<exact_integer>()),
+                    std::next(xs[2].as<string>().vector.begin(),
+                              xs[4].as<exact_integer>()),
+                    std::next(xs[0].as<string>().vector.begin(),
+                              xs[1].as<exact_integer>()));
+          break;
 
-        auto&& s2 = xs[2].as<string>().vector;
-
-        s1.reserve(s1.size() + s2.size());
-
-        std::copy(std::next(std::begin(s2), 3 < length(xs) ? xs[3].as<exact_integer>() : 0),
-                  std::next(std::begin(s2), 4 < length(xs) ? xs[4].as<exact_integer>() : s2.size()),
-                  std::next(std::begin(s1), xs[1].as<exact_integer>()));
+        default:
+          throw error(make<string>("procedure string-copy takes three to five arugments, but got"), xs);
+        }
       });
 
-      #define STRING_COMPARE(COMPARE)                                          \
-      [](let const& xs)                                                        \
-      {                                                                        \
-        return std::adjacent_find(                                             \
-                 std::begin(xs), std::end(xs), [](let const& a, let const& b)  \
-                 {                                                             \
-                   return not COMPARE()(a.as_const<string>().vector,           \
-                                        b.as_const<string>().vector);          \
-                 }) == std::end(xs);                                           \
-      }
+      library.define<mutation>("string-fill!", [](let & xs)
+      {
+        switch (length(xs))
+        {
+        case 2:
+          std::fill(xs[0].as<string>().vector.begin(),
+                    xs[0].as<string>().vector.end(),
+                    xs[1].as<character>());
+          break;
 
-      library.define<predicate>("string=?",  STRING_COMPARE(std::equal_to     ));
-      library.define<predicate>("string<?",  STRING_COMPARE(std::less         ));
-      library.define<predicate>("string<=?", STRING_COMPARE(std::less_equal   ));
-      library.define<predicate>("string>?",  STRING_COMPARE(std::greater      ));
-      library.define<predicate>("string>=?", STRING_COMPARE(std::greater_equal));
+        case 3:
+          std::fill(std::next(xs[0].as<string>().vector.begin(),
+                              xs[2].as<exact_integer>()),
+                    xs[0].as<string>().vector.end(),
+                    xs[1].as<character>());
+          break;
 
-      #undef STRING_COMPARE
+        case 4:
+          std::fill(std::next(xs[0].as<string>().vector.begin(),
+                              xs[2].as<exact_integer>()),
+                    std::next(xs[0].as<string>().vector.begin(),
+                              xs[3].as<exact_integer>()),
+                    xs[1].as<character>());
+          break;
+
+        default:
+          throw error(make<string>("procedure string-fill! takes one to three arugments, but got"), xs);
+        }
+      });
+    });
+
+    define<library>("(meevax symbol)", [](library & library)
+    {
+      library.define<predicate>("symbol?", [](let const& xs)
+      {
+        return xs[0].is<symbol>();
+      });
 
       library.define<function>("symbol->string", [](let const& xs)
       {
@@ -1079,63 +1482,9 @@ inline namespace kernel
         return make_symbol(xs[0].as<string>());
       });
 
-      library.define<function>("number->string", [](let const& xs)
-      {
-        return number_to_string(xs[0], 1 < length(xs) ? xs[1].as<exact_integer>() : 10);
-      });
-
-      library.define<function>("string->list", [](let const& xs)
-      {
-        /*
-           (string->list string)                                      procedure
-           (string->list string start)                                procedure
-           (string->list string start end)                            procedure
-
-           (list->string list)                                        procedure
-
-           It is an error if any element of list is not a character.
-
-           The string->list procedure returns a newly allocated list of the
-           characters of string between start and end. list->string returns a
-           newly allocated string formed from the elements in the list list. In
-           both procedures, order is preserved. string->list and list->string
-           are inverses so far as equal? is concerned.
-        */
-
-        return std::accumulate(std::prev(std::rend(xs[0].as<string>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<string>().vector.size()),
-                               std::prev(std::rend(xs[0].as<string>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
-                               unit,
-                               [](let const& xs, character const& c)
-                               {
-                                 return cons(make(c), xs);
-                               });
-      });
-
-      library.define<function>("list->string", [](let const& xs)
-      {
-        auto&& s = string();
-
-        for (let const& x : xs[0])
-        {
-          s.vector.push_back(x.as<character>());
-        }
-
-        return make(std::forward<decltype(s)>(s));
-      });
-    });
-
-    define<library>("(meevax symbol)", [](library & library)
-    {
-      library.define<predicate>("symbol?", [](let const& xs)
-      {
-        return xs[0].is<symbol>();
-      });
-
-      using syntactic_closure = environment::syntactic_closure;
-
       library.define<function>("identifier->symbol", [](let const& xs)
       {
-        if (let const& x = xs[0]; x.is<syntactic_closure>())
+        if (let const& x = xs[0]; x.is<environment::syntactic_closure>())
         {
           return cddr(x);
         }
@@ -1225,161 +1574,67 @@ inline namespace kernel
 
       library.define<function>("vector", [](let const& xs)
       {
-        /*
-           (vector obj ...)                                           procedure
-
-           Returns a newly allocated vector whose elements contain the given
-           arguments. It is analogous to list.
-        */
-
         return make<vector>(xs);
       });
 
       library.define<function>("make-vector", [](let const& xs)
       {
-        /*
-           (make-vector k)                                            procedure
-           (make-vector k fill)                                       procedure
-
-           Returns a newly allocated vector of k elements. If a second argument
-           is given, then each element is initialized to fill. Otherwise the
-           initial contents of each element is unspecified.
-        */
-
-        return make<vector>(xs[0].as<exact_integer>(), 1 < length(xs) ? xs[1] : unspecified);
-      });
-
-      library.define<function>("vector-append", [](let const& xs)
-      {
-        /*
-           (vector-append vector ...)                                 procedure
-
-           Returns a newly allocated vector whose elements are the
-           concatenation of the elements of the given vectors.
-        */
-
-        auto&& v = vector();
-
-        for (let const& x : xs)
+        switch (length(xs))
         {
-          for (let const& object : x.as<vector>().vector)
-          {
-            v.vector.push_back(object);
-          }
+        case 1:
+          return make<vector>(xs[0].as<exact_integer>(), unspecified);
+
+        case 2:
+          return make<vector>(xs[0].as<exact_integer>(), xs[1]);
+
+        default:
+          throw error(make<string>("procedure make-vector takes one or two arugments, but got"), xs);
         }
-
-        return make(std::forward<decltype(v)>(v));
-      });
-
-      library.define<function>("vector-copy", [](let const& xs)
-      {
-        /*
-           (vector-copy vector)                                       procedure
-           (vector-copy vector start)                                 procedure
-           (vector-copy vector start end)                             procedure
-
-           Returns a newly allocated copy of the elements of the given vector
-           between start and end. The elements of the new vector are the same
-           (in the sense of eqv?) as the elements of the old.
-        */
-
-        auto&& v = vector();
-
-        std::copy(std::next(std::begin(xs[0].as<vector>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
-                  std::next(std::begin(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().vector.size()),
-                  std::back_inserter(v.vector));
-
-        return make(std::forward<decltype(v)>(v));
-      });
-
-      library.define<command>("vector-copy!", [](let const& xs)
-      {
-        /*
-           (vector-copy! to at from)                                  procedure
-           (vector-copy! to at from start)                            procedure
-           (vector-copy! to at from start end)                        procedure
-
-           It is an error if at is less than zero or greater than the length of
-           to. It is also an error if (- (vector-length to) at) is less than (-
-           end start).
-
-           Copies the elements of vector from between start and end to vector
-           to, starting at at. The order in which elements are copied is
-           unspecified, except that if the source and destination overlap,
-           copying takes place as if the source is first copied into a
-           temporary vector and then into the destination. This can be achieved
-           without allocating storage by making sure to copy in the correct
-           direction in such circumstances.
-        */
-
-        auto&& v1 = xs[0].as<vector>().vector;
-
-        auto&& v2 = xs[2].as<vector>().vector;
-
-        v1.reserve(v1.size() + v2.size());
-
-        std::copy(std::next(std::begin(v2), 3 < length(xs) ? xs[3].as<exact_integer>() : 0),
-                  std::next(std::begin(v2), 4 < length(xs) ? xs[4].as<exact_integer>() : v1.size()),
-                  std::next(std::begin(v1), xs[1].as<exact_integer>()));
       });
 
       library.define<function>("vector-length", [](let const& xs)
       {
-        /*
-           (vector-length vector)                                     procedure
-
-           Returns the number of elements in vector as an exact integer.
-        */
-
         return make<exact_integer>(xs[0].as<vector>().vector.size());
       });
 
       library.define<accessor>("vector-ref", [](let const& xs) -> auto const&
       {
-        /*
-           (vector-ref vector k)                                      procedure
-
-           It is an error if k is not a valid index of vector. The vector-ref
-           procedure returns the contents of element k of vector.
-        */
-
         return xs[0][xs[1].as<exact_integer>()];
       });
 
       library.define<mutation>("vector-set!", [](let & xs)
       {
-        /*
-           (vector-set! vector k obj)                                 procedure
-
-           It is an error if k is not a valid index of vector. The vector-set!
-           procedure stores obj in element k of vector.
-        */
-
         xs[0].as<vector>().vector[xs[1].as<exact_integer>()] = xs[2];
-      });
-
-      library.define<mutation>("vector-fill!", [](let & xs)
-      {
-        /*
-           (vector-fill! vector fill)                                 procedure
-           (vector-fill! vector fill start)                           procedure
-           (vector-fill! vector fill start end)                       procedure
-
-           The vector-fill! procedure stores fill in the elements of vector
-           between start and end.
-        */
-
-        std::fill(std::next(std::begin(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : 0),
-                  std::next(std::begin(xs[0].as<vector>().vector), 3 < length(xs) ? xs[3].as<exact_integer>() : xs[0].as<vector>().vector.size()),
-                  1 < length(xs) ? xs[1] : unspecified);
       });
 
       library.define<function>("vector->list", [](let const& xs)
       {
-        return std::accumulate(std::prev(std::rend(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().vector.size()),
-                               std::prev(std::rend(xs[0].as<vector>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
-                               unit,
-                               xcons);
+        switch (length(xs))
+        {
+        case 1:
+          return std::accumulate(xs[0].as<vector>().vector.rbegin(),
+                                 xs[0].as<vector>().vector.rend(),
+                                 unit,
+                                 xcons);
+
+        case 2:
+          return std::accumulate(xs[0].as<vector>().vector.rbegin(),
+                                 std::prev(xs[0].as<vector>().vector.rend(),
+                                           xs[1].as<exact_integer>()),
+                                 unit,
+                                 xcons);
+
+        case 3:
+          return std::accumulate(std::prev(xs[0].as<vector>().vector.rend(),
+                                           xs[2].as<exact_integer>()),
+                                 std::prev(xs[0].as<vector>().vector.rend(),
+                                           xs[1].as<exact_integer>()),
+                                 unit,
+                                 xcons);
+
+        default:
+          throw error(make<string>("procedure vector->list takes one to three arugments, but got"), xs);
+        }
       });
 
       library.define<function>("list->vector", [](let const& xs)
@@ -1389,28 +1644,152 @@ inline namespace kernel
 
       library.define<function>("vector->string", [](let const& xs)
       {
-        auto s = string();
+        let s = make<string>();
 
-        std::for_each(std::next(std::begin(xs[0].as<vector>().vector), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
-                      std::next(std::begin(xs[0].as<vector>().vector), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<vector>().vector.size()),
-                      [&](let const& x)
-                      {
-                        s.vector.push_back(x.as<character>());
-                      });
+        auto push_back = [&](let const& x)
+        {
+          s.as<string>().vector.push_back(x.as<character>());
+        };
 
-        return make(s);
+        switch (length(xs))
+        {
+        case 1:
+          std::for_each(xs[0].as<vector>().vector.begin(),
+                        xs[0].as<vector>().vector.end(),
+                        push_back);
+          return s;
+
+        case 2:
+          std::for_each(std::next(xs[0].as<vector>().vector.begin(),
+                                  xs[1].as<exact_integer>()),
+                        xs[0].as<vector>().vector.end(),
+                        push_back);
+          return s;
+
+        case 3:
+          std::for_each(std::next(xs[0].as<vector>().vector.begin(),
+                                  xs[1].as<exact_integer>()),
+                        std::next(xs[0].as<vector>().vector.begin(),
+                                  xs[2].as<exact_integer>()),
+                        push_back);
+          return s;
+
+        default:
+          throw error(make<string>("procedure vector->list takes one to three arugments, but got"), xs);
+        }
       });
 
       library.define<function>("string->vector", [](let const& xs)
       {
-        auto v = vector();
+        let v = make<vector>();
 
-        for (auto&& character : xs[0].as<string>().vector)
+        for (auto character : xs[0].as<string>().vector)
         {
-          v.vector.push_back(make(character));
+          v.as<vector>().vector.push_back(make(character));
         }
 
-        return make(v);
+        return v;
+      });
+
+      library.define<function>("vector-copy", [](let const& xs)
+      {
+        switch (length(xs))
+        {
+        case 1:
+          return make<vector>(xs[0].as<vector>().vector.begin(),
+                              xs[0].as<vector>().vector.end());
+
+        case 2:
+          return make<vector>(std::next(xs[0].as<vector>().vector.begin(),
+                                        xs[1].as<exact_integer>()),
+                              xs[0].as<vector>().vector.end());
+
+        case 3:
+          return make<vector>(std::next(xs[0].as<vector>().vector.begin(),
+                                        xs[1].as<exact_integer>()),
+                              std::next(xs[0].as<vector>().vector.begin(),
+                                        xs[2].as<exact_integer>()));
+
+        default:
+          throw error(make<string>("procedure vector-copy takes one to three arugments, but got"), xs);
+        }
+      });
+
+      library.define<command>("vector-copy!", [](let const& xs)
+      {
+        xs[0].as<vector>().vector.reserve(xs[0].as<vector>().vector.size() +
+                                          xs[2].as<vector>().vector.size());
+
+        switch (length(xs))
+        {
+        case 3:
+          std::copy(xs[2].as<vector>().vector.begin(),
+                    xs[2].as<vector>().vector.end(),
+                    std::next(xs[0].as<vector>().vector.begin(),
+                              xs[1].as<exact_integer>()));
+          break;
+
+        case 4:
+          std::copy(std::next(xs[2].as<vector>().vector.begin(),
+                              xs[3].as<exact_integer>()),
+                    xs[2].as<vector>().vector.end(),
+                    std::next(xs[0].as<vector>().vector.begin(),
+                              xs[1].as<exact_integer>()));
+          break;
+
+        case 5:
+          std::copy(std::next(xs[2].as<vector>().vector.begin(),
+                              xs[3].as<exact_integer>()),
+                    std::next(xs[2].as<vector>().vector.begin(),
+                              xs[4].as<exact_integer>()),
+                    std::next(xs[0].as<vector>().vector.begin(),
+                              xs[1].as<exact_integer>()));
+          break;
+
+        default:
+          throw error(make<string>("procedure vector-copy takes three to five arugments, but got"), xs);
+        }
+      });
+
+      library.define<function>("vector-append", [](let const& xs)
+      {
+        let v = make<vector>();
+
+        for (let const& x : xs)
+        {
+          v.as<vector>().vector.insert(v.as<vector>().vector.end(),
+                                       x.as<vector>().vector.begin(),
+                                       x.as<vector>().vector.end());
+        }
+
+        return v;
+      });
+
+      library.define<mutation>("vector-fill!", [](let & xs)
+      {
+        switch (length(xs))
+        {
+        case 2:
+          std::fill(xs[0].as<vector>().vector.begin(),
+                    xs[0].as<vector>().vector.end(),
+                    xs[1]);
+          break;
+
+        case 3:
+          std::fill(std::next(xs[0].as<vector>().vector.begin(),
+                              xs[2].as<exact_integer>()),
+                    xs[0].as<vector>().vector.end(),
+                    xs[1]);
+          break;
+
+        case 4:
+          std::fill(std::next(xs[0].as<vector>().vector.begin(),
+                              xs[2].as<exact_integer>()),
+                    std::next(xs[0].as<vector>().vector.begin(),
+                              xs[3].as<exact_integer>()),
+                    xs[1]);
+          break;
+        }
       });
     });
 

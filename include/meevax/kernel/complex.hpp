@@ -41,6 +41,14 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, complex const&) -> std::ostream &;
+
+  auto real_part(object const&) -> object const&;
+
+  auto imag_part(object const&) -> object const&;
+
+  auto magnitude(object const&) -> object;
+
+  auto angle(object const&) -> object;
 } // namespace kernel
 } // namespace meevax
 

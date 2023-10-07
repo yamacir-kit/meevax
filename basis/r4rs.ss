@@ -36,22 +36,23 @@
 
 (define-library (scheme r4rs)
   (import (only (meevax boolean) boolean? not)
-          (meevax character)
-          (meevax core)
+          (only (meevax character) char? char=? char<? char>? char<=? char>=? char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=? char-alphabetic? char-numeric? char-whitespace? char-upper-case? char-lower-case? char->integer integer->char char-upcase char-downcase)
           (only (meevax comparator) eq? eqv? equal?)
-          (meevax continuation)
-          (prefix (meevax environment) %)
-          (meevax function)
-          (meevax inexact)
-          (meevax list)
+          (only (meevax complex) make-rectangular make-polar real-part imag-part magnitude angle)
+          (only (meevax continuation) call-with-current-continuation)
+          (only (meevax core) begin define define-syntax if lambda letrec quote set!)
+          (only (meevax function) procedure?)
+          (only (meevax inexact) exp log sqrt sin cos tan asin acos atan)
+          (only (meevax list) null? list? list length append reverse list-tail list-ref memq memv assq assv)
           (only (meevax macro-transformer) er-macro-transformer identifier?)
-          (meevax number)
-          (meevax pair)
-          (meevax port)
+          (only (meevax number) number? complex? real? rational? integer? exact? inexact? = < > <= >= zero? positive? negative? odd? even? max min + * - / abs quotient remainder modulo gcd lcm numerator denominator floor ceiling truncate round expt exact inexact number->string string->number)
+          (only (meevax pair) pair? cons car cdr set-car! set-cdr! caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr)
+          (only (meevax port) input-port? output-port? standard-input-port standard-output-port open-input-file open-output-file close eof-object?)
+          (only (meevax string) string? make-string string string-length string-ref string-set! string=? string<? string>? string<=? string>=? string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=? string-append string->list list->string string-copy string-fill!)
+          (only (meevax symbol) symbol? symbol->string string->symbol)
+          (only (meevax vector) vector? make-vector vector vector-length vector-ref vector-set! vector->list list->vector vector-fill!)
+          (prefix (only (meevax environment) load) %)
           (prefix (meevax read) %)
-          (meevax string)
-          (meevax symbol)
-          (meevax vector)
           (prefix (meevax write) %)
           (only (srfi 45) delay force))
 
@@ -75,15 +76,16 @@
           char-downcase string? make-string string string-length string-ref
           string-set! string=? string<? string>? string<=? string>=?
           string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?
-          substring string-append string->list list->string string-copy
-          string-fill! vector? make-vector vector vector-length vector-ref
-          vector-set! vector->list list->vector vector-fill! procedure? apply
-          map for-each force call-with-current-continuation
-          call-with-input-file call-with-output-file input-port? output-port?
-          current-input-port current-output-port with-input-from-file
-          with-output-to-file open-input-file open-output-file close-input-port
-          close-output-port read read-char peek-char eof-object? char-ready?
-          write display newline write-char load)
+          (rename string-copy substring) string-append string->list
+          list->string string-copy string-fill! vector? make-vector vector
+          vector-length vector-ref vector-set! vector->list list->vector
+          vector-fill! procedure? apply map for-each force
+          call-with-current-continuation call-with-input-file
+          call-with-output-file input-port? output-port? current-input-port
+          current-output-port with-input-from-file with-output-to-file
+          open-input-file open-output-file close-input-port close-output-port
+          read read-char peek-char eof-object? char-ready? write display
+          newline write-char load)
 
   (begin (define-syntax cond ; Chibi-Scheme
            (er-macro-transformer
@@ -280,19 +282,6 @@
                `(,(rename 'let) ((,(rename 'result) ,(cadr form)))
                                 ,(each-clause (cddr form))))))
 
-         (define (list? x)
-           (let list? ((x x)
-                       (lag x))
-             (if (pair? x)
-                 (let ((x (cdr x)))
-                   (if (pair? x)
-                       (let ((x (cdr x))
-                             (lag (cdr lag)))
-                         (and (not (eq? x lag))
-                              (list? x lag)))
-                       (null? x)))
-                 (null? x))))
-
          (define (member x xs . compare) ; Chibi-Scheme
            (let ((compare (if (pair? compare) (car compare) equal?)))
              (let member ((xs xs))
@@ -307,108 +296,6 @@
                    (if (compare key (caar alist))
                        (car alist)
                        (assoc (cdr alist)))))))
-
-         (define (exact? z)
-           (define (exact-complex? x)
-             (and (imaginary? x)
-                  (exact? (real-part x))
-                  (exact? (imag-part x))))
-           (or (exact-complex? z)
-               (ratio? z)
-               (exact-integer? z)))
-
-         (define (inexact? z)
-           (define (inexact-complex? x)
-             (and (imaginary? x)
-                  (or (inexact? (real-part x))
-                      (inexact? (imag-part x)))))
-           (define (floating-point? z)
-             (or (single-float? z)
-                 (double-float? z)))
-           (or (inexact-complex? z)
-               (floating-point? z)))
-
-         (define (zero? n)
-           (= n 0))
-
-         (define (positive? n)
-           (> n 0))
-
-         (define (negative? n)
-           (< n 0))
-
-         (define (odd? n)
-           (not (even? n)))
-
-         (define (even? n)
-           (= (remainder n 2) 0))
-
-         (define (max x . xs) ; Chibi-Scheme
-           (define (max-aux x xs)
-             (if (null? xs)
-                 (inexact x)
-                 (max-aux (if (< x (car xs)) (car xs) x)
-                          (cdr xs))))
-           (if (inexact? x)
-               (max-aux x xs)
-               (let rec ((x x) (xs xs))
-                 (cond ((null? xs) x)
-                       ((inexact? (car xs)) (max-aux x xs))
-                       (else (rec (if (< x (car xs)) (car xs) x)
-                                  (cdr xs)))))))
-
-         (define (min x . xs) ; Chibi-Scheme
-           (define (min-aux x xs)
-             (if (null? xs)
-                 (inexact x)
-                 (min-aux (if (< (car xs) x) (car xs) x)
-                          (cdr xs))))
-           (if (inexact? x)
-               (min-aux x xs)
-               (let rec ((x x) (xs xs))
-                 (cond ((null? xs) x)
-                       ((inexact? (car xs)) (min-aux x xs))
-                       (else (rec (if (< (car xs) x) (car xs) x)
-                                  (cdr xs)))))))
-
-         (define (quotient x y)
-           (truncate (/ x y)))
-
-         (define remainder %)
-
-         (define (modulo x y)
-           (% (+ y (% x y)) y))
-
-         (define (gcd . xs) ; Chibi-Scheme
-           (define (gcd-2 a b)
-             (if (zero? b)
-                 (abs a)
-                 (gcd b (remainder a b))))
-           (if (null? xs) 0
-               (let rec ((n  (car xs))
-                         (ns (cdr xs)))
-                 (if (null? ns) n
-                     (rec (gcd-2 n (car ns)) (cdr ns))))))
-
-         (define (lcm . xs) ; Chibi-Scheme
-           (define (lcm-2 a b)
-             (abs (quotient (* a b) (gcd a b))))
-           (if (null? xs) 1
-               (let rec ((n  (car xs))
-                         (ns (cdr xs)))
-                 (if (null? ns) n
-                     (rec (lcm-2 n (car ns)) (cdr ns))))))
-
-         (define (numerator x) ; Chibi-Scheme
-           (cond ((ratio? x) (ratio-numerator x))
-                 ((exact? x) x)
-                 (else (inexact (numerator (exact x))))))
-
-         (define (denominator x) ; Chibi-Scheme
-           (cond ((ratio? x) (ratio-denominator x))
-                 ((exact? x) 1)
-                 ((integer? x) 1.0)
-                 (else (inexact (denominator (exact x))))))
 
          (define (rationalize x e) ; IEEE Std 1178-1990 ANNEX C.4
            (define (simplest-rational x y)
@@ -436,123 +323,6 @@
                              0.0))))
            (simplest-rational (- x e)
                               (+ x e)))
-
-         (define (make-rectangular x y) ; Chibi-Scheme
-           (+ x (* y (sqrt -1))))
-
-         (define (make-polar radius phi) ; Chibi-Scheme
-           (make-rectangular (* radius (cos phi))
-                             (* radius (sin phi))))
-
-         (define (real-part z)
-           (if (imaginary? z) (car z) z))
-
-         (define (imag-part z)
-           (if (imaginary? z) (cdr z) 0))
-
-         (define (magnitude z) ; Chibi-Scheme
-           (sqrt (+ (square (real-part z))
-                    (square (imag-part z)))))
-
-         (define (angle z) ; Chibi-Scheme
-           (atan (imag-part z)
-                 (real-part z)))
-
-         (define (char-compare x xs compare) ; Chibi-Scheme
-           (let rec ((compare compare)
-                     (lhs (char->integer x))
-                     (xs xs))
-             (if (null? xs) #t
-                 (let ((rhs (char->integer (car xs))))
-                   (and (compare lhs rhs)
-                        (rec compare rhs (cdr xs)))))))
-
-         (define (char=? x . xs) ; Chibi-Scheme
-           (char-compare x xs =))
-
-         (define (char<? x . xs) ; Chibi-Scheme
-           (char-compare x xs <))
-
-         (define (char>? x . xs) ; Chibi-Scheme
-           (char-compare x xs >))
-
-         (define (char<=? x . xs) ; Chibi-Scheme
-           (char-compare x xs <=))
-
-         (define (char>=? x . xs) ; Chibi-Scheme
-           (char-compare x xs >=))
-
-         (define (char-ci-compare x xs compare) ; Chibi-Scheme
-           (let rec ((compare compare)
-                     (lhs (char->integer (char-downcase x)))
-                     (xs xs))
-             (if (null? xs) #t
-                 (let ((rhs (char->integer (char-downcase (car xs)))))
-                   (and (compare lhs rhs)
-                        (rec compare rhs (cdr xs)))))))
-
-         (define (char-ci=? x . xs) ; Chibi-Scheme
-           (char-ci-compare x xs =))
-
-         (define (char-ci<? x . xs) ; Chibi-Scheme
-           (char-ci-compare x xs <))
-
-         (define (char-ci>? x . xs) ; Chibi-Scheme
-           (char-ci-compare x xs >))
-
-         (define (char-ci<=? x . xs) ; Chibi-Scheme
-           (char-ci-compare x xs <=))
-
-         (define (char-ci>=? x . xs) ; Chibi-Scheme
-           (char-ci-compare x xs >=))
-
-         (define (string . xs) ; Chibi-Scheme
-           (list->string xs))
-
-         (define (string-map f x . xs) ; R7RS
-           (if (null? xs)
-               (list->string (map f (string->list x)))
-               (list->string (apply map f (map string->list (cons x xs))))))
-
-         (define (string-foldcase s) ; R7RS
-           (string-map char-downcase s))
-
-         (define (string-ci=? . xs)
-           (apply string=? (map string-foldcase xs)))
-
-         (define (string-ci<? . xs)
-           (apply string<? (map string-foldcase xs)))
-
-         (define (string-ci>? . xs)
-           (apply string>? (map string-foldcase xs)))
-
-         (define (string-ci<=? . xs)
-           (apply string<=? (map string-foldcase xs)))
-
-         (define (string-ci>=? . xs)
-           (apply string>=? (map string-foldcase xs)))
-
-         (define substring string-copy)
-
-         (define (string-fill! s c . o) ; Chibi-Scheme
-           (let ((start (if (and (pair? o)
-                                 (exact-integer? (car o)))
-                            (car o)
-                            0))
-                 (end (if (and (pair? o)
-                               (pair? (cdr o))
-                               (exact-integer? (cadr o)))
-                          (cadr o)
-                          (string-length s))))
-             (let rec ((k (- end 1)))
-               (if (<= start k)
-                   (begin (string-set! s k c)
-                          (rec (- k 1)))))))
-
-         (define (procedure? x)
-           (or (closure? x)
-               (continuation? x)
-               (foreign-function? x)))
 
          (define (for-each f x . xs) ; Chibi-Scheme
            (if (null? xs)
