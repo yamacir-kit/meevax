@@ -5,6 +5,7 @@ root="$(git rev-parse --show-toplevel)"
 scripts()
 {
   echo ack
+  echo fib
   echo tarai
 }
 
@@ -20,19 +21,19 @@ quotient()
 
 tsv()
 {
-  printf "script\tMeevax\tGauche\tChibi\n"
+  printf "script\tMeevax\tChibi-Scheme\tGauche\n"
 
   for each in $(scripts)
   do
-    time_m=$(real meevax       "$root/benchmark/$each.ss")
-    time_g=$(real gosh         "$root/benchmark/$each.ss")
-    time_c=$(real chibi-scheme "$root/benchmark/$each.ss")
+    t0=$(real meevax       "$root/benchmark/$each.ss")
+    t1=$(real chibi-scheme "$root/benchmark/$each.ss")
+    t2=$(real gosh         "$root/benchmark/$each.ss")
 
     printf "%s\t%s\t%s\t%s\n" \
       "$each" \
-      "$time_m" \
-      "$time_g ($(quotient "$time_m" "$time_g"))" \
-      "$time_c ($(quotient "$time_m" "$time_c"))"
+      "$t0" \
+      "$t1 (x$(quotient "$t0" "$t1"))" \
+      "$t2 (x$(quotient "$t0" "$t2"))"
   done
 }
 
