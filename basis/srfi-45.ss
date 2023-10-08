@@ -1,7 +1,10 @@
 (define-library (srfi 45) ; Based on r7rs reference implementation.
-  (import (only (meevax core) define-syntax)
+  (import (only (meevax boolean) not)
+          (only (meevax comparator) eq?)
+          (only (meevax core) define define-syntax if lambda quote)
+          (only (meevax list) list)
           (only (meevax macro-transformer) er-macro-transformer)
-          (scheme r4rs essential))
+          (only (meevax pair) pair? cons car cdr cadr cddr set-car! set-cdr!))
 
   (export delay eager force lazy promise?)
 
@@ -11,8 +14,9 @@
            (cons <promise> (cons done? value)))
 
          (define (promise? x)
-           (and (pair? x)
-                (eq? <promise> (car x))))
+           (if (pair? x)
+               (eq? <promise> (car x))
+               #f))
 
          (define promise-done? cadr)
 

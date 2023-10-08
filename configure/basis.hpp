@@ -33,7 +33,6 @@ inline namespace kernel
   {
     return make_array(
       R"##(${CONFIGURED_meevax.ss})##",
-      R"##(${CONFIGURED_r4rs-essential.ss})##",
       R"##(${CONFIGURED_r4rs.ss})##",
       R"##(${CONFIGURED_r5rs.ss})##",
       R"##(${CONFIGURED_r7rs.ss})##",

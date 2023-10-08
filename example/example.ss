@@ -1,4 +1,4 @@
-(import (meevax function)
+(import (only (meevax procedure) procedure)
         (scheme base)
         (scheme process-context)
         (scheme write)
@@ -7,37 +7,37 @@
 ; ------------------------------------------------------------------------------
 
 (define dummy-procedure
-  (foreign-function "build/libexample.so" "dummy_procedure"))
+  (procedure "build/libexample.so" 'dummy_procedure))
 
-(check (foreign-function? dummy-procedure) => #t)
+(check (procedure? dummy-procedure) => #t)
 
 (check (dummy-procedure 'hoge 42 #(1 2 3) 3.14) => 43)
 
 ; ------------------------------------------------------------------------------
 
-(define length-of-arguments
-  (foreign-function "build/libexample.so" "length_of_arguments"))
+(define arity
+  (procedure "build/libexample.so" 'arity))
 
-(check (foreign-function? length-of-arguments) => #t)
+(check (procedure? arity) => #t)
 
-(check (length-of-arguments 'hoge 42 #(1 2 3) 3.14) => 4)
+(check (arity 'hoge 42 #(1 2 3) 3.14) => 4)
 
 ; ------------------------------------------------------------------------------
 
 (define make-hoge
-  (foreign-function "build/libexample.so" "make_hoge"))
+  (procedure "build/libexample.so" 'make_hoge))
 
 (define hoge?
-  (foreign-function "build/libexample.so" "is_hoge"))
+  (procedure "build/libexample.so" 'is_hoge))
 
 (define hoge-value
-  (foreign-function "build/libexample.so" "hoge_value"))
+  (procedure "build/libexample.so" 'hoge_value))
 
-(check (foreign-function? make-hoge) => #t)
+(check (procedure? make-hoge) => #t)
 
-(check (foreign-function? hoge?) => #t)
+(check (procedure? hoge?) => #t)
 
-(check (foreign-function? hoge-value) => #t)
+(check (procedure? hoge-value) => #t)
 
 (define h (make-hoge 100))
 

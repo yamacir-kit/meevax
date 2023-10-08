@@ -18,6 +18,7 @@
 #include <regex>
 #include <string_view>
 
+#include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/string.hpp>
 
@@ -659,6 +660,30 @@ inline namespace number
     return test(f, x);
   }
 
+  auto is_exact(object const& x) -> bool
+  {
+    auto f = [](auto const& x)
+    {
+      using T = std::decay_t<decltype(x)>;
+
+      if constexpr (std::is_same_v<T, complex>)
+      {
+        return is_exact(x.real()) and is_exact(x.imag());
+      }
+      else
+      {
+        return std::is_same_v<T, ratio> or std::is_same_v<T, exact_integer>;
+      }
+    };
+
+    return test(f, x);
+  }
+
+  auto is_inexact(object const& x) -> bool
+  {
+    return not is_exact(x);
+  }
+
   auto is_finite(object const& x) -> bool
   {
     return not is_infinite(x);
@@ -712,6 +737,56 @@ inline namespace number
     return test(f, x);
   }
 
+  auto is_zero(object const& x) -> bool
+  {
+    return equals(x, e0);
+  }
+
+  auto is_positive(object const& x) -> bool
+  {
+    return less_than(e0, x);
+  }
+
+  auto is_negative(object const& x) -> bool
+  {
+    return less_than(x, e0);
+  }
+
+  auto is_odd(object const& x) -> bool
+  {
+    return not is_even(x);
+  }
+
+  auto is_even(object const& x) -> bool
+  {
+    let static const e2 = make<exact_integer>(2);
+    return is_zero(remainder(x, e2));
+  }
+
+  auto max(object const& xs) -> object
+  {
+    if (auto iter = std::max_element(xs.begin(), xs.end(), less_than); iter != xs.end())
+    {
+      return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
+    }
+    else
+    {
+      return unspecified;
+    }
+  }
+
+  auto min(object const& xs) -> object
+  {
+    if (auto iter = std::min_element(xs.begin(), xs.end(), less_than); iter != xs.end())
+    {
+      return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
+    }
+    else
+    {
+      return unspecified;
+    }
+  }
+
   auto abs(object const& x) -> object
   {
     auto f = [](auto&& x)
@@ -736,6 +811,31 @@ inline namespace number
     };
 
     return apply(f, x);
+  }
+
+  auto quotient(object const& x, object const& y) -> object
+  {
+    return trunc(x / y);
+  }
+
+  auto remainder(object const& x, object const& y) -> object
+  {
+    return x % y;
+  }
+
+  auto modulo(object const& x, object const& y) -> object
+  {
+    return ((x % y) + y) % y;
+  }
+
+  auto gcd(object const& x, object const& y) -> object
+  {
+    return is_zero(y) ? abs(x) : gcd(y, remainder(x, y));
+  }
+
+  auto lcm(object const& x, object const& y) -> object
+  {
+    return abs(quotient(x * y, gcd(x, y)));
   }
 
   auto sqrt(object const& x) -> object
@@ -806,6 +906,42 @@ inline namespace number
     };
 
     return apply(f, x, y);
+  }
+
+  auto numerator(object const& x) -> object
+  {
+    if (x.is<ratio>())
+    {
+      return make(x.as<ratio>().numerator());
+    }
+    else if (is_exact(x))
+    {
+      return x;
+    }
+    else
+    {
+      return inexact(numerator(exact(x)));
+    }
+  }
+
+  auto denominator(object const& x) -> object
+  {
+    if (x.is<ratio>())
+    {
+      return make(x.as<ratio>().denominator());
+    }
+    else if (is_exact(x))
+    {
+      return e1;
+    }
+    else if (is_integer(x))
+    {
+      return make(1.0);
+    }
+    else
+    {
+      return inexact(denominator(exact(x)));
+    }
   }
 
   #define DEFINE(ROUND)                                                        \

@@ -44,6 +44,12 @@ inline namespace kernel
     return object::allocate<std::decay_t<T>>(std::forward<decltype(x)>(x));
   }
 
+  template <template <typename...> typename Template, typename... Ts, REQUIRES(std::is_constructible<Template<Ts...>, Ts...>)>
+  auto make(Ts&&... xs) -> decltype(auto)
+  {
+    return make<Template<Ts...>>(std::forward<decltype(xs)>(xs)...);
+  }
+
   struct pair : public std::pair<object, object>
   {
     template <auto ReadOnly>

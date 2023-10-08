@@ -33,6 +33,11 @@ inline namespace kernel
 
     explicit string(std::size_t const, character const&);
 
+    template <typename Iterator>
+    explicit string(Iterator begin, Iterator end)
+      : vector { begin, end }
+    {}
+
     operator std::string() const;
   };
 

@@ -31,7 +31,12 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto dlopen(std::string const& libfoo_so) -> void *
+  auto operator <<(std::ostream & os, callable const& datum) -> std::ostream &
+  {
+    return os << magenta("#,(") << green("procedure") << " " << symbol(datum.name) << magenta(")");
+  }
+
+  auto dlopen(std::string const& filename) -> void *
   {
     auto dlclose = [](void * const handle)
     {
@@ -47,18 +52,17 @@ inline namespace kernel
 
     try
     {
-      return dynamic_libraries.at(libfoo_so).get();
+      return dynamic_libraries.at(filename).get();
     }
     catch (std::out_of_range const&)
     {
-      if (auto handle = ::dlopen(libfoo_so.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
+      if (auto handle = ::dlopen(filename.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
       {
-        dynamic_libraries.emplace(
-          std::piecewise_construct,
-          std::forward_as_tuple(libfoo_so),
-          std::forward_as_tuple(handle, dlclose));
+        dynamic_libraries.emplace(std::piecewise_construct,
+                                  std::forward_as_tuple(filename),
+                                  std::forward_as_tuple(handle, dlclose));
 
-        return dlopen(libfoo_so);
+        return dlopen(filename);
       }
       else
       {
@@ -67,25 +71,16 @@ inline namespace kernel
     }
   }
 
-  auto dlsym(std::string const& name, void * const handle) -> FUNCTION((*))
+  auto dlsym(std::string const& symbol, void * const handle) -> procedure_pointer
   {
-    if (auto address = ::dlsym(handle, name.c_str()); address)
+    if (auto address = ::dlsym(handle, symbol.c_str()); address)
     {
-      return reinterpret_cast<FUNCTION((*))>(address);
+      return reinterpret_cast<procedure_pointer>(address);
     }
     else
     {
       throw file_error(make<string>(::dlerror()));
     }
-  }
-
-  function::function(std::string const& name, std::string const& libfoo_so)
-    : function { name, dlsym(name, dlopen(libfoo_so)) }
-  {}
-
-  auto operator <<(std::ostream & os, procedure const& datum) -> std::ostream &
-  {
-    return os << magenta("#,(") << green("procedure") << " " << symbol(datum.name) << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

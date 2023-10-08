@@ -1101,6 +1101,12 @@ inline namespace kernel
       }
     }
 
+    template <template <typename...> typename Template, typename... Ts>
+    inline auto define(Ts&&... xs) -> decltype(auto)
+    {
+      return define<Template<Ts...>>(std::forward<decltype(xs)>(xs)...);
+    }
+
     inline auto identify(object const& variable,
                          object const& bound_variables,
                          object const& free_variables) const -> object

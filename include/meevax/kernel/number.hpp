@@ -363,17 +363,49 @@ inline namespace number
 
   auto is_integer(object const&) -> bool;
 
+  auto is_exact(object const&) -> bool;
+
+  auto is_inexact(object const&) -> bool;
+
   auto is_finite(object const&) -> bool;
 
   auto is_infinite(object const&) -> bool;
 
   auto is_nan(object const&) -> bool;
 
+  auto is_zero(object const&) -> bool;
+
+  auto is_positive(object const&) -> bool;
+
+  auto is_negative(object const&) -> bool;
+
+  auto is_odd(object const&) -> bool;
+
+  auto is_even(object const&) -> bool;
+
+  auto max(object const&) -> object;
+
+  auto min(object const&) -> object;
+
   auto abs(object const&) -> object;
+
+  auto quotient(object const&, object const&) -> object;
+
+  auto remainder(object const&, object const&) -> object;
+
+  auto modulo(object const&, object const&) -> object;
+
+  auto gcd(object const&, object const&) -> object;
+
+  auto lcm(object const&, object const&) -> object;
 
   auto sqrt(object const&) -> object;
 
   auto pow(object const&, object const&) -> object;
+
+  auto numerator(object const&) -> object;
+
+  auto denominator(object const&) -> object;
 
   auto floor(object const&) -> object;
 
