@@ -394,6 +394,10 @@
                       (car xs)
                       (current-output-port))))))
 
+(define-library (scheme box)
+  (import (srfi 111))
+  (export box box? unbox set-box!))
+
 (define-library (scheme case-lambda)
   (import (srfi 16))
   (export case-lambda))
