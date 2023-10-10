@@ -220,9 +220,9 @@ inline namespace kernel
 
         case instruction::load_continuation: /* --------------------------------
           *
-          *  s e (%load-continuation c1 . c2) d => ((<continuation>) . s) e c2 d
+          *  s e (%load-continuation c' . c) d => ((<continuation>) . s) e c d
           *
-          *  where <continuation> = (s e c1 . d)
+          *  where <continuation> = (s e c' . d)
           *
           * ----------------------------------------------------------------- */
           s = cons(list(make<continuation>(s, e, cadr(c), d)), s);
