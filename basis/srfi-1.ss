@@ -10,6 +10,10 @@
   (import (only (meevax pair)
                 xcons
                 )
+          (only (meevax list)
+                last
+                last-pair
+                )
           (scheme base)
           (scheme cxr)
           (srfi 8))
@@ -206,13 +210,6 @@
                       (suffix (cdr prev)))
                  (set-cdr! prev '())
                  (values x suffix))))
-
-         (define (last x) (car (last-pair x)))
-
-         (define (last-pair lis)
-           (let rec ((lis lis))
-             (let ((tail (cdr lis)))
-               (if (pair? tail) (rec tail) lis))))
 
          (define (length+ x) ; Returns #f if X is circular.
            (let rec ((x x) (lag x) (len 0))

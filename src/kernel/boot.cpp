@@ -561,6 +561,16 @@ inline namespace kernel
         return make_list(xs[0].as<exact_integer>(), 1 < length(xs) ? xs[1] : f);
       });
 
+      library.define<procedure>("last", [](let const& xs) -> auto const&
+      {
+        return last(xs[0]);
+      });
+
+      library.define<procedure>("last-pair", [](let const& xs) -> auto const&
+      {
+        return last_pair(xs[0]);
+      });
+
       library.define<procedure>("length", [](let const& xs)
       {
         return make<exact_integer>(length(xs[0]));

@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_MEMORY_POINTER_SET_HPP
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstdint>
 #include <iterator>

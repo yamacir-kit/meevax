@@ -121,6 +121,12 @@ inline namespace kernel
 
   auto last(object const&) -> object const&;
 
+  template <typename T>
+  auto last_pair(T&& x) -> decltype(x)
+  {
+    return cdr(x).template is<pair>() ? last_pair(cdr(x)) : x;
+  }
+
   auto take(object const&, std::size_t) -> object;
 
   auto length(object const&) -> std::size_t;
