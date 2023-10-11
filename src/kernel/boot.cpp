@@ -889,6 +889,11 @@ inline namespace kernel
         return cons(xs[0], xs[1]);
       });
 
+      library.define<procedure>("xcons", [](let const& xs)
+      {
+        return cons(xs[1], xs[0]);
+      });
+
       library.define<procedure>("car", [](let const& xs) -> auto const& { return car(xs[0]); });
       library.define<procedure>("cdr", [](let const& xs) -> auto const& { return cdr(xs[0]); });
 

@@ -7,7 +7,10 @@
 |#
 
 (define-library (srfi 1)
-  (import (scheme base)
+  (import (only (meevax pair)
+                xcons
+                )
+          (scheme base)
           (scheme cxr)
           (srfi 8))
 
@@ -32,17 +35,7 @@
           lset-xor lset-xor! lset-diff+intersection lset-diff+intersection!
           set-car! set-cdr!)
 
-  (begin (define (xcons x y)
-           (cons y x))
-
-         (define (tree-copy x)
-           (letrec ((tree-copy (lambda (x)
-                                 (if (not (pair? x)) x
-                                     (cons (tree-copy (car x))
-                                           (tree-copy (cdr x)))))))
-             (tree-copy x)))
-
-         (define (list-tabulate len proc)
+  (begin (define (list-tabulate len proc)
            (do ((i (- len 1) (- i 1))
                 (ans '() (cons (proc i) ans)))
              ((< i 0) ans)))
