@@ -22,8 +22,13 @@
 
 (define-library (srfi 39)
   (import (only (meevax core) current install)
+          (only (meevax continuation) dynamic-wind)
+          (only (meevax core) define define-syntax if lambda letrec quote)
+          (only (meevax list) null? list append assq)
           (only (meevax macro-transformer) er-macro-transformer)
-          (scheme r5rs))
+          (only (meevax pair) cons car cdr cadr cddr set-car! set-cdr!)
+          (only (scheme r5rs) map)
+          )
 
   (export make-parameter parameterize)
 
@@ -33,36 +38,48 @@
          (define (install-dynamic-bindings! bindings)
            (install 1 bindings))
 
-         (define (make-parameter init . converter)
-           (let* ((convert (if (null? converter)
-                               (lambda (x) x)
-                               (car converter)))
-                  (default (cons #f (convert init))))
-             (letrec ((parameter
-                        (lambda value
-                          (let ((cell (or (assq parameter (current-dynamic-bindings)) default)))
-                            (cond ((null? value)
-                                   (cdr cell))
-                                  ((null? (cdr value))
-                                   (set-cdr! cell (convert (car value))))
-                                  (else ; Apply converter to value
-                                    (convert (car value))))))))
-               (set-car! default parameter)
-               parameter)))
+         (define (make-parameter init . convert)
+           ((lambda (convert)
+              ((lambda (default)
+                 (letrec ((parameter
+                            (lambda value
+                              ((lambda (cell)
+                                 (if (null? value)
+                                     (cdr cell)
+                                     (if (null? (cdr value))
+                                         (set-cdr! cell (convert (car value)))
+                                         (convert (car value)))))
+                               ((lambda (current-dynamic-binding)
+                                  (if current-dynamic-binding
+                                      current-dynamic-binding
+                                      default))
+                                (assq parameter (current-dynamic-bindings)))))))
+                   (set-car! default parameter)
+                   parameter))
+               (cons #f (convert init))))
+            (if (null? convert)
+                (lambda (x) x)
+                (car convert))))
 
          (define (dynamic-bind parameters values body)
-           (let* ((outer (current-dynamic-bindings))
-                  (inner (map (lambda (parameter value)
-                                (cons parameter (parameter value 'apply-converter-to-value)))
-                              parameters
-                              values)))
-             (dynamic-wind (lambda () (install-dynamic-bindings! (append inner outer)))
-                           body
-                           (lambda () (install-dynamic-bindings! outer)))))
+           ((lambda (outer inner)
+              (dynamic-wind (lambda () (install-dynamic-bindings! (append inner outer)))
+                            body
+                            (lambda () (install-dynamic-bindings! outer))))
+            (current-dynamic-bindings)
+            (map (lambda (parameter value)
+                   (cons parameter (parameter value 'convert)))
+                 parameters
+                 values)))
 
          (define-syntax parameterize
            (er-macro-transformer
              (lambda (form rename compare)
-               `(,(rename 'dynamic-bind) (,(rename 'list) ,@(map car (cadr form)))
-                                         (,(rename 'list) ,@(map cadr (cadr form)))
-                                         (,(rename 'lambda) () ,@(cddr form))))))))
+               (list (rename 'dynamic-bind)
+                     (cons (rename 'list)
+                           (map car (cadr form)))
+                     (cons (rename 'list)
+                           (map cadr (cadr form)))
+                     (cons (rename 'lambda)
+                           (cons '()
+                                 (cddr form)))))))))

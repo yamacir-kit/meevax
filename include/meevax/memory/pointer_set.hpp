@@ -75,27 +75,15 @@ inline namespace memory
       }
     };
 
-    struct chunk
+    struct chunk : public std::array<bool, Capacity>
     {
       std::size_t offset;
 
-      bool data[Capacity];
-
       explicit constexpr chunk(compact_pointer const p)
-        : offset { p.offset() }
-        , data { false }
+        : std::array<bool, Capacity> { false }
+        , offset { p.offset() }
       {
-        data[p.index()] = true;
-      }
-
-      constexpr auto operator [](std::size_t index) const noexcept -> decltype(auto)
-      {
-        return data[index];
-      }
-
-      constexpr auto operator [](std::size_t index) noexcept -> decltype(auto)
-      {
-        return data[index];
+        (*this)[p.index()] = true;
       }
 
       constexpr auto operator <(compact_pointer p) noexcept
@@ -121,13 +109,15 @@ inline namespace memory
 
       std::vector<chunk> const& chunks;
 
-      std::size_t i, j;
+      std::size_t i;
+
+      std::size_t j;
 
       explicit iterator(std::vector<chunk> const& chunks,
-                        std::size_t i,
+                        typename std::vector<chunk>::const_iterator iter,
                         std::size_t j) noexcept
         : chunks { chunks }
-        , i      { i }
+        , i      { static_cast<std::size_t>(std::distance(chunks.begin(), iter)) }
         , j      { j }
       {
         if (not (i < chunks.size() and j < Capacity and chunks[i][j]))
@@ -260,7 +250,7 @@ inline namespace memory
 
     auto begin() const noexcept
     {
-      return iterator(chunks, 0, 0);
+      return iterator(chunks, chunks.begin(), 0);
     }
 
     auto end() const noexcept
@@ -272,7 +262,7 @@ inline namespace memory
     {
       if (auto iter = lower_bound_chunk(p); iter != chunks.end())
       {
-        return iterator(chunks, std::distance(chunks.begin(), iter), p.index());
+        return iterator(chunks, iter, p.index());
       }
       else
       {

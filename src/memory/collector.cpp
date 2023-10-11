@@ -66,7 +66,7 @@ inline namespace memory
   {
     marker::clear();
 
-    auto is_root_object = [begin = std::begin(headers)](registration * given)
+    auto is_root_object = [begin = headers.begin()](registration * given)
     {
       /*
          If the given registration is a non-root object, then an object
@@ -106,7 +106,7 @@ inline namespace memory
       const auto lower_address = reinterpret_cast<registration *>(header->lower_address());
       const auto upper_address = reinterpret_cast<registration *>(header->upper_address());
 
-      for (auto iter = registry.lower_bound(lower_address); iter != std::end(registry) and *iter < upper_address; ++iter)
+      for (auto iter = registry.lower_bound(lower_address); iter != registry.end() and *iter < upper_address; ++iter)
       {
         mark((*iter)->header);
       }
