@@ -19,6 +19,7 @@
           (only (meevax list)
                 circular-list
                 circular-list?
+                first second third fourth fifth sixth seventh eighth ninth tenth
                 last
                 last-pair
                 )
@@ -107,32 +108,6 @@
                                          (car pair-b))
                                       (lp2 (cdr pair-a)
                                            (cdr pair-b)))))))))))
-
-         (define first car)
-
-         (define second cadr)
-
-         (define third caddr)
-
-         (define fourth cadddr)
-
-         (define (fifth x)
-           (car (cddddr x)))
-
-         (define (sixth x)
-           (cadr (cddddr x)))
-
-         (define (seventh x)
-           (caddr (cddddr x)))
-
-         (define (eighth x)
-           (cadddr (cddddr x)))
-
-         (define (ninth x)
-           (car (cddddr (cddddr x))))
-
-         (define (tenth x)
-           (cadr (cddddr (cddddr x))))
 
          (define (car+cdr pair)
            (values (car pair)

@@ -617,6 +617,56 @@ inline namespace kernel
         return xs[0][xs[1].as<exact_integer>()];
       });
 
+      library.define<procedure>("first", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][0];
+      });
+
+      library.define<procedure>("second", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][1];
+      });
+
+      library.define<procedure>("third", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][2];
+      });
+
+      library.define<procedure>("fourth", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][3];
+      });
+
+      library.define<procedure>("fifth", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][4];
+      });
+
+      library.define<procedure>("sixth", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][5];
+      });
+
+      library.define<procedure>("seventh", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][6];
+      });
+
+      library.define<procedure>("eighth", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][7];
+      });
+
+      library.define<procedure>("ninth", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][8];
+      });
+
+      library.define<procedure>("tenth", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][9];
+      });
+
       library.define<procedure>("memq", [](let const& xs) -> auto const&
       {
         return memq(xs[0], xs[1]);
