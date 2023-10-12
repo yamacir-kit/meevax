@@ -48,20 +48,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, pair const& datum) -> std::ostream &
   {
-    auto is_circular_list = [&]()
-    {
-      for (auto rest = datum.second.get(); rest; rest = rest->second.get())
-      {
-        if (rest == &datum)
-        {
-          return true;
-        }
-      }
-
-      return false;
-    };
-
-    if (is_circular_list())
+    if (is_circular_list(cdr(datum)))
     {
       auto n = reinterpret_cast<std::uintptr_t>(&datum);
 

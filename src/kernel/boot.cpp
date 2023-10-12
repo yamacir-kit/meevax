@@ -558,7 +558,28 @@ inline namespace kernel
 
       library.define<procedure>("make-list", [](let const& xs)
       {
-        return make_list(xs[0].as<exact_integer>(), 1 < length(xs) ? xs[1] : f);
+        switch (length(xs))
+        {
+        case 1:
+          return make_list(xs[0].as<exact_integer>());
+
+        case 2:
+          return make_list(xs[0].as<exact_integer>(), xs[1]);
+
+        default:
+          throw error(make<string>("procedure make-list takes one or two arugments, but got"), xs);
+        }
+      });
+
+      library.define<procedure>("circular-list?", [](let const& xs)
+      {
+        return is_circular_list(xs[0]);
+      });
+
+      library.define<procedure>("circular-list", [](let & xs)
+      {
+        circulate(xs);
+        return xs;
       });
 
       library.define<procedure>("last", [](let const& xs) -> auto const&

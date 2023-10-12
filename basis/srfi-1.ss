@@ -9,13 +9,20 @@
 (define-library (srfi 1)
   (import (only (meevax pair)
                 xcons
+                caaar caadr cadar caddr
+                cdaar cdadr cddar cdddr
+                caaaar caaadr caadar caaddr
+                cadaar cadadr caddar cadddr
+                cdaaar cdaadr cdadar cdaddr
+                cddaar cddadr cdddar cddddr
                 )
           (only (meevax list)
+                circular-list
+                circular-list?
                 last
                 last-pair
                 )
           (scheme base)
-          (scheme cxr)
           (srfi 8))
 
   (export cons list xcons cons* make-list list-tabulate list-copy circular-list
@@ -52,11 +59,6 @@
                                 (cdr xs)))
                  x)))
 
-         (define (circular-list val1 . vals)
-           (let ((ans (cons val1 vals)))
-             (set-cdr! (last-pair ans) ans)
-             ans))
-
          (define (iota count . maybe-start+step)
            (if (< count 0) (error "Negative step count" iota count))
            (let-optionals maybe-start+step ((start 0) (step 1))
@@ -78,17 +80,6 @@
                          (and (not (eq? x lag)) (rec x lag)))
                        (not (null? x))))
                  (not (null? x)))))
-
-         (define (circular-list? x)
-           (let rec ((x x)
-                     (y x))
-             (and (pair? x)
-                  (let ((x (cdr x)))
-                    (and (pair? x)
-                         (let ((x (cdr x))
-                               (y (cdr y)))
-                           (or (eq? x y)
-                               (rec x y))))))))
 
          (define (not-pair? x) (not (pair? x)))
 

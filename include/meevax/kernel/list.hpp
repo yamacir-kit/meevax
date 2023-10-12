@@ -105,26 +105,46 @@ inline namespace kernel
 
   auto make_list(std::size_t, object const& = unit) -> object;
 
+  template <typename T>
+  auto last_pair(T&& x) -> decltype(x)
+  {
+    return cdr(x).template is<pair>() ? last_pair(cdr(std::forward<decltype(x)>(x))) : std::forward<decltype(x)>(x);
+  }
+
+  template <typename T>
+  auto last(T&& x) -> decltype(x)
+  {
+    return car(last_pair(std::forward<decltype(x)>(x)));
+  }
+
+  template <typename T>
+  auto circulate(T&& x)
+  {
+    cdr(last_pair(x)) = x;
+  }
+
+  template <typename... Ts>
+  auto circular_list(Ts&&... xs)
+  {
+    let x = list(std::forward<decltype(xs)>(xs)...);
+    circulate(x);
+    return x;
+  }
+
   auto is_list(object const&) -> bool;
+
+  auto is_circular_list(object const&) -> bool;
 
   template <typename T>
   auto tail(T&& x, std::size_t size) -> decltype(x)
   {
-    return 0 < size ? tail(cdr(std::forward<decltype(x)>(x)), --size) : x;
+    return 0 < size ? tail(cdr(std::forward<decltype(x)>(x)), --size) : std::forward<decltype(x)>(x);
   }
 
   template <typename... Ts>
   auto head(Ts&&... xs) -> decltype(auto)
   {
     return car(tail(std::forward<decltype(xs)>(xs)...));
-  }
-
-  auto last(object const&) -> object const&;
-
-  template <typename T>
-  auto last_pair(T&& x) -> decltype(x)
-  {
-    return cdr(x).template is<pair>() ? last_pair(cdr(x)) : x;
   }
 
   auto take(object const&, std::size_t) -> object;
@@ -138,14 +158,7 @@ inline namespace kernel
   template <typename F>
   auto map(F f, object const& xs) -> object
   {
-    if (xs.is<pair>())
-    {
-      return cons(f(car(xs)), map(f, cdr(xs)));
-    }
-    else
-    {
-      return unit;
-    }
+    return xs.is<pair>() ? cons(f(car(xs)), map(f, cdr(xs))) : unit;
   }
 
   auto memq(object const&, object const&) -> object const&;

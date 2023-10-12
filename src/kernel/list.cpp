@@ -53,9 +53,31 @@ inline namespace kernel
     return is_list(xs, xs);
   }
 
-  auto last(object const& xs) -> object const&
+  auto is_circular_list(object const& x0, object const& y0) -> bool
   {
-    return cdr(xs).is<pair>() ? last(cdr(xs)) : car(xs);
+    if (x0.is<pair>())
+    {
+      if (let const& x1 = cdr(x0); x1.is<pair>())
+      {
+        let const& x2 = cdr(x1),
+                   y1 = cdr(y0);
+
+        return eq(x2, y1) or is_circular_list(x2, y1);
+      }
+      else
+      {
+        return false;
+      }
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  auto is_circular_list(object const& xs) -> bool
+  {
+    return is_circular_list(xs, xs);
   }
 
   auto take(object const& x, std::size_t size) -> object
