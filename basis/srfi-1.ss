@@ -19,6 +19,7 @@
           (only (meevax list)
                 circular-list
                 circular-list?
+                dotted-list?
                 first second third fourth fifth sixth seventh eighth ninth tenth
                 last
                 last-pair
@@ -70,17 +71,6 @@
                          (cons (+ start (* n step)) r))))))
 
          (define proper-list? list?)
-
-         (define (dotted-list? x)
-           (let rec ((x x) (lag x))
-             (if (pair? x)
-                 (let ((x (cdr x)))
-                   (if (pair? x)
-                       (let ((x   (cdr x))
-                             (lag (cdr lag)))
-                         (and (not (eq? x lag)) (rec x lag)))
-                       (not (null? x))))
-                 (not (null? x)))))
 
          (define (not-pair? x) (not (pair? x)))
 

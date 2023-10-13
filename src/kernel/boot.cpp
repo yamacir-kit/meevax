@@ -582,6 +582,11 @@ inline namespace kernel
         return xs;
       });
 
+      library.define<procedure>("dotted-list?", [](let const& xs)
+      {
+        return is_dotted_list(xs[0]);
+      });
+
       library.define<procedure>("last", [](let const& xs) -> auto const&
       {
         return last(xs[0]);

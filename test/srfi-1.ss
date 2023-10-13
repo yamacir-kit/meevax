@@ -4,6 +4,7 @@
               xcons
               circular-list
               circular-list?
+              dotted-list?
               first second third fourth fifth sixth seventh eighth ninth tenth
               last
               last-pair
@@ -22,6 +23,10 @@
 
 (check (circular-list? '(1 2 3)) => #f)
 (check (circular-list? '#1=(1 2 3 . #1#)) => #t)
+
+(check (dotted-list? '(1 . 2)) => #t)
+(check (dotted-list? '(1 2 . 3)) => #t)
+(check (dotted-list? '(1 2 3)) => #f)
 
 (check (first   '(a b c d e f g h i j)) => 'a)
 (check (second  '(a b c d e f g h i j)) => 'b)
@@ -45,4 +50,4 @@
 
 (check-report)
 
-(exit (check-passed? 25))
+(exit (check-passed? 28))

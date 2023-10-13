@@ -80,6 +80,33 @@ inline namespace kernel
     return is_circular_list(xs, xs);
   }
 
+  auto is_dotted_list(object const& x0, object const& y0) -> bool
+  {
+    if (x0.is<pair>())
+    {
+      if (let const& x1 = cdr(x0); x1.is<pair>())
+      {
+        let const& x2 = cdr(x1),
+                   y1 = cdr(y0);
+
+        return not eq(x2, y1) and is_dotted_list(x2, y1);
+      }
+      else
+      {
+        return not x1.is<null>();
+      }
+    }
+    else
+    {
+      return not x0.is<null>();
+    }
+  }
+
+  auto is_dotted_list(object const& xs) -> bool
+  {
+    return is_dotted_list(xs, xs);
+  }
+
   auto take(object const& x, std::size_t size) -> object
   {
     return 0 < size ? cons(car(x), take(cdr(x), --size)) : unit;
