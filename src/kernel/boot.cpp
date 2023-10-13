@@ -672,6 +672,11 @@ inline namespace kernel
         return xs[0][9];
       });
 
+      library.define<procedure>("take", [](let const& xs)
+      {
+        return take(xs[0], xs[1].as<exact_integer>());
+      });
+
       library.define<procedure>("memq", [](let const& xs) -> auto const&
       {
         return memq(xs[0], xs[1]);

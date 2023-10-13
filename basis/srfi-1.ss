@@ -8,24 +8,43 @@
 
 (define-library (srfi 1)
   (import (only (meevax pair)
-                not-pair?
+                cons
                 xcons
-                caaar caadr cadar caddr
-                cdaar cdadr cddar cdddr
-                caaaar caaadr caadar caaddr
-                cadaar cadadr caddar cadddr
-                cdaaar cdaadr cdadar cdaddr
-                cddaar cddadr cdddar cddddr
+                pair?
+                not-pair?
+                car cdr caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
                 )
           (only (meevax list)
+                list
+                ; const*
+                make-list
+                ; list-tabulate
+                ; list-copy
                 circular-list
+                ; iota
+                ; null?
+                ; proper-list?
                 circular-list?
                 dotted-list?
+                ; null-list?
+                ; list=
+                list-ref
                 first second third fourth fifth sixth seventh eighth ninth tenth
+                ; car+cdr
+                take
+
                 last
                 last-pair
                 )
-          (scheme base)
+          (except (scheme base)
+                  cons
+                  list
+                  make-list
+                  pair?
+                  null?
+                  car cdr caar cadr cdar cddr
+                  list-ref
+                  )
           (srfi 8))
 
   (export cons list xcons cons* make-list list-tabulate list-copy circular-list
@@ -102,13 +121,6 @@
            (values (car pair)
                    (cdr pair)))
 
-         (define (take x k)
-           (let rec ((x x)
-                     (k k))
-             (if (zero? k) '()
-                 (cons (car x)
-                       (rec (cdr x) (- k 1))))))
-
          (define (take! x k)
            (if (zero? k)
                (begin (set-cdr! (drop x (- k 1)) '()) x)))
@@ -117,14 +129,6 @@
            (let rec ((x x) (k k))
              (if (zero? k) x
                  (rec (cdr x) (- k 1)))))
-
-         (define (drop! lis k)
-           (if (negative? k)
-               (let ((nelts (+ k (length lis))))
-                 (if (zero? nelts) '()
-                     (begin (set-cdr! (list-tail lis (- nelts 1)) '())
-                            lis)))
-               (list-tail lis k)))
 
          (define (take-right x k)
            (let lp ((lag x)
