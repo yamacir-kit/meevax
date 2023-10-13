@@ -8,6 +8,7 @@
 
 (define-library (srfi 1)
   (import (only (meevax pair)
+                not-pair?
                 xcons
                 caaar caadr cadar caddr
                 cdaar cdadr cddar cdddr
@@ -71,8 +72,6 @@
                          (cons (+ start (* n step)) r))))))
 
          (define proper-list? list?)
-
-         (define (not-pair? x) (not (pair? x)))
 
          (define (null-list? x)
            (cond ((pair? x) #f)

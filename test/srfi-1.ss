@@ -5,6 +5,7 @@
               circular-list
               circular-list?
               dotted-list?
+              not-pair?
               first second third fourth fifth sixth seventh eighth ninth tenth
               last
               last-pair
@@ -28,6 +29,11 @@
 (check (dotted-list? '(1 2 . 3)) => #t)
 (check (dotted-list? '(1 2 3)) => #f)
 
+(check (not-pair? 42) => #t)
+(check (not-pair? '(a . b)) => #f)
+(check (not-pair? '(a b . c)) => #f)
+(check (not-pair? '(a b c)) => #f)
+
 (check (first   '(a b c d e f g h i j)) => 'a)
 (check (second  '(a b c d e f g h i j)) => 'b)
 (check (third   '(a b c d e f g h i j)) => 'c)
@@ -50,4 +56,4 @@
 
 (check-report)
 
-(exit (check-passed? 28))
+(exit (check-passed? 32))

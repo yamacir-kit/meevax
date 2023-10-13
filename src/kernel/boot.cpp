@@ -970,6 +970,11 @@ inline namespace kernel
         return xs[0].is<pair>();
       });
 
+      library.define<procedure>("not-pair?", [](let const& xs)
+      {
+        return not xs[0].is<pair>();
+      });
+
       library.define<procedure>("cons", [](let const& xs)
       {
         return cons(xs[0], xs[1]);
