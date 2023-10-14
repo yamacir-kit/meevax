@@ -4,9 +4,11 @@
               xcons
               cons*
               circular-list
+              iota
               circular-list?
               dotted-list?
               not-pair?
+              list=
               first second third fourth fifth sixth seventh eighth ninth tenth
               take
               last
@@ -28,6 +30,9 @@
 (check (circular-list 'a) => '#1=(a . #1#))
 (check (circular-list 'a 'b) => '#1=(a b . #1#))
 (check (circular-list 'a 'b 'c) => '#1=(a b c . #1#))
+
+(check (iota 5) => '(0 1 2 3 4))
+(check (iota 5 0 -0.1) (=> (lambda (x y) (list= = x y))) '(0 -0.1 -0.2 -0.3 -0.4))
 
 (check (circular-list? '(a b c)) => #f)
 (check (circular-list? '#1=(a b c . #1#)) => #t)
@@ -73,4 +78,4 @@
 
 (check-report)
 
-(exit (check-passed? 43))
+(exit (check-passed? 45))

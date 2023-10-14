@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_LIST_HPP
 
 #include <meevax/kernel/comparator.hpp>
+#include <meevax/kernel/number.hpp>
 
 namespace meevax
 {
@@ -104,6 +105,8 @@ inline namespace kernel
   };
 
   auto make_list(std::size_t, object const& = unit) -> object;
+
+  auto iota(std::size_t, object const& = e0, object const& = e1) -> object;
 
   template <typename T>
   auto last_pair(T&& x) -> decltype(x)

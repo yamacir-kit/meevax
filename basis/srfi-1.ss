@@ -21,8 +21,8 @@
                 ; list-tabulate
                 ; list-copy
                 circular-list
-                ; iota
-                ; null?
+                iota
+                null?
                 ; proper-list?
                 circular-list?
                 dotted-list?
@@ -72,15 +72,6 @@
            (do ((i (- len 1) (- i 1))
                 (ans '() (cons (proc i) ans)))
                ((< i 0) ans)))
-
-         (define (iota count . maybe-start+step)
-           (if (< count 0) (error "Negative step count" iota count))
-           (let-optionals maybe-start+step ((start 0) (step 1))
-             (let loop ((n 0) (r '()))
-               (if (= n count)
-                   (reverse r)
-                   (loop (+ 1 n)
-                         (cons (+ start (* n step)) r))))))
 
          (define proper-list? list?)
 

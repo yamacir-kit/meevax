@@ -596,6 +596,24 @@ inline namespace kernel
         }
       });
 
+      library.define<procedure>("iota", [](let const& xs)
+      {
+        switch (length(xs))
+        {
+        case 1:
+          return iota(xs[0].as<exact_integer>());
+
+        case 2:
+          return iota(xs[0].as<exact_integer>(), xs[1]);
+
+        case 3:
+          return iota(xs[0].as<exact_integer>(), xs[1], xs[2]);
+
+        default:
+          throw error(make<string>("procedure iota takes one to three arugments, but got"), xs);
+        }
+      });
+
       library.define<procedure>("circular-list?", [](let const& xs)
       {
         return is_circular_list(xs[0]);

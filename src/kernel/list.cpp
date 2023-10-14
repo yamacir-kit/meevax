@@ -26,6 +26,11 @@ inline namespace kernel
     return 0 < size ? cons(x, make_list(--size, x)) : unit;
   }
 
+  auto iota(std::size_t count, object const& start, object const& step) -> object
+  {
+    return 0 < count ? cons(start, iota(count - 1, start + step, step)) : unit;
+  }
+
   auto is_list(object const& x0, object const& y0) -> bool
   {
     if (x0.is<pair>())
