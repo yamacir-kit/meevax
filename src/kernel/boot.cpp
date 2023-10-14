@@ -630,6 +630,18 @@ inline namespace kernel
         return is_dotted_list(xs[0]);
       });
 
+      library.define<procedure>("null-list?", [](let const& xs)
+      {
+        if (is_list(xs[0]) or is_circular_list(xs[0]))
+        {
+          return xs[0].is<null>();
+        }
+        else
+        {
+          throw error(make<string>("procedure null-list? takes a proper-list or a circular-list, but got"), xs);
+        }
+      });
+
       library.define<procedure>("last", [](let const& xs) -> auto const&
       {
         return last(xs[0]);

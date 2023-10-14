@@ -8,6 +8,7 @@
               circular-list?
               dotted-list?
               not-pair?
+              null-list?
               list=
               first second third fourth fifth sixth seventh eighth ninth tenth
               take
@@ -46,6 +47,10 @@
 (check (not-pair? '(a b . c)) => #f)
 (check (not-pair? '(a b c)) => #f)
 
+(check (null-list? '()) => #t)
+(check (null-list? '(a b c)) => #f)
+(check (null-list? '#1=(a b c . #1#)) => #f)
+
 (check (first   '(a b c d e f g h i j)) => 'a)
 (check (second  '(a b c d e f g h i j)) => 'b)
 (check (third   '(a b c d e f g h i j)) => 'c)
@@ -78,4 +83,4 @@
 
 (check-report)
 
-(exit (check-passed? 45))
+(exit (check-passed? 48))

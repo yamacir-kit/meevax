@@ -15,9 +15,7 @@
                 car cdr caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
                 )
           (only (meevax list)
-                list
-                cons*
-                make-list
+                list cons* make-list
                 ; list-tabulate
                 ; list-copy
                 circular-list
@@ -26,7 +24,7 @@
                 ; proper-list?
                 circular-list?
                 dotted-list?
-                ; null-list?
+                null-list?
                 ; list=
                 list-ref
                 first second third fourth fifth sixth seventh eighth ninth tenth
@@ -74,11 +72,6 @@
                ((< i 0) ans)))
 
          (define proper-list? list?)
-
-         (define (null-list? x)
-           (cond ((pair? x) #f)
-                 ((null? x) #t)
-                 (else (error "argument out of domain" (list 'null-list? x)))))
 
          (define (list= = . lists)
            (or (null? lists) ; special case
