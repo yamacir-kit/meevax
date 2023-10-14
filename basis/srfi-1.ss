@@ -15,12 +15,7 @@
                 car cdr caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
                 )
           (only (meevax list)
-                list cons* make-list
-                ; list-tabulate
-                ; list-copy
-                circular-list
-                iota
-                null?
+                list cons* make-list list-copy circular-list iota null?
                 ; proper-list?
                 circular-list?
                 dotted-list?
@@ -35,11 +30,7 @@
                 last-pair
                 )
           (except (scheme base)
-                  cons
-                  list
-                  make-list
-                  pair?
-                  null?
+                  cons list make-list list-copy pair? null?
                   car cdr caar cadr cdar cddr
                   list-ref
                   )
@@ -66,10 +57,13 @@
           lset-xor lset-xor! lset-diff+intersection lset-diff+intersection!
           set-car! set-cdr!)
 
-  (begin (define (list-tabulate len proc)
-           (do ((i (- len 1) (- i 1))
-                (ans '() (cons (proc i) ans)))
-               ((< i 0) ans)))
+  (begin (define (list-tabulate k f)
+           (letrec ((list-tabulate (lambda (i)
+                                     (if (< i k)
+                                         (cons (f i)
+                                               (list-tabulate (+ i 1)))
+                                         '()))))
+             (list-tabulate 0)))
 
          (define proper-list? list?)
 

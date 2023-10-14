@@ -140,6 +140,8 @@ inline namespace kernel
 
   auto is_dotted_list(object const&) -> bool;
 
+  auto list_copy(object const&) -> object;
+
   template <typename T>
   auto tail(T&& x, std::size_t size) -> decltype(x)
   {

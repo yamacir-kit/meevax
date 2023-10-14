@@ -112,6 +112,11 @@ inline namespace kernel
     return is_dotted_list(xs, xs);
   }
 
+  auto list_copy(object const& xs) -> object
+  {
+    return xs.is<pair>() ? cons(car(xs), list_copy(cdr(xs))) : xs;
+  }
+
   auto take(object const& x, std::size_t size) -> object
   {
     return 0 < size ? cons(car(x), take(cdr(x), --size)) : unit;

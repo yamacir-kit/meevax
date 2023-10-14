@@ -667,6 +667,11 @@ inline namespace kernel
         return reverse(xs[0]);
       });
 
+      library.define<procedure>("list-copy", [](let const& xs)
+      {
+        return list_copy(xs[0]);
+      });
+
       library.define<procedure>("list-tail", [](let const& xs) -> auto const&
       {
         return tail(xs[0], xs[1].as<exact_integer>());

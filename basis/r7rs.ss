@@ -2,7 +2,7 @@
   (import (only (meevax core) include include-case-insensitive)
           (only (meevax error) error-object? read-error? file-error?)
           (only (meevax macro-transformer) er-macro-transformer)
-          (only (meevax list) make-list)
+          (only (meevax list) make-list list-copy)
           (only (meevax number) exact-integer? exact-integer-square-root)
           (only (meevax port) binary-port? eof-object flush get-output-u8vector open-input-u8vector open-output-u8vector open? port? standard-error-port standard-input-port standard-output-port textual-port?)
           (prefix (meevax read) %)
@@ -190,13 +190,6 @@
 
          (define (list-set! xs k x)
            (set-car! (list-tail xs k) x))
-
-         (define (list-copy x)
-           (let list-copy ((x x))
-             (if (pair? x)
-                 (cons (car x)
-                       (list-copy (cdr x)))
-                 x)))
 
          (define symbol=? eqv?)
 

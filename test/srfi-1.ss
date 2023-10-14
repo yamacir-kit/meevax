@@ -3,6 +3,7 @@
         (only (srfi 1)
               xcons
               cons*
+              list-tabulate
               circular-list
               iota
               circular-list?
@@ -27,6 +28,9 @@
 (check (cons* 'a) => 'a)
 (check (cons* 'a 'b) => '(a . b))
 (check (cons* 'a 'b 'c) => '(a b . c))
+
+(check (list-tabulate 4 (lambda (x) x)) => '(0 1 2 3))
+(check (list-tabulate 4 number->string) => '("0" "1" "2" "3"))
 
 (check (circular-list 'a) => '#1=(a . #1#))
 (check (circular-list 'a 'b) => '#1=(a b . #1#))
@@ -83,4 +87,4 @@
 
 (check-report)
 
-(exit (check-passed? 48))
+(exit (check-passed? 50))
