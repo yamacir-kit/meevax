@@ -556,6 +556,31 @@ inline namespace kernel
         return xs;
       });
 
+      library.define<procedure>("cons*", [](let & xs)
+      {
+        if (xs.is<null>())
+        {
+          throw error(make<string>("procedure cons* takes at least one arugments, but got"), xs);
+        }
+        else if (cdr(xs).is<null>())
+        {
+          return xs[0];
+        }
+        else
+        {
+          auto node = xs.get();
+
+          while (not cddr(*node).is<null>())
+          {
+            node = cdr(*node).get();
+          }
+
+          cdr(*node) = cadr(*node);
+
+          return xs;
+        }
+      });
+
       library.define<procedure>("make-list", [](let const& xs)
       {
         switch (length(xs))

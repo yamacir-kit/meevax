@@ -2,6 +2,7 @@
         (scheme process-context)
         (only (srfi 1)
               xcons
+              cons*
               circular-list
               circular-list?
               dotted-list?
@@ -20,6 +21,10 @@
 
 (check (xcons 'a 'b) => '(b . a))
 
+(check (cons* 'a) => 'a)
+(check (cons* 'a 'b) => '(a . b))
+(check (cons* 'a 'b 'c) => '(a b . c))
+
 (check (circular-list 'a) => '#1=(a . #1#))
 (check (circular-list 'a 'b) => '#1=(a b . #1#))
 (check (circular-list 'a 'b 'c) => '#1=(a b c . #1#))
@@ -31,7 +36,7 @@
 (check (dotted-list? '(a b . c)) => #t)
 (check (dotted-list? '(a b c)) => #f)
 
-(check (not-pair? 42) => #t)
+(check (not-pair? 'a) => #t)
 (check (not-pair? '(a . b)) => #f)
 (check (not-pair? '(a b . c)) => #f)
 (check (not-pair? '(a b c)) => #f)
@@ -68,4 +73,4 @@
 
 (check-report)
 
-(exit (check-passed? 40))
+(exit (check-passed? 43))

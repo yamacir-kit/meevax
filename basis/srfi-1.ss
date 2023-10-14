@@ -16,7 +16,7 @@
                 )
           (only (meevax list)
                 list
-                ; const*
+                cons*
                 make-list
                 ; list-tabulate
                 ; list-copy
@@ -71,15 +71,7 @@
   (begin (define (list-tabulate len proc)
            (do ((i (- len 1) (- i 1))
                 (ans '() (cons (proc i) ans)))
-             ((< i 0) ans)))
-
-         (define (cons* x . xs)
-           (let cons* ((x x)
-                       (xs xs))
-             (if (pair? xs)
-                 (cons x (cons* (car xs)
-                                (cdr xs)))
-                 x)))
+               ((< i 0) ans)))
 
          (define (iota count . maybe-start+step)
            (if (< count 0) (error "Negative step count" iota count))
