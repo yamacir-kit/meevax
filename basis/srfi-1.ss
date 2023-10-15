@@ -20,11 +20,10 @@
                 circular-list?
                 dotted-list?
                 null-list?
-                ; list=
                 list-ref
                 first second third fourth fifth sixth seventh eighth ninth tenth
                 ; car+cdr
-                take
+                take take!
                 drop
 
                 last
@@ -91,10 +90,6 @@
          (define (car+cdr pair)
            (values (car pair)
                    (cdr pair)))
-
-         (define (take! x k)
-           (if (zero? k)
-               (begin (set-cdr! (drop x (- k 1)) '()) x)))
 
          (define (take-right x k)
            (let lp ((lag x)

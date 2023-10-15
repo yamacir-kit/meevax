@@ -712,6 +712,11 @@ inline namespace kernel
         return take(xs[0], xs[1].as<exact_integer>());
       });
 
+      library.define<procedure>("take!", [](let & xs)
+      {
+        return take(xs[0], xs[1].as<exact_integer>());
+      });
+
       library.define<procedure>("drop", [](let const& xs)
       {
         return drop(xs[0], xs[1].as<exact_integer>());
@@ -1764,7 +1769,7 @@ inline namespace kernel
 
       library.define<procedure>("vector-set!", [](let & xs)
       {
-        xs[0].as<vector>().vector[xs[1].as<exact_integer>()] = xs[2];
+        xs[0][xs[1].as<exact_integer>()] = xs[2];
       });
 
       library.define<procedure>("vector->list", [](let const& xs)

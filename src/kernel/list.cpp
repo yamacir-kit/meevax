@@ -128,7 +128,14 @@ inline namespace kernel
 
   auto list_copy(object const& xs) -> object
   {
-    return xs.is<pair>() ? cons(car(xs), list_copy(cdr(xs))) : xs;
+    if (xs.is<pair>())
+    {
+      return cons(car(xs), list_copy(cdr(xs)));
+    }
+    else
+    {
+      return xs;
+    }
   }
 
   auto take(object const& x, std::size_t k) -> object
@@ -136,6 +143,19 @@ inline namespace kernel
     if (0 < k)
     {
       return cons(car(x), take(cdr(x), k - 1));
+    }
+    else
+    {
+      return unit;
+    }
+  }
+
+  auto take(object & x, std::size_t k) -> object
+  {
+    if (0 < k)
+    {
+      cdr(drop(x, k - 1)) = unit;
+      return x;
     }
     else
     {

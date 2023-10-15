@@ -157,6 +157,8 @@ inline namespace kernel
 
   auto take(object const&, std::size_t) -> object;
 
+  auto take(object &, std::size_t) -> object;
+
   template <typename T>
   auto drop(T&& x, std::size_t k) -> decltype(x)
   {

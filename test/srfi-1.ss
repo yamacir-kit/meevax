@@ -12,7 +12,7 @@
               null-list?
               list=
               first second third fourth fifth sixth seventh eighth ninth tenth
-              take
+              take take!
               drop
               last
               last-pair
@@ -81,6 +81,13 @@
 (check (drop '(a b c d e) 4) => '(e))
 (check (drop '(a b c d e) 5) => '())
 
+(let ((x '(a b c d e))) (check (take! x 0) => '()) (check x => '(a b c d e)))
+(let ((x '(a b c d e))) (check (take! x 1) => '(a)) (check x => '(a)))
+(let ((x '(a b c d e))) (check (take! x 2) => '(a b)) (check x => '(a b)))
+(let ((x '(a b c d e))) (check (take! x 3) => '(a b c)) (check x => '(a b c)))
+(let ((x '(a b c d e))) (check (take! x 4) => '(a b c d)) (check x => '(a b c d)))
+(let ((x '(a b c d e))) (check (take! x 5) => '(a b c d e)) (check x => '(a b c d e)))
+
 (check (last '(a)) => 'a)
 (check (last '(a b)) => 'b)
 (check (last '(a b c)) => 'c)
@@ -96,4 +103,4 @@
 
 (check-report)
 
-(exit (check-passed? 57))
+(exit (check-passed? 69))

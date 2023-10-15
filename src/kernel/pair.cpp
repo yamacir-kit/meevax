@@ -46,6 +46,11 @@ inline namespace kernel
     return 0 < k ? second[--k] : first;
   }
 
+  auto pair::operator [](std::size_t k) -> object &
+  {
+    return 0 < k ? second[--k] : first;
+  }
+
   auto operator <<(std::ostream & os, pair const& datum) -> std::ostream &
   {
     if (is_circular_list(cdr(datum)))
