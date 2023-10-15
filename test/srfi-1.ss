@@ -132,10 +132,13 @@
 (check (last-pair '(a b c)) => '(c))
 (check (last-pair '(a b c . d)) => '(c . d))
 
+(check (length '(a b c)) => 3)
+(check (length '(a b . c)) => 2)
+
 (check (length+ '(a b c)) => 3)
 (check (length+ '(a b . c)) => 2)
 (check (length+ '#1=(a b c . #1#)) => #f)
 
 (check-report)
 
-(exit (check-passed? 109))
+(exit (check-passed? 111))

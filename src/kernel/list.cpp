@@ -246,9 +246,9 @@ inline namespace kernel
     }
   }
 
-  auto length(object const& xs) -> std::size_t
+  auto length(object const& x) -> std::size_t
   {
-    return std::distance(xs.begin(), xs.end());
+    return std::distance(x.begin(), x.end());
   }
 
   auto append(object const& x, object const& y) -> object

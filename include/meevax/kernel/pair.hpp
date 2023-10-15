@@ -92,7 +92,7 @@ inline namespace kernel
 
       auto operator ++() -> decltype(auto)
       {
-        if (current = current->second.get(); current == initial)
+        if (current = current->second.get(); current == initial or (current and current->type() != typeid(pair)))
         {
           current = nullptr;
         }

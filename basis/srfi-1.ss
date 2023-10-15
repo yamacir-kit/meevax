@@ -20,14 +20,14 @@
                 list-ref first second third fourth fifth sixth seventh eighth ninth tenth
                 take take! take-right
                 drop drop-right drop-right!
-
-                last
-                last-pair
+                last last-pair
+                length length+
                 )
           (except (scheme base)
                   cons list make-list list-copy pair? null? list?
                   car cdr caar cadr cdar cddr
                   list-ref
+                  length
                   )
           (srfi 8))
 
@@ -88,7 +88,8 @@
 
          (define (split-at x k)
            (let recur ((lis x) (k k))
-             (if (zero? k) (values '() lis)
+             (if (zero? k)
+                 (values '() lis)
                  (receive (prefix suffix) (recur (cdr lis) (- k 1))
                           (values (cons (car lis) prefix) suffix)))))
 
@@ -99,19 +100,6 @@
                       (suffix (cdr prev)))
                  (set-cdr! prev '())
                  (values x suffix))))
-
-         (define (length+ x) ; Returns #f if X is circular.
-           (let rec ((x x) (lag x) (len 0))
-             (if (pair? x)
-                 (let ((x (cdr x))
-                       (len (+ len 1)))
-                   (if (pair? x)
-                       (let ((x   (cdr x))
-                             (lag (cdr lag))
-                             (len (+ len 1)))
-                         (and (not (eq? x lag)) (rec x lag len)))
-                       len))
-                 len)))
 
          (define (append! . lists)
            (let lp ((lists lists) (prev '())) ; First, scan through lists looking for a non-empty one.

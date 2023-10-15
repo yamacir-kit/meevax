@@ -632,6 +632,11 @@ inline namespace kernel
         return make<exact_integer>(length(xs[0]));
       });
 
+      library.define<procedure>("length+", [](let const& xs)
+      {
+        return is_circular_list(xs[0]) ? f : make<exact_integer>(length(xs[0]));
+      });
+
       library.define<procedure>("append", [](let const& xs)
       {
         return std::accumulate(std::begin(xs), std::end(xs), unit, append);
