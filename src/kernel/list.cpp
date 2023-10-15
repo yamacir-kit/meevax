@@ -292,6 +292,32 @@ inline namespace kernel
     }
   }
 
+  auto reverse(object const& xs) -> object
+  {
+    return reverse(xs, unit);
+  }
+
+  auto reverse(object & xs, object const& a) -> object
+  {
+    if (xs.is<null>())
+    {
+      return a;
+    }
+    else
+    {
+      let tail = cdr(xs);
+
+      cdr(xs) = a;
+
+      return reverse(tail, xs);
+    }
+  }
+
+  auto reverse(object & xs) -> object
+  {
+    return reverse(xs, unit);
+  }
+
   auto memq(object const& x, object const& xs) -> object const&
   {
     if (xs.is<pair>())

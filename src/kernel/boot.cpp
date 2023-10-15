@@ -639,12 +639,12 @@ inline namespace kernel
 
       library.define<procedure>("append", [](let const& xs)
       {
-        return std::accumulate(xs.begin(), xs.end(), unit, [](auto&&... xs) { return append(std::forward<decltype(xs)>(xs)...); });
+        return std::accumulate(xs.begin(), xs.end(), unit, [](let const& x, let const& y) { return append(x, y); });
       });
 
       library.define<procedure>("append!", [](let & xs)
       {
-        return std::accumulate(xs.begin(), xs.end(), unit, [](auto&&... xs) { return append(std::forward<decltype(xs)>(xs)...); });
+        return std::accumulate(xs.begin(), xs.end(), unit, [](let & x, let const& y) { return append(x, y); });
       });
 
       library.define<procedure>("reverse", [](let const& xs)
@@ -652,14 +652,19 @@ inline namespace kernel
         return reverse(xs[0]);
       });
 
+      library.define<procedure>("reverse!", [](let & xs)
+      {
+        return reverse(xs[0]);
+      });
+
       library.define<procedure>("concatenate", [](let const& xs)
       {
-        return std::accumulate(xs[0].begin(), xs[0].end(), unit, [](auto&&... xs) { return append(std::forward<decltype(xs)>(xs)...); });
+        return std::accumulate(xs[0].begin(), xs[0].end(), unit, [](let const& x, let const& y) { return append(x, y); });
       });
 
       library.define<procedure>("concatenate!", [](let & xs)
       {
-        return std::accumulate(xs[0].begin(), xs[0].end(), unit, [](auto&&... xs) { return append(std::forward<decltype(xs)>(xs)...); });
+        return std::accumulate(xs[0].begin(), xs[0].end(), unit, [](let & x, let const& y) { return append(x, y); });
       });
 
       library.define<procedure>("list-copy", [](let const& xs)

@@ -23,7 +23,7 @@
                 last last-pair
                 length length+
                 append append!
-                reverse
+                reverse reverse!
                 concatenate concatenate!
                 )
           (except (scheme base)
@@ -105,13 +105,6 @@
                       (suffix (cdr prev)))
                  (set-cdr! prev '())
                  (values x suffix))))
-
-         (define (reverse! lis)
-           (let lp ((lis lis) (ans '()))
-             (if (null-list? lis) ans
-                 (let ((tail (cdr lis)))
-                   (set-cdr! lis ans)
-                   (lp tail lis)))))
 
          (define (append-reverse rev-head tail)
            (let lp ((rev-head rev-head) (tail tail))
