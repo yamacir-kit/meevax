@@ -25,6 +25,8 @@
                 ; car+cdr
                 take take!
                 drop
+                take-right
+                drop-right
 
                 last
                 last-pair
@@ -90,21 +92,6 @@
          (define (car+cdr pair)
            (values (car pair)
                    (cdr pair)))
-
-         (define (take-right x k)
-           (let lp ((lag x)
-                    (lead (drop x k)))
-             (if (pair? lead)
-                 (lp (cdr lag)
-                     (cdr lead))
-                 lag)))
-
-         (define (drop-right x k)
-           (let rec ((lag x) (lead (drop x k)))
-             (if (pair? lead)
-                 (cons (car lag)
-                       (rec (cdr lag) (cdr lead)))
-                 '())))
 
          (define (drop-right! x k)
            (let ((lead (drop x k)))

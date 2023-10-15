@@ -163,6 +163,64 @@ inline namespace kernel
     }
   }
 
+  auto take_right(object const& x, object const& y) -> object const&
+  {
+    if (y.is<pair>())
+    {
+      return take_right(cdr(x), cdr(y));
+    }
+    else
+    {
+      return x;
+    }
+  }
+
+  auto take_right(object const& x, std::size_t k) -> object const&
+  {
+    return take_right(x, drop(x, k));
+  }
+
+  auto drop(object const& x, std::size_t k) -> object const&
+  {
+    if (0 < k)
+    {
+      return drop(cdr(x), k - 1);
+    }
+    else
+    {
+      return x;
+    }
+  }
+
+  auto drop(object & x, std::size_t k) -> object &
+  {
+    if (0 < k)
+    {
+      return drop(cdr(x), k - 1);
+    }
+    else
+    {
+      return x;
+    }
+  }
+
+  auto drop_right(object const& x, object const& y) -> object
+  {
+    if (y.is<pair>())
+    {
+      return cons(car(x), drop_right(cdr(x), cdr(y)));
+    }
+    else
+    {
+      return unit;
+    }
+  }
+
+  auto drop_right(object const& x, std::size_t k) -> object
+  {
+    return drop_right(x, drop(x, k));
+  }
+
   auto length(object const& xs) -> std::size_t
   {
     return std::distance(xs.begin(), xs.end());

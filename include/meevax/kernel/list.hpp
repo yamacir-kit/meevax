@@ -159,18 +159,13 @@ inline namespace kernel
 
   auto take(object &, std::size_t) -> object;
 
-  template <typename T>
-  auto drop(T&& x, std::size_t k) -> decltype(x)
-  {
-    if (0 < k)
-    {
-      return drop(cdr(std::forward<decltype(x)>(x)), k - 1);
-    }
-    else
-    {
-      return std::forward<decltype(x)>(x);
-    }
-  }
+  auto take_right(object const&, std::size_t) -> object const&;
+
+  auto drop(object const&, std::size_t) -> object const&;
+
+  auto drop(object &, std::size_t) -> object &;
+
+  auto drop_right(object const&, std::size_t) -> object;
 
   auto length(object const&) -> std::size_t;
 

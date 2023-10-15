@@ -14,6 +14,8 @@
               first second third fourth fifth sixth seventh eighth ninth tenth
               take take!
               drop
+              take-right
+              drop-right
               last
               last-pair
               length+
@@ -81,6 +83,28 @@
 (check (drop '(a b c d e) 4) => '(e))
 (check (drop '(a b c d e) 5) => '())
 
+(check (take-right '(a b c d e) 0) => '())
+(check (take-right '(a b c d e) 1) => '(e))
+(check (take-right '(a b c d e) 2) => '(d e))
+(check (take-right '(a b c d e) 3) => '(c d e))
+(check (take-right '(a b c d e) 4) => '(b c d e))
+(check (take-right '(a b c d e) 5) => '(a b c d e))
+(check (take-right '(a b c . x) 0) => 'x)
+(check (take-right '(a b c . x) 1) => '(c . x))
+(check (take-right '(a b c . x) 2) => '(b c . x))
+(check (take-right '(a b c . x) 3) => '(a b c . x))
+
+(check (drop-right '(a b c d e) 0) => '(a b c d e))
+(check (drop-right '(a b c d e) 1) => '(a b c d))
+(check (drop-right '(a b c d e) 2) => '(a b c))
+(check (drop-right '(a b c d e) 3) => '(a b))
+(check (drop-right '(a b c d e) 4) => '(a))
+(check (drop-right '(a b c d e) 5) => '())
+(check (drop-right '(a b c . x) 0) => '(a b c))
+(check (drop-right '(a b c . x) 1) => '(a b))
+(check (drop-right '(a b c . x) 2) => '(a))
+(check (drop-right '(a b c . x) 3) => '())
+
 (let ((x '(a b c d e))) (check (take! x 0) => '()) (check x => '(a b c d e)))
 (let ((x '(a b c d e))) (check (take! x 1) => '(a)) (check x => '(a)))
 (let ((x '(a b c d e))) (check (take! x 2) => '(a b)) (check x => '(a b)))
@@ -103,4 +127,4 @@
 
 (check-report)
 
-(exit (check-passed? 69))
+(exit (check-passed? 89))
