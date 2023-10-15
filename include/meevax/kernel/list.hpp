@@ -173,6 +173,8 @@ inline namespace kernel
 
   auto append(object const&, object const&) -> object;
 
+  auto append(object &, object const&) -> object &;
+
   auto reverse(object const&, object const& = unit) -> object;
 
   template <typename F>

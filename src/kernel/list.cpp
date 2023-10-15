@@ -263,6 +263,23 @@ inline namespace kernel
     }
   }
 
+  auto append(object & x, object const& y) -> object &
+  {
+    if (x.is<null>())
+    {
+      return x = y;
+    }
+    else if (y.is<null>())
+    {
+      return x;
+    }
+    else
+    {
+      cdr(last_pair(x)) = y;
+      return x;
+    }
+  }
+
   auto reverse(object const& xs, object const& a) -> object
   {
     if (xs.is<pair>())

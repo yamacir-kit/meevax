@@ -639,7 +639,12 @@ inline namespace kernel
 
       library.define<procedure>("append", [](let const& xs)
       {
-        return std::accumulate(std::begin(xs), std::end(xs), unit, append);
+        return std::accumulate(xs.begin(), xs.end(), unit, [](auto&&... xs) { return append(std::forward<decltype(xs)>(xs)...); });
+      });
+
+      library.define<procedure>("append!", [](let & xs)
+      {
+        return std::accumulate(xs.begin(), xs.end(), unit, [](auto&&... xs) { return append(std::forward<decltype(xs)>(xs)...); });
       });
 
       library.define<procedure>("reverse", [](let const& xs)

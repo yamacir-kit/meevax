@@ -19,6 +19,7 @@
               last
               last-pair
               length+
+              append!
               )
         (srfi 78))
 
@@ -139,6 +140,47 @@
 (check (length+ '(a b . c)) => 2)
 (check (length+ '#1=(a b c . #1#)) => #f)
 
+(check (append '(a) '(b)) => '(a b))
+(check (append '(a) '(b c d)) => '(a b c d))
+(check (append '(a (b)) '((c))) => '(a (b) (c)))
+(check (append '(a b) '(c . d)) => '(a b c . d))
+(check (append '() 'a) => 'a)
+(check (append '(a b)) => '(a b))
+(check (append) => '())
+
+(let ((x '(a))
+      (y '(b)))
+  (check (append! x y) => '(a b))
+  (check x => '(a b))
+  (check y => '(b)))
+
+(let ((x '(a))
+      (y '(b c d)))
+  (check (append! x y) => '(a b c d))
+  (check x => '(a b c d))
+  (check y => '(b c d)))
+
+(let ((x '(a (b)))
+      (y '((c))))
+  (check (append! x y) => '(a (b) (c)))
+  (check x => '(a (b) (c)))
+  (check y => '((c))))
+
+(let ((x '(a b))
+      (y '(c . d)))
+  (check (append! x y) => '(a b c . d))
+  (check x => '(a b c . d))
+  (check y => '(c . d)))
+
+(let ((x '())
+      (y 'a))
+  (check (append! x y) => 'a)
+  (check x => '())
+  (check y => 'a))
+
+(check (append! '(a b)) => '(a b))
+(check (append!) => '())
+
 (check-report)
 
-(exit (check-passed? 111))
+(exit (check-passed? 135))

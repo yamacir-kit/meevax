@@ -22,12 +22,14 @@
                 drop drop-right drop-right!
                 last last-pair
                 length length+
+                append append!
                 )
           (except (scheme base)
                   cons list make-list list-copy pair? null? list?
                   car cdr caar cadr cdar cddr
                   list-ref
                   length
+                  append
                   )
           (srfi 8))
 
@@ -100,22 +102,6 @@
                       (suffix (cdr prev)))
                  (set-cdr! prev '())
                  (values x suffix))))
-
-         (define (append! . lists)
-           (let lp ((lists lists) (prev '())) ; First, scan through lists looking for a non-empty one.
-             (if (not (pair? lists)) prev
-                 (let ((first (car lists))
-                       (rest (cdr lists)))
-                   (if (not (pair? first)) (lp rest first)
-                       (let lp2 ((tail-cons (last-pair first)) ; Now, do the splicing.
-                                 (rest rest))
-                         (if (pair? rest)
-                             (let ((next (car rest))
-                                   (rest (cdr rest)))
-                               (set-cdr! tail-cons next)
-                               (lp2 (if (pair? next) (last-pair next) tail-cons)
-                                    rest))
-                             first)))))))
 
          (define (concatenate xs)
            (reduce-right append '() xs))
