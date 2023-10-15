@@ -556,31 +556,6 @@ inline namespace kernel
         return xs;
       });
 
-      library.define<procedure>("cons*", [](let & xs)
-      {
-        if (xs.is<null>())
-        {
-          throw error(make<string>("procedure cons* takes at least one arugments, but got"), xs);
-        }
-        else if (cdr(xs).is<null>())
-        {
-          return xs[0];
-        }
-        else
-        {
-          auto node = xs.get();
-
-          while (not cddr(*node).is<null>())
-          {
-            node = cdr(*node).get();
-          }
-
-          cdr(*node) = cadr(*node);
-
-          return xs;
-        }
-      });
-
       library.define<procedure>("make-list", [](let const& xs)
       {
         switch (length(xs))
@@ -735,6 +710,11 @@ inline namespace kernel
       library.define<procedure>("take", [](let const& xs)
       {
         return take(xs[0], xs[1].as<exact_integer>());
+      });
+
+      library.define<procedure>("drop", [](let const& xs)
+      {
+        return drop(xs[0], xs[1].as<exact_integer>());
       });
 
       library.define<procedure>("memq", [](let const& xs) -> auto const&
@@ -1043,6 +1023,31 @@ inline namespace kernel
       library.define<procedure>("cons", [](let const& xs)
       {
         return cons(xs[0], xs[1]);
+      });
+
+      library.define<procedure>("cons*", [](let & xs)
+      {
+        if (xs.is<null>())
+        {
+          throw error(make<string>("procedure cons* takes at least one arugments, but got"), xs);
+        }
+        else if (cdr(xs).is<null>())
+        {
+          return xs[0];
+        }
+        else
+        {
+          auto node = xs.get();
+
+          while (not cddr(*node).is<null>())
+          {
+            node = cdr(*node).get();
+          }
+
+          cdr(*node) = cadr(*node);
+
+          return xs;
+        }
       });
 
       library.define<procedure>("xcons", [](let const& xs)

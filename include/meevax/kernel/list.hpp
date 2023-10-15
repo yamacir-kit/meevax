@@ -91,17 +91,18 @@ inline namespace kernel
 
   inline auto cons = [](auto&&... xs) constexpr
   {
-    return (xs | ...);
+    return (std::forward<decltype(xs)>(xs) | ...);
   };
 
   inline auto list = [](auto&&... xs) constexpr
   {
-    return (xs | ... | unit);
+    return (std::forward<decltype(xs)>(xs) | ... | unit);
   };
 
-  inline auto xcons = [](auto&& d, auto&& a) constexpr
+  inline auto xcons = [](auto&& x, auto&& y) constexpr
   {
-    return cons(std::forward<decltype(a)>(a), std::forward<decltype(d)>(d));
+    return cons(std::forward<decltype(y)>(y),
+                std::forward<decltype(x)>(x));
   };
 
   auto make_list(std::size_t, object const& = unit) -> object;
@@ -123,7 +124,7 @@ inline namespace kernel
   template <typename T>
   auto circulate(T&& x)
   {
-    cdr(last_pair(x)) = x;
+    cdr(last_pair(std::forward<decltype(x)>(x))) = x;
   }
 
   template <typename... Ts>
@@ -155,6 +156,19 @@ inline namespace kernel
   }
 
   auto take(object const&, std::size_t) -> object;
+
+  template <typename T>
+  auto drop(T&& x, std::size_t k) -> decltype(x)
+  {
+    if (0 < k)
+    {
+      return drop(cdr(std::forward<decltype(x)>(x)), k - 1);
+    }
+    else
+    {
+      return std::forward<decltype(x)>(x);
+    }
+  }
 
   auto length(object const&) -> std::size_t;
 

@@ -23,12 +23,26 @@ inline namespace kernel
 {
   auto make_list(std::size_t size, object const& x) -> object
   {
-    return 0 < size ? cons(x, make_list(--size, x)) : unit;
+    if (0 < size)
+    {
+      return cons(x, make_list(--size, x));
+    }
+    else
+    {
+      return unit;
+    }
   }
 
   auto iota(std::size_t count, object const& start, object const& step) -> object
   {
-    return 0 < count ? cons(start, iota(count - 1, start + step, step)) : unit;
+    if (0 < count)
+    {
+      return cons(start, iota(count - 1, start + step, step));
+    }
+    else
+    {
+      return unit;
+    }
   }
 
   auto is_list(object const& x0, object const& y0) -> bool
@@ -117,9 +131,16 @@ inline namespace kernel
     return xs.is<pair>() ? cons(car(xs), list_copy(cdr(xs))) : xs;
   }
 
-  auto take(object const& x, std::size_t size) -> object
+  auto take(object const& x, std::size_t k) -> object
   {
-    return 0 < size ? cons(car(x), take(cdr(x), --size)) : unit;
+    if (0 < k)
+    {
+      return cons(car(x), take(cdr(x), k - 1));
+    }
+    else
+    {
+      return unit;
+    }
   }
 
   auto length(object const& xs) -> std::size_t

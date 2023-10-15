@@ -8,15 +8,15 @@
 
 (define-library (srfi 1)
   (import (only (meevax pair)
-                cons
+                cons cons*
                 xcons
                 pair?
                 not-pair?
                 car cdr caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
                 )
           (only (meevax list)
-                list cons* make-list list-copy circular-list iota null?
-                ; proper-list?
+                list make-list list-copy circular-list iota null?
+                list?
                 circular-list?
                 dotted-list?
                 null-list?
@@ -25,12 +25,13 @@
                 first second third fourth fifth sixth seventh eighth ninth tenth
                 ; car+cdr
                 take
+                drop
 
                 last
                 last-pair
                 )
           (except (scheme base)
-                  cons list make-list list-copy pair? null?
+                  cons list make-list list-copy pair? null? list?
                   car cdr caar cadr cdar cddr
                   list-ref
                   )
@@ -94,11 +95,6 @@
          (define (take! x k)
            (if (zero? k)
                (begin (set-cdr! (drop x (- k 1)) '()) x)))
-
-         (define (drop x k)
-           (let rec ((x x) (k k))
-             (if (zero? k) x
-                 (rec (cdr x) (- k 1)))))
 
          (define (take-right x k)
            (let lp ((lag x)

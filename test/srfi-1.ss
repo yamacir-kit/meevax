@@ -13,6 +13,7 @@
               list=
               first second third fourth fifth sixth seventh eighth ninth tenth
               take
+              drop
               last
               last-pair
               length+
@@ -66,11 +67,19 @@
 (check (ninth   '(a b c d e f g h i j)) => 'i)
 (check (tenth   '(a b c d e f g h i j)) => 'j)
 
+(check (take '(a b c d e) 0) => '())
 (check (take '(a b c d e) 1) => '(a))
 (check (take '(a b c d e) 2) => '(a b))
 (check (take '(a b c d e) 3) => '(a b c))
 (check (take '(a b c d e) 4) => '(a b c d))
 (check (take '(a b c d e) 5) => '(a b c d e))
+
+(check (drop '(a b c d e) 0) => '(a b c d e))
+(check (drop '(a b c d e) 1) => '(b c d e))
+(check (drop '(a b c d e) 2) => '(c d e))
+(check (drop '(a b c d e) 3) => '(d e))
+(check (drop '(a b c d e) 4) => '(e))
+(check (drop '(a b c d e) 5) => '())
 
 (check (last '(a)) => 'a)
 (check (last '(a b)) => 'b)
@@ -87,4 +96,4 @@
 
 (check-report)
 
-(exit (check-passed? 50))
+(exit (check-passed? 57))
