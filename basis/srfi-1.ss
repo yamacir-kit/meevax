@@ -16,17 +16,10 @@
                 )
           (only (meevax list)
                 list make-list list-copy circular-list iota null?
-                list?
-                circular-list?
-                dotted-list?
-                null-list?
-                list-ref
-                first second third fourth fifth sixth seventh eighth ninth tenth
-                ; car+cdr
-                take take!
-                drop
-                take-right
-                drop-right
+                list? circular-list? dotted-list? null-list?
+                list-ref first second third fourth fifth sixth seventh eighth ninth tenth
+                take take! take-right
+                drop drop-right drop-right!
 
                 last
                 last-pair
@@ -92,17 +85,6 @@
          (define (car+cdr pair)
            (values (car pair)
                    (cdr pair)))
-
-         (define (drop-right! x k)
-           (let ((lead (drop x k)))
-             (if (pair? lead)
-                 (let rec ((lag x)
-                           (lead (cdr lead)))
-                   (if (pair? lead)
-                       (rec (cdr lag)
-                            (cdr lead))
-                       (begin (set-cdr! lag '()) x)))
-                 '())))
 
          (define (split-at x k)
            (let recur ((lis x) (k k))

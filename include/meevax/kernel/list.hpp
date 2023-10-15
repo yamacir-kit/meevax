@@ -167,6 +167,8 @@ inline namespace kernel
 
   auto drop_right(object const&, std::size_t) -> object;
 
+  auto drop_right(object &, std::size_t) -> object;
+
   auto length(object const&) -> std::size_t;
 
   auto append(object const&, object const&) -> object;

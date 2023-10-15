@@ -732,6 +732,11 @@ inline namespace kernel
         return drop_right(xs[0], xs[1].as<exact_integer>());
       });
 
+      library.define<procedure>("drop-right!", [](let & xs)
+      {
+        return drop_right(xs[0], xs[1].as<exact_integer>());
+      });
+
       library.define<procedure>("memq", [](let const& xs) -> auto const&
       {
         return memq(xs[0], xs[1]);

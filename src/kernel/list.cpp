@@ -221,6 +221,31 @@ inline namespace kernel
     return drop_right(x, drop(x, k));
   }
 
+  auto drop_right(object & x, object const& y) -> void
+  {
+    if (y.is<pair>())
+    {
+      drop_right(cdr(x), cdr(y));
+    }
+    else
+    {
+      cdr(x) = unit;
+    }
+  }
+
+  auto drop_right(object & x, std::size_t k) -> object
+  {
+    if (let const y = drop(x, k); y.is<pair>())
+    {
+      drop_right(x, cdr(y));
+      return x;
+    }
+    else
+    {
+      return unit;
+    }
+  }
+
   auto length(object const& xs) -> std::size_t
   {
     return std::distance(xs.begin(), xs.end());

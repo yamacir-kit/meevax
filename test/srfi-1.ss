@@ -15,7 +15,7 @@
               take take!
               drop
               take-right
-              drop-right
+              drop-right drop-right!
               last
               last-pair
               length+
@@ -105,12 +105,23 @@
 (check (drop-right '(a b c . x) 2) => '(a))
 (check (drop-right '(a b c . x) 3) => '())
 
-(let ((x '(a b c d e))) (check (take! x 0) => '()) (check x => '(a b c d e)))
-(let ((x '(a b c d e))) (check (take! x 1) => '(a)) (check x => '(a)))
-(let ((x '(a b c d e))) (check (take! x 2) => '(a b)) (check x => '(a b)))
-(let ((x '(a b c d e))) (check (take! x 3) => '(a b c)) (check x => '(a b c)))
-(let ((x '(a b c d e))) (check (take! x 4) => '(a b c d)) (check x => '(a b c d)))
+(let ((x '(a b c d e))) (check (take! x 0) => '())          (check x => '(a b c d e)))
+(let ((x '(a b c d e))) (check (take! x 1) => '(a))         (check x => '(a)))
+(let ((x '(a b c d e))) (check (take! x 2) => '(a b))       (check x => '(a b)))
+(let ((x '(a b c d e))) (check (take! x 3) => '(a b c))     (check x => '(a b c)))
+(let ((x '(a b c d e))) (check (take! x 4) => '(a b c d))   (check x => '(a b c d)))
 (let ((x '(a b c d e))) (check (take! x 5) => '(a b c d e)) (check x => '(a b c d e)))
+
+(let ((x '(a b c d e))) (check (drop-right! x 0) => '(a b c d e)) (check x => '(a b c d e)))
+(let ((x '(a b c d e))) (check (drop-right! x 1) => '(a b c d))   (check x => '(a b c d)))
+(let ((x '(a b c d e))) (check (drop-right! x 2) => '(a b c))     (check x => '(a b c)))
+(let ((x '(a b c d e))) (check (drop-right! x 3) => '(a b))       (check x => '(a b)))
+(let ((x '(a b c d e))) (check (drop-right! x 4) => '(a))         (check x => '(a)))
+(let ((x '(a b c d e))) (check (drop-right! x 5) => '())          (check x => '(a b c d e)))
+(let ((x '(a b c . z))) (check (drop-right! x 0) => '(a b c))     (check x => '(a b c)))
+(let ((x '(a b c . z))) (check (drop-right! x 1) => '(a b))       (check x => '(a b)))
+(let ((x '(a b c . z))) (check (drop-right! x 2) => '(a))         (check x => '(a)))
+(let ((x '(a b c . z))) (check (drop-right! x 3) => '())          (check x => '(a b c . z)))
 
 (check (last '(a)) => 'a)
 (check (last '(a b)) => 'b)
@@ -127,4 +138,4 @@
 
 (check-report)
 
-(exit (check-passed? 89))
+(exit (check-passed? 109))
