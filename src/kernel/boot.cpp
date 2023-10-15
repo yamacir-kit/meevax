@@ -652,6 +652,16 @@ inline namespace kernel
         return reverse(xs[0]);
       });
 
+      library.define<procedure>("concatenate", [](let const& xs)
+      {
+        return std::accumulate(xs[0].begin(), xs[0].end(), unit, [](auto&&... xs) { return append(std::forward<decltype(xs)>(xs)...); });
+      });
+
+      library.define<procedure>("concatenate!", [](let & xs)
+      {
+        return std::accumulate(xs[0].begin(), xs[0].end(), unit, [](auto&&... xs) { return append(std::forward<decltype(xs)>(xs)...); });
+      });
+
       library.define<procedure>("list-copy", [](let const& xs)
       {
         return list_copy(xs[0]);

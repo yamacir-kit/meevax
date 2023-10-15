@@ -1,25 +1,15 @@
 (import (scheme base)
         (scheme process-context)
         (only (srfi 1)
-              xcons
-              cons*
-              list-tabulate
-              circular-list
-              iota
-              circular-list?
-              dotted-list?
-              not-pair?
-              null-list?
+              xcons cons* list-tabulate circular-list iota
+              circular-list? dotted-list? not-pair? null-list?
               list=
               first second third fourth fifth sixth seventh eighth ninth tenth
-              take take!
-              drop
-              take-right
-              drop-right drop-right!
-              last
-              last-pair
+              take take! drop take-right drop-right drop-right!
+              last last-pair
               length+
               append!
+              concatenate concatenate!
               )
         (srfi 78))
 
@@ -181,6 +171,34 @@
 (check (append! '(a b)) => '(a b))
 (check (append!) => '())
 
+(check (concatenate '((1 2 3) (4 5 6) (7 8 9))) => '(1 2 3 4 5 6 7 8 9))
+(check (concatenate '((1 2 3) (4 5 6) (7 . ...))) => '(1 2 3 4 5 6 7 . ...))
+(check (concatenate '((1 2 3) (4 5 6) ...)) => '(1 2 3 4 5 6 . ...))
+
+(let ((x '((1 2 3)
+           (4 5 6)
+           (7 8 9))))
+  (check (concatenate! x) => '(1 2 3 4 5 6 7 8 9))
+  (check x => '((1 2 3 4 5 6 7 8 9)
+                (4 5 6 7 8 9)
+                (7 8 9))))
+
+(let ((x '((1 2 3)
+           (4 5 6)
+           (7 . ...))))
+  (check (concatenate x) => '(1 2 3 4 5 6 7 . ...))
+  (check x => '((1 2 3 4 5 6 7 . ...)
+                (4 5 6 7 . ...)
+                (7 . ...))))
+
+(let ((x '((1 2 3)
+           (4 5 6)
+           ...)))
+  (check (concatenate x) => '(1 2 3 4 5 6 . ...))
+  (check x => '((1 2 3 4 5 6 . ...)
+                (4 5 6 . ...)
+                ...)))
+
 (check-report)
 
-(exit (check-passed? 135))
+(exit (check-passed? 144))

@@ -23,6 +23,8 @@
                 last last-pair
                 length length+
                 append append!
+                reverse
+                concatenate concatenate!
                 )
           (except (scheme base)
                   cons list make-list list-copy pair? null? list?
@@ -30,6 +32,7 @@
                   list-ref
                   length
                   append
+                  reverse
                   )
           (srfi 8))
 
@@ -102,12 +105,6 @@
                       (suffix (cdr prev)))
                  (set-cdr! prev '())
                  (values x suffix))))
-
-         (define (concatenate xs)
-           (reduce-right append '() xs))
-
-         (define (concatenate! xs)
-           (reduce-right append! '() xs))
 
          (define (reverse! lis)
            (let lp ((lis lis) (ans '()))
