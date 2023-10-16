@@ -647,6 +647,16 @@ inline namespace kernel
         return std::accumulate(xs.begin(), xs.end(), unit, [](let & x, let const& y) { return append(x, y); });
       });
 
+      library.define<procedure>("append-reverse", [](let const& xs)
+      {
+        return append_reverse(xs[0], xs[1]);
+      });
+
+      library.define<procedure>("append-reverse!", [](let & xs)
+      {
+        return append_reverse(xs[0], xs[1]);
+      });
+
       library.define<procedure>("reverse", [](let const& xs)
       {
         return reverse(xs[0]);

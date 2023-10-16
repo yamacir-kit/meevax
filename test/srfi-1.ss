@@ -12,6 +12,7 @@
               append!
               reverse!
               concatenate concatenate!
+              append-reverse append-reverse!
               alist-cons alist-copy
               )
         (srfi 78))
@@ -162,10 +163,13 @@
 (let ((x '((1 2 3) (4 5 6) ...)))       (check (concatenate  x) => '(1 2 3 4 5 6 . ...))   (check x => '((1 2 3) (4 5 6) ...)))
 (let ((x '((1 2 3) (4 5 6) ...)))       (check (concatenate! x) => '(1 2 3 4 5 6 . ...))   (check x => '((1 2 3 4 5 6 . ...) (4 5 6 . ...) ...)))
 
+(let ((x '(3 2 1)) (y '(4 5 6))) (check (append-reverse  x y) => '(1 2 3 4 5 6)) (check x => '(3 2 1))   (check y => '(4 5 6)))
+(let ((x '(3 2 1)) (y '(4 5 6))) (check (append-reverse! x y) => '(1 2 3 4 5 6)) (check x => '(3 4 5 6)) (check y => '(4 5 6)))
+
 (check (alist-cons 'a 1 '((b . 2) (c . 3))) => '((a . 1) (b . 2) (c . 3)))
 
 (check (alist-copy '((a . 1) (b . 2) (c . 3))) => '((a . 1) (b . 2) (c . 3)))
 
 (check-report)
 
-(exit (check-passed? 187))
+(exit (check-passed? 193))

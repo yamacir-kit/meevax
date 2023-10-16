@@ -280,6 +280,34 @@ inline namespace kernel
     }
   }
 
+  auto append_reverse(object const& x, object const& y) -> object
+  {
+    if (x.is<null>())
+    {
+      return y;
+    }
+    else
+    {
+      return append_reverse(cdr(x), cons(car(x), y));
+    }
+  }
+
+  auto append_reverse(object & x, object const& y) -> object
+  {
+    if (x.is<null>())
+    {
+      return y;
+    }
+    else
+    {
+      let const cdr_x = cdr(x);
+
+      cdr(x) = y;
+
+      return append_reverse(cdr_x, x);
+    }
+  }
+
   auto reverse(object const& xs, object const& a) -> object
   {
     if (xs.is<pair>())

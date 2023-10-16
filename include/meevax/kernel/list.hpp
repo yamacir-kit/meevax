@@ -175,6 +175,10 @@ inline namespace kernel
 
   auto append(object &, object const&) -> object &;
 
+  auto append_reverse(object const&, object const&) -> object;
+
+  auto append_reverse(object &, object const&) -> object;
+
   auto reverse(object const&) -> object;
 
   auto reverse(object &) -> object;

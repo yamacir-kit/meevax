@@ -14,6 +14,8 @@
             alist-copy
             append
             append!
+            append-reverse
+            append-reverse!
             assq
             assv
             circular-list
@@ -139,18 +141,6 @@
                      (values x suffix))
                    (cdr prefix-last)))
                 (drop x (- k 1)))))
-
-         (define (append-reverse rev-head tail)
-           (let lp ((rev-head rev-head) (tail tail))
-             (if (null-list? rev-head) tail
-                 (lp (cdr rev-head) (cons (car rev-head) tail)))))
-
-         (define (append-reverse! rev-head tail)
-           (let lp ((rev-head rev-head) (tail tail))
-             (if (null-list? rev-head) tail
-                 (let ((next-rev (cdr rev-head)))
-                   (set-cdr! rev-head tail)
-                   (lp next-rev rev-head)))))
 
          (define (zip list1 . more-lists)
            (apply map list list1 more-lists))
