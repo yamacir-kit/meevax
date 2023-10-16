@@ -193,6 +193,10 @@ inline namespace kernel
 
   auto assv(object const&, object const&) -> object const&;
 
+  auto alist_cons(object const&, object const&, object const&) -> object;
+
+  auto alist_copy(object const&) -> object;
+
   template <typename F>
   auto filter(F test, object const& xs) -> object
   {

@@ -394,6 +394,20 @@ inline namespace kernel
     }
   }
 
+  auto alist_cons(object const& key, object const& datum, object const& alist) -> object
+  {
+    return cons(cons(key, datum), alist);
+  }
+
+  auto alist_copy(object const& alist) -> object
+  {
+    return map([](auto&& x)
+               {
+                 return cons(car(x), cdr(x));
+               },
+               alist);
+  }
+
   auto longest_common_tail(let const& a, let const& b) -> object const&
   {
     if (a.is<null>() or b.is<null>() or eq(a, b))

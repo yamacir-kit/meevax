@@ -781,6 +781,16 @@ inline namespace kernel
       {
         return assv(xs[0], xs[1]);
       });
+
+      library.define<procedure>("alist-cons", [](let const& xs)
+      {
+        return alist_cons(xs[0], xs[1], xs[2]);
+      });
+
+      library.define<procedure>("alist-copy", [](let const& xs)
+      {
+        return alist_copy(xs[0]);
+      });
     });
 
     define<library>("(meevax number)", [](library & library)
@@ -1747,9 +1757,9 @@ inline namespace kernel
         {
           if (auto const position = std::string_view(*iter).find_first_of("="); position != std::string::npos)
           {
-            alist = cons(cons(make<string>(std::string(*iter, position)),
-                              make<string>(std::string(*iter + position + 1))),
-                         alist);
+            alist = alist_cons(make<string>(std::string(*iter, position)),
+                               make<string>(std::string(*iter + position + 1)),
+                               alist);
           }
         }
 

@@ -7,33 +7,61 @@
 |#
 
 (define-library (srfi 1)
-  (import (only (meevax pair)
-                cons cons*
-                xcons
-                pair?
-                not-pair?
-                car cdr caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
-                )
+  (import (only (meevax boolean) not)
+          (only (meevax core) begin call-with-current-continuation! define if lambda letrec quote set!)
           (only (meevax list)
-                list make-list list-copy circular-list iota null?
-                list? circular-list? dotted-list? null-list?
-                list-ref first second third fourth fifth sixth seventh eighth ninth tenth
-                take take! take-right
-                drop drop-right drop-right!
-                last last-pair
-                length length+
-                append append!
-                reverse reverse!
-                concatenate concatenate!
-                )
-          (except (scheme base)
-                  cons list make-list list-copy pair? null? list?
-                  car cdr caar cadr cdar cddr
-                  list-ref
-                  length
-                  append
-                  reverse
-                  )
+            alist-cons
+            alist-copy
+            append
+            append!
+            assq
+            assv
+            circular-list
+            circular-list?
+            concatenate
+            concatenate!
+            dotted-list?
+            drop
+            drop-right
+            drop-right!
+            eighth
+            fifth
+            first
+            fourth
+            iota
+            last
+            last-pair
+            length
+            length+
+            list
+            list?
+            list-copy
+            list-ref
+            make-list
+            memq
+            memv
+            ninth
+            null?
+            null-list?
+            reverse
+            reverse!
+            second
+            seventh
+            sixth
+            take
+            take!
+            take-right
+            tenth
+            third
+            )
+          (only (meevax pair)
+            caaaar caaadr caaar caadar caaddr caadr caar cadaar cadadr cadar
+            caddar cadddr caddr cadr car cdaaar cdaadr cdaar cdadar cdaddr
+            cdadr cdar cddaar cddadr cddar cdddar cddddr cdddr cddr cdr cons
+            cons* not-pair? pair? set-car! set-cdr! xcons)
+          (only (scheme r5rs)
+            cond and or let let* eqv? eq? equal? = < zero? + - member assoc
+            apply map values call-with-values)
           (srfi 8))
 
   (export cons list xcons cons* make-list list-tabulate list-copy circular-list
@@ -92,19 +120,25 @@
                    (cdr pair)))
 
          (define (split-at x k)
-           (let recur ((lis x) (k k))
-             (if (zero? k)
-                 (values '() lis)
-                 (receive (prefix suffix) (recur (cdr lis) (- k 1))
-                          (values (cons (car lis) prefix) suffix)))))
+           (if (zero? k)
+               (values '() x)
+               (call-with-values (lambda ()
+                                   (split-at (cdr x)
+                                             (- k 1)))
+                                 (lambda (prefix suffix)
+                                   (values (cons (car x)
+                                                 prefix)
+                                           suffix)))))
 
          (define (split-at! x k)
            (if (zero? k)
                (values '() x)
-               (let* ((prev (drop x (- k 1)))
-                      (suffix (cdr prev)))
-                 (set-cdr! prev '())
-                 (values x suffix))))
+               ((lambda (prefix-last)
+                  ((lambda (suffix)
+                     (set-cdr! prefix-last '())
+                     (values x suffix))
+                   (cdr prefix-last)))
+                (drop x (- k 1)))))
 
          (define (append-reverse rev-head tail)
            (let lp ((rev-head rev-head) (tail tail))
@@ -209,7 +243,8 @@
                        (lp tail (f lis ans)))))))
 
          (define (reduce f ridentity lis)
-           (if (null-list? lis) ridentity
+           (if (null-list? lis)
+               ridentity
                (fold f (car lis) (cdr lis))))
 
          (define (fold-right f knil x . xs)
@@ -359,7 +394,9 @@
                                 (values in (if (pair? in) (cons elt out) lis))))))))
 
          (define (remove satisfy? x)
-           (filter (lambda (y) (not (satisfy? y))) x))
+           (filter (lambda (y)
+                     (not (satisfy? y)))
+                   x))
 
          ; Things are much simpler if you are willing to push N stack frames & do N
          ; set-cdr! writes, where N is the length of the answer.
@@ -512,7 +549,9 @@
                        (values '() lis))))))
 
          (define (break break? x)
-           (span (lambda (x) (not (break? x))) x))
+           (span (lambda (x)
+                   (not (break? x)))
+                 x))
 
          (define (span! pred lis)
            (if (or (null-list? lis) (not (pred (car lis)))) (values '() lis)
@@ -552,15 +591,6 @@
                           (tail (cdr lis))
                           (new-tail (recur (delete! x tail elt=))))
                      (if (eq? tail new-tail) lis (cons x new-tail)))))))
-
-         (define (alist-cons key datum alist)
-           (cons (cons key datum) alist))
-
-         (define (alist-copy alist)
-           (map (lambda (each)
-                  (cons (car each)
-                        (cdr each)))
-                alist))
 
          (define (alist-delete key alist . maybe-=)
            (let ((= (if (pair? maybe-=) (car maybe-=) equal?)))

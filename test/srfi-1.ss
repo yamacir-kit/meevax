@@ -6,11 +6,13 @@
               list=
               first second third fourth fifth sixth seventh eighth ninth tenth
               take take! drop take-right drop-right drop-right!
+              split-at split-at!
               last last-pair
               length+
               append!
               reverse!
               concatenate concatenate!
+              alist-cons alist-copy
               )
         (srfi 78))
 
@@ -113,6 +115,9 @@
 (let ((x '(a b c . z))) (check (drop-right  x 3) => '())          (check x => '(a b c . z)))
 (let ((x '(a b c . z))) (check (drop-right! x 3) => '())          (check x => '(a b c . z)))
 
+(let ((x '(a b c d e f g h))) (check (call-with-values (lambda () (split-at  x 3)) (lambda (x xs) (list x xs))) => '((a b c) (d e f g h))) (check x => '(a b c d e f g h)))
+(let ((x '(a b c d e f g h))) (check (call-with-values (lambda () (split-at! x 3)) (lambda (x xs) (list x xs))) => '((a b c) (d e f g h))) (check x => '(a b c)))
+
 (check (last '(a)) => 'a)
 (check (last '(a b)) => 'b)
 (check (last '(a b c)) => 'c)
@@ -157,6 +162,10 @@
 (let ((x '((1 2 3) (4 5 6) ...)))       (check (concatenate  x) => '(1 2 3 4 5 6 . ...))   (check x => '((1 2 3) (4 5 6) ...)))
 (let ((x '((1 2 3) (4 5 6) ...)))       (check (concatenate! x) => '(1 2 3 4 5 6 . ...))   (check x => '((1 2 3 4 5 6 . ...) (4 5 6 . ...) ...)))
 
+(check (alist-cons 'a 1 '((b . 2) (c . 3))) => '((a . 1) (b . 2) (c . 3)))
+
+(check (alist-copy '((a . 1) (b . 2) (c . 3))) => '((a . 1) (b . 2) (c . 3)))
+
 (check-report)
 
-(exit (check-passed? 181))
+(exit (check-passed? 187))
