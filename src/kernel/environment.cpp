@@ -218,18 +218,17 @@ inline namespace kernel
 
   auto environment::import(object const& import_set) -> void
   {
-    for (let const& identity : resolve(import_set))
+    for (let const& immigrant : resolve(import_set))
     {
-      assert(identity.is<absolute>());
+      assert(immigrant.is<absolute>());
 
-      if (not is_truthy(std::as_const(*this).identify(car(identity), unit, unit)) or interactive)
+      if (let const& inhabitant = std::as_const(*this).identify(car(immigrant), unit, unit); inhabitant == f or interactive)
       {
-        define(car(identity),
-               cdr(identity));
+        second = cons(immigrant, second);
       }
-      else
+      else if (immigrant != inhabitant)
       {
-        throw error(make<string>("in a program or library declaration, it is an error to import the same identifier more than once with different bindings"), identity);
+        throw error(make<string>("in a program or library declaration, it is an error to import the same identifier more than once with different bindings"), immigrant);
       }
     }
   }

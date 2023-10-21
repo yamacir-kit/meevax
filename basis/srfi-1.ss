@@ -23,7 +23,7 @@
             not-pair? pair? set-car! set-cdr! xcons)
           (only (scheme r5rs)
             cond and or let let* eqv? eq? equal? = < zero? + - member assoc
-            apply map values call-with-values)
+            apply map for-each values)
           (only (srfi 8) receive)
           (only (srfi 23) error))
 
@@ -131,16 +131,14 @@
            (values (car pair)
                    (cdr pair)))
 
-         (define (split-at x k)
+         (define (split-at xs k)
            (if (zero? k)
-               (values '() x)
-               (call-with-values (lambda ()
-                                   (split-at (cdr x)
-                                             (- k 1)))
-                                 (lambda (prefix suffix)
-                                   (values (cons (car x)
-                                                 prefix)
-                                           suffix)))))
+               (values '() xs)
+               (receive (a b) (split-at (cdr xs)
+                                        (- k 1))
+                 (values (cons (car xs)
+                               a)
+                         b))))
 
          (define (split-at! x k)
            (if (zero? k)

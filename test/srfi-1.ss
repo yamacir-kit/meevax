@@ -2,12 +2,7 @@
         (scheme cxr)
         (scheme process-context)
         (scheme write)
-        (except (srfi 1)
-          cons list make-list list-copy pair? null? car cdr caar cadr cdar cddr
-          caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar
-          caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar
-          cddadr cdddar cddddr list-ref length append reverse map for-each memq
-          memv member assq assv assoc set-car! set-cdr!)
+        (srfi 1)
         (srfi 78))
 
 (check (cons 'a 'b) => '(a . b))
