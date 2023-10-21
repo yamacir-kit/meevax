@@ -465,6 +465,29 @@
   (import (srfi 45))
   (export delay (rename lazy delay-force) force promise? (rename eager make-promise)))
 
+(define-library (scheme list)
+  (import (srfi 1))
+  (export cons list xcons cons* make-list list-tabulate list-copy circular-list
+          iota pair? null? proper-list? circular-list? dotted-list? not-pair?
+          null-list? list= car cdr caar cadr cdar cddr caaar caadr cadar caddr
+          cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr
+          caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
+          list-ref first second third fourth fifth sixth seventh eighth ninth
+          tenth car+cdr take take! take-right drop drop-right drop-right!
+          split-at split-at! last last-pair length length+ append append!
+          concatenate concatenate! reverse reverse! append-reverse
+          append-reverse! zip unzip1 unzip2 unzip3 unzip4 unzip5 count map map!
+          filter-map map-in-order fold fold-right unfold unfold-right pair-fold
+          pair-fold-right reduce reduce-right append-map append-map! for-each
+          pair-for-each filter filter! partition partition! remove remove! memq
+          memv member find find-tail any every list-index take-while
+          take-while! drop-while span span! break break! delete delete!
+          delete-duplicates delete-duplicates! assq assv assoc alist-cons
+          alist-copy alist-delete alist-delete! lset<= lset= lset-adjoin
+          lset-union lset-union! lset-intersection lset-intersection!
+          lset-difference lset-difference! lset-xor lset-xor!
+          lset-diff+intersection lset-diff+intersection! set-car! set-cdr!))
+
 (define-library (scheme load)
   (import (only (scheme r5rs) load))
   (export load))
