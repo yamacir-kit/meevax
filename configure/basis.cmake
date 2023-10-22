@@ -7,9 +7,7 @@ file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${TOPLEVEL}/basis/*.ss)
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
   get_filename_component(FILENAME ${EACH} NAME)
-  execute_process(
-    COMMAND ${TOPLEVEL}/build/bin/format ${EACH}
-    OUTPUT_VARIABLE CONFIGURED_${FILENAME})
+  file(READ ${EACH} ${FILENAME})
 endforeach()
 
 configure_file(
