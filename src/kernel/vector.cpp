@@ -39,6 +39,11 @@ inline namespace kernel
     return vector[index];
   }
 
+  auto heterogeneous_vector::operator [](std::size_t index) -> object &
+  {
+    return vector[index];
+  }
+
   auto operator ==(heterogeneous_vector const& v, heterogeneous_vector const& u) -> bool
   {
     return std::equal(std::begin(v.vector), std::end(v.vector),

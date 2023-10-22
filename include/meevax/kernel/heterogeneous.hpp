@@ -51,7 +51,7 @@ inline namespace kernel
 
       auto compare([[maybe_unused]] Top const* top) const -> bool override
       {
-        if constexpr (is_equality_comparable_v<Bound>)
+        if constexpr (is_equality_comparable_v<Bound const&>)
         {
           if (auto const* bound = dynamic_cast<Bound const*>(top); bound)
           {
@@ -75,7 +75,7 @@ inline namespace kernel
 
       auto write(std::ostream & os) const -> std::ostream & override
       {
-        if constexpr (is_output_streamable_v<Bound>)
+        if constexpr (is_output_streamable_v<Bound const&>)
         {
           return os << static_cast<Bound const&>(*this);
         }
@@ -87,9 +87,21 @@ inline namespace kernel
 
       auto operator []([[maybe_unused]] std::size_t k) const -> heterogeneous const& override
       {
-        if constexpr (is_array_subscriptable_v<Bound>)
+        if constexpr (is_array_subscriptable_v<Bound const&>)
         {
           return static_cast<Bound const&>(*this)[k];
+        }
+        else
+        {
+          throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
+        }
+      }
+
+      auto operator []([[maybe_unused]] std::size_t k) -> heterogeneous & override
+      {
+        if constexpr (is_array_subscriptable_v<Bound &>)
+        {
+          return static_cast<Bound &>(*this)[k];
         }
         else
         {
@@ -225,6 +237,18 @@ inline namespace kernel
     }
 
     inline auto operator [](std::size_t k) const -> heterogeneous const&
+    {
+      if (dereferenceable() and *this)
+      {
+        return get()->operator [](k);
+      }
+      else
+      {
+        throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
+      }
+    }
+
+    inline auto operator [](std::size_t k) -> heterogeneous &
     {
       if (dereferenceable() and *this)
       {

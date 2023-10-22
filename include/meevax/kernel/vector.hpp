@@ -39,6 +39,8 @@ inline namespace kernel
     {}
 
     auto operator [](std::size_t) const -> object const&;
+
+    auto operator [](std::size_t) -> object &;
   };
 
   auto operator ==(heterogeneous_vector const&, heterogeneous_vector const&) -> bool;

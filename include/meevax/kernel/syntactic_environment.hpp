@@ -1016,7 +1016,7 @@ inline namespace kernel
                                   free_variables);
                 });
 
-                xs = cons(cons(free_variable, inject), xs);
+                xs = alist_cons(free_variable, inject, xs);
               }
 
               return xs;

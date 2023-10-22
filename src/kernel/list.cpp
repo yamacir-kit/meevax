@@ -23,7 +23,26 @@ inline namespace kernel
 {
   auto make_list(std::size_t size, object const& x) -> object
   {
-    return 0 < size ? cons(x, make_list(--size, x)) : unit;
+    if (0 < size)
+    {
+      return cons(x, make_list(--size, x));
+    }
+    else
+    {
+      return unit;
+    }
+  }
+
+  auto iota(std::size_t count, object const& start, object const& step) -> object
+  {
+    if (0 < count)
+    {
+      return cons(start, iota(count - 1, start + step, step));
+    }
+    else
+    {
+      return unit;
+    }
   }
 
   auto is_list(object const& x0, object const& y0) -> bool
@@ -53,19 +72,183 @@ inline namespace kernel
     return is_list(xs, xs);
   }
 
-  auto last(object const& xs) -> object const&
+  auto is_circular_list(object const& x0, object const& y0) -> bool
   {
-    return cdr(xs).is<pair>() ? last(cdr(xs)) : car(xs);
+    if (x0.is<pair>())
+    {
+      if (let const& x1 = cdr(x0); x1.is<pair>())
+      {
+        let const& x2 = cdr(x1),
+                   y1 = cdr(y0);
+
+        return eq(x2, y1) or is_circular_list(x2, y1);
+      }
+      else
+      {
+        return false;
+      }
+    }
+    else
+    {
+      return false;
+    }
   }
 
-  auto take(object const& x, std::size_t size) -> object
+  auto is_circular_list(object const& xs) -> bool
   {
-    return 0 < size ? cons(car(x), take(cdr(x), --size)) : unit;
+    return is_circular_list(xs, xs);
   }
 
-  auto length(object const& xs) -> std::size_t
+  auto is_dotted_list(object const& x0, object const& y0) -> bool
   {
-    return std::distance(xs.begin(), xs.end());
+    if (x0.is<pair>())
+    {
+      if (let const& x1 = cdr(x0); x1.is<pair>())
+      {
+        let const& x2 = cdr(x1),
+                   y1 = cdr(y0);
+
+        return not eq(x2, y1) and is_dotted_list(x2, y1);
+      }
+      else
+      {
+        return not x1.is<null>();
+      }
+    }
+    else
+    {
+      return not x0.is<null>();
+    }
+  }
+
+  auto is_dotted_list(object const& xs) -> bool
+  {
+    return is_dotted_list(xs, xs);
+  }
+
+  auto list_copy(object const& xs) -> object
+  {
+    if (xs.is<pair>())
+    {
+      return cons(car(xs), list_copy(cdr(xs)));
+    }
+    else
+    {
+      return xs;
+    }
+  }
+
+  auto take(object const& x, std::size_t k) -> object
+  {
+    if (0 < k)
+    {
+      return cons(car(x), take(cdr(x), k - 1));
+    }
+    else
+    {
+      return unit;
+    }
+  }
+
+  auto take(object & x, std::size_t k) -> object
+  {
+    if (0 < k)
+    {
+      cdr(drop(x, k - 1)) = unit;
+      return x;
+    }
+    else
+    {
+      return unit;
+    }
+  }
+
+  auto take_right(object const& x, object const& y) -> object const&
+  {
+    if (y.is<pair>())
+    {
+      return take_right(cdr(x), cdr(y));
+    }
+    else
+    {
+      return x;
+    }
+  }
+
+  auto take_right(object const& x, std::size_t k) -> object const&
+  {
+    return take_right(x, drop(x, k));
+  }
+
+  auto drop(object const& x, std::size_t k) -> object const&
+  {
+    if (0 < k)
+    {
+      return drop(cdr(x), k - 1);
+    }
+    else
+    {
+      return x;
+    }
+  }
+
+  auto drop(object & x, std::size_t k) -> object &
+  {
+    if (0 < k)
+    {
+      return drop(cdr(x), k - 1);
+    }
+    else
+    {
+      return x;
+    }
+  }
+
+  auto drop_right(object const& x, object const& y) -> object
+  {
+    if (y.is<pair>())
+    {
+      return cons(car(x), drop_right(cdr(x), cdr(y)));
+    }
+    else
+    {
+      return unit;
+    }
+  }
+
+  auto drop_right(object const& x, std::size_t k) -> object
+  {
+    return drop_right(x, drop(x, k));
+  }
+
+  auto drop_right(object & x, object const& y) -> void
+  {
+    if (y.is<pair>())
+    {
+      drop_right(cdr(x), cdr(y));
+    }
+    else
+    {
+      cdr(x) = unit;
+    }
+  }
+
+  auto drop_right(object & x, std::size_t k) -> object
+  {
+    if (let const y = drop(x, k); y.is<pair>())
+    {
+      drop_right(x, cdr(y));
+      return x;
+    }
+    else
+    {
+      return unit;
+    }
+  }
+
+  auto length(object const& x) -> std::size_t
+  {
+    return std::distance(x.begin(), x.end());
   }
 
   auto append(object const& x, object const& y) -> object
@@ -80,6 +263,51 @@ inline namespace kernel
     }
   }
 
+  auto append(object & x, object const& y) -> object &
+  {
+    if (x.is<null>())
+    {
+      return x = y;
+    }
+    else if (y.is<null>())
+    {
+      return x;
+    }
+    else
+    {
+      cdr(last_pair(x)) = y;
+      return x;
+    }
+  }
+
+  auto append_reverse(object const& x, object const& y) -> object
+  {
+    if (x.is<null>())
+    {
+      return y;
+    }
+    else
+    {
+      return append_reverse(cdr(x), cons(car(x), y));
+    }
+  }
+
+  auto append_reverse(object & x, object const& y) -> object
+  {
+    if (x.is<null>())
+    {
+      return y;
+    }
+    else
+    {
+      let const cdr_x = cdr(x);
+
+      cdr(x) = y;
+
+      return append_reverse(cdr_x, x);
+    }
+  }
+
   auto reverse(object const& xs, object const& a) -> object
   {
     if (xs.is<pair>())
@@ -90,6 +318,32 @@ inline namespace kernel
     {
       return a;
     }
+  }
+
+  auto reverse(object const& xs) -> object
+  {
+    return reverse(xs, unit);
+  }
+
+  auto reverse(object & xs, object const& a) -> object
+  {
+    if (xs.is<null>())
+    {
+      return a;
+    }
+    else
+    {
+      let tail = cdr(xs);
+
+      cdr(xs) = a;
+
+      return reverse(tail, xs);
+    }
+  }
+
+  auto reverse(object & xs) -> object
+  {
+    return reverse(xs, unit);
   }
 
   auto memq(object const& x, object const& xs) -> object const&
@@ -166,6 +420,20 @@ inline namespace kernel
     {
       return f;
     }
+  }
+
+  auto alist_cons(object const& key, object const& datum, object const& alist) -> object
+  {
+    return cons(cons(key, datum), alist);
+  }
+
+  auto alist_copy(object const& alist) -> object
+  {
+    return map([](auto&& x)
+               {
+                 return cons(car(x), cdr(x));
+               },
+               alist);
   }
 
   auto longest_common_tail(let const& a, let const& b) -> object const&
