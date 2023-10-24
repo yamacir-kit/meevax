@@ -48,7 +48,7 @@ inline namespace kernel
 
       library.define<procedure>("not", [](let const& xs)
       {
-        return not is_truthy(xs[0]);
+        return xs[0] == f;
       });
     });
 
@@ -283,7 +283,7 @@ inline namespace kernel
         }
         else if (let const& status = car(xs); status.is<bool>())
         {
-          throw is_truthy(status) ? EXIT_SUCCESS : EXIT_FAILURE;
+          throw status != f ? EXIT_SUCCESS : EXIT_FAILURE;
         }
         else
         {

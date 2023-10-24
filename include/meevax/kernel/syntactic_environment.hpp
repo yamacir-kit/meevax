@@ -190,17 +190,17 @@ inline namespace kernel
       *  call to one of their arguments. Exceptions are noted in the individual
       *  descriptions.
       *
-      *  Note: In contrast to other dialects of Lisp, the order of evaluation
+      *  NOTE: In contrast to other dialects of Lisp, the order of evaluation
       *  is unspecified, and the operator expression and the operand
       *  expressions are always evaluated with the same evaluation rules.
       *
-      *  Note: Although the order of evaluation is otherwise unspecified, the
+      *  NOTE: Although the order of evaluation is otherwise unspecified, the
       *  effect of any concurrent evaluation of the operator and operand
       *  expressions is constrained to be consistent with some sequential order
       *  of evaluation. The order of evaluation may be chosen differently for
       *  each procedure call.
       *
-      *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
+      *  NOTE: In many dialects of Lisp, the empty list, (), is a legitimate
       *  expression evaluating to itself. In Scheme, it is an error.
       *
       * ------------------------------------------------------------------ */
@@ -519,7 +519,7 @@ inline namespace kernel
       *  difference between the two is that include-ci reads each file as if it
       *  began with the #!fold-case directive, while include does not.
       *
-      *  Note: Implementations are encouraged to search for files in the
+      *  NOTE: Implementations are encouraged to search for files in the
       *  directory which contains the including file, and to provide a way for
       *  users to specify other directories to search.
       *
@@ -997,7 +997,7 @@ inline namespace kernel
         }
         else if (expression.is<syntactic_closure>())
         {
-          if (let const& identity = std::as_const(*this).identify(expression, bound_variables, free_variables); is_truthy(identity)) // The syntactic-closure is an alias
+          if (let const& identity = std::as_const(*this).identify(expression, bound_variables, free_variables); identity != f) // The syntactic-closure is an alias
           {
             return syntax::reference(*this, expression, bound_variables, free_variables, continuation, tail);
           }
@@ -1115,7 +1115,7 @@ inline namespace kernel
       {
         return f;
       }
-      else if (let const& x = assq(variable, free_variables); is_truthy(x))
+      else if (let const& x = assq(variable, free_variables); x != f)
       {
         return cdr(x).as<injector>()(bound_variables);
       }
@@ -1169,7 +1169,7 @@ inline namespace kernel
       {
         return f;
       }
-      else if (let const& identity = std::as_const(*this).identify(variable, bound_variables, free_variables); is_truthy(identity))
+      else if (let const& identity = std::as_const(*this).identify(variable, bound_variables, free_variables); identity != f)
       {
         return identity;
       }

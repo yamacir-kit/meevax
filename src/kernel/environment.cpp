@@ -119,7 +119,7 @@ inline namespace kernel
           return filter([&](let const& identity)
                         {
                           assert(identity.is<absolute>());
-                          return is_truthy(memq(car(identity), identities));
+                          return memq(car(identity), identities) != f;
                         },
                         resolve(import_set));
         };
@@ -141,7 +141,7 @@ inline namespace kernel
           return filter([&](let const& identity)
                         {
                           assert(identity.is<absolute>());
-                          return not is_truthy(memq(car(identity), identities));
+                          return memq(car(identity), identities) == f;
                         },
                         resolve(import_set));
         };
@@ -189,7 +189,7 @@ inline namespace kernel
                        assert(identity.is<absolute>());
                        assert(car(identity).is_also<identifier>());
 
-                       if (let const& renaming = assq(car(identity), renamings); is_truthy(renaming))
+                       if (let const& renaming = assq(car(identity), renamings); renaming != f)
                        {
                          assert(cadr(renaming).is<symbol>());
                          return make<absolute>(cadr(renaming), cdr(identity));

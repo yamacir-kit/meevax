@@ -48,7 +48,7 @@ inline namespace kernel
     }
     else
     {
-      return eq(requirement, make_symbol("else")) or is_truthy(memq(requirement, features()));
+      return requirement == make_symbol("else") or memq(requirement, features()) != f;
     }
   }
 

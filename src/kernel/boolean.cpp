@@ -22,11 +22,7 @@ namespace meevax
 inline namespace kernel
 {
   let const t = make<bool>(true);
-  let const f = make<bool>(false);
 
-  auto is_truthy(object const& x) -> bool
-  {
-    return not eq(x, f);
-  }
+  let const f = make<bool>(false);
 } // namespace kernel
 } // namespace meevax

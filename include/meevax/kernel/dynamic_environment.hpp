@@ -256,7 +256,7 @@ inline namespace kernel
           *  where c' = (if <boolean> c1 c2)
           *
           * ----------------------------------------------------------------- */
-          c = is_truthy(car(s)) ? cadr(c) : caddr(c);
+          c = car(s) != f ? cadr(c) : caddr(c);
           s = cdr(s);
           goto fetch;
 
