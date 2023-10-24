@@ -463,7 +463,7 @@ inline namespace kernel
 
       auto static const pattern = std::regex(R"(([+-]?(?:\d+\.?|\d*\.\d+))([DEFLSdefls][+-]?\d+)?)");
 
-      if (auto iter = constants.find(literal); iter != std::end(constants))
+      if (auto iter = constants.find(literal); iter != constants.end())
       {
         return make(iter->second);
       }

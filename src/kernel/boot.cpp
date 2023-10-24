@@ -847,27 +847,27 @@ inline namespace kernel
 
       library.define<procedure>("=", [](let const& xs)
       {
-        return std::adjacent_find(std::begin(xs), std::end(xs), not_equals) == std::end(xs);
+        return std::adjacent_find(xs.begin(), xs.end(), not_equals) == xs.end();
       });
 
       library.define<procedure>("<", [](let const& xs)
       {
-        return std::adjacent_find(std::begin(xs), std::end(xs), greater_than_or_equals) == std::end(xs);
+        return std::adjacent_find(xs.begin(), xs.end(), greater_than_or_equals) == xs.end();
       });
 
       library.define<procedure>("<=", [](let const& xs)
       {
-        return std::adjacent_find(std::begin(xs), std::end(xs), greater_than) == std::end(xs);
+        return std::adjacent_find(xs.begin(), xs.end(), greater_than) == xs.end();
       });
 
       library.define<procedure>(">", [](let const& xs)
       {
-        return std::adjacent_find(std::begin(xs), std::end(xs), less_than_or_equals) == std::end(xs);
+        return std::adjacent_find(xs.begin(), xs.end(), less_than_or_equals) == xs.end();
       });
 
       library.define<procedure>(">=", [](let const& xs)
       {
-        return std::adjacent_find(std::begin(xs), std::end(xs), less_than) == std::end(xs);
+        return std::adjacent_find(xs.begin(), xs.end(), less_than) == xs.end();
       });
 
       library.define<procedure>("zero?", [](let const& xs)
@@ -907,19 +907,19 @@ inline namespace kernel
 
       library.define<procedure>("+", [](let const& xs)
       {
-        return std::accumulate(std::begin(xs), std::end(xs), e0, std::plus());
+        return std::accumulate(xs.begin(), xs.end(), e0, std::plus());
       });
 
       library.define<procedure>("*", [](let const& xs)
       {
-        return std::accumulate(std::begin(xs), std::end(xs), e1, std::multiplies());
+        return std::accumulate(xs.begin(), xs.end(), e1, std::multiplies());
       });
 
       library.define<procedure>("-", [](let const& xs)
       {
         if (cdr(xs).is<pair>())
         {
-          return std::accumulate(std::next(std::begin(xs)), std::end(xs), xs[0], std::minus());
+          return std::accumulate(std::next(xs.begin()), xs.end(), xs[0], std::minus());
         }
         else
         {
@@ -931,7 +931,7 @@ inline namespace kernel
       {
         if (cdr(xs).is<pair>())
         {
-          return std::accumulate(std::next(std::begin(xs)), std::end(xs), xs[0], std::divides());
+          return std::accumulate(std::next(xs.begin()), xs.end(), xs[0], std::divides());
         }
         else
         {

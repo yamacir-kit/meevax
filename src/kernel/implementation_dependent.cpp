@@ -27,15 +27,17 @@ inline namespace kernel
     {
       if (car(requirement).as<symbol>() == "library")
       {
-        return libraries().find(lexical_cast<std::string>(cadr(requirement))) != std::end(libraries());
+        return libraries().find(lexical_cast<std::string>(cadr(requirement))) != libraries().end();
       }
       else if (car(requirement).as<symbol>() == "and")
       {
-        return std::all_of(std::begin(cdr(requirement)), std::end(cdr(requirement)), test);
+        return std::all_of(cdr(requirement).begin(),
+                           cdr(requirement).end(), test);
       }
       else if (car(requirement).as<symbol>() == "or")
       {
-        return std::any_of(std::begin(cdr(requirement)), std::end(cdr(requirement)), test);
+        return std::any_of(cdr(requirement).begin(),
+                           cdr(requirement).end(), test);
       }
       else if (car(requirement).as<symbol>() == "not")
       {

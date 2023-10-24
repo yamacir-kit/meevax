@@ -33,7 +33,7 @@ auto main() -> int
   {
     let x = list(a, b, c);
 
-    for (auto iter = std::begin(x); iter != std::end(x); ++iter)
+    for (auto iter = x.begin(); iter != x.end(); ++iter)
     {
       assert((*iter).template is<symbol>());
     }
@@ -42,18 +42,16 @@ auto main() -> int
   {
     let x = list(a, b, c);
 
-    for (auto iter = std::begin(x); iter != std::end(x); ++iter)
+    for (auto iter = x.begin(); iter != x.end(); ++iter)
     {
       assert(iter->template is<symbol>());
     }
   }
 
   {
-    let x = list(a, b);
-    cddr(x) = x;
+    let x = circular_list(a, b);
 
-    let y = list(a, b, a, b);
-    cddddr(y) = y;
+    let y = circular_list(a, b, a, b);
 
     assert(equal(x, y));
   }

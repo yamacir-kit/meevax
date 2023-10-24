@@ -206,7 +206,7 @@ inline namespace kernel
       return rename(cadr(form))
                    (cddr(form));
     }
-    else if (auto iter = libraries().find(lexical_cast<std::string>(form)); iter != std::end(libraries()))
+    else if (auto iter = libraries().find(lexical_cast<std::string>(form)); iter != libraries().end())
     {
       return std::get<1>(*iter).resolve();
     }

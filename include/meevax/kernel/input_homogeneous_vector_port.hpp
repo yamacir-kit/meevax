@@ -61,8 +61,8 @@ inline namespace kernel
       }
       else
       {
-        let const v =  make<homogeneous_vector<T>>(std::begin(deque), std::next(std::begin(deque), size));
-        deque.erase(std::begin(deque), std::next(std::begin(deque), size));
+        let const v =  make<homogeneous_vector<T>>(deque.begin(), std::next(deque.begin(), size));
+        deque.erase(deque.begin(), std::next(deque.begin(), size));
         return v;
       }
     }

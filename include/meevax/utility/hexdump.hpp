@@ -40,8 +40,8 @@ inline namespace utility
     // TODO UPDATE WITH STD::ENDIAN (C++20)
     auto operator()(std::ostream & os) const -> std::ostream &
     {
-      for (auto iter = std::rbegin(data); iter != std::rend(data); ++iter) // little endian
-      // for (auto iter = std::begin(data); iter != std::end(data); ++iter) // big endian
+      for (auto iter = data.rbegin(); iter != data.rend(); ++iter) // little endian
+      // for (auto iter = data.begin(); iter != data.end(); ++iter) // big endian
       {
         os << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned int>(*iter) << " ";
       }
