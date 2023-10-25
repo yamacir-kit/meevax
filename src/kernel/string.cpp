@@ -52,8 +52,8 @@ inline namespace kernel
 
   auto operator ==(string const& s1, string const& s2) -> bool
   {
-    return std::equal(std::begin(s1.vector), std::end(s1.vector),
-                      std::begin(s2.vector), std::end(s2.vector));
+    return std::equal(s1.vector.begin(), s1.vector.end(),
+                      s2.vector.begin(), s2.vector.end());
   }
 
   auto operator <<(std::ostream & os, string const& datum) -> std::ostream &

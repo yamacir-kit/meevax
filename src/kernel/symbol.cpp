@@ -59,7 +59,7 @@ inline namespace kernel
 
   auto make_symbol(std::string const& name) -> object const&
   {
-    if (auto const iter = symbols().find(name); iter != std::end(symbols()))
+    if (auto const iter = symbols().find(name); iter != symbols().end())
     {
       return iter->second;
     }

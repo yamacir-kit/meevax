@@ -7,923 +7,896 @@
 |#
 
 (define-library (srfi 1)
-  (import (scheme base)
-          (scheme cxr)
-          (srfi 8))
+  (import (only (meevax boolean) not)
+          (only (meevax core) begin call-with-current-continuation! define if lambda letrec quote set!)
+          (only (meevax list)
+            alist-cons alist-copy append append! append-reverse append-reverse!
+            assq assv circular-list circular-list? concatenate concatenate!
+            dotted-list? drop drop-right drop-right! eighth fifth first fourth
+            iota last last-pair length length+ list list? list-copy list-ref
+            make-list memq memv ninth null? null-list? reverse reverse! second
+            seventh sixth take take! take-right tenth third)
+          (only (meevax pair)
+            car cdr caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr
+            cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
+            cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr cons cons*
+            not-pair? pair? set-car! set-cdr! xcons)
+          (only (scheme r5rs)
+            cond and or let let* eqv? eq? equal? = < zero? + - member assoc
+            apply map for-each values)
+          (only (srfi 8) receive)
+          (only (srfi 23) error))
 
-  (export cons list xcons cons* make-list list-tabulate list-copy circular-list
-          iota pair? null? proper-list? circular-list? dotted-list? not-pair?
-          null-list? list= car cdr caar cadr cdar cddr caaar caadr cadar caddr
-          cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr
-          caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
-          list-ref first second third fourth fifth sixth seventh eighth ninth
-          tenth car+cdr take drop take-right drop-right take! drop-right!
-          split-at split-at! last last-pair length length+ append concatenate
-          reverse append! concatenate! reverse! append-reverse append-reverse!
-          zip unzip1 unzip2 unzip3 unzip4 unzip5 count map for-each fold unfold
-          pair-fold reduce fold-right unfold-right pair-fold-right reduce-right
-          append-map append-map! map! pair-for-each filter-map map-in-order
-          filter partition remove filter! partition! remove! member memq memv
-          find find-tail any every list-index take-while drop-while take-while!
-          span break span! break! delete delete-duplicates delete!
-          delete-duplicates! assoc assq assv alist-cons alist-copy alist-delete
-          alist-delete! lset<= lset= lset-adjoin lset-union lset-union!
-          lset-intersection lset-intersection! lset-difference lset-difference!
-          lset-xor lset-xor! lset-diff+intersection lset-diff+intersection!
+  (export ; Constructors
+          cons list xcons cons* make-list list-tabulate list-copy circular-list
+          iota
+
+          ; Predicates
+          pair? null? proper-list? circular-list? dotted-list? not-pair?
+          null-list? list=
+
+          ; Selectors
+          car cdr caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar
+          cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar
+          cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
+          list-ref
+          first second third fourth fifth sixth seventh eighth ninth tenth
+          car+cdr
+          take take! take-right
+          drop drop-right drop-right!
+          split-at split-at!
+          last last-pair
+
+          ; Miscellaneous: length, append, concatenate, reverse, zip & count
+          length length+
+          append append!
+          concatenate concatenate!
+          reverse reverse!
+          append-reverse append-reverse!
+          zip unzip1 unzip2 unzip3 unzip4 unzip5
+          count
+
+          ; Fold, unfold & map
+          map map! filter-map map-in-order
+          fold fold-right
+          unfold unfold-right
+          pair-fold pair-fold-right
+          reduce reduce-right
+          append-map append-map!
+          for-each pair-for-each
+
+          ; Filtering & partitioning
+          filter filter!
+          partition partition!
+          remove remove!
+
+          ; Searching
+          memq memv member
+          find find-tail
+          any every list-index
+          take-while take-while!
+          drop-while
+          span span!
+          break break!
+
+          ; Deleting
+          delete delete!
+          delete-duplicates delete-duplicates!
+
+          ; Association lists
+          assq assv assoc alist-cons alist-copy alist-delete alist-delete!
+
+          ; Set operations on lists
+          lset<= lset=
+          lset-adjoin
+          lset-union lset-union!
+          lset-intersection lset-intersection!
+          lset-difference lset-difference!
+          lset-xor lset-xor!
+          lset-diff+intersection lset-diff+intersection!
+
+          ; Primitive side-effects
           set-car! set-cdr!)
 
-  (begin (define (xcons x y)
-           (cons y x))
-
-         (define (tree-copy x)
-           (letrec ((tree-copy (lambda (x)
-                                 (if (not (pair? x)) x
-                                     (cons (tree-copy (car x))
-                                           (tree-copy (cdr x)))))))
-             (tree-copy x)))
-
-         (define (list-tabulate len proc)
-           (do ((i (- len 1) (- i 1))
-                (ans '() (cons (proc i) ans)))
-             ((< i 0) ans)))
-
-         (define (cons* x . xs)
-           (let cons* ((x x)
-                       (xs xs))
-             (if (pair? xs)
-                 (cons x (cons* (car xs)
-                                (cdr xs)))
-                 x)))
-
-         (define (circular-list val1 . vals)
-           (let ((ans (cons val1 vals)))
-             (set-cdr! (last-pair ans) ans)
-             ans))
-
-         (define (iota count . maybe-start+step)
-           (if (< count 0) (error "Negative step count" iota count))
-           (let-optionals maybe-start+step ((start 0) (step 1))
-             (let loop ((n 0) (r '()))
-               (if (= n count)
-                   (reverse r)
-                   (loop (+ 1 n)
-                         (cons (+ start (* n step)) r))))))
+  (begin (define (list-tabulate k f)
+           (let recur ((i 0))
+             (if (< i k)
+                 (cons (f i)
+                       (recur (+ i 1)))
+                 '())))
 
          (define proper-list? list?)
 
-         (define (dotted-list? x)
-           (let rec ((x x) (lag x))
-             (if (pair? x)
-                 (let ((x (cdr x)))
-                   (if (pair? x)
-                       (let ((x   (cdr x))
-                             (lag (cdr lag)))
-                         (and (not (eq? x lag)) (rec x lag)))
-                       (not (null? x))))
-                 (not (null? x)))))
-
-         (define (circular-list? x)
-           (let rec ((x x)
-                     (y x))
-             (and (pair? x)
-                  (let ((x (cdr x)))
-                    (and (pair? x)
-                         (let ((x (cdr x))
-                               (y (cdr y)))
-                           (or (eq? x y)
-                               (rec x y))))))))
-
-         (define (not-pair? x) (not (pair? x)))
-
-         (define (null-list? x)
-           (cond ((pair? x) #f)
-                 ((null? x) #t)
-                 (else (error "argument out of domain" (list 'null-list? x)))))
-
-         (define (list= = . lists)
-           (or (null? lists) ; special case
-               (let lp1 ((list-a (car lists))
-                         (others (cdr lists)))
-                 (or (null? others)
-                     (let ((list-b (car others))
-                           (others (cdr others)))
-                       (if (eq? list-a list-b) ; EQ? => LIST=
-                           (lp1 list-b others)
-                           (let lp2 ((pair-a list-a)
-                                     (pair-b list-b))
-                             (if (null-list? pair-a)
-                                 (and (null-list? pair-b)
-                                      (lp1 list-b others))
-                                 (and (not (null-list? pair-b))
-                                      (= (car pair-a)
-                                         (car pair-b))
-                                      (lp2 (cdr pair-a)
-                                           (cdr pair-b)))))))))))
-
-         (define first car)
-
-         (define second cadr)
-
-         (define third caddr)
-
-         (define fourth cadddr)
-
-         (define (fifth x)
-           (car (cddddr x)))
-
-         (define (sixth x)
-           (cadr (cddddr x)))
-
-         (define (seventh x)
-           (caddr (cddddr x)))
-
-         (define (eighth x)
-           (cadddr (cddddr x)))
-
-         (define (ninth x)
-           (car (cddddr (cddddr x))))
-
-         (define (tenth x)
-           (cadr (cddddr (cddddr x))))
+         (define (list= x=? . xss)
+           (or (null? xss)
+               (let outer ((xs (car xss))
+                           (xss (cdr xss)))
+                 (or (null? xss)
+                     (let ((ys (car xss))
+                           (xss (cdr xss)))
+                       (if (eq? xs ys)
+                           (outer ys xss)
+                           (let inner ((a xs)
+                                       (b ys))
+                             (if (null-list? a)
+                                 (and (null-list? b)
+                                      (outer ys xss))
+                                 (and (not (null-list? b))
+                                      (x=? (car a)
+                                           (car b))
+                                      (inner (cdr a)
+                                             (cdr b)))))))))))
 
          (define (car+cdr pair)
            (values (car pair)
                    (cdr pair)))
 
-         (define (take x k)
-           (let rec ((x x)
-                     (k k))
-             (if (zero? k) '()
-                 (cons (car x)
-                       (rec (cdr x) (- k 1))))))
-
-         (define (take! x k)
+         (define (split-at xs k)
            (if (zero? k)
-               (begin (set-cdr! (drop x (- k 1)) '()) x)))
-
-         (define (drop x k)
-           (let rec ((x x) (k k))
-             (if (zero? k) x
-                 (rec (cdr x) (- k 1)))))
-
-         (define (drop! lis k)
-           (if (negative? k)
-               (let ((nelts (+ k (length lis))))
-                 (if (zero? nelts) '()
-                     (begin (set-cdr! (list-tail lis (- nelts 1)) '())
-                            lis)))
-               (list-tail lis k)))
-
-         (define (take-right x k)
-           (let lp ((lag x)
-                    (lead (drop x k)))
-             (if (pair? lead)
-                 (lp (cdr lag)
-                     (cdr lead))
-                 lag)))
-
-         (define (drop-right x k)
-           (let rec ((lag x) (lead (drop x k)))
-             (if (pair? lead)
-                 (cons (car lag)
-                       (rec (cdr lag) (cdr lead)))
-                 '())))
-
-         (define (drop-right! x k)
-           (let ((lead (drop x k)))
-             (if (pair? lead)
-                 (let rec ((lag x)
-                           (lead (cdr lead)))
-                   (if (pair? lead)
-                       (rec (cdr lag)
-                            (cdr lead))
-                       (begin (set-cdr! lag '()) x)))
-                 '())))
-
-         (define (split-at x k)
-           (let recur ((lis x) (k k))
-             (if (zero? k) (values '() lis)
-                 (receive (prefix suffix) (recur (cdr lis) (- k 1))
-                          (values (cons (car lis) prefix) suffix)))))
+               (values '() xs)
+               (receive (a b) (split-at (cdr xs)
+                                        (- k 1))
+                 (values (cons (car xs)
+                               a)
+                         b))))
 
          (define (split-at! x k)
            (if (zero? k)
                (values '() x)
-               (let* ((prev (drop x (- k 1)))
-                      (suffix (cdr prev)))
-                 (set-cdr! prev '())
+               (let* ((prefix-last (drop x (- k 1)))
+                      (suffix (cdr prefix-last)))
+                 (set-cdr! prefix-last '())
                  (values x suffix))))
 
-         (define (last x) (car (last-pair x)))
+         (define (zip x . xs)
+           (apply map list x xs))
 
-         (define (last-pair lis)
-           (let rec ((lis lis))
-             (let ((tail (cdr lis)))
-               (if (pair? tail) (rec tail) lis))))
+         (define (unzip1 xs)
+           (map car xs))
 
-         (define (length+ x) ; Returns #f if X is circular.
-           (let rec ((x x) (lag x) (len 0))
-             (if (pair? x)
-                 (let ((x (cdr x))
-                       (len (+ len 1)))
-                   (if (pair? x)
-                       (let ((x   (cdr x))
-                             (lag (cdr lag))
-                             (len (+ len 1)))
-                         (and (not (eq? x lag)) (rec x lag len)))
-                       len))
-                 len)))
+         (define (unzip2 xs)
+           (let unzip2 ((xs xs))
+             (if (null-list? xs)
+                 (values xs xs)
+                 (let ((x (car xs)))
+                   (receive (a b) (unzip2 (cdr xs))
+                            (values (cons (car x) a)
+                                    (cons (cadr x) b)))))))
 
-         (define (append! . lists)
-           (let lp ((lists lists) (prev '())) ; First, scan through lists looking for a non-empty one.
-             (if (not (pair? lists)) prev
-                 (let ((first (car lists))
-                       (rest (cdr lists)))
-                   (if (not (pair? first)) (lp rest first)
-                       (let lp2 ((tail-cons (last-pair first)) ; Now, do the splicing.
-                                 (rest rest))
-                         (if (pair? rest)
-                             (let ((next (car rest))
-                                   (rest (cdr rest)))
-                               (set-cdr! tail-cons next)
-                               (lp2 (if (pair? next) (last-pair next) tail-cons)
-                                    rest))
-                             first)))))))
+         (define (unzip3 xs)
+           (let unzip3 ((xs xs))
+             (if (null-list? xs)
+                 (values xs xs xs)
+                 (let ((x (car xs)))
+                   (receive (a b c) (unzip3 (cdr xs))
+                            (values (cons (car x) a)
+                                    (cons (cadr x) b)
+                                    (cons (caddr x) c)))))))
 
-         (define (concatenate xs)
-           (reduce-right append '() xs))
+         (define (unzip4 xs)
+           (let unzip4 ((xs xs))
+             (if (null-list? xs)
+                 (values xs xs xs xs)
+                 (let ((x (car xs)))
+                   (receive (a b c d) (unzip4 (cdr xs))
+                            (values (cons (car x) a)
+                                    (cons (cadr x) b)
+                                    (cons (caddr x) c)
+                                    (cons (cadddr x) d)))))))
 
-         (define (concatenate! xs)
-           (reduce-right append! '() xs))
+         (define (unzip5 xs)
+           (let unzip5 ((xs xs))
+             (if (null-list? xs)
+                 (values xs xs xs xs xs)
+                 (let ((x (car xs)))
+                   (receive (a b c d e) (unzip5 (cdr xs))
+                            (values (cons (car x) a)
+                                    (cons (cadr x) b)
+                                    (cons (caddr x) c)
+                                    (cons (cadddr x) d)
+                                    (cons (car (cddddr x)) e)))))))
 
-         (define (reverse! lis)
-           (let lp ((lis lis) (ans '()))
-             (if (null-list? lis) ans
-                 (let ((tail (cdr lis)))
-                   (set-cdr! lis ans)
-                   (lp tail lis)))))
-
-         (define (append-reverse rev-head tail)
-           (let lp ((rev-head rev-head) (tail tail))
-             (if (null-list? rev-head) tail
-                 (lp (cdr rev-head) (cons (car rev-head) tail)))))
-
-         (define (append-reverse! rev-head tail)
-           (let lp ((rev-head rev-head) (tail tail))
-             (if (null-list? rev-head) tail
-                 (let ((next-rev (cdr rev-head)))
-                   (set-cdr! rev-head tail)
-                   (lp next-rev rev-head)))))
-
-         (define (zip list1 . more-lists)
-           (apply map list list1 more-lists))
-
-         (define (unzip1 lis)
-           (map car lis))
-
-         (define (unzip2 lis)
-           (let recur ((lis lis))
-             (if (null-list? lis) (values lis lis) ; Use NOT-PAIR? to handle
-                 (let ((elt (car lis)))      ; dotted lists.
-                   (receive (a b) (recur (cdr lis))
-                            (values (cons (car  elt) a)
-                                    (cons (cadr elt) b)))))))
-
-         (define (unzip3 lis)
-           (let recur ((lis lis))
-             (if (null-list? lis) (values lis lis lis)
-                 (let ((elt (car lis)))
-                   (receive (a b c) (recur (cdr lis))
-                            (values (cons (car   elt) a)
-                                    (cons (cadr  elt) b)
-                                    (cons (caddr elt) c)))))))
-
-         (define (unzip4 lis)
-           (let recur ((lis lis))
-             (if (null-list? lis) (values lis lis lis lis)
-                 (let ((elt (car lis)))
-                   (receive (a b c d) (recur (cdr lis))
-                            (values (cons (car    elt) a)
-                                    (cons (cadr   elt) b)
-                                    (cons (caddr  elt) c)
-                                    (cons (cadddr elt) d)))))))
-
-         (define (unzip5 lis)
-           (let recur ((lis lis))
-             (if (null-list? lis) (values lis lis lis lis lis)
-                 (let ((elt (car lis)))
-                   (receive (a b c d e) (recur (cdr lis))
-                            (values (cons (car     elt) a)
-                                    (cons (cadr    elt) b)
-                                    (cons (caddr   elt) c)
-                                    (cons (cadddr  elt) d)
-                                    (cons (car (cddddr  elt)) e)))))))
-
-         (define (count pred list1 . lists)
-           (if (pair? lists)
-               (let lp ((list1 list1) (lists lists) (i 0))
-                 (if (null-list? list1) i
-                     (receive (as ds) (%cars+cdrs lists)
-                              (if (null? as) i
-                                  (lp (cdr list1) ds
-                                      (if (apply pred (car list1) as) (+ i 1) i))))))
-               (let lp ((lis list1) (i 0))
-                 (if (null-list? lis) i
-                     (lp (cdr lis) (if (pred (car lis)) (+ i 1) i))))))
-
-         (define (fold kons knil lis1 . lists)
-           (if (pair? lists)
-               (let lp ((lists (cons lis1 lists)) (ans knil))
-                 (receive (cars+ans cdrs) (%cars+cdrs+ lists ans)
-                          (if (null? cars+ans) ans ; Done.
-                              (lp cdrs (apply kons cars+ans)))))
-               (let lp ((lis lis1) (ans knil))
-                 (if (null-list? lis) ans
-                     (lp (cdr lis) (kons (car lis) ans))))))
-
-         (define (unfold p f g seed . maybe-tail-gen)
-           (if (pair? maybe-tail-gen)
-               (let ((tail-gen (car maybe-tail-gen)))
-                 (if (pair? (cdr maybe-tail-gen))
-                     (apply error "Too many arguments" unfold p f g seed maybe-tail-gen)
-                     (let recur ((seed seed))
-                       (if (p seed) (tail-gen seed)
-                           (cons (f seed) (recur (g seed)))))))
-               (let recur ((seed seed))
-                 (if (p seed) '()
-                     (cons (f seed) (recur (g seed)))))))
-
-         (define (pair-fold f zero lis1 . lists)
-           (if (pair? lists)
-               (let lp ((lists (cons lis1 lists)) (ans zero))
-                 (let ((tails (%cdrs lists)))
-                   (if (null? tails) ans
-                       (lp tails (apply f (append! lists (list ans)))))))
-
-               (let lp ((lis lis1) (ans zero))
-                 (if (null-list? lis) ans
-                     (let ((tail (cdr lis)))
-                       (lp tail (f lis ans)))))))
-
-         (define (reduce f ridentity lis)
-           (if (null-list? lis) ridentity
-               (fold f (car lis) (cdr lis))))
-
-         (define (fold-right f knil x . xs)
+         (define (count satisfy? x . xs)
            (if (pair? xs)
-               (letrec ((recur (lambda (lists)
-                                 ((lambda (cdrs)
-                                    (if (null? cdrs) knil
-                                        (apply f (%cars+ lists (recur cdrs)))))
-                                  (%cdrs lists)))))
-                 (recur (cons x xs)))
-               (letrec ((recur (lambda (x)
-                                 (if (null-list? x) knil
-                                     ((lambda (head)
-                                        (f head (recur (cdr x))))
-                                      (car x))))))
-                 (recur x))))
+               (let recur ((x x)
+                           (xs xs)
+                           (i 0))
+                 (if (null-list? x)
+                     i
+                     (receive (as ds) (%cars+cdrs xs)
+                       (if (null? as) i
+                           (recur (cdr x)
+                                  ds
+                                  (if (apply satisfy? (car x) as)
+                                      (+ i 1)
+                                      i))))))
+               (let recur ((x x)
+                           (i 0))
+                 (if (null-list? x)
+                     i
+                     (recur (cdr x)
+                            (if (satisfy? (car x))
+                                (+ i 1)
+                                i))))))
 
-         (define (unfold-right p f g seed . maybe-tail)
-           (let lp ((seed seed)
-                    (ans (if (pair? maybe-tail) (car maybe-tail) '())))
-             (if (p seed) ans
-                 (lp (g seed)
-                     (cons (f seed) ans)))))
+         (define (fold f z x . xs)
+           (if (pair? xs)
+               (let recur ((xs (cons x xs))
+                           (ans z))
+                 (receive (cars+ans cdrs) (%cars+cdrs+ xs ans)
+                   (if (null? cars+ans)
+                       ans
+                       (recur cdrs (apply f cars+ans)))))
+               (let recur ((x x)
+                           (ans z))
+                 (if (null-list? x)
+                     ans
+                     (recur (cdr x)
+                           (f (car x) ans))))))
 
-         (define (pair-fold-right f zero lis1 . lists)
-           (if (pair? lists)
-               (let recur ((lists (cons lis1 lists)))
-                 (let ((cdrs (%cdrs lists)))
-                   (if (null? cdrs) zero
-                       (apply f (append! lists (list (recur cdrs)))))))
-               (let recur ((lis lis1))
-                 (if (null-list? lis) zero (f lis (recur (cdr lis)))))))
+         (define (unfold p f g seed . generate)
+           (if (pair? generate)
+               (let ((generate (car generate)))
+                 (let recur ((seed seed))
+                   (if (p seed)
+                       (generate seed)
+                       (cons (f seed)
+                             (recur (g seed))))))
+               (let recur ((seed seed))
+                 (if (p seed)
+                     '()
+                     (cons (f seed)
+                           (recur (g seed)))))))
 
-         (define (reduce-right f ridentity lis)
-           (if (null-list? lis) ridentity
-               (let recur ((head (car lis)) (lis (cdr lis)))
-                 (if (pair? lis)
-                     (f head (recur (car lis) (cdr lis)))
-                     head))))
+         (define (pair-fold f z x . xs)
+           (if (pair? xs)
+               (let recur ((xs (cons x xs))
+                           (ans z))
+                 (let ((tails (%cdrs xs)))
+                   (if (null? tails)
+                       ans
+                       (recur tails (apply f (append! xs (list ans)))))))
+               (let recur ((x x)
+                           (ans z))
+                 (if (null-list? x)
+                     ans
+                     (let ((tail (cdr x)))
+                       (recur tail (f x ans)))))))
 
-         (define (append-map f lis1 . lists)
-           (really-append-map append-map append f lis1 lists))
+         (define (reduce f ridentity x)
+           (if (null-list? x)
+               ridentity
+               (fold f (car x) (cdr x))))
 
-         (define (append-map! f lis1 . lists)
-           (really-append-map append-map! append! f lis1 lists))
+         (define (fold-right f z x . xs)
+           (if (pair? xs)
+               (let recur ((xs (cons x xs)))
+                 (let ((cdrs (%cdrs xs)))
+                   (if (null? cdrs)
+                       z
+                       (apply f (%cars+ xs (recur cdrs))))))
+               (let recur ((xs x))
+                 (if (null-list? xs)
+                     z
+                     (let ((x (car xs)))
+                       (f x (recur (cdr xs))))))))
 
-         (define (really-append-map who appender f lis0 lists)
-           (if (pair? lists)
-               (receive (cars cdrs) (%cars+cdrs (cons lis1 lists))
-                        (if (null? cars) '()
-                            (let recur ((cars cars) (cdrs cdrs))
-                              (let ((vals (apply f cars)))
-                                (receive (cars2 cdrs2) (%cars+cdrs cdrs)
-                                         (if (null? cars2) vals
-                                             (appender vals (recur cars2 cdrs2))))))))
-               (if (null-list? lis1) '()
-                   (let recur ((elt (car lis1)) (rest (cdr lis1)))
-                     (let ((vals (f elt)))
-                       (if (null-list? rest) vals
-                           (appender vals (recur (car rest) (cdr rest)))))))))
+         (define (unfold-right p f g seed . tail)
+           (let recur ((seed seed)
+                       (ans (if (pair? tail)
+                                (car tail)
+                                '())))
+             (if (p seed)
+                 ans
+                 (recur (g seed)
+                        (cons (f seed) ans)))))
 
-         (define (map! f lis1 . lists)
-           (if (pair? lists)
-               (let lp ((lis1 lis1) (lists lists))
-                 (if (not (null-list? lis1))
-                     (receive (heads tails) (%cars+cdrs/no-test lists)
-                              (set-car! lis1 (apply f (car lis1) heads))
-                              (lp (cdr lis1) tails))))
-               (pair-for-each (lambda (pair) (set-car! pair (f (car pair)))) lis1))
-           lis1)
+         (define (pair-fold-right f z x . xs)
+           (if (pair? xs)
+               (let recur ((xs (cons x xs)))
+                 (let ((cdrs (%cdrs xs)))
+                   (if (null? cdrs)
+                       z
+                       (apply f (append! xs (list (recur cdrs)))))))
+               (let recur ((x x))
+                 (if (null-list? x)
+                     z
+                     (f x (recur (cdr x)))))))
 
-         (define (pair-for-each proc lis1 . lists)
-           (if (pair? lists)
-               (let lp ((lists (cons lis1 lists)))
-                 (let ((tails (%cdrs lists)))
+         (define (reduce-right f ridentity xs)
+           (if (null-list? xs)
+               ridentity
+               (let reduce-right ((x (car xs))
+                                  (xs (cdr xs)))
+                 (if (pair? xs)
+                     (f x (reduce-right (car xs)
+                                        (cdr xs)))
+                     x))))
+
+         (define (append-map f x . xs)
+           (%append-map append-map append f x xs))
+
+         (define (append-map! f x . xs)
+           (%append-map append-map! append! f x xs))
+
+         (define (%append-map who appender f x xs)
+           (if (pair? xs)
+               (receive (cars cdrs) (%cars+cdrs (cons x xs))
+                 (if (null? cars)
+                     '()
+                     (let recur ((cars cars)
+                                 (cdrs cdrs))
+                       (let ((vals (apply f cars)))
+                         (receive (cars2 cdrs2) (%cars+cdrs cdrs)
+                           (if (null? cars2)
+                               vals
+                               (appender vals (recur cars2 cdrs2))))))))
+               (if (null-list? x)
+                   '()
+                   (let recur ((x (car x))
+                               (xs (cdr x)))
+                     (let ((vals (f x)))
+                       (if (null-list? xs)
+                           vals
+                           (appender vals
+                                     (recur (car xs)
+                                            (cdr xs)))))))))
+
+         (define (map! f x . xs)
+           (if (pair? xs)
+               (let recur ((x x)
+                           (xs xs))
+                 (if (not (null-list? x))
+                     (receive (heads tails) (%cars+cdrs/no-test xs)
+                       (set-car! x (apply f (car x) heads))
+                       (recur (cdr x)
+                              tails))))
+               (pair-for-each (lambda (pair)
+                                (set-car! pair (f (car pair))))
+                              x))
+           x)
+
+         (define (pair-for-each f x . xs)
+           (if (pair? xs)
+               (let recur ((xs (cons x xs)))
+                 (let ((tails (%cdrs xs)))
                    (if (pair? tails)
-                       (begin (apply proc lists)
-                              (lp tails)))))
-               (let lp ((lis lis1))
-                 (if (not (null-list? lis))
-                     (let ((tail (cdr lis)))
-                       (proc lis)
-                       (lp tail))))))
+                       (begin (apply f xs)
+                              (recur tails)))))
+               (let recur ((x x))
+                 (if (not (null-list? x))
+                     (let ((tail (cdr x)))
+                       (f x)
+                       (recur tail))))))
 
-         (define (filter-map f lis1 . lists)
-           (if (pair? lists)
-               (let recur ((lists (cons lis1 lists)))
-                 (receive (cars cdrs) (%cars+cdrs lists)
-                          (if (pair? cars)
-                              (cond ((apply f cars) => (lambda (x) (cons x (recur cdrs))))
-                                    (else (recur cdrs))) ; Tail call in this arm.
-                              '())))
-               (let recur ((lis lis1))
-                 (if (null-list? lis) lis
-                     (let ((tail (recur (cdr lis))))
-                       (cond ((f (car lis)) => (lambda (x) (cons x tail)))
+         (define (filter-map f x . xs)
+           (if (pair? xs)
+               (let recur ((xs (cons x xs)))
+                 (receive (cars cdrs) (%cars+cdrs xs)
+                   (if (pair? cars)
+                       (cond ((apply f cars) => (lambda (x) (cons x (recur cdrs))))
+                             (else (recur cdrs)))
+                       '())))
+               (let recur ((x x))
+                 (if (null-list? x) x
+                     (let ((tail (recur (cdr x))))
+                       (cond ((f (car x)) => (lambda (x) (cons x tail)))
                              (else tail)))))))
 
-         (define (map-in-order f lis1 . lists)
-           (if (pair? lists)
-               (let recur ((lists (cons lis1 lists)))
-                 (receive (cars cdrs) (%cars+cdrs lists)
-                          (if (pair? cars)
-                              (let ((x (apply f cars)))
-                                (cons x (recur cdrs)))
-                              '())))
-               (let recur ((lis lis1))
-                 (if (null-list? lis) lis
-                     (let ((tail (cdr lis))
-                           (x (f (car lis))))
+         (define (map-in-order f x . xs)
+           (if (pair? xs)
+               (let recur ((xs (cons x xs)))
+                 (receive (cars cdrs) (%cars+cdrs xs)
+                   (if (pair? cars)
+                       (let ((x (apply f cars)))
+                         (cons x (recur cdrs)))
+                       '())))
+               (let recur ((x x))
+                 (if (null-list? x) x
+                     (let ((tail (cdr x))
+                           (x (f (car x))))
                        (cons x (recur tail)))))))
 
-         (define (filter pred lis)
-           (let recur ((lis lis))
-             (if (null-list? lis) lis
-                 (let ((head (car lis))
-                       (tail (cdr lis)))
-                   (if (pred head)
+         (define (filter satisfy? x)
+           (let recur ((x x))
+             (if (null-list? x)
+                 x
+                 (let ((head (car x))
+                       (tail (cdr x)))
+                   (if (satisfy? head)
                        (let ((new-tail (recur tail)))
-                         (if (eq? tail new-tail) lis
+                         (if (eq? tail new-tail)
+                             x
                              (cons head new-tail)))
                        (recur tail))))))
 
-         ; (define (filter pred lis) ; Another version that shares longest tail.
-         ;   (receive (ans no-del?)
-         ;     (let recur ((l l))
-         ;       (if (null-list? l) (values l #t)
-         ;           (let ((x  (car l))
-         ;                 (tl (cdr l)))
-         ;             (if (pred x)
-         ;                 (receive (ans no-del?) (recur tl)
-         ;                   (if no-del?
-         ;                       (values l #t)
-         ;                       (values (cons x ans) #f)))
-         ;                 (receive (ans no-del?) (recur tl) ; Delete X.
-         ;                   (values ans #f))))))
-         ;     ans))
+         (define (filter! satisfy? xs)
+           (let recur ((xs xs))
+             (if (pair? xs)
+                 (cond ((satisfy? (car xs))
+                        (set-cdr! xs (recur (cdr xs)))
+                        xs)
+                       (else (recur (cdr xs))))
+                 xs)))
 
-         (define (partition pred lis)
-           (let recur ((lis lis))
-             (if (null-list? lis) (values lis lis) ; Use NOT-PAIR? to handle dotted lists.
-                 (let ((elt (car lis))
-                       (tail (cdr lis)))
-                   (receive (in out) (recur tail)
-                            (if (pred elt)
-                                (values (if (pair? out) (cons elt in) lis) out)
-                                (values in (if (pair? in) (cons elt out) lis))))))))
+         (define (partition satisfy? xs)
+           (let recur ((xs xs))
+             (if (null-list? xs)
+                 (values xs xs)
+                 (let ((x (car xs)))
+                   (receive (a b) (recur (cdr xs))
+                     (if (satisfy? x)
+                         (values (if (pair? b)
+                                     (cons x a)
+                                     xs)
+                                 b)
+                         (values a
+                                 (if (pair? a)
+                                     (cons x b)
+                                     xs))))))))
 
-         (define (remove satisfy? x)
-           (filter (lambda (y) (not (satisfy? y))) x))
-
-         ; Things are much simpler if you are willing to push N stack frames & do N
-         ; set-cdr! writes, where N is the length of the answer.
-         (define (filter! pred lis)
-           (let recur ((lis lis))
-             (if (pair? lis)
-                 (cond ((pred (car lis))
-                        (set-cdr! lis (recur (cdr lis)))
-                        lis)
-                       (else (recur (cdr lis))))
-                 lis)))
-
-         ; (define (filter! pred lis)
-         ;   (let lp ((ans lis))
-         ;     (cond ((null-list? ans) ans)
-         ;           ((not (pred (car ans))) (lp (cdr ans)))
-         ;           (else (letrec ((scan-in (lambda (prev lis)
-         ;                                     (if (pair? lis)
-         ;                                         (if (pred (car lis))
-         ;                                             (scan-in lis (cdr lis))
-         ;                                             (scan-out prev (cdr lis))))))
-         ;                          (scan-out (lambda (prev lis)
-         ;                                      (let lp ((lis lis))
-         ;                                        (if (pair? lis)
-         ;                                            (if (pred (car lis))
-         ;                                                (begin (set-cdr! prev lis)
-         ;                                                       (scan-in lis (cdr lis)))
-         ;                                                (lp (cdr lis)))
-         ;                                            (set-cdr! prev lis))))))
-         ;                   (scan-in ans (cdr ans))
-         ;                   ans)))))
-
-         (define (partition! pred lis)
-           (if (null-list? lis)
-               (values lis lis)
-               (letrec ((scan-in (lambda (in-prev out-prev lis)
-                                   (let lp ((in-prev in-prev) (lis lis))
-                                     (if (pair? lis)
-                                         (if (pred (car lis))
-                                             (lp lis (cdr lis))
-                                             (begin (set-cdr! out-prev lis)
-                                                    (scan-out in-prev lis (cdr lis))))
-                                         (set-cdr! out-prev lis)))))
-                        (scan-out (lambda (in-prev out-prev lis)
-                                    (let lp ((out-prev out-prev) (lis lis))
-                                      (if (pair? lis)
-                                          (if (pred (car lis))
-                                              (begin (set-cdr! in-prev lis)
-                                                     (scan-in lis out-prev (cdr lis)))
-                                              (lp lis (cdr lis)))
-                                          (set-cdr! in-prev lis))))))
-                 (if (pred (car lis))
-                     (let lp ((prev-l lis) (l (cdr lis)))
-                       (cond ((not (pair? l)) (values lis l))
-                             ((pred (car l)) (lp l (cdr l)))
+         (define (partition! satisfy? xs)
+           (if (null-list? xs)
+               (values xs xs)
+               (letrec ((scan-in (lambda (in-prev out-prev xs)
+                                   (let recur ((in-prev in-prev)
+                                               (xs xs))
+                                     (if (pair? xs)
+                                         (if (satisfy? (car xs))
+                                             (recur xs (cdr xs))
+                                             (begin (set-cdr! out-prev xs)
+                                                    (scan-out in-prev xs (cdr xs))))
+                                         (set-cdr! out-prev xs)))))
+                        (scan-out (lambda (in-prev out-prev xs)
+                                    (let recur ((out-prev out-prev)
+                                                (xs xs))
+                                      (if (pair? xs)
+                                          (if (satisfy? (car xs))
+                                              (begin (set-cdr! in-prev xs)
+                                                     (scan-in xs out-prev (cdr xs)))
+                                              (recur xs (cdr xs)))
+                                          (set-cdr! in-prev xs))))))
+                 (if (satisfy? (car xs))
+                     (let recur ((prev-l xs)
+                                 (l (cdr xs)))
+                       (cond ((not (pair? l))
+                              (values xs l))
+                             ((satisfy? (car l))
+                              (recur l (cdr l)))
                              (else (scan-out prev-l l (cdr l))
-                                   (values lis l))))
-                     (let lp ((prev-l lis) (l (cdr lis)))
-                       (cond ((not (pair? l)) (values l lis))
-                             ((pred (car l))
+                                   (values xs l))))
+                     (let recur ((prev-l xs)
+                                 (l (cdr xs)))
+                       (cond ((not (pair? l))
+                              (values l xs))
+                             ((satisfy? (car l))
                               (scan-in l prev-l (cdr l))
-                              (values l lis))
-                             (else (lp l (cdr l)))))))))
+                              (values l xs))
+                             (else (recur l (cdr l)))))))))
 
-         (define (remove! satisfy? x)
-           (filter! (lambda (y) (not (satisfy? y))) x))
+         (define (remove satisfy? xs)
+           (filter (lambda (x)
+                     (not (satisfy? x)))
+                   xs))
 
-         (define (find pred list)
-           (cond ((find-tail pred list) => car)
+         (define (remove! satisfy? xs)
+           (filter! (lambda (x)
+                      (not (satisfy? x)))
+                    xs))
+
+         (define (find satisfy? xs)
+           (cond ((find-tail satisfy? xs) => car)
                  (else #f)))
 
-         (define (find-tail pred list)
-           (let lp ((list list))
-             (and (not (null-list? list))
-                  (if (pred (car list)) list
-                      (lp (cdr list))))))
+         (define (find-tail satisfy? xs)
+           (let recur ((xs xs))
+             (and (not (null-list? xs))
+                  (if (satisfy? (car xs))
+                      xs
+                      (recur (cdr xs))))))
 
-         (define (any pred lis1 . lists)
-           (if (pair? lists)
-               (receive (heads tails) (%cars+cdrs (cons lis1 lists))
-                        (and (pair? heads)
-                             (let lp ((heads heads) (tails tails))
-                               (receive (next-heads next-tails) (%cars+cdrs tails)
-                                        (if (pair? next-heads)
-                                            (or (apply pred heads) (lp next-heads next-tails))
-                                            (apply pred heads))))))
-               (and (not (null-list? lis1))
-                    (let lp ((head (car lis1)) (tail (cdr lis1)))
+         (define (any satisfy? x . xs)
+           (if (pair? xs)
+               (receive (cars cdrs) (%cars+cdrs (cons x xs))
+                 (and (pair? cars)
+                      (let recur ((cars cars)
+                                  (cdrs cdrs))
+                        (receive (next-cars next-cdrs) (%cars+cdrs cdrs)
+                          (if (pair? next-cars)
+                              (or (apply satisfy? cars)
+                                  (recur next-cars
+                                         next-cdrs))
+                              (apply satisfy? cars))))))
+               (and (not (null-list? x))
+                    (let recur ((head (car x))
+                                (tail (cdr x)))
                       (if (null-list? tail)
-                          (pred head)
-                          (or (pred head) (lp (car tail) (cdr tail))))))))
+                          (satisfy? head)
+                          (or (satisfy? head)
+                              (recur (car tail)
+                                     (cdr tail))))))))
 
-         (define (every pred lis1 . lists)
-           (if (pair? lists)
-               (receive (heads tails) (%cars+cdrs (cons lis1 lists))
-                        (or (not (pair? heads))
-                            (let lp ((heads heads) (tails tails))
-                              (receive (next-heads next-tails) (%cars+cdrs tails)
-                                       (if (pair? next-heads)
-                                           (and (apply pred heads) (lp next-heads next-tails))
-                                           (apply pred heads))))))
-               (or (null-list? lis1)
-                   (let lp ((head (car lis1))  (tail (cdr lis1)))
+         (define (every satisfy? x . xs)
+           (if (pair? xs)
+               (receive (heads tails) (%cars+cdrs (cons x xs))
+                 (or (not (pair? heads))
+                     (let recur ((heads heads)
+                                 (tails tails))
+                       (receive (next-heads next-tails) (%cars+cdrs tails)
+                         (if (pair? next-heads)
+                             (and (apply satisfy? heads)
+                                  (recur next-heads next-tails))
+                             (apply satisfy? heads))))))
+               (or (null-list? x)
+                   (let recur ((head (car x))
+                               (tail (cdr x)))
                      (if (null-list? tail)
-                         (pred head)
-                         (and (pred head) (lp (car tail) (cdr tail))))))))
+                         (satisfy? head)
+                         (and (satisfy? head)
+                              (recur (car tail)
+                                     (cdr tail))))))))
 
-         (define (list-index pred lis1 . lists)
-           (if (pair? lists)
-               (let lp ((lists (cons lis1 lists)) (n 0))
-                 (receive (heads tails) (%cars+cdrs lists)
-                          (and (pair? heads)
-                               (if (apply pred heads) n
-                                   (lp tails (+ n 1))))))
-               (let lp ((lis lis1) (n 0))
-                 (and (not (null-list? lis))
-                      (if (pred (car lis)) n (lp (cdr lis) (+ n 1)))))))
+         (define (list-index satisfy? x . xs)
+           (if (pair? xs)
+               (let recur ((xs (cons x xs))
+                           (n 0))
+                 (receive (heads tails) (%cars+cdrs xs)
+                   (and (pair? heads)
+                        (if (apply satisfy? heads)
+                            n
+                            (recur tails (+ n 1))))))
+               (let recur ((xs x)
+                           (n 0))
+                 (and (not (null-list? xs))
+                      (if (satisfy? (car xs))
+                          n
+                          (recur (cdr xs)
+                                 (+ n 1)))))))
 
-         (define (take-while pred lis)
-           (let recur ((lis lis))
-             (if (null-list? lis) '()
-                 (let ((x (car lis)))
-                   (if (pred x)
-                       (cons x (recur (cdr lis)))
+         (define (take-while satisfy? xs)
+           (let recur ((xs xs))
+             (if (null-list? xs)
+                 '()
+                 (let ((x (car xs)))
+                   (if (satisfy? x)
+                       (cons x (recur (cdr xs)))
                        '())))))
 
-         (define (drop-while pred lis)
-           (let lp ((lis lis))
-             (if (null-list? lis) '()
-                 (if (pred (car lis))
-                     (lp (cdr lis))
-                     lis))))
-
-         (define (take-while! pred lis)
-           (if (or (null-list? lis) (not (pred (car lis)))) '()
-               (begin (let lp ((prev lis) (rest (cdr lis)))
+         (define (take-while! satisfy? xs)
+           (if (or (null-list? xs)
+                   (not (satisfy? (car xs))))
+               '()
+               (begin (let recur ((prev xs)
+                                  (rest (cdr xs)))
                         (if (pair? rest)
                             (let ((x (car rest)))
-                              (if (pred x) (lp rest (cdr rest))
+                              (if (satisfy? x)
+                                  (recur rest (cdr rest))
                                   (set-cdr! prev '())))))
-                      lis)))
+                      xs)))
 
-         (define (span pred lis)
-           (let recur ((lis lis))
-             (if (null-list? lis) (values '() '())
-                 (let ((x (car lis)))
-                   (if (pred x)
-                       (receive (prefix suffix) (recur (cdr lis))
-                                (values (cons x prefix) suffix))
-                       (values '() lis))))))
+         (define (drop-while satisfy? xs)
+           (let recur ((xs xs))
+             (if (null-list? xs)
+                 '()
+                 (if (satisfy? (car xs))
+                     (recur (cdr xs))
+                     xs))))
 
-         (define (break break? x)
-           (span (lambda (x) (not (break? x))) x))
+         (define (span satisfy? xs)
+           (let recur ((xs xs))
+             (if (null-list? xs)
+                 (values '() '())
+                 (let ((x (car xs)))
+                   (if (satisfy? x)
+                       (receive (a b) (recur (cdr xs))
+                         (values (cons x a) b))
+                       (values '() xs))))))
 
-         (define (span! pred lis)
-           (if (or (null-list? lis) (not (pred (car lis)))) (values '() lis)
-               (let ((suffix (let lp ((prev lis) (rest (cdr lis)))
-                               (if (null-list? rest) rest
+         (define (span! satisfy? xs)
+           (if (or (null-list? xs)
+                   (not (satisfy? (car xs))))
+               (values '() xs)
+               (let ((suffix (let recur ((prev xs)
+                                         (rest (cdr xs)))
+                               (if (null-list? rest)
+                                   rest
                                    (let ((x (car rest)))
-                                     (if (pred x) (lp rest (cdr rest))
+                                     (if (satisfy? x)
+                                         (recur rest (cdr rest))
                                          (begin (set-cdr! prev '())
                                                 rest)))))))
-                 (values lis suffix))))
+                 (values xs suffix))))
+
+         (define (break break? x)
+           (span (lambda (x)
+                   (not (break? x)))
+                 x))
 
          (define (break! break? x)
-           (span! (lambda (x) (not (break? x))) x))
+           (span! (lambda (x)
+                    (not (break? x)))
+                  x))
 
-         (define (delete x lis . maybe-=)
-           (let ((= (if (pair? maybe-=) (car maybe-=) equal?)))
-             (filter (lambda (y) (not (= x y))) lis)))
+         (define (delete x xs . x=?)
+           (let ((x=? (if (pair? x=?)
+                          (car x=?)
+                          equal?)))
+             (filter (lambda (y)
+                       (not (x=? x y)))
+                     xs)))
 
-         (define (delete-duplicates lis . maybe-=)
-           (let ((elt= (if (pair? maybe-=) (car maybe-=) equal?)))
-             (let recur ((lis lis))
-               (if (null-list? lis) lis
-                   (let* ((x (car lis))
-                          (tail (cdr lis))
-                          (new-tail (recur (delete x tail elt=))))
-                     (if (eq? tail new-tail) lis (cons x new-tail)))))))
+         (define (delete! x xs . x=?)
+           (let ((x=? (if (pair? x=?)
+                          (car x=?)
+                          equal?)))
+             (filter! (lambda (y)
+                        (not (x=? x y)))
+                      xs)))
 
-         (define (delete! x lis . maybe-=)
-           (let ((= (if (pair? maybe-=) (car maybe-=) equal?)))
-             (filter! (lambda (y) (not (= x y))) lis)))
+         (define (delete-duplicates xs . x=?)
+           (let ((x=? (if (pair? x=?)
+                          (car x=?)
+                          equal?)))
+             (let recur ((x:xs xs))
+               (if (null-list? x:xs)
+                   '()
+                   (let* ((x (car x:xs))
+                          (xs (cdr x:xs))
+                          (ys (recur (delete x xs x=?))))
+                     (if (eq? xs ys)
+                         x:xs
+                         (cons x ys)))))))
 
-         (define (delete-duplicates! lis maybe-=)
-           (let ((elt= (if (pair? maybe-=) (car maybe-=) equal?)))
-             (let recur ((lis lis))
-               (if (null-list? lis) lis
-                   (let* ((x (car lis))
-                          (tail (cdr lis))
-                          (new-tail (recur (delete! x tail elt=))))
-                     (if (eq? tail new-tail) lis (cons x new-tail)))))))
+         (define (delete-duplicates! xs . x=?)
+           (let ((x=? (if (pair? x=?)
+                          (car x=?)
+                          equal?)))
+             (let recur ((x:xs xs))
+               (if (null-list? x:xs)
+                   '()
+                   (let* ((x (car x:xs))
+                          (xs (cdr x:xs))
+                          (ys (recur (delete! x xs x=?))))
+                     (if (eq? xs ys)
+                         x:xs
+                         (cons x ys)))))))
 
-         (define (alist-cons key datum alist)
-           (cons (cons key datum) alist))
+         (define (alist-delete key alist . key=?)
+           (let ((key=? (if (pair? key=?)
+                            (car key=?)
+                            equal?)))
+             (filter (lambda (x)
+                       (not (key=? key (car x))))
+                     alist)))
 
-         (define (alist-copy alist)
-           (map (lambda (each)
-                  (cons (car each)
-                        (cdr each)))
-                alist))
+         (define (alist-delete! key alist . key=?)
+           (let ((key=? (if (pair? key=?)
+                        (car key=?)
+                        equal?)))
+             (filter! (lambda (x)
+                        (not (key=? key (car x))))
+                      alist)))
 
-         (define (alist-delete key alist . maybe-=)
-           (let ((= (if (pair? maybe-=) (car maybe-=) equal?)))
-             (filter (lambda (elt) (not (= key (car elt)))) alist)))
+         (define (lset<= x=? . xss)
+           (or (not (pair? xss))
+               (let recur ((xs (car xss))
+                           (xss (cdr xss)))
+                 (or (not (pair? xss))
+                     (let ((ys (car xss))
+                           (xss (cdr xss)))
+                       (and (or (eq? xs ys)
+                                (%lset2<= x=? xs ys))
+                            (recur ys xss)))))))
 
-         (define (alist-delete! key alist . maybe-=)
-           (let ((= (if (pair? maybe-=) (car maybe-=) equal?)))
-             (filter! (lambda (elt) (not (= key (car elt)))) alist)))
+         (define (lset= x=? . xss)
+           (or (not (pair? xss))
+               (let recur ((xs (car xss))
+                           (xss (cdr xss)))
+                 (or (not (pair? xss))
+                     (let ((ys (car xss))
+                           (xss (cdr xss)))
+                       (and (or (eq? xs ys)
+                                (and (%lset2<= x=? xs ys)
+                                     (%lset2<= x=? ys xs)))
+                            (recur ys xss)))))))
 
-         (define (lset<= = . lists)
-           (or (not (pair? lists)) ; 0-ary case
-               (let lp ((s1 (car lists)) (rest (cdr lists)))
-                 (or (not (pair? rest))
-                     (let ((s2 (car rest))  (rest (cdr rest)))
-                       (and (or (eq? s2 s1) ; Fast path
-                                (%lset2<= = s1 s2)) ; Real test
-                            (lp s2 rest)))))))
+         (define (lset-adjoin x=? xs . ys)
+           (fold (lambda (y xs)
+                   (if (member y xs x=?)
+                       xs
+                       (cons y xs)))
+                 xs
+                 ys))
 
-         (define (lset= = . lists)
-           (or (not (pair? lists)) ; 0-ary case
-               (let lp ((s1 (car lists)) (rest (cdr lists)))
-                 (or (not (pair? rest))
-                     (let ((s2   (car rest))
-                           (rest (cdr rest)))
-                       (and (or (eq? s1 s2) ; Fast path
-                                (and (%lset2<= = s1 s2) (%lset2<= = s2 s1))) ; Real test
-                            (lp s2 rest)))))))
+         (define (lset-union x=? . xss)
+           (reduce (lambda (xs ys)
+                     (cond ((null? xs) ys)
+                           ((null? ys) xs)
+                           ((eq? xs ys) ys)
+                           (else (fold (lambda (x ys)
+                                         (if (any (lambda (y)
+                                                    (x=? x y))
+                                                  ys)
+                                             ys
+                                             (cons x ys)))
+                                       ys
+                                       xs))))
+                   '()
+                   xss))
 
-         (define (lset-adjoin = lis . elts)
-           (fold (lambda (elt ans) (if (member elt ans =) ans (cons elt ans)))
-                 lis elts))
+         (define (lset-union! x=? . xss)
+           (reduce (lambda (xs ys)
+                     (cond ((null? xs) ys)
+                           ((null? ys) xs)
+                           ((eq? xs ys) ys)
+                           (else (pair-fold (lambda (x:xs ys)
+                                              (let ((x (car x:xs)))
+                                                (if (any (lambda (y)
+                                                           (x=? x y))
+                                                         ys)
+                                                    ys
+                                                    (begin (set-cdr! x:xs ys)
+                                                           x:xs))))
+                                            ys
+                                            xs))))
+                   '()
+                   xss))
 
-         (define (lset-union = . lists)
-           (reduce (lambda (lis ans) ; Compute ANS + LIS.
-                     (cond ((null? lis) ans) ; Don't copy any lists
-                           ((null? ans) lis) ; if we don't have to.
-                           ((eq? lis ans) ans)
-                           (else
-                             (fold (lambda (elt ans) (if (any (lambda (x) (= x elt)) ans)
-                                                         ans
-                                                         (cons elt ans)))
-                                   ans lis))))
-                   '() lists))
-
-         (define (lset-union! = . lists)
-           (reduce (lambda (lis ans) ; Splice new elts of LIS onto the front of ANS.
-                     (cond ((null? lis) ans) ; Don't copy any lists
-                           ((null? ans) lis) ; if we don't have to.
-                           ((eq? lis ans) ans)
-                           (else
-                             (pair-fold (lambda (pair ans)
-                                          (let ((elt (car pair)))
-                                            (if (any (lambda (x) (= x elt)) ans)
-                                                ans
-                                                (begin (set-cdr! pair ans) pair))))
-                                        ans lis))))
-                   '() lists))
-
-         (define (lset-intersection = lis1 . lists)
-           (let ((lists (delete lis1 lists eq?))) ; Throw out any LIS1 vals.
-             (cond ((any null-list? lists) '()) ; Short cut
-                   ((null? lists) lis1) ; Short cut
+         (define (lset-intersection x=? xs . xss)
+           (let ((xss (delete xs xss eq?)))
+             (cond ((any null-list? xss) '())
+                   ((null? xss) xs)
                    (else (filter (lambda (x)
-                                   (every (lambda (lis) (member x lis =)) lists))
-                                 lis1)))))
+                                   (every (lambda (xs)
+                                            (member x xs x=?))
+                                          xss))
+                                 xs)))))
 
-         (define (lset-intersection! = lis1 . lists)
-           (let ((lists (delete lis1 lists eq?))) ; Throw out any LIS1 vals.
-             (cond ((any null-list? lists) '()) ; Short cut
-                   ((null? lists)          lis1) ; Short cut
+         (define (lset-intersection! x=? xs . xss)
+           (let ((xss (delete xs xss eq?)))
+             (cond ((any null-list? xss) '())
+                   ((null? xss) xs)
                    (else (filter! (lambda (x)
-                                    (every (lambda (lis) (member x lis =)) lists))
-                                  lis1)))))
+                                    (every (lambda (xs)
+                                             (member x xs x=?))
+                                           xss))
+                                  xs)))))
 
-         (define (lset-difference = lis1 . lists)
-           (let ((lists (filter pair? lists))) ; Throw out empty lists.
-             (cond ((null? lists)     lis1) ; Short cut
-                   ((memq lis1 lists) '()) ; Short cut
+         (define (lset-difference x=? xs . xss)
+           (let ((xss (filter pair? xss)))
+             (cond ((null? xss) xs)
+                   ((memq xs xss) '())
                    (else (filter (lambda (x)
-                                   (every (lambda (lis) (not (member x lis =)))
-                                          lists))
-                                 lis1)))))
+                                   (every (lambda (xs)
+                                            (not (member x xs x=?)))
+                                          xss))
+                                 xs)))))
 
-         (define (lset-difference! = lis1 . lists)
-           (let ((lists (filter pair? lists))) ; Throw out empty lists.
-             (cond ((null? lists)     lis1) ; Short cut
-                   ((memq lis1 lists) '()) ; Short cut
+         (define (lset-difference! x=? xs . xss)
+           (let ((xss (filter pair? xss)))
+             (cond ((null? xss) xs)
+                   ((memq xs xss) '())
                    (else (filter! (lambda (x)
-                                    (every (lambda (lis) (not (member x lis =)))
-                                           lists))
-                                  lis1)))))
+                                    (every (lambda (xs)
+                                             (not (member x xs x=?)))
+                                           xss))
+                                  xs)))))
 
-         (define (lset-xor = . lists)
-           (reduce (lambda (b a) ; Compute A xor B:
-                     ;; Note that this code relies on the constant-time
-                     ;; short-cuts provided by LSET-DIFF+INTERSECTION,
-                     ;; LSET-DIFFERENCE & APPEND to provide constant-time short
-                     ;; cuts for the cases A = (), B = (), and A eq? B. It takes
-                     ;; a careful case analysis to see it, but it's carefully
-                     ;; built in.
+         (define (lset-xor x=? . xss)
+           (reduce (lambda (b a)
+                     (receive (a-b a^b) (lset-diff+intersection x=? a b)
+                       (cond ((null? a-b) (lset-difference x=? b a))
+                             ((null? a^b) (append b a))
+                             (else (fold (lambda (x xs)
+                                           (if (member x a^b x=?)
+                                               xs
+                                               (cons x xs)))
+                                         a-b
+                                         b)))))
+                   '()
+                   xss))
 
-                     ;; Compute a-b and a^b, then compute b-(a^b) and
-                     ;; cons it onto the front of a-b.
-                     (receive (a-b a-int-b) (lset-diff+intersection = a b)
-                              (cond ((null? a-b) (lset-difference = b a))
-                                    ((null? a-int-b) (append b a))
-                                    (else (fold (lambda (xb ans)
-                                                  (if (member xb a-int-b =) ans (cons xb ans)))
-                                                a-b
-                                                b)))))
-                   '() lists))
+         (define (lset-xor! x=? . xss)
+           (reduce (lambda (b a)
+                     (receive (a-b a^b) (lset-diff+intersection! x=? a b)
+                       (cond ((null? a-b) (lset-difference! x=? b a))
+                             ((null? a^b) (append! b a))
+                             (else (pair-fold (lambda (x:xs ys)
+                                                (if (member (car x:xs) a^b x=?)
+                                                    ys
+                                                    (begin (set-cdr! x:xs ys)
+                                                           x:xs)))
+                                              a-b
+                                              b)))))
+                   '()
+                   xss))
 
-         (define (lset-xor! = . lists)
-           (reduce (lambda (b a) ; Compute A xor B:
-                     ;; Note that this code relies on the constant-time
-                     ;; short-cuts provided by LSET-DIFF+INTERSECTION,
-                     ;; LSET-DIFFERENCE & APPEND to provide constant-time short
-                     ;; cuts for the cases A = (), B = (), and A eq? B. It takes
-                     ;; a careful case analysis to see it, but it's carefully
-                     ;; built in.
+         (define (lset-diff+intersection x=? xs . xss)
+           (cond ((every null-list? xss)
+                  (values xs '()))
+                 ((memq xs xss)
+                  (values '() xs))
+                 (else (partition (lambda (x)
+                                    (not (any (lambda (xs)
+                                                (member x xs x=?))
+                                              xss)))
+                                  xs))))
 
-                     ;; Compute a-b and a^b, then compute b-(a^b) and
-                     ;; cons it onto the front of a-b.
-                     (receive (a-b a-int-b) (lset-diff+intersection! = a b)
-                              (cond ((null? a-b) (lset-difference! = b a))
-                                    ((null? a-int-b) (append! b a))
-                                    (else (pair-fold (lambda (b-pair ans)
-                                                       (if (member (car b-pair) a-int-b =) ans
-                                                           (begin (set-cdr! b-pair ans) b-pair)))
-                                                     a-b
-                                                     b)))))
-                   '() lists))
+         (define (lset-diff+intersection! x=? xs . xss)
+           (cond ((every null-list? xss)
+                  (values xs '()))
+                 ((memq xs xss)
+                  (values '() xs))
+                 (else (partition! (lambda (x)
+                                     (not (any (lambda (xs)
+                                                 (member x xs x=?))
+                                               xss)))
+                                   xs)))))
 
-         (define (lset-diff+intersection = lis1 . lists)
-           (cond ((every null-list? lists) (values lis1 '())) ; Short cut
-                 ((memq lis1 lists) (values '() lis1)) ; Short cut
-                 (else (partition (lambda (elt)
-                                    (not (any (lambda (lis) (member elt lis =))
-                                              lists)))
-                                  lis1))))
-
-         (define (lset-diff+intersection! = lis1 . lists)
-           (cond ((every null-list? lists) (values lis1 '())) ; Short cut
-                 ((memq lis1 lists) (values '() lis1)) ; Short cut
-                 (else (partition! (lambda (elt)
-                                     (not (any (lambda (lis) (member elt lis =))
-                                               lists)))
-                                   lis1))))
-         )
-
-  (begin ; Return (map cdr lists).
-         ; However, if any element of LISTS is empty, just abort and return '().
-         (define (%cdrs xs)
+  (begin (define (%cdrs xss)
            (call-with-current-continuation!
              (lambda (abort)
-               (letrec ((recur (lambda (xs)
-                                 (if (pair? xs)
-                                     ((lambda (x)
-                                        (if (null-list? x)
-                                            (abort '())
-                                            (cons (cdr x)
-                                                  (recur (cdr xs)))))
-                                      (car xs))
-                                     '()))))
-                 (recur xs)))))
+               (let recur ((xss xss))
+                 (if (pair? xss)
+                     (let ((xs (car xss)))
+                       (if (null-list? xs)
+                           (abort '())
+                           (cons (cdr xs)
+                                 (recur (cdr xss)))))
+                     '())))))
 
-         (define (%cars+ lists last-elt) ; (append! (map car lists) (list last-elt))
-           (letrec ((recur (lambda (lists)
-                             (if (pair? lists)
-                                 (cons (caar lists)
-                                       (recur (cdr lists)))
-                                 (list last-elt)))))
-             (recur lists)))
+         (define (%cars+ xss cars)
+           (let recur ((xss xss))
+             (if (pair? xss)
+                 (cons (caar xss)
+                       (recur (cdr xss)))
+                 (list cars))))
 
-         (define (%cars+cdrs lists)
+         (define (%cars+cdrs xss)
            (call-with-current-continuation!
              (lambda (abort)
-               (let recur ((lists lists))
-                 (if (pair? lists)
-                     (receive (list other-lists) (car+cdr lists)
-                              (if (null-list? list) (abort '() '()) ; LIST is empty -- bail out
-                                  (receive (a d) (car+cdr list)
-                                           (receive (cars cdrs) (recur other-lists)
-                                                    (values (cons a cars) (cons d cdrs))))))
-                     (values '() '()))))))
+               (let recur ((xss xss))
+                 (if (pair? xss)
+                     (receive (xs xss) (car+cdr xss)
+                       (if (null-list? xs)
+                           (abort '()
+                                  '())
+                           (receive (a d) (car+cdr xs)
+                             (receive (cars cdrs) (recur xss)
+                               (values (cons a cars)
+                                       (cons d cdrs))))))
+                     (values '()
+                             '()))))))
 
-         (define (%cars+cdrs+ lists cars-final)
+         (define (%cars+cdrs+ xss cars)
            (call-with-current-continuation!
              (lambda (abort)
-               (let recur ((lists lists))
-                 (if (pair? lists)
-                     (receive (list other-lists) (car+cdr lists)
-                              (if (null-list? list) (abort '() '()) ; LIST is empty -- bail out
-                                  (receive (a d) (car+cdr list)
-                                           (receive (cars cdrs) (recur other-lists)
-                                                    (values (cons a cars) (cons d cdrs))))))
-                     (values (list cars-final) '()))))))
+               (let recur ((xss xss))
+                 (if (pair? xss)
+                     (receive (xs xss) (car+cdr xss)
+                       (if (null-list? xs)
+                           (abort '()
+                                  '())
+                           (receive (a d) (car+cdr xs)
+                             (receive (cars cdrs) (recur xss)
+                               (values (cons a cars)
+                                       (cons d cdrs))))))
+                     (values (list cars)
+                             '()))))))
 
-         (define (%cars+cdrs/no-test lists)
-           (let recur ((lists lists))
-             (if (pair? lists)
-                 (receive (list other-lists) (car+cdr lists)
-                          (receive (a d) (car+cdr list)
-                                   (receive (cars cdrs) (recur other-lists)
-                                            (values (cons a cars) (cons d cdrs)))))
-                 (values '() '()))))
+         (define (%cars+cdrs/no-test xss)
+           (let recur ((xss xss))
+             (if (pair? xss)
+                 (receive (xs xss) (car+cdr xss)
+                   (receive (a d) (car+cdr xs)
+                     (receive (cars cdrs) (recur xss)
+                       (values (cons a cars)
+                               (cons d cdrs)))))
+                 (values '()
+                         '()))))
 
-         (define (%lset2<= = lis1 lis2)
-           (every (lambda (x) (member x lis2 =)) lis1))))
+         (define (%lset2<= x=? xs ys)
+           (every (lambda (x)
+                    (member x ys x=?))
+                  xs))))

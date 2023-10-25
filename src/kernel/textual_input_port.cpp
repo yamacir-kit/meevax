@@ -264,7 +264,7 @@ inline namespace kernel
           case '#':
             ignore(1);
 
-            if (auto iter = datum_labels.find(label); iter != std::end(datum_labels))
+            if (auto iter = datum_labels.find(label); iter != datum_labels.end())
             {
               return iter->second;
             }
@@ -497,7 +497,7 @@ inline namespace kernel
 
       auto name = static_cast<std::string>(character(c)) + take_token();
 
-      if (auto iter = names.find(name); iter != std::end(names))
+      if (auto iter = names.find(name); iter != names.end())
       {
         return character(iter->second);
       }

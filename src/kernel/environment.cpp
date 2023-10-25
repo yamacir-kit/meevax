@@ -119,7 +119,7 @@ inline namespace kernel
           return filter([&](let const& identity)
                         {
                           assert(identity.is<absolute>());
-                          return is_truthy(memq(car(identity), identities));
+                          return memq(car(identity), identities) != f;
                         },
                         resolve(import_set));
         };
@@ -141,7 +141,7 @@ inline namespace kernel
           return filter([&](let const& identity)
                         {
                           assert(identity.is<absolute>());
-                          return not is_truthy(memq(car(identity), identities));
+                          return memq(car(identity), identities) == f;
                         },
                         resolve(import_set));
         };
@@ -189,7 +189,7 @@ inline namespace kernel
                        assert(identity.is<absolute>());
                        assert(car(identity).is_also<identifier>());
 
-                       if (let const& renaming = assq(car(identity), renamings); is_truthy(renaming))
+                       if (let const& renaming = assq(car(identity), renamings); renaming != f)
                        {
                          assert(cadr(renaming).is<symbol>());
                          return make<absolute>(cadr(renaming), cdr(identity));
@@ -206,7 +206,7 @@ inline namespace kernel
       return rename(cadr(form))
                    (cddr(form));
     }
-    else if (auto iter = libraries().find(lexical_cast<std::string>(form)); iter != std::end(libraries()))
+    else if (auto iter = libraries().find(lexical_cast<std::string>(form)); iter != libraries().end())
     {
       return std::get<1>(*iter).resolve();
     }
@@ -218,18 +218,17 @@ inline namespace kernel
 
   auto environment::import(object const& import_set) -> void
   {
-    for (let const& identity : resolve(import_set))
+    for (let const& immigrant : resolve(import_set))
     {
-      assert(identity.is<absolute>());
+      assert(immigrant.is<absolute>());
 
-      if (not is_truthy(std::as_const(*this).identify(car(identity), unit, unit)) or interactive)
+      if (let const& inhabitant = std::as_const(*this).identify(car(immigrant), unit, unit); inhabitant == f or interactive)
       {
-        define(car(identity),
-               cdr(identity));
+        second = cons(immigrant, second);
       }
-      else
+      else if (immigrant != inhabitant)
       {
-        throw error(make<string>("in a program or library declaration, it is an error to import the same identifier more than once with different bindings"), identity);
+        throw error(make<string>("in a program or library declaration, it is an error to import the same identifier more than once with different bindings"), immigrant);
       }
     }
   }

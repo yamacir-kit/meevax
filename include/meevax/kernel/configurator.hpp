@@ -126,11 +126,11 @@ inline namespace kernel
 
       auto search = [&](auto&& name) -> auto const&
       {
-        if (auto iter = std::find_if(std::begin(options), std::end(options), [&](auto&& option)
+        if (auto iter = std::find_if(options.begin(), options.end(), [&](auto&& option)
                         {
                           return std::regex_match(name, option.pattern);
                         });
-            iter != std::end(options))
+            iter != options.end())
         {
           return *iter;
         }
@@ -142,7 +142,7 @@ inline namespace kernel
 
       std::vector<object> expressions {};
 
-      for (auto iter = std::next(std::begin(args)); iter != std::end(args); ++iter)
+      for (auto iter = std::next(args.begin()); iter != args.end(); ++iter)
       {
         static std::regex const pattern { R"(--(\w[-\w]+)(?:=(.*))?|-([\w]+))" };
 
@@ -150,7 +150,7 @@ inline namespace kernel
         {
           auto read = [&]()
           {
-            if (std::next(iter) != std::cend(args))
+            if (std::next(iter) != args.end())
             {
               return input_string_port(*++iter).read();
             }

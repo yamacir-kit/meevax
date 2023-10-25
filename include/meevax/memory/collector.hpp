@@ -85,7 +85,7 @@ inline namespace memory
         {
           return cache;
         }
-        else if (auto iter = headers.lower_bound(reinterpret_cast<memory::header *>(data)); iter != std::begin(headers) and (*--iter)->contains(data))
+        else if (auto iter = headers.lower_bound(reinterpret_cast<memory::header *>(data)); iter != headers.begin() and (*--iter)->contains(data))
         {
           return *iter;
         }

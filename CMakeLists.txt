@@ -5,10 +5,11 @@ execute_process(
   COMMAND tr -d "\n"
   OUTPUT_VARIABLE CURRENT_VERSION)
 
-project(meevax DESCRIPTION "A programmable programming language"
-               HOMEPAGE_URL "https://github.com/yamacir-kit/meevax"
-               LANGUAGES CXX
-               VERSION ${CURRENT_VERSION})
+project(meevax
+  DESCRIPTION "A programmable programming language"
+  HOMEPAGE_URL "https://github.com/yamacir-kit/meevax"
+  LANGUAGES CXX
+  VERSION ${CURRENT_VERSION})
 
 include(GNUInstallDirs)
 
@@ -20,9 +21,9 @@ string(JOIN " " AGGRESSIVE_OPTIMIZATION_OPTIONS
   )
 
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS_DEBUG          "-Og -gdwarf-4") # NOTE: The `-gdwarf-4` option is set due to the following issues with Clang 14 and Valgrind versions below 3.20: https://bugzilla.mozilla.org/show_bug.cgi?id=1758782
-set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os           -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O2           -DNDEBUG ${AGGRESSIVE_OPTIMIZATION_OPTIONS}")
+set(CMAKE_CXX_FLAGS_DEBUG "-Og -gdwarf-4") # NOTE: The `-gdwarf-4` option is set due to the following issues with Clang 14 and Valgrind versions below 3.20: https://bugzilla.mozilla.org/show_bug.cgi?id=1758782
+set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG ${AGGRESSIVE_OPTIMIZATION_OPTIONS}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -gdwarf-4 -DNDEBUG")
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -pipe")
 set(CMAKE_CXX_STANDARD 17)
@@ -67,36 +68,27 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT
 
 add_library(kernel SHARED)
 
-add_library(${PROJECT_NAME}::kernel ALIAS kernel)
-
 file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
 target_sources(kernel PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})
 
-target_include_directories(kernel PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+target_include_directories(kernel
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_link_libraries(kernel PRIVATE ${CMAKE_DL_LIBS}
-                             PUBLIC gmp)
+target_link_libraries(kernel
+  PRIVATE ${CMAKE_DL_LIBS}
+  PUBLIC gmp)
 
-set_target_properties(kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
-                                        VERSION     ${PROJECT_VERSION}
-                                        SOVERSION   ${PROJECT_VERSION_MAJOR}
-                                        LINK_FLAGS_RELEASE -s)
-
-# ---- Target format -----------------------------------------------------------
-
-add_executable(format)
-
-target_sources(format PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/format.cpp)
-
-target_link_libraries(format PRIVATE kernel)
+set_target_properties(kernel PROPERTIES
+  OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
+  VERSION     ${PROJECT_VERSION}
+  SOVERSION   ${PROJECT_VERSION_MAJOR}
+  LINK_FLAGS_RELEASE -s)
 
 # ---- Target basis ------------------------------------------------------------
 
 add_custom_target(basis
-  DEPENDS format
   COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.cmake)
 
 # ---- Target shell ------------------------------------------------------------
@@ -109,8 +101,9 @@ target_sources(shell PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 target_link_libraries(shell PRIVATE kernel)
 
-set_target_properties(shell PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename shell => meevax
-                                       LINK_FLAGS_RELEASE -s)
+set_target_properties(shell PROPERTIES
+  OUTPUT_NAME ${PROJECT_NAME} # Rename shell => meevax
+  LINK_FLAGS_RELEASE -s)
 
 # ---- CMake Package -----------------------------------------------------------
 
@@ -122,29 +115,30 @@ write_basic_package_version_file(
 
 # ---- Target install ----------------------------------------------------------
 
-# /usr/lib/libmeevax
-install(TARGETS kernel
-        EXPORT ${PROJECT_NAME}-config
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install( # /usr/lib/libmeevax
+  TARGETS kernel
+  EXPORT ${PROJECT_NAME}-config
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-# /usr/bin/meevax
-install(TARGETS shell
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install( # /usr/bin/meevax
+  TARGETS shell
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-# /usr/include/meevax
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install( # /usr/include/meevax
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-# /usr/share/meevax/meevax-config.cmake
-install(EXPORT ${PROJECT_NAME}-config
-        EXPORT_LINK_INTERFACE_LIBRARIES
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
-        NAMESPACE Meevax::)
+install( # /usr/share/meevax/meevax-config.cmake
+  EXPORT ${PROJECT_NAME}-config
+  EXPORT_LINK_INTERFACE_LIBRARIES
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
+  NAMESPACE Meevax::)
 
 # /usr/share/meevax/meevax-config-version.cmake
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
 
 # ---- Target package ----------------------------------------------------------
 
@@ -164,20 +158,22 @@ enable_testing()
 
 find_program(${PROJECT_NAME}_MEMORY_CHECK_COMMAND valgrind)
 
-set(${PROJECT_NAME}_MEMORY_CHECK_COMMAND_OPTIONS --error-exitcode=1 # = EXIT_FAILURE)
-                                                 --leak-check=full
-                                                 --quiet
-                                                 --show-leak-kinds=all)
+set(${PROJECT_NAME}_MEMORY_CHECK_OPTIONS
+  --error-exitcode=1 # = EXIT_FAILURE)
+  --leak-check=full
+  --quiet
+  --show-leak-kinds=all)
 
 file(GLOB ${PROJECT_NAME}_TEST_SS ${CMAKE_CURRENT_SOURCE_DIR}/test/*.ss)
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SS)
   get_filename_component(FILENAME ${EACH} NAME_WE)
-  add_test(NAME ${FILENAME}
-           COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
-                   ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND_OPTIONS}
-                   ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax
-                   ${EACH})
+  add_test(
+    NAME ${FILENAME}
+    COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
+            ${${PROJECT_NAME}_MEMORY_CHECK_OPTIONS}
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax
+            ${EACH})
 endforeach()
 
 file(GLOB ${PROJECT_NAME}_TEST_CPP ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
@@ -187,10 +183,11 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_CPP)
   add_executable(assert-${FILENAME} ${EACH})
   add_dependencies(assert-${FILENAME} basis)
   target_link_libraries(assert-${FILENAME} PRIVATE kernel)
-  add_test(NAME assert-${FILENAME}
-           COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
-                   ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND_OPTIONS}
-                   ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assert-${FILENAME})
+  add_test(
+    NAME assert-${FILENAME}
+    COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
+            ${${PROJECT_NAME}_MEMORY_CHECK_OPTIONS}
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assert-${FILENAME})
 endforeach()
 
 # ---- Additional Targets ------------------------------------------------------

@@ -27,7 +27,7 @@ inline namespace kernel
 {
   heterogeneous_vector::heterogeneous_vector(object const& x)
   {
-    std::copy(std::begin(x), std::end(x), std::back_inserter(vector));
+    std::copy(x.begin(), x.end(), std::back_inserter(vector));
   }
 
   heterogeneous_vector::heterogeneous_vector(std::size_t size, object const& x)
@@ -39,10 +39,15 @@ inline namespace kernel
     return vector[index];
   }
 
+  auto heterogeneous_vector::operator [](std::size_t index) -> object &
+  {
+    return vector[index];
+  }
+
   auto operator ==(heterogeneous_vector const& v, heterogeneous_vector const& u) -> bool
   {
-    return std::equal(std::begin(v.vector), std::end(v.vector),
-                      std::begin(u.vector), std::end(u.vector), equal);
+    return std::equal(v.vector.begin(), v.vector.end(),
+                      u.vector.begin(), u.vector.end(), equal);
   }
 
   auto operator <<(std::ostream & output, heterogeneous_vector const& datum) -> std::ostream &

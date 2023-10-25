@@ -48,7 +48,7 @@ inline namespace kernel
 
       library.define<procedure>("not", [](let const& xs)
       {
-        return not is_truthy(xs[0]);
+        return xs[0] == f;
       });
     });
 
@@ -283,7 +283,7 @@ inline namespace kernel
         }
         else if (let const& status = car(xs); status.is<bool>())
         {
-          throw is_truthy(status) ? EXIT_SUCCESS : EXIT_FAILURE;
+          throw status != f ? EXIT_SUCCESS : EXIT_FAILURE;
         }
         else
         {
@@ -558,7 +558,73 @@ inline namespace kernel
 
       library.define<procedure>("make-list", [](let const& xs)
       {
-        return make_list(xs[0].as<exact_integer>(), 1 < length(xs) ? xs[1] : f);
+        switch (length(xs))
+        {
+        case 1:
+          return make_list(xs[0].as<exact_integer>());
+
+        case 2:
+          return make_list(xs[0].as<exact_integer>(), xs[1]);
+
+        default:
+          throw error(make<string>("procedure make-list takes one or two arugments, but got"), xs);
+        }
+      });
+
+      library.define<procedure>("iota", [](let const& xs)
+      {
+        switch (length(xs))
+        {
+        case 1:
+          return iota(xs[0].as<exact_integer>());
+
+        case 2:
+          return iota(xs[0].as<exact_integer>(), xs[1]);
+
+        case 3:
+          return iota(xs[0].as<exact_integer>(), xs[1], xs[2]);
+
+        default:
+          throw error(make<string>("procedure iota takes one to three arugments, but got"), xs);
+        }
+      });
+
+      library.define<procedure>("circular-list?", [](let const& xs)
+      {
+        return is_circular_list(xs[0]);
+      });
+
+      library.define<procedure>("circular-list", [](let & xs)
+      {
+        circulate(xs);
+        return xs;
+      });
+
+      library.define<procedure>("dotted-list?", [](let const& xs)
+      {
+        return is_dotted_list(xs[0]);
+      });
+
+      library.define<procedure>("null-list?", [](let const& xs)
+      {
+        if (is_list(xs[0]) or is_circular_list(xs[0]))
+        {
+          return xs[0].is<null>();
+        }
+        else
+        {
+          throw error(make<string>("procedure null-list? takes a proper-list or a circular-list, but got"), xs);
+        }
+      });
+
+      library.define<procedure>("last", [](let const& xs) -> auto const&
+      {
+        return last(xs[0]);
+      });
+
+      library.define<procedure>("last-pair", [](let const& xs) -> auto const&
+      {
+        return last_pair(xs[0]);
       });
 
       library.define<procedure>("length", [](let const& xs)
@@ -566,14 +632,54 @@ inline namespace kernel
         return make<exact_integer>(length(xs[0]));
       });
 
+      library.define<procedure>("length+", [](let const& xs)
+      {
+        return is_circular_list(xs[0]) ? f : make<exact_integer>(length(xs[0]));
+      });
+
       library.define<procedure>("append", [](let const& xs)
       {
-        return std::accumulate(std::begin(xs), std::end(xs), unit, append);
+        return std::accumulate(xs.begin(), xs.end(), unit, [](let const& x, let const& y) { return append(x, y); });
+      });
+
+      library.define<procedure>("append!", [](let & xs)
+      {
+        return std::accumulate(xs.begin(), xs.end(), unit, [](let & x, let const& y) { return append(x, y); });
+      });
+
+      library.define<procedure>("append-reverse", [](let const& xs)
+      {
+        return append_reverse(xs[0], xs[1]);
+      });
+
+      library.define<procedure>("append-reverse!", [](let & xs)
+      {
+        return append_reverse(xs[0], xs[1]);
       });
 
       library.define<procedure>("reverse", [](let const& xs)
       {
         return reverse(xs[0]);
+      });
+
+      library.define<procedure>("reverse!", [](let & xs)
+      {
+        return reverse(xs[0]);
+      });
+
+      library.define<procedure>("concatenate", [](let const& xs)
+      {
+        return std::accumulate(xs[0].begin(), xs[0].end(), unit, [](let const& x, let const& y) { return append(x, y); });
+      });
+
+      library.define<procedure>("concatenate!", [](let & xs)
+      {
+        return std::accumulate(xs[0].begin(), xs[0].end(), unit, [](let & x, let const& y) { return append(x, y); });
+      });
+
+      library.define<procedure>("list-copy", [](let const& xs)
+      {
+        return list_copy(xs[0]);
       });
 
       library.define<procedure>("list-tail", [](let const& xs) -> auto const&
@@ -584,6 +690,86 @@ inline namespace kernel
       library.define<procedure>("list-ref", [](let const& xs) -> auto const&
       {
         return xs[0][xs[1].as<exact_integer>()];
+      });
+
+      library.define<procedure>("first", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][0];
+      });
+
+      library.define<procedure>("second", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][1];
+      });
+
+      library.define<procedure>("third", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][2];
+      });
+
+      library.define<procedure>("fourth", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][3];
+      });
+
+      library.define<procedure>("fifth", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][4];
+      });
+
+      library.define<procedure>("sixth", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][5];
+      });
+
+      library.define<procedure>("seventh", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][6];
+      });
+
+      library.define<procedure>("eighth", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][7];
+      });
+
+      library.define<procedure>("ninth", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][8];
+      });
+
+      library.define<procedure>("tenth", [](let const& xs) -> decltype(auto)
+      {
+        return xs[0][9];
+      });
+
+      library.define<procedure>("take", [](let const& xs)
+      {
+        return take(xs[0], xs[1].as<exact_integer>());
+      });
+
+      library.define<procedure>("take!", [](let & xs)
+      {
+        return take(xs[0], xs[1].as<exact_integer>());
+      });
+
+      library.define<procedure>("take-right", [](let const& xs)
+      {
+        return take_right(xs[0], xs[1].as<exact_integer>());
+      });
+
+      library.define<procedure>("drop", [](let const& xs)
+      {
+        return drop(xs[0], xs[1].as<exact_integer>());
+      });
+
+      library.define<procedure>("drop-right", [](let const& xs)
+      {
+        return drop_right(xs[0], xs[1].as<exact_integer>());
+      });
+
+      library.define<procedure>("drop-right!", [](let & xs)
+      {
+        return drop_right(xs[0], xs[1].as<exact_integer>());
       });
 
       library.define<procedure>("memq", [](let const& xs) -> auto const&
@@ -604,6 +790,16 @@ inline namespace kernel
       library.define<procedure>("assv", [](let const& xs) -> auto const&
       {
         return assv(xs[0], xs[1]);
+      });
+
+      library.define<procedure>("alist-cons", [](let const& xs)
+      {
+        return alist_cons(xs[0], xs[1], xs[2]);
+      });
+
+      library.define<procedure>("alist-copy", [](let const& xs)
+      {
+        return alist_copy(xs[0]);
       });
     });
 
@@ -651,27 +847,27 @@ inline namespace kernel
 
       library.define<procedure>("=", [](let const& xs)
       {
-        return std::adjacent_find(std::begin(xs), std::end(xs), not_equals) == std::end(xs);
+        return std::adjacent_find(xs.begin(), xs.end(), not_equals) == xs.end();
       });
 
       library.define<procedure>("<", [](let const& xs)
       {
-        return std::adjacent_find(std::begin(xs), std::end(xs), greater_than_or_equals) == std::end(xs);
+        return std::adjacent_find(xs.begin(), xs.end(), greater_than_or_equals) == xs.end();
       });
 
       library.define<procedure>("<=", [](let const& xs)
       {
-        return std::adjacent_find(std::begin(xs), std::end(xs), greater_than) == std::end(xs);
+        return std::adjacent_find(xs.begin(), xs.end(), greater_than) == xs.end();
       });
 
       library.define<procedure>(">", [](let const& xs)
       {
-        return std::adjacent_find(std::begin(xs), std::end(xs), less_than_or_equals) == std::end(xs);
+        return std::adjacent_find(xs.begin(), xs.end(), less_than_or_equals) == xs.end();
       });
 
       library.define<procedure>(">=", [](let const& xs)
       {
-        return std::adjacent_find(std::begin(xs), std::end(xs), less_than) == std::end(xs);
+        return std::adjacent_find(xs.begin(), xs.end(), less_than) == xs.end();
       });
 
       library.define<procedure>("zero?", [](let const& xs)
@@ -711,19 +907,19 @@ inline namespace kernel
 
       library.define<procedure>("+", [](let const& xs)
       {
-        return std::accumulate(std::begin(xs), std::end(xs), e0, std::plus());
+        return std::accumulate(xs.begin(), xs.end(), e0, std::plus());
       });
 
       library.define<procedure>("*", [](let const& xs)
       {
-        return std::accumulate(std::begin(xs), std::end(xs), e1, std::multiplies());
+        return std::accumulate(xs.begin(), xs.end(), e1, std::multiplies());
       });
 
       library.define<procedure>("-", [](let const& xs)
       {
         if (cdr(xs).is<pair>())
         {
-          return std::accumulate(std::next(std::begin(xs)), std::end(xs), xs[0], std::minus());
+          return std::accumulate(std::next(xs.begin()), xs.end(), xs[0], std::minus());
         }
         else
         {
@@ -735,7 +931,7 @@ inline namespace kernel
       {
         if (cdr(xs).is<pair>())
         {
-          return std::accumulate(std::next(std::begin(xs)), std::end(xs), xs[0], std::divides());
+          return std::accumulate(std::next(xs.begin()), xs.end(), xs[0], std::divides());
         }
         else
         {
@@ -884,9 +1080,44 @@ inline namespace kernel
         return xs[0].is<pair>();
       });
 
+      library.define<procedure>("not-pair?", [](let const& xs)
+      {
+        return not xs[0].is<pair>();
+      });
+
       library.define<procedure>("cons", [](let const& xs)
       {
         return cons(xs[0], xs[1]);
+      });
+
+      library.define<procedure>("cons*", [](let & xs)
+      {
+        if (xs.is<null>())
+        {
+          throw error(make<string>("procedure cons* takes at least one arugments, but got"), xs);
+        }
+        else if (cdr(xs).is<null>())
+        {
+          return xs[0];
+        }
+        else
+        {
+          auto node = xs.get();
+
+          while (not cddr(*node).is<null>())
+          {
+            node = cdr(*node).get();
+          }
+
+          cdr(*node) = cadr(*node);
+
+          return xs;
+        }
+      });
+
+      library.define<procedure>("xcons", [](let const& xs)
+      {
+        return cons(xs[1], xs[0]);
       });
 
       library.define<procedure>("car", [](let const& xs) -> auto const& { return car(xs[0]); });
@@ -1536,9 +1767,9 @@ inline namespace kernel
         {
           if (auto const position = std::string_view(*iter).find_first_of("="); position != std::string::npos)
           {
-            alist = cons(cons(make<string>(std::string(*iter, position)),
-                              make<string>(std::string(*iter + position + 1))),
-                         alist);
+            alist = alist_cons(make<string>(std::string(*iter, position)),
+                               make<string>(std::string(*iter + position + 1)),
+                               alist);
           }
         }
 
@@ -1598,7 +1829,7 @@ inline namespace kernel
 
       library.define<procedure>("vector-set!", [](let & xs)
       {
-        xs[0].as<vector>().vector[xs[1].as<exact_integer>()] = xs[2];
+        xs[0][xs[1].as<exact_integer>()] = xs[2];
       });
 
       library.define<procedure>("vector->list", [](let const& xs)

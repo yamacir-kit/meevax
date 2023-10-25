@@ -52,14 +52,14 @@ inline namespace kernel
 
   struct pair : public std::pair<object, object>
   {
-    template <auto ReadOnly>
+    template <auto Const>
     struct forward_iterator
     {
       using iterator_category = std::forward_iterator_tag;
 
       using value_type = object;
 
-      using reference = std::add_lvalue_reference_t<std::conditional_t<ReadOnly, std::add_const_t<value_type>, value_type>>;
+      using reference = std::add_lvalue_reference_t<std::conditional_t<Const, std::add_const_t<value_type>, value_type>>;
 
       using pointer = std::add_pointer_t<reference>;
 
@@ -67,7 +67,7 @@ inline namespace kernel
 
       using size_type = std::size_t;
 
-      using node_type = std::conditional_t<ReadOnly, pair const*, pair *>;
+      using node_type = std::conditional_t<Const, pair const*, pair *>;
 
       node_type current = nullptr;
 
@@ -92,7 +92,7 @@ inline namespace kernel
 
       auto operator ++() -> decltype(auto)
       {
-        if (current = current->second.get(); current == initial)
+        if (current = current->second.get(); current == initial or (current and current->type() != typeid(pair)))
         {
           current = nullptr;
         }
@@ -140,6 +140,8 @@ inline namespace kernel
     virtual auto write(std::ostream &) const -> std::ostream &;
 
     virtual auto operator [](std::size_t) const -> object const&;
+
+    virtual auto operator [](std::size_t) -> object &;
 
     constexpr auto begin() noexcept
     {
