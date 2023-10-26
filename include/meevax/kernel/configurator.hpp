@@ -124,7 +124,7 @@ inline namespace kernel
         }),
       };
 
-      auto search = [&](auto&& name) -> auto const&
+      auto search = [&](auto&& name) -> decltype(auto)
       {
         if (auto iter = std::find_if(options.begin(), options.end(), [&](auto&& option)
                         {
