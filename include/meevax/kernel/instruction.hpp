@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 #define INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 
+#include <cstdint>
 #include <iostream>
 
 namespace meevax

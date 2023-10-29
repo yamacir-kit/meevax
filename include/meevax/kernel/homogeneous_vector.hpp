@@ -75,7 +75,7 @@ inline namespace kernel
       std::copy(begin, end, std::begin(valarray));
     }
 
-    static auto tag() -> auto const&
+    static auto tag() -> decltype(auto)
     {
       auto static const tag = lexical_cast<std::string>(std::is_integral_v<T> ? std::is_signed_v<T> ? 's' : 'u' : 'f', sizeof(T) * CHAR_BIT);
       return tag;

@@ -64,7 +64,7 @@ inline namespace kernel
         return car(xs).is<box>();
       });
 
-      library.define<procedure>("box-ref", [](let const& xs) -> auto const&
+      library.define<procedure>("box-ref", [](let const& xs) -> decltype(auto)
       {
         return caar(xs);
       });
@@ -252,12 +252,12 @@ inline namespace kernel
                              radius * sin(angle));
       });
 
-      library.define<procedure>("real-part", [](let const& xs) -> auto const&
+      library.define<procedure>("real-part", [](let const& xs) -> decltype(auto)
       {
         return real_part(xs[0]);
       });
 
-      library.define<procedure>("imag-part", [](let const& xs) -> auto const&
+      library.define<procedure>("imag-part", [](let const& xs) -> decltype(auto)
       {
         return imag_part(xs[0]);
       });
@@ -551,7 +551,7 @@ inline namespace kernel
         return is_list(xs[0]);
       });
 
-      library.define<procedure>("list", [](let const& xs) -> auto const&
+      library.define<procedure>("list", [](let const& xs) -> decltype(auto)
       {
         return xs;
       });
@@ -617,12 +617,12 @@ inline namespace kernel
         }
       });
 
-      library.define<procedure>("last", [](let const& xs) -> auto const&
+      library.define<procedure>("last", [](let const& xs) -> decltype(auto)
       {
         return last(xs[0]);
       });
 
-      library.define<procedure>("last-pair", [](let const& xs) -> auto const&
+      library.define<procedure>("last-pair", [](let const& xs) -> decltype(auto)
       {
         return last_pair(xs[0]);
       });
@@ -682,12 +682,12 @@ inline namespace kernel
         return list_copy(xs[0]);
       });
 
-      library.define<procedure>("list-tail", [](let const& xs) -> auto const&
+      library.define<procedure>("list-tail", [](let const& xs) -> decltype(auto)
       {
         return tail(xs[0], xs[1].as<exact_integer>());
       });
 
-      library.define<procedure>("list-ref", [](let const& xs) -> auto const&
+      library.define<procedure>("list-ref", [](let const& xs) -> decltype(auto)
       {
         return xs[0][xs[1].as<exact_integer>()];
       });
@@ -772,22 +772,22 @@ inline namespace kernel
         return drop_right(xs[0], xs[1].as<exact_integer>());
       });
 
-      library.define<procedure>("memq", [](let const& xs) -> auto const&
+      library.define<procedure>("memq", [](let const& xs) -> decltype(auto)
       {
         return memq(xs[0], xs[1]);
       });
 
-      library.define<procedure>("memv", [](let const& xs) -> auto const&
+      library.define<procedure>("memv", [](let const& xs) -> decltype(auto)
       {
         return memv(xs[0], xs[1]);
       });
 
-      library.define<procedure>("assq", [](let const& xs) -> auto const&
+      library.define<procedure>("assq", [](let const& xs) -> decltype(auto)
       {
         return assq(xs[0], xs[1]);
       });
 
-      library.define<procedure>("assv", [](let const& xs) -> auto const&
+      library.define<procedure>("assv", [](let const& xs) -> decltype(auto)
       {
         return assv(xs[0], xs[1]);
       });
@@ -1120,39 +1120,39 @@ inline namespace kernel
         return cons(xs[1], xs[0]);
       });
 
-      library.define<procedure>("car", [](let const& xs) -> auto const& { return car(xs[0]); });
-      library.define<procedure>("cdr", [](let const& xs) -> auto const& { return cdr(xs[0]); });
+      library.define<procedure>("car", [](let const& xs) -> decltype(auto) { return car(xs[0]); });
+      library.define<procedure>("cdr", [](let const& xs) -> decltype(auto) { return cdr(xs[0]); });
 
-      library.define<procedure>("caar", [](let const& xs) -> auto const& { return caar(xs[0]); });
-      library.define<procedure>("cadr", [](let const& xs) -> auto const& { return cadr(xs[0]); });
-      library.define<procedure>("cdar", [](let const& xs) -> auto const& { return cdar(xs[0]); });
-      library.define<procedure>("cddr", [](let const& xs) -> auto const& { return cddr(xs[0]); });
+      library.define<procedure>("caar", [](let const& xs) -> decltype(auto) { return caar(xs[0]); });
+      library.define<procedure>("cadr", [](let const& xs) -> decltype(auto) { return cadr(xs[0]); });
+      library.define<procedure>("cdar", [](let const& xs) -> decltype(auto) { return cdar(xs[0]); });
+      library.define<procedure>("cddr", [](let const& xs) -> decltype(auto) { return cddr(xs[0]); });
 
-      library.define<procedure>("caaar", [](let const& xs) -> auto const& { return caaar(xs[0]); });
-      library.define<procedure>("caadr", [](let const& xs) -> auto const& { return caadr(xs[0]); });
-      library.define<procedure>("cadar", [](let const& xs) -> auto const& { return cadar(xs[0]); });
-      library.define<procedure>("caddr", [](let const& xs) -> auto const& { return caddr(xs[0]); });
-      library.define<procedure>("cdaar", [](let const& xs) -> auto const& { return cdaar(xs[0]); });
-      library.define<procedure>("cdadr", [](let const& xs) -> auto const& { return cdadr(xs[0]); });
-      library.define<procedure>("cddar", [](let const& xs) -> auto const& { return cddar(xs[0]); });
-      library.define<procedure>("cdddr", [](let const& xs) -> auto const& { return cdddr(xs[0]); });
+      library.define<procedure>("caaar", [](let const& xs) -> decltype(auto) { return caaar(xs[0]); });
+      library.define<procedure>("caadr", [](let const& xs) -> decltype(auto) { return caadr(xs[0]); });
+      library.define<procedure>("cadar", [](let const& xs) -> decltype(auto) { return cadar(xs[0]); });
+      library.define<procedure>("caddr", [](let const& xs) -> decltype(auto) { return caddr(xs[0]); });
+      library.define<procedure>("cdaar", [](let const& xs) -> decltype(auto) { return cdaar(xs[0]); });
+      library.define<procedure>("cdadr", [](let const& xs) -> decltype(auto) { return cdadr(xs[0]); });
+      library.define<procedure>("cddar", [](let const& xs) -> decltype(auto) { return cddar(xs[0]); });
+      library.define<procedure>("cdddr", [](let const& xs) -> decltype(auto) { return cdddr(xs[0]); });
 
-      library.define<procedure>("caaaar", [](let const& xs) -> auto const& { return caaaar(xs[0]); });
-      library.define<procedure>("caaadr", [](let const& xs) -> auto const& { return caaadr(xs[0]); });
-      library.define<procedure>("caadar", [](let const& xs) -> auto const& { return caadar(xs[0]); });
-      library.define<procedure>("caaddr", [](let const& xs) -> auto const& { return caaddr(xs[0]); });
-      library.define<procedure>("cadaar", [](let const& xs) -> auto const& { return cadaar(xs[0]); });
-      library.define<procedure>("cadadr", [](let const& xs) -> auto const& { return cadadr(xs[0]); });
-      library.define<procedure>("caddar", [](let const& xs) -> auto const& { return caddar(xs[0]); });
-      library.define<procedure>("cadddr", [](let const& xs) -> auto const& { return cadddr(xs[0]); });
-      library.define<procedure>("cdaaar", [](let const& xs) -> auto const& { return cdaaar(xs[0]); });
-      library.define<procedure>("cdaadr", [](let const& xs) -> auto const& { return cdaadr(xs[0]); });
-      library.define<procedure>("cdadar", [](let const& xs) -> auto const& { return cdadar(xs[0]); });
-      library.define<procedure>("cdaddr", [](let const& xs) -> auto const& { return cdaddr(xs[0]); });
-      library.define<procedure>("cddaar", [](let const& xs) -> auto const& { return cddaar(xs[0]); });
-      library.define<procedure>("cddadr", [](let const& xs) -> auto const& { return cddadr(xs[0]); });
-      library.define<procedure>("cdddar", [](let const& xs) -> auto const& { return cdddar(xs[0]); });
-      library.define<procedure>("cddddr", [](let const& xs) -> auto const& { return cddddr(xs[0]); });
+      library.define<procedure>("caaaar", [](let const& xs) -> decltype(auto) { return caaaar(xs[0]); });
+      library.define<procedure>("caaadr", [](let const& xs) -> decltype(auto) { return caaadr(xs[0]); });
+      library.define<procedure>("caadar", [](let const& xs) -> decltype(auto) { return caadar(xs[0]); });
+      library.define<procedure>("caaddr", [](let const& xs) -> decltype(auto) { return caaddr(xs[0]); });
+      library.define<procedure>("cadaar", [](let const& xs) -> decltype(auto) { return cadaar(xs[0]); });
+      library.define<procedure>("cadadr", [](let const& xs) -> decltype(auto) { return cadadr(xs[0]); });
+      library.define<procedure>("caddar", [](let const& xs) -> decltype(auto) { return caddar(xs[0]); });
+      library.define<procedure>("cadddr", [](let const& xs) -> decltype(auto) { return cadddr(xs[0]); });
+      library.define<procedure>("cdaaar", [](let const& xs) -> decltype(auto) { return cdaaar(xs[0]); });
+      library.define<procedure>("cdaadr", [](let const& xs) -> decltype(auto) { return cdaadr(xs[0]); });
+      library.define<procedure>("cdadar", [](let const& xs) -> decltype(auto) { return cdadar(xs[0]); });
+      library.define<procedure>("cdaddr", [](let const& xs) -> decltype(auto) { return cdaddr(xs[0]); });
+      library.define<procedure>("cddaar", [](let const& xs) -> decltype(auto) { return cddaar(xs[0]); });
+      library.define<procedure>("cddadr", [](let const& xs) -> decltype(auto) { return cddadr(xs[0]); });
+      library.define<procedure>("cdddar", [](let const& xs) -> decltype(auto) { return cdddar(xs[0]); });
+      library.define<procedure>("cddddr", [](let const& xs) -> decltype(auto) { return cddddr(xs[0]); });
 
       library.define<procedure>("set-car!", [](let & xs)
       {
@@ -1822,7 +1822,7 @@ inline namespace kernel
         return make<exact_integer>(xs[0].as<vector>().vector.size());
       });
 
-      library.define<procedure>("vector-ref", [](let const& xs) -> auto const&
+      library.define<procedure>("vector-ref", [](let const& xs) -> decltype(auto)
       {
         return xs[0][xs[1].as<exact_integer>()];
       });

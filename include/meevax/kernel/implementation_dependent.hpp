@@ -17,8 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_IMPLEMENTATION_DEPENDENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_IMPLEMENTATION_DEPENDENT_HPP
 
-#include <meevax/kernel/error.hpp>
-#include <meevax/kernel/list.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
