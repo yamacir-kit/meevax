@@ -53,6 +53,10 @@ inline namespace kernel
       : valarray(v.valarray[std::slice(begin, begin < end ? end - begin : 0, 1)])
     {}
 
+    explicit homogeneous_vector(homogeneous_vector const& v, std::size_t begin = 0)
+      : homogeneous_vector { v, begin, v.valarray.size() }
+    {}
+
     explicit homogeneous_vector(homogeneous_vector const& a, homogeneous_vector const& b)
       : valarray(a.valarray.size() + b.valarray.size())
     {
@@ -100,6 +104,16 @@ inline namespace kernel
     static auto output_cast(T x)
     {
       return make<std::conditional_t<std::is_floating_point_v<T>, T, exact_integer>>(x);
+    }
+
+    auto slice(std::size_t begin, std::size_t end, std::size_t stride = 1) -> decltype(auto)
+    {
+      return valarray[std::slice(begin, end - begin, stride)];
+    }
+
+    auto slice(std::size_t begin = 0) -> decltype(auto)
+    {
+      return slice(begin, valarray.size());
     }
   };
 

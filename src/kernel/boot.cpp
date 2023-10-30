@@ -293,7 +293,7 @@ inline namespace kernel
 
       library.define<procedure>("command-line", []()
       {
-        let xs = unit;
+        let xs = list();
 
         for (auto&& each : interaction_environment().as<environment>().command_line)
         {
@@ -473,8 +473,17 @@ inline namespace kernel
 
       library.define<procedure>("log", [](let const& xs)
       {
-        return 1 < length(xs) ? log(xs[0]) / log(xs[1])
-                              : log(xs[0]);
+        switch (length(xs))
+        {
+        case 1:
+          return log(xs[0]);
+
+        case 2:
+          return log(xs[0]) / log(xs[1]);
+
+        default:
+          throw error(make<string>("procedure log takes one or two arguments, but got"), xs);
+        }
       });
 
       library.define<procedure>("sin", [](let const& xs)
@@ -504,8 +513,17 @@ inline namespace kernel
 
       library.define<procedure>("atan", [](let const& xs)
       {
-        return 1 < length(xs) ? atan(xs[0], xs[1])
-                              : atan(xs[0]);
+        switch (length(xs))
+        {
+        case 1:
+          return atan(xs[0]);
+
+        case 2:
+          return atan(xs[0], xs[1]);
+
+        default:
+          throw error(make<string>("procedure atan takes one or two arguments, but got"), xs);
+        }
       });
 
       library.define<procedure>("sinh", [](let const& xs)
@@ -2028,7 +2046,17 @@ inline namespace kernel
                                                                                \
       library.define<procedure>("make-" #TAG "vector", [](let const& xs)       \
       {                                                                        \
-        return make<TAG##vector>(xs[0].as<exact_integer>(), 1 < length(xs) ? xs[1] : unspecified); \
+        switch (length(xs))                                                    \
+        {                                                                      \
+        case 1:                                                                \
+          return make<TAG##vector>(xs[0].as<exact_integer>(), unspecified);    \
+                                                                               \
+        case 2:                                                                \
+          return make<TAG##vector>(xs[0].as<exact_integer>(), xs[1]);          \
+                                                                               \
+        default:                                                               \
+          throw error(make<string>("procedure make-" #TAG "vector takes one or two arguments, but got"), xs); \
+        }                                                                      \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector", [](let const& xs)               \
@@ -2053,23 +2081,47 @@ inline namespace kernel
                                                                                \
       library.define<procedure>(#TAG "vector-copy", [](let const& xs)          \
       {                                                                        \
-        return make<TAG##vector>(xs[0].as<TAG##vector>(),                      \
-                                 1 < length(xs) ? xs[1].as<exact_integer>() : std::size_t(), \
-                                 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().valarray.size()); \
+        switch (length(xs))                                                    \
+        {                                                                      \
+        case 1:                                                                \
+          return make<TAG##vector>(xs[0].as<TAG##vector>());                   \
+                                                                               \
+        case 2:                                                                \
+          return make<TAG##vector>(xs[0].as<TAG##vector>(),                    \
+                                   xs[1].as<exact_integer>());                 \
+                                                                               \
+        case 3:                                                                \
+          return make<TAG##vector>(xs[0].as<TAG##vector>(),                    \
+                                   xs[1].as<exact_integer>(),                  \
+                                   xs[2].as<exact_integer>());                 \
+        default:                                                               \
+          throw error(make<string>("procedure " #TAG "vector-copy takes one to three arguments, but got"), xs); \
+        }                                                                      \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-copy!", [](let & xs)              \
       {                                                                        \
-        auto copy = [](auto&& to, auto&& at, auto&& from, auto&& start, auto&& end) \
+        switch (length(xs))                                                    \
         {                                                                      \
-          to[std::slice(at, end - start, 1)] = from[std::slice(start, end - start, 1)]; \
-        };                                                                     \
+        case 3:                                                                \
+          xs[0].as<TAG##vector>().slice(xs[1].as<exact_integer>()) =           \
+          xs[2].as<TAG##vector>().slice();                                     \
+          break;                                                               \
                                                                                \
-        copy(xs[0].as<TAG##vector>().valarray,                                 \
-             xs[1].as<exact_integer>(),                                        \
-             xs[2].as<TAG##vector>().valarray,                                 \
-             3 < length(xs) ? xs[3].as<exact_integer>() : 0,                   \
-             4 < length(xs) ? xs[4].as<exact_integer>() : xs[2].as<TAG##vector>().valarray.size()); \
+        case 4:                                                                \
+          xs[0].as<TAG##vector>().slice(xs[1].as<exact_integer>()) =           \
+          xs[2].as<TAG##vector>().slice(xs[3].as<exact_integer>());            \
+          break;                                                               \
+                                                                               \
+        case 5:                                                                \
+          xs[0].as<TAG##vector>().slice(xs[1].as<exact_integer>()) =           \
+          xs[2].as<TAG##vector>().slice(xs[3].as<exact_integer>(),             \
+                                        xs[4].as<exact_integer>());            \
+          break;                                                               \
+                                                                               \
+        default:                                                               \
+          throw error(make<string>("procedure " #TAG "vector-copy! takes three to five arguments, but got"), xs); \
+        }                                                                      \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-append", [](let const& xs)        \
@@ -2091,9 +2143,26 @@ inline namespace kernel
                                          std::next(std::begin(v), b), unit, xcons)); \
         };                                                                     \
                                                                                \
-        return list(xs[0].as<TAG##vector>().valarray,                          \
-                    1 < length(xs) ? xs[1].as<exact_integer>() : 0,            \
-                    2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<TAG##vector>().valarray.size()); \
+        switch (length(xs))                                                    \
+        {                                                                      \
+        case 1:                                                                \
+          return list(xs[0].as<TAG##vector>().valarray,                        \
+                      0,                                                       \
+                      xs[0].as<TAG##vector>().valarray.size());                \
+                                                                               \
+        case 2:                                                                \
+          return list(xs[0].as<TAG##vector>().valarray,                        \
+                      xs[1].as<exact_integer>(),                               \
+                      xs[0].as<TAG##vector>().valarray.size());                \
+                                                                               \
+        case 3:                                                                \
+          return list(xs[0].as<TAG##vector>().valarray,                        \
+                      xs[1].as<exact_integer>(),                               \
+                      xs[2].as<exact_integer>());                              \
+                                                                               \
+        default:                                                               \
+          throw error(make<string>("procedure " #TAG "vector->list takes one to three arguments, but got"), xs); \
+        }                                                                      \
       });                                                                      \
                                                                                \
       library.define<procedure>("list->" #TAG "vector", [](let const& xs)      \
@@ -2116,12 +2185,34 @@ inline namespace kernel
       {
         auto buffer = std::ostringstream();
 
-        std::for_each(std::next(std::begin(xs[0].as<u8vector>().valarray), 1 < length(xs) ? xs[1].as<exact_integer>() : 0),
-                      std::next(std::begin(xs[0].as<u8vector>().valarray), 2 < length(xs) ? xs[2].as<exact_integer>() : xs[0].as<u8vector>().valarray.size()),
-                      [&](auto const& x)
-                      {
-                        buffer << x;
-                      });
+        auto print = [&](auto const& x)
+        {
+          buffer << x;
+        };
+
+        switch (length(xs))
+        {
+        case 1:
+          std::for_each(std::begin(xs[0].as<u8vector>().valarray),
+                        std::end(xs[0].as<u8vector>().valarray),
+                        print);
+          break;
+
+        case 2:
+          std::for_each(std::next(std::begin(xs[0].as<u8vector>().valarray), xs[1].as<exact_integer>()),
+                        std::end(xs[0].as<u8vector>().valarray),
+                        print);
+          break;
+
+        case 3:
+          std::for_each(std::next(std::begin(xs[0].as<u8vector>().valarray), xs[1].as<exact_integer>()),
+                        std::next(std::begin(xs[0].as<u8vector>().valarray), xs[2].as<exact_integer>()),
+                        print);
+          break;
+
+        default:
+          throw error(make<string>("procedure u8vector->string takes one to three arguments, but got"), xs);
+        }
 
         return input_string_port(buffer.str()).get(std::numeric_limits<std::size_t>::max());
       });
