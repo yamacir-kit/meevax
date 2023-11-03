@@ -17,8 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
-#include <meevax/kernel/heterogeneous.hpp>
 #include <meevax/kernel/instruction.hpp>
+#include <meevax/memory/heterogeneous_pointer.hpp>
 
 namespace meevax
 {

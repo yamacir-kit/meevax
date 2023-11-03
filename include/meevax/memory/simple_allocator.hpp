@@ -17,6 +17,9 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
 #define INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
 
+#include <algorithm> // std::max
+#include <array>
+#include <cstdint>
 #include <utility> // std::exchange
 
 #include <meevax/memory/literal.hpp>
