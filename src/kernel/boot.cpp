@@ -2038,7 +2038,7 @@ inline namespace kernel
 
     define<library>("(meevax vector homogeneous)", [](library & library)
     {
-      #define DEFINE_HOMOGENEOUS_VECTOR(TAG)                                   \
+      #define DEFINE_VECTOR(TAG)                                               \
       library.define<procedure>(#TAG "vector?", [](let const& xs)              \
       {                                                                        \
         return xs[0].is<TAG##vector>();                                        \
@@ -2170,16 +2170,11 @@ inline namespace kernel
         return make<TAG##vector>(xs[0]);                                       \
       })
 
-      DEFINE_HOMOGENEOUS_VECTOR(f32);
-      DEFINE_HOMOGENEOUS_VECTOR(f64);
-      DEFINE_HOMOGENEOUS_VECTOR(s8);
-      DEFINE_HOMOGENEOUS_VECTOR(s16);
-      DEFINE_HOMOGENEOUS_VECTOR(s32);
-      DEFINE_HOMOGENEOUS_VECTOR(s64);
-      DEFINE_HOMOGENEOUS_VECTOR(u8);
-      DEFINE_HOMOGENEOUS_VECTOR(u16);
-      DEFINE_HOMOGENEOUS_VECTOR(u32);
-      DEFINE_HOMOGENEOUS_VECTOR(u64);
+      DEFINE_VECTOR(s8); DEFINE_VECTOR(s16); DEFINE_VECTOR(s32); DEFINE_VECTOR(s64);
+      DEFINE_VECTOR(u8); DEFINE_VECTOR(u16); DEFINE_VECTOR(u32); DEFINE_VECTOR(u64);
+                                             DEFINE_VECTOR(f32); DEFINE_VECTOR(f64);
+
+      #undef DEFINE_VECTOR
 
       library.define<procedure>("u8vector->string", [](let const& xs)
       {

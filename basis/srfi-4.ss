@@ -1,7 +1,6 @@
 (define-library (srfi 4)
   (import (meevax vector homogeneous))
-  (export
-          f32vector? make-f32vector f32vector f32vector-length f32vector-ref
+  (export f32vector? make-f32vector f32vector f32vector-length f32vector-ref
           f32vector-set! f32vector->list list->f32vector
 
           f64vector? make-f64vector f64vector f64vector-length f64vector-ref
