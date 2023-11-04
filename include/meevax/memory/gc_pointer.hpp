@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 
 #include <meevax/memory/collector.hpp>
+#include <meevax/memory/heterogeneous_pointer.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
 
 namespace meevax
@@ -25,21 +26,28 @@ namespace meevax
 inline namespace memory
 {
   template <typename... Ts>
-  struct gc_pointer : public nan_boxing_pointer<Ts...>
+  struct gc_pointer : public heterogeneous_pointer<nan_boxing_pointer, Ts...>
                     , private collector::registration
   {
-    explicit constexpr gc_pointer(std::nullptr_t = nullptr)
+    using pointer = heterogeneous_pointer<nan_boxing_pointer, Ts...>;
+
+    gc_pointer(gc_pointer const& gcp)
+      : pointer { gcp }
+      , collector::registration { gcp.header }
     {}
 
     template <typename T, REQUIRES(std::is_scalar<T>)>
     explicit gc_pointer(T const& datum)
-      : nan_boxing_pointer<Ts...> { datum }
-      , collector::registration { locate(nan_boxing_pointer<Ts...>::get()) }
+      : pointer { datum }
+      , collector::registration { locate(pointer::get()) }
     {}
 
-    explicit gc_pointer(gc_pointer const& gcp)
-      : nan_boxing_pointer<Ts...> { gcp }
-      , collector::registration { gcp.header }
+    gc_pointer(pointer const& p)
+      : pointer { p }
+      , collector::registration { locate(pointer::get()) }
+    {}
+
+    gc_pointer(std::nullptr_t = nullptr)
     {}
 
     auto operator =(gc_pointer const& gcp) -> auto &
@@ -50,13 +58,13 @@ inline namespace memory
 
     auto reset(gc_pointer const& gcp) -> void
     {
-      nan_boxing_pointer<Ts...>::reset(gcp);
+      pointer::reset(gcp);
       collector::registration::reset(gcp.header);
     }
 
     auto reset(std::nullptr_t = nullptr) -> void
     {
-      nan_boxing_pointer<Ts...>::reset();
+      pointer::reset();
       collector::registration::reset();
     }
   };

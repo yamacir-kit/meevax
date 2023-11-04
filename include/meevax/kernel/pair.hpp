@@ -18,7 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
 #include <meevax/kernel/instruction.hpp>
-#include <meevax/memory/heterogeneous_pointer.hpp>
+#include <meevax/memory/gc_pointer.hpp>
 
 namespace meevax
 {
@@ -26,20 +26,20 @@ inline namespace kernel
 {
   struct pair;
 
-  using object = heterogeneous_pointer<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, instruction>;
+  using object = gc_pointer<pair, bool, std::int32_t, std::uint32_t, float, instruction>;
 
   using let = object;
 
   let extern unit;
 
   template <typename T, typename... Ts>
-  auto make(Ts&&... xs)
+  auto make(Ts&&... xs) -> object
   {
     return object::allocate<T>(std::forward<decltype(xs)>(xs)...);
   }
 
   template <typename T>
-  auto make(T&& x)
+  auto make(T&& x) -> object
   {
     return object::allocate<std::decay_t<T>>(std::forward<decltype(x)>(x));
   }
