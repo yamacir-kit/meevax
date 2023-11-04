@@ -236,6 +236,7 @@ inline namespace memory
       }
     }
 
+    [[deprecated]]
     inline auto operator [](std::size_t k) const -> heterogeneous_pointer const&
     {
       if (dereferenceable() and *this)
@@ -248,6 +249,7 @@ inline namespace memory
       }
     }
 
+    [[deprecated]]
     inline auto operator [](std::size_t k) -> heterogeneous_pointer &
     {
       if (dereferenceable() and *this)

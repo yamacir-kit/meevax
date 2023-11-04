@@ -47,16 +47,16 @@ extern "C"
 
   auto make_hoge(object & xs)
   {
-    return make<hoge>(xs[0].as<exact_integer>());
+    return make<hoge>(car(xs).as<exact_integer>());
   }
 
   auto is_hoge(object & xs)
   {
-    return xs[0].is<hoge>() ? t : f;
+    return car(xs).is<hoge>() ? t : f;
   }
 
   auto hoge_value(object & xs)
   {
-    return make<exact_integer>(xs[0].as<hoge>().value);
+    return make<exact_integer>(car(xs).as<hoge>().value);
   }
 }

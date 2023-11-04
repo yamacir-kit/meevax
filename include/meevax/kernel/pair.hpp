@@ -251,6 +251,8 @@ inline namespace kernel
   inline constexpr auto cddadr = compose(cdr, cdadr);
   inline constexpr auto cdddar = compose(cdr, cddar);
   inline constexpr auto cddddr = compose(cdr, cdddr);
+
+  inline constexpr auto caddddr = compose(car, cddddr);
 } // namespace kernel
 } // namespace meevax
 

@@ -102,9 +102,9 @@ auto main() -> int
 
     assert(length(a) == 3);
 
-    assert(a[0].is<symbol>());
-    assert(a[1].is<symbol>());
-    assert(a[2].is<symbol>());
+    assert(car(a).is<symbol>());
+    assert(cadr(a).is<symbol>());
+    assert(caddr(a).is<symbol>());
 
     assert(gc.count() == gc_count + 6);
     gc.collect();
@@ -112,9 +112,9 @@ auto main() -> int
 
     assert(length(a) == 3);
 
-    assert(a[0].is<symbol>());
-    assert(a[1].is<symbol>());
-    assert(a[2].is<symbol>());
+    assert(car(a).is<symbol>());
+    assert(cadr(a).is<symbol>());
+    assert(caddr(a).is<symbol>());
   }
 
   assert(gc.count() == gc_count + 6);
@@ -144,17 +144,17 @@ auto main() -> int
 
     let x = f();
 
-    assert(x[0].as<symbol>() == "a");
-    assert(x[1].as<symbol>() == "b");
-    assert(x[2].as<symbol>() == "c");
-    assert(x[3].as<symbol>() == "a");
+    assert(car(x).as<symbol>() == "a");
+    assert(cadr(x).as<symbol>() == "b");
+    assert(caddr(x).as<symbol>() == "c");
+    assert(cadddr(x).as<symbol>() == "a");
 
     gc.collect();
 
-    assert(x[0].as<symbol>() == "a");
-    assert(x[1].as<symbol>() == "b");
-    assert(x[2].as<symbol>() == "c");
-    assert(x[3].as<symbol>() == "a");
+    assert(car(x).as<symbol>() == "a");
+    assert(cadr(x).as<symbol>() == "b");
+    assert(caddr(x).as<symbol>() == "c");
+    assert(cadddr(x).as<symbol>() == "a");
   }
 
   gc.collect();

@@ -29,11 +29,11 @@ inline namespace kernel
 
     static auto merge_constants(object const& c) -> object
     {
-      if (not c.is<pair>() or not c[0].is<instruction>())
+      if (not c.is<pair>() or not car(c).is<instruction>())
       {
         return c;
       }
-      else switch (auto n = size(c[0].as<instruction>()); c[0].as<instruction>())
+      else switch (auto n = size(car(c).as<instruction>()); car(c).as<instruction>())
       {
       case instruction::load_constant: /* --------------------------------------
       *
@@ -46,11 +46,12 @@ inline namespace kernel
       *      ...)
       *
       * --------------------------------------------------------------------- */
-        if (tail(c, 2).is<pair>() and c[2].is<instruction>() and c[2].as<instruction>() == instruction::load_constant and
-            tail(c, 4).is<pair>() and c[4].is<instruction>() and c[4].as<instruction>() == instruction::cons)
+        if (tail(c, 2).is<pair>() and head(c, 2).is<instruction>() and head(c, 2).as<instruction>() == instruction::load_constant and
+            tail(c, 4).is<pair>() and head(c, 4).is<instruction>() and head(c, 4).as<instruction>() == instruction::cons)
         {
-          return merge_constants(cons(c[0],
-                                      cons(c[3], c[1]),
+          return merge_constants(cons(head(c, 0),
+                                      cons(head(c, 3),
+                                           head(c, 1)),
                                       merge_constants(tail(c, 5))));
         }
         else if (let const& c2 = merge_constants(tail(c, 2)); c2 == tail(c, 2))
@@ -59,7 +60,7 @@ inline namespace kernel
         }
         else
         {
-          return cons(c[0], c[1], c2);
+          return cons(head(c, 0), head(c, 1), c2);
         }
 
       default:
@@ -83,7 +84,7 @@ inline namespace kernel
         }
         else
         {
-          return cons(c[0], c1, c2);
+          return cons(head(c, 0), c1, c2);
         }
 
       case instruction::select:
@@ -99,7 +100,7 @@ inline namespace kernel
         }
         else
         {
-          return cons(c[0], c1, c2, c3);
+          return cons(head(c, 0), c1, c2, c3);
         }
       }
     }
