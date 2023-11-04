@@ -37,10 +37,6 @@ inline namespace kernel
     explicit heterogeneous_vector(Iterator begin, Iterator end)
       : vector { begin, end }
     {}
-
-    auto operator [](std::size_t) const -> object const&;
-
-    auto operator [](std::size_t) -> object &;
   };
 
   auto operator ==(heterogeneous_vector const&, heterogeneous_vector const&) -> bool;

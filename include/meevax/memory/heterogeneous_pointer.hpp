@@ -22,7 +22,6 @@
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/memory/gc_pointer.hpp>
-#include <meevax/type_traits/is_array_subscriptable.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/utility/combination.hpp>
@@ -82,30 +81,6 @@ inline namespace memory
         else
         {
           return os << magenta("#,(") << green(typeid(Bound).name()) << faint(" #;", static_cast<Bound const*>(this)) << magenta(")");
-        }
-      }
-
-      auto operator []([[maybe_unused]] std::size_t k) const -> heterogeneous_pointer const& override
-      {
-        if constexpr (is_array_subscriptable_v<Bound const&>)
-        {
-          return static_cast<Bound const&>(*this)[k];
-        }
-        else
-        {
-          throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
-        }
-      }
-
-      auto operator []([[maybe_unused]] std::size_t k) -> heterogeneous_pointer & override
-      {
-        if constexpr (is_array_subscriptable_v<Bound &>)
-        {
-          return static_cast<Bound &>(*this)[k];
-        }
-        else
-        {
-          throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
         }
       }
     };
@@ -233,32 +208,6 @@ inline namespace memory
       else
       {
         return BasePointer<Top, Ts...>::write(os);
-      }
-    }
-
-    [[deprecated]]
-    inline auto operator [](std::size_t k) const -> heterogeneous_pointer const&
-    {
-      if (dereferenceable() and *this)
-      {
-        return get()->operator [](k);
-      }
-      else
-      {
-        throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
-      }
-    }
-
-    [[deprecated]]
-    inline auto operator [](std::size_t k) -> heterogeneous_pointer &
-    {
-      if (dereferenceable() and *this)
-      {
-        return get()->operator [](k);
-      }
-      else
-      {
-        throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
       }
     }
 

@@ -139,10 +139,6 @@ inline namespace kernel
 
     virtual auto write(std::ostream &) const -> std::ostream &;
 
-    virtual auto operator [](std::size_t) const -> object const&;
-
-    virtual auto operator [](std::size_t) -> object &;
-
     constexpr auto begin() noexcept
     {
       return iterator(this);
