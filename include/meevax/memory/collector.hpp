@@ -128,11 +128,11 @@ inline namespace memory
         collect();
       }
 
-      if (auto data = new body<T>(std::forward<decltype(xs)>(xs)...); data)
+      if (auto data = new traceable<T>(std::forward<decltype(xs)>(xs)...); data)
       {
         headers.insert(cache = data);
 
-        return std::addressof(data->object);
+        return std::addressof(data->body);
       }
       else
       {

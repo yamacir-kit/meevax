@@ -59,17 +59,17 @@ inline namespace memory
   };
 
   template <typename T>
-  struct body : public header
+  struct traceable : public header
   {
-    T object;
+    T body;
 
     template <typename... Ts>
-    explicit body(Ts&&... xs)
-      : header { std::addressof(object), sizeof(T) }
-      , object { std::forward<decltype(xs)>(xs)... }
+    explicit traceable(Ts&&... xs)
+      : header { std::addressof(body), sizeof(T) }
+      , body   { std::forward<decltype(xs)>(xs)... }
     {}
 
-    ~body() override = default;
+    ~traceable() override = default;
   };
 } // namespace memory
 } // namespace meevax
