@@ -86,11 +86,6 @@ inline namespace memory
       {
         (*this)[p.index()] = true;
       }
-
-      constexpr auto operator <(compact_pointer p) noexcept
-      {
-        return offset < p.offset();
-      }
     };
 
     std::vector<chunk> chunks;
@@ -221,7 +216,12 @@ inline namespace memory
 
     auto lower_bound_chunk(compact_pointer p) noexcept
     {
-      return std::lower_bound(chunks.begin(), chunks.end(), p);
+      auto compare = [](auto && chunk, auto && offset) constexpr
+      {
+        return chunk.offset < offset;
+      };
+
+      return std::lower_bound(chunks.begin(), chunks.end(), p.offset(), compare);
     }
 
     auto size() const noexcept
