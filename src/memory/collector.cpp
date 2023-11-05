@@ -103,8 +103,8 @@ inline namespace memory
     {
       header->mark();
 
-      const auto lower_address = reinterpret_cast<registration *>(header->lower_address());
-      const auto upper_address = reinterpret_cast<registration *>(header->upper_address());
+      const auto lower_address = header->lower_address<registration>();
+      const auto upper_address = header->upper_address<registration>();
 
       for (auto iter = registry.lower_bound(lower_address); iter != registry.end() and *iter < upper_address; ++iter)
       {

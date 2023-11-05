@@ -108,11 +108,11 @@ inline namespace memory
     static inline std::size_t threshold = 8_MiB;
 
   public:
-    explicit collector();
+    collector();
 
-    explicit collector(collector &&) = delete;
+    collector(collector &&) = delete;
 
-    explicit collector(collector const&) = delete;
+    collector(collector const&) = delete;
 
     ~collector();
 

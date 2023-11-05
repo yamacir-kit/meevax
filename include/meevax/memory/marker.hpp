@@ -33,7 +33,7 @@ inline namespace memory
       explicit initializer();
     };
 
-    explicit marker() noexcept
+    marker() noexcept
       : value { phase }
     {}
 

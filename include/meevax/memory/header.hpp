@@ -27,35 +27,35 @@ namespace meevax
 {
 inline namespace memory
 {
-  struct header
+  struct header : public marker
   {
-    marker reacheable;
+    std::uintptr_t address;
+
+    std::size_t size;
+
+    header(void const* const address, std::size_t size)
+      : address { reinterpret_cast<std::uintptr_t>(address) }
+      , size { size }
+    {}
 
     virtual ~header() = default;
 
-    auto contains(std::uintptr_t address) const noexcept
+    template <typename T = void>
+    auto lower_address() const noexcept
     {
-      return lower_address() <= address and address < upper_address();
+      return reinterpret_cast<T *>(address);
+    }
+
+    template <typename T = void>
+    auto upper_address() const noexcept
+    {
+      return reinterpret_cast<T *>(address + size);
     }
 
     auto contains(void const* const data) const noexcept
     {
-      return contains(reinterpret_cast<std::uintptr_t>(data));
+      return lower_address() <= data and data < upper_address();
     }
-
-    auto mark() noexcept -> void
-    {
-      reacheable.mark();
-    }
-
-    auto marked() const noexcept -> bool
-    {
-      return reacheable.marked();
-    }
-
-    virtual auto lower_address() const noexcept -> std::uintptr_t = 0;
-
-    virtual auto upper_address() const noexcept -> std::uintptr_t = 0;
   };
 
   template <typename T>
@@ -65,20 +65,11 @@ inline namespace memory
 
     template <typename... Ts>
     explicit body(Ts&&... xs)
-      : object { std::forward<decltype(xs)>(xs)... }
+      : header { std::addressof(object), sizeof(T) }
+      , object { std::forward<decltype(xs)>(xs)... }
     {}
 
     ~body() override = default;
-
-    auto lower_address() const noexcept -> std::uintptr_t override
-    {
-      return reinterpret_cast<std::uintptr_t>(std::addressof(object));
-    }
-
-    auto upper_address() const noexcept -> std::uintptr_t override
-    {
-      return lower_address() + sizeof(T);
-    }
   };
 } // namespace memory
 } // namespace meevax
