@@ -47,8 +47,9 @@ inline namespace memory
     template <typename T, REQUIRES(std::is_scalar<T>)>
     explicit gc_pointer(T const& datum)
       : pointer { datum }
-      , collector::registration { locate(pointer::get()) }
-    {}
+    {
+      assert(pointer::get() == nullptr);
+    }
 
     auto operator =(gc_pointer const& gcp) -> auto &
     {
@@ -59,6 +60,12 @@ inline namespace memory
     auto operator =(pointer const& p) -> auto &
     {
       reset(p);
+      return *this;
+    }
+
+    auto operator =(std::nullptr_t) -> auto &
+    {
+      reset();
       return *this;
     }
 
