@@ -36,12 +36,6 @@ inline namespace memory
       , collector::registration { gcp.header }
     {}
 
-    template <typename T, REQUIRES(std::is_scalar<T>)>
-    explicit gc_pointer(T const& datum)
-      : pointer { datum }
-      , collector::registration { locate(pointer::get()) }
-    {}
-
     gc_pointer(pointer const& p)
       : pointer { p }
       , collector::registration { locate(pointer::get()) }
@@ -50,9 +44,21 @@ inline namespace memory
     gc_pointer(std::nullptr_t = nullptr)
     {}
 
+    template <typename T, REQUIRES(std::is_scalar<T>)>
+    explicit gc_pointer(T const& datum)
+      : pointer { datum }
+      , collector::registration { locate(pointer::get()) }
+    {}
+
     auto operator =(gc_pointer const& gcp) -> auto &
     {
       reset(gcp);
+      return *this;
+    }
+
+    auto operator =(pointer const& p) -> auto &
+    {
+      reset(p);
       return *this;
     }
 
@@ -60,6 +66,12 @@ inline namespace memory
     {
       pointer::reset(gcp);
       collector::registration::reset(gcp.header);
+    }
+
+    auto reset(pointer const& p) -> void
+    {
+      pointer::reset(p);
+      collector::registration::reset(locate(pointer::get()));
     }
 
     auto reset(std::nullptr_t = nullptr) -> void
