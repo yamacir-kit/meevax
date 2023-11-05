@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
+#include <meevax/kernel/character.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/memory/gc_pointer.hpp>
 
@@ -26,7 +27,12 @@ inline namespace kernel
 {
   struct pair;
 
-  using object = gc_pointer<pair, bool, std::int32_t, std::uint32_t, float, instruction>;
+  using object = gc_pointer<pair,
+                            bool,
+                            std::int32_t, std::uint32_t,
+                            float,
+                            character,
+                            instruction>;
 
   using let = object;
 

@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_TEXTUAL_OUTPUT_PORT_HPP
 
 #include <meevax/kernel/output_port.hpp>
+#include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/textual_port.hpp>
 

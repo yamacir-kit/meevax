@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_STRING_HPP
 #define INCLUDED_MEEVAX_KERNEL_STRING_HPP
 
+#include <vector>
+
 #include <meevax/kernel/character.hpp>
 
 namespace meevax
