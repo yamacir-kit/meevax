@@ -46,7 +46,7 @@ inline namespace memory
   {
     static_assert(std::is_pointer_v<Pointer>);
 
-    static constexpr auto width = sizeof(std::uintmax_t) * 8;
+    static constexpr auto width = sizeof(std::uintptr_t) * 8;
 
     static_assert(Capacity % width == 0);
 
@@ -76,15 +76,32 @@ inline namespace memory
       }
     };
 
-    struct chunk : public std::array<bool, Capacity>
+    struct chunk
     {
+      std::array<bool, Capacity> data;
+
       std::size_t offset;
 
-      explicit constexpr chunk(compact_pointer const p)
-        : std::array<bool, Capacity> { false }
+      explicit chunk(compact_pointer const p) noexcept
+        : data   { false }
         , offset { p.offset() }
       {
-        (*this)[p.index()] = true;
+        data[p.index()] = true;
+      }
+
+      auto test(std::size_t i) const noexcept -> bool
+      {
+        return data[i];
+      }
+
+      auto set(std::size_t i) noexcept -> void
+      {
+        data[i] = true;
+      }
+
+      auto reset(std::size_t i) noexcept -> void
+      {
+        data[i] = false;
       }
     };
 
@@ -116,7 +133,7 @@ inline namespace memory
         , i      { static_cast<std::size_t>(std::distance(chunks.begin(), iter)) }
         , j      { j }
       {
-        if (not (i < chunks.size() and j < Capacity and chunks[i][j]))
+        if (not (i < chunks.size() and j < Capacity and chunks[i].test(j)))
         {
           operator ++();
         }
@@ -141,7 +158,7 @@ inline namespace memory
         {
           for (; j < Capacity; ++j)
           {
-            if (chunks[i][j])
+            if (chunks[i].test(j))
             {
               return *this;
             }
@@ -179,7 +196,7 @@ inline namespace memory
         {
           for (; j < Capacity; --j)
           {
-            if (chunks[i][j])
+            if (chunks[i].test(j))
             {
               return *this;
             }
@@ -233,7 +250,7 @@ inline namespace memory
     {
       if (auto iter = lower_bound_chunk(p); iter != chunks.end() and iter->offset == p.offset())
       {
-        (*iter)[p.index()] = true;
+        iter->set(p.index());
       }
       else
       {
@@ -246,7 +263,7 @@ inline namespace memory
     {
       auto iter = lower_bound_chunk(p);
       assert(iter != chunks.end());
-      (*iter)[p.index()] = false;
+      iter->reset(p.index());
     }
 
     auto begin() const noexcept
