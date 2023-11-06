@@ -26,23 +26,13 @@
 #include <type_traits>
 #include <vector>
 
+#include <meevax/bit/log2.hpp>
 #include <meevax/bitset/simple_bitset.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  template <typename T>
-  constexpr auto log2(T x) noexcept -> T
-  {
-    return (x < 2) ? 1 : log2(x / 2) + 1;
-  }
-
-  static_assert(log2(0b0001) - 1 == 0);
-  static_assert(log2(0b0010) - 1 == 1);
-  static_assert(log2(0b0100) - 1 == 2);
-  static_assert(log2(0b1000) - 1 == 3);
-
   template <typename Pointer,
             template <std::size_t> typename Bitset = simple_bitset,
             std::size_t N = 1024 * 1024>
