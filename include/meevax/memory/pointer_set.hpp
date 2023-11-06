@@ -19,13 +19,14 @@
 
 #include <algorithm>
 #include <array>
-#include <bitset>
 #include <cassert>
 #include <cstdint>
 #include <iterator>
 #include <limits>
 #include <type_traits>
 #include <vector>
+
+#include <meevax/bitset/simple_bitset.hpp>
 
 namespace meevax
 {
@@ -42,37 +43,16 @@ inline namespace memory
   static_assert(log2(0b0100) - 1 == 2);
   static_assert(log2(0b1000) - 1 == 3);
 
-  template <auto N>
-  struct simple_bitset
-  {
-    std::array<bool, N> data {};
-
-    auto test(std::size_t i) const noexcept -> bool
-    {
-      return data[i];
-    }
-
-    auto set(std::size_t i) noexcept -> void
-    {
-      data[i] = true;
-    }
-
-    auto reset(std::size_t i) noexcept -> void
-    {
-      data[i] = false;
-    }
-  };
-
   template <typename Pointer,
-            template <auto> typename Bitset = simple_bitset,
-            std::size_t Capacity = 1024 * 1024>
+            template <std::size_t> typename Bitset = simple_bitset,
+            std::size_t N = 1024 * 1024>
   class pointer_set
   {
     static_assert(std::is_pointer_v<Pointer>);
 
     static constexpr auto width = sizeof(std::uintptr_t) * 8;
 
-    static_assert(Capacity % width == 0);
+    static_assert(N % width == 0);
 
     struct compact_pointer
     {
@@ -86,7 +66,7 @@ inline namespace memory
 
       constexpr auto offset() const noexcept
       {
-        return (value / Capacity) * Capacity;
+        return (value / N) * N;
       }
 
       constexpr auto index() const noexcept
@@ -100,14 +80,14 @@ inline namespace memory
       }
     };
 
-    struct chunk : public Bitset<Capacity>
+    struct chunk : public Bitset<N>
     {
       std::size_t offset;
 
       explicit chunk(compact_pointer const p) noexcept
         : offset { p.offset() }
       {
-        Bitset<Capacity>::set(p.index());
+        Bitset<N>::set(p.index());
       }
     };
 
@@ -139,7 +119,7 @@ inline namespace memory
         , i      { static_cast<std::size_t>(std::distance(chunks.begin(), iter)) }
         , j      { j }
       {
-        if (not (i < chunks.size() and j < Capacity and chunks[i].test(j)))
+        if (not (i < chunks.size() and j < N and chunks[i].test(j)))
         {
           operator ++();
         }
@@ -148,7 +128,7 @@ inline namespace memory
       explicit iterator(std::vector<chunk> const& chunks) noexcept
         : chunks { chunks }
         , i      { chunks.size() }
-        , j      { Capacity }
+        , j      { N }
       {}
 
       auto operator *() const noexcept
@@ -162,7 +142,7 @@ inline namespace memory
 
         for (; i < chunks.size(); ++i, j = 0)
         {
-          for (; j < Capacity; ++j)
+          for (; j < N; ++j)
           {
             if (chunks[i].test(j))
             {
@@ -173,7 +153,7 @@ inline namespace memory
 
         i = chunks.size();
 
-        j = Capacity;
+        j = N;
 
         return *this; // end
       }
@@ -189,7 +169,7 @@ inline namespace memory
       {
         i = std::min(chunks.size() - 1, i);
 
-        j = std::min(Capacity - 1, j - 1);
+        j = std::min(N - 1, j - 1);
 
         /*
            NOTE: N4659 6.9.1.4
@@ -198,9 +178,9 @@ inline namespace memory
            n is the number of bits in the value representation of that
            particular size of integer.
         */
-        for (; i < chunks.size(); --i, j = Capacity - 1)
+        for (; i < chunks.size(); --i, j = N - 1)
         {
-          for (; j < Capacity; --j)
+          for (; j < N; --j)
           {
             if (chunks[i].test(j))
             {
