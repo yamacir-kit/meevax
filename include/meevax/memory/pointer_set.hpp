@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <cassert>
 #include <cstdint>
 #include <iterator>
@@ -41,7 +42,30 @@ inline namespace memory
   static_assert(log2(0b0100) - 1 == 2);
   static_assert(log2(0b1000) - 1 == 3);
 
-  template <typename Pointer, std::size_t Capacity = 1024 * 1024>
+  template <auto N>
+  struct simple_bitset
+  {
+    std::array<bool, N> data {};
+
+    auto test(std::size_t i) const noexcept -> bool
+    {
+      return data[i];
+    }
+
+    auto set(std::size_t i) noexcept -> void
+    {
+      data[i] = true;
+    }
+
+    auto reset(std::size_t i) noexcept -> void
+    {
+      data[i] = false;
+    }
+  };
+
+  template <typename Pointer,
+            template <auto> typename Bitset = simple_bitset,
+            std::size_t Capacity = 1024 * 1024>
   class pointer_set
   {
     static_assert(std::is_pointer_v<Pointer>);
@@ -76,32 +100,14 @@ inline namespace memory
       }
     };
 
-    struct chunk
+    struct chunk : public Bitset<Capacity>
     {
-      std::array<bool, Capacity> data;
-
       std::size_t offset;
 
       explicit chunk(compact_pointer const p) noexcept
-        : data   { false }
-        , offset { p.offset() }
+        : offset { p.offset() }
       {
-        data[p.index()] = true;
-      }
-
-      auto test(std::size_t i) const noexcept -> bool
-      {
-        return data[i];
-      }
-
-      auto set(std::size_t i) noexcept -> void
-      {
-        data[i] = true;
-      }
-
-      auto reset(std::size_t i) noexcept -> void
-      {
-        data[i] = false;
+        Bitset<Capacity>::set(p.index());
       }
     };
 
