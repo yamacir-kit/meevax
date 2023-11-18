@@ -116,10 +116,10 @@ inline namespace memory
 
       explicit iterator(std::vector<chunk> const& chunks,
                         typename std::vector<chunk>::const_iterator iter,
-                        std::size_t j) noexcept
+                        std::size_t hint) noexcept
         : chunks { chunks }
         , outer  { iter }
-        , inner  { outer != chunks.end() ? std::make_optional(naive_index_iterator(*outer, j)) : std::nullopt }
+        , inner  { outer != chunks.end() ? std::make_optional(naive_index_iterator(*outer, hint)) : std::nullopt }
       {
         if (not dereferenceable() and incrementable())
         {
@@ -137,12 +137,12 @@ inline namespace memory
 
       auto incrementable() const -> bool
       {
-        return outer != chunks.end() and inner;
+        return outer != chunks.end() and inner and inner != outer->end();
       }
 
       auto decrementable() const -> bool
       {
-        return outer != chunks.begin() or inner != outer->begin();
+        return outer != chunks.begin() or not inner or inner != outer->begin();
       }
 
       auto dereferenceable() const -> bool
@@ -158,20 +158,13 @@ inline namespace memory
 
       auto operator ++() noexcept -> auto &
       {
-        assert(incrementable());
-
         /*
            NOTE: Incrementing the end iterator is undefined behavior, so there
            is no need to consider that case.
         */
-        if (++*inner == outer->end())
-        {
-          inner = (++outer)->begin();
-        }
+        assert(incrementable());
 
-        assert(decrementable());
-
-        for (; outer != chunks.end(); inner = (++outer)->begin())
+        for (++*inner; outer != chunks.end(); inner = (++outer)->begin())
         {
           for (; inner != outer->end(); ++*inner)
           {
@@ -182,9 +175,9 @@ inline namespace memory
           }
         }
 
-        assert(outer == chunks.end());
-
         inner = std::nullopt;
+
+        assert(not dereferenceable());
 
         return *this; // end
       }
@@ -198,7 +191,7 @@ inline namespace memory
 
       auto operator --() noexcept -> auto &
       {
-        auto decrement_inner = [this]()
+        while (true)
         {
           assert(decrementable());
 
@@ -212,30 +205,12 @@ inline namespace memory
           }
 
           assert(incrementable());
-        };
 
-        decrement_inner();
-
-        while (true)
-        {
-          while (true)
+          if (**inner)
           {
-            if (**inner)
-            {
-              return *this;
-            }
-
-            decrement_inner();
+            return *this;
           }
-
-          inner = std::prev((--outer)->end());
         }
-
-        #if defined(__GNUC__) or defined(__clang__)
-        __builtin_unreachable(); // Reaching here means decrementing the begin iterator. This is undefined behavior.
-        #else
-        return *this;
-        #endif
       }
 
       auto operator --(int) noexcept
