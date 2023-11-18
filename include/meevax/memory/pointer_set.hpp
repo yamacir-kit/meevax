@@ -110,7 +110,7 @@ inline namespace memory
 
       std::vector<chunk> const& chunks;
 
-      std::size_t i;
+      typename std::vector<chunk>::const_iterator outer;
 
       std::optional<naive_index_iterator<chunk>> inner;
 
@@ -118,8 +118,8 @@ inline namespace memory
                         typename std::vector<chunk>::const_iterator iter,
                         std::size_t j) noexcept
         : chunks { chunks }
-        , i      { static_cast<std::size_t>(std::distance(chunks.begin(), iter)) }
-        , inner  { i < chunks.size() ? std::make_optional(naive_index_iterator(chunks[i], j)) : std::nullopt }
+        , outer  { iter }
+        , inner  { outer != chunks.end() ? std::make_optional(naive_index_iterator(*outer, j)) : std::nullopt }
       {
         if (not dereferenceable() and incrementable())
         {
@@ -129,7 +129,7 @@ inline namespace memory
 
       explicit iterator(std::vector<chunk> const& chunks) noexcept
         : chunks { chunks }
-        , i      { chunks.size() }
+        , outer  { chunks.end() }
         , inner  { std::nullopt }
       {
         assert(not dereferenceable());
@@ -137,12 +137,12 @@ inline namespace memory
 
       auto incrementable() const -> bool
       {
-        return i < chunks.size() and inner;
+        return outer != chunks.end() and inner;
       }
 
       auto decrementable() const -> bool
       {
-        return i != 0 or inner != chunks[i].begin();
+        return outer != chunks.begin() or inner != outer->begin();
       }
 
       auto dereferenceable() const -> bool
@@ -153,7 +153,7 @@ inline namespace memory
       auto operator *() const noexcept
       {
         assert(dereferenceable());
-        return compact_pointer::to_pointer(chunks[i].offset + inner->index);
+        return compact_pointer::to_pointer(outer->offset + inner->index);
       }
 
       auto operator ++() noexcept -> auto &
@@ -164,16 +164,16 @@ inline namespace memory
            NOTE: Incrementing the end iterator is undefined behavior, so there
            is no need to consider that case.
         */
-        if (++*inner == chunks[i].end())
+        if (++*inner == outer->end())
         {
-          inner = chunks[++i].begin();
+          inner = (++outer)->begin();
         }
 
         assert(decrementable());
 
-        for (; i < chunks.size(); inner = chunks[++i].begin())
+        for (; outer != chunks.end(); inner = (++outer)->begin())
         {
-          for (; inner != chunks[i].end(); ++*inner)
+          for (; inner != outer->end(); ++*inner)
           {
             if (**inner)
             {
@@ -182,7 +182,7 @@ inline namespace memory
           }
         }
 
-        assert(i == chunks.size());
+        assert(outer == chunks.end());
 
         inner = std::nullopt;
 
@@ -202,9 +202,9 @@ inline namespace memory
         {
           assert(decrementable());
 
-          if (i == chunks.size() or inner == chunks[i].begin())
+          if (outer == chunks.end() or inner == outer->begin())
           {
-            inner = std::prev(chunks[--i].end());
+            inner = std::prev((--outer)->end());
           }
           else
           {
@@ -216,7 +216,7 @@ inline namespace memory
 
         decrement_inner();
 
-        for (; i < chunks.size(); inner = std::prev(chunks[--i].end()))
+        while (true)
         {
           while (true)
           {
@@ -227,6 +227,8 @@ inline namespace memory
 
             decrement_inner();
           }
+
+          inner = std::prev((--outer)->end());
         }
 
         #if defined(__GNUC__) or defined(__clang__)
@@ -245,7 +247,7 @@ inline namespace memory
 
       auto operator ==(iterator const& rhs) const noexcept
       {
-        return i == rhs.i and inner == rhs.inner;
+        return outer == rhs.outer and inner == rhs.inner;
       }
 
       auto operator !=(iterator const& rhs) const noexcept
