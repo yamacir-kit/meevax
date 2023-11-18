@@ -23,11 +23,13 @@
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <optional>
 #include <type_traits>
 #include <vector>
 
 #include <meevax/bit/log2.hpp>
 #include <meevax/bitset/simple_bitset.hpp>
+#include <meevax/iterator/naive_index_iterator.hpp>
 
 namespace meevax
 {
@@ -35,7 +37,7 @@ inline namespace memory
 {
   template <typename Pointer,
             template <std::size_t> typename Bitset = simple_bitset,
-            std::size_t N = 1024 * 1024>
+            std::size_t N = 4096 * 8> // getconf PAGE_SIZE
   class pointer_set
   {
     static_assert(std::is_pointer_v<Pointer>);
@@ -79,6 +81,16 @@ inline namespace memory
       {
         Bitset<N>::set(p.index());
       }
+
+      auto begin() const
+      {
+        return naive_index_iterator(*this, 0);
+      }
+
+      auto end() const
+      {
+        return naive_index_iterator(*this);
+      }
     };
 
     std::vector<chunk> chunks;
@@ -100,16 +112,16 @@ inline namespace memory
 
       std::size_t i;
 
-      std::size_t j;
+      std::optional<naive_index_iterator<chunk>> inner;
 
       explicit iterator(std::vector<chunk> const& chunks,
                         typename std::vector<chunk>::const_iterator iter,
                         std::size_t j) noexcept
         : chunks { chunks }
         , i      { static_cast<std::size_t>(std::distance(chunks.begin(), iter)) }
-        , j      { j }
+        , inner  { i < chunks.size() ? std::make_optional(naive_index_iterator(chunks[i], j)) : std::nullopt }
       {
-        if (not (i < chunks.size() and j < N and chunks[i].test(j)))
+        if (not dereferenceable() and incrementable())
         {
           operator ++();
         }
@@ -118,32 +130,61 @@ inline namespace memory
       explicit iterator(std::vector<chunk> const& chunks) noexcept
         : chunks { chunks }
         , i      { chunks.size() }
-        , j      { N }
-      {}
+        , inner  { std::nullopt }
+      {
+        assert(not dereferenceable());
+      }
+
+      auto incrementable() const -> bool
+      {
+        return i < chunks.size() and inner;
+      }
+
+      auto decrementable() const -> bool
+      {
+        return i != 0 or inner != chunks[i].begin();
+      }
+
+      auto dereferenceable() const -> bool
+      {
+        return incrementable() and **inner;
+      }
 
       auto operator *() const noexcept
       {
-        return compact_pointer::to_pointer(chunks[i].offset + j);
+        assert(dereferenceable());
+        return compact_pointer::to_pointer(chunks[i].offset + inner->index);
       }
 
       auto operator ++() noexcept -> auto &
       {
-        ++j;
+        assert(incrementable());
 
-        for (; i < chunks.size(); ++i, j = 0)
+        /*
+           NOTE: Incrementing the end iterator is undefined behavior, so there
+           is no need to consider that case.
+        */
+        if (++*inner == chunks[i].end())
         {
-          for (; j < N; ++j)
+          inner = chunks[++i].begin();
+        }
+
+        assert(decrementable());
+
+        for (; i < chunks.size(); inner = chunks[++i].begin())
+        {
+          for (; inner != chunks[i].end(); ++*inner)
           {
-            if (chunks[i].test(j))
+            if (**inner)
             {
               return *this;
             }
           }
         }
 
-        i = chunks.size();
+        assert(i == chunks.size());
 
-        j = N;
+        inner = std::nullopt;
 
         return *this; // end
       }
@@ -157,29 +198,42 @@ inline namespace memory
 
       auto operator --() noexcept -> auto &
       {
-        i = std::min(chunks.size() - 1, i);
-
-        j = std::min(N - 1, j - 1);
-
-        /*
-           NOTE: N4659 6.9.1.4
-
-           Unsigned integers shall obey the laws of arithmetic modulo 2 n where
-           n is the number of bits in the value representation of that
-           particular size of integer.
-        */
-        for (; i < chunks.size(); --i, j = N - 1)
+        auto decrement_inner = [this]()
         {
-          for (; j < N; --j)
+          assert(decrementable());
+
+          if (i == chunks.size() or inner == chunks[i].begin())
           {
-            if (chunks[i].test(j))
+            inner = std::prev(chunks[--i].end());
+          }
+          else
+          {
+            --*inner;
+          }
+
+          assert(incrementable());
+        };
+
+        decrement_inner();
+
+        for (; i < chunks.size(); inner = std::prev(chunks[--i].end()))
+        {
+          while (true)
+          {
+            if (**inner)
             {
               return *this;
             }
+
+            decrement_inner();
           }
         }
 
+        #if defined(__GNUC__) or defined(__clang__)
+        __builtin_unreachable(); // Reaching here means decrementing the begin iterator. This is undefined behavior.
+        #else
         return *this;
+        #endif
       }
 
       auto operator --(int) noexcept
@@ -191,7 +245,7 @@ inline namespace memory
 
       auto operator ==(iterator const& rhs) const noexcept
       {
-        return i == rhs.i and j == rhs.j;
+        return i == rhs.i and inner == rhs.inner;
       }
 
       auto operator !=(iterator const& rhs) const noexcept

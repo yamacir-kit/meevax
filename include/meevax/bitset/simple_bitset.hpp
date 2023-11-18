@@ -18,29 +18,32 @@
 #define INCLUDED_MEEVAX_BITSET_SIMPLE_BITSET_HPP
 
 #include <array>
+#include <bitset>
 
 namespace meevax
 {
 inline namespace bitset
 {
   template <auto N>
-  struct simple_bitset
+  struct simple_bitset : public std::array<bool, N>
   {
-    std::array<bool, N> data {};
+    constexpr simple_bitset()
+      : std::array<bool, N> {}
+    {}
 
-    auto test(std::size_t i) const noexcept -> bool
+    auto reset(std::size_t i) noexcept -> void
     {
-      return data[i];
+      (*this)[i] = false;
     }
 
     auto set(std::size_t i) noexcept -> void
     {
-      data[i] = true;
+      (*this)[i] = true;
     }
 
-    auto reset(std::size_t i) noexcept -> void
+    auto test(std::size_t i) const noexcept -> bool
     {
-      data[i] = false;
+      return (*this)[i];
     }
   };
 } // namespace bitset
