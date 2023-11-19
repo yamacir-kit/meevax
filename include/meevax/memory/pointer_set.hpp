@@ -74,12 +74,9 @@ inline namespace memory
 
     struct chunk : public Bitset<N>
     {
-      std::size_t offset;
-
-      explicit chunk(compact_pointer const p) noexcept
-        : offset { p.offset() }
+      explicit chunk(std::size_t const& index) noexcept
       {
-        Bitset<N>::set(p.index());
+        Bitset<N>::set(index);
       }
 
       auto begin() const
@@ -93,7 +90,30 @@ inline namespace memory
       }
     };
 
-    std::vector<chunk> chunks;
+    template <typename Key, typename Value>
+    struct flat_map : public std::vector<std::pair<Key, Value>>
+    {
+      auto lower_bound(Key const& key) -> decltype(auto)
+      {
+        auto compare = [](auto && pair, auto && key) constexpr
+        {
+          return pair.first < key;
+        };
+
+        return std::lower_bound(this->begin(), this->end(), key, compare);
+      }
+
+      template <typename... Ts>
+      auto emplace_hint(Ts&&... xs) -> decltype(auto)
+      {
+        return this->emplace(std::forward<decltype(xs)>(xs)...);
+      }
+    };
+
+    template <typename... Ts>
+    using map = flat_map<Ts...>;
+
+    map<std::size_t, chunk> chunks;
 
   public:
     struct iterator
@@ -108,18 +128,18 @@ inline namespace memory
 
       using difference_type = std::ptrdiff_t;
 
-      std::vector<chunk> const& chunks;
+      map<std::size_t, chunk> const& chunks;
 
-      typename std::vector<chunk>::const_iterator outer;
+      typename map<std::size_t, chunk>::const_iterator outer;
 
       std::optional<naive_index_iterator<chunk>> inner;
 
-      explicit iterator(std::vector<chunk> const& chunks,
-                        typename std::vector<chunk>::const_iterator iter,
+      explicit iterator(map<std::size_t, chunk> const& chunks,
+                        typename map<std::size_t, chunk>::const_iterator outer,
                         std::size_t hint) noexcept
         : chunks { chunks }
-        , outer  { iter }
-        , inner  { outer != chunks.end() ? std::make_optional(naive_index_iterator(*outer, hint)) : std::nullopt }
+        , outer  { outer }
+        , inner  { outer != chunks.end() ? std::make_optional(naive_index_iterator(outer->second, hint)) : std::nullopt }
       {
         if (not dereferenceable() and incrementable())
         {
@@ -127,7 +147,7 @@ inline namespace memory
         }
       }
 
-      explicit iterator(std::vector<chunk> const& chunks) noexcept
+      explicit iterator(map<std::size_t, chunk> const& chunks) noexcept
         : chunks { chunks }
         , outer  { chunks.end() }
         , inner  { std::nullopt }
@@ -137,12 +157,12 @@ inline namespace memory
 
       auto incrementable() const -> bool
       {
-        return outer != chunks.end() and inner and inner != outer->end();
+        return outer != chunks.end() and inner and inner != outer->second.end();
       }
 
       auto decrementable() const -> bool
       {
-        return outer != chunks.begin() or not inner or inner != outer->begin();
+        return outer != chunks.begin() or not inner or inner != outer->second.begin();
       }
 
       auto dereferenceable() const -> bool
@@ -153,7 +173,7 @@ inline namespace memory
       auto operator *() const noexcept
       {
         assert(dereferenceable());
-        return compact_pointer::to_pointer(outer->offset + inner->index);
+        return compact_pointer::to_pointer(outer->first + inner->index);
       }
 
       auto operator ++() noexcept -> auto &
@@ -164,9 +184,9 @@ inline namespace memory
         */
         assert(incrementable());
 
-        for (++*inner; outer != chunks.end(); inner = (++outer)->begin())
+        for (++*inner; outer != chunks.end(); inner = (++outer)->second.begin())
         {
-          for (; inner != outer->end(); ++*inner)
+          for (; inner != outer->second.end(); ++*inner)
           {
             if (**inner)
             {
@@ -195,9 +215,9 @@ inline namespace memory
         {
           assert(decrementable());
 
-          if (outer == chunks.end() or inner == outer->begin())
+          if (outer == chunks.end() or inner == outer->second.begin())
           {
-            inner = std::prev((--outer)->end());
+            inner = std::prev((--outer)->second.end());
           }
           else
           {
@@ -238,16 +258,6 @@ inline namespace memory
       assert(begin() == end());
     }
 
-    auto lower_bound_chunk(compact_pointer p) noexcept
-    {
-      auto compare = [](auto && chunk, auto && offset) constexpr
-      {
-        return chunk.offset < offset;
-      };
-
-      return std::lower_bound(chunks.begin(), chunks.end(), p.offset(), compare);
-    }
-
     auto size() const noexcept
     {
       return std::distance(begin(), end());
@@ -255,22 +265,22 @@ inline namespace memory
 
     auto insert(compact_pointer p) noexcept
     {
-      if (auto iter = lower_bound_chunk(p); iter != chunks.end() and iter->offset == p.offset())
+      if (auto iter = chunks.lower_bound(p.offset()); iter != chunks.end() and iter->first == p.offset())
       {
-        iter->set(p.index());
+        iter->second.set(p.index());
       }
       else
       {
-        assert(iter == chunks.end() or p.offset() < iter->offset);
-        chunks.emplace(iter, p);
+        assert(iter == chunks.end() or p.offset() < iter->first);
+        chunks.emplace_hint(iter, p.offset(), p.index());
       }
     }
 
     auto erase(compact_pointer p) noexcept
     {
-      auto iter = lower_bound_chunk(p);
+      auto iter = chunks.lower_bound(p.offset());
       assert(iter != chunks.end());
-      iter->reset(p.index());
+      iter->second.reset(p.index());
     }
 
     auto begin() const noexcept
@@ -285,7 +295,7 @@ inline namespace memory
 
     auto lower_bound(compact_pointer p) noexcept
     {
-      if (auto iter = lower_bound_chunk(p); iter != chunks.end())
+      if (auto iter = chunks.lower_bound(p.offset()); iter != chunks.end())
       {
         return iterator(chunks, iter, p.index());
       }
