@@ -25,17 +25,18 @@
 #include <limits>
 #include <optional>
 #include <type_traits>
-#include <vector>
 
 #include <meevax/bit/log2.hpp>
 #include <meevax/bitset/simple_bitset.hpp>
 #include <meevax/iterator/naive_index_iterator.hpp>
+#include <meevax/map/simple_flat_map.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
   template <typename Pointer,
+            template <typename...> typename Map = simple_flat_map,
             template <std::size_t> typename Bitset = simple_bitset,
             std::size_t N = 4096 * 8> // getconf PAGE_SIZE
   class pointer_set
@@ -90,30 +91,7 @@ inline namespace memory
       }
     };
 
-    template <typename Key, typename Value>
-    struct flat_map : public std::vector<std::pair<Key, Value>>
-    {
-      auto lower_bound(Key const& key) -> decltype(auto)
-      {
-        auto compare = [](auto && pair, auto && key) constexpr
-        {
-          return pair.first < key;
-        };
-
-        return std::lower_bound(this->begin(), this->end(), key, compare);
-      }
-
-      template <typename... Ts>
-      auto emplace_hint(Ts&&... xs) -> decltype(auto)
-      {
-        return this->emplace(std::forward<decltype(xs)>(xs)...);
-      }
-    };
-
-    template <typename... Ts>
-    using map = flat_map<Ts...>;
-
-    map<std::size_t, chunk> chunks;
+    Map<std::size_t, chunk> chunks;
 
   public:
     struct iterator
@@ -128,14 +106,14 @@ inline namespace memory
 
       using difference_type = std::ptrdiff_t;
 
-      map<std::size_t, chunk> const& chunks;
+      Map<std::size_t, chunk> const& chunks;
 
-      typename map<std::size_t, chunk>::const_iterator outer;
+      typename Map<std::size_t, chunk>::const_iterator outer;
 
       std::optional<naive_index_iterator<chunk>> inner;
 
-      explicit iterator(map<std::size_t, chunk> const& chunks,
-                        typename map<std::size_t, chunk>::const_iterator outer,
+      explicit iterator(Map<std::size_t, chunk> const& chunks,
+                        typename Map<std::size_t, chunk>::const_iterator outer,
                         std::size_t hint) noexcept
         : chunks { chunks }
         , outer  { outer }
@@ -147,7 +125,7 @@ inline namespace memory
         }
       }
 
-      explicit iterator(map<std::size_t, chunk> const& chunks) noexcept
+      explicit iterator(Map<std::size_t, chunk> const& chunks) noexcept
         : chunks { chunks }
         , outer  { chunks.end() }
         , inner  { std::nullopt }
