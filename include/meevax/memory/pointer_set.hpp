@@ -75,7 +75,7 @@ inline namespace memory
 
     struct chunk : public Bitset<N>
     {
-      explicit chunk(std::size_t const& index) noexcept
+      explicit chunk(std::size_t const& index)
       {
         Bitset<N>::set(index);
       }
@@ -114,7 +114,7 @@ inline namespace memory
 
       explicit iterator(Map<std::size_t, chunk> const& chunks,
                         typename Map<std::size_t, chunk>::const_iterator outer,
-                        std::size_t hint) noexcept
+                        std::size_t hint)
         : chunks { chunks }
         , outer  { outer }
         , inner  { outer != chunks.end() ? std::make_optional(naive_index_iterator(outer->second, hint)) : std::nullopt }
@@ -125,7 +125,7 @@ inline namespace memory
         }
       }
 
-      explicit iterator(Map<std::size_t, chunk> const& chunks) noexcept
+      explicit iterator(Map<std::size_t, chunk> const& chunks)
         : chunks { chunks }
         , outer  { chunks.end() }
         , inner  { std::nullopt }
@@ -148,13 +148,13 @@ inline namespace memory
         return incrementable() and **inner;
       }
 
-      auto operator *() const noexcept
+      auto operator *() const
       {
         assert(dereferenceable());
         return compact_pointer::to_pointer(outer->first + inner->index);
       }
 
-      auto operator ++() noexcept -> auto &
+      auto operator ++() -> auto &
       {
         /*
            NOTE: Incrementing the end iterator is undefined behavior, so there
@@ -180,14 +180,14 @@ inline namespace memory
         return *this; // end
       }
 
-      auto operator ++(int) noexcept
+      auto operator ++(int)
       {
         auto copy = *this;
         operator ++();
         return copy;
       }
 
-      auto operator --() noexcept -> auto &
+      auto operator --() -> auto &
       {
         while (true)
         {
@@ -211,19 +211,19 @@ inline namespace memory
         }
       }
 
-      auto operator --(int) noexcept
+      auto operator --(int)
       {
         auto copy = *this;
         operator --();
         return copy;
       }
 
-      auto operator ==(iterator const& rhs) const noexcept
+      auto operator ==(iterator const& rhs) const
       {
         return outer == rhs.outer and inner == rhs.inner;
       }
 
-      auto operator !=(iterator const& rhs) const noexcept
+      auto operator !=(iterator const& rhs) const
       {
         return not operator ==(rhs);
       }
@@ -236,12 +236,12 @@ inline namespace memory
       assert(begin() == end());
     }
 
-    auto size() const noexcept
+    auto size() const -> std::size_t
     {
       return std::distance(begin(), end());
     }
 
-    auto insert(compact_pointer p) noexcept
+    auto insert(compact_pointer p)
     {
       if (auto iter = chunks.lower_bound(p.offset()); iter != chunks.end() and iter->first == p.offset())
       {
@@ -254,24 +254,24 @@ inline namespace memory
       }
     }
 
-    auto erase(compact_pointer p) noexcept
+    auto erase(compact_pointer p)
     {
       auto iter = chunks.lower_bound(p.offset());
       assert(iter != chunks.end());
       iter->second.reset(p.index());
     }
 
-    auto begin() const noexcept
+    auto begin() const
     {
       return iterator(chunks, chunks.begin(), 0);
     }
 
-    auto end() const noexcept
+    auto end() const
     {
       return iterator(chunks);
     }
 
-    auto lower_bound(compact_pointer p) noexcept
+    auto lower_bound(compact_pointer p)
     {
       if (auto iter = chunks.lower_bound(p.offset()); iter != chunks.end())
       {
