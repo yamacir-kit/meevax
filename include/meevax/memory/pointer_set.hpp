@@ -93,6 +93,8 @@ inline namespace memory
 
     Map<std::size_t, chunk> chunks;
 
+    std::unordered_map<std::size_t, typename Map<std::size_t, chunk>::iterator> cache;
+
   public:
     struct iterator
     {
@@ -236,6 +238,23 @@ inline namespace memory
       assert(begin() == end());
     }
 
+    auto chunks_lower_bound(std::size_t offset)
+    {
+      if (auto iter = cache.find(offset); iter != cache.end())
+      {
+        return iter->second;
+      }
+      else if (auto iter = chunks.lower_bound(offset); iter != chunks.end())
+      {
+        cache.emplace(iter->first, iter);
+        return iter;
+      }
+      else
+      {
+        return iter;
+      }
+    }
+
     auto size() const -> std::size_t
     {
       return std::distance(begin(), end());
@@ -243,7 +262,7 @@ inline namespace memory
 
     auto insert(compact_pointer p)
     {
-      if (auto iter = chunks.lower_bound(p.offset()); iter != chunks.end() and iter->first == p.offset())
+      if (auto iter = chunks_lower_bound(p.offset()); iter != chunks.end() and iter->first == p.offset())
       {
         iter->second.set(p.index());
       }
@@ -251,12 +270,13 @@ inline namespace memory
       {
         assert(iter == chunks.end() or p.offset() < iter->first);
         chunks.emplace_hint(iter, p.offset(), p.index());
+        cache.clear();
       }
     }
 
     auto erase(compact_pointer p)
     {
-      auto iter = chunks.lower_bound(p.offset());
+      auto iter = chunks_lower_bound(p.offset());
       assert(iter != chunks.end());
       iter->second.reset(p.index());
     }
@@ -273,7 +293,7 @@ inline namespace memory
 
     auto lower_bound(compact_pointer p)
     {
-      if (auto iter = chunks.lower_bound(p.offset()); iter != chunks.end())
+      if (auto iter = chunks_lower_bound(p.offset()); iter != chunks.end())
       {
         return iterator(chunks, iter, p.index());
       }

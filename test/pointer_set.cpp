@@ -40,14 +40,14 @@ auto measure()
 
   auto pointer_set = PointerSet();
 
-  auto const xs = []()
+  static auto const xs = []()
   {
-    auto v = std::vector<int>(10'000'000);
+    auto v = std::vector<int>(std::pow(2, 24));
     std::iota(v.begin(), v.end(), 0);
     return v;
   }();
 
-  auto const ps = [&]()
+  static auto const ps = [&]()
   {
     auto v = std::vector<int const*>(xs.size());
 
@@ -77,11 +77,11 @@ auto measure()
 
   result.emplace("iterate", meevax::duration([&]()
   {
-    auto i = 0;
+    [[maybe_unused]] auto i = 0;
 
-    for (auto p : pointer_set)
+    for ([[maybe_unused]] auto p : pointer_set)
     {
-      volatile auto hack = 0;
+      [[maybe_unused]] volatile auto hack = 0;
       assert(*p == xs[i++]);
     }
   }));
@@ -90,8 +90,8 @@ auto measure()
   {
     for (auto p : ps)
     {
-      volatile auto hack = 0;
-      auto iter = pointer_set.lower_bound(p);
+      [[maybe_unused]] volatile auto hack = 0;
+      [[maybe_unused]] auto iter = pointer_set.lower_bound(p);
       assert(iter != pointer_set.end());
       assert(*iter == p);
     }
