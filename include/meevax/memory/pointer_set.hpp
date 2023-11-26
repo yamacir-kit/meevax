@@ -75,7 +75,7 @@ inline namespace memory
 
     struct chunk : public Bitset<N>
     {
-      using iterator = naive_index_iterator<chunk>;
+      using const_iterator = naive_index_iterator<chunk>;
 
       explicit chunk(std::size_t const& index)
       {
@@ -84,12 +84,12 @@ inline namespace memory
 
       auto begin() const
       {
-        return iterator(*this, 0);
+        return const_iterator(*this, 0);
       }
 
       auto end() const
       {
-        return iterator(*this, this->size());
+        return const_iterator(*this, this->size());
       }
     };
 
@@ -114,14 +114,15 @@ inline namespace memory
 
       typename Map<std::size_t, chunk>::const_iterator outer;
 
-      std::optional<typename chunk::iterator> inner;
+      typename chunk::const_iterator inner;
 
       explicit iterator(Map<std::size_t, chunk> const& chunks,
                         typename Map<std::size_t, chunk>::const_iterator outer,
                         std::size_t hint)
         : chunks { chunks }
         , outer  { outer }
-        , inner  { outer != chunks.end() ? std::make_optional(typename chunk::iterator(outer->second, hint)) : std::nullopt }
+        , inner  { outer != chunks.end() ? typename chunk::const_iterator(outer->second, hint)
+                                         : typename chunk::const_iterator() }
       {
         if (not dereferenceable() and incrementable())
         {
@@ -132,30 +133,30 @@ inline namespace memory
       explicit iterator(Map<std::size_t, chunk> const& chunks)
         : chunks { chunks }
         , outer  { chunks.end() }
-        , inner  { std::nullopt }
+        , inner  {}
       {
         assert(not dereferenceable());
       }
 
       auto incrementable() const -> bool
       {
-        return outer != chunks.end() and inner and inner != outer->second.end();
+        return outer != chunks.end() and inner != outer->second.end();
       }
 
       auto decrementable() const -> bool
       {
-        return outer != chunks.begin() or not inner or inner != outer->second.begin();
+        return outer != chunks.begin() or inner != outer->second.begin();
       }
 
       auto dereferenceable() const -> bool
       {
-        return incrementable() and **inner;
+        return incrementable() and *inner;
       }
 
       auto operator *() const
       {
         assert(dereferenceable());
-        return compact_pointer::to_pointer(outer->first + inner->index);
+        return compact_pointer::to_pointer(outer->first + inner.index);
       }
 
       auto operator ++() -> auto &
@@ -166,18 +167,18 @@ inline namespace memory
         */
         assert(incrementable());
 
-        for (++*inner; outer != chunks.end(); inner = (++outer)->second.begin())
+        for (++inner; outer != chunks.end(); inner = (++outer)->second.begin())
         {
-          for (; inner != outer->second.end(); ++*inner)
+          for (; inner != outer->second.end(); ++inner)
           {
-            if (**inner)
+            if (*inner)
             {
               return *this;
             }
           }
         }
 
-        inner = std::nullopt;
+        inner = typename chunk::const_iterator();
 
         assert(not dereferenceable());
 
@@ -203,12 +204,12 @@ inline namespace memory
           }
           else
           {
-            --*inner;
+            --inner;
           }
 
           assert(incrementable());
 
-          if (**inner)
+          if (*inner)
           {
             return *this;
           }
