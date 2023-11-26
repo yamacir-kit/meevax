@@ -31,7 +31,7 @@ namespace std
   template <auto N>
   auto end(std::bitset<N> const& bitset)
   {
-    return meevax::naive_index_iterator(bitset);
+    return meevax::naive_index_iterator(bitset, bitset.size());
   }
 }
 

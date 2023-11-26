@@ -75,6 +75,8 @@ inline namespace memory
 
     struct chunk : public Bitset<N>
     {
+      using iterator = naive_index_iterator<chunk>;
+
       explicit chunk(std::size_t const& index)
       {
         Bitset<N>::set(index);
@@ -82,12 +84,12 @@ inline namespace memory
 
       auto begin() const
       {
-        return naive_index_iterator(*this, 0);
+        return iterator(*this, 0);
       }
 
       auto end() const
       {
-        return naive_index_iterator(*this);
+        return iterator(*this, this->size());
       }
     };
 
@@ -112,14 +114,14 @@ inline namespace memory
 
       typename Map<std::size_t, chunk>::const_iterator outer;
 
-      std::optional<naive_index_iterator<chunk>> inner;
+      std::optional<typename chunk::iterator> inner;
 
       explicit iterator(Map<std::size_t, chunk> const& chunks,
                         typename Map<std::size_t, chunk>::const_iterator outer,
                         std::size_t hint)
         : chunks { chunks }
         , outer  { outer }
-        , inner  { outer != chunks.end() ? std::make_optional(naive_index_iterator(outer->second, hint)) : std::nullopt }
+        , inner  { outer != chunks.end() ? std::make_optional(typename chunk::iterator(outer->second, hint)) : std::nullopt }
       {
         if (not dereferenceable() and incrementable())
         {

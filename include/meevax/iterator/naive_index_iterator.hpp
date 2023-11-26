@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_ITERATOR_NAIVE_INDEX_ITERATOR_HPP
 #define INCLUDED_MEEVAX_ITERATOR_NAIVE_INDEX_ITERATOR_HPP
 
-#include <functional> // reference_wrapper
 #include <iterator>
 #include <limits>
 #include <memory>
@@ -27,42 +26,40 @@ namespace meevax
 {
 inline namespace iterator
 {
-  template <typename Container>
+  template <typename T>
   struct naive_index_iterator
   {
     using iterator_category = std::bidirectional_iterator_tag;
 
-    using value_type = std::decay_t<decltype(std::declval<Container>()[std::declval<std::size_t>()])>;
+    using value_type = std::decay_t<decltype(std::declval<T>()[std::declval<std::size_t>()])>;
 
-    using reference = decltype(std::declval<Container>()[std::declval<std::size_t>()]);
+    using reference = decltype(std::declval<T>()[std::declval<std::size_t>()]);
 
     using pointer = std::add_pointer_t<value_type>;
 
     using difference_type = std::ptrdiff_t;
 
-    std::reference_wrapper<Container const> container;
+    T const* data = nullptr;
 
-    std::size_t index;
+    std::size_t index = std::numeric_limits<std::size_t>::max();
 
-    explicit naive_index_iterator(Container const& container)
-      : container { std::cref(container) }
-      , index { container.size() }
+    constexpr naive_index_iterator() = default;
+
+    explicit naive_index_iterator(T const& data, std::size_t index)
+      : data { std::addressof(data) }
+      , index { index }
     {}
 
-    explicit naive_index_iterator(Container const& container, std::size_t index)
-      : container { std::cref(container) }
-      , index { index }
+    auto out_of_range() const -> bool
     {
-      if (container.size() < index)
-      {
-        index = container.size();
-      }
+      return not data or index == data->size();
     }
 
     auto operator *() const -> decltype(auto)
     {
-      assert(index < container.get().size());
-      return container.get()[index];
+      assert(data);
+      assert(index < data->size());
+      return (*data)[index];
     }
 
     auto operator ++() -> decltype(auto)
@@ -71,11 +68,12 @@ inline namespace iterator
          NOTE: Incrementing the end iterator is undefined behavior, so there is
          no need to consider that case.
       */
-      assert(index < container.get().size());
+      assert(data);
+      assert(index < data->size());
 
       ++index;
 
-      assert(index <= container.get().size());
+      assert(index <= data->size());
 
       return *this;
     }
@@ -90,7 +88,8 @@ inline namespace iterator
 
       --index;
 
-      assert(index < container.get().size());
+      assert(data);
+      assert(index < data->size());
 
       return *this;
     }
@@ -103,7 +102,7 @@ inline namespace iterator
          a.container and b.container refer to the same container, meaning that
          they have the same address.
       */
-      return a.index == b.index;
+      return a.index == b.index or (a.out_of_range() and b.out_of_range());
     }
 
     friend auto operator !=(naive_index_iterator const& a, naive_index_iterator const& b)
