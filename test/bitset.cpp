@@ -8,7 +8,7 @@
 #undef NDEBUG
 
 #include <meevax/utility/debug.hpp>
-#include <meevax/iterator/naive_index_iterator.hpp>
+#include <meevax/iterator/index_iterator.hpp>
 
 using period = std::chrono::nanoseconds;
 
@@ -25,13 +25,13 @@ namespace std
   template <auto N>
   auto begin(std::bitset<N> const& bitset)
   {
-    return meevax::naive_index_iterator(bitset, 0);
+    return meevax::index_iterator(bitset, 0);
   }
 
   template <auto N>
   auto end(std::bitset<N> const& bitset)
   {
-    return meevax::naive_index_iterator(bitset, bitset.size());
+    return meevax::index_iterator(bitset, bitset.size());
   }
 }
 

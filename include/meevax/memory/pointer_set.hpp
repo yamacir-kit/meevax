@@ -25,10 +25,11 @@
 #include <limits>
 #include <optional>
 #include <type_traits>
+#include <unordered_map>
 
 #include <meevax/bit/log2.hpp>
 #include <meevax/bitset/simple_bitset.hpp>
-#include <meevax/iterator/naive_index_iterator.hpp>
+#include <meevax/iterator/index_iterator.hpp>
 #include <meevax/map/simple_flat_map.hpp>
 
 namespace meevax
@@ -75,7 +76,7 @@ inline namespace memory
 
     struct chunk : public Bitset<N>
     {
-      using const_iterator = naive_index_iterator<chunk>;
+      using const_iterator = index_iterator<chunk>;
 
       explicit chunk(std::size_t const& index)
       {

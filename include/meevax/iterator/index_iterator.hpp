@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_ITERATOR_NAIVE_INDEX_ITERATOR_HPP
-#define INCLUDED_MEEVAX_ITERATOR_NAIVE_INDEX_ITERATOR_HPP
+#ifndef INCLUDED_MEEVAX_ITERATOR_INDEX_ITERATOR_HPP
+#define INCLUDED_MEEVAX_ITERATOR_INDEX_ITERATOR_HPP
 
 #include <iterator>
 #include <limits>
@@ -27,7 +27,7 @@ namespace meevax
 inline namespace iterator
 {
   template <typename T>
-  struct naive_index_iterator
+  struct index_iterator
   {
     using iterator_category = std::bidirectional_iterator_tag;
 
@@ -43,9 +43,9 @@ inline namespace iterator
 
     std::size_t index = std::numeric_limits<std::size_t>::max();
 
-    constexpr naive_index_iterator() = default;
+    constexpr index_iterator() = default;
 
-    explicit naive_index_iterator(T const& data, std::size_t index)
+    explicit index_iterator(T const& data, std::size_t index)
       : data { std::addressof(data) }
       , index { index }
     {}
@@ -94,7 +94,7 @@ inline namespace iterator
       return *this;
     }
 
-    friend auto operator ==(naive_index_iterator const& a, naive_index_iterator const& b)
+    friend auto operator ==(index_iterator const& a, index_iterator const& b)
     {
       /*
          NOTE: Comparing iterators obtained from different containers is
@@ -105,7 +105,7 @@ inline namespace iterator
       return a.index == b.index or (a.out_of_range() and b.out_of_range());
     }
 
-    friend auto operator !=(naive_index_iterator const& a, naive_index_iterator const& b)
+    friend auto operator !=(index_iterator const& a, index_iterator const& b)
     {
       return not (a == b);
     }
@@ -113,4 +113,4 @@ inline namespace iterator
 } // namespace iterator
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_ITERATOR_NAIVE_INDEX_ITERATOR_HPP
+#endif // INCLUDED_MEEVAX_ITERATOR_INDEX_ITERATOR_HPP
