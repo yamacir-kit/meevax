@@ -23,32 +23,30 @@
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <optional>
 #include <type_traits>
-#include <vector>
+#include <unordered_map>
+
+#include <meevax/bit/log2.hpp>
+#include <meevax/bitset/simple_bitset.hpp>
+#include <meevax/iterator/index_iterator.hpp>
+#include <meevax/map/simple_flat_map.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  template <typename T>
-  constexpr auto log2(T x) noexcept -> T
-  {
-    return (x < 2) ? 1 : log2(x / 2) + 1;
-  }
-
-  static_assert(log2(0b0001) - 1 == 0);
-  static_assert(log2(0b0010) - 1 == 1);
-  static_assert(log2(0b0100) - 1 == 2);
-  static_assert(log2(0b1000) - 1 == 3);
-
-  template <typename Pointer, std::size_t Capacity = 1024 * 1024>
+  template <typename Pointer,
+            template <typename...> typename Map = simple_flat_map,
+            template <std::size_t> typename Bitset = simple_bitset,
+            std::size_t N = 4096 * 8> // getconf PAGE_SIZE
   class pointer_set
   {
     static_assert(std::is_pointer_v<Pointer>);
 
     static constexpr auto width = sizeof(std::uintptr_t) * 8;
 
-    static_assert(Capacity % width == 0);
+    static_assert(N % width == 0);
 
     struct compact_pointer
     {
@@ -62,7 +60,7 @@ inline namespace memory
 
       constexpr auto offset() const noexcept
       {
-        return (value / Capacity) * Capacity;
+        return (value / N) * N;
       }
 
       constexpr auto index() const noexcept
@@ -76,36 +74,29 @@ inline namespace memory
       }
     };
 
-    struct chunk
+    struct chunk : public Bitset<N>
     {
-      std::array<bool, Capacity> data;
+      using const_iterator = index_iterator<chunk>;
 
-      std::size_t offset;
-
-      explicit chunk(compact_pointer const p) noexcept
-        : data   { false }
-        , offset { p.offset() }
+      explicit chunk(std::size_t const& index)
       {
-        data[p.index()] = true;
+        Bitset<N>::set(index);
       }
 
-      auto test(std::size_t i) const noexcept -> bool
+      auto begin() const
       {
-        return data[i];
+        return const_iterator(*this, 0);
       }
 
-      auto set(std::size_t i) noexcept -> void
+      auto end() const
       {
-        data[i] = true;
-      }
-
-      auto reset(std::size_t i) noexcept -> void
-      {
-        data[i] = false;
+        return const_iterator(*this, this->size());
       }
     };
 
-    std::vector<chunk> chunks;
+    Map<std::size_t, chunk> chunks;
+
+    std::unordered_map<std::size_t, typename Map<std::size_t, chunk>::iterator> cache;
 
   public:
     struct iterator
@@ -120,105 +111,125 @@ inline namespace memory
 
       using difference_type = std::ptrdiff_t;
 
-      std::vector<chunk> const& chunks;
+      Map<std::size_t, chunk> const& chunks;
 
-      std::size_t i;
+      typename Map<std::size_t, chunk>::const_iterator outer;
 
-      std::size_t j;
+      typename chunk::const_iterator inner;
 
-      explicit iterator(std::vector<chunk> const& chunks,
-                        typename std::vector<chunk>::const_iterator iter,
-                        std::size_t j) noexcept
+      explicit iterator(Map<std::size_t, chunk> const& chunks,
+                        typename Map<std::size_t, chunk>::const_iterator outer,
+                        std::size_t hint)
         : chunks { chunks }
-        , i      { static_cast<std::size_t>(std::distance(chunks.begin(), iter)) }
-        , j      { j }
+        , outer  { outer }
+        , inner  { outer != chunks.end() ? typename chunk::const_iterator(outer->second, hint)
+                                         : typename chunk::const_iterator() }
       {
-        if (not (i < chunks.size() and j < Capacity and chunks[i].test(j)))
+        if (not dereferenceable() and incrementable())
         {
           operator ++();
         }
       }
 
-      explicit iterator(std::vector<chunk> const& chunks) noexcept
+      explicit iterator(Map<std::size_t, chunk> const& chunks)
         : chunks { chunks }
-        , i      { chunks.size() }
-        , j      { Capacity }
-      {}
-
-      auto operator *() const noexcept
+        , outer  { chunks.end() }
+        , inner  {}
       {
-        return compact_pointer::to_pointer(chunks[i].offset + j);
+        assert(not dereferenceable());
       }
 
-      auto operator ++() noexcept -> auto &
+      auto incrementable() const -> bool
       {
-        ++j;
+        return outer != chunks.end() and inner != outer->second.end();
+      }
 
-        for (; i < chunks.size(); ++i, j = 0)
+      auto decrementable() const -> bool
+      {
+        return outer != chunks.begin() or inner != outer->second.begin();
+      }
+
+      auto dereferenceable() const -> bool
+      {
+        return incrementable() and *inner;
+      }
+
+      auto operator *() const
+      {
+        assert(dereferenceable());
+        return compact_pointer::to_pointer(outer->first + inner.index);
+      }
+
+      auto operator ++() -> auto &
+      {
+        /*
+           NOTE: Incrementing the end iterator is undefined behavior, so there
+           is no need to consider that case.
+        */
+        assert(incrementable());
+
+        for (++inner; outer != chunks.end(); inner = (++outer)->second.begin())
         {
-          for (; j < Capacity; ++j)
+          for (; inner != outer->second.end(); ++inner)
           {
-            if (chunks[i].test(j))
+            if (*inner)
             {
               return *this;
             }
           }
         }
 
-        i = chunks.size();
+        inner = typename chunk::const_iterator();
 
-        j = Capacity;
+        assert(not dereferenceable());
 
         return *this; // end
       }
 
-      auto operator ++(int) noexcept
+      auto operator ++(int)
       {
         auto copy = *this;
         operator ++();
         return copy;
       }
 
-      auto operator --() noexcept -> auto &
+      auto operator --() -> auto &
       {
-        i = std::min(chunks.size() - 1, i);
-
-        j = std::min(Capacity - 1, j - 1);
-
-        /*
-           NOTE: N4659 6.9.1.4
-
-           Unsigned integers shall obey the laws of arithmetic modulo 2 n where
-           n is the number of bits in the value representation of that
-           particular size of integer.
-        */
-        for (; i < chunks.size(); --i, j = Capacity - 1)
+        while (true)
         {
-          for (; j < Capacity; --j)
+          assert(decrementable());
+
+          if (outer == chunks.end() or inner == outer->second.begin())
           {
-            if (chunks[i].test(j))
-            {
-              return *this;
-            }
+            inner = std::prev((--outer)->second.end());
+          }
+          else
+          {
+            --inner;
+          }
+
+          assert(incrementable());
+
+          if (*inner)
+          {
+            return *this;
           }
         }
-
-        return *this;
       }
 
-      auto operator --(int) noexcept
+      auto operator --(int)
       {
         auto copy = *this;
         operator --();
         return copy;
       }
 
-      auto operator ==(iterator const& rhs) const noexcept
+      auto operator ==(iterator const& rhs) const
       {
-        return i == rhs.i and j == rhs.j;
+        return outer == rhs.outer and inner == rhs.inner;
       }
 
-      auto operator !=(iterator const& rhs) const noexcept
+      auto operator !=(iterator const& rhs) const
       {
         return not operator ==(rhs);
       }
@@ -231,54 +242,62 @@ inline namespace memory
       assert(begin() == end());
     }
 
-    auto lower_bound_chunk(compact_pointer p) noexcept
+    auto chunks_lower_bound(std::size_t offset)
     {
-      auto compare = [](auto && chunk, auto && offset) constexpr
+      if (auto iter = cache.find(offset); iter != cache.end())
       {
-        return chunk.offset < offset;
-      };
-
-      return std::lower_bound(chunks.begin(), chunks.end(), p.offset(), compare);
+        return iter->second;
+      }
+      else if (auto iter = chunks.lower_bound(offset); iter != chunks.end())
+      {
+        cache.emplace(iter->first, iter);
+        return iter;
+      }
+      else
+      {
+        return iter;
+      }
     }
 
-    auto size() const noexcept
+    auto size() const -> std::size_t
     {
       return std::distance(begin(), end());
     }
 
-    auto insert(compact_pointer p) noexcept
+    auto insert(compact_pointer p)
     {
-      if (auto iter = lower_bound_chunk(p); iter != chunks.end() and iter->offset == p.offset())
+      if (auto iter = chunks_lower_bound(p.offset()); iter != chunks.end() and iter->first == p.offset())
       {
-        iter->set(p.index());
+        iter->second.set(p.index());
       }
       else
       {
-        assert(iter == chunks.end() or p.offset() < iter->offset);
-        chunks.emplace(iter, p);
+        assert(iter == chunks.end() or p.offset() < iter->first);
+        chunks.emplace_hint(iter, p.offset(), p.index());
+        cache.clear();
       }
     }
 
-    auto erase(compact_pointer p) noexcept
+    auto erase(compact_pointer p)
     {
-      auto iter = lower_bound_chunk(p);
+      auto iter = chunks_lower_bound(p.offset());
       assert(iter != chunks.end());
-      iter->reset(p.index());
+      iter->second.reset(p.index());
     }
 
-    auto begin() const noexcept
+    auto begin() const
     {
       return iterator(chunks, chunks.begin(), 0);
     }
 
-    auto end() const noexcept
+    auto end() const
     {
       return iterator(chunks);
     }
 
-    auto lower_bound(compact_pointer p) noexcept
+    auto lower_bound(compact_pointer p)
     {
-      if (auto iter = lower_bound_chunk(p); iter != chunks.end())
+      if (auto iter = chunks_lower_bound(p.offset()); iter != chunks.end())
       {
         return iterator(chunks, iter, p.index());
       }
