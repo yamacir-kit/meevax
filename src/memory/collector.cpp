@@ -88,9 +88,9 @@ inline namespace memory
       assert(registration);
       assert(registration->header);
 
-      if (not registration->header->marked() and is_root_object(registration))
+      if (not registration->object_header->marked() and is_root_object(registration))
       {
-        mark(registration->header);
+        mark(registration->object_header);
       }
     }
   }
@@ -108,7 +108,7 @@ inline namespace memory
 
       for (auto iter = registry.lower_bound(lower_address); iter != registry.end() and *iter < upper_address; ++iter)
       {
-        mark((*iter)->header);
+        mark((*iter)->object_header);
       }
     }
   }

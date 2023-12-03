@@ -20,6 +20,7 @@
 #include <algorithm> // std::max
 #include <array>
 #include <cstdint>
+#include <type_traits>
 #include <utility> // std::exchange
 
 #include <meevax/memory/literal.hpp>
@@ -82,6 +83,8 @@ public:
 
   using const_reference = value_type const&;
 
+  using is_always_equal = std::false_type;
+
   template <typename U>
   struct rebind
   {
@@ -129,14 +132,14 @@ public:
   }
 
   template <typename... Ts>
-  auto new_(Ts&&... xs)
+  auto new_(Ts&&... xs) // TODO Use std::allocator_traits<>::construct
   {
     return ::new (allocate()) T(std::forward<decltype(xs)>(xs)...);
   }
 
-  auto delete_(pointer p) -> void
+  auto delete_(pointer p) -> void // TODO Use std::allocator_traits<>::destroy
   {
-    (*p).~T();
+    p->~T();
     deallocate(p);
   }
 };

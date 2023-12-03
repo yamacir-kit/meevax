@@ -19,8 +19,8 @@
 
 #include <cstddef>
 
-#include <meevax/memory/header.hpp>
 #include <meevax/memory/literal.hpp>
+#include <meevax/memory/marker.hpp>
 #include <meevax/memory/pointer_set.hpp>
 
 namespace meevax
@@ -37,19 +37,64 @@ inline namespace memory
   class collector
   {
   public:
+    struct header : public marker
+    {
+      std::uintptr_t address;
+
+      std::size_t size;
+
+      header(void const* const address, std::size_t size)
+        : address { reinterpret_cast<std::uintptr_t>(address) }
+        , size { size }
+      {}
+
+      virtual ~header() = default;
+
+      template <typename T = void>
+      auto lower_address() const noexcept
+      {
+        return reinterpret_cast<T *>(address);
+      }
+
+      template <typename T = void>
+      auto upper_address() const noexcept
+      {
+        return reinterpret_cast<T *>(address + size);
+      }
+
+      auto contains(void const* const data) const noexcept
+      {
+        return lower_address() <= data and data < upper_address();
+      }
+    };
+
+    template <typename T>
+    struct traceable : public header
+    {
+      T body;
+
+      template <typename... Ts>
+      explicit traceable(Ts&&... xs)
+        : header { std::addressof(body), sizeof(T) }
+        , body   { std::forward<decltype(xs)>(xs)... }
+      {}
+
+      ~traceable() override = default;
+    };
+
     class registration
     {
       friend class collector;
 
     protected:
-      memory::header * header = nullptr;
+      header * object_header = nullptr;
 
       explicit constexpr registration() = default;
 
-      explicit registration(memory::header * header) noexcept
-        : header { header }
+      explicit registration(header * object_header) noexcept
+        : object_header { object_header }
       {
-        if (header)
+        if (object_header)
         {
           registry.insert(this);
         }
@@ -57,15 +102,15 @@ inline namespace memory
 
       ~registration() noexcept
       {
-        if (header)
+        if (object_header)
         {
           registry.erase(this);
         }
       }
 
-      auto reset(memory::header * after = nullptr) noexcept -> void
+      auto reset(header * after = nullptr) noexcept -> void
       {
-        if (auto before = std::exchange(header, after); not before and after)
+        if (auto before = std::exchange(object_header, after); not before and after)
         {
           registry.insert(this);
         }
@@ -75,7 +120,7 @@ inline namespace memory
         }
       }
 
-      static auto locate(void * const data) noexcept -> memory::header *
+      static auto locate(void * const data) noexcept -> header *
       {
         if (not data)
         {
@@ -85,7 +130,7 @@ inline namespace memory
         {
           return cache;
         }
-        else if (auto iter = headers.lower_bound(reinterpret_cast<memory::header *>(data)); iter != headers.begin() and (*--iter)->contains(data))
+        else if (auto iter = headers.lower_bound(reinterpret_cast<header *>(data)); iter != headers.begin() and (*--iter)->contains(data))
         {
           return *iter;
         }
