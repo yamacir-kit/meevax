@@ -68,9 +68,33 @@ inline namespace memory
       }
     };
 
-    template <typename T>
+    template <typename T, typename AllocatorTraits>
     struct traceable : public header
     {
+      using allocator_type = typename AllocatorTraits::template rebind_alloc<traceable<T, AllocatorTraits>>;
+
+      using pointer = typename std::allocator_traits<allocator_type>::pointer;
+
+      /*
+         Support for custom allocators is incomplete. Because the allocator is
+         templated and held as a static data member, this allocator may be
+         constructed after the collector and destructed before the collector.
+         (See "Static Initialization/Destruction Order Fiasco.") In that case,
+         illegal memory accesses will occur because the allocator corresponding
+         to a particular type has already been destructed at the time
+         collector::clear() is called within collector::~collector().
+
+         The problem is currently not occurring because the lifetime of the
+         storage allocated by std::allocator is independent of the lifetime of
+         the std::allocator type object. Conversely, if there is a relationship
+         between the storage allocated by the allocator object and the lifetime
+         of the allocator object, a problem will occur. For example, a memory
+         pool allocator, which allocates the pool in the allocator constructor
+         and releases the pool in the allocator destructor, will cause
+         problems.
+      */
+      static inline auto allocator = allocator_type();
+
       T body;
 
       template <typename... Ts>
@@ -80,6 +104,16 @@ inline namespace memory
       {}
 
       ~traceable() override = default;
+
+      auto operator new(std::size_t) -> void *
+      {
+        return allocator.allocate(1);
+      }
+
+      auto operator delete(void * data) noexcept -> void
+      {
+        allocator.deallocate(reinterpret_cast<pointer>(data), 1);
+      }
     };
 
     class registration
@@ -141,6 +175,9 @@ inline namespace memory
       }
     };
 
+    template <typename... Ts>
+    using default_allocator = std::allocator<Ts...>;
+
   protected:
     static inline header * cache = nullptr;
 
@@ -165,7 +202,9 @@ inline namespace memory
 
     auto operator =(collector const&) -> collector & = delete;
 
-    template <typename T, typename... Ts>
+    template <typename T,
+              typename Allocator = default_allocator<void>,
+              typename... Ts>
     static auto make(Ts&&... xs)
     {
       if (allocation += sizeof(T); threshold < allocation)
@@ -173,7 +212,7 @@ inline namespace memory
         collect();
       }
 
-      if (auto data = new traceable<T>(std::forward<decltype(xs)>(xs)...); data)
+      if (auto data = new traceable<T, std::allocator_traits<Allocator>>(std::forward<decltype(xs)>(xs)...); data)
       {
         headers.insert(cache = data);
 

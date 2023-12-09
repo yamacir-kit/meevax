@@ -92,16 +92,18 @@ inline namespace memory
 
     using BasePointer<Top, Ts...>::get;
 
-    template <typename Bound, typename... Us>
+    template <typename Bound,
+              typename Allocator = collector::default_allocator<void>,
+              typename... Us>
     static auto allocate(Us&&... xs)
     {
       if constexpr (std::is_same_v<Bound, Top>)
       {
-        return heterogeneous_pointer(gc.make<Top>(std::forward<decltype(xs)>(xs)...));
+        return heterogeneous_pointer(gc.make<Top, Allocator>(std::forward<decltype(xs)>(xs)...));
       }
       else if constexpr (std::is_class_v<Bound>)
       {
-        return heterogeneous_pointer(gc.make<binder<Bound>>(std::forward<decltype(xs)>(xs)...));
+        return heterogeneous_pointer(gc.make<binder<Bound>, Allocator>(std::forward<decltype(xs)>(xs)...));
       }
       else
       {

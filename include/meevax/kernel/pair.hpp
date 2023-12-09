@@ -38,22 +38,28 @@ inline namespace kernel
 
   let extern unit;
 
-  template <typename T, typename... Ts>
+  template <typename T,
+            typename Allocator = collector::default_allocator<void>,
+            typename... Ts>
   auto make(Ts&&... xs) -> object
   {
-    return object::allocate<T>(std::forward<decltype(xs)>(xs)...);
+    return object::allocate<T, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
-  template <typename T>
+  template <typename T,
+            typename Allocator = collector::default_allocator<void>>
   auto make(T&& x) -> object
   {
-    return object::allocate<std::decay_t<T>>(std::forward<decltype(x)>(x));
+    return object::allocate<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
   }
 
-  template <template <typename...> typename Template, typename... Ts, REQUIRES(std::is_constructible<Template<Ts...>, Ts...>)>
+  template <template <typename...> typename Template,
+            typename Allocator = collector::default_allocator<void>,
+            typename... Ts,
+            REQUIRES(std::is_constructible<Template<Ts...>, Ts...>)>
   auto make(Ts&&... xs) -> decltype(auto)
   {
-    return make<Template<Ts...>>(std::forward<decltype(xs)>(xs)...);
+    return make<Template<Ts...>, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
   struct pair : public std::pair<object, object>

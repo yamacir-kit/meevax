@@ -86,7 +86,7 @@ inline namespace memory
     for (auto&& registration : registry)
     {
       assert(registration);
-      assert(registration->header);
+      assert(registration->object_header);
 
       if (not registration->object_header->marked() and is_root_object(registration))
       {

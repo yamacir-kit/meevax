@@ -19,20 +19,19 @@
 
 #include <algorithm> // std::max
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <type_traits>
 #include <utility> // std::exchange
-
-#include <meevax/memory/literal.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-template <typename T, auto Capacity = 1_KiB>
+template <typename T, typename Capacity = std::integral_constant<std::size_t, 1024>>
 class simple_allocator
 {
-  struct chunk
+  struct alignas(T) chunk
   {
     chunk * next;
   };
@@ -41,9 +40,9 @@ class simple_allocator
   {
     static constexpr auto chunk_size = std::max(sizeof(T), sizeof(chunk));
 
-    std::array<std::uint8_t, chunk_size * Capacity> data;
+    std::array<std::uint8_t, chunk_size * Capacity::value> data;
 
-    std::size_t size = Capacity;
+    std::size_t size = Capacity::value;
 
   public:
     chunks * const next;
@@ -64,7 +63,7 @@ class simple_allocator
 
     auto pop()
     {
-      return reinterpret_cast<pointer>(std::addressof(data[chunk_size * --size]));
+      return reinterpret_cast<value_type *>(std::addressof(data[chunk_size * --size]));
     }
   };
 
@@ -75,21 +74,13 @@ class simple_allocator
 public:
   using value_type = T;
 
-  using pointer = value_type *;
+  using propagate_on_container_move_assignment = std::false_type;
 
-  using const_pointer = value_type const*;
+  using size_type = std::size_t;
 
-  using reference = value_type &;
-
-  using const_reference = value_type const&;
+  using difference_type = std::ptrdiff_t;
 
   using is_always_equal = std::false_type;
-
-  template <typename U>
-  struct rebind
-  {
-    using other = simple_allocator<U, Capacity>;
-  };
 
   explicit simple_allocator()
     : fresh_chunks { new chunks() }
@@ -99,20 +90,20 @@ public:
 
   simple_allocator(simple_allocator const&) = delete;
 
-  auto operator =(simple_allocator &&) -> simple_allocator & = delete;
-
-  auto operator =(simple_allocator const&) -> simple_allocator & = delete;
-
   ~simple_allocator()
   {
     delete fresh_chunks;
   }
 
-  auto allocate(std::size_t = 1)
+  auto operator =(simple_allocator &&) -> simple_allocator & = delete;
+
+  auto operator =(simple_allocator const&) -> simple_allocator & = delete;
+
+  auto allocate(size_type = 1)
   {
     if (recycled_chunk)
     {
-      return reinterpret_cast<pointer>(std::exchange(recycled_chunk, recycled_chunk->next));
+      return reinterpret_cast<value_type *>(std::exchange(recycled_chunk, recycled_chunk->next));
     }
     else
     {
@@ -125,22 +116,10 @@ public:
     }
   }
 
-  auto deallocate(pointer p, std::size_t = 1) -> void
+  auto deallocate(value_type * p, size_type = 1) -> void
   {
     reinterpret_cast<chunk *>(p)->next = recycled_chunk;
     recycled_chunk = reinterpret_cast<chunk *>(p);
-  }
-
-  template <typename... Ts>
-  auto new_(Ts&&... xs) // TODO Use std::allocator_traits<>::construct
-  {
-    return ::new (allocate()) T(std::forward<decltype(xs)>(xs)...);
-  }
-
-  auto delete_(pointer p) -> void // TODO Use std::allocator_traits<>::destroy
-  {
-    p->~T();
-    deallocate(p);
   }
 };
 } // namespace memory
