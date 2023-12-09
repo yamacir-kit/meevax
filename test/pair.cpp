@@ -18,8 +18,7 @@ auto main() -> int
      Without this explicit call to gc.clear(), illegal memory access by the
      destructor of the collector will occur for objects allocated by allocators
      other than std::allocator. See the comments attached to
-     collector::traceable::allocator for a detailed description of this
-     problem.
+     collector::tagged::allocator for a detailed description of this problem.
   */
   gc.clear();
 

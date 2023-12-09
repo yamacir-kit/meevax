@@ -37,18 +37,18 @@ inline namespace memory
   class collector
   {
   public:
-    struct header : public marker
+    struct tag : public marker
     {
       std::uintptr_t address;
 
       std::size_t size;
 
-      header(void const* const address, std::size_t size)
+      explicit tag(void const* const address, std::size_t size)
         : address { reinterpret_cast<std::uintptr_t>(address) }
-        , size { size }
+        , size    { size }
       {}
 
-      virtual ~header() = default;
+      virtual ~tag() = default;
 
       template <typename T = void>
       auto lower_address() const noexcept
@@ -69,9 +69,9 @@ inline namespace memory
     };
 
     template <typename T, typename AllocatorTraits>
-    struct traceable : public header
+    struct tagged : public tag
     {
-      using allocator_type = typename AllocatorTraits::template rebind_alloc<traceable<T, AllocatorTraits>>;
+      using allocator_type = typename AllocatorTraits::template rebind_alloc<tagged<T, AllocatorTraits>>;
 
       using pointer = typename std::allocator_traits<allocator_type>::pointer;
 
@@ -98,12 +98,12 @@ inline namespace memory
       T body;
 
       template <typename... Ts>
-      explicit traceable(Ts&&... xs)
-        : header { std::addressof(body), sizeof(T) }
-        , body   { std::forward<decltype(xs)>(xs)... }
+      explicit tagged(Ts&&... xs)
+        : tag  { std::addressof(body), sizeof(T) }
+        , body { std::forward<decltype(xs)>(xs)... }
       {}
 
-      ~traceable() override = default;
+      ~tagged() override = default;
 
       auto operator new(std::size_t) -> void *
       {
@@ -121,14 +121,14 @@ inline namespace memory
       friend class collector;
 
     protected:
-      header * object_header = nullptr;
+      tag * location = nullptr;
 
       explicit constexpr registration() = default;
 
-      explicit registration(header * object_header) noexcept
-        : object_header { object_header }
+      explicit registration(tag * location) noexcept
+        : location { location }
       {
-        if (object_header)
+        if (location)
         {
           registry.insert(this);
         }
@@ -136,15 +136,15 @@ inline namespace memory
 
       ~registration() noexcept
       {
-        if (object_header)
+        if (location)
         {
           registry.erase(this);
         }
       }
 
-      auto reset(header * after = nullptr) noexcept -> void
+      auto reset(tag * after = nullptr) noexcept -> void
       {
-        if (auto before = std::exchange(object_header, after); not before and after)
+        if (auto before = std::exchange(location, after); not before and after)
         {
           registry.insert(this);
         }
@@ -154,7 +154,7 @@ inline namespace memory
         }
       }
 
-      static auto locate(void * const data) noexcept -> header *
+      static auto locate(void * const data) noexcept -> tag *
       {
         if (not data)
         {
@@ -164,7 +164,7 @@ inline namespace memory
         {
           return cache;
         }
-        else if (auto iter = headers.lower_bound(reinterpret_cast<header *>(data)); iter != headers.begin() and (*--iter)->contains(data))
+        else if (auto iter = tags.lower_bound(reinterpret_cast<tag *>(data)); iter != tags.begin() and (*--iter)->contains(data))
         {
           return *iter;
         }
@@ -179,9 +179,9 @@ inline namespace memory
     using default_allocator = std::allocator<Ts...>;
 
   protected:
-    static inline header * cache = nullptr;
+    static inline tag * cache = nullptr;
 
-    static inline pointer_set<header *> headers {};
+    static inline pointer_set<tag *> tags {};
 
     static inline pointer_set<registration *> registry {};
 
@@ -212,9 +212,9 @@ inline namespace memory
         collect();
       }
 
-      if (auto data = new traceable<T, std::allocator_traits<Allocator>>(std::forward<decltype(xs)>(xs)...); data)
+      if (auto data = new tagged<T, std::allocator_traits<Allocator>>(std::forward<decltype(xs)>(xs)...); data)
       {
-        headers.insert(cache = data);
+        tags.insert(cache = data);
 
         return std::addressof(data->body);
       }
@@ -232,7 +232,7 @@ inline namespace memory
 
     static auto mark() -> void;
 
-    static auto mark(header * const) -> void;
+    static auto mark(tag * const) -> void;
 
     static auto sweep() -> void;
   }

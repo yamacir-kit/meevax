@@ -36,17 +36,17 @@ inline namespace memory
     {
       clear();
 
-      assert(std::size(headers) == 0);
+      assert(std::size(tags) == 0);
       assert(std::size(registry) == 0);
     }
   }
 
   auto collector::clear() -> void
   {
-    for (auto&& header : headers)
+    for (auto&& tag : tags)
     {
-      delete header;
-      headers.erase(header);
+      delete tag;
+      tags.erase(tag);
     }
   }
 
@@ -59,14 +59,14 @@ inline namespace memory
 
   auto collector::count() noexcept -> std::size_t
   {
-    return std::size(headers);
+    return std::size(tags);
   }
 
   auto collector::mark() -> void
   {
     marker::clear();
 
-    auto is_root_object = [begin = headers.begin()](registration * given)
+    auto is_root_object = [begin = tags.begin()](registration * given)
     {
       /*
          If the given registration is a non-root object, then an object
@@ -75,10 +75,10 @@ inline namespace memory
 
          Containing the registration as a data member means that the address of
          the registration is contained in the interval of the object's
-         base-address ~ base-address + object-size. The header is present to
+         base-address ~ base-address + object-size. The tag is present to
          keep track of the base-address and size of the object needed here.
       */
-      auto iter = headers.lower_bound(reinterpret_cast<header *>(given));
+      auto iter = tags.lower_bound(reinterpret_cast<tag *>(given));
 
       return iter == begin or not (*--iter)->contains(given);
     };
@@ -86,41 +86,41 @@ inline namespace memory
     for (auto&& registration : registry)
     {
       assert(registration);
-      assert(registration->object_header);
+      assert(registration->location);
 
-      if (not registration->object_header->marked() and is_root_object(registration))
+      if (not registration->location->marked() and is_root_object(registration))
       {
-        mark(registration->object_header);
+        mark(registration->location);
       }
     }
   }
 
-  auto collector::mark(header * const header) -> void
+  auto collector::mark(tag * const tag) -> void
   {
-    assert(header);
+    assert(tag);
 
-    if (not header->marked())
+    if (not tag->marked())
     {
-      header->mark();
+      tag->mark();
 
-      const auto lower_address = header->lower_address<registration>();
-      const auto upper_address = header->upper_address<registration>();
+      const auto lower_address = tag->lower_address<registration>();
+      const auto upper_address = tag->upper_address<registration>();
 
       for (auto iter = registry.lower_bound(lower_address); iter != registry.end() and *iter < upper_address; ++iter)
       {
-        mark((*iter)->object_header);
+        mark((*iter)->location);
       }
     }
   }
 
   auto collector::sweep() -> void
   {
-    for (auto&& header : headers)
+    for (auto&& tag : tags)
     {
-      if (not header->marked())
+      if (not tag->marked())
       {
-        delete header;
-        headers.erase(header);
+        delete tag;
+        tags.erase(tag);
       }
     }
   }

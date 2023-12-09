@@ -33,7 +33,7 @@ inline namespace memory
 
     gc_pointer(gc_pointer const& gcp)
       : pointer { gcp }
-      , collector::registration { gcp.object_header }
+      , collector::registration { gcp.location }
     {}
 
     gc_pointer(pointer const& p)
@@ -72,7 +72,7 @@ inline namespace memory
     auto reset(gc_pointer const& gcp) -> void
     {
       pointer::reset(gcp);
-      collector::registration::reset(gcp.object_header);
+      collector::registration::reset(gcp.location);
     }
 
     auto reset(pointer const& p) -> void
