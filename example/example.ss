@@ -4,10 +4,13 @@
         (scheme write)
         (srfi 78))
 
+(display (get-environment-variable "LD_LIBRARY_PATH"))
+(newline)
+
 ; ------------------------------------------------------------------------------
 
 (define dummy-procedure
-  (procedure "build/libexample.so" 'dummy_procedure))
+  (procedure "libexample.so" 'dummy_procedure))
 
 (check (procedure? dummy-procedure) => #t)
 
@@ -15,23 +18,23 @@
 
 ; ------------------------------------------------------------------------------
 
-(define arity
-  (procedure "build/libexample.so" 'arity))
+(define argument-length
+  (procedure "libexample.so" 'argument_length))
 
-(check (procedure? arity) => #t)
+(check (procedure? argument-length) => #t)
 
-(check (arity 'hoge 42 #(1 2 3) 3.14) => 4)
+(check (argument-length 'hoge 42 #(1 2 3) 3.14) => 4)
 
 ; ------------------------------------------------------------------------------
 
 (define make-hoge
-  (procedure "build/libexample.so" 'make_hoge))
+  (procedure "libexample.so" 'make_hoge))
 
 (define hoge?
-  (procedure "build/libexample.so" 'is_hoge))
+  (procedure "libexample.so" 'is_hoge))
 
 (define hoge-value
-  (procedure "build/libexample.so" 'hoge_value))
+  (procedure "libexample.so" 'hoge_value))
 
 (check (procedure? make-hoge) => #t)
 

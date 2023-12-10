@@ -14,6 +14,14 @@
    limitations under the License.
 */
 
+#if __unix__
+#include <dlfcn.h> // dlopen, dlclose, dlerror
+#else
+#error
+#endif
+
+#include <iostream>
+
 #include <meevax/memory/collector.hpp>
 #include <meevax/memory/literal.hpp>
 
@@ -24,9 +32,6 @@ inline namespace memory
   collector::~collector()
   {
     clear();
-
-    assert(std::size(tags) == 0);
-    assert(std::size(registry) == 0);
   }
 
   auto collector::clear() -> void
@@ -48,6 +53,51 @@ inline namespace memory
   auto collector::count() noexcept -> std::size_t
   {
     return std::size(tags);
+  }
+
+  auto collector::dlclose(void * const handle) -> void
+  {
+    if (handle and ::dlclose(handle))
+    {
+      std::cerr << ::dlerror() << std::endl;
+    }
+  }
+
+  auto collector::dlopen(std::string const& filename) -> void *
+  {
+    ::dlerror(); // Clear
+
+    try
+    {
+      return dynamic_linked_libraries.at(filename).get();
+    }
+    catch (std::out_of_range const&)
+    {
+      if (auto handle = ::dlopen(filename.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
+      {
+        dynamic_linked_libraries.emplace(std::piecewise_construct,
+                                         std::forward_as_tuple(filename),
+                                         std::forward_as_tuple(handle, dlclose));
+
+        return dlopen(filename);
+      }
+      else
+      {
+        throw std::runtime_error(::dlerror());
+      }
+    }
+  }
+
+  auto collector::dlsym(std::string const& symbol, void * const handle) -> void *
+  {
+    if (auto address = ::dlsym(handle, symbol.c_str()); address)
+    {
+      return address;
+    }
+    else
+    {
+      throw std::runtime_error(::dlerror());
+    }
   }
 
   auto collector::mark() -> void
