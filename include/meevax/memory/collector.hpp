@@ -116,29 +116,29 @@ inline namespace memory
       }
     };
 
-    class registration
+    class mutator
     {
       friend class collector;
 
     protected:
       tag * location = nullptr;
 
-      explicit constexpr registration() = default;
+      explicit constexpr mutator() = default;
 
-      explicit registration(tag * location) noexcept
+      explicit mutator(tag * location) noexcept
         : location { location }
       {
         if (location)
         {
-          registry.insert(this);
+          mutators.insert(this);
         }
       }
 
-      ~registration() noexcept
+      ~mutator() noexcept
       {
         if (location)
         {
-          registry.erase(this);
+          mutators.erase(this);
         }
       }
 
@@ -146,11 +146,11 @@ inline namespace memory
       {
         if (auto before = std::exchange(location, after); not before and after)
         {
-          registry.insert(this);
+          mutators.insert(this);
         }
         else if (before and not after)
         {
-          registry.erase(this);
+          mutators.erase(this);
         }
       }
 
@@ -183,7 +183,7 @@ inline namespace memory
 
     static inline pointer_set<tag *> tags {};
 
-    static inline pointer_set<registration *> registry {};
+    static inline pointer_set<mutator *> mutators {};
 
     static inline std::size_t allocation = 0;
 

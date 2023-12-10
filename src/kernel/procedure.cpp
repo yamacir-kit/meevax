@@ -14,17 +14,7 @@
    limitations under the License.
 */
 
-#if __unix__
-#include <dlfcn.h> // dlopen, dlclose, dlerror
-#else
-#error
-#endif
-
-#include <memory>
-
-#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/procedure.hpp>
-#include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax

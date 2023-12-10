@@ -27,18 +27,18 @@ inline namespace memory
 {
   template <typename... Ts>
   struct gc_pointer : public heterogeneous_pointer<nan_boxing_pointer, Ts...>
-                    , private collector::registration
+                    , private collector::mutator
   {
     using pointer = heterogeneous_pointer<nan_boxing_pointer, Ts...>;
 
     gc_pointer(gc_pointer const& gcp)
       : pointer { gcp }
-      , collector::registration { gcp.location }
+      , collector::mutator { gcp.location }
     {}
 
     gc_pointer(pointer const& p)
       : pointer { p }
-      , collector::registration { locate(pointer::get()) }
+      , collector::mutator { locate(pointer::get()) }
     {}
 
     gc_pointer(std::nullptr_t = nullptr)
@@ -72,19 +72,19 @@ inline namespace memory
     auto reset(gc_pointer const& gcp) -> void
     {
       pointer::reset(gcp);
-      collector::registration::reset(gcp.location);
+      collector::mutator::reset(gcp.location);
     }
 
     auto reset(pointer const& p) -> void
     {
       pointer::reset(p);
-      collector::registration::reset(locate(pointer::get()));
+      collector::mutator::reset(locate(pointer::get()));
     }
 
     auto reset(std::nullptr_t = nullptr) -> void
     {
       pointer::reset();
-      collector::registration::reset();
+      collector::mutator::reset();
     }
   };
 } // namespace memory

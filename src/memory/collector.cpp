@@ -104,31 +104,30 @@ inline namespace memory
   {
     marker::clear();
 
-    auto is_root_object = [begin = tags.begin()](registration * given)
+    auto is_root_object = [begin = tags.begin()](mutator * given)
     {
       /*
-         If the given registration is a non-root object, then an object
-         containing this registration as a data member exists somewhere in
-         memory.
+         If the given mutator is a non-root object, then an object containing
+         this mutator as a data member exists somewhere in memory.
 
-         Containing the registration as a data member means that the address of
-         the registration is contained in the interval of the object's
-         base-address ~ base-address + object-size. The tag is present to
-         keep track of the base-address and size of the object needed here.
+         Containing the mutator as a data member means that the address of the
+         mutator is contained in the interval of the object's base-address ~
+         base-address + object-size. The tag is present to keep track of the
+         base-address and size of the object needed here.
       */
       auto iter = tags.lower_bound(reinterpret_cast<tag *>(given));
 
       return iter == begin or not (*--iter)->contains(given);
     };
 
-    for (auto&& registration : registry)
+    for (auto&& mutator : mutators)
     {
-      assert(registration);
-      assert(registration->location);
+      assert(mutator);
+      assert(mutator->location);
 
-      if (not registration->location->marked() and is_root_object(registration))
+      if (not mutator->location->marked() and is_root_object(mutator))
       {
-        mark(registration->location);
+        mark(mutator->location);
       }
     }
   }
@@ -141,10 +140,10 @@ inline namespace memory
     {
       tag->mark();
 
-      const auto lower_address = tag->lower_address<registration>();
-      const auto upper_address = tag->upper_address<registration>();
+      const auto lower_address = tag->lower_address<mutator>();
+      const auto upper_address = tag->upper_address<mutator>();
 
-      for (auto iter = registry.lower_bound(lower_address); iter != registry.end() and *iter < upper_address; ++iter)
+      for (auto iter = mutators.lower_bound(lower_address); iter != mutators.end() and *iter < upper_address; ++iter)
       {
         mark((*iter)->location);
       }
