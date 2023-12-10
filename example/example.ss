@@ -18,12 +18,12 @@
 
 ; ------------------------------------------------------------------------------
 
-(define arity
-  (procedure "libexample.so" 'arity))
+(define argument-length
+  (procedure "libexample.so" 'argument_length))
 
-(check (procedure? arity) => #t)
+(check (procedure? argument-length) => #t)
 
-(check (arity 'hoge 42 #(1 2 3) 3.14) => 4)
+(check (argument-length 'hoge 42 #(1 2 3) 3.14) => 4)
 
 ; ------------------------------------------------------------------------------
 
