@@ -190,7 +190,7 @@ inline namespace memory
     static inline std::size_t threshold = 8_MiB;
 
   public:
-    collector();
+    collector() = default;
 
     collector(collector &&) = delete;
 
@@ -202,9 +202,7 @@ inline namespace memory
 
     auto operator =(collector const&) -> collector & = delete;
 
-    template <typename T,
-              typename Allocator = default_allocator<void>,
-              typename... Ts>
+    template <typename T, typename Allocator = default_allocator<void>, typename... Ts>
     static auto make(Ts&&... xs)
     {
       if (allocation += sizeof(T); threshold < allocation)
@@ -235,8 +233,9 @@ inline namespace memory
     static auto mark(tag * const) -> void;
 
     static auto sweep() -> void;
-  }
-  static gc;
+  };
+
+  auto primary_collector() -> collector &;
 } // namespace memory
 } // namespace meevax
 

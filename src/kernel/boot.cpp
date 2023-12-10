@@ -431,19 +431,6 @@ inline namespace kernel
       });
     });
 
-    define<library>("(meevax garbage-collector)", [](library & library)
-    {
-      library.define<procedure>("gc-collect", [](let const&)
-      {
-        gc.collect();
-      });
-
-      library.define<procedure>("gc-count", []()
-      {
-        return make<exact_integer>(gc.count());
-      });
-    });
-
     define<library>("(meevax inexact)", [](library & library)
     {
       library.define<procedure>("finite?", [](let const& xs)

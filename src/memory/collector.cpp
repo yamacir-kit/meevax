@@ -21,24 +21,12 @@ namespace meevax
 {
 inline namespace memory
 {
-  static std::size_t reference_count = 0;
-
-  collector::collector()
-  {
-    if (not reference_count++)
-    {
-    }
-  }
-
   collector::~collector()
   {
-    if (not --reference_count)
-    {
-      clear();
+    clear();
 
-      assert(std::size(tags) == 0);
-      assert(std::size(registry) == 0);
-    }
+    assert(std::size(tags) == 0);
+    assert(std::size(registry) == 0);
   }
 
   auto collector::clear() -> void
@@ -123,6 +111,12 @@ inline namespace memory
         tags.erase(tag);
       }
     }
+  }
+
+  auto primary_collector() -> collector &
+  {
+    static auto c = collector();
+    return c;
   }
 } // namespace memory
 } // namespace meevax

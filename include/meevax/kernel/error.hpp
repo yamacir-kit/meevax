@@ -69,7 +69,6 @@ inline namespace kernel
     }
     catch (int const status) // NOTE: emergency-exit
     {
-      gc.clear();
       return status;
     }
     catch (error const& error)
