@@ -14,9 +14,13 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Meevax::kernel)
 
 enable_testing()
 
-add_test(NAME ${PROJECT_NAME}
-         COMMAND meevax ${PROJECT_NAME}.ss
-         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(
+  NAME ${PROJECT_NAME}
+  COMMAND meevax ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.ss)
+
+set_property(
+  TEST ${PROJECT_NAME}
+  PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_CURRENT_BINARY_DIR}")
 
 add_custom_target(develop COMMAND ${CMAKE_MAKE_PROGRAM}
                           COMMAND ${CMAKE_CTEST_COMMAND})
