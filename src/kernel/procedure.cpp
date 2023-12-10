@@ -35,17 +35,5 @@ inline namespace kernel
   {
     return os << magenta("#,(") << green("procedure") << " " << symbol(datum.name) << magenta(")");
   }
-
-  auto dlsym(std::string const& symbol, void * const handle) -> procedure_pointer
-  {
-    if (auto address = ::dlsym(handle, symbol.c_str()); address)
-    {
-      return reinterpret_cast<procedure_pointer>(address);
-    }
-    else
-    {
-      throw file_error(make<string>(::dlerror()));
-    }
-  }
 } // namespace kernel
 } // namespace meevax

@@ -1308,8 +1308,9 @@ inline namespace kernel
       library.define<procedure>("procedure", [](let const& xs)
       {
         return make<procedure>(cadr(xs).as<symbol>(),
-                               dlsym(cadr(xs).as<symbol>(),
-                                     primary_collector().dlopen(car(xs).as<string>())));
+                               reinterpret_cast<procedure_pointer>(
+                                 primary_collector().dlsym(cadr(xs).as<symbol>(),
+                                                           primary_collector().dlopen(car(xs).as<string>()))));
       });
     });
 

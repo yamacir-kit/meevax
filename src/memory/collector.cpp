@@ -88,6 +88,18 @@ inline namespace memory
     }
   }
 
+  auto collector::dlsym(std::string const& symbol, void * const handle) -> void *
+  {
+    if (auto address = ::dlsym(handle, symbol.c_str()); address)
+    {
+      return address;
+    }
+    else
+    {
+      throw std::runtime_error(::dlerror());
+    }
+  }
+
   auto collector::mark() -> void
   {
     marker::clear();

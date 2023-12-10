@@ -86,8 +86,6 @@ inline namespace kernel
   };
 
   using procedure_pointer = auto (*)(object &) -> object;
-
-  auto dlsym(std::string const&, void * const) -> procedure_pointer;
 } // namespace kernel
 } // namespace meevax
 

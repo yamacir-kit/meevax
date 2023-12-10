@@ -234,6 +234,8 @@ inline namespace memory
 
     static auto dlopen(std::string const&) -> void *;
 
+    static auto dlsym(std::string const&, void * const) -> void *;
+
     static auto mark() -> void;
 
     static auto mark(tag * const) -> void;
