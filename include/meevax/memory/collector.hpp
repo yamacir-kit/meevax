@@ -189,6 +189,8 @@ inline namespace memory
 
     static inline std::size_t threshold = 8_MiB;
 
+    static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
+
   public:
     collector() = default;
 
@@ -227,6 +229,10 @@ inline namespace memory
     static auto collect() -> void;
 
     static auto count() noexcept -> std::size_t;
+
+    static auto dlclose(void * const) -> void;
+
+    static auto dlopen(std::string const&) -> void *;
 
     static auto mark() -> void;
 
