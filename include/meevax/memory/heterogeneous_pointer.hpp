@@ -14,29 +14,28 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_POINTER_HPP
-#define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
+#ifndef INCLUDED_MEEVAX_MEMORY_HETEROGENEOUS_POINTER_HPP
+#define INCLUDED_MEEVAX_MEMORY_HETEROGENEOUS_POINTER_HPP
 
 #include <meevax/functional/combinator.hpp>
 #include <meevax/functional/compose.hpp>
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
-#include <meevax/memory/gc_pointer.hpp>
-#include <meevax/type_traits/is_array_subscriptable.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
+#include <meevax/type_traits/requires.hpp>
 #include <meevax/utility/combination.hpp>
 #include <meevax/utility/debug.hpp>
 #include <meevax/utility/demangle.hpp>
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace memory
 {
   using null = std::nullptr_t;
 
-  template <template <typename...> typename Pointer, typename Top, typename... Ts>
-  class heterogeneous : public Pointer<Top, Ts...>
+  template <template <typename...> typename BasePointer, typename Top, typename... Ts>
+  class heterogeneous_pointer : public BasePointer<Top, Ts...>
   {
     template <typename Bound>
     struct binder : public virtual Top
@@ -84,53 +83,31 @@ inline namespace kernel
           return os << magenta("#,(") << green(typeid(Bound).name()) << faint(" #;", static_cast<Bound const*>(this)) << magenta(")");
         }
       }
-
-      auto operator []([[maybe_unused]] std::size_t k) const -> heterogeneous const& override
-      {
-        if constexpr (is_array_subscriptable_v<Bound const&>)
-        {
-          return static_cast<Bound const&>(*this)[k];
-        }
-        else
-        {
-          throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
-        }
-      }
-
-      auto operator []([[maybe_unused]] std::size_t k) -> heterogeneous & override
-      {
-        if constexpr (is_array_subscriptable_v<Bound &>)
-        {
-          return static_cast<Bound &>(*this)[k];
-        }
-        else
-        {
-          throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
-        }
-      }
     };
 
   public:
-    using Pointer<Top, Ts...>::Pointer;
+    using BasePointer<Top, Ts...>::BasePointer;
 
-    using Pointer<Top, Ts...>::dereferenceable;
+    using BasePointer<Top, Ts...>::dereferenceable;
 
-    using Pointer<Top, Ts...>::get;
+    using BasePointer<Top, Ts...>::get;
 
-    template <typename Bound, typename... Us>
+    template <typename Bound,
+              typename Allocator = collector::default_allocator<void>,
+              typename... Us>
     static auto allocate(Us&&... xs)
     {
       if constexpr (std::is_same_v<Bound, Top>)
       {
-        return heterogeneous(gc.make<Top>(std::forward<decltype(xs)>(xs)...));
+        return heterogeneous_pointer(primary_collector().make<Top, Allocator>(std::forward<decltype(xs)>(xs)...));
       }
       else if constexpr (std::is_class_v<Bound>)
       {
-        return heterogeneous(gc.make<binder<Bound>>(std::forward<decltype(xs)>(xs)...));
+        return heterogeneous_pointer(primary_collector().make<binder<Bound>, Allocator>(std::forward<decltype(xs)>(xs)...));
       }
       else
       {
-        return heterogeneous(std::forward<decltype(xs)>(xs)...);
+        return heterogeneous_pointer(std::forward<decltype(xs)>(xs)...);
       }
     }
 
@@ -139,7 +116,7 @@ inline namespace kernel
     {
       if constexpr (std::is_same_v<std::decay_t<U>, Top>)
       {
-        return Pointer<Top, Ts...>::operator *();
+        return BasePointer<Top, Ts...>::operator *();
       }
       else if constexpr (std::is_class_v<std::decay_t<U>>)
       {
@@ -154,7 +131,7 @@ inline namespace kernel
       }
       else
       {
-        return Pointer<Top, Ts...>::template as<U>();
+        return BasePointer<Top, Ts...>::template as<U>();
       }
     }
 
@@ -163,7 +140,7 @@ inline namespace kernel
     {
       if constexpr (std::is_same_v<std::decay_t<U>, Top>)
       {
-        return Pointer<Top, Ts...>::operator *();
+        return BasePointer<Top, Ts...>::operator *();
       }
       else if constexpr (std::is_class_v<std::decay_t<U>>)
       {
@@ -178,7 +155,7 @@ inline namespace kernel
       }
       else
       {
-        return Pointer<Top, Ts...>::template as<U>();
+        return BasePointer<Top, Ts...>::template as<U>();
       }
     }
 
@@ -188,7 +165,7 @@ inline namespace kernel
       return as<std::add_const_t<U>>();
     }
 
-    inline auto compare(heterogeneous const& rhs) const -> bool
+    inline auto compare(heterogeneous_pointer const& rhs) const -> bool
     {
       if (dereferenceable())
       {
@@ -196,7 +173,7 @@ inline namespace kernel
       }
       else
       {
-        return Pointer<Top, Ts...>::compare(rhs);
+        return BasePointer<Top, Ts...>::compare(rhs);
       }
     }
 
@@ -220,7 +197,7 @@ inline namespace kernel
       }
       else
       {
-        return Pointer<Top, Ts...>::type();
+        return BasePointer<Top, Ts...>::type();
       }
     }
 
@@ -232,35 +209,11 @@ inline namespace kernel
       }
       else
       {
-        return Pointer<Top, Ts...>::write(os);
+        return BasePointer<Top, Ts...>::write(os);
       }
     }
 
-    inline auto operator [](std::size_t k) const -> heterogeneous const&
-    {
-      if (dereferenceable() and *this)
-      {
-        return get()->operator [](k);
-      }
-      else
-      {
-        throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
-      }
-    }
-
-    inline auto operator [](std::size_t k) -> heterogeneous &
-    {
-      if (dereferenceable() and *this)
-      {
-        return get()->operator [](k);
-      }
-      else
-      {
-        throw std::runtime_error(lexical_cast<std::string>("no viable array subscript operator for ", demangle(type())));
-      }
-    }
-
-    friend auto operator <<(std::ostream & os, heterogeneous const& datum) -> std::ostream &
+    friend auto operator <<(std::ostream & os, heterogeneous_pointer const& datum) -> std::ostream &
     {
       return datum.write(os);
     }
@@ -295,7 +248,7 @@ inline namespace kernel
       return dereferenceable() and *this ? get()->cend() : typename Top::const_iterator();
     }
   };
-} // namespace kernel
+} // namespace memory
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_POINTER_HPP
+#endif // INCLUDED_MEEVAX_MEMORY_HETEROGENEOUS_POINTER_HPP

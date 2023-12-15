@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 
 #include <meevax/memory/collector.hpp>
+#include <meevax/memory/heterogeneous_pointer.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
 
 namespace meevax
@@ -25,22 +26,30 @@ namespace meevax
 inline namespace memory
 {
   template <typename... Ts>
-  struct gc_pointer : public nan_boxing_pointer<Ts...>
-                    , private collector::registration
+  struct gc_pointer : public heterogeneous_pointer<nan_boxing_pointer, Ts...>
+                    , private collector::mutator
   {
-    explicit constexpr gc_pointer(std::nullptr_t = nullptr)
+    using pointer = heterogeneous_pointer<nan_boxing_pointer, Ts...>;
+
+    gc_pointer(gc_pointer const& gcp)
+      : pointer { gcp }
+      , collector::mutator { gcp.location }
+    {}
+
+    gc_pointer(pointer const& p)
+      : pointer { p }
+      , collector::mutator { locate(pointer::get()) }
+    {}
+
+    gc_pointer(std::nullptr_t = nullptr)
     {}
 
     template <typename T, REQUIRES(std::is_scalar<T>)>
     explicit gc_pointer(T const& datum)
-      : nan_boxing_pointer<Ts...> { datum }
-      , collector::registration { locate(nan_boxing_pointer<Ts...>::get()) }
-    {}
-
-    explicit gc_pointer(gc_pointer const& gcp)
-      : nan_boxing_pointer<Ts...> { gcp }
-      , collector::registration { gcp.header }
-    {}
+      : pointer { datum }
+    {
+      assert(pointer::get() == nullptr);
+    }
 
     auto operator =(gc_pointer const& gcp) -> auto &
     {
@@ -48,16 +57,34 @@ inline namespace memory
       return *this;
     }
 
+    auto operator =(pointer const& p) -> auto &
+    {
+      reset(p);
+      return *this;
+    }
+
+    auto operator =(std::nullptr_t) -> auto &
+    {
+      reset();
+      return *this;
+    }
+
     auto reset(gc_pointer const& gcp) -> void
     {
-      nan_boxing_pointer<Ts...>::reset(gcp);
-      collector::registration::reset(gcp.header);
+      pointer::reset(gcp);
+      collector::mutator::reset(gcp.location);
+    }
+
+    auto reset(pointer const& p) -> void
+    {
+      pointer::reset(p);
+      collector::mutator::reset(locate(pointer::get()));
     }
 
     auto reset(std::nullptr_t = nullptr) -> void
     {
-      nan_boxing_pointer<Ts...>::reset();
-      collector::registration::reset();
+      pointer::reset();
+      collector::mutator::reset();
     }
   };
 } // namespace memory

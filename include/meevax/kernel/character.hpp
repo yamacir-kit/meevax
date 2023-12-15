@@ -17,9 +17,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
+#include <cstdint>
 #include <optional>
-
-#include <meevax/kernel/pair.hpp>
+#include <string>
 
 namespace meevax
 {
@@ -30,6 +30,12 @@ inline namespace kernel
     using char_type = char;
 
     using int_type = std::char_traits<char_type>::int_type;
+
+    /*
+       21 <= sizeof(int_type) * 8 is a request from the maximum Unicode code
+       point 0x10FFFF. sizeof(int_type) < 6 is a requirement from nan-boxing.
+    */
+    static_assert(21 <= sizeof(int_type) * 8 and sizeof(int_type) <= 6);
 
     int_type codepoint;
 

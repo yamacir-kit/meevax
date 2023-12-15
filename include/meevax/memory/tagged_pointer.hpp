@@ -19,7 +19,7 @@
 
 #include <stdexcept>
 
-#include <meevax/memory/bit_cast.hpp>
+#include <meevax/bit/bit_cast.hpp>
 #include <meevax/memory/simple_pointer.hpp>
 #include <meevax/type_traits/integer.hpp>
 

@@ -14,47 +14,28 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_MARKER_HPP
-#define INCLUDED_MEEVAX_MEMORY_MARKER_HPP
+#ifndef INCLUDED_MEEVAX_BIT_LOG2_HPP
+#define INCLUDED_MEEVAX_BIT_LOG2_HPP
 
 namespace meevax
 {
-inline namespace memory
+inline namespace bit
 {
-  class marker
+  template <typename T>
+  constexpr auto log2(T x) noexcept -> T
   {
-    static inline std::size_t phase;
+    return (x < 2) ? 1 : log2(x / 2) + 1;
+  }
 
-    std::size_t value;
-
-  public:
-    struct initializer
-    {
-      explicit initializer();
-    };
-
-    marker() noexcept
-      : value { phase }
-    {}
-
-    auto mark() noexcept
-    {
-      value = phase;
-    }
-
-    auto marked() const noexcept
-    {
-      return value == phase;
-    }
-
-    static auto clear() noexcept
-    {
-      ++phase;
-    }
-  };
-
-  static marker::initializer initializer;
-} // namespace memory
+  static_assert(log2(0b0001) == 1);
+  static_assert(log2(0b0010) == 2);
+  static_assert(log2(0b0011) == 2);
+  static_assert(log2(0b0100) == 3);
+  static_assert(log2(0b0101) == 3);
+  static_assert(log2(0b0110) == 3);
+  static_assert(log2(0b0111) == 3);
+  static_assert(log2(0b1000) == 4);
+} // namespace bit
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_MEMORY_MARKER_HPP
+#endif // INCLUDED_MEEVAX_BIT_LOG2_HPP

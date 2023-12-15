@@ -23,7 +23,7 @@
 #include <ostream>
 #include <typeinfo>
 
-#include <meevax/memory/bit_cast.hpp>
+#include <meevax/bit/bit_cast.hpp>
 #include <meevax/type_traits/integer.hpp>
 
 namespace meevax

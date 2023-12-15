@@ -14,47 +14,39 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_MARKER_HPP
-#define INCLUDED_MEEVAX_MEMORY_MARKER_HPP
+#ifndef INCLUDED_MEEVAX_BITSET_SIMPLE_BITSET_HPP
+#define INCLUDED_MEEVAX_BITSET_SIMPLE_BITSET_HPP
+
+#include <array>
+#include <bitset>
 
 namespace meevax
 {
-inline namespace memory
+inline namespace bitset
 {
-  class marker
+  template <auto N>
+  struct simple_bitset : public std::array<bool, N>
   {
-    static inline std::size_t phase;
-
-    std::size_t value;
-
-  public:
-    struct initializer
-    {
-      explicit initializer();
-    };
-
-    marker() noexcept
-      : value { phase }
+    constexpr simple_bitset()
+      : std::array<bool, N> {}
     {}
 
-    auto mark() noexcept
+    auto reset(std::size_t i) noexcept -> void
     {
-      value = phase;
+      (*this)[i] = false;
     }
 
-    auto marked() const noexcept
+    auto set(std::size_t i) noexcept -> void
     {
-      return value == phase;
+      (*this)[i] = true;
     }
 
-    static auto clear() noexcept
+    auto test(std::size_t i) const noexcept -> bool
     {
-      ++phase;
+      return (*this)[i];
     }
   };
-
-  static marker::initializer initializer;
-} // namespace memory
+} // namespace bitset
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_MEMORY_MARKER_HPP
+#endif // INCLUDED_MEEVAX_BITSET_SIMPLE_BITSET_HPP

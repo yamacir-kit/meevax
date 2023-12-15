@@ -14,6 +14,14 @@
    limitations under the License.
 */
 
+#if __unix__
+#include <dlfcn.h> // dlopen, dlclose, dlerror
+#else
+#error
+#endif
+
+#include <iostream>
+
 #include <meevax/memory/collector.hpp>
 #include <meevax/memory/literal.hpp>
 
@@ -21,32 +29,17 @@ namespace meevax
 {
 inline namespace memory
 {
-  static std::size_t reference_count = 0;
-
-  collector::collector()
-  {
-    if (not reference_count++)
-    {
-    }
-  }
-
   collector::~collector()
   {
-    if (not --reference_count)
-    {
-      clear();
-
-      assert(std::size(headers) == 0);
-      assert(std::size(registry) == 0);
-    }
+    clear();
   }
 
   auto collector::clear() -> void
   {
-    for (auto&& header : headers)
+    for (auto&& tag : tags)
     {
-      delete header;
-      headers.erase(header);
+      delete tag;
+      tags.erase(tag);
     }
   }
 
@@ -59,70 +52,120 @@ inline namespace memory
 
   auto collector::count() noexcept -> std::size_t
   {
-    return std::size(headers);
+    return std::size(tags);
+  }
+
+  auto collector::dlclose(void * const handle) -> void
+  {
+    if (handle and ::dlclose(handle))
+    {
+      std::cerr << ::dlerror() << std::endl;
+    }
+  }
+
+  auto collector::dlopen(std::string const& filename) -> void *
+  {
+    ::dlerror(); // Clear
+
+    try
+    {
+      return dynamic_linked_libraries.at(filename).get();
+    }
+    catch (std::out_of_range const&)
+    {
+      if (auto handle = ::dlopen(filename.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
+      {
+        dynamic_linked_libraries.emplace(std::piecewise_construct,
+                                         std::forward_as_tuple(filename),
+                                         std::forward_as_tuple(handle, dlclose));
+
+        return dlopen(filename);
+      }
+      else
+      {
+        throw std::runtime_error(::dlerror());
+      }
+    }
+  }
+
+  auto collector::dlsym(std::string const& symbol, void * const handle) -> void *
+  {
+    if (auto address = ::dlsym(handle, symbol.c_str()); address)
+    {
+      return address;
+    }
+    else
+    {
+      throw std::runtime_error(::dlerror());
+    }
   }
 
   auto collector::mark() -> void
   {
     marker::clear();
 
-    auto is_root_object = [begin = headers.begin()](registration * given)
+    auto is_root_object = [begin = tags.begin()](mutator * given)
     {
       /*
-         If the given registration is a non-root object, then an object
-         containing this registration as a data member exists somewhere in
-         memory.
+         If the given mutator is a non-root object, then an object containing
+         this mutator as a data member exists somewhere in memory.
 
-         Containing the registration as a data member means that the address of
-         the registration is contained in the interval of the object's
-         base-address ~ base-address + object-size. The header is present to
-         keep track of the base-address and size of the object needed here.
+         Containing the mutator as a data member means that the address of the
+         mutator is contained in the interval of the object's base-address ~
+         base-address + object-size. The tag is present to keep track of the
+         base-address and size of the object needed here.
       */
-      auto iter = headers.lower_bound(reinterpret_cast<header *>(given));
+      auto iter = tags.lower_bound(reinterpret_cast<tag *>(given));
 
       return iter == begin or not (*--iter)->contains(given);
     };
 
-    for (auto&& registration : registry)
+    for (auto&& mutator : mutators)
     {
-      assert(registration);
-      assert(registration->header);
+      assert(mutator);
+      assert(mutator->location);
 
-      if (not registration->header->marked() and is_root_object(registration))
+      if (not mutator->location->marked() and is_root_object(mutator))
       {
-        mark(registration->header);
+        mark(mutator->location);
       }
     }
   }
 
-  auto collector::mark(header * const header) -> void
+  auto collector::mark(tag * const tag) -> void
   {
-    assert(header);
+    assert(tag);
 
-    if (not header->marked())
+    if (not tag->marked())
     {
-      header->mark();
+      tag->mark();
 
-      const auto lower_address = reinterpret_cast<registration *>(header->lower_address());
-      const auto upper_address = reinterpret_cast<registration *>(header->upper_address());
+      const auto lower_address = tag->lower_address<mutator>();
+      const auto upper_address = tag->upper_address<mutator>();
 
-      for (auto iter = registry.lower_bound(lower_address); iter != registry.end() and *iter < upper_address; ++iter)
+      for (auto iter = mutators.lower_bound(lower_address); iter != mutators.end() and *iter < upper_address; ++iter)
       {
-        mark((*iter)->header);
+        mark((*iter)->location);
       }
     }
   }
 
   auto collector::sweep() -> void
   {
-    for (auto&& header : headers)
+    for (auto&& tag : tags)
     {
-      if (not header->marked())
+      if (not tag->marked())
       {
-        delete header;
-        headers.erase(header);
+        delete tag;
+        tags.erase(tag);
       }
     }
+  }
+
+  auto primary_collector() -> collector &
+  {
+    static auto c = collector();
+    return c;
   }
 } // namespace memory
 } // namespace meevax

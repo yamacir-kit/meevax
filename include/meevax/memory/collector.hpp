@@ -19,8 +19,8 @@
 
 #include <cstddef>
 
-#include <meevax/memory/header.hpp>
 #include <meevax/memory/literal.hpp>
+#include <meevax/memory/marker.hpp>
 #include <meevax/memory/pointer_set.hpp>
 
 namespace meevax
@@ -37,45 +37,124 @@ inline namespace memory
   class collector
   {
   public:
-    class registration
+    struct tag : public marker
+    {
+      std::uintptr_t address;
+
+      std::size_t size;
+
+      explicit tag(void const* const address, std::size_t size)
+        : address { reinterpret_cast<std::uintptr_t>(address) }
+        , size    { size }
+      {}
+
+      virtual ~tag() = default;
+
+      template <typename T = void>
+      auto lower_address() const noexcept
+      {
+        return reinterpret_cast<T *>(address);
+      }
+
+      template <typename T = void>
+      auto upper_address() const noexcept
+      {
+        return reinterpret_cast<T *>(address + size);
+      }
+
+      auto contains(void const* const data) const noexcept
+      {
+        return lower_address() <= data and data < upper_address();
+      }
+    };
+
+    template <typename T, typename AllocatorTraits>
+    struct tagged : public tag
+    {
+      using allocator_type = typename AllocatorTraits::template rebind_alloc<tagged<T, AllocatorTraits>>;
+
+      using pointer = typename std::allocator_traits<allocator_type>::pointer;
+
+      /*
+         Support for custom allocators is incomplete. Because the allocator is
+         templated and held as a static data member, this allocator may be
+         constructed after the collector and destructed before the collector.
+         (See "Static Initialization/Destruction Order Fiasco.") In that case,
+         illegal memory accesses will occur because the allocator corresponding
+         to a particular type has already been destructed at the time
+         collector::clear() is called within collector::~collector().
+
+         The problem is currently not occurring because the lifetime of the
+         storage allocated by std::allocator is independent of the lifetime of
+         the std::allocator type object. Conversely, if there is a relationship
+         between the storage allocated by the allocator object and the lifetime
+         of the allocator object, a problem will occur. For example, a memory
+         pool allocator, which allocates the pool in the allocator constructor
+         and releases the pool in the allocator destructor, will cause
+         problems.
+      */
+      static inline auto allocator = allocator_type();
+
+      T body;
+
+      template <typename... Ts>
+      explicit tagged(Ts&&... xs)
+        : tag  { std::addressof(body), sizeof(T) }
+        , body { std::forward<decltype(xs)>(xs)... }
+      {}
+
+      ~tagged() override = default;
+
+      auto operator new(std::size_t) -> void *
+      {
+        return allocator.allocate(1);
+      }
+
+      auto operator delete(void * data) noexcept -> void
+      {
+        allocator.deallocate(reinterpret_cast<pointer>(data), 1);
+      }
+    };
+
+    class mutator
     {
       friend class collector;
 
     protected:
-      memory::header * header = nullptr;
+      tag * location = nullptr;
 
-      explicit constexpr registration() = default;
+      explicit constexpr mutator() = default;
 
-      explicit registration(memory::header * header) noexcept
-        : header { header }
+      explicit mutator(tag * location) noexcept
+        : location { location }
       {
-        if (header)
+        if (location)
         {
-          registry.insert(this);
+          mutators.insert(this);
         }
       }
 
-      ~registration() noexcept
+      ~mutator() noexcept
       {
-        if (header)
+        if (location)
         {
-          registry.erase(this);
+          mutators.erase(this);
         }
       }
 
-      auto reset(memory::header * after = nullptr) noexcept -> void
+      auto reset(tag * after = nullptr) noexcept -> void
       {
-        if (auto before = std::exchange(header, after); not before and after)
+        if (auto before = std::exchange(location, after); not before and after)
         {
-          registry.insert(this);
+          mutators.insert(this);
         }
         else if (before and not after)
         {
-          registry.erase(this);
+          mutators.erase(this);
         }
       }
 
-      static auto locate(void * const data) noexcept -> memory::header *
+      static auto locate(void * const data) noexcept -> tag *
       {
         if (not data)
         {
@@ -85,7 +164,7 @@ inline namespace memory
         {
           return cache;
         }
-        else if (auto iter = headers.lower_bound(reinterpret_cast<memory::header *>(data)); iter != headers.begin() and (*--iter)->contains(data))
+        else if (auto iter = tags.lower_bound(reinterpret_cast<tag *>(data)); iter != tags.begin() and (*--iter)->contains(data))
         {
           return *iter;
         }
@@ -96,23 +175,28 @@ inline namespace memory
       }
     };
 
+    template <typename... Ts>
+    using default_allocator = std::allocator<Ts...>;
+
   protected:
-    static inline header * cache = nullptr;
+    static inline tag * cache = nullptr;
 
-    static inline pointer_set<header *> headers {};
+    static inline pointer_set<tag *> tags {};
 
-    static inline pointer_set<registration *> registry {};
+    static inline pointer_set<mutator *> mutators {};
 
     static inline std::size_t allocation = 0;
 
     static inline std::size_t threshold = 8_MiB;
 
+    static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
+
   public:
-    explicit collector();
+    collector() = default;
 
-    explicit collector(collector &&) = delete;
+    collector(collector &&) = delete;
 
-    explicit collector(collector const&) = delete;
+    collector(collector const&) = delete;
 
     ~collector();
 
@@ -120,7 +204,7 @@ inline namespace memory
 
     auto operator =(collector const&) -> collector & = delete;
 
-    template <typename T, typename... Ts>
+    template <typename T, typename Allocator = default_allocator<void>, typename... Ts>
     static auto make(Ts&&... xs)
     {
       if (allocation += sizeof(T); threshold < allocation)
@@ -128,11 +212,11 @@ inline namespace memory
         collect();
       }
 
-      if (auto data = new body<T>(std::forward<decltype(xs)>(xs)...); data)
+      if (auto data = new tagged<T, std::allocator_traits<Allocator>>(std::forward<decltype(xs)>(xs)...); data)
       {
-        headers.insert(cache = data);
+        tags.insert(cache = data);
 
-        return std::addressof(data->object);
+        return std::addressof(data->body);
       }
       else
       {
@@ -146,13 +230,20 @@ inline namespace memory
 
     static auto count() noexcept -> std::size_t;
 
+    static auto dlclose(void * const) -> void;
+
+    static auto dlopen(std::string const&) -> void *;
+
+    static auto dlsym(std::string const&, void * const) -> void *;
+
     static auto mark() -> void;
 
-    static auto mark(header * const) -> void;
+    static auto mark(tag * const) -> void;
 
     static auto sweep() -> void;
-  }
-  static gc;
+  };
+
+  auto primary_collector() -> collector &;
 } // namespace memory
 } // namespace meevax
 

@@ -83,9 +83,9 @@ inline namespace kernel
 
     if (d)
     {
-      s = d[0];
-      e = d[1];
-      c = d[2];
+      s = head(d, 0);
+      e = head(d, 1);
+      c = head(d, 2);
       d = tail(d, 3);
     }
 
@@ -106,7 +106,7 @@ inline namespace kernel
 
   auto resolve(object const& form) -> object
   {
-    if (form[0].as<symbol>() == "only") /* -------------------------------------
+    if (car(form).as<symbol>() == "only") /* -----------------------------------
     *
     *  <declaration> = (only <import set> <identifier> ...)
     *
@@ -128,7 +128,7 @@ inline namespace kernel
       return only(cadr(form))
                  (cddr(form));
     }
-    else if (form[0].as<symbol>() == "except") /* ------------------------------
+    else if (car(form).as<symbol>() == "except") /* ----------------------------
     *
     *  <declaration> = (except <import set> <identifier> ...)
     *
@@ -150,7 +150,7 @@ inline namespace kernel
       return except(cadr(form))
                    (cddr(form));
     }
-    else if (form[0].as<symbol>() == "prefix") /* ------------------------------
+    else if (car(form).as<symbol>() == "prefix") /* ----------------------------
     *
     *  <declaration> = (prefix <import set> <identifier>)
     *
@@ -173,7 +173,7 @@ inline namespace kernel
       return prefix(cadr(form))
                    (cddr(form));
     }
-    else if (form[0].as<symbol>() == "rename") /* ------------------------------
+    else if (car(form).as<symbol>() == "rename") /* ----------------------------
     *
     *  <declaration> = (rename <import set>
     *                          (<identifier 1> <identifier 2>) ...)
