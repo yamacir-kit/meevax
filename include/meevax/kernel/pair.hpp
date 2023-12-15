@@ -53,13 +53,13 @@ inline namespace kernel
     return object::allocate<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
   }
 
-  template <template <typename...> typename Template,
+  template <template <typename...> typename Traits,
             typename Allocator = collector::default_allocator<void>,
             typename... Ts,
-            REQUIRES(std::is_constructible<Template<Ts...>, Ts...>)>
+            REQUIRES(std::is_constructible<typename Traits<Ts...>::type, Ts...>)>
   auto make(Ts&&... xs) -> decltype(auto)
   {
-    return make<Template<Ts...>, Allocator>(std::forward<decltype(xs)>(xs)...);
+    return make<typename Traits<Ts...>::type, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
   struct pair : public std::pair<object, object>

@@ -47,10 +47,10 @@ inline namespace kernel
       export_specs = cons(input_string_port(name).read(), export_specs);
     }
 
-    template <template <typename...> typename Template, typename... Ts>
+    template <template <typename...> typename Traits, typename... Ts>
     auto define(Ts&&... xs) -> decltype(auto)
     {
-      return define<Template<Ts...>>(std::forward<decltype(xs)>(xs)...);
+      return define<typename Traits<Ts...>::type>(std::forward<decltype(xs)>(xs)...);
     }
 
     auto evaluate(object const&) -> object;
