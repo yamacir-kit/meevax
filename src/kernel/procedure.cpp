@@ -21,7 +21,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(std::ostream & os, callable const& datum) -> std::ostream &
+  auto operator <<(std::ostream & os, primitive_procedure const& datum) -> std::ostream &
   {
     return os << magenta("#,(") << green("procedure") << " " << symbol(datum.name) << magenta(")");
   }

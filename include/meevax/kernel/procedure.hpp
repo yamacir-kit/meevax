@@ -25,26 +25,28 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct callable
+  struct primitive_procedure
   {
+    using signature = auto (*)(object &) -> object;
+
     std::string const name;
 
-    explicit callable(std::string const& name)
+    explicit primitive_procedure(std::string const& name)
       : name { name }
     {}
 
     virtual auto operator ()(object & = unit) const -> object = 0;
   };
 
-  auto operator <<(std::ostream &, callable const&) -> std::ostream &;
+  auto operator <<(std::ostream &, primitive_procedure const&) -> std::ostream &;
 
   template <typename F>
-  struct generic_procedure : public callable
+  struct generic_procedure : public primitive_procedure
   {
     std::enable_if_t<std::is_invocable_v<F> or std::is_invocable_v<F, object &>, F> invocable;
 
     explicit generic_procedure(std::string const& name, F f)
-      : callable { name }
+      : primitive_procedure { name }
       , invocable { f }
     {}
 
@@ -95,8 +97,8 @@ inline namespace kernel
      into function pointer types to reduce the number of template
      instantiations.
   */
-  template <typename, typename F, typename = void>
-  struct procedure
+  template <typename F, typename = void>
+  struct procedure_traits
   {
     using type = generic_procedure<F>;
   };
@@ -104,8 +106,8 @@ inline namespace kernel
   /*
      Thunk
   */
-  template <typename T, typename F>
-  struct procedure<T, F, std::enable_if_t<std::is_convertible_v<F, auto (*)() -> object>>>
+  template <typename F>
+  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, auto (*)() -> object>>>
   {
     using type = generic_procedure<auto (*)() -> object>;
   };
@@ -113,8 +115,8 @@ inline namespace kernel
   /*
      Procedure
   */
-  template <typename T, typename F>
-  struct procedure<T, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> object>>>
+  template <typename F>
+  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> object>>>
   {
     using type = generic_procedure<auto (*)(object const&) -> object>;
   };
@@ -122,8 +124,8 @@ inline namespace kernel
   /*
      Linear update procedure
   */
-  template <typename T, typename F>
-  struct procedure<T, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object &) -> object>>>
+  template <typename F>
+  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object &) -> object>>>
   {
     using type = generic_procedure<auto (*)(object &) -> object>;
   };
@@ -131,8 +133,8 @@ inline namespace kernel
   /*
      Predicate
   */
-  template <typename T, typename F>
-  struct procedure<T, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> bool>>>
+  template <typename F>
+  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> bool>>>
   {
     using type = generic_procedure<auto (*)(object const&) -> bool>;
   };
@@ -140,8 +142,8 @@ inline namespace kernel
   /*
      Command
   */
-  template <typename T, typename F>
-  struct procedure<T, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> void>>>
+  template <typename F>
+  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> void>>>
   {
     using type = generic_procedure<auto (*)(object const&) -> void>;
   };
@@ -149,13 +151,14 @@ inline namespace kernel
   /*
      Mutation
   */
-  template <typename T, typename F>
-  struct procedure<T, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object &) -> void>>>
+  template <typename F>
+  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object &) -> void>>>
   {
     using type = generic_procedure<auto (*)(object &) -> void>;
   };
 
-  using procedure_pointer = auto (*)(object &) -> object;
+  template <typename T, typename... Ts>
+  using procedure = std::enable_if_t<std::is_convertible_v<T, std::string>, procedure_traits<Ts...>>;
 } // namespace kernel
 } // namespace meevax
 
