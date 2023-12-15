@@ -30,12 +30,12 @@ inline namespace kernel
     return ifstream.is_open();
   }
 
-  input_file_port::operator std::istream &()
+  auto input_file_port::istream() -> std::istream &
   {
     return ifstream;
   }
 
-  input_file_port::operator std::istream const&() const
+  auto input_file_port::istream() const -> std::istream const&
   {
     return ifstream;
   }

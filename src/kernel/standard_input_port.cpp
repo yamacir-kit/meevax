@@ -28,12 +28,12 @@ inline namespace kernel
   auto standard_input_port::close() -> void
   {}
 
-  standard_input_port::operator std::istream &()
+  auto standard_input_port::istream() -> std::istream &
   {
     return std::cin;
   }
 
-  standard_input_port::operator std::istream const&() const
+  auto standard_input_port::istream() const -> std::istream const&
   {
     return std::cin;
   }

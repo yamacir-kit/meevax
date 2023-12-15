@@ -44,9 +44,7 @@ inline namespace memory
   {
     static_assert(std::is_pointer_v<Pointer>);
 
-    static constexpr auto width = sizeof(std::uintptr_t) * 8;
-
-    static_assert(N % width == 0);
+    static_assert(N % (sizeof(std::uintptr_t) * 8) == 0);
 
     struct compact_pointer
     {

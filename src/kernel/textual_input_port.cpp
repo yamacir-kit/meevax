@@ -125,7 +125,7 @@ inline namespace kernel
 
   auto textual_input_port::get(std::size_t size) -> object
   {
-    if (character::is_eof(static_cast<std::istream &>(*this).peek()))
+    if (character::is_eof(istream().peek()))
     {
       return eof_object;
     }
@@ -133,7 +133,7 @@ inline namespace kernel
     {
       auto s = string();
 
-      while (size-- and not character::is_eof(static_cast<std::istream &>(*this).peek()))
+      while (size-- and not character::is_eof(istream().peek()))
       {
         s.vector.emplace_back(take_codepoint());
       }
@@ -144,7 +144,7 @@ inline namespace kernel
 
   auto textual_input_port::get_line() -> object
   {
-    if (auto s = std::string(); std::getline(static_cast<std::istream &>(*this), s).eof())
+    if (auto s = std::string(); std::getline(istream(), s).eof())
     {
       return eof_object;
     }
@@ -156,12 +156,12 @@ inline namespace kernel
 
   auto textual_input_port::get_ready() const -> bool
   {
-    return static_cast<bool>(static_cast<std::istream const&>(*this));
+    return static_cast<bool>(istream());
   }
 
   auto textual_input_port::good() const -> bool
   {
-    return static_cast<std::istream const&>(*this).good();
+    return istream().good();
   }
 
   auto textual_input_port::ignore(std::size_t size) -> textual_input_port &
@@ -194,7 +194,7 @@ inline namespace kernel
 
     for (auto iter = std::rbegin(s); iter != std::rend(s); ++iter)
     {
-      static_cast<std::istream &>(*this).putback(*iter);
+      istream().putback(*iter);
     }
 
     return c;
@@ -202,9 +202,7 @@ inline namespace kernel
 
   auto textual_input_port::read() -> object
   {
-    auto & is = static_cast<std::istream &>(*this);
-
-    while (not character::is_eof(is.peek()))
+    while (not character::is_eof(istream().peek()))
     {
       switch (auto const c1 = peek_codepoint())
       {
@@ -234,7 +232,7 @@ inline namespace kernel
           }
           else
           {
-            is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            istream().ignore(std::numeric_limits<std::streamsize>::max(), '\n');
           }
 
           return read();
@@ -381,7 +379,7 @@ inline namespace kernel
           return make<vector>(read());
 
         case '\\':
-          is.putback(c1);
+          istream().putback(c1);
           return make(read_character_literal());
 
         case '|': // SRFI 30
@@ -404,7 +402,7 @@ inline namespace kernel
           }
           else
           {
-            is.putback('('); // modifying putback (https://en.cppreference.com/w/cpp/io/basic_istream/putback)
+            istream().putback('('); // modifying putback (https://en.cppreference.com/w/cpp/io/basic_istream/putback)
             return cons(x, read());
           }
         }
@@ -415,7 +413,7 @@ inline namespace kernel
         catch (std::integral_constant<char, '.'> const&)
         {
           let const x = read();
-          is.ignore(std::numeric_limits<std::streamsize>::max(), ')');
+          istream().ignore(std::numeric_limits<std::streamsize>::max(), ')');
           return x;
         }
 
@@ -434,7 +432,7 @@ inline namespace kernel
         }
 
       case ';':  // 0x3B
-        is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        istream().ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         break;
 
       case '`':  // 0x60
@@ -513,8 +511,6 @@ inline namespace kernel
   {
     auto s = string();
 
-    auto & is = static_cast<std::istream &>(*this);
-
     auto const quotation_mark = take_codepoint();
 
     for (auto codepoint = take_codepoint(); not character::is_eof(codepoint); codepoint = take_codepoint())
@@ -536,7 +532,7 @@ inline namespace kernel
         case 't': s.vector.emplace_back('\t'); break;
         case 'v': s.vector.emplace_back('\v'); break;
         case 'x':
-          if (auto token = std::string(); std::getline(is, token, ';'))
+          if (auto token = std::string(); std::getline(istream(), token, ';'))
           {
             s.vector.emplace_back(lexical_cast<character::int_type>(std::hex, token));
           }
@@ -574,29 +570,27 @@ inline namespace kernel
        00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
     */
 
-    auto & istream = static_cast<std::istream &>(*this);
-
-    if (auto const c = istream.peek(); character::is_eof(c) or character::is_ascii(c))
+    if (auto const c = istream().peek(); character::is_eof(c) or character::is_ascii(c))
     {
-      return istream.get();
+      return istream().get();
     }
     else if (0xC2 <= c and c <= 0xDF) // 11 bit
     {
-      return (istream.get() & 0b0001'1111) << 6
-           | (istream.get() & 0b0011'1111);
+      return (istream().get() & 0b0001'1111) << 6
+           | (istream().get() & 0b0011'1111);
     }
     else if (0xE0 <= c and c <= 0xEF) // 16 bit
     {
-      return (istream.get() & 0b0000'1111) << 12
-           | (istream.get() & 0b0011'1111) <<  6
-           | (istream.get() & 0b0011'1111);
+      return (istream().get() & 0b0000'1111) << 12
+           | (istream().get() & 0b0011'1111) <<  6
+           | (istream().get() & 0b0011'1111);
     }
     else if (0xF0 <= c and c <= 0xF4) // 21 bit
     {
-      return (istream.get() & 0b0000'0111) << 18
-           | (istream.get() & 0b0011'1111) << 12
-           | (istream.get() & 0b0011'1111) <<  6
-           | (istream.get() & 0b0011'1111);
+      return (istream().get() & 0b0000'0111) << 18
+           | (istream().get() & 0b0011'1111) << 12
+           | (istream().get() & 0b0011'1111) <<  6
+           | (istream().get() & 0b0011'1111);
     }
     else
     {
@@ -608,27 +602,25 @@ inline namespace kernel
   {
     auto s = std::string();
 
-    for (auto & istream = static_cast<std::istream &>(*this);
-         std::isdigit(istream.peek());
-         s.push_back(istream.get()))
-    {}
+    while (std::isdigit(istream().peek()))
+    {
+      s.push_back(istream().get());
+    }
 
     return s.length() ? s : "0";
   }
 
   auto textual_input_port::take_nested_block_comment() -> void
   {
-    auto & istream = static_cast<std::istream &>(*this);
-
-    while (not character::is_eof(istream.peek()))
+    while (not character::is_eof(istream().peek()))
     {
-      switch (istream.get())
+      switch (istream().get())
       {
       case '#':
-        switch (istream.peek())
+        switch (istream().peek())
         {
         case '|':
-          istream.ignore(1);
+          istream().ignore(1);
           take_nested_block_comment();
           [[fallthrough]];
 
@@ -637,10 +629,10 @@ inline namespace kernel
         }
 
       case '|':
-        switch (istream.peek())
+        switch (istream().peek())
         {
         case '#':
-          istream.ignore(1);
+          istream().ignore(1);
           return;
 
         default:
@@ -659,10 +651,10 @@ inline namespace kernel
   {
     auto token = std::string();
 
-    for (auto & istream = static_cast<std::istream &>(*this);
-         not is_special_character(istream.peek());
-         token.push_back(case_sensitive ? istream.get() : std::tolower(istream.get())))
-    {}
+    while (not is_special_character(istream().peek()))
+    {
+      token.push_back(case_sensitive ? istream().get() : std::tolower(istream().get()));
+    }
 
     return token;
   }
