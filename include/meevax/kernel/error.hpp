@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 
+#include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/string.hpp>
 
 namespace meevax
@@ -68,7 +69,6 @@ inline namespace kernel
     }
     catch (int const status) // NOTE: emergency-exit
     {
-      gc.clear();
       return status;
     }
     catch (error const& error)

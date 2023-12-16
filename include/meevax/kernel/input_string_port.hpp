@@ -41,9 +41,9 @@ inline namespace kernel
 
     auto is_open() const -> bool override;
 
-    operator std::istream &() override;
+    auto istream() const -> std::istream const& override;
 
-    operator std::istream const&() const override;
+    auto istream() -> std::istream & override;
   };
 
   auto operator <<(std::ostream &, input_string_port const&) -> std::ostream &;

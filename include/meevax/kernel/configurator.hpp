@@ -95,7 +95,7 @@ inline namespace kernel
         {
           let const f = make<procedure>("", [this](let const& xs)
           {
-            static_cast<Environment &>(*this).load(xs[0].as<string>());
+            static_cast<Environment &>(*this).load(car(xs).as<string>());
             return unspecified;
           });
 
@@ -117,7 +117,7 @@ inline namespace kernel
         {
           let static const f = make<procedure>("", [](let const& xs)
           {
-            std::cout << xs[0] << std::endl;
+            std::cout << car(xs) << std::endl;
           });
 
           return list(f, read());

@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_BIT_CAST_HPP
-#define INCLUDED_MEEVAX_MEMORY_BIT_CAST_HPP
+#ifndef INCLUDED_MEEVAX_BIT_BIT_CAST_HPP
+#define INCLUDED_MEEVAX_BIT_BIT_CAST_HPP
 
 #include <cstring>
 
@@ -23,7 +23,7 @@
 
 namespace meevax
 {
-inline namespace memory
+inline namespace bit
 {
   template <typename To,
             typename From,
@@ -37,7 +37,7 @@ inline namespace memory
     std::memcpy(&to, &from, sizeof from);
     return to;
   }
-} // namespace memory
+} // namespace bit
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_MEMORY_BIT_CAST_HPP
+#endif // INCLUDED_MEEVAX_BIT_BIT_CAST_HPP

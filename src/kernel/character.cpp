@@ -85,7 +85,5 @@ inline namespace kernel
   static_assert(std::is_standard_layout_v<character>);
 
   static_assert(std::is_trivial_v<character>);
-
-  static_assert(4 <= sizeof(character::int_type));
 } // namespace kernel
 } // namespace meevax

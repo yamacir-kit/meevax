@@ -25,13 +25,13 @@ inline namespace kernel
 {
   struct standard_input_port : public textual_input_port
   {
-    auto is_open() const -> bool override;
-
     auto close() -> void override;
 
-    operator std::istream &() override;
+    auto is_open() const -> bool override;
 
-    operator std::istream const&() const override;
+    auto istream() const -> std::istream const& override;
+
+    auto istream() -> std::istream & override;
   };
 
   auto operator <<(std::ostream &, standard_input_port const&) -> std::ostream &;

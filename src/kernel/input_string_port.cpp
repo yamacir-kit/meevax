@@ -29,12 +29,12 @@ inline namespace kernel
     return true;
   }
 
-  input_string_port::operator std::istream &()
+  auto input_string_port::istream() -> std::istream &
   {
     return stringstream;
   }
 
-  input_string_port::operator std::istream const&() const
+  auto input_string_port::istream() const -> std::istream const&
   {
     return stringstream;
   }

@@ -14,33 +14,39 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/standard_input_port.hpp>
+#ifndef INCLUDED_MEEVAX_BITSET_SIMPLE_BITSET_HPP
+#define INCLUDED_MEEVAX_BITSET_SIMPLE_BITSET_HPP
+
+#include <array>
+#include <bitset>
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace bitset
 {
-  auto standard_input_port::is_open() const -> bool
+  template <auto N>
+  struct simple_bitset : public std::array<bool, N>
   {
-    return true;
-  }
+    constexpr simple_bitset()
+      : std::array<bool, N> {}
+    {}
 
-  auto standard_input_port::close() -> void
-  {}
+    auto reset(std::size_t i) noexcept -> void
+    {
+      (*this)[i] = false;
+    }
 
-  auto standard_input_port::istream() -> std::istream &
-  {
-    return std::cin;
-  }
+    auto set(std::size_t i) noexcept -> void
+    {
+      (*this)[i] = true;
+    }
 
-  auto standard_input_port::istream() const -> std::istream const&
-  {
-    return std::cin;
-  }
-
-  auto operator <<(std::ostream & output, standard_input_port const&) -> std::ostream &
-  {
-    return output << magenta("#,(") << blue("standard-input") << magenta(")");
-  }
-} // namespace kernel
+    auto test(std::size_t i) const noexcept -> bool
+    {
+      return (*this)[i];
+    }
+  };
+} // namespace bitset
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_BITSET_SIMPLE_BITSET_HPP

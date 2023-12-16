@@ -14,73 +14,16 @@
    limitations under the License.
 */
 
-#if __unix__
-#include <dlfcn.h> // dlopen, dlclose, dlerror
-#else
-#error
-#endif
-
-#include <memory>
-
-#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/procedure.hpp>
-#include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(std::ostream & os, callable const& datum) -> std::ostream &
+  auto operator <<(std::ostream & os, primitive_procedure const& datum) -> std::ostream &
   {
     return os << magenta("#,(") << green("procedure") << " " << symbol(datum.name) << magenta(")");
-  }
-
-  auto dlopen(std::string const& filename) -> void *
-  {
-    auto dlclose = [](void * const handle)
-    {
-      if (handle and ::dlclose(handle))
-      {
-        std::cerr << ::dlerror() << std::endl;
-      }
-    };
-
-    static std::unordered_map<std::string, std::unique_ptr<void, decltype(dlclose)>> dynamic_libraries {};
-
-    ::dlerror(); // clear
-
-    try
-    {
-      return dynamic_libraries.at(filename).get();
-    }
-    catch (std::out_of_range const&)
-    {
-      if (auto handle = ::dlopen(filename.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
-      {
-        dynamic_libraries.emplace(std::piecewise_construct,
-                                  std::forward_as_tuple(filename),
-                                  std::forward_as_tuple(handle, dlclose));
-
-        return dlopen(filename);
-      }
-      else
-      {
-        throw file_error(make<string>(::dlerror()));
-      }
-    }
-  }
-
-  auto dlsym(std::string const& symbol, void * const handle) -> procedure_pointer
-  {
-    if (auto address = ::dlsym(handle, symbol.c_str()); address)
-    {
-      return reinterpret_cast<procedure_pointer>(address);
-    }
-    else
-    {
-      throw file_error(make<string>(::dlerror()));
-    }
   }
 } // namespace kernel
 } // namespace meevax

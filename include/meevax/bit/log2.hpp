@@ -14,33 +14,28 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/standard_input_port.hpp>
+#ifndef INCLUDED_MEEVAX_BIT_LOG2_HPP
+#define INCLUDED_MEEVAX_BIT_LOG2_HPP
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace bit
 {
-  auto standard_input_port::is_open() const -> bool
+  template <typename T>
+  constexpr auto log2(T x) noexcept -> T
   {
-    return true;
+    return (x < 2) ? 1 : log2(x / 2) + 1;
   }
 
-  auto standard_input_port::close() -> void
-  {}
-
-  auto standard_input_port::istream() -> std::istream &
-  {
-    return std::cin;
-  }
-
-  auto standard_input_port::istream() const -> std::istream const&
-  {
-    return std::cin;
-  }
-
-  auto operator <<(std::ostream & output, standard_input_port const&) -> std::ostream &
-  {
-    return output << magenta("#,(") << blue("standard-input") << magenta(")");
-  }
-} // namespace kernel
+  static_assert(log2(0b0001) == 1);
+  static_assert(log2(0b0010) == 2);
+  static_assert(log2(0b0011) == 2);
+  static_assert(log2(0b0100) == 3);
+  static_assert(log2(0b0101) == 3);
+  static_assert(log2(0b0110) == 3);
+  static_assert(log2(0b0111) == 3);
+  static_assert(log2(0b1000) == 4);
+} // namespace bit
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_BIT_LOG2_HPP

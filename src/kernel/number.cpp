@@ -281,7 +281,8 @@ inline namespace kernel
   template <typename T>
   auto canonicalize(T&& x) -> decltype(auto)
   {
-    if constexpr (std::is_same_v<std::decay_t<T>, object>)
+    if constexpr (std::is_same_v<std::decay_t<T>, object> or
+                  std::is_same_v<std::decay_t<T>, object::pointer>)
     {
       return std::forward<decltype(x)>(x);
     }

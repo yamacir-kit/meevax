@@ -34,6 +34,7 @@ inline namespace kernel
 
     homogeneous_vector() = default;
 
+    // list->@vector
     explicit homogeneous_vector(object xs)
       : valarray(length(xs))
     {
@@ -45,25 +46,35 @@ inline namespace kernel
       });
     }
 
+    // make-@vector
     explicit homogeneous_vector(std::size_t size, object const& x)
       : valarray(input_cast(x), size)
     {}
 
+    // @vector-copy
     explicit homogeneous_vector(homogeneous_vector const& v, std::size_t begin, std::size_t end)
       : valarray(v.valarray[std::slice(begin, begin < end ? end - begin : 0, 1)])
     {}
 
+    // @vector-copy
+    explicit homogeneous_vector(homogeneous_vector const& v, std::size_t begin = 0)
+      : homogeneous_vector { v, begin, v.valarray.size() }
+    {}
+
+    // @vector-append
     explicit homogeneous_vector(homogeneous_vector const& a, homogeneous_vector const& b)
       : valarray(a.valarray.size() + b.valarray.size())
     {
-      valarray[std::slice(0, a.valarray.size(), 1)] = a.valarray;
-      valarray[std::slice(a.valarray.size(), b.valarray.size(), 1)] = b.valarray;
+      slice(0, a.valarray.size()) = a.valarray;
+      slice(b.valarray.size(), valarray.size()) = b.valarray;
     }
 
+    // string->u8vector
     explicit homogeneous_vector(T const* data, std::size_t size)
       : valarray(data, size)
     {}
 
+    // get-output-u8vector
     explicit homogeneous_vector(std::vector<T> const& v)
       : valarray(v.data(), v.size())
     {}
@@ -101,6 +112,16 @@ inline namespace kernel
     {
       return make<std::conditional_t<std::is_floating_point_v<T>, T, exact_integer>>(x);
     }
+
+    auto slice(std::size_t begin, std::size_t end, std::size_t stride = 1) -> decltype(auto)
+    {
+      return valarray[std::slice(begin, end - begin, stride)];
+    }
+
+    auto slice(std::size_t begin = 0) -> decltype(auto)
+    {
+      return slice(begin, valarray.size());
+    }
   };
 
   template <typename T>
@@ -131,10 +152,6 @@ inline namespace kernel
     return check(a.valarray == b.valarray);
   }
 
-  using f32vector = homogeneous_vector<float>;
-
-  using f64vector = homogeneous_vector<double>;
-
   using s8vector  = homogeneous_vector<std::int8_t>;
 
   using s16vector = homogeneous_vector<std::int16_t>;
@@ -150,6 +167,10 @@ inline namespace kernel
   using u32vector = homogeneous_vector<std::uint32_t>;
 
   using u64vector = homogeneous_vector<std::uint64_t>;
+
+  using f32vector = homogeneous_vector<float>;
+
+  using f64vector = homogeneous_vector<double>;
 } // namespace kernel
 } // namespace meevax
 

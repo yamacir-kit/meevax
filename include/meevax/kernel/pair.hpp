@@ -17,8 +17,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
-#include <meevax/kernel/heterogeneous.hpp>
+#include <meevax/kernel/character.hpp>
 #include <meevax/kernel/instruction.hpp>
+#include <meevax/memory/gc_pointer.hpp>
 
 namespace meevax
 {
@@ -26,28 +27,39 @@ inline namespace kernel
 {
   struct pair;
 
-  using object = heterogeneous<gc_pointer, pair, bool, std::int32_t, std::uint32_t, float, instruction>;
+  using object = gc_pointer<pair,
+                            bool,
+                            std::int32_t, std::uint32_t,
+                            float,
+                            character,
+                            instruction>;
 
   using let = object;
 
   let extern unit;
 
-  template <typename T, typename... Ts>
-  auto make(Ts&&... xs)
+  template <typename T,
+            typename Allocator = collector::default_allocator<void>,
+            typename... Ts>
+  auto make(Ts&&... xs) -> object
   {
-    return object::allocate<T>(std::forward<decltype(xs)>(xs)...);
+    return object::allocate<T, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
-  template <typename T>
-  auto make(T&& x)
+  template <typename T,
+            typename Allocator = collector::default_allocator<void>>
+  auto make(T&& x) -> object
   {
-    return object::allocate<std::decay_t<T>>(std::forward<decltype(x)>(x));
+    return object::allocate<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
   }
 
-  template <template <typename...> typename Template, typename... Ts, REQUIRES(std::is_constructible<Template<Ts...>, Ts...>)>
+  template <template <typename...> typename Traits,
+            typename Allocator = collector::default_allocator<void>,
+            typename... Ts,
+            REQUIRES(std::is_constructible<typename Traits<Ts...>::type, Ts...>)>
   auto make(Ts&&... xs) -> decltype(auto)
   {
-    return make<Template<Ts...>>(std::forward<decltype(xs)>(xs)...);
+    return make<typename Traits<Ts...>::type, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
   struct pair : public std::pair<object, object>
@@ -138,10 +150,6 @@ inline namespace kernel
     virtual auto type() const noexcept -> std::type_info const&;
 
     virtual auto write(std::ostream &) const -> std::ostream &;
-
-    virtual auto operator [](std::size_t) const -> object const&;
-
-    virtual auto operator [](std::size_t) -> object &;
 
     constexpr auto begin() noexcept
     {
@@ -251,6 +259,8 @@ inline namespace kernel
   inline constexpr auto cddadr = compose(cdr, cdadr);
   inline constexpr auto cdddar = compose(cdr, cddar);
   inline constexpr auto cddddr = compose(cdr, cdddr);
+
+  inline constexpr auto caddddr = compose(car, cddddr);
 } // namespace kernel
 } // namespace meevax
 

@@ -101,9 +101,9 @@ inline namespace kernel
 
     auto take_token() -> std::string;
 
-    explicit virtual operator std::istream &() = 0;
+    virtual auto istream() -> std::istream & = 0;
 
-    explicit virtual operator std::istream const&() const = 0;
+    virtual auto istream() const -> std::istream const& = 0;
   };
 
   auto operator ==(textual_input_port::iterator const&,
