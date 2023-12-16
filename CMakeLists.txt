@@ -64,6 +64,33 @@ string(TOLOWER ${CMAKE_SYSTEM_NAME} ${PROJECT_NAME}_SYSTEM_NAME)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 
+# ---- Target basis ------------------------------------------------------------
+
+file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
+
+foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
+  get_filename_component(FILENAME ${EACH} NAME)
+  file(READ ${EACH} ${FILENAME})
+endforeach()
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/basis/src/basis.cpp)
+
+add_library(basis SHARED)
+
+target_sources(basis PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/basis/src/basis.cpp)
+
+target_include_directories(basis
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/basis/include>
+  PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+set_target_properties(basis PROPERTIES
+  OUTPUT_NAME ${PROJECT_NAME}-basis # Rename libbasis => libmeevax-basis
+  VERSION     ${PROJECT_VERSION}
+  SOVERSION   ${PROJECT_VERSION_MAJOR}
+  LINK_FLAGS_RELEASE -s)
+
 # ---- Target kernel -----------------------------------------------------------
 
 add_library(kernel SHARED)
@@ -81,25 +108,18 @@ target_link_libraries(kernel
   PUBLIC gmp)
 
 set_target_properties(kernel PROPERTIES
-  OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
+  OUTPUT_NAME ${PROJECT_NAME}-kernel # Rename libkernel => libmeevax-kernel
   VERSION     ${PROJECT_VERSION}
   SOVERSION   ${PROJECT_VERSION_MAJOR}
   LINK_FLAGS_RELEASE -s)
-
-# ---- Target basis ------------------------------------------------------------
-
-add_custom_target(basis
-  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.cmake)
 
 # ---- Target shell ------------------------------------------------------------
 
 add_executable(shell)
 
-add_dependencies(shell basis)
-
 target_sources(shell PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-target_link_libraries(shell PRIVATE kernel)
+target_link_libraries(shell PRIVATE basis kernel)
 
 set_target_properties(shell PROPERTIES
   OUTPUT_NAME ${PROJECT_NAME} # Rename shell => meevax
@@ -116,7 +136,7 @@ write_basic_package_version_file(
 # ---- Target install ----------------------------------------------------------
 
 install( # /usr/lib/libmeevax
-  TARGETS kernel
+  TARGETS basis kernel
   EXPORT ${PROJECT_NAME}-config
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
@@ -126,7 +146,8 @@ install( # /usr/bin/meevax
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install( # /usr/include/meevax
-  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+  DIRECTORY   ${CMAKE_CURRENT_SOURCE_DIR}/include/
+              ${CMAKE_CURRENT_SOURCE_DIR}/basis/include/
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 install( # /usr/share/meevax/meevax-config.cmake
@@ -135,8 +156,7 @@ install( # /usr/share/meevax/meevax-config.cmake
   DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
   NAMESPACE Meevax::)
 
-# /usr/share/meevax/meevax-config-version.cmake
-install(
+install( # /usr/share/meevax/meevax-config-version.cmake
   FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
   DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
 
@@ -181,8 +201,7 @@ file(GLOB ${PROJECT_NAME}_TEST_CPP ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_CPP)
   get_filename_component(FILENAME ${EACH} NAME_WE)
   add_executable(assert-${FILENAME} ${EACH})
-  add_dependencies(assert-${FILENAME} basis)
-  target_link_libraries(assert-${FILENAME} PRIVATE kernel)
+  target_link_libraries(assert-${FILENAME} PRIVATE basis kernel)
   add_test(
     NAME assert-${FILENAME}
     COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
