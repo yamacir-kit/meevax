@@ -123,11 +123,11 @@ inline namespace memory
     for (auto&& mutator : mutators)
     {
       assert(mutator);
-      assert(mutator->location);
+      assert(mutator->object);
 
-      if (not mutator->location->marked() and is_root_object(mutator))
+      if (not mutator->object->marked() and is_root_object(mutator))
       {
-        mark(mutator->location);
+        mark(mutator->object);
       }
     }
   }
@@ -145,7 +145,7 @@ inline namespace memory
 
       for (auto iter = mutators.lower_bound(lower_address); iter != mutators.end() and *iter < upper_address; ++iter)
       {
-        mark((*iter)->location);
+        mark((*iter)->object);
       }
     }
   }
