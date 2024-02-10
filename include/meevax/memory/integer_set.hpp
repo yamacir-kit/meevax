@@ -76,7 +76,7 @@ inline namespace memory
       }
     }
 
-    using subset = integer_set<std::uintptr_t, Es...>; //  Only the outermost implementation knows the original type name T.
+    using subset = integer_set<std::uintptr_t, Es...>; // Only the outermost implementation knows the original type name T.
 
     using superset = std::array<std::unique_ptr<subset>, chunk_size()>;
 
@@ -102,36 +102,32 @@ inline namespace memory
 
       constexpr const_iterator() = default;
 
-      explicit const_iterator(integer_set const& iset, std::size_t index)
+      explicit const_iterator(integer_set const& iset, std::size_t index, std::uintptr_t child_index = 0)
         : data  { std::addressof(iset.data) }
         , index { index }
       {
-        assert(data);
-        assert(data->size() == chunk_size());
         assert(index <= chunk_size());
-        increment_unless_truthy();
+        increment_unless_truthy(child_index);
       }
 
       explicit const_iterator(integer_set const& iset)
         : data  { std::addressof(iset.data) }
         , index { chunk_size() }
       {
-        assert(data);
         decrement_unless_truthy();
         assert(iter.data);
       }
 
-      explicit const_iterator(integer_set const& set, std::tuple<std::size_t, std::uintptr_t> const& tuple)
-        : data  { std::addressof(set.data) }
-        , index { std::get<0>(tuple) }
+      auto out_of_range() const -> bool
       {
-        assert(data);
-        assert(data->size() == chunk_size());
-        assert(index <= chunk_size());
+        return not data or chunk_size() <= index;
+      }
 
-        auto child_index = std::get<1>(tuple);
+      auto increment_unless_truthy(std::uintptr_t child_index = 0) -> void
+      {
+        assert(data); // incrementing end iterator
 
-        while (not out_of_range())
+        while (index < chunk_size())
         {
           if ((*data)[index])
           {
@@ -149,34 +145,6 @@ inline namespace memory
         iter = {};
       }
 
-      auto out_of_range() const -> bool
-      {
-        return not data or chunk_size() <= index;
-      }
-
-      auto increment_unless_truthy() -> void
-      {
-        assert(data); // incrementing end iterator
-
-        while (not out_of_range())
-        {
-          assert(data);
-
-          if ((*data)[index])
-          {
-            if (iter = typename subset::const_iterator(*(*data)[index], 0); not iter.out_of_range())
-            {
-              assert(**this);
-              return;
-            }
-          }
-
-          while (++index < chunk_size() and not (*data)[index]);
-        }
-
-        iter = {};
-      }
-
       auto decrement_unless_truthy() -> void
       {
         assert(data);
@@ -185,7 +153,7 @@ inline namespace memory
 
         assert(index < chunk_size());
 
-        while (not out_of_range())
+        while (index < chunk_size())
         {
           assert(data);
 
@@ -268,12 +236,6 @@ inline namespace memory
       }
     };
 
-    integer_set()
-      : data {}
-    {
-      assert(begin() == end());
-    }
-
     static constexpr auto split(T p)
     {
       auto datum = compress(p);
@@ -299,7 +261,6 @@ inline namespace memory
     auto erase(T value)
     {
       auto [key, datum] = split(value);
-
       data[key]->erase(datum);
     }
 
@@ -315,7 +276,8 @@ inline namespace memory
 
     auto lower_bound(T value) const
     {
-      return const_iterator(*this, split(value));
+      auto [index, child_index] = split(value);
+      return const_iterator(*this, index, child_index);
     }
 
     auto size() const -> std::size_t
