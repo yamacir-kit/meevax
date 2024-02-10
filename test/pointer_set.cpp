@@ -113,13 +113,12 @@ auto measure()
 
 auto main() -> int
 {
-  std::cout << measure<meevax::pointer_set<int const*, meevax::simple_flat_map, meevax::simple_bitset>>() << std::endl;
-  std::cout << measure<meevax::pointer_set<int const*, meevax::simple_flat_map,           std::bitset>>() << std::endl;
-  std::cout << measure<meevax::pointer_set<int const*,                std::map, meevax::simple_bitset>>() << std::endl;
-  std::cout << measure<meevax::pointer_set<int const*,                std::map,           std::bitset>>() << std::endl;
+  std::cout << measure<meevax::v1::pointer_set<int const*, meevax::simple_flat_map, meevax::simple_bitset>>() << std::endl;
+  std::cout << measure<meevax::v1::pointer_set<int const*, meevax::simple_flat_map,           std::bitset>>() << std::endl;
+  std::cout << measure<meevax::v1::pointer_set<int const*,                std::map, meevax::simple_bitset>>() << std::endl;
+  std::cout << measure<meevax::v1::pointer_set<int const*,                std::map,           std::bitset>>() << std::endl;
 
-  std::cout << measure<meevax::integer_set<int const*, 16, 16, 16, 16>>() << std::endl;
-  std::cout << measure<meevax::integer_set<int const*,     16, 16, 16>>() << std::endl;
+  std::cout << measure<meevax::v2::pointer_set<int const*>>() << std::endl;
 
   return EXIT_SUCCESS;
 }

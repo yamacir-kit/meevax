@@ -18,24 +18,67 @@
 #define INCLUDED_MEEVAX_MEMORY_INTEGER_SET_HPP
 
 #include <array>
-#include <bitset>
 #include <cassert>
 #include <iterator>
 #include <limits>
 #include <memory>
+#include <type_traits>
+
+#include <meevax/bit/log2.hpp>
+#include <meevax/bitset/simple_bitset.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
+  template <typename Pointer>
+  constexpr auto compressible_bitwidth_of = log2(alignof(std::remove_pointer_t<Pointer>)) - 1;
+
   template <typename T, std::size_t E, std::size_t... Es>
   struct integer_set
   {
-    static constexpr auto N = static_cast<std::size_t>(1) << E;
+    static_assert(sizeof(T) <= sizeof(std::uintptr_t));
 
-    using subset = integer_set<T, Es...>;
+    static constexpr auto chunk_size()
+    {
+      if constexpr (std::is_pointer_v<T>)
+      {
+        static_assert(compressible_bitwidth_of<T> < E);
+        return static_cast<std::size_t>(1) << (E - compressible_bitwidth_of<T>);
+      }
+      else
+      {
+        return static_cast<std::size_t>(1) << E;
+      }
+    }
 
-    using superset = std::array<std::unique_ptr<subset>, N>;
+    static constexpr auto compress(T value)
+    {
+      if constexpr (std::is_pointer_v<T>)
+      {
+        return reinterpret_cast<std::uintptr_t>(value) >> compressible_bitwidth_of<T>;
+      }
+      else
+      {
+        return reinterpret_cast<std::uintptr_t>(value);
+      }
+    }
+
+    static constexpr auto decompress(std::uintptr_t value)
+    {
+      if constexpr (std::is_pointer_v<T>)
+      {
+        return reinterpret_cast<T>(value << compressible_bitwidth_of<T>);
+      }
+      else
+      {
+        return reinterpret_cast<T>(value);
+      }
+    }
+
+    using subset = integer_set<std::uintptr_t, Es...>; //  Only the outermost implementation knows the original type name T.
+
+    using superset = std::array<std::unique_ptr<subset>, chunk_size()>;
 
     superset data {};
 
@@ -64,27 +107,27 @@ inline namespace memory
         , index { index }
       {
         assert(data);
-        assert(data->size() == N);
-        assert(index <= N);
+        assert(data->size() == chunk_size());
+        assert(index <= chunk_size());
         increment_unless_truthy();
       }
 
       explicit const_iterator(integer_set const& iset)
         : data  { std::addressof(iset.data) }
-        , index { N }
+        , index { chunk_size() }
       {
         assert(data);
         decrement_unless_truthy();
         assert(iter.data);
       }
 
-      explicit const_iterator(integer_set const& set, std::tuple<std::size_t, T> const& tuple)
+      explicit const_iterator(integer_set const& set, std::tuple<std::size_t, std::uintptr_t> const& tuple)
         : data  { std::addressof(set.data) }
         , index { std::get<0>(tuple) }
       {
         assert(data);
-        assert(data->size() == N);
-        assert(index <= N);
+        assert(data->size() == chunk_size());
+        assert(index <= chunk_size());
 
         auto child_index = std::get<1>(tuple);
 
@@ -98,7 +141,7 @@ inline namespace memory
             }
           }
 
-          while (++index < N and not (*data)[index]);
+          while (++index < chunk_size() and not (*data)[index]);
 
           child_index = 0;
         }
@@ -108,7 +151,7 @@ inline namespace memory
 
       auto out_of_range() const -> bool
       {
-        return not data or N <= index;
+        return not data or chunk_size() <= index;
       }
 
       auto increment_unless_truthy() -> void
@@ -128,7 +171,7 @@ inline namespace memory
             }
           }
 
-          while (++index < N and not (*data)[index]);
+          while (++index < chunk_size() and not (*data)[index]);
         }
 
         iter = {};
@@ -138,9 +181,9 @@ inline namespace memory
       {
         assert(data);
 
-        index = std::min(index, N - 1);
+        index = std::min(index, chunk_size() - 1);
 
-        assert(index < N);
+        assert(index < chunk_size());
 
         while (not out_of_range())
         {
@@ -155,7 +198,7 @@ inline namespace memory
             }
           }
 
-          while (--index < N and not (*data)[index]);
+          while (--index < chunk_size() and not (*data)[index]);
         }
 
         assert(data);
@@ -199,9 +242,9 @@ inline namespace memory
 
       auto operator *() const -> T
       {
-        assert(index < N);
-        return reinterpret_cast<T>(reinterpret_cast<std::uintptr_t>(index << (Es + ...)) bitor
-                                   reinterpret_cast<std::uintptr_t>(*iter));
+        assert(index < chunk_size());
+
+        return decompress(index << (Es + ...) bitor *iter);
       }
 
       auto is_end() const -> bool
@@ -231,14 +274,13 @@ inline namespace memory
       assert(begin() == end());
     }
 
-    template <typename U>
-    static auto split(U p) -> std::tuple<std::size_t, T>
+    static constexpr auto split(T p)
     {
-      auto datum = reinterpret_cast<std::uintmax_t>(p);
+      auto datum = compress(p);
 
-      constexpr std::size_t mask = (N - 1) << (Es + ...);
+      constexpr std::uintptr_t mask = (chunk_size() - 1) << (Es + ...);
 
-      return { (datum & mask) >> (Es + ...), reinterpret_cast<T>(datum & ~mask) };
+      return std::make_pair((datum &  mask) >> (Es + ...), datum & ~mask);
     }
 
     auto insert(T value)
@@ -268,7 +310,7 @@ inline namespace memory
 
     auto end() const
     {
-      return const_iterator(*this, N);
+      return const_iterator(*this, chunk_size());
     }
 
     auto lower_bound(T value) const
@@ -287,7 +329,7 @@ inline namespace memory
   {
     static constexpr auto N = static_cast<std::size_t>(1) << E;
 
-    using subset = std::bitset<N>;
+    using subset = simple_bitset<N>;
 
     subset data {};
 
@@ -393,11 +435,6 @@ inline namespace memory
         return not (a == b);
       }
     };
-
-    constexpr integer_set()
-    {
-      assert(data.none());
-    }
 
     template <typename U>
     static constexpr auto split(U value)

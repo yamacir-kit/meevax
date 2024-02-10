@@ -181,9 +181,9 @@ inline namespace memory
   protected:
     static inline tag * cache = nullptr;
 
-    static inline pointer_set<tag *> tags {};
+    static inline v2::pointer_set<tag *> tags {};
 
-    static inline pointer_set<mutator *> mutators {};
+    static inline v2::pointer_set<mutator *> mutators {};
 
     static inline std::size_t allocation = 0;
 

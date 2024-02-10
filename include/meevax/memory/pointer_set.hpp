@@ -31,10 +31,13 @@
 #include <meevax/bitset/simple_bitset.hpp>
 #include <meevax/iterator/index_iterator.hpp>
 #include <meevax/map/simple_flat_map.hpp>
+#include <meevax/memory/integer_set.hpp>
 
 namespace meevax
 {
 inline namespace memory
+{
+inline namespace v1
 {
   template <typename Pointer,
             template <typename...> typename OrderedMap = simple_flat_map,
@@ -285,6 +288,14 @@ inline namespace memory
       }
     }
   };
+} // namespace v1
+
+namespace v2
+{
+  template <typename Pointer>
+  struct pointer_set : integer_set<Pointer, 16, 16, 16>
+  {};
+} // namespace v2
 } // namespace memory
 } // namespace meevax
 
