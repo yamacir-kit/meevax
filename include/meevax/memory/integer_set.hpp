@@ -21,7 +21,6 @@
 #include <cassert>
 #include <iterator>
 #include <limits>
-#include <memory>
 #include <type_traits>
 
 #include <meevax/bit/log2.hpp>
@@ -39,18 +38,9 @@ inline namespace memory
   {
     static_assert(sizeof(T) <= sizeof(std::uintptr_t));
 
-    static constexpr auto chunk_size()
-    {
-      if constexpr (std::is_pointer_v<T>)
-      {
-        static_assert(compressible_bitwidth_of<T> < E);
-        return static_cast<std::size_t>(1) << (E - compressible_bitwidth_of<T>);
-      }
-      else
-      {
-        return static_cast<std::size_t>(1) << E;
-      }
-    }
+    static_assert(not std::is_pointer_v<T> or compressible_bitwidth_of<T> < E);
+
+    static constexpr auto N = static_cast<std::size_t>(1) << E - (std::is_pointer_v<T> ? compressible_bitwidth_of<T> : 0);
 
     static constexpr auto compress(T value)
     {
@@ -78,68 +68,44 @@ inline namespace memory
 
     using subset = integer_set<std::uintptr_t, Es...>; // Only the outermost implementation knows the original type name T.
 
-    using superset = std::array<std::unique_ptr<subset>, chunk_size()>;
+    using superset = std::array<subset *, N>;
 
     superset data {};
 
-    struct const_iterator
+    struct const_iterator : public std::iterator<std::bidirectional_iterator_tag, T>
     {
-      using iterator_category = std::bidirectional_iterator_tag;
-
-      using value_type = T;
-
-      using reference = T const&;
-
-      using pointer = T *;
-
-      using difference_type = std::ptrdiff_t;
-
       superset const* data = nullptr;
 
-      std::size_t index = std::numeric_limits<std::size_t>::max();
+      std::size_t i = std::numeric_limits<std::size_t>::max();
 
       typename subset::const_iterator iter;
 
       constexpr const_iterator() = default;
 
-      explicit const_iterator(integer_set const& iset, std::size_t index, std::uintptr_t child_index = 0)
-        : data  { std::addressof(iset.data) }
-        , index { index }
+      explicit const_iterator(integer_set const* container, std::size_t i, std::uintptr_t j = 0)
+        : data { std::addressof(container->data) }
+        , i    { i }
       {
-        assert(index <= chunk_size());
-        increment_unless_truthy(child_index);
+        assert(i <= N);
+        increment_unless_truthy(j);
       }
 
-      explicit const_iterator(integer_set const& iset)
-        : data  { std::addressof(iset.data) }
-        , index { chunk_size() }
+      explicit const_iterator(integer_set const* container)
+        : data { std::addressof(container->data) }
+        , i    { N }
       {
         decrement_unless_truthy();
         assert(iter.data);
       }
 
-      auto out_of_range() const -> bool
+      auto increment_unless_truthy(std::uintptr_t j = 0) -> void
       {
-        return not data or chunk_size() <= index;
-      }
-
-      auto increment_unless_truthy(std::uintptr_t child_index = 0) -> void
-      {
-        assert(data); // incrementing end iterator
-
-        while (index < chunk_size())
+        for (assert(data); good(); ++i, j = 0)
         {
-          if ((*data)[index])
+          if (auto datum = (*data)[i]; datum and (iter = datum->lower_bound(j)).good())
           {
-            if (iter = (*data)[index]->lower_bound(child_index); not iter.out_of_range())
-            {
-              return;
-            }
+            return;
           }
-
-          while (++index < chunk_size() and not (*data)[index]);
-
-          child_index = 0;
         }
 
         iter = {};
@@ -147,40 +113,26 @@ inline namespace memory
 
       auto decrement_unless_truthy() -> void
       {
-        assert(data);
+        i = std::min(i, N - 1);
 
-        index = std::min(index, chunk_size() - 1);
+        assert(good());
 
-        assert(index < chunk_size());
-
-        while (index < chunk_size())
+        for (assert(data); good(); --i)
         {
-          assert(data);
-
-          if (auto & datum = (*data)[index])
+          if (auto datum = (*data)[i]; datum and (iter = typename subset::const_iterator(datum)).good())
           {
-            if (iter = typename subset::const_iterator(*datum); not iter.out_of_range())
-            {
-              assert(**this);
-              return;
-            }
+            return;
           }
-
-          while (--index < chunk_size() and not (*data)[index]);
         }
-
-        assert(data);
 
         iter = {};
       }
 
       auto operator ++() -> auto &
       {
-        assert(data);
-
-        if (++iter; iter.out_of_range())
+        if (++iter; not iter.good())
         {
-          ++index;
+          ++i;
           increment_unless_truthy();
         }
 
@@ -189,45 +141,44 @@ inline namespace memory
 
       auto operator --() -> auto &
       {
-        assert(data);
-
         if (not iter.data)
         {
           decrement_unless_truthy();
-          return *this;
         }
-        else
+        else if (--iter; not iter.good())
         {
-          if (--iter; iter.out_of_range())
-          {
-            --index;
-            decrement_unless_truthy();
-          }
-
-          return *this;
+          --i;
+          decrement_unless_truthy();
         }
+
+        return *this;
       }
 
       auto operator *() const -> T
       {
-        assert(index < chunk_size());
-
-        return decompress(index << (Es + ...) bitor *iter);
+        assert(good());
+        return decompress(i << (Es + ...) bitor *iter);
       }
 
-      auto is_end() const -> bool
+      auto good() const noexcept -> bool
       {
-        return out_of_range() or iter.is_end();
+        assert(data);
+        return i < N;
+      }
+
+      auto at_end() const -> bool
+      {
+        return not data or not good() or iter.at_end();
       }
 
       auto is_same_index(const_iterator const& other) const -> bool
       {
-        return index == other.index and iter.is_same_index(other.iter);
+        return i == other.i and iter.is_same_index(other.iter);
       }
 
       friend auto operator ==(const_iterator const& a, const_iterator const& b)
       {
-        return a.is_same_index(b) or (a.is_end() and b.is_end());
+        return a.is_same_index(b) or (a.at_end() and b.at_end());
       }
 
       friend auto operator !=(const_iterator const& a, const_iterator const& b)
@@ -240,9 +191,17 @@ inline namespace memory
     {
       auto datum = compress(p);
 
-      constexpr std::uintptr_t mask = (chunk_size() - 1) << (Es + ...);
+      constexpr std::uintptr_t mask = (N - 1) << (Es + ...);
 
-      return std::make_pair((datum &  mask) >> (Es + ...), datum & ~mask);
+      return std::make_pair((datum & mask) >> (Es + ...), datum & ~mask);
+    }
+
+    ~integer_set()
+    {
+      for (auto datum : data)
+      {
+        delete datum;
+      }
     }
 
     auto insert(T value)
@@ -253,31 +212,31 @@ inline namespace memory
       }
       else
       {
-        data[key] = std::make_unique<subset>();
+        data[key] = new subset();
         data[key]->insert(datum);
       }
     }
 
     auto erase(T value)
     {
-      auto [key, datum] = split(value);
-      data[key]->erase(datum);
+      auto [i, j] = split(value);
+      data[i]->erase(j);
     }
 
     auto begin() const
     {
-      return const_iterator(*this, 0);
+      return const_iterator(this, 0);
     }
 
     auto end() const
     {
-      return const_iterator(*this, chunk_size());
+      return const_iterator(this, N);
     }
 
     auto lower_bound(T value) const
     {
-      auto [index, child_index] = split(value);
-      return const_iterator(*this, index, child_index);
+      auto [i, j] = split(value);
+      return const_iterator(this, i, j);
     }
 
     auto size() const -> std::size_t
@@ -295,101 +254,84 @@ inline namespace memory
 
     subset data {};
 
-    struct const_iterator
+    struct const_iterator : public std::iterator<std::bidirectional_iterator_tag, T>
     {
-      using iterator_category = std::bidirectional_iterator_tag;
-
-      using value_type = bool;
-
-      using reference = bool &;
-
-      using pointer = std::add_pointer_t<value_type>;
-
-      using difference_type = std::ptrdiff_t;
-
       subset const* data = nullptr;
 
-      std::size_t index = std::numeric_limits<std::size_t>::max();
+      std::size_t i = std::numeric_limits<std::size_t>::max();
 
       auto increment_unless_truthy()
       {
-        assert(data);
+        for (assert(data); good() and not (*data)[i]; ++i)
+        {}
 
-        while (index < N and not (*data)[index])
-        {
-          ++index;
-        }
-
-        assert(N <= index or (*data)[index]);
+        assert(not good() or (*data)[i]);
       }
 
       auto decrement_unless_truthy()
       {
-        assert(data);
+        for (assert(data); good() and not (*data)[i]; --i)
+        {}
 
-        while (index < N and not (*data)[index])
-        {
-          --index;
-        }
-
-        assert(N <= index or (*data)[index]);
-      }
-
-      auto out_of_range() const -> bool
-      {
-        return not data or N <= index;
+        assert(not good() or (*data)[i]);
       }
 
       constexpr const_iterator() = default;
 
-      explicit const_iterator(integer_set const& iset, std::size_t index)
-        : data  { std::addressof(iset.data) }
-        , index { index }
+      explicit const_iterator(integer_set const* container, std::size_t i)
+        : data { std::addressof(container->data) }
+        , i    { i }
       {
         increment_unless_truthy();
-        assert(out_of_range() or (*data)[this->index]);
+        assert(not good() or (*data)[this->i]);
       }
 
-      explicit const_iterator(integer_set const& iset)
-        : data  { std::addressof(iset.data) }
-        , index { N - 1 }
+      explicit const_iterator(integer_set const* container)
+        : data { std::addressof(container->data) }
+        , i    { N - 1 }
       {
         decrement_unless_truthy();
       }
 
       auto operator ++() -> decltype(auto)
       {
-        ++index;
+        ++i;
         increment_unless_truthy();
         return *this;
       }
 
       auto operator --() -> decltype(auto)
       {
-        --index;
+        --i;
         decrement_unless_truthy();
         return *this;
       }
 
       auto operator *() const
       {
-        assert(index < N);
-        return reinterpret_cast<T>(index);
+        assert(good());
+        return reinterpret_cast<T>(i);
       }
 
-      auto is_end() const -> bool
+      auto good() const noexcept -> bool
       {
-        return out_of_range();
+        assert(data);
+        return i < N;
+      }
+
+      auto at_end() const -> bool
+      {
+        return not data or not good();
       }
 
       auto is_same_index(const_iterator const& other) const -> bool
       {
-        return index == other.index;
+        return i == other.i;
       }
 
       friend auto operator ==(const_iterator const& a, const_iterator const& b)
       {
-        return a.is_same_index(b) or (a.is_end() and b.is_end());
+        return a.is_same_index(b) or (a.at_end() and b.at_end());
       }
 
       friend auto operator !=(const_iterator const& a, const_iterator const& b)
@@ -397,12 +339,6 @@ inline namespace memory
         return not (a == b);
       }
     };
-
-    template <typename U>
-    static constexpr auto split(U value)
-    {
-      return reinterpret_cast<std::size_t>(value);
-    }
 
     auto insert(T value)
     {
@@ -421,12 +357,12 @@ inline namespace memory
 
     auto end() const
     {
-      return const_iterator(data);
+      return const_iterator(data, N);
     }
 
     auto lower_bound(T value) const
     {
-      return const_iterator(*this, split(value));
+      return const_iterator(this, reinterpret_cast<std::size_t>(value));
     }
 
     auto size() const
