@@ -200,13 +200,14 @@ file(GLOB ${PROJECT_NAME}_TEST_CPP ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_CPP)
   get_filename_component(FILENAME ${EACH} NAME_WE)
-  add_executable(assert-${FILENAME} ${EACH})
-  target_link_libraries(assert-${FILENAME} PRIVATE basis kernel)
+  add_executable(test_${FILENAME} ${EACH})
+  target_link_libraries(test_${FILENAME} PRIVATE basis kernel)
+  target_compile_options(test_${FILENAME} PUBLIC -Wno-deprecated-declarations)
   add_test(
-    NAME assert-${FILENAME}
+    NAME test/${FILENAME}
     COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
             ${${PROJECT_NAME}_MEMORY_CHECK_OPTIONS}
-            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assert-${FILENAME})
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_${FILENAME})
 endforeach()
 
 # ---- Additional Targets ------------------------------------------------------

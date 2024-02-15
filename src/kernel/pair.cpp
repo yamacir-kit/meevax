@@ -22,6 +22,10 @@ inline namespace kernel
 {
   let unit { nullptr };
 
+  pair::pair(object const& a)
+    : std::pair<object, object> { a, unit }
+  {}
+
   pair::pair(object const& a, object const& b)
     : std::pair<object, object> { a, b }
   {}

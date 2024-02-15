@@ -68,13 +68,13 @@ inline namespace memory
 
     using subset = integer_set<std::uintptr_t, Es...>; // Only the outermost implementation knows the original type name T.
 
-    using superset = std::array<subset *, N>;
+    using subsets = subset *[N];
 
-    superset data {};
+    subsets data = {};
 
     struct const_iterator : public std::iterator<std::bidirectional_iterator_tag, T>
     {
-      superset const* data = nullptr;
+      subset const* const* data = nullptr;
 
       std::size_t i = std::numeric_limits<std::size_t>::max();
 
@@ -83,7 +83,7 @@ inline namespace memory
       constexpr const_iterator() = default;
 
       explicit const_iterator(integer_set const* container, std::size_t i, std::uintptr_t j = 0)
-        : data { std::addressof(container->data) }
+        : data { container->data }
         , i    { i }
       {
         assert(i <= N);
@@ -91,7 +91,7 @@ inline namespace memory
       }
 
       explicit const_iterator(integer_set const* container)
-        : data { std::addressof(container->data) }
+        : data { container->data }
         , i    { N }
       {
         decrement_unless_truthy();
@@ -100,9 +100,11 @@ inline namespace memory
 
       auto increment_unless_truthy(std::uintptr_t j = 0) -> void
       {
-        for (assert(data); good(); ++i, j = 0)
+        assert(data);
+
+        for (; good(); ++i, j = 0)
         {
-          if (auto datum = (*data)[i]; datum and (iter = datum->lower_bound(j)).good())
+          if (data[i] and (iter = data[i]->lower_bound(j)).good())
           {
             return;
           }
@@ -113,13 +115,11 @@ inline namespace memory
 
       auto decrement_unless_truthy() -> void
       {
-        i = std::min(i, N - 1);
+        assert(data);
 
-        assert(good());
-
-        for (assert(data); good(); --i)
+        for (i = std::min(i, N - 1); good(); --i)
         {
-          if (auto datum = (*data)[i]; datum and (iter = typename subset::const_iterator(datum)).good())
+          if (data[i] and (iter = typename subset::const_iterator(data[i])).good())
           {
             return;
           }

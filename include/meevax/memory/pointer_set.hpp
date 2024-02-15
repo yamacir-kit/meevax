@@ -43,7 +43,7 @@ inline namespace v1
             template <typename...> typename OrderedMap = simple_flat_map,
             template <std::size_t> typename Bitset = simple_bitset,
             std::size_t N = 4096 * 8> // getconf PAGE_SIZE
-  class pointer_set
+  class [[deprecated]] pointer_set
   {
     static_assert(std::is_pointer_v<Pointer>);
 
