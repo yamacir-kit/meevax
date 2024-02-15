@@ -19,58 +19,33 @@
 
 #include <array>
 #include <cassert>
+#include <climits>
 #include <iterator>
 #include <limits>
 #include <type_traits>
 
+#include <meevax/bit/bit_cast.hpp>
 #include <meevax/bit/log2.hpp>
-#include <meevax/bitset/simple_bitset.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  template <typename Pointer>
-  constexpr auto compressible_bitwidth_of = log2(alignof(std::remove_pointer_t<Pointer>)) - 1;
+  template <typename T>
+  constexpr auto compressible_bitwidth_of = std::is_pointer_v<T> ? log2(alignof(std::remove_pointer_t<T>)) - 1 : 0;
 
   template <typename T, std::size_t E, std::size_t... Es>
   struct integer_set
   {
     static_assert(sizeof(T) <= sizeof(std::uintptr_t));
 
-    static_assert(not std::is_pointer_v<T> or compressible_bitwidth_of<T> < E);
+    static_assert(compressible_bitwidth_of<T> < E);
 
-    static constexpr auto N = static_cast<std::size_t>(1) << E - (std::is_pointer_v<T> ? compressible_bitwidth_of<T> : 0);
-
-    static constexpr auto compress(T value)
-    {
-      if constexpr (std::is_pointer_v<T>)
-      {
-        return reinterpret_cast<std::uintptr_t>(value) >> compressible_bitwidth_of<T>;
-      }
-      else
-      {
-        return reinterpret_cast<std::uintptr_t>(value);
-      }
-    }
-
-    static constexpr auto decompress(std::uintptr_t value)
-    {
-      if constexpr (std::is_pointer_v<T>)
-      {
-        return reinterpret_cast<T>(value << compressible_bitwidth_of<T>);
-      }
-      else
-      {
-        return reinterpret_cast<T>(value);
-      }
-    }
+    static constexpr auto N = static_cast<std::size_t>(1) << (E - compressible_bitwidth_of<T>);
 
     using subset = integer_set<std::uintptr_t, Es...>; // Only the outermost implementation knows the original type name T.
 
-    using subsets = subset *[N];
-
-    subsets data = {};
+    subset * data[N] = {};
 
     struct const_iterator : public std::iterator<std::bidirectional_iterator_tag, T>
     {
@@ -82,7 +57,7 @@ inline namespace memory
 
       constexpr const_iterator() = default;
 
-      explicit const_iterator(integer_set const* container, std::size_t i, std::uintptr_t j = 0)
+      explicit const_iterator(integer_set const* container, std::size_t i, std::uintptr_t j = 0) noexcept
         : data { container->data }
         , i    { i }
       {
@@ -90,7 +65,7 @@ inline namespace memory
         increment_unless_truthy(j);
       }
 
-      explicit const_iterator(integer_set const* container)
+      explicit const_iterator(integer_set const* container) noexcept
         : data { container->data }
         , i    { N }
       {
@@ -98,7 +73,7 @@ inline namespace memory
         assert(iter.data);
       }
 
-      auto increment_unless_truthy(std::uintptr_t j = 0) -> void
+      auto increment_unless_truthy(std::uintptr_t j = 0) noexcept -> void
       {
         assert(data);
 
@@ -113,7 +88,7 @@ inline namespace memory
         iter = {};
       }
 
-      auto decrement_unless_truthy() -> void
+      auto decrement_unless_truthy() noexcept -> void
       {
         assert(data);
 
@@ -128,7 +103,7 @@ inline namespace memory
         iter = {};
       }
 
-      auto operator ++() -> auto &
+      auto operator ++() noexcept -> auto &
       {
         if (++iter; not iter.good())
         {
@@ -139,7 +114,7 @@ inline namespace memory
         return *this;
       }
 
-      auto operator --() -> auto &
+      auto operator --() noexcept -> auto &
       {
         if (not iter.data)
         {
@@ -154,10 +129,10 @@ inline namespace memory
         return *this;
       }
 
-      auto operator *() const -> T
+      auto operator *() const noexcept -> T
       {
         assert(good());
-        return decompress(i << (Es + ...) bitor *iter);
+        return reinterpret_cast<T>((i << (Es + ...) bitor *iter) << compressible_bitwidth_of<T>);
       }
 
       auto good() const noexcept -> bool
@@ -166,34 +141,50 @@ inline namespace memory
         return i < N;
       }
 
-      auto at_end() const -> bool
+      auto at_end() const noexcept -> bool
       {
         return not data or not good() or iter.at_end();
       }
 
-      auto is_same_index(const_iterator const& other) const -> bool
+      auto is_same_index(const_iterator const& other) const noexcept -> bool
       {
         return i == other.i and iter.is_same_index(other.iter);
       }
 
-      friend auto operator ==(const_iterator const& a, const_iterator const& b)
+      friend auto operator ==(const_iterator const& a, const_iterator const& b) noexcept
       {
         return a.is_same_index(b) or (a.at_end() and b.at_end());
       }
 
-      friend auto operator !=(const_iterator const& a, const_iterator const& b)
+      friend auto operator !=(const_iterator const& a, const_iterator const& b) noexcept
       {
         return not (a == b);
       }
     };
 
-    static constexpr auto split(T p)
+    static constexpr auto split(T p) noexcept
     {
-      auto datum = compress(p);
+      static_assert(E + (Es + ...) <= sizeof(T) * CHAR_BIT);
 
-      constexpr std::uintptr_t mask = (N - 1) << (Es + ...);
+      struct big_endian
+      {
+        std::uintptr_t ignore : sizeof(std::uintptr_t) * CHAR_BIT - E - (Es + ...);
+        std::uintptr_t key    : E - compressible_bitwidth_of<T>;
+        std::uintptr_t value  : (Es + ...);
+        std::uintptr_t        : compressible_bitwidth_of<T>;
+      };
 
-      return std::make_pair((datum & mask) >> (Es + ...), datum & ~mask);
+      struct little_endian
+      {
+        std::uintptr_t        : compressible_bitwidth_of<T>;
+        std::uintptr_t value  : (Es + ...);
+        std::uintptr_t key    : E - compressible_bitwidth_of<T>;
+        std::uintptr_t ignore : sizeof(std::uintptr_t) * CHAR_BIT - E - (Es + ...);
+      };
+
+      const auto bits = bit_cast<little_endian>(p);
+
+      return std::make_pair(bits.key, bits.value);
     }
 
     ~integer_set()
@@ -217,29 +208,29 @@ inline namespace memory
       }
     }
 
-    auto erase(T value)
+    auto erase(T value) noexcept
     {
       auto [i, j] = split(value);
       data[i]->erase(j);
     }
 
-    auto begin() const
+    auto begin() const noexcept
     {
       return const_iterator(this, 0);
     }
 
-    auto end() const
+    auto end() const noexcept
     {
       return const_iterator(this, N);
     }
 
-    auto lower_bound(T value) const
+    auto lower_bound(T value) const noexcept
     {
       auto [i, j] = split(value);
       return const_iterator(this, i, j);
     }
 
-    auto size() const -> std::size_t
+    auto size() const noexcept -> std::size_t
     {
       return std::distance(begin(), end());
     }
@@ -250,64 +241,62 @@ inline namespace memory
   {
     static constexpr auto N = static_cast<std::size_t>(1) << E;
 
-    using subset = simple_bitset<N>;
-
-    subset data {};
+    bool data[N] {};
 
     struct const_iterator : public std::iterator<std::bidirectional_iterator_tag, T>
     {
-      subset const* data = nullptr;
+      bool const* data = nullptr;
 
       std::size_t i = std::numeric_limits<std::size_t>::max();
 
-      auto increment_unless_truthy()
+      auto increment_unless_truthy() noexcept
       {
-        for (assert(data); good() and not (*data)[i]; ++i)
+        for (assert(data); good() and not data[i]; ++i)
         {}
 
-        assert(not good() or (*data)[i]);
+        assert(not good() or data[i]);
       }
 
-      auto decrement_unless_truthy()
+      auto decrement_unless_truthy() noexcept
       {
-        for (assert(data); good() and not (*data)[i]; --i)
+        for (assert(data); good() and not data[i]; --i)
         {}
 
-        assert(not good() or (*data)[i]);
+        assert(not good() or data[i]);
       }
 
       constexpr const_iterator() = default;
 
-      explicit const_iterator(integer_set const* container, std::size_t i)
-        : data { std::addressof(container->data) }
+      explicit const_iterator(integer_set const* container, std::size_t i) noexcept
+        : data { container->data }
         , i    { i }
       {
         increment_unless_truthy();
-        assert(not good() or (*data)[this->i]);
+        assert(not good() or data[this->i]);
       }
 
-      explicit const_iterator(integer_set const* container)
-        : data { std::addressof(container->data) }
+      explicit const_iterator(integer_set const* container) noexcept
+        : data { container->data }
         , i    { N - 1 }
       {
         decrement_unless_truthy();
       }
 
-      auto operator ++() -> decltype(auto)
+      auto operator ++() noexcept -> decltype(auto)
       {
         ++i;
         increment_unless_truthy();
         return *this;
       }
 
-      auto operator --() -> decltype(auto)
+      auto operator --() noexcept -> decltype(auto)
       {
         --i;
         decrement_unless_truthy();
         return *this;
       }
 
-      auto operator *() const
+      auto operator *() const noexcept
       {
         assert(good());
         return reinterpret_cast<T>(i);
@@ -319,55 +308,40 @@ inline namespace memory
         return i < N;
       }
 
-      auto at_end() const -> bool
+      auto at_end() const noexcept -> bool
       {
         return not data or not good();
       }
 
-      auto is_same_index(const_iterator const& other) const -> bool
+      auto is_same_index(const_iterator const& other) const noexcept -> bool
       {
         return i == other.i;
       }
 
-      friend auto operator ==(const_iterator const& a, const_iterator const& b)
+      friend auto operator ==(const_iterator const& a, const_iterator const& b) noexcept
       {
         return a.is_same_index(b) or (a.at_end() and b.at_end());
       }
 
-      friend auto operator !=(const_iterator const& a, const_iterator const& b)
+      friend auto operator !=(const_iterator const& a, const_iterator const& b) noexcept
       {
         return not (a == b);
       }
     };
 
-    auto insert(T value)
+    auto insert(T value) noexcept
     {
-      data.set(reinterpret_cast<std::size_t>(value));
+      data[reinterpret_cast<std::size_t>(value)] = true;
     }
 
-    auto erase(T value)
+    auto erase(T value) noexcept
     {
-      data.reset(reinterpret_cast<std::size_t>(value));
+      data[reinterpret_cast<std::size_t>(value)] = false;
     }
 
-    auto begin() const
-    {
-      return const_iterator(data, 0);
-    }
-
-    auto end() const
-    {
-      return const_iterator(data, N);
-    }
-
-    auto lower_bound(T value) const
+    auto lower_bound(T value) const noexcept
     {
       return const_iterator(this, reinterpret_cast<std::size_t>(value));
-    }
-
-    auto size() const
-    {
-      return std::distance(begin(), end());
     }
   };
 } // namespace memory
