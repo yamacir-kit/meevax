@@ -103,7 +103,7 @@ inline namespace kernel
     if (mpz_init_set_str(value, (s.at(0) == '+' ? s.substr(1) : s).c_str(), radix))
     {
       mpz_clear(value);
-      throw std::invalid_argument("not a integer");
+      throw std::invalid_argument("not an exact-integer");
     }
   }
 

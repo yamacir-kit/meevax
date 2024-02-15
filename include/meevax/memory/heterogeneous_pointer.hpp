@@ -43,7 +43,9 @@ inline namespace memory
     {
       template <typename... Us>
       explicit constexpr binder(Us&&... xs)
-        : std::conditional_t<std::is_base_of_v<Top, Bound>, Top, Bound> { std::forward<decltype(xs)>(xs)... }
+        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound> {
+            std::forward<decltype(xs)>(xs)...
+          }
       {}
 
       ~binder() override = default;
