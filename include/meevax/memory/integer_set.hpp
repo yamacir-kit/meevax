@@ -20,6 +20,7 @@
 #include <array>
 #include <cassert>
 #include <climits>
+#include <cstdint>
 #include <iterator>
 #include <limits>
 #include <type_traits>
@@ -239,59 +240,84 @@ inline namespace memory
   template <typename T, std::size_t E>
   struct integer_set<T, E>
   {
-    static constexpr auto N = static_cast<std::size_t>(1) << E;
+    static_assert(std::is_same_v<decltype(0ul), std::uint64_t>);
 
-    bool data[N] {};
+    static constexpr auto N = 1ul << E;
+
+    std::uint64_t data[N / 64] {};
 
     struct const_iterator : public std::iterator<std::bidirectional_iterator_tag, T>
     {
-      bool const* data = nullptr;
+      std::uint64_t const* data = nullptr;
 
-      std::size_t i = std::numeric_limits<std::size_t>::max();
+      std::size_t index = std::numeric_limits<std::size_t>::max();
 
       auto increment_unless_truthy() noexcept
       {
-        for (assert(data); good() and not data[i]; ++i)
-        {}
+        auto i = index / 64;
+        auto j = index % 64;
 
-        assert(not good() or data[i]);
+        for (; i < N / 64; ++i, j = 0)
+        {
+          if (auto datum = data[i] & (~0ul << j); datum)
+          {
+            index = i * 64 + __builtin_ctzl(datum);
+            assert(data[index / 64] & (1ul << index % 64));
+            return;
+          }
+        }
+
+        index = N;
+
+        assert(not good());
       }
 
       auto decrement_unless_truthy() noexcept
       {
-        for (assert(data); good() and not data[i]; --i)
-        {}
+        auto i = index / 64;
+        auto j = index % 64;
 
-        assert(not good() or data[i]);
+        for (; i < N / 64; --i, j = 63)
+        {
+          if (auto datum = data[i] & (~0ul >> (63 - j)); datum)
+          {
+            index = i * 64 + (63 - __builtin_clzl(datum));
+            assert(data[index / 64] & (1ul << index % 64));
+            return;
+          }
+        }
+
+        index = N;
+
+        assert(not good());
       }
 
       constexpr const_iterator() = default;
 
       explicit const_iterator(integer_set const* container, std::size_t i) noexcept
-        : data { container->data }
-        , i    { i }
+        : data  { container->data }
+        , index { i }
       {
         increment_unless_truthy();
-        assert(not good() or data[this->i]);
       }
 
       explicit const_iterator(integer_set const* container) noexcept
-        : data { container->data }
-        , i    { N - 1 }
+        : data  { container->data }
+        , index { N - 1 }
       {
         decrement_unless_truthy();
       }
 
       auto operator ++() noexcept -> decltype(auto)
       {
-        ++i;
+        ++index;
         increment_unless_truthy();
         return *this;
       }
 
       auto operator --() noexcept -> decltype(auto)
       {
-        --i;
+        --index;
         decrement_unless_truthy();
         return *this;
       }
@@ -299,13 +325,13 @@ inline namespace memory
       auto operator *() const noexcept
       {
         assert(good());
-        return reinterpret_cast<T>(i);
+        return reinterpret_cast<T>(index);
       }
 
       auto good() const noexcept -> bool
       {
         assert(data);
-        return i < N;
+        return index < N;
       }
 
       auto at_end() const noexcept -> bool
@@ -315,7 +341,7 @@ inline namespace memory
 
       auto is_same_index(const_iterator const& other) const noexcept -> bool
       {
-        return i == other.i;
+        return index == other.index;
       }
 
       friend auto operator ==(const_iterator const& a, const_iterator const& b) noexcept
@@ -331,12 +357,16 @@ inline namespace memory
 
     auto insert(T value) noexcept
     {
-      data[reinterpret_cast<std::size_t>(value)] = true;
+      auto i = reinterpret_cast<std::size_t>(value) / 64;
+      auto j = reinterpret_cast<std::size_t>(value) % 64;
+      data[i] |= (1ul << j);
     }
 
     auto erase(T value) noexcept
     {
-      data[reinterpret_cast<std::size_t>(value)] = false;
+      auto i = reinterpret_cast<std::size_t>(value) / 64;
+      auto j = reinterpret_cast<std::size_t>(value) % 64;
+      data[i] &= ~(1ul << j);
     }
 
     auto lower_bound(T value) const noexcept

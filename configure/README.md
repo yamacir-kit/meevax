@@ -25,7 +25,7 @@ Latest release is [here](https://github.com/yamacir-kit/meevax/releases).
 - Low-level hygienic macro system, known as *syntactic closures* [[Bawden and
   Rees 1988](#Bawden-and-Rees-1988); [Hanson 1991](#Hanson-1991)] and *explicit
   renaming* [[Clinger 1991](#Clinger-1991)]. For these, the well-known macro
-  transformers `sc-macro-transformer`, `rsc-macro-transformer`, and
+  transformers `sc-macro-transformer`, `rsc-macro-transformer` and
   `er-macro-transformer` from the library [`(meevax
   macro-transformer)`](./basis/meevax.ss) are provided. Note that these are
   non-Scheme standards.
