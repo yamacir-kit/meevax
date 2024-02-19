@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <memory>
 #include <unordered_map>
+#include <utility>
 
 #include <meevax/memory/literal.hpp>
 #include <meevax/memory/marker.hpp>
