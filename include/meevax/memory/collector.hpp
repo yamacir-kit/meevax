@@ -121,14 +121,14 @@ inline namespace memory
       friend class collector;
 
     protected:
-      tag * location = nullptr;
+      tag * object = nullptr;
 
       explicit constexpr mutator() = default;
 
-      explicit mutator(tag * location) noexcept
-        : location { location }
+      explicit mutator(tag * object) noexcept
+        : object { object }
       {
-        if (location)
+        if (object)
         {
           mutators.insert(this);
         }
@@ -136,7 +136,7 @@ inline namespace memory
 
       ~mutator() noexcept
       {
-        if (location)
+        if (object)
         {
           mutators.erase(this);
         }
@@ -144,7 +144,7 @@ inline namespace memory
 
       auto reset(tag * after = nullptr) noexcept -> void
       {
-        if (auto before = std::exchange(location, after); not before and after)
+        if (auto before = std::exchange(object, after); not before and after)
         {
           mutators.insert(this);
         }
@@ -181,9 +181,9 @@ inline namespace memory
   protected:
     static inline tag * cache = nullptr;
 
-    static inline pointer_set<tag *> tags {};
+    static inline v2::pointer_set<tag *> tags {};
 
-    static inline pointer_set<mutator *> mutators {};
+    static inline v2::pointer_set<mutator *> mutators {};
 
     static inline std::size_t allocation = 0;
 

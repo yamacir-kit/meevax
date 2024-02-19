@@ -14,24 +14,13 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_BASIS_HPP
-#define INCLUDED_MEEVAX_KERNEL_BASIS_HPP
-
-#include <array>
+#include <meevax/basis.hpp>
 
 namespace meevax
 {
-inline namespace kernel
-{
-  template <typename... Ts>
-  constexpr auto make_array(Ts&&... xs) -> std::array<std::decay_t<std::common_type_t<Ts...>>, sizeof...(Ts)>
+  auto basis() -> std::vector<char const*>
   {
-    return { std::forward<decltype(xs)>(xs)... };
-  }
-
-  constexpr auto basis()
-  {
-    return make_array(
+    return {
       R"##(${meevax.ss})##",
       R"##(${r4rs.ss})##",
       R"##(${r5rs.ss})##",
@@ -53,9 +42,7 @@ inline namespace kernel
       R"##(${srfi-78.ss})##",
       R"##(${srfi-98.ss})##",
       R"##(${srfi-111.ss})##",
-      R"##(${srfi-149.ss})##");
+      R"##(${srfi-149.ss})##",
+    };
   }
-} // namespace kernel
 } // namespace meevax
-
-#endif // INCLUDED_MEEVAX_KERNEL_BASIS_HPP

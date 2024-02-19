@@ -25,7 +25,7 @@ Latest release is [here](https://github.com/yamacir-kit/meevax/releases).
 - Low-level hygienic macro system, known as *syntactic closures* [[Bawden and
   Rees 1988](#Bawden-and-Rees-1988); [Hanson 1991](#Hanson-1991)] and *explicit
   renaming* [[Clinger 1991](#Clinger-1991)]. For these, the well-known macro
-  transformers `sc-macro-transformer`, `rsc-macro-transformer`, and
+  transformers `sc-macro-transformer`, `rsc-macro-transformer` and
   `er-macro-transformer` from the library [`(meevax
   macro-transformer)`](./basis/meevax.ss) are provided. Note that these are
   non-Scheme standards.
@@ -91,7 +91,7 @@ Procedures for each standard are provided by the following R7RS-style libraries:
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cd build
 make package
-sudo apt install build/meevax_0.5.107_amd64.deb
+sudo apt install build/meevax_0.5.119_amd64.deb
 ```
 
 or
@@ -123,9 +123,9 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name | Description
 |-------------|-------------
-| `all`       | Build shared-library `libmeevax.0.5.107.so` and executable `meevax`
+| `all`       | Build shared-library `libmeevax.0.5.119.so` and executable `meevax`
 | `test`      | Test executable `meevax`
-| `package`   | Generate debian package `meevax_0.5.107_amd64.deb`
+| `package`   | Generate debian package `meevax_0.5.119_amd64.deb`
 | `install`   | Copy files into `/usr/local` directly
 
 ## Usage

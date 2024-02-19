@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <meevax/chrono/duration.hpp>
+#include <meevax/memory/integer_set.hpp>
 #include <meevax/memory/pointer_set.hpp>
 #include <meevax/utility/debug.hpp>
 #include <meevax/utility/demangle.hpp>
@@ -112,10 +113,12 @@ auto measure()
 
 auto main() -> int
 {
-  std::cout << measure<meevax::pointer_set<int const*, meevax::simple_flat_map, meevax::simple_bitset>>() << std::endl;
-  std::cout << measure<meevax::pointer_set<int const*, meevax::simple_flat_map,           std::bitset>>() << std::endl;
-  std::cout << measure<meevax::pointer_set<int const*,                std::map, meevax::simple_bitset>>() << std::endl;
-  std::cout << measure<meevax::pointer_set<int const*,                std::map,           std::bitset>>() << std::endl;
+  std::cout << measure<meevax::v1::pointer_set<int const*, meevax::simple_flat_map, meevax::simple_bitset>>() << std::endl;
+  std::cout << measure<meevax::v1::pointer_set<int const*, meevax::simple_flat_map,           std::bitset>>() << std::endl;
+  std::cout << measure<meevax::v1::pointer_set<int const*,                std::map, meevax::simple_bitset>>() << std::endl;
+  std::cout << measure<meevax::v1::pointer_set<int const*,                std::map,           std::bitset>>() << std::endl;
+
+  std::cout << measure<meevax::v2::pointer_set<int const*>>() << std::endl;
 
   return EXIT_SUCCESS;
 }

@@ -424,7 +424,7 @@ inline namespace kernel
     }
     catch (std::invalid_argument const&)
     {
-      return make(ratio(literal, radix));
+      return make<ratio>(literal, radix);
     }
   }
 
@@ -487,7 +487,7 @@ inline namespace kernel
     }
     catch (std::invalid_argument const&)
     {
-      return make(complex(literal, radix));
+      return make<complex>(literal, radix);
     }
   }
 

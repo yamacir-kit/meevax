@@ -136,7 +136,11 @@ inline namespace kernel
 
     using const_iterator = forward_iterator<true>;
 
-    explicit pair(object const& = unit, object const& = unit);
+    constexpr pair() = default;
+
+    explicit pair(object const&);
+
+    explicit pair(object const&, object const&);
 
     template <typename... Ts, typename = std::enable_if_t<(1 < sizeof...(Ts))>>
     explicit pair(object const& a, Ts&&... xs)

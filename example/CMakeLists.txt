@@ -10,7 +10,7 @@ add_library(${PROJECT_NAME} SHARED ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.c
 
 target_compile_options(${PROJECT_NAME} PUBLIC "-Wno-return-type-c-linkage")
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Meevax::kernel)
+target_link_libraries(${PROJECT_NAME} PRIVATE Meevax::kernel Meevax::basis)
 
 enable_testing()
 
