@@ -18,10 +18,12 @@
 #define INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 
 #include <cstddef>
+#include <memory>
+#include <unordered_map>
 
 #include <meevax/memory/literal.hpp>
 #include <meevax/memory/marker.hpp>
-#include <meevax/memory/pointer_set.hpp>
+#include <meevax/memory/integer_set.hpp>
 
 namespace meevax
 {
@@ -181,9 +183,9 @@ inline namespace memory
   protected:
     static inline tag * cache = nullptr;
 
-    static inline v2::pointer_set<tag *> tags {};
+    static inline integer_set<tag *, 16, 16, 16> tags {};
 
-    static inline v2::pointer_set<mutator *> mutators {};
+    static inline integer_set<mutator *, 16, 16, 16> mutators {};
 
     static inline std::size_t allocation = 0;
 

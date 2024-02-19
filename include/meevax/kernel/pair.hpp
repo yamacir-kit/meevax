@@ -138,13 +138,14 @@ inline namespace kernel
 
     constexpr pair() = default;
 
-    explicit pair(object const&);
+    template <typename T, typename U = decltype((unit)), REQUIRES(std::is_constructible<std::pair<object, object>, T, U>)>
+    explicit pair(T&& x, U&& y = unit)
+      : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
+    {}
 
-    explicit pair(object const&, object const&);
-
-    template <typename... Ts, typename = std::enable_if_t<(1 < sizeof...(Ts))>>
-    explicit pair(object const& a, Ts&&... xs)
-      : pair { a, make<pair>(std::forward<decltype(xs)>(xs)...) }
+    template <typename T, typename... Ts, typename = std::enable_if_t<(1 < sizeof...(Ts))>>
+    explicit pair(T&& x, Ts&&... xs)
+      : std::pair<object, object> { std::forward<decltype(x)>(x), make<pair>(std::forward<decltype(xs)>(xs)...) }
     {}
 
     virtual ~pair() = default;
