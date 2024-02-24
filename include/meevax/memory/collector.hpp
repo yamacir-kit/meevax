@@ -22,9 +22,9 @@
 #include <unordered_map>
 #include <utility>
 
+#include <meevax/memory/integer_set.hpp>
 #include <meevax/memory/literal.hpp>
 #include <meevax/memory/marker.hpp>
-#include <meevax/memory/integer_set.hpp>
 
 namespace meevax
 {
@@ -208,7 +208,7 @@ inline namespace memory
     auto operator =(collector const&) -> collector & = delete;
 
     template <typename T, typename Allocator = default_allocator<void>, typename... Ts>
-    static auto make(Ts&&... xs)
+    auto make(Ts&&... xs)
     {
       if (allocation += sizeof(T); threshold < allocation)
       {

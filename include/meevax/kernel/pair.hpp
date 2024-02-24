@@ -20,6 +20,7 @@
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/memory/gc_pointer.hpp>
+#include <meevax/memory/simple_allocator.hpp>
 
 namespace meevax
 {
@@ -43,14 +44,14 @@ inline namespace kernel
             typename... Ts>
   auto make(Ts&&... xs) -> object
   {
-    return object::allocate<T, Allocator>(std::forward<decltype(xs)>(xs)...);
+    return object::make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
   template <typename T,
             typename Allocator = collector::default_allocator<void>>
   auto make(T&& x) -> object
   {
-    return object::allocate<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
+    return object::make<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
   }
 
   template <template <typename...> typename Traits,
@@ -143,11 +144,6 @@ inline namespace kernel
       : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
 
-    template <typename T, typename... Ts, typename = std::enable_if_t<(1 < sizeof...(Ts))>>
-    explicit pair(T&& x, Ts&&... xs)
-      : std::pair<object, object> { std::forward<decltype(x)>(x), make<pair>(std::forward<decltype(xs)>(xs)...) }
-    {}
-
     virtual ~pair() = default;
 
     virtual auto compare(pair const*) const -> bool;
@@ -192,8 +188,8 @@ inline namespace kernel
   template <typename T, typename U, REQUIRES(std::is_constructible<pair, T, U>)>
   auto operator |(T&& x, U&& y) -> decltype(auto)
   {
-    return make<pair>(std::forward<decltype(x)>(x),
-                      std::forward<decltype(y)>(y));
+    return make<pair, simple_allocator<void>>(std::forward<decltype(x)>(x),
+                                              std::forward<decltype(y)>(y));
   }
 
   inline auto cons = [](auto&&... xs) constexpr

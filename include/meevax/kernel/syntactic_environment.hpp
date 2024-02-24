@@ -1218,7 +1218,7 @@ inline namespace kernel
              bind("quote-syntax"                   , syntax::quote_syntax                  ),
              bind("set!"                           , syntax::set                           )));
 
-      return make<syntactic_closure>(core_syntactic_environment, unit, make_symbol(variable));
+      return make<syntactic_closure>(core_syntactic_environment, cons(unit, make_symbol(variable)));
     }
 
     inline auto sweep(object const& form,

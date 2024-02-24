@@ -97,7 +97,7 @@ inline namespace memory
     template <typename Bound,
               typename Allocator = collector::default_allocator<void>,
               typename... Us>
-    static auto allocate(Us&&... xs)
+    static auto make(Us&&... xs)
     {
       if constexpr (std::is_same_v<Bound, Top>)
       {

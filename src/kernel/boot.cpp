@@ -1749,7 +1749,7 @@ inline namespace kernel
 
       library.define<procedure>("make-syntactic-closure", [](let const& xs)
       {
-        return make<syntactic_closure>(car(xs), cadr(xs), caddr(xs));
+        return make<syntactic_closure>(car(xs), cons(cadr(xs), caddr(xs)));
       });
     });
 

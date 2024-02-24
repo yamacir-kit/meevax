@@ -107,6 +107,8 @@ public:
     }
     else
     {
+      assert(fresh_chunks);
+
       if (not (*fresh_chunks).remaining())
       {
         fresh_chunks = new chunks(fresh_chunks);
