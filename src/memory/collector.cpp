@@ -29,9 +29,21 @@ namespace meevax
 {
 inline namespace memory
 {
+  collector default_collector {};
+
+  static auto reference_count = 0;
+
+  collector::collector()
+  {
+    ++reference_count;
+  }
+
   collector::~collector()
   {
-    clear();
+    if (not --reference_count)
+    {
+      clear();
+    }
   }
 
   auto collector::clear() -> void
@@ -160,12 +172,6 @@ inline namespace memory
         tags.erase(tag);
       }
     }
-  }
-
-  auto primary_collector() -> collector &
-  {
-    static auto c = collector();
-    return c;
   }
 } // namespace memory
 } // namespace meevax

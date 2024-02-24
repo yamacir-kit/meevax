@@ -101,11 +101,11 @@ inline namespace memory
     {
       if constexpr (std::is_same_v<Bound, Top>)
       {
-        return heterogeneous_pointer(primary_collector().make<Top, Allocator>(std::forward<decltype(xs)>(xs)...));
+        return heterogeneous_pointer(collector::make<Top, Allocator>(std::forward<decltype(xs)>(xs)...));
       }
       else if constexpr (std::is_class_v<Bound>)
       {
-        return heterogeneous_pointer(primary_collector().make<binder<Bound>, Allocator>(std::forward<decltype(xs)>(xs)...));
+        return heterogeneous_pointer(collector::make<binder<Bound>, Allocator>(std::forward<decltype(xs)>(xs)...));
       }
       else
       {

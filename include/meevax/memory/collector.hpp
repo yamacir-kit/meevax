@@ -195,7 +195,7 @@ inline namespace memory
     static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
 
   public:
-    collector() = default;
+    collector();
 
     collector(collector &&) = delete;
 
@@ -208,7 +208,7 @@ inline namespace memory
     auto operator =(collector const&) -> collector & = delete;
 
     template <typename T, typename Allocator = default_allocator<void>, typename... Ts>
-    auto make(Ts&&... xs)
+    static auto make(Ts&&... xs)
     {
       if (allocation += sizeof(T); threshold < allocation)
       {
@@ -246,7 +246,7 @@ inline namespace memory
     static auto sweep() -> void;
   };
 
-  auto primary_collector() -> collector &;
+  extern collector default_collector;
 } // namespace memory
 } // namespace meevax
 
