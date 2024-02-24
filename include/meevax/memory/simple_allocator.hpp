@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
 #define INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
 
-#include <algorithm> // std::max
-#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
@@ -28,48 +26,47 @@ namespace meevax
 {
 inline namespace memory
 {
-template <typename T, typename Capacity = std::integral_constant<std::size_t, 1024>>
+constexpr auto page_size = 4096;
+
+/*
+   Simple Segregated Storage Allocator
+*/
+template <typename T, typename Capacity = std::integral_constant<std::size_t, page_size / alignof(std::conditional_t<std::is_void_v<T>, int, T>)>>
 class simple_allocator
 {
   struct alignas(T) chunk
   {
-    chunk * next;
+    chunk * tail;
   };
 
-  class chunks
+  struct block
   {
     static constexpr auto chunk_size = std::max(sizeof(T), sizeof(chunk));
 
-    std::array<std::uint8_t, chunk_size * Capacity::value> data;
+    std::uint8_t data[chunk_size * Capacity::value] = {};
 
     std::size_t size = Capacity::value;
 
-  public:
-    chunks * const next;
+    block * const tail;
 
-    explicit constexpr chunks(chunks * next = nullptr)
-      : next { next }
+    explicit constexpr block(block * tail = nullptr)
+      : tail { tail }
     {}
 
-    ~chunks()
+    ~block()
     {
-      delete next;
-    }
-
-    auto remaining() const noexcept
-    {
-      return size;
+      delete tail;
     }
 
     auto pop()
     {
-      return reinterpret_cast<value_type *>(std::addressof(data[chunk_size * --size]));
+      return data + chunk_size * --size;
     }
   };
 
-  chunk * recycled_chunk = nullptr;
+  chunk * free_list = nullptr;
 
-  chunks * fresh_chunks;
+  block * free_space;
 
 public:
   using value_type = T;
@@ -83,7 +80,7 @@ public:
   using is_always_equal = std::false_type;
 
   explicit simple_allocator()
-    : fresh_chunks { new chunks() }
+    : free_space { new block() }
   {}
 
   simple_allocator(simple_allocator &&) = delete;
@@ -92,7 +89,7 @@ public:
 
   ~simple_allocator()
   {
-    delete fresh_chunks;
+    delete free_space;
   }
 
   auto operator =(simple_allocator &&) -> simple_allocator & = delete;
@@ -101,27 +98,25 @@ public:
 
   auto allocate(size_type = 1)
   {
-    if (recycled_chunk)
+    if (free_list)
     {
-      return reinterpret_cast<value_type *>(std::exchange(recycled_chunk, recycled_chunk->next));
+      return reinterpret_cast<value_type *>(std::exchange(free_list, free_list->tail));
     }
     else
     {
-      assert(fresh_chunks);
-
-      if (not (*fresh_chunks).remaining())
+      if (not free_space->size)
       {
-        fresh_chunks = new chunks(fresh_chunks);
+        free_space = new block(free_space);
       }
 
-      return (*fresh_chunks).pop();
+      return reinterpret_cast<value_type *>(free_space->pop());
     }
   }
 
   auto deallocate(value_type * p, size_type = 1) -> void
   {
-    reinterpret_cast<chunk *>(p)->next = recycled_chunk;
-    recycled_chunk = reinterpret_cast<chunk *>(p);
+    reinterpret_cast<chunk *>(p)->tail = free_list;
+    free_list = reinterpret_cast<chunk *>(p);
   }
 };
 } // namespace memory
