@@ -28,12 +28,7 @@ inline namespace kernel
 {
   struct pair;
 
-  using object = gc_pointer<pair,
-                            bool,
-                            std::int32_t, std::uint32_t,
-                            float,
-                            character,
-                            instruction>;
+  using object = gc_pointer<pair, bool, std::int32_t, float, character, instruction>;
 
   using let = object;
 

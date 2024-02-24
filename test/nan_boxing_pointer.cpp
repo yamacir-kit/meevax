@@ -130,29 +130,29 @@ auto main() -> int
   }
 
   {
-    let x = make<std::uint32_t>(static_cast<std::uint32_t>(1)),
-        y = make<std::uint32_t>(static_cast<std::uint32_t>(2));
+    let x = make(static_cast<std::int32_t>(1)),
+        y = make(static_cast<std::int32_t>(2));
 
     // PRINT(demangle(x.type()));
     // PRINT(demangle(y.type()));
 
-    assert(x.is<std::uint32_t>());
-    assert(y.is<std::uint32_t>());
+    assert(x.is<std::int32_t>());
+    assert(y.is<std::int32_t>());
 
     let const pare = cons(x, y);
 
     PRINT(demangle(pare.as<pair>().first.type()));
     PRINT(demangle(pare.as<pair>().second.type()));
 
-    assert(pare.as<pair>().first.is<std::uint32_t>());
-    assert(pare.as<pair>().first.as<std::uint32_t>() == 1);
-    assert(pare.as<pair>().second.is<std::uint32_t>());
-    assert(pare.as<pair>().second.as<std::uint32_t>() == 2);
+    assert(pare.as<pair>().first.is<std::int32_t>());
+    assert(pare.as<pair>().first.as<std::int32_t>() == 1);
+    assert(pare.as<pair>().second.is<std::int32_t>());
+    assert(pare.as<pair>().second.as<std::int32_t>() == 2);
 
-    assert(car(pare).is<std::uint32_t>());
-    assert(car(pare).as<std::uint32_t>() == 1);
-    assert(cdr(pare).is<std::uint32_t>());
-    assert(cdr(pare).as<std::uint32_t>() == 2);
+    assert(car(pare).is<std::int32_t>());
+    assert(car(pare).as<std::int32_t>() == 1);
+    assert(cdr(pare).is<std::int32_t>());
+    assert(cdr(pare).as<std::int32_t>() == 2);
   }
 
   delete p;

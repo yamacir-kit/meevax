@@ -35,7 +35,7 @@ inline namespace kernel
 
   auto union_find(object const& x, object const& y, std::unordered_map<object, object> & forest)
   {
-    using rank = std::uint32_t;
+    using rank = std::int32_t;
 
     if (auto iterator_x = forest.find(x); iterator_x != forest.end())
     {

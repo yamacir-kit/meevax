@@ -25,7 +25,7 @@ inline namespace kernel
 {
   struct identity
   {
-    using index = std::uint32_t;
+    using index = std::int32_t;
   };
 
   struct absolute : public virtual pair // (<identifier> . <object>)
