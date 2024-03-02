@@ -207,10 +207,16 @@ inline namespace kernel
         return car(xs).as<character>().property().is_lower_case();
       });
 
-      library.define<procedure>("digit-value", [](let const& xs)
+      library.define<procedure>("digit-value", [](let const& xs) -> object
       {
-        auto digit_value = car(xs).as<character>().digit_value();
-        return digit_value ? make<exact_integer>(*digit_value) : f;
+        if (auto digit_value = car(xs).as<character>().digit_value(); digit_value)
+        {
+          return make<exact_integer>(*digit_value);
+        }
+        else
+        {
+          return f;
+        }
       });
 
       library.define<procedure>("char->integer", [](let const& xs)
@@ -637,9 +643,16 @@ inline namespace kernel
         return make<exact_integer>(length(car(xs)));
       });
 
-      library.define<procedure>("length+", [](let const& xs)
+      library.define<procedure>("length+", [](let const& xs) -> object
       {
-        return is_circular_list(car(xs)) ? f : make<exact_integer>(length(car(xs)));
+        if (is_circular_list(car(xs)))
+        {
+          return f;
+        }
+        else
+        {
+          return make<exact_integer>(length(car(xs)));
+        }
       });
 
       library.define<procedure>("append", [](let const& xs)
@@ -1755,7 +1768,7 @@ inline namespace kernel
 
     define<library>("(meevax system)", [](library & library)
     {
-      library.define<procedure>("get-environment-variable", [](let const& xs)
+      library.define<procedure>("get-environment-variable", [](let const& xs) -> object
       {
         if (auto s = std::getenv(static_cast<std::string>(car(xs).as<string>()).c_str()))
         {

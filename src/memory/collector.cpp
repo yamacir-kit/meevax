@@ -114,8 +114,6 @@ inline namespace memory
 
   auto collector::mark() noexcept -> void
   {
-    marker::clear();
-
     auto is_root_object = [begin = tags.begin()](mutator * given)
     {
       /*
@@ -137,7 +135,7 @@ inline namespace memory
       assert(mutator);
       assert(mutator->object);
 
-      if (not mutator->object->marked() and is_root_object(mutator))
+      if (not mutator->object->marked and is_root_object(mutator))
       {
         mark(mutator->object);
       }
@@ -148,16 +146,17 @@ inline namespace memory
   {
     assert(tag);
 
-    if (not tag->marked())
+    if (not tag->marked)
     {
-      tag->mark();
+      tag->marked = true;
 
-      const auto lower_address = tag->lower_address<mutator>();
-      const auto upper_address = tag->upper_address<mutator>();
+      const auto lower_address = reinterpret_cast<mutator *>(tag->lower_address());
+      const auto upper_address = reinterpret_cast<mutator *>(tag->upper_address());
 
-      for (auto iter = mutators.lower_bound(lower_address); iter != mutators.end() and *iter < upper_address; ++iter)
+      for (auto lower = mutators.lower_bound(lower_address),
+                upper = mutators.lower_bound(upper_address); lower != upper; ++lower)
       {
-        mark((*iter)->object);
+        mark((*lower)->object);
       }
     }
   }
@@ -166,7 +165,11 @@ inline namespace memory
   {
     for (auto&& tag : tags)
     {
-      if (not tag->marked())
+      if (tag->marked)
+      {
+        tag->marked = false;
+      }
+      else
       {
         delete tag;
         tags.erase(tag);

@@ -386,19 +386,26 @@ inline namespace kernel
                          continuation,
                          true);
         }
+        else if (cdr(sequence).template is<null>())
+        {
+          return compile(car(sequence),
+                         bound_variables,
+                         free_variables,
+                         continuation,
+                         true);
+        }
         else
         {
           return compile(car(sequence),
                          bound_variables,
                          free_variables,
-                         cdr(sequence).template is<null>() ? continuation
-                                                           : cons(make(instruction::drop),
-                                                                  body(compile,
-                                                                       cdr(sequence),
-                                                                       bound_variables,
-                                                                       free_variables,
-                                                                       continuation)),
-                         cdr(sequence).template is<null>());
+                         cons(make(instruction::drop),
+                              body(compile,
+                                   cdr(sequence),
+                                   bound_variables,
+                                   free_variables,
+                                   continuation)),
+                         false);
         }
       }
 

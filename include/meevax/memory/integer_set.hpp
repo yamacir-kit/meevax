@@ -23,7 +23,6 @@
 #include <cstdint>
 #include <iterator>
 #include <limits>
-#include <type_traits>
 
 #include <meevax/bit/bit_cast.hpp>
 #include <meevax/bit/log2.hpp>

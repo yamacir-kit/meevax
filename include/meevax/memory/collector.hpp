@@ -24,7 +24,6 @@
 
 #include <meevax/memory/integer_set.hpp>
 #include <meevax/memory/literal.hpp>
-#include <meevax/memory/marker.hpp>
 
 namespace meevax
 {
@@ -40,34 +39,37 @@ inline namespace memory
   class collector
   {
   public:
-    struct tag : public marker
+    struct tag
     {
-      std::uintptr_t address;
+      bool marked : 1;
 
-      std::size_t size;
+      std::size_t size : 15;
+
+      std::uintptr_t address : 48;
 
       explicit tag(void const* const address, std::size_t size)
-        : address { reinterpret_cast<std::uintptr_t>(address) }
+        : marked  { false }
         , size    { size }
-      {}
+        , address { reinterpret_cast<std::uintptr_t>(address) }
+      {
+        assert(size < (1u << 15));
+      }
 
       virtual ~tag() = default;
 
-      template <typename T = void>
       auto lower_address() const noexcept
       {
-        return reinterpret_cast<T *>(address);
+        return address;
       }
 
-      template <typename T = void>
       auto upper_address() const noexcept
       {
-        return reinterpret_cast<T *>(address + size);
+        return address + size;
       }
 
       auto contains(void const* const data) const noexcept
       {
-        return lower_address() <= data and data < upper_address();
+        return reinterpret_cast<void const*>(lower_address()) <= data and data < reinterpret_cast<void const*>(upper_address());
       }
     };
 

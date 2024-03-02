@@ -79,7 +79,14 @@ inline namespace kernel
 
     auto peek() -> object override
     {
-      return deque.empty() ? eof_object : make<exact_integer>(deque.front());
+      if (deque.empty())
+      {
+        return eof_object;
+      }
+      else
+      {
+        return make<exact_integer>(deque.front());
+      }
     }
   };
 

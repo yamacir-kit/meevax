@@ -64,7 +64,14 @@ inline namespace kernel
 
   auto binary_input_file_port::peek() -> object
   {
-    return get_ready() ? make<exact_integer>(ifstream.peek()) : eof_object;
+    if (get_ready())
+    {
+      return make<exact_integer>(ifstream.peek());
+    }
+    else
+    {
+      return eof_object;
+    }
   }
 
   auto operator <<(std::ostream & output, binary_input_file_port const& datum) -> std::ostream &

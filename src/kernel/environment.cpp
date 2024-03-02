@@ -184,7 +184,7 @@ inline namespace kernel
       {
         return [=](let const& renamings)
         {
-          return map([&](let const& identity)
+          return map([&](let const& identity) -> object
                      {
                        assert(identity.is<absolute>());
                        assert(car(identity).is_also<identifier>());

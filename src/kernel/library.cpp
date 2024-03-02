@@ -76,7 +76,7 @@ inline namespace kernel
       }
     }
 
-    return map([this](let const& export_spec)
+    return map([this](let const& export_spec) -> object
                {
                  if (export_spec.is<pair>())
                  {
