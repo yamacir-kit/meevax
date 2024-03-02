@@ -74,9 +74,9 @@ inline namespace kernel
     */
     if (s or e or c)
     {
-      d = cons(std::exchange(s, unit),
-               std::exchange(e, unit),
-               std::exchange(c, unit), d);
+      d = cons(std::exchange(s, nullptr),
+               std::exchange(e, nullptr),
+               std::exchange(c, nullptr), d);
     }
 
     let const result = execute(optimize(compile(expression)));
@@ -96,7 +96,7 @@ inline namespace kernel
     if (x.is_also<error>())
     {
       x.as<error>().raise(); // NOTE: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84476
-      return unit;
+      return nullptr;
     }
     else
     {
@@ -222,7 +222,7 @@ inline namespace kernel
     {
       assert(immigrant.is<absolute>());
 
-      if (let const& inhabitant = std::as_const(*this).identify(car(immigrant), unit, unit); inhabitant == f or interactive)
+      if (let const& inhabitant = std::as_const(*this).identify(car(immigrant), nullptr, nullptr); inhabitant == f or interactive)
       {
         second = cons(immigrant, second);
       }

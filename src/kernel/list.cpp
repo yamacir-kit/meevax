@@ -29,7 +29,7 @@ inline namespace kernel
     }
     else
     {
-      return unit;
+      return nullptr;
     }
   }
 
@@ -41,7 +41,7 @@ inline namespace kernel
     }
     else
     {
-      return unit;
+      return nullptr;
     }
   }
 
@@ -146,7 +146,7 @@ inline namespace kernel
     }
     else
     {
-      return unit;
+      return nullptr;
     }
   }
 
@@ -154,12 +154,12 @@ inline namespace kernel
   {
     if (0 < k)
     {
-      cdr(drop(x, k - 1)) = unit;
+      cdr(drop(x, k - 1)) = nullptr;
       return x;
     }
     else
     {
-      return unit;
+      return nullptr;
     }
   }
 
@@ -212,7 +212,7 @@ inline namespace kernel
     }
     else
     {
-      return unit;
+      return nullptr;
     }
   }
 
@@ -229,7 +229,7 @@ inline namespace kernel
     }
     else
     {
-      cdr(x) = unit;
+      cdr(x) = nullptr;
     }
   }
 
@@ -242,7 +242,7 @@ inline namespace kernel
     }
     else
     {
-      return unit;
+      return nullptr;
     }
   }
 
@@ -322,7 +322,7 @@ inline namespace kernel
 
   auto reverse(object const& xs) -> object
   {
-    return reverse(xs, unit);
+    return reverse(xs, nullptr);
   }
 
   auto reverse(object & xs, object const& a) -> object
@@ -343,7 +343,7 @@ inline namespace kernel
 
   auto reverse(object & xs) -> object
   {
-    return reverse(xs, unit);
+    return reverse(xs, nullptr);
   }
 
   auto memq(object const& x, object const& xs) -> object const&

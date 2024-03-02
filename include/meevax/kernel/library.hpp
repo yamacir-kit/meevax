@@ -26,9 +26,9 @@ inline namespace kernel
 {
   struct library : public environment
   {
-    let declarations = unit;
+    let declarations = nullptr;
 
-    let export_specs = unit;
+    let export_specs = nullptr;
 
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
     explicit library(F declare)

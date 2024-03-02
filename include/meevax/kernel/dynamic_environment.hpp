@@ -69,16 +69,16 @@ inline namespace kernel
        `kernel-exception-handler-set!`, it is basically assumed to be set to
        R7RS Scheme's standard procedure `raise`.
     */
-    let static inline raise = unit;
+    let static inline raise = nullptr;
 
     template <typename... Ts>
     auto apply(object const& f, Ts&&... xs) -> object
     {
       s = list(f, list(std::forward<decltype(xs)>(xs)...));
-      e = unit;
+      e = nullptr;
       c = list(make(instruction::call),
                make(instruction::stop));
-      d = unit;
+      d = nullptr;
 
       return run();
     }
@@ -283,7 +283,7 @@ inline namespace kernel
             d = cons(cddr(s), e, cdr(c), d);
             c = car(callee);
             e = cons(cadr(s), cdr(callee));
-            s = unit;
+            s = nullptr;
             goto fetch;
           }
           else if (callee.is_also<primitive_procedure>()) /* -------------------
@@ -333,7 +333,7 @@ inline namespace kernel
             assert(tail(c, 1).template is<null>());
             c = car(callee);
             e = cons(cadr(s), cdr(callee));
-            s = unit;
+            s = nullptr;
             goto fetch;
           }
           else if (callee.is_also<primitive_procedure>()) /* -------------------
@@ -378,13 +378,13 @@ inline namespace kernel
           *  s e (%dummy . c) d => s (<null> . e) c d
           *
           * ----------------------------------------------------------------- */
-          e = cons(unit, e);
+          e = cons(nullptr, e);
           c = cdr(c);
           goto fetch;
 
         case instruction::tail_letrec: /* --------------------------------------
           *
-          *  (<closure> xs . s) (<unit> . e) (%letrec . c) d => () (set-car! e' xs) c' d
+          *  (<closure> xs . s) (<null> . e) (%letrec . c) d => () (set-car! e' xs) c' d
           *
           *  where <closure> = (c' . e')
           *
@@ -392,12 +392,12 @@ inline namespace kernel
           cadar(s) = cadr(s);
           c = caar(s);
           e = cdar(s);
-          s = unit;
+          s = nullptr;
           goto fetch;
 
         case instruction::letrec: /* -------------------------------------------
           *
-          *  (<closure> xs . s) (<unit> . e) (%letrec . c) d => () (set-car! e' xs) c' (s e c . d)
+          *  (<closure> xs . s) (<null> . e) (%letrec . c) d => () (set-car! e' xs) c' (s e c . d)
           *
           *  where <closure> = (c' . e')
           *
@@ -406,7 +406,7 @@ inline namespace kernel
           d = cons(cddr(s), cdr(e), cdr(c), d);
           c = caar(s);
           e = cdar(s);
-          s = unit;
+          s = nullptr;
           goto fetch;
 
         case instruction::return_: /* ------------------------------------------

@@ -51,11 +51,11 @@ inline namespace kernel
                eqv(car(x).template as<syntactic_environment>()
                          .identify(cddr(x),
                                    caar(x),
-                                   unit),
+                                   nullptr),
                    car(y).template as<syntactic_environment>()
                          .identify(cddr(y),
                                    caar(y),
-                                   unit));
+                                   nullptr));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
@@ -350,7 +350,7 @@ inline namespace kernel
              where <binding specs> = ((<variable 1> <initial 1>) ...
                                       (<variable n> <initial n>))
           */
-          let formals = unit;
+          let formals = nullptr;
 
           let body = sequence;
 
@@ -380,7 +380,7 @@ inline namespace kernel
           }
 
           return compile(cons(cons(rename("lambda"), formals, body),
-                              make_list(length(binding_specs), unit)),
+                              make_list(length(binding_specs), nullptr)),
                          bound_variables,
                          free_variables,
                          continuation,
@@ -701,7 +701,7 @@ inline namespace kernel
         else if (let const head = compile(car(expression), // Head expression or definition
                                           bound_variables,
                                           free_variables,
-                                          unit);
+                                          nullptr);
                  head.is<null>()) // The syntax define-syntax creates a transformer from transformer-spec at compile time and registers it in the global environment. The syntax define-syntax is effectively a compile-time side-effect of the syntax environment and does nothing at run-time.
         {
           return sequence(compile,
@@ -773,7 +773,7 @@ inline namespace kernel
         return compile(cons(cons(rename("lambda"),
                                  map(formal, car(expression)), // <formals>
                                  cdr(expression)), // <body>
-                            unit), // dummy
+                            nullptr), // dummy
                        bound_variables,
                        free_variables,
                        continuation);
@@ -814,7 +814,7 @@ inline namespace kernel
         return compile(cons(cons(rename("lambda"),
                                  formals,
                                  cdr(expression)), // <body>
-                            unit), // dummy
+                            nullptr), // dummy
                        bound_variables,
                        free_variables,
                        continuation);
@@ -901,7 +901,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        let identity = compile.identify(car(expression), unit, unit);
+        let identity = compile.identify(car(expression), nullptr, nullptr);
 
         cdr(identity) = make<transformer>(Environment().execute(compile(cadr(expression),
                                                                         bound_variables)),
@@ -962,8 +962,8 @@ inline namespace kernel
     using injector = std::function<object (object const&)>;
 
     auto operator ()(object const& expression,
-                     object const& bound_variables = unit, // list of <formals>
-                     object const& free_variables = unit,
+                     object const& bound_variables = nullptr, // list of <formals>
+                     object const& free_variables = nullptr,
                      object const& continuation = list(make(instruction::stop)),
                      bool tail = false) -> object
     {
@@ -976,7 +976,7 @@ inline namespace kernel
       *
       * --------------------------------------------------------------------- */
       {
-        return cons(make(instruction::load_constant), unit, continuation);
+        return cons(make(instruction::load_constant), nullptr, continuation);
       }
       else if (not expression.is<pair>()) /* -----------------------------------
       *
@@ -1084,8 +1084,8 @@ inline namespace kernel
 
     inline auto define(object const& variable, object const& value = undefined) -> void
     {
-      assert(identify(variable, unit, unit).template is<absolute>());
-      cdr(identify(variable, unit, unit)) = value;
+      assert(identify(variable, nullptr, nullptr).template is<absolute>());
+      cdr(identify(variable, nullptr, nullptr)) = value;
     }
 
     template <typename T, typename... Ts>
@@ -1152,7 +1152,7 @@ inline namespace kernel
           return car(variable).as<syntactic_environment>()
                               .identify(cddr(variable),
                                         unify(caar(variable), bound_variables),
-                                        unit);
+                                        nullptr);
         }
         else
         {
@@ -1218,13 +1218,13 @@ inline namespace kernel
              bind("quote-syntax"                   , syntax::quote_syntax                  ),
              bind("set!"                           , syntax::set                           )));
 
-      return make<syntactic_closure>(core_syntactic_environment, cons(unit, make_symbol(variable)));
+      return make<syntactic_closure>(core_syntactic_environment, cons(nullptr, make_symbol(variable)));
     }
 
     inline auto sweep(object const& form,
                       object const& bound_variables,
                       object const& free_variables,
-                      object const& binding_specs = unit) const -> pair
+                      object const& binding_specs = nullptr) const -> pair
     {
       if (form.is<pair>() and car(form).is<pair>())
       {
@@ -1327,7 +1327,7 @@ inline namespace kernel
 
       for (auto offset = std::max(length(a), length(b)) - length(xs); 0 < offset; --offset)
       {
-        xs = cons(unit, xs);
+        xs = cons(nullptr, xs);
       }
 
       return xs;

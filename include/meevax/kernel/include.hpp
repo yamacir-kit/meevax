@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto include(object const&, bool = true, object const& = unit) -> object;
+  auto include(object const&, bool = true, object const& = nullptr) -> object;
 } // namespace kernel
 } // namespace meevax
 

@@ -68,7 +68,7 @@ inline namespace kernel
 
   auto library::resolve() -> object
   {
-    if (let const unresolved_declarations = std::exchange(declarations, unit); unresolved_declarations.is<pair>())
+    if (let const unresolved_declarations = std::exchange(declarations, nullptr); unresolved_declarations.is<pair>())
     {
       for (let const& unresolved_declaration : unresolved_declarations)
       {
@@ -85,12 +85,12 @@ inline namespace kernel
                    assert(cadr(export_spec).is_also<identifier>());
                    assert(caddr(export_spec).is_also<identifier>());
                    return make<absolute>(caddr(export_spec),
-                                         cdr(identify(cadr(export_spec), unit, unit)));
+                                         cdr(identify(cadr(export_spec), nullptr, nullptr)));
                  }
                  else
                  {
                    assert(export_spec.is_also<identifier>());
-                   return identify(export_spec, unit, unit);
+                   return identify(export_spec, nullptr, nullptr);
                  }
                },
                export_specs);

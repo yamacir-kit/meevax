@@ -1769,7 +1769,7 @@ inline namespace kernel
 
       library.define<procedure>("get-environment-variables", []()
       {
-        let alist = unit;
+        let alist = nullptr;
 
         for (auto iter = environ; *iter; ++iter)
         {

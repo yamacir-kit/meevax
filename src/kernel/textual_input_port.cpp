@@ -285,7 +285,7 @@ inline namespace kernel
               }
               else
               {
-                return unit;
+                return nullptr;
               }
             }
             else
@@ -408,7 +408,7 @@ inline namespace kernel
         }
         catch (std::integral_constant<char, ')'> const&)
         {
-          return unit;
+          return nullptr;
         }
         catch (std::integral_constant<char, '.'> const&)
         {

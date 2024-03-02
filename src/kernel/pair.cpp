@@ -20,7 +20,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  let unit { nullptr };
+  let unit = nullptr;
 
   auto pair::compare(pair const* that) const -> bool
   {
@@ -56,7 +56,7 @@ inline namespace kernel
     {
       os << magenta("(") << car(datum);
 
-      for (let xs = cdr(datum); xs != unit; xs = cdr(xs))
+      for (let xs = cdr(datum); not xs.is<null>(); xs = cdr(xs))
       {
         if (xs.is<pair>())
         {

@@ -12,7 +12,7 @@ auto main() -> int
       c = make<symbol>("c"),
       d = make<symbol>("d");
 
-  assert(lexical_cast<std::string>(cons(a, unit)) == "(a)");
+  assert(lexical_cast<std::string>(cons(a, nullptr)) == "(a)");
 
   assert(lexical_cast<std::string>(cons(list(a), list(b, c, d))) == "((a) b c d)");
 
@@ -24,7 +24,9 @@ auto main() -> int
 
   assert(lexical_cast<std::string>(list(a, make<exact_integer>(3 + 4), c)) == "(a 7 c)");
 
-  assert(lexical_cast<std::string>(list()) == "()");
+  assert(lexical_cast<std::string>(list()) == "nullptr");
+
+  assert(lexical_cast<std::string>(object(list())) == "()");
 
   assert(lexical_cast<std::string>(xcons(list(b, c), a)) == "(a b c)");
 

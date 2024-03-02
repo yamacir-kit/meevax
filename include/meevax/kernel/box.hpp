@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct box : public virtual pair // (value . unit)
+  struct box : public virtual pair // (value . null)
   {
     using pair::pair;
   };
