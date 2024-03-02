@@ -7,6 +7,6 @@ valgrind --tool=massif \
          --quiet \
          --stacks=yes \
          --time-unit=B \
-         meevax "$@"
+         "$@"
 
 massif-visualizer $stem.out

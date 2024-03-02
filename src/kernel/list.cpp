@@ -246,7 +246,7 @@ inline namespace kernel
     }
   }
 
-  auto length(object const& x) -> std::size_t
+  auto length(object const& x) -> std::ptrdiff_t
   {
     return std::distance(x.begin(), x.end());
   }

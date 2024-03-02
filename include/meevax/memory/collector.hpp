@@ -239,9 +239,9 @@ inline namespace memory
 
     static auto dlsym(std::string const&, void * const) -> void *;
 
-    static auto mark() -> void;
+    static auto mark() noexcept -> void;
 
-    static auto mark(tag * const) -> void;
+    static auto mark(tag * const) noexcept -> void;
 
     static auto sweep() -> void;
   };

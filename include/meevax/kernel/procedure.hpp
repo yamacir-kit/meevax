@@ -29,6 +29,14 @@ inline namespace kernel
   {
     using signature = auto (*)(object &) -> object;
 
+    /*
+       Maybe I should use std::string_view, but I'm worried about the lifetime
+       of the referenced string. The referenced string is either a raw string
+       literal or a std::string held by symbol. In normal use, the lifetime of
+       the primitive_procedure object will not be longer than the lifetime of
+       those strings. However, it is possible to achieve this by manipulating
+       the symbol table directly.
+    */
     std::string const name;
 
     explicit primitive_procedure(std::string const& name)

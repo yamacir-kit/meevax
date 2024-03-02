@@ -254,16 +254,22 @@ inline namespace memory
 
       auto increment_unless_truthy() noexcept
       {
-        auto i = index / 64;
-        auto j = index % 64;
-
-        for (; i < N / 64; ++i, j = 0)
+        if (auto i = index / 64; i < N/64)
         {
-          if (auto datum = data[i] & (~0ul << j); datum)
+          if (auto datum = data[i] & (~0ul << index % 64); datum)
           {
             index = i * 64 + __builtin_ctzl(datum);
             assert(data[index / 64] & (1ul << index % 64));
             return;
+          }
+          else while (++i < N/64)
+          {
+            if (auto datum = data[i]; datum)
+            {
+              index = i * 64 + __builtin_ctzl(datum);
+              assert(data[index / 64] & (1ul << index % 64));
+              return;
+            }
           }
         }
 
@@ -274,16 +280,22 @@ inline namespace memory
 
       auto decrement_unless_truthy() noexcept
       {
-        auto i = index / 64;
-        auto j = index % 64;
-
-        for (; i < N / 64; --i, j = 63)
+        if (auto i = index / 64; i < N/64)
         {
-          if (auto datum = data[i] & (~0ul >> (63 - j)); datum)
+          if (auto datum = data[i] & (~0ul >> (63 - index % 64)); datum)
           {
             index = i * 64 + (63 - __builtin_clzl(datum));
             assert(data[index / 64] & (1ul << index % 64));
             return;
+          }
+          else while (--i < N/64)
+          {
+            if (auto datum = data[i]; datum)
+            {
+              index = i * 64 + (63 - __builtin_clzl(datum));
+              assert(data[index / 64] & (1ul << index % 64));
+              return;
+            }
           }
         }
 

@@ -112,7 +112,7 @@ inline namespace memory
     }
   }
 
-  auto collector::mark() -> void
+  auto collector::mark() noexcept -> void
   {
     marker::clear();
 
@@ -144,7 +144,7 @@ inline namespace memory
     }
   }
 
-  auto collector::mark(tag * const tag) -> void
+  auto collector::mark(tag * const tag) noexcept -> void
   {
     assert(tag);
 
