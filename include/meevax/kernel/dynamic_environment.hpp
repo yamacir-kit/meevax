@@ -72,7 +72,7 @@ inline namespace kernel
     let static inline raise = nullptr;
 
     template <typename... Ts>
-    auto apply(object const& f, Ts&&... xs) -> object
+    auto apply(object const& f, Ts&&... xs) -> decltype(auto)
     {
       s = list(f, list(std::forward<decltype(xs)>(xs)...));
       e = nullptr;
@@ -95,7 +95,7 @@ inline namespace kernel
       return run();
     }
 
-    auto reraise(object const& x) -> object
+    auto reraise(object const& x) -> decltype(auto)
     {
       return raise.is<null>() ? throw x : apply(raise, x);
     }

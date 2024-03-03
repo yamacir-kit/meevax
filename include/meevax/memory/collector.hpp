@@ -100,12 +100,12 @@ inline namespace memory
       */
       static inline auto allocator = allocator_type();
 
-      T body;
+      T value;
 
       template <typename... Ts>
       explicit tagged(Ts&&... xs)
-        : tag  { std::addressof(body), sizeof(T) }
-        , body { std::forward<decltype(xs)>(xs)... }
+        : tag   { std::addressof(value), sizeof(T) }
+        , value { std::forward<decltype(xs)>(xs)... }
       {}
 
       ~tagged() override = default;
@@ -128,7 +128,7 @@ inline namespace memory
     protected:
       tag * object = nullptr;
 
-      explicit constexpr mutator() = default;
+      constexpr mutator() = default;
 
       explicit mutator(tag * object) noexcept
         : object { object }
@@ -165,7 +165,7 @@ inline namespace memory
         {
           return nullptr;
         }
-        else if (cache->contains(data)) // Heuristic-based optimization.
+        else if (cache->contains(data))
         {
           return cache;
         }
@@ -183,7 +183,7 @@ inline namespace memory
     template <typename... Ts>
     using default_allocator = std::allocator<Ts...>;
 
-  protected:
+  private:
     static inline tag * cache = nullptr;
 
     static inline integer_set<tag *, 16, 16, 16> tags {};
@@ -221,7 +221,7 @@ inline namespace memory
       {
         tags.insert(cache = data);
 
-        return std::addressof(data->body);
+        return std::addressof(data->value);
       }
       else
       {

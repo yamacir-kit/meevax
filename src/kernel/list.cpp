@@ -51,8 +51,8 @@ inline namespace kernel
     {
       if (let const& x1 = cdr(x0); x1.is<pair>())
       {
-        let const& x2 = cdr(x1),
-                   y1 = cdr(y0);
+        let const& x2 = cdr(x1);
+        let const& y1 = cdr(y0);
 
         return not eq(x2, y1) and is_list(x2, y1);
       }
@@ -78,8 +78,8 @@ inline namespace kernel
     {
       if (let const& x1 = cdr(x0); x1.is<pair>())
       {
-        let const& x2 = cdr(x1),
-                   y1 = cdr(y0);
+        let const& x2 = cdr(x1);
+        let const& y1 = cdr(y0);
 
         return eq(x2, y1) or is_circular_list(x2, y1);
       }
@@ -105,8 +105,8 @@ inline namespace kernel
     {
       if (let const& x1 = cdr(x0); x1.is<pair>())
       {
-        let const& x2 = cdr(x1),
-                   y1 = cdr(y0);
+        let const& x2 = cdr(x1);
+        let const& y1 = cdr(y0);
 
         return not eq(x2, y1) and is_dotted_list(x2, y1);
       }
@@ -235,7 +235,7 @@ inline namespace kernel
 
   auto drop_right(object & x, std::size_t k) -> object
   {
-    if (let const y = drop(x, k); y.is<pair>())
+    if (let const& y = drop(x, k); y.is<pair>())
     {
       drop_right(x, cdr(y));
       return x;
@@ -300,11 +300,7 @@ inline namespace kernel
     }
     else
     {
-      let const cdr_x = cdr(x);
-
-      cdr(x) = y;
-
-      return append_reverse(cdr_x, x);
+      return append_reverse(std::exchange(cdr(x), y), x);
     }
   }
 
@@ -333,11 +329,7 @@ inline namespace kernel
     }
     else
     {
-      let tail = cdr(xs);
-
-      cdr(xs) = a;
-
-      return reverse(tail, xs);
+      return reverse(std::exchange(cdr(xs), a), xs);
     }
   }
 

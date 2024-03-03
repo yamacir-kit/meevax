@@ -48,8 +48,6 @@ inline namespace memory
           }
       {}
 
-      ~binder() override = default;
-
       auto compare([[maybe_unused]] Top const* top) const -> bool override
       {
         if constexpr (is_equality_comparable_v<Bound const&>)

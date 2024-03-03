@@ -21,7 +21,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto find(object & b) -> object const&
+  auto find(object & b) -> object &
   {
     if (let & x = car(b); x.is<box>())
     {
@@ -41,8 +41,10 @@ inline namespace kernel
     {
       if (auto iterator_y = forest.find(y); iterator_y != forest.end())
       {
-        if (let root_x = find(iterator_x->second),
-                root_y = find(iterator_y->second); eq(root_x, root_y))
+        auto&& root_x = find(iterator_x->second);
+        auto&& root_y = find(iterator_y->second);
+
+        if (eq(root_x, root_y))
         {
           return true;
         }

@@ -86,6 +86,12 @@ inline namespace memory
       pointer::reset();
       collector::mutator::reset();
     }
+
+    template <typename T, typename Allocator, typename... Us>
+    static auto make(Us&&... xs) -> gc_pointer
+    {
+      return pointer::template make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
+    }
   };
 } // namespace memory
 } // namespace meevax

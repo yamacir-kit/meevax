@@ -37,14 +37,14 @@ inline namespace kernel
   template <typename T,
             typename Allocator = collector::default_allocator<void>,
             typename... Ts>
-  auto make(Ts&&... xs) -> object
+  auto make(Ts&&... xs) -> decltype(auto)
   {
     return object::make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
   template <typename T,
             typename Allocator = collector::default_allocator<void>>
-  auto make(T&& x) -> object
+  auto make(T&& x) -> decltype(auto)
   {
     return object::make<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
   }
@@ -138,8 +138,6 @@ inline namespace kernel
     explicit pair(T&& x, U&& y = nullptr)
       : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
-
-    virtual ~pair() = default;
 
     virtual auto compare(pair const*) const -> bool;
 
