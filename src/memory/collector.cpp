@@ -29,13 +29,13 @@ namespace meevax
 {
 inline namespace memory
 {
-  collector default_collector {};
-
   static auto reference_count = 0;
 
   collector::collector()
   {
-    ++reference_count;
+    if (not reference_count++)
+    {
+    }
   }
 
   collector::~collector()

@@ -180,8 +180,8 @@ inline namespace kernel
   template <typename T, typename U, REQUIRES(std::is_constructible<pair, T, U>)>
   auto operator |(T&& x, U&& y) -> decltype(auto)
   {
-    return make<pair>(std::forward<decltype(x)>(x),
-                      std::forward<decltype(y)>(y));
+    return make<pair, simple_allocator<void>>(std::forward<decltype(x)>(x),
+                                              std::forward<decltype(y)>(y));
   }
 
   inline auto cons = [](auto&&... xs) constexpr

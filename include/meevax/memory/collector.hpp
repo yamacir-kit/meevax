@@ -24,6 +24,7 @@
 
 #include <meevax/memory/integer_set.hpp>
 #include <meevax/memory/literal.hpp>
+#include <meevax/memory/simple_allocator.hpp>
 
 namespace meevax
 {
@@ -73,32 +74,26 @@ inline namespace memory
       }
     };
 
+    static inline auto cleared = false;
+
     template <typename T, typename AllocatorTraits>
     struct tagged : public tag
     {
-      using allocator_type = typename AllocatorTraits::template rebind_alloc<tagged<T, AllocatorTraits>>;
-
-      using pointer = typename std::allocator_traits<allocator_type>::pointer;
-
-      /*
-         Support for custom allocators is incomplete. Because the allocator is
-         templated and held as a static data member, this allocator may be
-         constructed after the collector and destructed before the collector.
-         (See "Static Initialization/Destruction Order Fiasco.") In that case,
-         illegal memory accesses will occur because the allocator corresponding
-         to a particular type has already been destructed at the time
-         collector::clear() is called within collector::~collector().
-
-         The problem is currently not occurring because the lifetime of the
-         storage allocated by std::allocator is independent of the lifetime of
-         the std::allocator type object. Conversely, if there is a relationship
-         between the storage allocated by the allocator object and the lifetime
-         of the allocator object, a problem will occur. For example, a memory
-         pool allocator, which allocates the pool in the allocator constructor
-         and releases the pool in the allocator destructor, will cause
-         problems.
-      */
-      static_assert(allocator_type::is_always_equal::value);
+      struct allocator_type : public AllocatorTraits::template rebind_alloc<tagged<T, AllocatorTraits>>
+      {
+        ~allocator_type()
+        {
+          /*
+             Execute clear before any static allocator is destroyed. Otherwise,
+             when the destructor of the collector executes clear, the collector
+             may touch the freed memory of the stateful allocator.
+          */
+          if (not std::exchange(cleared, true))
+          {
+            clear();
+          }
+        }
+      };
 
       static inline auto allocator = allocator_type();
 
@@ -119,6 +114,7 @@ inline namespace memory
 
       auto operator delete(void * data) noexcept -> void
       {
+        using pointer = typename std::allocator_traits<allocator_type>::pointer;
         allocator.deallocate(reinterpret_cast<pointer>(data), 1);
       }
     };
@@ -250,7 +246,7 @@ inline namespace memory
     static auto sweep() -> void;
   };
 
-  extern collector default_collector;
+  static collector default_collector {};
 } // namespace memory
 } // namespace meevax
 
