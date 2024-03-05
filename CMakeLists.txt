@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.16.3) # Ubuntu 20.04 LTS default
 
 execute_process(
-  COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
-  COMMAND tr -d "\n"
+  COMMAND head -c -1 ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
   OUTPUT_VARIABLE CURRENT_VERSION)
 
 project(meevax

@@ -20,7 +20,6 @@
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/memory/gc_pointer.hpp>
-#include <meevax/memory/simple_allocator.hpp>
 
 namespace meevax
 {
@@ -28,7 +27,7 @@ inline namespace kernel
 {
   struct pair;
 
-  using object = gc_pointer<pair, bool, std::int32_t, float, character, instruction>;
+  using object = gc_pointer<pair, bool, int, float, character, instruction>;
 
   using let = object;
 
@@ -181,8 +180,8 @@ inline namespace kernel
   template <typename T, typename U, REQUIRES(std::is_constructible<pair, T, U>)>
   auto operator |(T&& x, U&& y) -> decltype(auto)
   {
-    return make<pair, simple_allocator<void>>(std::forward<decltype(x)>(x),
-                                              std::forward<decltype(y)>(y));
+    return make<pair>(std::forward<decltype(x)>(x),
+                      std::forward<decltype(y)>(y));
   }
 
   inline auto cons = [](auto&&... xs) constexpr

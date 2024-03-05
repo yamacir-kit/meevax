@@ -110,14 +110,6 @@ inline namespace kernel
       fetch:
         assert(c);
 
-        if constexpr (false)
-        {
-          std::cerr << faint("; s = ") << s << "\n"
-                    << faint("; e = ") << e << "\n"
-                    << faint("; c = ") << c << "\n"
-                    << faint("; d = ") << d << "\n" << std::endl;
-        }
-
         switch (car(c).template as<instruction>())
         {
         case instruction::load_absolute: /* ------------------------------------
@@ -214,7 +206,7 @@ inline namespace kernel
           *  where <closure> = (c' . e)
           *
           * ----------------------------------------------------------------- */
-          s = cons(make<closure, simple_allocator<void>>(cadr(c), e), s);
+          s = cons(make<closure>(cadr(c), e), s);
           c = cddr(c);
           goto fetch;
 
@@ -225,7 +217,7 @@ inline namespace kernel
           *  where <continuation> = (s e c' . d)
           *
           * ----------------------------------------------------------------- */
-          s = cons(list(make<continuation, simple_allocator<void>>(s, cons(e, cons(cadr(c), d)))), s);
+          s = cons(list(make<continuation>(s, cons(e, cons(cadr(c), d)))), s);
           c = cddr(c);
           goto fetch;
 

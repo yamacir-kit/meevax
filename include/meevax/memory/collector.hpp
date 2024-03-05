@@ -98,6 +98,8 @@ inline namespace memory
          and releases the pool in the allocator destructor, will cause
          problems.
       */
+      static_assert(allocator_type::is_always_equal::value);
+
       static inline auto allocator = allocator_type();
 
       T value;
