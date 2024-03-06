@@ -26,7 +26,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename Environment>
   struct dynamic_environment
   {
     /*

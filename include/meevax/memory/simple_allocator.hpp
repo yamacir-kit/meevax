@@ -26,12 +26,10 @@ namespace meevax
 {
 inline namespace memory
 {
-constexpr auto page_size = 4096;
-
 /*
    Simple Segregated Storage Allocator
 */
-template <typename T, typename Capacity = std::integral_constant<std::size_t, page_size / alignof(std::conditional_t<std::is_void_v<T>, int, T>)>>
+template <typename T, typename Capacity = std::integral_constant<std::size_t, 1024>>
 class simple_allocator
 {
   struct alignas(T) chunk

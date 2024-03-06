@@ -256,8 +256,6 @@ inline namespace kernel
 
   template struct configurator<environment>;
 
-  template struct dynamic_environment<environment>;
-
   template struct syntactic_environment<environment>;
 } // namespace kernel
 } // namespace meevax

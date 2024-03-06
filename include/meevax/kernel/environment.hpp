@@ -27,7 +27,7 @@ namespace meevax
 inline namespace kernel
 {
   struct environment : public configurator<environment>
-                     , public dynamic_environment<environment>
+                     , public dynamic_environment
                      , public optimizer
                      , public syntactic_environment<environment>
   {
@@ -43,8 +43,6 @@ inline namespace kernel
   auto operator <<(std::ostream &, environment const&) -> std::ostream &;
 
   extern template struct configurator<environment>;
-
-  extern template struct dynamic_environment<environment>;
 
   extern template struct syntactic_environment<environment>;
 } // namespace kernel
