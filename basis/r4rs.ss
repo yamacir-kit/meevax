@@ -35,7 +35,8 @@
 |#
 
 (define-library (scheme r4rs)
-  (import (only (meevax boolean) boolean? not)
+  (import (only (meevax apply) apply)
+          (only (meevax boolean) boolean? not)
           (only (meevax character) char? char=? char<? char>? char<=? char>=? char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=? char-alphabetic? char-numeric? char-whitespace? char-upper-case? char-lower-case? char->integer integer->char char-upcase char-downcase)
           (only (meevax comparator) eq? eqv? equal?)
           (only (meevax complex) make-rectangular make-polar real-part imag-part magnitude angle)
@@ -44,6 +45,7 @@
           (only (meevax inexact) exp log sqrt sin cos tan asin acos atan)
           (only (meevax list) null? list? list length append reverse list-tail list-ref memq memv assq assv)
           (only (meevax macro-transformer) er-macro-transformer identifier?)
+          (only (meevax map) map)
           (only (meevax number) number? complex? real? rational? integer? exact? inexact? = < > <= >= zero? positive? negative? odd? even? max min + * - / abs quotient remainder modulo gcd lcm numerator denominator floor ceiling truncate round expt exact inexact number->string string->number)
           (only (meevax pair) pair? cons car cdr set-car! set-cdr! caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr)
           (only (meevax port) input-port? output-port? standard-input-port standard-output-port open-input-file open-output-file close eof-object?)
@@ -182,39 +184,6 @@
                         (list (rename 'quote) x))
                        (else x)))
                (expand (cadr form) 0))))
-
-         (define (every f xs)
-           (if (pair? xs)
-               (and (f (car xs))
-                    (every f (cdr xs)))
-               #t))
-
-         (define (map f x . xs) ; Chibi-Scheme
-           (define (map f x a)
-             (if (pair? x)
-                 (map f
-                      (cdr x)
-                      (cons (f (car x)) a))
-                 (reverse a)))
-           (define (map* f xs a)
-             (if (every pair? xs)
-                 (map* f
-                       (map cdr xs '())
-                       (cons (apply f (map car xs '())) a))
-                 (reverse a)))
-           (if (null? xs)
-               (map f x '())
-               (map* f (cons x xs) '())))
-
-         (define (apply f x . xs) ; Chibi-Scheme
-           (letrec ((apply (lambda (f xs)
-                             (f . xs))))
-             (if (null? xs)
-                 (apply f x)
-                 ((lambda (xs)
-                    (apply f (append (reverse (cdr xs))
-                                     (car xs))))
-                  (reverse (cons x xs))))))
 
          (define-syntax let ; Chibi-Scheme
            (er-macro-transformer
