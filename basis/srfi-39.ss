@@ -26,9 +26,8 @@
           (only (meevax core) define define-syntax if lambda letrec quote)
           (only (meevax list) null? list append assq)
           (only (meevax macro-transformer) er-macro-transformer)
-          (only (meevax pair) cons car cdr cadr cddr set-car! set-cdr!)
-          (only (scheme r5rs) map)
-          )
+          (only (meevax map) map)
+          (only (meevax pair) cons car cdr cadr cddr set-car! set-cdr!))
 
   (export make-parameter parameterize)
 
