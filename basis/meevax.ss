@@ -98,3 +98,45 @@
                          ((cdr before/after)))
                        (current-dynamic-extents))
              (emergency-exit . xs)))))
+
+(define-library (meevax apply)
+  (import (only (meevax core) define if lambda)
+          (only (meevax list) append null? reverse)
+          (only (meevax pair) car cdr cons))
+
+  (export apply)
+
+  (begin (define (apply f x . xs)
+           (if (null? xs)
+               (f . x)
+               ((lambda (xs)
+                  ((lambda (x)
+                     (f . x))
+                   (append (reverse (cdr xs))
+                           (car xs))))
+                (reverse (cons x xs)))))))
+
+(define-library (meevax map)
+  (import (only (meevax apply) apply)
+          (only (meevax core) define if quote)
+          (only (meevax list) memq null? reverse)
+          (only (meevax pair) car cdr cons))
+
+  (export map)
+
+  (begin (define (map f . xs)
+           (define (map f x a)
+             (if (null? x)
+                 (reverse a)
+                 (map f
+                      (cdr x)
+                      (cons (f (car x)) a))))
+           (define (map* f xs a)
+             (if (memq '() xs)
+                 (reverse a)
+                 (map* f
+                       (map cdr xs '())
+                       (cons (apply f (map car xs '())) a))))
+           (if (null? (cdr xs))
+               (map f (car xs) '())
+               (map* f xs '())))))
