@@ -325,13 +325,15 @@
 
          (define (with-input-from-file path thunk)
            (parameterize ((current-input-port (open-input-file path)))
-             (thunk)
-             (close-input-port (current-input-port))))
+             (let ((result (thunk)))
+               (close-input-port (current-input-port))
+               result)))
 
          (define (with-output-to-file path thunk)
            (parameterize ((current-output-port (open-output-file path)))
-             (thunk)
-             (close-output-port (current-output-port))))
+             (let ((result (thunk)))
+               (close-output-port (current-output-port))
+               result)))
 
          (define close-input-port close)
 
