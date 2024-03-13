@@ -27,13 +27,13 @@ inline namespace kernel
   {
     static inline auto fmerge_constants = true;
 
-    static auto merge_constants(object const& c) -> object
+    static auto merge_constants(object & c) -> void
     {
-      if (not c.is<pair>() or not car(c).is<instruction>())
-      {
-        return c;
-      }
-      else switch (auto n = size(car(c).as<instruction>()); car(c).as<instruction>())
+      assert(c.is<pair>());
+
+      assert(car(c).is<instruction>());
+
+      switch (car(c).as<instruction>())
       {
       case instruction::load_constant: /* --------------------------------------
       *
@@ -49,69 +49,69 @@ inline namespace kernel
         if (tail(c, 2).is<pair>() and head(c, 2).is<instruction>() and head(c, 2).as<instruction>() == instruction::load_constant and
             tail(c, 4).is<pair>() and head(c, 4).is<instruction>() and head(c, 4).as<instruction>() == instruction::cons)
         {
-          return merge_constants(cons(head(c, 0),
-                                      cons(head(c, 3),
-                                           head(c, 1)),
-                                      merge_constants(tail(c, 5))));
-        }
-        else if (let const& c2 = merge_constants(tail(c, 2)); c2 == tail(c, 2))
-        {
-          return c;
+          cadr(c) = cons(head(c, 3),
+                         head(c, 1));
+          cddr(c) = tail(c, 5);
+          merge_constants(c);
         }
         else
         {
-          return cons(head(c, 0), head(c, 1), c2);
+          merge_constants(cddr(c));
         }
+        break;
 
-      default:
-        if (let const& cn = merge_constants(tail(c, n)); cn == tail(c, n))
-        {
-          return c;
-        }
-        else
-        {
-          return append(take(c, n), cn);
-        }
+      case instruction::join:
+      case instruction::tail_call:
+      case instruction::tail_letrec:
+      case instruction::return_:
+      case instruction::stop:
+        assert(cdr(c).is<null>());
+        break;
+
+      case instruction::call:
+      case instruction::cons:
+      case instruction::drop:
+      case instruction::dummy:
+      case instruction::letrec:
+        merge_constants(cdr(c));
+        break;
+
+      case instruction::current:
+      case instruction::install:
+      case instruction::load_absolute:
+      case instruction::load_relative:
+      case instruction::load_variadic:
+      case instruction::store_absolute:
+      case instruction::store_relative:
+      case instruction::store_variadic:
+        merge_constants(cddr(c));
+        break;
 
       case instruction::load_closure:
       case instruction::load_continuation:
-        if (let const& c1 = merge_constants(head(c, 1)),
-                       c2 = merge_constants(tail(c, 2));
-            c1 == head(c, 1) and
-            c2 == tail(c, 2))
-        {
-          return c;
-        }
-        else
-        {
-          return cons(head(c, 0), c1, c2);
-        }
+        merge_constants(cadr(c));
+        merge_constants(cddr(c));
+        break;
 
       case instruction::select:
+        merge_constants(cadr(c));
+        merge_constants(caddr(c));
+        merge_constants(cdddr(c));
+        break;
+
       case instruction::tail_select:
-        if (let const& c1 = merge_constants(head(c, 1)),
-                       c2 = merge_constants(head(c, 2)),
-                       c3 = merge_constants(tail(c, 3));
-            c1 == head(c, 1) and
-            c2 == head(c, 2) and
-            c3 == tail(c, 3))
-        {
-          return c;
-        }
-        else
-        {
-          return cons(head(c, 0), c1, c2, c3);
-        }
+        assert(cdddr(c).is<null>());
+        merge_constants(cadr(c));
+        merge_constants(caddr(c));
+        break;
       }
     }
 
-    static auto optimize(object const& c)
+    static auto optimize(let code)
     {
-      let code = c;
-
       if (fmerge_constants)
       {
-        code = merge_constants(code);
+        merge_constants(code);
       }
 
       return code;

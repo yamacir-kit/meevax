@@ -238,15 +238,18 @@ inline namespace kernel
           *
           * ----------------------------------------------------------------- */
           d = cons(cdddr(c), d);
-          [[fallthrough]];
+          c = car(s) != f ? cadr(c) : caddr(c);
+          s = cdr(s);
+          goto fetch;
 
         case instruction::tail_select: /* --------------------------------------
           *
-          *  (<boolean> . s) e (%select c1 c2 . c) d => s e c' d
+          *  (<boolean> . s) e (%tail-select c1 c2) d => s e c' d
           *
           *  where c' = (if <boolean> c1 c2)
           *
           * ----------------------------------------------------------------- */
+          assert(cdddr(c).template is<null>());
           c = car(s) != f ? cadr(c) : caddr(c);
           s = cdr(s);
           goto fetch;
@@ -373,19 +376,6 @@ inline namespace kernel
           c = cdr(c);
           goto fetch;
 
-        case instruction::tail_letrec: /* --------------------------------------
-          *
-          *  (<closure> xs . s) (<null> . e) (%letrec . c) d => () (set-car! e' xs) c' d
-          *
-          *  where <closure> = (c' . e')
-          *
-          * ----------------------------------------------------------------- */
-          cadar(s) = cadr(s);
-          c = caar(s);
-          e = cdar(s);
-          s = nullptr;
-          goto fetch;
-
         case instruction::letrec: /* -------------------------------------------
           *
           *  (<closure> xs . s) (<null> . e) (%letrec . c) d => () (set-car! e' xs) c' (s e c . d)
@@ -395,6 +385,20 @@ inline namespace kernel
           * ----------------------------------------------------------------- */
           cadar(s) = cadr(s);
           d = cons(cddr(s), cdr(e), cdr(c), d);
+          c = caar(s);
+          e = cdar(s);
+          s = nullptr;
+          goto fetch;
+
+        case instruction::tail_letrec: /* --------------------------------------
+          *
+          *  (<closure> xs . s) (<null> . e) (%tail-letrec) d => () (set-car! e' xs) c' d
+          *
+          *  where <closure> = (c' . e')
+          *
+          * ----------------------------------------------------------------- */
+          assert(cdr(c).template is<null>());
+          cadar(s) = cadr(s);
           c = caar(s);
           e = cdar(s);
           s = nullptr;
@@ -419,7 +423,8 @@ inline namespace kernel
           *  (x y . s) e (%cons . c) d => ((x . y) . s) e c d
           *
           * ----------------------------------------------------------------- */
-          s = cons(cons(car(s), cadr(s)), cddr(s));
+          car(s) = cons(car(s), cadr(s));
+          cdr(s) = cddr(s);
           c = cdr(c);
           goto fetch;
 
@@ -500,7 +505,7 @@ inline namespace kernel
 
         case instruction::install: /* ------------------------------------------
           *
-          *  (x . s) e (%intall i . c) d => (x . s) e c d
+          *  (x . s) e (%install i . c) d => (x . s) e c d
           *
           * ----------------------------------------------------------------- */
           assert(cadr(c).template is<exact_integer>());
