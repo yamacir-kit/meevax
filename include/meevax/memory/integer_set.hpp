@@ -77,11 +77,18 @@ inline namespace memory
       {
         assert(data);
 
-        for (; good(); ++i, j = 0)
+        if (good())
         {
           if (data[i] and (iter = data[i]->lower_bound(j)).good())
           {
             return;
+          }
+          else for (++i; good(); ++i)
+          {
+            if (data[i] and (iter = data[i]->lower_bound(0)).good())
+            {
+              return;
+            }
           }
         }
 
@@ -197,14 +204,14 @@ inline namespace memory
 
     auto insert(T value)
     {
-      if (auto [key, datum] = split(value); data[key])
+      if (auto [i, j] = split(value); data[i])
       {
-        data[key]->insert(datum);
+        data[i]->insert(j);
       }
       else
       {
-        data[key] = new subset();
-        data[key]->insert(datum);
+        data[i] = new subset();
+        data[i]->insert(j);
       }
     }
 

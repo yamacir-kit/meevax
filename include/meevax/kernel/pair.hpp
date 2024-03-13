@@ -33,12 +33,20 @@ inline namespace kernel
 
   let extern unit;
 
-  template <typename T,
-            typename Allocator = collector::default_allocator<void>,
-            typename... Ts>
+  template <typename T, typename Allocator, typename... Ts>
   auto make(Ts&&... xs) -> decltype(auto)
   {
     return object::make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
+  }
+
+  template <typename T, typename... Ts>
+  auto make(Ts&&... xs) -> decltype(auto)
+  {
+    if constexpr (std::is_same_v<T, pair>) {
+      return object::make<T, simple_allocator<void>>(std::forward<decltype(xs)>(xs)...);
+    } else {
+      return object::make<T, collector::default_allocator<void>>(std::forward<decltype(xs)>(xs)...);
+    }
   }
 
   template <typename T,
@@ -180,8 +188,7 @@ inline namespace kernel
   template <typename T, typename U, REQUIRES(std::is_constructible<pair, T, U>)>
   auto operator |(T&& x, U&& y) -> decltype(auto)
   {
-    return make<pair, simple_allocator<void>>(std::forward<decltype(x)>(x),
-                                              std::forward<decltype(y)>(y));
+    return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
   }
 
   inline auto cons = [](auto&&... xs) constexpr

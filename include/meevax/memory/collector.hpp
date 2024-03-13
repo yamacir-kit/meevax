@@ -184,9 +184,12 @@ inline namespace memory
   private:
     static inline tag * cache = nullptr;
 
-    static inline integer_set<tag *, 16, 16, 16> tags {};
+    /*
+       0x0000'0000'0000'0000 ~ 0x7FFF'FFFF'FFFF'FFFF
+    */
+    static inline integer_set<tag *, 15, 16, 16> tags {};
 
-    static inline integer_set<mutator *, 16, 16, 16> mutators {};
+    static inline integer_set<mutator *, 15, 16, 16> mutators {};
 
     static inline std::size_t allocation = 0;
 

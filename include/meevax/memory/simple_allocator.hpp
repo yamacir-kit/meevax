@@ -77,6 +77,12 @@ public:
 
   using is_always_equal = std::false_type;
 
+  template <typename U>
+  struct rebind
+  {
+    using other = simple_allocator<U, Capacity>;
+  };
+
   explicit simple_allocator()
     : free_space { new block() }
   {}
