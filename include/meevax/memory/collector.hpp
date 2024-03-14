@@ -17,10 +17,9 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 #define INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 
-#include <cstddef>
-#include <memory>
+#include <cstddef> // std::size_t
+#include <memory> // std::allocator
 #include <unordered_map>
-#include <utility>
 
 #include <meevax/memory/integer_set.hpp>
 #include <meevax/memory/literal.hpp>

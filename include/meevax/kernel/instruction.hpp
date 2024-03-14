@@ -17,14 +17,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 #define INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 
-#include <cstdint>
 #include <iostream>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  enum class instruction : std::uint8_t
+  enum class instruction
   {
     call,              // a.k.a APP
     cons,              //

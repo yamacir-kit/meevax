@@ -17,15 +17,12 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_HETEROGENEOUS_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_HETEROGENEOUS_POINTER_HPP
 
-#include <meevax/functional/combinator.hpp>
 #include <meevax/functional/compose.hpp>
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/type_traits/requires.hpp>
-#include <meevax/utility/combination.hpp>
-#include <meevax/utility/debug.hpp>
 #include <meevax/utility/demangle.hpp>
 
 namespace meevax

@@ -17,9 +17,8 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_INTEGER_SET_HPP
 #define INCLUDED_MEEVAX_MEMORY_INTEGER_SET_HPP
 
-#include <array>
 #include <cassert>
-#include <climits>
+#include <climits> // CHAR_BIT
 #include <cstdint>
 #include <iterator>
 #include <limits>

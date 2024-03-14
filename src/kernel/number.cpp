@@ -21,6 +21,7 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/string.hpp>
+#include <meevax/utility/combination.hpp>
 
 namespace meevax
 {

@@ -17,106 +17,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_OPTIMIZER_HPP
 #define INCLUDED_MEEVAX_KERNEL_OPTIMIZER_HPP
 
-#include <meevax/kernel/list.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct optimizer
-  {
-    static inline auto fmerge_constants = true;
-
-    static auto merge_constants(object & c) -> void
-    {
-      assert(c.is<pair>());
-
-      assert(car(c).is<instruction>());
-
-      switch (car(c).as<instruction>())
-      {
-      case instruction::load_constant: /* --------------------------------------
-      *
-      *  (load-constant x
-      *   load-constant y
-      *   cons
-      *   ...)
-      *
-      *  => (load-constant (y . x)
-      *      ...)
-      *
-      * --------------------------------------------------------------------- */
-        if (tail(c, 2).is<pair>() and head(c, 2).is<instruction>() and head(c, 2).as<instruction>() == instruction::load_constant and
-            tail(c, 4).is<pair>() and head(c, 4).is<instruction>() and head(c, 4).as<instruction>() == instruction::cons)
-        {
-          cadr(c) = cons(head(c, 3),
-                         head(c, 1));
-          cddr(c) = tail(c, 5);
-          merge_constants(c);
-        }
-        else
-        {
-          merge_constants(cddr(c));
-        }
-        break;
-
-      case instruction::join:
-      case instruction::tail_call:
-      case instruction::tail_letrec:
-      case instruction::return_:
-      case instruction::stop:
-        assert(cdr(c).is<null>());
-        break;
-
-      case instruction::call:
-      case instruction::cons:
-      case instruction::drop:
-      case instruction::dummy:
-      case instruction::letrec:
-        merge_constants(cdr(c));
-        break;
-
-      case instruction::current:
-      case instruction::install:
-      case instruction::load_absolute:
-      case instruction::load_relative:
-      case instruction::load_variadic:
-      case instruction::store_absolute:
-      case instruction::store_relative:
-      case instruction::store_variadic:
-        merge_constants(cddr(c));
-        break;
-
-      case instruction::load_closure:
-      case instruction::load_continuation:
-        merge_constants(cadr(c));
-        merge_constants(cddr(c));
-        break;
-
-      case instruction::select:
-        merge_constants(cadr(c));
-        merge_constants(caddr(c));
-        merge_constants(cdddr(c));
-        break;
-
-      case instruction::tail_select:
-        assert(cdddr(c).is<null>());
-        merge_constants(cadr(c));
-        merge_constants(caddr(c));
-        break;
-      }
-    }
-
-    static auto optimize(let code)
-    {
-      if (fmerge_constants)
-      {
-        merge_constants(code);
-      }
-
-      return code;
-    }
-  };
+  auto optimize(object) -> object;
 } // namespace kernel
 } // namespace meevax
 
