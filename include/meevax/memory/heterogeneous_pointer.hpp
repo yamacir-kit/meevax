@@ -89,9 +89,7 @@ inline namespace memory
 
     using BasePointer<Top, Ts...>::get;
 
-    template <typename Bound,
-              typename Allocator = collector::default_allocator<void>,
-              typename... Us>
+    template <typename Bound, typename Allocator, typename... Us>
     static auto make(Us&&... xs)
     {
       if constexpr (std::is_same_v<Bound, Top>)
