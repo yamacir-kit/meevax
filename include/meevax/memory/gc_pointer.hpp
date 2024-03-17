@@ -273,32 +273,32 @@ inline namespace memory
 
     inline auto begin()
     {
-      return base_pointer::dereferenceable() and *this ? base_pointer::get()->begin() : typename Top::iterator();
+      return *this ? base_pointer::get()->begin() : typename Top::iterator();
     }
 
     inline auto begin() const
     {
-      return base_pointer::dereferenceable() and *this ? base_pointer::get()->cbegin() : typename Top::const_iterator();
+      return *this ? base_pointer::get()->cbegin() : typename Top::const_iterator();
     }
 
     inline auto cbegin() const
     {
-      return base_pointer::dereferenceable() and *this ? base_pointer::get()->cbegin() : typename Top::const_iterator();
+      return *this ? base_pointer::get()->cbegin() : typename Top::const_iterator();
     }
 
     inline auto end()
     {
-      return base_pointer::dereferenceable() and *this ? base_pointer::get()->end() : typename Top::iterator();
+      return *this ? base_pointer::get()->end() : typename Top::iterator();
     }
 
     inline auto end() const
     {
-      return base_pointer::dereferenceable() and *this ? base_pointer::get()->cend() : typename Top::const_iterator();
+      return *this ? base_pointer::get()->cend() : typename Top::const_iterator();
     }
 
     inline auto cend() const
     {
-      return base_pointer::dereferenceable() and *this ? base_pointer::get()->cend() : typename Top::const_iterator();
+      return *this ? base_pointer::get()->cend() : typename Top::const_iterator();
     }
   };
 } // namespace memory
