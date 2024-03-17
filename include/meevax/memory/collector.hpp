@@ -21,9 +21,12 @@
 #include <memory> // std::allocator
 #include <unordered_map>
 
+#include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/memory/integer_set.hpp>
 #include <meevax/memory/literal.hpp>
 #include <meevax/memory/simple_allocator.hpp>
+#include <meevax/type_traits/is_equality_comparable.hpp>
+#include <meevax/type_traits/is_output_streamable.hpp>
 
 namespace meevax
 {
@@ -39,6 +42,54 @@ inline namespace memory
   class collector
   {
   public:
+    template <typename Top, typename Bound>
+    struct binder : public virtual Top
+                  , public Bound
+    {
+      template <typename... Us>
+      explicit constexpr binder(Us&&... xs)
+        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound> {
+            std::forward<decltype(xs)>(xs)...
+          }
+      {}
+
+      auto compare([[maybe_unused]] Top const* top) const -> bool override
+      {
+        if constexpr (is_equality_comparable_v<Bound const&>)
+        {
+          if (auto const* bound = dynamic_cast<Bound const*>(top); bound)
+          {
+            return *bound == static_cast<Bound const&>(*this);
+          }
+          else
+          {
+            return std::is_same_v<Bound, std::nullptr_t>;
+          }
+        }
+        else
+        {
+          return false;
+        }
+      }
+
+      auto type() const noexcept -> std::type_info const& override
+      {
+        return typeid(Bound);
+      }
+
+      auto write(std::ostream & os) const -> std::ostream & override
+      {
+        if constexpr (is_output_streamable_v<Bound const&>)
+        {
+          return os << static_cast<Bound const&>(*this);
+        }
+        else
+        {
+          return os << magenta("#,(") << green(typeid(Bound).name()) << faint(" #;", static_cast<Bound const*>(this)) << magenta(")");
+        }
+      }
+    };
+
     struct tag
     {
       bool marked : 1;

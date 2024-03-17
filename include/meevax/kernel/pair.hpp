@@ -26,6 +26,8 @@ namespace meevax
 {
 inline namespace kernel
 {
+  using null = std::nullptr_t;
+
   struct pair;
 
   using object = gc_pointer<pair, bool, int, float, character, instruction>;

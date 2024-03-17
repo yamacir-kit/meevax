@@ -17,12 +17,9 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 
-#include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/memory/collector.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
-#include <meevax/type_traits/is_equality_comparable.hpp>
-#include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/type_traits/requires.hpp>
 #include <meevax/utility/demangle.hpp>
 
@@ -30,60 +27,10 @@ namespace meevax
 {
 inline namespace memory
 {
-  using null = std::nullptr_t;
-
   template <typename Top, typename... Ts>
   struct gc_pointer : public nan_boxing_pointer<Top, Ts...>
                     , private collector::mutator
   {
-    template <typename Bound>
-    struct binder : public virtual Top
-                  , public Bound
-    {
-      template <typename... Us>
-      explicit constexpr binder(Us&&... xs)
-        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound> {
-            std::forward<decltype(xs)>(xs)...
-          }
-      {}
-
-      auto compare([[maybe_unused]] Top const* top) const -> bool override
-      {
-        if constexpr (is_equality_comparable_v<Bound const&>)
-        {
-          if (auto const* bound = dynamic_cast<Bound const*>(top); bound)
-          {
-            return *bound == static_cast<Bound const&>(*this);
-          }
-          else
-          {
-            return std::is_same_v<Bound, null>;
-          }
-        }
-        else
-        {
-          return false;
-        }
-      }
-
-      auto type() const noexcept -> std::type_info const& override
-      {
-        return typeid(Bound);
-      }
-
-      auto write(std::ostream & os) const -> std::ostream & override
-      {
-        if constexpr (is_output_streamable_v<Bound const&>)
-        {
-          return os << static_cast<Bound const&>(*this);
-        }
-        else
-        {
-          return os << magenta("#,(") << green(typeid(Bound).name()) << faint(" #;", static_cast<Bound const*>(this)) << magenta(")");
-        }
-      }
-    };
-
     using base_pointer = nan_boxing_pointer<Top, Ts...>;
 
     gc_pointer(gc_pointer const& gcp)
@@ -99,13 +46,13 @@ inline namespace memory
     gc_pointer(std::nullptr_t = nullptr)
     {}
 
-    explicit gc_pointer(Top * top) // TODO Top const*
+    gc_pointer(Top * top) // TODO Top const*
       : base_pointer { top }
       , collector::mutator { locate(base_pointer::get()) }
     {}
 
     template <typename T, typename = std::enable_if_t<(std::is_same_v<T, Ts> or ... or std::is_same_v<T, double>)>>
-    explicit gc_pointer(T const& datum)
+    gc_pointer(T const& datum)
       : base_pointer { datum }
     {
       assert(base_pointer::get() == nullptr);
@@ -148,19 +95,19 @@ inline namespace memory
     }
 
     template <typename Bound, typename Allocator, typename... Us>
-    static auto make(Us&&... xs)
+    static auto make(Us&&... xs) -> gc_pointer
     {
       if constexpr (std::is_same_v<Bound, Top>)
       {
-        return gc_pointer(collector::make<Top, Allocator>(std::forward<decltype(xs)>(xs)...));
+        return collector::make<Top, Allocator>(std::forward<decltype(xs)>(xs)...);
       }
       else if constexpr (std::is_class_v<Bound>)
       {
-        return gc_pointer(collector::make<binder<Bound>, Allocator>(std::forward<decltype(xs)>(xs)...));
+        return collector::make<collector::binder<Top, Bound>, Allocator>(std::forward<decltype(xs)>(xs)...);
       }
       else
       {
-        return gc_pointer(std::forward<decltype(xs)>(xs)...);
+        return { std::forward<decltype(xs)>(xs)... };
       }
     }
 
@@ -222,7 +169,7 @@ inline namespace memory
     {
       if (base_pointer::dereferenceable())
       {
-        return *this ? base_pointer::get()->compare(rhs.get()) : rhs.is<null>();
+        return *this ? base_pointer::get()->compare(rhs.get()) : rhs.is<std::nullptr_t>();
       }
       else
       {
@@ -246,7 +193,7 @@ inline namespace memory
     {
       if (base_pointer::dereferenceable())
       {
-        return *this ? base_pointer::get()->type() : typeid(null);
+        return *this ? base_pointer::get()->type() : typeid(std::nullptr_t);
       }
       else
       {
