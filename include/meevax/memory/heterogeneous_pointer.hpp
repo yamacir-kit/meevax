@@ -20,6 +20,7 @@
 #include <meevax/functional/compose.hpp>
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
+#include <meevax/memory/nan_boxing_pointer.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/type_traits/requires.hpp>
@@ -31,8 +32,8 @@ inline namespace memory
 {
   using null = std::nullptr_t;
 
-  template <template <typename...> typename BasePointer, typename Top, typename... Ts>
-  class heterogeneous_pointer : public BasePointer<Top, Ts...>
+  template <typename Top, typename... Ts>
+  class heterogeneous_pointer : public nan_boxing_pointer<Top, Ts...>
   {
     template <typename Bound>
     struct binder : public virtual Top
@@ -83,11 +84,11 @@ inline namespace memory
     };
 
   public:
-    using BasePointer<Top, Ts...>::BasePointer;
+    using nan_boxing_pointer<Top, Ts...>::nan_boxing_pointer;
 
-    using BasePointer<Top, Ts...>::dereferenceable;
+    using nan_boxing_pointer<Top, Ts...>::dereferenceable;
 
-    using BasePointer<Top, Ts...>::get;
+    using nan_boxing_pointer<Top, Ts...>::get;
 
     template <typename Bound, typename Allocator, typename... Us>
     static auto make(Us&&... xs)
@@ -111,7 +112,7 @@ inline namespace memory
     {
       if constexpr (std::is_same_v<std::decay_t<U>, Top>)
       {
-        return BasePointer<Top, Ts...>::operator *();
+        return nan_boxing_pointer<Top, Ts...>::operator *();
       }
       else if constexpr (std::is_class_v<std::decay_t<U>>)
       {
@@ -126,7 +127,7 @@ inline namespace memory
       }
       else
       {
-        return BasePointer<Top, Ts...>::template as<U>();
+        return nan_boxing_pointer<Top, Ts...>::template as<U>();
       }
     }
 
@@ -135,7 +136,7 @@ inline namespace memory
     {
       if constexpr (std::is_same_v<std::decay_t<U>, Top>)
       {
-        return BasePointer<Top, Ts...>::operator *();
+        return nan_boxing_pointer<Top, Ts...>::operator *();
       }
       else if constexpr (std::is_class_v<std::decay_t<U>>)
       {
@@ -150,7 +151,7 @@ inline namespace memory
       }
       else
       {
-        return BasePointer<Top, Ts...>::template as<U>();
+        return nan_boxing_pointer<Top, Ts...>::template as<U>();
       }
     }
 
@@ -168,7 +169,7 @@ inline namespace memory
       }
       else
       {
-        return BasePointer<Top, Ts...>::compare(rhs);
+        return nan_boxing_pointer<Top, Ts...>::compare(rhs);
       }
     }
 
@@ -192,7 +193,7 @@ inline namespace memory
       }
       else
       {
-        return BasePointer<Top, Ts...>::type();
+        return nan_boxing_pointer<Top, Ts...>::type();
       }
     }
 
@@ -204,7 +205,7 @@ inline namespace memory
       }
       else
       {
-        return BasePointer<Top, Ts...>::write(os);
+        return nan_boxing_pointer<Top, Ts...>::write(os);
       }
     }
 

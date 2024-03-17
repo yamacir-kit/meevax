@@ -19,17 +19,16 @@
 
 #include <meevax/memory/collector.hpp>
 #include <meevax/memory/heterogeneous_pointer.hpp>
-#include <meevax/memory/nan_boxing_pointer.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  template <typename... Ts>
-  struct gc_pointer : public heterogeneous_pointer<nan_boxing_pointer, Ts...>
+  template <typename Top, typename... Ts>
+  struct gc_pointer : public heterogeneous_pointer<Top, Ts...>
                     , private collector::mutator
   {
-    using pointer = heterogeneous_pointer<nan_boxing_pointer, Ts...>;
+    using pointer = heterogeneous_pointer<Top, Ts...>;
 
     gc_pointer(gc_pointer const& gcp)
       : pointer { gcp }
