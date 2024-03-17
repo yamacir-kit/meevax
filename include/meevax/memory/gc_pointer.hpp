@@ -17,37 +17,98 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_GC_POINTER_HPP
 
+#include <meevax/iostream/escape_sequence.hpp>
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/memory/collector.hpp>
-#include <meevax/memory/heterogeneous_pointer.hpp>
+#include <meevax/memory/nan_boxing_pointer.hpp>
+#include <meevax/type_traits/is_equality_comparable.hpp>
+#include <meevax/type_traits/is_output_streamable.hpp>
+#include <meevax/type_traits/requires.hpp>
+#include <meevax/utility/demangle.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
+  using null = std::nullptr_t;
+
   template <typename Top, typename... Ts>
-  struct gc_pointer : public heterogeneous_pointer<Top, Ts...>
+  struct gc_pointer : public nan_boxing_pointer<Top, Ts...>
                     , private collector::mutator
   {
-    using pointer = heterogeneous_pointer<Top, Ts...>;
+    template <typename Bound>
+    struct binder : public virtual Top
+                  , public Bound
+    {
+      template <typename... Us>
+      explicit constexpr binder(Us&&... xs)
+        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound> {
+            std::forward<decltype(xs)>(xs)...
+          }
+      {}
+
+      auto compare([[maybe_unused]] Top const* top) const -> bool override
+      {
+        if constexpr (is_equality_comparable_v<Bound const&>)
+        {
+          if (auto const* bound = dynamic_cast<Bound const*>(top); bound)
+          {
+            return *bound == static_cast<Bound const&>(*this);
+          }
+          else
+          {
+            return std::is_same_v<Bound, null>;
+          }
+        }
+        else
+        {
+          return false;
+        }
+      }
+
+      auto type() const noexcept -> std::type_info const& override
+      {
+        return typeid(Bound);
+      }
+
+      auto write(std::ostream & os) const -> std::ostream & override
+      {
+        if constexpr (is_output_streamable_v<Bound const&>)
+        {
+          return os << static_cast<Bound const&>(*this);
+        }
+        else
+        {
+          return os << magenta("#,(") << green(typeid(Bound).name()) << faint(" #;", static_cast<Bound const*>(this)) << magenta(")");
+        }
+      }
+    };
+
+    using base_pointer = nan_boxing_pointer<Top, Ts...>;
 
     gc_pointer(gc_pointer const& gcp)
-      : pointer { gcp }
+      : base_pointer { gcp }
       , collector::mutator { gcp.object }
     {}
 
-    gc_pointer(pointer const& p)
-      : pointer { p }
-      , collector::mutator { locate(pointer::get()) }
+    gc_pointer(base_pointer const& p)
+      : base_pointer { p }
+      , collector::mutator { locate(base_pointer::get()) }
     {}
 
     gc_pointer(std::nullptr_t = nullptr)
     {}
 
-    template <typename T, REQUIRES(std::is_scalar<T>)>
+    explicit gc_pointer(Top * top) // TODO Top const*
+      : base_pointer { top }
+      , collector::mutator { locate(base_pointer::get()) }
+    {}
+
+    template <typename T, typename = std::enable_if_t<(std::is_same_v<T, Ts> or ... or std::is_same_v<T, double>)>>
     explicit gc_pointer(T const& datum)
-      : pointer { datum }
+      : base_pointer { datum }
     {
-      assert(pointer::get() == nullptr);
+      assert(base_pointer::get() == nullptr);
     }
 
     auto operator =(gc_pointer const& gcp) -> auto &
@@ -56,7 +117,7 @@ inline namespace memory
       return *this;
     }
 
-    auto operator =(pointer const& p) -> auto &
+    auto operator =(base_pointer const& p) -> auto &
     {
       reset(p);
       return *this;
@@ -70,26 +131,174 @@ inline namespace memory
 
     auto reset(gc_pointer const& gcp) -> void
     {
-      pointer::reset(gcp);
+      base_pointer::reset(gcp);
       collector::mutator::reset(gcp.object);
     }
 
-    auto reset(pointer const& p) -> void
+    auto reset(base_pointer const& p) -> void
     {
-      pointer::reset(p);
-      collector::mutator::reset(locate(pointer::get()));
+      base_pointer::reset(p);
+      collector::mutator::reset(locate(base_pointer::get()));
     }
 
     auto reset(std::nullptr_t = nullptr) -> void
     {
-      pointer::reset();
+      base_pointer::reset();
       collector::mutator::reset();
     }
 
-    template <typename T, typename Allocator, typename... Us>
-    static auto make(Us&&... xs) -> gc_pointer
+    template <typename Bound, typename Allocator, typename... Us>
+    static auto make(Us&&... xs)
     {
-      return pointer::template make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
+      if constexpr (std::is_same_v<Bound, Top>)
+      {
+        return gc_pointer(collector::make<Top, Allocator>(std::forward<decltype(xs)>(xs)...));
+      }
+      else if constexpr (std::is_class_v<Bound>)
+      {
+        return gc_pointer(collector::make<binder<Bound>, Allocator>(std::forward<decltype(xs)>(xs)...));
+      }
+      else
+      {
+        return gc_pointer(std::forward<decltype(xs)>(xs)...);
+      }
+    }
+
+    template <typename U>
+    inline auto as() const -> decltype(auto)
+    {
+      if constexpr (std::is_same_v<std::decay_t<U>, Top>)
+      {
+        return base_pointer::operator *();
+      }
+      else if constexpr (std::is_class_v<std::decay_t<U>>)
+      {
+        if (auto data = dynamic_cast<std::add_pointer_t<U>>(base_pointer::get()); data)
+        {
+          return *data;
+        }
+        else
+        {
+          throw std::runtime_error(lexical_cast<std::string>("no viable conversion from ", demangle(type()), " to ", demangle(typeid(U))));
+        }
+      }
+      else
+      {
+        return base_pointer::template as<U>();
+      }
+    }
+
+    template <typename U>
+    inline auto as() -> decltype(auto)
+    {
+      if constexpr (std::is_same_v<std::decay_t<U>, Top>)
+      {
+        return base_pointer::operator *();
+      }
+      else if constexpr (std::is_class_v<std::decay_t<U>>)
+      {
+        if (auto data = dynamic_cast<std::add_pointer_t<U>>(base_pointer::get()); data)
+        {
+          return *data;
+        }
+        else
+        {
+          throw std::runtime_error(lexical_cast<std::string>("no viable conversion from ", demangle(type()), " to ", demangle(typeid(U))));
+        }
+      }
+      else
+      {
+        return base_pointer::template as<U>();
+      }
+    }
+
+    template <typename U>
+    inline auto as_const() const -> decltype(auto)
+    {
+      return as<std::add_const_t<U>>();
+    }
+
+    inline auto compare(gc_pointer const& rhs) const -> bool
+    {
+      if (base_pointer::dereferenceable())
+      {
+        return *this ? base_pointer::get()->compare(rhs.get()) : rhs.is<null>();
+      }
+      else
+      {
+        return base_pointer::compare(rhs);
+      }
+    }
+
+    template <typename U>
+    inline auto is() const
+    {
+      return type() == typeid(std::decay_t<U>);
+    }
+
+    template <typename U, REQUIRES(std::is_class<U>)>
+    inline auto is_also() const
+    {
+      return dynamic_cast<std::add_pointer_t<U>>(base_pointer::get()) != nullptr;
+    }
+
+    inline auto type() const -> std::type_info const&
+    {
+      if (base_pointer::dereferenceable())
+      {
+        return *this ? base_pointer::get()->type() : typeid(null);
+      }
+      else
+      {
+        return base_pointer::type();
+      }
+    }
+
+    inline auto write(std::ostream & os) const -> std::ostream &
+    {
+      if (base_pointer::dereferenceable())
+      {
+        return *this ? base_pointer::get()->write(os) : os << magenta("()");
+      }
+      else
+      {
+        return base_pointer::write(os);
+      }
+    }
+
+    friend auto operator <<(std::ostream & os, gc_pointer const& datum) -> std::ostream &
+    {
+      return datum.write(os);
+    }
+
+    inline auto begin()
+    {
+      return base_pointer::dereferenceable() and *this ? base_pointer::get()->begin() : typename Top::iterator();
+    }
+
+    inline auto begin() const
+    {
+      return base_pointer::dereferenceable() and *this ? base_pointer::get()->cbegin() : typename Top::const_iterator();
+    }
+
+    inline auto cbegin() const
+    {
+      return base_pointer::dereferenceable() and *this ? base_pointer::get()->cbegin() : typename Top::const_iterator();
+    }
+
+    inline auto end()
+    {
+      return base_pointer::dereferenceable() and *this ? base_pointer::get()->end() : typename Top::iterator();
+    }
+
+    inline auto end() const
+    {
+      return base_pointer::dereferenceable() and *this ? base_pointer::get()->cend() : typename Top::const_iterator();
+    }
+
+    inline auto cend() const
+    {
+      return base_pointer::dereferenceable() and *this ? base_pointer::get()->cend() : typename Top::const_iterator();
     }
   };
 } // namespace memory
