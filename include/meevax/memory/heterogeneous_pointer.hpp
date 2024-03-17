@@ -84,11 +84,9 @@ inline namespace memory
     };
 
   public:
-    using nan_boxing_pointer<Top, Ts...>::nan_boxing_pointer;
+    using base_pointer = nan_boxing_pointer<Top, Ts...>;
 
-    using nan_boxing_pointer<Top, Ts...>::dereferenceable;
-
-    using nan_boxing_pointer<Top, Ts...>::get;
+    using base_pointer::base_pointer;
 
     template <typename Bound, typename Allocator, typename... Us>
     static auto make(Us&&... xs)
@@ -112,11 +110,11 @@ inline namespace memory
     {
       if constexpr (std::is_same_v<std::decay_t<U>, Top>)
       {
-        return nan_boxing_pointer<Top, Ts...>::operator *();
+        return base_pointer::operator *();
       }
       else if constexpr (std::is_class_v<std::decay_t<U>>)
       {
-        if (auto data = dynamic_cast<std::add_pointer_t<U>>(get()); data)
+        if (auto data = dynamic_cast<std::add_pointer_t<U>>(base_pointer::get()); data)
         {
           return *data;
         }
@@ -127,7 +125,7 @@ inline namespace memory
       }
       else
       {
-        return nan_boxing_pointer<Top, Ts...>::template as<U>();
+        return base_pointer::template as<U>();
       }
     }
 
@@ -136,11 +134,11 @@ inline namespace memory
     {
       if constexpr (std::is_same_v<std::decay_t<U>, Top>)
       {
-        return nan_boxing_pointer<Top, Ts...>::operator *();
+        return base_pointer::operator *();
       }
       else if constexpr (std::is_class_v<std::decay_t<U>>)
       {
-        if (auto data = dynamic_cast<std::add_pointer_t<U>>(get()); data)
+        if (auto data = dynamic_cast<std::add_pointer_t<U>>(base_pointer::get()); data)
         {
           return *data;
         }
@@ -151,7 +149,7 @@ inline namespace memory
       }
       else
       {
-        return nan_boxing_pointer<Top, Ts...>::template as<U>();
+        return base_pointer::template as<U>();
       }
     }
 
@@ -163,13 +161,13 @@ inline namespace memory
 
     inline auto compare(heterogeneous_pointer const& rhs) const -> bool
     {
-      if (dereferenceable())
+      if (base_pointer::dereferenceable())
       {
-        return *this ? get()->compare(rhs.get()) : rhs.is<null>();
+        return *this ? base_pointer::get()->compare(rhs.get()) : rhs.is<null>();
       }
       else
       {
-        return nan_boxing_pointer<Top, Ts...>::compare(rhs);
+        return base_pointer::compare(rhs);
       }
     }
 
@@ -182,30 +180,30 @@ inline namespace memory
     template <typename U, REQUIRES(std::is_class<U>)>
     inline auto is_also() const
     {
-      return dynamic_cast<std::add_pointer_t<U>>(get()) != nullptr;
+      return dynamic_cast<std::add_pointer_t<U>>(base_pointer::get()) != nullptr;
     }
 
     inline auto type() const -> std::type_info const&
     {
-      if (dereferenceable())
+      if (base_pointer::dereferenceable())
       {
-        return *this ? get()->type() : typeid(null);
+        return *this ? base_pointer::get()->type() : typeid(null);
       }
       else
       {
-        return nan_boxing_pointer<Top, Ts...>::type();
+        return base_pointer::type();
       }
     }
 
     inline auto write(std::ostream & os) const -> std::ostream &
     {
-      if (dereferenceable())
+      if (base_pointer::dereferenceable())
       {
-        return *this ? get()->write(os) : os << magenta("()");
+        return *this ? base_pointer::get()->write(os) : os << magenta("()");
       }
       else
       {
-        return nan_boxing_pointer<Top, Ts...>::write(os);
+        return base_pointer::write(os);
       }
     }
 
@@ -216,32 +214,32 @@ inline namespace memory
 
     inline auto begin()
     {
-      return dereferenceable() and *this ? get()->begin() : typename Top::iterator();
+      return base_pointer::dereferenceable() and *this ? base_pointer::get()->begin() : typename Top::iterator();
     }
 
     inline auto begin() const
     {
-      return dereferenceable() and *this ? get()->cbegin() : typename Top::const_iterator();
+      return base_pointer::dereferenceable() and *this ? base_pointer::get()->cbegin() : typename Top::const_iterator();
     }
 
     inline auto cbegin() const
     {
-      return dereferenceable() and *this ? get()->cbegin() : typename Top::const_iterator();
+      return base_pointer::dereferenceable() and *this ? base_pointer::get()->cbegin() : typename Top::const_iterator();
     }
 
     inline auto end()
     {
-      return dereferenceable() and *this ? get()->end() : typename Top::iterator();
+      return base_pointer::dereferenceable() and *this ? base_pointer::get()->end() : typename Top::iterator();
     }
 
     inline auto end() const
     {
-      return dereferenceable() and *this ? get()->cend() : typename Top::const_iterator();
+      return base_pointer::dereferenceable() and *this ? base_pointer::get()->cend() : typename Top::const_iterator();
     }
 
     inline auto cend() const
     {
-      return dereferenceable() and *this ? get()->cend() : typename Top::const_iterator();
+      return base_pointer::dereferenceable() and *this ? base_pointer::get()->cend() : typename Top::const_iterator();
     }
   };
 } // namespace memory
