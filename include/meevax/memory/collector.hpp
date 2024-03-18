@@ -240,15 +240,18 @@ inline namespace memory
     template <typename... Ts>
     using default_allocator = std::allocator<Ts...>;
 
-  private:
-    static inline tag * cache = nullptr;
-
     /*
        0x0000'0000'0000'0000 ~ 0x7FFF'FFFF'FFFF'FFFF
     */
-    static inline integer_set<tag *, 15, 16, 16> tags {};
+    template <typename T>
+    using pointer_set = integer_set<T *, 15, 16, 16>;
 
-    static inline integer_set<mutator *, 15, 16, 16> mutators {};
+  private:
+    static inline tag * cache = nullptr;
+
+    static inline pointer_set<tag> tags {};
+
+    static inline pointer_set<mutator> mutators {};
 
     static inline std::size_t allocation = 0;
 

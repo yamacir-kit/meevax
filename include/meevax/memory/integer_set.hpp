@@ -220,6 +220,12 @@ inline namespace memory
       data[i]->erase(j);
     }
 
+    auto contains(T value) noexcept -> bool
+    {
+      auto [i, j] = split(value);
+      return data[i] and data[i]->contains(j);
+    }
+
     auto begin() const noexcept
     {
       return const_iterator(this, 0);
@@ -384,6 +390,13 @@ inline namespace memory
       auto i = reinterpret_cast<std::size_t>(value) / 64;
       auto j = reinterpret_cast<std::size_t>(value) % 64;
       data[i] &= ~(1ul << j);
+    }
+
+    auto contains(T value) noexcept -> bool
+    {
+      auto i = reinterpret_cast<std::size_t>(value) / 64;
+      auto j = reinterpret_cast<std::size_t>(value) % 64;
+      return data[i] & (1ul << j);
     }
 
     auto lower_bound(T value) const noexcept

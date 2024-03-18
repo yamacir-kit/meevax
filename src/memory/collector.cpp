@@ -146,6 +146,8 @@ inline namespace memory
   {
     assert(tag);
 
+    assert(tags.contains(tag));
+
     if (not tag->marked)
     {
       tag->marked = true;
