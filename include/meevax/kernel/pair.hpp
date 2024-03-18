@@ -68,7 +68,8 @@ inline namespace kernel
     return make<typename Traits<Ts...>::type, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
-  struct pair : public std::pair<object, object>
+  struct pair : public collector::top
+              , public std::pair<object, object>
   {
     template <auto Const>
     struct forward_iterator
@@ -142,18 +143,18 @@ inline namespace kernel
 
     using const_iterator = forward_iterator<true>;
 
-    constexpr pair() = default;
+    pair() = default;
 
     template <typename T, typename U = std::nullptr_t, REQUIRES(std::is_constructible<std::pair<object, object>, T, U>)>
     explicit pair(T&& x, U&& y = nullptr)
       : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
 
-    virtual auto compare(pair const*) const -> bool;
+    auto compare(top const*) const -> bool override;
 
-    virtual auto type() const noexcept -> std::type_info const&;
+    auto type() const noexcept -> std::type_info const& override;
 
-    virtual auto write(std::ostream &) const -> std::ostream &;
+    auto write(std::ostream &) const -> std::ostream & override;
 
     constexpr auto begin() noexcept
     {

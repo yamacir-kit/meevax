@@ -42,6 +42,15 @@ inline namespace memory
   class collector
   {
   public:
+    struct top
+    {
+      virtual auto compare(top const*) const -> bool = 0;
+
+      virtual auto type() const noexcept -> std::type_info const& = 0;
+
+      virtual auto write(std::ostream &) const -> std::ostream & = 0;
+    };
+
     template <typename Top, typename Bound>
     struct binder : public virtual Top
                   , public Bound
@@ -53,11 +62,11 @@ inline namespace memory
           }
       {}
 
-      auto compare([[maybe_unused]] Top const* top) const -> bool override
+      auto compare([[maybe_unused]] top const* other) const -> bool override
       {
         if constexpr (is_equality_comparable_v<Bound const&>)
         {
-          if (auto const* bound = dynamic_cast<Bound const*>(top); bound)
+          if (auto const* bound = dynamic_cast<Bound const*>(other); bound)
           {
             return *bound == static_cast<Bound const&>(*this);
           }
@@ -263,6 +272,8 @@ inline namespace memory
     template <typename T, typename Allocator = default_allocator<void>, typename... Ts>
     static auto make(Ts&&... xs)
     {
+      static_assert(std::is_base_of_v<top, T>);
+
       if (allocation += sizeof(T); threshold < allocation)
       {
         collect();
