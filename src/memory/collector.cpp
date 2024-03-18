@@ -59,12 +59,12 @@ inline namespace memory
   {
     allocation = 0;
 
-    return mark(), sweep();
+    return sweep(mark());
   }
 
   auto collector::count() noexcept -> std::size_t
   {
-    return std::size(tags);
+    return tags.size();
   }
 
   auto collector::dlclose(void * const handle) -> void
@@ -112,7 +112,7 @@ inline namespace memory
     }
   }
 
-  auto collector::mark() noexcept -> void
+  auto collector::mark() noexcept -> pointer_set<tag>
   {
     auto is_root_object = [begin = tags.begin()](mutator * given)
     {
@@ -130,53 +130,56 @@ inline namespace memory
       return iter == begin or not (*--iter)->contains(given);
     };
 
+    auto marked_tags = pointer_set<tag>();
+
     for (auto&& mutator : mutators)
     {
       assert(mutator);
       assert(mutator->object);
 
-      if (not mutator->object->marked and is_root_object(mutator))
+      if (not marked_tags.contains(mutator->object) and is_root_object(mutator))
       {
-        mark(mutator->object);
+        mark(mutator->object, marked_tags);
       }
     }
+
+    return marked_tags;
   }
 
-  auto collector::mark(tag * const tag) noexcept -> void
+  auto collector::mark(tag * const object, pointer_set<tag> & marked_tags) noexcept -> void
   {
-    assert(tag);
+    assert(object);
 
-    assert(tags.contains(tag));
+    assert(tags.contains(object));
 
-    if (not tag->marked)
+    if (not marked_tags.contains(object))
     {
-      tag->marked = true;
+      marked_tags.insert(object);
 
-      const auto lower_address = reinterpret_cast<mutator *>(tag->lower_address());
-      const auto upper_address = reinterpret_cast<mutator *>(tag->upper_address());
+      const auto lower_address = reinterpret_cast<mutator *>(object->lower_address());
+      const auto upper_address = reinterpret_cast<mutator *>(object->upper_address());
 
       for (auto lower = mutators.lower_bound(lower_address),
                 upper = mutators.lower_bound(upper_address); lower != upper; ++lower)
       {
-        mark((*lower)->object);
+        mark((*lower)->object, marked_tags);
       }
     }
   }
 
-  auto collector::sweep() -> void
+  auto collector::sweep(pointer_set<tag> && marked_tags) -> void
   {
+    for (auto&& marked_tag : marked_tags)
+    {
+      tags.erase(marked_tag);
+    }
+
     for (auto&& tag : tags)
     {
-      if (tag->marked)
-      {
-        tag->marked = false;
-      }
-      else
-      {
-        delete tag;
-        tags.erase(tag);
-      }
+      delete tag;
     }
+
+    tags.swap(marked_tags);
   }
 } // namespace memory
 } // namespace meevax

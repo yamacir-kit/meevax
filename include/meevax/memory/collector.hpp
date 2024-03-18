@@ -101,18 +101,15 @@ inline namespace memory
 
     struct tag
     {
-      bool marked : 1;
-
-      std::size_t size : 15;
+      std::size_t size : 16;
 
       std::uintptr_t address : 48;
 
       explicit tag(void const* const address, std::size_t size)
-        : marked  { false }
-        , size    { size }
+        : size    { size }
         , address { reinterpret_cast<std::uintptr_t>(address) }
       {
-        assert(size < (1u << 15));
+        assert(size < (1u << 16));
       }
 
       virtual ~tag() = default;
@@ -306,11 +303,11 @@ inline namespace memory
 
     static auto dlsym(std::string const&, void * const) -> void *;
 
-    static auto mark() noexcept -> void;
+    static auto mark() noexcept -> pointer_set<tag>;
 
-    static auto mark(tag * const) noexcept -> void;
+    static auto mark(tag * const, pointer_set<tag> &) noexcept -> void;
 
-    static auto sweep() -> void;
+    static auto sweep(pointer_set<tag> &&) -> void;
   };
 
   static collector default_collector {};

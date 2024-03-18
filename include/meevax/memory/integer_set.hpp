@@ -246,6 +246,11 @@ inline namespace memory
     {
       return std::distance(begin(), end());
     }
+
+    auto swap(integer_set & other)
+    {
+      std::swap(data, other.data);
+    }
   };
 
   template <typename T, std::size_t E>
