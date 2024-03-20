@@ -114,7 +114,7 @@ inline namespace memory
 
   auto collector::mark() noexcept -> pointer_set<tag>
   {
-    auto is_root_object = [begin = tags.begin()](mutator * given)
+    auto is_root_object = [begin = tags.begin()](mutator const* given) // TODO INEFFICIENT!
     {
       /*
          If the given mutator is a non-root object, then an object containing
@@ -125,7 +125,7 @@ inline namespace memory
          base-address + object-size. The tag is present to keep track of the
          base-address and size of the object needed here.
       */
-      auto iter = tags.lower_bound(reinterpret_cast<tag *>(given));
+      auto iter = tags.lower_bound(reinterpret_cast<tag const*>(given));
 
       return iter == begin or not (*--iter)->contains(given);
     };
@@ -146,7 +146,7 @@ inline namespace memory
     return marked_tags;
   }
 
-  auto collector::mark(tag * const object, pointer_set<tag> & marked_tags) noexcept -> void
+  auto collector::mark(tag const* const object, pointer_set<tag> & marked_tags) noexcept -> void
   {
     assert(object);
 
@@ -156,25 +156,21 @@ inline namespace memory
     {
       marked_tags.insert(object);
 
-      const auto lower_address = reinterpret_cast<mutator *>(object->lower_address());
-      const auto upper_address = reinterpret_cast<mutator *>(object->upper_address());
-
-      for (auto lower = mutators.lower_bound(lower_address),
-                upper = mutators.lower_bound(upper_address); lower != upper; ++lower)
+      for (auto each : *object)
       {
-        mark((*lower)->object, marked_tags);
+        mark(each->object, marked_tags);
       }
     }
   }
 
   auto collector::sweep(pointer_set<tag> && marked_tags) -> void
   {
-    for (auto&& marked_tag : marked_tags)
+    for (auto marked_tag : marked_tags)
     {
       tags.erase(marked_tag);
     }
 
-    for (auto&& tag : tags)
+    for (auto tag : tags)
     {
       delete tag;
     }

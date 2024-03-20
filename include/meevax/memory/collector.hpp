@@ -114,19 +114,19 @@ inline namespace memory
 
       virtual ~tag() = default;
 
-      auto lower_address() const noexcept
+      auto begin() const
       {
-        return address;
+        return mutators.lower_bound(reinterpret_cast<mutator const*>(address));
       }
 
-      auto upper_address() const noexcept
+      auto end() const
       {
-        return address + size;
+        return mutators.lower_bound(reinterpret_cast<mutator const*>(address + size));
       }
 
       auto contains(void const* const data) const noexcept
       {
-        return reinterpret_cast<void const*>(lower_address()) <= data and data < reinterpret_cast<void const*>(upper_address());
+        return reinterpret_cast<void const*>(address) <= data and data < reinterpret_cast<void const*>(address + size);
       }
     };
 
@@ -180,11 +180,11 @@ inline namespace memory
       friend class collector;
 
     protected:
-      tag * object = nullptr;
+      tag const* object = nullptr;
 
       constexpr mutator() = default;
 
-      explicit mutator(tag * object) noexcept
+      explicit mutator(tag const* object) noexcept
         : object { object }
       {
         if (object)
@@ -201,7 +201,7 @@ inline namespace memory
         }
       }
 
-      auto reset(tag * after = nullptr) noexcept -> void
+      auto reset(tag const* after = nullptr) noexcept -> void
       {
         if (auto before = std::exchange(object, after); not before and after)
         {
@@ -213,7 +213,7 @@ inline namespace memory
         }
       }
 
-      static auto locate(void * const data) noexcept -> tag *
+      static auto locate(void const* const data) noexcept -> tag const*
       {
         if (not data)
         {
@@ -223,7 +223,7 @@ inline namespace memory
         {
           return cache;
         }
-        else if (auto iter = tags.lower_bound(reinterpret_cast<tag *>(data)); iter != tags.begin() and (*--iter)->contains(data))
+        else if (auto iter = tags.lower_bound(reinterpret_cast<tag const*>(data)); iter != tags.begin() and (*--iter)->contains(data))
         {
           return *iter;
         }
@@ -241,7 +241,7 @@ inline namespace memory
        0x0000'0000'0000'0000 ~ 0x7FFF'FFFF'FFFF'FFFF
     */
     template <typename T>
-    using pointer_set = integer_set<T *, 15, 16, 16>;
+    using pointer_set = integer_set<T const*, 15, 16, 16>;
 
   private:
     static inline tag * cache = nullptr;
@@ -305,7 +305,7 @@ inline namespace memory
 
     static auto mark() noexcept -> pointer_set<tag>;
 
-    static auto mark(tag * const, pointer_set<tag> &) noexcept -> void;
+    static auto mark(tag const* const, pointer_set<tag> &) noexcept -> void;
 
     static auto sweep(pointer_set<tag> &&) -> void;
   };
