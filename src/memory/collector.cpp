@@ -48,10 +48,10 @@ inline namespace memory
 
   auto collector::clear() -> void
   {
-    for (auto&& tag : tags)
+    for (auto&& object : objects)
     {
-      delete tag;
-      tags.erase(tag);
+      delete object;
+      objects.erase(object);
     }
   }
 
@@ -64,7 +64,7 @@ inline namespace memory
 
   auto collector::count() noexcept -> std::size_t
   {
-    return tags.size();
+    return objects.size();
   }
 
   auto collector::dlclose(void * const handle) -> void
@@ -112,9 +112,9 @@ inline namespace memory
     }
   }
 
-  auto collector::mark() noexcept -> pointer_set<tag>
+  auto collector::mark() noexcept -> pointer_set<top>
   {
-    auto is_root_object = [begin = tags.begin()](mutator const* given) // TODO INEFFICIENT!
+    auto is_root_object = [begin = objects.begin()](mutator const* given) // TODO INEFFICIENT!
     {
       /*
          If the given mutator is a non-root object, then an object containing
@@ -122,60 +122,63 @@ inline namespace memory
 
          Containing the mutator as a data member means that the address of the
          mutator is contained in the interval of the object's base-address ~
-         base-address + object-size. The tag is present to keep track of the
+         base-address + object-size. The top is present to keep track of the
          base-address and size of the object needed here.
       */
-      auto iter = tags.lower_bound(reinterpret_cast<tag const*>(given));
+      auto iter = objects.lower_bound(reinterpret_cast<top const*>(given));
 
       return iter == begin or not (*--iter)->contains(given);
     };
 
-    auto marked_tags = pointer_set<tag>();
+    auto marked_objects = pointer_set<top>();
 
     for (auto&& mutator : mutators)
     {
       assert(mutator);
       assert(mutator->object);
 
-      if (not marked_tags.contains(mutator->object) and is_root_object(mutator))
+      if (not marked_objects.contains(mutator->object) and is_root_object(mutator))
       {
-        mark(mutator->object, marked_tags);
+        mark(mutator->object, marked_objects);
       }
     }
 
-    return marked_tags;
+    return marked_objects;
   }
 
-  auto collector::mark(tag const* const object, pointer_set<tag> & marked_tags) noexcept -> void
+  auto collector::mark(top const* const object, pointer_set<top> & marked_objects) noexcept -> void
   {
     assert(object);
 
-    assert(tags.contains(object));
+    assert(objects.contains(object));
 
-    if (not marked_tags.contains(object))
+    if (not marked_objects.contains(object))
     {
-      marked_tags.insert(object);
+      marked_objects.insert(object);
 
-      for (auto each : *object)
+      auto lower = mutators.lower_bound(reinterpret_cast<mutator const*>(object->lower()));
+      auto upper = mutators.lower_bound(reinterpret_cast<mutator const*>(object->upper()));
+
+      for (; lower != upper; ++lower)
       {
-        mark(each->object, marked_tags);
+        mark((*lower)->object, marked_objects);
       }
     }
   }
 
-  auto collector::sweep(pointer_set<tag> && marked_tags) -> void
+  auto collector::sweep(pointer_set<top> && marked_objects) -> void
   {
-    for (auto marked_tag : marked_tags)
+    for (auto marked_object : marked_objects)
     {
-      tags.erase(marked_tag);
+      objects.erase(marked_object);
     }
 
-    for (auto tag : tags)
+    for (auto object : objects)
     {
-      delete tag;
+      delete object;
     }
 
-    tags.swap(marked_tags);
+    objects.swap(marked_objects);
   }
 } // namespace memory
 } // namespace meevax

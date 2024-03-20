@@ -97,13 +97,9 @@ inline namespace memory
     template <typename Bound, typename Allocator, typename... Us>
     static auto make(Us&&... xs) -> gc_pointer
     {
-      if constexpr (std::is_same_v<Bound, Top>)
+      if constexpr (std::is_class_v<Bound>)
       {
-        return collector::make<Top, Allocator>(std::forward<decltype(xs)>(xs)...);
-      }
-      else if constexpr (std::is_class_v<Bound>)
-      {
-        return collector::make<collector::binder<Top, Bound>, Allocator>(std::forward<decltype(xs)>(xs)...);
+        return collector::make<collector::binder<Top, Bound, std::allocator_traits<Allocator>>, Allocator>(std::forward<decltype(xs)>(xs)...);
       }
       else
       {

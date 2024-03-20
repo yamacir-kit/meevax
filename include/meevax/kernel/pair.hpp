@@ -68,7 +68,7 @@ inline namespace kernel
     return make<typename Traits<Ts...>::type, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
-  struct pair : public collector::top
+  struct pair : public virtual collector::top
               , public std::pair<object, object>
   {
     template <auto Const>
@@ -150,38 +150,50 @@ inline namespace kernel
       : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
 
+    ~pair() override = default;
+
     auto compare(top const*) const -> bool override;
 
     auto type() const noexcept -> std::type_info const& override;
 
     auto write(std::ostream &) const -> std::ostream & override;
 
-    constexpr auto begin() noexcept
+    auto lower() const noexcept -> std::uintptr_t override
+    {
+      return reinterpret_cast<std::uintptr_t>(this);
+    }
+
+    auto upper() const noexcept -> std::uintptr_t override
+    {
+      return reinterpret_cast<std::uintptr_t>(this) + sizeof(*this);
+    }
+
+    auto begin() noexcept
     {
       return iterator(this);
     }
 
-    constexpr auto begin() const noexcept
+    auto begin() const noexcept
     {
       return const_iterator(this);
     }
 
-    constexpr auto end() noexcept
+    auto end() noexcept
     {
       return iterator(nullptr);
     }
 
-    constexpr auto end() const noexcept
+    auto end() const noexcept
     {
       return const_iterator(nullptr);
     }
 
-    constexpr auto cbegin() const -> const_iterator
+    auto cbegin() const -> const_iterator
     {
       return std::as_const(*this).begin();
     }
 
-    constexpr auto cend() const noexcept
+    auto cend() const noexcept
     {
       return std::as_const(*this).end();
     }

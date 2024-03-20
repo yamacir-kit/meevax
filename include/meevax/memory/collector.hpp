@@ -44,23 +44,56 @@ inline namespace memory
   public:
     struct top
     {
+      virtual ~top() = default;
+
       virtual auto compare(top const*) const -> bool = 0;
 
       virtual auto type() const noexcept -> std::type_info const& = 0;
 
       virtual auto write(std::ostream &) const -> std::ostream & = 0;
+
+      virtual auto lower() const noexcept -> std::uintptr_t = 0;
+
+      virtual auto upper() const noexcept -> std::uintptr_t = 0;
+
+      auto contains(void const* const data) const noexcept
+      {
+        return reinterpret_cast<void const*>(lower()) <= data and data < reinterpret_cast<void const*>(upper());
+      }
     };
 
-    template <typename Top, typename Bound>
-    struct binder : public virtual Top
+    static inline auto cleared = false;
+
+    template <typename Top, typename Bound, typename AllocatorTraits = std::allocator_traits<std::allocator<void>>>
+    struct binder : public virtual std::conditional_t<std::is_same_v<Top, Bound>, top, Top>
                   , public Bound
     {
+      struct allocator_type : public AllocatorTraits::template rebind_alloc<binder<Top, Bound, AllocatorTraits>>
+      {
+        ~allocator_type()
+        {
+          /*
+             Execute clear before any static allocator is destroyed. Otherwise,
+             when the destructor of the collector executes clear, the collector
+             may touch the freed memory of the stateful allocator.
+          */
+          if (not std::exchange(cleared, true))
+          {
+            clear();
+          }
+        }
+      };
+
+      static inline auto allocator = allocator_type();
+
       template <typename... Us>
       explicit constexpr binder(Us&&... xs)
         : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound> {
             std::forward<decltype(xs)>(xs)...
           }
       {}
+
+      ~binder() override = default;
 
       auto compare([[maybe_unused]] top const* other) const -> bool override
       {
@@ -97,71 +130,16 @@ inline namespace memory
           return os << magenta("#,(") << green(typeid(Bound).name()) << faint(" #;", static_cast<Bound const*>(this)) << magenta(")");
         }
       }
-    };
 
-    struct tag
-    {
-      std::size_t size : 16;
-
-      std::uintptr_t address : 48;
-
-      explicit tag(void const* const address, std::size_t size)
-        : size    { size }
-        , address { reinterpret_cast<std::uintptr_t>(address) }
+      auto lower() const noexcept -> std::uintptr_t override
       {
-        assert(size < (1u << 16));
+        return reinterpret_cast<std::uintptr_t>(this);
       }
 
-      virtual ~tag() = default;
-
-      auto begin() const
+      auto upper() const noexcept -> std::uintptr_t override
       {
-        return mutators.lower_bound(reinterpret_cast<mutator const*>(address));
+        return reinterpret_cast<std::uintptr_t>(this) + sizeof(*this);
       }
-
-      auto end() const
-      {
-        return mutators.lower_bound(reinterpret_cast<mutator const*>(address + size));
-      }
-
-      auto contains(void const* const data) const noexcept
-      {
-        return reinterpret_cast<void const*>(address) <= data and data < reinterpret_cast<void const*>(address + size);
-      }
-    };
-
-    static inline auto cleared = false;
-
-    template <typename T, typename AllocatorTraits>
-    struct tagged : public tag
-    {
-      struct allocator_type : public AllocatorTraits::template rebind_alloc<tagged<T, AllocatorTraits>>
-      {
-        ~allocator_type()
-        {
-          /*
-             Execute clear before any static allocator is destroyed. Otherwise,
-             when the destructor of the collector executes clear, the collector
-             may touch the freed memory of the stateful allocator.
-          */
-          if (not std::exchange(cleared, true))
-          {
-            clear();
-          }
-        }
-      };
-
-      static inline auto allocator = allocator_type();
-
-      T value;
-
-      template <typename... Ts>
-      explicit tagged(Ts&&... xs)
-        : tag   { std::addressof(value), sizeof(T) }
-        , value { std::forward<decltype(xs)>(xs)... }
-      {}
-
-      ~tagged() override = default;
 
       auto operator new(std::size_t) -> void *
       {
@@ -180,11 +158,11 @@ inline namespace memory
       friend class collector;
 
     protected:
-      tag const* object = nullptr;
+      top const* object = nullptr;
 
       constexpr mutator() = default;
 
-      explicit mutator(tag const* object) noexcept
+      explicit mutator(top const* object) noexcept
         : object { object }
       {
         if (object)
@@ -201,7 +179,7 @@ inline namespace memory
         }
       }
 
-      auto reset(tag const* after = nullptr) noexcept -> void
+      auto reset(top const* after = nullptr) noexcept -> void
       {
         if (auto before = std::exchange(object, after); not before and after)
         {
@@ -213,7 +191,7 @@ inline namespace memory
         }
       }
 
-      static auto locate(void const* const data) noexcept -> tag const*
+      static auto locate(void const* const data) noexcept -> top const*
       {
         if (not data)
         {
@@ -223,7 +201,7 @@ inline namespace memory
         {
           return cache;
         }
-        else if (auto iter = tags.lower_bound(reinterpret_cast<tag const*>(data)); iter != tags.begin() and (*--iter)->contains(data))
+        else if (auto iter = objects.lower_bound(reinterpret_cast<top const*>(data)); iter != objects.begin() and (*--iter)->contains(data))
         {
           return *iter;
         }
@@ -244,9 +222,9 @@ inline namespace memory
     using pointer_set = integer_set<T const*, 15, 16, 16>;
 
   private:
-    static inline tag * cache = nullptr;
+    static inline top * cache = nullptr;
 
-    static inline pointer_set<tag> tags {};
+    static inline pointer_set<top> objects {};
 
     static inline pointer_set<mutator> mutators {};
 
@@ -279,11 +257,11 @@ inline namespace memory
         collect();
       }
 
-      if (auto data = new tagged<T, std::allocator_traits<Allocator>>(std::forward<decltype(xs)>(xs)...); data)
+      if (auto data = new T(std::forward<decltype(xs)>(xs)...); data)
       {
-        tags.insert(cache = data);
+        objects.insert(cache = data);
 
-        return std::addressof(data->value);
+        return data;
       }
       else
       {
@@ -303,11 +281,11 @@ inline namespace memory
 
     static auto dlsym(std::string const&, void * const) -> void *;
 
-    static auto mark() noexcept -> pointer_set<tag>;
+    static auto mark() noexcept -> pointer_set<top>;
 
-    static auto mark(tag const* const, pointer_set<tag> &) noexcept -> void;
+    static auto mark(top const* const, pointer_set<top> &) noexcept -> void;
 
-    static auto sweep(pointer_set<tag> &&) -> void;
+    static auto sweep(pointer_set<top> &&) -> void;
   };
 
   static collector default_collector {};
