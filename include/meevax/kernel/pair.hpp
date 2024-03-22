@@ -30,6 +30,8 @@ inline namespace kernel
 
   struct pair;
 
+  using default_collector = collector<pair, bool, int, float, character, instruction>;
+
   using object = gc_pointer<pair, bool, int, float, character, instruction>;
 
   using let = object;
@@ -48,19 +50,19 @@ inline namespace kernel
     if constexpr (std::is_same_v<T, pair>) {
       return object::make<T, simple_allocator<void>>(std::forward<decltype(xs)>(xs)...);
     } else {
-      return object::make<T, collector::default_allocator<void>>(std::forward<decltype(xs)>(xs)...);
+      return object::make<T, default_allocator<void>>(std::forward<decltype(xs)>(xs)...);
     }
   }
 
   template <typename T,
-            typename Allocator = collector::default_allocator<void>>
+            typename Allocator = default_allocator<void>>
   auto make(T&& x) -> decltype(auto)
   {
     return object::make<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
   }
 
   template <template <typename...> typename Traits,
-            typename Allocator = collector::default_allocator<void>,
+            typename Allocator = default_allocator<void>,
             typename... Ts,
             REQUIRES(std::is_constructible<typename Traits<Ts...>::type, Ts...>)>
   auto make(Ts&&... xs) -> decltype(auto)
@@ -68,7 +70,7 @@ inline namespace kernel
     return make<typename Traits<Ts...>::type, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
-  struct pair : public virtual collector::top
+  struct pair : public virtual default_collector::top
               , public std::pair<object, object>
   {
     template <auto Const>

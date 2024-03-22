@@ -29,18 +29,18 @@ inline namespace memory
 {
   template <typename Top, typename... Ts>
   struct gc_pointer : public nan_boxing_pointer<Top, Ts...>
-                    , private collector::mutator
+                    , private collector<Top, Ts...>::mutator
   {
     using base_pointer = nan_boxing_pointer<Top, Ts...>;
 
     gc_pointer(gc_pointer const& gcp)
       : base_pointer { gcp }
-      , collector::mutator { gcp.object }
+      , collector<Top, Ts...>::mutator { gcp.object }
     {}
 
     gc_pointer(base_pointer const& p)
       : base_pointer { p }
-      , collector::mutator { base_pointer::get() }
+      , collector<Top, Ts...>::mutator { base_pointer::get() }
     {}
 
     gc_pointer(std::nullptr_t = nullptr)
@@ -48,7 +48,7 @@ inline namespace memory
 
     gc_pointer(Top * top) // TODO Top const*
       : base_pointer { top }
-      , collector::mutator { base_pointer::get() }
+      , collector<Top, Ts...>::mutator { base_pointer::get() }
     {}
 
     template <typename T, typename = std::enable_if_t<(std::is_same_v<T, Ts> or ... or std::is_same_v<T, double>)>>
@@ -79,19 +79,19 @@ inline namespace memory
     auto reset(gc_pointer const& gcp) -> void
     {
       base_pointer::reset(gcp);
-      collector::mutator::reset(gcp.object);
+      collector<Top, Ts...>::mutator::reset(gcp.object);
     }
 
     auto reset(base_pointer const& p) -> void
     {
       base_pointer::reset(p);
-      collector::mutator::reset(base_pointer::get());
+      collector<Top, Ts...>::mutator::reset(base_pointer::get());
     }
 
     auto reset(std::nullptr_t = nullptr) -> void
     {
       base_pointer::reset();
-      collector::mutator::reset();
+      collector<Top, Ts...>::mutator::reset();
     }
 
     template <typename Bound, typename Allocator, typename... Us>
@@ -99,7 +99,11 @@ inline namespace memory
     {
       if constexpr (std::is_class_v<Bound>)
       {
-        return collector::make<collector::binder<Top, Bound, std::allocator_traits<Allocator>>>(std::forward<decltype(xs)>(xs)...);
+        return collector<Top, Ts...>::template make<
+                 typename collector<Top, Ts...>::template binder<
+                   Bound, std::allocator_traits<Allocator>>>(
+                     std::forward<decltype(xs)>(xs)...
+                     );
       }
       else
       {

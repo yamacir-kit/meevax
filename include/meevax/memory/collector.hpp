@@ -17,6 +17,12 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 #define INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 
+#if __unix__
+#include <dlfcn.h> // dlopen, dlclose, dlerror
+#else
+#error
+#endif
+
 #include <cstddef> // std::size_t
 #include <memory> // std::allocator
 #include <unordered_map>
@@ -32,6 +38,9 @@ namespace meevax
 {
 inline namespace memory
 {
+  template <typename... Ts>
+  using default_allocator = std::allocator<Ts...>;
+
   /*
      This mark-and-sweep garbage collector is based on the implementation of
      gc_ptr written by William E. Kempf and posted to CodeProject.
@@ -39,6 +48,7 @@ inline namespace memory
      - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
      - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
   */
+  template <typename Top, typename... Ts>
   class collector
   {
   public:
@@ -64,11 +74,11 @@ inline namespace memory
 
     static inline auto cleared = false;
 
-    template <typename Top, typename Bound, typename AllocatorTraits = std::allocator_traits<std::allocator<void>>>
+    template <typename Bound, typename AllocatorTraits = std::allocator_traits<std::allocator<void>>>
     struct binder : public virtual std::conditional_t<std::is_same_v<Top, Bound>, top, Top>
                   , public Bound
     {
-      struct allocator_type : public AllocatorTraits::template rebind_alloc<binder<Top, Bound, AllocatorTraits>>
+      struct allocator_type : public AllocatorTraits::template rebind_alloc<binder<Bound, AllocatorTraits>>
       {
         ~allocator_type()
         {
@@ -189,9 +199,6 @@ inline namespace memory
       }
     };
 
-    template <typename... Ts>
-    using default_allocator = std::allocator<Ts...>;
-
     /*
        0x0000'0000'0000'0000 ~ 0x7FFF'FFFF'FFFF'FFFF
     */
@@ -210,20 +217,20 @@ inline namespace memory
     static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
 
   public:
-    collector();
+    collector() = delete;
 
     collector(collector &&) = delete;
 
     collector(collector const&) = delete;
 
-    ~collector();
+    ~collector() = delete;
 
     auto operator =(collector &&) -> collector & = delete;
 
     auto operator =(collector const&) -> collector & = delete;
 
-    template <typename T, typename... Ts>
-    static auto make(Ts&&... xs)
+    template <typename T, typename... Us>
+    static auto make(Us&&... xs)
     {
       static_assert(std::is_base_of_v<top, T>);
 
@@ -244,26 +251,141 @@ inline namespace memory
       }
     }
 
-    static auto clear() -> void;
+    static auto clear() -> void
+    {
+      for (auto&& object : objects)
+      {
+        delete object;
+        objects.erase(object);
+      }
+    }
 
-    static auto collect() -> void;
+    static auto collect() -> void
+    {
+      allocation = 0;
 
-    static auto count() noexcept -> std::size_t;
+      return sweep(mark());
+    }
 
-    static auto dlclose(void * const) -> void;
+    static auto count() noexcept -> std::size_t
+    {
+      return objects.size();
+    }
 
-    static auto dlopen(std::string const&) -> void *;
+    static auto dlclose(void * const handle) -> void
+    {
+      if (handle and ::dlclose(handle))
+      {
+        std::cerr << ::dlerror() << std::endl;
+      }
+    }
 
-    static auto dlsym(std::string const&, void * const) -> void *;
+    static auto dlopen(std::string const& filename) -> void *
+    {
+      ::dlerror(); // Clear
 
-    static auto mark() noexcept -> pointer_set<top>;
+      try
+      {
+        return dynamic_linked_libraries.at(filename).get();
+      }
+      catch (std::out_of_range const&)
+      {
+        if (auto handle = ::dlopen(filename.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
+        {
+          dynamic_linked_libraries.emplace(std::piecewise_construct,
+                                           std::forward_as_tuple(filename),
+                                           std::forward_as_tuple(handle, dlclose));
 
-    static auto mark(top const* const, pointer_set<top> &) noexcept -> void;
+          return dlopen(filename);
+        }
+        else
+        {
+          throw std::runtime_error(::dlerror());
+        }
+      }
+    }
 
-    static auto sweep(pointer_set<top> &&) -> void;
+    static auto dlsym(std::string const& symbol, void * const handle) -> void *
+    {
+      if (auto address = ::dlsym(handle, symbol.c_str()); address)
+      {
+        return address;
+      }
+      else
+      {
+        throw std::runtime_error(::dlerror());
+      }
+    }
+
+    static auto mark() noexcept -> pointer_set<top>
+    {
+      auto is_root_object = [begin = objects.begin()](mutator const* given) // TODO INEFFICIENT!
+      {
+        /*
+           If the given mutator is a non-root object, then an object containing
+           this mutator as a data member exists somewhere in memory.
+
+           Containing the mutator as a data member means that the address of
+           the mutator is contained in the interval of the object's
+           base-address ~ base-address + object-size. The top is present to
+           keep track of the base-address and size of the object needed here.
+        */
+        auto iter = objects.lower_bound(reinterpret_cast<top const*>(given));
+
+        return iter == begin or not (*--iter)->contains(given);
+      };
+
+      auto marked_objects = pointer_set<top>();
+
+      for (auto&& mutator : mutators)
+      {
+        assert(mutator);
+        assert(mutator->object);
+
+        if (not marked_objects.contains(mutator->object) and is_root_object(mutator))
+        {
+          mark(mutator->object, marked_objects);
+        }
+      }
+
+      return marked_objects;
+    }
+
+    static auto mark(top const* const object, pointer_set<top> & marked_objects) noexcept -> void
+    {
+      assert(object);
+
+      assert(objects.contains(object));
+
+      if (not marked_objects.contains(object))
+      {
+        marked_objects.insert(object);
+
+        auto lower = mutators.lower_bound(reinterpret_cast<mutator const*>(object->lower()));
+        auto upper = mutators.lower_bound(reinterpret_cast<mutator const*>(object->upper()));
+
+        for (; lower != upper; ++lower)
+        {
+          mark((*lower)->object, marked_objects);
+        }
+      }
+    }
+
+    static auto sweep(pointer_set<top> && marked_objects) -> void
+    {
+      for (auto marked_object : marked_objects)
+      {
+        objects.erase(marked_object);
+      }
+
+      for (auto object : objects)
+      {
+        delete object;
+      }
+
+      objects.swap(marked_objects);
+    }
   };
-
-  static collector default_collector {};
 } // namespace memory
 } // namespace meevax
 
