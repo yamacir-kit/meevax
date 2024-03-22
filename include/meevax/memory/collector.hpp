@@ -160,7 +160,7 @@ inline namespace memory
     protected:
       top const* object = nullptr;
 
-      constexpr mutator() = default;
+      mutator() = default;
 
       explicit mutator(top const* object) noexcept
         : object { object }
@@ -173,41 +173,18 @@ inline namespace memory
 
       ~mutator() noexcept
       {
-        if (object)
-        {
-          mutators.erase(this);
-        }
+        mutators.erase(this);
       }
 
       auto reset(top const* after = nullptr) noexcept -> void
       {
-        if (auto before = std::exchange(object, after); not before and after)
+        if (object = after; after)
         {
           mutators.insert(this);
         }
-        else if (before and not after)
-        {
-          mutators.erase(this);
-        }
-      }
-
-      static auto locate(void const* const data) noexcept -> top const*
-      {
-        if (not data)
-        {
-          return nullptr;
-        }
-        else if (cache->contains(data))
-        {
-          return cache;
-        }
-        else if (auto iter = objects.lower_bound(reinterpret_cast<top const*>(data)); iter != objects.begin() and (*--iter)->contains(data))
-        {
-          return *iter;
-        }
         else
         {
-          return nullptr;
+          mutators.erase(this);
         }
       }
     };
@@ -222,8 +199,6 @@ inline namespace memory
     using pointer_set = integer_set<T const*, 15, 16, 16>;
 
   private:
-    static inline top * cache = nullptr;
-
     static inline pointer_set<top> objects {};
 
     static inline pointer_set<mutator> mutators {};
@@ -247,7 +222,7 @@ inline namespace memory
 
     auto operator =(collector const&) -> collector & = delete;
 
-    template <typename T, typename Allocator = default_allocator<void>, typename... Ts>
+    template <typename T, typename... Ts>
     static auto make(Ts&&... xs)
     {
       static_assert(std::is_base_of_v<top, T>);
@@ -259,7 +234,7 @@ inline namespace memory
 
       if (auto data = new T(std::forward<decltype(xs)>(xs)...); data)
       {
-        objects.insert(cache = data);
+        objects.insert(data);
 
         return data;
       }

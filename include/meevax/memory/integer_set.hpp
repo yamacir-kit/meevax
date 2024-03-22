@@ -216,8 +216,10 @@ inline namespace memory
 
     auto erase(T value) noexcept
     {
-      auto [i, j] = split(value);
-      data[i]->erase(j);
+      if (auto [i, j] = split(value); data[i])
+      {
+        data[i]->erase(j);
+      }
     }
 
     auto contains(T value) noexcept -> bool

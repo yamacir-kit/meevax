@@ -40,7 +40,7 @@ inline namespace memory
 
     gc_pointer(base_pointer const& p)
       : base_pointer { p }
-      , collector::mutator { locate(base_pointer::get()) }
+      , collector::mutator { base_pointer::get() }
     {}
 
     gc_pointer(std::nullptr_t = nullptr)
@@ -48,7 +48,7 @@ inline namespace memory
 
     gc_pointer(Top * top) // TODO Top const*
       : base_pointer { top }
-      , collector::mutator { locate(base_pointer::get()) }
+      , collector::mutator { base_pointer::get() }
     {}
 
     template <typename T, typename = std::enable_if_t<(std::is_same_v<T, Ts> or ... or std::is_same_v<T, double>)>>
@@ -85,7 +85,7 @@ inline namespace memory
     auto reset(base_pointer const& p) -> void
     {
       base_pointer::reset(p);
-      collector::mutator::reset(locate(base_pointer::get()));
+      collector::mutator::reset(base_pointer::get());
     }
 
     auto reset(std::nullptr_t = nullptr) -> void
@@ -99,7 +99,7 @@ inline namespace memory
     {
       if constexpr (std::is_class_v<Bound>)
       {
-        return collector::make<collector::binder<Top, Bound, std::allocator_traits<Allocator>>, Allocator>(std::forward<decltype(xs)>(xs)...);
+        return collector::make<collector::binder<Top, Bound, std::allocator_traits<Allocator>>>(std::forward<decltype(xs)>(xs)...);
       }
       else
       {
