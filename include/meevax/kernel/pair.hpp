@@ -32,7 +32,7 @@ inline namespace kernel
 
   using default_collector = collector<pair, bool, int, float, character, instruction>;
 
-  using object = default_collector::gc_pointer;
+  using object = default_collector::mutator;
 
   using let = object;
 
@@ -41,16 +41,16 @@ inline namespace kernel
   template <typename T, typename Allocator, typename... Ts>
   auto make(Ts&&... xs) -> decltype(auto)
   {
-    return object::make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
+    return default_collector::make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
   template <typename T, typename... Ts>
   auto make(Ts&&... xs) -> decltype(auto)
   {
     if constexpr (std::is_same_v<T, pair>) {
-      return object::make<T, simple_allocator<void>>(std::forward<decltype(xs)>(xs)...);
+      return default_collector::make<T, simple_allocator<void>>(std::forward<decltype(xs)>(xs)...);
     } else {
-      return object::make<T, default_allocator<void>>(std::forward<decltype(xs)>(xs)...);
+      return default_collector::make<T, default_allocator<void>>(std::forward<decltype(xs)>(xs)...);
     }
   }
 
@@ -58,7 +58,7 @@ inline namespace kernel
             typename Allocator = default_allocator<void>>
   auto make(T&& x) -> decltype(auto)
   {
-    return object::make<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
+    return default_collector::make<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
   }
 
   template <template <typename...> typename Traits,

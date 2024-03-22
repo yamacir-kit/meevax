@@ -165,81 +165,46 @@ inline namespace memory
       }
     };
 
-    class mutator
-    {
-      friend class collector;
-
-    protected:
-      top const* object = nullptr;
-
-      mutator() = default;
-
-      explicit mutator(top const* object) noexcept
-        : object { object }
-      {
-        if (object)
-        {
-          mutators.insert(this);
-        }
-      }
-
-      ~mutator() noexcept
-      {
-        mutators.erase(this);
-      }
-
-      auto reset(top const* after = nullptr) noexcept -> void
-      {
-        if (object = after; after)
-        {
-          mutators.insert(this);
-        }
-        else
-        {
-          mutators.erase(this);
-        }
-      }
-    };
-
-    struct gc_pointer : public nan_boxing_pointer<Top, Ts...>
-                      , private collector<Top, Ts...>::mutator
+    struct mutator : public nan_boxing_pointer<Top, Ts...>
     {
       using base_pointer = nan_boxing_pointer<Top, Ts...>;
 
-      gc_pointer(gc_pointer const& gcp)
-        : base_pointer { gcp }
-        , collector<Top, Ts...>::mutator { gcp.object }
+      mutator(std::nullptr_t = nullptr)
       {}
 
-      gc_pointer(base_pointer const& p)
-        : base_pointer { p }
-        , collector<Top, Ts...>::mutator { base_pointer::get() }
-      {}
+      mutator(mutator const& other)
+        : base_pointer { other }
+      {
+        if (*this)
+        {
+          mutators.insert(this);
+        }
+      }
 
-      gc_pointer(std::nullptr_t = nullptr)
-      {}
-
-      gc_pointer(Top * top) // TODO Top const*
+      mutator(Top * top)
         : base_pointer { top }
-        , collector<Top, Ts...>::mutator { base_pointer::get() }
-      {}
+      {
+        if (top)
+        {
+          mutators.insert(this);
+        }
+      }
 
       template <typename T, typename = std::enable_if_t<(std::is_same_v<T, Ts> or ... or std::is_same_v<T, double>)>>
-      gc_pointer(T const& datum)
+      mutator(T const& datum)
         : base_pointer { datum }
       {
         assert(base_pointer::get() == nullptr);
       }
 
-      auto operator =(gc_pointer const& gcp) -> auto &
+      ~mutator()
       {
-        reset(gcp);
-        return *this;
+        mutators.erase(this);
       }
 
-      auto operator =(base_pointer const& p) -> auto &
+      auto operator =(mutator const& other) -> auto &
       {
-        reset(p);
+        reset(other);
         return *this;
       }
 
@@ -249,39 +214,22 @@ inline namespace memory
         return *this;
       }
 
-      auto reset(gc_pointer const& gcp) -> void
+      auto reset(mutator const& other) -> void
       {
-        base_pointer::reset(gcp);
-        collector<Top, Ts...>::mutator::reset(gcp.object);
-      }
-
-      auto reset(base_pointer const& p) -> void
-      {
-        base_pointer::reset(p);
-        collector<Top, Ts...>::mutator::reset(base_pointer::get());
+        if (base_pointer::reset(other); other)
+        {
+          mutators.insert(this);
+        }
+        else
+        {
+          mutators.erase(this);
+        }
       }
 
       auto reset(std::nullptr_t = nullptr) -> void
       {
         base_pointer::reset();
-        collector<Top, Ts...>::mutator::reset();
-      }
-
-      template <typename Bound, typename Allocator, typename... Us>
-      static auto make(Us&&... xs) -> gc_pointer
-      {
-        if constexpr (std::is_class_v<Bound>)
-        {
-          return collector<Top, Ts...>::template make<
-                   typename collector<Top, Ts...>::template binder<
-                     Bound, std::allocator_traits<Allocator>>>(
-                       std::forward<decltype(xs)>(xs)...
-                       );
-        }
-        else
-        {
-          return { std::forward<decltype(xs)>(xs)... };
-        }
+        mutators.erase(this);
       }
 
       template <typename U>
@@ -338,7 +286,7 @@ inline namespace memory
         return as<std::add_const_t<U>>();
       }
 
-      inline auto compare(gc_pointer const& rhs) const -> bool
+      inline auto compare(mutator const& rhs) const -> bool
       {
         if (base_pointer::dereferenceable())
         {
@@ -386,7 +334,7 @@ inline namespace memory
         }
       }
 
-      friend auto operator <<(std::ostream & os, gc_pointer const& datum) -> std::ostream &
+      friend auto operator <<(std::ostream & os, mutator const& datum) -> std::ostream &
       {
         return datum.write(os);
       }
@@ -452,25 +400,30 @@ inline namespace memory
 
     auto operator =(collector const&) -> collector & = delete;
 
-    template <typename T, typename... Us>
-    static auto make(Us&&... xs)
+    template <typename T, typename Allocator, typename... Us>
+    static auto make(Us&&... xs) -> mutator
     {
-      static_assert(std::is_base_of_v<top, T>);
-
-      if (allocation += sizeof(T); threshold < allocation)
+      if constexpr (std::is_class_v<T>)
       {
-        collect();
-      }
+        if (allocation += sizeof(T); threshold < allocation)
+        {
+          collect();
+        }
 
-      if (auto data = new T(std::forward<decltype(xs)>(xs)...); data)
-      {
-        objects.insert(data);
+        if (auto data = new binder<T, std::allocator_traits<Allocator>>(std::forward<decltype(xs)>(xs)...); data)
+        {
+          objects.insert(data);
 
-        return data;
+          return data;
+        }
+        else
+        {
+          throw std::bad_alloc();
+        }
       }
       else
       {
-        throw std::bad_alloc();
+        return { std::forward<decltype(xs)>(xs)... };
       }
     }
 
@@ -563,11 +516,11 @@ inline namespace memory
       for (auto&& mutator : mutators)
       {
         assert(mutator);
-        assert(mutator->object);
+        assert(mutator->get());
 
-        if (not marked_objects.contains(mutator->object) and is_root_object(mutator))
+        if (not marked_objects.contains(mutator->get()) and is_root_object(mutator))
         {
-          mark(mutator->object, marked_objects);
+          mark(mutator->get(), marked_objects);
         }
       }
 
@@ -589,7 +542,7 @@ inline namespace memory
 
         for (; lower != upper; ++lower)
         {
-          mark((*lower)->object, marked_objects);
+          mark((*lower)->get(), marked_objects);
         }
       }
     }
