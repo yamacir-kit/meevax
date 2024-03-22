@@ -20,7 +20,7 @@
 #include <meevax/functional/compose.hpp>
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/instruction.hpp>
-#include <meevax/memory/gc_pointer.hpp>
+#include <meevax/memory/collector.hpp>
 
 namespace meevax
 {
@@ -32,7 +32,7 @@ inline namespace kernel
 
   using default_collector = collector<pair, bool, int, float, character, instruction>;
 
-  using object = gc_pointer<pair, bool, int, float, character, instruction>;
+  using object = default_collector::gc_pointer;
 
   using let = object;
 
