@@ -20,6 +20,7 @@
 #include <meevax/functional/compose.hpp>
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/instruction.hpp>
+#include <meevax/memory/allocator.hpp>
 #include <meevax/memory/collector.hpp>
 
 namespace meevax
@@ -48,21 +49,21 @@ inline namespace kernel
   auto make(Ts&&... xs) -> decltype(auto)
   {
     if constexpr (std::is_same_v<T, pair>) {
-      return default_collector::make<T, simple_allocator<void>>(std::forward<decltype(xs)>(xs)...);
+      return default_collector::make<T, allocator<void>>(std::forward<decltype(xs)>(xs)...);
     } else {
-      return default_collector::make<T, default_allocator<void>>(std::forward<decltype(xs)>(xs)...);
+      return default_collector::make<T, std::allocator<void>>(std::forward<decltype(xs)>(xs)...);
     }
   }
 
   template <typename T,
-            typename Allocator = default_allocator<void>>
+            typename Allocator = std::allocator<void>>
   auto make(T&& x) -> decltype(auto)
   {
     return default_collector::make<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
   }
 
   template <template <typename...> typename Traits,
-            typename Allocator = default_allocator<void>,
+            typename Allocator = std::allocator<void>,
             typename... Ts,
             REQUIRES(std::is_constructible<typename Traits<Ts...>::type, Ts...>)>
   auto make(Ts&&... xs) -> decltype(auto)

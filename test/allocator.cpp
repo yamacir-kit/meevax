@@ -6,7 +6,7 @@
 
 #include <meevax/chrono/duration.hpp>
 #include <meevax/kernel/pair.hpp>
-#include <meevax/memory/simple_allocator.hpp>
+#include <meevax/memory/allocator.hpp>
 #include <meevax/utility/debug.hpp>
 #include <meevax/utility/demangle.hpp>
 
@@ -62,15 +62,15 @@ struct hoge
 auto main() -> int
 {
   std::cout << measure<int, std::allocator<int>>() << std::endl;
-  std::cout << measure<int, meevax::simple_allocator<int>>() << std::endl;
+  std::cout << measure<int, meevax::allocator<int>>() << std::endl;
 
-  std::cout << measure<meevax::pair, meevax::simple_allocator<meevax::pair>>() << std::endl;
+  std::cout << measure<meevax::pair, meevax::allocator<meevax::pair>>() << std::endl;
 
-  std::cout << measure<std::array<std::uint8_t,  1>, meevax::simple_allocator<std::array<std::uint8_t,  1>>>() << std::endl;
-  std::cout << measure<std::array<std::uint8_t,  2>, meevax::simple_allocator<std::array<std::uint8_t,  2>>>() << std::endl;
-  std::cout << measure<std::array<std::uint8_t,  4>, meevax::simple_allocator<std::array<std::uint8_t,  4>>>() << std::endl;
-  std::cout << measure<std::array<std::uint8_t,  8>, meevax::simple_allocator<std::array<std::uint8_t,  8>>>() << std::endl;
-  std::cout << measure<std::array<std::uint8_t, 16>, meevax::simple_allocator<std::array<std::uint8_t, 16>>>() << std::endl;
+  std::cout << measure<std::array<std::uint8_t,  1>, meevax::allocator<std::array<std::uint8_t,  1>>>() << std::endl;
+  std::cout << measure<std::array<std::uint8_t,  2>, meevax::allocator<std::array<std::uint8_t,  2>>>() << std::endl;
+  std::cout << measure<std::array<std::uint8_t,  4>, meevax::allocator<std::array<std::uint8_t,  4>>>() << std::endl;
+  std::cout << measure<std::array<std::uint8_t,  8>, meevax::allocator<std::array<std::uint8_t,  8>>>() << std::endl;
+  std::cout << measure<std::array<std::uint8_t, 16>, meevax::allocator<std::array<std::uint8_t, 16>>>() << std::endl;
 
   return EXIT_SUCCESS;
 }

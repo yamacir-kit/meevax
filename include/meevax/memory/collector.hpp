@@ -31,7 +31,6 @@
 #include <meevax/memory/integer_set.hpp>
 #include <meevax/memory/literal.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
-#include <meevax/memory/simple_allocator.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/utility/demangle.hpp>
@@ -40,9 +39,6 @@ namespace meevax
 {
 inline namespace memory
 {
-  template <typename... Ts>
-  using default_allocator = std::allocator<Ts...>;
-
   using view = std::pair<void const*, std::size_t>; // TODO Adapt to C++20's std::range concept
 
   /*
@@ -77,7 +73,7 @@ inline namespace memory
 
     static inline auto cleared = false;
 
-    template <typename Bound, typename AllocatorTraits = std::allocator_traits<std::allocator<void>>>
+    template <typename Bound, typename AllocatorTraits>
     struct binder : public virtual std::conditional_t<std::is_same_v<Top, Bound>, top, Top>
                   , public Bound
     {
@@ -367,6 +363,8 @@ inline namespace memory
     };
 
     /*
+       https://www.kernel.org/doc/html/latest/arch/x86/x86_64/mm.html
+
        0x0000'0000'0000'0000 ~ 0x7FFF'FFFF'FFFF'FFFF
     */
     template <typename T>
@@ -418,7 +416,7 @@ inline namespace memory
 
     auto operator =(collector const&) -> collector & = delete;
 
-    template <typename T, typename Allocator, typename... Us>
+    template <typename T, typename Allocator = std::allocator<void>, typename... Us>
     static auto make(Us&&... xs) -> mutator
     {
       if constexpr (std::is_class_v<T>)
