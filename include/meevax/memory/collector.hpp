@@ -43,6 +43,8 @@ inline namespace memory
   template <typename... Ts>
   using default_allocator = std::allocator<Ts...>;
 
+  using view = std::pair<void const*, std::size_t>; // TODO Adapt to C++20's std::range concept
+
   /*
      This mark-and-sweep garbage collector is based on the implementation of
      gc_ptr written by William E. Kempf and posted to CodeProject.
@@ -64,13 +66,12 @@ inline namespace memory
 
       virtual auto write(std::ostream &) const -> std::ostream & = 0;
 
-      virtual auto lower() const noexcept -> std::uintptr_t = 0;
-
-      virtual auto upper() const noexcept -> std::uintptr_t = 0;
+      virtual auto view() const noexcept -> memory::view = 0;
 
       auto contains(void const* const data) const noexcept
       {
-        return reinterpret_cast<void const*>(lower()) <= data and data < reinterpret_cast<void const*>(upper());
+        auto [address, size] = view();
+        return address <= data and data < static_cast<std::byte const*>(address) + size;
       }
     };
 
@@ -143,14 +144,9 @@ inline namespace memory
         }
       }
 
-      auto lower() const noexcept -> std::uintptr_t override
+      auto view() const noexcept -> memory::view override
       {
-        return reinterpret_cast<std::uintptr_t>(this);
-      }
-
-      auto upper() const noexcept -> std::uintptr_t override
-      {
-        return reinterpret_cast<std::uintptr_t>(this) + sizeof(*this);
+        return { this, sizeof(*this) };
       }
 
       auto operator new(std::size_t) -> void *
@@ -387,6 +383,28 @@ inline namespace memory
 
     static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
 
+    struct mutators_view
+    {
+      std::uintptr_t address;
+
+      std::size_t size;
+
+      constexpr mutators_view(view const& v)
+        : address { reinterpret_cast<std::uintptr_t>(v.first) }
+        , size    { v.second }
+      {}
+
+      auto begin() const noexcept
+      {
+        return mutators.lower_bound(reinterpret_cast<mutator const*>(address));
+      }
+
+      auto end() const noexcept
+      {
+        return mutators.lower_bound(reinterpret_cast<mutator const*>(address + size));
+      }
+    };
+
   public:
     collector() = delete;
 
@@ -537,12 +555,9 @@ inline namespace memory
       {
         marked_objects.insert(object);
 
-        auto lower = mutators.lower_bound(reinterpret_cast<mutator const*>(object->lower()));
-        auto upper = mutators.lower_bound(reinterpret_cast<mutator const*>(object->upper()));
-
-        for (; lower != upper; ++lower)
+        for (auto each : mutators_view(object->view()))
         {
-          mark((*lower)->get(), marked_objects);
+          mark(each->get(), marked_objects);
         }
       }
     }

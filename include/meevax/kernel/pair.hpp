@@ -160,14 +160,9 @@ inline namespace kernel
 
     auto write(std::ostream &) const -> std::ostream & override;
 
-    auto lower() const noexcept -> std::uintptr_t override
+    auto view() const noexcept -> memory::view override
     {
-      return reinterpret_cast<std::uintptr_t>(this);
-    }
-
-    auto upper() const noexcept -> std::uintptr_t override
-    {
-      return reinterpret_cast<std::uintptr_t>(this) + sizeof(*this);
+      return { this, sizeof(*this) };
     }
 
     auto begin() noexcept
