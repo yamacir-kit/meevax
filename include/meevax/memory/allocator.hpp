@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
-#define INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
+#ifndef INCLUDED_MEEVAX_MEMORY_ALLOCATOR_HPP
+#define INCLUDED_MEEVAX_MEMORY_ALLOCATOR_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -30,7 +30,7 @@ inline namespace memory
    Simple Segregated Storage Allocator
 */
 template <typename T, typename Capacity = std::integral_constant<std::size_t, 1024>>
-class simple_allocator
+class allocator
 {
   struct alignas(T) chunk
   {
@@ -80,25 +80,25 @@ public:
   template <typename U>
   struct rebind
   {
-    using other = simple_allocator<U, Capacity>;
+    using other = allocator<U, Capacity>;
   };
 
-  explicit simple_allocator()
+  explicit allocator()
     : free_space { new block() }
   {}
 
-  simple_allocator(simple_allocator &&) = delete;
+  allocator(allocator &&) = delete;
 
-  simple_allocator(simple_allocator const&) = delete;
+  allocator(allocator const&) = delete;
 
-  ~simple_allocator()
+  ~allocator()
   {
     delete free_space;
   }
 
-  auto operator =(simple_allocator &&) -> simple_allocator & = delete;
+  auto operator =(allocator &&) -> allocator & = delete;
 
-  auto operator =(simple_allocator const&) -> simple_allocator & = delete;
+  auto operator =(allocator const&) -> allocator & = delete;
 
   auto allocate(size_type = 1)
   {
@@ -126,4 +126,4 @@ public:
 } // namespace memory
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_MEMORY_SIMPLE_ALLOCATOR_HPP
+#endif // INCLUDED_MEEVAX_MEMORY_ALLOCATOR_HPP

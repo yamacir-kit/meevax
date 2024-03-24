@@ -22,9 +22,11 @@ inline namespace kernel
 {
   let unit = nullptr;
 
-  auto pair::compare(pair const* that) const -> bool
+  auto pair::compare(top const* other) const -> bool
   {
-    return that and *this == *that;
+    auto pare = dynamic_cast<pair const*>(other);
+
+    return pare and *this == *pare;
   }
 
   auto pair::type() const noexcept -> std::type_info const&

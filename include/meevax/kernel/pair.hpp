@@ -17,17 +17,23 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
+#include <meevax/functional/compose.hpp>
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/instruction.hpp>
-#include <meevax/memory/gc_pointer.hpp>
+#include <meevax/memory/allocator.hpp>
+#include <meevax/memory/collector.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
+  using null = std::nullptr_t;
+
   struct pair;
 
-  using object = gc_pointer<pair, bool, int, float, character, instruction>;
+  using default_collector = collector<pair, bool, int, float, character, instruction>;
+
+  using object = default_collector::mutator;
 
   using let = object;
 
@@ -36,28 +42,28 @@ inline namespace kernel
   template <typename T, typename Allocator, typename... Ts>
   auto make(Ts&&... xs) -> decltype(auto)
   {
-    return object::make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
+    return default_collector::make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
   template <typename T, typename... Ts>
   auto make(Ts&&... xs) -> decltype(auto)
   {
     if constexpr (std::is_same_v<T, pair>) {
-      return object::make<T, simple_allocator<void>>(std::forward<decltype(xs)>(xs)...);
+      return default_collector::make<T, allocator<void>>(std::forward<decltype(xs)>(xs)...);
     } else {
-      return object::make<T, collector::default_allocator<void>>(std::forward<decltype(xs)>(xs)...);
+      return default_collector::make<T, std::allocator<void>>(std::forward<decltype(xs)>(xs)...);
     }
   }
 
   template <typename T,
-            typename Allocator = collector::default_allocator<void>>
+            typename Allocator = std::allocator<void>>
   auto make(T&& x) -> decltype(auto)
   {
-    return object::make<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
+    return default_collector::make<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
   }
 
   template <template <typename...> typename Traits,
-            typename Allocator = collector::default_allocator<void>,
+            typename Allocator = std::allocator<void>,
             typename... Ts,
             REQUIRES(std::is_constructible<typename Traits<Ts...>::type, Ts...>)>
   auto make(Ts&&... xs) -> decltype(auto)
@@ -65,7 +71,8 @@ inline namespace kernel
     return make<typename Traits<Ts...>::type, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
-  struct pair : public std::pair<object, object>
+  struct pair : public virtual default_collector::top
+              , public std::pair<object, object>
   {
     template <auto Const>
     struct forward_iterator
@@ -139,45 +146,52 @@ inline namespace kernel
 
     using const_iterator = forward_iterator<true>;
 
-    constexpr pair() = default;
+    pair() = default;
 
     template <typename T, typename U = std::nullptr_t, REQUIRES(std::is_constructible<std::pair<object, object>, T, U>)>
     explicit pair(T&& x, U&& y = nullptr)
       : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
 
-    virtual auto compare(pair const*) const -> bool;
+    ~pair() override = default;
 
-    virtual auto type() const noexcept -> std::type_info const&;
+    auto compare(top const*) const -> bool override;
 
-    virtual auto write(std::ostream &) const -> std::ostream &;
+    auto type() const noexcept -> std::type_info const& override;
 
-    constexpr auto begin() noexcept
+    auto write(std::ostream &) const -> std::ostream & override;
+
+    auto view() const noexcept -> memory::view override
+    {
+      return { this, sizeof(*this) };
+    }
+
+    auto begin() noexcept
     {
       return iterator(this);
     }
 
-    constexpr auto begin() const noexcept
+    auto begin() const noexcept
     {
       return const_iterator(this);
     }
 
-    constexpr auto end() noexcept
+    auto end() noexcept
     {
       return iterator(nullptr);
     }
 
-    constexpr auto end() const noexcept
+    auto end() const noexcept
     {
       return const_iterator(nullptr);
     }
 
-    constexpr auto cbegin() const -> const_iterator
+    auto cbegin() const -> const_iterator
     {
       return std::as_const(*this).begin();
     }
 
-    constexpr auto cend() const noexcept
+    auto cend() const noexcept
     {
       return std::as_const(*this).end();
     }

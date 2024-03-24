@@ -1322,8 +1322,8 @@ inline namespace kernel
       {
         return make<procedure>(cadr(xs).as<symbol>(),
                                reinterpret_cast<primitive_procedure::signature>(
-                                 collector::dlsym(cadr(xs).as<symbol>(),
-                                                  collector::dlopen(car(xs).as<string>()))));
+                                 default_collector::dlsym(cadr(xs).as<symbol>(),
+                                                          default_collector::dlopen(car(xs).as<string>()))));
       });
     });
 

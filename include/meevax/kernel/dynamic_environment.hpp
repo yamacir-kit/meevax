@@ -205,7 +205,7 @@ inline namespace kernel
           *  where <closure> = (c' . e)
           *
           * ----------------------------------------------------------------- */
-          s = cons(make<closure, simple_allocator<void>>(cadr(c), e), s);
+          s = cons(make<closure, allocator<void>>(cadr(c), e), s);
           c = cddr(c);
           goto fetch;
 
@@ -216,7 +216,7 @@ inline namespace kernel
           *  where <continuation> = (s e c' . d)
           *
           * ----------------------------------------------------------------- */
-          s = cons(list(make<continuation, simple_allocator<void>>(s, cons(e, cons(cadr(c), d)))), s);
+          s = cons(list(make<continuation, allocator<void>>(s, cons(e, cons(cadr(c), d)))), s);
           c = cddr(c);
           goto fetch;
 
