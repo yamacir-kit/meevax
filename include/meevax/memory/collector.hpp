@@ -161,7 +161,7 @@ inline namespace memory
     {
       using base_pointer = nan_boxing_pointer<Top, Ts...>;
 
-      mutator(std::nullptr_t = nullptr)
+      mutator(std::nullptr_t = nullptr) noexcept
       {}
 
       mutator(mutator const& other)
@@ -191,7 +191,10 @@ inline namespace memory
 
       ~mutator()
       {
-        mutators.erase(this);
+        if (not cleared)
+        {
+          mutators.erase(this);
+        }
       }
 
       auto operator =(mutator const& other) -> auto &
