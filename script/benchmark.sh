@@ -21,20 +21,20 @@ quotient()
 
 tsv()
 {
-  printf "script\tMeevax\tChibi-Scheme\tGauche\n"
+  printf "\tMeevax\tChibi-Scheme\tGauche\n"
 
-  for each in $(scripts)
+  for script in $(scripts)
   do
-    t0=$(real meevax       "$root/benchmark/$each.ss")
-    t1=$(real chibi-scheme "$root/benchmark/$each.ss")
-    t2=$(real gosh         "$root/benchmark/$each.ss")
+    t0=$(real meevax       "$root/benchmark/$script.ss")
+    t1=$(real chibi-scheme "$root/benchmark/$script.ss")
+    t2=$(real gosh         "$root/benchmark/$script.ss")
 
     printf "%s\t%s\t%s\t%s\n" \
-      "$each" \
+      "$script" \
       "$t0" \
       "$t1 (x$(quotient "$t0" "$t1"))" \
       "$t2 (x$(quotient "$t0" "$t2"))"
   done
 }
 
-tsv | column -t -s"$(printf '\t')"
+tsv | column --table --separator "$(printf '\t')"

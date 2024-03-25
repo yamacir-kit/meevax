@@ -53,10 +53,9 @@ inline namespace kernel
   {
     std::enable_if_t<std::is_invocable_v<F> or std::is_invocable_v<F, object &>, F> invocable;
 
-    template <typename T, typename U>
-    explicit generic_procedure(T && x, U && y)
-      : primitive_procedure { std::forward<decltype(x)>(x) }
-      , invocable           { std::forward<decltype(y)>(y) }
+    explicit generic_procedure(std::string const& name, F invocable)
+      : primitive_procedure { name }
+      , invocable           { invocable }
     {}
 
     auto operator ()(object & xs) const -> object override
