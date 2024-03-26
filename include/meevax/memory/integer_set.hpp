@@ -17,9 +17,8 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_INTEGER_SET_HPP
 #define INCLUDED_MEEVAX_MEMORY_INTEGER_SET_HPP
 
-#include <array>
 #include <cassert>
-#include <climits>
+#include <climits> // CHAR_BIT
 #include <cstdint>
 #include <iterator>
 #include <limits>
@@ -47,9 +46,13 @@ inline namespace memory
 
     subset * data[N] = {};
 
+    std::size_t max = 0;
+
     struct const_iterator : public std::iterator<std::bidirectional_iterator_tag, T>
     {
       subset const* const* data = nullptr;
+
+      std::size_t max = 0;
 
       std::size_t i = std::numeric_limits<std::size_t>::max();
 
@@ -59,6 +62,7 @@ inline namespace memory
 
       explicit const_iterator(integer_set const* container, std::size_t i, std::uintptr_t j = 0) noexcept
         : data { container->data }
+        , max  { container->max }
         , i    { i }
       {
         assert(i <= N);
@@ -67,6 +71,7 @@ inline namespace memory
 
       explicit const_iterator(integer_set const* container) noexcept
         : data { container->data }
+        , max  { container->max }
         , i    { N }
       {
         decrement_unless_truthy();
@@ -83,13 +88,15 @@ inline namespace memory
           {
             return;
           }
-          else for (++i; good(); ++i)
+          else for (++i; i <= max; ++i)
           {
             if (data[i] and (iter = data[i]->lower_bound(0)).good())
             {
               return;
             }
           }
+
+          i = N;
         }
 
         iter = {};
@@ -210,6 +217,7 @@ inline namespace memory
       }
       else
       {
+        max = std::max(max, i);
         data[i] = new subset();
         data[i]->insert(j);
       }
@@ -217,8 +225,16 @@ inline namespace memory
 
     auto erase(T value) noexcept
     {
+      if (auto [i, j] = split(value); data[i])
+      {
+        data[i]->erase(j);
+      }
+    }
+
+    auto contains(T value) noexcept -> bool
+    {
       auto [i, j] = split(value);
-      data[i]->erase(j);
+      return data[i] and data[i]->contains(j);
     }
 
     auto begin() const noexcept
@@ -240,6 +256,11 @@ inline namespace memory
     auto size() const noexcept -> std::size_t
     {
       return std::distance(begin(), end());
+    }
+
+    auto swap(integer_set & other)
+    {
+      std::swap(data, other.data);
     }
   };
 
@@ -385,6 +406,13 @@ inline namespace memory
       auto i = reinterpret_cast<std::size_t>(value) / 64;
       auto j = reinterpret_cast<std::size_t>(value) % 64;
       data[i] &= ~(1ul << j);
+    }
+
+    auto contains(T value) noexcept -> bool
+    {
+      auto i = reinterpret_cast<std::size_t>(value) / 64;
+      auto j = reinterpret_cast<std::size_t>(value) % 64;
+      return data[i] & (1ul << j);
     }
 
     auto lower_bound(T value) const noexcept

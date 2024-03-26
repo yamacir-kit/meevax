@@ -17,14 +17,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 #define INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 
-#include <cstdint>
 #include <iostream>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  enum class instruction : std::uint8_t
+  enum class instruction
   {
     call,              // a.k.a APP
     cons,              //
@@ -52,44 +51,6 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, instruction const&) -> std::ostream &;
-
-  constexpr auto size(instruction const& datum)
-  {
-    switch (datum)
-    {
-      case instruction::call:
-      case instruction::cons:
-      case instruction::drop:
-      case instruction::dummy:
-      case instruction::join:
-      case instruction::letrec:
-      case instruction::return_:
-      case instruction::stop:
-      case instruction::tail_call:
-      case instruction::tail_letrec:
-        return 1;
-
-      case instruction::current:
-      case instruction::install:
-      case instruction::load_absolute:
-      case instruction::load_closure:
-      case instruction::load_constant:
-      case instruction::load_continuation:
-      case instruction::load_relative:
-      case instruction::load_variadic:
-      case instruction::store_absolute:
-      case instruction::store_relative:
-      case instruction::store_variadic:
-        return 2;
-
-      case instruction::select:
-      case instruction::tail_select:
-        return 3;
-
-      default:
-        return 0;
-    }
-  }
 } // namespace kernel
 } // namespace meevax
 

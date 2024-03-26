@@ -73,18 +73,17 @@ inline namespace kernel
 
     struct syntax
     {
-      using compiler = std::function<auto (syntactic_environment &,
-                                           object const& /* expression      */,
-                                           object const& /* bound_variables */,
-                                           object const& /* free_variables  */,
-                                           object const& /* continuation    */,
-                                           bool          /* tail            */) -> object>;
-
       std::string const name;
 
-      compiler const compile;
+      auto (*compile)(syntactic_environment &,
+                      object const& /* expression      */,
+                      object const& /* bound_variables */,
+                      object const& /* free_variables  */,
+                      object const& /* continuation    */,
+                      bool          /* tail            */) -> object;
 
-      explicit syntax(std::string const& name, compiler const& compile)
+      template <typename Compiler>
+      explicit syntax(std::string const& name, Compiler const& compile)
         : name { name }
         , compile { compile }
       {}
@@ -1076,6 +1075,8 @@ inline namespace kernel
         {
           return cdr(identity).as<syntax>().compile(*this, cdr(expression), bound_variables, free_variables, continuation, tail);
         }
+
+        assert(not cdr(identity).is_also<syntax>());
       }
 
       return syntax::call(*this, expression, bound_variables, free_variables, continuation, tail);

@@ -17,106 +17,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_OPTIMIZER_HPP
 #define INCLUDED_MEEVAX_KERNEL_OPTIMIZER_HPP
 
-#include <meevax/kernel/list.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct optimizer
-  {
-    static inline auto fmerge_constants = true;
-
-    static auto merge_constants(object const& c) -> object
-    {
-      if (not c.is<pair>() or not car(c).is<instruction>())
-      {
-        return c;
-      }
-      else switch (auto n = size(car(c).as<instruction>()); car(c).as<instruction>())
-      {
-      case instruction::load_constant: /* --------------------------------------
-      *
-      *  (load-constant x
-      *   load-constant y
-      *   cons
-      *   ...)
-      *
-      *  => (load-constant (y . x)
-      *      ...)
-      *
-      * --------------------------------------------------------------------- */
-        if (tail(c, 2).is<pair>() and head(c, 2).is<instruction>() and head(c, 2).as<instruction>() == instruction::load_constant and
-            tail(c, 4).is<pair>() and head(c, 4).is<instruction>() and head(c, 4).as<instruction>() == instruction::cons)
-        {
-          return merge_constants(cons(head(c, 0),
-                                      cons(head(c, 3),
-                                           head(c, 1)),
-                                      merge_constants(tail(c, 5))));
-        }
-        else if (let const& c2 = merge_constants(tail(c, 2)); c2 == tail(c, 2))
-        {
-          return c;
-        }
-        else
-        {
-          return cons(head(c, 0), head(c, 1), c2);
-        }
-
-      default:
-        if (let const& cn = merge_constants(tail(c, n)); cn == tail(c, n))
-        {
-          return c;
-        }
-        else
-        {
-          return append(take(c, n), cn);
-        }
-
-      case instruction::load_closure:
-      case instruction::load_continuation:
-        if (let const& c1 = merge_constants(head(c, 1)),
-                       c2 = merge_constants(tail(c, 2));
-            c1 == head(c, 1) and
-            c2 == tail(c, 2))
-        {
-          return c;
-        }
-        else
-        {
-          return cons(head(c, 0), c1, c2);
-        }
-
-      case instruction::select:
-      case instruction::tail_select:
-        if (let const& c1 = merge_constants(head(c, 1)),
-                       c2 = merge_constants(head(c, 2)),
-                       c3 = merge_constants(tail(c, 3));
-            c1 == head(c, 1) and
-            c2 == head(c, 2) and
-            c3 == tail(c, 3))
-        {
-          return c;
-        }
-        else
-        {
-          return cons(head(c, 0), c1, c2, c3);
-        }
-      }
-    }
-
-    static auto optimize(object const& c)
-    {
-      let code = c;
-
-      if (fmerge_constants)
-      {
-        code = merge_constants(code);
-      }
-
-      return code;
-    }
-  };
+  auto optimize(object) -> object;
 } // namespace kernel
 } // namespace meevax
 

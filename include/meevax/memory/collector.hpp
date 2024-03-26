@@ -17,19 +17,30 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 #define INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 
-#include <cstddef>
-#include <memory>
-#include <unordered_map>
-#include <utility>
+#if __unix__
+#include <dlfcn.h> // dlopen, dlclose, dlerror
+#else
+#error
+#endif
 
+#include <memory> // std::allocator
+#include <unordered_map>
+
+#include <meevax/iostream/escape_sequence.hpp>
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/memory/integer_set.hpp>
 #include <meevax/memory/literal.hpp>
-#include <meevax/memory/simple_allocator.hpp>
+#include <meevax/memory/nan_boxing_pointer.hpp>
+#include <meevax/type_traits/is_equality_comparable.hpp>
+#include <meevax/type_traits/is_output_streamable.hpp>
+#include <meevax/utility/demangle.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
+  using view = std::pair<void const*, std::size_t>; // TODO Adapt to C++20's std::range concept
+
   /*
      This mark-and-sweep garbage collector is based on the implementation of
      gc_ptr written by William E. Kempf and posted to CodeProject.
@@ -37,49 +48,36 @@ inline namespace memory
      - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
      - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
   */
+  template <typename Top, typename... Ts>
   class collector
   {
   public:
-    struct tag
+    struct top
     {
-      bool marked : 1;
+      virtual ~top() = default;
 
-      std::size_t size : 15;
+      virtual auto compare(top const*) const -> bool = 0;
 
-      std::uintptr_t address : 48;
+      virtual auto type() const noexcept -> std::type_info const& = 0;
 
-      explicit tag(void const* const address, std::size_t size)
-        : marked  { false }
-        , size    { size }
-        , address { reinterpret_cast<std::uintptr_t>(address) }
-      {
-        assert(size < (1u << 15));
-      }
+      virtual auto write(std::ostream &) const -> std::ostream & = 0;
 
-      virtual ~tag() = default;
-
-      auto lower_address() const noexcept
-      {
-        return address;
-      }
-
-      auto upper_address() const noexcept
-      {
-        return address + size;
-      }
+      virtual auto view() const noexcept -> memory::view = 0;
 
       auto contains(void const* const data) const noexcept
       {
-        return reinterpret_cast<void const*>(lower_address()) <= data and data < reinterpret_cast<void const*>(upper_address());
+        auto [address, size] = view();
+        return address <= data and data < static_cast<std::byte const*>(address) + size;
       }
     };
 
     static inline auto cleared = false;
 
-    template <typename T, typename AllocatorTraits>
-    struct tagged : public tag
+    template <typename Bound, typename AllocatorTraits>
+    struct binder : public virtual std::conditional_t<std::is_same_v<Top, Bound>, top, Top>
+                  , public Bound
     {
-      struct allocator_type : public AllocatorTraits::template rebind_alloc<tagged<T, AllocatorTraits>>
+      struct allocator_type : public AllocatorTraits::template rebind_alloc<binder<Bound, AllocatorTraits>>
       {
         ~allocator_type()
         {
@@ -97,15 +95,55 @@ inline namespace memory
 
       static inline auto allocator = allocator_type();
 
-      T value;
-
-      template <typename... Ts>
-      explicit tagged(Ts&&... xs)
-        : tag   { std::addressof(value), sizeof(T) }
-        , value { std::forward<decltype(xs)>(xs)... }
+      template <typename... Us>
+      explicit constexpr binder(Us&&... xs)
+        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound> {
+            std::forward<decltype(xs)>(xs)...
+          }
       {}
 
-      ~tagged() override = default;
+      ~binder() override = default;
+
+      auto compare([[maybe_unused]] top const* other) const -> bool override
+      {
+        if constexpr (is_equality_comparable_v<Bound const&>)
+        {
+          if (auto const* bound = dynamic_cast<Bound const*>(other); bound)
+          {
+            return *bound == static_cast<Bound const&>(*this);
+          }
+          else
+          {
+            return std::is_same_v<Bound, std::nullptr_t>;
+          }
+        }
+        else
+        {
+          return false;
+        }
+      }
+
+      auto type() const noexcept -> std::type_info const& override
+      {
+        return typeid(Bound);
+      }
+
+      auto write(std::ostream & os) const -> std::ostream & override
+      {
+        if constexpr (is_output_streamable_v<Bound const&>)
+        {
+          return os << static_cast<Bound const&>(*this);
+        }
+        else
+        {
+          return os << magenta("#,(") << green(typeid(Bound).name()) << faint(" #;", static_cast<Bound const*>(this)) << magenta(")");
+        }
+      }
+
+      auto view() const noexcept -> memory::view override
+      {
+        return { this, sizeof(*this) };
+      }
 
       auto operator new(std::size_t) -> void *
       {
@@ -119,77 +157,226 @@ inline namespace memory
       }
     };
 
-    class mutator
+    struct mutator : public nan_boxing_pointer<Top, Ts...>
     {
-      friend class collector;
+      using base_pointer = nan_boxing_pointer<Top, Ts...>;
 
-    protected:
-      tag * object = nullptr;
+      mutator(std::nullptr_t = nullptr) noexcept
+      {}
 
-      constexpr mutator() = default;
-
-      explicit mutator(tag * object) noexcept
-        : object { object }
+      mutator(mutator const& other)
+        : base_pointer { other }
       {
-        if (object)
+        if (*this)
         {
           mutators.insert(this);
         }
       }
 
-      ~mutator() noexcept
+      mutator(Top * top)
+        : base_pointer { top }
       {
-        if (object)
-        {
-          mutators.erase(this);
-        }
-      }
-
-      auto reset(tag * after = nullptr) noexcept -> void
-      {
-        if (auto before = std::exchange(object, after); not before and after)
+        if (top)
         {
           mutators.insert(this);
         }
-        else if (before and not after)
+      }
+
+      template <typename T, typename = std::enable_if_t<(std::is_same_v<T, Ts> or ... or std::is_same_v<T, double>)>>
+      mutator(T const& datum)
+        : base_pointer { datum }
+      {
+        assert(base_pointer::get() == nullptr);
+      }
+
+      ~mutator()
+      {
+        if (not cleared)
         {
           mutators.erase(this);
         }
       }
 
-      static auto locate(void * const data) noexcept -> tag *
+      auto operator =(mutator const& other) -> auto &
       {
-        if (not data)
+        reset(other);
+        return *this;
+      }
+
+      auto operator =(std::nullptr_t) -> auto &
+      {
+        reset();
+        return *this;
+      }
+
+      auto reset(mutator const& other) -> void
+      {
+        if (base_pointer::reset(other); other)
         {
-          return nullptr;
-        }
-        else if (cache->contains(data))
-        {
-          return cache;
-        }
-        else if (auto iter = tags.lower_bound(reinterpret_cast<tag *>(data)); iter != tags.begin() and (*--iter)->contains(data))
-        {
-          return *iter;
+          mutators.insert(this);
         }
         else
         {
-          return nullptr;
+          mutators.erase(this);
         }
+      }
+
+      auto reset(std::nullptr_t = nullptr) -> void
+      {
+        base_pointer::reset();
+        mutators.erase(this);
+      }
+
+      template <typename U>
+      inline auto as() const -> decltype(auto)
+      {
+        if constexpr (std::is_same_v<std::decay_t<U>, Top>)
+        {
+          return base_pointer::operator *();
+        }
+        else if constexpr (std::is_class_v<std::decay_t<U>>)
+        {
+          if (auto data = dynamic_cast<std::add_pointer_t<U>>(base_pointer::get()); data)
+          {
+            return *data;
+          }
+          else
+          {
+            throw std::runtime_error(lexical_cast<std::string>("no viable conversion from ", demangle(type()), " to ", demangle(typeid(U))));
+          }
+        }
+        else
+        {
+          return base_pointer::template as<U>();
+        }
+      }
+
+      template <typename U>
+      inline auto as() -> decltype(auto)
+      {
+        if constexpr (std::is_same_v<std::decay_t<U>, Top>)
+        {
+          return base_pointer::operator *();
+        }
+        else if constexpr (std::is_class_v<std::decay_t<U>>)
+        {
+          if (auto data = dynamic_cast<std::add_pointer_t<U>>(base_pointer::get()); data)
+          {
+            return *data;
+          }
+          else
+          {
+            throw std::runtime_error(lexical_cast<std::string>("no viable conversion from ", demangle(type()), " to ", demangle(typeid(U))));
+          }
+        }
+        else
+        {
+          return base_pointer::template as<U>();
+        }
+      }
+
+      template <typename U>
+      inline auto as_const() const -> decltype(auto)
+      {
+        return as<std::add_const_t<U>>();
+      }
+
+      inline auto compare(mutator const& rhs) const -> bool
+      {
+        if (base_pointer::dereferenceable())
+        {
+          return *this ? base_pointer::get()->compare(rhs.get()) : rhs.is<std::nullptr_t>();
+        }
+        else
+        {
+          return base_pointer::compare(rhs);
+        }
+      }
+
+      template <typename U>
+      inline auto is() const
+      {
+        return type() == typeid(std::decay_t<U>);
+      }
+
+      template <typename U, REQUIRES(std::is_class<U>)>
+      inline auto is_also() const
+      {
+        return dynamic_cast<std::add_pointer_t<U>>(base_pointer::get()) != nullptr;
+      }
+
+      inline auto type() const -> std::type_info const&
+      {
+        if (base_pointer::dereferenceable())
+        {
+          return *this ? base_pointer::get()->type() : typeid(std::nullptr_t);
+        }
+        else
+        {
+          return base_pointer::type();
+        }
+      }
+
+      inline auto write(std::ostream & os) const -> std::ostream &
+      {
+        if (base_pointer::dereferenceable())
+        {
+          return *this ? base_pointer::get()->write(os) : os << magenta("()");
+        }
+        else
+        {
+          return base_pointer::write(os);
+        }
+      }
+
+      friend auto operator <<(std::ostream & os, mutator const& datum) -> std::ostream &
+      {
+        return datum.write(os);
+      }
+
+      inline auto begin()
+      {
+        return *this ? base_pointer::get()->begin() : typename Top::iterator();
+      }
+
+      inline auto begin() const
+      {
+        return *this ? base_pointer::get()->cbegin() : typename Top::const_iterator();
+      }
+
+      inline auto cbegin() const
+      {
+        return *this ? base_pointer::get()->cbegin() : typename Top::const_iterator();
+      }
+
+      inline auto end()
+      {
+        return *this ? base_pointer::get()->end() : typename Top::iterator();
+      }
+
+      inline auto end() const
+      {
+        return *this ? base_pointer::get()->cend() : typename Top::const_iterator();
+      }
+
+      inline auto cend() const
+      {
+        return *this ? base_pointer::get()->cend() : typename Top::const_iterator();
       }
     };
 
-    template <typename... Ts>
-    using default_allocator = std::allocator<Ts...>;
-
-  private:
-    static inline tag * cache = nullptr;
-
     /*
+       https://www.kernel.org/doc/html/latest/arch/x86/x86_64/mm.html
+
        0x0000'0000'0000'0000 ~ 0x7FFF'FFFF'FFFF'FFFF
     */
-    static inline integer_set<tag *, 15, 16, 16> tags {};
+    template <typename T>
+    using pointer_set = integer_set<T const*, 15, 16, 16>;
 
-    static inline integer_set<mutator *, 15, 16, 16> mutators {};
+  private:
+    static inline pointer_set<top> objects {};
+
+    static inline pointer_set<mutator> mutators {};
 
     static inline std::size_t allocation = 0;
 
@@ -197,59 +384,200 @@ inline namespace memory
 
     static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
 
+    struct mutators_view
+    {
+      std::uintptr_t address;
+
+      std::size_t size;
+
+      constexpr mutators_view(view const& v)
+        : address { reinterpret_cast<std::uintptr_t>(v.first) }
+        , size    { v.second }
+      {}
+
+      auto begin() const noexcept
+      {
+        return mutators.lower_bound(reinterpret_cast<mutator const*>(address));
+      }
+
+      auto end() const noexcept
+      {
+        return mutators.lower_bound(reinterpret_cast<mutator const*>(address + size));
+      }
+    };
+
   public:
-    collector();
+    collector() = delete;
 
     collector(collector &&) = delete;
 
     collector(collector const&) = delete;
 
-    ~collector();
+    ~collector() = delete;
 
     auto operator =(collector &&) -> collector & = delete;
 
     auto operator =(collector const&) -> collector & = delete;
 
-    template <typename T, typename Allocator = default_allocator<void>, typename... Ts>
-    static auto make(Ts&&... xs)
+    template <typename T, typename Allocator = std::allocator<void>, typename... Us>
+    static auto make(Us&&... xs) -> mutator
     {
-      if (allocation += sizeof(T); threshold < allocation)
+      if constexpr (std::is_class_v<T>)
       {
-        collect();
-      }
+        if (allocation += sizeof(T); threshold < allocation)
+        {
+          collect();
+        }
 
-      if (auto data = new tagged<T, std::allocator_traits<Allocator>>(std::forward<decltype(xs)>(xs)...); data)
-      {
-        tags.insert(cache = data);
+        if (auto data = new binder<T, std::allocator_traits<Allocator>>(std::forward<decltype(xs)>(xs)...); data)
+        {
+          objects.insert(data);
 
-        return std::addressof(data->value);
+          return data;
+        }
+        else
+        {
+          throw std::bad_alloc();
+        }
       }
       else
       {
-        throw std::bad_alloc();
+        return { std::forward<decltype(xs)>(xs)... };
       }
     }
 
-    static auto clear() -> void;
+    static auto clear() -> void
+    {
+      for (auto&& object : objects)
+      {
+        delete object;
+        objects.erase(object);
+      }
+    }
 
-    static auto collect() -> void;
+    static auto collect() -> void
+    {
+      allocation = 0;
 
-    static auto count() noexcept -> std::size_t;
+      return sweep(mark());
+    }
 
-    static auto dlclose(void * const) -> void;
+    static auto count() noexcept -> std::size_t
+    {
+      return objects.size();
+    }
 
-    static auto dlopen(std::string const&) -> void *;
+    static auto dlclose(void * const handle) -> void
+    {
+      if (handle and ::dlclose(handle))
+      {
+        std::cerr << ::dlerror() << std::endl;
+      }
+    }
 
-    static auto dlsym(std::string const&, void * const) -> void *;
+    static auto dlopen(std::string const& filename) -> void *
+    {
+      ::dlerror(); // Clear
 
-    static auto mark() noexcept -> void;
+      try
+      {
+        return dynamic_linked_libraries.at(filename).get();
+      }
+      catch (std::out_of_range const&)
+      {
+        if (auto handle = ::dlopen(filename.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
+        {
+          dynamic_linked_libraries.emplace(std::piecewise_construct,
+                                           std::forward_as_tuple(filename),
+                                           std::forward_as_tuple(handle, dlclose));
 
-    static auto mark(tag * const) noexcept -> void;
+          return dlopen(filename);
+        }
+        else
+        {
+          throw std::runtime_error(::dlerror());
+        }
+      }
+    }
 
-    static auto sweep() -> void;
+    static auto dlsym(std::string const& symbol, void * const handle) -> void *
+    {
+      if (auto address = ::dlsym(handle, symbol.c_str()); address)
+      {
+        return address;
+      }
+      else
+      {
+        throw std::runtime_error(::dlerror());
+      }
+    }
+
+    static auto mark() noexcept -> pointer_set<top>
+    {
+      auto is_root_object = [begin = objects.begin()](mutator const* given) // TODO INEFFICIENT!
+      {
+        /*
+           If the given mutator is a non-root object, then an object containing
+           this mutator as a data member exists somewhere in memory.
+
+           Containing the mutator as a data member means that the address of
+           the mutator is contained in the interval of the object's
+           base-address ~ base-address + object-size. The top is present to
+           keep track of the base-address and size of the object needed here.
+        */
+        auto iter = objects.lower_bound(reinterpret_cast<top const*>(given));
+
+        return iter == begin or not (*--iter)->contains(given);
+      };
+
+      auto marked_objects = pointer_set<top>();
+
+      for (auto&& mutator : mutators)
+      {
+        assert(mutator);
+        assert(mutator->get());
+
+        if (not marked_objects.contains(mutator->get()) and is_root_object(mutator))
+        {
+          mark(mutator->get(), marked_objects);
+        }
+      }
+
+      return marked_objects;
+    }
+
+    static auto mark(top const* const object, pointer_set<top> & marked_objects) noexcept -> void
+    {
+      assert(object);
+
+      assert(objects.contains(object));
+
+      if (not marked_objects.contains(object))
+      {
+        marked_objects.insert(object);
+
+        for (auto each : mutators_view(object->view()))
+        {
+          mark(each->get(), marked_objects);
+        }
+      }
+    }
+
+    static auto sweep(pointer_set<top> && marked_objects) -> void
+    {
+      for (auto marked_object : marked_objects)
+      {
+        objects.erase(marked_object);
+      }
+
+      for (auto object : objects)
+      {
+        delete object;
+      }
+
+      objects.swap(marked_objects);
+    }
   };
-
-  static collector default_collector {};
 } // namespace memory
 } // namespace meevax
 
