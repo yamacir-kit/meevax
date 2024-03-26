@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -207,10 +207,16 @@ inline namespace kernel
         return car(xs).as<character>().property().is_lower_case();
       });
 
-      library.define<procedure>("digit-value", [](let const& xs)
+      library.define<procedure>("digit-value", [](let const& xs) -> object
       {
-        auto digit_value = car(xs).as<character>().digit_value();
-        return digit_value ? make<exact_integer>(*digit_value) : f;
+        if (auto digit_value = car(xs).as<character>().digit_value(); digit_value)
+        {
+          return make<exact_integer>(*digit_value);
+        }
+        else
+        {
+          return f;
+        }
       });
 
       library.define<procedure>("char->integer", [](let const& xs)
@@ -637,9 +643,16 @@ inline namespace kernel
         return make<exact_integer>(length(car(xs)));
       });
 
-      library.define<procedure>("length+", [](let const& xs)
+      library.define<procedure>("length+", [](let const& xs) -> object
       {
-        return is_circular_list(car(xs)) ? f : make<exact_integer>(length(car(xs)));
+        if (is_circular_list(car(xs)))
+        {
+          return f;
+        }
+        else
+        {
+          return make<exact_integer>(length(car(xs)));
+        }
       });
 
       library.define<procedure>("append", [](let const& xs)
@@ -1309,8 +1322,8 @@ inline namespace kernel
       {
         return make<procedure>(cadr(xs).as<symbol>(),
                                reinterpret_cast<primitive_procedure::signature>(
-                                 primary_collector().dlsym(cadr(xs).as<symbol>(),
-                                                           primary_collector().dlopen(car(xs).as<string>()))));
+                                 default_collector::dlsym(cadr(xs).as<symbol>(),
+                                                          default_collector::dlopen(car(xs).as<string>()))));
       });
     });
 
@@ -1749,13 +1762,13 @@ inline namespace kernel
 
       library.define<procedure>("make-syntactic-closure", [](let const& xs)
       {
-        return make<syntactic_closure>(car(xs), cadr(xs), caddr(xs));
+        return make<syntactic_closure>(car(xs), cons(cadr(xs), caddr(xs)));
       });
     });
 
     define<library>("(meevax system)", [](library & library)
     {
-      library.define<procedure>("get-environment-variable", [](let const& xs)
+      library.define<procedure>("get-environment-variable", [](let const& xs) -> object
       {
         if (auto s = std::getenv(static_cast<std::string>(car(xs).as<string>()).c_str()))
         {
@@ -1769,7 +1782,7 @@ inline namespace kernel
 
       library.define<procedure>("get-environment-variables", []()
       {
-        let alist = unit;
+        let alist = nullptr;
 
         for (auto iter = environ; *iter; ++iter)
         {

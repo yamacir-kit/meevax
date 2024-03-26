@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/optimizer.hpp>
 
 namespace meevax
 {
@@ -74,9 +75,9 @@ inline namespace kernel
     */
     if (s or e or c)
     {
-      d = cons(std::exchange(s, unit),
-               std::exchange(e, unit),
-               std::exchange(c, unit), d);
+      d = cons(std::exchange(s, nullptr),
+               std::exchange(e, nullptr),
+               std::exchange(c, nullptr), d);
     }
 
     let const result = execute(optimize(compile(expression)));
@@ -96,7 +97,7 @@ inline namespace kernel
     if (x.is_also<error>())
     {
       x.as<error>().raise(); // NOTE: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84476
-      return unit;
+      return nullptr;
     }
     else
     {
@@ -184,7 +185,7 @@ inline namespace kernel
       {
         return [=](let const& renamings)
         {
-          return map([&](let const& identity)
+          return map([&](let const& identity) -> object
                      {
                        assert(identity.is<absolute>());
                        assert(car(identity).is_also<identifier>());
@@ -222,7 +223,7 @@ inline namespace kernel
     {
       assert(immigrant.is<absolute>());
 
-      if (let const& inhabitant = std::as_const(*this).identify(car(immigrant), unit, unit); inhabitant == f or interactive)
+      if (let const& inhabitant = std::as_const(*this).identify(car(immigrant), nullptr, nullptr); inhabitant == f or interactive)
       {
         second = cons(immigrant, second);
       }
@@ -255,8 +256,6 @@ inline namespace kernel
   }
 
   template struct configurator<environment>;
-
-  template struct dynamic_environment<environment>;
 
   template struct syntactic_environment<environment>;
 } // namespace kernel

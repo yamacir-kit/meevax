@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto find(object & b) -> object const&
+  auto find(object & b) -> object &
   {
     if (let & x = car(b); x.is<box>())
     {
@@ -35,14 +35,16 @@ inline namespace kernel
 
   auto union_find(object const& x, object const& y, std::unordered_map<object, object> & forest)
   {
-    using rank = std::uint32_t;
+    using rank = std::int32_t;
 
     if (auto iterator_x = forest.find(x); iterator_x != forest.end())
     {
       if (auto iterator_y = forest.find(y); iterator_y != forest.end())
       {
-        if (let root_x = find(iterator_x->second),
-                root_y = find(iterator_y->second); eq(root_x, root_y))
+        auto&& root_x = find(iterator_x->second);
+        auto&& root_y = find(iterator_y->second);
+
+        if (eq(root_x, root_y))
         {
           return true;
         }

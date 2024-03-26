@@ -7,7 +7,7 @@ auto main() -> int
 {
   using namespace meevax;
 
-  const auto gc_count = primary_collector().count();
+  const auto gc_count = default_collector::count();
 
   // scope
   {
@@ -16,19 +16,19 @@ auto main() -> int
       let y = make<symbol>("y");
       let z = make<symbol>("z");
 
-      assert(primary_collector().count() == gc_count + 3);
-      primary_collector().collect();
-      assert(primary_collector().count() == gc_count + 3);
+      assert(default_collector::count() == gc_count + 3);
+      default_collector::collect();
+      assert(default_collector::count() == gc_count + 3);
     }
 
-    assert(primary_collector().count() == gc_count + 3);
-    primary_collector().collect();
-    assert(primary_collector().count() == gc_count);
+    assert(default_collector::count() == gc_count + 3);
+    default_collector::collect();
+    assert(default_collector::count() == gc_count);
   }
 
-  assert(primary_collector().count() == gc_count);
-  primary_collector().collect();
-  assert(primary_collector().count() == gc_count);
+  assert(default_collector::count() == gc_count);
+  default_collector::collect();
+  assert(default_collector::count() == gc_count);
 
   // copy
   {
@@ -42,9 +42,9 @@ auto main() -> int
     assert(eqv(x, y));
   }
 
-  assert(primary_collector().count() == gc_count + 1);
-  primary_collector().collect();
-  assert(primary_collector().count() == gc_count);
+  assert(default_collector::count() == gc_count + 1);
+  default_collector::collect();
+  assert(default_collector::count() == gc_count);
 
   // move
   {
@@ -63,17 +63,17 @@ auto main() -> int
     assert(x.is<symbol>());
     assert(x.as<symbol>() == "x");
 
-    assert(primary_collector().count() == gc_count + 1);
-    primary_collector().collect();
-    assert(primary_collector().count() == gc_count + 1);
+    assert(default_collector::count() == gc_count + 1);
+    default_collector::collect();
+    assert(default_collector::count() == gc_count + 1);
 
     assert(x.is<symbol>());
     assert(x.as<symbol>() == "x");
   }
 
-  assert(primary_collector().count() == gc_count + 1);
-  primary_collector().collect();
-  assert(primary_collector().count() == gc_count);
+  assert(default_collector::count() == gc_count + 1);
+  default_collector::collect();
+  assert(default_collector::count() == gc_count);
 
   // proper list
   {
@@ -91,9 +91,9 @@ auto main() -> int
       assert(y.as<symbol>() == "y");
       assert(z.as<symbol>() == "z");
 
-      assert(primary_collector().count() == gc_count + 3);
-      primary_collector().collect();
-      assert(primary_collector().count() == gc_count + 3);
+      assert(default_collector::count() == gc_count + 3);
+      default_collector::collect();
+      assert(default_collector::count() == gc_count + 3);
 
       return list(x, y, z);
     };
@@ -106,9 +106,9 @@ auto main() -> int
     assert(cadr(a).is<symbol>());
     assert(caddr(a).is<symbol>());
 
-    assert(primary_collector().count() == gc_count + 6);
-    primary_collector().collect();
-    assert(primary_collector().count() == gc_count + 6);
+    assert(default_collector::count() == gc_count + 6);
+    default_collector::collect();
+    assert(default_collector::count() == gc_count + 6);
 
     assert(length(a) == 3);
 
@@ -117,9 +117,9 @@ auto main() -> int
     assert(caddr(a).is<symbol>());
   }
 
-  assert(primary_collector().count() == gc_count + 6);
-  primary_collector().collect();
-  assert(primary_collector().count() == gc_count);
+  assert(default_collector::count() == gc_count + 6);
+  default_collector::collect();
+  assert(default_collector::count() == gc_count);
 
   // improper list
   {
@@ -137,7 +137,7 @@ auto main() -> int
       assert(b.as<symbol>() == "b");
       assert(c.as<symbol>() == "c");
 
-      assert(primary_collector().count() == gc_count + 3);
+      assert(default_collector::count() == gc_count + 3);
 
       return circular_list(a, b, c);
     };
@@ -149,7 +149,7 @@ auto main() -> int
     assert(caddr(x).as<symbol>() == "c");
     assert(cadddr(x).as<symbol>() == "a");
 
-    primary_collector().collect();
+    default_collector::collect();
 
     assert(car(x).as<symbol>() == "a");
     assert(cadr(x).as<symbol>() == "b");
@@ -157,28 +157,28 @@ auto main() -> int
     assert(cadddr(x).as<symbol>() == "a");
   }
 
-  primary_collector().collect();
+  default_collector::collect();
 
   // change class
   {
     let x = make<symbol>("hoge");
 
-    primary_collector().collect();
+    default_collector::collect();
 
-    assert(primary_collector().count() == gc_count + 1);
+    assert(default_collector::count() == gc_count + 1);
     assert(x.is<symbol>());
     assert(x.as<symbol>() == "hoge");
 
     x = make<exact_integer>(42);
 
-    primary_collector().collect();
+    default_collector::collect();
 
-    assert(primary_collector().count() == gc_count + 1);
+    assert(default_collector::count() == gc_count + 1);
     assert(x.is<exact_integer>());
     assert(x.as<exact_integer>() == 42);
   }
 
-  primary_collector().collect();
+  default_collector::collect();
 
   // number
   {
@@ -194,22 +194,22 @@ auto main() -> int
       assert(y.as<double>() == 42);
     }
 
-    assert(primary_collector().count() == gc_count);
-    primary_collector().collect();
-    assert(primary_collector().count() == gc_count);
+    assert(default_collector::count() == gc_count);
+    default_collector::collect();
+    assert(default_collector::count() == gc_count);
   }
 
-  primary_collector().collect();
+  default_collector::collect();
 
   // read list
   {
-    const auto gc_count = primary_collector().count();
+    const auto gc_count = default_collector::count();
 
     input_string_port("(a a a)").read();
 
-    primary_collector().collect();
+    default_collector::collect();
 
-    assert(primary_collector().count() == gc_count + 1);
+    assert(default_collector::count() == gc_count + 1);
   }
 
   return EXIT_SUCCESS;

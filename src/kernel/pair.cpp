@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,19 +20,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  let unit { nullptr };
+  let unit = nullptr;
 
-  pair::pair(object const& a)
-    : std::pair<object, object> { a, unit }
-  {}
-
-  pair::pair(object const& a, object const& b)
-    : std::pair<object, object> { a, b }
-  {}
-
-  auto pair::compare(pair const* that) const -> bool
+  auto pair::compare(top const* other) const -> bool
   {
-    return that and *this == *that;
+    auto pare = dynamic_cast<pair const*>(other);
+
+    return pare and *this == *pare;
   }
 
   auto pair::type() const noexcept -> std::type_info const&
@@ -64,7 +58,7 @@ inline namespace kernel
     {
       os << magenta("(") << car(datum);
 
-      for (let xs = cdr(datum); xs != unit; xs = cdr(xs))
+      for (let xs = cdr(datum); not xs.is<null>(); xs = cdr(xs))
       {
         if (xs.is<pair>())
         {

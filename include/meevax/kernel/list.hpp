@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ inline namespace kernel
 {
   inline auto list = [](auto&&... xs) constexpr
   {
-    return (std::forward<decltype(xs)>(xs) | ... | unit);
+    return (std::forward<decltype(xs)>(xs) | ... | nullptr);
   };
 
-  auto make_list(std::size_t, object const& = unit) -> object;
+  auto make_list(std::size_t, object const& = nullptr) -> object;
 
   auto iota(std::size_t, object const& = e0, object const& = e1) -> object;
 
@@ -93,7 +93,7 @@ inline namespace kernel
 
   auto drop_right(object &, std::size_t) -> object;
 
-  auto length(object const&) -> std::size_t;
+  auto length(object const&) -> std::ptrdiff_t;
 
   auto append(object const&, object const&) -> object;
 
@@ -110,7 +110,14 @@ inline namespace kernel
   template <typename F>
   auto map(F f, object const& xs) -> object
   {
-    return xs.is<pair>() ? cons(f(car(xs)), map(f, cdr(xs))) : unit;
+    if (xs.is<pair>())
+    {
+      return cons(f(car(xs)), map(f, cdr(xs)));
+    }
+    else
+    {
+      return nullptr;
+    }
   }
 
   auto memq(object const&, object const&) -> object const&;
@@ -141,7 +148,7 @@ inline namespace kernel
     }
     else
     {
-      return unit;
+      return nullptr;
     }
   }
 

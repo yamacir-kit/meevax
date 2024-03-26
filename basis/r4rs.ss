@@ -35,7 +35,8 @@
 |#
 
 (define-library (scheme r4rs)
-  (import (only (meevax boolean) boolean? not)
+  (import (only (meevax apply) apply)
+          (only (meevax boolean) boolean? not)
           (only (meevax character) char? char=? char<? char>? char<=? char>=? char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=? char-alphabetic? char-numeric? char-whitespace? char-upper-case? char-lower-case? char->integer integer->char char-upcase char-downcase)
           (only (meevax comparator) eq? eqv? equal?)
           (only (meevax complex) make-rectangular make-polar real-part imag-part magnitude angle)
@@ -44,6 +45,7 @@
           (only (meevax inexact) exp log sqrt sin cos tan asin acos atan)
           (only (meevax list) null? list? list length append reverse list-tail list-ref memq memv assq assv)
           (only (meevax macro-transformer) er-macro-transformer identifier?)
+          (only (meevax map) map)
           (only (meevax number) number? complex? real? rational? integer? exact? inexact? = < > <= >= zero? positive? negative? odd? even? max min + * - / abs quotient remainder modulo gcd lcm numerator denominator floor ceiling truncate round expt exact inexact number->string string->number)
           (only (meevax pair) pair? cons car cdr set-car! set-cdr! caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr)
           (only (meevax port) input-port? output-port? standard-input-port standard-output-port open-input-file open-output-file close eof-object?)
@@ -51,9 +53,10 @@
           (only (meevax string) string? make-string string string-length string-ref string-set! string=? string<? string>? string<=? string>=? string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=? string-append string->list list->string string-copy string-fill!)
           (only (meevax symbol) symbol? symbol->string string->symbol)
           (only (meevax vector) vector? make-vector vector vector-length vector-ref vector-set! vector->list list->vector vector-fill!)
-          (prefix (only (meevax environment) load) %)
           (prefix (meevax read) %)
           (prefix (meevax write) %)
+          (prefix (only (meevax environment) load) %)
+          (only (srfi 39) make-parameter parameterize)
           (only (srfi 45) delay force))
 
   (export quote lambda if set! cond case and or let let* letrec begin do delay
@@ -183,39 +186,6 @@
                        (else x)))
                (expand (cadr form) 0))))
 
-         (define (every f xs)
-           (if (pair? xs)
-               (and (f (car xs))
-                    (every f (cdr xs)))
-               #t))
-
-         (define (map f x . xs) ; Chibi-Scheme
-           (define (map f x a)
-             (if (pair? x)
-                 (map f
-                      (cdr x)
-                      (cons (f (car x)) a))
-                 (reverse a)))
-           (define (map* f xs a)
-             (if (every pair? xs)
-                 (map* f
-                       (map cdr xs '())
-                       (cons (apply f (map car xs '())) a))
-                 (reverse a)))
-           (if (null? xs)
-               (map f x '())
-               (map* f (cons x xs) '())))
-
-         (define (apply f x . xs) ; Chibi-Scheme
-           (letrec ((apply (lambda (f xs)
-                             (f . xs))))
-             (if (null? xs)
-                 (apply f x)
-                 ((lambda (xs)
-                    (apply f (append (reverse (cdr xs))
-                                     (car xs))))
-                  (reverse (cons x xs))))))
-
          (define-syntax let ; Chibi-Scheme
            (er-macro-transformer
              (lambda (form rename compare)
@@ -310,8 +280,7 @@
                        (else (+ 1 fx)))))
              (cond ((< y x)
                     (simplest-rational y x))
-                   ((not (< x y))
-                    (if (rational? x) x (error x)))
+                   ((not (< x y)) x)
                    ((positive? x)
                     (simplest-rational-internal x y))
                    ((negative? x)
@@ -348,25 +317,23 @@
                result))
            (call-with-output-port (open-output-file path) f))
 
-         (define %current-input-port (standard-input-port))
+         (define current-input-port
+           (make-parameter (standard-input-port)))
 
-         (define (current-input-port) %current-input-port)
-
-         (define %current-output-port (standard-output-port))
-
-         (define (current-output-port) %current-output-port)
+         (define current-output-port
+           (make-parameter (standard-output-port)))
 
          (define (with-input-from-file path thunk)
-           (let ((previous-input-port (current-input-port)))
-             (set! %current-input-port (open-input-file path))
-             (thunk)
-             (set! %current-input-port previous-input-port)))
+           (parameterize ((current-input-port (open-input-file path)))
+             (let ((result (thunk)))
+               (close-input-port (current-input-port))
+               result)))
 
          (define (with-output-to-file path thunk)
-           (let ((previous-output-port (current-output-port)))
-             (set! %current-output-port (open-output-file path))
-             (thunk)
-             (set! %current-output-port previous-output-port)))
+           (parameterize ((current-output-port (open-output-file path)))
+             (let ((result (thunk)))
+               (close-output-port (current-output-port))
+               result)))
 
          (define close-input-port close)
 

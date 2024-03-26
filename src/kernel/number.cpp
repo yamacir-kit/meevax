@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/string.hpp>
+#include <meevax/utility/combination.hpp>
 
 namespace meevax
 {

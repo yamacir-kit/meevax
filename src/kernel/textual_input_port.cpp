@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -285,7 +285,7 @@ inline namespace kernel
               }
               else
               {
-                return unit;
+                return nullptr;
               }
             }
             else
@@ -408,7 +408,7 @@ inline namespace kernel
         }
         catch (std::integral_constant<char, ')'> const&)
         {
-          return unit;
+          return nullptr;
         }
         catch (std::integral_constant<char, '.'> const&)
         {

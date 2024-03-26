@@ -21,7 +21,7 @@ auto main() -> int
     assert(interaction_environment().is<environment>());
   }
 
-  const auto gc_count = primary_collector().count();
+  const auto gc_count = default_collector::count();
 
   assert(gc_count == specials_count);
 
@@ -38,10 +38,9 @@ auto main() -> int
 
   assert(libraries().empty());
 
-  primary_collector().collect();
-  primary_collector().collect(); // for vector type
+  default_collector::collect();
 
-  assert(gc_count - 1 == primary_collector().count()); // -1 is interaction_environment
+  assert(gc_count - 1 == default_collector::count()); // -1 is interaction_environment
 
   return EXIT_SUCCESS;
 }

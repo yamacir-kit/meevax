@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ inline namespace kernel
 {
   struct library : public environment
   {
-    let declarations = unit;
+    let declarations = nullptr;
 
-    let export_specs = unit;
+    let export_specs = nullptr;
 
     template <typename F, REQUIRES(std::is_invocable<F, library &>)>
     explicit library(F declare)

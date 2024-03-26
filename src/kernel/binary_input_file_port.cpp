@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -64,7 +64,14 @@ inline namespace kernel
 
   auto binary_input_file_port::peek() -> object
   {
-    return get_ready() ? make<exact_integer>(ifstream.peek()) : eof_object;
+    if (get_ready())
+    {
+      return make<exact_integer>(ifstream.peek());
+    }
+    else
+    {
+      return eof_object;
+    }
   }
 
   auto operator <<(std::ostream & output, binary_input_file_port const& datum) -> std::ostream &

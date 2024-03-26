@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -79,7 +79,14 @@ inline namespace kernel
 
     auto peek() -> object override
     {
-      return deque.empty() ? eof_object : make<exact_integer>(deque.front());
+      if (deque.empty())
+      {
+        return eof_object;
+      }
+      else
+      {
+        return make<exact_integer>(deque.front());
+      }
     }
   };
 

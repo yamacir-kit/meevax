@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.16.3) # Ubuntu 20.04 LTS default
 
 execute_process(
-  COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
-  COMMAND tr -d "\n"
+  COMMAND head -c -1 ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
   OUTPUT_VARIABLE CURRENT_VERSION)
 
 project(meevax
@@ -13,8 +12,7 @@ project(meevax
 
 include(GNUInstallDirs)
 
-string(JOIN " " AGGRESSIVE_OPTIMIZATION_OPTIONS
-  # "-flto" # This optimization causes a SEGV when compiling with Clang 10.
+string(JOIN " " ${PROJECT_NAME}_RELEASE_PLUS
   # "-fmerge-all-constants" # This optimization is very effective in reducing binary size, but non-standard to the C++ standard.
   # "-march=native" # This optimization causes "Illegal instruction" error (is Valgrind's bug) on CI.
   # "-mtune=native"
@@ -23,8 +21,8 @@ string(JOIN " " AGGRESSIVE_OPTIMIZATION_OPTIONS
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -gdwarf-4") # NOTE: The `-gdwarf-4` option is set due to the following issues with Clang 14 and Valgrind versions below 3.20: https://bugzilla.mozilla.org/show_bug.cgi?id=1758782
 set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG ${AGGRESSIVE_OPTIMIZATION_OPTIONS}")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -gdwarf-4 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto -DNDEBUG ${${PROJECT_NAME}_RELEASE_PLUS}")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-4")
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -pipe")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

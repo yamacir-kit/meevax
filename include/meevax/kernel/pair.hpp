@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,44 +17,53 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
+#include <meevax/functional/compose.hpp>
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/instruction.hpp>
-#include <meevax/memory/gc_pointer.hpp>
+#include <meevax/memory/allocator.hpp>
+#include <meevax/memory/collector.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
+  using null = std::nullptr_t;
+
   struct pair;
 
-  using object = gc_pointer<pair,
-                            bool,
-                            std::int32_t, std::uint32_t,
-                            float,
-                            character,
-                            instruction>;
+  using default_collector = collector<pair, bool, int, float, character, instruction>;
+
+  using object = default_collector::mutator;
 
   using let = object;
 
   let extern unit;
 
-  template <typename T,
-            typename Allocator = collector::default_allocator<void>,
-            typename... Ts>
-  auto make(Ts&&... xs) -> object
+  template <typename T, typename Allocator, typename... Ts>
+  auto make(Ts&&... xs) -> decltype(auto)
   {
-    return object::allocate<T, Allocator>(std::forward<decltype(xs)>(xs)...);
+    return default_collector::make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
+  }
+
+  template <typename T, typename... Ts>
+  auto make(Ts&&... xs) -> decltype(auto)
+  {
+    if constexpr (std::is_same_v<T, pair>) {
+      return default_collector::make<T, allocator<void>>(std::forward<decltype(xs)>(xs)...);
+    } else {
+      return default_collector::make<T, std::allocator<void>>(std::forward<decltype(xs)>(xs)...);
+    }
   }
 
   template <typename T,
-            typename Allocator = collector::default_allocator<void>>
-  auto make(T&& x) -> object
+            typename Allocator = std::allocator<void>>
+  auto make(T&& x) -> decltype(auto)
   {
-    return object::allocate<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
+    return default_collector::make<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
   }
 
   template <template <typename...> typename Traits,
-            typename Allocator = collector::default_allocator<void>,
+            typename Allocator = std::allocator<void>,
             typename... Ts,
             REQUIRES(std::is_constructible<typename Traits<Ts...>::type, Ts...>)>
   auto make(Ts&&... xs) -> decltype(auto)
@@ -62,7 +71,8 @@ inline namespace kernel
     return make<typename Traits<Ts...>::type, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
-  struct pair : public std::pair<object, object>
+  struct pair : public virtual default_collector::top
+              , public std::pair<object, object>
   {
     template <auto Const>
     struct forward_iterator
@@ -136,51 +146,52 @@ inline namespace kernel
 
     using const_iterator = forward_iterator<true>;
 
-    constexpr pair() = default;
+    pair() = default;
 
-    explicit pair(object const&);
-
-    explicit pair(object const&, object const&);
-
-    template <typename... Ts, typename = std::enable_if_t<(1 < sizeof...(Ts))>>
-    explicit pair(object const& a, Ts&&... xs)
-      : pair { a, make<pair>(std::forward<decltype(xs)>(xs)...) }
+    template <typename T, typename U = std::nullptr_t, REQUIRES(std::is_constructible<std::pair<object, object>, T, U>)>
+    explicit pair(T&& x, U&& y = nullptr)
+      : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
 
-    virtual ~pair() = default;
+    ~pair() override = default;
 
-    virtual auto compare(pair const*) const -> bool;
+    auto compare(top const*) const -> bool override;
 
-    virtual auto type() const noexcept -> std::type_info const&;
+    auto type() const noexcept -> std::type_info const& override;
 
-    virtual auto write(std::ostream &) const -> std::ostream &;
+    auto write(std::ostream &) const -> std::ostream & override;
 
-    constexpr auto begin() noexcept
+    auto view() const noexcept -> memory::view override
+    {
+      return { this, sizeof(*this) };
+    }
+
+    auto begin() noexcept
     {
       return iterator(this);
     }
 
-    constexpr auto begin() const noexcept
+    auto begin() const noexcept
     {
       return const_iterator(this);
     }
 
-    constexpr auto end() noexcept
+    auto end() noexcept
     {
       return iterator(nullptr);
     }
 
-    constexpr auto end() const noexcept
+    auto end() const noexcept
     {
       return const_iterator(nullptr);
     }
 
-    constexpr auto cbegin() const -> const_iterator
+    auto cbegin() const -> const_iterator
     {
       return std::as_const(*this).begin();
     }
 
-    constexpr auto cend() const noexcept
+    auto cend() const noexcept
     {
       return std::as_const(*this).end();
     }
@@ -191,8 +202,7 @@ inline namespace kernel
   template <typename T, typename U, REQUIRES(std::is_constructible<pair, T, U>)>
   auto operator |(T&& x, U&& y) -> decltype(auto)
   {
-    return make<pair>(std::forward<decltype(x)>(x),
-                      std::forward<decltype(y)>(y));
+    return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
   }
 
   inline auto cons = [](auto&&... xs) constexpr
@@ -265,6 +275,7 @@ inline namespace kernel
   inline constexpr auto cddddr = compose(cdr, cdddr);
 
   inline constexpr auto caddddr = compose(car, cddddr);
+  inline constexpr auto cdddddr = compose(cdr, cddddr);
 } // namespace kernel
 } // namespace meevax
 

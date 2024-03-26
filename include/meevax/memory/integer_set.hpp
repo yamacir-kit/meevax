@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,13 +17,11 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_INTEGER_SET_HPP
 #define INCLUDED_MEEVAX_MEMORY_INTEGER_SET_HPP
 
-#include <array>
 #include <cassert>
-#include <climits>
+#include <climits> // CHAR_BIT
 #include <cstdint>
 #include <iterator>
 #include <limits>
-#include <type_traits>
 
 #include <meevax/bit/bit_cast.hpp>
 #include <meevax/bit/log2.hpp>
@@ -48,9 +46,13 @@ inline namespace memory
 
     subset * data[N] = {};
 
+    std::size_t max = 0;
+
     struct const_iterator : public std::iterator<std::bidirectional_iterator_tag, T>
     {
       subset const* const* data = nullptr;
+
+      std::size_t max = 0;
 
       std::size_t i = std::numeric_limits<std::size_t>::max();
 
@@ -60,6 +62,7 @@ inline namespace memory
 
       explicit const_iterator(integer_set const* container, std::size_t i, std::uintptr_t j = 0) noexcept
         : data { container->data }
+        , max  { container->max }
         , i    { i }
       {
         assert(i <= N);
@@ -68,6 +71,7 @@ inline namespace memory
 
       explicit const_iterator(integer_set const* container) noexcept
         : data { container->data }
+        , max  { container->max }
         , i    { N }
       {
         decrement_unless_truthy();
@@ -78,12 +82,21 @@ inline namespace memory
       {
         assert(data);
 
-        for (; good(); ++i, j = 0)
+        if (good())
         {
           if (data[i] and (iter = data[i]->lower_bound(j)).good())
           {
             return;
           }
+          else for (++i; i <= max; ++i)
+          {
+            if (data[i] and (iter = data[i]->lower_bound(0)).good())
+            {
+              return;
+            }
+          }
+
+          i = N;
         }
 
         iter = {};
@@ -198,21 +211,30 @@ inline namespace memory
 
     auto insert(T value)
     {
-      if (auto [key, datum] = split(value); data[key])
+      if (auto [i, j] = split(value); data[i])
       {
-        data[key]->insert(datum);
+        data[i]->insert(j);
       }
       else
       {
-        data[key] = new subset();
-        data[key]->insert(datum);
+        max = std::max(max, i);
+        data[i] = new subset();
+        data[i]->insert(j);
       }
     }
 
     auto erase(T value) noexcept
     {
+      if (auto [i, j] = split(value); data[i])
+      {
+        data[i]->erase(j);
+      }
+    }
+
+    auto contains(T value) noexcept -> bool
+    {
       auto [i, j] = split(value);
-      data[i]->erase(j);
+      return data[i] and data[i]->contains(j);
     }
 
     auto begin() const noexcept
@@ -235,6 +257,11 @@ inline namespace memory
     {
       return std::distance(begin(), end());
     }
+
+    auto swap(integer_set & other)
+    {
+      std::swap(data, other.data);
+    }
   };
 
   template <typename T, std::size_t E>
@@ -254,16 +281,22 @@ inline namespace memory
 
       auto increment_unless_truthy() noexcept
       {
-        auto i = index / 64;
-        auto j = index % 64;
-
-        for (; i < N / 64; ++i, j = 0)
+        if (auto i = index / 64; i < N/64)
         {
-          if (auto datum = data[i] & (~0ul << j); datum)
+          if (auto datum = data[i] & (~0ul << index % 64); datum)
           {
             index = i * 64 + __builtin_ctzl(datum);
             assert(data[index / 64] & (1ul << index % 64));
             return;
+          }
+          else while (++i < N/64)
+          {
+            if (auto datum = data[i]; datum)
+            {
+              index = i * 64 + __builtin_ctzl(datum);
+              assert(data[index / 64] & (1ul << index % 64));
+              return;
+            }
           }
         }
 
@@ -274,16 +307,22 @@ inline namespace memory
 
       auto decrement_unless_truthy() noexcept
       {
-        auto i = index / 64;
-        auto j = index % 64;
-
-        for (; i < N / 64; --i, j = 63)
+        if (auto i = index / 64; i < N/64)
         {
-          if (auto datum = data[i] & (~0ul >> (63 - j)); datum)
+          if (auto datum = data[i] & (~0ul >> (63 - index % 64)); datum)
           {
             index = i * 64 + (63 - __builtin_clzl(datum));
             assert(data[index / 64] & (1ul << index % 64));
             return;
+          }
+          else while (--i < N/64)
+          {
+            if (auto datum = data[i]; datum)
+            {
+              index = i * 64 + (63 - __builtin_clzl(datum));
+              assert(data[index / 64] & (1ul << index % 64));
+              return;
+            }
           }
         }
 
@@ -367,6 +406,13 @@ inline namespace memory
       auto i = reinterpret_cast<std::size_t>(value) / 64;
       auto j = reinterpret_cast<std::size_t>(value) % 64;
       data[i] &= ~(1ul << j);
+    }
+
+    auto contains(T value) noexcept -> bool
+    {
+      auto i = reinterpret_cast<std::size_t>(value) / 64;
+      auto j = reinterpret_cast<std::size_t>(value) % 64;
+      return data[i] & (1ul << j);
     }
 
     auto lower_bound(T value) const noexcept

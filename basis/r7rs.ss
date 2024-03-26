@@ -1,15 +1,15 @@
 (define-library (scheme base)
   (import (only (meevax core) include include-case-insensitive)
           (only (meevax error) error-object? read-error? file-error?)
-          (only (meevax macro-transformer) er-macro-transformer)
           (only (meevax list) make-list list-copy)
+          (only (meevax macro-transformer) er-macro-transformer)
           (only (meevax number) exact-integer? exact-integer-square-root)
           (only (meevax port) binary-port? eof-object flush get-output-u8vector open-input-u8vector open-output-u8vector open? port? standard-error-port standard-input-port standard-output-port textual-port?)
-          (prefix (meevax read) %)
           (only (meevax string) string-copy!)
           (only (meevax vector homogeneous) u8vector? make-u8vector u8vector u8vector-length u8vector-ref u8vector-set! u8vector-copy u8vector-copy! u8vector-append u8vector->string string->u8vector)
           (only (meevax vector) vector-append vector-copy vector-copy! vector->string string->vector)
           (only (meevax version) features)
+          (prefix (meevax read) %)
           (prefix (meevax write) %)
           (scheme r5rs)
           (srfi 0)
@@ -250,32 +250,8 @@
 
          (define output-port-open? open?)
 
-         (define current-input-port
-           (make-parameter (standard-input-port)
-             (lambda (x)
-               (cond ((not (input-port? x))
-                      (error "not an input-port" x))
-                     ((not (input-port-open? x))
-                      (error "not an opened input-port" x))
-                     (else x)))))
-
-         (define current-output-port
-           (make-parameter (standard-output-port)
-             (lambda (x)
-               (cond ((not (output-port? x))
-                      (error "not an output-port" x))
-                     ((not (output-port-open? x))
-                      (error "not an opened output-port" x))
-                     (else x)))))
-
          (define current-error-port
-           (make-parameter (standard-error-port)
-             (lambda (x)
-               (cond ((not (output-port? x))
-                      (error "not an output-port" x))
-                     ((not (output-port-open? x))
-                      (error "not an opened output-port" x))
-                     (else x)))))
+           (make-parameter (standard-error-port)))
 
          (define (close-port x)
            (cond ((input-port? x) (close-input-port x))
@@ -440,21 +416,10 @@
   (import (only (meevax file) delete-file file-exists?)
           (only (meevax port) open-binary-input-file open-binary-output-file)
           (only (scheme base) close-input-port close-output-port current-input-port current-output-port define parameterize)
-          (only (scheme r5rs) call-with-input-file call-with-output-file open-input-file open-output-file))
-
+          (only (scheme r5rs) call-with-input-file call-with-output-file open-input-file open-output-file with-input-from-file with-output-to-file))
   (export call-with-input-file call-with-output-file delete-file file-exists?
           open-binary-input-file open-binary-output-file open-input-file
-          open-output-file with-input-from-file with-output-to-file)
-
-  (begin (define (with-input-from-file path thunk)
-           (parameterize ((current-input-port (open-input-file path)))
-             (thunk)
-             (close-input-port (current-input-port))))
-
-         (define (with-output-to-file path thunk)
-           (parameterize ((current-output-port (open-output-file path)))
-             (thunk)
-             (close-output-port (current-output-port))))))
+          open-output-file with-input-from-file with-output-to-file))
 
 (define-library (scheme inexact)
   (import (only (meevax inexact) finite? infinite? nan?)

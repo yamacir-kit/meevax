@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/dynamic_environment.hpp>
-#include <meevax/kernel/optimizer.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
 
 namespace meevax
@@ -27,8 +26,7 @@ namespace meevax
 inline namespace kernel
 {
   struct environment : public configurator<environment>
-                     , public dynamic_environment<environment>
-                     , public optimizer
+                     , public dynamic_environment
                      , public syntactic_environment<environment>
   {
     using syntactic_environment::syntactic_environment;
@@ -43,8 +41,6 @@ inline namespace kernel
   auto operator <<(std::ostream &, environment const&) -> std::ostream &;
 
   extern template struct configurator<environment>;
-
-  extern template struct dynamic_environment<environment>;
 
   extern template struct syntactic_environment<environment>;
 } // namespace kernel

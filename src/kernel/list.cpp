@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ inline namespace kernel
     }
     else
     {
-      return unit;
+      return nullptr;
     }
   }
 
@@ -41,7 +41,7 @@ inline namespace kernel
     }
     else
     {
-      return unit;
+      return nullptr;
     }
   }
 
@@ -51,8 +51,8 @@ inline namespace kernel
     {
       if (let const& x1 = cdr(x0); x1.is<pair>())
       {
-        let const& x2 = cdr(x1),
-                   y1 = cdr(y0);
+        let const& x2 = cdr(x1);
+        let const& y1 = cdr(y0);
 
         return not eq(x2, y1) and is_list(x2, y1);
       }
@@ -78,8 +78,8 @@ inline namespace kernel
     {
       if (let const& x1 = cdr(x0); x1.is<pair>())
       {
-        let const& x2 = cdr(x1),
-                   y1 = cdr(y0);
+        let const& x2 = cdr(x1);
+        let const& y1 = cdr(y0);
 
         return eq(x2, y1) or is_circular_list(x2, y1);
       }
@@ -105,8 +105,8 @@ inline namespace kernel
     {
       if (let const& x1 = cdr(x0); x1.is<pair>())
       {
-        let const& x2 = cdr(x1),
-                   y1 = cdr(y0);
+        let const& x2 = cdr(x1);
+        let const& y1 = cdr(y0);
 
         return not eq(x2, y1) and is_dotted_list(x2, y1);
       }
@@ -146,7 +146,7 @@ inline namespace kernel
     }
     else
     {
-      return unit;
+      return nullptr;
     }
   }
 
@@ -154,12 +154,12 @@ inline namespace kernel
   {
     if (0 < k)
     {
-      cdr(drop(x, k - 1)) = unit;
+      cdr(drop(x, k - 1)) = nullptr;
       return x;
     }
     else
     {
-      return unit;
+      return nullptr;
     }
   }
 
@@ -212,7 +212,7 @@ inline namespace kernel
     }
     else
     {
-      return unit;
+      return nullptr;
     }
   }
 
@@ -229,24 +229,24 @@ inline namespace kernel
     }
     else
     {
-      cdr(x) = unit;
+      cdr(x) = nullptr;
     }
   }
 
   auto drop_right(object & x, std::size_t k) -> object
   {
-    if (let const y = drop(x, k); y.is<pair>())
+    if (let const& y = drop(x, k); y.is<pair>())
     {
       drop_right(x, cdr(y));
       return x;
     }
     else
     {
-      return unit;
+      return nullptr;
     }
   }
 
-  auto length(object const& x) -> std::size_t
+  auto length(object const& x) -> std::ptrdiff_t
   {
     return std::distance(x.begin(), x.end());
   }
@@ -300,11 +300,7 @@ inline namespace kernel
     }
     else
     {
-      let const cdr_x = cdr(x);
-
-      cdr(x) = y;
-
-      return append_reverse(cdr_x, x);
+      return append_reverse(std::exchange(cdr(x), y), x);
     }
   }
 
@@ -322,7 +318,7 @@ inline namespace kernel
 
   auto reverse(object const& xs) -> object
   {
-    return reverse(xs, unit);
+    return reverse(xs, nullptr);
   }
 
   auto reverse(object & xs, object const& a) -> object
@@ -333,17 +329,13 @@ inline namespace kernel
     }
     else
     {
-      let tail = cdr(xs);
-
-      cdr(xs) = a;
-
-      return reverse(tail, xs);
+      return reverse(std::exchange(cdr(xs), a), xs);
     }
   }
 
   auto reverse(object & xs) -> object
   {
-    return reverse(xs, unit);
+    return reverse(xs, nullptr);
   }
 
   auto memq(object const& x, object const& xs) -> object const&

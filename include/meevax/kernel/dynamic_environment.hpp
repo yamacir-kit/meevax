@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename Environment>
   struct dynamic_environment
   {
     /*
@@ -69,16 +68,16 @@ inline namespace kernel
        `kernel-exception-handler-set!`, it is basically assumed to be set to
        R7RS Scheme's standard procedure `raise`.
     */
-    let static inline raise = unit;
+    let static inline raise = nullptr;
 
     template <typename... Ts>
-    auto apply(object const& f, Ts&&... xs) -> object
+    auto apply(object const& f, Ts&&... xs) -> decltype(auto)
     {
       s = list(f, list(std::forward<decltype(xs)>(xs)...));
-      e = unit;
+      e = nullptr;
       c = list(make(instruction::call),
                make(instruction::stop));
-      d = unit;
+      d = nullptr;
 
       return run();
     }
@@ -95,7 +94,7 @@ inline namespace kernel
       return run();
     }
 
-    auto reraise(object const& x) -> object
+    auto reraise(object const& x) -> decltype(auto)
     {
       return raise.is<null>() ? throw x : apply(raise, x);
     }
@@ -109,14 +108,6 @@ inline namespace kernel
       {
       fetch:
         assert(c);
-
-        if constexpr (false)
-        {
-          std::cerr << faint("; s = ") << s << "\n"
-                    << faint("; e = ") << e << "\n"
-                    << faint("; c = ") << c << "\n"
-                    << faint("; d = ") << d << "\n" << std::endl;
-        }
 
         switch (car(c).template as<instruction>())
         {
@@ -214,7 +205,7 @@ inline namespace kernel
           *  where <closure> = (c' . e)
           *
           * ----------------------------------------------------------------- */
-          s = cons(make<closure>(cadr(c), e), s);
+          s = cons(make<closure, allocator<void>>(cadr(c), e), s);
           c = cddr(c);
           goto fetch;
 
@@ -225,7 +216,7 @@ inline namespace kernel
           *  where <continuation> = (s e c' . d)
           *
           * ----------------------------------------------------------------- */
-          s = cons(list(make<continuation>(s, e, cadr(c), d)), s);
+          s = cons(list(make<continuation, allocator<void>>(s, cons(e, cons(cadr(c), d)))), s);
           c = cddr(c);
           goto fetch;
 
@@ -247,15 +238,18 @@ inline namespace kernel
           *
           * ----------------------------------------------------------------- */
           d = cons(cdddr(c), d);
-          [[fallthrough]];
+          c = car(s) != f ? cadr(c) : caddr(c);
+          s = cdr(s);
+          goto fetch;
 
         case instruction::tail_select: /* --------------------------------------
           *
-          *  (<boolean> . s) e (%select c1 c2 . c) d => s e c' d
+          *  (<boolean> . s) e (%tail-select c1 c2) d => s e c' d
           *
           *  where c' = (if <boolean> c1 c2)
           *
           * ----------------------------------------------------------------- */
+          assert(cdddr(c).template is<null>());
           c = car(s) != f ? cadr(c) : caddr(c);
           s = cdr(s);
           goto fetch;
@@ -283,7 +277,7 @@ inline namespace kernel
             d = cons(cddr(s), e, cdr(c), d);
             c = car(callee);
             e = cons(cadr(s), cdr(callee));
-            s = unit;
+            s = nullptr;
             goto fetch;
           }
           else if (callee.is_also<primitive_procedure>()) /* -------------------
@@ -333,7 +327,7 @@ inline namespace kernel
             assert(tail(c, 1).template is<null>());
             c = car(callee);
             e = cons(cadr(s), cdr(callee));
-            s = unit;
+            s = nullptr;
             goto fetch;
           }
           else if (callee.is_also<primitive_procedure>()) /* -------------------
@@ -378,26 +372,13 @@ inline namespace kernel
           *  s e (%dummy . c) d => s (<null> . e) c d
           *
           * ----------------------------------------------------------------- */
-          e = cons(unit, e);
+          e = cons(nullptr, e);
           c = cdr(c);
-          goto fetch;
-
-        case instruction::tail_letrec: /* --------------------------------------
-          *
-          *  (<closure> xs . s) (<unit> . e) (%letrec . c) d => () (set-car! e' xs) c' d
-          *
-          *  where <closure> = (c' . e')
-          *
-          * ----------------------------------------------------------------- */
-          cadar(s) = cadr(s);
-          c = caar(s);
-          e = cdar(s);
-          s = unit;
           goto fetch;
 
         case instruction::letrec: /* -------------------------------------------
           *
-          *  (<closure> xs . s) (<unit> . e) (%letrec . c) d => () (set-car! e' xs) c' (s e c . d)
+          *  (<closure> xs . s) (<null> . e) (%letrec . c) d => () (set-car! e' xs) c' (s e c . d)
           *
           *  where <closure> = (c' . e')
           *
@@ -406,7 +387,21 @@ inline namespace kernel
           d = cons(cddr(s), cdr(e), cdr(c), d);
           c = caar(s);
           e = cdar(s);
-          s = unit;
+          s = nullptr;
+          goto fetch;
+
+        case instruction::tail_letrec: /* --------------------------------------
+          *
+          *  (<closure> xs . s) (<null> . e) (%tail-letrec) d => () (set-car! e' xs) c' d
+          *
+          *  where <closure> = (c' . e')
+          *
+          * ----------------------------------------------------------------- */
+          assert(cdr(c).template is<null>());
+          cadar(s) = cadr(s);
+          c = caar(s);
+          e = cdar(s);
+          s = nullptr;
           goto fetch;
 
         case instruction::return_: /* ------------------------------------------
@@ -428,7 +423,8 @@ inline namespace kernel
           *  (x y . s) e (%cons . c) d => ((x . y) . s) e c d
           *
           * ----------------------------------------------------------------- */
-          s = cons(cons(car(s), cadr(s)), cddr(s));
+          car(s) = cons(car(s), cadr(s));
+          cdr(s) = cddr(s);
           c = cdr(c);
           goto fetch;
 
@@ -509,7 +505,7 @@ inline namespace kernel
 
         case instruction::install: /* ------------------------------------------
           *
-          *  (x . s) e (%intall i . c) d => (x . s) e c d
+          *  (x . s) e (%install i . c) d => (x . s) e c d
           *
           * ----------------------------------------------------------------- */
           assert(cadr(c).template is<exact_integer>());

@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2023 Tatsuya Yamasaki.
+   Copyright 2018-2024 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct box : public virtual pair // (value . unit)
+  struct box : public virtual pair // (value . null)
   {
     using pair::pair;
   };
