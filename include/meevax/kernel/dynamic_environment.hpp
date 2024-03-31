@@ -280,7 +280,7 @@ inline namespace kernel
             s = nullptr;
             goto fetch;
           }
-          else if (callee.is_also<primitive_procedure>()) /* -------------------
+          else if (callee.is_also<primitive>()) /* -----------------------------
           *
           *  (<primitive-procedure> xs . s) e (%call . c) d => (x . s) e c d
           *
@@ -289,7 +289,7 @@ inline namespace kernel
           * ----------------------------------------------------------------- */
           {
             assert(tail(c, 1).template is<pair>());
-            s = cons(callee.as<primitive_procedure>()(cadr(s)), cddr(s));
+            s = cons(callee.as<primitive>()(cadr(s)), cddr(s));
             c = cdr(c);
             goto fetch;
           }
@@ -330,7 +330,7 @@ inline namespace kernel
             s = nullptr;
             goto fetch;
           }
-          else if (callee.is_also<primitive_procedure>()) /* -------------------
+          else if (callee.is_also<primitive>()) /* -----------------------------
           *
           *  (<primitive-procedure> xs) e (%tail-call) (s' e' c' . d) => (x . s') e' c' d
           *
@@ -340,7 +340,7 @@ inline namespace kernel
           {
             assert(tail(s, 2).template is<null>());
             assert(tail(c, 1).template is<null>());
-            s = cons(callee.as<primitive_procedure>()(cadr(s)), car(d));
+            s = cons(callee.as<primitive>()(cadr(s)), car(d));
             e = cadr(d);
             c = caddr(d);
             d = cdddr(d);

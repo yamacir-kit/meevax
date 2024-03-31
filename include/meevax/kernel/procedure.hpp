@@ -25,37 +25,29 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct primitive_procedure
+  struct primitive
   {
     using signature = auto (*)(object &) -> object;
 
-    /*
-       Maybe I should use std::string_view, but I'm worried about the lifetime
-       of the referenced string. The referenced string is either a raw string
-       literal or a std::string held by symbol. In normal use, the lifetime of
-       the primitive_procedure object will not be longer than the lifetime of
-       those strings. However, it is possible to achieve this by manipulating
-       the symbol table directly.
-    */
     std::string const name;
 
-    explicit primitive_procedure(std::string const& name)
+    explicit primitive(std::string const& name)
       : name { name }
     {}
 
     virtual auto operator ()(object & = unit) const -> object = 0;
   };
 
-  auto operator <<(std::ostream &, primitive_procedure const&) -> std::ostream &;
+  auto operator <<(std::ostream &, primitive const&) -> std::ostream &;
 
   template <typename F>
-  struct generic_procedure : public primitive_procedure
+  struct generic_procedure : public primitive
   {
     std::enable_if_t<std::is_invocable_v<F> or std::is_invocable_v<F, object &>, F> invocable;
 
     explicit generic_procedure(std::string const& name, F invocable)
-      : primitive_procedure { name }
-      , invocable           { invocable }
+      : primitive { name }
+      , invocable { invocable }
     {}
 
     auto operator ()(object & xs) const -> object override

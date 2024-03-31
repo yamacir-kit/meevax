@@ -1315,13 +1315,13 @@ inline namespace kernel
 
       library.define<procedure>("procedure?", [](let const& xs)
       {
-        return car(xs).is<closure>() or car(xs).is<continuation>() or car(xs).is_also<primitive_procedure>();
+        return car(xs).is<closure>() or car(xs).is<continuation>() or car(xs).is_also<primitive>();
       });
 
       library.define<procedure>("procedure", [](let const& xs)
       {
         return make<procedure>(cadr(xs).as<symbol>(),
-                               reinterpret_cast<primitive_procedure::signature>(
+                               reinterpret_cast<primitive::signature>(
                                  default_collector::dlsym(cadr(xs).as<symbol>(),
                                                           default_collector::dlopen(car(xs).as<string>()))));
       });
