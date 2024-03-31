@@ -145,13 +145,11 @@ inline namespace kernel
 
             assert(operand.is<relative>());
 
-            using index = relative::index;
+            assert(car(operand).is<std::int32_t>());
+            assert(cdr(operand).is<std::int32_t>());
 
-            assert(car(operand).is<index>());
-            assert(cdr(operand).is<index>());
-
-            auto i = car(operand).as<index>();
-            auto j = cdr(operand).as<index>();
+            auto i = car(operand).as<std::int32_t>();
+            auto j = cdr(operand).as<std::int32_t>();
 
             assert(i < length(e));
 
@@ -174,13 +172,11 @@ inline namespace kernel
 
             assert(operand.is<variadic>());
 
-            using index = variadic::index;
+            assert(car(operand).is<std::int32_t>());
+            assert(cdr(operand).is<std::int32_t>());
 
-            assert(car(operand).is<index>());
-            assert(cdr(operand).is<index>());
-
-            auto i = car(operand).as<index>();
-            auto j = cdr(operand).as<index>();
+            auto i = car(operand).as<std::int32_t>();
+            auto j = cdr(operand).as<std::int32_t>();
 
             assert(i < length(e));
 
@@ -280,16 +276,16 @@ inline namespace kernel
             s = nullptr;
             goto fetch;
           }
-          else if (callee.is_also<primitive_procedure>()) /* -------------------
+          else if (callee.is_also<primitive>()) /* -----------------------------
           *
-          *  (<primitive-procedure> xs . s) e (%call . c) d => (x . s) e c d
+          *  (<primitive> xs . s) e (%call . c) d => (x . s) e c d
           *
           *  where x = primitive-procedure(xs)
           *
           * ----------------------------------------------------------------- */
           {
             assert(tail(c, 1).template is<pair>());
-            s = cons(callee.as<primitive_procedure>()(cadr(s)), cddr(s));
+            s = cons(callee.as<primitive>()(cadr(s)), cddr(s));
             c = cdr(c);
             goto fetch;
           }
@@ -330,9 +326,9 @@ inline namespace kernel
             s = nullptr;
             goto fetch;
           }
-          else if (callee.is_also<primitive_procedure>()) /* -------------------
+          else if (callee.is_also<primitive>()) /* -----------------------------
           *
-          *  (<primitive-procedure> xs) e (%tail-call) (s' e' c' . d) => (x . s') e' c' d
+          *  (<primitive> xs) e (%tail-call) (s' e' c' . d) => (x . s') e' c' d
           *
           *  where x = primitive-procedure(xs)
           *
@@ -340,7 +336,7 @@ inline namespace kernel
           {
             assert(tail(s, 2).template is<null>());
             assert(tail(c, 1).template is<null>());
-            s = cons(callee.as<primitive_procedure>()(cadr(s)), car(d));
+            s = cons(callee.as<primitive>()(cadr(s)), car(d));
             e = cadr(d);
             c = caddr(d);
             d = cdddr(d);
@@ -461,13 +457,11 @@ inline namespace kernel
 
             assert(operand.is<relative>());
 
-            using index = relative::index;
+            assert(car(operand).is<std::int32_t>());
+            assert(cdr(operand).is<std::int32_t>());
 
-            assert(car(operand).is<index>());
-            assert(cdr(operand).is<index>());
-
-            auto i = car(operand).as<index>();
-            auto j = cdr(operand).as<index>();
+            auto i = car(operand).as<std::int32_t>();
+            auto j = cdr(operand).as<std::int32_t>();
 
             assert(i < length(e));
 
@@ -487,13 +481,11 @@ inline namespace kernel
 
             assert(operand.is<variadic>());
 
-            using index = variadic::index;
+            assert(car(operand).is<std::int32_t>());
+            assert(cdr(operand).is<std::int32_t>());
 
-            assert(car(operand).is<index>());
-            assert(cdr(operand).is<index>());
-
-            auto i = car(operand).as<index>();
-            auto j = cdr(operand).as<index>();
+            auto i = car(operand).as<std::int32_t>();
+            auto j = cdr(operand).as<std::int32_t>();
 
             assert(i < length(e));
 

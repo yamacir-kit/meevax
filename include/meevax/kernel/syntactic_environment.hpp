@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 
+#include <meevax/kernel/describable.hpp>
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/implementation_dependent.hpp>
 #include <meevax/kernel/include.hpp>
@@ -71,10 +72,8 @@ inline namespace kernel
       }
     };
 
-    struct syntax
+    struct syntax : public describable
     {
-      std::string const name;
-
       auto (*compile)(syntactic_environment &,
                       object const& /* expression      */,
                       object const& /* bound_variables */,
@@ -84,7 +83,7 @@ inline namespace kernel
 
       template <typename Compiler>
       explicit syntax(std::string const& name, Compiler const& compile)
-        : name { name }
+        : describable { name }
         , compile { compile }
       {}
 
@@ -1099,7 +1098,7 @@ inline namespace kernel
     template <typename T, typename... Ts>
     inline auto define(std::string const& name, Ts&&... xs) -> void
     {
-      if constexpr (std::is_constructible_v<T, std::string const&, Ts...>)
+      if constexpr (std::is_base_of_v<describable, T>)
       {
         return define(make_symbol(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
       }
@@ -1109,10 +1108,10 @@ inline namespace kernel
       }
     }
 
-    template <template <typename...> typename Traits, typename... Ts>
+    template <template <typename...> typename Deducer, typename... Ts>
     inline auto define(Ts&&... xs) -> decltype(auto)
     {
-      return define<typename Traits<Ts...>::type>(std::forward<decltype(xs)>(xs)...);
+      return define<typename Deducer<Ts...>::type>(std::forward<decltype(xs)>(xs)...);
     }
 
     inline auto identify(object const& variable,
@@ -1129,11 +1128,11 @@ inline namespace kernel
       }
       else
       {
-        auto i = identity::index(0);
+        auto i = 0;
 
         for (auto outer = bound_variables; outer.is<pair>(); ++i, outer = cdr(outer))
         {
-          auto j = identity::index(0);
+          auto j = 0;
 
           for (auto inner = outer.is<pair>() ? car(outer) : unit; not inner.is<null>(); ++j, inner = inner.is<pair>() ? cdr(inner) : unit)
           {
@@ -1145,12 +1144,12 @@ inline namespace kernel
               }
               else if (eq(car(inner), variable))
               {
-                return make<relative>(make(i), make(j));
+                return make<relative>(make<std::int32_t>(i), make<std::int32_t>(j));
               }
             }
             else if (inner.is_also<identifier>() and eq(inner, variable))
             {
-              return make<variadic>(make(i), make(j));
+              return make<variadic>(make<std::int32_t>(i), make<std::int32_t>(j));
             }
           }
         }

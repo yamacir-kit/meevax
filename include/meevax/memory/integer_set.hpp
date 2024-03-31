@@ -48,8 +48,18 @@ inline namespace memory
 
     std::size_t max = 0;
 
-    struct const_iterator : public std::iterator<std::bidirectional_iterator_tag, T>
+    struct const_iterator
     {
+      using value_type = T;
+
+      using difference_type   = std::ptrdiff_t;
+
+      using pointer = T *;
+
+      using reference = T &;
+
+      using iterator_category = std::bidirectional_iterator_tag;
+
       subset const* const* data = nullptr;
 
       std::size_t max = 0;
@@ -273,8 +283,18 @@ inline namespace memory
 
     std::uint64_t data[N / 64] {};
 
-    struct const_iterator : public std::iterator<std::bidirectional_iterator_tag, T>
+    struct const_iterator
     {
+      using value_type = T;
+
+      using difference_type   = std::ptrdiff_t;
+
+      using pointer = T *;
+
+      using reference = T &;
+
+      using iterator_category = std::bidirectional_iterator_tag;
+
       std::uint64_t const* data = nullptr;
 
       std::size_t index = std::numeric_limits<std::size_t>::max();
