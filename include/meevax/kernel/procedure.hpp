@@ -99,62 +99,56 @@ inline namespace kernel
     using type = generic_procedure<F>;
   };
 
-  /*
-     Thunk
-  */
+  using thunk = auto (*)() -> object;
+
   template <typename F>
-  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, auto (*)() -> object>>>
+  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, thunk>>>
   {
-    using type = generic_procedure<auto (*)() -> object>;
+    using type = generic_procedure<thunk>;
   };
 
-  /*
-     Procedure
-  */
+  using normal_procedure = auto (*)(object const&) -> object;
+
   template <typename F>
-  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> object>>>
+  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, normal_procedure>>>
   {
-    using type = generic_procedure<auto (*)(object const&) -> object>;
+    using type = generic_procedure<normal_procedure>;
   };
 
-  /*
-     Linear update procedure
-  */
+  using linear_update_procedure = auto (*)(object &) -> object;
+
   template <typename F>
-  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object &) -> object>>>
+  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, linear_update_procedure>>>
   {
-    using type = generic_procedure<auto (*)(object &) -> object>;
+    using type = generic_procedure<linear_update_procedure>;
   };
 
-  /*
-     Predicate
-  */
+  using predicate = auto (*)(object const&) -> bool;
+
   template <typename F>
-  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> bool>>>
+  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, predicate>>>
   {
-    using type = generic_procedure<auto (*)(object const&) -> bool>;
+    using type = generic_procedure<predicate>;
   };
 
-  /*
-     Command
-  */
+  using command = auto (*)(object const&) -> void;
+
   template <typename F>
-  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> void>>>
+  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, command>>>
   {
-    using type = generic_procedure<auto (*)(object const&) -> void>;
+    using type = generic_procedure<command>;
   };
 
-  /*
-     Mutation
-  */
+  using mutation = auto (*)(object &) -> void;
+
   template <typename F>
-  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object &) -> void>>>
+  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, mutation>>>
   {
-    using type = generic_procedure<auto (*)(object &) -> void>;
+    using type = generic_procedure<mutation>;
   };
 
-  template <typename T, typename... Ts>
-  using procedure = std::enable_if_t<std::is_constructible_v<describable, T>, procedure_traits<Ts...>>;
+  template <typename, typename... Ts>
+  using procedure = procedure_traits<Ts...>;
 } // namespace kernel
 } // namespace meevax
 

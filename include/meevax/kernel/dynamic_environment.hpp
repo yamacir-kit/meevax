@@ -282,7 +282,7 @@ inline namespace kernel
           }
           else if (callee.is_also<primitive>()) /* -----------------------------
           *
-          *  (<primitive-procedure> xs . s) e (%call . c) d => (x . s) e c d
+          *  (<primitive> xs . s) e (%call . c) d => (x . s) e c d
           *
           *  where x = primitive-procedure(xs)
           *
@@ -332,7 +332,7 @@ inline namespace kernel
           }
           else if (callee.is_also<primitive>()) /* -----------------------------
           *
-          *  (<primitive-procedure> xs) e (%tail-call) (s' e' c' . d) => (x . s') e' c' d
+          *  (<primitive> xs) e (%tail-call) (s' e' c' . d) => (x . s') e' c' d
           *
           *  where x = primitive-procedure(xs)
           *
