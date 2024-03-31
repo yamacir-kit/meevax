@@ -1128,11 +1128,11 @@ inline namespace kernel
       }
       else
       {
-        auto i = identity::index(0);
+        auto i = 0;
 
         for (auto outer = bound_variables; outer.is<pair>(); ++i, outer = cdr(outer))
         {
-          auto j = identity::index(0);
+          auto j = 0;
 
           for (auto inner = outer.is<pair>() ? car(outer) : unit; not inner.is<null>(); ++j, inner = inner.is<pair>() ? cdr(inner) : unit)
           {
@@ -1144,12 +1144,12 @@ inline namespace kernel
               }
               else if (eq(car(inner), variable))
               {
-                return make<relative>(make(i), make(j));
+                return make<relative>(make<std::int32_t>(i), make<std::int32_t>(j));
               }
             }
             else if (inner.is_also<identifier>() and eq(inner, variable))
             {
-              return make<variadic>(make(i), make(j));
+              return make<variadic>(make<std::int32_t>(i), make<std::int32_t>(j));
             }
           }
         }

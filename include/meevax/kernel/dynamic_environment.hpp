@@ -145,13 +145,11 @@ inline namespace kernel
 
             assert(operand.is<relative>());
 
-            using index = relative::index;
+            assert(car(operand).is<std::int32_t>());
+            assert(cdr(operand).is<std::int32_t>());
 
-            assert(car(operand).is<index>());
-            assert(cdr(operand).is<index>());
-
-            auto i = car(operand).as<index>();
-            auto j = cdr(operand).as<index>();
+            auto i = car(operand).as<std::int32_t>();
+            auto j = cdr(operand).as<std::int32_t>();
 
             assert(i < length(e));
 
@@ -174,13 +172,11 @@ inline namespace kernel
 
             assert(operand.is<variadic>());
 
-            using index = variadic::index;
+            assert(car(operand).is<std::int32_t>());
+            assert(cdr(operand).is<std::int32_t>());
 
-            assert(car(operand).is<index>());
-            assert(cdr(operand).is<index>());
-
-            auto i = car(operand).as<index>();
-            auto j = cdr(operand).as<index>();
+            auto i = car(operand).as<std::int32_t>();
+            auto j = cdr(operand).as<std::int32_t>();
 
             assert(i < length(e));
 
@@ -461,13 +457,11 @@ inline namespace kernel
 
             assert(operand.is<relative>());
 
-            using index = relative::index;
+            assert(car(operand).is<std::int32_t>());
+            assert(cdr(operand).is<std::int32_t>());
 
-            assert(car(operand).is<index>());
-            assert(cdr(operand).is<index>());
-
-            auto i = car(operand).as<index>();
-            auto j = cdr(operand).as<index>();
+            auto i = car(operand).as<std::int32_t>();
+            auto j = cdr(operand).as<std::int32_t>();
 
             assert(i < length(e));
 
@@ -487,13 +481,11 @@ inline namespace kernel
 
             assert(operand.is<variadic>());
 
-            using index = variadic::index;
+            assert(car(operand).is<std::int32_t>());
+            assert(cdr(operand).is<std::int32_t>());
 
-            assert(car(operand).is<index>());
-            assert(cdr(operand).is<index>());
-
-            auto i = car(operand).as<index>();
-            auto j = cdr(operand).as<index>();
+            auto i = car(operand).as<std::int32_t>();
+            auto j = cdr(operand).as<std::int32_t>();
 
             assert(i < length(e));
 
