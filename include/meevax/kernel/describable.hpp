@@ -14,15 +14,25 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/procedure.hpp>
+#ifndef INCLUDED_MEEVAX_KERNEL_DESCRIBABLE_HPP
+#define INCLUDED_MEEVAX_KERNEL_DESCRIBABLE_HPP
+
+#include <meevax/kernel/symbol.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(std::ostream & os, primitive const& datum) -> std::ostream &
+  struct describable
   {
-    return os << magenta("#,(") << green("procedure ") << datum.name << magenta(")");
-  }
+    symbol const name;
+
+    template <typename... Ts>
+    explicit describable(Ts&&... xs)
+      : name { std::forward<decltype(xs)>(xs)... }
+    {}
+  };
 } // namespace kernel
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_KERNEL_DESCRIBABLE_HPP

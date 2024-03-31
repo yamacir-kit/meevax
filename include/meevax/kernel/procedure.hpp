@@ -18,22 +18,18 @@
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
 #include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/describable.hpp>
 #include <meevax/kernel/ghost.hpp>
-#include <meevax/kernel/list.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct primitive
+  struct primitive : public describable
   {
     using signature = auto (*)(object &) -> object;
 
-    std::string const name;
-
-    explicit primitive(std::string const& name)
-      : name { name }
-    {}
+    using describable::describable;
 
     virtual auto operator ()(object & = unit) const -> object = 0;
   };
@@ -158,7 +154,7 @@ inline namespace kernel
   };
 
   template <typename T, typename... Ts>
-  using procedure = std::enable_if_t<std::is_convertible_v<T, std::string>, procedure_traits<Ts...>>;
+  using procedure = std::enable_if_t<std::is_constructible_v<describable, T>, procedure_traits<Ts...>>;
 } // namespace kernel
 } // namespace meevax
 
