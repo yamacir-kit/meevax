@@ -108,15 +108,15 @@ inline namespace kernel
   auto reverse(object &) -> object;
 
   template <typename F>
-  auto map(F f, object const& xs) -> object
+  auto map(F f, object const& xs, object const& ys = nullptr) -> object
   {
     if (xs.is<pair>())
     {
-      return cons(f(car(xs)), map(f, cdr(xs)));
+      return cons(f(car(xs)), map(f, cdr(xs), ys));
     }
     else
     {
-      return nullptr;
+      return ys;
     }
   }
 

@@ -1006,19 +1006,16 @@ inline namespace kernel
           }
           else
           {
-            let extended_free_variables = free_variables;
-
-            for (let const& free_variable : cadr(expression))
-            {
-              extended_free_variables = alist_cons(free_variable,
-                                                   make<syntactic_environment>(bound_variables, free_variables),
-                                                   extended_free_variables);
-            }
-
             return car(expression).as<syntactic_environment>()
                                   .compile(cddr(expression),
                                            unify(caar(expression), bound_variables),
-                                           extended_free_variables,
+                                           map([&](let const& free_variable)
+                                               {
+                                                 return cons(free_variable,
+                                                             make<syntactic_environment>(bound_variables, free_variables));
+                                               },
+                                               cadr(expression) /* free-variables of syntactic-closure */,
+                                               free_variables),
                                            continuation);
           }
         }
