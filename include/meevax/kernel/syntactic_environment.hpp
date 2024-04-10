@@ -964,8 +964,6 @@ inline namespace kernel
       #undef COMPILER
     };
 
-    using injector = std::function<object (object const&)>;
-
     auto operator ()(object const& expression,
                      object const& bound_variables = nullptr, // list of <formals>
                      object const& free_variables = nullptr,
@@ -1008,29 +1006,19 @@ inline namespace kernel
           }
           else
           {
-            auto extend = [=](let const& free_variables)
+            let extended_free_variables = free_variables;
+
+            for (let const& free_variable : cadr(expression))
             {
-              let xs = free_variables;
-
-              for (let const& free_variable : cadr(expression))
-              {
-                let const inject = make<injector>([=](let const& xs)
-                {
-                  return identify(free_variable,
-                                  unify(bound_variables, xs),
-                                  free_variables);
-                });
-
-                xs = alist_cons(free_variable, inject, xs);
-              }
-
-              return xs;
-            };
+              extended_free_variables = alist_cons(free_variable,
+                                                   make<syntactic_environment>(bound_variables, free_variables),
+                                                   extended_free_variables);
+            }
 
             return car(expression).as<syntactic_environment>()
                                   .compile(cddr(expression),
                                            unify(caar(expression), bound_variables),
-                                           extend(free_variables),
+                                           extended_free_variables,
                                            continuation);
           }
         }
@@ -1124,7 +1112,12 @@ inline namespace kernel
       }
       else if (let const& x = assq(variable, free_variables); x != f)
       {
-        return cdr(x).as<injector>()(bound_variables);
+        auto & enclosure = cdr(x).as<syntactic_environment>();
+
+        return enclosure.identify(car(x),
+                                  enclosure.unify(enclosure.first /* bound-variables */,
+                                                  bound_variables),
+                                  enclosure.second /* free-variables */);
       }
       else
       {
