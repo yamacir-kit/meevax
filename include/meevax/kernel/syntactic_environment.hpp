@@ -1112,12 +1112,7 @@ inline namespace kernel
       }
       else if (let const& x = assq(variable, free_variables); x != f)
       {
-        auto & enclosure = cdr(x).as<syntactic_environment>();
-
-        return enclosure.identify(car(x),
-                                  enclosure.unify(enclosure.first /* bound-variables */,
-                                                  bound_variables),
-                                  enclosure.second /* free-variables */);
+        return cdr(x).as<syntactic_environment>().inject(car(x), bound_variables);
       }
       else
       {
@@ -1192,6 +1187,15 @@ inline namespace kernel
         */
         return car(second = cons(make<absolute>(variable, undefined), second));
       }
+    }
+
+    inline auto inject(object const& free_variable,
+                       object const& bound_variables) -> object
+    {
+      return identify(free_variable,
+                      unify(first /* bound-variables */,
+                            bound_variables),
+                      second /* free-variables */);
     }
 
     static auto rename(std::string const& variable)
