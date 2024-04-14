@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_ITERATOR_INDEX_ITERATOR_HPP
 #define INCLUDED_MEEVAX_ITERATOR_INDEX_ITERATOR_HPP
 
+#include <cassert>
 #include <iterator>
 #include <limits>
 #include <memory>
