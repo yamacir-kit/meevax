@@ -299,7 +299,8 @@ inline namespace memory
         return type() == typeid(std::decay_t<U>);
       }
 
-      template <typename U, REQUIRES(std::is_class<U>)>
+      template <typename U,
+                typename = std::enable_if_t<std::is_class_v<U>>>
       inline auto is_also() const
       {
         return dynamic_cast<std::add_pointer_t<U>>(base_pointer::get()) != nullptr;
