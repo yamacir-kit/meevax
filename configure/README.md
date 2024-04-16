@@ -21,24 +21,23 @@ Latest release is [here](https://github.com/yamacir-kit/meevax/releases).
 
 ### Features
 
-- Traditional SECD machine [[Landin 1964](#Landin-1964)].
-- Low-level hygienic macro system, known as *syntactic closures* [[Bawden and
-  Rees 1988](#Bawden-and-Rees-1988); [Hanson 1991](#Hanson-1991)] and *explicit
-  renaming* [[Clinger 1991](#Clinger-1991)]. For these, the well-known macro
-  transformers `sc-macro-transformer`, `rsc-macro-transformer` and
-  `er-macro-transformer` from the library [`(meevax
-  macro-transformer)`](./basis/meevax.ss) are provided. Note that these are
-  non-Scheme standards.
-- C++ friendly precise garbage collection [[Kempf 2001a](#Kempf-2001a); [Kempf
-  2001b](#Kempf-2001b)]
+- Traditional SECD machine [[2](#Landin-1964)].
+- Low-level hygienic macro system, known as *syntactic closures*
+  [[4](#Bawden-and-Rees-1988), [6](#Hanson-1991)] and *explicit renaming*
+  [[5](#Clinger-1991)]. For these, the well-known macro transformers
+  `sc-macro-transformer`, `rsc-macro-transformer` and `er-macro-transformer`
+  from the library [`(meevax macro-transformer)`](./basis/meevax.ss) are
+  provided. Note that these are non-Scheme standards.
+- C++ friendly precise garbage collection [[10](#Kempf-2001a),
+  [11](#Kempf-2001b)]
 
 ### Standards
 
 Meevax can be used as an interpreter that supports the Scheme standard specified by the following report:
 
-- Revised<sup>4</sup> Report on the Algorithmic Language Scheme (R4RS) [[Clinger and Rees 1991a](#Clinger-and-Rees-1991a)]
-- Revised<sup>5</sup> Report on the Algorithmic Language Scheme (R5RS) [[Kelsey, Clinger and Rees 1998](#Kelsey-Clinger-and-Rees-1998)]
-- Revised<sup>7</sup> Report on the Algorithmic Language Scheme (R7RS) [[Shinn, Cowan and Gleckler 2013](#Shinn-Cowan-and-Gleckler-2013)]
+- Revised<sup>4</sup> Report on the Algorithmic Language Scheme (R4RS) [[5](#Clinger-and-Rees-1991a)]
+- Revised<sup>5</sup> Report on the Algorithmic Language Scheme (R5RS) [[9](#Kelsey-Clinger-and-Rees-1998)]
+- Revised<sup>7</sup> Report on the Algorithmic Language Scheme (R7RS) [[13](#Shinn-Cowan-and-Gleckler-2013)]
 
 Procedures for each standard are provided by the following R7RS-style libraries:
 
