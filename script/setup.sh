@@ -15,6 +15,7 @@ optional()
 
 documentation()
 {
+  echo bibtex2html
   echo doxygen
 }
 
