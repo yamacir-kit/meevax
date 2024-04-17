@@ -20,19 +20,16 @@ auto duration(Thunk thunk)
   return std::chrono::duration_cast<Period>(std::chrono::high_resolution_clock::now() - begin);
 }
 
-namespace std
+template <auto N>
+auto std::begin(std::bitset<N> const& bitset)
 {
-  template <auto N>
-  auto begin(std::bitset<N> const& bitset)
-  {
-    return meevax::index_iterator(bitset, 0);
-  }
+  return meevax::index_iterator(bitset, 0);
+}
 
-  template <auto N>
-  auto end(std::bitset<N> const& bitset)
-  {
-    return meevax::index_iterator(bitset, bitset.size());
-  }
+template <auto N>
+auto std::end(std::bitset<N> const& bitset)
+{
+  return meevax::index_iterator(bitset, bitset.size());
 }
 
 template <typename Bitset, typename... Ts>

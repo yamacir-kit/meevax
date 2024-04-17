@@ -159,13 +159,13 @@ inline namespace memory
 
     struct mutator : public nan_boxing_pointer<Top, Ts...>
     {
-      using base_pointer = nan_boxing_pointer<Top, Ts...>;
+      using pointer = nan_boxing_pointer<Top, Ts...>;
 
       mutator(std::nullptr_t = nullptr) noexcept
       {}
 
       mutator(mutator const& other)
-        : base_pointer { other }
+        : pointer { other }
       {
         if (*this)
         {
@@ -174,7 +174,7 @@ inline namespace memory
       }
 
       mutator(Top * top)
-        : base_pointer { top }
+        : pointer { top }
       {
         if (top)
         {
@@ -184,9 +184,9 @@ inline namespace memory
 
       template <typename T, typename = std::enable_if_t<(std::is_same_v<T, Ts> or ... or std::is_same_v<T, double>)>>
       mutator(T const& datum)
-        : base_pointer { datum }
+        : pointer { datum }
       {
-        assert(base_pointer::get() == nullptr);
+        assert(pointer::get() == nullptr);
       }
 
       ~mutator()
@@ -211,7 +211,7 @@ inline namespace memory
 
       auto reset(mutator const& other) -> void
       {
-        if (base_pointer::reset(other); other)
+        if (pointer::reset(other); other)
         {
           mutators.insert(this);
         }
@@ -223,7 +223,7 @@ inline namespace memory
 
       auto reset(std::nullptr_t = nullptr) -> void
       {
-        base_pointer::reset();
+        pointer::reset();
         mutators.erase(this);
       }
 
@@ -232,11 +232,11 @@ inline namespace memory
       {
         if constexpr (std::is_same_v<std::decay_t<U>, Top>)
         {
-          return base_pointer::operator *();
+          return pointer::operator *();
         }
         else if constexpr (std::is_class_v<std::decay_t<U>>)
         {
-          if (auto data = dynamic_cast<std::add_pointer_t<U>>(base_pointer::get()); data)
+          if (auto data = dynamic_cast<std::add_pointer_t<U>>(pointer::get()); data)
           {
             return *data;
           }
@@ -247,7 +247,7 @@ inline namespace memory
         }
         else
         {
-          return base_pointer::template as<U>();
+          return pointer::template as<U>();
         }
       }
 
@@ -256,11 +256,11 @@ inline namespace memory
       {
         if constexpr (std::is_same_v<std::decay_t<U>, Top>)
         {
-          return base_pointer::operator *();
+          return pointer::operator *();
         }
         else if constexpr (std::is_class_v<std::decay_t<U>>)
         {
-          if (auto data = dynamic_cast<std::add_pointer_t<U>>(base_pointer::get()); data)
+          if (auto data = dynamic_cast<std::add_pointer_t<U>>(pointer::get()); data)
           {
             return *data;
           }
@@ -271,7 +271,7 @@ inline namespace memory
         }
         else
         {
-          return base_pointer::template as<U>();
+          return pointer::template as<U>();
         }
       }
 
@@ -283,13 +283,13 @@ inline namespace memory
 
       inline auto compare(mutator const& rhs) const -> bool
       {
-        if (base_pointer::dereferenceable())
+        if (pointer::dereferenceable())
         {
-          return *this ? base_pointer::get()->compare(rhs.get()) : rhs.is<std::nullptr_t>();
+          return *this ? pointer::get()->compare(rhs.get()) : rhs.is<std::nullptr_t>();
         }
         else
         {
-          return base_pointer::compare(rhs);
+          return pointer::compare(rhs);
         }
       }
 
@@ -303,30 +303,30 @@ inline namespace memory
                 typename = std::enable_if_t<std::is_class_v<U>>>
       inline auto is_also() const
       {
-        return dynamic_cast<std::add_pointer_t<U>>(base_pointer::get()) != nullptr;
+        return dynamic_cast<std::add_pointer_t<U>>(pointer::get()) != nullptr;
       }
 
       inline auto type() const -> std::type_info const&
       {
-        if (base_pointer::dereferenceable())
+        if (pointer::dereferenceable())
         {
-          return *this ? base_pointer::get()->type() : typeid(std::nullptr_t);
+          return *this ? pointer::get()->type() : typeid(std::nullptr_t);
         }
         else
         {
-          return base_pointer::type();
+          return pointer::type();
         }
       }
 
       inline auto write(std::ostream & os) const -> std::ostream &
       {
-        if (base_pointer::dereferenceable())
+        if (pointer::dereferenceable())
         {
-          return *this ? base_pointer::get()->write(os) : os << magenta("()");
+          return *this ? pointer::get()->write(os) : os << magenta("()");
         }
         else
         {
-          return base_pointer::write(os);
+          return pointer::write(os);
         }
       }
 
@@ -337,32 +337,32 @@ inline namespace memory
 
       inline auto begin()
       {
-        return *this ? base_pointer::get()->begin() : typename Top::iterator();
+        return *this ? pointer::get()->begin() : typename Top::iterator();
       }
 
       inline auto begin() const
       {
-        return *this ? base_pointer::get()->cbegin() : typename Top::const_iterator();
+        return *this ? pointer::get()->cbegin() : typename Top::const_iterator();
       }
 
       inline auto cbegin() const
       {
-        return *this ? base_pointer::get()->cbegin() : typename Top::const_iterator();
+        return *this ? pointer::get()->cbegin() : typename Top::const_iterator();
       }
 
       inline auto end()
       {
-        return *this ? base_pointer::get()->end() : typename Top::iterator();
+        return *this ? pointer::get()->end() : typename Top::iterator();
       }
 
       inline auto end() const
       {
-        return *this ? base_pointer::get()->cend() : typename Top::const_iterator();
+        return *this ? pointer::get()->cend() : typename Top::const_iterator();
       }
 
       inline auto cend() const
       {
-        return *this ? base_pointer::get()->cend() : typename Top::const_iterator();
+        return *this ? pointer::get()->cend() : typename Top::const_iterator();
       }
     };
 

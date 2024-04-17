@@ -81,12 +81,9 @@ inline namespace memory
 } // namespace memory
 } // namespace meevax
 
-namespace std
-{
-  template <typename T>
-  class hash<meevax::memory::simple_pointer<T>>
-    : public hash<typename meevax::memory::simple_pointer<T>::pointer>
-  {};
-}
+template <typename T>
+struct std::hash<meevax::memory::simple_pointer<T>>
+  : public std::hash<typename meevax::memory::simple_pointer<T>::pointer>
+{};
 
 #endif // INCLUDED_MEEVAX_MEMORY_SIMPLE_POINTER_HPP
