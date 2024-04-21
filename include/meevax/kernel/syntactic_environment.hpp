@@ -1074,6 +1074,33 @@ inline namespace kernel
       return operator ()(std::forward<decltype(xs)>(xs)...);
     }
 
+    static auto core() -> auto const&
+    {
+      #define BINDING(NAME, SYNTAX) \
+        make<absolute>(make_symbol(NAME), make<syntax>(NAME, syntax::SYNTAX))
+
+      let static const core = make<syntactic_environment>(
+        nullptr,
+        list(BINDING("begin"                          , sequence                      ),
+             BINDING("call-with-current-continuation!", call_with_current_continuation),
+             BINDING("current"                        , current                       ),
+             BINDING("define"                         , define                        ),
+             BINDING("define-syntax"                  , define_syntax                 ),
+             BINDING("if"                             , conditional                   ),
+             BINDING("install"                        , install                       ),
+             BINDING("lambda"                         , lambda                        ),
+             BINDING("let-syntax"                     , let_syntax                    ),
+             BINDING("letrec"                         , letrec                        ),
+             BINDING("letrec-syntax"                  , letrec_syntax                 ),
+             BINDING("quote"                          , quote                         ),
+             BINDING("quote-syntax"                   , quote_syntax                  ),
+             BINDING("set!"                           , set                           )));
+
+      #undef BINDING
+
+      return core;
+    }
+
     inline auto define(object const& variable, object const& value = undefined) -> void
     {
       assert(identify(variable, nullptr, nullptr).template is<absolute>());
@@ -1197,29 +1224,7 @@ inline namespace kernel
 
     static auto rename(std::string const& variable)
     {
-      auto bind = [](auto&& name, auto&& compiler)
-      {
-        return make<absolute>(make_symbol(name), make<syntax>(name, compiler));
-      };
-
-      let static const core_syntactic_environment = make<syntactic_environment>(
-        list(),
-        list(bind("begin"                          , syntax::sequence                      ),
-             bind("call-with-current-continuation!", syntax::call_with_current_continuation),
-             bind("current"                        , syntax::current                       ),
-             bind("define"                         , syntax::define                        ),
-             bind("define-syntax"                  , syntax::define_syntax                 ),
-             bind("if"                             , syntax::conditional                   ),
-             bind("install"                        , syntax::install                       ),
-             bind("lambda"                         , syntax::lambda                        ),
-             bind("let-syntax"                     , syntax::let_syntax                    ),
-             bind("letrec"                         , syntax::letrec                        ),
-             bind("letrec-syntax"                  , syntax::letrec_syntax                 ),
-             bind("quote"                          , syntax::quote                         ),
-             bind("quote-syntax"                   , syntax::quote_syntax                  ),
-             bind("set!"                           , syntax::set                           )));
-
-      return make<syntactic_closure>(core_syntactic_environment, cons(nullptr, make_symbol(variable)));
+      return make<syntactic_closure>(core(), cons(nullptr, make_symbol(variable)));
     }
 
     inline auto sweep(object const& form,
