@@ -330,25 +330,8 @@ inline namespace kernel
 
     define<library>("(meevax core)", [](library & library)
     {
-      using syntax = environment::syntax;
-
-      library.define<syntax>("begin",                           syntax::sequence);
-      library.define<syntax>("call-with-current-continuation!", syntax::call_with_current_continuation);
-      library.define<syntax>("current",                         syntax::current);
-      library.define<syntax>("define",                          syntax::define);
-      library.define<syntax>("define-syntax",                   syntax::define_syntax);
-      library.define<syntax>("if",                              syntax::conditional);
-      library.define<syntax>("implementation-dependent",        syntax::implementation_dependent);
-      library.define<syntax>("include",                         syntax::include);
-      library.define<syntax>("include-case-insensitive",        syntax::include_case_insensitive);
-      library.define<syntax>("install",                         syntax::install);
-      library.define<syntax>("lambda",                          syntax::lambda);
-      library.define<syntax>("let-syntax",                      syntax::let_syntax);
-      library.define<syntax>("letrec",                          syntax::letrec);
-      library.define<syntax>("letrec-syntax",                   syntax::letrec_syntax);
-      library.define<syntax>("quote",                           syntax::quote);
-      library.define<syntax>("quote-syntax",                    syntax::quote_syntax);
-      library.define<syntax>("set!",                            syntax::set);
+      library.second = cdr(environment::core()); // DIRTY HACK!
+      library.export_specs = map(car, library.second);
     });
 
     define<library>("(meevax environment)", [](library & library)
