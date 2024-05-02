@@ -48,7 +48,7 @@ inline namespace kernel
 
     std::vector<std::string> command_line;
 
-    auto configure(const int argc, char const* const* const argv)
+    auto configure(int const argc, char const* const* const argv)
     {
       for (auto i = 0; i < argc; ++i)
       {
@@ -60,9 +60,9 @@ inline namespace kernel
 
     auto configure(std::vector<std::string> const& args) -> void
     {
-      static std::regex const pattern { R"(--(\w[-\w]+)(=(.*))?|-([\w]+))" };
+      static auto const pattern = std::regex(R"(--(\w[-\w]+)(=(.*))?|-([\w]+))");
 
-      std::vector<option> options
+      auto const options = std::vector<option>
       {
         option("(i|interactive)", [this](auto)
         {

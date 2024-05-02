@@ -353,6 +353,11 @@ inline namespace kernel
         return cadr(xs).as<environment>().evaluate(car(xs));
       });
 
+      library.define<procedure>("expand", [](let const& xs)
+      {
+        return cadr(xs).as<environment>().expand(car(xs));
+      });
+
       library.define<procedure>("interaction-environment", []()
       {
         return interaction_environment();

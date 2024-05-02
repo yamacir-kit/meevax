@@ -81,10 +81,16 @@ inline namespace kernel
                       object const& /* continuation    */,
                       bool          /* tail            */) -> object;
 
-      template <typename Compiler>
-      explicit syntax(std::string const& name, Compiler const& compile)
+      auto (*expand)(syntactic_environment const&,
+                     object const& expression,
+                     object const& bound_variables,
+                     object const& free_variables) -> object;
+
+      template <typename Compiler, typename Expander>
+      explicit syntax(std::string const& name, Compiler const& compile, Expander const& expand)
         : describable { name }
         , compile { compile }
+        , expand { expand }
       {}
 
       friend auto operator <<(std::ostream & os, syntax const& datum) -> std::ostream &
@@ -964,6 +970,320 @@ inline namespace kernel
       #undef COMPILER
     };
 
+    struct expander
+    {
+      #define EXPANDER(NAME)                                                   \
+      auto NAME([[maybe_unused]] syntactic_environment const& expander,        \
+                                 object const& expression,                     \
+                [[maybe_unused]] object const& bound_variables,                \
+                [[maybe_unused]] object const& free_variables) -> object
+
+      static EXPANDER(quote)
+      {
+        return expression;
+      }
+
+      static EXPANDER(quote_syntax)
+      {
+        return expression;
+      }
+
+      static EXPANDER(call)
+      {
+        return cons(expander.expand(car(expression),
+                                    bound_variables,
+                                    free_variables),
+                    operand(expander,
+                            cdr(expression),
+                            bound_variables,
+                            free_variables));
+      }
+
+      static EXPANDER(operand)
+      {
+        if (expression.is<pair>())
+        {
+          return cons(expander.expand(car(expression),
+                                      bound_variables,
+                                      free_variables),
+                      operand(expander,
+                              cdr(expression),
+                              bound_variables,
+                              free_variables));
+        }
+        else
+        {
+          return expander.expand(expression, bound_variables, free_variables);
+        }
+      }
+
+      static EXPANDER(lambda)
+      {
+        return cons(car(expression) /* lambda */,
+                    cons(cadr(expression) /* formals */,
+                         body(expander,
+                              cddr(expression),
+                              cons(cadr(expression) /* formals */, bound_variables),
+                              free_variables)));
+      }
+
+      static EXPANDER(body)
+      {
+        if (auto [binding_specs, sequence] = expander.sweep(expression, bound_variables, free_variables); binding_specs)
+        {
+          /*
+             (letrec* <binding specs> <sequence>)
+
+                 => ((lambda <variables> <assignments> <sequence>)
+                     <dummy 1> ... <dummy n>)
+
+             where <binding specs> = ((<variable 1> <initial 1>) ...
+                                      (<variable n> <initial n>))
+          */
+          let formals = nullptr;
+
+          let body = sequence;
+
+          for (let const& binding_spec : binding_specs) // The order of the list `binding_specs` returned from the function `sweep` is the reverse of the definition order.
+          {
+            let const& variable = car(binding_spec);
+
+            formals = cons(variable, formals);
+
+            if (not variable.is<absolute>()) // The binding-spec is not an internal syntax definition.
+            {
+              body = cons(cons(rename("set!"), binding_spec), body);
+            }
+          }
+
+          let const current_environment = make<syntactic_environment>(cons(formals, bound_variables),
+                                                                      expander.second);
+
+          for (let & formal : formals)
+          {
+            if (formal.is<absolute>())
+            {
+              cdr(formal) = make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cdr(formal) /* <transformer spec> */,
+                                                                                                                            car(current_environment))),
+                                              current_environment);
+            }
+          }
+
+          return expander.expand(list(cons(cons(rename("lambda"),
+                                                formals,
+                                                body),
+                                           make_list(length(binding_specs), nullptr))),
+                                 bound_variables,
+                                 free_variables);
+        }
+        else if (sequence.template is<pair>())
+        {
+          return cons(expander.expand(car(sequence),
+                                      bound_variables,
+                                      free_variables),
+                      body(expander,
+                           cdr(sequence),
+                           bound_variables,
+                           free_variables));
+        }
+        else
+        {
+          return expander.expand(sequence, bound_variables, free_variables);
+        }
+      }
+
+      static EXPANDER(conditional)
+      {
+        return cons(car(expression),
+                    operand(expander,
+                            cdr(expression),
+                            bound_variables,
+                            free_variables));
+      }
+
+      static EXPANDER(set)
+      {
+        return cons(car(expression),
+                    operand(expander,
+                            cdr(expression),
+                            bound_variables,
+                            free_variables));
+      }
+
+      static EXPANDER(include)
+      {
+        return expander.expand(cons(rename("begin"),
+                                    meevax::include(cadr(expression))),
+                               bound_variables,
+                               free_variables);
+      }
+
+      static EXPANDER(include_case_insensitive)
+      {
+        return expander.expand(cons(rename("begin"),
+                                    meevax::include(cadr(expression), false)),
+                               bound_variables,
+                               free_variables);
+      }
+
+      static EXPANDER(implementation_dependent)
+      {
+        return expander.expand(cons(rename("begin"),
+                                    meevax::implementation_dependent(cdr(expression))),
+                               bound_variables,
+                               free_variables);
+      }
+
+      static EXPANDER(letrec)
+      {
+        let const extended_bound_variables = cons(map(car, cadr(expression)), bound_variables);
+
+        return cons(car(expression),
+                    map([&](let const& binding)
+                        {
+                          return list(car(binding),
+                                      expander.expand(cadr(binding),
+                                                      extended_bound_variables,
+                                                      free_variables));
+                        },
+                        cadr(expression)),
+                    body(expander,
+                         cddr(expression),
+                         extended_bound_variables,
+                         free_variables));
+      }
+
+      static EXPANDER(sequence)
+      {
+        if (expression.is<pair>())
+        {
+          return cons(expander.expand(car(expression),
+                                      bound_variables,
+                                      free_variables),
+                      sequence(expander,
+                               cdr(expression),
+                               bound_variables,
+                               free_variables));
+        }
+        else
+        {
+          return expander.expand(expression, bound_variables, free_variables);
+        }
+      }
+
+      static EXPANDER(let_syntax)
+      {
+        let const current_environment = make<syntactic_environment>(bound_variables, expander.second);
+
+        auto formal = [&](let const& syntax_spec)
+        {
+          return make<absolute>(car(syntax_spec), // <keyword>
+                                make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec), // <transformer spec>
+                                                                                                                                bound_variables)),
+                                                  current_environment));
+        };
+
+        let const formals = map(formal, cadr(expression));
+
+        return expander.expand(list(cons(rename("lambda"),
+                                         formals,
+                                         cddr(expression) /* body */)),
+                               bound_variables,
+                               free_variables);
+      }
+
+      static EXPANDER(letrec_syntax)
+      {
+        let current_environment = make<syntactic_environment>(bound_variables, expander.second);
+
+        auto formal = [&](let const& syntax_spec)
+        {
+          return make<absolute>(car(syntax_spec), // <keyword>
+                                make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec), // <transformer spec>
+                                                                                                                                bound_variables)),
+                                                  current_environment));
+        };
+
+        let const formals = map(formal, cadr(expression));
+
+        car(current_environment) = cons(formals, bound_variables);
+
+        return expander.expand(list(cons(rename("lambda"),
+                                         formals,
+                                         cddr(expression) /* body */)),
+                               bound_variables,
+                               free_variables);
+      }
+
+      static EXPANDER(define)
+      {
+        if (bound_variables.is<null>())
+        {
+          if (cadr(expression).is<pair>()) // (define (<variable> . <formals>) <body>)
+          {
+            return list(car(expression),
+                        caadr(expression) /* variable */,
+                        expander.expand(cons(rename("lambda"),
+                                             cdadr(expression) /* formals */,
+                                             cddr(expression) /* body */),
+                                        bound_variables,
+                                        free_variables));
+          }
+          else // (define <variable> <expression>)
+          {
+            return cons(car(expression),
+                        cadr(expression),
+                        cddr(expression) ? list(expander.expand(caddr(expression),
+                                                                bound_variables,
+                                                                free_variables))
+                                         : unit);
+          }
+        }
+        else
+        {
+          throw error(make<string>("definition cannot appear in this syntactic-context"));
+        }
+      }
+
+      static EXPANDER(define_syntax)
+      {
+        return list(car(expression),
+                    cadr(expression),
+                    expander.expand(caddr(expression),
+                                    bound_variables,
+                                    free_variables));
+      }
+
+      static EXPANDER(call_with_current_continuation)
+      {
+        return cons(car(expression),
+                    operand(expander,
+                            cdr(expression),
+                            bound_variables,
+                            free_variables));
+      }
+
+      static EXPANDER(current)
+      {
+        return cons(car(expression),
+                    operand(expander,
+                            cdr(expression),
+                            bound_variables,
+                            free_variables));
+      }
+
+      static EXPANDER(install)
+      {
+        return cons(car(expression),
+                    operand(expander,
+                            cdr(expression),
+                            bound_variables,
+                            free_variables));
+      }
+
+      #undef EXPANDER
+    };
+
     using pair::pair;
 
     inline auto compile(object const& expression,
@@ -1071,7 +1391,7 @@ inline namespace kernel
     static auto core() -> auto const&
     {
       #define BINDING(NAME, SYNTAX) \
-        make<absolute>(make_symbol(NAME), make<syntax>(NAME, syntax::SYNTAX))
+        make<absolute>(make_symbol(NAME), make<syntax>(NAME, syntax::SYNTAX, expander::SYNTAX))
 
       let static const core = make<syntactic_environment>(
         nullptr,
@@ -1121,6 +1441,55 @@ inline namespace kernel
     inline auto define(Ts&&... xs) -> decltype(auto)
     {
       return define<typename Deducer<Ts...>::type>(std::forward<decltype(xs)>(xs)...);
+    }
+
+    inline auto expand(object const& expression,
+                       object const& bound_variables = nullptr, // list of <formals>
+                       object const& free_variables = nullptr) const -> object
+    {
+      if (not expression.is<pair>())
+      {
+        return expression;
+      }
+      else if (let const& identity = identify(car(expression), bound_variables, free_variables); identity.is<absolute>())
+      {
+        if (cdr(identity).is<transformer>())
+        {
+          /*
+             Scheme programs can define and use new derived expression types,
+             called macros. Program-defined expression types have the syntax
+
+               (<keyword> <datum>...)
+
+             where <keyword> is an identifier that uniquely determines the
+             expression type. This identifier is called the syntactic keyword,
+             or simply keyword, of the macro. The number of the <datum>s, and
+             their syntax, depends on the expression type.
+
+             Each instance of a macro is called a use of the macro. The set of
+             rules that specifies how a use of a macro is transcribed into a
+             more primitive expression is called the transformer of the macro.
+          */
+          assert(cadr(identity).is<closure>());
+          assert(cddr(identity).is<syntactic_environment>());
+
+          return expand(Environment().apply(cadr(identity),
+                                            expression,
+                                            make<syntactic_environment>(bound_variables, second),
+                                            cddr(identity)),
+                        bound_variables,
+                        free_variables);
+        }
+        else if (cdr(identity).is<syntax>())
+        {
+          return cdr(identity).as<syntax>().expand(*this,
+                                                   expression,
+                                                   bound_variables,
+                                                   free_variables);
+        }
+      }
+
+      return expander::call(*this, expression, bound_variables, free_variables);
     }
 
     inline auto identify(object const& variable,

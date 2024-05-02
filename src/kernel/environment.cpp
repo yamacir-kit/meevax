@@ -80,7 +80,7 @@ inline namespace kernel
                std::exchange(c, nullptr), d);
     }
 
-    let const result = execute(optimize(compile(expression)));
+    let const result = execute(optimize(compile(expand(expression))));
 
     if (d)
     {
