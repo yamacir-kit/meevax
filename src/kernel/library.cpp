@@ -54,7 +54,7 @@ inline namespace kernel
       }
       else if (name == "cond-expand")
       {
-        for (let const& library_declaration : implementation_dependent(cdr(declaration)))
+        for (let const& library_declaration : conditional_expand(cdr(declaration)))
         {
           evaluate(library_declaration);
         }

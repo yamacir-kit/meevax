@@ -17,9 +17,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 
+#include <meevax/kernel/conditional_expand.hpp>
 #include <meevax/kernel/describable.hpp>
 #include <meevax/kernel/identity.hpp>
-#include <meevax/kernel/implementation_dependent.hpp>
 #include <meevax/kernel/include.hpp>
 #include <meevax/kernel/transformer.hpp>
 
@@ -254,10 +254,10 @@ inline namespace kernel
                                free_variables);
       }
 
-      static EXPANDER(implementation_dependent)
+      static EXPANDER(conditional_expand)
       {
         return expander.expand(cons(rename("begin"),
-                                    meevax::implementation_dependent(cdr(expression))),
+                                    meevax::conditional_expand(cdr(expression))),
                                bound_variables,
                                free_variables);
       }
@@ -598,7 +598,7 @@ inline namespace kernel
 
       static constexpr auto include_case_insensitive = nullptr;
 
-      static constexpr auto implementation_dependent = nullptr;
+      static constexpr auto conditional_expand = nullptr;
 
       static GENERATOR(letrec)
       {
@@ -849,11 +849,11 @@ inline namespace kernel
         nullptr,
         list(BINDING("begin"                          , sequence                      ),
              BINDING("call-with-current-continuation!", call_with_current_continuation),
+             BINDING("conditional-expand"             , conditional_expand            ),
              BINDING("current"                        , current                       ),
              BINDING("define"                         , define                        ),
              BINDING("define-syntax"                  , define_syntax                 ),
              BINDING("if"                             , conditional                   ),
-             BINDING("implementation-dependent"       , implementation_dependent      ),
              BINDING("include"                        , include                       ),
              BINDING("include-case-insensitive"       , include_case_insensitive      ),
              BINDING("install"                        , install                       ),
