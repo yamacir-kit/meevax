@@ -192,8 +192,7 @@ inline namespace kernel
           {
             if (formal.is<absolute>())
             {
-              cdr(formal) = make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().generate(cdr(formal) /* <transformer spec> */,
-                                                                                                                             car(current_environment))),
+              cdr(formal) = make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cdr(formal) /* <transformer spec> */)),
                                               current_environment);
             }
           }
@@ -307,8 +306,7 @@ inline namespace kernel
         auto formal = [&](let const& syntax_spec)
         {
           return make<absolute>(car(syntax_spec) /* keyword */,
-                                make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().generate(cadr(syntax_spec), // <transformer spec>
-                                                                                                                                 bound_variables)),
+                                make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec) /* transformer spec */)),
                                                   current_environment));
         };
 
@@ -327,9 +325,8 @@ inline namespace kernel
 
         auto formal = [&](let const& syntax_spec)
         {
-          return make<absolute>(car(syntax_spec), // <keyword>
-                                make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().generate(cadr(syntax_spec), // <transformer spec>
-                                                                                                                                 bound_variables)),
+          return make<absolute>(car(syntax_spec) /* keyword */,
+                                make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec) /* transformer spec */)),
                                                   current_environment));
         };
 
@@ -834,6 +831,13 @@ inline namespace kernel
       }
 
       return generator::call(*this, expression, bound_variables, free_variables, continuation, tail);
+    }
+
+    inline auto compile(object const& expression) -> decltype(auto)
+    {
+      return generate(expand(expression,
+                             first),
+                      first);
     }
 
     static auto core() -> auto const&
