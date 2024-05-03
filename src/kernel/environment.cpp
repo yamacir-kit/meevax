@@ -96,8 +96,7 @@ inline namespace kernel
   {
     if (x.is_also<error>())
     {
-      x.as<error>().raise(); // NOTE: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84476
-      return nullptr;
+      throw error(make<string>(lexical_cast<std::string>("in evaluation of expression ", expression)), x);
     }
     else
     {

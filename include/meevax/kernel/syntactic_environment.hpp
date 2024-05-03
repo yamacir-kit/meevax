@@ -100,24 +100,13 @@ inline namespace kernel
 
       #define COMPILER(NAME)                                                   \
       auto NAME([[maybe_unused]] syntactic_environment & compiler,             \
-                                 object const& expression,                     \
+                [[maybe_unused]] object const& expression,                     \
                 [[maybe_unused]] object const& bound_variables,                \
                 [[maybe_unused]] object const& free_variables,                 \
-                                 object const& continuation,                   \
+                [[maybe_unused]] object const& continuation,                   \
                 [[maybe_unused]] bool tail = false) -> object
 
-      static COMPILER(reference) /* --------------------------------------------
-      *
-      *  R7RS 4.1.1. Variable references
-      *
-      *  <variable>                                                      syntax
-      *
-      *  An expression consisting of a variable (section 3.1) is a variable
-      *  reference. The value of the variable reference is the value stored in
-      *  the location to which the variable is bound. It is an error to
-      *  reference an unbound variable.
-      *
-      * --------------------------------------------------------------------- */
+      static COMPILER(reference)
       {
         if (let const& identity = compiler.identify(expression, bound_variables, free_variables); identity.is<relative>())
         {
@@ -137,28 +126,7 @@ inline namespace kernel
         }
       }
 
-      static COMPILER(quote) /* ------------------------------------------------
-      *
-      *  R7RS 4.1.2. Literal Expressions
-      *
-      *  (quote <datum>)                                                 syntax
-      *
-      *  (quote <datum>) evaluates to <datum>. <Datum> can be any external
-      *  representation of a Scheme object (see section 3.3). This notation is
-      *  used to include literal constants in Scheme code.
-      *
-      *  (quote <datum>) can be abbreviated as '<datum>. The two notations are
-      *  equivalent in all respects.
-      *
-      *  Numerical constants, string constants, character constants, vector
-      *  constants, bytevector constants, and boolean constants evaluate to
-      *  themselves; they need not be quoted.
-      *
-      *  As noted in section 3.4, it is an error to attempt to alter a constant
-      *  (i.e. the value of a literal expression) using a mutation procedure
-      *  like set-car! or string-set!.
-      *
-      * --------------------------------------------------------------------- */
+      static COMPILER(quote)
       {
         return cons(make(instruction::load_constant), car(expression).is<syntactic_closure>() ? cddar(expression) : car(expression),
                     continuation);
@@ -170,44 +138,7 @@ inline namespace kernel
                     continuation);
       }
 
-      static COMPILER(call) /* -------------------------------------------------
-      *
-      *  R7RS 4.1.3. Procedure calls
-      *
-      *  (<operator> <operand 1> ...)                                    syntax
-      *
-      *  A procedure call is written by enclosing in parentheses an expression
-      *  for the procedure to be called followed by expressions for the
-      *  arguments to be passed to it. The operator and operand expressions are
-      *  evaluated (in an unspecified order) and the resulting procedure is
-      *  passed the resulting arguments.
-      *
-      *  The procedures in this document are available as the values of
-      *  variables exported by the standard libraries. For example, the
-      *  addition and multiplication procedures in the above examples are the
-      *  values of the variables + and * in the base library. New procedures
-      *  are created by evaluating lambda expressions (see section 4.1.4).
-      *
-      *  Procedure calls can return any number of values (see values in section
-      *  6.10). Most of the procedures defined in this report return one value
-      *  or, for procedures such as apply, pass on the values returned by a
-      *  call to one of their arguments. Exceptions are noted in the individual
-      *  descriptions.
-      *
-      *  NOTE: In contrast to other dialects of Lisp, the order of evaluation
-      *  is unspecified, and the operator expression and the operand
-      *  expressions are always evaluated with the same evaluation rules.
-      *
-      *  NOTE: Although the order of evaluation is otherwise unspecified, the
-      *  effect of any concurrent evaluation of the operator and operand
-      *  expressions is constrained to be consistent with some sequential order
-      *  of evaluation. The order of evaluation may be chosen differently for
-      *  each procedure call.
-      *
-      *  NOTE: In many dialects of Lisp, the empty list, (), is a legitimate
-      *  expression evaluating to itself. In Scheme, it is an error.
-      *
-      * ------------------------------------------------------------------ */
+      static COMPILER(call)
       {
         return operand(compiler,
                        cdr(expression),
@@ -240,56 +171,7 @@ inline namespace kernel
         }
       }
 
-      static COMPILER(lambda) /* -----------------------------------------------
-      *
-      *  R7RS 4.1.4. Procedures
-      *
-      *  (lambda <formals> <body>)                                       syntax
-      *
-      *  Syntax: <Formals> is a formal arguments list as described below, and
-      *  <body> is a sequence of zero or more definitions followed by one or
-      *  more expressions.
-      *
-      *  Semantics: A lambda expression evaluates to a procedure. The
-      *  environment in effect when the lambda expression was evaluated is
-      *  remembered as part of the procedure. When the procedure is later
-      *  called with some actual arguments, the environment in which the lambda
-      *  expression was evaluated will be extended by binding the variables in
-      *  the formal argument list to fresh locations, and the corresponding
-      *  actual argument values will be stored in those locations. (A fresh
-      *  location is one that is distinct from every previously existing
-      *  location.) Next, the expressions in the body of the lambda expression
-      *  (which, if it contains definitions, represents a letrec* form - see
-      *  section 4.2.2) will be evaluated sequentially in the extended
-      *  environment. The results of the last expression in the body will be
-      *  returned as the results of the procedure call.
-      *
-      *  <Formals> have one of the following forms:
-      *
-      *  (<variable 1> ...): The procedure takes a fixed number of arguments;
-      *  when the procedure is called, the arguments will be stored in fresh
-      *  locations that are bound to the corresponding variables.
-      *
-      *  <variable>: The procedure takes any number of arguments; when the
-      *  procedure is called, the sequence of actual arguments is converted
-      *  into a newly allocated list, and the list is stored in a fresh
-      *  location that is bound to <variable>.
-      *
-      *  (<variable 1> ... <variable n> . <variable n+1>): If a space-delimited
-      *  period precedes the last variable, then the procedure takes n or more
-      *  arguments, where n is the number of formal arguments before the period
-      *  (it is an error if there is not at least one). The value stored in the
-      *  binding of the last variable will be a newly allocated list of the
-      *  actual arguments left over after all the other actual arguments have
-      *  been matched up against the other formal arguments.
-      *
-      *  It is an error for a <variable> to appear more than once in <formals>.
-      *
-      *  Each procedure created as the result of evaluating a lambda expression
-      *  is (conceptually) tagged with a storage location, in order to make
-      *  eqv? and eq? work on procedures (see section 6.1).
-      *
-      * --------------------------------------------------------------------- */
+      static COMPILER(lambda)
       {
         return cons(make(instruction::load_closure),
                     body(compiler,
@@ -300,99 +182,11 @@ inline namespace kernel
                     continuation);
       }
 
-      static COMPILER(body) /* -------------------------------------------------
-      *
-      *  5.3.2. Internal definitions
-      *
-      *  Definitions can occur at the beginning of a <body> (that is, the body
-      *  of a lambda, let, let*, letrec, letrec*, let-values, let*-values,
-      *  let-syntax, letrec-syntax, parameterize, guard, or case-lambda). Note
-      *  that such a body might not be apparent until after expansion of other
-      *  syntax. Such definitions are known as internal definitions as opposed
-      *  to the global definitions described above. The variables defined by
-      *  internal definitions are local to the <body>. That is, <variable> is
-      *  bound rather than assigned, and the region of the binding is the
-      *  entire <body>. For example,
-      *
-      *      (let ((x 5))
-      *        (define foo (lambda (y) (bar x y)))
-      *        (define bar (lambda (a b) (+ (* a b) a)))
-      *        (foo (+ x 3)))                                      => 45
-      *
-      *  An expanded <body> containing internal definitions can always be
-      *  converted into a completely equivalent letrec* expression. For
-      *  example, the let expression in the above example is equivalent to
-      *
-      *      (let ((x 5))
-      *        (letrec* ((foo (lambda (y) (bar x y)))
-      *                  (bar (lambda (a b) (+ (* a b) a))))
-      *          (foo (+ x 3))))
-      *
-      *  Just as for the equivalent letrec* expression, it is an error if it is
-      *  not possible to evaluate each <expression> of every internal
-      *  definition in a <body> without assigning or referring to the value of
-      *  the corresponding <variable> or the <variable> of any of the
-      *  definitions that follow it in <body>.
-      *
-      *  It is an error to define the same identifier more than once in the
-      *  same <body>.
-      *
-      *  Wherever an internal definition can occur, (begin <definition 1> ...)
-      *  is equivalent to the sequence of definitions that form the body of the
-      *  begin.
-      *
-      * --------------------------------------------------------------------- */
+      static COMPILER(body)
       {
-        if (auto [binding_specs, sequence] = compiler.sweep(expression, bound_variables, free_variables); binding_specs)
+        if (cdr(expression).template is<null>())
         {
-          /*
-             (letrec* <binding specs> <sequence>)
-
-                 => ((lambda <variables> <assignments> <sequence>)
-                     <dummy 1> ... <dummy n>)
-
-             where <binding specs> = ((<variable 1> <initial 1>) ...
-                                      (<variable n> <initial n>))
-          */
-          let formals = nullptr;
-
-          let body = sequence;
-
-          for (let const& binding_spec : binding_specs) // The order of the list `binding_specs` returned from the function `sweep` is the reverse of the definition order.
-          {
-            let const& variable = car(binding_spec);
-
-            formals = cons(variable, formals);
-
-            if (not variable.is<absolute>())
-            {
-              body = cons(cons(rename("set!"), binding_spec), body);
-            }
-          }
-
-          let const current_environment = make<syntactic_environment>(cons(formals, bound_variables),
-                                                                      compiler.second);
-
-          for (let & formal : formals)
-          {
-            if (formal.is<absolute>())
-            {
-              cdr(formal) = make<transformer>(Environment().execute(compiler.compile(cdr(formal), // <transformer spec>
-                                                                                     car(current_environment))),
-                                              current_environment);
-            }
-          }
-
-          return compiler.compile(cons(cons(rename("lambda"), formals, body),
-                                       make_list(length(binding_specs), nullptr)),
-                                  bound_variables,
-                                  free_variables,
-                                  continuation,
-                                  true);
-        }
-        else if (cdr(sequence).template is<null>())
-        {
-          return compiler.compile(car(sequence),
+          return compiler.compile(car(expression),
                                   bound_variables,
                                   free_variables,
                                   continuation,
@@ -400,12 +194,12 @@ inline namespace kernel
         }
         else
         {
-          return compiler.compile(car(sequence),
+          return compiler.compile(car(expression),
                                   bound_variables,
                                   free_variables,
                                   cons(make(instruction::drop),
                                        body(compiler,
-                                            cdr(sequence),
+                                            cdr(expression),
                                             bound_variables,
                                             free_variables,
                                             continuation)),
@@ -413,23 +207,7 @@ inline namespace kernel
         }
       }
 
-      static COMPILER(conditional) /* ------------------------------------------
-      *
-      *  R7RS 4.1.5. Conditionals
-      *
-      *  (if <test> <consequent> <alternate>)                            syntax
-      *  (if <test> <consequent>)                                        syntax
-      *
-      *  Syntax: <Test>, <consequent>, and <alternate> are expressions.
-      *
-      *  Semantics: An if expression is evaluated as follows: first, <test> is
-      *  evaluated. If it yields a true value (see section 6.3), then
-      *  <consequent> is evaluated and its values are returned. Otherwise
-      *  <alternate> is evaluated and its values are returned. If <test> yields
-      *  a false value and no <alternate> is specified, then the result of the
-      *  expression is unspecified.
-      *
-      * --------------------------------------------------------------------- */
+      static COMPILER(conditional)
       {
         if (tail)
         {
@@ -514,132 +292,13 @@ inline namespace kernel
         }
       }
 
-      static COMPILER(include) /* ----------------------------------------------
-      *
-      *  R7RS  4.1.7. Inclusion
-      *
-      *  (include <string 1> <string 2> ...)                             syntax
-      *  (include-ci <string 1> <string 2> ...)                          syntax
-      *
-      *  Semantics: Both include and include-ci take one or more filenames
-      *  expressed as string literals, apply an implementation-specific
-      *  algorithm to find corresponding files, read the contents of the files
-      *  in the specified order as if by repeated applications of read, and
-      *  effectively re- place the include or include-ci expression with a
-      *  begin expression containing what was read from the files. The
-      *  difference between the two is that include-ci reads each file as if it
-      *  began with the #!fold-case directive, while include does not.
-      *
-      *  NOTE: Implementations are encouraged to search for files in the
-      *  directory which contains the including file, and to provide a way for
-      *  users to specify other directories to search.
-      *
-      * --------------------------------------------------------------------- */
-      {
-        return sequence(compiler,
-                        meevax::include(expression),
-                        bound_variables,
-                        free_variables,
-                        continuation,
-                        tail);
-      }
+      static constexpr auto include = nullptr;
 
-      static COMPILER(include_case_insensitive)
-      {
-        return sequence(compiler,
-                        meevax::include(expression, false),
-                        bound_variables,
-                        free_variables,
-                        continuation,
-                        tail);
-      }
+      static constexpr auto include_case_insensitive = nullptr;
 
-      static COMPILER(implementation_dependent) /* -----------------------------
-      *
-      *  R7RS 4.2.1. Conditionals
-      *
-      *  (cond-expand <ce-clause 1> <ce-clause 2> ...)                   syntax
-      *
-      *  Syntax: The cond-expand expression type provides a way to statically
-      *  expand different expressions depending on the implementation. A
-      *  <ce-clause> takes the following form: (<feature requirement>
-      *  <expression> ...)
-      *
-      *  The last clause can be an "else clause," which has the form (else
-      *  <expression> ...)
-      *
-      *  A <feature requirement> takes one of the following forms:
-      *
-      *  - <feature identifier>
-      *  - (library <library name>)
-      *  - (and <feature requirement> ...)
-      *  - (or <feature requirement> ...)
-      *  - (not <feature requirement>)
-      *
-      *  Semantics: Each implementation maintains a list of feature identifiers
-      *  which are present, as well as a list of libraries which can be
-      *  imported. The value of a <feature requirement> is determined by
-      *  replacing each <feature identifier> and (library <library name>) on
-      *  the implementation's lists with #t, and all other feature identifiers
-      *  and library names with #f, then evaluating the resulting expression as
-      *  a Scheme boolean expression under the normal interpretation of and,
-      *  or, and not.
-      *
-      *  A cond-expand is then expanded by evaluating the <feature
-      *  requirement>s of successive <ce-clause>s in order until one of them
-      *  returns #t. When a true clause is found, the corresponding
-      *  <expression>s are expanded to a begin, and the remaining clauses are
-      *  ignored. If none of the <feature requirement>s evaluate to #t, then if
-      *  there is an else clause, its <expression>s are included. Otherwise,
-      *  the behavior of the cond-expand is unspecified. Unlike cond,
-      *  cond-expand does not depend on the value of any variables.
-      *
-      *  The exact features provided are implementation-defined, but for
-      *  portability a core set of features is given in appendix B.
-      *
-      * --------------------------------------------------------------------- */
-      {
-        return sequence(compiler,
-                        meevax::implementation_dependent(expression),
-                        bound_variables,
-                        free_variables,
-                        continuation,
-                        tail);
-      }
+      static constexpr auto implementation_dependent = nullptr;
 
-      static COMPILER(letrec) /* -----------------------------------------------
-      *
-      *  R7RS 4.2.2. Binding constructs
-      *
-      *  (letrec <bindings> <body>)                                      syntax
-      *
-      *  Syntax: <Bindings> has the form
-      *
-      *      ((<variable 1> <init 1>) ...),
-      *
-      *  and <body> is a sequence of zero or more definitions followed by one
-      *  or more expressions as described in section 4.1.4. It is an error for
-      *  a <variable> to appear more than once in the list of variables being
-      *  bound.
-      *
-      *  Semantics: The <variable>s are bound to fresh locations holding
-      *  unspecified values, the <init>s are evaluated in the resulting
-      *  environment (in some unspecified order), each <variable> is assigned
-      *  to the result of the corresponding <init>, the <body> is evaluated in
-      *  the resulting environment, and the values of the last expression in
-      *  <body> are returned. Each binding of a <variable> has the entire
-      *  letrec expression as its region, making it possible to define mutually
-      *  recursive procedures.
-      *
-      *  One restriction on letrec is very important: if it is not possible to
-      *  evaluate each <init> without assigning or referring to the value of
-      *  any <variable>, it is an error. The restriction is necessary because
-      *  letrec is defined in terms of a procedure call where a lambda
-      *  expression binds the <variable>s to the values of the <init>s. In the
-      *  most common uses of letrec, all the <init>s are lambda expressions and
-      *  the restriction is satisfied automatically.
-      *
-      * --------------------------------------------------------------------- */
+      static COMPILER(letrec)
       {
         assert(not tail or lexical_cast<std::string>(continuation) == "(return)");
 
@@ -658,38 +317,7 @@ inline namespace kernel
                                         : cons(make(instruction::letrec), continuation))));
       }
 
-      // NOTE: Binding constructs other than letrec are implemented as macros.
-
-      static COMPILER(sequence) /* ---------------------------------------------
-      *
-      *  R7RS 4.2.3. Sequencing
-      *
-      *  Both of Scheme's sequencing constructs are named begin, but the two
-      *  have slightly different forms and uses:
-      *
-      *  (begin <expression or definition> ...)                          syntax
-      *
-      *  This form of begin can appear as part of a <body>, or at the outermost
-      *  level of a <program>, or at the REPL, or directly nested in a begin
-      *  that is itself of this form. It causes the contained expressions and
-      *  definitions to be evaluated exactly as if the enclosing begin
-      *  construct were not present.
-      *
-      *  Rationale: This form is commonly used in the output of macros (see
-      *  section 4.3) which need to generate multiple definitions and splice
-      *  them into the context in which they are expanded.
-      *
-      *  (begin <expression 1> <expression 2> ...)                       syntax
-      *
-      *  This form of begin can be used as an ordinary expression. The
-      *  <expression>s are evaluated sequentially from left to right, and the
-      *  values of the last <expression> are returned. This expression type is
-      *  used to sequence side effects such as assignments or input and output.
-      *
-      *  Note that there is a third form of begin used as a library
-      *  declaration: see section 5.6.1.
-      *
-      * --------------------------------------------------------------------- */
+      static COMPILER(sequence)
       {
         /*
            The top-level sequential expression may contain macro definitions.
@@ -735,182 +363,24 @@ inline namespace kernel
         }
       }
 
-      // NOTE: R7RS 4.2.4. Iteration is implemented as macros.
+      static constexpr auto let_syntax = nullptr;
 
-      // NOTE: R7RS 4.2.5. Delayed evaluation is implemented as macros.
+      static constexpr auto letrec_syntax = nullptr;
 
-      // NOTE: R7RS 4.2.6. Dynamic bindings are implemented as macros.
-
-      // NOTE: R7RS 4.2.7. Exception handling is implemented as macros.
-
-      // NOTE: R7RS 4.2.8. Quasiquotation is implemented as macros.
-
-      // NOTE: R7RS 4.2.9. Case-lambda is implemented as macros.
-
-      static COMPILER(let_syntax) /* -------------------------------------------
-      *
-      *  R7RS 4.3.1. Binding constructs for syntactic keywords
-      *
-      *  (let-syntax <bindings> <body>)                                  syntax
-      *
-      *  Syntax: <Bindings> has the form
-      *
-      *      ((<keyword> <transformer spec>) ...)
-      *
-      *  Each <keyword> is an identifier, each <transformer spec> is an
-      *  instance of syntax-rules, and <body> is a sequence of one or more
-      *  definitions followed by one or more expressions. It is an error for a
-      *  <keyword> to appear more than once in the list of keywords being
-      *  bound.
-      *
-      *  Semantics: The <body> is expanded in the syntactic environment
-      *  obtained by extending the syntactic environment of the let-syntax
-      *  expression with macros whose keywords are the <keyword>s, bound to the
-      *  specified transformers. Each binding of a <keyword> has <body> as its
-      *  region.
-      *
-      * --------------------------------------------------------------------- */
+      static COMPILER(define)
       {
-        let const environment = make<syntactic_environment>(bound_variables, compiler.second);
+        assert(bound_variables.is<null>()); // This has been checked on previous passes.
 
-        auto formal = [&](let const& syntax_spec)
-        {
-          return make<absolute>(car(syntax_spec), // <keyword>
-                                make<transformer>(Environment().execute(compiler.compile(cadr(syntax_spec), // <transformer spec>
-                                                                                         bound_variables)),
-                                                  environment));
-        };
+        assert(not car(expression).is<pair>());
 
-        return compiler.compile(cons(cons(rename("lambda"),
-                                          map(formal, car(expression)), // <formals>
-                                          cdr(expression)), // <body>
-                                     nullptr), // dummy
+        return compiler.compile(cdr(expression) ? cadr(expression) : unspecified,
                                 bound_variables,
                                 free_variables,
-                                continuation);
+                                cons(make(instruction::store_absolute), compiler.identify(car(expression), bound_variables, free_variables),
+                                     continuation));
       }
 
-      static COMPILER(letrec_syntax) /* ----------------------------------------
-      *
-      *  R7RS 4.3.1. Binding constructs for syntactic keywords
-      *
-      *  (letrec-syntax <bingings> <body>)                               syntax
-      *
-      *  Syntax: Same as for let-syntax.
-      *
-      *  Semantics: The <body> is expanded in the syntactic environment
-      *  obtained by extending the syntactic environment of the letrec-syntax
-      *  expression with macros whose keywords are the <keywords>s, bound to
-      *  the specified transformers. Each binding of a <keywords> has the
-      *  <transformer spec>s as well as the <body> within its region, so the
-      *  transformers can transcribe expressions into uses of the macros
-      *  introduced by the letrec-syntax expression.
-      *
-      * --------------------------------------------------------------------- */
-      {
-        let environment = make<syntactic_environment>(bound_variables, compiler.second);
-
-        auto formal = [&](let const& syntax_spec)
-        {
-          return make<absolute>(car(syntax_spec), // <keyword>
-                                make<transformer>(Environment().execute(compiler.compile(cadr(syntax_spec), // <transformer spec>
-                                                                                         bound_variables)),
-                                                  environment));
-        };
-
-        let const formals = map(formal, car(expression));
-
-        car(environment) = cons(formals, bound_variables);
-
-        return compiler.compile(cons(cons(rename("lambda"),
-                                          formals,
-                                          cdr(expression)), // <body>
-                                     nullptr), // dummy
-                                bound_variables,
-                                free_variables,
-                                continuation);
-      }
-
-      // NOTE: R7RS 4.3.2. Pattern language is implemented as macros.
-
-      // NOTE: R7RS 4.3.3. Signaling errors in macro transformers is implemented as macros.
-
-      static COMPILER(define) /* -----------------------------------------------
-      *
-      *  5.3.1. Top level definitions
-      *
-      *  At the outermost level of a program, a definition
-      *
-      *      (define <variable> <expression>)
-      *
-      *  has essentially the same effect as the assignment expression
-      *
-      *      (set! <variable> <expression>)
-      *
-      *  if <variable> is bound to a non-syntax value. However, if <variable>
-      *  is not bound, or is a syntactic keyword, then the definition will bind
-      *  <variable> to a new location before performing the assignment, whereas
-      *  it would be an error to perform a set! on an unbound variable.
-      *
-      * --------------------------------------------------------------------- */
-      {
-        if (bound_variables.is<null>())
-        {
-          if (car(expression).is<pair>()) // (define (<variable> . <formals>) <body>)
-          {
-            return compiler.compile(cons(rename("lambda"), cdar(expression), cdr(expression)),
-                                    bound_variables,
-                                    free_variables,
-                                    cons(make(instruction::store_absolute), compiler.identify(caar(expression), bound_variables, free_variables),
-                                         continuation));
-          }
-          else // (define <variable> <expression>)
-          {
-            return compiler.compile(cdr(expression) ? cadr(expression) : unspecified,
-                                    bound_variables,
-                                    free_variables,
-                                    cons(make(instruction::store_absolute), compiler.identify(car(expression), bound_variables, free_variables),
-                                         continuation));
-          }
-        }
-        else
-        {
-          throw error(make<string>("definition cannot appear in this syntactic-context"));
-        }
-      }
-
-      static COMPILER(define_syntax) /* ----------------------------------------
-      *
-      *  R7RS 5.4. Syntax definitions
-      *
-      *  Syntax definitions have this form:
-      *
-      *  (define-syntax <keyword> <transformer spec>)
-      *
-      *  <Keyword> is an identifier, and the <transformer spec> is an instance
-      *  of syntax-rules. Like variable definitions, syntax definitions can
-      *  appear at the outermost level or nested within a body.
-      *
-      *  If the define-syntax occurs at the outermost level, then the global
-      *  syntactic environment is extended by binding the <keyword> to the
-      *  specified transformer, but previous expansions of any global binding
-      *  for <keyword> remain unchanged. Otherwise, it is an internal syntax
-      *  definition, and is local to the <body> in which it is defined. Any use
-      *  of a syntax keyword before its corresponding definition is an error.
-      *  In particular, a use that precedes an inner definition will not apply
-      *  an outer definition.
-      *
-      *  Macros can expand into definitions in any context that permits them.
-      *  However, it is an error for a definition to define an identifier whose
-      *  binding has to be known in order to determine the meaning of the
-      *  definition itself, or of any preceding definition that belongs to the
-      *  same group of internal definitions. Similarly, it is an error for an
-      *  internal definition to define an identifier whose binding has to be
-      *  known in order to determine the boundary between the internal
-      *  definitions and the expressions of the body it belongs to. For
-      *  example, the following are errors:
-      *
-      * --------------------------------------------------------------------- */
+      static COMPILER(define_syntax)
       {
         let identity = compiler.identify(car(expression), nullptr, nullptr);
 
@@ -923,14 +393,7 @@ inline namespace kernel
                     continuation);
       }
 
-      // NOTE: R7RS 5.5. Record-type definitions is implemented as macros.
-
-      static COMPILER(call_with_current_continuation) /* -----------------------
-      *
-      *  (define (call-with-current-continuation procedure)
-      *    (call-with-current-continuation! procedure))
-      *
-      * --------------------------------------------------------------------- */
+      static COMPILER(call_with_current_continuation)
       {
         assert(expression.is<pair>());
         assert(cdr(expression).is<null>());
@@ -944,21 +407,13 @@ inline namespace kernel
                                      tail));
       }
 
-      static COMPILER(current) /* ----------------------------------------------
-      *
-      *  (current <register name>)                                       syntax
-      *
-      * --------------------------------------------------------------------- */
+      static COMPILER(current)
       {
         return cons(make(instruction::current), car(expression),
                     continuation);
       }
 
-      static COMPILER(install) /* ----------------------------------------------
-      *
-      *  (install <register name> <expression>)                          syntax
-      *
-      * --------------------------------------------------------------------- */
+      static COMPILER(install)
       {
         return compiler.compile(cadr(expression),
                                 bound_variables,
@@ -1177,7 +632,7 @@ inline namespace kernel
 
         auto formal = [&](let const& syntax_spec)
         {
-          return make<absolute>(car(syntax_spec), // <keyword>
+          return make<absolute>(car(syntax_spec) /* keyword */,
                                 make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec), // <transformer spec>
                                                                                                                                 bound_variables)),
                                                   current_environment));
@@ -1328,6 +783,8 @@ inline namespace kernel
           }
           else
           {
+            assert(car(expression).is<syntactic_environment>());
+
             return car(expression).as<syntactic_environment>()
                                   .compile(cddr(expression),
                                            unify(caar(expression), bound_variables),
