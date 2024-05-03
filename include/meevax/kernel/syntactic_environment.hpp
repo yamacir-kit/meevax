@@ -97,320 +97,6 @@ inline namespace kernel
       {
         return os << magenta("#,(") << green("syntax ") << datum.name << magenta(")");
       }
-
-      #define GENERATOR(NAME)                                                  \
-      auto NAME([[maybe_unused]] syntactic_environment & generator,            \
-                [[maybe_unused]] object const& expression,                     \
-                [[maybe_unused]] object const& bound_variables,                \
-                [[maybe_unused]] object const& free_variables,                 \
-                [[maybe_unused]] object const& continuation,                   \
-                [[maybe_unused]] bool tail = false) -> object
-
-      static GENERATOR(reference)
-      {
-        if (let const& identity = generator.identify(expression, bound_variables, free_variables); identity.is<relative>())
-        {
-          return cons(make(instruction::load_relative), identity,
-                      continuation);
-        }
-        else if (identity.is<variadic>())
-        {
-          return cons(make(instruction::load_variadic), identity,
-                      continuation);
-        }
-        else
-        {
-          assert(identity.is<absolute>());
-          return cons(make(instruction::load_absolute), identity,
-                      continuation);
-        }
-      }
-
-      static GENERATOR(quote)
-      {
-        return cons(make(instruction::load_constant), car(expression).is<syntactic_closure>() ? cddar(expression) : car(expression),
-                    continuation);
-      }
-
-      static GENERATOR(quote_syntax)
-      {
-        return cons(make(instruction::load_constant), car(expression),
-                    continuation);
-      }
-
-      static GENERATOR(call)
-      {
-        return operand(generator,
-                       cdr(expression),
-                       bound_variables,
-                       free_variables,
-                       generator.generate(car(expression),
-                                          bound_variables,
-                                          free_variables,
-                                          tail ? list(make(instruction::tail_call))
-                                               : cons(make(instruction::call), continuation)));
-      }
-
-      static GENERATOR(operand)
-      {
-        if (expression.is<pair>())
-        {
-          return operand(generator,
-                         cdr(expression),
-                         bound_variables,
-                         free_variables,
-                         generator.generate(car(expression),
-                                            bound_variables,
-                                            free_variables,
-                                            cons(make(instruction::cons),
-                                                 continuation)));
-        }
-        else
-        {
-          return generator.generate(expression, bound_variables, free_variables, continuation);
-        }
-      }
-
-      static GENERATOR(lambda)
-      {
-        return cons(make(instruction::load_closure),
-                    body(generator,
-                         cdr(expression),
-                         cons(car(expression), bound_variables), // Extend scope.
-                         free_variables,
-                         list(make(instruction::return_))),
-                    continuation);
-      }
-
-      static GENERATOR(body)
-      {
-        if (cdr(expression).template is<null>())
-        {
-          return generator.generate(car(expression),
-                                    bound_variables,
-                                    free_variables,
-                                    continuation,
-                                    true);
-        }
-        else
-        {
-          return generator.generate(car(expression),
-                                    bound_variables,
-                                    free_variables,
-                                    cons(make(instruction::drop),
-                                         body(generator,
-                                              cdr(expression),
-                                              bound_variables,
-                                              free_variables,
-                                              continuation)),
-                                    false);
-        }
-      }
-
-      static GENERATOR(conditional)
-      {
-        if (tail)
-        {
-          assert(lexical_cast<std::string>(continuation) == "(return)");
-
-          return generator.generate(car(expression), // <test>
-                                    bound_variables,
-                                    free_variables,
-                                    list(make(instruction::tail_select),
-                                         generator.generate(cadr(expression),
-                                                            bound_variables,
-                                                            free_variables,
-                                                            continuation,
-                                                            tail),
-                                         cddr(expression) ? generator.generate(caddr(expression),
-                                                                               bound_variables,
-                                                                               free_variables,
-                                                                               continuation,
-                                                                               tail)
-                                                          : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                                 make(instruction::return_))));
-        }
-        else
-        {
-          return generator.generate(car(expression), // <test>
-                                    bound_variables,
-                                    free_variables,
-                                    cons(make(instruction::select),
-                                         generator.generate(cadr(expression),
-                                                            bound_variables,
-                                                            free_variables,
-                                                            list(make(instruction::join))),
-                                         cddr(expression) ? generator.generate(caddr(expression),
-                                                                               bound_variables,
-                                                                               free_variables,
-                                                                               list(make(instruction::join)))
-                                                          : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                                 make(instruction::join)),
-                                         continuation));
-        }
-      }
-
-      static GENERATOR(set)
-      {
-        if (let const& identity = generator.identify(car(expression), bound_variables, free_variables); identity.is<relative>())
-        {
-          return generator.generate(cadr(expression),
-                                    bound_variables,
-                                    free_variables,
-                                    cons(make(instruction::store_relative), identity,
-                                         continuation));
-        }
-        else if (identity.is<variadic>())
-        {
-          return generator.generate(cadr(expression),
-                                    bound_variables,
-                                    free_variables,
-                                    cons(make(instruction::store_variadic), identity,
-                                         continuation));
-        }
-        else
-        {
-          assert(identity.is<absolute>());
-
-          return generator.generate(cadr(expression),
-                                    bound_variables,
-                                    free_variables,
-                                    cons(make(instruction::store_absolute), identity,
-                                         continuation));
-        }
-      }
-
-      static constexpr auto include = nullptr;
-
-      static constexpr auto include_case_insensitive = nullptr;
-
-      static constexpr auto implementation_dependent = nullptr;
-
-      static GENERATOR(letrec)
-      {
-        assert(not tail or lexical_cast<std::string>(continuation) == "(return)");
-
-        let const formals = map(car, car(expression));
-
-        return cons(make(instruction::dummy),
-                    operand(generator,
-                            map(cadr, car(expression)),
-                            cons(formals, bound_variables),
-                            free_variables,
-                            lambda(generator,
-                                   cons(formals, cdr(expression)), // (<formals> <body>)
-                                   bound_variables,
-                                   free_variables,
-                                   tail ? list(make(instruction::tail_letrec))
-                                        : cons(make(instruction::letrec), continuation))));
-      }
-
-      static GENERATOR(sequence)
-      {
-        /*
-           The top-level sequential expression may contain macro definitions.
-           In that case, the macro definition must be compiled before the macro
-           is used (the evaluation order of function arguments in C++ is not
-           specified, but in most environments they are evaluated from right to
-           left). Therefore, the first expression is compiled separately and
-           then combined with the compiled result of the remaining expressions
-           by append.
-        */
-
-        if (cdr(expression).is<null>()) // is tail sequence
-        {
-          return generator.generate(car(expression),
-                                    bound_variables,
-                                    free_variables,
-                                    continuation,
-                                    tail);
-        }
-        else if (let const head = generator.generate(car(expression), // Head expression or definition
-                                                     bound_variables,
-                                                     free_variables,
-                                                     nullptr);
-                 head.is<null>()) // The syntax define-syntax creates a transformer from transformer-spec at compile time and registers it in the global environment. The syntax define-syntax is effectively a compile-time side-effect of the syntax environment and does nothing at run-time.
-        {
-          return sequence(generator,
-                          cdr(expression), // rest expressions
-                          bound_variables,
-                          free_variables,
-                          continuation,
-                          tail);
-        }
-        else
-        {
-          return append(head,
-                        cons(make(instruction::drop), // Pop result of head expression
-                             sequence(generator,
-                                      cdr(expression), // Rest expression or definitions
-                                      bound_variables,
-                                      free_variables,
-                                      continuation,
-                                      tail)));
-        }
-      }
-
-      static constexpr auto let_syntax = nullptr;
-
-      static constexpr auto letrec_syntax = nullptr;
-
-      static GENERATOR(define)
-      {
-        assert(bound_variables.is<null>()); // This has been checked on previous passes.
-
-        assert(not car(expression).is<pair>());
-
-        return generator.generate(cdr(expression) ? cadr(expression) : unspecified,
-                                  bound_variables,
-                                  free_variables,
-                                  cons(make(instruction::store_absolute), generator.identify(car(expression), bound_variables, free_variables),
-                                       continuation));
-      }
-
-      static GENERATOR(define_syntax)
-      {
-        let identity = generator.identify(car(expression), nullptr, nullptr);
-
-        cdr(identity) = make<transformer>(Environment().execute(generator.generate(cadr(expression),
-                                                                                   bound_variables)),
-                                          make<syntactic_environment>(bound_variables,
-                                                                      generator.second));
-
-        return cons(make(instruction::load_constant), unspecified,
-                    continuation);
-      }
-
-      static GENERATOR(call_with_current_continuation)
-      {
-        assert(expression.is<pair>());
-        assert(cdr(expression).is<null>());
-
-        return cons(make(instruction::load_continuation),
-                    continuation,
-                    generator.generate(car(expression),
-                                       bound_variables,
-                                       free_variables,
-                                       list(make(instruction::tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.
-                                       tail));
-      }
-
-      static GENERATOR(current)
-      {
-        return cons(make(instruction::current), car(expression),
-                    continuation);
-      }
-
-      static GENERATOR(install)
-      {
-        return generator.generate(cadr(expression),
-                                  bound_variables,
-                                  free_variables,
-                                  cons(make(instruction::install), car(expression),
-                                       continuation));
-      }
-
-      #undef GENERATOR
     };
 
     struct expander
@@ -727,6 +413,323 @@ inline namespace kernel
       #undef EXPANDER
     };
 
+    struct generator
+    {
+      #define GENERATOR(NAME)                                                  \
+      auto NAME([[maybe_unused]] syntactic_environment & generator,            \
+                [[maybe_unused]] object const& expression,                     \
+                [[maybe_unused]] object const& bound_variables,                \
+                [[maybe_unused]] object const& free_variables,                 \
+                [[maybe_unused]] object const& continuation,                   \
+                [[maybe_unused]] bool tail = false) -> object
+
+      static GENERATOR(reference)
+      {
+        if (let const& identity = generator.identify(expression, bound_variables, free_variables); identity.is<relative>())
+        {
+          return cons(make(instruction::load_relative), identity,
+                      continuation);
+        }
+        else if (identity.is<variadic>())
+        {
+          return cons(make(instruction::load_variadic), identity,
+                      continuation);
+        }
+        else
+        {
+          assert(identity.is<absolute>());
+          return cons(make(instruction::load_absolute), identity,
+                      continuation);
+        }
+      }
+
+      static GENERATOR(quote)
+      {
+        return cons(make(instruction::load_constant), car(expression).is<syntactic_closure>() ? cddar(expression) : car(expression),
+                    continuation);
+      }
+
+      static GENERATOR(quote_syntax)
+      {
+        return cons(make(instruction::load_constant), car(expression),
+                    continuation);
+      }
+
+      static GENERATOR(call)
+      {
+        return operand(generator,
+                       cdr(expression),
+                       bound_variables,
+                       free_variables,
+                       generator.generate(car(expression),
+                                          bound_variables,
+                                          free_variables,
+                                          tail ? list(make(instruction::tail_call))
+                                               : cons(make(instruction::call), continuation)));
+      }
+
+      static GENERATOR(operand)
+      {
+        if (expression.is<pair>())
+        {
+          return operand(generator,
+                         cdr(expression),
+                         bound_variables,
+                         free_variables,
+                         generator.generate(car(expression),
+                                            bound_variables,
+                                            free_variables,
+                                            cons(make(instruction::cons),
+                                                 continuation)));
+        }
+        else
+        {
+          return generator.generate(expression, bound_variables, free_variables, continuation);
+        }
+      }
+
+      static GENERATOR(lambda)
+      {
+        return cons(make(instruction::load_closure),
+                    body(generator,
+                         cdr(expression),
+                         cons(car(expression), bound_variables), // Extend scope.
+                         free_variables,
+                         list(make(instruction::return_))),
+                    continuation);
+      }
+
+      static GENERATOR(body)
+      {
+        if (cdr(expression).template is<null>())
+        {
+          return generator.generate(car(expression),
+                                    bound_variables,
+                                    free_variables,
+                                    continuation,
+                                    true);
+        }
+        else
+        {
+          return generator.generate(car(expression),
+                                    bound_variables,
+                                    free_variables,
+                                    cons(make(instruction::drop),
+                                         body(generator,
+                                              cdr(expression),
+                                              bound_variables,
+                                              free_variables,
+                                              continuation)),
+                                    false);
+        }
+      }
+
+      static GENERATOR(conditional)
+      {
+        if (tail)
+        {
+          assert(lexical_cast<std::string>(continuation) == "(return)");
+
+          return generator.generate(car(expression), // <test>
+                                    bound_variables,
+                                    free_variables,
+                                    list(make(instruction::tail_select),
+                                         generator.generate(cadr(expression),
+                                                            bound_variables,
+                                                            free_variables,
+                                                            continuation,
+                                                            tail),
+                                         cddr(expression) ? generator.generate(caddr(expression),
+                                                                               bound_variables,
+                                                                               free_variables,
+                                                                               continuation,
+                                                                               tail)
+                                                          : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
+                                                                 make(instruction::return_))));
+        }
+        else
+        {
+          return generator.generate(car(expression), // <test>
+                                    bound_variables,
+                                    free_variables,
+                                    cons(make(instruction::select),
+                                         generator.generate(cadr(expression),
+                                                            bound_variables,
+                                                            free_variables,
+                                                            list(make(instruction::join))),
+                                         cddr(expression) ? generator.generate(caddr(expression),
+                                                                               bound_variables,
+                                                                               free_variables,
+                                                                               list(make(instruction::join)))
+                                                          : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
+                                                                 make(instruction::join)),
+                                         continuation));
+        }
+      }
+
+      static GENERATOR(set)
+      {
+        if (let const& identity = generator.identify(car(expression), bound_variables, free_variables); identity.is<relative>())
+        {
+          return generator.generate(cadr(expression),
+                                    bound_variables,
+                                    free_variables,
+                                    cons(make(instruction::store_relative), identity,
+                                         continuation));
+        }
+        else if (identity.is<variadic>())
+        {
+          return generator.generate(cadr(expression),
+                                    bound_variables,
+                                    free_variables,
+                                    cons(make(instruction::store_variadic), identity,
+                                         continuation));
+        }
+        else
+        {
+          assert(identity.is<absolute>());
+
+          return generator.generate(cadr(expression),
+                                    bound_variables,
+                                    free_variables,
+                                    cons(make(instruction::store_absolute), identity,
+                                         continuation));
+        }
+      }
+
+      static constexpr auto include = nullptr;
+
+      static constexpr auto include_case_insensitive = nullptr;
+
+      static constexpr auto implementation_dependent = nullptr;
+
+      static GENERATOR(letrec)
+      {
+        assert(not tail or lexical_cast<std::string>(continuation) == "(return)");
+
+        let const formals = map(car, car(expression));
+
+        return cons(make(instruction::dummy),
+                    operand(generator,
+                            map(cadr, car(expression)),
+                            cons(formals, bound_variables),
+                            free_variables,
+                            lambda(generator,
+                                   cons(formals, cdr(expression)), // (<formals> <body>)
+                                   bound_variables,
+                                   free_variables,
+                                   tail ? list(make(instruction::tail_letrec))
+                                        : cons(make(instruction::letrec), continuation))));
+      }
+
+      static GENERATOR(sequence)
+      {
+        /*
+           The top-level sequential expression may contain macro definitions.
+           In that case, the macro definition must be compiled before the macro
+           is used (the evaluation order of function arguments in C++ is not
+           specified, but in most environments they are evaluated from right to
+           left). Therefore, the first expression is compiled separately and
+           then combined with the compiled result of the remaining expressions
+           by append.
+        */
+
+        if (cdr(expression).is<null>()) // is tail sequence
+        {
+          return generator.generate(car(expression),
+                                    bound_variables,
+                                    free_variables,
+                                    continuation,
+                                    tail);
+        }
+        else if (let const head = generator.generate(car(expression), // Head expression or definition
+                                                     bound_variables,
+                                                     free_variables,
+                                                     nullptr);
+                 head.is<null>()) // The syntax define-syntax creates a transformer from transformer-spec at compile time and registers it in the global environment. The syntax define-syntax is effectively a compile-time side-effect of the syntax environment and does nothing at run-time.
+        {
+          return sequence(generator,
+                          cdr(expression), // rest expressions
+                          bound_variables,
+                          free_variables,
+                          continuation,
+                          tail);
+        }
+        else
+        {
+          return append(head,
+                        cons(make(instruction::drop), // Pop result of head expression
+                             sequence(generator,
+                                      cdr(expression), // Rest expression or definitions
+                                      bound_variables,
+                                      free_variables,
+                                      continuation,
+                                      tail)));
+        }
+      }
+
+      static constexpr auto let_syntax = nullptr;
+
+      static constexpr auto letrec_syntax = nullptr;
+
+      static GENERATOR(define)
+      {
+        assert(bound_variables.is<null>()); // This has been checked on previous passes.
+
+        assert(not car(expression).is<pair>());
+
+        return generator.generate(cdr(expression) ? cadr(expression) : unspecified,
+                                  bound_variables,
+                                  free_variables,
+                                  cons(make(instruction::store_absolute), generator.identify(car(expression), bound_variables, free_variables),
+                                       continuation));
+      }
+
+      static GENERATOR(define_syntax)
+      {
+        let identity = generator.identify(car(expression), nullptr, nullptr);
+
+        cdr(identity) = make<transformer>(Environment().execute(generator.generate(cadr(expression),
+                                                                                   bound_variables)),
+                                          make<syntactic_environment>(bound_variables,
+                                                                      generator.second));
+
+        return cons(make(instruction::load_constant), unspecified,
+                    continuation);
+      }
+
+      static GENERATOR(call_with_current_continuation)
+      {
+        assert(expression.is<pair>());
+        assert(cdr(expression).is<null>());
+
+        return cons(make(instruction::load_continuation),
+                    continuation,
+                    generator.generate(car(expression),
+                                       bound_variables,
+                                       free_variables,
+                                       list(make(instruction::tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.
+                                       tail));
+      }
+
+      static GENERATOR(current)
+      {
+        return cons(make(instruction::current), car(expression),
+                    continuation);
+      }
+
+      static GENERATOR(install)
+      {
+        return generator.generate(cadr(expression),
+                                  bound_variables,
+                                  free_variables,
+                                  cons(make(instruction::install), car(expression),
+                                       continuation));
+      }
+
+      #undef GENERATOR
+    };
+
     using pair::pair;
 
     inline auto generate(object const& expression,
@@ -761,13 +764,13 @@ inline namespace kernel
       {
         if (expression.is<symbol>())
         {
-          return syntax::reference(*this, expression, bound_variables, free_variables, continuation, tail);
+          return generator::reference(*this, expression, bound_variables, free_variables, continuation, tail);
         }
         else if (expression.is<syntactic_closure>())
         {
           if (let const& identity = std::as_const(*this).identify(expression, bound_variables, free_variables); identity != f) // The syntactic-closure is an alias
           {
-            return syntax::reference(*this, expression, bound_variables, free_variables, continuation, tail);
+            return generator::reference(*this, expression, bound_variables, free_variables, continuation, tail);
           }
           else
           {
@@ -830,13 +833,13 @@ inline namespace kernel
         assert(not cdr(identity).is_also<syntax>());
       }
 
-      return syntax::call(*this, expression, bound_variables, free_variables, continuation, tail);
+      return generator::call(*this, expression, bound_variables, free_variables, continuation, tail);
     }
 
     static auto core() -> auto const&
     {
       #define BINDING(NAME, SYNTAX) \
-        make<absolute>(make_symbol(NAME), make<syntax>(NAME, expander::SYNTAX, syntax::SYNTAX))
+        make<absolute>(make_symbol(NAME), make<syntax>(NAME, expander::SYNTAX, generator::SYNTAX))
 
       let static const core = make<syntactic_environment>(
         nullptr,
