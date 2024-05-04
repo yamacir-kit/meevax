@@ -729,78 +729,6 @@ inline namespace kernel
 
     using pair::pair;
 
-    inline auto generate(object const& expression,
-                         object const& bound_variables = nullptr, // list of <formals>
-                         object const& free_variables = nullptr,
-                         object const& continuation = list(make(instruction::stop)),
-                         bool tail = false) -> object
-    {
-      if (expression.is<null>()) /* --------------------------------------------
-      *
-      *  (<operator> <operand 1> ...)                                    syntax
-      *
-      *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
-      *  expression evaluating to itself. In Scheme, it is an error.
-      *
-      * --------------------------------------------------------------------- */
-      {
-        return cons(make(instruction::load_constant), nullptr, continuation);
-      }
-      else if (not expression.is<pair>()) /* -----------------------------------
-      *
-      *  R7RS 4.1.1. Variable references
-      *
-      *  <variable>                                                      syntax
-      *
-      *  An expression consisting of a variable (section 3.1) is a variable
-      *  reference. The value of the variable reference is the value stored in
-      *  the location to which the variable is bound. It is an error to
-      *  reference an unbound variable.
-      *
-      * --------------------------------------------------------------------- */
-      {
-        if (expression.is<symbol>())
-        {
-          return generator::reference(*this, expression, bound_variables, free_variables, continuation, tail);
-        }
-        else if (expression.is<syntactic_closure>())
-        {
-          if (let const& identity = std::as_const(*this).identify(expression, bound_variables, free_variables); identity != f) // The syntactic-closure is an alias
-          {
-            return generator::reference(*this, expression, bound_variables, free_variables, continuation, tail);
-          }
-          else
-          {
-            assert(car(expression).is<syntactic_environment>());
-
-            return car(expression).as<syntactic_environment>()
-                                  .compile(cddr(expression),
-                                            unify(caar(expression), bound_variables),
-                                            map([&](let const& free_variable)
-                                                {
-                                                  return cons(free_variable,
-                                                              make<syntactic_environment>(bound_variables, free_variables));
-                                                },
-                                                cadr(expression) /* free-variables of syntactic-closure */,
-                                                free_variables),
-                                            continuation);
-          }
-        }
-        else // is <self-evaluating>
-        {
-          return cons(make(instruction::load_constant), expression, continuation);
-        }
-      }
-      else if (let const& identity = std::as_const(*this).identify(car(expression), bound_variables, free_variables); identity.is<absolute>() and cdr(identity).is<syntax>())
-      {
-        return cdr(identity).as<syntax>().generate(*this, cdr(expression), bound_variables, free_variables, continuation, tail);
-      }
-      else
-      {
-        return generator::call(*this, expression, bound_variables, free_variables, continuation, tail);
-      }
-    }
-
     template <typename... Ts>
     inline auto compile(object const& expression,
                         object const& bound_variables,
@@ -923,6 +851,78 @@ inline namespace kernel
       return expander::call(*this, expression, bound_variables, free_variables);
     }
 
+    inline auto generate(object const& expression,
+                         object const& bound_variables = nullptr, // list of <formals>
+                         object const& free_variables = nullptr,
+                         object const& continuation = list(make(instruction::stop)),
+                         bool tail = false) -> object
+    {
+      if (expression.is<null>()) /* --------------------------------------------
+      *
+      *  (<operator> <operand 1> ...)                                    syntax
+      *
+      *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
+      *  expression evaluating to itself. In Scheme, it is an error.
+      *
+      * --------------------------------------------------------------------- */
+      {
+        return cons(make(instruction::load_constant), nullptr, continuation);
+      }
+      else if (not expression.is<pair>()) /* -----------------------------------
+      *
+      *  R7RS 4.1.1. Variable references
+      *
+      *  <variable>                                                      syntax
+      *
+      *  An expression consisting of a variable (section 3.1) is a variable
+      *  reference. The value of the variable reference is the value stored in
+      *  the location to which the variable is bound. It is an error to
+      *  reference an unbound variable.
+      *
+      * --------------------------------------------------------------------- */
+      {
+        if (expression.is<symbol>())
+        {
+          return generator::reference(*this, expression, bound_variables, free_variables, continuation, tail);
+        }
+        else if (expression.is<syntactic_closure>())
+        {
+          if (let const& identity = std::as_const(*this).identify(expression, bound_variables, free_variables); identity != f) // The syntactic-closure is an alias
+          {
+            return generator::reference(*this, expression, bound_variables, free_variables, continuation, tail);
+          }
+          else
+          {
+            assert(car(expression).is<syntactic_environment>());
+
+            return car(expression).as<syntactic_environment>()
+                                  .compile(cddr(expression),
+                                           unify(caar(expression), bound_variables),
+                                           map([&](let const& free_variable)
+                                               {
+                                                 return cons(free_variable,
+                                                             make<syntactic_environment>(bound_variables, free_variables));
+                                               },
+                                               cadr(expression) /* free-variables of syntactic-closure */,
+                                               free_variables),
+                                           continuation);
+          }
+        }
+        else // is <self-evaluating>
+        {
+          return cons(make(instruction::load_constant), expression, continuation);
+        }
+      }
+      else if (let const& identity = std::as_const(*this).identify(car(expression), bound_variables, free_variables); identity.is<absolute>() and cdr(identity).is<syntax>())
+      {
+        return cdr(identity).as<syntax>().generate(*this, cdr(expression), bound_variables, free_variables, continuation, tail);
+      }
+      else
+      {
+        return generator::call(*this, expression, bound_variables, free_variables, continuation, tail);
+      }
+    }
+
     inline auto identify(object const& variable,
                          object const& bound_variables,
                          object const& free_variables) const -> object
@@ -933,6 +933,12 @@ inline namespace kernel
       }
       else if (let const& x = assq(variable, free_variables); x != f)
       {
+        /*
+           If a macro transformer inserts a free reference to an identifier,
+           the reference refers to the binding that was visible where the
+           transformer was specified, regardless of any local bindings that
+           surround the use of the macro.
+        */
         return cdr(x).as<syntactic_environment>().inject(car(x), bound_variables);
       }
       else
