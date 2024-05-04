@@ -774,7 +774,7 @@ inline namespace kernel
             assert(car(expression).is<syntactic_environment>());
 
             return car(expression).as<syntactic_environment>()
-                                  .generate(cddr(expression),
+                                  .compile(cddr(expression),
                                             unify(caar(expression), bound_variables),
                                             map([&](let const& free_variable)
                                                 {
@@ -791,53 +791,32 @@ inline namespace kernel
           return cons(make(instruction::load_constant), expression, continuation);
         }
       }
-      else if (let const& identity = std::as_const(*this).identify(car(expression), bound_variables, free_variables); identity.is<absolute>())
+      else if (let const& identity = std::as_const(*this).identify(car(expression), bound_variables, free_variables); identity.is<absolute>() and cdr(identity).is<syntax>())
       {
-        if (cdr(identity).is<transformer>())
-        {
-          /*
-             Scheme programs can define and use new derived expression types,
-             called macros. Program-defined expression types have the syntax
-
-               (<keyword> <datum>...)
-
-             where <keyword> is an identifier that uniquely determines the
-             expression type. This identifier is called the syntactic keyword,
-             or simply keyword, of the macro. The number of the <datum>s, and
-             their syntax, depends on the expression type.
-
-             Each instance of a macro is called a use of the macro. The set of
-             rules that specifies how a use of a macro is transcribed into a
-             more primitive expression is called the transformer of the macro.
-          */
-          assert(cadr(identity).is<closure>());
-          assert(cddr(identity).is<syntactic_environment>());
-
-          return generate(Environment().apply(cadr(identity),
-                                              expression,
-                                              make<syntactic_environment>(bound_variables, second),
-                                              cddr(identity)),
-                          bound_variables,
-                          free_variables,
-                          continuation,
-                          tail);
-        }
-        else if (cdr(identity).is<syntax>())
-        {
-          return cdr(identity).as<syntax>().generate(*this, cdr(expression), bound_variables, free_variables, continuation, tail);
-        }
-
-        assert(not cdr(identity).is_also<syntax>());
+        return cdr(identity).as<syntax>().generate(*this, cdr(expression), bound_variables, free_variables, continuation, tail);
       }
+      else
+      {
+        return generator::call(*this, expression, bound_variables, free_variables, continuation, tail);
+      }
+    }
 
-      return generator::call(*this, expression, bound_variables, free_variables, continuation, tail);
+    template <typename... Ts>
+    inline auto compile(object const& expression,
+                        object const& bound_variables,
+                        object const& free_variables, Ts&&... xs) -> decltype(auto)
+    {
+      return generate(expand(expression,
+                             bound_variables,
+                             free_variables),
+                      bound_variables,
+                      free_variables,
+                      std::forward<decltype(xs)>(xs)...);
     }
 
     inline auto compile(object const& expression) -> decltype(auto)
     {
-      return generate(expand(expression,
-                             first),
-                      first);
+      return compile(expression, first, nullptr);
     }
 
     static auto core() -> auto const&

@@ -7,10 +7,6 @@
         (scheme write)
         (srfi 78))
 
-(define (print . xs)
-  (for-each display xs)
-  (newline))
-
 (define strip
   (let ((scheme-report-environment-7 (environment '(scheme base))))
     (lambda (expression)
