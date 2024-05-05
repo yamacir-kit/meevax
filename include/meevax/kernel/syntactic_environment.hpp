@@ -420,26 +420,6 @@ inline namespace kernel
                 [[maybe_unused]] object const& continuation,                   \
                 [[maybe_unused]] bool tail = false) -> object
 
-      static GENERATOR(reference)
-      {
-        if (let const& identity = generator.identify(expression, bound_variables, free_variables); identity.is<relative>())
-        {
-          return cons(make(instruction::load_relative), identity,
-                      continuation);
-        }
-        else if (identity.is<variadic>())
-        {
-          return cons(make(instruction::load_variadic), identity,
-                      continuation);
-        }
-        else
-        {
-          assert(identity.is<absolute>());
-          return cons(make(instruction::load_absolute), identity,
-                      continuation);
-        }
-      }
-
       static GENERATOR(quote)
       {
         return cons(make(instruction::load_constant), car(expression).is<syntactic_closure>() ? cddar(expression) : car(expression),
@@ -857,42 +837,41 @@ inline namespace kernel
                          object const& continuation = list(make(instruction::stop)),
                          bool tail = false) -> object
     {
-      if (expression.is<null>()) /* --------------------------------------------
-      *
-      *  (<operator> <operand 1> ...)                                    syntax
-      *
-      *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
-      *  expression evaluating to itself. In Scheme, it is an error.
-      *
-      * --------------------------------------------------------------------- */
+      if (expression.is<null>())
       {
+        /*
+           NOTE: In many dialects of Lisp, the empty list, (), is a legitimate
+           expression evaluating to itself. In Scheme, it is an error.
+        */
         return cons(make(instruction::load_constant), nullptr, continuation);
       }
-      else if (not expression.is<pair>()) /* -----------------------------------
-      *
-      *  R7RS 4.1.1. Variable references
-      *
-      *  <variable>                                                      syntax
-      *
-      *  An expression consisting of a variable (section 3.1) is a variable
-      *  reference. The value of the variable reference is the value stored in
-      *  the location to which the variable is bound. It is an error to
-      *  reference an unbound variable.
-      *
-      * --------------------------------------------------------------------- */
+      else if (not expression.is<pair>())
       {
-        if (expression.is<symbol>())
+        if (expression.is_also<identifier>())
         {
-          return generator::reference(*this, expression, bound_variables, free_variables, continuation, tail);
-        }
-        else if (expression.is<syntactic_closure>())
-        {
-          if (let const& identity = std::as_const(*this).identify(expression, bound_variables, free_variables); identity != f) // The syntactic-closure is an alias
+          assert(expression.is<symbol>() or expression.is<syntactic_closure>());
+
+          if (let const& identity = expression.is<symbol>() ?                      identify(expression, bound_variables, free_variables)
+                                                            : std::as_const(*this).identify(expression, bound_variables, free_variables);
+              identity.is<relative>())
           {
-            return generator::reference(*this, expression, bound_variables, free_variables, continuation, tail);
+            return cons(make(instruction::load_relative), identity,
+                        continuation);
+          }
+          else if (identity.is<variadic>())
+          {
+            return cons(make(instruction::load_variadic), identity,
+                        continuation);
+          }
+          else if (identity.is<absolute>())
+          {
+            return cons(make(instruction::load_absolute), identity,
+                        continuation);
           }
           else
           {
+            assert(identity == f);
+
             assert(car(expression).is<syntactic_environment>());
 
             return car(expression).as<syntactic_environment>()
