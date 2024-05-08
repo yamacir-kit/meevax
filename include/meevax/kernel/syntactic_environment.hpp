@@ -601,16 +601,6 @@ inline namespace kernel
 
       static GENERATOR(sequence)
       {
-        /*
-           The top-level sequential expression may contain macro definitions.
-           In that case, the macro definition must be compiled before the macro
-           is used (the evaluation order of function arguments in C++ is not
-           specified, but in most environments they are evaluated from right to
-           left). Therefore, the first expression is compiled separately and
-           then combined with the compiled result of the remaining expressions
-           by append.
-        */
-
         if (cdr(expression).is<null>()) // is tail sequence
         {
           return generator.generate(car(expression),
@@ -619,21 +609,21 @@ inline namespace kernel
                                     continuation,
                                     tail);
         }
-        else if (let const head = generator.generate(car(expression), // Head expression or definition
-                                                     bound_variables,
-                                                     free_variables,
-                                                     nullptr);
-                 head.is<null>()) // The syntax define-syntax creates a transformer from transformer-spec at compile time and registers it in the global environment. The syntax define-syntax is effectively a compile-time side-effect of the syntax environment and does nothing at run-time.
-        {
-          return sequence(generator,
-                          cdr(expression), // rest expressions
-                          bound_variables,
-                          free_variables,
-                          continuation,
-                          tail);
-        }
         else
         {
+          /*
+             The top-level sequential expression may contain macro definitions.
+             In that case, the macro definition must be compiled before the
+             macro is used (the evaluation order of function arguments in C++
+             is not specified, but in most environments they are evaluated from
+             right to left). Therefore, the first expression is compiled
+             separately and then combined with the compiled result of the
+             remaining expressions by append.
+          */
+          let const& head = generator.generate(car(expression), // Head expression or definition
+                                               bound_variables,
+                                               free_variables,
+                                               nullptr);
           return append(head,
                         cons(make(instruction::drop), // Pop result of head expression
                              sequence(generator,
