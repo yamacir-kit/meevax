@@ -75,18 +75,20 @@ inline namespace kernel
         Zs, // Separator, Space
       } value;
 
-      constexpr property_code(value_type value)
-        : value { value }
+      constexpr property_code(int_type codepoint)
+        : value { to_value_type(codepoint) }
       {}
 
-      static constexpr auto from(int_type codepoint)
+      static constexpr auto to_value_type(int_type codepoint) noexcept -> value_type
       {
         switch (codepoint)
         {
+        #if __has_include(<meevax/unicode/property.hpp>)
         #include <meevax/unicode/property.hpp>
+        #endif
 
         default:
-          return Cc;
+          return Cn;
         }
       }
 
@@ -122,7 +124,7 @@ inline namespace kernel
       }
     };
 
-    explicit character() = default;
+    character() = default;
 
     explicit constexpr character(int_type const& codepoint)
       : codepoint { codepoint }
@@ -147,7 +149,9 @@ inline namespace kernel
     {
       switch (codepoint)
       {
+      #if __has_include(<meevax/unicode/digit_value.hpp>)
       #include <meevax/unicode/digit_value.hpp>
+      #endif
 
       default:
         return std::nullopt;
@@ -158,7 +162,9 @@ inline namespace kernel
     {
       switch (codepoint)
       {
+      #if __has_include(<meevax/unicode/downcase.hpp>)
       #include <meevax/unicode/downcase.hpp>
+      #endif
 
       default:
         return codepoint;
@@ -177,14 +183,16 @@ inline namespace kernel
 
     constexpr auto property() const noexcept -> property_code
     {
-      return property_code::from(codepoint);
+      return codepoint;
     }
 
     constexpr auto upcase() const noexcept
     {
       switch (codepoint)
       {
+      #if __has_include(<meevax/unicode/upcase.hpp>)
       #include <meevax/unicode/upcase.hpp>
+      #endif
 
       default:
         return codepoint;

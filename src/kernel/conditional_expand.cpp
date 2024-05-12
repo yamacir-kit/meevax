@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/implementation_dependent.hpp>
+#include <meevax/kernel/conditional_expand.hpp>
 #include <meevax/kernel/library.hpp>
 
 namespace meevax
@@ -54,13 +54,13 @@ inline namespace kernel
     }
   }
 
-  auto implementation_dependent(object const& clauses) -> object
+  auto conditional_expand(object const& clauses) -> object
   {
     for (let const& clause : clauses)
     {
       if (not clause.is<pair>())
       {
-        throw error(make<string>("each clause of implementation-dependent takes the form (<feature requirement> <expression> ...)"), clause);
+        throw error(make<string>("each clause of conditional-expand takes the form (<feature requirement> <expression> ...)"), clause);
       }
       else if (test(car(clause)))
       {

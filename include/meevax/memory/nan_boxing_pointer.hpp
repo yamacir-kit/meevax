@@ -250,13 +250,10 @@ inline namespace memory
 } // namespace memory
 } // namespace meevax
 
-namespace std
-{
-  template <typename... Ts>
-  class hash<meevax::memory::nan_boxing_pointer<Ts...>>
-    : public hash<typename meevax::memory::nan_boxing_pointer<Ts...>::pointer>
-  {};
-}
+template <typename... Ts>
+struct std::hash<meevax::memory::nan_boxing_pointer<Ts...>>
+  : public std::hash<typename meevax::memory::nan_boxing_pointer<Ts...>::pointer>
+{};
 
 #endif // INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 

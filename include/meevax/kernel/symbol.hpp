@@ -49,7 +49,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, symbol const&) -> std::ostream &;
 
-  template <typename T, REQUIRES(is_equality_comparable<std::string const&, T const&>)>
+  template <typename T, typename = std::enable_if_t<is_equality_comparable_v<std::string const&, T const&>>>
   auto operator ==(symbol const& a, T const& b) -> bool
   {
     return a.name == b;

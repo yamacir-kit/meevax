@@ -39,7 +39,7 @@ inline namespace type_traits
   {};
 
   template <typename T, typename U = T>
-  inline constexpr auto is_equality_comparable_v = is_equality_comparable<T, U>::value;
+  inline constexpr bool is_equality_comparable_v = is_equality_comparable<T, U>::value;
 } // namespace type_traits
 } // namespace meevax
 

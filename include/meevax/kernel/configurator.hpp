@@ -48,7 +48,7 @@ inline namespace kernel
 
     std::vector<std::string> command_line;
 
-    auto configure(const int argc, char const* const* const argv)
+    auto configure(int const argc, char const* const* const argv)
     {
       for (auto i = 0; i < argc; ++i)
       {
@@ -60,13 +60,13 @@ inline namespace kernel
 
     auto configure(std::vector<std::string> const& args) -> void
     {
-      static std::regex const pattern { R"(--(\w[-\w]+)(=(.*))?|-([\w]+))" };
+      static auto const pattern = std::regex(R"(--(\w[-\w]+)(=(.*))?|-([\w]+))");
 
-      std::vector<option> options
+      auto const options = std::vector<option>
       {
         option("(i|interactive)", [this](auto)
         {
-          let const f = make<procedure>("", [this](let const&)
+          let const f = make<procedure>(__func__, [this](let const&)
           {
             interactive = true;
             return unspecified;
@@ -82,7 +82,7 @@ inline namespace kernel
 
         option("(h|help)", [](auto)
         {
-          let static const f = make<procedure>("", [](let const&)
+          let static const f = make<procedure>(__func__, [](let const&)
           {
             std::cout << help() << std::endl;
             throw EXIT_SUCCESS;
@@ -93,7 +93,7 @@ inline namespace kernel
 
         option("(l|load)", [this](auto read)
         {
-          let const f = make<procedure>("", [this](let const& xs)
+          let const f = make<procedure>(__func__, [this](let const& xs)
           {
             static_cast<Environment &>(*this).load(car(xs).as<string>());
             return unspecified;
@@ -104,7 +104,7 @@ inline namespace kernel
 
         option("(v|version)", [](auto)
         {
-          let static const f = make<procedure>("", [](let const&)
+          let static const f = make<procedure>(__func__, [](let const&)
           {
             std::cout << version() << std::endl;
             throw EXIT_SUCCESS;
@@ -115,7 +115,7 @@ inline namespace kernel
 
         option("(w|write)", [](auto read)
         {
-          let static const f = make<procedure>("", [](let const& xs)
+          let static const f = make<procedure>(__func__, [](let const& xs)
           {
             std::cout << car(xs) << std::endl;
           });
@@ -184,7 +184,7 @@ inline namespace kernel
         }
         else
         {
-          let const f = make<procedure>("", [iter](let const&)
+          let const f = make<procedure>(__func__, [iter](let const&)
           {
             Environment().load(*iter);
             return unspecified;

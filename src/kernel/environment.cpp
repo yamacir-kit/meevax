@@ -66,7 +66,7 @@ inline namespace kernel
        In most cases, the s, e, c, and d registers are all null when evaluate
        is called. However, if environment::evaluate of the same environment is
        called during the execution of environment::evaluate, this is not the
-       case, so it is necessary to save the register. For example, situations
+       case, so it is necessary to save the registers. For example, situations
        like evaluating
 
          (eval <expression> (interaction-environment))
@@ -96,8 +96,8 @@ inline namespace kernel
   {
     if (x.is_also<error>())
     {
-      x.as<error>().raise(); // NOTE: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84476
-      return nullptr;
+      x.as<error>().raise();
+      return unspecified;
     }
     else
     {

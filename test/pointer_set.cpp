@@ -43,7 +43,7 @@ auto measure()
 
   static auto const xs = []()
   {
-    auto v = std::vector<int>(std::pow(2, 24));
+    auto v = std::vector<int>(std::pow(2, 20));
     std::iota(v.begin(), v.end(), 0);
     return v;
   }();

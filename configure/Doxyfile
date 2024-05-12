@@ -1,0 +1,45 @@
+PROJECT_NAME           = ${PROJECT_NAME}
+PROJECT_NUMBER         = ${CURRENT_VERSION}
+OUTPUT_DIRECTORY       = ${CMAKE_CURRENT_SOURCE_DIR}/document
+CREATE_SUBDIRS         = YES
+INLINE_INHERITED_MEMB  = YES
+STRIP_FROM_PATH        = ${CMAKE_CURRENT_SOURCE_DIR}/basis/include \
+                         ${CMAKE_CURRENT_SOURCE_DIR}/basis/src \
+                         ${CMAKE_CURRENT_SOURCE_DIR}/include \
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src
+TAB_SIZE               = 2
+BUILTIN_STL_SUPPORT    = YES
+INLINE_SIMPLE_STRUCTS  = YES
+
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+SORT_MEMBERS_CTORS_1ST = YES
+SORT_BY_SCOPE_NAME     = YES
+
+QUIET                  = YES
+INPUT                  = ${CMAKE_CURRENT_SOURCE_DIR}/README.md \
+                         ${CMAKE_CURRENT_SOURCE_DIR}/basis/include \
+                         ${CMAKE_CURRENT_SOURCE_DIR}/basis/src \
+                         ${CMAKE_CURRENT_SOURCE_DIR}/include \
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src
+RECURSIVE              = YES
+EXCLUDE                = ${CMAKE_CURRENT_SOURCE_DIR}/include/meevax/unicode
+USE_MDFILE_AS_MAINPAGE = ${CMAKE_CURRENT_SOURCE_DIR}/README.md
+
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+
+HTML_TIMESTAMP         = YES
+HTML_DYNAMIC_SECTIONS  = YES
+HTML_INDEX_NUM_ENTRIES = 1000
+SEARCHENGINE           = NO
+
+MACRO_EXPANSION        = YES
+PREDEFINED             = NDEBUG
+
+UML_LOOK               = YES
+UML_LIMIT_NUM_FIELDS   = 100
+TEMPLATE_RELATIONS     = YES
+CALL_GRAPH             = YES
+INTERACTIVE_SVG        = YES
+DOT_GRAPH_MAX_NODES    = 1000

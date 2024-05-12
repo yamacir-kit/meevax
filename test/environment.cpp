@@ -34,6 +34,8 @@ auto main() -> int
 
   const_cast<object &>(interaction_environment()).reset(); // DIRTY HACK!
 
+  const_cast<object &>(environment::core()).reset(); // DIRTY HACK!
+
   libraries().clear();
 
   assert(libraries().empty());
