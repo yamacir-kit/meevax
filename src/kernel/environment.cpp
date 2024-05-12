@@ -96,7 +96,8 @@ inline namespace kernel
   {
     if (x.is_also<error>())
     {
-      throw error(make<string>(lexical_cast<std::string>("in evaluation of expression ", expression)), x);
+      x.as<error>().raise();
+      return unspecified;
     }
     else
     {

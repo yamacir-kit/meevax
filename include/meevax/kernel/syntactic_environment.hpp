@@ -643,7 +643,7 @@ inline namespace kernel
       {
         assert(bound_variables.is<null>()); // This has been checked on previous passes.
 
-        assert(not car(expression).is<pair>());
+        assert(not car(expression).is<pair>()); // This has been checked on previous passes.
 
         return generator.generate(cdr(expression) ? cadr(expression) : unspecified,
                                   bound_variables,
@@ -811,10 +811,7 @@ inline namespace kernel
         }
         else if (cdr(identity).is<syntax>())
         {
-          return cdr(identity).as<syntax>().expand(*this,
-                                                   expression,
-                                                   bound_variables,
-                                                   free_variables);
+          return cdr(identity).as<syntax>().expand(*this, expression, bound_variables, free_variables);
         }
       }
 
@@ -845,18 +842,15 @@ inline namespace kernel
                                                             : std::as_const(*this).identify(expression, bound_variables, free_variables);
               identity.is<relative>())
           {
-            return cons(make(instruction::load_relative), identity,
-                        continuation);
+            return cons(make(instruction::load_relative), identity, continuation);
           }
           else if (identity.is<variadic>())
           {
-            return cons(make(instruction::load_variadic), identity,
-                        continuation);
+            return cons(make(instruction::load_variadic), identity, continuation);
           }
           else if (identity.is<absolute>())
           {
-            return cons(make(instruction::load_absolute), identity,
-                        continuation);
+            return cons(make(instruction::load_absolute), identity, continuation);
           }
           else
           {

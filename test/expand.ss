@@ -7,12 +7,14 @@
         (scheme write)
         (srfi 78))
 
-(define strip
-  (let ((scheme-report-environment-7 (environment '(scheme base))))
-    (lambda (expression)
-      (parameterize ((current-output-port (open-output-string)))
-        (write (expand expression scheme-report-environment-7))
-        (read (open-input-string (get-output-string (current-output-port))))))))
+(define strip-environment (environment '(meevax macro-transformer)
+                                       '(scheme base)
+                                       '(scheme list)))
+
+(define (strip expression)
+  (parameterize ((current-output-port (open-output-string)))
+    (write (expand expression strip-environment))
+    (read (open-input-string (get-output-string (current-output-port))))))
 
 (check (strip '(cond ((> 3 2) 'greater)
                      ((< 3 2) 'less)))
@@ -86,6 +88,21 @@
                x)
              'inner))))
        'outer))
+
+; (eval '(define-syntax sc-swap!
+;          (sc-macro-transformer
+;            (lambda (form on-use)
+;              (let ((a (make-syntactic-closure on-use '() (cadr form)))
+;                    (b (make-syntactic-closure on-use '() (caddr form))))
+;                `(let ((z ,a))
+;                   (set! ,a ,b)
+;                   (set! ,b z))))))
+;       strip-environment)
+;
+; (check (strip '(let ((x 1)
+;                      (y 2))
+;                  (sc-swap! x y)))
+;   => 'TODO-undefined-variable-z)
 
 (check (strip '(cond-expand
                  (r5rs 'r5rs)
