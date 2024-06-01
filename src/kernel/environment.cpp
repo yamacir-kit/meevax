@@ -96,7 +96,7 @@ inline namespace kernel
   {
     if (x.is_also<error>())
     {
-      x.as<error>().raise();
+      x.as<error>().append(expression).raise();
       return unspecified;
     }
     else

@@ -54,7 +54,7 @@ auto main(int const argc, char const* const* const argv) -> int
         }
         catch (error const& error)
         {
-          std::cerr << error << std::endl;
+          error.report(std::cerr);
         }
       }
     }

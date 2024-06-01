@@ -26,15 +26,40 @@ inline namespace kernel
 {
   struct error : public virtual pair // (<message> . <irritants>)
   {
+    struct detail
+    {
+      let expression;
+
+      explicit detail(let const& expression)
+        : expression { expression }
+      {}
+    };
+
+    std::vector<detail> details {};
+
     using pair::pair;
+
+    template <typename... Ts>
+    auto append(Ts&&... xs) -> auto &
+    {
+      details.emplace_back(std::forward<decltype(xs)>(xs)...);
+      return *this;
+    }
 
     auto irritants() const noexcept -> object const&;
 
     auto message() const noexcept -> object const&;
 
-    [[noreturn]] // NOTE: GCC ignores this attribute when accessed through pointer (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84476)
+    /*
+       GCC ignores this attribute when accessed through pointer
+       (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84476)
+    */
+    [[noreturn]]
     virtual auto raise() const -> void;
 
+    auto report(std::ostream &) const -> std::ostream &;
+
+    [[deprecated]]
     auto what() const -> std::string;
   };
 
@@ -73,7 +98,7 @@ inline namespace kernel
     }
     catch (error const& error)
     {
-      std::cerr << error << std::endl;
+      error.report(std::cerr);
       return EXIT_FAILURE;
     }
     catch (std::exception const& exception)

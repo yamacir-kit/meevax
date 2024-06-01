@@ -37,6 +37,25 @@ inline namespace kernel
     throw *this;
   }
 
+  auto error::report(std::ostream & output) const -> std::ostream &
+  {
+    output << red("; error! ", static_cast<std::string>(message().as<string>()));
+
+    if (irritants())
+    {
+      output << red(": ", irritants());
+    }
+
+    output << std::endl;
+
+    for (auto iter = details.rbegin(); iter != details.rend(); ++iter)
+    {
+      output << ";   at " << iter->expression << std::endl;
+    }
+
+    return output;
+  }
+
   auto error::what() const -> std::string
   {
     std::stringstream ss {};
