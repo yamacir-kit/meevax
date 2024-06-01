@@ -25,6 +25,7 @@ namespace meevax
 inline namespace kernel
 {
   struct error : public virtual pair // (<message> . <irritants>)
+               , public std::exception
   {
     struct detail
     {
@@ -37,7 +38,11 @@ inline namespace kernel
 
     std::vector<detail> details {};
 
+    mutable std::string brief {};
+
     using pair::pair;
+
+    ~error() override = default;
 
     template <typename... Ts>
     auto append(Ts&&... xs) -> auto &
@@ -59,8 +64,7 @@ inline namespace kernel
 
     auto report(std::ostream &) const -> std::ostream &;
 
-    [[deprecated]]
-    auto what() const -> std::string;
+    auto what() const noexcept -> char const* override;
   };
 
   auto operator <<(std::ostream &, error const&) -> std::ostream &;

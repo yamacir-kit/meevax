@@ -525,13 +525,13 @@ inline namespace kernel
           }();
         }
       }
-      catch (std::exception const& exception)
-      {
-        return reraise(make<error>(make<string>(exception.what())));
-      }
       catch (error const& error)
       {
         return reraise(make(error));
+      }
+      catch (std::exception const& exception)
+      {
+        return reraise(make<error>(make<string>(exception.what())));
       }
     }
   };
