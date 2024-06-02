@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_PORT_HPP
 
+#include <filesystem>
+
 namespace meevax
 {
 inline namespace kernel
@@ -26,6 +28,11 @@ inline namespace kernel
     virtual auto close() -> void = 0;
 
     virtual auto is_open() const -> bool = 0;
+
+    virtual auto path() const -> std::filesystem::path const*
+    {
+      return nullptr;
+    };
   };
 } // namespace kernel
 } // namespace meevax

@@ -71,11 +71,11 @@ inline namespace kernel
 
     auto end() -> iterator;
 
-    auto get() -> object; // character or eof
+    auto get() -> object; // Returns character or eof (for Scheme procedure read-char)
 
-    auto get(std::size_t) -> object; // string or eof
+    auto get(std::size_t) -> object; // Returns string or eof (for Scheme procedure read-string)
 
-    auto get_line() -> object; // string or eof
+    auto get_line() -> object; // Returns string or eof (for Scheme procedure read-line)
 
     auto get_ready() const -> bool;
 

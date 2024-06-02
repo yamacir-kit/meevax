@@ -40,9 +40,16 @@ inline namespace kernel
     return ifstream;
   }
 
+  auto input_file_port::path() const -> std::filesystem::path const*
+  {
+    return &name;
+  }
+
   auto operator <<(std::ostream & output, input_file_port const& datum) -> std::ostream &
   {
-    return output << magenta("#,(") << blue("open-input-file ") << datum.name << magenta(")");
+    assert(datum.name);
+
+    return output << magenta("#,(") << blue("open-input-file ") << string(datum.name) << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax

@@ -43,7 +43,7 @@ inline namespace kernel
 
     for (auto iter = details.rbegin(); iter != details.rend(); ++iter)
     {
-      output << ";   at " << iter->expression << std::endl;
+      output << faint(";   at expression ", lexical_cast<std::string>(iter->expression)) << std::endl;
     }
 
     return output;
