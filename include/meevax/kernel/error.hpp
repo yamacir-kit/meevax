@@ -38,7 +38,7 @@ inline namespace kernel
 
     std::vector<detail> details {};
 
-    mutable std::string brief {};
+    mutable std::string explanation {};
 
     using pair::pair;
 
@@ -108,7 +108,7 @@ inline namespace kernel
     }
     catch (std::exception const& exception)
     {
-      std::cerr << error(make<string>(exception.what())) << std::endl;
+      error(make<string>(exception.what())).report(std::cerr);
       return EXIT_FAILURE;
     }
   }

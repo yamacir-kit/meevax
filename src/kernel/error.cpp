@@ -53,7 +53,7 @@ inline namespace kernel
   {
     try
     {
-      if (brief.empty())
+      if (explanation.empty())
       {
         auto output = std::stringstream();
 
@@ -64,10 +64,10 @@ inline namespace kernel
           output << ": " << irritants();
         }
 
-        brief = output.str();
+        explanation = output.str();
       }
 
-      return brief.c_str();
+      return explanation.c_str();
     }
     catch (...)
     {
