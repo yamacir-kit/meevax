@@ -81,8 +81,6 @@ inline namespace kernel
 
     auto good() const -> bool;
 
-    auto ignore(std::size_t) -> textual_input_port &;
-
     auto peek() -> object;
 
     auto peek_codepoint() -> character::int_type;
@@ -93,9 +91,17 @@ inline namespace kernel
 
     auto read_string_literal() -> string;
 
+    /*
+       No member function other than `take_*` may change the state of
+       underlying input stream (except for peek).
+    */
     auto take_codepoint() -> character::int_type;
 
+    auto take_codepoints_off(std::size_t) -> textual_input_port &;
+
     auto take_digits() -> std::string;
+
+    auto take_line(std::istream::char_type = '\n') -> std::string;
 
     auto take_nested_block_comment() -> void; // TODO return std::string
 

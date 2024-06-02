@@ -47,8 +47,6 @@ inline namespace kernel
 
   auto operator <<(std::ostream & output, input_file_port const& datum) -> std::ostream &
   {
-    assert(datum.name);
-
     return output << magenta("#,(") << blue("open-input-file ") << string(datum.name) << magenta(")");
   }
 } // namespace kernel
