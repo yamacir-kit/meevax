@@ -69,24 +69,25 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, error const&) -> std::ostream &;
 
-  /*
-     - error
-        |-- file-error
-        `-- read_error
-  */
-  #define DEFINE_ERROR(TYPENAME)                                               \
-  struct TYPENAME ## _error : public error                                     \
-  {                                                                            \
-    using error::error;                                                        \
-                                                                               \
-    auto raise() const -> void override                                        \
-    {                                                                          \
-      throw *this;                                                             \
-    }                                                                          \
-  }
+  struct file_error : public error
+  {
+    using error::error;
 
-  DEFINE_ERROR(file);
-  DEFINE_ERROR(read);
+    auto raise() const -> void override
+    {
+      throw *this;
+    }
+  };
+
+  struct read_error : public error
+  {
+    using error::error;
+
+    auto raise() const -> void override
+    {
+      throw *this;
+    }
+  };
 
   template <typename Thunk>
   auto with_exception_handler(Thunk && thunk)
