@@ -95,6 +95,10 @@ inline namespace kernel
        No member function other than `take_*` may change the state of
        underlying input stream (except for peek).
     */
+    auto take_back(std::istream::char_type) -> void;
+
+    auto take_back(std::string const&) -> void;
+
     auto take_codepoint() -> character::int_type;
 
     auto take_codepoints_off(std::size_t) -> textual_input_port &;

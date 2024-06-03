@@ -180,12 +180,7 @@ inline namespace kernel
   {
     auto c = take_codepoint();
 
-    auto s = static_cast<std::string>(character(c));
-
-    for (auto iter = std::rbegin(s); iter != std::rend(s); ++iter)
-    {
-      istream().putback(*iter);
-    }
+    take_back(static_cast<std::string>(character(c)));
 
     return c;
   }
@@ -369,7 +364,7 @@ inline namespace kernel
           return make<vector>(read());
 
         case '\\':
-          istream().putback(c1);
+          take_back(c1);
           return make(read_character_literal());
 
         case '|': // SRFI 30
@@ -392,7 +387,7 @@ inline namespace kernel
           }
           else
           {
-            istream().putback('('); // modifying putback (https://en.cppreference.com/w/cpp/io/basic_istream/putback)
+            take_back('(');
             return cons(x, read());
           }
         }
@@ -544,6 +539,19 @@ inline namespace kernel
     }
 
     throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
+  }
+
+  auto textual_input_port::take_back(std::istream::char_type c) -> void
+  {
+    istream().putback(c); // modifying putback (https://en.cppreference.com/w/cpp/io/basic_istream/putback)
+  }
+
+  auto textual_input_port::take_back(std::string const& s) -> void
+  {
+    for (auto iter = std::rbegin(s); iter != std::rend(s); ++iter)
+    {
+      istream().putback(*iter);
+    }
   }
 
   auto textual_input_port::take_codepoint() -> character::int_type
