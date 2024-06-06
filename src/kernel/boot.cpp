@@ -398,7 +398,7 @@ inline namespace kernel
 
       library.define<procedure>("kernel-exception-handler-set!", [](let const& xs)
       {
-        environment::raise = car(xs);
+        environment::exception_handler = car(xs);
       });
     });
 

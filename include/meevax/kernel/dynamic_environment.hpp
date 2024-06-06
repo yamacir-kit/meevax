@@ -56,24 +56,24 @@ inline namespace kernel
     std::array<let, 3> a;
 
     /*
-       raise is a one-argument procedure for propagating C++ exceptions thrown
-       in the Meevax kernel to the exception handler of the language running on
-       the Meevax kernel.
+       exception_handler is a one-argument procedure for propagating C++
+       exceptions thrown in the Meevax kernel to the exception handler of the
+       language running on the Meevax kernel.
 
-       raise is set to null by default. In this default state, that is, if raise
-       is null, C++ exceptions thrown in the kernel are rethrown to the outer
-       environment.
+       exception_handler is set to null by default. In this default state, that
+       is, if exception_handler is null, C++ exceptions thrown in the kernel
+       are rethrown to the outer environment.
 
-       Although raise can be set to any one-argument procedure by procedure
-       `kernel-exception-handler-set!`, it is basically assumed to be set to
-       R7RS Scheme's standard procedure `raise`.
+       Although exception_handler can be set to any one-argument procedure by
+       procedure `kernel-exception-handler-set!`, it is basically assumed to be
+       set to R7RS Scheme's standard procedure `raise`.
     */
-    let static inline raise = nullptr;
+    let static inline exception_handler = nullptr;
 
     template <typename... Ts>
-    auto apply(object const& f, Ts&&... xs) -> decltype(auto)
+    auto apply(object const& procedure, Ts&&... xs) -> decltype(auto)
     {
-      s = list(f, list(std::forward<decltype(xs)>(xs)...));
+      s = list(procedure, list(std::forward<decltype(xs)>(xs)...));
       e = nullptr;
       c = list(make(instruction::call),
                make(instruction::stop));
@@ -94,9 +94,9 @@ inline namespace kernel
       return run();
     }
 
-    auto reraise(object const& x) -> decltype(auto)
+    auto raise(object const& x) -> decltype(auto)
     {
-      return raise.is<null>() ? throw x : apply(raise, x);
+      return exception_handler.is<null>() ? throw x : apply(exception_handler, x);
     }
 
     auto run() -> object
@@ -119,17 +119,9 @@ inline namespace kernel
           *
           * ----------------------------------------------------------------- */
           assert(cadr(c).template is<absolute>());
-
-          if (let const& x = cdadr(c); x == undefined)
-          {
-            throw error(make<string>("undefined variable"), caadr(c));
-          }
-          else
-          {
-            s = cons(x, s);
-            c = cddr(c);
-            goto fetch;
-          }
+          s = cons(cdadr(c), s);
+          c = cddr(c);
+          goto fetch;
 
         case instruction::load_relative: /* ------------------------------------
           *
@@ -527,11 +519,11 @@ inline namespace kernel
       }
       catch (error const& error)
       {
-        return reraise(make(error));
+        return raise(make(error));
       }
       catch (std::exception const& exception)
       {
-        return reraise(make<error>(make<string>(exception.what())));
+        return raise(make<error>(make<string>(exception.what())));
       }
     }
   };
