@@ -126,7 +126,7 @@ inline namespace kernel
 
     character() = default;
 
-    explicit constexpr character(int_type const& codepoint)
+    explicit constexpr character(int_type codepoint)
       : codepoint { codepoint }
     {}
 

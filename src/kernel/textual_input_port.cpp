@@ -185,11 +185,11 @@ inline namespace kernel
     return c;
   }
 
-  auto textual_input_port::read() -> object
+  auto textual_input_port::read(character::int_type c0) -> object
   {
     while (not character::is_eof(istream().peek()))
     {
-      switch (auto const c1 = peek_codepoint())
+      switch (auto const c1 = c0 ? c0 : take_codepoint())
       {
       case '\t': // 0x09
       case '\n': // 0x0A
@@ -197,14 +197,14 @@ inline namespace kernel
       case '\f': // 0x0C
       case '\r': // 0x0D
       case ' ':  // 0x20
-        take_codepoints_off(1);
         break;
 
       case '"':  // 0x22
+        take_back(c1);
         return make(read_string_literal());
 
       case '#':  // 0x23
-        switch (auto const c2 = take_codepoints_off(1).peek_codepoint())
+        switch (auto const c2 = peek_codepoint())
         {
         case '!': // SRFI 22
           if (auto token = take_token(); token == "!fold-case")
@@ -376,19 +376,18 @@ inline namespace kernel
         }
 
       case '\'': // 0x27
-        return list(make_symbol("quote"), take_codepoints_off(1).read());
+        return list(make_symbol("quote"), read());
 
       case '(':  // 0x28
         try
         {
-          if (let const& x = take_codepoints_off(1).read(); x.is<eof>())
+          if (let const& x = read(); x.is<eof>())
           {
             return x;
           }
           else
           {
-            take_back('(');
-            return cons(x, read());
+            return cons(x, read(c1));
           }
         }
         catch (std::integral_constant<char, ')'> const&)
@@ -403,11 +402,10 @@ inline namespace kernel
         }
 
       case ')':  // 0x29
-        take_codepoints_off(1);
         throw std::integral_constant<char, ')'>();
 
       case ',':  // 0x2C
-        switch (take_codepoints_off(1).peek_codepoint())
+        switch (peek_codepoint())
         {
         case '@':
           return list(make_symbol("unquote-splicing"), take_codepoints_off(1).read());
@@ -421,9 +419,10 @@ inline namespace kernel
         break;
 
       case '`':  // 0x60
-        return list(make_symbol("quasiquote"), take_codepoints_off(1).read());
+        return list(make_symbol("quasiquote"), read());
 
       case '|':  // 0x7C
+        take_back(c1);
         return make_symbol(read_string_literal());
 
       case '[':  // 0x5B
@@ -434,7 +433,9 @@ inline namespace kernel
                          make<character>(c1));
 
       default:
-        if (auto const& token = take_token(); token == ".")
+        take_back(c1);
+
+        if (auto && token = take_token(); token == ".")
         {
           throw std::integral_constant<char, '.'>();
         }
@@ -541,9 +542,9 @@ inline namespace kernel
     throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
   }
 
-  auto textual_input_port::take_back(std::istream::char_type c) -> void
+  auto textual_input_port::take_back(character::int_type c) -> void
   {
-    istream().putback(c); // modifying putback (https://en.cppreference.com/w/cpp/io/basic_istream/putback)
+    take_back(static_cast<std::string>(character(c)));
   }
 
   auto textual_input_port::take_back(std::string const& s) -> void

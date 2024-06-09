@@ -89,10 +89,15 @@ inline namespace kernel
 
       ~dump()
       {
-        std::invoke(*this);
+        undump();
       }
 
       auto operator ()() -> void
+      {
+        undump();
+      }
+
+      auto undump() -> void
       {
         registers.s = s;
         registers.e = e;

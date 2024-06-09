@@ -85,7 +85,7 @@ inline namespace kernel
 
     auto peek_codepoint() -> character::int_type;
 
-    auto read() -> object;
+    auto read(character::int_type = '\0') -> object;
 
     auto read_character_literal() -> character;
 
@@ -95,7 +95,7 @@ inline namespace kernel
        No member function other than `take_*` may change the state of
        underlying input stream (except for peek).
     */
-    auto take_back(std::istream::char_type) -> void;
+    auto take_back(character::int_type) -> void;
 
     auto take_back(std::string const&) -> void;
 
