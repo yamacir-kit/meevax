@@ -73,24 +73,37 @@ inline namespace kernel
 
        in the REPL.
     */
-    if (s or e or c)
+    struct dump
     {
-      d = cons(std::exchange(s, nullptr),
-               std::exchange(e, nullptr),
-               std::exchange(c, nullptr), d);
-    }
+      environment & registers;
 
-    let const result = execute(optimize(compile(expression)));
+      let s, e, c, d;
 
-    if (d)
-    {
-      s = head(d, 0);
-      e = head(d, 1);
-      c = head(d, 2);
-      d = tail(d, 3);
-    }
+      explicit dump(environment & registers)
+        : registers { registers }
+        , s { std::exchange(registers.s, nullptr) }
+        , e { std::exchange(registers.e, nullptr) }
+        , c { std::exchange(registers.c, nullptr) }
+        , d { std::exchange(registers.d, nullptr) }
+      {}
 
-    return result;
+      ~dump()
+      {
+        std::invoke(*this);
+      }
+
+      auto operator ()() -> void
+      {
+        registers.s = s;
+        registers.e = e;
+        registers.c = c;
+        registers.d = d;
+      }
+    };
+
+    auto undump = dump(*this);
+
+    return execute(optimize(compile(expression)));
   }
   catch (object const& x)
   {
