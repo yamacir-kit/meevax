@@ -87,7 +87,7 @@ inline namespace kernel
 
     auto read(character = {}) -> object;
 
-    auto read_character_literal(character = {}) -> character;
+    auto read_character_literal(character = {}, character = {}) -> character;
 
     auto read_string_literal(character = {}) -> string;
 
@@ -97,11 +97,11 @@ inline namespace kernel
     */
     auto take_character() -> character;
 
-    auto take_digits() -> std::string;
+    auto take_digits(character = {}) -> std::string;
 
     auto take_line(std::istream::char_type = '\n') -> std::string;
 
-    auto take_nested_block_comment() -> void; // TODO return std::string
+    auto take_nested_block_comment(character = {}, character = {}) -> void; // TODO return std::string
 
     auto take_token(character = {}) -> std::string;
 

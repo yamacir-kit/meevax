@@ -208,14 +208,14 @@ inline namespace kernel
         return make(read_string_literal(c1));
 
       case '#':  // 0x23
-        switch (auto const c2 = peek_character())
+        switch (auto const c2 = take_character())
         {
         case '!': // SRFI 22
-          if (auto token = take_token(); token == "!fold-case")
+          if (auto token = take_token(); token == "fold-case")
           {
             case_sensitive = false;
           }
-          else if (token == "!no-fold-case")
+          else if (token == "no-fold-case")
           {
             case_sensitive = true;
           }
@@ -227,16 +227,14 @@ inline namespace kernel
           return read();
 
         case ',': // SRFI 10
-          take_character();
           return interaction_environment().as<environment>().evaluate(read());
 
         case ';': // SRFI 62
-          take_character();
           read(); // Discard an expression.
           return read();
 
         case '"':
-          return make_symbol(read_string_literal());
+          return make_symbol(read_string_literal(c2));
 
         case '0':
         case '1':
@@ -248,30 +246,30 @@ inline namespace kernel
         case '7':
         case '8':
         case '9':
-          switch (auto label = take_digits(); peek_character())
+          switch (auto [n, c] = [&]()
+                  {
+                    auto n = take_digits(c2);
+                    return std::make_pair(n, take_character());
+                  }(); c)
           {
           case '#':
-            take_character();
-
-            if (auto iter = datum_labels.find(label); iter != datum_labels.end())
+            if (auto iter = datum_labels.find(n); iter != datum_labels.end())
             {
               return iter->second;
             }
             else
             {
               throw read_error(make<string>("it is an error to attempt a forward reference"),
-                               make<string>(lexical_cast<std::string>('#', label, '#')));
+                               make<string>(lexical_cast<std::string>('#', n, '#')));
             }
 
           case '=':
-            take_character();
-
-            if (auto [iter, success] = datum_labels.emplace(label, make<datum_label>(label)); success)
+            if (auto [iter, success] = datum_labels.emplace(n, make<datum_label>(n)); success)
             {
               if (let xs = read(); xs != iter->second)
               {
-                circulate(xs, label);
-                datum_labels.erase(label);
+                circulate(xs, n);
+                datum_labels.erase(n);
                 return xs;
               }
               else
@@ -282,18 +280,16 @@ inline namespace kernel
             else
             {
               throw read_error(make<string>("duplicated datum-label declaration"),
-                               make<string>(label));
+                               make<string>(n));
             }
 
           default:
             throw read_error(make<string>("unknown discriminator"),
-                             make<string>(lexical_cast<std::string>('#', label, get())));
+                             make<string>(lexical_cast<std::string>('#', n, c)));
           }
 
         case 'b':
-          take_character();
-
-          switch (auto c = take_character(); c)
+          switch (auto c = take_character())
           {
           case '#':
             return make_number(lexical_cast<std::string>(read()), 2);
@@ -303,9 +299,7 @@ inline namespace kernel
           }
 
         case 'd':
-          take_character();
-
-          switch (auto c = take_character(); c)
+          switch (auto c = take_character())
           {
           case '#':
             return make_number(lexical_cast<std::string>(read()), 10);
@@ -315,13 +309,10 @@ inline namespace kernel
           }
 
         case 'e':
-          take_character();
           return exact(read()); // NOTE: Same as #,(exact (read))
 
         case 'f':
-          take_character();
-
-          switch (auto const digits = take_digits(); std::stoi(digits))
+          switch (std::stoi(take_digits()))
           {
           case 32:
             return make<f32vector>(read());
@@ -335,13 +326,10 @@ inline namespace kernel
           }
 
         case 'i':
-          take_character();
           return inexact(read()); // NOTE: Same as #,(inexact (read))
 
         case 'o':
-          take_character();
-
-          switch (auto c = take_character(); c)
+          switch (auto c = take_character())
           {
           case '#':
             return make_number(lexical_cast<std::string>(read()), 8);
@@ -351,9 +339,7 @@ inline namespace kernel
           }
 
         case 's':
-          take_character();
-
-          switch (auto const digits = take_digits(); std::stoi(digits))
+          switch (auto const n = take_digits(); std::stoi(n))
           {
           case 8:
             return make<s8vector>(read());
@@ -369,17 +355,15 @@ inline namespace kernel
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
-                             make<string>(lexical_cast<std::string>("#s", digits)));
+                             make<string>(lexical_cast<std::string>(c1, c2, n)));
           }
 
         case 't':
-          take_token();
+          take_token(c2);
           return t;
 
         case 'u':
-          take_character();
-
-          switch (auto const digits = take_digits(); std::stoi(digits))
+          switch (auto const n = take_digits(); std::stoi(n))
           {
           case 8:
             return make<u8vector>(read());
@@ -395,13 +379,11 @@ inline namespace kernel
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
-                             make<string>(lexical_cast<std::string>("#u", digits)));
+                             make<string>(lexical_cast<std::string>(c1, c2, n)));
           }
 
         case 'x':
-          take_character();
-
-          switch (auto c = take_character(); c)
+          switch (auto c = take_character())
           {
           case '#':
             return make_number(lexical_cast<std::string>(read()), 16);
@@ -411,14 +393,13 @@ inline namespace kernel
           }
 
         case '(':
-          return make<vector>(read());
+          return make<vector>(read(c2));
 
         case '\\':
-          return make(read_character_literal(c1));
+          return make(read_character_literal(c1, c2));
 
         case '|': // SRFI 30
-          take_character();
-          take_nested_block_comment();
+          take_nested_block_comment(c1, c2);
           return read();
 
         default:
@@ -500,18 +481,19 @@ inline namespace kernel
     return eof_object;
   }
 
-  auto textual_input_port::read_character_literal(character sharp) -> character
+  auto textual_input_port::read_character_literal(character sharp, character backslash) -> character
   {
     if (not sharp)
     {
       sharp = take_character();
-
       assert(sharp == '#');
     }
 
-    auto const backslash = take_character();
-
-    assert(backslash == '\\');
+    if (not backslash)
+    {
+      backslash = take_character();
+      assert(backslash == '\\');
+    }
 
     if (auto c = take_character(); is_special_character(peek_character())) // #\<character>
     {
@@ -638,13 +620,13 @@ inline namespace kernel
     }
   }
 
-  auto textual_input_port::take_digits() -> std::string
+  auto textual_input_port::take_digits(character c) -> std::string
   {
-    auto s = std::string();
+    auto s = static_cast<std::string>(c);
 
-    while (std::isdigit(istream().peek()))
+    while (std::isdigit(peek_character()))
     {
-      s.push_back(istream().get());
+      s += take_character();
     }
 
     return s.length() ? s : "0";
@@ -657,18 +639,29 @@ inline namespace kernel
     return s;
   }
 
-  auto textual_input_port::take_nested_block_comment() -> void
+  auto textual_input_port::take_nested_block_comment(character sharp, character vertical_line) -> void
   {
     while (not peek_character().is_eof())
     {
-      switch (take_character())
+      if (not sharp)
+      {
+        sharp = take_character();
+        assert(sharp == '#');
+      }
+
+      if (not vertical_line)
+      {
+        vertical_line = take_character();
+        assert(vertical_line == '|');
+      }
+
+      switch (auto c1 = take_character())
       {
       case '#':
         switch (peek_character())
         {
         case '|':
-          take_character();
-          take_nested_block_comment();
+          take_nested_block_comment(c1, take_character());
           [[fallthrough]];
 
         default:
