@@ -246,46 +246,46 @@ inline namespace kernel
         case '7':
         case '8':
         case '9':
-          switch (auto [n, c] = [&]()
-                  {
-                    auto n = take_digits(c2);
-                    return std::make_pair(n, take_character());
-                  }(); c)
           {
-          case '#':
-            if (auto iter = datum_labels.find(n); iter != datum_labels.end())
-            {
-              return iter->second;
-            }
-            else
-            {
-              throw read_error(make<string>("it is an error to attempt a forward reference"),
-                               make<string>(lexical_cast<std::string>('#', n, '#')));
-            }
+            auto n = take_digits(c2);
 
-          case '=':
-            if (auto [iter, success] = datum_labels.emplace(n, make<datum_label>(n)); success)
+            switch (auto c = take_character())
             {
-              if (let xs = read(); xs != iter->second)
+            case '#':
+              if (auto iter = datum_labels.find(n); iter != datum_labels.end())
               {
-                circulate(xs, n);
-                datum_labels.erase(n);
-                return xs;
+                return iter->second;
               }
               else
               {
-                return nullptr;
+                throw read_error(make<string>("it is an error to attempt a forward reference"),
+                                 make<string>(lexical_cast<std::string>('#', n, '#')));
               }
-            }
-            else
-            {
-              throw read_error(make<string>("duplicated datum-label declaration"),
-                               make<string>(n));
-            }
 
-          default:
-            throw read_error(make<string>("unknown discriminator"),
-                             make<string>(lexical_cast<std::string>('#', n, c)));
+            case '=':
+              if (auto [iter, success] = datum_labels.emplace(n, make<datum_label>(n)); success)
+              {
+                if (let xs = read(); xs != iter->second)
+                {
+                  circulate(xs, n);
+                  datum_labels.erase(n);
+                  return xs;
+                }
+                else
+                {
+                  return nullptr;
+                }
+              }
+              else
+              {
+                throw read_error(make<string>("duplicated datum-label declaration"),
+                                 make<string>(n));
+              }
+
+            default:
+              throw read_error(make<string>("unknown discriminator"),
+                               make<string>(lexical_cast<std::string>('#', n, c)));
+            }
           }
 
         case 'b':
