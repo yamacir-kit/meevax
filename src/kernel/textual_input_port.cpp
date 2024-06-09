@@ -125,7 +125,7 @@ inline namespace kernel
 
   auto textual_input_port::get(std::size_t size) -> object
   {
-    if (character::is_eof(istream().peek()))
+    if (peek_character().is_eof())
     {
       return eof_object;
     }
@@ -133,7 +133,7 @@ inline namespace kernel
     {
       auto s = string();
 
-      while (size-- and not character::is_eof(istream().peek()))
+      while (size-- and not peek_character().is_eof())
       {
         s.vector.push_back(take_character());
       }
@@ -227,10 +227,12 @@ inline namespace kernel
           return read();
 
         case ',': // SRFI 10
-          return interaction_environment().as<environment>().evaluate(take_characters_away(1).read());
+          take_character();
+          return interaction_environment().as<environment>().evaluate(read());
 
         case ';': // SRFI 62
-          take_characters_away(1).read(); // Discard an expression.
+          take_character();
+          read(); // Discard an expression.
           return read();
 
         case '"':
@@ -249,7 +251,7 @@ inline namespace kernel
           switch (auto label = take_digits(); peek_character())
           {
           case '#':
-            take_characters_away(1);
+            take_character();
 
             if (auto iter = datum_labels.find(label); iter != datum_labels.end())
             {
@@ -262,7 +264,7 @@ inline namespace kernel
             }
 
           case '=':
-            take_characters_away(1);
+            take_character();
 
             if (auto [iter, success] = datum_labels.emplace(label, make<datum_label>(label)); success)
             {
@@ -289,16 +291,37 @@ inline namespace kernel
           }
 
         case 'b':
-          return make_number(take_characters_away(1).peek_character() == '#' ? lexical_cast<std::string>(read()) : take_token(), 2);
+          take_character();
+
+          switch (auto c = take_character(); c)
+          {
+          case '#':
+            return make_number(lexical_cast<std::string>(read()), 2);
+
+          default:
+            return make_number(take_token(c), 2);
+          }
 
         case 'd':
-          return make_number(take_characters_away(1).peek_character() == '#' ? lexical_cast<std::string>(read()) : take_token(), 10);
+          take_character();
+
+          switch (auto c = take_character(); c)
+          {
+          case '#':
+            return make_number(lexical_cast<std::string>(read()), 10);
+
+          default:
+            return make_number(take_token(c), 10);
+          }
 
         case 'e':
-          return exact(take_characters_away(1).read()); // NOTE: Same as #,(exact (read))
+          take_character();
+          return exact(read()); // NOTE: Same as #,(exact (read))
 
         case 'f':
-          switch (auto const digits = take_characters_away(1).take_digits(); std::stoi(digits))
+          take_character();
+
+          switch (auto const digits = take_digits(); std::stoi(digits))
           {
           case 32:
             return make<f32vector>(read());
@@ -312,13 +335,25 @@ inline namespace kernel
           }
 
         case 'i':
-          return inexact(take_characters_away(1).read()); // NOTE: Same as #,(inexact (read))
+          take_character();
+          return inexact(read()); // NOTE: Same as #,(inexact (read))
 
         case 'o':
-          return make_number(take_characters_away(1).peek_character() == '#' ? lexical_cast<std::string>(read()) : take_token(), 8);
+          take_character();
+
+          switch (auto c = take_character(); c)
+          {
+          case '#':
+            return make_number(lexical_cast<std::string>(read()), 8);
+
+          default:
+            return make_number(take_token(c), 8);
+          }
 
         case 's':
-          switch (auto const digits = take_characters_away(1).take_digits(); std::stoi(digits))
+          take_character();
+
+          switch (auto const digits = take_digits(); std::stoi(digits))
           {
           case 8:
             return make<s8vector>(read());
@@ -342,7 +377,9 @@ inline namespace kernel
           return t;
 
         case 'u':
-          switch (auto const digits = take_characters_away(1).take_digits(); std::stoi(digits))
+          take_character();
+
+          switch (auto const digits = take_digits(); std::stoi(digits))
           {
           case 8:
             return make<u8vector>(read());
@@ -362,7 +399,16 @@ inline namespace kernel
           }
 
         case 'x':
-          return make_number(take_characters_away(1).peek_character() == '#' ? lexical_cast<std::string>(read()) : take_token(), 16);
+          take_character();
+
+          switch (auto c = take_character(); c)
+          {
+          case '#':
+            return make_number(lexical_cast<std::string>(read()), 16);
+
+          default:
+            return make_number(take_token(c), 16);
+          }
 
         case '(':
           return make<vector>(read());
@@ -371,7 +417,8 @@ inline namespace kernel
           return make(read_character_literal(c1));
 
         case '|': // SRFI 30
-          take_characters_away(1).take_nested_block_comment();
+          take_character();
+          take_nested_block_comment();
           return read();
 
         default:
@@ -408,13 +455,13 @@ inline namespace kernel
         throw std::integral_constant<char, ')'>();
 
       case ',':  // 0x2C
-        switch (peek_character())
+        switch (auto c = take_character())
         {
         case '@':
-          return list(make_symbol("unquote-splicing"), take_characters_away(1).read());
+          return list(make_symbol("unquote-splicing"), read());
 
         default:
-          return list(make_symbol("unquote"), read());
+          return list(make_symbol("unquote"), read(c));
         }
 
       case ';':  // 0x3B
@@ -535,7 +582,7 @@ inline namespace kernel
         case '\r':
           while (std::isspace(peek_character()))
           {
-            take_characters_away(1);
+            take_character();
           }
           break;
 
@@ -591,16 +638,6 @@ inline namespace kernel
     }
   }
 
-  auto textual_input_port::take_characters_away(std::size_t size) -> textual_input_port &
-  {
-    while (size-- and not peek_character().is_eof())
-    {
-      take_character();
-    }
-
-    return *this;
-  }
-
   auto textual_input_port::take_digits() -> std::string
   {
     auto s = std::string();
@@ -622,15 +659,15 @@ inline namespace kernel
 
   auto textual_input_port::take_nested_block_comment() -> void
   {
-    while (not character::is_eof(istream().peek()))
+    while (not peek_character().is_eof())
     {
-      switch (istream().get())
+      switch (take_character())
       {
       case '#':
-        switch (istream().peek())
+        switch (peek_character())
         {
         case '|':
-          take_characters_away(1);
+          take_character();
           take_nested_block_comment();
           [[fallthrough]];
 
@@ -639,10 +676,10 @@ inline namespace kernel
         }
 
       case '|':
-        switch (istream().peek())
+        switch (peek_character())
         {
         case '#':
-          take_characters_away(1);
+          take_character();
           return;
 
         default:

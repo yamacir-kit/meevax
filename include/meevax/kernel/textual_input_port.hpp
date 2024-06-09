@@ -97,8 +97,6 @@ inline namespace kernel
     */
     auto take_character() -> character;
 
-    auto take_characters_away(std::size_t) -> textual_input_port &;
-
     auto take_digits() -> std::string;
 
     auto take_line(std::istream::char_type = '\n') -> std::string;
