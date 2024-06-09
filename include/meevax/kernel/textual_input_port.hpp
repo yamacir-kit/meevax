@@ -87,18 +87,14 @@ inline namespace kernel
 
     auto read(character = {}) -> object;
 
-    auto read_character_literal() -> character;
+    auto read_character_literal(character = {}) -> character;
 
-    auto read_string_literal() -> string;
+    auto read_string_literal(character = {}) -> string;
 
     /*
        No member function other than `take_*` may change the state of
        underlying input stream (except for peek).
     */
-    auto take_back(character) -> void;
-
-    auto take_back(std::string const&) -> void;
-
     auto take_character() -> character;
 
     auto take_characters_away(std::size_t) -> textual_input_port &;

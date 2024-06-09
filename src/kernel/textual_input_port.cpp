@@ -180,7 +180,12 @@ inline namespace kernel
   {
     auto c = take_character();
 
-    take_back(c);
+    auto const s = static_cast<std::string>(c);
+
+    for (auto iter = std::rbegin(s); iter != std::rend(s); ++iter)
+    {
+      istream().putback(*iter);
+    }
 
     return c;
   }
@@ -200,8 +205,7 @@ inline namespace kernel
         break;
 
       case '"':  // 0x22
-        take_back(c1);
-        return make(read_string_literal());
+        return make(read_string_literal(c1));
 
       case '#':  // 0x23
         switch (auto const c2 = peek_character())
@@ -364,8 +368,7 @@ inline namespace kernel
           return make<vector>(read());
 
         case '\\':
-          take_back(c1);
-          return make(read_character_literal());
+          return make(read_character_literal(c1));
 
         case '|': // SRFI 30
           take_characters_away(1).take_nested_block_comment();
@@ -422,8 +425,7 @@ inline namespace kernel
         return list(make_symbol("quasiquote"), read());
 
       case '|':  // 0x7C
-        take_back(c1);
-        return make_symbol(read_string_literal());
+        return make_symbol(read_string_literal(c1));
 
       case '[':  // 0x5B
       case ']':  // 0x5D
@@ -451,9 +453,18 @@ inline namespace kernel
     return eof_object;
   }
 
-  auto textual_input_port::read_character_literal() -> character
+  auto textual_input_port::read_character_literal(character sharp) -> character
   {
-    take_characters_away(2); // sharp and backslash
+    if (not sharp)
+    {
+      sharp = take_character();
+
+      assert(sharp == '#');
+    }
+
+    auto const backslash = take_character();
+
+    assert(backslash == '\\');
 
     if (auto c = take_character(); is_special_character(peek_character())) // #\<character>
     {
@@ -491,11 +502,14 @@ inline namespace kernel
     }
   }
 
-  auto textual_input_port::read_string_literal() -> string
+  auto textual_input_port::read_string_literal(character quotation_mark) -> string
   {
     auto s = string();
 
-    auto const quotation_mark = take_character();
+    if (not quotation_mark)
+    {
+      quotation_mark = take_character();
+    }
 
     for (auto c = take_character(); not c.is_eof(); c = take_character())
     {
@@ -538,19 +552,6 @@ inline namespace kernel
     }
 
     throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
-  }
-
-  auto textual_input_port::take_back(character c) -> void
-  {
-    take_back(static_cast<std::string>(c));
-  }
-
-  auto textual_input_port::take_back(std::string const& s) -> void
-  {
-    for (auto iter = std::rbegin(s); iter != std::rend(s); ++iter)
-    {
-      istream().putback(*iter);
-    }
   }
 
   auto textual_input_port::take_character() -> character
