@@ -181,6 +181,11 @@ inline namespace kernel
       return eq(eof(), c);
     }
 
+    constexpr auto is_eof() const noexcept
+    {
+      return is_eof(codepoint);
+    }
+
     constexpr auto property() const noexcept -> property_code
     {
       return codepoint;

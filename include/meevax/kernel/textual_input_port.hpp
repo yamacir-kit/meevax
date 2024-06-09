@@ -83,9 +83,9 @@ inline namespace kernel
 
     auto peek() -> object;
 
-    auto peek_codepoint() -> character::int_type;
+    auto peek_character() -> character;
 
-    auto read(character::int_type = '\0') -> object;
+    auto read(character = {}) -> object;
 
     auto read_character_literal() -> character;
 
@@ -95,13 +95,13 @@ inline namespace kernel
        No member function other than `take_*` may change the state of
        underlying input stream (except for peek).
     */
-    auto take_back(character::int_type) -> void;
+    auto take_back(character) -> void;
 
     auto take_back(std::string const&) -> void;
 
-    auto take_codepoint() -> character::int_type;
+    auto take_character() -> character;
 
-    auto take_codepoints_off(std::size_t) -> textual_input_port &;
+    auto take_characters_away(std::size_t) -> textual_input_port &;
 
     auto take_digits() -> std::string;
 
@@ -109,7 +109,7 @@ inline namespace kernel
 
     auto take_nested_block_comment() -> void; // TODO return std::string
 
-    auto take_token() -> std::string;
+    auto take_token(character = {}) -> std::string;
 
     virtual auto istream() -> std::istream & = 0;
 

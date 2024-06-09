@@ -27,9 +27,9 @@ inline namespace kernel
   {
     if (auto input = input_string_port(s); input.get_ready())
     {
-      for (auto c = input.take_codepoint(); not character::is_eof(c); c = input.take_codepoint())
+      for (auto c = input.take_character(); not c.is_eof(); c = input.take_character())
       {
-        vector.emplace_back(c);
+        vector.push_back(c);
       }
     }
   }
