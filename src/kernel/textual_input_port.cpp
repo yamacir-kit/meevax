@@ -144,7 +144,7 @@ inline namespace kernel
 
   auto textual_input_port::get_line() -> object
   {
-    if (auto s = take_line(); istream().eof())
+    if (auto s = take_until([](auto c) { return c == '\n'; }); istream().eof())
     {
       return eof_object;
     }
@@ -192,6 +192,11 @@ inline namespace kernel
 
   auto textual_input_port::read(character c0) -> object
   {
+    auto is_digit = [](auto c)
+    {
+      return std::isdigit(c);
+    };
+
     while (not peek_character().is_eof())
     {
       switch (auto const c1 = c0 ? c0 : take_character())
@@ -221,7 +226,7 @@ inline namespace kernel
           }
           else
           {
-            take_line();
+            take_until([](auto c) { return c == '\n'; });
           }
 
           return read();
@@ -247,7 +252,7 @@ inline namespace kernel
         case '8':
         case '9':
           {
-            auto n = take_digits(c2);
+            auto n = take_while(is_digit, c2);
 
             switch (auto c = take_character())
             {
@@ -312,7 +317,7 @@ inline namespace kernel
           return exact(read()); // NOTE: Same as #,(exact (read))
 
         case 'f':
-          switch (std::stoi(take_digits()))
+          switch (std::stoi(take_while(is_digit, character('0'))))
           {
           case 32:
             return make<f32vector>(read());
@@ -339,7 +344,7 @@ inline namespace kernel
           }
 
         case 's':
-          switch (auto const n = take_digits(); std::stoi(n))
+          switch (auto n = take_while(is_digit); std::stoi(n))
           {
           case 8:
             return make<s8vector>(read());
@@ -363,7 +368,7 @@ inline namespace kernel
           return t;
 
         case 'u':
-          switch (auto const n = take_digits(); std::stoi(n))
+          switch (auto const n = take_while(is_digit); std::stoi(n))
           {
           case 8:
             return make<u8vector>(read());
@@ -428,7 +433,7 @@ inline namespace kernel
         catch (std::integral_constant<char, '.'> const&)
         {
           let const x = read();
-          take_line(')');
+          take_until([](auto c) { return c == ')'; });
           return x;
         }
 
@@ -446,7 +451,7 @@ inline namespace kernel
         }
 
       case ';':  // 0x3B
-        take_line();
+        take_until([](auto c) { return c == '\n'; });
         break;
 
       case '`':  // 0x60
@@ -558,14 +563,11 @@ inline namespace kernel
         case 'r': s.vector.emplace_back('\r'); break;
         case 't': s.vector.emplace_back('\t'); break;
         case 'v': s.vector.emplace_back('\v'); break;
-        case 'x': s.vector.emplace_back(lexical_cast<character::int_type>(std::hex, take_line(';'))); break;
+        case 'x': s.vector.emplace_back(lexical_cast<character::int_type>(std::hex, take_until([](auto c) { return c == ';'; }))); break;
 
         case '\n':
         case '\r':
-          while (std::isspace(peek_character()))
-          {
-            take_character();
-          }
+          take_while([](auto c) { return std::isspace(c); });
           break;
 
         default:
@@ -618,25 +620,6 @@ inline namespace kernel
     {
       throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
     }
-  }
-
-  auto textual_input_port::take_digits(character c) -> std::string
-  {
-    auto s = static_cast<std::string>(c);
-
-    while (std::isdigit(peek_character()))
-    {
-      s += take_character();
-    }
-
-    return s.length() ? s : "0";
-  }
-
-  auto textual_input_port::take_line(std::istream::char_type delimiter) -> std::string
-  {
-    auto s = std::string();
-    std::getline(istream(), s, delimiter);
-    return s;
   }
 
   auto textual_input_port::take_nested_block_comment(character sharp, character vertical_line) -> void

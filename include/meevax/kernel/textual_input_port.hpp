@@ -97,13 +97,35 @@ inline namespace kernel
     */
     auto take_character() -> character;
 
-    auto take_digits(character = {}) -> std::string;
-
-    auto take_line(std::istream::char_type = '\n') -> std::string;
-
-    auto take_nested_block_comment(character = {}, character = {}) -> void; // TODO return std::string
+    auto take_nested_block_comment(character = {}, character = {}) -> void;
 
     auto take_token(character = {}) -> std::string;
+
+    template <typename F>
+    auto take_until(F satisfy, character c = {})
+    {
+      auto s = static_cast<std::string>(c);
+
+      while (get_ready() and not satisfy(c = take_character()))
+      {
+        s += c;
+      }
+
+      return s;
+    }
+
+    template <typename F>
+    auto take_while(F satisfy, character c = {})
+    {
+      auto s = static_cast<std::string>(c);
+
+      while (get_ready() and satisfy(peek_character()))
+      {
+        s += take_character();
+      }
+
+      return s;
+    }
 
     virtual auto istream() -> std::istream & = 0;
 
