@@ -135,7 +135,7 @@ inline namespace kernel
 
       while (size-- and not peek_character().is_eof())
       {
-        s.vector.push_back(take_character());
+        s.push_back(take_character());
       }
 
       return make(s);
@@ -556,14 +556,14 @@ inline namespace kernel
       case '\\':
         switch (auto const c = take_character(); c)
         {
-        case 'a': s.vector.emplace_back('\a'); break;
-        case 'b': s.vector.emplace_back('\b'); break;
-        case 'f': s.vector.emplace_back('\f'); break;
-        case 'n': s.vector.emplace_back('\n'); break;
-        case 'r': s.vector.emplace_back('\r'); break;
-        case 't': s.vector.emplace_back('\t'); break;
-        case 'v': s.vector.emplace_back('\v'); break;
-        case 'x': s.vector.emplace_back(lexical_cast<character::int_type>(std::hex, take_until([](auto c) { return c == ';'; }))); break;
+        case 'a': s.emplace_back('\a'); break;
+        case 'b': s.emplace_back('\b'); break;
+        case 'f': s.emplace_back('\f'); break;
+        case 'n': s.emplace_back('\n'); break;
+        case 'r': s.emplace_back('\r'); break;
+        case 't': s.emplace_back('\t'); break;
+        case 'v': s.emplace_back('\v'); break;
+        case 'x': s.emplace_back(lexical_cast<character::int_type>(std::hex, take_until([](auto c) { return c == ';'; }))); break;
 
         case '\n':
         case '\r':
@@ -571,13 +571,13 @@ inline namespace kernel
           break;
 
         default:
-          s.vector.emplace_back(c);
+          s.emplace_back(c);
           break;
         }
         break;
 
       default:
-        s.vector.emplace_back(c);
+        s.emplace_back(c);
         break;
       }
     }

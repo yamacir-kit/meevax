@@ -25,25 +25,30 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct string
+  struct string : private std::vector<character>
   {
-    std::vector<character> vector;
-
-    string() = default;
+    using std::vector<character>::at;
+    using std::vector<character>::begin;
+    using std::vector<character>::emplace_back;
+    using std::vector<character>::end;
+    using std::vector<character>::insert;
+    using std::vector<character>::push_back;
+    using std::vector<character>::rbegin;
+    using std::vector<character>::rend;
+    using std::vector<character>::reserve;
+    using std::vector<character>::size;
+    using std::vector<character>::vector;
 
     explicit string(std::string const&);
 
-    explicit string(std::size_t const, character const&);
-
-    template <typename Iterator>
-    explicit string(Iterator begin, Iterator end)
-      : vector { begin, end }
-    {}
-
     operator std::string() const;
-  };
 
-  auto operator ==(string const&, string const&) -> bool;
+    friend auto operator ==(string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) == static_cast<std::vector<character> const&>(rhs); }
+    friend auto operator < (string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) <  static_cast<std::vector<character> const&>(rhs); }
+    friend auto operator > (string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) >  static_cast<std::vector<character> const&>(rhs); }
+    friend auto operator <=(string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) <= static_cast<std::vector<character> const&>(rhs); }
+    friend auto operator >=(string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) >= static_cast<std::vector<character> const&>(rhs); }
+  };
 
   auto operator <<(std::ostream &, string const&) -> std::ostream &;
 } // namespace kernel

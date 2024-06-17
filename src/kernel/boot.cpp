@@ -1396,7 +1396,7 @@ inline namespace kernel
 
         for (let const& x : xs)
         {
-          s.as<string>().vector.push_back(x.as<character>());
+          s.as<string>().push_back(x.as<character>());
         }
 
         return s;
@@ -1404,24 +1404,24 @@ inline namespace kernel
 
       library.define<procedure>("string-length", [](let const& xs)
       {
-        return make<exact_integer>(car(xs).as<string>().vector.size());
+        return make<exact_integer>(car(xs).as<string>().size());
       });
 
       library.define<procedure>("string-ref", [](let const& xs)
       {
-        return make(car(xs).as<string>().vector.at(cadr(xs).as<exact_integer>()));
+        return make(car(xs).as<string>().at(cadr(xs).as<exact_integer>()));
       });
 
       library.define<procedure>("string-set!", [](let & xs)
       {
-        car(xs).as<string>().vector.at(cadr(xs).as<exact_integer>()) = caddr(xs).as<character>();
+        car(xs).as<string>().at(cadr(xs).as<exact_integer>()) = caddr(xs).as<character>();
       });
 
       library.define<procedure>("string=?", [](let const& xs)
       {
         auto compare = [](let const& a, let const& b)
         {
-          return not (a.as<string>().vector == b.as<string>().vector);
+          return not (a.as<string>() == b.as<string>());
         };
 
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
@@ -1431,7 +1431,7 @@ inline namespace kernel
       {
         auto compare = [](let const& a, let const& b)
         {
-          return not (a.as<string>().vector < b.as<string>().vector);
+          return not (a.as<string>() < b.as<string>());
         };
 
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
@@ -1441,7 +1441,7 @@ inline namespace kernel
       {
         auto compare = [](let const& a, let const& b)
         {
-          return not (a.as<string>().vector > b.as<string>().vector);
+          return not (a.as<string>() > b.as<string>());
         };
 
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
@@ -1451,7 +1451,7 @@ inline namespace kernel
       {
         auto compare = [](let const& a, let const& b)
         {
-          return not (a.as<string>().vector <= b.as<string>().vector);
+          return not (a.as<string>() <= b.as<string>());
         };
 
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
@@ -1461,7 +1461,7 @@ inline namespace kernel
       {
         auto compare = [](let const& a, let const& b)
         {
-          return not (a.as<string>().vector >= b.as<string>().vector);
+          return not (a.as<string>() >= b.as<string>());
         };
 
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
@@ -1476,8 +1476,8 @@ inline namespace kernel
             return c1.downcase() == c2.downcase();
           };
 
-          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
-                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+          return not std::lexicographical_compare(s1.as<string>().begin(), s1.as<string>().end(),
+                                                  s2.as<string>().begin(), s2.as<string>().end(), compare);
         };
 
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
@@ -1492,8 +1492,8 @@ inline namespace kernel
             return c1.downcase() < c2.downcase();
           };
 
-          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
-                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+          return not std::lexicographical_compare(s1.as<string>().begin(), s1.as<string>().end(),
+                                                  s2.as<string>().begin(), s2.as<string>().end(), compare);
         };
 
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
@@ -1508,8 +1508,8 @@ inline namespace kernel
             return c1.downcase() > c2.downcase();
           };
 
-          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
-                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+          return not std::lexicographical_compare(s1.as<string>().begin(), s1.as<string>().end(),
+                                                  s2.as<string>().begin(), s2.as<string>().end(), compare);
         };
 
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
@@ -1524,8 +1524,8 @@ inline namespace kernel
             return c1.downcase() <= c2.downcase();
           };
 
-          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
-                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+          return not std::lexicographical_compare(s1.as<string>().begin(), s1.as<string>().end(),
+                                                  s2.as<string>().begin(), s2.as<string>().end(), compare);
         };
 
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
@@ -1540,8 +1540,8 @@ inline namespace kernel
             return c1.downcase() >= c2.downcase();
           };
 
-          return not std::lexicographical_compare(s1.as<string>().vector.begin(), s1.as<string>().vector.end(),
-                                                  s2.as<string>().vector.begin(), s2.as<string>().vector.end(), compare);
+          return not std::lexicographical_compare(s1.as<string>().begin(), s1.as<string>().end(),
+                                                  s2.as<string>().begin(), s2.as<string>().end(), compare);
         };
 
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
@@ -1553,9 +1553,9 @@ inline namespace kernel
 
         for (let const& x : xs)
         {
-          s.as<string>().vector.insert(s.as<string>().vector.end(),
-                                       x.as<string>().vector.begin(),
-                                       x.as<string>().vector.end());
+          s.as<string>().insert(s.as<string>().end(),
+                                x.as<string>().begin(),
+                                x.as<string>().end());
         }
 
         return s;
@@ -1571,22 +1571,22 @@ inline namespace kernel
         switch (length(xs))
         {
         case 1:
-          return std::accumulate(car(xs).as<string>().vector.rbegin(),
-                                 car(xs).as<string>().vector.rend(),
+          return std::accumulate(car(xs).as<string>().rbegin(),
+                                 car(xs).as<string>().rend(),
                                  unit,
                                  push);
 
         case 2:
-          return std::accumulate(car(xs).as<string>().vector.rbegin(),
-                                 std::prev(car(xs).as<string>().vector.rend(),
+          return std::accumulate(car(xs).as<string>().rbegin(),
+                                 std::prev(car(xs).as<string>().rend(),
                                            cadr(xs).as<exact_integer>()),
                                  unit,
                                  push);
 
         case 3:
-          return std::accumulate(std::prev(car(xs).as<string>().vector.rend(),
+          return std::accumulate(std::prev(car(xs).as<string>().rend(),
                                            caddr(xs).as<exact_integer>()),
-                                 std::prev(car(xs).as<string>().vector.rend(),
+                                 std::prev(car(xs).as<string>().rend(),
                                            cadr(xs).as<exact_integer>()),
                                  unit,
                                  push);
@@ -1602,7 +1602,7 @@ inline namespace kernel
 
         for (let const& x : car(xs))
         {
-          s.as<string>().vector.push_back(x.as<character>());
+          s.as<string>().push_back(x.as<character>());
         }
 
         return s;
@@ -1613,18 +1613,18 @@ inline namespace kernel
         switch (length(xs))
         {
         case 1:
-          return make<string>(car(xs).as<string>().vector.begin(),
-                              car(xs).as<string>().vector.end());
+          return make<string>(car(xs).as<string>().begin(),
+                              car(xs).as<string>().end());
 
         case 2:
-          return make<string>(std::next(car(xs).as<string>().vector.begin(),
+          return make<string>(std::next(car(xs).as<string>().begin(),
                                         cadr(xs).as<exact_integer>()),
-                              car(xs).as<string>().vector.end());
+                              car(xs).as<string>().end());
 
         case 3:
-          return make<string>(std::next(car(xs).as<string>().vector.begin(),
+          return make<string>(std::next(car(xs).as<string>().begin(),
                                         cadr(xs).as<exact_integer>()),
-                              std::next(car(xs).as<string>().vector.begin(),
+                              std::next(car(xs).as<string>().begin(),
                                         caddr(xs).as<exact_integer>()));
 
         default:
@@ -1634,32 +1634,32 @@ inline namespace kernel
 
       library.define<procedure>("string-copy!", [](let const& xs)
       {
-        car(xs).as<string>().vector.reserve(car(xs).as<string>().vector.size() +
-                                            caddr(xs).as<string>().vector.size());
+        car(xs).as<string>().reserve(car(xs).as<string>().size() +
+                                     caddr(xs).as<string>().size());
 
         switch (length(xs))
         {
         case 3:
-          std::copy(caddr(xs).as<string>().vector.begin(),
-                    caddr(xs).as<string>().vector.end(),
-                    std::next(car(xs).as<string>().vector.begin(),
+          std::copy(caddr(xs).as<string>().begin(),
+                    caddr(xs).as<string>().end(),
+                    std::next(car(xs).as<string>().begin(),
                               cadr(xs).as<exact_integer>()));
           break;
 
         case 4:
-          std::copy(std::next(caddr(xs).as<string>().vector.begin(),
+          std::copy(std::next(caddr(xs).as<string>().begin(),
                               cadddr(xs).as<exact_integer>()),
-                    caddr(xs).as<string>().vector.end(),
-                    std::next(car(xs).as<string>().vector.begin(),
+                    caddr(xs).as<string>().end(),
+                    std::next(car(xs).as<string>().begin(),
                               cadr(xs).as<exact_integer>()));
           break;
 
         case 5:
-          std::copy(std::next(caddr(xs).as<string>().vector.begin(),
+          std::copy(std::next(caddr(xs).as<string>().begin(),
                               cadddr(xs).as<exact_integer>()),
-                    std::next(caddr(xs).as<string>().vector.begin(),
+                    std::next(caddr(xs).as<string>().begin(),
                               caddddr(xs).as<exact_integer>()),
-                    std::next(car(xs).as<string>().vector.begin(),
+                    std::next(car(xs).as<string>().begin(),
                               cadr(xs).as<exact_integer>()));
           break;
 
@@ -1673,22 +1673,22 @@ inline namespace kernel
         switch (length(xs))
         {
         case 2:
-          std::fill(car(xs).as<string>().vector.begin(),
-                    car(xs).as<string>().vector.end(),
+          std::fill(car(xs).as<string>().begin(),
+                    car(xs).as<string>().end(),
                     cadr(xs).as<character>());
           break;
 
         case 3:
-          std::fill(std::next(car(xs).as<string>().vector.begin(),
+          std::fill(std::next(car(xs).as<string>().begin(),
                               caddr(xs).as<exact_integer>()),
-                    car(xs).as<string>().vector.end(),
+                    car(xs).as<string>().end(),
                     cadr(xs).as<character>());
           break;
 
         case 4:
-          std::fill(std::next(car(xs).as<string>().vector.begin(),
+          std::fill(std::next(car(xs).as<string>().begin(),
                               caddr(xs).as<exact_integer>()),
-                    std::next(car(xs).as<string>().vector.begin(),
+                    std::next(car(xs).as<string>().begin(),
                               cadddr(xs).as<exact_integer>()),
                     cadr(xs).as<character>());
           break;
@@ -1882,7 +1882,7 @@ inline namespace kernel
 
         auto push_back = [&](let const& x)
         {
-          s.as<string>().vector.push_back(x.as<character>());
+          s.as<string>().push_back(x.as<character>());
         };
 
         switch (length(xs))
@@ -1917,7 +1917,7 @@ inline namespace kernel
       {
         let v = make<vector>();
 
-        for (auto character : car(xs).as<string>().vector)
+        for (auto character : car(xs).as<string>())
         {
           v.as<vector>().vector.push_back(make(character));
         }
