@@ -101,6 +101,11 @@ inline namespace kernel
     return circulate(xs, xs, n);
   }
 
+  auto textual_input_port::at_end_of_file() const -> bool
+  {
+    return istream().eof();
+  }
+
   auto textual_input_port::begin() -> iterator
   {
     return iterator(*this);
@@ -144,7 +149,7 @@ inline namespace kernel
 
   auto textual_input_port::get_line() -> object
   {
-    if (auto s = take_until([](auto c) { return c == '\n'; }); istream().eof())
+    if (auto s = take_until([](auto c) { return c == '\n'; }); at_end_of_file())
     {
       return eof_object;
     }
@@ -157,11 +162,6 @@ inline namespace kernel
   auto textual_input_port::get_ready() const -> bool
   {
     return static_cast<bool>(istream());
-  }
-
-  auto textual_input_port::good() const -> bool
-  {
-    return istream().good();
   }
 
   auto textual_input_port::peek() -> object
@@ -197,10 +197,13 @@ inline namespace kernel
       return std::isdigit(c);
     };
 
-    while (not peek_character().is_eof())
+    while (get_ready())
     {
       switch (auto const c1 = c0 ? c0 : take_character())
       {
+      case EOF:
+        return eof_object;
+
       case '\t': // 0x09
       case '\n': // 0x0A
       case '\v': // 0x0B
@@ -483,7 +486,7 @@ inline namespace kernel
       }
     }
 
-    return eof_object;
+    throw read_error(make<string>("underlying input stream went into a not good state"));
   }
 
   auto textual_input_port::read_character_literal(character sharp, character backslash) -> character
@@ -593,28 +596,29 @@ inline namespace kernel
        00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
        00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
     */
+    auto & source = istream();
 
-    if (auto const c = istream().peek(); character::is_eof(c) or character::is_ascii(c))
+    if (auto const c = source.peek(); character::is_eof(c) or character::is_ascii(c))
     {
-      return character(istream().get());
+      return character(source.get());
     }
     else if (0xC2 <= c and c <= 0xDF) // 11 bit
     {
-      return character((istream().get() & 0b0001'1111) << 6 |
-                       (istream().get() & 0b0011'1111));
+      return character((source.get() & 0b0001'1111) << 6 |
+                       (source.get() & 0b0011'1111));
     }
     else if (0xE0 <= c and c <= 0xEF) // 16 bit
     {
-      return character((istream().get() & 0b0000'1111) << 12 |
-                       (istream().get() & 0b0011'1111) <<  6 |
-                       (istream().get() & 0b0011'1111));
+      return character((source.get() & 0b0000'1111) << 12 |
+                       (source.get() & 0b0011'1111) <<  6 |
+                       (source.get() & 0b0011'1111));
     }
     else if (0xF0 <= c and c <= 0xF4) // 21 bit
     {
-      return character((istream().get() & 0b0000'0111) << 18 |
-                       (istream().get() & 0b0011'1111) << 12 |
-                       (istream().get() & 0b0011'1111) <<  6 |
-                       (istream().get() & 0b0011'1111));
+      return character((source.get() & 0b0000'0111) << 18 |
+                       (source.get() & 0b0011'1111) << 12 |
+                       (source.get() & 0b0011'1111) <<  6 |
+                       (source.get() & 0b0011'1111));
     }
     else
     {
@@ -672,11 +676,14 @@ inline namespace kernel
 
   auto textual_input_port::take_token(character c) -> std::string
   {
-    auto token = static_cast<std::string>(case_sensitive ? c : character(c.downcase()));
+    auto token = string();
 
-    while (not is_special_character(istream().peek()))
+    token.emplace_back(case_sensitive ? c : c.downcase());
+
+    while (not is_special_character(peek_character()))
     {
-      token.push_back(case_sensitive ? istream().get() : std::tolower(istream().get()));
+      token.emplace_back(case_sensitive ? take_character()
+                                        : take_character().downcase());
     }
 
     return token;

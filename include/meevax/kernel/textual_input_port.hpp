@@ -67,6 +67,8 @@ inline namespace kernel
 
     bool case_sensitive = true;
 
+    auto at_end_of_file() const -> bool;
+
     auto begin() -> iterator;
 
     auto end() -> iterator;
@@ -79,8 +81,6 @@ inline namespace kernel
 
     auto get_ready() const -> bool;
 
-    auto good() const -> bool;
-
     auto peek() -> object;
 
     auto peek_character() -> character;
@@ -91,10 +91,6 @@ inline namespace kernel
 
     auto read_string_literal(character = {}) -> string;
 
-    /*
-       No member function other than `take_*` may change the state of
-       underlying input stream (except for peek).
-    */
     auto take_character() -> character;
 
     auto take_nested_block_comment(character = {}, character = {}) -> void;
