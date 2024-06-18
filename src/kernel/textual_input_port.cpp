@@ -398,7 +398,7 @@ inline namespace kernel
           }
 
         case '(':
-          return make<vector>(read(c2));
+          return make_vector(read(c2));
 
         case '\\':
           return make(read_character_literal(c1, c2));

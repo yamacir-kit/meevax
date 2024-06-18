@@ -1808,7 +1808,7 @@ inline namespace kernel
 
       library.define<procedure>("vector", [](let const& xs)
       {
-        return make<vector>(xs);
+        return make_vector(xs);
       });
 
       library.define<procedure>("make-vector", [](let const& xs)
@@ -1828,17 +1828,17 @@ inline namespace kernel
 
       library.define<procedure>("vector-length", [](let const& xs)
       {
-        return make<exact_integer>(car(xs).as<vector>().vector.size());
+        return make<exact_integer>(car(xs).as<vector>().size());
       });
 
       library.define<procedure>("vector-ref", [](let const& xs)
       {
-        return car(xs).as<vector>().vector[cadr(xs).as<exact_integer>()];
+        return car(xs).as<vector>()[cadr(xs).as<exact_integer>()];
       });
 
       library.define<procedure>("vector-set!", [](let & xs)
       {
-        car(xs).as<vector>().vector[cadr(xs).as<exact_integer>()] = caddr(xs);
+        car(xs).as<vector>()[cadr(xs).as<exact_integer>()] = caddr(xs);
       });
 
       library.define<procedure>("vector->list", [](let const& xs)
@@ -1846,22 +1846,22 @@ inline namespace kernel
         switch (length(xs))
         {
         case 1:
-          return std::accumulate(car(xs).as<vector>().vector.rbegin(),
-                                 car(xs).as<vector>().vector.rend(),
+          return std::accumulate(car(xs).as<vector>().rbegin(),
+                                 car(xs).as<vector>().rend(),
                                  unit,
                                  xcons);
 
         case 2:
-          return std::accumulate(car(xs).as<vector>().vector.rbegin(),
-                                 std::prev(car(xs).as<vector>().vector.rend(),
+          return std::accumulate(car(xs).as<vector>().rbegin(),
+                                 std::prev(car(xs).as<vector>().rend(),
                                            cadr(xs).as<exact_integer>()),
                                  unit,
                                  xcons);
 
         case 3:
-          return std::accumulate(std::prev(car(xs).as<vector>().vector.rend(),
+          return std::accumulate(std::prev(car(xs).as<vector>().rend(),
                                            caddr(xs).as<exact_integer>()),
-                                 std::prev(car(xs).as<vector>().vector.rend(),
+                                 std::prev(car(xs).as<vector>().rend(),
                                            cadr(xs).as<exact_integer>()),
                                  unit,
                                  xcons);
@@ -1873,7 +1873,7 @@ inline namespace kernel
 
       library.define<procedure>("list->vector", [](let const& xs)
       {
-        return make<vector>(car(xs));
+        return make_vector(car(xs));
       });
 
       library.define<procedure>("vector->string", [](let const& xs)
@@ -1888,22 +1888,22 @@ inline namespace kernel
         switch (length(xs))
         {
         case 1:
-          std::for_each(car(xs).as<vector>().vector.begin(),
-                        car(xs).as<vector>().vector.end(),
+          std::for_each(car(xs).as<vector>().begin(),
+                        car(xs).as<vector>().end(),
                         push_back);
           return s;
 
         case 2:
-          std::for_each(std::next(car(xs).as<vector>().vector.begin(),
+          std::for_each(std::next(car(xs).as<vector>().begin(),
                                   cadr(xs).as<exact_integer>()),
-                        car(xs).as<vector>().vector.end(),
+                        car(xs).as<vector>().end(),
                         push_back);
           return s;
 
         case 3:
-          std::for_each(std::next(car(xs).as<vector>().vector.begin(),
+          std::for_each(std::next(car(xs).as<vector>().begin(),
                                   cadr(xs).as<exact_integer>()),
-                        std::next(car(xs).as<vector>().vector.begin(),
+                        std::next(car(xs).as<vector>().begin(),
                                   caddr(xs).as<exact_integer>()),
                         push_back);
           return s;
@@ -1919,7 +1919,7 @@ inline namespace kernel
 
         for (auto character : car(xs).as<string>())
         {
-          v.as<vector>().vector.push_back(make(character));
+          v.as<vector>().push_back(make(character));
         }
 
         return v;
@@ -1930,18 +1930,18 @@ inline namespace kernel
         switch (length(xs))
         {
         case 1:
-          return make<vector>(car(xs).as<vector>().vector.begin(),
-                              car(xs).as<vector>().vector.end());
+          return make<vector>(car(xs).as<vector>().begin(),
+                              car(xs).as<vector>().end());
 
         case 2:
-          return make<vector>(std::next(car(xs).as<vector>().vector.begin(),
+          return make<vector>(std::next(car(xs).as<vector>().begin(),
                                         cadr(xs).as<exact_integer>()),
-                              car(xs).as<vector>().vector.end());
+                              car(xs).as<vector>().end());
 
         case 3:
-          return make<vector>(std::next(car(xs).as<vector>().vector.begin(),
+          return make<vector>(std::next(car(xs).as<vector>().begin(),
                                         cadr(xs).as<exact_integer>()),
-                              std::next(car(xs).as<vector>().vector.begin(),
+                              std::next(car(xs).as<vector>().begin(),
                                         caddr(xs).as<exact_integer>()));
 
         default:
@@ -1951,32 +1951,32 @@ inline namespace kernel
 
       library.define<procedure>("vector-copy!", [](let const& xs)
       {
-        car(xs).as<vector>().vector.reserve(car(xs).as<vector>().vector.size() +
-                                            caddr(xs).as<vector>().vector.size());
+        car(xs).as<vector>().reserve(car(xs).as<vector>().size() +
+                                     caddr(xs).as<vector>().size());
 
         switch (length(xs))
         {
         case 3:
-          std::copy(caddr(xs).as<vector>().vector.begin(),
-                    caddr(xs).as<vector>().vector.end(),
-                    std::next(car(xs).as<vector>().vector.begin(),
+          std::copy(caddr(xs).as<vector>().begin(),
+                    caddr(xs).as<vector>().end(),
+                    std::next(car(xs).as<vector>().begin(),
                               cadr(xs).as<exact_integer>()));
           break;
 
         case 4:
-          std::copy(std::next(caddr(xs).as<vector>().vector.begin(),
+          std::copy(std::next(caddr(xs).as<vector>().begin(),
                               cadddr(xs).as<exact_integer>()),
-                    caddr(xs).as<vector>().vector.end(),
-                    std::next(car(xs).as<vector>().vector.begin(),
+                    caddr(xs).as<vector>().end(),
+                    std::next(car(xs).as<vector>().begin(),
                               cadr(xs).as<exact_integer>()));
           break;
 
         case 5:
-          std::copy(std::next(caddr(xs).as<vector>().vector.begin(),
+          std::copy(std::next(caddr(xs).as<vector>().begin(),
                               cadddr(xs).as<exact_integer>()),
-                    std::next(caddr(xs).as<vector>().vector.begin(),
+                    std::next(caddr(xs).as<vector>().begin(),
                               caddddr(xs).as<exact_integer>()),
-                    std::next(car(xs).as<vector>().vector.begin(),
+                    std::next(car(xs).as<vector>().begin(),
                               cadr(xs).as<exact_integer>()));
           break;
 
@@ -1991,9 +1991,9 @@ inline namespace kernel
 
         for (let const& x : xs)
         {
-          v.as<vector>().vector.insert(v.as<vector>().vector.end(),
-                                       x.as<vector>().vector.begin(),
-                                       x.as<vector>().vector.end());
+          v.as<vector>().insert(v.as<vector>().end(),
+                                x.as<vector>().begin(),
+                                x.as<vector>().end());
         }
 
         return v;
@@ -2004,22 +2004,22 @@ inline namespace kernel
         switch (length(xs))
         {
         case 2:
-          std::fill(car(xs).as<vector>().vector.begin(),
-                    car(xs).as<vector>().vector.end(),
+          std::fill(car(xs).as<vector>().begin(),
+                    car(xs).as<vector>().end(),
                     cadr(xs));
           break;
 
         case 3:
-          std::fill(std::next(car(xs).as<vector>().vector.begin(),
+          std::fill(std::next(car(xs).as<vector>().begin(),
                               caddr(xs).as<exact_integer>()),
-                    car(xs).as<vector>().vector.end(),
+                    car(xs).as<vector>().end(),
                     cadr(xs));
           break;
 
         case 4:
-          std::fill(std::next(car(xs).as<vector>().vector.begin(),
+          std::fill(std::next(car(xs).as<vector>().begin(),
                               caddr(xs).as<exact_integer>()),
-                    std::next(car(xs).as<vector>().vector.begin(),
+                    std::next(car(xs).as<vector>().begin(),
                               cadddr(xs).as<exact_integer>()),
                     cadr(xs));
           break;
