@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
+#include <climits> // CHAR_BIT
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -31,11 +32,9 @@ inline namespace kernel
 
     using int_type = std::char_traits<char_type>::int_type;
 
-    /*
-       21 <= sizeof(int_type) * 8 is a request from the maximum Unicode code
-       point 0x10FFFF. sizeof(int_type) < 6 is a requirement from nan-boxing.
-    */
-    static_assert(21 <= sizeof(int_type) * 8 and sizeof(int_type) <= 6);
+    static_assert(21 <= sizeof(int_type) * CHAR_BIT); // is a requirement from the maximum Unicode code point 0x10FFFF.
+
+    static_assert(sizeof(int_type) <= 6); // is a requirement from nan-boxing.
 
     int_type codepoint;
 

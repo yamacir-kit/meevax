@@ -67,6 +67,8 @@ inline namespace kernel
 
     bool case_sensitive = true;
 
+    string taken;
+
     auto at_end_of_file() const -> bool;
 
     auto begin() -> iterator;

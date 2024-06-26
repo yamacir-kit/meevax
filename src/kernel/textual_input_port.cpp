@@ -187,6 +187,8 @@ inline namespace kernel
       istream().putback(*iter);
     }
 
+    taken.pop_back();
+
     return c;
   }
 
@@ -600,25 +602,29 @@ inline namespace kernel
 
     if (auto const c = source.peek(); character::is_eof(c) or character::is_ascii(c))
     {
-      return character(source.get());
+      taken.emplace_back(source.get());
+      return taken.back();
     }
     else if (0xC2 <= c and c <= 0xDF) // 11 bit
     {
-      return character((source.get() & 0b0001'1111) << 6 |
-                       (source.get() & 0b0011'1111));
+      taken.emplace_back((source.get() & 0b0001'1111) << 6 |
+                         (source.get() & 0b0011'1111));
+      return taken.back();
     }
     else if (0xE0 <= c and c <= 0xEF) // 16 bit
     {
-      return character((source.get() & 0b0000'1111) << 12 |
-                       (source.get() & 0b0011'1111) <<  6 |
-                       (source.get() & 0b0011'1111));
+      taken.emplace_back((source.get() & 0b0000'1111) << 12 |
+                         (source.get() & 0b0011'1111) <<  6 |
+                         (source.get() & 0b0011'1111));
+      return taken.back();
     }
     else if (0xF0 <= c and c <= 0xF4) // 21 bit
     {
-      return character((source.get() & 0b0000'0111) << 18 |
-                       (source.get() & 0b0011'1111) << 12 |
-                       (source.get() & 0b0011'1111) <<  6 |
-                       (source.get() & 0b0011'1111));
+      taken.emplace_back((source.get() & 0b0000'0111) << 18 |
+                         (source.get() & 0b0011'1111) << 12 |
+                         (source.get() & 0b0011'1111) <<  6 |
+                         (source.get() & 0b0011'1111));
+      return taken.back();
     }
     else
     {

@@ -28,10 +28,12 @@ inline namespace kernel
   struct string : private std::vector<character>
   {
     using std::vector<character>::at;
+    using std::vector<character>::back;
     using std::vector<character>::begin;
     using std::vector<character>::emplace_back;
     using std::vector<character>::end;
     using std::vector<character>::insert;
+    using std::vector<character>::pop_back;
     using std::vector<character>::push_back;
     using std::vector<character>::rbegin;
     using std::vector<character>::rend;
