@@ -89,18 +89,10 @@ inline namespace kernel
 
     auto read(character = {}) -> object;
 
-    auto read_character_literal(character = {}, character = {}) -> character;
-
-    auto read_string_literal(character = {}) -> string;
-
     auto take_character() -> character;
 
-    auto take_nested_block_comment(character = {}, character = {}) -> void;
-
-    auto take_token(character = {}) -> std::string;
-
     template <typename F>
-    auto take_until(F satisfy, character c = {})
+    auto take_character_until(F satisfy, character c = {})
     {
       auto s = static_cast<std::string>(c);
 
@@ -113,7 +105,7 @@ inline namespace kernel
     }
 
     template <typename F>
-    auto take_while(F satisfy, character c = {})
+    auto take_character_while(F satisfy, character c = {})
     {
       auto s = static_cast<std::string>(c);
 
