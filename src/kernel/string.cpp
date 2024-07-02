@@ -27,33 +27,23 @@ inline namespace kernel
   {
     if (auto input = input_string_port(s); input.get_ready())
     {
-      for (auto c = input.take_codepoint(); not character::is_eof(c); c = input.take_codepoint())
+      for (auto c = input.take_character(); not c.is_eof(); c = input.take_character())
       {
-        vector.emplace_back(c);
+        push_back(c);
       }
     }
   }
-
-  string::string(std::size_t const size, character const& c)
-    : vector { size, c }
-  {}
 
   string::operator std::string() const
   {
     std::string result;
 
-    for (character const& each : vector)
+    for (character const& each : *this)
     {
       result.append(static_cast<std::string>(each));
     }
 
     return result;
-  }
-
-  auto operator ==(string const& s1, string const& s2) -> bool
-  {
-    return std::equal(s1.vector.begin(), s1.vector.end(),
-                      s2.vector.begin(), s2.vector.end());
   }
 
   auto operator <<(std::ostream & os, string const& datum) -> std::ostream &
@@ -85,7 +75,7 @@ inline namespace kernel
 
     os << cyan("\"");
 
-    for (auto const& each : datum.vector)
+    for (auto const& each : datum)
     {
       put(each);
     }

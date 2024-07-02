@@ -67,39 +67,55 @@ inline namespace kernel
 
     bool case_sensitive = true;
 
+    string taken;
+
+    auto at_end_of_file() const -> bool;
+
     auto begin() -> iterator;
 
     auto end() -> iterator;
 
-    auto get() -> object; // character or eof
+    auto get() -> object; // Returns character or eof (for Scheme procedure read-char)
 
-    auto get(std::size_t) -> object; // string or eof
+    auto get(std::size_t) -> object; // Returns string or eof (for Scheme procedure read-string)
 
-    auto get_line() -> object; // string or eof
+    auto get_line() -> object; // Returns string or eof (for Scheme procedure read-line)
 
     auto get_ready() const -> bool;
 
-    auto good() const -> bool;
-
-    auto ignore(std::size_t) -> textual_input_port &;
-
     auto peek() -> object;
 
-    auto peek_codepoint() -> character::int_type;
+    auto peek_character() -> character;
 
-    auto read() -> object;
+    auto read(character = {}) -> object;
 
-    auto read_character_literal() -> character;
+    auto take_character() -> character;
 
-    auto read_string_literal() -> string;
+    template <typename F>
+    auto take_character_until(F satisfy, character c = {})
+    {
+      auto s = static_cast<std::string>(c);
 
-    auto take_codepoint() -> character::int_type;
+      while (get_ready() and not satisfy(c = take_character()))
+      {
+        s += c;
+      }
 
-    auto take_digits() -> std::string;
+      return s;
+    }
 
-    auto take_nested_block_comment() -> void; // TODO return std::string
+    template <typename F>
+    auto take_character_while(F satisfy, character c = {})
+    {
+      auto s = static_cast<std::string>(c);
 
-    auto take_token() -> std::string;
+      while (get_ready() and satisfy(peek_character()))
+      {
+        s += take_character();
+      }
+
+      return s;
+    }
 
     virtual auto istream() -> std::istream & = 0;
 

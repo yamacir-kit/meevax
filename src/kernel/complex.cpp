@@ -123,7 +123,7 @@ inline namespace kernel
 
     return hypotenuse(real_part(x),
                       imag_part(x));
-  };
+  }
 
   auto angle(object const& x) -> object
   {

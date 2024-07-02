@@ -25,19 +25,10 @@ namespace meevax
 {
 inline namespace kernel
 {
-  heterogeneous_vector::heterogeneous_vector(object const& x)
-  {
-    std::copy(x.begin(), x.end(), std::back_inserter(vector));
-  }
-
-  heterogeneous_vector::heterogeneous_vector(std::size_t size, object const& x)
-    : vector { size, x }
-  {}
-
   auto operator ==(heterogeneous_vector const& v, heterogeneous_vector const& u) -> bool
   {
-    return std::equal(v.vector.begin(), v.vector.end(),
-                      u.vector.begin(), u.vector.end(), equal);
+    return std::equal(v.begin(), v.end(),
+                      u.begin(), u.end(), equal);
   }
 
   auto operator <<(std::ostream & output, heterogeneous_vector const& datum) -> std::ostream &
@@ -46,12 +37,17 @@ inline namespace kernel
 
     auto whitespace = "";
 
-    for (auto const& each : datum.vector)
+    for (auto const& each : datum)
     {
       output << std::exchange(whitespace, " ") << each;
     }
 
     return output << magenta(")");
+  }
+
+  auto make_vector(object const& xs) -> object
+  {
+    return make<vector>(xs.begin(), xs.end());
   }
 } // namespace kernel
 } // namespace meevax

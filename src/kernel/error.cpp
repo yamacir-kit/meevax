@@ -37,18 +37,43 @@ inline namespace kernel
     throw *this;
   }
 
-  auto error::what() const -> std::string
+  auto error::report(std::ostream & output) const -> std::ostream &
   {
-    std::stringstream ss {};
+    output << red("; error! ", what()) << std::endl;
 
-    ss << "error: " << static_cast<std::string>(message().as<string>());
-
-    if (irritants())
+    for (auto iter = details.rbegin(); iter != details.rend(); ++iter)
     {
-      ss << ": " << irritants();
+      output << faint(";   at expression ", lexical_cast<std::string>(iter->expression)) << std::endl;
     }
 
-    return ss.str();
+    return output;
+  }
+
+  auto error::what() const noexcept -> char const*
+  {
+    try
+    {
+      if (explanation.empty())
+      {
+        auto output = std::stringstream();
+
+        output << static_cast<std::string>(message().as<string>());
+
+        if (irritants())
+        {
+          output << ": " << irritants();
+        }
+
+        explanation = output.str();
+      }
+
+      return explanation.c_str();
+    }
+    catch (...)
+    {
+      std::cerr << "meevax::error::what failed to create an explanatory string for std::exception::what" << std::endl;
+      std::exit(EXIT_FAILURE);
+    }
   }
 
   auto operator <<(std::ostream & os, error const& datum) -> std::ostream &

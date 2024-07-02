@@ -209,6 +209,18 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_CPP)
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_${FILENAME})
 endforeach()
 
+file(GLOB ${PROJECT_NAME}_TEST_SH ${CMAKE_CURRENT_SOURCE_DIR}/test/*.sh)
+
+foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SH)
+  get_filename_component(FILENAME ${EACH} NAME_WE)
+  add_test(
+    NAME ${FILENAME}
+    COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
+            ${${PROJECT_NAME}_MEMORY_CHECK_OPTIONS}
+            ${EACH}
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax)
+endforeach()
+
 # ---- Additional Targets ------------------------------------------------------
 
 execute_process(COMMAND nproc OUTPUT_VARIABLE ${PROJECT_NAME}_NPROC)

@@ -18,6 +18,7 @@
 #include <regex>
 #include <string_view>
 
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/string.hpp>
@@ -314,7 +315,7 @@ inline namespace kernel
     }
     else
     {
-      throw std::domain_error("not an number");
+      throw error(make<string>("not an number"));
     }
   }
 
@@ -332,7 +333,7 @@ inline namespace kernel
     }
     else
     {
-      throw std::domain_error("not an number");
+      throw error(make<string>("not an number"));
     }
   }
 
