@@ -33,12 +33,14 @@ inline namespace kernel
     using std::vector<character>::emplace_back;
     using std::vector<character>::end;
     using std::vector<character>::insert;
+    using std::vector<character>::operator [];
     using std::vector<character>::pop_back;
     using std::vector<character>::push_back;
     using std::vector<character>::rbegin;
     using std::vector<character>::rend;
     using std::vector<character>::reserve;
     using std::vector<character>::size;
+    using std::vector<character>::size_type;
     using std::vector<character>::vector;
 
     explicit string(std::string const&);

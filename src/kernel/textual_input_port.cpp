@@ -111,6 +111,11 @@ inline namespace kernel
     return iterator(*this);
   }
 
+  auto textual_input_port::enable_source_cons(std::filesystem::path const& path) -> void
+  {
+    sources.emplace(this, path);
+  }
+
   auto textual_input_port::end() -> iterator
   {
     return iterator();
@@ -187,7 +192,10 @@ inline namespace kernel
       istream().putback(*iter);
     }
 
-    taken.pop_back();
+    if (auto iter = sources.find(this); iter != sources.end())
+    {
+      iter->second.code.pop_back();
+    }
 
     return c;
   }
@@ -549,14 +557,30 @@ inline namespace kernel
       case '(':  // 0x28
         try
         {
-          if (let const& x = read(); x.is<eof>())
+          auto position = [this]()
           {
-            return x;
-          }
-          else
+            if (auto source = sources.find(this); source != sources.end())
+            {
+              return source->second.code.size();
+            }
+            else
+            {
+              return std::numeric_limits<string::size_type>::max();
+            }
+          }();
+
+          let const& x = read();
+
+          let const& pare = cons(x, read(c1));
+
+          if (auto source = sources.find(this); source != sources.end()) // The iterator may be invalidated by calling read, so the iterator must be retrieved again.
           {
-            return cons(x, read(c1));
+            contexts.emplace(std::piecewise_construct,
+                             std::make_tuple(pare.get()),
+                             std::make_tuple(&source->second, position));
           }
+
+          return pare;
         }
         catch (std::integral_constant<char, ')'> const&)
         {
@@ -628,31 +652,40 @@ inline namespace kernel
     */
     auto & source = istream();
 
+    auto make_character = [this](auto&&... xs)
+    {
+      if (auto iter = sources.find(this); iter != sources.end())
+      {
+        iter->second.code.emplace_back(std::forward<decltype(xs)>(xs)...);
+        return iter->second.code.back();
+      }
+      else
+      {
+        return character(std::forward<decltype(xs)>(xs)...);
+      }
+    };
+
     if (auto const c = source.peek(); character::is_eof(c) or character::is_ascii(c))
     {
-      taken.emplace_back(source.get());
-      return taken.back();
+      return make_character(source.get());
     }
     else if (0xC2 <= c and c <= 0xDF) // 11 bit
     {
-      taken.emplace_back((source.get() & 0b0001'1111) << 6 |
-                         (source.get() & 0b0011'1111));
-      return taken.back();
+      return make_character((source.get() & 0b0001'1111) << 6 |
+                            (source.get() & 0b0011'1111));
     }
     else if (0xE0 <= c and c <= 0xEF) // 16 bit
     {
-      taken.emplace_back((source.get() & 0b0000'1111) << 12 |
-                         (source.get() & 0b0011'1111) <<  6 |
-                         (source.get() & 0b0011'1111));
-      return taken.back();
+      return make_character((source.get() & 0b0000'1111) << 12 |
+                            (source.get() & 0b0011'1111) <<  6 |
+                            (source.get() & 0b0011'1111));
     }
     else if (0xF0 <= c and c <= 0xF4) // 21 bit
     {
-      taken.emplace_back((source.get() & 0b0000'0111) << 18 |
-                         (source.get() & 0b0011'1111) << 12 |
-                         (source.get() & 0b0011'1111) <<  6 |
-                         (source.get() & 0b0011'1111));
-      return taken.back();
+      return make_character((source.get() & 0b0000'0111) << 18 |
+                            (source.get() & 0b0011'1111) << 12 |
+                            (source.get() & 0b0011'1111) <<  6 |
+                            (source.get() & 0b0011'1111));
     }
     else
     {

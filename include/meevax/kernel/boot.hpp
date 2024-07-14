@@ -31,18 +31,10 @@ inline namespace kernel
   {
     for (auto&& source : sources)
     {
-      auto input_port = input_string_port(source);
-
-      for (let const& x : input_port)
+      for (let const& x : input_string_port(source))
       {
         interaction_environment().as<environment>().evaluate(x);
       }
-
-      auto taken = static_cast<std::string>(input_port.taken);
-
-      taken.pop_back();
-
-      assert(taken == source);
     }
   }
 } // namespace kernel

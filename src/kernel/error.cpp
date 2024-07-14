@@ -17,6 +17,7 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/string.hpp>
+#include <meevax/kernel/textual_input_port.hpp>
 
 namespace meevax
 {
@@ -39,11 +40,20 @@ inline namespace kernel
 
   auto error::report(std::ostream & output) const -> std::ostream &
   {
-    output << red("; error! ", what()) << std::endl;
+    output << red("; error! ", what()) << "\n;   ";
 
-    for (auto iter = details.rbegin(); iter != details.rend(); ++iter)
+    for (auto detail = details.rbegin(); detail != details.rend(); ++detail)
     {
-      output << faint(";   at expression ", lexical_cast<std::string>(iter->expression)) << std::endl;
+      if (auto context = textual_input_port::contexts.find(detail->expression.get()); context != textual_input_port::contexts.end())
+      {
+        output << context->second;
+      }
+      else
+      {
+        output << "{annonymous-input-source}";
+      }
+
+      output << ": " << lexical_cast<std::string>(detail->expression) << std::endl;
     }
 
     return output;

@@ -35,7 +35,9 @@ inline namespace kernel
     explicit input_file_port(T&& x, Ts&&... xs)
       : name     { std::forward<decltype(x)>(x) }
       , ifstream { name, std::forward<decltype(xs)>(xs)... }
-    {}
+    {
+      enable_source_cons(name);
+    }
 
     auto close() -> void override;
 
@@ -44,8 +46,6 @@ inline namespace kernel
     auto istream() -> std::istream & override;
 
     auto istream() const -> std::istream const& override;
-
-    auto path() const -> std::filesystem::path const* override;
   };
 
   auto operator <<(std::ostream &, input_file_port const&) -> std::ostream &;

@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_TEXTUAL_INPUT_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_TEXTUAL_INPUT_PORT_HPP
 
+#include <forward_list>
 #include <istream>
 
 #include <meevax/kernel/eof.hpp>
@@ -63,15 +64,65 @@ inline namespace kernel
       auto operator ++(int) -> iterator;
     };
 
+    struct source
+    {
+      std::filesystem::path path;
+
+      string code;
+
+      template <typename... Ts>
+      explicit source(Ts&&... xs)
+        : path { std::forward<decltype(xs)>(xs)... }
+      {
+        assert(not path.empty());
+      }
+    };
+
+    struct context
+    {
+      source const* file;
+
+      string::size_type begin, end;
+
+      explicit context(source const* file, string::size_type begin)
+        : file  { file }
+        , begin { begin }
+      {}
+
+      friend auto operator <<(std::ostream & output, context const& datum) -> std::ostream &
+      {
+        auto row = 1, column = 0;
+
+        for (std::size_t i = 0; i < datum.begin; ++i)
+        {
+          if (datum.file->code[i] == '\n')
+          {
+            ++row;
+            column = 0;
+          }
+          else
+          {
+            ++column;
+          }
+        }
+
+        return output << datum.file->path.c_str() << ":" << row << ":" << column;
+      }
+    };
+
+    static inline std::unordered_map<textual_input_port const*, source> sources;
+
+    static inline std::unordered_map<pair const*, context> contexts;
+
     std::unordered_map<std::string, object> datum_labels;
 
     bool case_sensitive = true;
 
-    string taken;
-
     auto at_end_of_file() const -> bool;
 
     auto begin() -> iterator;
+
+    auto enable_source_cons(std::filesystem::path const&) -> void;
 
     auto end() -> iterator;
 
