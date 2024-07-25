@@ -94,11 +94,6 @@ inline namespace kernel
       return run();
     }
 
-    auto raise(object const& x) -> decltype(auto)
-    {
-      return exception_handler.is<null>() ? throw x : apply(exception_handler, x);
-    }
-
     auto run() -> object
     {
       assert(last(c).template is<instruction>());
@@ -119,9 +114,17 @@ inline namespace kernel
           *
           * ----------------------------------------------------------------- */
           assert(cadr(c).template is<absolute>());
-          s = cons(cdadr(c), s);
-          c = cddr(c);
-          goto fetch;
+
+          if (let const& x = cdadr(c); x == undefined)
+          {
+            throw error(make<string>("undefined variable"), caadr(c));
+          }
+          else
+          {
+            s = cons(cdadr(c), s);
+            c = cddr(c);
+            goto fetch;
+          }
 
         case instruction::load_relative: /* ------------------------------------
           *
@@ -399,7 +402,6 @@ inline namespace kernel
           * ----------------------------------------------------------------- */
           assert(cdr(s).template is<null>());
           assert(cdr(c).template is<null>());
-
           s = cons(car(s), car(d));
           e = cadr(d);
           c = caddr(d);
@@ -517,13 +519,41 @@ inline namespace kernel
           }();
         }
       }
-      catch (error const& error)
+      catch (object const& thrown) // by the primitive procedure `throw`.
       {
-        return raise(make(error));
+        if (thrown.is_also<error>())
+        {
+          thrown.as<error>().detail(error::in::running, cons(s, e, c, d)).raise();
+          return unspecified;
+        }
+        else
+        {
+          throw error(make<string>("uncaught exception"), thrown);
+        }
       }
-      catch (std::exception const& exception)
+      catch (error & thrown) // by any primitive procedure other than `throw`.
       {
-        return raise(make<error>(make<string>(exception.what())));
+        if (exception_handler)
+        {
+          return apply(exception_handler, thrown.make());
+        }
+        else // In most cases, this clause will never be called.
+        {
+          thrown.detail(error::in::running, cons(s, e, c, d)).raise();
+          return unspecified;
+        }
+      }
+      catch (std::exception const& exception) // by the system.
+      {
+        if (auto thrown = error(make<string>(exception.what())); exception_handler)
+        {
+          return apply(exception_handler, thrown.make());
+        }
+        else // In most cases, this clause will never be called.
+        {
+          thrown.detail(error::in::running, cons(s, e, c, d));
+          throw thrown;
+        }
       }
     }
   };

@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_TEXTUAL_INPUT_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_TEXTUAL_INPUT_PORT_HPP
 
-#include <forward_list>
+#include <filesystem>
 #include <istream>
 
 #include <meevax/kernel/eof.hpp>

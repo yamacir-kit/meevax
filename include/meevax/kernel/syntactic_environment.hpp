@@ -774,7 +774,7 @@ inline namespace kernel
 
     inline auto expand(object const& expression,
                        object const& bound_variables = nullptr, // list of <formals>
-                       object const& free_variables = nullptr) const -> object
+                       object const& free_variables = nullptr) const -> object try
     {
       if (not expression.is<pair>())
       {
@@ -817,12 +817,17 @@ inline namespace kernel
 
       return expander::call(*this, expression, bound_variables, free_variables);
     }
+    catch (error & e)
+    {
+      e.detail(error::in::expanding, expression).raise();
+      return unspecified;
+    }
 
     inline auto generate(object const& expression,
                          object const& bound_variables = nullptr, // list of <formals>
                          object const& free_variables = nullptr,
                          object const& continuation = list(make(instruction::stop)),
-                         bool tail = false) -> object
+                         bool tail = false) -> object try
     {
       if (expression.is<null>())
       {
@@ -884,6 +889,11 @@ inline namespace kernel
       {
         return generator::call(*this, expression, bound_variables, free_variables, continuation, tail);
       }
+    }
+    catch (error & e)
+    {
+      e.detail(error::in::generating, expression).raise();
+      return unspecified;
     }
 
     inline auto identify(object const& variable,

@@ -27,31 +27,34 @@ inline namespace kernel
   struct error : public virtual pair // (<message> . <irritants>)
                , public std::exception
   {
-    struct detail
+    enum class in
     {
-      let expression;
-
-      explicit detail(let const& expression)
-        : expression { expression }
-      {}
+      evaluating,
+      compiling,
+      expanding,
+      generating,
+      optimizing,
+      running,
     };
 
-    std::vector<detail> details {};
+    std::vector<std::pair<in, object>> contexts {};
 
-    mutable std::string explanation {};
+    mutable std::string cache {};
 
     using pair::pair;
 
     ~error() override = default;
 
     template <typename... Ts>
-    auto append(Ts&&... xs) -> auto &
+    auto detail(Ts&&... xs) -> auto &
     {
-      details.emplace_back(std::forward<decltype(xs)>(xs)...);
+      contexts.emplace_back(std::forward<decltype(xs)>(xs)...);
       return *this;
     }
 
     auto irritants() const noexcept -> object const&;
+
+    virtual auto make() const -> object;
 
     auto message() const noexcept -> object const&;
 
@@ -73,6 +76,11 @@ inline namespace kernel
   {
     using error::error;
 
+    auto make() const -> object override
+    {
+      return meevax::make(*this);
+    }
+
     auto raise() const -> void override
     {
       throw *this;
@@ -82,6 +90,11 @@ inline namespace kernel
   struct read_error : public error
   {
     using error::error;
+
+    auto make() const -> object override
+    {
+      return meevax::make(*this);
+    }
 
     auto raise() const -> void override
     {

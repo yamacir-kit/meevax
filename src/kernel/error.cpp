@@ -28,6 +28,15 @@ inline namespace kernel
     return second;
   }
 
+  auto error::make() const -> object
+  {
+    /*
+       When a class that publicly inherits pair is made, the pair constructor
+       is called with priority, so not all data members are copied.
+    */
+    return meevax::make(*this);
+  }
+
   auto error::message() const noexcept -> object const&
   {
     return first;
@@ -38,22 +47,56 @@ inline namespace kernel
     throw *this;
   }
 
+  template <typename T>
+  struct reverse
+  {
+    T & x;
+
+    explicit reverse(T & x)
+      : x { x }
+    {}
+
+    auto begin()
+    {
+      return std::rbegin(x);
+    }
+
+    auto end()
+    {
+      return std::rend(x);
+    }
+  };
+
   auto error::report(std::ostream & output) const -> std::ostream &
   {
-    output << red("; error! ", what()) << "\n;   ";
+    output << red("; error! ", what()) << "\n";
 
-    for (auto detail = details.rbegin(); detail != details.rend(); ++detail)
+    for (auto const& [doing, x] : reverse(contexts))
     {
-      if (auto context = textual_input_port::contexts.find(detail->expression.get()); context != textual_input_port::contexts.end())
+      switch (doing)
       {
-        output << context->second;
-      }
-      else
-      {
-        output << "{annonymous-input-source}";
-      }
+      case in::evaluating: // x is expression
+        output << ";   ";
 
-      output << ": " << lexical_cast<std::string>(detail->expression) << std::endl;
+        if (auto read_context = textual_input_port::contexts.find(x.get()); read_context != textual_input_port::contexts.end())
+        {
+          output << read_context->second;
+        }
+        else
+        {
+          output << "{annonymous-input-source}";
+        }
+
+        output << ": " << x << std::endl;
+        break;
+
+      case in::running:
+        break;
+
+      default:
+        assert(false);
+        break;
+      }
     }
 
     return output;
@@ -63,7 +106,7 @@ inline namespace kernel
   {
     try
     {
-      if (explanation.empty())
+      if (cache.empty())
       {
         auto output = std::stringstream();
 
@@ -74,10 +117,10 @@ inline namespace kernel
           output << ": " << irritants();
         }
 
-        explanation = output.str();
+        cache = output.str();
       }
 
-      return explanation.c_str();
+      return cache.c_str();
     }
     catch (...)
     {

@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_PORT_HPP
 
-#include <filesystem>
-
 namespace meevax
 {
 inline namespace kernel

@@ -75,16 +75,16 @@ inline namespace kernel
     */
     struct dump
     {
-      environment & registers;
+      environment * context;
 
       let s, e, c, d;
 
-      explicit dump(environment & registers)
-        : registers { registers }
-        , s { std::exchange(registers.s, nullptr) }
-        , e { std::exchange(registers.e, nullptr) }
-        , c { std::exchange(registers.c, nullptr) }
-        , d { std::exchange(registers.d, nullptr) }
+      explicit dump(environment * context)
+        : context { context }
+        , s { std::exchange(context->s, nullptr) }
+        , e { std::exchange(context->e, nullptr) }
+        , c { std::exchange(context->c, nullptr) }
+        , d { std::exchange(context->d, nullptr) }
       {}
 
       ~dump()
@@ -99,28 +99,21 @@ inline namespace kernel
 
       auto undump() -> void
       {
-        registers.s = s;
-        registers.e = e;
-        registers.c = c;
-        registers.d = d;
+        context->s = s;
+        context->e = e;
+        context->c = c;
+        context->d = d;
       }
     };
 
-    auto undump = dump(*this);
+    auto undump = dump(this);
 
     return execute(optimize(compile(expression)));
   }
-  catch (object const& x)
+  catch (error & e)
   {
-    if (x.is_also<error>())
-    {
-      x.as<error>().append(expression).raise();
-      return unspecified;
-    }
-    else
-    {
-      throw error(make<string>("uncaught exception"), x);
-    }
+    e.detail(error::in::evaluating, expression).raise();
+    return unspecified;
   }
 
   auto resolve(object const& form) -> object
