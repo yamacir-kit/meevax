@@ -95,15 +95,11 @@ inline namespace kernel
         , generate { generate }
       {}
 
-      struct constructor
+      struct constructor : private object
       {
-        let const& expression;
-
         explicit constructor(let const& expression)
-          : expression { expression }
-        {
-          assert(not expression.is<null>());
-        }
+          : object { expression }
+        {}
 
         template <typename... Ts>
         auto cons(let const& a,
@@ -112,15 +108,13 @@ inline namespace kernel
           auto cons2 = [&](let const& a, let const& b)
           {
             let const& x = meevax::cons(a, b);
-            contexts[x.get()] = expression;
+            contexts[x.get()] = *this;
             return x;
           };
 
           if constexpr (0 < sizeof...(Ts))
           {
-            return cons2(a,
-                         cons(b,
-                              std::forward<decltype(xs)>(xs)...));
+            return cons2(a, cons(b, std::forward<decltype(xs)>(xs)...));
           }
           else
           {

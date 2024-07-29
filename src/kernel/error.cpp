@@ -31,10 +31,6 @@ inline namespace kernel
 
   auto error::make() const -> object
   {
-    /*
-       When a class that publicly inherits pair is made, the pair constructor
-       is called with priority, so not all data members are copied.
-    */
     return meevax::make(*this);
   }
 
@@ -133,15 +129,15 @@ inline namespace kernel
     {
       switch (doing)
       {
+      case in::running:
+        // disassemble(output, car(x)); // Disabled as it is still experimental and does not produce any useful output.
+        [[fallthrough]];
+
       case in::evaluating: // x is expression
         if (auto context = textual_input_port::contexts.find(x.get()); context != textual_input_port::contexts.end())
         {
           output << "; " << context->second << ": " << x << std::endl;
         }
-        break;
-
-      case in::running:
-        // disassemble(output, car(x)); // Disabled as it is still experimental and does not produce any useful output.
         break;
 
       default:

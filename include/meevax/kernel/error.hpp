@@ -29,12 +29,7 @@ inline namespace kernel
   {
     enum class in
     {
-      evaluating,
-      compiling,
-      expanding,
-      generating,
-      optimizing,
-      running,
+      evaluating, expanding, generating, running,
     };
 
     static thread_local inline std::vector<std::pair<in, object>> contexts;
