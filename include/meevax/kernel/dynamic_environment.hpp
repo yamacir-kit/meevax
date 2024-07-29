@@ -56,24 +56,24 @@ inline namespace kernel
     std::array<let, 3> a;
 
     /*
-       raise is a one-argument procedure for propagating C++ exceptions thrown
-       in the Meevax kernel to the exception handler of the language running on
-       the Meevax kernel.
+       exception_handler is a one-argument procedure for propagating C++
+       exceptions thrown in the Meevax kernel to the exception handler of the
+       language running on the Meevax kernel.
 
-       raise is set to null by default. In this default state, that is, if raise
-       is null, C++ exceptions thrown in the kernel are rethrown to the outer
-       environment.
+       exception_handler is set to null by default. In this default state, that
+       is, if exception_handler is null, C++ exceptions thrown in the kernel
+       are rethrown to the outer environment.
 
-       Although raise can be set to any one-argument procedure by procedure
-       `kernel-exception-handler-set!`, it is basically assumed to be set to
-       R7RS Scheme's standard procedure `raise`.
+       Although exception_handler can be set to any one-argument procedure by
+       procedure `kernel-exception-handler-set!`, it is basically assumed to be
+       set to R7RS Scheme's standard procedure `raise`.
     */
-    let static inline raise = nullptr;
+    let static inline exception_handler = nullptr;
 
     template <typename... Ts>
-    auto apply(object const& f, Ts&&... xs) -> decltype(auto)
+    auto apply(object const& procedure, Ts&&... xs) -> decltype(auto)
     {
-      s = list(f, list(std::forward<decltype(xs)>(xs)...));
+      s = list(procedure, list(std::forward<decltype(xs)>(xs)...));
       e = nullptr;
       c = list(make(instruction::call),
                make(instruction::stop));
@@ -94,15 +94,12 @@ inline namespace kernel
       return run();
     }
 
-    auto reraise(object const& x) -> decltype(auto)
-    {
-      return raise.is<null>() ? throw x : apply(raise, x);
-    }
-
     auto run() -> object
     {
       assert(last(c).template is<instruction>());
       assert(last(c).template as<instruction>() == instruction::stop);
+
+      let const control = c;
 
       try
       {
@@ -525,13 +522,43 @@ inline namespace kernel
           }();
         }
       }
-      catch (std::exception const& exception)
+      catch (object const& thrown) // by the primitive procedure `throw`.
       {
-        return reraise(make<error>(make<string>(exception.what())));
+        if (thrown.is_also<error>())
+        {
+          thrown.as<error>().raise();
+          return unspecified;
+        }
+        else
+        {
+          error::contexts.emplace_back(error::in::running, cons(control, c));
+          throw error(make<string>("uncaught exception"), thrown);
+        }
       }
-      catch (error const& error)
+      catch (error & thrown) // by any primitive procedure other than `throw`.
       {
-        return reraise(make(error));
+        if (exception_handler)
+        {
+          error::contexts.emplace_back(error::in::running, cons(control, c));
+          return apply(exception_handler, thrown.make());
+        }
+        else // In most cases, this clause will never be called.
+        {
+          thrown.raise();
+          return unspecified;
+        }
+      }
+      catch (std::exception const& exception) // by the system.
+      {
+        if (auto thrown = error(make<string>(exception.what())); exception_handler)
+        {
+          error::contexts.emplace_back(error::in::running, cons(control, c));
+          return apply(exception_handler, thrown.make());
+        }
+        else // In most cases, this clause will never be called.
+        {
+          throw thrown;
+        }
       }
     }
   };

@@ -101,9 +101,19 @@ inline namespace kernel
     return circulate(xs, xs, n);
   }
 
+  auto textual_input_port::at_end_of_file() const -> bool
+  {
+    return istream().eof();
+  }
+
   auto textual_input_port::begin() -> iterator
   {
     return iterator(*this);
+  }
+
+  auto textual_input_port::enable_source_cons(std::filesystem::path const& path) -> void
+  {
+    sources.emplace(this, path);
   }
 
   auto textual_input_port::end() -> iterator
@@ -113,7 +123,7 @@ inline namespace kernel
 
   auto textual_input_port::get() -> object
   {
-    if (auto c = take_codepoint(); character::is_eof(c))
+    if (auto c = take_character(); c.is_eof())
     {
       return eof_object;
     }
@@ -125,7 +135,7 @@ inline namespace kernel
 
   auto textual_input_port::get(std::size_t size) -> object
   {
-    if (character::is_eof(istream().peek()))
+    if (peek_character().is_eof())
     {
       return eof_object;
     }
@@ -133,9 +143,9 @@ inline namespace kernel
     {
       auto s = string();
 
-      while (size-- and not character::is_eof(istream().peek()))
+      while (size-- and not peek_character().is_eof())
       {
-        s.vector.emplace_back(take_codepoint());
+        s.push_back(take_character());
       }
 
       return make(s);
@@ -144,7 +154,7 @@ inline namespace kernel
 
   auto textual_input_port::get_line() -> object
   {
-    if (auto s = std::string(); std::getline(istream(), s).eof())
+    if (auto s = take_character_until([](auto c) { return c == '\n'; }); at_end_of_file())
     {
       return eof_object;
     }
@@ -159,24 +169,9 @@ inline namespace kernel
     return static_cast<bool>(istream());
   }
 
-  auto textual_input_port::good() const -> bool
-  {
-    return istream().good();
-  }
-
-  auto textual_input_port::ignore(std::size_t size) -> textual_input_port &
-  {
-    while (size-- and not character::is_eof(peek_codepoint()))
-    {
-      take_codepoint();
-    }
-
-    return *this;
-  }
-
   auto textual_input_port::peek() -> object
   {
-    if (auto c = peek_codepoint(); character::is_eof(c))
+    if (auto c = peek_character(); c.is_eof())
     {
       return eof_object;
     }
@@ -186,43 +181,114 @@ inline namespace kernel
     }
   }
 
-  auto textual_input_port::peek_codepoint() -> character::int_type
+  auto textual_input_port::peek_character() -> character
   {
-    auto c = take_codepoint();
+    auto c = take_character();
 
-    auto s = static_cast<std::string>(character(c));
+    auto const s = static_cast<std::string>(c);
 
     for (auto iter = std::rbegin(s); iter != std::rend(s); ++iter)
     {
       istream().putback(*iter);
     }
 
+    if (auto iter = sources.find(this); iter != sources.end())
+    {
+      iter->second.code.pop_back();
+    }
+
     return c;
   }
 
-  auto textual_input_port::read() -> object
+  auto textual_input_port::read(character c0) -> object
   {
-    while (not character::is_eof(istream().peek()))
+    auto is_digit = [](auto c)
     {
-      switch (auto const c1 = peek_codepoint())
+      return std::isdigit(c);
+    };
+
+    auto take_quoted = [this](character quotation_mark)
+    {
+      auto s = string();
+
+      for (auto c = take_character(); not c.is_eof(); c = take_character())
       {
+        if (c == quotation_mark)
+        {
+          return s;
+        }
+        else switch (c)
+        {
+        case '\\':
+          switch (auto const c = take_character(); c)
+          {
+          case 'a': s.emplace_back('\a'); break;
+          case 'b': s.emplace_back('\b'); break;
+          case 'f': s.emplace_back('\f'); break;
+          case 'n': s.emplace_back('\n'); break;
+          case 'r': s.emplace_back('\r'); break;
+          case 't': s.emplace_back('\t'); break;
+          case 'v': s.emplace_back('\v'); break;
+          case 'x': s.emplace_back(lexical_cast<character::int_type>(std::hex, take_character_until([](auto c) { return c == ';'; }))); break;
+
+          case '\n':
+          case '\r':
+            take_character_while([](auto c) { return std::isspace(c); });
+            break;
+
+          default:
+            s.emplace_back(c);
+            break;
+          }
+          break;
+
+        default:
+          s.emplace_back(c);
+          break;
+        }
+      }
+
+      throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
+    };
+
+    auto take_token = [this](character c)
+    {
+      auto token = string();
+
+      token.emplace_back(case_sensitive ? c : c.downcase());
+
+      while (not is_special_character(peek_character()))
+      {
+        token.emplace_back(case_sensitive ? take_character()
+                                          : take_character().downcase());
+      }
+
+      return static_cast<std::string>(token);
+    };
+
+    while (get_ready())
+    {
+      switch (auto const c1 = c0 ? c0 : take_character())
+      {
+      case EOF:
+        return eof_object;
+
       case '\t': // 0x09
       case '\n': // 0x0A
       case '\v': // 0x0B
       case '\f': // 0x0C
       case '\r': // 0x0D
       case ' ':  // 0x20
-        ignore(1);
         break;
 
       case '"':  // 0x22
-        return make(read_string_literal());
+        return make(take_quoted(c1));
 
       case '#':  // 0x23
-        switch (auto const c2 = ignore(1).peek_codepoint())
+        switch (auto const c2 = take_character())
         {
         case '!': // SRFI 22
-          if (auto token = take_token(); token == "!fold-case")
+          if (auto token = take_token(c2); token == "!fold-case")
           {
             case_sensitive = false;
           }
@@ -232,20 +298,20 @@ inline namespace kernel
           }
           else
           {
-            istream().ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            take_character_until([](auto c) { return c == '\n'; });
           }
 
           return read();
 
         case ',': // SRFI 10
-          return interaction_environment().as<environment>().evaluate(ignore(1).read());
+          return interaction_environment().as<environment>().evaluate(read());
 
         case ';': // SRFI 62
-          ignore(1).read(); // Discard an expression.
+          read(); // Discard an expression.
           return read();
 
         case '"':
-          return make_symbol(read_string_literal());
+          return make_symbol(take_quoted(c2));
 
         case '0':
         case '1':
@@ -257,59 +323,73 @@ inline namespace kernel
         case '7':
         case '8':
         case '9':
-          switch (auto label = take_digits(); peek_codepoint())
           {
-          case '#':
-            ignore(1);
+            auto n = take_character_while(is_digit, c2);
 
-            if (auto iter = datum_labels.find(label); iter != datum_labels.end())
+            switch (auto c = take_character())
             {
-              return iter->second;
-            }
-            else
-            {
-              throw read_error(make<string>("it is an error to attempt a forward reference"),
-                               make<string>(lexical_cast<std::string>('#', label, '#')));
-            }
-
-          case '=':
-            ignore(1);
-
-            if (auto [iter, success] = datum_labels.emplace(label, make<datum_label>(label)); success)
-            {
-              if (let xs = read(); xs != iter->second)
+            case '#':
+              if (auto iter = datum_labels.find(n); iter != datum_labels.end())
               {
-                circulate(xs, label);
-                datum_labels.erase(label);
-                return xs;
+                return iter->second;
               }
               else
               {
-                return nullptr;
+                throw read_error(make<string>("it is an error to attempt a forward reference"),
+                                 make<string>(lexical_cast<std::string>('#', n, '#')));
               }
-            }
-            else
-            {
-              throw read_error(make<string>("duplicated datum-label declaration"),
-                               make<string>(label));
-            }
 
-          default:
-            throw read_error(make<string>("unknown discriminator"),
-                             make<string>(lexical_cast<std::string>('#', label, get())));
+            case '=':
+              if (auto [iter, success] = datum_labels.emplace(n, make<datum_label>(n)); success)
+              {
+                if (let xs = read(); xs != iter->second)
+                {
+                  circulate(xs, n);
+                  datum_labels.erase(n);
+                  return xs;
+                }
+                else
+                {
+                  return nullptr;
+                }
+              }
+              else
+              {
+                throw read_error(make<string>("duplicated datum-label declaration"),
+                                 make<string>(n));
+              }
+
+            default:
+              throw read_error(make<string>("unknown discriminator"),
+                               make<string>(lexical_cast<std::string>('#', n, c)));
+            }
           }
 
         case 'b':
-          return make_number(ignore(1).peek_codepoint() == '#' ? lexical_cast<std::string>(read()) : take_token(), 2);
+          switch (auto c3 = take_character())
+          {
+          case '#':
+            return make_number(lexical_cast<std::string>(read()), 2);
+
+          default:
+            return make_number(take_token(c3), 2);
+          }
 
         case 'd':
-          return make_number(ignore(1).peek_codepoint() == '#' ? lexical_cast<std::string>(read()) : take_token(), 10);
+          switch (auto c3 = take_character())
+          {
+          case '#':
+            return make_number(lexical_cast<std::string>(read()), 10);
+
+          default:
+            return make_number(take_token(c3), 10);
+          }
 
         case 'e':
-          return exact(ignore(1).read()); // NOTE: Same as #,(exact (read))
+          return exact(read()); // NOTE: Same as #,(exact (read))
 
         case 'f':
-          switch (auto const digits = ignore(1).take_digits(); std::stoi(digits))
+          switch (std::stoi(take_character_while(is_digit, character('0'))))
           {
           case 32:
             return make<f32vector>(read());
@@ -318,18 +398,25 @@ inline namespace kernel
             return make<f64vector>(read());
 
           default:
-            take_token();
+            take_token(c2);
             return f;
           }
 
         case 'i':
-          return inexact(ignore(1).read()); // NOTE: Same as #,(inexact (read))
+          return inexact(read()); // NOTE: Same as #,(inexact (read))
 
         case 'o':
-          return make_number(ignore(1).peek_codepoint() == '#' ? lexical_cast<std::string>(read()) : take_token(), 8);
+          switch (auto c3 = take_character())
+          {
+          case '#':
+            return make_number(lexical_cast<std::string>(read()), 8);
+
+          default:
+            return make_number(take_token(c3), 8);
+          }
 
         case 's':
-          switch (auto const digits = ignore(1).take_digits(); std::stoi(digits))
+          switch (auto n = take_character_while(is_digit); std::stoi(n))
           {
           case 8:
             return make<s8vector>(read());
@@ -345,15 +432,15 @@ inline namespace kernel
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
-                             make<string>(lexical_cast<std::string>("#s", digits)));
+                             make<string>(lexical_cast<std::string>(c1, c2, n)));
           }
 
         case 't':
-          take_token();
+          take_token(c2);
           return t;
 
         case 'u':
-          switch (auto const digits = ignore(1).take_digits(); std::stoi(digits))
+          switch (auto const n = take_character_while(is_digit); std::stoi(n))
           {
           case 8:
             return make<u8vector>(read());
@@ -369,21 +456,95 @@ inline namespace kernel
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
-                             make<string>(lexical_cast<std::string>("#u", digits)));
+                             make<string>(lexical_cast<std::string>(c1, c2, n)));
           }
 
         case 'x':
-          return make_number(ignore(1).peek_codepoint() == '#' ? lexical_cast<std::string>(read()) : take_token(), 16);
+          switch (auto c3 = take_character())
+          {
+          case '#':
+            return make_number(lexical_cast<std::string>(read()), 16);
+
+          default:
+            return make_number(take_token(c3), 16);
+          }
 
         case '(':
-          return make<vector>(read());
+          return make_vector(read(c2));
 
         case '\\':
-          istream().putback(c1);
-          return make(read_character_literal());
+          if (auto c3 = take_character(); is_special_character(peek_character())) // #\<character>
+          {
+            return make(c3);
+          }
+          else if (c3 == 'x') // #\x<hex scalar value>
+          {
+            return make<character>(lexical_cast<character::int_type>(std::hex, take_token(character('0'))));
+          }
+          else // #\<character name>
+          {
+            std::unordered_map<std::string, character::int_type> static const names {
+              { "alarm"    , 0x07 },
+              { "backspace", 0x08 },
+              { "delete"   , 0x7F },
+              { "escape"   , 0x1B },
+              { "newline"  , 0x0A },
+              { "null"     , 0x00 },
+              { "return"   , 0x0D },
+              { "space"    , 0x20 },
+              { "tab"      , 0x09 },
+            };
+
+            auto name = take_token(c3);
+
+            if (auto iter = names.find(name); iter != names.end())
+            {
+              return make<character>(iter->second);
+            }
+            else
+            {
+              throw read_error(make<string>("unknown character name"),
+                               make<string>("\\#" + name));
+            }
+          }
 
         case '|': // SRFI 30
-          ignore(1).take_nested_block_comment();
+          for (auto nest = 1; nest; )
+          {
+            switch (auto c1 = take_character())
+            {
+            case EOF:
+              throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
+
+            case '#':
+              switch (peek_character())
+              {
+              case '|':
+                take_character();
+                ++nest;
+                [[fallthrough]];
+
+              default:
+                continue;
+              }
+
+            case '|':
+              switch (peek_character())
+              {
+              case '#':
+                take_character();
+                --nest;
+                [[fallthrough]];
+
+              default:
+                continue;
+              }
+
+            default:
+              continue;
+            }
+          }
+
           return read();
 
         default:
@@ -391,20 +552,35 @@ inline namespace kernel
         }
 
       case '\'': // 0x27
-        return list(make_symbol("quote"), ignore(1).read());
+        return list(make_symbol("quote"), read());
 
       case '(':  // 0x28
         try
         {
-          if (let const& x = ignore(1).read(); x.is<eof>())
+          auto position = [this]()
           {
-            return x;
-          }
-          else
+            if (auto source = sources.find(this); source != sources.end())
+            {
+              return source->second.code.size();
+            }
+            else
+            {
+              return std::numeric_limits<string::size_type>::max();
+            }
+          }();
+
+          let const& x = read();
+
+          let const& pare = cons(x, read(c1));
+
+          if (auto source = sources.find(this); source != sources.end()) // The iterator may be invalidated by calling read, so the iterator must be retrieved again.
           {
-            istream().putback('('); // modifying putback (https://en.cppreference.com/w/cpp/io/basic_istream/putback)
-            return cons(x, read());
+            contexts.emplace(std::piecewise_construct,
+                             std::make_tuple(pare.get()),
+                             std::make_tuple(&source->second, position));
           }
+
+          return pare;
         }
         catch (std::integral_constant<char, ')'> const&)
         {
@@ -413,33 +589,32 @@ inline namespace kernel
         catch (std::integral_constant<char, '.'> const&)
         {
           let const x = read();
-          istream().ignore(std::numeric_limits<std::streamsize>::max(), ')');
+          take_character_until([](auto c) { return c == ')'; });
           return x;
         }
 
       case ')':  // 0x29
-        ignore(1);
         throw std::integral_constant<char, ')'>();
 
       case ',':  // 0x2C
-        switch (ignore(1).peek_codepoint())
+        switch (auto c = take_character())
         {
         case '@':
-          return list(make_symbol("unquote-splicing"), ignore(1).read());
+          return list(make_symbol("unquote-splicing"), read());
 
         default:
-          return list(make_symbol("unquote"), read());
+          return list(make_symbol("unquote"), read(c));
         }
 
       case ';':  // 0x3B
-        istream().ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        take_character_until([](auto c) { return c == '\n'; });
         break;
 
       case '`':  // 0x60
-        return list(make_symbol("quasiquote"), ignore(1).read());
+        return list(make_symbol("quasiquote"), read());
 
       case '|':  // 0x7C
-        return make_symbol(read_string_literal());
+        return make_symbol(take_quoted(c1));
 
       case '[':  // 0x5B
       case ']':  // 0x5D
@@ -449,7 +624,7 @@ inline namespace kernel
                          make<character>(c1));
 
       default:
-        if (auto const& token = take_token(); token == ".")
+        if (auto && token = take_token(c1); token == ".")
         {
           throw std::integral_constant<char, '.'>();
         }
@@ -464,104 +639,10 @@ inline namespace kernel
       }
     }
 
-    return eof_object;
+    throw read_error(make<string>("underlying input stream went into a not good state"));
   }
 
-  auto textual_input_port::read_character_literal() -> character
-  {
-    ignore(2); // sharp and backslash
-
-    if (auto c = take_codepoint(); is_special_character(peek_codepoint())) // #\<character>
-    {
-      return character(c);
-    }
-    else if (c == 'x') // #\x<hex scalar value>
-    {
-      return character(lexical_cast<character::int_type>(std::hex, take_token()));
-    }
-    else // #\<character name>
-    {
-      std::unordered_map<std::string, character::int_type> static const names {
-        { "alarm"    , 0x07 },
-        { "backspace", 0x08 },
-        { "delete"   , 0x7F },
-        { "escape"   , 0x1B },
-        { "newline"  , 0x0A },
-        { "null"     , 0x00 },
-        { "return"   , 0x0D },
-        { "space"    , 0x20 },
-        { "tab"      , 0x09 },
-      };
-
-      auto name = static_cast<std::string>(character(c)) + take_token();
-
-      if (auto iter = names.find(name); iter != names.end())
-      {
-        return character(iter->second);
-      }
-      else
-      {
-        throw read_error(make<string>("unknown character name"),
-                         make<string>("\\#" + name));
-      }
-    }
-  }
-
-  auto textual_input_port::read_string_literal() -> string
-  {
-    auto s = string();
-
-    auto const quotation_mark = take_codepoint();
-
-    for (auto codepoint = take_codepoint(); not character::is_eof(codepoint); codepoint = take_codepoint())
-    {
-      if (codepoint == quotation_mark)
-      {
-        return s;
-      }
-      else switch (codepoint)
-      {
-      case '\\':
-        switch (auto const codepoint = take_codepoint(); codepoint)
-        {
-        case 'a': s.vector.emplace_back('\a'); break;
-        case 'b': s.vector.emplace_back('\b'); break;
-        case 'f': s.vector.emplace_back('\f'); break;
-        case 'n': s.vector.emplace_back('\n'); break;
-        case 'r': s.vector.emplace_back('\r'); break;
-        case 't': s.vector.emplace_back('\t'); break;
-        case 'v': s.vector.emplace_back('\v'); break;
-        case 'x':
-          if (auto token = std::string(); std::getline(istream(), token, ';'))
-          {
-            s.vector.emplace_back(lexical_cast<character::int_type>(std::hex, token));
-          }
-          break;
-
-        case '\n':
-        case '\r':
-          while (std::isspace(peek_codepoint()))
-          {
-            ignore(1);
-          }
-          break;
-
-        default:
-          s.vector.emplace_back(codepoint);
-          break;
-        }
-        break;
-
-      default:
-        s.vector.emplace_back(codepoint);
-        break;
-      }
-    }
-
-    throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
-  }
-
-  auto textual_input_port::take_codepoint() -> character::int_type
+  auto textual_input_port::take_character() -> character
   {
     /*
        00000000 -- 0000007F: 0xxxxxxx
@@ -569,94 +650,47 @@ inline namespace kernel
        00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
        00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
     */
+    auto & source = istream();
 
-    if (auto const c = istream().peek(); character::is_eof(c) or character::is_ascii(c))
+    auto make_character = [this](auto&&... xs)
     {
-      return istream().get();
+      if (auto iter = sources.find(this); iter != sources.end())
+      {
+        iter->second.code.emplace_back(std::forward<decltype(xs)>(xs)...);
+        return iter->second.code.back();
+      }
+      else
+      {
+        return character(std::forward<decltype(xs)>(xs)...);
+      }
+    };
+
+    if (auto const c = source.peek(); character::is_eof(c) or character::is_ascii(c))
+    {
+      return make_character(source.get());
     }
     else if (0xC2 <= c and c <= 0xDF) // 11 bit
     {
-      return (istream().get() & 0b0001'1111) << 6
-           | (istream().get() & 0b0011'1111);
+      return make_character((source.get() & 0b0001'1111) << 6 |
+                            (source.get() & 0b0011'1111));
     }
     else if (0xE0 <= c and c <= 0xEF) // 16 bit
     {
-      return (istream().get() & 0b0000'1111) << 12
-           | (istream().get() & 0b0011'1111) <<  6
-           | (istream().get() & 0b0011'1111);
+      return make_character((source.get() & 0b0000'1111) << 12 |
+                            (source.get() & 0b0011'1111) <<  6 |
+                            (source.get() & 0b0011'1111));
     }
     else if (0xF0 <= c and c <= 0xF4) // 21 bit
     {
-      return (istream().get() & 0b0000'0111) << 18
-           | (istream().get() & 0b0011'1111) << 12
-           | (istream().get() & 0b0011'1111) <<  6
-           | (istream().get() & 0b0011'1111);
+      return make_character((source.get() & 0b0000'0111) << 18 |
+                            (source.get() & 0b0011'1111) << 12 |
+                            (source.get() & 0b0011'1111) <<  6 |
+                            (source.get() & 0b0011'1111));
     }
     else
     {
       throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
     }
-  }
-
-  auto textual_input_port::take_digits() -> std::string
-  {
-    auto s = std::string();
-
-    while (std::isdigit(istream().peek()))
-    {
-      s.push_back(istream().get());
-    }
-
-    return s.length() ? s : "0";
-  }
-
-  auto textual_input_port::take_nested_block_comment() -> void
-  {
-    while (not character::is_eof(istream().peek()))
-    {
-      switch (istream().get())
-      {
-      case '#':
-        switch (istream().peek())
-        {
-        case '|':
-          istream().ignore(1);
-          take_nested_block_comment();
-          [[fallthrough]];
-
-        default:
-          continue;
-        }
-
-      case '|':
-        switch (istream().peek())
-        {
-        case '#':
-          istream().ignore(1);
-          return;
-
-        default:
-          continue;
-        }
-
-      default:
-        continue;
-      }
-    }
-
-    throw read_error(make<string>("An end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
-  }
-
-  auto textual_input_port::take_token() -> std::string
-  {
-    auto token = std::string();
-
-    while (not is_special_character(istream().peek()))
-    {
-      token.push_back(case_sensitive ? istream().get() : std::tolower(istream().get()));
-    }
-
-    return token;
   }
 } // namespace kernel
 } // namespace meevax

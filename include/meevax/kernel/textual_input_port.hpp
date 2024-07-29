@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_TEXTUAL_INPUT_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_TEXTUAL_INPUT_PORT_HPP
 
+#include <filesystem>
 #include <istream>
 
 #include <meevax/kernel/eof.hpp>
@@ -63,43 +64,109 @@ inline namespace kernel
       auto operator ++(int) -> iterator;
     };
 
+    struct source
+    {
+      std::filesystem::path path;
+
+      string code;
+
+      template <typename... Ts>
+      explicit source(Ts&&... xs)
+        : path { std::forward<decltype(xs)>(xs)... }
+      {
+        assert(not path.empty());
+      }
+    };
+
+    struct context
+    {
+      source const* file;
+
+      string::size_type begin, end;
+
+      explicit context(source const* file, string::size_type begin)
+        : file  { file }
+        , begin { begin }
+      {}
+
+      friend auto operator <<(std::ostream & output, context const& datum) -> std::ostream &
+      {
+        auto row = 1, column = 0;
+
+        for (std::size_t i = 0; i < datum.begin; ++i)
+        {
+          if (datum.file->code[i] == '\n')
+          {
+            ++row;
+            column = 0;
+          }
+          else
+          {
+            ++column;
+          }
+        }
+
+        return output << datum.file->path.c_str() << ":" << row << ":" << column;
+      }
+    };
+
+    static inline std::unordered_map<textual_input_port const*, source> sources;
+
+    static inline std::unordered_map<pair const*, context> contexts;
+
     std::unordered_map<std::string, object> datum_labels;
 
     bool case_sensitive = true;
 
+    auto at_end_of_file() const -> bool;
+
     auto begin() -> iterator;
+
+    auto enable_source_cons(std::filesystem::path const&) -> void;
 
     auto end() -> iterator;
 
-    auto get() -> object; // character or eof
+    auto get() -> object; // Returns character or eof (for Scheme procedure read-char)
 
-    auto get(std::size_t) -> object; // string or eof
+    auto get(std::size_t) -> object; // Returns string or eof (for Scheme procedure read-string)
 
-    auto get_line() -> object; // string or eof
+    auto get_line() -> object; // Returns string or eof (for Scheme procedure read-line)
 
     auto get_ready() const -> bool;
 
-    auto good() const -> bool;
-
-    auto ignore(std::size_t) -> textual_input_port &;
-
     auto peek() -> object;
 
-    auto peek_codepoint() -> character::int_type;
+    auto peek_character() -> character;
 
-    auto read() -> object;
+    auto read(character = {}) -> object;
 
-    auto read_character_literal() -> character;
+    auto take_character() -> character;
 
-    auto read_string_literal() -> string;
+    template <typename F>
+    auto take_character_until(F satisfy, character c = {})
+    {
+      auto s = static_cast<std::string>(c);
 
-    auto take_codepoint() -> character::int_type;
+      while (get_ready() and not satisfy(c = take_character()))
+      {
+        s += c;
+      }
 
-    auto take_digits() -> std::string;
+      return s;
+    }
 
-    auto take_nested_block_comment() -> void; // TODO return std::string
+    template <typename F>
+    auto take_character_while(F satisfy, character c = {})
+    {
+      auto s = static_cast<std::string>(c);
 
-    auto take_token() -> std::string;
+      while (get_ready() and satisfy(peek_character()))
+      {
+        s += take_character();
+      }
+
+      return s;
+    }
 
     virtual auto istream() -> std::istream & = 0;
 

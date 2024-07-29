@@ -73,36 +73,47 @@ inline namespace kernel
 
        in the REPL.
     */
-    if (s or e or c)
+    struct dump
     {
-      d = cons(std::exchange(s, nullptr),
-               std::exchange(e, nullptr),
-               std::exchange(c, nullptr), d);
-    }
+      environment * context;
 
-    let const result = execute(optimize(compile(expression)));
+      let s, e, c, d;
 
-    if (d)
-    {
-      s = head(d, 0);
-      e = head(d, 1);
-      c = head(d, 2);
-      d = tail(d, 3);
-    }
+      explicit dump(environment * context)
+        : context { context }
+        , s { std::exchange(context->s, nullptr) }
+        , e { std::exchange(context->e, nullptr) }
+        , c { std::exchange(context->c, nullptr) }
+        , d { std::exchange(context->d, nullptr) }
+      {}
 
-    return result;
+      ~dump()
+      {
+        undump();
+      }
+
+      auto operator ()() -> void
+      {
+        undump();
+      }
+
+      auto undump() -> void
+      {
+        context->s = s;
+        context->e = e;
+        context->c = c;
+        context->d = d;
+      }
+    };
+
+    auto undump = dump(this);
+
+    return execute(optimize(compile(expression)));
   }
-  catch (object const& x)
+  catch (error & e)
   {
-    if (x.is_also<error>())
-    {
-      x.as<error>().raise();
-      return unspecified;
-    }
-    else
-    {
-      throw error(make<string>("uncaught exception"), x);
-    }
+    e.detail(error::in::evaluating, expression).raise();
+    return unspecified;
   }
 
   auto resolve(object const& form) -> object
