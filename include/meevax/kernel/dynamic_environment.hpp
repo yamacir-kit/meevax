@@ -99,6 +99,8 @@ inline namespace kernel
       assert(last(c).template is<instruction>());
       assert(last(c).template as<instruction>() == instruction::stop);
 
+      let const control = c;
+
       try
       {
       fetch:
@@ -121,7 +123,7 @@ inline namespace kernel
           }
           else
           {
-            s = cons(cdadr(c), s);
+            s = cons(x, s);
             c = cddr(c);
             goto fetch;
           }
@@ -402,6 +404,7 @@ inline namespace kernel
           * ----------------------------------------------------------------- */
           assert(cdr(s).template is<null>());
           assert(cdr(c).template is<null>());
+
           s = cons(car(s), car(d));
           e = cadr(d);
           c = caddr(d);
@@ -523,11 +526,12 @@ inline namespace kernel
       {
         if (thrown.is_also<error>())
         {
-          thrown.as<error>().detail(error::in::running, cons(s, e, c, d)).raise();
+          thrown.as<error>().raise();
           return unspecified;
         }
         else
         {
+          error::contexts.emplace_back(error::in::running, cons(control, c));
           throw error(make<string>("uncaught exception"), thrown);
         }
       }
@@ -535,11 +539,12 @@ inline namespace kernel
       {
         if (exception_handler)
         {
+          error::contexts.emplace_back(error::in::running, cons(control, c));
           return apply(exception_handler, thrown.make());
         }
         else // In most cases, this clause will never be called.
         {
-          thrown.detail(error::in::running, cons(s, e, c, d)).raise();
+          thrown.raise();
           return unspecified;
         }
       }
@@ -547,11 +552,11 @@ inline namespace kernel
       {
         if (auto thrown = error(make<string>(exception.what())); exception_handler)
         {
+          error::contexts.emplace_back(error::in::running, cons(control, c));
           return apply(exception_handler, thrown.make());
         }
         else // In most cases, this clause will never be called.
         {
-          thrown.detail(error::in::running, cons(s, e, c, d));
           throw thrown;
         }
       }

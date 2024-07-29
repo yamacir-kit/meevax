@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/string.hpp>
@@ -47,50 +48,100 @@ inline namespace kernel
     throw *this;
   }
 
-  template <typename T>
-  struct reverse
+  struct syntactic_context_of : private object
   {
-    T & x;
-
-    explicit reverse(T & x)
-      : x { x }
+    explicit syntactic_context_of(let const& c)
+      : object { c }
     {}
 
-    auto begin()
+    friend auto operator <<(std::ostream & output, syntactic_context_of const& c) -> std::ostream &
     {
-      return std::rbegin(x);
-    }
+      for (auto context = environment::syntax::contexts.find(c.get()); context != environment::syntax::contexts.end(); context = environment::syntax::contexts.find(context->second.get()))
+      {
+        output << " ; " << context->second;
+      }
 
-    auto end()
-    {
-      return std::rend(x);
+      return output;
     }
   };
+
+  auto disassemble(std::ostream & output, let const& c, std::size_t depth = 0) -> void
+  {
+    assert(c.is<pair>());
+    assert(car(c).is<instruction>());
+
+    switch (car(c).as<instruction>())
+    {
+    case instruction::join:
+    case instruction::tail_call:
+    case instruction::tail_letrec:
+    case instruction::return_:
+    case instruction::stop:
+      output << std::string(depth, ' ') << car(c) << syntactic_context_of(c) << '\n';
+      assert(cdr(c).is<null>());
+      break;
+
+    case instruction::call:
+    case instruction::cons:
+    case instruction::drop:
+    case instruction::dummy:
+    case instruction::letrec:
+      output << std::string(depth, ' ') << car(c) << syntactic_context_of(c) << '\n';
+      disassemble(output, cdr(c), depth);
+      break;
+
+    case instruction::current:
+    case instruction::install:
+    case instruction::load_absolute:
+    case instruction::load_constant:
+    case instruction::load_relative:
+    case instruction::load_variadic:
+    case instruction::store_absolute:
+    case instruction::store_relative:
+    case instruction::store_variadic:
+      output << std::string(depth, ' ') << car(c) << ' ' << cadr(c) << syntactic_context_of(c) << '\n';
+      disassemble(output, cddr(c), depth);
+      break;
+
+    case instruction::load_closure:
+    case instruction::load_continuation:
+      output << std::string(depth, ' ') << car(c) << syntactic_context_of(c) << '\n';
+      disassemble(output, cadr(c), depth + 2);
+      disassemble(output, cddr(c), depth);
+      break;
+
+    case instruction::select:
+      output << std::string(depth, ' ') << car(c) << syntactic_context_of(c) << '\n';
+      disassemble(output, cadr(c), depth + 2);
+      disassemble(output, caddr(c), depth + 2);
+      disassemble(output, cdddr(c), depth);
+      break;
+
+    case instruction::tail_select:
+      output << std::string(depth, ' ') << car(c) << syntactic_context_of(c) << '\n';
+      disassemble(output, cadr(c), depth + 2);
+      disassemble(output, caddr(c), depth + 2);
+      break;
+    }
+  }
 
   auto error::report(std::ostream & output) const -> std::ostream &
   {
     output << red("; error! ", what()) << "\n";
 
-    for (auto const& [doing, x] : reverse(contexts))
+    for (auto const& [doing, x] : contexts)
     {
       switch (doing)
       {
       case in::evaluating: // x is expression
-        output << ";   ";
-
-        if (auto read_context = textual_input_port::contexts.find(x.get()); read_context != textual_input_port::contexts.end())
+        if (auto context = textual_input_port::contexts.find(x.get()); context != textual_input_port::contexts.end())
         {
-          output << read_context->second;
+          output << "; " << context->second << ": " << x << std::endl;
         }
-        else
-        {
-          output << "{annonymous-input-source}";
-        }
-
-        output << ": " << x << std::endl;
         break;
 
       case in::running:
+        // disassemble(output, car(x)); // Disabled as it is still experimental and does not produce any useful output.
         break;
 
       default:

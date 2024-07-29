@@ -37,7 +37,7 @@ inline namespace kernel
       running,
     };
 
-    std::vector<std::pair<in, object>> contexts {};
+    static thread_local inline std::vector<std::pair<in, object>> contexts;
 
     mutable std::string cache {};
 
