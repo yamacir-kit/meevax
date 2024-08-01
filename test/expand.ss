@@ -104,6 +104,44 @@
 ;                  (sc-swap! x y)))
 ;   => 'TODO-undefined-variable-z)
 
+(eval '(define-syntax er-swap!
+         (er-macro-transformer
+           (lambda (form rename compare)
+             (let ((a (cadr form))
+                   (b (caddr form)))
+               `(,(rename 'let) ((,(rename 'x) ,a))
+                                (,(rename 'set!) ,a ,b)
+                                (,(rename 'set!) ,b ,(rename 'x)))))))
+      strip-environment)
+
+(check (strip '(let ((x 1)
+                     (y 2))
+                 (er-swap! x y)))
+  => '((lambda (x y)
+         ((lambda (x)
+            (set! x y)
+            (set! y x))
+          x))
+       1 2))
+
+(eval '(define-syntax swap!
+         (syntax-rules ()
+           ((swap! a b)
+            (let ((x a))
+              (set! a b)
+              (set! b x)))))
+      strip-environment)
+
+(check (strip '(let ((x 1)
+                     (y 2))
+                 (swap! x y)))
+  => '((lambda (x y)
+         ((lambda (x)
+            (set! x y)
+            (set! y x))
+          x))
+       1 2))
+
 (check (strip '(cond-expand
                  (r5rs 'r5rs)
                  (r6rs 'r6rs)
@@ -113,4 +151,4 @@
 
 (check-report)
 
-(exit (check-passed? 7))
+(exit (check-passed? 9))

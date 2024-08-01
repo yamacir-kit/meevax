@@ -33,6 +33,29 @@ inline namespace kernel
     struct syntactic_closure : public virtual pair // (<syntactic-environment> <free-names> . <expression>)
                              , public identifier
     {
+      template <typename... Ts>
+      auto compile(let const& user, Ts&&... xs)
+      {
+        assert(user.is<syntactic_environment>());
+
+        let const& maker = car(*this);
+
+        let const& free_variables = cadr(*this);
+
+        let const& expression = cddr(*this);
+
+        return maker.as<syntactic_environment>().compile(expression,
+                                                         unify(car(maker), car(user)),
+                                                         map([&](let const& free_variable)
+                                                             {
+                                                               return cons(free_variable, user);
+                                                             },
+                                                             free_variables,
+                                                             cdr(user)
+                                                            ),
+                                                         std::forward<decltype(xs)>(xs)...);
+      }
+
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
       {
         /*
@@ -61,14 +84,7 @@ inline namespace kernel
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
       {
-        if (cddr(datum).template is_also<identifier>())
-        {
-          return os << underline(cddr(datum));
-        }
-        else
-        {
-          return os << magenta("#,(") << blue("make-syntactic-closure ") << faint("#;", car(datum).get()) << magenta(" '") << cadr(datum) << magenta(" '") << cddr(datum) << magenta(")");
-        }
+        return os << underline(cddr(datum));
       }
     };
 
@@ -871,15 +887,7 @@ inline namespace kernel
                          object const& continuation = list(make(instruction::stop)),
                          bool tail = false) -> object try
     {
-      if (expression.is<null>())
-      {
-        /*
-           NOTE: In many dialects of Lisp, the empty list, (), is a legitimate
-           expression evaluating to itself. In Scheme, it is an error.
-        */
-        return CONS(make(instruction::load_constant), nullptr, continuation);
-      }
-      else if (not expression.is<pair>())
+      if (not expression.is<pair>())
       {
         if (expression.is_also<identifier>())
         {
@@ -902,20 +910,7 @@ inline namespace kernel
           else
           {
             assert(identity == f);
-
-            assert(car(expression).is<syntactic_environment>());
-
-            return car(expression).as<syntactic_environment>()
-                                  .compile(cddr(expression),
-                                           unify(caar(expression), bound_variables),
-                                           map([&](let const& free_variable)
-                                               {
-                                                 return cons(free_variable,
-                                                             make<syntactic_environment>(bound_variables, free_variables));
-                                               },
-                                               cadr(expression) /* free-variables of syntactic-closure */,
-                                               free_variables),
-                                           continuation);
+            return expression.as<syntactic_closure>().compile(make<syntactic_environment>(bound_variables, free_variables), continuation);
           }
         }
         else // is <self-evaluating>
