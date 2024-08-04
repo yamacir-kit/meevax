@@ -49,17 +49,24 @@ inline namespace kernel
       {
         assert(use_environment.is<syntactic_environment>());
 
+        let const bound_variables = unify(car(macro_environment),
+                                          car(use_environment));
+
+        let const free_variables = map([&](let const& free_name)
+                                       {
+                                         return cons(free_name, use_environment);
+                                       },
+                                       free_names,
+                                       cdr(use_environment));
+
         return macro_environment.as<syntactic_environment>()
-                                .compile(expression,
-                                         unify(car(macro_environment),
-                                               car(use_environment)),
-                                         map([&](let const& free_name)
-                                             {
-                                               return cons(free_name, use_environment);
-                                             },
-                                             free_names,
-                                             cdr(use_environment)),
-                                         std::forward<decltype(xs)>(xs)...);
+                                .generate(macro_environment.as<syntactic_environment>()
+                                                           .expand(expression,
+                                                                   bound_variables,
+                                                                   free_variables),
+                                          bound_variables,
+                                          free_variables,
+                                          std::forward<decltype(xs)>(xs)...);
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -73,13 +80,13 @@ inline namespace kernel
            as else in a cond clause. A macro definition for syntax-rules would
            use free-identifier=? to look for literals in the input.
         */
-        return x.expression.is_also<identifier>() and
-               y.expression.is_also<identifier>() and
-               eqv(x.macro_environment.as<syntactic_environment>()
+        return x.expression.template is_also<identifier>() and
+               y.expression.template is_also<identifier>() and
+               eqv(x.macro_environment.template as<syntactic_environment>()
                                       .identify(x.expression,
                                                 car(x.macro_environment),
                                                 nullptr),
-                   y.macro_environment.as<syntactic_environment>()
+                   y.macro_environment.template as<syntactic_environment>()
                                       .identify(y.expression,
                                                 car(y.macro_environment),
                                                 nullptr));
@@ -1029,6 +1036,8 @@ inline namespace kernel
            whereas it would be an error to perform a set! on an unbound
            variable.
         */
+        assert(not variable.is<syntactic_closure>());
+
         return car(second = cons(make<absolute>(variable, undefined), second));
       }
     }
