@@ -30,30 +30,36 @@ inline namespace kernel
   template <typename Environment>
   struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
   {
-    struct syntactic_closure : public virtual pair // (<syntactic-environment> <free-names> . <expression>)
-                             , public identifier
+    struct syntactic_closure : public identifier
     {
-      template <typename... Ts>
-      auto compile(let const& user, Ts&&... xs)
+      let macro_environment, free_names, expression;
+
+      explicit syntactic_closure(let const& macro_environment,
+                                 let const& free_names,
+                                 let const& expression)
+        : macro_environment { macro_environment }
+        , free_names        { free_names }
+        , expression        { expression }
       {
-        assert(user.is<syntactic_environment>());
+        assert(macro_environment.is<syntactic_environment>());
+      }
 
-        let const& maker = car(*this);
+      template <typename... Ts>
+      auto compile(let const& use_environment, Ts&&... xs)
+      {
+        assert(use_environment.is<syntactic_environment>());
 
-        let const& free_variables = cadr(*this);
-
-        let const& expression = cddr(*this);
-
-        return maker.as<syntactic_environment>().compile(expression,
-                                                         unify(car(maker), car(user)),
-                                                         map([&](let const& free_variable)
-                                                             {
-                                                               return cons(free_variable, user);
-                                                             },
-                                                             free_variables,
-                                                             cdr(user)
-                                                            ),
-                                                         std::forward<decltype(xs)>(xs)...);
+        return macro_environment.as<syntactic_environment>()
+                                .compile(expression,
+                                         unify(car(macro_environment),
+                                               car(use_environment)),
+                                         map([&](let const& free_name)
+                                             {
+                                               return cons(free_name, use_environment);
+                                             },
+                                             free_names,
+                                             cdr(use_environment)),
+                                         std::forward<decltype(xs)>(xs)...);
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -67,24 +73,21 @@ inline namespace kernel
            as else in a cond clause. A macro definition for syntax-rules would
            use free-identifier=? to look for literals in the input.
         */
-        assert(car(x).template is<syntactic_environment>());
-        assert(car(y).template is<syntactic_environment>());
-
-        return cddr(x).template is_also<identifier>() and
-               cddr(y).template is_also<identifier>() and
-               eqv(car(x).template as<syntactic_environment>()
-                         .identify(cddr(x),
-                                   caar(x),
-                                   nullptr),
-                   car(y).template as<syntactic_environment>()
-                         .identify(cddr(y),
-                                   caar(y),
-                                   nullptr));
+        return x.expression.is_also<identifier>() and
+               y.expression.is_also<identifier>() and
+               eqv(x.macro_environment.as<syntactic_environment>()
+                                      .identify(x.expression,
+                                                car(x.macro_environment),
+                                                nullptr),
+                   y.macro_environment.as<syntactic_environment>()
+                                      .identify(y.expression,
+                                                car(y.macro_environment),
+                                                nullptr));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
       {
-        return os << underline(cddr(datum));
+        return os << underline(datum.expression);
       }
     };
 
@@ -478,7 +481,8 @@ inline namespace kernel
 
       static GENERATOR(quote)
       {
-        return CONS(make(instruction::load_constant), car(expression).is<syntactic_closure>() ? cddar(expression) : car(expression),
+        return CONS(make(instruction::load_constant), car(expression).is<syntactic_closure>() ? car(expression).as<syntactic_closure>().expression
+                                                                                              : car(expression),
                     continuation);
       }
 
@@ -981,10 +985,13 @@ inline namespace kernel
 
         if (variable.is<syntactic_closure>())
         {
-          return car(variable).as<syntactic_environment>()
-                              .identify(cddr(variable),
-                                        unify(caar(variable), bound_variables),
-                                        nullptr);
+          return variable.as<syntactic_closure>()
+                         .macro_environment
+                         .template as<syntactic_environment>()
+                         .identify(variable.as<syntactic_closure>().expression,
+                                   unify(car(variable.as<syntactic_closure>().macro_environment),
+                                         bound_variables),
+                                   nullptr);
         }
         else
         {
@@ -1037,7 +1044,7 @@ inline namespace kernel
 
     static auto rename(std::string const& variable)
     {
-      return make<syntactic_closure>(core(), cons(nullptr, make_symbol(variable)));
+      return make<syntactic_closure>(core(), unit, make_symbol(variable));
     }
 
     inline auto sweep(object const& form,
