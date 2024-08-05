@@ -32,14 +32,14 @@ inline namespace kernel
   {
     struct syntactic_closure : public identifier
     {
-      let inner_environment, free_names, expression;
+      let inner_environment, free_names, form;
 
       explicit syntactic_closure(let const& inner_environment,
                                  let const& free_names,
-                                 let const& expression)
+                                 let const& form)
         : inner_environment { inner_environment }
         , free_names        { free_names }
-        , expression        { expression }
+        , form              { form }
       {
         assert(inner_environment.is<syntactic_environment>());
       }
@@ -56,7 +56,7 @@ inline namespace kernel
 
         return inner_environment.as<syntactic_environment>()
                                 .generate(inner_environment.as<syntactic_environment>()
-                                                           .expand(inject(outer_environment, free_names, expression),
+                                                           .expand(inject(outer_environment, free_names, form),
                                                                    bound_variables,
                                                                    free_variables),
                                           bound_variables,
@@ -94,21 +94,21 @@ inline namespace kernel
            as else in a cond clause. A macro definition for syntax-rules would
            use free-identifier=? to look for literals in the input.
         */
-        return x.expression.template is_also<identifier>() and
-               y.expression.template is_also<identifier>() and
+        return x.form.template is_also<identifier>() and
+               y.form.template is_also<identifier>() and
                eqv(x.inner_environment.template as<syntactic_environment>()
-                                      .identify(x.expression,
+                                      .identify(x.form,
                                                 car(x.inner_environment),
                                                 nullptr),
                    y.inner_environment.template as<syntactic_environment>()
-                                      .identify(y.expression,
+                                      .identify(y.form,
                                                 car(y.inner_environment),
                                                 nullptr));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
       {
-        return os << underline(datum.expression);
+        return os << underline(datum.form);
       }
     };
 
@@ -502,7 +502,7 @@ inline namespace kernel
 
       static GENERATOR(quote)
       {
-        return CONS(make(instruction::load_constant), car(expression).is<syntactic_closure>() ? car(expression).as<syntactic_closure>().expression
+        return CONS(make(instruction::load_constant), car(expression).is<syntactic_closure>() ? car(expression).as<syntactic_closure>().form
                                                                                               : car(expression),
                     continuation);
       }
@@ -999,7 +999,7 @@ inline namespace kernel
           return variable.as<syntactic_closure>()
                          .inner_environment
                          .template as<syntactic_environment>()
-                         .identify(variable.as<syntactic_closure>().expression,
+                         .identify(variable.as<syntactic_closure>().form,
                                    unify(car(variable.as<syntactic_closure>().inner_environment),
                                          bound_variables),
                                    nullptr);
