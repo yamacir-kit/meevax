@@ -85,12 +85,12 @@ inline namespace kernel
                    assert(cadr(export_spec).is_also<identifier>());
                    assert(caddr(export_spec).is_also<identifier>());
                    return make<absolute>(caddr(export_spec),
-                                         cdr(identify(cadr(export_spec), nullptr, nullptr)));
+                                         cdr(identify(cadr(export_spec), unit)));
                  }
                  else
                  {
                    assert(export_spec.is_also<identifier>());
-                   return identify(export_spec, nullptr, nullptr);
+                   return identify(export_spec, unit);
                  }
                },
                export_specs);
