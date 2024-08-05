@@ -32,41 +32,55 @@ inline namespace kernel
   {
     struct syntactic_closure : public identifier
     {
-      let macro_environment, free_names, expression;
+      let inner_environment, free_names, expression;
 
-      explicit syntactic_closure(let const& macro_environment,
+      explicit syntactic_closure(let const& inner_environment,
                                  let const& free_names,
                                  let const& expression)
-        : macro_environment { macro_environment }
+        : inner_environment { inner_environment }
         , free_names        { free_names }
         , expression        { expression }
       {
-        assert(macro_environment.is<syntactic_environment>());
+        assert(inner_environment.is<syntactic_environment>());
       }
 
       template <typename... Ts>
-      auto compile(let const& use_environment, Ts&&... xs)
+      auto compile(let const& outer_environment, Ts&&... xs)
       {
-        assert(use_environment.is<syntactic_environment>());
+        assert(outer_environment.is<syntactic_environment>());
 
-        let const bound_variables = unify(car(macro_environment),
-                                          car(use_environment));
+        let const bound_variables = unify(car(inner_environment),
+                                          car(outer_environment));
 
-        let const free_variables = map([&](let const& free_name)
-                                       {
-                                         return cons(free_name, use_environment);
-                                       },
-                                       free_names,
-                                       cdr(use_environment));
+        let const free_variables = unit;
 
-        return macro_environment.as<syntactic_environment>()
-                                .generate(macro_environment.as<syntactic_environment>()
-                                                           .expand(expression,
+        return inner_environment.as<syntactic_environment>()
+                                .generate(inner_environment.as<syntactic_environment>()
+                                                           .expand(inject(outer_environment, free_names, expression),
                                                                    bound_variables,
                                                                    free_variables),
                                           bound_variables,
                                           free_variables,
                                           std::forward<decltype(xs)>(xs)...);
+      }
+
+      static auto inject(let const& outer_environment,
+                         let const& free_names,
+                         let const& form) -> object
+      {
+        if (form.is<pair>())
+        {
+          return cons(inject(outer_environment, free_names, car(form)),
+                      inject(outer_environment, free_names, cdr(form)));
+        }
+        else if (let const& x = memq(form, free_names); x != f)
+        {
+          return make<syntactic_closure>(outer_environment, unit, form);
+        }
+        else
+        {
+          return form;
+        }
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -82,13 +96,13 @@ inline namespace kernel
         */
         return x.expression.template is_also<identifier>() and
                y.expression.template is_also<identifier>() and
-               eqv(x.macro_environment.template as<syntactic_environment>()
+               eqv(x.inner_environment.template as<syntactic_environment>()
                                       .identify(x.expression,
-                                                car(x.macro_environment),
+                                                car(x.inner_environment),
                                                 nullptr),
-                   y.macro_environment.template as<syntactic_environment>()
+                   y.inner_environment.template as<syntactic_environment>()
                                       .identify(y.expression,
-                                                car(y.macro_environment),
+                                                car(y.inner_environment),
                                                 nullptr));
       }
 
@@ -952,16 +966,6 @@ inline namespace kernel
       {
         return f;
       }
-      else if (let const& x = assq(variable, free_variables); x != f)
-      {
-        /*
-           If a macro transformer inserts a free reference to an identifier,
-           the reference refers to the binding that was visible where the
-           transformer was specified, regardless of any local bindings that
-           surround the use of the macro.
-        */
-        return cdr(x).as<syntactic_environment>().inject(car(x), bound_variables);
-      }
       else
       {
         auto i = 0;
@@ -990,13 +994,13 @@ inline namespace kernel
           }
         }
 
-        if (variable.is<syntactic_closure>())
+        if (variable.is<syntactic_closure>()) // Resolve alias
         {
           return variable.as<syntactic_closure>()
-                         .macro_environment
+                         .inner_environment
                          .template as<syntactic_environment>()
                          .identify(variable.as<syntactic_closure>().expression,
-                                   unify(car(variable.as<syntactic_closure>().macro_environment),
+                                   unify(car(variable.as<syntactic_closure>().inner_environment),
                                          bound_variables),
                                    nullptr);
         }
@@ -1040,15 +1044,6 @@ inline namespace kernel
 
         return car(second = cons(make<absolute>(variable, undefined), second));
       }
-    }
-
-    inline auto inject(object const& free_variable,
-                       object const& bound_variables) -> object
-    {
-      return identify(free_variable,
-                      unify(first /* bound-variables */,
-                            bound_variables),
-                      second /* free-variables */);
     }
 
     static auto rename(std::string const& variable)
