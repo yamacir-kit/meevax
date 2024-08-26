@@ -355,7 +355,7 @@ inline namespace kernel
 
       library.define<procedure>("expand", [](let const& xs)
       {
-        return cadr(xs).as<environment>().expand(car(xs));
+        return cadr(xs).as<environment>().expand(car(xs), unit, environment::default_rename);
       });
 
       library.define<procedure>("interaction-environment", []()

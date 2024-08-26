@@ -30,53 +30,84 @@ inline namespace kernel
   template <typename Environment>
   struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
   {
+    struct renamer
+    {
+      virtual auto operator ()(let const& form) -> object
+      {
+        return form;
+      }
+    } static inline default_rename {};
+
     struct syntactic_closure : public identifier
     {
-      let inner_environment, free_names, form;
+      let environment, free_names, form;
 
-      explicit syntactic_closure(let const& inner_environment,
+      explicit syntactic_closure(let const& environment,
                                  let const& free_names,
                                  let const& form)
-        : inner_environment { inner_environment }
-        , free_names        { free_names }
-        , form              { form }
+        : environment { environment }
+        , free_names  { free_names }
+        , form        { form }
       {
-        assert(inner_environment.is<syntactic_environment>());
+        assert(environment.is<syntactic_environment>());
       }
 
-      template <typename... Ts>
-      auto compile(let const& outer_environment, Ts&&... xs)
+      auto expand(let const& bound_variables, renamer & inject)
       {
-        assert(outer_environment.is<syntactic_environment>());
-
-        let const bound_variables = unify(car(inner_environment),
-                                          car(outer_environment));
-
-        return inner_environment.as<syntactic_environment>()
-                                .generate(inner_environment.as<syntactic_environment>()
-                                                           .expand(inject(outer_environment, free_names, form),
-                                                                   bound_variables),
-                                          bound_variables,
-                                          std::forward<decltype(xs)>(xs)...);
-      }
-
-      static auto inject(let const& outer_environment,
-                         let const& free_names,
-                         let const& form) -> object
-      {
-        if (form.is<pair>())
+        struct sc_renamer : public renamer
         {
-          return cons(inject(outer_environment, free_names, car(form)),
-                      inject(outer_environment, free_names, cdr(form)));
-        }
-        else if (let const& x = memq(form, free_names); x != f)
-        {
-          return make<syntactic_closure>(outer_environment, unit, form);
-        }
-        else
-        {
-          return form;
-        }
+          syntactic_closure const* enclosure;
+
+          renamer & inject;
+
+          let renamings;
+
+          explicit sc_renamer(syntactic_closure const* enclosure, renamer & inject)
+            : enclosure { enclosure }
+            , inject    { inject }
+          {}
+
+          auto rename(let const& form, let const& free_names) -> object
+          {
+            if (form.is<pair>()) // is <formals>
+            {
+              return cons(rename(car(form), unit),
+                          rename(cdr(form), unit)); // Disable injection when renaming formals.
+            }
+            else if (form.is<symbol>())
+            {
+              if (let const& free_name = memq(form, free_names); free_name != f)
+              {
+                return inject(form);
+              }
+              else if (let const& renaming = assq(form, renamings); renaming != f)
+              {
+                return cdr(renaming);
+              }
+              else
+              {
+                return cdar(renamings = alist_cons(form,
+                                                   make<syntactic_closure>(enclosure->environment, unit, form),
+                                                   renamings));
+              }
+            }
+            else
+            {
+              return form;
+            }
+          }
+
+          auto operator ()(let const& form) -> object override
+          {
+            return rename(form, enclosure->free_names);
+          }
+        };
+
+        auto rename = sc_renamer(this, inject);
+
+        return environment.as<syntactic_environment>().expand(form,
+                                                              unify(car(environment), bound_variables),
+                                                              rename);
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -92,12 +123,8 @@ inline namespace kernel
         */
         return x.form.template is_also<identifier>() and
                y.form.template is_also<identifier>() and
-               eqv(x.inner_environment.template as<syntactic_environment>()
-                                      .identify(x.form,
-                                                car(x.inner_environment)),
-                   y.inner_environment.template as<syntactic_environment>()
-                                      .identify(y.form,
-                                                car(y.inner_environment)));
+               eqv(x.environment.template as<syntactic_environment>().identify(x.form, car(x.environment)),
+                   y.environment.template as<syntactic_environment>().identify(y.form, car(y.environment)));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
@@ -110,7 +137,8 @@ inline namespace kernel
     {
       auto (*expand)(syntactic_environment const&,
                      object const& expression,
-                     object const& bound_variables) -> object;
+                     object const& bound_variables,
+                     renamer &) -> object;
 
       auto (*generate)(syntactic_environment &,
                        object const& /* expression      */,
@@ -176,7 +204,8 @@ inline namespace kernel
       #define EXPANDER(NAME)                                                   \
       auto NAME([[maybe_unused]] syntactic_environment const& expander,        \
                                  object const& expression,                     \
-                [[maybe_unused]] object const& bound_variables) -> object
+                [[maybe_unused]] object const& bound_variables,                \
+                [[maybe_unused]] renamer & rename) -> object
 
       static EXPANDER(quote)
       {
@@ -191,10 +220,12 @@ inline namespace kernel
       static EXPANDER(call)
       {
         return CONS(expander.expand(car(expression),
-                                    bound_variables),
+                                    bound_variables,
+                                    rename),
                     operand(expander,
                             cdr(expression),
-                            bound_variables));
+                            bound_variables,
+                            rename));
       }
 
       static EXPANDER(operand)
@@ -202,24 +233,29 @@ inline namespace kernel
         if (expression.is<pair>())
         {
           return CONS(expander.expand(car(expression),
-                                      bound_variables),
+                                      bound_variables,
+                                      rename),
                       operand(expander,
                               cdr(expression),
-                              bound_variables));
+                              bound_variables,
+                              rename));
         }
         else
         {
-          return expander.expand(expression, bound_variables);
+          return expander.expand(expression, bound_variables, rename);
         }
       }
 
       static EXPANDER(lambda)
       {
-        return CONS(car(expression) /* lambda */,
-                    CONS(cadr(expression) /* formals */,
+        let const& formals = rename(cadr(expression));
+
+        return CONS(rename(car(expression)) /* lambda */,
+                    CONS(formals,
                          body(expander,
                               cddr(expression),
-                              cons(cadr(expression) /* formals */, bound_variables))));
+                              cons(formals, bound_variables),
+                              rename)));
       }
 
       static EXPANDER(body)
@@ -247,7 +283,7 @@ inline namespace kernel
 
             if (not variable.is<absolute>()) // The binding-spec is not an internal syntax definition.
             {
-              body = CONS(CONS(rename("set!"), binding_spec), body);
+              body = CONS(CONS(rename_("set!"), binding_spec), body);
             }
           }
 
@@ -263,61 +299,69 @@ inline namespace kernel
             }
           }
 
-          return expander.expand(LIST(CONS(CONS(rename("lambda"),
+          return expander.expand(LIST(CONS(CONS(rename_("lambda"),
                                                 formals,
                                                 body),
                                            make_list(length(binding_specs), unit))),
-                                 bound_variables);
+                                 bound_variables,
+                                 rename);
         }
         else if (sequence.template is<pair>())
         {
           return CONS(expander.expand(car(sequence),
-                                      bound_variables),
+                                      bound_variables,
+                                      rename),
                       body(expander,
                            cdr(sequence),
-                           bound_variables));
+                           bound_variables,
+                           rename));
         }
         else
         {
-          return expander.expand(sequence, bound_variables);
+          return expander.expand(sequence, bound_variables, rename);
         }
       }
 
       static EXPANDER(conditional)
       {
-        return CONS(car(expression),
+        return CONS(rename(car(expression)),
                     operand(expander,
                             cdr(expression),
-                            bound_variables));
+                            bound_variables,
+                            rename));
       }
 
       static EXPANDER(set)
       {
-        return CONS(car(expression),
+        return CONS(rename(car(expression)),
                     operand(expander,
                             cdr(expression),
-                            bound_variables));
+                            bound_variables,
+                            rename));
       }
 
       static EXPANDER(include)
       {
-        return expander.expand(CONS(rename("begin"),
+        return expander.expand(CONS(rename_("begin"),
                                     meevax::include(cadr(expression))),
-                               bound_variables);
+                               bound_variables,
+                               rename);
       }
 
       static EXPANDER(include_case_insensitive)
       {
-        return expander.expand(CONS(rename("begin"),
+        return expander.expand(CONS(rename_("begin"),
                                     meevax::include(cadr(expression), false)),
-                               bound_variables);
+                               bound_variables,
+                               rename);
       }
 
       static EXPANDER(conditional_expand)
       {
-        return expander.expand(CONS(rename("begin"),
+        return expander.expand(CONS(rename_("begin"),
                                     meevax::conditional_expand(cdr(expression))),
-                               bound_variables);
+                               bound_variables,
+                               rename);
       }
 
       static EXPANDER(letrec)
@@ -329,12 +373,14 @@ inline namespace kernel
                         {
                           return LIST(car(binding),
                                       expander.expand(cadr(binding),
-                                                      extended_bound_variables));
+                                                      extended_bound_variables,
+                                                      rename));
                         },
                         cadr(expression)),
                     body(expander,
                          cddr(expression),
-                         extended_bound_variables));
+                         extended_bound_variables,
+                         rename));
       }
 
       static EXPANDER(sequence)
@@ -342,14 +388,16 @@ inline namespace kernel
         if (expression.is<pair>())
         {
           return CONS(expander.expand(car(expression),
-                                      bound_variables),
+                                      bound_variables,
+                                      rename),
                       sequence(expander,
                                cdr(expression),
-                               bound_variables));
+                               bound_variables,
+                               rename));
         }
         else
         {
-          return expander.expand(expression, bound_variables);
+          return expander.expand(expression, bound_variables, rename);
         }
       }
 
@@ -366,10 +414,11 @@ inline namespace kernel
 
         let const formals = map(formal, cadr(expression));
 
-        return expander.expand(LIST(CONS(rename("lambda"),
+        return expander.expand(LIST(CONS(rename_("lambda"),
                                          formals,
                                          cddr(expression) /* body */)),
-                               bound_variables);
+                               bound_variables,
+                               rename);
       }
 
       static EXPANDER(letrec_syntax)
@@ -387,10 +436,11 @@ inline namespace kernel
 
         car(current_environment) = cons(formals, bound_variables);
 
-        return expander.expand(LIST(CONS(rename("lambda"),
+        return expander.expand(LIST(CONS(rename_("lambda"),
                                          formals,
                                          cddr(expression) /* body */)),
-                               bound_variables);
+                               bound_variables,
+                               rename);
       }
 
       static EXPANDER(define)
@@ -399,19 +449,21 @@ inline namespace kernel
         {
           if (cadr(expression).is<pair>()) // (define (<variable> . <formals>) <body>)
           {
-            return LIST(car(expression),
+            return LIST(rename(car(expression)),
                         caadr(expression) /* variable */,
-                        expander.expand(CONS(rename("lambda"),
+                        expander.expand(CONS(rename_("lambda"),
                                              cdadr(expression) /* formals */,
                                              cddr(expression) /* body */),
-                                        bound_variables));
+                                        bound_variables,
+                                        rename));
           }
           else // (define <variable> <expression>)
           {
-            return CONS(car(expression),
+            return CONS(rename(car(expression)),
                         cadr(expression),
                         cddr(expression) ? LIST(expander.expand(caddr(expression),
-                                                                bound_variables))
+                                                                bound_variables,
+                                                                rename))
                                          : unit);
           }
         }
@@ -423,34 +475,38 @@ inline namespace kernel
 
       static EXPANDER(define_syntax)
       {
-        return LIST(car(expression),
+        return LIST(rename(car(expression)),
                     cadr(expression),
                     expander.expand(caddr(expression),
-                                    bound_variables));
+                                    bound_variables,
+                                    rename));
       }
 
       static EXPANDER(call_with_current_continuation)
       {
-        return CONS(car(expression),
+        return CONS(rename(car(expression)),
                     operand(expander,
                             cdr(expression),
-                            bound_variables));
+                            bound_variables,
+                            rename));
       }
 
       static EXPANDER(current)
       {
-        return CONS(car(expression),
+        return CONS(rename(car(expression)),
                     operand(expander,
                             cdr(expression),
-                            bound_variables));
+                            bound_variables,
+                            rename));
       }
 
       static EXPANDER(install)
       {
-        return CONS(car(expression),
+        return CONS(rename(car(expression)),
                     operand(expander,
                             cdr(expression),
-                            bound_variables));
+                            bound_variables,
+                            rename));
       }
 
       #undef EXPANDER
@@ -725,7 +781,8 @@ inline namespace kernel
                         object const& bound_variables, Ts&&... xs) -> decltype(auto)
     {
       return generate(expand(expression,
-                             bound_variables),
+                             bound_variables,
+                             default_rename),
                       bound_variables,
                       std::forward<decltype(xs)>(xs)...);
     }
@@ -791,11 +848,20 @@ inline namespace kernel
     }
 
     inline auto expand(object const& expression,
-                       object const& bound_variables = unit) const -> object try
+                       object const& bound_variables,
+                       renamer & rename) const -> object try
     {
       if (not expression.is<pair>())
       {
-        return expression;
+        if (expression.is<syntactic_closure>())
+        {
+          if (let const& identity = identify(expression, bound_variables); identity == f)
+          {
+            return expression.as<syntactic_closure>().expand(bound_variables, rename);
+          }
+        }
+
+        return expression.is_also<identifier>() ? rename(expression) : expression;
       }
       else if (let const& identity = identify(car(expression), bound_variables); identity.is<absolute>())
       {
@@ -826,15 +892,15 @@ inline namespace kernel
 
           syntax::contexts[transformed.get()] = expression;
 
-          return expand(transformed, bound_variables);
+          return expand(transformed, bound_variables, rename);
         }
         else if (cdr(identity).is<syntax>())
         {
-          return cdr(identity).as<syntax>().expand(*this, expression, bound_variables);
+          return cdr(identity).as<syntax>().expand(*this, expression, bound_variables, rename);
         }
       }
 
-      return expander::call(*this, expression, bound_variables);
+      return expander::call(*this, expression, bound_variables, rename);
     }
     catch (error & e)
     {
@@ -853,9 +919,7 @@ inline namespace kernel
         {
           assert(expression.is<symbol>() or expression.is<syntactic_closure>());
 
-          if (let const& identity = expression.is<symbol>() ?                      identify(expression, bound_variables)
-                                                            : std::as_const(*this).identify(expression, bound_variables);
-              identity.is<relative>())
+          if (let const& identity = identify(expression, bound_variables); identity.is<relative>())
           {
             return CONS(make(instruction::load_relative), identity, continuation);
           }
@@ -863,14 +927,10 @@ inline namespace kernel
           {
             return CONS(make(instruction::load_variadic), identity, continuation);
           }
-          else if (identity.is<absolute>())
-          {
-            return CONS(make(instruction::load_absolute), identity, continuation);
-          }
           else
           {
-            assert(identity == f);
-            return expression.as<syntactic_closure>().compile(make<syntactic_environment>(bound_variables), continuation);
+            assert(identity.is<absolute>());
+            return CONS(make(instruction::load_absolute), identity, continuation);
           }
         }
         else // is <self-evaluating>
@@ -931,10 +991,10 @@ inline namespace kernel
         if (variable.is<syntactic_closure>()) // Resolve alias
         {
           return variable.as<syntactic_closure>()
-                         .inner_environment
+                         .environment
                          .template as<syntactic_environment>()
                          .identify(variable.as<syntactic_closure>().form,
-                                   unify(car(variable.as<syntactic_closure>().inner_environment),
+                                   unify(car(variable.as<syntactic_closure>().environment),
                                          bound_variables));
         }
         else
@@ -978,7 +1038,7 @@ inline namespace kernel
       }
     }
 
-    static auto rename(std::string const& variable)
+    static auto rename_(std::string const& variable)
     {
       return make<syntactic_closure>(core(), unit, make_symbol(variable));
     }
@@ -1016,7 +1076,7 @@ inline namespace kernel
                 return sweep(cdr(form),
                              bound_variables,
                              cons(list(caadr(definition), // <variable>
-                                       cons(rename("lambda"),
+                                       cons(rename_("lambda"),
                                             cdadr(definition), // <formals>
                                             cddr(definition))), // <body>
                                   binding_specs));
