@@ -109,6 +109,25 @@
           x))
        1 2))
 
+(check (strip '(let ((x 1)
+                     (y 2))
+                 (let-syntax ((local-sc-swap!
+                                (sc-macro-transformer
+                                  (lambda (form on-use)
+                                    (let ((a (make-syntactic-closure on-use '() (cadr form)))
+                                          (b (make-syntactic-closure on-use '() (caddr form))))
+                                      `(let ((x ,a))
+                                         (set! ,a ,b)
+                                         (set! ,b x)))))))
+                   (local-sc-swap! x y))))
+  => '((lambda (x y)
+         ((lambda (local-sc-swap!)
+            ((lambda (x)
+               (set! x y)
+               (set! y x))
+             x))))
+       1 2))
+
 (eval '(define-syntax rsc-swap!
          (rsc-macro-transformer
            (lambda (form environment)
@@ -132,6 +151,28 @@
           x))
        1 2))
 
+(check (strip '(let ((x 1)
+                     (y 2))
+                 (let-syntax ((local-rsc-swap!
+                                (rsc-macro-transformer
+                                  (lambda (form environment)
+                                    (let ((a (cadr form))
+                                          (b (caddr form))
+                                          (x (make-syntactic-closure environment '() 'x))
+                                          (let (make-syntactic-closure environment '() 'let))
+                                          (set! (make-syntactic-closure environment '() 'set!)))
+                                      `(,let ((,x ,a))
+                                         (,set! ,a ,b)
+                                         (,set! ,b ,x)))))))
+                   (local-rsc-swap! x y))))
+  => '((lambda (x y)
+         ((lambda (local-rsc-swap!)
+            ((lambda (x)
+               (set! x y)
+               (set! y x))
+             x))))
+       1 2))
+
 (eval '(define-syntax er-swap!
          (er-macro-transformer
            (lambda (form rename compare)
@@ -152,6 +193,25 @@
           x))
        1 2))
 
+(check (strip '(let ((x 1)
+                     (y 2))
+                 (let-syntax ((local-er-swap!
+                                (er-macro-transformer
+                                  (lambda (form rename compare)
+                                    (let ((a (cadr form))
+                                          (b (caddr form)))
+                                      `(,(rename 'let) ((,(rename 'x) ,a))
+                                         (,(rename 'set!) ,a ,b)
+                                         (,(rename 'set!) ,b ,(rename 'x))))))))
+                   (local-er-swap! x y))))
+  => '((lambda (x y)
+         ((lambda (local-er-swap!)
+            ((lambda (x)
+               (set! x y)
+               (set! y x))
+             x))))
+       1 2))
+
 (eval '(define-syntax swap!
          (syntax-rules ()
            ((swap! a b)
@@ -170,6 +230,23 @@
           x))
        1 2))
 
+(check (strip '(let ((x 1)
+                     (y 2))
+                 (let-syntax ((local-swap!
+                                (syntax-rules ()
+                                  ((swap! a b)
+                                   (let ((x a))
+                                     (set! a b)
+                                     (set! b x))))))
+                   (local-swap! x y))))
+  => '((lambda (x y)
+         ((lambda (local-swap!)
+            ((lambda (x)
+               (set! x y)
+               (set! y x))
+             x))))
+       1 2))
+
 (check (strip '(cond-expand
                  (r5rs 'r5rs)
                  (r6rs 'r6rs)
@@ -179,4 +256,4 @@
 
 (check-report)
 
-(exit (check-passed? 11))
+(exit (check-passed? 15))
