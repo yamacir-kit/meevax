@@ -25,6 +25,8 @@ inline namespace kernel
 {
   struct standard_input_port : public textual_input_port
   {
+    standard_input_port();
+
     auto close() -> void override;
 
     auto is_open() const -> bool override;

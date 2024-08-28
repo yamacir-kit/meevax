@@ -30,7 +30,7 @@ inline namespace kernel
 
     let export_specs = nullptr;
 
-    template <typename F, REQUIRES(std::is_invocable<F, library &>)>
+    template <typename F, typename = std::enable_if_t<std::is_invocable_v<F, library &>>>
     explicit library(F declare)
     {
       declare(*this);

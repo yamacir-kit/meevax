@@ -31,17 +31,17 @@ inline namespace kernel
 
   auto input_string_port::istream() -> std::istream &
   {
-    return stringstream;
+    return istringstream;
   }
 
   auto input_string_port::istream() const -> std::istream const&
   {
-    return stringstream;
+    return istringstream;
   }
 
   auto operator <<(std::ostream & output, input_string_port const& datum) -> std::ostream &
   {
-    return output << magenta("#,(") << blue("open-input-string ") << string(datum.stringstream.str()) << magenta(")");
+    return output << magenta("#,(") << blue("open-input-string ") << string(datum.istringstream.str()) << magenta(")");
   }
 
 namespace literals

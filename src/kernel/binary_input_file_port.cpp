@@ -59,7 +59,7 @@ inline namespace kernel
 
   auto binary_input_file_port::get_ready() const -> bool
   {
-    return ifstream.good();
+    return static_cast<bool>(ifstream);
   }
 
   auto binary_input_file_port::peek() -> object

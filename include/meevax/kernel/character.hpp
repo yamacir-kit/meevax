@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
+#include <climits> // CHAR_BIT
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -31,11 +32,9 @@ inline namespace kernel
 
     using int_type = std::char_traits<char_type>::int_type;
 
-    /*
-       21 <= sizeof(int_type) * 8 is a request from the maximum Unicode code
-       point 0x10FFFF. sizeof(int_type) < 6 is a requirement from nan-boxing.
-    */
-    static_assert(21 <= sizeof(int_type) * 8 and sizeof(int_type) <= 6);
+    static_assert(21 <= sizeof(int_type) * CHAR_BIT); // is a requirement from the maximum Unicode code point 0x10FFFF.
+
+    static_assert(sizeof(int_type) <= 6); // is a requirement from nan-boxing.
 
     int_type codepoint;
 
@@ -75,18 +74,20 @@ inline namespace kernel
         Zs, // Separator, Space
       } value;
 
-      constexpr property_code(value_type value)
-        : value { value }
+      constexpr property_code(int_type codepoint)
+        : value { to_value_type(codepoint) }
       {}
 
-      static constexpr auto from(int_type codepoint)
+      static constexpr auto to_value_type(int_type codepoint) noexcept -> value_type
       {
         switch (codepoint)
         {
+        #if __has_include(<meevax/unicode/property.hpp>)
         #include <meevax/unicode/property.hpp>
+        #endif
 
         default:
-          return Cc;
+          return Cn;
         }
       }
 
@@ -122,9 +123,9 @@ inline namespace kernel
       }
     };
 
-    explicit character() = default;
+    character() = default;
 
-    explicit constexpr character(int_type const& codepoint)
+    explicit constexpr character(int_type codepoint)
       : codepoint { codepoint }
     {}
 
@@ -147,7 +148,9 @@ inline namespace kernel
     {
       switch (codepoint)
       {
+      #if __has_include(<meevax/unicode/digit_value.hpp>)
       #include <meevax/unicode/digit_value.hpp>
+      #endif
 
       default:
         return std::nullopt;
@@ -158,7 +161,9 @@ inline namespace kernel
     {
       switch (codepoint)
       {
+      #if __has_include(<meevax/unicode/downcase.hpp>)
       #include <meevax/unicode/downcase.hpp>
+      #endif
 
       default:
         return codepoint;
@@ -175,16 +180,23 @@ inline namespace kernel
       return eq(eof(), c);
     }
 
+    constexpr auto is_eof() const noexcept
+    {
+      return is_eof(codepoint);
+    }
+
     constexpr auto property() const noexcept -> property_code
     {
-      return property_code::from(codepoint);
+      return codepoint;
     }
 
     constexpr auto upcase() const noexcept
     {
       switch (codepoint)
       {
+      #if __has_include(<meevax/unicode/upcase.hpp>)
       #include <meevax/unicode/upcase.hpp>
+      #endif
 
       default:
         return codepoint;

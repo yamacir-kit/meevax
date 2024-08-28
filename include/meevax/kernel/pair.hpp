@@ -65,7 +65,7 @@ inline namespace kernel
   template <template <typename...> typename Traits,
             typename Allocator = std::allocator<void>,
             typename... Ts,
-            REQUIRES(std::is_constructible<typename Traits<Ts...>::type, Ts...>)>
+            typename = std::enable_if_t<std::is_constructible_v<typename Traits<Ts...>::type, Ts...>>>
   auto make(Ts&&... xs) -> decltype(auto)
   {
     return make<typename Traits<Ts...>::type, Allocator>(std::forward<decltype(xs)>(xs)...);
@@ -148,7 +148,9 @@ inline namespace kernel
 
     pair() = default;
 
-    template <typename T, typename U = std::nullptr_t, REQUIRES(std::is_constructible<std::pair<object, object>, T, U>)>
+    template <typename T,
+              typename U = std::nullptr_t,
+              typename = std::enable_if_t<std::is_constructible_v<std::pair<object, object>, T, U>>>
     explicit pair(T&& x, U&& y = nullptr)
       : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
@@ -199,7 +201,9 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;
 
-  template <typename T, typename U, REQUIRES(std::is_constructible<pair, T, U>)>
+  template <typename T,
+            typename U,
+            typename = std::enable_if_t<std::is_constructible_v<pair, T, U>>>
   auto operator |(T&& x, U&& y) -> decltype(auto)
   {
     return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));

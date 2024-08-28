@@ -66,43 +66,54 @@ inline namespace kernel
        In most cases, the s, e, c, and d registers are all null when evaluate
        is called. However, if environment::evaluate of the same environment is
        called during the execution of environment::evaluate, this is not the
-       case, so it is necessary to save the register. For example, situations
+       case, so it is necessary to save the registers. For example, situations
        like evaluating
 
          (eval <expression> (interaction-environment))
 
        in the REPL.
     */
-    if (s or e or c)
+    struct dump
     {
-      d = cons(std::exchange(s, nullptr),
-               std::exchange(e, nullptr),
-               std::exchange(c, nullptr), d);
-    }
+      environment * context;
 
-    let const result = execute(optimize(compile(expression)));
+      let s, e, c, d;
 
-    if (d)
-    {
-      s = head(d, 0);
-      e = head(d, 1);
-      c = head(d, 2);
-      d = tail(d, 3);
-    }
+      explicit dump(environment * context)
+        : context { context }
+        , s { std::exchange(context->s, nullptr) }
+        , e { std::exchange(context->e, nullptr) }
+        , c { std::exchange(context->c, nullptr) }
+        , d { std::exchange(context->d, nullptr) }
+      {}
 
-    return result;
+      ~dump()
+      {
+        undump();
+      }
+
+      auto operator ()() -> void
+      {
+        undump();
+      }
+
+      auto undump() -> void
+      {
+        context->s = s;
+        context->e = e;
+        context->c = c;
+        context->d = d;
+      }
+    };
+
+    auto undump = dump(this);
+
+    return execute(optimize(compile(expression)));
   }
-  catch (object const& x)
+  catch (error & e)
   {
-    if (x.is_also<error>())
-    {
-      x.as<error>().raise(); // NOTE: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84476
-      return nullptr;
-    }
-    else
-    {
-      throw error(make<string>("uncaught exception"), x);
-    }
+    e.detail(error::in::evaluating, expression).raise();
+    return unspecified;
   }
 
   auto resolve(object const& form) -> object
@@ -223,7 +234,7 @@ inline namespace kernel
     {
       assert(immigrant.is<absolute>());
 
-      if (let const& inhabitant = std::as_const(*this).identify(car(immigrant), nullptr, nullptr); inhabitant == f or interactive)
+      if (let const& inhabitant = std::as_const(*this).identify(car(immigrant), unit); inhabitant == f or interactive)
       {
         second = cons(immigrant, second);
       }
