@@ -355,7 +355,7 @@ inline namespace kernel
 
       library.define<procedure>("expand", [](let const& xs)
       {
-        return cadr(xs).as<environment>().expand(car(xs));
+        return cadr(xs).as<environment>().expand(car(xs), unit, environment::default_rename);
       });
 
       library.define<procedure>("interaction-environment", []()
@@ -1750,7 +1750,7 @@ inline namespace kernel
 
       library.define<procedure>("make-syntactic-closure", [](let const& xs)
       {
-        return make<syntactic_closure>(car(xs), cons(cadr(xs), caddr(xs)));
+        return make<syntactic_closure>(car(xs), cadr(xs), caddr(xs));
       });
     });
 

@@ -133,6 +133,9 @@ inline namespace kernel
         // disassemble(output, car(x)); // Disabled as it is still experimental and does not produce any useful output.
         [[fallthrough]];
 
+      case in::expanding:
+        [[fallthrough]];
+
       case in::evaluating: // x is expression
         if (auto context = textual_input_port::contexts.find(x.get()); context != textual_input_port::contexts.end())
         {

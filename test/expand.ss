@@ -89,20 +89,48 @@
              'inner))))
        'outer))
 
-; (eval '(define-syntax sc-swap!
-;          (sc-macro-transformer
-;            (lambda (form on-use)
-;              (let ((a (make-syntactic-closure on-use '() (cadr form)))
-;                    (b (make-syntactic-closure on-use '() (caddr form))))
-;                `(let ((z ,a))
-;                   (set! ,a ,b)
-;                   (set! ,b z))))))
-;       strip-environment)
-;
-; (check (strip '(let ((x 1)
-;                      (y 2))
-;                  (sc-swap! x y)))
-;   => 'TODO-undefined-variable-z)
+(eval '(define-syntax sc-swap!
+         (sc-macro-transformer
+           (lambda (form on-use)
+             (let ((a (make-syntactic-closure on-use '() (cadr form)))
+                   (b (make-syntactic-closure on-use '() (caddr form))))
+               `(let ((x ,a))
+                  (set! ,a ,b)
+                  (set! ,b x))))))
+      strip-environment)
+
+(check (strip '(let ((x 1)
+                     (y 2))
+                 (sc-swap! x y)))
+  => '((lambda (x y)
+         ((lambda (x)
+            (set! x y)
+            (set! y x))
+          x))
+       1 2))
+
+(eval '(define-syntax rsc-swap!
+         (rsc-macro-transformer
+           (lambda (form environment)
+             (let ((a (cadr form))
+                   (b (caddr form))
+                   (x (make-syntactic-closure environment '() 'x))
+                   (let (make-syntactic-closure environment '() 'let))
+                   (set! (make-syntactic-closure environment '() 'set!)))
+               `(,let ((,x ,a))
+                  (,set! ,a ,b)
+                  (,set! ,b ,x))))))
+      strip-environment)
+
+(check (strip '(let ((x 1)
+                     (y 2))
+                 (rsc-swap! x y)))
+  => '((lambda (x y)
+         ((lambda (x)
+            (set! x y)
+            (set! y x))
+          x))
+       1 2))
 
 (eval '(define-syntax er-swap!
          (er-macro-transformer
@@ -151,4 +179,4 @@
 
 (check-report)
 
-(exit (check-passed? 9))
+(exit (check-passed? 11))

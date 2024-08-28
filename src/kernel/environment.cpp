@@ -234,7 +234,7 @@ inline namespace kernel
     {
       assert(immigrant.is<absolute>());
 
-      if (let const& inhabitant = std::as_const(*this).identify(car(immigrant), nullptr, nullptr); inhabitant == f or interactive)
+      if (let const& inhabitant = std::as_const(*this).identify(car(immigrant), unit); inhabitant == f or interactive)
       {
         second = cons(immigrant, second);
       }
