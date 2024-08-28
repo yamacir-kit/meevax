@@ -36,7 +36,8 @@ inline namespace kernel
       {
         return form;
       }
-    } static inline default_rename {};
+    }
+    static inline default_rename {};
 
     struct syntactic_closure : public identifier
     {
@@ -54,7 +55,7 @@ inline namespace kernel
 
       auto expand(let const& bound_variables, renamer & inject)
       {
-        struct sc_renamer : public renamer
+        struct local_renamer : public renamer
         {
           syntactic_closure const* enclosure;
 
@@ -62,7 +63,7 @@ inline namespace kernel
 
           let renamings;
 
-          explicit sc_renamer(syntactic_closure const* enclosure, renamer & inject)
+          explicit local_renamer(syntactic_closure const* enclosure, renamer & inject)
             : enclosure { enclosure }
             , inject    { inject }
           {}
@@ -103,7 +104,7 @@ inline namespace kernel
           }
         };
 
-        auto rename = sc_renamer(this, inject);
+        auto rename = local_renamer(this, inject);
 
         return environment.as<syntactic_environment>().expand(form,
                                                               unify(car(environment), bound_variables),
@@ -283,7 +284,7 @@ inline namespace kernel
 
             if (not variable.is<absolute>()) // The binding-spec is not an internal syntax definition.
             {
-              body = CONS(CONS(rename_("set!"), binding_spec), body);
+              body = CONS(CONS(corename("set!"), binding_spec), body);
             }
           }
 
@@ -299,7 +300,7 @@ inline namespace kernel
             }
           }
 
-          return expander.expand(LIST(CONS(CONS(rename_("lambda"),
+          return expander.expand(LIST(CONS(CONS(corename("lambda"),
                                                 formals,
                                                 body),
                                            make_list(length(binding_specs), unit))),
@@ -342,7 +343,7 @@ inline namespace kernel
 
       static EXPANDER(include)
       {
-        return expander.expand(CONS(rename_("begin"),
+        return expander.expand(CONS(corename("begin"),
                                     meevax::include(cadr(expression))),
                                bound_variables,
                                rename);
@@ -350,7 +351,7 @@ inline namespace kernel
 
       static EXPANDER(include_case_insensitive)
       {
-        return expander.expand(CONS(rename_("begin"),
+        return expander.expand(CONS(corename("begin"),
                                     meevax::include(cadr(expression), false)),
                                bound_variables,
                                rename);
@@ -358,7 +359,7 @@ inline namespace kernel
 
       static EXPANDER(conditional_expand)
       {
-        return expander.expand(CONS(rename_("begin"),
+        return expander.expand(CONS(corename("begin"),
                                     meevax::conditional_expand(cdr(expression))),
                                bound_variables,
                                rename);
@@ -414,7 +415,7 @@ inline namespace kernel
 
         let const formals = map(formal, cadr(expression));
 
-        return expander.expand(LIST(CONS(rename_("lambda"),
+        return expander.expand(LIST(CONS(corename("lambda"),
                                          formals,
                                          cddr(expression) /* body */)),
                                bound_variables,
@@ -436,7 +437,7 @@ inline namespace kernel
 
         car(current_environment) = cons(formals, bound_variables);
 
-        return expander.expand(LIST(CONS(rename_("lambda"),
+        return expander.expand(LIST(CONS(corename("lambda"),
                                          formals,
                                          cddr(expression) /* body */)),
                                bound_variables,
@@ -451,7 +452,7 @@ inline namespace kernel
           {
             return LIST(rename(car(expression)),
                         caadr(expression) /* variable */,
-                        expander.expand(CONS(rename_("lambda"),
+                        expander.expand(CONS(corename("lambda"),
                                              cdadr(expression) /* formals */,
                                              cddr(expression) /* body */),
                                         bound_variables,
@@ -794,32 +795,37 @@ inline namespace kernel
 
     static auto core() -> auto const&
     {
-      #define BINDING(NAME, SYNTAX) \
+      #define BIND(NAME, SYNTAX) \
         make<absolute>(make_symbol(NAME), make<syntax>(NAME, expander::SYNTAX, generator::SYNTAX))
 
       let static const core = make<syntactic_environment>(
         unit,
-        list(BINDING("begin"                          , sequence                      ),
-             BINDING("call-with-current-continuation!", call_with_current_continuation),
-             BINDING("conditional-expand"             , conditional_expand            ),
-             BINDING("current"                        , current                       ),
-             BINDING("define"                         , define                        ),
-             BINDING("define-syntax"                  , define_syntax                 ),
-             BINDING("if"                             , conditional                   ),
-             BINDING("include"                        , include                       ),
-             BINDING("include-case-insensitive"       , include_case_insensitive      ),
-             BINDING("install"                        , install                       ),
-             BINDING("lambda"                         , lambda                        ),
-             BINDING("let-syntax"                     , let_syntax                    ),
-             BINDING("letrec"                         , letrec                        ),
-             BINDING("letrec-syntax"                  , letrec_syntax                 ),
-             BINDING("quote"                          , quote                         ),
-             BINDING("quote-syntax"                   , quote_syntax                  ),
-             BINDING("set!"                           , set                           )));
+        list(BIND("begin"                          , sequence                      ),
+             BIND("call-with-current-continuation!", call_with_current_continuation),
+             BIND("conditional-expand"             , conditional_expand            ),
+             BIND("current"                        , current                       ),
+             BIND("define"                         , define                        ),
+             BIND("define-syntax"                  , define_syntax                 ),
+             BIND("if"                             , conditional                   ),
+             BIND("include"                        , include                       ),
+             BIND("include-case-insensitive"       , include_case_insensitive      ),
+             BIND("install"                        , install                       ),
+             BIND("lambda"                         , lambda                        ),
+             BIND("let-syntax"                     , let_syntax                    ),
+             BIND("letrec"                         , letrec                        ),
+             BIND("letrec-syntax"                  , letrec_syntax                 ),
+             BIND("quote"                          , quote                         ),
+             BIND("quote-syntax"                   , quote_syntax                  ),
+             BIND("set!"                           , set                           )));
 
-      #undef BINDING
+      #undef BIND
 
       return core;
+    }
+
+    static auto corename(std::string const& variable)
+    {
+      return make<syntactic_closure>(core(), unit, make_symbol(variable));
     }
 
     inline auto define(object const& variable, object const& value = undefined) -> void
@@ -1038,11 +1044,6 @@ inline namespace kernel
       }
     }
 
-    static auto rename_(std::string const& variable)
-    {
-      return make<syntactic_closure>(core(), unit, make_symbol(variable));
-    }
-
     inline auto sweep(object const& form,
                       object const& bound_variables,
                       object const& binding_specs = unit) const -> pair
@@ -1076,7 +1077,7 @@ inline namespace kernel
                 return sweep(cdr(form),
                              bound_variables,
                              cons(list(caadr(definition), // <variable>
-                                       cons(rename_("lambda"),
+                                       cons(corename("lambda"),
                                             cdadr(definition), // <formals>
                                             cddr(definition))), // <body>
                                   binding_specs));
