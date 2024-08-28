@@ -22,6 +22,8 @@
 #include <meevax/kernel/binary_output_file_port.hpp>
 #include <meevax/kernel/boot.hpp>
 #include <meevax/kernel/box.hpp>
+#include <meevax/kernel/closure.hpp>
+#include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
 #include <meevax/kernel/library.hpp>

@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 
+#include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/conditional_expand.hpp>
 #include <meevax/kernel/describable.hpp>
 #include <meevax/kernel/identity.hpp>
