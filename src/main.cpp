@@ -46,7 +46,7 @@ auto main(int const argc, char const* const* const argv) -> int
       e.import("(scheme time)"_r);
       e.import("(scheme write)"_r);
 
-      while (standard_input_port().good())
+      while (not standard_input_port().at_end_of_file())
       {
         try
         {
@@ -54,7 +54,7 @@ auto main(int const argc, char const* const* const argv) -> int
         }
         catch (error const& error)
         {
-          std::cerr << error << std::endl;
+          error.report(std::cerr);
         }
       }
     }

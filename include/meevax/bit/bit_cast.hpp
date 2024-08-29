@@ -18,8 +18,7 @@
 #define INCLUDED_MEEVAX_BIT_BIT_CAST_HPP
 
 #include <cstring>
-
-#include <meevax/type_traits/requires.hpp>
+#include <type_traits>
 
 namespace meevax
 {
@@ -27,10 +26,10 @@ inline namespace bit
 {
   template <typename To,
             typename From,
-            REQUIRES(std::bool_constant<sizeof(To) == sizeof(From)>,
-                     std::is_trivially_copyable<To>,
-                     std::is_trivially_copyable<From>,
-                     std::is_trivially_constructible<To>)>
+            typename = std::enable_if_t<std::conjunction_v<std::bool_constant<sizeof(To) == sizeof(From)>,
+                                                           std::is_trivially_copyable<To>,
+                                                           std::is_trivially_copyable<From>,
+                                                           std::is_trivially_constructible<To>>>>
   auto bit_cast(From const& from) noexcept
   {
     To to;

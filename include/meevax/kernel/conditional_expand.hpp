@@ -14,11 +14,17 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_TYPE_TRAITS_REQUIRES_HPP
-#define INCLUDED_MEEVAX_TYPE_TRAITS_REQUIRES_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_CONDITIONAL_EXPAND_HPP
+#define INCLUDED_MEEVAX_KERNEL_CONDITIONAL_EXPAND_HPP
 
-#include <type_traits>
+#include <meevax/kernel/pair.hpp>
 
-#define REQUIRES(...) typename = std::enable_if_t<std::conjunction_v<__VA_ARGS__>>
+namespace meevax
+{
+inline namespace kernel
+{
+  auto conditional_expand(object const&) -> object;
+} // namespace kernel
+} // namespace meevax
 
-#endif // INCLUDED_MEEVAX_TYPE_TRAITS_REQUIRES_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_CONDITIONAL_EXPAND_HPP

@@ -423,19 +423,19 @@
   => 'b)
 
 (check (aif (memq 'b '(a b c))
-            (let ((it 'inner))
+            (let ((it '(inner)))
               (car it)))
   => 'b)
 
 (check (aif (memq 'b '(a b c))
-            (let ((it 'inner-1))
-              (let ((it 'inner-0))
+            (let ((it '(inner-1)))
+              (let ((it '(inner-0)))
                 (car it))))
   => 'b)
 
-(check (let ((it 'outer))
+(check (let ((it '(outer)))
          (aif (memq 'b '(a b c))
-              (let ((it 'inner))
+              (let ((it '(inner)))
                 (car it))))
   => 'b)
 

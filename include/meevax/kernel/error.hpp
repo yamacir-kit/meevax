@@ -25,39 +25,77 @@ namespace meevax
 inline namespace kernel
 {
   struct error : public virtual pair // (<message> . <irritants>)
+               , public std::exception
   {
+    enum class in
+    {
+      evaluating, expanding, generating, running,
+    };
+
+    static thread_local inline std::vector<std::pair<in, object>> contexts;
+
+    mutable std::string cache {};
+
     using pair::pair;
+
+    ~error() override = default;
+
+    template <typename... Ts>
+    auto detail(Ts&&... xs) -> auto &
+    {
+      contexts.emplace_back(std::forward<decltype(xs)>(xs)...);
+      return *this;
+    }
 
     auto irritants() const noexcept -> object const&;
 
+    virtual auto make() const -> object;
+
     auto message() const noexcept -> object const&;
 
-    [[noreturn]] // NOTE: GCC ignores this attribute when accessed through pointer (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84476)
+    /*
+       GCC ignores this attribute when accessed through pointer
+       (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84476)
+    */
+    [[noreturn]]
     virtual auto raise() const -> void;
 
-    auto what() const -> std::string;
+    auto report(std::ostream &) const -> std::ostream &;
+
+    auto what() const noexcept -> char const* override;
   };
 
   auto operator <<(std::ostream &, error const&) -> std::ostream &;
 
-  /*
-     - error
-        |-- file-error
-        `-- read_error
-  */
-  #define DEFINE_ERROR(TYPENAME)                                               \
-  struct TYPENAME ## _error : public error                                     \
-  {                                                                            \
-    using error::error;                                                        \
-                                                                               \
-    auto raise() const -> void override                                        \
-    {                                                                          \
-      throw *this;                                                             \
-    }                                                                          \
-  }
+  struct file_error : public error
+  {
+    using error::error;
 
-  DEFINE_ERROR(file);
-  DEFINE_ERROR(read);
+    auto make() const -> object override
+    {
+      return meevax::make(*this);
+    }
+
+    auto raise() const -> void override
+    {
+      throw *this;
+    }
+  };
+
+  struct read_error : public error
+  {
+    using error::error;
+
+    auto make() const -> object override
+    {
+      return meevax::make(*this);
+    }
+
+    auto raise() const -> void override
+    {
+      throw *this;
+    }
+  };
 
   template <typename Thunk>
   auto with_exception_handler(Thunk && thunk)
@@ -73,12 +111,12 @@ inline namespace kernel
     }
     catch (error const& error)
     {
-      std::cerr << error << std::endl;
+      error.report(std::cerr);
       return EXIT_FAILURE;
     }
     catch (std::exception const& exception)
     {
-      std::cerr << error(make<string>(exception.what())) << std::endl;
+      error(make<string>(exception.what())).report(std::cerr);
       return EXIT_FAILURE;
     }
   }

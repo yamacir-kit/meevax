@@ -23,20 +23,20 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct heterogeneous_vector
+  struct heterogeneous_vector : private std::vector<object>
   {
-    std::vector<object> vector;
-
-    explicit heterogeneous_vector() = default;
-
-    explicit heterogeneous_vector(object const&);
-
-    explicit heterogeneous_vector(std::size_t, object const&);
-
-    template <typename Iterator>
-    explicit heterogeneous_vector(Iterator begin, Iterator end)
-      : vector { begin, end }
-    {}
+    using std::vector<object>::begin;
+    using std::vector<object>::clear;
+    using std::vector<object>::end;
+    using std::vector<object>::insert;
+    using std::vector<object>::operator [];
+    using std::vector<object>::push_back;
+    using std::vector<object>::rbegin;
+    using std::vector<object>::rend;
+    using std::vector<object>::reserve;
+    using std::vector<object>::size;
+    using std::vector<object>::value_type;
+    using std::vector<object>::vector;
   };
 
   auto operator ==(heterogeneous_vector const&, heterogeneous_vector const&) -> bool;
@@ -44,6 +44,8 @@ inline namespace kernel
   auto operator <<(std::ostream &, heterogeneous_vector const&) -> std::ostream &;
 
   using vector = heterogeneous_vector;
+
+  auto make_vector(object const&) -> object; // list->vector
 } // namespace kernel
 } // namespace meevax
 

@@ -35,12 +35,12 @@ inline namespace kernel
     {
       std::regex const pattern;
 
-      std::function<object (std::function<object ()> const&)> build;
+      std::function<auto (std::function<auto () -> object> const&) -> void> evaluate;
 
       template <typename S, typename F>
       explicit option(S&& s, F&& f)
-        : pattern { std::forward<decltype(s)>(s) }
-        , build   { std::forward<decltype(f)>(f) }
+        : pattern  { std::forward<decltype(s)>(s) }
+        , evaluate { std::forward<decltype(f)>(f) }
       {}
     };
 
@@ -48,7 +48,7 @@ inline namespace kernel
 
     std::vector<std::string> command_line;
 
-    auto configure(const int argc, char const* const* const argv)
+    auto configure(int const argc, char const* const* const argv)
     {
       for (auto i = 0; i < argc; ++i)
       {
@@ -60,71 +60,44 @@ inline namespace kernel
 
     auto configure(std::vector<std::string> const& args) -> void
     {
-      static std::regex const pattern { R"(--(\w[-\w]+)(=(.*))?|-([\w]+))" };
+      auto const static pattern = std::regex(R"(--(\w[-\w]+)(=(.*))?|-([\w]+))");
 
-      std::vector<option> options
+      auto const options = std::array<option, 6>
       {
         option("(i|interactive)", [this](auto)
         {
-          let const f = make<procedure>("", [this](let const&)
-          {
-            interactive = true;
-            return unspecified;
-          });
-
-          return list(f);
+          interactive = true;
         }),
 
-        option("(e|evaluate)", [](auto read)
+        option("(e|evaluate)", [this](auto read)
         {
-          return read();
+          static_cast<Environment &>(*this).evaluate(read());
         }),
 
         option("(h|help)", [](auto)
         {
-          let static const f = make<procedure>("", [](let const&)
-          {
-            std::cout << help() << std::endl;
-            throw EXIT_SUCCESS;
-          });
-
-          return list(f);
+          std::cout << help() << std::endl;
+          throw EXIT_SUCCESS;
         }),
 
         option("(l|load)", [this](auto read)
         {
-          let const f = make<procedure>("", [this](let const& xs)
-          {
-            static_cast<Environment &>(*this).load(car(xs).as<string>());
-            return unspecified;
-          });
-
-          return list(f, read());
+          static_cast<Environment &>(*this).load(read().template as<string>());
         }),
 
         option("(v|version)", [](auto)
         {
-          let static const f = make<procedure>("", [](let const&)
-          {
-            std::cout << version() << std::endl;
-            throw EXIT_SUCCESS;
-          });
-
-          return list(f);
+          std::cout << version() << std::endl;
+          throw EXIT_SUCCESS;
         }),
 
         option("(w|write)", [](auto read)
         {
-          let static const f = make<procedure>("", [](let const& xs)
-          {
-            std::cout << car(xs) << std::endl;
-          });
-
-          return list(f, read());
+          std::cout << read() << std::endl;
         }),
       };
 
-      auto search = [&](auto&& name) -> decltype(auto)
+      auto evaluator = [&](auto&& name) -> decltype(auto)
       {
         if (auto iter = std::find_if(options.begin(), options.end(), [&](auto&& option)
                         {
@@ -132,15 +105,13 @@ inline namespace kernel
                         });
             iter != options.end())
         {
-          return *iter;
+          return iter->evaluate;
         }
         else
         {
           throw error(make<string>("unknown option"), make<symbol>(name));
         }
       };
-
-      std::vector<object> expressions {};
 
       for (auto iter = std::next(args.begin()); iter != args.end(); ++iter)
       {
@@ -165,38 +136,25 @@ inline namespace kernel
           {
             for (auto str3 = result.str(3); not str3.empty(); str3.erase(0, 1))
             {
-              expressions.push_back(search(str3.substr(0, 1)).build(read));
+              std::invoke(evaluator(str3.substr(0, 1)), read);
             }
           }
           else if (result.length(2))
           {
-            auto read = [result]()
+            std::invoke(evaluator(result.str(1)), [result]()
             {
               return input_string_port(result.str(2)).read();
-            };
-
-            expressions.push_back(search(result.str(1)).build(read));
+            });
           }
           else if (result.length(1))
           {
-            expressions.push_back(search(result.str(1)).build(read));
+            std::invoke(evaluator(result.str(1)), read);
           }
         }
         else
         {
-          let const f = make<procedure>("", [iter](let const&)
-          {
-            Environment().load(*iter);
-            return unspecified;
-          });
-
-          expressions.push_back(list(f));
+          Environment().load(*iter);
         }
-      }
-
-      for (let const& expression : expressions)
-      {
-        static_cast<Environment &>(*this).evaluate(expression);
       }
     }
   };

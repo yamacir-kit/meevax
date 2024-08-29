@@ -14,17 +14,25 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_IMPLEMENTATION_DEPENDENT_HPP
-#define INCLUDED_MEEVAX_KERNEL_IMPLEMENTATION_DEPENDENT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_DESCRIBABLE_HPP
+#define INCLUDED_MEEVAX_KERNEL_DESCRIBABLE_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/symbol.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto implementation_dependent(object const&) -> object;
+  struct describable
+  {
+    symbol const name;
+
+    template <typename... Ts>
+    explicit describable(Ts&&... xs)
+      : name { std::forward<decltype(xs)>(xs)... }
+    {}
+  };
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_IMPLEMENTATION_DEPENDENT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_DESCRIBABLE_HPP

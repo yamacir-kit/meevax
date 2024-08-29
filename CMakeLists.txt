@@ -59,6 +59,7 @@ file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/upcase.hp
 
 string(TOLOWER ${CMAKE_SYSTEM_NAME} ${PROJECT_NAME}_SYSTEM_NAME)
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/Doxyfile    ${CMAKE_CURRENT_SOURCE_DIR}/document/Doxyfile)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 
@@ -206,6 +207,18 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_CPP)
     COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
             ${${PROJECT_NAME}_MEMORY_CHECK_OPTIONS}
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_${FILENAME})
+endforeach()
+
+file(GLOB ${PROJECT_NAME}_TEST_SH ${CMAKE_CURRENT_SOURCE_DIR}/test/*.sh)
+
+foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SH)
+  get_filename_component(FILENAME ${EACH} NAME_WE)
+  add_test(
+    NAME ${FILENAME}
+    COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
+            ${${PROJECT_NAME}_MEMORY_CHECK_OPTIONS}
+            ${EACH}
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax)
 endforeach()
 
 # ---- Additional Targets ------------------------------------------------------

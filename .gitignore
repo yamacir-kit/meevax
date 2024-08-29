@@ -1,4 +1,5 @@
 basis/src
 build
+document
 include/meevax/unicode
 src/kernel/version.cpp

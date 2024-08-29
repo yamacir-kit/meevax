@@ -15,15 +15,14 @@
 */
 
 #include <meevax/kernel/procedure.hpp>
-#include <meevax/kernel/symbol.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(std::ostream & os, primitive_procedure const& datum) -> std::ostream &
+  auto operator <<(std::ostream & os, primitive const& datum) -> std::ostream &
   {
-    return os << magenta("#,(") << green("procedure") << " " << symbol(datum.name) << magenta(")");
+    return os << magenta("#,(") << green("procedure ") << datum.name << magenta(")");
   }
 } // namespace kernel
 } // namespace meevax
