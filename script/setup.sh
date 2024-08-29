@@ -17,6 +17,9 @@ documentation()
 {
   echo bibtex2html
   echo doxygen
+
+  wget -q https://github.com/jgm/pandoc/releases/download/3.3/pandoc-3.3-1-amd64.deb -P /tmp
+  echo /tmp/pandoc-3.3-1-amd64.deb
 }
 
 sudo apt update
