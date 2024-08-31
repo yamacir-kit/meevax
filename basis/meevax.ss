@@ -27,18 +27,18 @@
 
          (define (er-macro-transformer f)
            (lambda (form use-env mac-env)
-             (define cache '())
-             (f form
-                (lambda (x)
-                  ((lambda (pare)
-                     (if pare
-                         (cdr pare)
-                         (begin (set! cache (cons (cons x (make-syntactic-closure mac-env '() x))
-                                                  cache))
-                                (cdar cache))))
-                   (assq x cache)))
-                (lambda (x y)
-                  (identifier=? use-env x use-env y)))))))
+             (define renames '())
+             (define (rename x)
+               ((lambda (it)
+                  (if it
+                      (cdr it)
+                      (begin (set! renames (cons (cons x (make-syntactic-closure mac-env '() x))
+                                                 renames))
+                             (cdar renames))))
+                (assq x renames)))
+             (define (compare x y)
+               (identifier=? use-env x use-env y))
+             (f form rename compare)))))
 
 (define-library (meevax continuation)
   (import (only (meevax context) emergency-exit)
