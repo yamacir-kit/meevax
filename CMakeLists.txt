@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.16.3) # Ubuntu 20.04 LTS default
 
 execute_process(
-  COMMAND head -c -1 ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
+  COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
+  COMMAND tr -d \n
   OUTPUT_VARIABLE CURRENT_VERSION)
 
 project(meevax
@@ -49,7 +50,10 @@ execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --property
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --upcase      OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_UPCASE)
 
 execute_process(
-  COMMAND head -c -1 ${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt
+  COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt
+  COMMAND tr \n \r
+  COMMAND sed s/\r$//
+  COMMAND tr \r \n
   OUTPUT_VARIABLE ${PROJECT_NAME}_HELP)
 
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/digit_value.hpp "${${PROJECT_NAME}_UNICODE_DIGIT_VALUE}")
