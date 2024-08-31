@@ -33,6 +33,11 @@ inline namespace memory
   template <typename T>
   constexpr auto compressible_bitwidth_of = std::is_pointer_v<T> ? log2(alignof(std::remove_pointer_t<T>)) - 1 : 0;
 
+  constexpr auto operator ""_u64(unsigned long long int value)
+  {
+    return static_cast<std::uint64_t>(value);
+  }
+
   template <typename T, std::size_t E, std::size_t... Es>
   struct integer_set
   {
@@ -277,9 +282,9 @@ inline namespace memory
   template <typename T, std::size_t E>
   struct integer_set<T, E>
   {
-    static_assert(std::is_same_v<decltype(0ul), std::uint64_t>);
+    static_assert(std::is_same_v<decltype(0_u64), std::uint64_t>);
 
-    static constexpr auto N = 1ul << E;
+    static constexpr auto N = 1_u64 << E;
 
     std::uint64_t data[N / 64] {};
 
@@ -303,10 +308,10 @@ inline namespace memory
       {
         if (auto i = index / 64; i < N/64)
         {
-          if (auto datum = data[i] & (~0ul << index % 64); datum)
+          if (auto datum = data[i] & (~0_u64 << index % 64); datum)
           {
             index = i * 64 + __builtin_ctzl(datum);
-            assert(data[index / 64] & (1ul << index % 64));
+            assert(data[index / 64] & (1_u64 << index % 64));
             return;
           }
           else while (++i < N/64)
@@ -314,7 +319,7 @@ inline namespace memory
             if (auto datum = data[i]; datum)
             {
               index = i * 64 + __builtin_ctzl(datum);
-              assert(data[index / 64] & (1ul << index % 64));
+              assert(data[index / 64] & (1_u64 << index % 64));
               return;
             }
           }
@@ -329,10 +334,10 @@ inline namespace memory
       {
         if (auto i = index / 64; i < N/64)
         {
-          if (auto datum = data[i] & (~0ul >> (63 - index % 64)); datum)
+          if (auto datum = data[i] & (~0_u64 >> (63 - index % 64)); datum)
           {
             index = i * 64 + (63 - __builtin_clzl(datum));
-            assert(data[index / 64] & (1ul << index % 64));
+            assert(data[index / 64] & (1_u64 << index % 64));
             return;
           }
           else while (--i < N/64)
@@ -340,7 +345,7 @@ inline namespace memory
             if (auto datum = data[i]; datum)
             {
               index = i * 64 + (63 - __builtin_clzl(datum));
-              assert(data[index / 64] & (1ul << index % 64));
+              assert(data[index / 64] & (1_u64 << index % 64));
               return;
             }
           }
@@ -418,21 +423,21 @@ inline namespace memory
     {
       auto i = reinterpret_cast<std::size_t>(value) / 64;
       auto j = reinterpret_cast<std::size_t>(value) % 64;
-      data[i] |= (1ul << j);
+      data[i] |= (1_u64 << j);
     }
 
     auto erase(T value) noexcept
     {
       auto i = reinterpret_cast<std::size_t>(value) / 64;
       auto j = reinterpret_cast<std::size_t>(value) % 64;
-      data[i] &= ~(1ul << j);
+      data[i] &= ~(1_u64 << j);
     }
 
     auto contains(T value) noexcept -> bool
     {
       auto i = reinterpret_cast<std::size_t>(value) / 64;
       auto j = reinterpret_cast<std::size_t>(value) % 64;
-      return data[i] & (1ul << j);
+      return data[i] & (1_u64 << j);
     }
 
     auto lower_bound(T value) const noexcept
