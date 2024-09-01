@@ -182,7 +182,7 @@ enable_testing()
 find_program(${PROJECT_NAME}_MEMORY_CHECK_COMMAND valgrind)
 
 set(${PROJECT_NAME}_MEMORY_CHECK_OPTIONS
-  --error-exitcode=1 # = EXIT_FAILURE)
+  --error-exitcode=1 # = EXIT_FAILURE
   --leak-check=full
   --quiet
   --show-leak-kinds=all)
