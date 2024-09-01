@@ -35,6 +35,8 @@
 #include <meevax/kernel/standard_output_port.hpp>
 #include <meevax/kernel/vector.hpp>
 
+extern char ** environ; // for procedure get-environment-variables
+
 namespace meevax
 {
 inline namespace kernel

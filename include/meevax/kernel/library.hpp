@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 #define INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
 
+#include <map>
+
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 
@@ -60,10 +62,6 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, library const&) -> std::ostream &;
 
-  /*
-     In order to improve the usability of the help procedure, it is desirable
-     to sort by library name in lexicographical order.
-  */
   auto libraries() -> std::map<std::string, library> &;
 
   template <typename T, typename... Ts>
