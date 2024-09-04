@@ -183,13 +183,13 @@ include(CPack)
 
 enable_testing()
 
-find_program(${PROJECT_NAME}_MEMORY_CHECK_COMMAND valgrind)
-
-set(${PROJECT_NAME}_MEMORY_CHECK_OPTIONS
-  --error-exitcode=1 # = EXIT_FAILURE
-  --leak-check=full
-  --quiet
-  --show-leak-kinds=all)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  find_program(${PROJECT_NAME}_MEMORY_CHECK_COMMAND valgrind)
+  set(${PROJECT_NAME}_MEMORY_CHECK_OPTIONS --error-exitcode=1 --leak-check=full --quiet --show-leak-kinds=all)
+else()
+  set(${PROJECT_NAME}_MEMORY_CHECK_COMMAND "")
+  set(${PROJECT_NAME}_MEMORY_CHECK_OPTIONS "")
+endif()
 
 file(GLOB ${PROJECT_NAME}_TEST_SS ${CMAKE_CURRENT_SOURCE_DIR}/test/*.ss)
 
