@@ -104,7 +104,11 @@ target_sources(kernel PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})
 
 target_include_directories(kernel
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+  PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  PUBLIC $<$<PLATFORM_ID:Darwin>:/opt/homebrew/include>)
+
+target_link_directories(kernel
+  PUBLIC $<$<PLATFORM_ID:Darwin>:/opt/homebrew/lib>)
 
 target_link_libraries(kernel
   PRIVATE ${CMAKE_DL_LIBS}
