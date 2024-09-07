@@ -169,13 +169,16 @@ install( # /usr/share/meevax/meevax-config-version.cmake
 
 # ---- Target package ----------------------------------------------------------
 
-set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Tatsuya Yamasaki")
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-set(CPACK_GENERATOR DEB)
-set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
-set(CPACK_RESOURCE_FILE_README  ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
-set(CPACK_THREADS 0)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+  set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Tatsuya Yamasaki")
+  set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+  set(CPACK_GENERATOR DEB)
+  set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
+  set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
+else()
+  set(CPACK_GENERATOR productbuild)
+endif()
 
 include(CPack)
 
@@ -183,7 +186,7 @@ include(CPack)
 
 enable_testing()
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   find_program(${PROJECT_NAME}_MEMORY_CHECK_COMMAND valgrind)
   set(${PROJECT_NAME}_MEMORY_CHECK_OPTIONS --error-exitcode=1 --leak-check=full --quiet --show-leak-kinds=all)
 else()
@@ -231,10 +234,18 @@ endforeach()
 
 # ---- Additional Targets ------------------------------------------------------
 
-execute_process(COMMAND nproc OUTPUT_VARIABLE ${PROJECT_NAME}_NPROC)
-
-add_custom_target(develop
-  COMMAND ${CMAKE_MAKE_PROGRAM} -j${${PROJECT_NAME}_NPROC}
-  COMMAND ${CMAKE_MAKE_PROGRAM} test ARGS=-j${${PROJECT_NAME}_NPROC}
-  COMMAND ${CMAKE_MAKE_PROGRAM} package
-  COMMAND sudo dpkg -i ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  execute_process(COMMAND nproc OUTPUT_VARIABLE ${PROJECT_NAME}_NPROC)
+  add_custom_target(develop
+    COMMAND ${CMAKE_MAKE_PROGRAM} -j${${PROJECT_NAME}_NPROC}
+    COMMAND ${CMAKE_MAKE_PROGRAM} test ARGS=-j${${PROJECT_NAME}_NPROC}
+    COMMAND ${CMAKE_MAKE_PROGRAM} package
+    COMMAND sudo dpkg -i ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb)
+else()
+  execute_process(COMMAND sysctl -n hw.ncpu OUTPUT_VARIABLE ${PROJECT_NAME}_NCPU)
+  add_custom_target(develop
+    COMMAND ${CMAKE_MAKE_PROGRAM} -j${${PROJECT_NAME}_NCPU}
+    COMMAND ${CMAKE_MAKE_PROGRAM} test ARGS=-j${${PROJECT_NAME}_NCPU}
+    COMMAND ${CMAKE_MAKE_PROGRAM} package
+    COMMAND sudo installer -pkg ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-${PROJECT_VERSION}-Darwin.pkg -target $ENV{HOME})
+endif()
