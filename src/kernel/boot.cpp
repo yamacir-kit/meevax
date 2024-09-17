@@ -431,6 +431,16 @@ inline namespace kernel
 
     define<library>("(meevax inexact)", [](library & library)
     {
+      library.define<procedure>("binary32?", [](let const& xs)
+      {
+        return std::numeric_limits<float>::is_iec559 and car(xs).is<float>();
+      });
+
+      library.define<procedure>("binary64?", [](let const& xs)
+      {
+        return std::numeric_limits<double>::is_iec559 and car(xs).is<double>();
+      });
+
       library.define<procedure>("finite?", [](let const& xs)
       {
         return is_finite(car(xs));
