@@ -2109,19 +2109,33 @@ inline namespace kernel
         switch (length(xs))                                                    \
         {                                                                      \
         case 3:                                                                \
-          car(xs).as<TAG##vector>().slice(cadr(xs).as<exact_integer>()) =      \
-          caddr(xs).as<TAG##vector>().slice();                                 \
+          {                                                                    \
+            std::size_t at = cadr(xs).as<exact_integer>();                     \
+            std::size_t begin = 0;                                             \
+            std::size_t end = caddr(xs).as<TAG##vector>().valarray.size();     \
+            assert(begin <= end);                                              \
+            car(xs).as<TAG##vector>().valarray[std::slice(at, end - begin, 1)] = caddr(xs).as<TAG##vector>().valarray[std::slice(begin, end - begin, 1)]; \
+          }                                                                    \
           break;                                                               \
                                                                                \
         case 4:                                                                \
-          car(xs).as<TAG##vector>().slice(cadr(xs).as<exact_integer>()) =      \
-          caddr(xs).as<TAG##vector>().slice(cadddr(xs).as<exact_integer>());   \
+          {                                                                    \
+            std::size_t at = cadr(xs).as<exact_integer>();                     \
+            std::size_t begin = cadddr(xs).as<exact_integer>();                \
+            std::size_t end = caddr(xs).as<TAG##vector>().valarray.size();     \
+            assert(begin <= end);                                              \
+            car(xs).as<TAG##vector>().valarray[std::slice(at, end - begin, 1)] = caddr(xs).as<TAG##vector>().valarray[std::slice(begin, end - begin, 1)]; \
+          }                                                                    \
           break;                                                               \
                                                                                \
         case 5:                                                                \
-          car(xs).as<TAG##vector>().slice(cadr(xs).as<exact_integer>()) =      \
-          caddr(xs).as<TAG##vector>().slice(cadddr(xs).as<exact_integer>(),    \
-                                            caddddr(xs).as<exact_integer>());  \
+          {                                                                    \
+            std::size_t at = cadr(xs).as<exact_integer>();                     \
+            std::size_t begin = cadddr(xs).as<exact_integer>();                \
+            std::size_t end = caddddr(xs).as<exact_integer>();                 \
+            assert(begin <= end);                                              \
+            car(xs).as<TAG##vector>().valarray[std::slice(at, end - begin, 1)] = caddr(xs).as<TAG##vector>().valarray[std::slice(begin, end - begin, 1)]; \
+          }                                                                    \
           break;                                                               \
                                                                                \
         default:                                                               \
