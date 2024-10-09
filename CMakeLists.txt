@@ -176,12 +176,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CPACK_GENERATOR DEB)
   set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
   set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
-else()
-  set(CPACK_GENERATOR productbuild)
-  set(CPACK_PACKAGE_FILE_NAME ${PROJECT_NAME}-${PROJECT_VERSION})
+  include(CPack)
 endif()
-
-include(CPack)
 
 # ---- Target test -------------------------------------------------------------
 
@@ -189,22 +185,16 @@ enable_testing()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   find_program(${PROJECT_NAME}_MEMORY_CHECK_COMMAND valgrind)
-  set(${PROJECT_NAME}_MEMORY_CHECK_OPTIONS --error-exitcode=1 --leak-check=full --quiet --show-leak-kinds=all)
+  set(${PROJECT_NAME}_MEMORY_CHECK ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND} --error-exitcode=1 --leak-check=full --quiet --show-leak-kinds=all)
 else()
-  set(${PROJECT_NAME}_MEMORY_CHECK_COMMAND "")
-  set(${PROJECT_NAME}_MEMORY_CHECK_OPTIONS "")
+  set(${PROJECT_NAME}_MEMORY_CHECK "")
 endif()
 
 file(GLOB ${PROJECT_NAME}_TEST_SS ${CMAKE_CURRENT_SOURCE_DIR}/test/*.ss)
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SS)
   get_filename_component(FILENAME ${EACH} NAME_WE)
-  add_test(
-    NAME ${FILENAME}
-    COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
-            ${${PROJECT_NAME}_MEMORY_CHECK_OPTIONS}
-            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax
-            ${EACH})
+  add_test(NAME ${FILENAME} COMMAND ${${PROJECT_NAME}_MEMORY_CHECK} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax ${EACH})
 endforeach()
 
 file(GLOB ${PROJECT_NAME}_TEST_CPP ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
@@ -214,23 +204,14 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_CPP)
   add_executable(test_${FILENAME} ${EACH})
   target_link_libraries(test_${FILENAME} PRIVATE basis kernel)
   target_compile_options(test_${FILENAME} PUBLIC -Wno-deprecated-declarations)
-  add_test(
-    NAME test/${FILENAME}
-    COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
-            ${${PROJECT_NAME}_MEMORY_CHECK_OPTIONS}
-            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_${FILENAME})
+  add_test(NAME test/${FILENAME} COMMAND ${${PROJECT_NAME}_MEMORY_CHECK} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_${FILENAME})
 endforeach()
 
 file(GLOB ${PROJECT_NAME}_TEST_SH ${CMAKE_CURRENT_SOURCE_DIR}/test/*.sh)
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SH)
   get_filename_component(FILENAME ${EACH} NAME_WE)
-  add_test(
-    NAME ${FILENAME}
-    COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
-            ${${PROJECT_NAME}_MEMORY_CHECK_OPTIONS}
-            ${EACH}
-            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax)
+  add_test(NAME ${FILENAME} COMMAND ${${PROJECT_NAME}_MEMORY_CHECK} ${EACH} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax)
 endforeach()
 
 # ---- Additional Targets ------------------------------------------------------
@@ -248,6 +229,5 @@ else()
     COMMAND ${CMAKE_MAKE_PROGRAM} -j${${PROJECT_NAME}_NCPU}
     COMMAND ${CMAKE_MAKE_PROGRAM} test ARGS=-j${${PROJECT_NAME}_NCPU}
     COMMAND ${CMAKE_MAKE_PROGRAM} package
-    COMMAND sudo installer -pkg ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-${PROJECT_VERSION}.pkg -target $ENV{HOME}
-    )
+    COMMAND sudo ${CMAKE_MAKE_PROGRAM} install)
 endif()
