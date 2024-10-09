@@ -8,18 +8,18 @@ required()
 
 optional()
 {
-  echo kcachegrind
-  echo massif-visualizer
+  echo kcachegrind # script/callgrind.sh
+  echo massif-visualizer # script/massif.sh
   echo valgrind
 }
 
 documentation()
 {
-  echo bibtex2html
-  echo doxygen
-
   wget -q https://github.com/jgm/pandoc/releases/download/3.3/pandoc-3.3-1-amd64.deb -P /tmp
-  echo /tmp/pandoc-3.3-1-amd64.deb
+
+  echo bibtex2html # script/references.sh
+  echo doxygen
+  echo /tmp/pandoc-3.3-1-amd64.deb # script/references.sh
 }
 
 sudo apt update

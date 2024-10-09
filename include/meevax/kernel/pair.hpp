@@ -27,11 +27,19 @@ namespace meevax
 {
 inline namespace kernel
 {
+  struct pair;
+}
+
+inline namespace memory
+{
+  extern template class collector<pair, bool, std::int32_t, float, character, instruction>;
+}
+
+inline namespace kernel
+{
   using null = std::nullptr_t;
 
-  struct pair;
-
-  using default_collector = collector<pair, bool, int, float, character, instruction>;
+  using default_collector = collector<pair, bool, std::int32_t, float, character, instruction>;
 
   using object = default_collector::mutator;
 

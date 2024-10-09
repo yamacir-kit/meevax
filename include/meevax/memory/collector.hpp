@@ -17,11 +17,7 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 #define INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 
-#if __unix__
 #include <dlfcn.h> // dlopen, dlclose, dlerror
-#else
-#error
-#endif
 
 #include <memory> // std::allocator
 #include <unordered_map>

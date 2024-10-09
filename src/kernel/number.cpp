@@ -464,15 +464,49 @@ inline namespace kernel
         { "fl-1/sqrt-2",  M_SQRT1_2  },
       };
 
-      auto static const pattern = std::regex(R"(([+-]?(?:\d+\.?|\d*\.\d+))([DEFLSdefls][+-]?\d+)?)");
+      auto static const pattern = std::regex(R"([+-]?(?:\d+\.?|\d*\.\d+)(?:([DEFdef])[+-]?\d+)?)");
 
       if (auto iter = constants.find(literal); iter != constants.end())
       {
         return make(iter->second);
       }
-      else if (std::regex_match(literal, pattern))
+      else if (auto result = std::smatch(); std::regex_match(literal, result, pattern))
       {
-        return make(lexical_cast<double>(literal));
+        /*
+           R7RS 6.2.5. Syntax of numerical constants
+
+           In systems with inexact numbers of varying precisions it can be
+           useful to specify the precision of a constant. For this purpose,
+           implementations may accept numerical constants written with an
+           exponent marker that indicates the desired precision of the inexact
+           representation. If so, the letter s, f, d, or l, meaning short,
+           single, double, or long precision, respectively, can be used in
+           place of e. The default precision has at least as much precision as
+           double, but implementations may allow this default to be set by the
+           user.
+        */
+        assert(result.ready());
+        assert(result.size() == 2);
+
+        if (result[1].matched)
+        {
+          assert(result[1].length() == 1);
+
+          switch (*result[1].first)
+          {
+          case 'D': case 'd':
+          case 'E': case 'e':
+          default:
+            return make(std::stod(literal));
+
+          case 'F': case 'f':
+            return make(std::stof(literal.substr().replace(result.position(1), 1, "e")));
+          }
+        }
+        else
+        {
+          return make(lexical_cast<double>(literal));
+        }
       }
       else
       {

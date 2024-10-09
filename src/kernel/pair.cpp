@@ -18,6 +18,11 @@
 
 namespace meevax
 {
+inline namespace memory
+{
+  template class collector<pair, bool, std::int32_t, float, character, instruction>;
+}
+
 inline namespace kernel
 {
   let unit = nullptr;

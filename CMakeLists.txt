@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.16.3) # Ubuntu 20.04 LTS default
 
 execute_process(
-  COMMAND head -c -1 ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
+  COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
+  COMMAND tr -d \n
   OUTPUT_VARIABLE CURRENT_VERSION)
 
 project(meevax
@@ -49,7 +50,10 @@ execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --property
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --upcase      OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_UPCASE)
 
 execute_process(
-  COMMAND head -c -1 ${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt
+  COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt
+  COMMAND tr \n \r
+  COMMAND sed s/\r$//
+  COMMAND tr \r \n
   OUTPUT_VARIABLE ${PROJECT_NAME}_HELP)
 
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/digit_value.hpp "${${PROJECT_NAME}_UNICODE_DIGIT_VALUE}")
@@ -100,7 +104,11 @@ target_sources(kernel PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})
 
 target_include_directories(kernel
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+  PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  PUBLIC $<$<PLATFORM_ID:Darwin>:/opt/homebrew/include>)
+
+target_link_directories(kernel
+  PUBLIC $<$<PLATFORM_ID:Darwin>:/opt/homebrew/lib>)
 
 target_link_libraries(kernel
   PRIVATE ${CMAKE_DL_LIBS}
@@ -161,38 +169,32 @@ install( # /usr/share/meevax/meevax-config-version.cmake
 
 # ---- Target package ----------------------------------------------------------
 
-set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Tatsuya Yamasaki")
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-set(CPACK_GENERATOR DEB)
-set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
-set(CPACK_RESOURCE_FILE_README  ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
-set(CPACK_THREADS 0)
-
-include(CPack)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+  set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Tatsuya Yamasaki")
+  set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+  set(CPACK_GENERATOR DEB)
+  set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
+  set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
+  include(CPack)
+endif()
 
 # ---- Target test -------------------------------------------------------------
 
 enable_testing()
 
-find_program(${PROJECT_NAME}_MEMORY_CHECK_COMMAND valgrind)
-
-set(${PROJECT_NAME}_MEMORY_CHECK_OPTIONS
-  --error-exitcode=1 # = EXIT_FAILURE)
-  --leak-check=full
-  --quiet
-  --show-leak-kinds=all)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  find_program(${PROJECT_NAME}_MEMORY_CHECK_COMMAND valgrind)
+  set(${PROJECT_NAME}_MEMORY_CHECK ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND} --error-exitcode=1 --leak-check=full --quiet --show-leak-kinds=all)
+else()
+  set(${PROJECT_NAME}_MEMORY_CHECK "")
+endif()
 
 file(GLOB ${PROJECT_NAME}_TEST_SS ${CMAKE_CURRENT_SOURCE_DIR}/test/*.ss)
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SS)
   get_filename_component(FILENAME ${EACH} NAME_WE)
-  add_test(
-    NAME ${FILENAME}
-    COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
-            ${${PROJECT_NAME}_MEMORY_CHECK_OPTIONS}
-            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax
-            ${EACH})
+  add_test(NAME ${FILENAME} COMMAND ${${PROJECT_NAME}_MEMORY_CHECK} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax ${EACH})
 endforeach()
 
 file(GLOB ${PROJECT_NAME}_TEST_CPP ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
@@ -202,31 +204,30 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_CPP)
   add_executable(test_${FILENAME} ${EACH})
   target_link_libraries(test_${FILENAME} PRIVATE basis kernel)
   target_compile_options(test_${FILENAME} PUBLIC -Wno-deprecated-declarations)
-  add_test(
-    NAME test/${FILENAME}
-    COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
-            ${${PROJECT_NAME}_MEMORY_CHECK_OPTIONS}
-            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_${FILENAME})
+  add_test(NAME test/${FILENAME} COMMAND ${${PROJECT_NAME}_MEMORY_CHECK} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_${FILENAME})
 endforeach()
 
 file(GLOB ${PROJECT_NAME}_TEST_SH ${CMAKE_CURRENT_SOURCE_DIR}/test/*.sh)
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SH)
   get_filename_component(FILENAME ${EACH} NAME_WE)
-  add_test(
-    NAME ${FILENAME}
-    COMMAND ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND}
-            ${${PROJECT_NAME}_MEMORY_CHECK_OPTIONS}
-            ${EACH}
-            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax)
+  add_test(NAME ${FILENAME} COMMAND ${${PROJECT_NAME}_MEMORY_CHECK} ${EACH} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax)
 endforeach()
 
 # ---- Additional Targets ------------------------------------------------------
 
-execute_process(COMMAND nproc OUTPUT_VARIABLE ${PROJECT_NAME}_NPROC)
-
-add_custom_target(develop
-  COMMAND ${CMAKE_MAKE_PROGRAM} -j${${PROJECT_NAME}_NPROC}
-  COMMAND ${CMAKE_MAKE_PROGRAM} test ARGS=-j${${PROJECT_NAME}_NPROC}
-  COMMAND ${CMAKE_MAKE_PROGRAM} package
-  COMMAND sudo dpkg -i ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  execute_process(COMMAND nproc OUTPUT_VARIABLE ${PROJECT_NAME}_NPROC)
+  add_custom_target(develop
+    COMMAND ${CMAKE_MAKE_PROGRAM} -j${${PROJECT_NAME}_NPROC}
+    COMMAND ${CMAKE_MAKE_PROGRAM} test ARGS=-j${${PROJECT_NAME}_NPROC}
+    COMMAND ${CMAKE_MAKE_PROGRAM} package
+    COMMAND sudo dpkg -i ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb)
+else()
+  execute_process(COMMAND sysctl -n hw.ncpu OUTPUT_VARIABLE ${PROJECT_NAME}_NCPU)
+  add_custom_target(develop
+    COMMAND ${CMAKE_MAKE_PROGRAM} -j${${PROJECT_NAME}_NCPU}
+    COMMAND ${CMAKE_MAKE_PROGRAM} test ARGS=-j${${PROJECT_NAME}_NCPU}
+    COMMAND ${CMAKE_MAKE_PROGRAM} package
+    COMMAND sudo ${CMAKE_MAKE_PROGRAM} install)
+endif()
