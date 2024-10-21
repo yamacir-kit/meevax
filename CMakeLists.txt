@@ -27,11 +27,14 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto -DNDEBUG ${${PROJECT_NAME}_RELEASE_PLUS}"
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-4")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_INSTALL_RPATH "@executable_path/../${CMAKE_INSTALL_LIBDIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 set(CMAKE_VERBOSE_MAKEFILE OFF)
+
+if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  set(CMAKE_INSTALL_RPATH "@executable_path/../${CMAKE_INSTALL_LIBDIR}")
+endif()
 
 # ---- Configure ---------------------------------------------------------------
 
@@ -184,7 +187,7 @@ endif()
 
 enable_testing()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL Linux)
   find_program(${PROJECT_NAME}_MEMORY_CHECK_COMMAND valgrind)
   set(${PROJECT_NAME}_MEMORY_CHECK ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND} --error-exitcode=1 --leak-check=full --quiet --show-leak-kinds=all)
 else()
@@ -217,7 +220,7 @@ endforeach()
 
 # ---- Additional Targets ------------------------------------------------------
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL Linux)
   execute_process(COMMAND nproc OUTPUT_VARIABLE ${PROJECT_NAME}_NPROC)
   add_custom_target(develop
     COMMAND ${CMAKE_MAKE_PROGRAM} -j${${PROJECT_NAME}_NPROC}
