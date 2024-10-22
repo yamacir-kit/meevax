@@ -53,51 +53,6 @@ inline namespace kernel
     mpz_init_set(value, z);
   }
 
-  exact_integer::exact_integer(std::int8_t si)
-  {
-    mpz_init_set_si(value, si);
-  }
-
-  exact_integer::exact_integer(std::int16_t si)
-  {
-    mpz_init_set_si(value, si);
-  }
-
-  exact_integer::exact_integer(std::int32_t si)
-  {
-    mpz_init_set_si(value, si);
-  }
-
-  exact_integer::exact_integer(std::int64_t si)
-  {
-    mpz_init_set_si(value, si);
-  }
-
-  exact_integer::exact_integer(std::uint8_t ui)
-  {
-    mpz_init_set_ui(value, ui);
-  }
-
-  exact_integer::exact_integer(std::uint16_t ui)
-  {
-    mpz_init_set_ui(value, ui);
-  }
-
-  exact_integer::exact_integer(std::uint32_t ui)
-  {
-    mpz_init_set_ui(value, ui);
-  }
-
-  exact_integer::exact_integer(std::uint64_t ui)
-  {
-    mpz_init_set_ui(value, ui);
-  }
-
-  exact_integer::exact_integer(double d)
-  {
-    mpz_init_set_d(value, d);
-  }
-
   exact_integer::exact_integer(std::string const& s, int radix)
   {
     if (mpz_init_set_str(value, (s.at(0) == '+' ? s.substr(1) : s).c_str(), radix))
@@ -136,83 +91,12 @@ inline namespace kernel
     return (*value)._mp_size;
   }
 
-  exact_integer::operator std::int8_t() const
-  {
-    return mpz_get_si(value);
-  }
-
-  exact_integer::operator std::int16_t() const
-  {
-    return mpz_get_si(value);
-  }
-
-  exact_integer::operator std::int32_t() const
-  {
-    return mpz_get_si(value);
-  }
-
-  exact_integer::operator std::int64_t() const
-  {
-    return mpz_get_si(value);
-  }
-
-  exact_integer::operator std::uint8_t() const
-  {
-    return mpz_get_ui(value);
-  }
-
-  exact_integer::operator std::uint16_t() const
-  {
-    return mpz_get_ui(value);
-  }
-
-  exact_integer::operator std::uint32_t() const
-  {
-    return mpz_get_ui(value);
-  }
-
-  exact_integer::operator std::uint64_t() const
-  {
-    return mpz_get_ui(value);
-  }
-
-  exact_integer::operator float() const
-  {
-    return mpz_get_d(value);
-  }
-
-  exact_integer::operator double() const
-  {
-    return mpz_get_d(value);
-  }
-
   auto exact_integer::square_root() const -> std::tuple<exact_integer, exact_integer>
   {
     exact_integer s, r;
     mpz_rootrem(s.value, r.value, value, 2);
     return std::make_tuple(s, r);
   }
-
-  auto operator ==(exact_integer const& a, int const b) -> bool { return a == static_cast<signed long>(b); }
-  auto operator !=(exact_integer const& a, int const b) -> bool { return a != static_cast<signed long>(b); }
-  auto operator < (exact_integer const& a, int const b) -> bool { return a <  static_cast<signed long>(b); }
-  auto operator <=(exact_integer const& a, int const b) -> bool { return a <= static_cast<signed long>(b); }
-  auto operator > (exact_integer const& a, int const b) -> bool { return a >  static_cast<signed long>(b); }
-  auto operator >=(exact_integer const& a, int const b) -> bool { return a >= static_cast<signed long>(b); }
-
-  auto operator ==(exact_integer const& a, signed long const b) -> bool { return mpz_cmp_si(a.value, b) == 0; }
-  auto operator !=(exact_integer const& a, signed long const b) -> bool { return mpz_cmp_si(a.value, b) != 0; }
-  auto operator < (exact_integer const& a, signed long const b) -> bool { return mpz_cmp_si(a.value, b) <  0; }
-  auto operator <=(exact_integer const& a, signed long const b) -> bool { return mpz_cmp_si(a.value, b) <= 0; }
-  auto operator > (exact_integer const& a, signed long const b) -> bool { return mpz_cmp_si(a.value, b) >  0; }
-  auto operator >=(exact_integer const& a, signed long const b) -> bool { return mpz_cmp_si(a.value, b) >= 0; }
-
-  auto operator ==(exact_integer const& a, unsigned long const b) -> bool { return mpz_cmp_ui(a.value, b) == 0; }
-  auto operator !=(exact_integer const& a, unsigned long const b) -> bool { return mpz_cmp_ui(a.value, b) != 0; }
-  auto operator < (exact_integer const& a, unsigned long const b) -> bool { return mpz_cmp_ui(a.value, b) <  0; }
-  auto operator <=(exact_integer const& a, unsigned long const b) -> bool { return mpz_cmp_ui(a.value, b) <= 0; }
-  auto operator > (exact_integer const& a, unsigned long const b) -> bool { return mpz_cmp_ui(a.value, b) >  0; }
-  auto operator >=(exact_integer const& a, unsigned long const b) -> bool { return mpz_cmp_ui(a.value, b) >= 0; }
 
   auto operator <<(std::ostream & os, exact_integer const& datum) -> std::ostream &
   {

@@ -13,11 +13,6 @@ build()
 
 echo "0.5.$(($(git rev-list --no-merges --count HEAD) - 3681))" > "$root/VERSION"
 
-if dpkg --status meevax
-then
-  sudo dpkg --purge meevax
-fi
-
 build "$root" "$@"
 
 build "$root/example" "$@"

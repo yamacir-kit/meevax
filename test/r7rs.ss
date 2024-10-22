@@ -749,7 +749,7 @@
 (check (eqv? (lambda (x) x)
              (lambda (y) y)) => #f) ; unspecified
 
-(check (eqv? 1.0e0 1.0f0) => #t) ; unspecified
+(check (eqv? 1.0e0 1.0f0) => #f) ; unspecified
 
 (check (eqv? +nan.0 +nan.0) => #t) ; unspecified
 

@@ -32,7 +32,7 @@ inline namespace memory
 template <typename T, typename Capacity = std::integral_constant<std::size_t, 1024>>
 class allocator
 {
-  struct alignas(T) chunk
+  struct chunk
   {
     chunk * tail;
   };
