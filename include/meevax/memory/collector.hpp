@@ -37,6 +37,20 @@ inline namespace memory
 {
   using view = std::pair<void const*, std::size_t>; // TODO Adapt to C++20's std::range concept
 
+  struct direct_initialization_tag
+  {
+    explicit direct_initialization_tag() = default;
+  };
+
+  inline constexpr direct_initialization_tag direct_initialization {};
+
+  struct list_initialization_tag
+  {
+    explicit list_initialization_tag() = default;
+  };
+
+  inline constexpr list_initialization_tag list_initialization {};
+
   /*
      This mark-and-sweep garbage collector is based on the implementation of
      gc_ptr written by William E. Kempf and posted to CodeProject.
@@ -92,10 +106,18 @@ inline namespace memory
       static inline auto allocator = allocator_type();
 
       template <typename... Us>
+      explicit constexpr binder(direct_initialization_tag, Us&&... xs)
+        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound>(std::forward<decltype(xs)>(xs)...)
+      {}
+
+      template <typename... Us>
+      explicit constexpr binder(list_initialization_tag, Us&&... xs)
+        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound> { std::forward<decltype(xs)>(xs)... }
+      {}
+
+      template <typename... Us>
       explicit constexpr binder(Us&&... xs)
-        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound> {
-            std::forward<decltype(xs)>(xs)...
-          }
+        : binder { list_initialization, std::forward<decltype(xs)>(xs)... }
       {}
 
       ~binder() override = default;

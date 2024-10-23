@@ -1284,7 +1284,8 @@ inline namespace kernel
 
       library.define<procedure>("get-output-u8vector", [](let const& xs)
       {
-        return make<u8vector>(car(xs).as<output_u8vector_port>().vector);
+        return make<u8vector>(car(xs).as<output_u8vector_port>().vector.data(),
+                              car(xs).as<output_u8vector_port>().vector.size());
       });
 
       library.define<procedure>("eof-object?", [](let const& xs)
@@ -2043,10 +2044,10 @@ inline namespace kernel
 
     define<library>("(meevax vector homogeneous)", [](library & library)
     {
-      #define DEFINE_VECTOR(TAG)                                               \
+      #define DEFINE_VECTOR_AUX(TAG, VECTOR)                                   \
       library.define<procedure>(#TAG "vector?", [](let const& xs)              \
       {                                                                        \
-        return car(xs).is<TAG##vector>();                                      \
+        return car(xs).is<VECTOR>();                                           \
       });                                                                      \
                                                                                \
       library.define<procedure>("make-" #TAG "vector", [](let const& xs)       \
@@ -2054,10 +2055,10 @@ inline namespace kernel
         switch (length(xs))                                                    \
         {                                                                      \
         case 1:                                                                \
-          return make<TAG##vector>(car(xs).as<exact_integer>(), unspecified);  \
+          return make<VECTOR>(direct_initialization, static_cast<VECTOR::value_type>(0), car(xs).as<exact_integer>()); \
                                                                                \
         case 2:                                                                \
-          return make<TAG##vector>(car(xs).as<exact_integer>(), cadr(xs));     \
+          return make<VECTOR>(direct_initialization, VECTOR::input_cast(cadr(xs)), car(xs).as<exact_integer>()); \
                                                                                \
         default:                                                               \
           throw error(make<string>("procedure make-" #TAG "vector takes one or two arguments, but got"), xs); \
@@ -2066,22 +2067,22 @@ inline namespace kernel
                                                                                \
       library.define<procedure>(#TAG "vector", [](let const& xs)               \
       {                                                                        \
-        return make<TAG##vector>(xs);                                          \
+        return make<VECTOR>(from_list, xs);                                    \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-length", [](let const& xs)        \
       {                                                                        \
-        return make<exact_integer>(car(xs).as<TAG##vector>().valarray.size()); \
+        return make<exact_integer>(car(xs).as<VECTOR>().size());               \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-ref", [](let const& xs)           \
       {                                                                        \
-        return TAG##vector::output_cast(car(xs).as<TAG##vector>().valarray[cadr(xs).as<exact_integer>()]); \
+        return VECTOR::output_cast(car(xs).as<VECTOR>()[cadr(xs).as<exact_integer>()]); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-set!", [](let const& xs)          \
       {                                                                        \
-        car(xs).as<TAG##vector>().valarray[cadr(xs).as<exact_integer>()] = TAG##vector::input_cast(caddr(xs)); \
+        car(xs).as<VECTOR>()[cadr(xs).as<exact_integer>()] = VECTOR::input_cast(caddr(xs)); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-copy", [](let const& xs)          \
@@ -2089,16 +2090,29 @@ inline namespace kernel
         switch (length(xs))                                                    \
         {                                                                      \
         case 1:                                                                \
-          return make<TAG##vector>(car(xs).as<TAG##vector>());                 \
+          {                                                                    \
+            std::size_t begin = 0;                                             \
+            std::size_t end = car(xs).as<VECTOR>().size();                     \
+            assert(begin <= end);                                              \
+            return make<VECTOR>(car(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]); \
+          }                                                                    \
                                                                                \
         case 2:                                                                \
-          return make<TAG##vector>(car(xs).as<TAG##vector>(),                  \
-                                   cadr(xs).as<exact_integer>());              \
+          {                                                                    \
+            std::size_t begin = cadr(xs).as<exact_integer>();                  \
+            std::size_t end = car(xs).as<VECTOR>().size();                     \
+            assert(begin <= end);                                              \
+            return make<VECTOR>(car(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]); \
+          }                                                                    \
                                                                                \
         case 3:                                                                \
-          return make<TAG##vector>(car(xs).as<TAG##vector>(),                  \
-                                   cadr(xs).as<exact_integer>(),               \
-                                   caddr(xs).as<exact_integer>());             \
+          {                                                                    \
+            std::size_t begin = cadr(xs).as<exact_integer>();                  \
+            std::size_t end = caddr(xs).as<exact_integer>();                   \
+            assert(begin <= end);                                              \
+            return make<VECTOR>(car(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]); \
+          }                                                                    \
+                                                                               \
         default:                                                               \
           throw error(make<string>("procedure " #TAG "vector-copy takes one to three arguments, but got"), xs); \
         }                                                                      \
@@ -2112,9 +2126,9 @@ inline namespace kernel
           {                                                                    \
             std::size_t at = cadr(xs).as<exact_integer>();                     \
             std::size_t begin = 0;                                             \
-            std::size_t end = caddr(xs).as<TAG##vector>().valarray.size();     \
+            std::size_t end = caddr(xs).as<VECTOR>().size();                   \
             assert(begin <= end);                                              \
-            car(xs).as<TAG##vector>().valarray[std::slice(at, end - begin, 1)] = caddr(xs).as<TAG##vector>().valarray[std::slice(begin, end - begin, 1)]; \
+            car(xs).as<VECTOR>()[std::slice(at, end - begin, 1)] = caddr(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]; \
           }                                                                    \
           break;                                                               \
                                                                                \
@@ -2122,9 +2136,9 @@ inline namespace kernel
           {                                                                    \
             std::size_t at = cadr(xs).as<exact_integer>();                     \
             std::size_t begin = cadddr(xs).as<exact_integer>();                \
-            std::size_t end = caddr(xs).as<TAG##vector>().valarray.size();     \
+            std::size_t end = caddr(xs).as<VECTOR>().size();                   \
             assert(begin <= end);                                              \
-            car(xs).as<TAG##vector>().valarray[std::slice(at, end - begin, 1)] = caddr(xs).as<TAG##vector>().valarray[std::slice(begin, end - begin, 1)]; \
+            car(xs).as<VECTOR>()[std::slice(at, end - begin, 1)] = caddr(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]; \
           }                                                                    \
           break;                                                               \
                                                                                \
@@ -2134,7 +2148,7 @@ inline namespace kernel
             std::size_t begin = cadddr(xs).as<exact_integer>();                \
             std::size_t end = caddddr(xs).as<exact_integer>();                 \
             assert(begin <= end);                                              \
-            car(xs).as<TAG##vector>().valarray[std::slice(at, end - begin, 1)] = caddr(xs).as<TAG##vector>().valarray[std::slice(begin, end - begin, 1)]; \
+            car(xs).as<VECTOR>()[std::slice(at, end - begin, 1)] = caddr(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]; \
           }                                                                    \
           break;                                                               \
                                                                                \
@@ -2145,8 +2159,12 @@ inline namespace kernel
                                                                                \
       library.define<procedure>(#TAG "vector-append", [](let const& xs)        \
       {                                                                        \
-        return make<TAG##vector>(car(xs).as<TAG##vector>(),                    \
-                                 cadr(xs).as<TAG##vector>());                  \
+        auto const& a = car(xs).as<VECTOR>();                                  \
+        auto const& b = cadr(xs).as<VECTOR>();                                 \
+        let const c = make<VECTOR>(direct_initialization, a.size() + b.size()); \
+        c.as<VECTOR>()[std::slice(0, a.size(), 1)] = a.valarray();             \
+        c.as<VECTOR>()[std::slice(a.size(), b.size(), 1)] = b.valarray();      \
+        return c;                                                              \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector->list", [](let const& xs)         \
@@ -2155,7 +2173,7 @@ inline namespace kernel
         {                                                                      \
           auto xcons = [](auto&& x, auto&& y)                                  \
           {                                                                    \
-            return cons(TAG##vector::output_cast(y), x);                       \
+            return cons(VECTOR::output_cast(y), x);                            \
           };                                                                   \
                                                                                \
           return reverse(std::accumulate(std::next(std::begin(v), a),          \
@@ -2165,17 +2183,17 @@ inline namespace kernel
         switch (length(xs))                                                    \
         {                                                                      \
         case 1:                                                                \
-          return list(car(xs).as<TAG##vector>().valarray,                      \
+          return list(car(xs).as<VECTOR>().valarray(),                         \
                       0,                                                       \
-                      car(xs).as<TAG##vector>().valarray.size());              \
+                      car(xs).as<VECTOR>().size());                            \
                                                                                \
         case 2:                                                                \
-          return list(car(xs).as<TAG##vector>().valarray,                      \
+          return list(car(xs).as<VECTOR>().valarray(),                         \
                       cadr(xs).as<exact_integer>(),                            \
-                      car(xs).as<TAG##vector>().valarray.size());              \
+                      car(xs).as<VECTOR>().size());                            \
                                                                                \
         case 3:                                                                \
-          return list(car(xs).as<TAG##vector>().valarray,                      \
+          return list(car(xs).as<VECTOR>().valarray(),                         \
                       cadr(xs).as<exact_integer>(),                            \
                       caddr(xs).as<exact_integer>());                          \
                                                                                \
@@ -2186,14 +2204,17 @@ inline namespace kernel
                                                                                \
       library.define<procedure>("list->" #TAG "vector", [](let const& xs)      \
       {                                                                        \
-        return make<TAG##vector>(car(xs));                                     \
+        return make<VECTOR>(from_list, car(xs));                               \
       })
+
+      #define DEFINE_VECTOR(TAG) DEFINE_VECTOR_AUX(TAG, TAG##vector)
 
       DEFINE_VECTOR(s8); DEFINE_VECTOR(s16); DEFINE_VECTOR(s32); DEFINE_VECTOR(s64);
       DEFINE_VECTOR(u8); DEFINE_VECTOR(u16); DEFINE_VECTOR(u32); DEFINE_VECTOR(u64);
                                              DEFINE_VECTOR(f32); DEFINE_VECTOR(f64);
 
       #undef DEFINE_VECTOR
+      #undef DEFINE_VECTOR_AUX
 
       library.define<procedure>("u8vector->string", [](let const& xs)
       {
@@ -2207,20 +2228,23 @@ inline namespace kernel
         switch (length(xs))
         {
         case 1:
-          std::for_each(std::begin(car(xs).as<u8vector>().valarray),
-                        std::end(car(xs).as<u8vector>().valarray),
+          std::for_each(std::begin(car(xs).as<u8vector>().valarray()),
+                        std::end(car(xs).as<u8vector>().valarray()),
                         print);
           break;
 
         case 2:
-          std::for_each(std::next(std::begin(car(xs).as<u8vector>().valarray), cadr(xs).as<exact_integer>()),
-                        std::end(car(xs).as<u8vector>().valarray),
+          std::for_each(std::next(std::begin(car(xs).as<u8vector>().valarray()),
+                                  cadr(xs).as<exact_integer>()),
+                        std::end(car(xs).as<u8vector>().valarray()),
                         print);
           break;
 
         case 3:
-          std::for_each(std::next(std::begin(car(xs).as<u8vector>().valarray), cadr(xs).as<exact_integer>()),
-                        std::next(std::begin(car(xs).as<u8vector>().valarray), caddr(xs).as<exact_integer>()),
+          std::for_each(std::next(std::begin(car(xs).as<u8vector>().valarray()),
+                                  cadr(xs).as<exact_integer>()),
+                        std::next(std::begin(car(xs).as<u8vector>().valarray()),
+                                  caddr(xs).as<exact_integer>()),
                         print);
           break;
 

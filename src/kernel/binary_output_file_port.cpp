@@ -43,7 +43,7 @@ inline namespace kernel
 
   auto binary_output_file_port::put(u8vector const& v) -> void
   {
-    for (auto u8 : v.valarray)
+    for (auto u8 : v.valarray())
     {
       ofstream.write(reinterpret_cast<char const*>(&u8), 1);
     }

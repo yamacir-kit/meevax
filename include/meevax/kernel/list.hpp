@@ -24,6 +24,13 @@ namespace meevax
 {
 inline namespace kernel
 {
+  struct from_list_tag
+  {
+    explicit from_list_tag() = default;
+  };
+
+  inline constexpr from_list_tag from_list {};
+
   inline auto list = [](auto&&... xs) constexpr
   {
     return (std::forward<decltype(xs)>(xs) | ... | nullptr);
