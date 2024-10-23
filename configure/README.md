@@ -139,52 +139,28 @@ See [LICENSE](./LICENSE).
 
 ## References
 
-[<a name="McCarthy-1960">1</a>] John McCarthy.
-<a href="https://dl.acm.org/doi/10.1145/367177.367199">Recursive functions of symbolic expressions and their computation by machine, Part I</a>.
-<em><a href="https://dl.acm.org/toc/cacm/1960/3/4">Communications of the ACM</a></em>, 3(4):184--195, 1960.
+[<span id="McCarthy-1960">1</span>] John McCarthy. [Recursive functions of symbolic expressions and their computation by machine, Part I](https://dl.acm.org/doi/10.1145/367177.367199). *[Communications of the ACM](https://dl.acm.org/toc/cacm/1960/3/4)*, 3(4):184--195, 1960.
 
-[<a name="Landin-1964">2</a>] Peter J. Landin.
-<a href="https://academic.oup.com/comjnl/article/6/4/308/375725">The Mechanical Evaluation of Expressions</a>.
-<em><a href="https://academic.oup.com/comjnl/issue/6/4">The Computor Journal</a></em>, 6(4):308--320, 1964.
+[<span id="Landin-1964">2</span>] Peter J. Landin. [The Mechanical Evaluation of Expressions](https://academic.oup.com/comjnl/article/6/4/308/375725). *[The Computor Journal](https://academic.oup.com/comjnl/issue/6/4)*, 6(4):308--320, 1964.
 
-[<a name="Henderson-1980">3</a>] Peter Henderson.
-<em><a href="https://archive.org/details/functionalprogra0000hend/mode/2up">Functional Programming: Application and Implementation</a></em>.
-Prentice Hall, 1980.
+[<span id="Henderson-1980">3</span>] Peter Henderson. *[Functional Programming: Application and Implementation](https://archive.org/details/functionalprogra0000hend/mode/2up)*. Prentice Hall, 1980.
 
-[<a name="Bawden-and-Rees-1988">4</a>] Alan Bawden and Jonathan Rees.
-<a href="https://dl.acm.org/doi/10.1145/62678.62687">Syntactic Closures</a>.
-In <em><a href="https://dl.acm.org/doi/proceedings/10.1145/62678">LFP '88: Proceedings of the 1988 ACM Conference on LISP and Functional Programming</a></em>, pages 86--95, 1988.
+[<span id="Bawden-and-Rees-1988">4</span>] Alan Bawden and Jonathan Rees. [Syntactic Closures](https://dl.acm.org/doi/10.1145/62678.62687). In *[LFP '88: Proceedings of the 1988 ACM Conference on LISP and Functional Programming](https://dl.acm.org/doi/proceedings/10.1145/62678)*, pages 86--95, 1988.
 
-[<a name="Clinger-and-Rees-1991a">5</a>] William Clinger and Jonathan Rees (Editors).
-<a href="https://dl.acm.org/doi/10.1145/382130.382133">Revised<sup>4</sup> Report on the Algorithmic Language Scheme</a>.
-<em><a href="https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/3">ACM SIGPLAN LISP Pointers</a></em>, IV(3):1--55, 1991.
+[<span id="Clinger-and-Rees-1991a">5</span>] William Clinger and Jonathan Rees (Editors). [Revised<sup>4</sup> Report on the Algorithmic Language Scheme](https://dl.acm.org/doi/10.1145/382130.382133). *[ACM SIGPLAN LISP Pointers](https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/3)*, IV(3):1--55, 1991.
 
-[<a name="Hanson-1991">6</a>] Chris Hanson.
-<a href="https://dl.acm.org/doi/10.1145/1317265.1317267">A Syntactic Closures Macro Facility</a>.
-<em><a href="https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/4">ACM SIGPLAN LISP Pointers</a></em>, IV(4):9--16, 1991.
+[<span id="Hanson-1991">6</span>] Chris Hanson. [A Syntactic Closures Macro Facility](https://dl.acm.org/doi/10.1145/1317265.1317267). *[ACM SIGPLAN LISP Pointers](https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/4)*, IV(4):9--16, 1991.
 
-[<a name="Clinger-1991">7</a>] William Clinger.
-<a href="https://dl.acm.org/doi/10.1145/1317265.1317269">Hygienic Macros Through Explicit Renaming</a>.
-<em><a href="https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/4">ACM SIGPLAN LISP Pointers</a></em>, IV(4):25--28, 1991.
+[<span id="Clinger-1991">7</span>] William Clinger. [Hygienic Macros Through Explicit Renaming](https://dl.acm.org/doi/10.1145/1317265.1317269). *[ACM SIGPLAN LISP Pointers](https://dl.acm.org/toc/sigplan-lisppointers/1991/IV/4)*, IV(4):25--28, 1991.
 
-[<a name="Clinger-and-Rees-1991b">8</a>] William Clinger and Jonathan Rees.
-<a href="https://dl.acm.org/doi/10.1145/99583.99607">Macros That Work</a>.
-In <em><a href="https://dl.acm.org/doi/proceedings/10.1145/99583">POPL '91: Proceedings of the 18th ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages</a></em>, pages 155--162, 1991.
+[<span id="Clinger-and-Rees-1991b">8</span>] William Clinger and Jonathan Rees. [Macros That Work](https://dl.acm.org/doi/10.1145/99583.99607). In *[POPL '91: Proceedings of the 18th ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages](https://dl.acm.org/doi/proceedings/10.1145/99583)*, pages 155--162, 1991.
 
-[<a name="Kelsey-Clinger-and-Rees-1998">9</a>] Rechard Kelsey, William Clinger, and Jonathan Rees (Editors).
-<a href="https://dl.acm.org/doi/10.1145/290229.290234">Revised<sup>5</sup> Report on the Algorithmic Language Scheme</a>.
-<em><a href="https://dl.acm.org/toc/sigplan/1998/33/9">ACM SIGPLAN Notices</a></em>, 33(9):26--76, 1998.
+[<span id="Kelsey-Clinger-and-Rees-1998">9</span>] Rechard Kelsey, William Clinger, and Jonathan Rees (Editors). [Revised<sup>5</sup> Report on the Algorithmic Language Scheme](https://dl.acm.org/doi/10.1145/290229.290234). *[ACM SIGPLAN Notices](https://dl.acm.org/toc/sigplan/1998/33/9)*, 33(9):26--76, 1998.
 
-[<a name="Kempf-2001a">10</a>] William E. Kempf.
-<a href="https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C">A garbage collection framework for C++</a>, 2001.
+[<span id="Kempf-2001a">10</span>] William E. Kempf. [A garbage collection framework for C++](https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C), 2001.
 
-[<a name="Kempf-2001b">11</a>] William E. Kempf.
-<a href="https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II">A garbage collection framework for C++ - Part II</a>, 2001.
+[<span id="Kempf-2001b">11</span>] William E. Kempf. [A garbage collection framework for C++ - Part II](https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II), 2001.
 
-[<a name="Adams-and-Dybvig-2008">12</a>] Michael D. Adams and R. Kent Dybvig.
-<a href="https://dl.acm.org/doi/10.1145/1411204.1411230">Efficient Nondestructive Equality Checking for Trees and Graphs</a>.
-In <em> <a href="https://dl.acm.org/doi/proceedings/10.1145/1411204">ICFP '08: Proceedings of the 13th ACM SIGPLAN International Conference on Functional Programming</a></em>, pages 179--188, 2008.
+[<span id="Adams-and-Dybvig-2008">12</span>] Michael D. Adams and R. Kent Dybvig. [Efficient Nondestructive Equality Checking for Trees and Graphs](https://dl.acm.org/doi/10.1145/1411204.1411230). In *[ICFP '08: Proceedings of the 13th ACM SIGPLAN International Conference on Functional Programming](https://dl.acm.org/doi/proceedings/10.1145/1411204)*, pages 179--188, 2008.
 
-[<a name="Shinn-Cowan-and-Gleckler-2013">13</a>] Alex Shinn, John Cowan, and Arthur A. Gleckler (Editors).
-<a href="https://standards.scheme.org/official/r7rs.pdf">Revised<sup>7</sup> Report on the Algorithmic Language Scheme</a>.
-Technical report, http://www.scheme-reports.org/, 2013.
+[<span id="Shinn-Cowan-and-Gleckler-2013">13</span>] Alex Shinn, John Cowan, and Arthur A. Gleckler (Editors). [Revised<sup>7</sup> Report on the Algorithmic Language Scheme](https://standards.scheme.org/official/r7rs.pdf). Technical report, http://www.scheme-reports.org/, 2013.

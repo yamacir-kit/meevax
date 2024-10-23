@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
-      - run: ./script/setup.sh
+      - run: ./script/setup-ubuntu.sh
       - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --target package
       - run: gh release create v${{ env.VERSION }} build/meevax_${{ env.VERSION }}_amd64.deb --title "Version ${{ env.VERSION }}"
