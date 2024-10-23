@@ -30,10 +30,10 @@ inline namespace kernel
   template <typename T>
   struct homogeneous_vector : private std::valarray<T>
   {
-    using std::valarray<T>::operator [];
-    using std::valarray<T>::size;
-    using std::valarray<T>::valarray;
-    using std::valarray<T>::value_type;
+    using          std::valarray<T>::operator [];
+    using          std::valarray<T>::size;
+    using          std::valarray<T>::valarray;
+    using typename std::valarray<T>::value_type;
 
     auto valarray()       -> decltype(auto) { return static_cast<std::valarray<T>      &>(*this); }
     auto valarray() const -> decltype(auto) { return static_cast<std::valarray<T> const&>(*this); }

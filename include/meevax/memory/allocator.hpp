@@ -32,16 +32,16 @@ inline namespace memory
 template <typename T, typename Capacity = std::integral_constant<std::size_t, 1024>>
 class allocator
 {
-  struct chunk
+  union chunk
   {
     chunk * tail;
+
+    T value;
   };
 
   struct block
   {
-    static constexpr auto chunk_size = std::max(sizeof(T), sizeof(chunk));
-
-    std::uint8_t data[chunk_size * Capacity::value] = {};
+    std::uint8_t data[sizeof(chunk) * Capacity::value] = {};
 
     std::size_t size = Capacity::value;
 
@@ -58,7 +58,7 @@ class allocator
 
     auto pop()
     {
-      return data + chunk_size * --size;
+      return data + sizeof(chunk) * --size;
     }
   };
 
