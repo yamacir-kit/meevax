@@ -22,5 +22,6 @@ set_property(
   TEST ${PROJECT_NAME}
   PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}:${CMAKE_CURRENT_BINARY_DIR}")
 
-add_custom_target(develop COMMAND ${CMAKE_MAKE_PROGRAM}
-                          COMMAND ${CMAKE_CTEST_COMMAND})
+add_custom_target(continuous-integration
+  COMMAND ${CMAKE_MAKE_PROGRAM}
+  COMMAND ${CMAKE_CTEST_COMMAND})

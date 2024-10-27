@@ -19,6 +19,6 @@ jobs:
       - uses: actions/checkout@v3
       - run: ./script/setup-${{ matrix.system }}.sh --all
       - run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
-      - run: cmake --build build --target develop
+      - run: cmake --build build --target continuous-integration
       - run: cmake -B example/build -S example -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
-      - run: cmake --build example/build --target develop
+      - run: cmake --build example/build --target continuous-integration
