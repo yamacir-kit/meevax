@@ -302,16 +302,14 @@ inline namespace kernel
     }
   }
 
-  template <auto I = 0, typename F>
+  template <auto I = 0, typename F, typename Tuple = std::tuple<exact_integer, ratio, float, double, complex>>
   auto apply([[maybe_unused]] F f, object const& x) -> object
   {
-    using Ts = std::tuple<exact_integer, ratio, float, double, complex>;
-
-    if constexpr (I < std::tuple_size_v<Ts>)
+    if constexpr (I < std::tuple_size_v<Tuple>)
     {
-      using T = std::tuple_element_t<I, Ts>;
+      using type_i = std::tuple_element_t<I, Tuple>;
 
-      return x.is<T>() ? canonicalize(f(x.as<T>())) : apply<I + 1>(f, x);
+      return x.is<type_i>() ? canonicalize(f(x.as<type_i>())) : apply<I + 1>(f, x);
     }
     else
     {
@@ -319,17 +317,15 @@ inline namespace kernel
     }
   }
 
-  template <auto I = 0, typename F>
+  template <auto I = 0, typename F, typename Tuple = combination<exact_integer, ratio, float, double, complex>>
   auto apply([[maybe_unused]] F f, object const& x, object const& y) -> object
   {
-    using Ts = combination<exact_integer, ratio, float, double, complex>;
-
-    if constexpr (I < std::tuple_size_v<Ts>)
+    if constexpr (I < std::tuple_size_v<Tuple>)
     {
-      using T = std::tuple_element_t<0, std::tuple_element_t<I, Ts>>;
-      using U = std::tuple_element_t<1, std::tuple_element_t<I, Ts>>;
+      using type_i_0 = std::tuple_element_t<0, std::tuple_element_t<I, Tuple>>;
+      using type_i_1 = std::tuple_element_t<1, std::tuple_element_t<I, Tuple>>;
 
-      return x.is<T>() and y.is<U>() ? canonicalize(f(x.as<T>(), y.as<U>())) : apply<I + 1>(f, x, y);
+      return x.is<type_i_0>() and y.is<type_i_1>() ? canonicalize(f(x.as<type_i_0>(), y.as<type_i_1>())) : apply<I + 1>(f, x, y);
     }
     else
     {
@@ -337,16 +333,14 @@ inline namespace kernel
     }
   }
 
-  template <auto I = 0, typename F>
+  template <auto I = 0, typename F, typename Tuple = std::tuple<exact_integer, ratio, float, double, complex>>
   auto test([[maybe_unused]] F f, object const& x) -> bool
   {
-    using Ts = std::tuple<exact_integer, ratio, float, double, complex>;
-
-    if constexpr (I < std::tuple_size_v<Ts>)
+    if constexpr (I < std::tuple_size_v<Tuple>)
     {
-      using T = std::tuple_element_t<I, Ts>;
+      using type_i = std::tuple_element_t<I, Tuple>;
 
-      return x.is<T>() ? f(x.as<T>()) : test<I + 1>(f, x);
+      return x.is<type_i>() ? f(x.as<type_i>()) : test<I + 1>(f, x);
     }
     else
     {
@@ -354,17 +348,15 @@ inline namespace kernel
     }
   }
 
-  template <auto I = 0, typename F>
+  template <auto I = 0, typename F, typename Tuple = combination<exact_integer, ratio, float, double, complex>>
   auto test([[maybe_unused]] F f, object const& x, object const& y) -> bool
   {
-    using Ts = combination<exact_integer, ratio, float, double, complex>;
-
-    if constexpr (I < std::tuple_size_v<Ts>)
+    if constexpr (I < std::tuple_size_v<Tuple>)
     {
-      using T = std::tuple_element_t<0, std::tuple_element_t<I, Ts>>;
-      using U = std::tuple_element_t<1, std::tuple_element_t<I, Ts>>;
+      using type_i_0 = std::tuple_element_t<0, std::tuple_element_t<I, Tuple>>;
+      using type_i_1 = std::tuple_element_t<1, std::tuple_element_t<I, Tuple>>;
 
-      return x.is<T>() and y.is<U>() ? f(x.as<T>(), y.as<U>()) : test<I + 1>(f, x, y);
+      return x.is<type_i_0>() and y.is<type_i_1>() ? f(x.as<type_i_0>(), y.as<type_i_1>()) : test<I + 1>(f, x, y);
     }
     else
     {

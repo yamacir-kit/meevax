@@ -55,15 +55,14 @@ inline namespace kernel
       return tag;
     }
 
-    template <auto I = 0>
+    template <auto I = 0, typename Tuple = std::tuple<exact_integer, float, double>>
     static auto input_cast(object const& x) -> T
     {
-      using types = std::tuple<exact_integer, float, double>;
-
-      if constexpr (I < std::tuple_size_v<types>)
+      if constexpr (I < std::tuple_size_v<Tuple>)
       {
-        using type = std::tuple_element_t<I, types>;
-        return x.is<type>() ? static_cast<T>(x.as<type>()) : input_cast<I + 1>(x);
+        using type_i = std::tuple_element_t<I, Tuple>;
+
+        return x.is<type_i>() ? static_cast<T>(x.as<type_i>()) : input_cast<I + 1>(x);
       }
       else
       {
