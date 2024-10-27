@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_STRING_HPP
 #define INCLUDED_MEEVAX_KERNEL_STRING_HPP
 
+#include <filesystem>
 #include <vector>
 
 #include <meevax/kernel/character.hpp>
@@ -44,6 +45,8 @@ inline namespace kernel
     using std::vector<character>::vector;
 
     explicit string(std::string const&);
+
+    operator std::filesystem::path() const;
 
     operator std::string() const;
 

@@ -34,6 +34,11 @@ inline namespace kernel
     }
   }
 
+  string::operator std::filesystem::path() const
+  {
+    return operator std::string();
+  }
+
   string::operator std::string() const
   {
     std::string result;

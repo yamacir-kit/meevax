@@ -35,7 +35,7 @@ inline namespace kernel
 
     auto import(object const&) -> void;
 
-    auto load(std::string const&) -> void;
+    auto load(std::filesystem::path const&) -> void;
   };
 
   auto operator <<(std::ostream &, environment const&) -> std::ostream &;
