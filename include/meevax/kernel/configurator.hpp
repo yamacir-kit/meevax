@@ -82,7 +82,7 @@ inline namespace kernel
 
         option("(l|load)", [this](auto read)
         {
-          static_cast<Environment &>(*this).load(read().template as<string>());
+          static_cast<Environment &>(*this).load(static_cast<std::filesystem::path>(read().template as<string>()));
         }),
 
         option("(v|version)", [](auto)

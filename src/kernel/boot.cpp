@@ -369,7 +369,7 @@ inline namespace kernel
 
       library.define<procedure>("load", [](let const& xs)
       {
-        return car(xs).as<environment>().load(cadr(xs).as<string>());
+        return car(xs).as<environment>().load(static_cast<std::filesystem::path>(cadr(xs).as<string>()));
       });
     });
 
