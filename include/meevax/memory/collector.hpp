@@ -20,6 +20,7 @@
 #include <dlfcn.h> // dlopen, dlclose, dlerror
 
 #include <memory> // std::allocator
+#include <queue>
 #include <unordered_map>
 
 #include <meevax/iostream/escape_sequence.hpp>
@@ -551,35 +552,31 @@ inline namespace memory
 
       auto marked_objects = pointer_set<top>();
 
-      for (auto&& mutator : mutators)
+      for (auto const& mutator : mutators)
       {
         assert(mutator);
         assert(mutator->get());
 
-        if (not marked_objects.contains(mutator->get()) and is_root_object(mutator))
+        if (auto object = mutator->get(); not marked_objects.contains(object) and is_root_object(mutator))
         {
-          mark(mutator->get(), marked_objects);
+          auto queue = std::queue<top const*>();
+
+          for (queue.push(object); not queue.empty(); queue.pop())
+          {
+            if (not marked_objects.contains(queue.front()))
+            {
+              marked_objects.insert(queue.front());
+
+              for (auto const& mutator : mutators_view(queue.front()->view()))
+              {
+                queue.push(mutator->get());
+              }
+            }
+          }
         }
       }
 
       return marked_objects;
-    }
-
-    static auto mark(top const* const object, pointer_set<top> & marked_objects) noexcept -> void
-    {
-      assert(object);
-
-      assert(objects.contains(object));
-
-      if (not marked_objects.contains(object))
-      {
-        marked_objects.insert(object);
-
-        for (auto each : mutators_view(object->view()))
-        {
-          mark(each->get(), marked_objects);
-        }
-      }
     }
 
     static auto sweep(pointer_set<top> && marked_objects) -> void
