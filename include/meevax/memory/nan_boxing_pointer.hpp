@@ -111,17 +111,17 @@ inline namespace memory
 
     auto operator ->() const
     {
-      return get();
+      return unsafe_get();
     }
 
     auto operator *() const -> auto const&
     {
-      return *get();
+      return *unsafe_get();
     }
 
     auto operator *() -> auto &
     {
-      return *get();
+      return *unsafe_get();
     }
 
     explicit operator bool() const noexcept
@@ -138,9 +138,7 @@ inline namespace memory
       }
       else
       {
-        return bit_cast<std::decay_t<U>>(
-                 static_cast<uintN_t<sizeof(std::decay_t<U>)>>(
-                   reinterpret_cast<std::uintptr_t>(data) & mask_payload));
+        return bit_cast<std::decay_t<U>>(static_cast<uintN_t<sizeof(std::decay_t<U>)>>(payload()));
       }
     }
 
@@ -156,13 +154,18 @@ inline namespace memory
 
     auto get() const noexcept -> pointer
     {
-      return dereferenceable() ? reinterpret_cast<pointer>(reinterpret_cast<std::uintptr_t>(data) & mask_payload) : nullptr;
+      return dereferenceable() ? unsafe_get() : nullptr;
     }
 
     template <typename U>
     auto is() const noexcept
     {
       return type() == typeid(std::decay_t<U>);
+    }
+
+    auto payload() const noexcept
+    {
+      return reinterpret_cast<std::uintptr_t>(data) & mask_payload;
     }
 
     auto signature() const noexcept
@@ -189,6 +192,11 @@ inline namespace memory
       default:
         return typeid(double);
       }
+    }
+
+    auto unsafe_get() const noexcept
+    {
+      return reinterpret_cast<pointer>(payload());
     }
 
     auto write(std::ostream & os) const -> std::ostream &

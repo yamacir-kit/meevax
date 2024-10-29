@@ -304,7 +304,7 @@ inline namespace memory
       {
         if (pointer::dereferenceable())
         {
-          return *this ? pointer::get()->compare(rhs.get()) : rhs.is<std::nullptr_t>();
+          return *this ? pointer::unsafe_get()->compare(rhs.get()) : rhs.is<std::nullptr_t>();
         }
         else
         {
@@ -329,7 +329,7 @@ inline namespace memory
       {
         if (pointer::dereferenceable())
         {
-          return *this ? pointer::get()->type() : typeid(std::nullptr_t);
+          return *this ? pointer::unsafe_get()->type() : typeid(std::nullptr_t);
         }
         else
         {
@@ -341,7 +341,7 @@ inline namespace memory
       {
         if (pointer::dereferenceable())
         {
-          return *this ? pointer::get()->write(os) : os << magenta("()");
+          return *this ? pointer::unsafe_get()->write(os) : os << magenta("()");
         }
         else
         {
@@ -356,32 +356,32 @@ inline namespace memory
 
       inline auto begin()
       {
-        return *this ? pointer::get()->begin() : typename Top::iterator();
+        return *this ? pointer::unsafe_get()->begin() : typename Top::iterator();
       }
 
       inline auto begin() const
       {
-        return *this ? pointer::get()->cbegin() : typename Top::const_iterator();
+        return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator();
       }
 
       inline auto cbegin() const
       {
-        return *this ? pointer::get()->cbegin() : typename Top::const_iterator();
+        return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator();
       }
 
       inline auto end()
       {
-        return *this ? pointer::get()->end() : typename Top::iterator();
+        return *this ? pointer::unsafe_get()->end() : typename Top::iterator();
       }
 
       inline auto end() const
       {
-        return *this ? pointer::get()->cend() : typename Top::const_iterator();
+        return *this ? pointer::unsafe_get()->cend() : typename Top::const_iterator();
       }
 
       inline auto cend() const
       {
-        return *this ? pointer::get()->cend() : typename Top::const_iterator();
+        return *this ? pointer::unsafe_get()->cend() : typename Top::const_iterator();
       }
     };
 
@@ -555,9 +555,9 @@ inline namespace memory
       for (auto const& mutator : mutators)
       {
         assert(mutator);
-        assert(mutator->get());
+        assert(mutator->unsafe_get());
 
-        if (auto object = mutator->get(); not marked_objects.contains(object) and is_root_object(mutator))
+        if (auto object = mutator->unsafe_get(); not marked_objects.contains(object) and is_root_object(mutator))
         {
           auto queue = std::queue<top const*>();
 
@@ -569,7 +569,10 @@ inline namespace memory
 
               for (auto const& mutator : mutators_view(queue.front()->view()))
               {
-                queue.push(mutator->get());
+                assert(mutator);
+                assert(mutator->unsafe_get());
+
+                queue.push(mutator->unsafe_get());
               }
             }
           }
