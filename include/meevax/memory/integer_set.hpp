@@ -222,15 +222,15 @@ inline namespace memory
     {
       constexpr auto mask = (static_cast<std::size_t>(1) << X) - 1;
 
-      auto y = x >> (Xs + ... + compressible_bitwidth_of<T>);
+      constexpr auto width = (Xs + ... + compressible_bitwidth_of<T>);
 
       if constexpr (0 < sizeof...(Xs))
       {
-        return std::tuple_cat(std::make_tuple(y & mask), split<Xs...>(x));
+        return std::tuple_cat(std::make_tuple(x >> width & mask), split<Xs...>(x));
       }
       else
       {
-        return std::make_tuple(y & mask);
+        return std::make_tuple(x >> width & mask);
       }
     }
 
@@ -246,11 +246,11 @@ inline namespace memory
       data[i]->insert(std::forward<decltype(xs)>(xs)...);
     }
 
-    auto insert(T value)
+    auto insert(T value) noexcept
     {
       return std::apply([this](auto&&... xs)
                         {
-                          insert(std::forward<decltype(xs)>(xs)...);
+                          return insert(std::forward<decltype(xs)>(xs)...);
                         },
                         split<E, Es...>(reinterpret_cast<std::uintptr_t>(value)));
     }
@@ -280,12 +280,12 @@ inline namespace memory
     }
 
     template <typename... Ts>
-    auto contains(std::size_t i, Ts&&... xs) noexcept
+    auto contains(std::size_t i, Ts&&... xs) const noexcept
     {
       return data[i] and data[i]->contains(std::forward<decltype(xs)>(xs)...);
     }
 
-    auto contains(T value) noexcept -> bool
+    auto contains(T value) const noexcept -> bool
     {
       return std::apply([this](auto&&... xs)
                         {

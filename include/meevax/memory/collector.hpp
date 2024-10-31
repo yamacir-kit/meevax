@@ -404,28 +404,6 @@ inline namespace memory
 
     static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
 
-    struct mutators_view
-    {
-      std::uintptr_t address;
-
-      std::size_t size;
-
-      constexpr mutators_view(view const& v)
-        : address { reinterpret_cast<std::uintptr_t>(v.first) }
-        , size    { v.second }
-      {}
-
-      auto begin() const noexcept
-      {
-        return mutators.lower_bound(reinterpret_cast<mutator const*>(address));
-      }
-
-      auto end() const noexcept
-      {
-        return mutators.lower_bound(reinterpret_cast<mutator const*>(address + size));
-      }
-    };
-
   public:
     collector() = delete;
 
@@ -548,6 +526,23 @@ inline namespace memory
         auto iter = objects.lower_bound(reinterpret_cast<top const*>(given));
 
         return iter == begin or not (*--iter)->contains(given);
+      };
+
+      struct mutators_view : private view
+      {
+        explicit constexpr mutators_view(view const& v)
+          : view { v }
+        {}
+
+        auto begin() const noexcept
+        {
+          return mutators.lower_bound(reinterpret_cast<mutator const*>(first));
+        }
+
+        auto end() const noexcept
+        {
+          return mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(first) + second));
+        }
       };
 
       auto marked_objects = pointer_set<top>();
