@@ -400,7 +400,7 @@ inline namespace memory
 
     static inline std::size_t allocation = 0;
 
-    static inline std::size_t threshold = 8_MiB;
+    static inline std::size_t threshold = 128_MiB;
 
     static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
 
