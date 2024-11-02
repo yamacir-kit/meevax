@@ -258,16 +258,8 @@ inline namespace memory
     template <typename... Ts>
     auto erase(std::size_t i, Ts&&... xs) noexcept
     {
-      /*
-         Somewhere there is code that tries to remove an element that was not
-         inserted, which would imply wasteful work.
-      */
-      // assert(data[i]);
-
-      if (data[i]) // TODO REMOVE THIS CHECK
-      {
-        data[i]->erase(std::forward<decltype(xs)>(xs)...);
-      }
+      assert(data[i]);
+      data[i]->erase(std::forward<decltype(xs)>(xs)...);
     }
 
     auto erase(T value) noexcept

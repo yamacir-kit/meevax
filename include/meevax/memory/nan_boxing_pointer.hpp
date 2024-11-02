@@ -74,31 +74,24 @@ inline namespace memory
 
     constexpr nan_boxing_pointer(nan_boxing_pointer const&) = default;
 
-    auto reset(nan_boxing_pointer const& value) -> void
-    {
-      data = value.data;
-    }
-
     #define DEFINE(TYPE, ...)                                                  \
     explicit nan_boxing_pointer(TYPE const& value __VA_ARGS__) noexcept        \
-      : data { reinterpret_cast<pointer>(                                      \
-                 signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value)) }  \
+      : data { reinterpret_cast<pointer>(signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value)) } \
     {}                                                                         \
                                                                                \
     auto reset(TYPE const& value __VA_ARGS__) noexcept -> void                 \
     {                                                                          \
-      data = reinterpret_cast<pointer>(                                        \
-               signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value));     \
-    } static_assert(true)
+      data = reinterpret_cast<pointer>(signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value)); \
+    }
 
-    DEFINE(double,           );
-    DEFINE(T1,               );
-    DEFINE(T2,               );
-    DEFINE(T3,               );
-    DEFINE(T4,               );
-    DEFINE(T5,               );
-    DEFINE(T6,               );
-    DEFINE(pointer, = nullptr);
+    DEFINE(double,           )
+    DEFINE(T1,               )
+    DEFINE(T2,               )
+    DEFINE(T3,               )
+    DEFINE(T4,               )
+    DEFINE(T5,               )
+    DEFINE(T6,               )
+    DEFINE(pointer, = nullptr)
 
     #undef DEFINE
 
@@ -126,7 +119,7 @@ inline namespace memory
 
     explicit operator bool() const noexcept
     {
-      return get() != nullptr;
+      return dereferenceable() ? unsafe_get() != nullptr : false;
     }
 
     template <typename U>
@@ -161,6 +154,11 @@ inline namespace memory
     auto is() const noexcept
     {
       return type() == typeid(std::decay_t<U>);
+    }
+
+    auto reset(nan_boxing_pointer const& value) -> void
+    {
+      data = value.data;
     }
 
     auto payload() const noexcept

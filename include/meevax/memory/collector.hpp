@@ -171,8 +171,7 @@ inline namespace memory
 
       auto operator delete(void * data) noexcept -> void
       {
-        using pointer = typename std::allocator_traits<allocator_type>::pointer;
-        allocator.deallocate(reinterpret_cast<pointer>(data), 1);
+        allocator.deallocate(reinterpret_cast<typename std::allocator_traits<allocator_type>::pointer>(data), 1);
       }
     };
 
@@ -188,6 +187,7 @@ inline namespace memory
       {
         if (*this)
         {
+          assert(not mutators.contains(this));
           mutators.insert(this);
         }
       }
@@ -197,6 +197,7 @@ inline namespace memory
       {
         if (top)
         {
+          assert(not mutators.contains(this));
           mutators.insert(this);
         }
       }
@@ -210,8 +211,9 @@ inline namespace memory
 
       ~mutator()
       {
-        if (not cleared)
+        if (pointer::operator bool() and not cleared)
         {
+          assert(mutators.contains(this));
           mutators.erase(this);
         }
       }
@@ -228,22 +230,38 @@ inline namespace memory
         return *this;
       }
 
-      auto reset(mutator const& other) -> void
+      auto reset(mutator const& after) -> void
       {
-        if (pointer::reset(other); other)
+        auto const before = pointer::operator bool();
+
+        pointer::reset(after);
+
+        if (before)
         {
-          mutators.insert(this);
+          if (not after)
+          {
+            assert(mutators.contains(this));
+            mutators.erase(this);
+          }
         }
-        else
+        else if (after)
         {
-          mutators.erase(this);
+          assert(not mutators.contains(this));
+          mutators.insert(this);
         }
       }
 
       auto reset(std::nullptr_t = nullptr) -> void
       {
+        auto const before = pointer::operator bool();
+
         pointer::reset();
-        mutators.erase(this);
+
+        if (before)
+        {
+          assert(mutators.contains(this));
+          mutators.erase(this);
+        }
       }
 
       template <typename U>
@@ -449,6 +467,7 @@ inline namespace memory
       for (auto&& object : objects)
       {
         delete object;
+        assert(objects.contains(object));
         objects.erase(object);
       }
     }
@@ -581,6 +600,7 @@ inline namespace memory
     {
       for (auto marked_object : marked_objects)
       {
+        assert(objects.contains(marked_object));
         objects.erase(marked_object);
       }
 
