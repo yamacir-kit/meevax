@@ -41,14 +41,14 @@ inline namespace memory
     explicit constexpr tagged_pointer(T_##TAG const& value)                    \
       : simple_pointer<T> {                                                    \
           reinterpret_cast<pointer>(                                           \
-            static_cast<std::uintptr_t>(bit_cast<uintN_t<sizeof(T_##TAG)>>(value)) << 32 | TAG) } \
+            static_cast<std::uintptr_t>(bit_cast<uint8n_t<sizeof(T_##TAG)>>(value)) << 32 | TAG) } \
     {}                                                                         \
                                                                                \
     auto operator =(T_##TAG const& value) -> auto &                            \
     {                                                                          \
       simple_pointer<T>::data                                                  \
         = reinterpret_cast<pointer>(                                           \
-            static_cast<std::uintptr_t>(bit_cast<uintN_t<sizeof(T_##TAG)>>(value)) << 32 | TAG); \
+            static_cast<std::uintptr_t>(bit_cast<uint8n_t<sizeof(T_##TAG)>>(value)) << 32 | TAG); \
       return *this;                                                            \
     }                                                                          \
                                                                                \
@@ -88,7 +88,7 @@ inline namespace memory
     auto as() const
     {
       return bit_cast<std::decay_t<U>>(
-               static_cast<uintN_t<sizeof(std::decay_t<U>)>>(
+               static_cast<uint8n_t<sizeof(std::decay_t<U>)>>(
                  reinterpret_cast<std::uintptr_t>(simple_pointer<T>::data) >> 32));
     }
 

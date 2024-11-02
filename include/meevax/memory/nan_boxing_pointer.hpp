@@ -76,12 +76,12 @@ inline namespace memory
 
     #define DEFINE(TYPE, ...)                                                  \
     explicit nan_boxing_pointer(TYPE const& value __VA_ARGS__) noexcept        \
-      : data { reinterpret_cast<pointer>(signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value)) } \
+      : data { reinterpret_cast<pointer>(signature_##TYPE | bit_cast<uint8n_t<sizeof(TYPE)>>(value)) } \
     {}                                                                         \
                                                                                \
     auto reset(TYPE const& value __VA_ARGS__) noexcept -> void                 \
     {                                                                          \
-      data = reinterpret_cast<pointer>(signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value)); \
+      data = reinterpret_cast<pointer>(signature_##TYPE | bit_cast<uint8n_t<sizeof(TYPE)>>(value)); \
     }
 
     DEFINE(double,           )
@@ -131,7 +131,7 @@ inline namespace memory
       }
       else
       {
-        return bit_cast<std::decay_t<U>>(static_cast<uintN_t<sizeof(std::decay_t<U>)>>(payload()));
+        return bit_cast<std::decay_t<U>>(static_cast<uint8n_t<sizeof(std::decay_t<U>)>>(payload()));
       }
     }
 

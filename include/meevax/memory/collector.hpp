@@ -464,7 +464,7 @@ inline namespace memory
 
     static auto clear() -> void
     {
-      for (auto&& object : objects)
+      for (auto const& object : objects)
       {
         delete object;
         assert(objects.contains(object));
