@@ -531,7 +531,7 @@ inline namespace memory
 
     static auto mark() noexcept -> pointer_set<top>
     {
-      auto is_root_object = [begin = objects.begin()](mutator const* given) // TODO INEFFICIENT!
+      auto is_root = [begin = objects.begin()](mutator const* given)
       {
         /*
            If the given mutator is a non-root object, then an object containing
@@ -564,22 +564,22 @@ inline namespace memory
         }
       };
 
-      auto marked_objects = pointer_set<top>();
+      auto reachables = pointer_set<top>();
 
       for (auto const& mutator : mutators)
       {
         assert(mutator);
         assert(mutator->unsafe_get());
 
-        if (auto object = mutator->unsafe_get(); not marked_objects.contains(object) and is_root_object(mutator))
+        if (auto object = mutator->unsafe_get(); not reachables.contains(object) and is_root(mutator))
         {
           auto queue = std::queue<top const*>();
 
           for (queue.push(object); not queue.empty(); queue.pop())
           {
-            if (not marked_objects.contains(queue.front()))
+            if (not reachables.contains(queue.front()))
             {
-              marked_objects.insert(queue.front());
+              reachables.insert(queue.front());
 
               for (auto const& mutator : mutators_view(queue.front()->view()))
               {
@@ -593,15 +593,15 @@ inline namespace memory
         }
       }
 
-      return marked_objects;
+      return reachables;
     }
 
-    static auto sweep(pointer_set<top> && marked_objects) -> void
+    static auto sweep(pointer_set<top> && reachables) -> void
     {
-      for (auto marked_object : marked_objects)
+      for (auto reachable : reachables)
       {
-        assert(objects.contains(marked_object));
-        objects.erase(marked_object);
+        assert(objects.contains(reachable));
+        objects.erase(reachable);
       }
 
       for (auto object : objects)
@@ -609,7 +609,7 @@ inline namespace memory
         delete object;
       }
 
-      objects.swap(marked_objects);
+      objects.swap(reachables);
     }
   };
 } // namespace memory
