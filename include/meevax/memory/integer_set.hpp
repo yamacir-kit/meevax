@@ -75,23 +75,14 @@ inline namespace memory
 
       constexpr const_iterator() = default;
 
-      explicit const_iterator(integer_set const* container, std::size_t i) noexcept
-        : data { container->data }
-        , max  { container->max }
-        , i    { i }
-      {
-        assert(i <= N);
-        increment_unless_truthy();
-      }
-
       template <typename... Ts>
-      explicit const_iterator(integer_set const* container, std::size_t i, std::size_t j, Ts&&... xs) noexcept
+      explicit const_iterator(integer_set const* container, std::size_t i, Ts&&... xs) noexcept
         : data { container->data }
         , max  { container->max }
         , i    { i }
       {
         assert(i <= N);
-        increment_unless_truthy(j, std::forward<decltype(xs)>(xs)...);
+        increment_unless_truthy(std::forward<decltype(xs)>(xs)...);
       }
 
       explicit const_iterator(integer_set const* container) noexcept
@@ -103,35 +94,35 @@ inline namespace memory
         assert(iter.data);
       }
 
-      auto increment_unless_truthy() noexcept -> void
+      template <typename... Ts>
+      auto increment_unless_truthy(Ts&&... xs) noexcept -> void
       {
         assert(data);
 
-        if (good())
+        if constexpr (0 < sizeof...(Ts))
         {
-          for (; i <= max; ++i)
+          if (not good() or not data[i] or not (iter = data[i]->lower_bound(std::forward<decltype(xs)>(xs)...)).good())
           {
-            if (data[i] and (iter = data[i]->lower_bound(0)).good())
+            ++i;
+            increment_unless_truthy();
+          }
+        }
+        else
+        {
+          if (good())
+          {
+            for (; i <= max; ++i)
             {
-              return;
+              if (data[i] and (iter = data[i]->lower_bound(0)).good())
+              {
+                return;
+              }
             }
+
+            i = N;
           }
 
-          i = N;
-        }
-
-        iter = {};
-      }
-
-      template <typename... Ts>
-      auto increment_unless_truthy(std::size_t j, Ts&&... xs) noexcept -> void
-      {
-        assert(data);
-
-        if (not good() or not data[i] or not (iter = data[i]->lower_bound(j, std::forward<decltype(xs)>(xs)...)).good())
-        {
-          ++i;
-          increment_unless_truthy();
+          iter = {};
         }
       }
 

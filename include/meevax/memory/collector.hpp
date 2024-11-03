@@ -409,7 +409,7 @@ inline namespace memory
        0x0000'0000'0000'0000 ~ 0x7FFF'FFFF'FFFF'FFFF
     */
     template <typename T>
-    using pointer_set = integer_set<T const*, 15, 16, 16>;
+    using pointer_set = integer_set<T const*, log2(0x7FFF), log2(0xFFFF), log2(0xFFFF)>;
 
   private:
     static inline pointer_set<top> objects {};
