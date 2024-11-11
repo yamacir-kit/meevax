@@ -24,22 +24,65 @@ namespace meevax
 {
 inline namespace type_traits
 {
-  template <auto Byte>
-  using intN_t = std::conditional_t<Byte == 1, std::int8_t,
-                 std::conditional_t<Byte == 2, std::int16_t,
-                 std::conditional_t<Byte == 4, std::int32_t,
-                 std::conditional_t<Byte == 8, std::int64_t, void>>>>;
+  template <std::size_t>
+  struct int8n;
 
-  static_assert(std::is_same_v<intN_t<1>, std::int8_t>);
-  static_assert(std::is_same_v<intN_t<2>, std::int16_t>);
-  static_assert(std::is_same_v<intN_t<4>, std::int32_t>);
-  static_assert(std::is_same_v<intN_t<8>, std::int64_t>);
+  template <>
+  struct int8n<1>
+  {
+    using type = std::int8_t;
+  };
 
-  template <auto Byte>
-  using uintN_t = std::conditional_t<Byte == 1, std::uint8_t,
-                  std::conditional_t<Byte == 2, std::uint16_t,
-                  std::conditional_t<Byte == 4, std::uint32_t,
-                  std::conditional_t<Byte == 8, std::uint64_t, void>>>>;
+  template <>
+  struct int8n<2>
+  {
+    using type = std::int16_t;
+  };
+
+  template <>
+  struct int8n<4>
+  {
+    using type = std::int32_t;
+  };
+
+  template <>
+  struct int8n<8>
+  {
+    using type = std::int64_t;
+  };
+
+  template <auto N>
+  using int8n_t = typename int8n<N>::type;
+
+  template <std::size_t>
+  struct uint8n;
+
+  template <>
+  struct uint8n<1>
+  {
+    using type = std::uint8_t;
+  };
+
+  template <>
+  struct uint8n<2>
+  {
+    using type = std::uint16_t;
+  };
+
+  template <>
+  struct uint8n<4>
+  {
+    using type = std::uint32_t;
+  };
+
+  template <>
+  struct uint8n<8>
+  {
+    using type = std::uint64_t;
+  };
+
+  template <auto N>
+  using uint8n_t = typename uint8n<N>::type;
 } // namespace type_traits
 } // namespace meevax
 

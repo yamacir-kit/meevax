@@ -75,13 +75,14 @@ inline namespace memory
 
       constexpr const_iterator() = default;
 
-      explicit const_iterator(integer_set const* container, std::size_t i, std::uintptr_t j = 0) noexcept
+      template <typename... Ts>
+      explicit const_iterator(integer_set const* container, std::size_t i, Ts&&... xs) noexcept
         : data { container->data }
         , max  { container->max }
         , i    { i }
       {
         assert(i <= N);
-        increment_unless_truthy(j);
+        increment_unless_truthy(std::forward<decltype(xs)>(xs)...);
       }
 
       explicit const_iterator(integer_set const* container) noexcept
@@ -93,28 +94,36 @@ inline namespace memory
         assert(iter.data);
       }
 
-      auto increment_unless_truthy(std::uintptr_t j = 0) noexcept -> void
+      template <typename... Ts>
+      auto increment_unless_truthy(Ts&&... xs) noexcept -> void
       {
         assert(data);
 
-        if (good())
+        if constexpr (0 < sizeof...(Ts))
         {
-          if (data[i] and (iter = data[i]->lower_bound(j)).good())
+          if (not good() or not data[i] or not (iter = data[i]->lower_bound(std::forward<decltype(xs)>(xs)...)).good())
           {
-            return;
+            ++i;
+            increment_unless_truthy();
           }
-          else for (++i; i <= max; ++i)
-          {
-            if (data[i] and (iter = data[i]->lower_bound(0)).good())
-            {
-              return;
-            }
-          }
-
-          i = N;
         }
+        else
+        {
+          if (good())
+          {
+            for (; i <= max; ++i)
+            {
+              if (data[i] and (iter = data[i]->lower_bound(0)).good())
+              {
+                return;
+              }
+            }
 
-        iter = {};
+            i = N;
+          }
+
+          iter = {};
+        }
       }
 
       auto decrement_unless_truthy() noexcept -> void
@@ -158,24 +167,24 @@ inline namespace memory
         return *this;
       }
 
-      auto operator *() const noexcept -> T
+      constexpr auto operator *() const noexcept -> T
       {
         assert(good());
         return reinterpret_cast<T>((i << (Es + ...) bitor *iter) << compressible_bitwidth_of<T>);
       }
 
-      auto good() const noexcept -> bool
+      constexpr auto good() const noexcept -> bool
       {
         assert(data);
         return i < N;
       }
 
-      auto at_end() const noexcept -> bool
+      constexpr auto at_end() const noexcept -> bool
       {
         return not data or not good() or iter.at_end();
       }
 
-      auto is_same_index(const_iterator const& other) const noexcept -> bool
+      constexpr auto is_same_index(const_iterator const& other) const noexcept -> bool
       {
         return i == other.i and iter.is_same_index(other.iter);
       }
@@ -191,31 +200,6 @@ inline namespace memory
       }
     };
 
-    static constexpr auto split(T p) noexcept
-    {
-      static_assert(E + (Es + ...) <= sizeof(T) * CHAR_BIT);
-
-      struct big_endian
-      {
-        std::uintptr_t ignore : sizeof(std::uintptr_t) * CHAR_BIT - E - (Es + ...);
-        std::uintptr_t key    : E - compressible_bitwidth_of<T>;
-        std::uintptr_t value  : (Es + ...);
-        std::uintptr_t        : compressible_bitwidth_of<T>;
-      };
-
-      struct little_endian
-      {
-        std::uintptr_t        : compressible_bitwidth_of<T>;
-        std::uintptr_t value  : (Es + ...);
-        std::uintptr_t key    : E - compressible_bitwidth_of<T>;
-        std::uintptr_t ignore : sizeof(std::uintptr_t) * CHAR_BIT - E - (Es + ...);
-      };
-
-      const auto bits = bit_cast<little_endian>(p);
-
-      return std::make_pair(bits.key, bits.value);
-    }
-
     ~integer_set()
     {
       for (auto datum : data)
@@ -224,32 +208,73 @@ inline namespace memory
       }
     }
 
-    auto insert(T value)
+    template <std::size_t X, std::size_t... Xs>
+    static constexpr auto split(std::uintptr_t x)
     {
-      if (auto [i, j] = split(value); data[i])
+      constexpr auto mask = (static_cast<std::size_t>(1) << X) - 1;
+
+      constexpr auto width = (Xs + ... + compressible_bitwidth_of<T>);
+
+      if constexpr (0 < sizeof...(Xs))
       {
-        data[i]->insert(j);
+        return std::tuple_cat(std::make_tuple(x >> width & mask), split<Xs...>(x));
       }
       else
       {
+        return std::make_tuple(x >> width & mask);
+      }
+    }
+
+    template <typename... Ts>
+    auto insert(std::size_t i, Ts&&... xs) noexcept
+    {
+      if (not data[i])
+      {
         max = std::max(max, i);
         data[i] = new subset();
-        data[i]->insert(j);
       }
+
+      data[i]->insert(std::forward<decltype(xs)>(xs)...);
+    }
+
+    auto insert(T value) noexcept
+    {
+      return std::apply([this](auto&&... xs)
+                        {
+                          return this->insert(std::forward<decltype(xs)>(xs)...);
+                        },
+                        split<E, Es...>(reinterpret_cast<std::uintptr_t>(value)));
+    }
+
+    template <typename... Ts>
+    auto erase(std::size_t i, Ts&&... xs) noexcept
+    {
+      assert(data[i]);
+      data[i]->erase(std::forward<decltype(xs)>(xs)...);
     }
 
     auto erase(T value) noexcept
     {
-      if (auto [i, j] = split(value); data[i])
-      {
-        data[i]->erase(j);
-      }
+      return std::apply([this](auto&&... xs)
+                        {
+                          return this->erase(std::forward<decltype(xs)>(xs)...);
+                        },
+                        split<E, Es...>(reinterpret_cast<std::uintptr_t>(value)));
     }
 
-    auto contains(T value) noexcept -> bool
+    template <typename... Ts>
+    constexpr auto contains(std::size_t i, Ts&&... xs) const noexcept
     {
-      auto [i, j] = split(value);
-      return data[i] and data[i]->contains(j);
+      return data[i] and data[i]->contains(std::forward<decltype(xs)>(xs)...);
+    }
+
+    constexpr auto contains(T value) const noexcept -> bool
+    {
+      return std::apply([this](auto&&... xs)
+                        {
+                          return this->contains(std::forward<decltype(xs)>(xs)...);
+                        },
+                        split<E, Es...>(reinterpret_cast<std::uintptr_t>(value)));
     }
 
     auto begin() const noexcept
@@ -262,10 +287,19 @@ inline namespace memory
       return const_iterator(this, N);
     }
 
+    template <typename... Ts>
+    auto lower_bound(std::size_t i, Ts&&... xs) const noexcept
+    {
+      return const_iterator(this, i, std::forward<decltype(xs)>(xs)...);
+    }
+
     auto lower_bound(T value) const noexcept
     {
-      auto [i, j] = split(value);
-      return const_iterator(this, i, j);
+      return std::apply([this](auto&&... xs)
+                        {
+                          return this->lower_bound(std::forward<decltype(xs)>(xs)...);
+                        },
+                        split<E, Es...>(reinterpret_cast<std::uintptr_t>(value)));
     }
 
     auto size() const noexcept -> std::size_t
@@ -386,24 +420,24 @@ inline namespace memory
         return *this;
       }
 
-      auto operator *() const noexcept
+      constexpr auto operator *() const noexcept
       {
         assert(good());
         return reinterpret_cast<T>(index);
       }
 
-      auto good() const noexcept -> bool
+      constexpr auto good() const noexcept -> bool
       {
         assert(data);
         return index < N;
       }
 
-      auto at_end() const noexcept -> bool
+      constexpr auto at_end() const noexcept -> bool
       {
         return not data or not good();
       }
 
-      auto is_same_index(const_iterator const& other) const noexcept -> bool
+      constexpr auto is_same_index(const_iterator const& other) const noexcept -> bool
       {
         return index == other.index;
       }
@@ -421,22 +455,22 @@ inline namespace memory
 
     auto insert(T value) noexcept
     {
-      auto i = reinterpret_cast<std::size_t>(value) / 64;
-      auto j = reinterpret_cast<std::size_t>(value) % 64;
+      auto i = static_cast<std::size_t>(value) >> 6;
+      auto j = static_cast<std::size_t>(value) & 0b111111;
       data[i] |= (1_u64 << j);
     }
 
     auto erase(T value) noexcept
     {
-      auto i = reinterpret_cast<std::size_t>(value) / 64;
-      auto j = reinterpret_cast<std::size_t>(value) % 64;
+      auto i = static_cast<std::size_t>(value) >> 6;
+      auto j = static_cast<std::size_t>(value) & 0b111111;
       data[i] &= ~(1_u64 << j);
     }
 
     auto contains(T value) noexcept -> bool
     {
-      auto i = reinterpret_cast<std::size_t>(value) / 64;
-      auto j = reinterpret_cast<std::size_t>(value) % 64;
+      auto i = static_cast<std::size_t>(value) >> 6;
+      auto j = static_cast<std::size_t>(value) & 0b111111;
       return data[i] & (1_u64 << j);
     }
 

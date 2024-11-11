@@ -171,8 +171,7 @@ inline namespace memory
 
       auto operator delete(void * data) noexcept -> void
       {
-        using pointer = typename std::allocator_traits<allocator_type>::pointer;
-        allocator.deallocate(reinterpret_cast<pointer>(data), 1);
+        allocator.deallocate(reinterpret_cast<typename std::allocator_traits<allocator_type>::pointer>(data), 1);
       }
     };
 
@@ -188,6 +187,7 @@ inline namespace memory
       {
         if (*this)
         {
+          assert(not mutators.contains(this));
           mutators.insert(this);
         }
       }
@@ -197,6 +197,7 @@ inline namespace memory
       {
         if (top)
         {
+          assert(not mutators.contains(this));
           mutators.insert(this);
         }
       }
@@ -210,8 +211,9 @@ inline namespace memory
 
       ~mutator()
       {
-        if (not cleared)
+        if (pointer::operator bool() and not cleared)
         {
+          assert(mutators.contains(this));
           mutators.erase(this);
         }
       }
@@ -228,22 +230,38 @@ inline namespace memory
         return *this;
       }
 
-      auto reset(mutator const& other) -> void
+      auto reset(mutator const& after) -> void
       {
-        if (pointer::reset(other); other)
+        auto const before = pointer::operator bool();
+
+        pointer::reset(after);
+
+        if (before)
         {
-          mutators.insert(this);
+          if (not after)
+          {
+            assert(mutators.contains(this));
+            mutators.erase(this);
+          }
         }
-        else
+        else if (after)
         {
-          mutators.erase(this);
+          assert(not mutators.contains(this));
+          mutators.insert(this);
         }
       }
 
       auto reset(std::nullptr_t = nullptr) -> void
       {
+        auto const before = pointer::operator bool();
+
         pointer::reset();
-        mutators.erase(this);
+
+        if (before)
+        {
+          assert(mutators.contains(this));
+          mutators.erase(this);
+        }
       }
 
       template <typename U>
@@ -391,7 +409,7 @@ inline namespace memory
        0x0000'0000'0000'0000 ~ 0x7FFF'FFFF'FFFF'FFFF
     */
     template <typename T>
-    using pointer_set = integer_set<T const*, 15, 16, 16>;
+    using pointer_set = integer_set<T const*, log2(0x7FFF), log2(0xFFFF), log2(0xFFFF)>;
 
   private:
     static inline pointer_set<top> objects {};
@@ -400,31 +418,9 @@ inline namespace memory
 
     static inline std::size_t allocation = 0;
 
-    static inline std::size_t threshold = 8_MiB;
+    static inline std::size_t threshold = 128_MiB;
 
     static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
-
-    struct mutators_view
-    {
-      std::uintptr_t address;
-
-      std::size_t size;
-
-      constexpr mutators_view(view const& v)
-        : address { reinterpret_cast<std::uintptr_t>(v.first) }
-        , size    { v.second }
-      {}
-
-      auto begin() const noexcept
-      {
-        return mutators.lower_bound(reinterpret_cast<mutator const*>(address));
-      }
-
-      auto end() const noexcept
-      {
-        return mutators.lower_bound(reinterpret_cast<mutator const*>(address + size));
-      }
-    };
 
   public:
     collector() = delete;
@@ -468,9 +464,10 @@ inline namespace memory
 
     static auto clear() -> void
     {
-      for (auto&& object : objects)
+      for (auto const& object : objects)
       {
         delete object;
+        assert(objects.contains(object));
         objects.erase(object);
       }
     }
@@ -534,7 +531,7 @@ inline namespace memory
 
     static auto mark() noexcept -> pointer_set<top>
     {
-      auto is_root_object = [begin = objects.begin()](mutator const* given) // TODO INEFFICIENT!
+      auto is_root = [begin = objects.begin()](mutator const* given)
       {
         /*
            If the given mutator is a non-root object, then an object containing
@@ -550,22 +547,39 @@ inline namespace memory
         return iter == begin or not (*--iter)->contains(given);
       };
 
-      auto marked_objects = pointer_set<top>();
+      struct mutators_view : private view
+      {
+        explicit constexpr mutators_view(view const& v)
+          : view { v }
+        {}
+
+        auto begin() const noexcept
+        {
+          return mutators.lower_bound(reinterpret_cast<mutator const*>(first));
+        }
+
+        auto end() const noexcept
+        {
+          return mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(first) + second));
+        }
+      };
+
+      auto reachables = pointer_set<top>();
 
       for (auto const& mutator : mutators)
       {
         assert(mutator);
         assert(mutator->unsafe_get());
 
-        if (auto object = mutator->unsafe_get(); not marked_objects.contains(object) and is_root_object(mutator))
+        if (auto object = mutator->unsafe_get(); not reachables.contains(object) and is_root(mutator))
         {
           auto queue = std::queue<top const*>();
 
           for (queue.push(object); not queue.empty(); queue.pop())
           {
-            if (not marked_objects.contains(queue.front()))
+            if (not reachables.contains(queue.front()))
             {
-              marked_objects.insert(queue.front());
+              reachables.insert(queue.front());
 
               for (auto const& mutator : mutators_view(queue.front()->view()))
               {
@@ -579,14 +593,15 @@ inline namespace memory
         }
       }
 
-      return marked_objects;
+      return reachables;
     }
 
-    static auto sweep(pointer_set<top> && marked_objects) -> void
+    static auto sweep(pointer_set<top> && reachables) -> void
     {
-      for (auto marked_object : marked_objects)
+      for (auto reachable : reachables)
       {
-        objects.erase(marked_object);
+        assert(objects.contains(reachable));
+        objects.erase(reachable);
       }
 
       for (auto object : objects)
@@ -594,7 +609,7 @@ inline namespace memory
         delete object;
       }
 
-      objects.swap(marked_objects);
+      objects.swap(reachables);
     }
   };
 } // namespace memory
