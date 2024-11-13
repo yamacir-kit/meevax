@@ -18,20 +18,19 @@
 #define INCLUDED_MEEVAX_MEMORY_INTEGER_SET_HPP
 
 #include <algorithm>
+#include <bit>
 #include <cassert>
 #include <climits> // CHAR_BIT
 #include <cstdint>
 #include <iterator>
 #include <limits>
 
-#include <meevax/bit/log2.hpp>
-
 namespace meevax
 {
 inline namespace memory
 {
   template <typename T>
-  constexpr auto compressible_bitwidth_of = std::is_pointer_v<T> ? log2(alignof(std::remove_pointer_t<T>)) - 1 : 0;
+  constexpr auto compressible_bitwidth_of = std::is_pointer_v<T> ? std::bit_width(alignof(std::remove_pointer_t<T>)) - 1 : 0;
 
   constexpr auto operator ""_u64(unsigned long long int value)
   {
