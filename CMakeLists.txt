@@ -36,7 +36,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   set(CMAKE_INSTALL_RPATH "@executable_path/../${CMAKE_INSTALL_LIBDIR}")
 endif()
 
-# ---- Configure ---------------------------------------------------------------
+# ---- CONFIGURE ---------------------------------------------------------------
 
 include(TestBigEndian)
 
@@ -71,7 +71,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/Doxyfile    ${CMAKE_CURRENT
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
 
-# ---- Target basis ------------------------------------------------------------
+# ---- TARGET basis ------------------------------------------------------------
 
 file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
 
@@ -98,7 +98,7 @@ set_target_properties(basis PROPERTIES
   SOVERSION   ${PROJECT_VERSION_MAJOR}
   LINK_FLAGS_RELEASE -s)
 
-# ---- Target kernel -----------------------------------------------------------
+# ---- TARGET kernel -----------------------------------------------------------
 
 add_library(kernel SHARED)
 
@@ -124,7 +124,7 @@ set_target_properties(kernel PROPERTIES
   SOVERSION   ${PROJECT_VERSION_MAJOR}
   LINK_FLAGS_RELEASE -s)
 
-# ---- Target shell ------------------------------------------------------------
+# ---- TARGET shell ------------------------------------------------------------
 
 add_executable(shell)
 
@@ -136,15 +136,13 @@ set_target_properties(shell PROPERTIES
   OUTPUT_NAME ${PROJECT_NAME} # Rename shell => meevax
   LINK_FLAGS_RELEASE -s)
 
-# ---- CMake Package -----------------------------------------------------------
+# ---- TARGET install ----------------------------------------------------------
 
 include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
   COMPATIBILITY SameMajorVersion)
-
-# ---- Target install ----------------------------------------------------------
 
 install( # /usr/lib/libmeevax
   TARGETS basis kernel
@@ -171,7 +169,7 @@ install( # /usr/share/meevax/meevax-config-version.cmake
   FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
   DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
 
-# ---- Target package ----------------------------------------------------------
+# ---- TARGET package ----------------------------------------------------------
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
@@ -183,7 +181,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   include(CPack)
 endif()
 
-# ---- Target test -------------------------------------------------------------
+# ---- TARGET test -------------------------------------------------------------
 
 enable_testing()
 
@@ -218,7 +216,7 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SH)
   add_test(NAME ${FILENAME} COMMAND ${${PROJECT_NAME}_MEMORY_CHECK} ${EACH} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax)
 endforeach()
 
-# ---- Additional Targets ------------------------------------------------------
+# ---- TARGET continuous-integration -------------------------------------------
 
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
   execute_process(COMMAND nproc OUTPUT_VARIABLE ${PROJECT_NAME}_NPROC)
