@@ -343,7 +343,7 @@ inline namespace memory
         {
           if (auto datum = data[i] & (~0_u64 << index % 64); datum)
           {
-            index = i * 64 + __builtin_ctzl(datum);
+            index = i * 64 + std::countr_zero(datum);
             assert(data[index / 64] & (1_u64 << index % 64));
             return;
           }
@@ -351,7 +351,7 @@ inline namespace memory
           {
             if (auto datum = data[i]; datum)
             {
-              index = i * 64 + __builtin_ctzl(datum);
+              index = i * 64 + std::countr_zero(datum);
               assert(data[index / 64] & (1_u64 << index % 64));
               return;
             }
@@ -369,7 +369,7 @@ inline namespace memory
         {
           if (auto datum = data[i] & (~0_u64 >> (63 - index % 64)); datum)
           {
-            index = i * 64 + (63 - __builtin_clzl(datum));
+            index = i * 64 + (63 - std::countl_zero(datum));
             assert(data[index / 64] & (1_u64 << index % 64));
             return;
           }
@@ -377,7 +377,7 @@ inline namespace memory
           {
             if (auto datum = data[i]; datum)
             {
-              index = i * 64 + (63 - __builtin_clzl(datum));
+              index = i * 64 + (63 - std::countl_zero(datum));
               assert(data[index / 64] & (1_u64 << index % 64));
               return;
             }
