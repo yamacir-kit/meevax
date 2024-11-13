@@ -30,6 +30,7 @@ inline namespace bit
                                                            std::is_trivially_copyable<To>,
                                                            std::is_trivially_copyable<From>,
                                                            std::is_trivially_constructible<To>>>>
+  [[deprecated]]
   auto bit_cast(From const& from) noexcept
   {
     To to;

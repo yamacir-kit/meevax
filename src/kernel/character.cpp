@@ -79,11 +79,5 @@ inline namespace kernel
       return os << cyan(static_cast<std::string>(datum));
     }
   }
-
-  static_assert(std::is_pod_v<character>);
-
-  static_assert(std::is_standard_layout_v<character>);
-
-  static_assert(std::is_trivial_v<character>);
 } // namespace kernel
 } // namespace meevax
