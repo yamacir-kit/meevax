@@ -39,7 +39,7 @@ inline namespace kernel
       make_symbol("${${PROJECT_NAME}_SYSTEM_NAME}"),
       make_symbol("${CMAKE_SYSTEM_PROCESSOR}"),
       make_symbol(memory::model::name()),
-      make_symbol("${${PROJECT_NAME}_BYTE_ORDER}"),
+      make_symbol(std::endian::native == std::endian::little ? "little-endian" : "big-endian"),
       make_symbol("${PROJECT_NAME}"),
       make_symbol("${PROJECT_NAME}-${PROJECT_VERSION}"));
 

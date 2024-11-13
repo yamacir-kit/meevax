@@ -38,16 +38,6 @@ endif()
 
 # ---- CONFIGURE ---------------------------------------------------------------
 
-include(TestBigEndian)
-
-TEST_BIG_ENDIAN(IS_BIG_ENDIAN) # Use CMAKE_CXX_BYTE_ORDER if CMake >= 3.20
-
-if(${IS_BIG_ENDIAN})
-  set(${PROJECT_NAME}_BYTE_ORDER "big-endian")
-else()
-  set(${PROJECT_NAME}_BYTE_ORDER "little-endian")
-endif()
-
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --digit-value OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DIGIT_VALUE)
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --downcase    OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DOWNCASE)
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --property    OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_PROPERTY)
