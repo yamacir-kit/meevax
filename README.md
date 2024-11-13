@@ -78,8 +78,8 @@ Procedures for each standard are provided by the following R7RS-style libraries:
 
 ### Requirements
 
-- [GCC](https://gcc.gnu.org/) (>= 9.4.0) or [Clang](https://clang.llvm.org/) (>= 11.0.0)
-- [CMake](https://cmake.org/) (>= 3.16.3)
+- [GCC](https://gcc.gnu.org/) (>= 11.4.0) or [Clang](https://clang.llvm.org/) (>= 14.0.0)
+- [CMake](https://cmake.org/) (>= 3.22.1)
 - [GNU Make](http://savannah.gnu.org/projects/make)
 - [GNU Binutils](https://www.gnu.org/software/binutils/)
 - [GNU Multiple Precision Arithmetic Library (GMP)](https://gmplib.org/)
@@ -90,7 +90,7 @@ Procedures for each standard are provided by the following R7RS-style libraries:
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cd build
 make package
-sudo apt install build/meevax_0.5.264_amd64.deb
+sudo apt install build/meevax_0.5.265_amd64.deb
 ```
 
 or
@@ -122,9 +122,9 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name | Description
 |-------------|-------------
-| `all`       | Build shared-library `libmeevax.0.5.264.so` and executable `meevax`
+| `all`       | Build shared-library `libmeevax.0.5.265.so` and executable `meevax`
 | `test`      | Test executable `meevax`
-| `package`   | Generate debian package `meevax_0.5.264_amd64.deb`
+| `package`   | Generate debian package `meevax_0.5.265_amd64.deb`
 | `install`   | Copy files into `/usr/local` directly
 
 ## Usage

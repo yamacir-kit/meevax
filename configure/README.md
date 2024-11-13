@@ -78,7 +78,7 @@ Procedures for each standard are provided by the following R7RS-style libraries:
 
 ### Requirements
 
-- [GCC](https://gcc.gnu.org/) (>= 9.4.0) or [Clang](https://clang.llvm.org/) (>= 11.0.0)
+- [GCC](https://gcc.gnu.org/) (>= 11.4.0) or [Clang](https://clang.llvm.org/) (>= 14.0.0)
 - [CMake](https://cmake.org/) (>= ${CMAKE_MINIMUM_REQUIRED_VERSION})
 - [GNU Make](http://savannah.gnu.org/projects/make)
 - [GNU Binutils](https://www.gnu.org/software/binutils/)

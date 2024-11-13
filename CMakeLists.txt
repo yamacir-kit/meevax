@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16.3) # Ubuntu 20.04 LTS default
+cmake_minimum_required(VERSION 3.22.1) # Ubuntu 22.04 LTS default
 
 execute_process(
   COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
