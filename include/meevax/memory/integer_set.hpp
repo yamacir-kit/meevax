@@ -24,7 +24,6 @@
 #include <iterator>
 #include <limits>
 
-#include <meevax/bit/bit_cast.hpp>
 #include <meevax/bit/log2.hpp>
 
 namespace meevax

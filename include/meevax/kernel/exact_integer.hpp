@@ -19,6 +19,8 @@
 
 #include <gmp.h>
 
+#include <cstring> // std::strlen
+
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
