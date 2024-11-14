@@ -23,9 +23,7 @@
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   template <typename T>
   struct homogeneous_vector : private std::valarray<T>
@@ -123,7 +121,6 @@ inline namespace kernel
   using f32vector = homogeneous_vector<float>;
 
   using f64vector = homogeneous_vector<double>;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_HOMOGENEOUS_VECTOR_HPP

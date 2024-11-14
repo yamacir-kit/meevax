@@ -19,9 +19,7 @@
 
 #include <meevax/kernel/textual_output_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct standard_error_port : public textual_output_port
   {
@@ -33,7 +31,6 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, standard_error_port const&) -> std::ostream &;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_STANDARD_ERROR_PORT_HPP

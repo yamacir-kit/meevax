@@ -17,9 +17,7 @@
 #include <meevax/kernel/version.hpp>
 #include <meevax/memory/model.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto help() noexcept -> std::string_view
   {
@@ -51,5 +49,4 @@ inline namespace kernel
     let static const version = make_symbol("${PROJECT_VERSION}");
     return version;
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

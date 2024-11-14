@@ -21,9 +21,7 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct complex : public virtual pair // (<real> . <imaginary>)
   {
@@ -49,7 +47,6 @@ inline namespace kernel
   auto magnitude(object const&) -> object;
 
   auto angle(object const&) -> object;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_COMPLEX_HPP

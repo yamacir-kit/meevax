@@ -17,14 +17,11 @@
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto interaction_environment() -> object const&
   {
     let static const interaction_environment = make<environment>();
     return interaction_environment;
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

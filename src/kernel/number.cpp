@@ -24,9 +24,7 @@
 #include <meevax/kernel/string.hpp>
 #include <meevax/utility/combination.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_add(n.value, a.value, b.value); return n; }
   auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_sub(n.value, a.value, b.value); return n; }
@@ -1089,5 +1087,4 @@ inline namespace number
     return apply(f, x);
   }
 } // namespace number
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

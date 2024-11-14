@@ -23,9 +23,7 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct exact_integer
   {
@@ -131,7 +129,6 @@ inline namespace kernel
   };
 
   let extern const e0, e1; // Frequently used exact-integer values.
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP

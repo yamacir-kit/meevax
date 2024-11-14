@@ -22,9 +22,7 @@
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct library : public environment
   {
@@ -76,7 +74,6 @@ inline namespace kernel
       return interaction_environment().as<environment>().define<T>(name, std::forward<decltype(xs)>(xs)...);
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP

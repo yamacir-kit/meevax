@@ -18,9 +18,7 @@
 
 #include <meevax/chrono/duration.hpp>
 
-namespace meevax
-{
-inline namespace chrono
+namespace meevax::inline chrono
 {
   auto operator <<(std::ostream & os, std::chrono::nanoseconds nanoseconds) -> std::ostream &
   {
@@ -55,5 +53,4 @@ inline namespace chrono
 
     return os;
   }
-} // namespace chrono
-} // namespace meevax
+} // namespace meevax::chrono

@@ -17,9 +17,7 @@
 #include <meevax/kernel/output_string_port.hpp>
 #include <meevax/kernel/string.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto output_string_port::close() -> void
   {}
@@ -38,5 +36,4 @@ inline namespace kernel
   {
     return output << magenta("#,(") << blue("open-output-string ") << string(datum.ostringstream.str()) << magenta(")");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

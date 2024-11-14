@@ -19,9 +19,7 @@
 
 #include <meevax/kernel/list.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct dynamic_environment
   {
@@ -83,7 +81,6 @@ inline namespace kernel
 
     auto run() -> object;
   };
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_DYNAMIC_ENVIRONMENT_HPP

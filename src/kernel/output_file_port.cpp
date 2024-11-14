@@ -16,9 +16,7 @@
 
 #include <meevax/kernel/output_file_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto output_file_port::close() -> void
   {
@@ -39,5 +37,4 @@ inline namespace kernel
   {
     return output << magenta("#,(") << blue("open-output-file ") << datum.name << magenta(")");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

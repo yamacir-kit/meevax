@@ -21,9 +21,7 @@
 #include <meevax/kernel/input_port.hpp>
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct binary_input_port : public virtual binary_port, public virtual input_port
   {
@@ -35,7 +33,6 @@ inline namespace kernel
 
     virtual auto peek() -> object = 0;
   };
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_BINARY_INPUT_PORT_HPP

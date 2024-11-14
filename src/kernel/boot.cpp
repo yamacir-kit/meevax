@@ -37,9 +37,7 @@
 
 extern char ** environ; // for procedure get-environment-variables
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto boot() -> void
   {
@@ -2339,5 +2337,4 @@ inline namespace kernel
       });
     });
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

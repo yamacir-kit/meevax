@@ -19,9 +19,7 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   inline auto eq = [](auto const& x, auto const& y) constexpr
   {
@@ -34,7 +32,6 @@ inline namespace kernel
   };
 
   auto equal(object const&, object const&) -> bool;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP

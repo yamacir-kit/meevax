@@ -22,16 +22,13 @@
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/symbol.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto help() noexcept -> std::string_view;
 
   auto features() -> object const&;
 
   auto version() -> object const&;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_VERSION_HPP

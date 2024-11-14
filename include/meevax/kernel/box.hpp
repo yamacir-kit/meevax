@@ -19,9 +19,7 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct box : public virtual pair // (value . null)
   {
@@ -29,7 +27,6 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, box const&) -> std::ostream &;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_BOX_HPP

@@ -22,9 +22,7 @@
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/textual_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct textual_output_port : public virtual textual_port, public virtual output_port
   {
@@ -40,7 +38,6 @@ inline namespace kernel
 
     explicit virtual operator std::ostream &() = 0;
   };
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_TEXTUAL_OUTPUT_PORT_HPP

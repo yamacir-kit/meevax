@@ -22,9 +22,7 @@
 
 #include <meevax/kernel/character.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct string : private std::vector<character>
   {
@@ -54,7 +52,6 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, string const&) -> std::ostream &;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_STRING_HPP

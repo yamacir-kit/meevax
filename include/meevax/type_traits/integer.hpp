@@ -20,9 +20,7 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace meevax
-{
-inline namespace type_traits
+namespace meevax::inline type_traits
 {
   template <std::size_t>
   struct int8n;
@@ -83,7 +81,6 @@ inline namespace type_traits
 
   template <auto N>
   using uint8n_t = typename uint8n<N>::type;
-} // namespace type_traits
-} // namespace meevax
+} // namespace meevax::type_traits
 
 #endif // INCLUDED_MEEVAX_TYPE_TRAITS_INTEGER_HPP

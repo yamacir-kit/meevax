@@ -21,9 +21,7 @@
 #include <meevax/kernel/textual_input_port.hpp>
 #include <meevax/kernel/vector.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   textual_input_port::iterator::iterator(textual_input_port & input)
     : input { std::addressof(input) }
@@ -692,5 +690,4 @@ inline namespace kernel
       throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

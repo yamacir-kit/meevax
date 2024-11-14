@@ -17,9 +17,7 @@
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/optimizer.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct analysis
   {
@@ -214,5 +212,4 @@ inline namespace kernel
 
     return code;
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

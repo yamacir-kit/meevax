@@ -19,9 +19,7 @@
 
 #include <meevax/kernel/list.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct heterogeneous_vector : private std::vector<object>
   {
@@ -46,7 +44,6 @@ inline namespace kernel
   using vector = heterogeneous_vector;
 
   auto make_vector(object const&) -> object; // list->vector
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_VECTOR_HPP

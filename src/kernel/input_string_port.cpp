@@ -17,9 +17,7 @@
 #include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/string.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto input_string_port::close() -> void
   {}
@@ -51,5 +49,4 @@ namespace literals
     return input_string_port(s).read();
   }
 } // namespace literals
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

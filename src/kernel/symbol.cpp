@@ -19,9 +19,7 @@
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/textual_input_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto operator +(symbol const& a, symbol const& b) -> std::string
   {
@@ -66,5 +64,4 @@ inline namespace kernel
                   make<string>(name));
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

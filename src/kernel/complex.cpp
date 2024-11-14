@@ -19,9 +19,7 @@
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   complex::complex(std::string const& token, int radix)
   {
@@ -130,5 +128,4 @@ inline namespace kernel
     return atan(real_part(x),
                 imag_part(x));
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

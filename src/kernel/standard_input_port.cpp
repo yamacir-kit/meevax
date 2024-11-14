@@ -16,9 +16,7 @@
 
 #include <meevax/kernel/standard_input_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   standard_input_port::standard_input_port()
   {
@@ -47,5 +45,4 @@ inline namespace kernel
   {
     return output << magenta("#,(") << blue("standard-input") << magenta(")");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

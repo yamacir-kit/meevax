@@ -20,9 +20,7 @@
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto boot() -> void;
 
@@ -37,7 +35,6 @@ inline namespace kernel
       }
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_BOOT_HPP
