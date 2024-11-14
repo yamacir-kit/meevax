@@ -50,11 +50,7 @@ inline namespace kernel
 
     operator std::string() const;
 
-    friend auto operator ==(string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) == static_cast<std::vector<character> const&>(rhs); }
-    friend auto operator < (string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) <  static_cast<std::vector<character> const&>(rhs); }
-    friend auto operator > (string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) >  static_cast<std::vector<character> const&>(rhs); }
-    friend auto operator <=(string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) <= static_cast<std::vector<character> const&>(rhs); }
-    friend auto operator >=(string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) >= static_cast<std::vector<character> const&>(rhs); }
+    auto operator <=>(string const&) const = default;
   };
 
   auto operator <<(std::ostream &, string const&) -> std::ostream &;

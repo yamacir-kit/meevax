@@ -33,6 +33,8 @@ inline namespace kernel
       : name { std::forward<decltype(xs)>(xs)... }
     {}
 
+    auto operator <=>(symbol const&) const = default;
+
     operator std::string() const noexcept
     {
       return name;
@@ -40,12 +42,6 @@ inline namespace kernel
   };
 
   auto operator + (symbol const&, symbol const&) -> std::string;
-  auto operator ==(symbol const&, symbol const&) -> bool;
-  auto operator !=(symbol const&, symbol const&) -> bool;
-  auto operator < (symbol const&, symbol const&) -> bool;
-  auto operator <=(symbol const&, symbol const&) -> bool;
-  auto operator > (symbol const&, symbol const&) -> bool;
-  auto operator >=(symbol const&, symbol const&) -> bool;
 
   auto operator <<(std::ostream &, symbol const&) -> std::ostream &;
 

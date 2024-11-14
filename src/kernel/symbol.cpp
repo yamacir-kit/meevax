@@ -28,13 +28,6 @@ inline namespace kernel
     return a.name + b.name;
   }
 
-  auto operator ==(symbol const& a, symbol const& b) -> bool { return a.name == b.name; }
-  auto operator !=(symbol const& a, symbol const& b) -> bool { return a.name != b.name; }
-  auto operator < (symbol const& a, symbol const& b) -> bool { return a.name <  b.name; }
-  auto operator <=(symbol const& a, symbol const& b) -> bool { return a.name <= b.name; }
-  auto operator > (symbol const& a, symbol const& b) -> bool { return a.name >  b.name; }
-  auto operator >=(symbol const& a, symbol const& b) -> bool { return a.name >= b.name; }
-
   auto operator <<(std::ostream & os, symbol const& datum) -> std::ostream &
   {
     if (datum.name.empty())
