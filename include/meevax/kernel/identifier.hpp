@@ -17,13 +17,10 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 #define INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct identifier
   {};
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP

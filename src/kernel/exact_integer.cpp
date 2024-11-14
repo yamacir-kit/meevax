@@ -20,9 +20,7 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/exact_integer.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   let const e0 = make<exact_integer>(0);
   let const e1 = make<exact_integer>(1);
@@ -102,5 +100,4 @@ inline namespace kernel
   {
     return os << cyan(std::unique_ptr<char, gmp_free>(mpz_get_str(nullptr, 10, datum.value)).get());
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

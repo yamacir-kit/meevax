@@ -17,9 +17,7 @@
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/textual_output_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto textual_output_port::flush() -> void
   {
@@ -74,5 +72,4 @@ inline namespace kernel
       os << x;
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

@@ -19,9 +19,7 @@
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/optimizer.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto environment::evaluate(object const& expression) -> object try
   {
@@ -269,5 +267,4 @@ inline namespace kernel
   template struct configurator<environment>;
 
   template struct syntactic_environment<environment>;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

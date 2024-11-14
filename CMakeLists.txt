@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16.3) # Ubuntu 20.04 LTS default
+cmake_minimum_required(VERSION 3.22.1) # Ubuntu 22.04 LTS default
 
 execute_process(
   COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
@@ -25,7 +25,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-Og -gdwarf-4") # NOTE: The `-gdwarf-4` option is set
 set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto -DNDEBUG ${${PROJECT_NAME}_RELEASE_PLUS}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-4")
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -37,16 +37,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
 endif()
 
 # ---- CONFIGURE ---------------------------------------------------------------
-
-include(TestBigEndian)
-
-TEST_BIG_ENDIAN(IS_BIG_ENDIAN) # Use CMAKE_CXX_BYTE_ORDER if CMake >= 3.20
-
-if(${IS_BIG_ENDIAN})
-  set(${PROJECT_NAME}_BYTE_ORDER "big-endian")
-else()
-  set(${PROJECT_NAME}_BYTE_ORDER "little-endian")
-endif()
 
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --digit-value OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DIGIT_VALUE)
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --downcase    OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DOWNCASE)

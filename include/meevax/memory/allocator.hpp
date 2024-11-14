@@ -22,9 +22,7 @@
 #include <type_traits>
 #include <utility> // std::exchange
 
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
 /*
    Simple Segregated Storage Allocator
@@ -123,7 +121,6 @@ public:
     free_list = reinterpret_cast<chunk *>(p);
   }
 };
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 #endif // INCLUDED_MEEVAX_MEMORY_ALLOCATOR_HPP

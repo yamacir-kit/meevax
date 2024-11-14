@@ -17,13 +17,12 @@
 #ifndef INCLUDED_MEEVAX_UTILITY_HEXDUMP
 #define INCLUDED_MEEVAX_UTILITY_HEXDUMP
 
-#include <iomanip> // std::hex,
+#include <bit> // std::endian
+#include <iomanip> // std::hex
 #include <iostream> // std::ostream
 #include <vector> // std::vector
 
-namespace meevax
-{
-inline namespace utility
+namespace meevax::inline utility
 {
   template <typename T>
   struct hexdump
@@ -37,13 +36,21 @@ inline namespace utility
         }
     {}
 
-    // TODO UPDATE WITH STD::ENDIAN (C++20)
     auto operator()(std::ostream & os) const -> std::ostream &
     {
-      for (auto iter = data.rbegin(); iter != data.rend(); ++iter) // little endian
-      // for (auto iter = data.begin(); iter != data.end(); ++iter) // big endian
+      if constexpr (std::endian::native == std::endian::little)
       {
-        os << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned int>(*iter) << " ";
+        for (auto iter = data.rbegin(); iter != data.rend(); ++iter)
+        {
+          os << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned int>(*iter) << " ";
+        }
+      }
+      else
+      {
+        for (auto iter = data.begin(); iter != data.end(); ++iter)
+        {
+          os << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned int>(*iter) << " ";
+        }
       }
 
       return os;
@@ -55,7 +62,6 @@ inline namespace utility
   {
     return hexdump(os);
   }
-} // namespace utility
-} // namespace meevax
+} // namespace meevax::utility
 
 #endif // INCLUDED_MEEVAX_UTILITY_HEXDUMP

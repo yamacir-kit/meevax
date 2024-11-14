@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.16.3) # Ubuntu 20.04 LTS default
+cmake_minimum_required(VERSION 3.22.1) # Ubuntu 22.04 LTS default
 
 project(example VERSION 0.0.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 find_package(Meevax REQUIRED) # NOTE: case-insensitive
 

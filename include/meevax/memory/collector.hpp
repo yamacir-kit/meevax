@@ -32,9 +32,7 @@
 #include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/utility/demangle.hpp>
 
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
   using view = std::pair<void const*, std::size_t>; // TODO Adapt to C++20's std::range concept
 
@@ -409,7 +407,9 @@ inline namespace memory
        0x0000'0000'0000'0000 ~ 0x7FFF'FFFF'FFFF'FFFF
     */
     template <typename T>
-    using pointer_set = integer_set<T const*, log2(0x7FFF), log2(0xFFFF), log2(0xFFFF)>;
+    using pointer_set = integer_set<T const*, std::bit_width(0x7FFFu),
+                                              std::bit_width(0xFFFFu),
+                                              std::bit_width(0xFFFFu)>;
 
   private:
     static inline pointer_set<top> objects {};
@@ -612,7 +612,6 @@ inline namespace memory
       objects.swap(reachables);
     }
   };
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 #endif // INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP

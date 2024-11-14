@@ -21,9 +21,7 @@
 
 #include <unistd.h>
 
-namespace meevax
-{
-inline namespace iostream
+namespace meevax::inline iostream
 {
   inline auto is_console = [](std::ostream & os)
   {
@@ -42,7 +40,6 @@ inline namespace iostream
       return false;
     }
   };
-} // namespace iostream
-} // namespace meevax
+} // namespace meevax::iostream
 
 #endif // INCLUDED_MEEVAX_IOSTREAM_IS_CONSOLE_HPP

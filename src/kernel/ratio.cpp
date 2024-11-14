@@ -18,9 +18,7 @@
 
 #include <meevax/kernel/number.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   ratio::ratio()
   {
@@ -105,5 +103,4 @@ inline namespace kernel
 
     return os << cyan(std::unique_ptr<char, decltype(free)>(mpq_get_str(nullptr, 10, datum.value), free).get());
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

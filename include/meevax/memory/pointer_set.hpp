@@ -27,15 +27,12 @@
 #include <type_traits>
 #include <unordered_map>
 
-#include <meevax/bit/log2.hpp>
 #include <meevax/bitset/simple_bitset.hpp>
 #include <meevax/iterator/index_iterator.hpp>
 #include <meevax/map/simple_flat_map.hpp>
 #include <meevax/memory/integer_set.hpp>
 
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
 inline namespace v1
 {
@@ -53,7 +50,7 @@ inline namespace v1
     {
       std::uintptr_t const value;
 
-      static constexpr auto width = log2(alignof(std::remove_pointer_t<Pointer>)) - 1;
+      static constexpr auto width = std::bit_width(alignof(std::remove_pointer_t<Pointer>)) - 1;
 
       constexpr compact_pointer(Pointer p)
         : value { reinterpret_cast<std::uintptr_t>(p) >> width }
@@ -296,7 +293,6 @@ namespace v2
   struct pointer_set : integer_set<Pointer, 16, 16, 16>
   {};
 } // namespace v2
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 #endif // INCLUDED_MEEVAX_MEMORY_POINTER_SET_HPP

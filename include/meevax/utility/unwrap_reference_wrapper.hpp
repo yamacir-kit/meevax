@@ -22,9 +22,7 @@
 
 #include <meevax/type_traits/is_reference_wrapper.hpp>
 
-namespace meevax
-{
-inline namespace type_traits
+namespace meevax::inline type_traits
 {
   inline auto unwrap_reference_wrapper = [](auto&& value) -> decltype(auto)
   {
@@ -37,7 +35,6 @@ inline namespace type_traits
       return std::forward<decltype(value)>(value);
     }
   };
-} // namespace type_traits
-} // namespace meevax
+} // namespace meevax::type_traits
 
 #endif // INCLUDED_MEEVAX_TYPE_TRAITS_UNWRAP_REFERENCE_WRAPPER_HPP

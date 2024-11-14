@@ -17,9 +17,7 @@
 #include <meevax/kernel/box.hpp>
 #include <meevax/kernel/list.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto find(object & b) -> object &
   {
@@ -100,5 +98,4 @@ inline namespace kernel
     auto forest = std::unordered_map<object, object>();
     return equal(x, y, forest);
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

@@ -16,9 +16,7 @@
 
 #include <meevax/kernel/eof.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   let const eof_object = make<eof>();
 
@@ -26,5 +24,4 @@ inline namespace kernel
   {
     return os << magenta("#,(") << green("eof-object") << magenta(")");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

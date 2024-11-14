@@ -20,9 +20,7 @@
 #include <meevax/kernel/comparator.hpp>
 #include <meevax/kernel/number.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct from_list_tag
   {
@@ -160,7 +158,6 @@ inline namespace kernel
   }
 
   auto longest_common_tail(let const&, let const&) -> object const&;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_LIST_HPP

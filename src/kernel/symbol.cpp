@@ -19,21 +19,12 @@
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/textual_input_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto operator +(symbol const& a, symbol const& b) -> std::string
   {
     return a.name + b.name;
   }
-
-  auto operator ==(symbol const& a, symbol const& b) -> bool { return a.name == b.name; }
-  auto operator !=(symbol const& a, symbol const& b) -> bool { return a.name != b.name; }
-  auto operator < (symbol const& a, symbol const& b) -> bool { return a.name <  b.name; }
-  auto operator <=(symbol const& a, symbol const& b) -> bool { return a.name <= b.name; }
-  auto operator > (symbol const& a, symbol const& b) -> bool { return a.name >  b.name; }
-  auto operator >=(symbol const& a, symbol const& b) -> bool { return a.name >= b.name; }
 
   auto operator <<(std::ostream & os, symbol const& datum) -> std::ostream &
   {
@@ -73,5 +64,4 @@ inline namespace kernel
                   make<string>(name));
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

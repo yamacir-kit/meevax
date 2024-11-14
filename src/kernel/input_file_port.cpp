@@ -16,9 +16,7 @@
 
 #include <meevax/kernel/input_file_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto input_file_port::close() -> void
   {
@@ -44,5 +42,4 @@ inline namespace kernel
   {
     return output << magenta("#,(") << blue("open-input-file ") << string(datum.name) << magenta(")");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

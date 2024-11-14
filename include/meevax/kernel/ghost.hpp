@@ -19,9 +19,7 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct ghost
   {
@@ -33,7 +31,6 @@ inline namespace kernel
   let extern const unspecified;
 
   let extern const undefined;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_GHOST_HPP

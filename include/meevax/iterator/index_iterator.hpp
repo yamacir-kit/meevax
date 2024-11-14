@@ -23,9 +23,7 @@
 #include <memory>
 #include <type_traits>
 
-namespace meevax
-{
-inline namespace iterator
+namespace meevax::inline iterator
 {
   template <typename T>
   struct index_iterator
@@ -111,7 +109,6 @@ inline namespace iterator
       return not (a == b);
     }
   };
-} // namespace iterator
-} // namespace meevax
+} // namespace meevax::iterator
 
 #endif // INCLUDED_MEEVAX_ITERATOR_INDEX_ITERATOR_HPP

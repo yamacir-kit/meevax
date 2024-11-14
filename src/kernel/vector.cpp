@@ -21,9 +21,7 @@
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/vector.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto operator ==(heterogeneous_vector const& v, heterogeneous_vector const& u) -> bool
   {
@@ -49,5 +47,4 @@ inline namespace kernel
   {
     return make<vector>(xs.begin(), xs.end());
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

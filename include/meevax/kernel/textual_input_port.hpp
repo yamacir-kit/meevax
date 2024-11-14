@@ -25,9 +25,7 @@
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/textual_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct textual_input_port : public virtual textual_port, public virtual input_port
   {
@@ -210,7 +208,6 @@ inline namespace kernel
                                           '|',  // 0x7C
                                           '}'); // 0x7D
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_TEXTUAL_INPUT_PORT_HPP

@@ -17,18 +17,16 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 
+#include <bit>
 #include <cstddef>
 #include <cmath>
 #include <iomanip>
 #include <ostream>
 #include <typeinfo>
 
-#include <meevax/bit/bit_cast.hpp>
 #include <meevax/type_traits/integer.hpp>
 
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
   static_assert(std::numeric_limits<double>::is_iec559 and sizeof(double) == 8);
 
@@ -76,12 +74,12 @@ inline namespace memory
 
     #define DEFINE(TYPE, ...)                                                  \
     explicit nan_boxing_pointer(TYPE const& value __VA_ARGS__) noexcept        \
-      : data { reinterpret_cast<pointer>(signature_##TYPE | bit_cast<uint8n_t<sizeof(TYPE)>>(value)) } \
+      : data { reinterpret_cast<pointer>(signature_##TYPE | std::bit_cast<uint8n_t<sizeof(TYPE)>>(value)) } \
     {}                                                                         \
                                                                                \
     auto reset(TYPE const& value __VA_ARGS__) noexcept -> void                 \
     {                                                                          \
-      data = reinterpret_cast<pointer>(signature_##TYPE | bit_cast<uint8n_t<sizeof(TYPE)>>(value)); \
+      data = reinterpret_cast<pointer>(signature_##TYPE | std::bit_cast<uint8n_t<sizeof(TYPE)>>(value)); \
     }
 
     DEFINE(double,           )
@@ -127,11 +125,11 @@ inline namespace memory
     {
       if constexpr (std::is_same_v<std::decay_t<U>, double>)
       {
-        return bit_cast<double>(data);
+        return std::bit_cast<double>(data);
       }
       else
       {
-        return bit_cast<std::decay_t<U>>(static_cast<uint8n_t<sizeof(std::decay_t<U>)>>(payload()));
+        return std::bit_cast<std::decay_t<U>>(static_cast<uint8n_t<sizeof(std::decay_t<U>)>>(payload()));
       }
     }
 
@@ -253,8 +251,7 @@ inline namespace memory
   {
     return not x.compare(y);
   }
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 template <typename... Ts>
 struct std::hash<meevax::memory::nan_boxing_pointer<Ts...>>

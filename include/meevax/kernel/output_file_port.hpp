@@ -21,9 +21,7 @@
 
 #include <meevax/kernel/textual_output_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct output_file_port : public textual_output_port
   {
@@ -45,7 +43,6 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, output_file_port const&) -> std::ostream &;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_OUTPUT_FILE_PORT_HPP

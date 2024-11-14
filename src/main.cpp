@@ -50,7 +50,7 @@ auto main(int const argc, char const* const* const argv) -> int
       {
         try
         {
-          std::cout << u8"\u03bb> " << e.evaluate(standard_input_port().read()) << std::endl;
+          std::cout << "> " << e.evaluate(standard_input_port().read()) << std::endl;
         }
         catch (error const& error)
         {

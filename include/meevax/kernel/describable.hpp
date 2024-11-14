@@ -19,9 +19,7 @@
 
 #include <meevax/kernel/symbol.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct describable
   {
@@ -32,7 +30,6 @@ inline namespace kernel
       : name { std::forward<decltype(xs)>(xs)... }
     {}
   };
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_DESCRIBABLE_HPP

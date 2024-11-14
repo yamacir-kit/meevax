@@ -16,9 +16,7 @@
 
 #include <meevax/kernel/binary_output_file_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto binary_output_file_port::close() -> void
   {
@@ -53,5 +51,4 @@ inline namespace kernel
   {
     return output << magenta("#,(") << blue("open-binary-output-file ", datum.name) << magenta(")");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

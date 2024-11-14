@@ -37,9 +37,7 @@
 
 extern char ** environ; // for procedure get-environment-variables
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto boot() -> void
   {
@@ -664,7 +662,23 @@ inline namespace kernel
 
       library.define<procedure>("append!", [](let & xs)
       {
-        return std::accumulate(xs.begin(), xs.end(), unit, [](let & x, let const& y) { return append(x, y); });
+        auto append = [](auto append, let & x, let & xs) -> auto &
+        {
+          if (xs.is<null>())
+          {
+            return x;
+          }
+          else if (x.is<null>())
+          {
+            return x = append(append, car(xs), cdr(xs));
+          }
+          else
+          {
+            return meevax::append(x, append(append, car(xs), cdr(xs)));
+          }
+        };
+
+        return not xs.is<pair>() ? xs : append(append, car(xs), cdr(xs));
       });
 
       library.define<procedure>("append-reverse", [](let const& xs)
@@ -694,7 +708,23 @@ inline namespace kernel
 
       library.define<procedure>("concatenate!", [](let & xs)
       {
-        return std::accumulate(car(xs).begin(), car(xs).end(), unit, [](let & x, let const& y) { return append(x, y); });
+        auto concatenate = [](auto concatenate, let & x, let & xs) -> auto &
+        {
+          if (xs.is<null>())
+          {
+            return x;
+          }
+          else if (x.is<null>())
+          {
+            return x = concatenate(concatenate, car(xs), cdr(xs));
+          }
+          else
+          {
+            return meevax::append(x, concatenate(concatenate, car(xs), cdr(xs)));
+          }
+        };
+
+        return not xs.is<pair>() ? xs : concatenate(concatenate, caar(xs), cdar(xs));
       });
 
       library.define<procedure>("list-copy", [](let const& xs)
@@ -2307,5 +2337,4 @@ inline namespace kernel
       });
     });
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

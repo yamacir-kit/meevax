@@ -23,9 +23,7 @@
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/homogeneous_vector.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   template <typename T>
   struct input_homogeneous_vector_port : public binary_input_port
@@ -98,7 +96,6 @@ inline namespace kernel
   }
 
   using input_u8vector_port = input_homogeneous_vector_port<std::uint8_t>;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_INPUT_HOMOGENEOUS_VECTOR_PORT_HPP

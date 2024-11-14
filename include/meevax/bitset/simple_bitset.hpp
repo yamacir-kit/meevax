@@ -20,9 +20,7 @@
 #include <array>
 #include <bitset>
 
-namespace meevax
-{
-inline namespace bitset
+namespace meevax::inline bitset
 {
   template <auto N>
   struct simple_bitset : public std::array<bool, N>
@@ -46,7 +44,6 @@ inline namespace bitset
       return (*this)[i];
     }
   };
-} // namespace bitset
-} // namespace meevax
+} // namespace meevax::bitset
 
 #endif // INCLUDED_MEEVAX_BITSET_SIMPLE_BITSET_HPP

@@ -16,13 +16,10 @@
 
 #include <meevax/kernel/procedure.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto operator <<(std::ostream & os, primitive const& datum) -> std::ostream &
   {
     return os << magenta("#,(") << green("procedure ") << datum.name << magenta(")");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

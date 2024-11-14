@@ -19,20 +19,19 @@
 
 #include <type_traits>
 
-namespace meevax
-{
-inline namespace type_traits
+namespace meevax::inline type_traits
 {
   template <typename T, typename = void>
+  [[deprecated]]
   struct is_dereferenceable
     : public std::false_type
   {};
 
   template <typename T>
+  [[deprecated]]
   struct is_dereferenceable<T, std::void_t<decltype(*std::declval<T>())>>
     : public std::true_type
   {};
-} // namespace type_traits
-} // namespace meevax
+} // namespace meevax::type_traits
 
 #endif // INCLUDED_MEEVAX_TYPE_TRAITS_IS_DEREFERENCEABLE_HPP

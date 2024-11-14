@@ -16,13 +16,10 @@
 
 #include <meevax/kernel/closure.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto operator <<(std::ostream & os, closure const& datum) -> std::ostream &
   {
     return os << magenta("#,(") << green("closure ") << faint("#;", &datum) << magenta(")");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

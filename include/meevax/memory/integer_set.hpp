@@ -18,21 +18,17 @@
 #define INCLUDED_MEEVAX_MEMORY_INTEGER_SET_HPP
 
 #include <algorithm>
+#include <bit>
 #include <cassert>
 #include <climits> // CHAR_BIT
 #include <cstdint>
 #include <iterator>
 #include <limits>
 
-#include <meevax/bit/bit_cast.hpp>
-#include <meevax/bit/log2.hpp>
-
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
   template <typename T>
-  constexpr auto compressible_bitwidth_of = std::is_pointer_v<T> ? log2(alignof(std::remove_pointer_t<T>)) - 1 : 0;
+  constexpr auto compressible_bitwidth_of = std::is_pointer_v<T> ? std::bit_width(alignof(std::remove_pointer_t<T>)) - 1 : 0;
 
   constexpr auto operator ""_u64(unsigned long long int value)
   {
@@ -345,7 +341,7 @@ inline namespace memory
         {
           if (auto datum = data[i] & (~0_u64 << index % 64); datum)
           {
-            index = i * 64 + __builtin_ctzl(datum);
+            index = i * 64 + std::countr_zero(datum);
             assert(data[index / 64] & (1_u64 << index % 64));
             return;
           }
@@ -353,7 +349,7 @@ inline namespace memory
           {
             if (auto datum = data[i]; datum)
             {
-              index = i * 64 + __builtin_ctzl(datum);
+              index = i * 64 + std::countr_zero(datum);
               assert(data[index / 64] & (1_u64 << index % 64));
               return;
             }
@@ -371,7 +367,7 @@ inline namespace memory
         {
           if (auto datum = data[i] & (~0_u64 >> (63 - index % 64)); datum)
           {
-            index = i * 64 + (63 - __builtin_clzl(datum));
+            index = i * 64 + (63 - std::countl_zero(datum));
             assert(data[index / 64] & (1_u64 << index % 64));
             return;
           }
@@ -379,7 +375,7 @@ inline namespace memory
           {
             if (auto datum = data[i]; datum)
             {
-              index = i * 64 + (63 - __builtin_clzl(datum));
+              index = i * 64 + (63 - std::countl_zero(datum));
               assert(data[index / 64] & (1_u64 << index % 64));
               return;
             }
@@ -480,7 +476,6 @@ inline namespace memory
       return const_iterator(this, reinterpret_cast<std::size_t>(value));
     }
   };
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 #endif // INCLUDED_MEEVAX_MEMORY_INTEGER_SET_HPP

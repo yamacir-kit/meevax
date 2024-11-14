@@ -24,9 +24,7 @@
 #include <meevax/kernel/include.hpp>
 #include <meevax/kernel/transformer.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   template <typename Environment>
   struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
@@ -1149,7 +1147,6 @@ inline namespace kernel
       return xs;
     }
   };
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP

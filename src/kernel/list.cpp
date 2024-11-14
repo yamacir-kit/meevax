@@ -17,9 +17,7 @@
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/list.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto make_list(std::size_t size, object const& x) -> object
   {
@@ -441,5 +439,4 @@ inline namespace kernel
       return length(x) < length(y) ? y : x;
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

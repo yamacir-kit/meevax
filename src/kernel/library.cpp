@@ -16,9 +16,7 @@
 
 #include <meevax/kernel/library.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   library::library(object const& declarations)
     : declarations { declarations }
@@ -106,5 +104,4 @@ inline namespace kernel
     static auto libraries = std::map<std::string, library>();
     return libraries;
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

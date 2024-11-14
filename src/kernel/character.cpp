@@ -19,9 +19,7 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/number.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   character::operator std::string() const
   {
@@ -79,11 +77,4 @@ inline namespace kernel
       return os << cyan(static_cast<std::string>(datum));
     }
   }
-
-  static_assert(std::is_pod_v<character>);
-
-  static_assert(std::is_standard_layout_v<character>);
-
-  static_assert(std::is_trivial_v<character>);
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

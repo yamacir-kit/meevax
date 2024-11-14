@@ -19,9 +19,7 @@
 
 #include <iostream>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   enum class instruction
   {
@@ -51,7 +49,6 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, instruction const&) -> std::ostream &;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP

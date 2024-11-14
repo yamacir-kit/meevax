@@ -19,9 +19,7 @@
 
 #include <meevax/memory/model.hpp>
 
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
   auto model::name() -> char const*
   {
@@ -50,5 +48,4 @@ inline namespace memory
       throw std::logic_error("unknown C data model");
     }
   }
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory

@@ -22,9 +22,7 @@
 #include <meevax/iostream/is_console.hpp>
 #include <meevax/utility/unwrap_reference_wrapper.hpp>
 
-namespace meevax
-{
-inline namespace iostream
+namespace meevax::inline iostream
 {
   template <typename... Ts>
   struct escape_sequence
@@ -110,7 +108,6 @@ inline namespace iostream
   }
 
   #undef DEFINE
-} // namespace iostream
-} // namespace meevax
+} // namespace meevax::iostream
 
 #endif // INCLUDED_MEEVAX_IOSTREAM_ESCAPE_SEQUENCE_HPP
