@@ -17,9 +17,7 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_MODEL_HPP
 #define INCLUDED_MEEVAX_MEMORY_MODEL_HPP
 
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
   struct model
   {
@@ -35,7 +33,6 @@ inline namespace memory
 
     static auto name() -> char const*;
   };
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 #endif // INCLUDED_MEEVAX_MEMORY_MODEL_HPP

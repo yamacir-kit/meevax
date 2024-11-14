@@ -26,9 +26,7 @@
 
 #include <meevax/type_traits/integer.hpp>
 
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
   static_assert(std::numeric_limits<double>::is_iec559 and sizeof(double) == 8);
 
@@ -253,8 +251,7 @@ inline namespace memory
   {
     return not x.compare(y);
   }
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 template <typename... Ts>
 struct std::hash<meevax::memory::nan_boxing_pointer<Ts...>>

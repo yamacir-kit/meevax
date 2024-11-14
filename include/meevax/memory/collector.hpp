@@ -32,9 +32,7 @@
 #include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/utility/demangle.hpp>
 
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
   using view = std::pair<void const*, std::size_t>; // TODO Adapt to C++20's std::range concept
 
@@ -614,7 +612,6 @@ inline namespace memory
       objects.swap(reachables);
     }
   };
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 #endif // INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP

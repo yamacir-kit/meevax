@@ -20,9 +20,7 @@
 #include <utility>
 #include <vector>
 
-namespace meevax
-{
-inline namespace map
+namespace meevax::inline map
 {
   template <typename Key, typename Value>
   struct simple_flat_map : public std::vector<std::pair<Key, Value>>
@@ -43,7 +41,6 @@ inline namespace map
       return this->emplace(std::forward<decltype(xs)>(xs)...);
     }
   };
-} // namespace map
-} // namespace meevax
+} // namespace meevax::map
 
 #endif // INCLUDED_MEEVAX_MAP_SIMPLE_FLAT_MAP_HPP

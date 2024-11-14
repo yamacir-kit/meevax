@@ -25,9 +25,7 @@
 #include <iterator>
 #include <limits>
 
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
   template <typename T>
   constexpr auto compressible_bitwidth_of = std::is_pointer_v<T> ? std::bit_width(alignof(std::remove_pointer_t<T>)) - 1 : 0;
@@ -478,7 +476,6 @@ inline namespace memory
       return const_iterator(this, reinterpret_cast<std::size_t>(value));
     }
   };
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 #endif // INCLUDED_MEEVAX_MEMORY_INTEGER_SET_HPP

@@ -23,9 +23,7 @@
 #include <meevax/memory/simple_pointer.hpp>
 #include <meevax/type_traits/integer.hpp>
 
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
   template <typename T,
             typename T_0b001 = std::integral_constant<std::uint32_t, 0b001>,
@@ -123,7 +121,6 @@ inline namespace memory
       }
     }
   };
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 #endif // INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP

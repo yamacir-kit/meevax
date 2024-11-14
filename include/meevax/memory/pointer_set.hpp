@@ -32,9 +32,7 @@
 #include <meevax/map/simple_flat_map.hpp>
 #include <meevax/memory/integer_set.hpp>
 
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
 inline namespace v1
 {
@@ -295,7 +293,6 @@ namespace v2
   struct pointer_set : integer_set<Pointer, 16, 16, 16>
   {};
 } // namespace v2
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 #endif // INCLUDED_MEEVAX_MEMORY_POINTER_SET_HPP
