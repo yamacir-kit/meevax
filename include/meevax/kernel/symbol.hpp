@@ -31,8 +31,6 @@ namespace meevax::inline kernel
       : name { std::forward<decltype(xs)>(xs)... }
     {}
 
-    auto operator <=>(symbol const&) const = default;
-
     operator std::string() const noexcept
     {
       return name;
