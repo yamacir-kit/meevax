@@ -13,7 +13,8 @@ project(meevax
 
 include(GNUInstallDirs)
 
-string(JOIN " " ${PROJECT_NAME}_RELEASE_PLUS
+string(JOIN " " ${PROJECT_NAME}_UNSTABLE_OPTIONS
+  # "-flto" # This optimization causes a problem in Apple Clang 15.0.0 where some static inline data members are no longer unique. It is unclear whether this is a code issue or a compiler issue.
   # "-fmerge-all-constants" # This optimization is very effective in reducing binary size, but non-standard to the C++ standard.
   # "-march=native" # This optimization causes "Illegal instruction" error (is Valgrind's bug) on CI.
   # "-mtune=native"
@@ -23,7 +24,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -pipe")
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -gdwarf-4") # NOTE: The `-gdwarf-4` option is set due to the following issues with Clang 14 and Valgrind versions below 3.20: https://bugzilla.mozilla.org/show_bug.cgi?id=1758782
 set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto -DNDEBUG ${${PROJECT_NAME}_RELEASE_PLUS}")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG ${${PROJECT_NAME}_UNSTABLE_OPTIONS}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-4")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

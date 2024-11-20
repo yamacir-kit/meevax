@@ -16,14 +16,7 @@
 
 #include <meevax/kernel/list.hpp>
 
-namespace meevax
-{
-inline namespace memory
-{
-  template class collector<pair, bool, std::int32_t, float, character, instruction>;
-}
-
-inline namespace kernel
+namespace meevax::inline kernel
 {
   let unit = nullptr;
 
@@ -78,5 +71,4 @@ inline namespace kernel
       return os << magenta(")");
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

@@ -23,21 +23,11 @@
 #include <meevax/memory/allocator.hpp>
 #include <meevax/memory/collector.hpp>
 
-namespace meevax
-{
-inline namespace kernel
-{
-  struct pair;
-}
-
-inline namespace memory
-{
-  extern template class collector<pair, bool, std::int32_t, float, character, instruction>;
-}
-
-inline namespace kernel
+namespace meevax::inline kernel
 {
   using null = std::nullptr_t;
+
+  struct pair;
 
   using default_collector = collector<pair, bool, std::int32_t, float, character, instruction>;
 
@@ -288,8 +278,7 @@ inline namespace kernel
 
   inline constexpr auto caddddr = compose(car, cddddr);
   inline constexpr auto cdddddr = compose(cdr, cddddr);
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 template <>
 struct std::hash<meevax::object>
