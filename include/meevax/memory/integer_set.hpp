@@ -54,7 +54,7 @@ namespace meevax::inline memory
     {
       using value_type = T;
 
-      using difference_type   = std::ptrdiff_t;
+      using difference_type = std::ptrdiff_t;
 
       using pointer = T *;
 
@@ -136,7 +136,7 @@ namespace meevax::inline memory
 
       auto operator ++() noexcept -> auto &
       {
-        if (++iter; not iter)
+        if (not ++iter)
         {
           ++i;
           increment_unless_truthy();
@@ -151,7 +151,7 @@ namespace meevax::inline memory
         {
           decrement_unless_truthy();
         }
-        else if (--iter; not iter)
+        else if (not --iter)
         {
           --i;
           decrement_unless_truthy();
@@ -318,7 +318,7 @@ namespace meevax::inline memory
     {
       using value_type = T;
 
-      using difference_type   = std::ptrdiff_t;
+      using difference_type = std::ptrdiff_t;
 
       using pointer = T *;
 

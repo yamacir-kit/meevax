@@ -160,9 +160,17 @@ install( # /usr/share/meevax/meevax-config-version.cmake
   FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
   DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
 
+# ---- TARGET uninstall --------------------------------------------------------
+
+add_custom_target(uninstall
+  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}
+  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}*
+  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
+
 # ---- TARGET package ----------------------------------------------------------
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL Linux)
   set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
   set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Tatsuya Yamasaki")
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
@@ -176,35 +184,34 @@ endif()
 
 enable_testing()
 
-if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-  find_program(${PROJECT_NAME}_MEMORY_CHECK_COMMAND valgrind)
-  set(${PROJECT_NAME}_MEMORY_CHECK ${${PROJECT_NAME}_MEMORY_CHECK_COMMAND} --error-exitcode=1 --leak-check=full --quiet --show-leak-kinds=all)
+find_program(${PROJECT_NAME}_VALGRIND valgrind)
+
+if(${PROJECT_NAME}_VALGRIND STREQUAL ${PROJECT_NAME}_VALGRIND-NOTFOUND)
+  set(${PROJECT_NAME}_TEST "")
 else()
-  set(${PROJECT_NAME}_MEMORY_CHECK "")
+  set(${PROJECT_NAME}_TEST ${${PROJECT_NAME}_VALGRIND} --error-exitcode=1 --leak-check=full --quiet --show-leak-kinds=all)
 endif()
 
-file(GLOB ${PROJECT_NAME}_TEST_SS ${CMAKE_CURRENT_SOURCE_DIR}/test/*.ss)
-
-foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SS)
-  get_filename_component(FILENAME ${EACH} NAME_WE)
-  add_test(NAME ${FILENAME} COMMAND ${${PROJECT_NAME}_MEMORY_CHECK} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax ${EACH})
-endforeach()
-
 file(GLOB ${PROJECT_NAME}_TEST_CPP ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
+file(GLOB ${PROJECT_NAME}_TEST_SH  ${CMAKE_CURRENT_SOURCE_DIR}/test/*.sh)
+file(GLOB ${PROJECT_NAME}_TEST_SS  ${CMAKE_CURRENT_SOURCE_DIR}/test/*.ss)
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_CPP)
   get_filename_component(FILENAME ${EACH} NAME_WE)
   add_executable(test_${FILENAME} ${EACH})
   target_link_libraries(test_${FILENAME} PRIVATE basis kernel)
   target_compile_options(test_${FILENAME} PUBLIC -Wno-deprecated-declarations)
-  add_test(NAME test/${FILENAME} COMMAND ${${PROJECT_NAME}_MEMORY_CHECK} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_${FILENAME})
+  add_test(NAME test/${FILENAME} COMMAND ${${PROJECT_NAME}_TEST} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_${FILENAME})
 endforeach()
-
-file(GLOB ${PROJECT_NAME}_TEST_SH ${CMAKE_CURRENT_SOURCE_DIR}/test/*.sh)
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SH)
   get_filename_component(FILENAME ${EACH} NAME_WE)
-  add_test(NAME ${FILENAME} COMMAND ${${PROJECT_NAME}_MEMORY_CHECK} ${EACH} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax)
+  add_test(NAME ${FILENAME} COMMAND ${${PROJECT_NAME}_TEST} ${EACH} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax)
+endforeach()
+
+foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SS)
+  get_filename_component(FILENAME ${EACH} NAME_WE)
+  add_test(NAME ${FILENAME} COMMAND ${${PROJECT_NAME}_TEST} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax ${EACH})
 endforeach()
 
 # ---- TARGET continuous-integration -------------------------------------------

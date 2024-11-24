@@ -15,10 +15,6 @@ library is installed as a CMake package for [easy
 linking](./example/CMakeLists.txt), and [any C++ classes can be used from
 Lisp-1 scripts](./example/example.ss) [via simple stubs](example/example.cpp).
 
-### Releases
-
-Latest release is [here](https://github.com/yamacir-kit/meevax/releases).
-
 ### Features
 
 - Traditional SECD machine [[2](#Landin-1964)].
@@ -84,48 +80,28 @@ Procedures for each standard are provided by the following R7RS-style libraries:
 - [GNU Binutils](https://www.gnu.org/software/binutils/)
 - [GNU Multiple Precision Arithmetic Library (GMP)](https://gmplib.org/)
 
-### Install
+### Releases
+
+Latest release is [here](https://github.com/yamacir-kit/meevax/releases).
+
+### Instruction
+
+First, generate a Makefile using CMake with the following command:
 
 ``` bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cd build
-make package
-sudo apt install build/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb
 ```
 
-or
+Then, select one of the following targets and `make` it according to your purpose. In most cases, `make install` will be the one you choose.
 
-``` bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cd build
-make install
-```
-
-### Uninstall
-
-If you installed with `sudo apt install`,
-
-``` bash
-sudo apt remove meevax
-```
-
-or if you installed with `make install`,
-
-``` bash
-sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}
-sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
-sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}*
-sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
-```
-
-### CMake targets
-
-| Target Name | Description
+| Target      | Description
 |-------------|-------------
-| `all`       | Build shared-library `libmeevax.${PROJECT_VERSION}.so` and executable `meevax`
-| `test`      | Test executable `meevax`
-| `package`   | Generate debian package `meevax_${PROJECT_VERSION}_amd64.deb`
-| `install`   | Copy files into `${CMAKE_INSTALL_PREFIX}` directly
+| `all`       | Build shared-library `libmeevax.${PROJECT_VERSION}.so` and executable `meevax`.
+| `install`   | Copy files into `${CMAKE_INSTALL_PREFIX}` directly.
+| `package`   | Generate debian package `meevax_${PROJECT_VERSION}_amd64.deb` (only Ubuntu). The generated package can be installed by `sudo apt install build/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb`.
+| `test`      | Test executable `meevax`. This target requires Valgrind to be installed.
+| `uninstall` | Remove files copied to `${CMAKE_INSTALL_PREFIX}` directly by target `install`.
 
 ## Usage
 
