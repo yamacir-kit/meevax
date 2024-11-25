@@ -35,7 +35,7 @@ namespace meevax::inline kernel
 
     auto real() const noexcept -> object const&;
 
-    explicit operator std::complex<double>();
+    explicit operator std::complex<double>() const;
   };
 
   auto operator <<(std::ostream &, complex const&) -> std::ostream &;

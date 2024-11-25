@@ -68,7 +68,7 @@ namespace meevax::inline kernel
     return first;
   }
 
-  complex::operator std::complex<double>()
+  complex::operator std::complex<double>() const
   {
     assert(is_real(real()));
     assert(is_real(imag()));

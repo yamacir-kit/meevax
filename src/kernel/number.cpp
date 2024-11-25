@@ -42,7 +42,7 @@ namespace meevax::inline kernel
   auto operator - (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_sub(q.value, ratio(a).value, b.value); return q; }
   auto operator * (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_mul(q.value, ratio(a).value, b.value); return q; }
   auto operator / (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_div(q.value, ratio(a).value, b.value); return q; }
-  auto operator % (exact_integer const&  , ratio const&  ) -> ratio { throw std::invalid_argument("unsupported operation"); }
+  auto operator % (exact_integer const&  , ratio const&  ) -> ratio { throw std::invalid_argument("unimplemented operation"); }
   auto operator ==(exact_integer const& a, ratio const& b) -> bool  { return 0 == mpq_cmp_z(b.value, a.value); }
   auto operator !=(exact_integer const& a, ratio const& b) -> bool  { return 0 != mpq_cmp_z(b.value, a.value); }
   auto operator < (exact_integer const& a, ratio const& b) -> bool  { return 0 <  mpq_cmp_z(b.value, a.value); }
@@ -78,19 +78,14 @@ namespace meevax::inline kernel
   auto operator - (exact_integer const& a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
   auto operator * (exact_integer const& a, complex const& b) -> complex { return complex(make(a), e0) *  b; }
   auto operator / (exact_integer const& a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
-  auto operator % (exact_integer const&  , complex const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
   auto operator ==(exact_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(exact_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
-  auto operator < (exact_integer const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator <=(exact_integer const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator > (exact_integer const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator >=(exact_integer const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
 
   auto operator + (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_add(q.value, a.value, ratio(b).value); return q; }
   auto operator - (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_sub(q.value, a.value, ratio(b).value); return q; }
   auto operator * (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_mul(q.value, a.value, ratio(b).value); return q; }
   auto operator / (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_div(q.value, a.value, ratio(b).value); return q; }
-  auto operator % (ratio const&  , exact_integer const&  ) -> ratio { throw std::invalid_argument("unsupported operation"); }
+  auto operator % (ratio const&  , exact_integer const&  ) -> ratio { throw std::invalid_argument("unimplemented operation"); }
   auto operator ==(ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) == 0; }
   auto operator !=(ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) != 0; }
   auto operator < (ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) <  0; }
@@ -102,7 +97,7 @@ namespace meevax::inline kernel
   auto operator - (ratio const& a, ratio const& b) -> ratio { ratio q; mpq_sub(q.value, a.value, b.value); return q; }
   auto operator * (ratio const& a, ratio const& b) -> ratio { ratio q; mpq_mul(q.value, a.value, b.value); return q; }
   auto operator / (ratio const& a, ratio const& b) -> ratio { ratio q; mpq_div(q.value, a.value, b.value); return q; }
-  auto operator % (ratio const&  , ratio const&  ) -> ratio { throw std::invalid_argument("unsupported operation"); }
+  auto operator % (ratio const&  , ratio const&  ) -> ratio { throw std::invalid_argument("unimplemented operation"); }
   auto operator ==(ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) == 0; }
   auto operator !=(ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) != 0; }
   auto operator < (ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) <  0; }
@@ -138,13 +133,8 @@ namespace meevax::inline kernel
   auto operator - (ratio const& a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
   auto operator * (ratio const& a, complex const& b) -> complex { return complex(make(a), e0) *  b; }
   auto operator / (ratio const& a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
-  auto operator % (ratio const&  , complex const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
   auto operator ==(ratio const& a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(ratio const& a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
-  auto operator < (ratio const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator <=(ratio const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator > (ratio const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator >=(ratio const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
 
   auto operator + (float a, exact_integer const& b) -> float { return a +  inexact_cast(b); }
   auto operator - (float a, exact_integer const& b) -> float { return a -  inexact_cast(b); }
@@ -174,13 +164,8 @@ namespace meevax::inline kernel
   auto operator - (float a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
   auto operator * (float a, complex const& b) -> complex { return complex(make(a), e0) *  b; }
   auto operator / (float a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
-  auto operator % (float  , complex const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
   auto operator ==(float a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(float a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
-  auto operator < (float  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator <=(float  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator > (float  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator >=(float  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
 
   auto operator + (double a, exact_integer const& b) -> double { return a +  inexact_cast(b); }
   auto operator - (double a, exact_integer const& b) -> double { return a -  inexact_cast(b); }
@@ -210,73 +195,43 @@ namespace meevax::inline kernel
   auto operator - (double a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
   auto operator * (double a, complex const& b) -> complex { return complex(make(a), e0) *  b; }
   auto operator / (double a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
-  auto operator % (double  , complex const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
   auto operator ==(double a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(double a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
-  auto operator < (double  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator <=(double  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator > (double  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator >=(double  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
 
   auto operator + (complex const& a, complex const& b) -> complex { return complex(a.real() + b.real(), a.imag() + b.imag()); }
   auto operator - (complex const& a, complex const& b) -> complex { return complex(a.real() - b.real(), a.imag() - b.imag()); }
   auto operator * (complex const& a, complex const& b) -> complex { return complex(a.real() * b.real() - a.imag() * b.imag(), a.imag() * b.real() + a.real() * b.imag()); }
   auto operator / (complex const& a, complex const& b) -> complex { auto x = a.real() * b.real() + a.imag() * b.imag(); auto y = a.imag() * b.real() - a.real() * b.imag(); auto d = b.real() * b.real() + b.imag() * b.imag(); return complex(x / d, y / d); }
-  auto operator % (complex const&  , complex const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
   auto operator ==(complex const& a, complex const& b) -> bool    { return equals(a.real(), b.real()) and equals(a.imag(), b.imag()); }
   auto operator !=(complex const& a, complex const& b) -> bool    { return not (a == b); }
-  auto operator < (complex const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator <=(complex const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator > (complex const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator >=(complex const&  , complex const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
 
   auto operator + (complex const& a, float b) -> complex { return a +  complex(make(b), e0); }
   auto operator - (complex const& a, float b) -> complex { return a -  complex(make(b), e0); }
   auto operator * (complex const& a, float b) -> complex { return a *  complex(make(b), e0); }
   auto operator / (complex const& a, float b) -> complex { return a /  complex(make(b), e0); }
-  auto operator % (complex const&  , float  ) -> complex { throw std::invalid_argument("unsupported operation"); }
   auto operator ==(complex const& a, float b) -> bool    { return a == complex(make(b), e0); }
   auto operator !=(complex const& a, float b) -> bool    { return a != complex(make(b), e0); }
-  auto operator < (complex const&  , float  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator <=(complex const&  , float  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator > (complex const&  , float  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator >=(complex const&  , float  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
 
   auto operator + (complex const& a, double b) -> complex { return a +  complex(make(b), e0); }
   auto operator - (complex const& a, double b) -> complex { return a -  complex(make(b), e0); }
   auto operator * (complex const& a, double b) -> complex { return a *  complex(make(b), e0); }
   auto operator / (complex const& a, double b) -> complex { return a /  complex(make(b), e0); }
-  auto operator % (complex const&  , double  ) -> complex { throw std::invalid_argument("unsupported operation"); }
   auto operator ==(complex const& a, double b) -> bool    { return a == complex(make(b), e0); }
   auto operator !=(complex const& a, double b) -> bool    { return a != complex(make(b), e0); }
-  auto operator < (complex const&  , double  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator <=(complex const&  , double  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator > (complex const&  , double  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator >=(complex const&  , double  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
 
   auto operator + (complex const& a, ratio const& b) -> complex { return a +  complex(make(b), e0); }
   auto operator - (complex const& a, ratio const& b) -> complex { return a -  complex(make(b), e0); }
   auto operator * (complex const& a, ratio const& b) -> complex { return a *  complex(make(b), e0); }
   auto operator / (complex const& a, ratio const& b) -> complex { return a /  complex(make(b), e0); }
-  auto operator % (complex const&  , ratio const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
   auto operator ==(complex const& a, ratio const& b) -> bool    { return a == complex(make(b), e0); }
   auto operator !=(complex const& a, ratio const& b) -> bool    { return a != complex(make(b), e0); }
-  auto operator < (complex const&  , ratio const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator <=(complex const&  , ratio const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator > (complex const&  , ratio const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator >=(complex const&  , ratio const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
 
   auto operator + (complex const& a, exact_integer const& b) -> complex { return a +  complex(make(b), e0); }
   auto operator - (complex const& a, exact_integer const& b) -> complex { return a -  complex(make(b), e0); }
   auto operator * (complex const& a, exact_integer const& b) -> complex { return a *  complex(make(b), e0); }
   auto operator / (complex const& a, exact_integer const& b) -> complex { return a /  complex(make(b), e0); }
-  auto operator % (complex const&  , exact_integer const&  ) -> complex { throw std::invalid_argument("unsupported operation"); }
   auto operator ==(complex const& a, exact_integer const& b) -> bool    { return a == complex(make(b), e0); }
   auto operator !=(complex const& a, exact_integer const& b) -> bool    { return a != complex(make(b), e0); }
-  auto operator < (complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator <=(complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator > (complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
-  auto operator >=(complex const&  , exact_integer const&  ) -> bool    { throw std::invalid_argument("unsupported operation"); }
 
   template <typename T>
   auto canonicalize(T&& x) -> decltype(auto)
@@ -300,14 +255,20 @@ namespace meevax::inline kernel
     }
   }
 
-  template <auto I = 0, typename F, typename Tuple = std::tuple<exact_integer, ratio, float, double, complex>>
-  auto apply([[maybe_unused]] F f, object const& x) -> object
+  using complex_number = std::tuple<exact_integer, ratio, float, double, complex>;
+
+  using complex_numbers = combination<exact_integer, ratio, float, double, complex>;
+
+  using real_numbers = combination<exact_integer, ratio, float, double>;
+
+  template <typename Tuple, auto I = 0, typename F>
+  auto apply_to([[maybe_unused]] F f, object const& x) -> object
   {
     if constexpr (I < std::tuple_size_v<Tuple>)
     {
       using type_i = std::tuple_element_t<I, Tuple>;
 
-      return x.is<type_i>() ? canonicalize(f(x.as<type_i>())) : apply<I + 1>(f, x);
+      return x.is<type_i>() ? canonicalize(f(x.as<type_i>())) : apply_to<Tuple, I + 1>(f, x);
     }
     else
     {
@@ -315,15 +276,15 @@ namespace meevax::inline kernel
     }
   }
 
-  template <auto I = 0, typename F, typename Tuple = combination<exact_integer, ratio, float, double, complex>>
-  auto apply([[maybe_unused]] F f, object const& x, object const& y) -> object
+  template <typename Tuple, auto I = 0, typename F>
+  auto apply_to([[maybe_unused]] F f, object const& x, object const& y) -> object
   {
     if constexpr (I < std::tuple_size_v<Tuple>)
     {
       using type_i_0 = std::tuple_element_t<0, std::tuple_element_t<I, Tuple>>;
       using type_i_1 = std::tuple_element_t<1, std::tuple_element_t<I, Tuple>>;
 
-      return x.is<type_i_0>() and y.is<type_i_1>() ? canonicalize(f(x.as<type_i_0>(), y.as<type_i_1>())) : apply<I + 1>(f, x, y);
+      return x.is<type_i_0>() and y.is<type_i_1>() ? canonicalize(f(x.as<type_i_0>(), y.as<type_i_1>())) : apply_to<Tuple, I + 1>(f, x, y);
     }
     else
     {
@@ -331,14 +292,14 @@ namespace meevax::inline kernel
     }
   }
 
-  template <auto I = 0, typename F, typename Tuple = std::tuple<exact_integer, ratio, float, double, complex>>
+  template <typename Tuple, auto I = 0, typename F>
   auto test([[maybe_unused]] F f, object const& x) -> bool
   {
     if constexpr (I < std::tuple_size_v<Tuple>)
     {
       using type_i = std::tuple_element_t<I, Tuple>;
 
-      return x.is<type_i>() ? f(x.as<type_i>()) : test<I + 1>(f, x);
+      return x.is<type_i>() ? f(x.as<type_i>()) : test<Tuple, I + 1>(f, x);
     }
     else
     {
@@ -346,7 +307,7 @@ namespace meevax::inline kernel
     }
   }
 
-  template <auto I = 0, typename F, typename Tuple = combination<exact_integer, ratio, float, double, complex>>
+  template <typename Tuple, auto I = 0, typename F>
   auto test([[maybe_unused]] F f, object const& x, object const& y) -> bool
   {
     if constexpr (I < std::tuple_size_v<Tuple>)
@@ -354,7 +315,7 @@ namespace meevax::inline kernel
       using type_i_0 = std::tuple_element_t<0, std::tuple_element_t<I, Tuple>>;
       using type_i_1 = std::tuple_element_t<1, std::tuple_element_t<I, Tuple>>;
 
-      return x.is<type_i_0>() and y.is<type_i_1>() ? f(x.as<type_i_0>(), y.as<type_i_1>()) : test<I + 1>(f, x, y);
+      return x.is<type_i_0>() and y.is<type_i_1>() ? f(x.as<type_i_0>(), y.as<type_i_1>()) : test<Tuple, I + 1>(f, x, y);
     }
     else
     {
@@ -364,31 +325,28 @@ namespace meevax::inline kernel
 
   auto operator +(object const& x, object const& y) -> object
   {
-    return apply(std::plus(), x, y);
+    return apply_to<complex_numbers>(std::plus(), x, y);
   }
 
   auto operator -(object const& x, object const& y) -> object
   {
-    return apply(std::minus(), x, y);
+    return apply_to<complex_numbers>(std::minus(), x, y);
   }
 
   auto operator *(object const& x, object const& y) -> object
   {
-    return apply(std::multiplies(), x, y);
+    return apply_to<complex_numbers>(std::multiplies(), x, y);
   }
 
   auto operator /(object const& x, object const& y) -> object
   {
-    return apply(std::divides(), x, y);
+    return apply_to<complex_numbers>(std::divides(), x, y);
   }
 
   auto operator % (object const& x, object const& y) -> object
   {
-    auto f = [](auto&& x, auto&& y)
+    auto f = []<typename T, typename U>(T const& x, U const& y)
     {
-      using T = std::decay_t<decltype(x)>;
-      using U = std::decay_t<decltype(y)>;
-
       if constexpr (std::is_floating_point_v<T> and
                     std::is_floating_point_v<U>)
       {
@@ -400,7 +358,7 @@ namespace meevax::inline kernel
       }
     };
 
-    return apply(f, x, y);
+    return apply_to<real_numbers>(f, x, y);
   }
 
   auto make_integer(std::string const& literal, int radix) -> object
@@ -538,7 +496,7 @@ inline namespace number
       return inexact_equals(std::forward<decltype(xs)>(xs)...);
     };
 
-    return test(f, x, y);
+    return test<complex_numbers>(f, x, y);
   }
 
   auto not_equals(object const& x, object const& y) -> bool
@@ -548,7 +506,7 @@ inline namespace number
 
   auto less_than(object const& x, object const& y) -> bool
   {
-    return test(std::less(), x, y);
+    return test<real_numbers>(std::less(), x, y);
   }
 
   auto less_than_or_equals(object const& x, object const& y) -> bool
@@ -558,7 +516,7 @@ inline namespace number
 
   auto greater_than(object const& x, object const& y) -> bool
   {
-    return test(std::greater(), x, y);
+    return test<real_numbers>(std::greater(), x, y);
   }
 
   auto greater_than_or_equals(object const& x, object const& y) -> bool
@@ -568,10 +526,8 @@ inline namespace number
 
   auto exact(object const& x) -> object
   {
-    auto f = [](auto&& x)
+    auto f = []<typename T>(T const& x)
     {
-      using T = std::decay_t<decltype(x)>;
-
       if constexpr (std::is_same_v<T, complex>)
       {
         return complex(exact(x.real()),
@@ -587,15 +543,13 @@ inline namespace number
       }
     };
 
-    return apply(f, x);
+    return apply_to<complex_number>(f, x);
   }
 
   auto inexact(object const& x) -> object
   {
-    auto f = [](auto&& x)
+    auto f = []<typename T>(T const& x)
     {
-      using T = std::decay_t<decltype(x)>;
-
       if constexpr (std::is_same_v<T, complex>)
       {
         return complex(inexact(x.real()),
@@ -607,7 +561,7 @@ inline namespace number
       }
     };
 
-    return apply(f, x);
+    return apply_to<complex_number>(f, x);
   }
 
   auto is_complex(object const& x) -> bool
@@ -617,15 +571,13 @@ inline namespace number
       return true;
     };
 
-    return test(f, x);
+    return test<complex_number>(f, x);
   }
 
   auto is_real(object const& x) -> bool
   {
-    auto f = [](auto&& x)
+    auto f = []<typename T>(T const& x)
     {
-      using T = std::decay_t<decltype(x)>;
-
       if constexpr (std::is_same_v<T, complex>)
       {
         return equals(x.imag(), e0);
@@ -636,15 +588,13 @@ inline namespace number
       }
     };
 
-    return test(f, x);
+    return test<complex_number>(f, x);
   }
 
   auto is_rational(object const& x) -> bool
   {
-    auto f = [](auto&& x)
+    auto f = []<typename T>(T const& x)
     {
-      using T = std::decay_t<decltype(x)>;
-
       if constexpr (std::is_floating_point_v<T>)
       {
         return not std::isnan(x) and
@@ -657,15 +607,13 @@ inline namespace number
       }
     };
 
-    return test(f, x);
+    return test<complex_number>(f, x);
   }
 
   auto is_integer(object const& x) -> bool
   {
-    auto f = [](auto&& x)
+    auto f = []<typename T>(T const& x)
     {
-      using T = std::decay_t<decltype(x)>;
-
       if constexpr (std::is_same_v<T, complex>)
       {
         return equals(x.imag(), e0) and is_integer(x.real());
@@ -684,15 +632,13 @@ inline namespace number
       }
     };
 
-    return test(f, x);
+    return test<complex_number>(f, x);
   }
 
   auto is_exact(object const& x) -> bool
   {
-    auto f = [](auto const& x)
+    auto f = []<typename T>(T const& x)
     {
-      using T = std::decay_t<decltype(x)>;
-
       if constexpr (std::is_same_v<T, complex>)
       {
         return is_exact(x.real()) and is_exact(x.imag());
@@ -703,7 +649,7 @@ inline namespace number
       }
     };
 
-    return test(f, x);
+    return test<complex_number>(f, x);
   }
 
   auto is_inexact(object const& x) -> bool
@@ -718,10 +664,8 @@ inline namespace number
 
   auto is_infinite(object const& x) -> bool
   {
-    auto f = [](auto&& x)
+    auto f = []<typename T>(T const& x)
     {
-      using T = std::decay_t<decltype(x)>;
-
       if constexpr (std::is_same_v<T, complex>)
       {
         return is_infinite(x.real()) or
@@ -737,15 +681,13 @@ inline namespace number
       }
     };
 
-    return test(f, x);
+    return test<complex_number>(f, x);
   }
 
   auto is_nan(object const& x) -> bool
   {
-    auto f = [](auto&& x)
+    auto f = []<typename T>(T const& x)
     {
-      using T = std::decay_t<decltype(x)>;
-
       if constexpr (std::is_same_v<T, complex>)
       {
         return is_nan(x.real()) or
@@ -761,7 +703,7 @@ inline namespace number
       }
     };
 
-    return test(f, x);
+    return test<complex_number>(f, x);
   }
 
   auto is_zero(object const& x) -> bool
@@ -816,10 +758,8 @@ inline namespace number
 
   auto abs(object const& x) -> object
   {
-    auto f = [](auto&& x)
+    auto f = []<typename T>(T const& x)
     {
-      using T = std::decay_t<decltype(x)>;
-
       if constexpr (std::is_same_v<T, exact_integer>)
       {
         exact_integer i {};
@@ -830,6 +770,10 @@ inline namespace number
       {
         return std::abs(std::forward<decltype(x)>(x));
       }
+      else if constexpr (std::is_same_v<T, complex>)
+      {
+        return sqrt(x.real() * x.real() + x.imag() * x.imag());
+      }
       else
       {
         static auto const zero = static_cast<exact_integer>(0);
@@ -837,7 +781,7 @@ inline namespace number
       }
     };
 
-    return apply(f, x);
+    return apply_to<complex_number>(f, x);
   }
 
   auto quotient(object const& x, object const& y) -> object
@@ -867,13 +811,11 @@ inline namespace number
 
   auto sqrt(object const& x) -> object
   {
-    auto f = [](auto&& x)
+    auto f = []<typename T>(T const& x)
     {
-      using T = std::decay_t<decltype(x)>;
-
       if constexpr (std::is_same_v<T, complex>)
       {
-        auto const z = std::sqrt(inexact_cast(std::forward<decltype(x)>(x)));
+        auto const z = std::sqrt(inexact_cast(x));
 
         return complex(make(z.real()),
                        make(z.imag()));
@@ -899,16 +841,13 @@ inline namespace number
       }
     };
 
-    return apply(f, x);
+    return apply_to<complex_number>(f, x);
   }
 
   auto pow(object const& x, object const& y) -> object
   {
-    auto f = [](auto&& x, auto&& y)
+    auto f = []<typename T, typename U>(T const& x, U const& y)
     {
-      using T = std::decay_t<decltype(x)>;
-      using U = std::decay_t<decltype(y)>;
-
       if constexpr (std::is_same_v<T, complex> or
                     std::is_same_v<U, complex>)
       {
@@ -932,7 +871,7 @@ inline namespace number
       }
     };
 
-    return apply(f, x, y);
+    return apply_to<complex_numbers>(f, x, y);
   }
 
   auto numerator(object const& x) -> object
@@ -974,10 +913,8 @@ inline namespace number
   #define DEFINE(ROUND)                                                        \
   auto ROUND(object const& x) -> object                                        \
   {                                                                            \
-    auto f = [](auto&& x)                                                      \
+    auto f = []<typename T>(T const& x)                                        \
     {                                                                          \
-      using T = std::decay_t<decltype(x)>;                                     \
-                                                                               \
       if constexpr (std::is_floating_point_v<T>)                               \
       {                                                                        \
         return std::ROUND(inexact_cast(std::forward<decltype(x)>(x)));         \
@@ -997,7 +934,7 @@ inline namespace number
       }                                                                        \
     };                                                                         \
                                                                                \
-    return apply(f, x);                                                        \
+    return apply_to<complex_number>(f, x);                                     \
   }                                                                            \
   static_assert(true)
 
@@ -1011,10 +948,8 @@ inline namespace number
   #define DEFINE(CMATH)                                                        \
   auto CMATH(object const& x) -> object                                        \
   {                                                                            \
-    auto f = [](auto&& x)                                                      \
+    auto f = []<typename T>(T const& x)                                        \
     {                                                                          \
-      using T = std::decay_t<decltype(x)>;                                     \
-                                                                               \
       if constexpr (std::is_same_v<T, complex>)                                \
       {                                                                        \
         auto const z = std::CMATH(inexact_cast(std::forward<decltype(x)>(x))); \
@@ -1028,7 +963,7 @@ inline namespace number
       }                                                                        \
     };                                                                         \
                                                                                \
-    return apply(f, x);                                                        \
+    return apply_to<complex_number>(f, x);                                     \
   }                                                                            \
   static_assert(true)
 
@@ -1045,31 +980,17 @@ inline namespace number
   {
     auto f = [](auto&& x, auto&& y)
     {
-      using T = std::decay_t<decltype(x)>;
-      using U = std::decay_t<decltype(y)>;
-
-      if constexpr (std::is_same_v<T, complex> or
-                    std::is_same_v<U, complex>)
-      {
-        throw std::invalid_argument("not a real number");
-        return std::numeric_limits<double>::quiet_NaN();
-      }
-      else
-      {
-        return std::atan2(inexact_cast(std::forward<decltype(x)>(x)),
-                          inexact_cast(std::forward<decltype(y)>(y)));
-      }
+      return std::atan2(inexact_cast(std::forward<decltype(x)>(x)),
+                        inexact_cast(std::forward<decltype(y)>(y)));
     };
 
-    return apply(f, x, y);
+    return apply_to<real_numbers>(f, x, y);
   }
 
   auto number_to_string(object const& x, int radix) -> object
   {
-    auto f = [radix](auto&& x)
+    auto f = [radix]<typename T>(T const& x)
     {
-      using T = std::decay_t<decltype(x)>;
-
       if constexpr (std::is_floating_point_v<T>)
       {
         return string("TODO");
@@ -1084,7 +1005,7 @@ inline namespace number
       }
     };
 
-    return apply(f, x);
+    return apply_to<complex_number>(f, x);
   }
 } // namespace number
 } // namespace meevax::kernel
