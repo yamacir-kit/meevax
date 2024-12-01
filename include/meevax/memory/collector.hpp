@@ -34,8 +34,6 @@
 
 namespace meevax::inline memory
 {
-  using view = std::pair<void const*, std::size_t>; // TODO Adapt to C++20's std::range concept
-
   struct direct_initialization_tag
   {
     explicit direct_initialization_tag() = default;
@@ -71,7 +69,7 @@ namespace meevax::inline memory
 
       virtual auto write(std::ostream &) const -> std::ostream & = 0;
 
-      virtual auto view() const noexcept -> memory::view = 0;
+      virtual auto view() const noexcept -> std::pair<void const*, std::size_t> = 0;
 
       auto contains(void const* const data) const noexcept
       {
@@ -157,7 +155,7 @@ namespace meevax::inline memory
         }
       }
 
-      auto view() const noexcept -> memory::view override
+      auto view() const noexcept -> std::pair<void const*, std::size_t> override
       {
         return { this, sizeof(*this) };
       }
@@ -547,20 +545,25 @@ namespace meevax::inline memory
         return iter == begin or not (*--iter)->contains(given);
       };
 
-      struct mutators_view : private view
+      struct mutators_view
       {
-        explicit constexpr mutators_view(view const& v)
-          : view { v }
+        void const* data;
+
+        std::size_t size;
+
+        explicit constexpr mutators_view(std::pair<void const*, std::size_t> const& p)
+          : data { p.first }
+          , size { p.second }
         {}
 
         auto begin() const noexcept
         {
-          return mutators.lower_bound(reinterpret_cast<mutator const*>(first));
+          return mutators.lower_bound(reinterpret_cast<mutator const*>(data));
         }
 
         auto end() const noexcept
         {
-          return mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(first) + second));
+          return mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(data) + size));
         }
       };
 

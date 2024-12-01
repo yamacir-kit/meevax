@@ -161,7 +161,7 @@ namespace meevax::inline kernel
 
     auto write(std::ostream &) const -> std::ostream & override;
 
-    auto view() const noexcept -> memory::view override
+    auto view() const noexcept -> std::pair<void const*, std::size_t> override
     {
       return { this, sizeof(*this) };
     }
