@@ -560,6 +560,11 @@ namespace meevax::inline kernel
         return next_after(car(xs), cadr(xs));
       });
 
+      library.define<procedure>("copy-sign", [](let const& xs)
+      {
+        return copy_sign(car(xs), cadr(xs));
+      });
+
       library.define<double>("e", std::numbers::e);
 
       library.define<double>("pi", std::numbers::pi);

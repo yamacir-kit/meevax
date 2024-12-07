@@ -404,6 +404,8 @@ inline namespace number
 
   auto next_after(object const&, object const&) -> object;
 
+  auto copy_sign(object const&, object const&) -> object;
+
   auto number_to_string(object const&, int) -> object;
 } // namespace number
 } // namespace kernel

@@ -6,6 +6,7 @@
             binary64-epsilon
             binary64-max
             binary64-min
+            copy-sign
             e
             euler
             gamma
@@ -157,5 +158,7 @@
          (define flonum inexact)
 
          (define fladjacent next-after)
+
+         (define flcopysign copy-sign)
          )
   )

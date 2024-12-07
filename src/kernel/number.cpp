@@ -987,6 +987,7 @@ inline namespace number
   }
 
   DEFINE_REAL_BINARY(atan, std::atan2)
+  DEFINE_REAL_BINARY(copy_sign, std::copysign)
   DEFINE_REAL_BINARY(next_after, std::nextafter)
 
   auto number_to_string(object const& x, int radix) -> object
