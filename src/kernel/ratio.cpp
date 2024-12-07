@@ -89,7 +89,12 @@ namespace meevax::inline kernel
 
   ratio::operator int() const
   {
-    return cmath_cast<int>(mpq_get_d(value));
+    return mpq_get_d(value);
+  }
+
+  ratio::operator float() const
+  {
+    return mpq_get_d(value);
   }
 
   ratio::operator double() const

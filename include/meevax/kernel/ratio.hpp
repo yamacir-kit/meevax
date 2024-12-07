@@ -48,6 +48,8 @@ namespace meevax::inline kernel
 
     explicit operator int() const;
 
+    explicit operator float() const;
+
     explicit operator double() const;
   };
 

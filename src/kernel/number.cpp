@@ -50,23 +50,23 @@ namespace meevax::inline kernel
   auto operator > (exact_integer const& a, ratio const& b) -> bool  { return 0 >  mpq_cmp_z(b.value, a.value); }
   auto operator >=(exact_integer const& a, ratio const& b) -> bool  { return 0 >= mpq_cmp_z(b.value, a.value); }
 
-  auto operator + (exact_integer const& a, float b) -> float { return inexact_cast(a) +  b; }
-  auto operator - (exact_integer const& a, float b) -> float { return inexact_cast(a) -  b; }
-  auto operator * (exact_integer const& a, float b) -> float { return inexact_cast(a) *  b; }
-  auto operator / (exact_integer const& a, float b) -> float { return inexact_cast(a) /  b; }
-  auto operator % (exact_integer const& a, float b) -> float { return std::remainder(inexact_cast(a), b); }
-  auto operator ==(exact_integer const& a, float b) -> bool  { return inexact_equals(inexact_cast(a), b); }
+  auto operator + (exact_integer const& a, float b) -> float { return static_cast<float>(a) +  b; }
+  auto operator - (exact_integer const& a, float b) -> float { return static_cast<float>(a) -  b; }
+  auto operator * (exact_integer const& a, float b) -> float { return static_cast<float>(a) *  b; }
+  auto operator / (exact_integer const& a, float b) -> float { return static_cast<float>(a) /  b; }
+  auto operator % (exact_integer const& a, float b) -> float { return std::remainder(static_cast<float>(a), b); }
+  auto operator ==(exact_integer const& a, float b) -> bool  { return inexact_equals(static_cast<float>(a), b); }
   auto operator !=(exact_integer const& a, float b) -> bool  { return not (a == b); }
-  auto operator < (exact_integer const& a, float b) -> bool  { return inexact_cast(a) <  b; }
-  auto operator <=(exact_integer const& a, float b) -> bool  { return inexact_cast(a) <= b; }
-  auto operator > (exact_integer const& a, float b) -> bool  { return inexact_cast(a) >  b; }
-  auto operator >=(exact_integer const& a, float b) -> bool  { return inexact_cast(a) >= b; }
+  auto operator < (exact_integer const& a, float b) -> bool  { return static_cast<float>(a) <  b; }
+  auto operator <=(exact_integer const& a, float b) -> bool  { return static_cast<float>(a) <= b; }
+  auto operator > (exact_integer const& a, float b) -> bool  { return static_cast<float>(a) >  b; }
+  auto operator >=(exact_integer const& a, float b) -> bool  { return static_cast<float>(a) >= b; }
 
-  auto operator + (exact_integer const& a, double b) -> double { return inexact_cast(a) +  b; }
-  auto operator - (exact_integer const& a, double b) -> double { return inexact_cast(a) -  b; }
-  auto operator * (exact_integer const& a, double b) -> double { return inexact_cast(a) *  b; }
-  auto operator / (exact_integer const& a, double b) -> double { return inexact_cast(a) /  b; }
-  auto operator % (exact_integer const& a, double b) -> double { return std::remainder(inexact_cast(a), b); }
+  auto operator + (exact_integer const& a, double b) -> double { return static_cast<double>(a) +  b; }
+  auto operator - (exact_integer const& a, double b) -> double { return static_cast<double>(a) -  b; }
+  auto operator * (exact_integer const& a, double b) -> double { return static_cast<double>(a) *  b; }
+  auto operator / (exact_integer const& a, double b) -> double { return static_cast<double>(a) /  b; }
+  auto operator % (exact_integer const& a, double b) -> double { return std::remainder(static_cast<double>(a), b); }
   auto operator ==(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) == 0; }
   auto operator !=(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) != 0; }
   auto operator < (exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) <  0; }
@@ -105,29 +105,29 @@ namespace meevax::inline kernel
   auto operator > (ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) >  0; }
   auto operator >=(ratio const& a, ratio const& b) -> bool  { return mpq_cmp(a.value, b.value) >= 0; }
 
-  auto operator + (ratio const& a, float b) -> float { return inexact_cast(a) +  b; }
-  auto operator - (ratio const& a, float b) -> float { return inexact_cast(a) -  b; }
-  auto operator * (ratio const& a, float b) -> float { return inexact_cast(a) *  b; }
-  auto operator / (ratio const& a, float b) -> float { return inexact_cast(a) /  b; }
-  auto operator % (ratio const& a, float b) -> float { return std::remainder(inexact_cast(a), b); }
-  auto operator ==(ratio const& a, float b) -> bool  { return inexact_equals(inexact_cast(a), b); }
+  auto operator + (ratio const& a, float b) -> float { return static_cast<float>(a) +  b; }
+  auto operator - (ratio const& a, float b) -> float { return static_cast<float>(a) -  b; }
+  auto operator * (ratio const& a, float b) -> float { return static_cast<float>(a) *  b; }
+  auto operator / (ratio const& a, float b) -> float { return static_cast<float>(a) /  b; }
+  auto operator % (ratio const& a, float b) -> float { return std::remainder(static_cast<float>(a), b); }
+  auto operator ==(ratio const& a, float b) -> bool  { return inexact_equals(static_cast<float>(a), b); }
   auto operator !=(ratio const& a, float b) -> bool  { return not (a == b); }
-  auto operator < (ratio const& a, float b) -> bool  { return inexact_cast(a) <  b; }
-  auto operator <=(ratio const& a, float b) -> bool  { return inexact_cast(a) <= b; }
-  auto operator > (ratio const& a, float b) -> bool  { return inexact_cast(a) >  b; }
-  auto operator >=(ratio const& a, float b) -> bool  { return inexact_cast(a) >= b; }
+  auto operator < (ratio const& a, float b) -> bool  { return static_cast<float>(a) <  b; }
+  auto operator <=(ratio const& a, float b) -> bool  { return static_cast<float>(a) <= b; }
+  auto operator > (ratio const& a, float b) -> bool  { return static_cast<float>(a) >  b; }
+  auto operator >=(ratio const& a, float b) -> bool  { return static_cast<float>(a) >= b; }
 
-  auto operator + (ratio const& a, double b) -> double { return inexact_cast(a) +  b; }
-  auto operator - (ratio const& a, double b) -> double { return inexact_cast(a) -  b; }
-  auto operator * (ratio const& a, double b) -> double { return inexact_cast(a) *  b; }
-  auto operator / (ratio const& a, double b) -> double { return inexact_cast(a) /  b; }
-  auto operator % (ratio const& a, double b) -> double { return std::remainder(inexact_cast(a), b); }
-  auto operator ==(ratio const& a, double b) -> bool   { return inexact_equals(inexact_cast(a), b); }
+  auto operator + (ratio const& a, double b) -> double { return static_cast<double>(a) +  b; }
+  auto operator - (ratio const& a, double b) -> double { return static_cast<double>(a) -  b; }
+  auto operator * (ratio const& a, double b) -> double { return static_cast<double>(a) *  b; }
+  auto operator / (ratio const& a, double b) -> double { return static_cast<double>(a) /  b; }
+  auto operator % (ratio const& a, double b) -> double { return std::remainder(static_cast<double>(a), b); }
+  auto operator ==(ratio const& a, double b) -> bool   { return inexact_equals(static_cast<double>(a), b); }
   auto operator !=(ratio const& a, double b) -> bool   { return not (a == b); }
-  auto operator < (ratio const& a, double b) -> bool   { return inexact_cast(a) <  b; }
-  auto operator <=(ratio const& a, double b) -> bool   { return inexact_cast(a) <= b; }
-  auto operator > (ratio const& a, double b) -> bool   { return inexact_cast(a) >  b; }
-  auto operator >=(ratio const& a, double b) -> bool   { return inexact_cast(a) >= b; }
+  auto operator < (ratio const& a, double b) -> bool   { return static_cast<double>(a) <  b; }
+  auto operator <=(ratio const& a, double b) -> bool   { return static_cast<double>(a) <= b; }
+  auto operator > (ratio const& a, double b) -> bool   { return static_cast<double>(a) >  b; }
+  auto operator >=(ratio const& a, double b) -> bool   { return static_cast<double>(a) >= b; }
 
   auto operator + (ratio const& a, complex const& b) -> complex { return complex(make(a), e0) +  b; }
   auto operator - (ratio const& a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
@@ -136,29 +136,29 @@ namespace meevax::inline kernel
   auto operator ==(ratio const& a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(ratio const& a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
 
-  auto operator + (float a, exact_integer const& b) -> float { return a +  inexact_cast(b); }
-  auto operator - (float a, exact_integer const& b) -> float { return a -  inexact_cast(b); }
-  auto operator * (float a, exact_integer const& b) -> float { return a *  inexact_cast(b); }
-  auto operator / (float a, exact_integer const& b) -> float { return a /  inexact_cast(b); }
-  auto operator % (float a, exact_integer const& b) -> float { return std::remainder(a, inexact_cast(b)); }
-  auto operator ==(float a, exact_integer const& b) -> bool  { return inexact_equals(a, inexact_cast(b)); }
+  auto operator + (float a, exact_integer const& b) -> float { return a +  static_cast<float>(b); }
+  auto operator - (float a, exact_integer const& b) -> float { return a -  static_cast<float>(b); }
+  auto operator * (float a, exact_integer const& b) -> float { return a *  static_cast<float>(b); }
+  auto operator / (float a, exact_integer const& b) -> float { return a /  static_cast<float>(b); }
+  auto operator % (float a, exact_integer const& b) -> float { return std::remainder(a, static_cast<float>(b)); }
+  auto operator ==(float a, exact_integer const& b) -> bool  { return inexact_equals(a, static_cast<float>(b)); }
   auto operator !=(float a, exact_integer const& b) -> bool  { return not (a == b); }
-  auto operator < (float a, exact_integer const& b) -> bool  { return a <  inexact_cast(b); }
-  auto operator <=(float a, exact_integer const& b) -> bool  { return a <= inexact_cast(b); }
-  auto operator > (float a, exact_integer const& b) -> bool  { return a >  inexact_cast(b); }
-  auto operator >=(float a, exact_integer const& b) -> bool  { return a >= inexact_cast(b); }
+  auto operator < (float a, exact_integer const& b) -> bool  { return a <  static_cast<float>(b); }
+  auto operator <=(float a, exact_integer const& b) -> bool  { return a <= static_cast<float>(b); }
+  auto operator > (float a, exact_integer const& b) -> bool  { return a >  static_cast<float>(b); }
+  auto operator >=(float a, exact_integer const& b) -> bool  { return a >= static_cast<float>(b); }
 
-  auto operator + (float a, ratio const& b) -> float { return a +  inexact_cast(b); }
-  auto operator - (float a, ratio const& b) -> float { return a -  inexact_cast(b); }
-  auto operator * (float a, ratio const& b) -> float { return a *  inexact_cast(b); }
-  auto operator / (float a, ratio const& b) -> float { return a /  inexact_cast(b); }
-  auto operator % (float a, ratio const& b) -> float { return std::remainder(a, inexact_cast(b)); }
-  auto operator ==(float a, ratio const& b) -> bool  { return inexact_equals(a, inexact_cast(b)); }
+  auto operator + (float a, ratio const& b) -> float { return a +  static_cast<float>(b); }
+  auto operator - (float a, ratio const& b) -> float { return a -  static_cast<float>(b); }
+  auto operator * (float a, ratio const& b) -> float { return a *  static_cast<float>(b); }
+  auto operator / (float a, ratio const& b) -> float { return a /  static_cast<float>(b); }
+  auto operator % (float a, ratio const& b) -> float { return std::remainder(a, static_cast<float>(b)); }
+  auto operator ==(float a, ratio const& b) -> bool  { return inexact_equals(a, static_cast<float>(b)); }
   auto operator !=(float a, ratio const& b) -> bool  { return not (a == b); }
-  auto operator < (float a, ratio const& b) -> bool  { return a <  inexact_cast(b); }
-  auto operator <=(float a, ratio const& b) -> bool  { return a <= inexact_cast(b); }
-  auto operator > (float a, ratio const& b) -> bool  { return a >  inexact_cast(b); }
-  auto operator >=(float a, ratio const& b) -> bool  { return a >= inexact_cast(b); }
+  auto operator < (float a, ratio const& b) -> bool  { return a <  static_cast<float>(b); }
+  auto operator <=(float a, ratio const& b) -> bool  { return a <= static_cast<float>(b); }
+  auto operator > (float a, ratio const& b) -> bool  { return a >  static_cast<float>(b); }
+  auto operator >=(float a, ratio const& b) -> bool  { return a >= static_cast<float>(b); }
 
   auto operator + (float a, complex const& b) -> complex { return complex(make(a), e0) +  b; }
   auto operator - (float a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
@@ -167,11 +167,11 @@ namespace meevax::inline kernel
   auto operator ==(float a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(float a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
 
-  auto operator + (double a, exact_integer const& b) -> double { return a +  inexact_cast(b); }
-  auto operator - (double a, exact_integer const& b) -> double { return a -  inexact_cast(b); }
-  auto operator * (double a, exact_integer const& b) -> double { return a *  inexact_cast(b); }
-  auto operator / (double a, exact_integer const& b) -> double { return a /  inexact_cast(b); }
-  auto operator % (double a, exact_integer const& b) -> double { return std::remainder(a, inexact_cast(b)); }
+  auto operator + (double a, exact_integer const& b) -> double { return a + static_cast<double>(b); }
+  auto operator - (double a, exact_integer const& b) -> double { return a - static_cast<double>(b); }
+  auto operator * (double a, exact_integer const& b) -> double { return a * static_cast<double>(b); }
+  auto operator / (double a, exact_integer const& b) -> double { return a / static_cast<double>(b); }
+  auto operator % (double a, exact_integer const& b) -> double { return std::remainder(a, static_cast<double>(b)); }
   auto operator ==(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) == 0; }
   auto operator !=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) != 0; }
   auto operator < (double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) >  0; }
@@ -179,17 +179,17 @@ namespace meevax::inline kernel
   auto operator > (double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) <  0; }
   auto operator >=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) <= 0; }
 
-  auto operator + (double a, ratio const& b) -> double { return a +  inexact_cast(b); }
-  auto operator - (double a, ratio const& b) -> double { return a -  inexact_cast(b); }
-  auto operator * (double a, ratio const& b) -> double { return a *  inexact_cast(b); }
-  auto operator / (double a, ratio const& b) -> double { return a /  inexact_cast(b); }
-  auto operator % (double a, ratio const& b) -> double { return std::remainder(a, inexact_cast(b)); }
-  auto operator ==(double a, ratio const& b) -> bool   { return inexact_equals(a, inexact_cast(b)); }
+  auto operator + (double a, ratio const& b) -> double { return a +  static_cast<double>(b); }
+  auto operator - (double a, ratio const& b) -> double { return a -  static_cast<double>(b); }
+  auto operator * (double a, ratio const& b) -> double { return a *  static_cast<double>(b); }
+  auto operator / (double a, ratio const& b) -> double { return a /  static_cast<double>(b); }
+  auto operator % (double a, ratio const& b) -> double { return std::remainder(a, static_cast<double>(b)); }
+  auto operator ==(double a, ratio const& b) -> bool   { return inexact_equals(a, static_cast<double>(b)); }
   auto operator !=(double a, ratio const& b) -> bool   { return not (a == b); }
-  auto operator < (double a, ratio const& b) -> bool   { return a <  inexact_cast(b); }
-  auto operator <=(double a, ratio const& b) -> bool   { return a <= inexact_cast(b); }
-  auto operator > (double a, ratio const& b) -> bool   { return a >  inexact_cast(b); }
-  auto operator >=(double a, ratio const& b) -> bool   { return a >= inexact_cast(b); }
+  auto operator < (double a, ratio const& b) -> bool   { return a <  static_cast<double>(b); }
+  auto operator <=(double a, ratio const& b) -> bool   { return a <= static_cast<double>(b); }
+  auto operator > (double a, ratio const& b) -> bool   { return a >  static_cast<double>(b); }
+  auto operator >=(double a, ratio const& b) -> bool   { return a >= static_cast<double>(b); }
 
   auto operator + (double a, complex const& b) -> complex { return complex(make(a), e0) +  b; }
   auto operator - (double a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
@@ -542,7 +542,7 @@ inline namespace number
       }
       else
       {
-        return inexact_cast(std::forward<decltype(x)>(x));
+        return static_cast<double>(std::forward<decltype(x)>(x));
       }
     };
 
@@ -800,7 +800,7 @@ inline namespace number
     {
       if constexpr (std::is_same_v<T, complex>)
       {
-        auto const z = std::sqrt(inexact_cast(x));
+        auto const z = std::sqrt(static_cast<std::complex<double>>(x));
 
         return complex(make(z.real()),
                        make(z.imag()));
@@ -813,11 +813,11 @@ inline namespace number
           {
             auto const [s, r] = x.square_root();
 
-            return r == 0 ? make(s) : make(std::sqrt(inexact_cast(x)));
+            return r == 0 ? make(s) : make(std::sqrt(static_cast<double>(x)));
           }
           else
           {
-            return make(std::sqrt(inexact_cast(std::forward<decltype(x)>(x))));
+            return make(std::sqrt(static_cast<double>(std::forward<decltype(x)>(x))));
           }
         };
 
@@ -836,8 +836,20 @@ inline namespace number
       if constexpr (std::is_same_v<T, complex> or
                     std::is_same_v<U, complex>)
       {
-        auto const z = std::pow(inexact_cast(std::forward<decltype(x)>(x)),
-                                inexact_cast(std::forward<decltype(y)>(y)));
+        auto inexact = [](auto&& x)
+        {
+          if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
+          {
+            return static_cast<std::complex<double>>(std::forward<decltype(x)>(x));
+          }
+          else
+          {
+            return static_cast<double>(std::forward<decltype(x)>(x));
+          }
+        };
+
+        auto const z = std::pow(inexact(std::forward<decltype(x)>(x)),
+                                inexact(std::forward<decltype(y)>(y)));
 
         return complex(make(z.real()),
                        make(z.imag()));
@@ -851,8 +863,8 @@ inline namespace number
       }
       else
       {
-        return std::pow(inexact_cast(std::forward<decltype(x)>(x)),
-                        inexact_cast(std::forward<decltype(y)>(y)));
+        return std::pow(static_cast<double>(std::forward<decltype(x)>(x)),
+                        static_cast<double>(std::forward<decltype(y)>(y)));
       }
     };
 
@@ -902,11 +914,11 @@ inline namespace number
     {                                                                          \
       if constexpr (std::is_floating_point_v<T>)                               \
       {                                                                        \
-        return std::ROUND(inexact_cast(std::forward<decltype(x)>(x)));         \
+        return std::ROUND(std::forward<decltype(x)>(x));                       \
       }                                                                        \
       else if constexpr (std::is_same_v<T, ratio>)                             \
       {                                                                        \
-        return exact_integer(std::ROUND(inexact_cast(std::forward<decltype(x)>(x)))); \
+        return exact_integer(std::ROUND(static_cast<double>(std::forward<decltype(x)>(x)))); \
       }                                                                        \
       else if constexpr (std::is_same_v<T, exact_integer>)                     \
       {                                                                        \
@@ -937,14 +949,14 @@ inline namespace number
     {                                                                          \
       if constexpr (std::is_same_v<T, complex>)                                \
       {                                                                        \
-        auto const z = std::CMATH(inexact_cast(std::forward<decltype(x)>(x))); \
+        auto const z = std::CMATH(static_cast<std::complex<double>>(std::forward<decltype(x)>(x))); \
                                                                                \
         return complex(make(z.real()),                                         \
                        make(z.imag()));                                        \
       }                                                                        \
       else                                                                     \
       {                                                                        \
-        return std::CMATH(inexact_cast(std::forward<decltype(x)>(x)));         \
+        return std::CMATH(static_cast<double>(std::forward<decltype(x)>(x)));  \
       }                                                                        \
     };                                                                         \
                                                                                \
@@ -966,7 +978,7 @@ inline namespace number
   {                                                                            \
     auto f = [](auto&& x)                                                      \
     {                                                                          \
-      return CMATH(inexact_cast(std::forward<decltype(x)>(x)));                \
+      return CMATH(static_cast<double>(std::forward<decltype(x)>(x)));         \
     };                                                                         \
                                                                                \
     return apply_to<real_number>(f, x);                                        \
@@ -979,8 +991,8 @@ inline namespace number
   {                                                                            \
     auto f = [](auto&& x, auto&& y)                                            \
     {                                                                          \
-      return CMATH(inexact_cast(std::forward<decltype(x)>(x)),                 \
-                   inexact_cast(std::forward<decltype(y)>(y)));                \
+      return CMATH(static_cast<double>(std::forward<decltype(x)>(x)),          \
+                   static_cast<double>(std::forward<decltype(y)>(y)));         \
     };                                                                         \
                                                                                \
     return apply_to<real_numbers>(f, x, y);                                    \
@@ -994,8 +1006,8 @@ inline namespace number
   {
     auto f = [](auto&& x, auto&& y)
     {
-      return std::ldexp(cmath_cast<double>(std::forward<decltype(x)>(x)),
-                        cmath_cast<int   >(std::forward<decltype(y)>(y)));
+      return std::ldexp(static_cast<double>(std::forward<decltype(x)>(x)),
+                        static_cast<int   >(std::forward<decltype(y)>(y)));
     };
 
     return apply_to<real_numbers>(f, x, y);

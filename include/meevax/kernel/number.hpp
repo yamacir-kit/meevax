@@ -248,51 +248,6 @@ inline namespace kernel
 
   auto make_number(std::string const&, int = 10) -> object;
 
-  template <typename A, typename T>
-  auto cmath_cast(T&& x) -> decltype(auto)
-  {
-    static_assert(std::is_arithmetic_v<A>);
-
-    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
-    {
-      return std::complex<A>(std::forward<decltype(x)>(x));
-    }
-    else if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
-    {
-      if constexpr (std::is_floating_point_v<A>)
-      {
-        return std::forward<decltype(x)>(x);
-      }
-      else
-      {
-        return std::clamp(std::forward<decltype(x)>(x),
-                          static_cast<std::decay_t<decltype(x)>>(std::numeric_limits<A>::min()),
-                          static_cast<std::decay_t<decltype(x)>>(std::numeric_limits<A>::max()));
-      }
-    }
-    else
-    {
-      return static_cast<A>(std::forward<decltype(x)>(x));
-    }
-  }
-
-  template <typename T>
-  auto inexact_cast(T&& x) -> decltype(auto)
-  {
-    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
-    {
-      return std::complex<double>(std::forward<decltype(x)>(x));
-    }
-    else if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
-    {
-      return std::forward<decltype(x)>(x);
-    }
-    else
-    {
-      return static_cast<double>(std::forward<decltype(x)>(x));
-    }
-  }
-
   template <typename T, typename U>
   auto inexact_equals(T const& x, U const& y)
   {
