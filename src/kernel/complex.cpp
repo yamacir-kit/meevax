@@ -68,13 +68,52 @@ namespace meevax::inline kernel
     return first;
   }
 
+  complex::operator std::complex<int>() const
+  {
+    assert(is_real(real()));
+    assert(is_real(imag()));
+
+    auto to_int = [](let const& x)
+    {
+      if (x.is<exact_integer>())
+      {
+        return static_cast<int>(x.as<exact_integer>());
+      }
+      else if (x.is<ratio>())
+      {
+        return static_cast<int>(x.as<ratio>());
+      }
+      else
+      {
+        assert(x.is<std::int32_t>());
+        return static_cast<int>(x.as<std::int32_t>());
+      }
+    };
+
+    return std::complex(to_int(exact(real())),
+                        to_int(exact(imag())));
+  }
+
   complex::operator std::complex<double>() const
   {
     assert(is_real(real()));
     assert(is_real(imag()));
 
-    return std::complex(inexact(real()).as<double>(),
-                        inexact(imag()).as<double>());
+    auto to_double = [](let const& x)
+    {
+      if (x.is<double>())
+      {
+        return x.as<double>();
+      }
+      else
+      {
+        assert(x.is<float>());
+        return static_cast<double>(x.as<float>());
+      }
+    };
+
+    return std::complex(to_double(inexact(real())),
+                        to_double(inexact(imag())));
   }
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &
