@@ -2,7 +2,8 @@
         (scheme inexact)
         (scheme process-context)
         (only (meevax inexact) binary32? binary64?)
-        (srfi 78))
+        (srfi 78)
+        (srfi 144))
 
 (check (real?     1.0e0) => #t)
 (check (binary32? 1.0e0) => #f)

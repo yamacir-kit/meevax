@@ -259,6 +259,8 @@ namespace meevax::inline kernel
 
   using complex_numbers = combination<exact_integer, ratio, float, double, complex>;
 
+  using real_number = std::tuple<exact_integer, ratio, float, double>;
+
   using real_numbers = combination<exact_integer, ratio, float, double>;
 
   template <typename Tuple, auto I = 0, typename F>
@@ -393,23 +395,6 @@ namespace meevax::inline kernel
         { "-inf.0", -std::numeric_limits<double>::infinity()  },
         { "+nan.0", +std::numeric_limits<double>::quiet_NaN() },
         { "-nan.0", -std::numeric_limits<double>::quiet_NaN() },
-
-        // SRFI-144
-        { "fl-e",         M_E        },
-        { "fl-log2-e",    M_LOG2E    },
-        { "fl-log10-e",   M_LOG10E   },
-        { "fl-log-2",     M_LN2      },
-        { "fl-1/log-2",   M_LN2      },
-        { "fl-log-10",    M_LN10     },
-        { "fl-1/log-10",  M_LN10     },
-        { "fl-pi",        M_PI       },
-        { "fl-1/pi",      M_1_PI     },
-        { "fl-pi/2",      M_PI_2     },
-        { "fl-pi/4",      M_PI_4     },
-        { "fl-2/pi",      M_2_PI     },
-        { "fl-2/sqrt-pi", M_2_SQRTPI },
-        { "fl-sqrt-2",    M_SQRT2    },
-        { "fl-1/sqrt-2",  M_SQRT1_2  },
       };
 
       auto static const pattern = std::regex(R"([+-]?(?:\d+\.?|\d*\.\d+)(?:([DEFdef])[+-]?\d+)?)");
@@ -976,16 +961,33 @@ inline namespace number
 
   #undef DEFINE
 
-  auto atan(object const& x, object const& y) -> object
-  {
-    auto f = [](auto&& x, auto&& y)
-    {
-      return std::atan2(inexact_cast(std::forward<decltype(x)>(x)),
-                        inexact_cast(std::forward<decltype(y)>(y)));
-    };
-
-    return apply_to<real_numbers>(f, x, y);
+  #define DEFINE_REAL_UNARY(NAME, CMATH)                                       \
+  auto NAME(object const& x) -> object                                         \
+  {                                                                            \
+    auto f = [](auto&& x)                                                      \
+    {                                                                          \
+      return CMATH(inexact_cast(std::forward<decltype(x)>(x)));                \
+    };                                                                         \
+                                                                               \
+    return apply_to<real_number>(f, x);                                        \
   }
+
+  DEFINE_REAL_UNARY(gamma, std::tgamma)
+
+  #define DEFINE_REAL_BINARY(NAME, CMATH)                                      \
+  auto NAME(object const& x, object const& y) -> object                        \
+  {                                                                            \
+    auto f = [](auto&& x, auto&& y)                                            \
+    {                                                                          \
+      return CMATH(inexact_cast(std::forward<decltype(x)>(x)),                 \
+                   inexact_cast(std::forward<decltype(y)>(y)));                \
+    };                                                                         \
+                                                                               \
+    return apply_to<real_numbers>(f, x, y);                                    \
+  }
+
+  DEFINE_REAL_BINARY(atan, std::atan2)
+  DEFINE_REAL_BINARY(next_after, std::nextafter)
 
   auto number_to_string(object const& x, int radix) -> object
   {

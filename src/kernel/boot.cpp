@@ -16,6 +16,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <numbers>
 #include <numeric>
 
 #include <meevax/kernel/binary_input_file_port.hpp>
@@ -548,6 +549,40 @@ namespace meevax::inline kernel
       {
         return atanh(car(xs));
       });
+
+      library.define<procedure>("gamma", [](let const& xs)
+      {
+        return gamma(car(xs));
+      });
+
+      library.define<procedure>("next-after", [](let const& xs)
+      {
+        return next_after(car(xs), cadr(xs));
+      });
+
+      library.define<double>("e", std::numbers::e);
+
+      library.define<double>("pi", std::numbers::pi);
+
+      library.define<double>("euler", std::numbers::egamma);
+
+      library.define<double>("phi", std::numbers::phi);
+
+      library.define<double>("binary64-max", std::numeric_limits<double>::max());
+
+      library.define<double>("binary64-min", std::numeric_limits<double>::min());
+
+      library.define<double>("binary64-epsilon", std::numeric_limits<double>::epsilon());
+
+      library.define<double>("FP_ILOGB0", FP_ILOGB0);
+
+      library.define<double>("FP_ILOGBNAN", FP_ILOGBNAN);
+
+      #ifdef FP_FAST_FMA
+      library.define<bool>("FP_FAST_FMA", true);
+      #else
+      library.define<bool>("FP_FAST_FMA", false);
+      #endif
     });
 
     define<library>("(meevax list)", [](library & library)
