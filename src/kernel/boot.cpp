@@ -565,6 +565,11 @@ namespace meevax::inline kernel
         return copy_sign(car(xs), cadr(xs));
       });
 
+      library.define<procedure>("load-exponent", [](let const& xs)
+      {
+        return load_exponent(car(xs), cadr(xs));
+      });
+
       library.define<double>("e", std::numbers::e);
 
       library.define<double>("pi", std::numbers::pi);
@@ -579,9 +584,9 @@ namespace meevax::inline kernel
 
       library.define<double>("binary64-epsilon", std::numeric_limits<double>::epsilon());
 
-      library.define<double>("FP_ILOGB0", FP_ILOGB0);
+      library.define<exact_integer>("FP_ILOGB0", FP_ILOGB0);
 
-      library.define<double>("FP_ILOGBNAN", FP_ILOGBNAN);
+      library.define<exact_integer>("FP_ILOGBNAN", FP_ILOGBNAN);
 
       #ifdef FP_FAST_FMA
       library.define<bool>("FP_FAST_FMA", true);

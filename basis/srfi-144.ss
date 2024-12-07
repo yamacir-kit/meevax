@@ -10,6 +10,7 @@
             e
             euler
             gamma
+            load-exponent
             next-after
             phi
             pi
@@ -39,8 +40,8 @@
           fl-greatest fl-least fl-epsilon fl-fast-fl+* fl-integer-exponent-zero
           fl-integer-exponent-nan
 
-          ; flonum fladjacent flcopysign make-flonum
-          ;
+          flonum fladjacent flcopysign make-flonum
+
           ; flinteger-fraction flexponent flinteger-exponent
           ; flnormalized-fraction-exponent flsign-bit
           ;
@@ -160,5 +161,7 @@
          (define fladjacent next-after)
 
          (define flcopysign copy-sign)
+
+         (define make-flonum load-exponent)
          )
   )

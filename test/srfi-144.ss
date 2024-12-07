@@ -1,4 +1,5 @@
-(import (scheme base)
+(import (only (meevax inexact) binary64?)
+        (scheme base)
         (scheme process-context)
         (srfi 78)
         (srfi 144))
@@ -81,6 +82,46 @@
 
 (check fl-gamma-2/3 => 1.3541179394264004169452880281545137855193)
 
+(check (binary64? fl-greatest) => #t)
+
+(check (binary64? fl-least) => #t)
+
+(check (< 0.0 0.0) => #f)
+
+(check (< 0.0 fl-least) => #t)
+
+(check (binary64? fl-epsilon) => #t)
+
+(check (boolean? fl-fast-fl+*) => #t)
+
+(check (exact-integer? fl-integer-exponent-zero) => #t)
+
+(check (exact-integer? fl-integer-exponent-nan) => #t)
+
+(check (= (flonum 22/7) fl-pi) => #f)
+
+(check (= (flonum 333/106) fl-pi) => #f)
+
+(check (= (flonum 355/113) fl-pi) => #f)
+
+(check (= (flonum 52163/16604) fl-pi) => #f)
+
+(check (= (flonum 103993/33102) fl-pi) => #f)
+
+(check (= (flonum 104348/33215) fl-pi) => #f)
+
+(check (= (flonum 245850922/78256779) fl-pi) => #t)
+
+(check (fladjacent 0.0 1.0) (=> =) fl-least)
+
+(check (< 0.0 (fladjacent 0.0 1.0) fl-epsilon 1.0 (+ 1.0 fl-epsilon) fl-greatest +inf.0) => #t)
+
+(check (flcopysign 0.0 +inf.0) => 0.0)
+
+(check (flcopysign 0.0 -inf.0) => -0.0)
+
+(check (make-flonum 3.0 4) => 48.0)
+
 (check-report)
 
-(exit (check-passed? 39))
+(exit (check-passed? 59))

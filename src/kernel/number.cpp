@@ -990,6 +990,17 @@ inline namespace number
   DEFINE_REAL_BINARY(copy_sign, std::copysign)
   DEFINE_REAL_BINARY(next_after, std::nextafter)
 
+  auto load_exponent(object const& x, object const& y) -> object
+  {
+    auto f = [](auto&& x, auto&& y)
+    {
+      return std::ldexp(cmath_cast<double>(std::forward<decltype(x)>(x)),
+                        cmath_cast<int   >(std::forward<decltype(y)>(y)));
+    };
+
+    return apply_to<real_numbers>(f, x, y);
+  }
+
   auto number_to_string(object const& x, int radix) -> object
   {
     auto f = [radix]<typename T>(T const& x)
