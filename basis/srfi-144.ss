@@ -1,8 +1,7 @@
 (define-library (srfi 144)
   (import (only (meevax inexact)
             FP_FAST_FMA
-            FP_ILOGB0
-            FP_ILOGBNAN
+            binary64-denormalized?
             binary64-epsilon
             binary64-exponent
             binary64-fractional-part
@@ -12,7 +11,9 @@
             binary64-max
             binary64-min
             binary64-normalized-fraction
+            binary64-normalized?
             binary64-sign-bit
+            binary64?
             copy-sign
             e
             euler
@@ -25,15 +26,31 @@
           (only (scheme base)
             *
             /
+            <
+            <=
+            =
+            >
+            >=
+            and
             define
+            even?
             expt
             if
             inexact
+            integer?
+            negative?
+            odd?
+            or
+            positive?
             values
+            zero?
             )
           (only (scheme inexact)
             cos
+            finite?
+            infinite?
             log
+            nan?
             sin
             sqrt
             )
@@ -54,11 +71,10 @@
           flinteger-fraction flexponent flinteger-exponent
           flnormalized-fraction-exponent flsign-bit
 
-          ; flonum? fl=? fl<? fl>? fl<=? fl>=?
-          ; flunordered? flinteger? flzero? flpositive? flnegative?
-          ; flodd? fleven? flfinite? flinfinite? flnan?
-          ; flnormalized? fldenormalized?
-          ;
+          flonum? fl=? fl<? fl>? fl<=? fl>=? flunordered? flinteger? flzero?
+          flpositive? flnegative? flodd? fleven? flfinite? flinfinite? flnan?
+          flnormalized? fldenormalized?
+
           ; flmax flmin fl+ fl* fl+* fl- fl/ flabs flabsdiff
           ; flposdiff flsgn flnumerator fldenominator
           ; flfloor flceiling flround fltruncate
@@ -161,9 +177,9 @@
 
          (define fl-fast-fl+* FP_FAST_FMA)
 
-         (define fl-integer-exponent-zero FP_ILOGB0)
+         (define fl-integer-exponent-zero (binary64-integer-log-binary 0.0))
 
-         (define fl-integer-exponent-nan FP_ILOGBNAN)
+         (define fl-integer-exponent-nan (binary64-integer-log-binary +nan.0))
 
          (define flonum inexact)
 
@@ -188,5 +204,44 @@
          (define (flsign-bit x)
            (if (binary64-sign-bit x) 1 0))
 
+         (define flonum? binary64?)
+
+         (define fl=? =)
+
+         (define fl<? <)
+
+         (define fl>? >)
+
+         (define fl<=? <=)
+
+         (define fl>=? >=)
+
+         (define (flunordered? x y)
+           (or (nan? x)
+               (nan? y)))
+
+         (define (flinteger? x)
+           (and (binary64? x)
+                (integer? x)))
+
+         (define flzero? zero?)
+
+         (define flpositive? positive?)
+
+         (define flnegative? negative?)
+
+         (define flodd? odd?)
+
+         (define fleven? even?)
+
+         (define flfinite? finite?)
+
+         (define flinfinite? infinite?)
+
+         (define flnan? nan?)
+
+         (define flnormalized? binary64-normalized?)
+
+         (define fldenormalized? binary64-denormalized?)
          )
   )

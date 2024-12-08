@@ -146,6 +146,48 @@
 
 (check (flsign-bit -3.14) => 1)
 
+(check (flonum? 1.0) => #t)
+
+(check (flonum? 1.0f0) => #f)
+
+(check (procedure? fl=?) => #t)
+
+(check (procedure? fl<?) => #t)
+
+(check (procedure? fl>?) => #t)
+
+(check (procedure? fl<=?) => #t)
+
+(check (procedure? fl>=?) => #t)
+
+(check (flunordered? 1.0 2.0) => #f)
+
+(check (flunordered? 1.0 +nan.0) => #t)
+
+(check (flinteger? 3.14) => #f)
+
+(check (flinteger? 1.0) => #t)
+
+(check (procedure? flzero?) => #t)
+
+(check (procedure? flpositive?) => #t)
+
+(check (procedure? flnegative?) => #t)
+
+(check (procedure? flodd?) => #t)
+
+(check (procedure? fleven?) => #t)
+
+(check (procedure? flfinite?) => #t)
+
+(check (procedure? flinfinite?) => #t)
+
+(check (procedure? flnan?) => #t)
+
+(check (flnormalized? 1.0) => #t)
+
+(check (fldenormalized? (/ fl-least 2)) => #t)
+
 (check-report)
 
-(exit (check-passed? 69))
+(exit (check-passed? 90))
