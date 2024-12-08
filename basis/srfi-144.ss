@@ -6,10 +6,12 @@
             binary64-epsilon
             binary64-exponent
             binary64-fractional-part
-            binary64-integer-exponent
+            binary64-integer-log-binary
             binary64-integral-part
+            binary64-log-binary
             binary64-max
             binary64-min
+            binary64-normalized-fraction
             copy-sign
             e
             euler
@@ -48,7 +50,8 @@
           flonum fladjacent flcopysign make-flonum
 
           flinteger-fraction flexponent flinteger-exponent
-          ; flnormalized-fraction-exponent flsign-bit
+          flnormalized-fraction-exponent
+          ;flsign-bit
           ;
           ; flonum? fl=? fl<? fl>? fl<=? fl>=?
           ; flunordered? flinteger? flzero? flpositive? flnegative?
@@ -173,8 +176,12 @@
            (values (binary64-integral-part x)
                    (binary64-fractional-part x)))
 
-         (define flexponent binary64-exponent)
+         (define flexponent binary64-log-binary)
 
-         (define flinteger-exponent binary64-integer-exponent)
+         (define flinteger-exponent binary64-integer-log-binary)
+
+         (define (flnormalized-fraction-exponent x)
+           (values (binary64-normalized-fraction x)
+                   (binary64-exponent x)))
          )
   )
