@@ -337,7 +337,7 @@ inline namespace number
 
   auto lcm(object const&, object const&) -> object;
 
-  auto sqrt(object const&) -> object;
+  auto square_root(object const&) -> object;
 
   auto pow(object const&, object const&) -> object;
 
@@ -347,9 +347,9 @@ inline namespace number
 
   auto floor(object const&) -> object;
 
-  auto ceil(object const&) -> object;
+  auto ceiling(object const&) -> object;
 
-  auto trunc(object const&) -> object;
+  auto truncate(object const&) -> object;
 
   auto round(object const&) -> object;
 

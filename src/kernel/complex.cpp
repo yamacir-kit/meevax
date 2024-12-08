@@ -155,7 +155,7 @@ namespace meevax::inline kernel
   {
     auto hypotenuse = [](let const& x, let const& y)
     {
-      return sqrt(x * x + y * y);
+      return square_root(x * x + y * y);
     };
 
     return hypotenuse(real_part(x),

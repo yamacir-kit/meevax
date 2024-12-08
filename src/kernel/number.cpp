@@ -757,7 +757,7 @@ inline namespace number
       }
       else if constexpr (std::is_same_v<T, complex>)
       {
-        return sqrt(x.real() * x.real() + x.imag() * x.imag());
+        return square_root(x.real() * x.real() + x.imag() * x.imag());
       }
       else
       {
@@ -771,7 +771,7 @@ inline namespace number
 
   auto quotient(object const& x, object const& y) -> object
   {
-    return trunc(x / y);
+    return truncate(x / y);
   }
 
   auto remainder(object const& x, object const& y) -> object
@@ -794,7 +794,7 @@ inline namespace number
     return abs(quotient(x * y, gcd(x, y)));
   }
 
-  auto sqrt(object const& x) -> object
+  auto square_root(object const& x) -> object
   {
     auto f = []<typename T>(T const& x)
     {
@@ -807,7 +807,7 @@ inline namespace number
       }
       else
       {
-        auto sqrt = [](auto&& x)
+        auto square_root = [](auto const& x)
         {
           if constexpr (std::is_same_v<T, exact_integer>)
           {
@@ -817,12 +817,12 @@ inline namespace number
           }
           else
           {
-            return make(std::sqrt(static_cast<double>(std::forward<decltype(x)>(x))));
+            return make(std::sqrt(static_cast<double>(x)));
           }
         };
 
-        return x < exact_integer(0) ? make<complex>(e0, sqrt(exact_integer(0) - x))
-                                    : sqrt(x);
+        return x < exact_integer(0) ? make<complex>(e0, square_root(exact_integer(0) - x))
+                                    : square_root(x);
       }
     };
 
@@ -907,73 +907,75 @@ inline namespace number
     }
   }
 
-  #define DEFINE(ROUND)                                                        \
-  auto ROUND(object const& x) -> object                                        \
+  #define DEFINE_EXACTNESS_PRESERVED_COMPLEX1(NAME, CMATH)                     \
+  auto NAME(object const& x) -> object                                         \
   {                                                                            \
     auto f = []<typename T>(T const& x)                                        \
     {                                                                          \
       if constexpr (std::is_floating_point_v<T>)                               \
       {                                                                        \
-        return std::ROUND(std::forward<decltype(x)>(x));                       \
+        return CMATH(x);                                                       \
       }                                                                        \
       else if constexpr (std::is_same_v<T, ratio>)                             \
       {                                                                        \
-        return exact_integer(std::ROUND(static_cast<double>(std::forward<decltype(x)>(x)))); \
+        return exact_integer(CMATH(static_cast<double>(x)));                   \
       }                                                                        \
       else if constexpr (std::is_same_v<T, exact_integer>)                     \
       {                                                                        \
-        return std::forward<decltype(x)>(x);                                   \
+        return x;                                                              \
       }                                                                        \
       else                                                                     \
       {                                                                        \
-        return complex(ROUND(x.real()),                                        \
-                       ROUND(x.imag()));                                       \
+        return complex(NAME(x.real()),                                         \
+                       NAME(x.imag()));                                        \
       }                                                                        \
     };                                                                         \
                                                                                \
     return apply_to<complex_number>(f, x);                                     \
-  }                                                                            \
-  static_assert(true)
+  }
 
-  DEFINE(floor);
-  DEFINE(ceil);
-  DEFINE(trunc);
-  DEFINE(round);
+  DEFINE_EXACTNESS_PRESERVED_COMPLEX1(ceiling,  std::ceil)
+  DEFINE_EXACTNESS_PRESERVED_COMPLEX1(floor,    std::floor)
+  DEFINE_EXACTNESS_PRESERVED_COMPLEX1(round,    std::round)
+  DEFINE_EXACTNESS_PRESERVED_COMPLEX1(truncate, std::trunc)
 
-  #undef DEFINE
-
-  #define DEFINE(CMATH)                                                        \
-  auto CMATH(object const& x) -> object                                        \
+  #define DEFINE_COMPLEX1(NAME, CMATH)                                         \
+  auto NAME(object const& x) -> object                                         \
   {                                                                            \
     auto f = []<typename T>(T const& x)                                        \
     {                                                                          \
       if constexpr (std::is_same_v<T, complex>)                                \
       {                                                                        \
-        auto const z = std::CMATH(static_cast<std::complex<double>>(std::forward<decltype(x)>(x))); \
+        auto const z = CMATH(static_cast<std::complex<double>>(std::forward<decltype(x)>(x))); \
                                                                                \
         return complex(make(z.real()),                                         \
                        make(z.imag()));                                        \
       }                                                                        \
       else                                                                     \
       {                                                                        \
-        return std::CMATH(static_cast<double>(std::forward<decltype(x)>(x)));  \
+        return CMATH(static_cast<double>(std::forward<decltype(x)>(x)));       \
       }                                                                        \
     };                                                                         \
                                                                                \
     return apply_to<complex_number>(f, x);                                     \
-  }                                                                            \
-  static_assert(true)
+  }
 
-  DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
-  DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
-  DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
+  DEFINE_COMPLEX1(acos,  std::acos)
+  DEFINE_COMPLEX1(acosh, std::acosh)
+  DEFINE_COMPLEX1(asin,  std::asin)
+  DEFINE_COMPLEX1(asinh, std::asinh)
+  DEFINE_COMPLEX1(atan,  std::atan)
+  DEFINE_COMPLEX1(atanh, std::atanh)
+  DEFINE_COMPLEX1(cos,   std::cos)
+  DEFINE_COMPLEX1(cosh,  std::cosh)
+  DEFINE_COMPLEX1(exp,   std::exp)
+  DEFINE_COMPLEX1(log,   std::log)
+  DEFINE_COMPLEX1(sin,   std::sin)
+  DEFINE_COMPLEX1(sinh,  std::sinh)
+  DEFINE_COMPLEX1(tan,   std::tan)
+  DEFINE_COMPLEX1(tanh,  std::tanh)
 
-  DEFINE(exp);
-  DEFINE(log);
-
-  #undef DEFINE
-
-  #define DEFINE_REAL_UNARY(NAME, CMATH)                                       \
+  #define DEFINE_REAL1(NAME, CMATH)                                            \
   auto NAME(object const& x) -> object                                         \
   {                                                                            \
     auto f = [](auto&& x)                                                      \
@@ -984,9 +986,9 @@ inline namespace number
     return apply_to<real_number>(f, x);                                        \
   }
 
-  DEFINE_REAL_UNARY(gamma, std::tgamma)
+  DEFINE_REAL1(gamma, std::tgamma)
 
-  #define DEFINE_REAL_BINARY(NAME, CMATH)                                      \
+  #define DEFINE_REAL2(NAME, CMATH)                                            \
   auto NAME(object const& x, object const& y) -> object                        \
   {                                                                            \
     auto f = [](auto&& x, auto&& y)                                            \
@@ -998,9 +1000,9 @@ inline namespace number
     return apply_to<real_numbers>(f, x, y);                                    \
   }
 
-  DEFINE_REAL_BINARY(atan, std::atan2)
-  DEFINE_REAL_BINARY(copy_sign, std::copysign)
-  DEFINE_REAL_BINARY(next_after, std::nextafter)
+  DEFINE_REAL2(atan,       std::atan2)
+  DEFINE_REAL2(copy_sign,  std::copysign)
+  DEFINE_REAL2(next_after, std::nextafter)
 
   auto load_exponent(object const& x, object const& y) -> object
   {

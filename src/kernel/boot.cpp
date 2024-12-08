@@ -462,7 +462,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("sqrt", [](let const& xs)
       {
-        return sqrt(car(xs));
+        return square_root(car(xs));
       });
 
       library.define<procedure>("log", [](let const& xs)
@@ -1101,12 +1101,12 @@ namespace meevax::inline kernel
 
       library.define<procedure>("ceiling", [](let const& xs)
       {
-        return ceil(car(xs));
+        return ceiling(car(xs));
       });
 
       library.define<procedure>("truncate", [](let const& xs)
       {
-        return trunc(car(xs));
+        return truncate(car(xs));
       });
 
       library.define<procedure>("round", [](let const& xs)
