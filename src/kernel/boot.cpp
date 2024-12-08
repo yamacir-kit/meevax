@@ -570,6 +570,19 @@ namespace meevax::inline kernel
         return load_exponent(car(xs), cadr(xs));
       });
 
+      library.define<procedure>("binary64-integral-part", [](let const& xs)
+      {
+        auto integral_part = 0.0;
+        std::modf(car(xs).as<double>(), &integral_part);
+        return make(integral_part);
+      });
+
+      library.define<procedure>("binary64-fractional-part", [](let const& xs)
+      {
+        auto integral_part = 0.0;
+        return make(std::modf(car(xs).as<double>(), &integral_part));
+      });
+
       library.define<double>("e", std::numbers::e);
 
       library.define<double>("pi", std::numbers::pi);

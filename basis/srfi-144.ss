@@ -4,6 +4,8 @@
             FP_ILOGB0
             FP_ILOGBNAN
             binary64-epsilon
+            binary64-fractional-part
+            binary64-integral-part
             binary64-max
             binary64-min
             copy-sign
@@ -21,6 +23,7 @@
             define
             expt
             inexact
+            values
             )
           (only (scheme inexact)
             cos
@@ -42,7 +45,8 @@
 
           flonum fladjacent flcopysign make-flonum
 
-          ; flinteger-fraction flexponent flinteger-exponent
+          flinteger-fraction
+          ; flexponent flinteger-exponent
           ; flnormalized-fraction-exponent flsign-bit
           ;
           ; flonum? fl=? fl<? fl>? fl<=? fl>=?
@@ -163,5 +167,9 @@
          (define flcopysign copy-sign)
 
          (define make-flonum load-exponent)
+
+         (define (flinteger-fraction x)
+           (values (binary64-integral-part x)
+                   (binary64-fractional-part x)))
          )
   )

@@ -122,6 +122,12 @@
 
 (check (make-flonum 3.0 4) => 48.0)
 
+(call-with-values
+  (lambda () (flinteger-fraction 3.14))
+  (lambda (integral fractional)
+    (check integral (=> =) 3.0)
+    (check fractional (=> =) 0.14)))
+
 (check-report)
 
-(exit (check-passed? 59))
+(exit (check-passed? 61))

@@ -907,6 +907,38 @@ inline namespace number
     }
   }
 
+  auto load_exponent(object const& x, object const& y) -> object
+  {
+    auto f = [](auto&& x, auto&& y)
+    {
+      return std::ldexp(static_cast<double>(std::forward<decltype(x)>(x)),
+                        static_cast<int   >(std::forward<decltype(y)>(y)));
+    };
+
+    return apply_to<real_numbers>(f, x, y);
+  }
+
+  auto number_to_string(object const& x, int radix) -> object
+  {
+    auto f = [radix]<typename T>(T const& x)
+    {
+      if constexpr (std::is_floating_point_v<T>)
+      {
+        return string("TODO");
+      }
+      else if constexpr (std::is_same_v<T, exact_integer>)
+      {
+        return string(std::unique_ptr<char, gmp_free>(mpz_get_str(nullptr, radix, x.value)).get());
+      }
+      else
+      {
+        return string("TODO");
+      }
+    };
+
+    return apply_to<complex_number>(f, x);
+  }
+
   #define DEFINE_EXACTNESS_PRESERVED_COMPLEX1(NAME, CMATH)                     \
   auto NAME(object const& x) -> object                                         \
   {                                                                            \
@@ -1003,37 +1035,5 @@ inline namespace number
   DEFINE_REAL2(atan,       std::atan2)
   DEFINE_REAL2(copy_sign,  std::copysign)
   DEFINE_REAL2(next_after, std::nextafter)
-
-  auto load_exponent(object const& x, object const& y) -> object
-  {
-    auto f = [](auto&& x, auto&& y)
-    {
-      return std::ldexp(static_cast<double>(std::forward<decltype(x)>(x)),
-                        static_cast<int   >(std::forward<decltype(y)>(y)));
-    };
-
-    return apply_to<real_numbers>(f, x, y);
-  }
-
-  auto number_to_string(object const& x, int radix) -> object
-  {
-    auto f = [radix]<typename T>(T const& x)
-    {
-      if constexpr (std::is_floating_point_v<T>)
-      {
-        return string("TODO");
-      }
-      else if constexpr (std::is_same_v<T, exact_integer>)
-      {
-        return string(std::unique_ptr<char, gmp_free>(mpz_get_str(nullptr, radix, x.value)).get());
-      }
-      else
-      {
-        return string("TODO");
-      }
-    };
-
-    return apply_to<complex_number>(f, x);
-  }
 } // namespace number
 } // namespace meevax::kernel

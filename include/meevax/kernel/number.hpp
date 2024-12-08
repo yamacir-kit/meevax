@@ -345,6 +345,10 @@ inline namespace number
 
   auto denominator(object const&) -> object;
 
+  auto load_exponent(object const&, object const&) -> object;
+
+  auto number_to_string(object const&, int) -> object;
+
   auto floor(object const&) -> object;
 
   auto ceiling(object const&) -> object;
@@ -385,13 +389,9 @@ inline namespace number
 
   auto gamma(object const&) -> object;
 
-  auto next_after(object const&, object const&) -> object;
-
   auto copy_sign(object const&, object const&) -> object;
 
-  auto load_exponent(object const&, object const&) -> object;
-
-  auto number_to_string(object const&, int) -> object;
+  auto next_after(object const&, object const&) -> object;
 } // namespace number
 } // namespace kernel
 } // namespace meevax
