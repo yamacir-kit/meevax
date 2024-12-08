@@ -583,6 +583,16 @@ namespace meevax::inline kernel
         return make(std::modf(car(xs).as<double>(), &integral_part));
       });
 
+      library.define<procedure>("binary64-exponent", [](let const& xs)
+      {
+        return make(std::logb(car(xs).as<double>()));
+      });
+
+      library.define<procedure>("binary64-integer-exponent", [](let const& xs)
+      {
+        return make<exact_integer>(std::ilogb(car(xs).as<double>()));
+      });
+
       library.define<double>("e", std::numbers::e);
 
       library.define<double>("pi", std::numbers::pi);

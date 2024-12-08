@@ -4,7 +4,9 @@
             FP_ILOGB0
             FP_ILOGBNAN
             binary64-epsilon
+            binary64-exponent
             binary64-fractional-part
+            binary64-integer-exponent
             binary64-integral-part
             binary64-max
             binary64-min
@@ -45,8 +47,7 @@
 
           flonum fladjacent flcopysign make-flonum
 
-          flinteger-fraction
-          ; flexponent flinteger-exponent
+          flinteger-fraction flexponent flinteger-exponent
           ; flnormalized-fraction-exponent flsign-bit
           ;
           ; flonum? fl=? fl<? fl>? fl<=? fl>=?
@@ -171,5 +172,9 @@
          (define (flinteger-fraction x)
            (values (binary64-integral-part x)
                    (binary64-fractional-part x)))
+
+         (define flexponent binary64-exponent)
+
+         (define flinteger-exponent binary64-integer-exponent)
          )
   )

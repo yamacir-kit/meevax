@@ -128,6 +128,14 @@
     (check integral (=> =) 3.0)
     (check fractional (=> =) 0.14)))
 
+(check (flexponent 48.0) => 5.0)
+
+(check (flexponent -48.0) => 5.0)
+
+(check (flinteger-exponent 48.0) => 5)
+
+(check (flinteger-exponent -48.0) => 5)
+
 (check-report)
 
-(exit (check-passed? 61))
+(exit (check-passed? 65))
