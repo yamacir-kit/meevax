@@ -12,6 +12,7 @@
             binary64-max
             binary64-min
             binary64-normalized-fraction
+            binary64-sign-bit
             copy-sign
             e
             euler
@@ -26,6 +27,7 @@
             /
             define
             expt
+            if
             inexact
             values
             )
@@ -50,9 +52,8 @@
           flonum fladjacent flcopysign make-flonum
 
           flinteger-fraction flexponent flinteger-exponent
-          flnormalized-fraction-exponent
-          ;flsign-bit
-          ;
+          flnormalized-fraction-exponent flsign-bit
+
           ; flonum? fl=? fl<? fl>? fl<=? fl>=?
           ; flunordered? flinteger? flzero? flpositive? flnegative?
           ; flodd? fleven? flfinite? flinfinite? flnan?
@@ -183,5 +184,9 @@
          (define (flnormalized-fraction-exponent x)
            (values (binary64-normalized-fraction x)
                    (binary64-exponent x)))
+
+         (define (flsign-bit x)
+           (if (binary64-sign-bit x) 1 0))
+
          )
   )

@@ -136,6 +136,16 @@
 
 (check (flinteger-exponent -48.0) => 5)
 
+(call-with-values
+  (lambda () (flnormalized-fraction-exponent 48.0))
+  (lambda (fraction exponent)
+    (check fraction => 0.75)
+    (check exponent => 6)))
+
+(check (flsign-bit 3.14) => 0)
+
+(check (flsign-bit -3.14) => 1)
+
 (check-report)
 
-(exit (check-passed? 65))
+(exit (check-passed? 69))

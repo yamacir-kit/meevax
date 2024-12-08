@@ -606,6 +606,11 @@ namespace meevax::inline kernel
         return make<exact_integer>(exponent);
       });
 
+      library.define<procedure>("binary64-sign-bit", [](let const& xs)
+      {
+        return make(std::signbit(car(xs).as<double>()));
+      });
+
       library.define<double>("e", std::numbers::e);
 
       library.define<double>("pi", std::numbers::pi);
