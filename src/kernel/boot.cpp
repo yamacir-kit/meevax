@@ -430,16 +430,6 @@ namespace meevax::inline kernel
 
     define<library>("(meevax inexact)", [](library & library)
     {
-      library.define<procedure>("binary32?", [](let const& xs)
-      {
-        return std::numeric_limits<float>::is_iec559 and car(xs).is<float>();
-      });
-
-      library.define<procedure>("binary64?", [](let const& xs)
-      {
-        return std::numeric_limits<double>::is_iec559 and car(xs).is<double>();
-      });
-
       library.define<procedure>("finite?", [](let const& xs)
       {
         return is_finite(car(xs));
@@ -570,6 +560,42 @@ namespace meevax::inline kernel
         return load_exponent(car(xs), cadr(xs));
       });
 
+      library.define<double>("e", std::numbers::e);
+
+      library.define<double>("pi", std::numbers::pi);
+
+      library.define<double>("euler", std::numbers::egamma);
+
+      library.define<double>("phi", std::numbers::phi);
+    });
+
+    define<library>("(meevax binary32)", [](library & library)
+    {
+      library.define<procedure>("binary32?", [](let const& xs)
+      {
+        return std::numeric_limits<float>::is_iec559 and car(xs).is<float>();
+      });
+    });
+
+    define<library>("(meevax binary64)", [](library & library)
+    {
+      library.define<procedure>("binary64?", [](let const& xs)
+      {
+        return std::numeric_limits<double>::is_iec559 and car(xs).is<double>();
+      });
+
+      library.define<double>("binary64-min", std::numeric_limits<double>::min());
+
+      library.define<double>("binary64-max", std::numeric_limits<double>::max());
+
+      library.define<double>("binary64-epsilon", std::numeric_limits<double>::epsilon());
+
+      #ifdef FP_FAST_FMA
+      library.define<bool>("FP_FAST_FMA", true);
+      #else
+      library.define<bool>("FP_FAST_FMA", false);
+      #endif
+
       library.define<procedure>("binary64-integral-part", [](let const& xs)
       {
         auto integral_part = 0.0;
@@ -620,26 +646,6 @@ namespace meevax::inline kernel
       {
         return std::fpclassify(car(xs).as<double>()) == FP_SUBNORMAL;
       });
-
-      library.define<double>("e", std::numbers::e);
-
-      library.define<double>("pi", std::numbers::pi);
-
-      library.define<double>("euler", std::numbers::egamma);
-
-      library.define<double>("phi", std::numbers::phi);
-
-      library.define<double>("binary64-max", std::numeric_limits<double>::max());
-
-      library.define<double>("binary64-min", std::numeric_limits<double>::min());
-
-      library.define<double>("binary64-epsilon", std::numeric_limits<double>::epsilon());
-
-      #ifdef FP_FAST_FMA
-      library.define<bool>("FP_FAST_FMA", true);
-      #else
-      library.define<bool>("FP_FAST_FMA", false);
-      #endif
     });
 
     define<library>("(meevax list)", [](library & library)

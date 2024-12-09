@@ -1,5 +1,5 @@
 (define-library (srfi 144)
-  (import (only (meevax inexact)
+  (import (only (meevax binary64)
             FP_FAST_FMA
             binary64-denormalized?
             binary64-epsilon
@@ -14,6 +14,8 @@
             binary64-normalized?
             binary64-sign-bit
             binary64?
+            )
+          (only (meevax inexact)
             copy-sign
             e
             euler

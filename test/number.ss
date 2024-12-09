@@ -1,7 +1,8 @@
 (import (scheme base)
         (scheme inexact)
         (scheme process-context)
-        (only (meevax inexact) binary32? binary64?)
+        (only (meevax binary32) binary32?)
+        (only (meevax binary64) binary64?)
         (srfi 78)
         (srfi 144))
 

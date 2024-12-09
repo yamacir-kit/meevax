@@ -1,5 +1,4 @@
-(import (only (meevax inexact) binary64?)
-        (scheme base)
+(import (scheme base)
         (scheme process-context)
         (srfi 78)
         (srfi 144))
@@ -82,15 +81,15 @@
 
 (check fl-gamma-2/3 => 1.3541179394264004169452880281545137855193)
 
-(check (binary64? fl-greatest) => #t)
+(check (flonum? fl-greatest) => #t)
 
-(check (binary64? fl-least) => #t)
+(check (flonum? fl-least) => #t)
 
 (check (< 0.0 0.0) => #f)
 
 (check (< 0.0 fl-least) => #t)
 
-(check (binary64? fl-epsilon) => #t)
+(check (flonum? fl-epsilon) => #t)
 
 (check (boolean? fl-fast-fl+*) => #t)
 
