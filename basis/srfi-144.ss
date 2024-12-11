@@ -1,6 +1,7 @@
 (define-library (srfi 144)
   (import (only (meevax binary64)
             FP_FAST_FMA
+            binary64-abs
             binary64-denormalized?
             binary64-epsilon
             binary64-exponent
@@ -82,8 +83,7 @@
           flpositive? flnegative? flodd? fleven? flfinite? flinfinite? flnan?
           flnormalized? fldenormalized?
 
-          flmax flmin fl+ fl* fl+* fl- fl/
-          ; flabs flabsdiff
+          flmax flmin fl+ fl* fl+* fl- fl/ flabs flabsdiff
           ; flposdiff flsgn flnumerator fldenominator
           ; flfloor flceiling flround fltruncate
           ;
@@ -265,5 +265,10 @@
          (define fl- -)
 
          (define fl/ /)
+
+         (define flabs binary64-abs)
+
+         (define (flabsdiff x y)
+           (flabs (- x y)))
          )
   )

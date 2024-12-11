@@ -675,6 +675,11 @@ namespace meevax::inline kernel
       {
         return make(std::fma(car(xs).as<double>(), cadr(xs).as<double>(), caddr(xs).as<double>()));
       });
+
+      library.define<procedure>("binary64-abs", [](let const& xs)
+      {
+        return make(std::fabs(car(xs).as<double>()));
+      });
     });
 
     define<library>("(meevax list)", [](library & library)

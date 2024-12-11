@@ -209,6 +209,18 @@
 
 (check (procedure? fl/) => #t)
 
+(check (flabs -0.0) => +0.0)
+
+(check (flabs -inf.0) => +inf.0)
+
+(check (flabs +inf.0) => +inf.0)
+
+(check (flabsdiff 0.0 1.0) => 1.0)
+
+(check (flabsdiff +inf.0 -inf.0) => +inf.0)
+
+(check (flabsdiff -inf.0 +inf.0) => +inf.0)
+
 (check-report)
 
-(exit (check-passed? 101))
+(exit (check-passed? 107))
