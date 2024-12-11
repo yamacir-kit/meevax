@@ -221,6 +221,46 @@
 
 (check (flabsdiff -inf.0 +inf.0) => +inf.0)
 
+(check (flposdiff 3.0 4.0) => 0.0)
+
+(check (flsgn +inf.0) => 1.0)
+
+(check (flsgn -inf.0) => -1.0)
+
+(check (flsgn +0.0) => 1.0)
+
+(check (flsgn -0.0) => -1.0)
+
+(check (numerator 2.25) => 9.0)
+
+(check (numerator -2.25) => -9.0)
+
+(check (denominator 2.25) => 4.0)
+
+(check (denominator -2.25) => 4.0)
+
+(check (procedure? flfloor) => #t)
+
+(check (procedure? flceiling) => #t)
+
+(check (procedure? flround) => #t)
+
+(check (procedure? fltruncate) => #t)
+
+(check (flexp -0.0) => 1.0)
+
+(check (flexp 0.0) => 1.0)
+
+(check (flexp 1.0) => fl-e)
+
+(check (flexp2 -0.0) => 1.0)
+
+(check (flexp2 0.0) => 1.0)
+
+(check (flexp2 fl-log2-e) => fl-e)
+
+(check (fl+ 1.0 (flexp-1 fl-least)) => 1.0)
+
 (check-report)
 
-(exit (check-passed? 107))
+(exit (check-passed? 127))

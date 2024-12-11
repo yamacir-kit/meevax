@@ -4,6 +4,7 @@
             binary64-abs
             binary64-denormalized?
             binary64-epsilon
+            binary64-expm1
             binary64-exponent
             binary64-fractional-part
             binary64-fused-multiply-add
@@ -40,21 +41,28 @@
             >
             >=
             and
+            ceiling
             define
+            denominator
             even?
             expt
+            floor
             if
             inexact
             integer?
             negative?
+            numerator
             odd?
             or
             positive?
+            round
+            truncate
             values
             zero?
             )
           (only (scheme inexact)
             cos
+            exp
             finite?
             infinite?
             log
@@ -83,11 +91,11 @@
           flpositive? flnegative? flodd? fleven? flfinite? flinfinite? flnan?
           flnormalized? fldenormalized?
 
-          flmax flmin fl+ fl* fl+* fl- fl/ flabs flabsdiff
-          ; flposdiff flsgn flnumerator fldenominator
-          ; flfloor flceiling flround fltruncate
-          ;
-          ; flexp flexp2 flexp-1 flsquare flsqrt flcbrt flhypot flexpt fllog
+          flmax flmin fl+ fl* fl+* fl- fl/ flabs flabsdiff flposdiff flsgn
+          flnumerator fldenominator flfloor flceiling flround fltruncate
+
+          flexp flexp2 flexp-1
+          ; flsquare flsqrt flcbrt flhypot flexpt fllog
           ; fllog1+ fllog2 fllog10 make-fllog-base
           ;
           ; flsin flcos fltan flasin flacos flatan
@@ -270,5 +278,30 @@
 
          (define (flabsdiff x y)
            (flabs (- x y)))
+
+         (define (flposdiff x y)
+           (flmax (fl- x y) 0.0))
+
+         (define (flsgn x)
+           (flcopysign 1.0 x))
+
+         (define flnumerator numerator)
+
+         (define fldenominator denominator)
+
+         (define flfloor floor)
+
+         (define flceiling ceiling)
+
+         (define flround round)
+
+         (define fltruncate truncate)
+
+         (define flexp exp)
+
+         (define (flexp2 x)
+           (expt 2 x))
+
+         (define flexp-1 binary64-expm1)
          )
   )

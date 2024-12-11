@@ -680,6 +680,11 @@ namespace meevax::inline kernel
       {
         return make(std::fabs(car(xs).as<double>()));
       });
+
+      library.define<procedure>("binary64-expm1", [](let const& xs)
+      {
+        return make(std::expm1(car(xs).as<double>()));
+      });
     });
 
     define<library>("(meevax list)", [](library & library)
