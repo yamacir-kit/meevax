@@ -5,6 +5,7 @@
             binary64-epsilon
             binary64-exponent
             binary64-fractional-part
+            binary64-fused-multiply-add
             binary64-greatest
             binary64-integer-log-binary
             binary64-integral-part
@@ -29,6 +30,8 @@
             )
           (only (scheme base)
             *
+            +
+            -
             /
             <
             <=
@@ -79,8 +82,8 @@
           flpositive? flnegative? flodd? fleven? flfinite? flinfinite? flnan?
           flnormalized? fldenormalized?
 
-          flmax flmin
-          ; fl+ fl* fl+* fl- fl/ flabs flabsdiff
+          flmax flmin fl+ fl* fl+* fl- fl/
+          ; flabs flabsdiff
           ; flposdiff flsgn flnumerator fldenominator
           ; flfloor flceiling flround fltruncate
           ;
@@ -252,5 +255,15 @@
          (define flmax binary64-max)
 
          (define flmin binary64-min)
+
+         (define fl+ +)
+
+         (define fl* *)
+
+         (define fl+* binary64-fused-multiply-add)
+
+         (define fl- -)
+
+         (define fl/ /)
          )
   )

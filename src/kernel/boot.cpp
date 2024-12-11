@@ -670,6 +670,11 @@ namespace meevax::inline kernel
 
         return make(min);
       });
+
+      library.define<procedure>("binary64-fused-multiply-add", [](let const& xs)
+      {
+        return make(std::fma(car(xs).as<double>(), cadr(xs).as<double>(), caddr(xs).as<double>()));
+      });
     });
 
     define<library>("(meevax list)", [](library & library)

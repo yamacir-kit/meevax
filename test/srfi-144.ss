@@ -199,6 +199,16 @@
 
 (check (flmin -1.0 0.0 1.0) => -1.0)
 
+(check (procedure? fl+) => #t)
+
+(check (procedure? fl*) => #t)
+
+(check (fl+* 2.0 3.0 4.0) => 10.0)
+
+(check (procedure? fl-) => #t)
+
+(check (procedure? fl/) => #t)
+
 (check-report)
 
-(exit (check-passed? 96))
+(exit (check-passed? 101))
