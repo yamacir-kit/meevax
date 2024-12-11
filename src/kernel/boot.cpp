@@ -584,9 +584,9 @@ namespace meevax::inline kernel
         return std::numeric_limits<double>::is_iec559 and car(xs).is<double>();
       });
 
-      library.define<double>("binary64-min", std::numeric_limits<double>::min());
+      library.define<double>("binary64-least", std::numeric_limits<double>::min());
 
-      library.define<double>("binary64-max", std::numeric_limits<double>::max());
+      library.define<double>("binary64-greatest", std::numeric_limits<double>::max());
 
       library.define<double>("binary64-epsilon", std::numeric_limits<double>::epsilon());
 
@@ -645,6 +645,30 @@ namespace meevax::inline kernel
       library.define<procedure>("binary64-denormalized?", [](let const& xs)
       {
         return std::fpclassify(car(xs).as<double>()) == FP_SUBNORMAL;
+      });
+
+      library.define<procedure>("binary64-max", [](let const& xs)
+      {
+        auto max = -std::numeric_limits<double>::infinity();
+
+        for (let const& x : xs)
+        {
+          max = std::fmax(max, x.as<double>());
+        }
+
+        return make(max);
+      });
+
+      library.define<procedure>("binary64-min", [](let const& xs)
+      {
+        auto min = std::numeric_limits<double>::infinity();
+
+        for (let const& x : xs)
+        {
+          min = std::fmin(min, x.as<double>());
+        }
+
+        return make(min);
       });
     });
 
@@ -1045,12 +1069,26 @@ namespace meevax::inline kernel
 
       library.define<procedure>("max", [](let const& xs)
       {
-        return max(xs);
+        if (auto iter = std::max_element(xs.begin(), xs.end(), less_than); iter != xs.end())
+        {
+          return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
+        }
+        else
+        {
+          return unspecified;
+        }
       });
 
       library.define<procedure>("min", [](let const& xs)
       {
-        return min(xs);
+        if (auto iter = std::min_element(xs.begin(), xs.end(), less_than); iter != xs.end())
+        {
+          return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
+        }
+        else
+        {
+          return unspecified;
+        }
       });
 
       library.define<procedure>("+", [](let const& xs)

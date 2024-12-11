@@ -5,8 +5,10 @@
             binary64-epsilon
             binary64-exponent
             binary64-fractional-part
+            binary64-greatest
             binary64-integer-log-binary
             binary64-integral-part
+            binary64-least
             binary64-log-binary
             binary64-max
             binary64-min
@@ -77,7 +79,8 @@
           flpositive? flnegative? flodd? fleven? flfinite? flinfinite? flnan?
           flnormalized? fldenormalized?
 
-          ; flmax flmin fl+ fl* fl+* fl- fl/ flabs flabsdiff
+          flmax flmin
+          ; fl+ fl* fl+* fl- fl/ flabs flabsdiff
           ; flposdiff flsgn flnumerator fldenominator
           ; flfloor flceiling flround fltruncate
           ;
@@ -171,9 +174,9 @@
 
          (define fl-gamma-2/3 (gamma (/ 2 3)))
 
-         (define fl-greatest binary64-max)
+         (define fl-greatest binary64-greatest)
 
-         (define fl-least binary64-min)
+         (define fl-least binary64-least)
 
          (define fl-epsilon binary64-epsilon)
 
@@ -245,5 +248,9 @@
          (define flnormalized? binary64-normalized?)
 
          (define fldenormalized? binary64-denormalized?)
+
+         (define flmax binary64-max)
+
+         (define flmin binary64-min)
          )
   )

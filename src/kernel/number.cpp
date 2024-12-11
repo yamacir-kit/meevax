@@ -717,30 +717,6 @@ inline namespace number
     return is_zero(remainder(x, e2));
   }
 
-  auto max(object const& xs) -> object
-  {
-    if (auto iter = std::max_element(xs.begin(), xs.end(), less_than); iter != xs.end())
-    {
-      return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
-    }
-    else
-    {
-      return unspecified;
-    }
-  }
-
-  auto min(object const& xs) -> object
-  {
-    if (auto iter = std::min_element(xs.begin(), xs.end(), less_than); iter != xs.end())
-    {
-      return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
-    }
-    else
-    {
-      return unspecified;
-    }
-  }
-
   auto abs(object const& x) -> object
   {
     auto f = []<typename T>(T const& x)

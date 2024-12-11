@@ -187,6 +187,18 @@
 
 (check (fldenormalized? (/ fl-least 2)) => #t)
 
+(check (flmax) => -inf.0)
+
+(check (flmax 0.0) => 0.0)
+
+(check (flmax -1.0 0.0 1.0) => 1.0)
+
+(check (flmin) => +inf.0)
+
+(check (flmin 0.0) => 0.0)
+
+(check (flmin -1.0 0.0 1.0) => -1.0)
+
 (check-report)
 
-(exit (check-passed? 90))
+(exit (check-passed? 96))
