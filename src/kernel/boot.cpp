@@ -690,6 +690,13 @@ namespace meevax::inline kernel
       {
         return make(std::log1p(car(xs).as<double>()));
       });
+
+      library.define<procedure>("binary64-remquo", [](let const& xs)
+      {
+        auto quotient = 0;
+        auto remainder = std::remquo(car(xs).as<double>(), cadr(xs).as<double>(), &quotient);
+        return cons(make(remainder), make<exact_integer>(quotient));
+      });
     });
 
     define<library>("(meevax list)", [](library & library)

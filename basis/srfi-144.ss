@@ -18,11 +18,16 @@
             binary64-min
             binary64-normalized-fraction
             binary64-normalized?
+            binary64-remquo
             binary64-sign-bit
             binary64?
             )
           (only (meevax inexact)
+            acosh
+            asinh
+            atanh
             copy-sign
+            cosh
             e
             euler
             gamma
@@ -30,6 +35,8 @@
             next-after
             phi
             pi
+            sinh
+            tanh
             )
           (only (scheme base)
             *
@@ -42,6 +49,8 @@
             >
             >=
             and
+            car
+            cdr
             ceiling
             define
             denominator
@@ -51,11 +60,15 @@
             if
             inexact
             integer?
+            lambda
+            let
             negative?
             numerator
             odd?
             or
             positive?
+            quotient
+            remainder
             round
             square
             truncate
@@ -63,6 +76,9 @@
             zero?
             )
           (only (scheme inexact)
+            acos
+            asin
+            atan
             cos
             exp
             finite?
@@ -71,6 +87,7 @@
             nan?
             sin
             sqrt
+            tan
             )
           )
 
@@ -97,14 +114,13 @@
           flnumerator fldenominator flfloor flceiling flround fltruncate
 
           flexp flexp2 flexp-1 flsquare flsqrt flcbrt flhypot flexpt fllog
-          fllog1+
-          ; fllog2 fllog10 make-fllog-base
-          ;
-          ; flsin flcos fltan flasin flacos flatan
-          ; flsinh flcosh fltanh flasinh flacosh flatanh
-          ;
-          ; flquotient flremainder flremquo
-          ;
+          fllog1+ fllog2 fllog10 make-fllog-base
+
+          flsin flcos fltan flasin flacos flatan flsinh flcosh fltanh flasinh
+          flacosh flatanh
+
+          flquotient flremainder flremquo
+
           ; flgamma flloggamma flfirst-bessel flsecond-bessel
           ; flerf flerfc
     )
@@ -322,5 +338,49 @@
          (define fllog log)
 
          (define fllog1+ binary64-log1p)
+
+         (define (fllog2 x)
+           (log x 2))
+
+         (define (fllog10 x)
+           (log x 10))
+
+         (define (make-fllog-base b)
+           (lambda (x)
+             (log x b)))
+
+         (define flsin sin)
+
+         (define flcos cos)
+
+         (define fltan tan)
+
+         (define flasin asin)
+
+         (define flacos acos)
+
+         (define flatan atan)
+
+         (define flsinh sinh)
+
+         (define flcosh cosh)
+
+         (define fltanh tanh)
+
+         (define flasinh asinh)
+
+         (define flacosh acosh)
+
+         (define flatanh atanh)
+
+         (define flquotient quotient)
+
+         (define flremainder remainder)
+
+         (define (flremquo x y)
+           (let ((rq (binary64-remquo x y)))
+             (values (car rq)
+                     (cdr rq))))
+
          )
   )
