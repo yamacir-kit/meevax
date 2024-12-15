@@ -385,6 +385,8 @@ inline namespace number
 
   auto gamma(object const&) -> object;
 
+  auto log_gamma(object const&) -> object;
+
   auto copy_sign(object const&, object const&) -> object;
 
   auto next_after(object const&, object const&) -> object;

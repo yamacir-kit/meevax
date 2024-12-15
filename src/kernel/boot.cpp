@@ -545,6 +545,11 @@ namespace meevax::inline kernel
         return gamma(car(xs));
       });
 
+      library.define<procedure>("log-gamma", [](let const& xs)
+      {
+        return log_gamma(car(xs));
+      });
+
       library.define<procedure>("next-after", [](let const& xs)
       {
         return next_after(car(xs), cadr(xs));

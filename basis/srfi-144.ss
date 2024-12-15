@@ -32,6 +32,7 @@
             euler
             gamma
             load-exponent
+            log-gamma
             next-after
             phi
             pi
@@ -121,8 +122,8 @@
 
           flquotient flremainder flremquo
 
-          ; flgamma flloggamma flfirst-bessel flsecond-bessel
-          ; flerf flerfc
+          flgamma flloggamma
+          ; flfirst-bessel flsecond-bessel flerf flerfc
     )
 
   (begin (define fl-e e)
@@ -381,6 +382,12 @@
            (let ((rq (binary64-remquo x y)))
              (values (car rq)
                      (cdr rq))))
+
+         (define flgamma gamma)
+
+         (define (flloggamma x)
+           (values (log-gamma x)
+                   (if (positive? (gamma x)) 1.0 -1.0)))
 
          )
   )

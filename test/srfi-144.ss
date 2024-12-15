@@ -343,15 +343,23 @@
 (check (flremainder 3.14 -0.5) (=> =) 0.14)
 (check (flremainder -3.14 -0.5) (=> =) -0.14)
 
-(call-with-values (lambda () (flremquo 5.0 2.0)) (lambda (r q) (check q => 2) (check r => 1.0)))
-(call-with-values (lambda () (flremquo 6.0 4.0)) (lambda (r q) (check q => 2) (check r => -2.0)))
-(call-with-values (lambda () (flremquo 6.3 3.0)) (lambda (r q) (check q => 2) (check r (=> =) 0.3)))
-(call-with-values (lambda () (flremquo 6.3 -3.0)) (lambda (r q) (check q => -2) (check r (=> =) 0.3)))
-(call-with-values (lambda () (flremquo -6.3 3.0)) (lambda (r q) (check q => -2) (check r (=> =) -0.3)))
-(call-with-values (lambda () (flremquo -6.3 -3.0)) (lambda (r q) (check q => 2) (check r (=> =) -0.3)))
-(call-with-values (lambda () (flremquo 6.3 3.15)) (lambda (r q) (check q => 2) (check r => 0.0)))
-(call-with-values (lambda () (flremquo 6.0 2.0)) (lambda (r q) (check q => 3) (check r => 0.0)))
+(call-with-values (lambda () (flremquo  5.0  2.0 )) (lambda (r q) (check q =>  2) (check r  =>     1.0)))
+(call-with-values (lambda () (flremquo  6.0  4.0 )) (lambda (r q) (check q =>  2) (check r  =>    -2.0)))
+(call-with-values (lambda () (flremquo  6.3  3.0 )) (lambda (r q) (check q =>  2) (check r (=> =)  0.3)))
+(call-with-values (lambda () (flremquo  6.3 -3.0 )) (lambda (r q) (check q => -2) (check r (=> =)  0.3)))
+(call-with-values (lambda () (flremquo -6.3  3.0 )) (lambda (r q) (check q => -2) (check r (=> =) -0.3)))
+(call-with-values (lambda () (flremquo -6.3 -3.0 )) (lambda (r q) (check q =>  2) (check r (=> =) -0.3)))
+(call-with-values (lambda () (flremquo  6.3  3.15)) (lambda (r q) (check q =>  2) (check r  =>     0.0)))
+(call-with-values (lambda () (flremquo  6.0  2.0 )) (lambda (r q) (check q =>  3) (check r  =>     0.0)))
+
+(check (flgamma 0.5) => fl-gamma-1/2)
+(check (flgamma 2/3) => fl-gamma-2/3)
+
+(call-with-values (lambda () (flloggamma    0.0)) (lambda (value sign) (check value =>             +inf.0) (check sign => 1.0)))
+(call-with-values (lambda () (flloggamma    0.5)) (lambda (value sign) (check value => (log fl-gamma-1/2)) (check sign => 1.0)))
+(call-with-values (lambda () (flloggamma    1.0)) (lambda (value sign) (check value =>                0.0) (check sign => 1.0)))
+(call-with-values (lambda () (flloggamma +inf.0)) (lambda (value sign) (check value =>             +inf.0) (check sign => 1.0)))
 
 (check-report)
 
-(exit (check-passed? 222))
+(exit (check-passed? 232))

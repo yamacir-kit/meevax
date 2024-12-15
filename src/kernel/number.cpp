@@ -994,7 +994,8 @@ inline namespace number
     return apply_to<real_number>(f, x);                                        \
   }
 
-  DEFINE_REAL1(gamma, std::tgamma)
+  DEFINE_REAL1(gamma,     std::tgamma)
+  DEFINE_REAL1(log_gamma, std::lgamma)
 
   #define DEFINE_REAL2(NAME, CMATH)                                            \
   auto NAME(object const& x, object const& y) -> object                        \
