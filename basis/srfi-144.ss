@@ -30,12 +30,14 @@
             cosh
             e
             euler
+            first-kind-bessel
             gamma
             load-exponent
             log-gamma
             next-after
             phi
             pi
+            second-kind-bessel
             sinh
             tanh
             )
@@ -122,8 +124,8 @@
 
           flquotient flremainder flremquo
 
-          flgamma flloggamma
-          ; flfirst-bessel flsecond-bessel flerf flerfc
+          flgamma flloggamma flfirst-bessel flsecond-bessel
+          ; flerf flerfc
     )
 
   (begin (define fl-e e)
@@ -388,6 +390,10 @@
          (define (flloggamma x)
            (values (log-gamma x)
                    (if (positive? (gamma x)) 1.0 -1.0)))
+
+         (define flfirst-bessel first-kind-bessel)
+
+         (define flsecond-bessel second-kind-bessel)
 
          )
   )

@@ -1009,8 +1009,10 @@ inline namespace number
     return apply_to<real_numbers>(f, x, y);                                    \
   }
 
-  DEFINE_REAL2(atan,       std::atan2)
-  DEFINE_REAL2(copy_sign,  std::copysign)
-  DEFINE_REAL2(next_after, std::nextafter)
+  DEFINE_REAL2(atan,               std::atan2)
+  DEFINE_REAL2(copy_sign,          std::copysign)
+  DEFINE_REAL2(first_kind_bessel,  std::cyl_bessel_j)
+  DEFINE_REAL2(next_after,         std::nextafter)
+  DEFINE_REAL2(second_kind_bessel, std::cyl_neumann)
 } // namespace number
 } // namespace meevax::kernel

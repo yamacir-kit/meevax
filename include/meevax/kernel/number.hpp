@@ -390,6 +390,10 @@ inline namespace number
   auto copy_sign(object const&, object const&) -> object;
 
   auto next_after(object const&, object const&) -> object;
+
+  auto first_kind_bessel(object const&, object const&) -> object;
+
+  auto second_kind_bessel(object const&, object const&) -> object;
 } // namespace number
 } // namespace kernel
 } // namespace meevax

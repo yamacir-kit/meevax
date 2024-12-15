@@ -565,6 +565,16 @@ namespace meevax::inline kernel
         return load_exponent(car(xs), cadr(xs));
       });
 
+      library.define<procedure>("first-kind-bessel", [](let const& xs)
+      {
+        return first_kind_bessel(car(xs), cadr(xs));
+      });
+
+      library.define<procedure>("second-kind-bessel", [](let const& xs)
+      {
+        return second_kind_bessel(car(xs), cadr(xs));
+      });
+
       library.define<double>("e", std::numbers::e);
 
       library.define<double>("pi", std::numbers::pi);

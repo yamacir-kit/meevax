@@ -360,6 +360,26 @@
 (call-with-values (lambda () (flloggamma    1.0)) (lambda (value sign) (check value =>                0.0) (check sign => 1.0)))
 (call-with-values (lambda () (flloggamma +inf.0)) (lambda (value sign) (check value =>             +inf.0) (check sign => 1.0)))
 
+(check (flfirst-bessel 0.0 (* 0/3 fl-pi)) => 1.0)
+(check (flfirst-bessel 0.0 (* 1/3 fl-pi)) => 0.74407197075292975)
+(check (flfirst-bessel 0.0 (* 2/3 fl-pi)) => 0.16979382182100766)
+(check (flfirst-bessel 0.5 (* 0/3 fl-pi)) => 0.0)
+(check (flfirst-bessel 0.5 (* 1/3 fl-pi)) => 0.67523723711782946)
+(check (flfirst-bessel 0.5 (* 2/3 fl-pi)) => 0.47746482927568606)
+(check (flfirst-bessel 1.0 (* 0/3 fl-pi)) => 0.0)
+(check (flfirst-bessel 1.0 (* 1/3 fl-pi)) => 0.45503061147236740)
+(check (flfirst-bessel 1.0 (* 2/3 fl-pi)) => 0.56886896392288921)
+
+(check (flsecond-bessel 0.0 (* 0/3 fl-pi)) => -inf.0)
+(check (flsecond-bessel 0.0 (* 1/3 fl-pi)) => 0.12417445819941761)
+(check (flsecond-bessel 0.0 (* 2/3 fl-pi)) => 0.51799555016845289)
+(check (flsecond-bessel 0.5 (* 0/3 fl-pi)) => -inf.0)
+(check (flsecond-bessel 0.5 (* 1/3 fl-pi)) => -0.38984840061683823)
+(check (flsecond-bessel 0.5 (* 2/3 fl-pi)) => 0.27566444771089593)
+(check (flsecond-bessel 1.0 (* 0/3 fl-pi)) => -inf.0)
+(check (flsecond-bessel 1.0 (* 1/3 fl-pi)) => -0.74108949656080647)
+(check (flsecond-bessel 1.0 (* 2/3 fl-pi)) => -0.05472495339562021)
+
 (check-report)
 
-(exit (check-passed? 232))
+(exit (check-passed? 250))
