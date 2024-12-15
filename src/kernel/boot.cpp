@@ -685,6 +685,11 @@ namespace meevax::inline kernel
       {
         return make(std::expm1(car(xs).as<double>()));
       });
+
+      library.define<procedure>("binary64-log1p", [](let const& xs)
+      {
+        return make(std::log1p(car(xs).as<double>()));
+      });
     });
 
     define<library>("(meevax list)", [](library & library)

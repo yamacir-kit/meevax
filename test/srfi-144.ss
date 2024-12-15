@@ -1,4 +1,5 @@
 (import (scheme base)
+        (scheme inexact)
         (scheme process-context)
         (srfi 78)
         (srfi 144))
@@ -261,6 +262,84 @@
 
 (check (fl+ 1.0 (flexp-1 fl-least)) => 1.0)
 
+(check (flsquare -0.0) => 0.0)
+
+(check (flsquare 0.0) => 0.0)
+
+(check (flsquare 1.0) => 1.0)
+
+(check (flsquare 2.0) => 4.0)
+
+(check (flsqrt -0.0) => -0.0)
+
+(check (flsqrt 0.0) => 0.0)
+
+(check (flsqrt 1.0) => 1.0)
+
+(check (flsqrt 2.0) => fl-sqrt-2)
+
+(check (flsqrt 3.0) => fl-sqrt-3)
+
+(check (flsqrt 5.0) => fl-sqrt-5)
+
+(check (flsqrt 10.0) => fl-sqrt-10)
+
+(check (flcbrt 0.0) => 0.0)
+
+(check (flcbrt 1.0) => 1.0)
+
+(check (flcbrt 1.0) => 1.0)
+
+(check (flcbrt 2.0) => fl-cbrt-2)
+
+(check (flcbrt 3.0) => fl-cbrt-3)
+
+(check (flhypot 0.0 0.0) => 0.0)
+
+(check (flhypot 0.0 1.0) => 1.0)
+
+(check (flhypot 0.0 -1.0) => 1.0)
+
+(check (flhypot 1.0 1.0) => fl-sqrt-2)
+
+(check (flhypot 1.0 2.0) => fl-sqrt-5)
+
+(check (flhypot 1.0 3.0) => fl-sqrt-10)
+
+(check (flexpt 0.0 0.0) => 1.0)
+
+(check (flexpt 1.0 0.0) => 1.0)
+
+(check (flexpt 2.0 1.0) => 2.0)
+
+(check (flexpt 2.0 2.0) => 4.0)
+
+(check (flexpt 2.0 3.0) => 8.0)
+
+(check (fllog 0.0) => -inf.0)
+
+(check (fllog 1.0) => 0.0)
+
+(check (fllog fl-phi) => fl-log-phi)
+
+(check (fllog 2.0) => fl-log-2)
+
+(check (fllog 3.0) => fl-log-3)
+
+(check (fllog fl-pi) => fl-log-pi)
+
+(check (fllog 10.0) => fl-log-10)
+
+(check (fllog1+ 0.0) => 0.0)
+
+(check (fllog1+ fl-least) (=> =) 0.0)
+
+(check (fllog1+ 1.0) => fl-log-2)
+
+(check (fllog1+ 2.0) (=> =) fl-log-3)
+
+(check (fllog1+ 9.0) => fl-log-10)
+
 (check-report)
 
-(exit (check-passed? 127))
+(exit (check-passed? 166))

@@ -13,6 +13,7 @@
             binary64-integral-part
             binary64-least
             binary64-log-binary
+            binary64-log1p
             binary64-max
             binary64-min
             binary64-normalized-fraction
@@ -56,6 +57,7 @@
             or
             positive?
             round
+            square
             truncate
             values
             zero?
@@ -94,9 +96,9 @@
           flmax flmin fl+ fl* fl+* fl- fl/ flabs flabsdiff flposdiff flsgn
           flnumerator fldenominator flfloor flceiling flround fltruncate
 
-          flexp flexp2 flexp-1
-          ; flsquare flsqrt flcbrt flhypot flexpt fllog
-          ; fllog1+ fllog2 fllog10 make-fllog-base
+          flexp flexp2 flexp-1 flsquare flsqrt flcbrt flhypot flexpt fllog
+          fllog1+
+          ; fllog2 fllog10 make-fllog-base
           ;
           ; flsin flcos fltan flasin flacos flatan
           ; flsinh flcosh fltanh flasinh flacosh flatanh
@@ -303,5 +305,22 @@
            (expt 2 x))
 
          (define flexp-1 binary64-expm1)
+
+         (define flsquare square)
+
+         (define flsqrt sqrt)
+
+         (define (flcbrt x)
+           (expt x (/ 1 3)))
+
+         (define (flhypot x y)
+           (sqrt (+ (square x)
+                    (square y))))
+
+         (define flexpt expt)
+
+         (define fllog log)
+
+         (define fllog1+ binary64-log1p)
          )
   )
