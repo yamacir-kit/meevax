@@ -1009,10 +1009,23 @@ inline namespace number
     return apply_to<real_numbers>(f, x, y);                                    \
   }
 
-  DEFINE_REAL2(atan,               std::atan2)
-  DEFINE_REAL2(copy_sign,          std::copysign)
-  DEFINE_REAL2(first_kind_bessel,  std::cyl_bessel_j)
-  DEFINE_REAL2(next_after,         std::nextafter)
-  DEFINE_REAL2(second_kind_bessel, std::cyl_neumann)
+  DEFINE_REAL2(atan,         std::atan2)
+  DEFINE_REAL2(copy_sign,    std::copysign)
+  DEFINE_REAL2(next_after,   std::nextafter)
+
+  #if __cpp_lib_math_special_functions
+  DEFINE_REAL2(cyl_bessel_j, std::cyl_bessel_j)
+  DEFINE_REAL2(cyl_neumann,  std::cyl_neumann)
+  #else
+  auto cyl_bessel_j(object const&, object const&) -> object
+  {
+    throw error(make<string>("The mathematical special function std::cyl_bessel_j is not provided in this environment."));
+  }
+
+  auto cyl_neumann(object const&, object const&) -> object
+  {
+    throw error(make<string>("The mathematical special function std::cyl_neumann is not provided in this environment."));
+  }
+  #endif
 } // namespace number
 } // namespace meevax::kernel

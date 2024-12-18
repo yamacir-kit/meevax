@@ -28,16 +28,16 @@
             atanh
             copy-sign
             cosh
+            cyl_bessel_j
+            cyl_neumann
             e
             euler
-            first-kind-bessel
             gamma
             load-exponent
             log-gamma
             next-after
             phi
             pi
-            second-kind-bessel
             sinh
             tanh
             )
@@ -391,9 +391,9 @@
            (values (log-gamma x)
                    (if (positive? (gamma x)) 1.0 -1.0)))
 
-         (define flfirst-bessel first-kind-bessel)
+         (define flfirst-bessel cyl_bessel_j)
 
-         (define flsecond-bessel second-kind-bessel)
+         (define flsecond-bessel cyl_neumann)
 
          )
   )
