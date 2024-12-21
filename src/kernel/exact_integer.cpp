@@ -89,7 +89,7 @@ namespace meevax::inline kernel
     return (*value)._mp_size;
   }
 
-  auto exact_integer::square_root() const -> std::tuple<exact_integer, exact_integer>
+  auto exact_integer::sqrt() const -> std::tuple<exact_integer, exact_integer>
   {
     exact_integer s, r;
     mpz_rootrem(s.value, r.value, value, 2);

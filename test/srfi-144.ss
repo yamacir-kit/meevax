@@ -375,12 +375,12 @@
 
 (check (flerf -inf.0) => -1.0)
 (check (flerf 0.0) => 0.0)
-(check (flerf 1.0) => 0.8427007929497149)
+(check (flerf 1.0) (=> =) 0.8427007929497149)
 (check (flerf +inf.0) => 1.0)
 
 (check (flerfc -inf.0) => 2.0)
 (check (flerfc 0.0) => 1.0)
-(check (flerfc 1.0) => 0.15729920705028513)
+(check (flerfc 1.0) (=> =) 0.15729920705028513)
 (check (flerfc +inf.0) => 0.0)
 
 (check-report)

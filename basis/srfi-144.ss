@@ -1,10 +1,8 @@
 (define-library (srfi 144)
   (import (only (meevax binary64)
             FP_FAST_FMA
-            binary64-abs
             binary64-denormalized?
             binary64-epsilon
-            binary64-expm1
             binary64-exponent
             binary64-fractional-part
             binary64-fused-multiply-add
@@ -13,7 +11,6 @@
             binary64-integral-part
             binary64-least
             binary64-log-binary
-            binary64-log1p
             binary64-max
             binary64-min
             binary64-normalized-fraction
@@ -26,7 +23,7 @@
             acosh
             asinh
             atanh
-            copy-sign
+            copysign
             cosh
             cyl_bessel_j
             cyl_neumann
@@ -34,14 +31,17 @@
             erf
             erfc
             euler
-            gamma
-            load-exponent
-            log-gamma
-            next-after
+            expm1
+            fabs
+            ldexp
+            lgamma
+            log1p
+            nextafter
             phi
             pi
             sinh
             tanh
+            tgamma
             )
           (only (scheme base)
             *
@@ -200,11 +200,11 @@
 
          (define fl-cos-1 (cos 1))
 
-         (define fl-gamma-1/2 (gamma (/ 1 2)))
+         (define fl-gamma-1/2 (tgamma (/ 1 2)))
 
-         (define fl-gamma-1/3 2.67893853470774763) ; (define fl-gamma-1/3 (gamma (/ 1 3))) yields 1 ULP error
+         (define fl-gamma-1/3 2.67893853470774763) ; (define fl-gamma-1/3 (tgamma (/ 1 3))) yields 1 ULP error
 
-         (define fl-gamma-2/3 (gamma (/ 2 3)))
+         (define fl-gamma-2/3 (tgamma (/ 2 3)))
 
          (define fl-greatest binary64-greatest)
 
@@ -220,11 +220,11 @@
 
          (define flonum inexact)
 
-         (define fladjacent next-after)
+         (define fladjacent nextafter)
 
-         (define flcopysign copy-sign)
+         (define flcopysign copysign)
 
-         (define make-flonum load-exponent)
+         (define make-flonum ldexp)
 
          (define (flinteger-fraction x)
            (values (binary64-integral-part x)
@@ -295,7 +295,7 @@
 
          (define fl/ /)
 
-         (define flabs binary64-abs)
+         (define flabs fabs)
 
          (define (flabsdiff x y)
            (flabs (- x y)))
@@ -323,7 +323,7 @@
          (define (flexp2 x)
            (expt 2 x))
 
-         (define flexp-1 binary64-expm1)
+         (define flexp-1 expm1)
 
          (define flsquare square)
 
@@ -340,7 +340,7 @@
 
          (define fllog log)
 
-         (define fllog1+ binary64-log1p)
+         (define fllog1+ log1p)
 
          (define (fllog2 x)
            (log x 2))
@@ -385,11 +385,11 @@
              (values (car rq)
                      (cdr rq))))
 
-         (define flgamma gamma)
+         (define flgamma tgamma)
 
          (define (flloggamma x)
-           (values (log-gamma x)
-                   (if (positive? (gamma x)) 1.0 -1.0)))
+           (values (lgamma x)
+                   (if (positive? (tgamma x)) 1.0 -1.0)))
 
          (define flfirst-bessel cyl_bessel_j)
 

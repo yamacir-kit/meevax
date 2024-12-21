@@ -42,6 +42,18 @@ namespace meevax::inline kernel
 {
   auto boot() -> void
   {
+    #define EXPORT1(IDENTIFIER)                                                \
+    library.define<procedure>(#IDENTIFIER, [](let const& xs)                   \
+    {                                                                          \
+      return IDENTIFIER(car(xs));                                              \
+    })
+
+    #define EXPORT2(IDENTIFIER)                                                \
+    library.define<procedure>(#IDENTIFIER, [](let const& xs)                   \
+    {                                                                          \
+      return IDENTIFIER(car(xs), cadr(xs));                                    \
+    })
+
     define<library>("(meevax boolean)", [](library & library)
     {
       library.define<procedure>("boolean?", [](let const& xs)
@@ -445,16 +457,6 @@ namespace meevax::inline kernel
         return is_nan(car(xs));
       });
 
-      library.define<procedure>("exp", [](let const& xs)
-      {
-        return exp(car(xs));
-      });
-
-      library.define<procedure>("sqrt", [](let const& xs)
-      {
-        return square_root(car(xs));
-      });
-
       library.define<procedure>("log", [](let const& xs)
       {
         switch (length(xs))
@@ -470,31 +472,6 @@ namespace meevax::inline kernel
         }
       });
 
-      library.define<procedure>("sin", [](let const& xs)
-      {
-        return sin(car(xs));
-      });
-
-      library.define<procedure>("cos", [](let const& xs)
-      {
-        return cos(car(xs));
-      });
-
-      library.define<procedure>("tan", [](let const& xs)
-      {
-        return tan(car(xs));
-      });
-
-      library.define<procedure>("asin", [](let const& xs)
-      {
-        return asin(car(xs));
-      });
-
-      library.define<procedure>("acos", [](let const& xs)
-      {
-        return acos(car(xs));
-      });
-
       library.define<procedure>("atan", [](let const& xs)
       {
         switch (length(xs))
@@ -503,87 +480,39 @@ namespace meevax::inline kernel
           return atan(car(xs));
 
         case 2:
-          return atan(car(xs), cadr(xs));
+          return atan2(car(xs), cadr(xs));
 
         default:
           throw error(make<string>("procedure atan takes one or two arguments, but got"), xs);
         }
       });
 
-      library.define<procedure>("sinh", [](let const& xs)
-      {
-        return sinh(car(xs));
-      });
+      EXPORT1(acos);
+      EXPORT1(acosh);
+      EXPORT1(asin);
+      EXPORT1(asinh);
+      EXPORT1(atanh);
+      EXPORT1(cos);
+      EXPORT1(cosh);
+      EXPORT1(erf);
+      EXPORT1(erfc);
+      EXPORT1(exp);
+      EXPORT1(expm1);
+      EXPORT1(fabs);
+      EXPORT1(lgamma);
+      EXPORT1(log1p);
+      EXPORT1(sin);
+      EXPORT1(sinh);
+      EXPORT1(sqrt);
+      EXPORT1(tan);
+      EXPORT1(tanh);
+      EXPORT1(tgamma);
 
-      library.define<procedure>("cosh", [](let const& xs)
-      {
-        return cosh(car(xs));
-      });
-
-      library.define<procedure>("tanh", [](let const& xs)
-      {
-        return tanh(car(xs));
-      });
-
-      library.define<procedure>("asinh", [](let const& xs)
-      {
-        return asinh(car(xs));
-      });
-
-      library.define<procedure>("acosh", [](let const& xs)
-      {
-        return acosh(car(xs));
-      });
-
-      library.define<procedure>("atanh", [](let const& xs)
-      {
-        return atanh(car(xs));
-      });
-
-      library.define<procedure>("gamma", [](let const& xs)
-      {
-        return gamma(car(xs));
-      });
-
-      library.define<procedure>("log-gamma", [](let const& xs)
-      {
-        return log_gamma(car(xs));
-      });
-
-      library.define<procedure>("next-after", [](let const& xs)
-      {
-        return next_after(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("copy-sign", [](let const& xs)
-      {
-        return copy_sign(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("load-exponent", [](let const& xs)
-      {
-        return load_exponent(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("cyl_bessel_j", [](let const& xs)
-      {
-        return cyl_bessel_j(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("cyl_neumann", [](let const& xs)
-      {
-        return cyl_neumann(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("erf", [](let const& xs)
-      {
-        return erf(car(xs));
-      });
-
-      library.define<procedure>("erfc", [](let const& xs)
-      {
-        return erfc(car(xs));
-      });
+      EXPORT2(copysign);
+      EXPORT2(cyl_bessel_j);
+      EXPORT2(cyl_neumann);
+      EXPORT2(ldexp);
+      EXPORT2(nextafter);
 
       library.define<double>("e", std::numbers::e);
 
@@ -699,21 +628,6 @@ namespace meevax::inline kernel
       library.define<procedure>("binary64-fused-multiply-add", [](let const& xs)
       {
         return make(std::fma(car(xs).as<double>(), cadr(xs).as<double>(), caddr(xs).as<double>()));
-      });
-
-      library.define<procedure>("binary64-abs", [](let const& xs)
-      {
-        return make(std::fabs(car(xs).as<double>()));
-      });
-
-      library.define<procedure>("binary64-expm1", [](let const& xs)
-      {
-        return make(std::expm1(car(xs).as<double>()));
-      });
-
-      library.define<procedure>("binary64-log1p", [](let const& xs)
-      {
-        return make(std::log1p(car(xs).as<double>()));
       });
 
       library.define<procedure>("binary64-remquo", [](let const& xs)
@@ -1259,7 +1173,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("exact-integer-square-root", [](let const& xs)
       {
-        auto&& [s, r] = car(xs).as<exact_integer>().square_root();
+        auto&& [s, r] = car(xs).as<exact_integer>().sqrt();
 
         return cons(make(std::forward<decltype(s)>(s)),
                     make(std::forward<decltype(r)>(r)));

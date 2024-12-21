@@ -333,7 +333,7 @@ inline namespace number
 
   auto lcm(object const&, object const&) -> object;
 
-  auto square_root(object const&) -> object;
+  auto sqrt(object const&) -> object;
 
   auto pow(object const&, object const&) -> object;
 
@@ -341,7 +341,7 @@ inline namespace number
 
   auto denominator(object const&) -> object;
 
-  auto load_exponent(object const&, object const&) -> object;
+  auto ldexp(object const&, object const&) -> object;
 
   auto number_to_string(object const&, int) -> object;
 
@@ -365,7 +365,7 @@ inline namespace number
 
   auto atan(object const&) -> object;
 
-  auto atan(object const&, object const&) -> object;
+  auto atan2(object const&, object const&) -> object;
 
   auto sinh(object const&) -> object;
 
@@ -383,17 +383,23 @@ inline namespace number
 
   auto log(object const&) -> object;
 
-  auto gamma(object const&) -> object;
+  auto fabs(object const&) -> object;
+
+  auto expm1(object const&) -> object;
+
+  auto log1p(object const&) -> object;
+
+  auto tgamma(object const&) -> object;
+
+  auto lgamma(object const&) -> object;
 
   auto erf(object const&) -> object;
 
   auto erfc(object const&) -> object;
 
-  auto log_gamma(object const&) -> object;
+  auto copysign(object const&, object const&) -> object;
 
-  auto copy_sign(object const&, object const&) -> object;
-
-  auto next_after(object const&, object const&) -> object;
+  auto nextafter(object const&, object const&) -> object;
 
   auto cyl_bessel_j(object const&, object const&) -> object;
 

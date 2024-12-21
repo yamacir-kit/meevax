@@ -733,7 +733,7 @@ inline namespace number
       }
       else if constexpr (std::is_same_v<T, complex>)
       {
-        return square_root(x.real() * x.real() + x.imag() * x.imag());
+        return sqrt(x.real() * x.real() + x.imag() * x.imag());
       }
       else
       {
@@ -770,7 +770,7 @@ inline namespace number
     return abs(quotient(x * y, gcd(x, y)));
   }
 
-  auto square_root(object const& x) -> object
+  auto sqrt(object const& x) -> object
   {
     auto f = []<typename T>(T const& x)
     {
@@ -783,11 +783,11 @@ inline namespace number
       }
       else
       {
-        auto square_root = [](auto const& x)
+        auto sqrt = [](auto const& x)
         {
           if constexpr (std::is_same_v<T, exact_integer>)
           {
-            auto const [s, r] = x.square_root();
+            auto const [s, r] = x.sqrt();
 
             return r == 0 ? make(s) : make(std::sqrt(static_cast<double>(x)));
           }
@@ -797,8 +797,8 @@ inline namespace number
           }
         };
 
-        return x < exact_integer(0) ? make<complex>(e0, square_root(exact_integer(0) - x))
-                                    : square_root(x);
+        return x < exact_integer(0) ? make<complex>(e0, sqrt(exact_integer(0) - x))
+                                    : sqrt(x);
       }
     };
 
@@ -883,7 +883,7 @@ inline namespace number
     }
   }
 
-  auto load_exponent(object const& x, object const& y) -> object
+  auto ldexp(object const& x, object const& y) -> object
   {
     auto f = [](auto&& x, auto&& y)
     {
@@ -947,87 +947,89 @@ inline namespace number
   DEFINE_EXACTNESS_PRESERVED_COMPLEX1(round,    std::round)
   DEFINE_EXACTNESS_PRESERVED_COMPLEX1(truncate, std::trunc)
 
-  #define DEFINE_COMPLEX1(NAME, CMATH)                                         \
-  auto NAME(object const& x) -> object                                         \
+  #define DEFINE_COMPLEX1(CMATH)                                               \
+  auto CMATH(object const& x) -> object                                        \
   {                                                                            \
     auto f = []<typename T>(T const& x)                                        \
     {                                                                          \
       if constexpr (std::is_same_v<T, complex>)                                \
       {                                                                        \
-        auto const z = CMATH(static_cast<std::complex<double>>(std::forward<decltype(x)>(x))); \
+        auto const z = std::CMATH(static_cast<std::complex<double>>(std::forward<decltype(x)>(x))); \
                                                                                \
         return complex(make(z.real()),                                         \
                        make(z.imag()));                                        \
       }                                                                        \
       else                                                                     \
       {                                                                        \
-        return CMATH(static_cast<double>(std::forward<decltype(x)>(x)));       \
+        return std::CMATH(static_cast<double>(std::forward<decltype(x)>(x)));  \
       }                                                                        \
     };                                                                         \
                                                                                \
     return apply_to<complex_number>(f, x);                                     \
   }
 
-  DEFINE_COMPLEX1(acos,  std::acos)
-  DEFINE_COMPLEX1(acosh, std::acosh)
-  DEFINE_COMPLEX1(asin,  std::asin)
-  DEFINE_COMPLEX1(asinh, std::asinh)
-  DEFINE_COMPLEX1(atan,  std::atan)
-  DEFINE_COMPLEX1(atanh, std::atanh)
-  DEFINE_COMPLEX1(cos,   std::cos)
-  DEFINE_COMPLEX1(cosh,  std::cosh)
-  DEFINE_COMPLEX1(exp,   std::exp)
-  DEFINE_COMPLEX1(log,   std::log)
-  DEFINE_COMPLEX1(sin,   std::sin)
-  DEFINE_COMPLEX1(sinh,  std::sinh)
-  DEFINE_COMPLEX1(tan,   std::tan)
-  DEFINE_COMPLEX1(tanh,  std::tanh)
+  DEFINE_COMPLEX1(acos)
+  DEFINE_COMPLEX1(acosh)
+  DEFINE_COMPLEX1(asin)
+  DEFINE_COMPLEX1(asinh)
+  DEFINE_COMPLEX1(atan)
+  DEFINE_COMPLEX1(atanh)
+  DEFINE_COMPLEX1(cos)
+  DEFINE_COMPLEX1(cosh)
+  DEFINE_COMPLEX1(exp)
+  DEFINE_COMPLEX1(log)
+  DEFINE_COMPLEX1(sin)
+  DEFINE_COMPLEX1(sinh)
+  DEFINE_COMPLEX1(tan)
+  DEFINE_COMPLEX1(tanh)
 
-  #define DEFINE_REAL1(NAME, CMATH)                                            \
-  auto NAME(object const& x) -> object                                         \
+  #define DEFINE_REAL1(CMATH)                                                  \
+  auto CMATH(object const& x) -> object                                        \
   {                                                                            \
     auto f = [](auto&& x)                                                      \
     {                                                                          \
-      return CMATH(static_cast<double>(std::forward<decltype(x)>(x)));         \
+      return std::CMATH(static_cast<double>(std::forward<decltype(x)>(x)));    \
     };                                                                         \
                                                                                \
     return apply_to<real_number>(f, x);                                        \
   }
 
-  DEFINE_REAL1(erf,       std::erf)
-  DEFINE_REAL1(erfc,      std::erfc)
-  DEFINE_REAL1(gamma,     std::tgamma)
-  DEFINE_REAL1(log_gamma, std::lgamma)
+  DEFINE_REAL1(erf)
+  DEFINE_REAL1(erfc)
+  DEFINE_REAL1(expm1)
+  DEFINE_REAL1(fabs)
+  DEFINE_REAL1(lgamma)
+  DEFINE_REAL1(log1p)
+  DEFINE_REAL1(tgamma)
 
-  #define DEFINE_REAL2(NAME, CMATH)                                            \
-  auto NAME(object const& x, object const& y) -> object                        \
+  #define DEFINE_REAL2(CMATH)                                                  \
+  auto CMATH(object const& x, object const& y) -> object                       \
   {                                                                            \
     auto f = [](auto&& x, auto&& y)                                            \
     {                                                                          \
-      return CMATH(static_cast<double>(std::forward<decltype(x)>(x)),          \
-                   static_cast<double>(std::forward<decltype(y)>(y)));         \
+      return std::CMATH(static_cast<double>(std::forward<decltype(x)>(x)),     \
+                        static_cast<double>(std::forward<decltype(y)>(y)));    \
     };                                                                         \
                                                                                \
     return apply_to<real_numbers>(f, x, y);                                    \
   }
 
-  DEFINE_REAL2(atan,         std::atan2)
-  DEFINE_REAL2(copy_sign,    std::copysign)
-  DEFINE_REAL2(next_after,   std::nextafter)
+  DEFINE_REAL2(atan2)
+  DEFINE_REAL2(copysign)
+  DEFINE_REAL2(nextafter)
+
+  #define DEFINE_UNPROVIDED_REAL2(CMATH)                                       \
+  auto CMATH(object const&, object const&) -> object                           \
+  {                                                                            \
+    throw error(make<string>("The mathematical special function std::" #CMATH " is not provided in this environment.")); \
+  }
 
   #if __cpp_lib_math_special_functions
-  DEFINE_REAL2(cyl_bessel_j, std::cyl_bessel_j)
-  DEFINE_REAL2(cyl_neumann,  std::cyl_neumann)
+  DEFINE_REAL2(cyl_bessel_j)
+  DEFINE_REAL2(cyl_neumann)
   #else
-  auto cyl_bessel_j(object const&, object const&) -> object
-  {
-    throw error(make<string>("The mathematical special function std::cyl_bessel_j is not provided in this environment."));
-  }
-
-  auto cyl_neumann(object const&, object const&) -> object
-  {
-    throw error(make<string>("The mathematical special function std::cyl_neumann is not provided in this environment."));
-  }
+  DEFINE_UNPROVIDED_REAL2(cyl_bessel_j)
+  DEFINE_UNPROVIDED_REAL2(cyl_neumann)
   #endif
 } // namespace number
 } // namespace meevax::kernel

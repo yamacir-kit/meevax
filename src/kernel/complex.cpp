@@ -155,7 +155,7 @@ namespace meevax::inline kernel
   {
     auto hypotenuse = [](let const& x, let const& y)
     {
-      return square_root(x * x + y * y);
+      return sqrt(x * x + y * y);
     };
 
     return hypotenuse(real_part(x),
@@ -164,7 +164,7 @@ namespace meevax::inline kernel
 
   auto angle(object const& x) -> object
   {
-    return atan(real_part(x),
-                imag_part(x));
+    return atan2(real_part(x),
+                 imag_part(x));
   }
 } // namespace meevax::kernel
