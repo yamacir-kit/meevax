@@ -41,7 +41,7 @@ Procedures for each standard are provided by the following R7RS-style libraries:
 |:--------:|--------------|
 | R4RS     | [`(scheme r4rs)`](./basis/r4rs.ss)
 | R5RS     | [`(scheme r5rs)`](./basis/r5rs.ss)
-| R7RS     | [`(scheme base)`](./basis/r7rs.ss) [`(scheme box)`](./basis/r7rs.ss) [`(scheme case-lambda)`](./basis/r7rs.ss) [`(scheme char)`](./basis/r7rs.ss) [`(scheme complex)`](./basis/r7rs.ss) [`(scheme cxr)`](./basis/r7rs.ss) [`(scheme eval)`](./basis/r7rs.ss) [`(scheme file)`](./basis/r7rs.ss) [`(scheme inexact)`](./basis/r7rs.ss) [`(scheme lazy)`](./basis/r7rs.ss) [`(scheme list)`](./basis/r7rs.ss) [`(scheme load)`](./basis/r7rs.ss) [`(scheme process-context)`](./basis/r7rs.ss) [`(scheme read)`](./basis/r7rs.ss) [`(scheme repl)`](./basis/r7rs.ss) [`(scheme time)`](./basis/r7rs.ss) [`(scheme write)`](./basis/r7rs.ss)
+| R7RS     | [`(scheme base)`](./basis/r7rs.ss) [`(scheme box)`](./basis/r7rs.ss) [`(scheme case-lambda)`](./basis/r7rs.ss) [`(scheme char)`](./basis/r7rs.ss) [`(scheme complex)`](./basis/r7rs.ss) [`(scheme cxr)`](./basis/r7rs.ss) [`(scheme eval)`](./basis/r7rs.ss) [`(scheme file)`](./basis/r7rs.ss) [`(scheme flonum)`](./basis/r7rs.ss) [`(scheme inexact)`](./basis/r7rs.ss) [`(scheme lazy)`](./basis/r7rs.ss) [`(scheme list)`](./basis/r7rs.ss) [`(scheme load)`](./basis/r7rs.ss) [`(scheme process-context)`](./basis/r7rs.ss) [`(scheme read)`](./basis/r7rs.ss) [`(scheme repl)`](./basis/r7rs.ss) [`(scheme time)`](./basis/r7rs.ss) [`(scheme write)`](./basis/r7rs.ss)
 
 ### SRFIs
 
@@ -98,9 +98,9 @@ Then, select one of the following targets and `make` it according to your purpos
 
 | Target      | Description
 |-------------|-------------
-| `all`       | Build shared-library `libmeevax.0.5.303.so` and executable `meevax`.
+| `all`       | Build shared-library `libmeevax.0.5.304.so` and executable `meevax`.
 | `install`   | Copy files into `/usr/local` directly.
-| `package`   | Generate debian package `meevax_0.5.303_amd64.deb` (only Ubuntu). The generated package can be installed by `sudo apt install build/meevax_0.5.303_amd64.deb`.
+| `package`   | Generate debian package `meevax_0.5.304_amd64.deb` (only Ubuntu). The generated package can be installed by `sudo apt install build/meevax_0.5.304_amd64.deb`.
 | `test`      | Test executable `meevax`. This target requires Valgrind to be installed.
 | `uninstall` | Remove files copied to `/usr/local` directly by target `install`.
 
