@@ -519,12 +519,6 @@ namespace meevax::inline kernel
 
       library.define<double>("binary64-epsilon", std::numeric_limits<double>::epsilon());
 
-      #ifdef FP_FAST_FMA
-      library.define<bool>("FP_FAST_FMA", true);
-      #else
-      library.define<bool>("FP_FAST_FMA", false);
-      #endif
-
       library.define<procedure>("binary64-integral-part", [](let const& xs)
       {
         auto integral_part = 0.0;

@@ -1,100 +1,22 @@
 (define-library (srfi 144)
   (import (only (meevax binary64)
-            FP_FAST_FMA
-            binary64-denormalized?
-            binary64-epsilon
-            binary64-exponent
-            binary64-fractional-part
-            binary64-fused-multiply-add
-            binary64-greatest
-            binary64-integer-log-binary
-            binary64-integral-part
-            binary64-least
-            binary64-log-binary
-            binary64-max
-            binary64-min
-            binary64-normalized-fraction
-            binary64-normalized?
-            binary64-remquo
-            binary64-sign-bit
-            binary64?
-            )
+            binary64-denormalized? binary64-epsilon binary64-exponent
+            binary64-fractional-part binary64-fused-multiply-add
+            binary64-greatest binary64-integer-log-binary
+            binary64-integral-part binary64-least binary64-log-binary
+            binary64-max binary64-min binary64-normalized-fraction
+            binary64-normalized? binary64-remquo binary64-sign-bit binary64?)
           (only (meevax inexact)
-            acosh
-            asinh
-            atanh
-            copysign
-            cosh
-            cyl_bessel_j
-            cyl_neumann
-            e
-            erf
-            erfc
-            euler
-            expm1
-            fabs
-            ldexp
-            lgamma
-            log1p
-            nextafter
-            phi
-            pi
-            sinh
-            tanh
-            tgamma
-            )
+            acosh asinh atanh copysign cosh cyl_bessel_j cyl_neumann e erf erfc
+            euler expm1 fabs ldexp lgamma log1p nextafter phi pi sinh tanh
+            tgamma)
           (only (scheme base)
-            *
-            +
-            -
-            /
-            <
-            <=
-            =
-            >
-            >=
-            and
-            car
-            cdr
-            ceiling
-            define
-            denominator
-            even?
-            expt
-            floor
-            if
-            inexact
-            integer?
-            lambda
-            let
-            negative?
-            numerator
-            odd?
-            or
-            positive?
-            quotient
-            remainder
-            round
-            square
-            truncate
-            values
-            zero?
-            )
+            * + - / < <= = > >= and car cdr ceiling cond-expand define
+            denominator even? expt floor if inexact integer? lambda let
+            negative? numerator odd? or positive? quotient remainder round
+            square truncate values zero?)
           (only (scheme inexact)
-            acos
-            asin
-            atan
-            cos
-            exp
-            finite?
-            infinite?
-            log
-            nan?
-            sin
-            sqrt
-            tan
-            )
-          )
+            acos asin atan cos exp finite? infinite? log nan? sin sqrt tan))
 
   (export fl-e fl-1/e fl-e-2 fl-e-pi/4 fl-log2-e fl-log10-e fl-log-2 fl-1/log-2
           fl-log-3 fl-log-pi fl-log-10 fl-1/log-10 fl-pi fl-1/pi fl-2pi fl-pi/2
@@ -212,7 +134,10 @@
 
          (define fl-epsilon binary64-epsilon)
 
-         (define fl-fast-fl+* FP_FAST_FMA)
+         (define fl-fast-fl+*
+           (cond-expand
+             (FP_FAST_FMA #f)
+             (else #f)))
 
          (define fl-integer-exponent-zero (binary64-integer-log-binary 0.0))
 

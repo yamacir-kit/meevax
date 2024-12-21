@@ -40,6 +40,11 @@ namespace meevax::inline kernel
       make_symbol(std::endian::native == std::endian::little ? "little-endian" : "big-endian"),
       make_symbol("${PROJECT_NAME}"),
       make_symbol("${PROJECT_NAME}-${PROJECT_VERSION}")
+
+      #ifdef FP_FAST_FMA
+    , make_symbol("FP_FAST_FMA")
+      #endif
+
       #if __cpp_lib_math_special_functions
     , make_symbol("__cpp_lib_math_special_functions")
       #endif
