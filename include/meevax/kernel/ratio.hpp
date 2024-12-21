@@ -46,6 +46,10 @@ namespace meevax::inline kernel
 
     auto numerator() const -> exact_integer;
 
+    explicit operator int() const;
+
+    explicit operator float() const;
+
     explicit operator double() const;
   };
 

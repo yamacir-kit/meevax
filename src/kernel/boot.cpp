@@ -16,6 +16,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <numbers>
 #include <numeric>
 
 #include <meevax/kernel/binary_input_file_port.hpp>
@@ -41,6 +42,18 @@ namespace meevax::inline kernel
 {
   auto boot() -> void
   {
+    #define EXPORT1(IDENTIFIER)                                                \
+    library.define<procedure>(#IDENTIFIER, [](let const& xs)                   \
+    {                                                                          \
+      return IDENTIFIER(car(xs));                                              \
+    })
+
+    #define EXPORT2(IDENTIFIER)                                                \
+    library.define<procedure>(#IDENTIFIER, [](let const& xs)                   \
+    {                                                                          \
+      return IDENTIFIER(car(xs), cadr(xs));                                    \
+    })
+
     define<library>("(meevax boolean)", [](library & library)
     {
       library.define<procedure>("boolean?", [](let const& xs)
@@ -429,16 +442,6 @@ namespace meevax::inline kernel
 
     define<library>("(meevax inexact)", [](library & library)
     {
-      library.define<procedure>("binary32?", [](let const& xs)
-      {
-        return std::numeric_limits<float>::is_iec559 and car(xs).is<float>();
-      });
-
-      library.define<procedure>("binary64?", [](let const& xs)
-      {
-        return std::numeric_limits<double>::is_iec559 and car(xs).is<double>();
-      });
-
       library.define<procedure>("finite?", [](let const& xs)
       {
         return is_finite(car(xs));
@@ -452,16 +455,6 @@ namespace meevax::inline kernel
       library.define<procedure>("nan?", [](let const& xs)
       {
         return is_nan(car(xs));
-      });
-
-      library.define<procedure>("exp", [](let const& xs)
-      {
-        return exp(car(xs));
-      });
-
-      library.define<procedure>("sqrt", [](let const& xs)
-      {
-        return sqrt(car(xs));
       });
 
       library.define<procedure>("log", [](let const& xs)
@@ -479,31 +472,6 @@ namespace meevax::inline kernel
         }
       });
 
-      library.define<procedure>("sin", [](let const& xs)
-      {
-        return sin(car(xs));
-      });
-
-      library.define<procedure>("cos", [](let const& xs)
-      {
-        return cos(car(xs));
-      });
-
-      library.define<procedure>("tan", [](let const& xs)
-      {
-        return tan(car(xs));
-      });
-
-      library.define<procedure>("asin", [](let const& xs)
-      {
-        return asin(car(xs));
-      });
-
-      library.define<procedure>("acos", [](let const& xs)
-      {
-        return acos(car(xs));
-      });
-
       library.define<procedure>("atan", [](let const& xs)
       {
         switch (length(xs))
@@ -512,41 +480,161 @@ namespace meevax::inline kernel
           return atan(car(xs));
 
         case 2:
-          return atan(car(xs), cadr(xs));
+          return atan2(car(xs), cadr(xs));
 
         default:
           throw error(make<string>("procedure atan takes one or two arguments, but got"), xs);
         }
       });
 
-      library.define<procedure>("sinh", [](let const& xs)
+      EXPORT1(acos);
+      EXPORT1(acosh);
+      EXPORT1(asin);
+      EXPORT1(asinh);
+      EXPORT1(atanh);
+      EXPORT1(cos);
+      EXPORT1(cosh);
+      EXPORT1(erf);
+      EXPORT1(erfc);
+      EXPORT1(exp);
+      EXPORT1(expm1);
+      EXPORT1(fabs);
+      EXPORT1(lgamma);
+      EXPORT1(log1p);
+      EXPORT1(sin);
+      EXPORT1(sinh);
+      EXPORT1(sqrt);
+      EXPORT1(tan);
+      EXPORT1(tanh);
+      EXPORT1(tgamma);
+
+      EXPORT2(copysign);
+      EXPORT2(cyl_bessel_j);
+      EXPORT2(cyl_neumann);
+      EXPORT2(ldexp);
+      EXPORT2(nextafter);
+
+      library.define<double>("e", std::numbers::e);
+
+      library.define<double>("pi", std::numbers::pi);
+
+      library.define<double>("euler", std::numbers::egamma);
+
+      library.define<double>("phi", std::numbers::phi);
+    });
+
+    define<library>("(meevax binary32)", [](library & library)
+    {
+      library.define<procedure>("binary32?", [](let const& xs)
       {
-        return sinh(car(xs));
+        return std::numeric_limits<float>::is_iec559 and car(xs).is<float>();
+      });
+    });
+
+    define<library>("(meevax binary64)", [](library & library)
+    {
+      library.define<procedure>("binary64?", [](let const& xs)
+      {
+        return std::numeric_limits<double>::is_iec559 and car(xs).is<double>();
       });
 
-      library.define<procedure>("cosh", [](let const& xs)
+      library.define<double>("binary64-least", std::numeric_limits<double>::min());
+
+      library.define<double>("binary64-greatest", std::numeric_limits<double>::max());
+
+      library.define<double>("binary64-epsilon", std::numeric_limits<double>::epsilon());
+
+      #ifdef FP_FAST_FMA
+      library.define<bool>("FP_FAST_FMA", true);
+      #else
+      library.define<bool>("FP_FAST_FMA", false);
+      #endif
+
+      library.define<procedure>("binary64-integral-part", [](let const& xs)
       {
-        return cosh(car(xs));
+        auto integral_part = 0.0;
+        std::modf(car(xs).as<double>(), &integral_part);
+        return make(integral_part);
       });
 
-      library.define<procedure>("tanh", [](let const& xs)
+      library.define<procedure>("binary64-fractional-part", [](let const& xs)
       {
-        return tanh(car(xs));
+        auto integral_part = 0.0;
+        return make(std::modf(car(xs).as<double>(), &integral_part));
       });
 
-      library.define<procedure>("asinh", [](let const& xs)
+      library.define<procedure>("binary64-log-binary", [](let const& xs)
       {
-        return asinh(car(xs));
+        return make(std::logb(car(xs).as<double>()));
       });
 
-      library.define<procedure>("acosh", [](let const& xs)
+      library.define<procedure>("binary64-integer-log-binary", [](let const& xs)
       {
-        return acosh(car(xs));
+        return make<exact_integer>(std::ilogb(car(xs).as<double>()));
       });
 
-      library.define<procedure>("atanh", [](let const& xs)
+      library.define<procedure>("binary64-normalized-fraction", [](let const& xs)
       {
-        return atanh(car(xs));
+        auto exponent = 0;
+        return make(std::frexp(car(xs).as<double>(), &exponent));
+      });
+
+      library.define<procedure>("binary64-exponent", [](let const& xs)
+      {
+        auto exponent = 0;
+        std::frexp(car(xs).as<double>(), &exponent);
+        return make<exact_integer>(exponent);
+      });
+
+      library.define<procedure>("binary64-sign-bit", [](let const& xs)
+      {
+        return make(std::signbit(car(xs).as<double>()));
+      });
+
+      library.define<procedure>("binary64-normalized?", [](let const& xs)
+      {
+        return std::fpclassify(car(xs).as<double>()) == FP_NORMAL;
+      });
+
+      library.define<procedure>("binary64-denormalized?", [](let const& xs)
+      {
+        return std::fpclassify(car(xs).as<double>()) == FP_SUBNORMAL;
+      });
+
+      library.define<procedure>("binary64-max", [](let const& xs)
+      {
+        auto max = -std::numeric_limits<double>::infinity();
+
+        for (let const& x : xs)
+        {
+          max = std::fmax(max, x.as<double>());
+        }
+
+        return make(max);
+      });
+
+      library.define<procedure>("binary64-min", [](let const& xs)
+      {
+        auto min = std::numeric_limits<double>::infinity();
+
+        for (let const& x : xs)
+        {
+          min = std::fmin(min, x.as<double>());
+        }
+
+        return make(min);
+      });
+
+      library.define<procedure>("binary64-fused-multiply-add", [](let const& xs)
+      {
+        return make(std::fma(car(xs).as<double>(), cadr(xs).as<double>(), caddr(xs).as<double>()));
+      });
+
+      library.define<procedure>("binary64-remquo", [](let const& xs)
+      {
+        auto quotient = 0;
+        auto remainder = std::remquo(car(xs).as<double>(), cadr(xs).as<double>(), &quotient);
+        return cons(make(remainder), make<exact_integer>(quotient));
       });
     });
 
@@ -947,12 +1035,26 @@ namespace meevax::inline kernel
 
       library.define<procedure>("max", [](let const& xs)
       {
-        return max(xs);
+        if (auto iter = std::max_element(xs.begin(), xs.end(), less_than); iter != xs.end())
+        {
+          return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
+        }
+        else
+        {
+          return unspecified;
+        }
       });
 
       library.define<procedure>("min", [](let const& xs)
       {
-        return min(xs);
+        if (auto iter = std::min_element(xs.begin(), xs.end(), less_than); iter != xs.end())
+        {
+          return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
+        }
+        else
+        {
+          return unspecified;
+        }
       });
 
       library.define<procedure>("+", [](let const& xs)
@@ -1056,12 +1158,12 @@ namespace meevax::inline kernel
 
       library.define<procedure>("ceiling", [](let const& xs)
       {
-        return ceil(car(xs));
+        return ceiling(car(xs));
       });
 
       library.define<procedure>("truncate", [](let const& xs)
       {
-        return trunc(car(xs));
+        return truncate(car(xs));
       });
 
       library.define<procedure>("round", [](let const& xs)
@@ -1071,7 +1173,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("exact-integer-square-root", [](let const& xs)
       {
-        auto&& [s, r] = car(xs).as<exact_integer>().square_root();
+        auto&& [s, r] = car(xs).as<exact_integer>().sqrt();
 
         return cons(make(std::forward<decltype(s)>(s)),
                     make(std::forward<decltype(r)>(r)));

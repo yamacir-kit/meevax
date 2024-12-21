@@ -18,9 +18,10 @@
 #define INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 
 #include <bit>
-#include <cstddef>
 #include <cmath>
+#include <cstddef>
 #include <iomanip>
+#include <limits>
 #include <ostream>
 #include <typeinfo>
 
@@ -232,7 +233,7 @@ namespace meevax::inline memory
         }
         else
         {
-          return os << std::fixed << std::setprecision(17) << cyan(value);
+          return os << std::fixed << std::setprecision(std::numeric_limits<double>::max_digits10) << cyan(value);
         }
       }
     }

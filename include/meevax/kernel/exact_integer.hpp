@@ -83,7 +83,7 @@ namespace meevax::inline kernel
       }
     }
 
-    auto square_root() const -> std::tuple<exact_integer, exact_integer>;
+    auto sqrt() const -> std::tuple<exact_integer, exact_integer>;
   };
 
   #define DEFINE_COMPARISON_OPERATOR(SYMBOL)                                   \
