@@ -54,6 +54,18 @@ namespace meevax::inline kernel
       return IDENTIFIER(car(xs), cadr(xs));                                    \
     })
 
+    #define EXPORT1_RENAME(IDENTIFIER1, IDENTIFIER2)                           \
+    library.define<procedure>(IDENTIFIER2, [](let const& xs)                   \
+    {                                                                          \
+      return IDENTIFIER1(car(xs));                                             \
+    })
+
+    #define EXPORT2_RENAME(IDENTIFIER1, IDENTIFIER2)                           \
+    library.define<procedure>(IDENTIFIER2, [](let const& xs)                   \
+    {                                                                          \
+      return IDENTIFIER1(car(xs), cadr(xs));                                   \
+    })
+
     define<library>("(meevax boolean)", [](library & library)
     {
       library.define<procedure>("boolean?", [](let const& xs)
@@ -273,25 +285,10 @@ namespace meevax::inline kernel
                              radius * sin(angle));
       });
 
-      library.define<procedure>("real-part", [](let const& xs)
-      {
-        return real_part(car(xs));
-      });
-
-      library.define<procedure>("imag-part", [](let const& xs)
-      {
-        return imag_part(car(xs));
-      });
-
-      library.define<procedure>("magnitude", [](let const& xs)
-      {
-        return magnitude(car(xs));
-      });
-
-      library.define<procedure>("angle", [](let const& xs)
-      {
-        return angle(car(xs));
-      });
+      EXPORT1(angle);
+      EXPORT1(magnitude);
+      EXPORT1_RENAME(imag_part, "imag-part");
+      EXPORT1_RENAME(real_part, "real-part");
     });
 
     define<library>("(meevax context)", [](library & library)
@@ -327,20 +324,9 @@ namespace meevax::inline kernel
 
     define<library>("(meevax comparator)", [](library & library)
     {
-      library.define<procedure>("eq?", [](let const& xs)
-      {
-        return eq(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("eqv?", [](let const& xs)
-      {
-        return eqv(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("equal?", [](let const& xs)
-      {
-        return equal(car(xs), cadr(xs));
-      });
+      EXPORT2_RENAME(eq, "eq?");
+      EXPORT2_RENAME(equal, "equal?");
+      EXPORT2_RENAME(eqv, "eqv?");
     });
 
     define<library>("(meevax core)", [](library & library)
@@ -442,21 +428,6 @@ namespace meevax::inline kernel
 
     define<library>("(meevax inexact)", [](library & library)
     {
-      library.define<procedure>("finite?", [](let const& xs)
-      {
-        return is_finite(car(xs));
-      });
-
-      library.define<procedure>("infinite?", [](let const& xs)
-      {
-        return is_infinite(car(xs));
-      });
-
-      library.define<procedure>("nan?", [](let const& xs)
-      {
-        return is_nan(car(xs));
-      });
-
       library.define<procedure>("log", [](let const& xs)
       {
         switch (length(xs))
@@ -507,6 +478,10 @@ namespace meevax::inline kernel
       EXPORT1(tan);
       EXPORT1(tanh);
       EXPORT1(tgamma);
+
+      EXPORT1_RENAME(is_finite, "finite?");
+      EXPORT1_RENAME(is_infinite, "infinite?");
+      EXPORT1_RENAME(is_nan, "nan?");
 
       EXPORT2(copysign);
       EXPORT2(cyl_bessel_j);
@@ -645,10 +620,7 @@ namespace meevax::inline kernel
         return car(xs).is<null>();
       });
 
-      library.define<procedure>("list?", [](let const& xs)
-      {
-        return is_list(car(xs));
-      });
+      EXPORT1_RENAME(is_list, "list?");
 
       library.define<procedure>("list", [](let const& xs)
       {
@@ -688,10 +660,7 @@ namespace meevax::inline kernel
         }
       });
 
-      library.define<procedure>("circular-list?", [](let const& xs)
-      {
-        return is_circular_list(car(xs));
-      });
+      EXPORT1_RENAME(is_circular_list, "circular-list?");
 
       library.define<procedure>("circular-list", [](let & xs)
       {
@@ -699,10 +668,7 @@ namespace meevax::inline kernel
         return xs;
       });
 
-      library.define<procedure>("dotted-list?", [](let const& xs)
-      {
-        return is_dotted_list(car(xs));
-      });
+      EXPORT1_RENAME(is_dotted_list, "dotted-list?");
 
       library.define<procedure>("null-list?", [](let const& xs)
       {
@@ -716,15 +682,9 @@ namespace meevax::inline kernel
         }
       });
 
-      library.define<procedure>("last", [](let const& xs)
-      {
-        return last(car(xs));
-      });
+      EXPORT1(last);
 
-      library.define<procedure>("last-pair", [](let const& xs)
-      {
-        return last_pair(car(xs));
-      });
+      EXPORT1_RENAME(last_pair, "last-pair");
 
       library.define<procedure>("length", [](let const& xs)
       {
@@ -769,20 +729,14 @@ namespace meevax::inline kernel
         return not xs.is<pair>() ? xs : append(append, car(xs), cdr(xs));
       });
 
-      library.define<procedure>("append-reverse", [](let const& xs)
-      {
-        return append_reverse(car(xs), cadr(xs));
-      });
+      EXPORT2_RENAME(append_reverse, "append-reverse");
 
       library.define<procedure>("append-reverse!", [](let & xs)
       {
         return append_reverse(car(xs), cadr(xs));
       });
 
-      library.define<procedure>("reverse", [](let const& xs)
-      {
-        return reverse(car(xs));
-      });
+      EXPORT1(reverse);
 
       library.define<procedure>("reverse!", [](let & xs)
       {
@@ -815,10 +769,7 @@ namespace meevax::inline kernel
         return not xs.is<pair>() ? xs : concatenate(concatenate, caar(xs), cdar(xs));
       });
 
-      library.define<procedure>("list-copy", [](let const& xs)
-      {
-        return list_copy(car(xs));
-      });
+      EXPORT1_RENAME(list_copy, "list-copy");
 
       library.define<procedure>("list-tail", [](let const& xs)
       {
@@ -830,55 +781,16 @@ namespace meevax::inline kernel
         return head(car(xs), cadr(xs).as<exact_integer>());
       });
 
-      library.define<procedure>("first", [](let const& xs)
-      {
-        return head(car(xs), 0);
-      });
-
-      library.define<procedure>("second", [](let const& xs)
-      {
-        return head(car(xs), 1);
-      });
-
-      library.define<procedure>("third", [](let const& xs)
-      {
-        return head(car(xs), 2);
-      });
-
-      library.define<procedure>("fourth", [](let const& xs)
-      {
-        return head(car(xs), 3);
-      });
-
-      library.define<procedure>("fifth", [](let const& xs)
-      {
-        return head(car(xs), 4);
-      });
-
-      library.define<procedure>("sixth", [](let const& xs)
-      {
-        return head(car(xs), 5);
-      });
-
-      library.define<procedure>("seventh", [](let const& xs)
-      {
-        return head(car(xs), 6);
-      });
-
-      library.define<procedure>("eighth", [](let const& xs)
-      {
-        return head(car(xs), 7);
-      });
-
-      library.define<procedure>("ninth", [](let const& xs)
-      {
-        return head(car(xs), 8);
-      });
-
-      library.define<procedure>("tenth", [](let const& xs)
-      {
-        return head(car(xs), 9);
-      });
+      library.define<procedure>("first",   [](let const& xs) { return head(car(xs), 0); });
+      library.define<procedure>("second",  [](let const& xs) { return head(car(xs), 1); });
+      library.define<procedure>("third",   [](let const& xs) { return head(car(xs), 2); });
+      library.define<procedure>("fourth",  [](let const& xs) { return head(car(xs), 3); });
+      library.define<procedure>("fifth",   [](let const& xs) { return head(car(xs), 4); });
+      library.define<procedure>("sixth",   [](let const& xs) { return head(car(xs), 5); });
+      library.define<procedure>("seventh", [](let const& xs) { return head(car(xs), 6); });
+      library.define<procedure>("eighth",  [](let const& xs) { return head(car(xs), 7); });
+      library.define<procedure>("ninth",   [](let const& xs) { return head(car(xs), 8); });
+      library.define<procedure>("tenth",   [](let const& xs) { return head(car(xs), 9); });
 
       library.define<procedure>("take", [](let const& xs)
       {
@@ -910,73 +822,28 @@ namespace meevax::inline kernel
         return drop_right(car(xs), cadr(xs).as<exact_integer>());
       });
 
-      library.define<procedure>("memq", [](let const& xs)
-      {
-        return memq(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("memv", [](let const& xs)
-      {
-        return memv(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("assq", [](let const& xs)
-      {
-        return assq(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("assv", [](let const& xs)
-      {
-        return assv(car(xs), cadr(xs));
-      });
+      EXPORT2(memq);
+      EXPORT2(memv);
+      EXPORT2(assq);
+      EXPORT2(assv);
 
       library.define<procedure>("alist-cons", [](let const& xs)
       {
         return alist_cons(car(xs), cadr(xs), caddr(xs));
       });
 
-      library.define<procedure>("alist-copy", [](let const& xs)
-      {
-        return alist_copy(car(xs));
-      });
+      EXPORT1_RENAME(alist_copy, "alist-copy");
     });
 
     define<library>("(meevax number)", [](library & library)
     {
-      library.define<procedure>("number?", [](let const& xs)
-      {
-        return is_complex(car(xs));
-      });
-
-      library.define<procedure>("complex?", [](let const& xs)
-      {
-        return is_complex(car(xs));
-      });
-
-      library.define<procedure>("real?", [](let const& xs)
-      {
-        return is_real(car(xs));
-      });
-
-      library.define<procedure>("rational?", [](let const& xs)
-      {
-        return is_rational(car(xs));
-      });
-
-      library.define<procedure>("integer?", [](let const& xs)
-      {
-        return is_integer(car(xs));
-      });
-
-      library.define<procedure>("exact?", [](let const& xs)
-      {
-        return is_exact(car(xs));
-      });
-
-      library.define<procedure>("inexact?", [](let const& xs)
-      {
-        return is_inexact(car(xs));
-      });
+      EXPORT1_RENAME(is_complex, "number?");
+      EXPORT1_RENAME(is_complex, "complex?");
+      EXPORT1_RENAME(is_real, "real?");
+      EXPORT1_RENAME(is_rational, "rational?");
+      EXPORT1_RENAME(is_integer, "integer?");
+      EXPORT1_RENAME(is_exact, "exact?");
+      EXPORT1_RENAME(is_inexact, "inexact?");
 
       library.define<procedure>("exact-integer?", [](let const& xs)
       {
@@ -1008,30 +875,11 @@ namespace meevax::inline kernel
         return std::adjacent_find(xs.begin(), xs.end(), less_than) == xs.end();
       });
 
-      library.define<procedure>("zero?", [](let const& xs)
-      {
-        return is_zero(car(xs));
-      });
-
-      library.define<procedure>("positive?", [](let const& xs)
-      {
-        return is_positive(car(xs));
-      });
-
-      library.define<procedure>("negative?", [](let const& xs)
-      {
-        return is_negative(car(xs));
-      });
-
-      library.define<procedure>("odd?", [](let const& xs)
-      {
-        return is_odd(car(xs));
-      });
-
-      library.define<procedure>("even?", [](let const& xs)
-      {
-        return is_even(car(xs));
-      });
+      EXPORT1_RENAME(is_zero, "zero?");
+      EXPORT1_RENAME(is_positive, "positive?");
+      EXPORT1_RENAME(is_negative, "negative?");
+      EXPORT1_RENAME(is_odd, "odd?");
+      EXPORT1_RENAME(is_even, "even?");
 
       library.define<procedure>("max", [](let const& xs)
       {
@@ -1091,25 +939,10 @@ namespace meevax::inline kernel
         }
       });
 
-      library.define<procedure>("abs", [](let const& xs)
-      {
-        return abs(car(xs));
-      });
-
-      library.define<procedure>("quotient", [](let const& xs)
-      {
-        return quotient(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("remainder", [](let const& xs)
-      {
-        return remainder(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("modulo", [](let const& xs)
-      {
-        return modulo(car(xs), cadr(xs));
-      });
+      EXPORT1(abs);
+      EXPORT2(quotient);
+      EXPORT2(remainder);
+      EXPORT2(modulo);
 
       library.define<procedure>("gcd", [](let const& xs)
       {
@@ -1141,35 +974,12 @@ namespace meevax::inline kernel
         }
       });
 
-      library.define<procedure>("numerator", [](let const& xs)
-      {
-        return numerator(car(xs));
-      });
-
-      library.define<procedure>("denominator", [](let const& xs)
-      {
-        return denominator(car(xs));
-      });
-
-      library.define<procedure>("floor", [](let const& xs)
-      {
-        return floor(car(xs));
-      });
-
-      library.define<procedure>("ceiling", [](let const& xs)
-      {
-        return ceiling(car(xs));
-      });
-
-      library.define<procedure>("truncate", [](let const& xs)
-      {
-        return truncate(car(xs));
-      });
-
-      library.define<procedure>("round", [](let const& xs)
-      {
-        return round(car(xs));
-      });
+      EXPORT1(numerator);
+      EXPORT1(denominator);
+      EXPORT1(floor);
+      EXPORT1(ceiling);
+      EXPORT1(truncate);
+      EXPORT1(round);
 
       library.define<procedure>("exact-integer-square-root", [](let const& xs)
       {
@@ -1179,20 +989,9 @@ namespace meevax::inline kernel
                     make(std::forward<decltype(r)>(r)));
       });
 
-      library.define<procedure>("expt", [](let const& xs)
-      {
-        return pow(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("exact", [](let const& xs)
-      {
-        return exact(car(xs));
-      });
-
-      library.define<procedure>("inexact", [](let const& xs)
-      {
-        return inexact(car(xs));
-      });
+      EXPORT2_RENAME(pow, "expt");
+      EXPORT1(exact);
+      EXPORT1(inexact);
 
       library.define<procedure>("number->string", [](let const& xs)
       {
@@ -1237,10 +1036,7 @@ namespace meevax::inline kernel
         return not car(xs).is<pair>();
       });
 
-      library.define<procedure>("cons", [](let const& xs)
-      {
-        return cons(car(xs), cadr(xs));
-      });
+      EXPORT2(cons);
 
       library.define<procedure>("cons*", [](let & xs)
       {
@@ -1272,49 +1068,39 @@ namespace meevax::inline kernel
         return cons(cadr(xs), car(xs));
       });
 
-      library.define<procedure>("car", [](let const& xs) { return car(car(xs)); });
-      library.define<procedure>("cdr", [](let const& xs) { return cdr(car(xs)); });
+      EXPORT1(car);
+      EXPORT1(cdr);
+      EXPORT1(caar);
+      EXPORT1(cadr);
+      EXPORT1(cdar);
+      EXPORT1(cddr);
+      EXPORT1(caaar);
+      EXPORT1(caadr);
+      EXPORT1(cadar);
+      EXPORT1(caddr);
+      EXPORT1(cdaar);
+      EXPORT1(cdadr);
+      EXPORT1(cddar);
+      EXPORT1(cdddr);
+      EXPORT1(caaaar);
+      EXPORT1(caaadr);
+      EXPORT1(caadar);
+      EXPORT1(caaddr);
+      EXPORT1(cadaar);
+      EXPORT1(cadadr);
+      EXPORT1(caddar);
+      EXPORT1(cadddr);
+      EXPORT1(cdaaar);
+      EXPORT1(cdaadr);
+      EXPORT1(cdadar);
+      EXPORT1(cdaddr);
+      EXPORT1(cddaar);
+      EXPORT1(cddadr);
+      EXPORT1(cdddar);
+      EXPORT1(cddddr);
 
-      library.define<procedure>("caar", [](let const& xs) { return caar(car(xs)); });
-      library.define<procedure>("cadr", [](let const& xs) { return cadr(car(xs)); });
-      library.define<procedure>("cdar", [](let const& xs) { return cdar(car(xs)); });
-      library.define<procedure>("cddr", [](let const& xs) { return cddr(car(xs)); });
-
-      library.define<procedure>("caaar", [](let const& xs) { return caaar(car(xs)); });
-      library.define<procedure>("caadr", [](let const& xs) { return caadr(car(xs)); });
-      library.define<procedure>("cadar", [](let const& xs) { return cadar(car(xs)); });
-      library.define<procedure>("caddr", [](let const& xs) { return caddr(car(xs)); });
-      library.define<procedure>("cdaar", [](let const& xs) { return cdaar(car(xs)); });
-      library.define<procedure>("cdadr", [](let const& xs) { return cdadr(car(xs)); });
-      library.define<procedure>("cddar", [](let const& xs) { return cddar(car(xs)); });
-      library.define<procedure>("cdddr", [](let const& xs) { return cdddr(car(xs)); });
-
-      library.define<procedure>("caaaar", [](let const& xs) { return caaaar(car(xs)); });
-      library.define<procedure>("caaadr", [](let const& xs) { return caaadr(car(xs)); });
-      library.define<procedure>("caadar", [](let const& xs) { return caadar(car(xs)); });
-      library.define<procedure>("caaddr", [](let const& xs) { return caaddr(car(xs)); });
-      library.define<procedure>("cadaar", [](let const& xs) { return cadaar(car(xs)); });
-      library.define<procedure>("cadadr", [](let const& xs) { return cadadr(car(xs)); });
-      library.define<procedure>("caddar", [](let const& xs) { return caddar(car(xs)); });
-      library.define<procedure>("cadddr", [](let const& xs) { return cadddr(car(xs)); });
-      library.define<procedure>("cdaaar", [](let const& xs) { return cdaaar(car(xs)); });
-      library.define<procedure>("cdaadr", [](let const& xs) { return cdaadr(car(xs)); });
-      library.define<procedure>("cdadar", [](let const& xs) { return cdadar(car(xs)); });
-      library.define<procedure>("cdaddr", [](let const& xs) { return cdaddr(car(xs)); });
-      library.define<procedure>("cddaar", [](let const& xs) { return cddaar(car(xs)); });
-      library.define<procedure>("cddadr", [](let const& xs) { return cddadr(car(xs)); });
-      library.define<procedure>("cdddar", [](let const& xs) { return cdddar(car(xs)); });
-      library.define<procedure>("cddddr", [](let const& xs) { return cddddr(car(xs)); });
-
-      library.define<procedure>("set-car!", [](let & xs)
-      {
-        caar(xs) = cadr(xs);
-      });
-
-      library.define<procedure>("set-cdr!", [](let & xs)
-      {
-        cdar(xs) = cadr(xs);
-      });
+      library.define<procedure>("set-car!", [](let & xs) { caar(xs) = cadr(xs); });
+      library.define<procedure>("set-cdr!", [](let & xs) { cdar(xs) = cadr(xs); });
     });
 
     define<library>("(meevax port)", [](library & library)
@@ -2018,10 +1804,7 @@ namespace meevax::inline kernel
         }
       });
 
-      library.define<procedure>("list->vector", [](let const& xs)
-      {
-        return make_vector(car(xs));
-      });
+      EXPORT1_RENAME(make_vector, "list->vector");
 
       library.define<procedure>("vector->string", [](let const& xs)
       {
