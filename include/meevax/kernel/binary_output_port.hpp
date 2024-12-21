@@ -21,9 +21,7 @@
 #include <meevax/kernel/homogeneous_vector.hpp>
 #include <meevax/kernel/output_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct binary_output_port : public virtual binary_port, public virtual output_port
   {
@@ -31,7 +29,6 @@ inline namespace kernel
 
     virtual auto put(u8vector const&) -> void = 0;
   };
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_BINARY_OUTPUT_PORT_HPP

@@ -19,9 +19,7 @@
 
 #include <type_traits>
 
-namespace meevax
-{
-inline namespace type_traits
+namespace meevax::inline type_traits
 {
   template <typename T>
   struct is_reference_wrapper
@@ -32,7 +30,6 @@ inline namespace type_traits
   struct is_reference_wrapper<std::reference_wrapper<T>>
     : public std::true_type
   {};
-} // namespace type_traits
-} // namespace meevax
+} // namespace meevax::type_traits
 
 #endif // INCLUDED_MEEVAX_TYPE_TRAITS_IS_REFERENCE_WRAPPER_HPP

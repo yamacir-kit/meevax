@@ -21,9 +21,7 @@
 #include <stdexcept>
 #include <typeinfo>
 
-namespace meevax
-{
-inline namespace iostream
+namespace meevax::inline iostream
 {
   template <typename To, typename... Ts>
   auto lexical_cast(Ts&&... xs) -> To
@@ -55,7 +53,6 @@ inline namespace iostream
       throw std::runtime_error(what.str());
     }
   }
-} // namespace iostream
-} // namespace meevax
+} // namespace meevax::iostream
 
 #endif // INCLUDED_MEEVAX_IOSTREAM_LEXICAL_CAST_HPP

@@ -22,9 +22,7 @@
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/procedure.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto dynamic_environment::execute(object const& control) -> object
   {
@@ -505,5 +503,4 @@ inline namespace kernel
       }
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

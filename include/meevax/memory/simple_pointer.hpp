@@ -21,9 +21,7 @@
 #include <memory>
 #include <utility>
 
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
   template <typename T>
   struct simple_pointer
@@ -78,8 +76,7 @@ inline namespace memory
   {
     return x.get() != y.get();
   }
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 template <typename T>
 struct std::hash<meevax::memory::simple_pointer<T>>

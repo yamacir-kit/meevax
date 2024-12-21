@@ -22,9 +22,7 @@
 
 #include <meevax/utility/demangle.hpp>
 
-namespace meevax
-{
-inline namespace utility
+namespace meevax::inline utility
 {
   auto demangle(char const* const name) -> std::string
   {
@@ -47,5 +45,4 @@ inline namespace utility
   {
     return demangle(info.name());
   }
-} // namespace utility
-} // namespace meevax
+} // namespace meevax::utility

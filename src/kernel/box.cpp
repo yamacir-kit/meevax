@@ -16,13 +16,10 @@
 
 #include <meevax/kernel/box.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto operator <<(std::ostream & os, box const& datum) -> std::ostream &
   {
     return os << magenta("#,(") << green("box ") << datum.first << magenta(")");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

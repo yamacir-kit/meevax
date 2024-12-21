@@ -17,18 +17,17 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 
-#include <cstddef>
+#include <bit>
 #include <cmath>
+#include <cstddef>
 #include <iomanip>
+#include <limits>
 #include <ostream>
 #include <typeinfo>
 
-#include <meevax/bit/bit_cast.hpp>
 #include <meevax/type_traits/integer.hpp>
 
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
   static_assert(std::numeric_limits<double>::is_iec559 and sizeof(double) == 8);
 
@@ -74,31 +73,24 @@ inline namespace memory
 
     constexpr nan_boxing_pointer(nan_boxing_pointer const&) = default;
 
-    auto reset(nan_boxing_pointer const& value) -> void
-    {
-      data = value.data;
-    }
-
     #define DEFINE(TYPE, ...)                                                  \
     explicit nan_boxing_pointer(TYPE const& value __VA_ARGS__) noexcept        \
-      : data { reinterpret_cast<pointer>(                                      \
-                 signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value)) }  \
+      : data { reinterpret_cast<pointer>(signature_##TYPE | std::bit_cast<uint8n_t<sizeof(TYPE)>>(value)) } \
     {}                                                                         \
                                                                                \
     auto reset(TYPE const& value __VA_ARGS__) noexcept -> void                 \
     {                                                                          \
-      data = reinterpret_cast<pointer>(                                        \
-               signature_##TYPE | bit_cast<uintN_t<sizeof(TYPE)>>(value));     \
-    } static_assert(true)
+      data = reinterpret_cast<pointer>(signature_##TYPE | std::bit_cast<uint8n_t<sizeof(TYPE)>>(value)); \
+    }
 
-    DEFINE(double,           );
-    DEFINE(T1,               );
-    DEFINE(T2,               );
-    DEFINE(T3,               );
-    DEFINE(T4,               );
-    DEFINE(T5,               );
-    DEFINE(T6,               );
-    DEFINE(pointer, = nullptr);
+    DEFINE(double,           )
+    DEFINE(T1,               )
+    DEFINE(T2,               )
+    DEFINE(T3,               )
+    DEFINE(T4,               )
+    DEFINE(T5,               )
+    DEFINE(T6,               )
+    DEFINE(pointer, = nullptr)
 
     #undef DEFINE
 
@@ -111,22 +103,22 @@ inline namespace memory
 
     auto operator ->() const
     {
-      return get();
+      return unsafe_get();
     }
 
     auto operator *() const -> auto const&
     {
-      return *get();
+      return *unsafe_get();
     }
 
     auto operator *() -> auto &
     {
-      return *get();
+      return *unsafe_get();
     }
 
     explicit operator bool() const noexcept
     {
-      return get() != nullptr;
+      return dereferenceable() ? unsafe_get() != nullptr : false;
     }
 
     template <typename U>
@@ -134,13 +126,11 @@ inline namespace memory
     {
       if constexpr (std::is_same_v<std::decay_t<U>, double>)
       {
-        return bit_cast<double>(data);
+        return std::bit_cast<double>(data);
       }
       else
       {
-        return bit_cast<std::decay_t<U>>(
-                 static_cast<uintN_t<sizeof(std::decay_t<U>)>>(
-                   reinterpret_cast<std::uintptr_t>(data) & mask_payload));
+        return std::bit_cast<std::decay_t<U>>(static_cast<uint8n_t<sizeof(std::decay_t<U>)>>(payload()));
       }
     }
 
@@ -156,13 +146,23 @@ inline namespace memory
 
     auto get() const noexcept -> pointer
     {
-      return dereferenceable() ? reinterpret_cast<pointer>(reinterpret_cast<std::uintptr_t>(data) & mask_payload) : nullptr;
+      return dereferenceable() ? unsafe_get() : nullptr;
     }
 
     template <typename U>
     auto is() const noexcept
     {
       return type() == typeid(std::decay_t<U>);
+    }
+
+    auto reset(nan_boxing_pointer const& value) -> void
+    {
+      data = value.data;
+    }
+
+    auto payload() const noexcept
+    {
+      return reinterpret_cast<std::uintptr_t>(data) & mask_payload;
     }
 
     auto signature() const noexcept
@@ -189,6 +189,11 @@ inline namespace memory
       default:
         return typeid(double);
       }
+    }
+
+    auto unsafe_get() const noexcept
+    {
+      return reinterpret_cast<pointer>(payload());
     }
 
     auto write(std::ostream & os) const -> std::ostream &
@@ -228,7 +233,7 @@ inline namespace memory
         }
         else
         {
-          return os << std::fixed << std::setprecision(17) << cyan(value);
+          return os << std::fixed << std::setprecision(std::numeric_limits<double>::max_digits10) << cyan(value);
         }
       }
     }
@@ -247,8 +252,7 @@ inline namespace memory
   {
     return not x.compare(y);
   }
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 template <typename... Ts>
 struct std::hash<meevax::memory::nan_boxing_pointer<Ts...>>

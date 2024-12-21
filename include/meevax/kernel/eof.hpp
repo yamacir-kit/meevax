@@ -19,9 +19,7 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct eof
   {};
@@ -29,7 +27,6 @@ inline namespace kernel
   let extern const eof_object;
 
   auto operator <<(std::ostream &, eof const&) -> std::ostream &;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_EOF_HPP

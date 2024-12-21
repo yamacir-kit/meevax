@@ -19,9 +19,7 @@
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/string.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   string::string(std::string const& s)
   {
@@ -32,6 +30,11 @@ inline namespace kernel
         push_back(c);
       }
     }
+  }
+
+  string::operator std::filesystem::path() const
+  {
+    return operator std::string();
   }
 
   string::operator std::string() const
@@ -82,5 +85,4 @@ inline namespace kernel
 
     return os << cyan("\"");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

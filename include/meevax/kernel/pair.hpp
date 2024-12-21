@@ -23,15 +23,13 @@
 #include <meevax/memory/allocator.hpp>
 #include <meevax/memory/collector.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   using null = std::nullptr_t;
 
   struct pair;
 
-  using default_collector = collector<pair, bool, int, float, character, instruction>;
+  using default_collector = collector<pair, bool, std::int32_t, float, character, instruction>;
 
   using object = default_collector::mutator;
 
@@ -163,7 +161,7 @@ inline namespace kernel
 
     auto write(std::ostream &) const -> std::ostream & override;
 
-    auto view() const noexcept -> memory::view override
+    auto view() const noexcept -> std::pair<void const*, std::size_t> override
     {
       return { this, sizeof(*this) };
     }
@@ -280,8 +278,7 @@ inline namespace kernel
 
   inline constexpr auto caddddr = compose(car, cddddr);
   inline constexpr auto cdddddr = compose(cdr, cddddr);
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 template <>
 struct std::hash<meevax::object>

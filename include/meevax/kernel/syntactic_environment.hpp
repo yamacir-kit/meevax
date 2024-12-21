@@ -24,9 +24,7 @@
 #include <meevax/kernel/include.hpp>
 #include <meevax/kernel/transformer.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   template <typename Environment>
   struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
@@ -138,12 +136,12 @@ inline namespace kernel
     struct syntax : public describable
     {
       auto (*expand)(syntactic_environment const&,
-                     object const& expression,
+                     object const& form,
                      object const& bound_variables,
                      renamer &) -> object;
 
       auto (*generate)(syntactic_environment &,
-                       object const& /* expression      */,
+                       object const& /* form            */,
                        object const& /* bound_variables */,
                        object const& /* continuation    */,
                        bool          /* tail            */) -> object;
@@ -159,8 +157,8 @@ inline namespace kernel
 
       struct constructor : private object
       {
-        explicit constructor(let const& expression)
-          : object { expression }
+        explicit constructor(let const& form)
+          : object { form }
         {}
 
         template <typename... Ts>
@@ -191,9 +189,9 @@ inline namespace kernel
         }
       };
 
-      #define CONS typename syntax::constructor(expression).cons
+      #define CONS typename syntax::constructor(form).cons
 
-      #define LIST typename syntax::constructor(expression).list
+      #define LIST typename syntax::constructor(form).list
 
       friend auto operator <<(std::ostream & os, syntax const& datum) -> std::ostream &
       {
@@ -205,64 +203,64 @@ inline namespace kernel
     {
       #define EXPANDER(NAME)                                                   \
       auto NAME([[maybe_unused]] syntactic_environment const& expander,        \
-                                 object const& expression,                     \
+                                 object const& form,                           \
                 [[maybe_unused]] object const& bound_variables,                \
                 [[maybe_unused]] renamer & rename) -> object
 
       static EXPANDER(quote)
       {
-        return expression;
+        return form;
       }
 
       static EXPANDER(quote_syntax)
       {
-        return expression;
+        return form;
       }
 
       static EXPANDER(call)
       {
-        return CONS(expander.expand(car(expression),
+        return CONS(expander.expand(car(form),
                                     bound_variables,
                                     rename),
                     operand(expander,
-                            cdr(expression),
+                            cdr(form),
                             bound_variables,
                             rename));
       }
 
       static EXPANDER(operand)
       {
-        if (expression.is<pair>())
+        if (form.is<pair>())
         {
-          return CONS(expander.expand(car(expression),
+          return CONS(expander.expand(car(form),
                                       bound_variables,
                                       rename),
                       operand(expander,
-                              cdr(expression),
+                              cdr(form),
                               bound_variables,
                               rename));
         }
         else
         {
-          return expander.expand(expression, bound_variables, rename);
+          return expander.expand(form, bound_variables, rename);
         }
       }
 
       static EXPANDER(lambda)
       {
-        let const& formals = rename(cadr(expression));
+        let const& formals = rename(cadr(form));
 
-        return CONS(rename(car(expression)) /* lambda */,
+        return CONS(rename(car(form)) /* lambda */,
                     CONS(formals,
                          body(expander,
-                              cddr(expression),
+                              cddr(form),
                               cons(formals, bound_variables),
                               rename)));
       }
 
       static EXPANDER(body)
       {
-        if (auto [binding_specs, sequence] = expander.sweep(expression, bound_variables); binding_specs)
+        if (auto [binding_specs, sequence] = expander.sweep(form, bound_variables); binding_specs)
         {
           /*
              (letrec* <binding specs> <sequence>)
@@ -326,18 +324,18 @@ inline namespace kernel
 
       static EXPANDER(conditional)
       {
-        return CONS(rename(car(expression)),
+        return CONS(rename(car(form)),
                     operand(expander,
-                            cdr(expression),
+                            cdr(form),
                             bound_variables,
                             rename));
       }
 
       static EXPANDER(set)
       {
-        return CONS(rename(car(expression)),
+        return CONS(rename(car(form)),
                     operand(expander,
-                            cdr(expression),
+                            cdr(form),
                             bound_variables,
                             rename));
       }
@@ -345,7 +343,7 @@ inline namespace kernel
       static EXPANDER(include)
       {
         return expander.expand(CONS(corename("begin"),
-                                    meevax::include(cadr(expression))),
+                                    meevax::include(cadr(form))),
                                bound_variables,
                                rename);
       }
@@ -353,7 +351,7 @@ inline namespace kernel
       static EXPANDER(include_case_insensitive)
       {
         return expander.expand(CONS(corename("begin"),
-                                    meevax::include(cadr(expression), false)),
+                                    meevax::include(cadr(form), false)),
                                bound_variables,
                                rename);
       }
@@ -361,16 +359,16 @@ inline namespace kernel
       static EXPANDER(conditional_expand)
       {
         return expander.expand(CONS(corename("begin"),
-                                    meevax::conditional_expand(cdr(expression))),
+                                    meevax::conditional_expand(cdr(form))),
                                bound_variables,
                                rename);
       }
 
       static EXPANDER(letrec)
       {
-        let const extended_bound_variables = cons(map(car, cadr(expression)), bound_variables);
+        let const extended_bound_variables = cons(map(car, cadr(form)), bound_variables);
 
-        return CONS(car(expression),
+        return CONS(car(form),
                     map([&](let const& binding)
                         {
                           return LIST(car(binding),
@@ -378,28 +376,28 @@ inline namespace kernel
                                                       extended_bound_variables,
                                                       rename));
                         },
-                        cadr(expression)),
+                        cadr(form)),
                     body(expander,
-                         cddr(expression),
+                         cddr(form),
                          extended_bound_variables,
                          rename));
       }
 
       static EXPANDER(sequence)
       {
-        if (expression.is<pair>())
+        if (form.is<pair>())
         {
-          return CONS(expander.expand(car(expression),
+          return CONS(expander.expand(car(form),
                                       bound_variables,
                                       rename),
                       sequence(expander,
-                               cdr(expression),
+                               cdr(form),
                                bound_variables,
                                rename));
         }
         else
         {
-          return expander.expand(expression, bound_variables, rename);
+          return expander.expand(form, bound_variables, rename);
         }
       }
 
@@ -414,11 +412,11 @@ inline namespace kernel
                                                   current_environment));
         };
 
-        let const formals = map(formal, cadr(expression));
+        let const formals = map(formal, cadr(form));
 
         return expander.expand(LIST(CONS(corename("lambda"),
                                          formals,
-                                         cddr(expression) /* body */)),
+                                         cddr(form) /* body */)),
                                bound_variables,
                                rename);
       }
@@ -434,13 +432,13 @@ inline namespace kernel
                                                   current_environment));
         };
 
-        let const formals = map(formal, cadr(expression));
+        let const formals = map(formal, cadr(form));
 
         car(current_environment) = cons(formals, bound_variables);
 
         return expander.expand(LIST(CONS(corename("lambda"),
                                          formals,
-                                         cddr(expression) /* body */)),
+                                         cddr(form) /* body */)),
                                bound_variables,
                                rename);
       }
@@ -449,21 +447,21 @@ inline namespace kernel
       {
         if (bound_variables.is<null>())
         {
-          if (cadr(expression).is<pair>()) // (define (<variable> . <formals>) <body>)
+          if (cadr(form).is<pair>()) // (define (<variable> . <formals>) <body>)
           {
-            return LIST(rename(car(expression)),
-                        caadr(expression) /* variable */,
+            return LIST(rename(car(form)),
+                        caadr(form) /* variable */,
                         expander.expand(CONS(corename("lambda"),
-                                             cdadr(expression) /* formals */,
-                                             cddr(expression) /* body */),
+                                             cdadr(form) /* formals */,
+                                             cddr(form) /* body */),
                                         bound_variables,
                                         rename));
           }
           else // (define <variable> <expression>)
           {
-            return CONS(rename(car(expression)),
-                        cadr(expression),
-                        cddr(expression) ? LIST(expander.expand(caddr(expression),
+            return CONS(rename(car(form)),
+                        cadr(form),
+                        cddr(form) ? LIST(expander.expand(caddr(form),
                                                                 bound_variables,
                                                                 rename))
                                          : unit);
@@ -477,36 +475,36 @@ inline namespace kernel
 
       static EXPANDER(define_syntax)
       {
-        return LIST(rename(car(expression)),
-                    cadr(expression),
-                    expander.expand(caddr(expression),
+        return LIST(rename(car(form)),
+                    cadr(form),
+                    expander.expand(caddr(form),
                                     bound_variables,
                                     rename));
       }
 
       static EXPANDER(call_with_current_continuation)
       {
-        return CONS(rename(car(expression)),
+        return CONS(rename(car(form)),
                     operand(expander,
-                            cdr(expression),
+                            cdr(form),
                             bound_variables,
                             rename));
       }
 
       static EXPANDER(current)
       {
-        return CONS(rename(car(expression)),
+        return CONS(rename(car(form)),
                     operand(expander,
-                            cdr(expression),
+                            cdr(form),
                             bound_variables,
                             rename));
       }
 
       static EXPANDER(install)
       {
-        return CONS(rename(car(expression)),
+        return CONS(rename(car(form)),
                     operand(expander,
-                            cdr(expression),
+                            cdr(form),
                             bound_variables,
                             rename));
       }
@@ -518,30 +516,30 @@ inline namespace kernel
     {
       #define GENERATOR(NAME)                                                  \
       auto NAME([[maybe_unused]] syntactic_environment & generator,            \
-                [[maybe_unused]] object const& expression,                     \
+                [[maybe_unused]] object const& form,                           \
                 [[maybe_unused]] object const& bound_variables,                \
                 [[maybe_unused]] object const& continuation,                   \
                 [[maybe_unused]] bool tail = false) -> object
 
       static GENERATOR(quote)
       {
-        return CONS(make(instruction::load_constant), car(expression).is<syntactic_closure>() ? car(expression).as<syntactic_closure>().form
-                                                                                              : car(expression),
+        return CONS(make(instruction::load_constant), car(form).is<syntactic_closure>() ? car(form).as<syntactic_closure>().form
+                                                                                        : car(form),
                     continuation);
       }
 
       static GENERATOR(quote_syntax)
       {
-        return CONS(make(instruction::load_constant), car(expression),
+        return CONS(make(instruction::load_constant), car(form),
                     continuation);
       }
 
       static GENERATOR(call)
       {
         return operand(generator,
-                       cdr(expression),
+                       cdr(form),
                        bound_variables,
-                       generator.generate(car(expression),
+                       generator.generate(car(form),
                                           bound_variables,
                                           tail ? LIST(make(instruction::tail_call))
                                                : CONS(make(instruction::call), continuation)));
@@ -549,19 +547,19 @@ inline namespace kernel
 
       static GENERATOR(operand)
       {
-        if (expression.is<pair>())
+        if (form.is<pair>())
         {
           return operand(generator,
-                         cdr(expression),
+                         cdr(form),
                          bound_variables,
-                         generator.generate(car(expression),
+                         generator.generate(car(form),
                                             bound_variables,
                                             CONS(make(instruction::cons),
                                                  continuation)));
         }
         else
         {
-          return generator.generate(expression, bound_variables, continuation);
+          return generator.generate(form, bound_variables, continuation);
         }
       }
 
@@ -569,28 +567,28 @@ inline namespace kernel
       {
         return CONS(make(instruction::load_closure),
                     body(generator,
-                         cdr(expression),
-                         cons(car(expression), bound_variables), // Extend scope.
+                         cdr(form),
+                         cons(car(form), bound_variables), // Extend scope.
                          LIST(make(instruction::return_))),
                     continuation);
       }
 
       static GENERATOR(body)
       {
-        if (cdr(expression).template is<null>())
+        if (cdr(form).template is<null>())
         {
-          return generator.generate(car(expression),
+          return generator.generate(car(form),
                                     bound_variables,
                                     continuation,
                                     true);
         }
         else
         {
-          return generator.generate(car(expression),
+          return generator.generate(car(form),
                                     bound_variables,
                                     CONS(make(instruction::drop),
                                          body(generator,
-                                              cdr(expression),
+                                              cdr(form),
                                               bound_variables,
                                               continuation)),
                                     false);
@@ -603,49 +601,49 @@ inline namespace kernel
         {
           assert(lexical_cast<std::string>(continuation) == "(return)");
 
-          return generator.generate(car(expression), // <test>
+          return generator.generate(car(form), // <test>
                                     bound_variables,
                                     LIST(make(instruction::tail_select),
-                                         generator.generate(cadr(expression),
+                                         generator.generate(cadr(form),
                                                             bound_variables,
                                                             continuation,
                                                             tail),
-                                         cddr(expression) ? generator.generate(caddr(expression),
-                                                                               bound_variables,
-                                                                               continuation,
-                                                                               tail)
-                                                          : LIST(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                                 make(instruction::return_))));
+                                         cddr(form) ? generator.generate(caddr(form),
+                                                                         bound_variables,
+                                                                         continuation,
+                                                                         tail)
+                                                    : LIST(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
+                                                           make(instruction::return_))));
         }
         else
         {
-          return generator.generate(car(expression), // <test>
+          return generator.generate(car(form), // <test>
                                     bound_variables,
                                     CONS(make(instruction::select),
-                                         generator.generate(cadr(expression),
+                                         generator.generate(cadr(form),
                                                             bound_variables,
                                                             LIST(make(instruction::join))),
-                                         cddr(expression) ? generator.generate(caddr(expression),
-                                                                               bound_variables,
-                                                                               LIST(make(instruction::join)))
-                                                          : LIST(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
-                                                                 make(instruction::join)),
+                                         cddr(form) ? generator.generate(caddr(form),
+                                                                         bound_variables,
+                                                                         LIST(make(instruction::join)))
+                                                    : LIST(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
+                                                           make(instruction::join)),
                                          continuation));
         }
       }
 
       static GENERATOR(set)
       {
-        if (let const& identity = generator.identify(car(expression), bound_variables); identity.is<relative>())
+        if (let const& identity = generator.identify(car(form), bound_variables); identity.is<relative>())
         {
-          return generator.generate(cadr(expression),
+          return generator.generate(cadr(form),
                                     bound_variables,
                                     CONS(make(instruction::store_relative), identity,
                                          continuation));
         }
         else if (identity.is<variadic>())
         {
-          return generator.generate(cadr(expression),
+          return generator.generate(cadr(form),
                                     bound_variables,
                                     CONS(make(instruction::store_variadic), identity,
                                          continuation));
@@ -654,7 +652,7 @@ inline namespace kernel
         {
           assert(identity.is<absolute>());
 
-          return generator.generate(cadr(expression),
+          return generator.generate(cadr(form),
                                     bound_variables,
                                     CONS(make(instruction::store_absolute), identity,
                                          continuation));
@@ -671,14 +669,14 @@ inline namespace kernel
       {
         assert(not tail or lexical_cast<std::string>(continuation) == "(return)");
 
-        let const formals = map(car, car(expression));
+        let const formals = map(car, car(form));
 
         return CONS(make(instruction::dummy),
                     operand(generator,
-                            map(cadr, car(expression)),
+                            map(cadr, car(form)),
                             cons(formals, bound_variables),
                             lambda(generator,
-                                   cons(formals, cdr(expression)), // (<formals> <body>)
+                                   cons(formals, cdr(form)), // (<formals> <body>)
                                    bound_variables,
                                    tail ? LIST(make(instruction::tail_letrec))
                                         : CONS(make(instruction::letrec), continuation))));
@@ -686,9 +684,9 @@ inline namespace kernel
 
       static GENERATOR(sequence)
       {
-        if (cdr(expression).is<null>()) // is tail sequence
+        if (cdr(form).is<null>()) // is tail sequence
         {
-          return generator.generate(car(expression),
+          return generator.generate(car(form),
                                     bound_variables,
                                     continuation,
                                     tail);
@@ -704,13 +702,13 @@ inline namespace kernel
              separately and then combined with the compiled result of the
              remaining expressions by append.
           */
-          let const& head = generator.generate(car(expression), // Head expression or definition
+          let const& head = generator.generate(car(form), // Head expression or definition
                                                bound_variables,
                                                unit);
           return append(head,
                         CONS(make(instruction::drop), // Pop result of head expression
                              sequence(generator,
-                                      cdr(expression), // Rest expression or definitions
+                                      cdr(form), // Rest expression or definitions
                                       bound_variables,
                                       continuation,
                                       tail)));
@@ -725,19 +723,19 @@ inline namespace kernel
       {
         assert(bound_variables.is<null>()); // This has been checked on previous passes.
 
-        assert(not car(expression).is<pair>()); // This has been checked on previous passes.
+        assert(not car(form).is<pair>()); // This has been checked on previous passes.
 
-        return generator.generate(cdr(expression) ? cadr(expression) : unspecified,
+        return generator.generate(cdr(form) ? cadr(form) : unspecified,
                                   bound_variables,
-                                  CONS(make(instruction::store_absolute), generator.identify(car(expression), bound_variables),
+                                  CONS(make(instruction::store_absolute), generator.identify(car(form), bound_variables),
                                        continuation));
       }
 
       static GENERATOR(define_syntax)
       {
-        let identity = generator.identify(car(expression), unit);
+        let identity = generator.identify(car(form), unit);
 
-        cdr(identity) = make<transformer>(Environment().execute(generator.generate(cadr(expression),
+        cdr(identity) = make<transformer>(Environment().execute(generator.generate(cadr(form),
                                                                                    bound_variables)),
                                           make<syntactic_environment>(bound_variables,
                                                                       generator.second));
@@ -748,12 +746,12 @@ inline namespace kernel
 
       static GENERATOR(call_with_current_continuation)
       {
-        assert(expression.is<pair>());
-        assert(cdr(expression).is<null>());
+        assert(form.is<pair>());
+        assert(cdr(form).is<null>());
 
         return CONS(make(instruction::load_continuation),
                     continuation,
-                    generator.generate(car(expression),
+                    generator.generate(car(form),
                                        bound_variables,
                                        LIST(make(instruction::tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.
                                        tail));
@@ -761,15 +759,15 @@ inline namespace kernel
 
       static GENERATOR(current)
       {
-        return CONS(make(instruction::current), car(expression),
+        return CONS(make(instruction::current), car(form),
                     continuation);
       }
 
       static GENERATOR(install)
       {
-        return generator.generate(cadr(expression),
+        return generator.generate(cadr(form),
                                   bound_variables,
-                                  CONS(make(instruction::install), car(expression),
+                                  CONS(make(instruction::install), car(form),
                                        continuation));
       }
 
@@ -779,19 +777,17 @@ inline namespace kernel
     using pair::pair;
 
     template <typename... Ts>
-    inline auto compile(object const& expression,
+    inline auto compile(object const& form,
                         object const& bound_variables, Ts&&... xs) -> decltype(auto)
     {
-      return generate(expand(expression,
-                             bound_variables,
-                             default_rename),
+      return generate(expand(form, bound_variables, default_rename),
                       bound_variables,
                       std::forward<decltype(xs)>(xs)...);
     }
 
-    inline auto compile(object const& expression) -> decltype(auto)
+    inline auto compile(object const& form) -> decltype(auto)
     {
-      return compile(expression, first);
+      return compile(form, first);
     }
 
     static auto core() -> auto const&
@@ -854,23 +850,23 @@ inline namespace kernel
       return define<typename Deducer<Ts...>::type>(std::forward<decltype(xs)>(xs)...);
     }
 
-    inline auto expand(object const& expression,
+    inline auto expand(object const& form,
                        object const& bound_variables,
                        renamer & rename) const -> object try
     {
-      if (not expression.is<pair>())
+      if (not form.is<pair>())
       {
-        if (expression.is<syntactic_closure>())
+        if (form.is<syntactic_closure>())
         {
-          if (let const& identity = identify(expression, bound_variables); identity == f)
+          if (let const& identity = identify(form, bound_variables); identity == f)
           {
-            return expression.as<syntactic_closure>().expand(bound_variables, rename);
+            return form.as<syntactic_closure>().expand(bound_variables, rename);
           }
         }
 
-        return expression.is_also<identifier>() ? rename(expression) : expression;
+        return form.is_also<identifier>() ? rename(form) : form;
       }
-      else if (let const& identity = identify(car(expression), bound_variables); identity.is<absolute>())
+      else if (let const& identity = identify(car(form), bound_variables); identity.is<absolute>())
       {
         if (cdr(identity).is<transformer>())
         {
@@ -893,40 +889,40 @@ inline namespace kernel
           assert(cddr(identity).is<syntactic_environment>());
 
           let const transformed = Environment().apply(cadr(identity),
-                                                      expression,
+                                                      form,
                                                       make<syntactic_environment>(bound_variables, second),
                                                       cddr(identity));
 
-          syntax::contexts[transformed.get()] = expression;
+          syntax::contexts[transformed.get()] = form;
 
           return expand(transformed, bound_variables, rename);
         }
         else if (cdr(identity).is<syntax>())
         {
-          return cdr(identity).as<syntax>().expand(*this, expression, bound_variables, rename);
+          return cdr(identity).as<syntax>().expand(*this, form, bound_variables, rename);
         }
       }
 
-      return expander::call(*this, expression, bound_variables, rename);
+      return expander::call(*this, form, bound_variables, rename);
     }
     catch (error & e)
     {
-      e.detail(error::in::expanding, expression).raise();
+      e.detail(error::in::expanding, form).raise();
       return unspecified;
     }
 
-    inline auto generate(object const& expression,
+    inline auto generate(object const& form,
                          object const& bound_variables,
                          object const& continuation = list(make(instruction::stop)),
                          bool tail = false) -> object try
     {
-      if (not expression.is<pair>())
+      if (not form.is<pair>())
       {
-        if (expression.is_also<identifier>())
+        if (form.is_also<identifier>())
         {
-          assert(expression.is<symbol>() or expression.is<syntactic_closure>());
+          assert(form.is<symbol>() or form.is<syntactic_closure>());
 
-          if (let const& identity = identify(expression, bound_variables); identity.is<relative>())
+          if (let const& identity = identify(form, bound_variables); identity.is<relative>())
           {
             return CONS(make(instruction::load_relative), identity, continuation);
           }
@@ -942,21 +938,21 @@ inline namespace kernel
         }
         else // is <self-evaluating>
         {
-          return CONS(make(instruction::load_constant), expression, continuation);
+          return CONS(make(instruction::load_constant), form, continuation);
         }
       }
-      else if (let const& identity = std::as_const(*this).identify(car(expression), bound_variables); identity.is<absolute>() and cdr(identity).is<syntax>())
+      else if (let const& identity = std::as_const(*this).identify(car(form), bound_variables); identity.is<absolute>() and cdr(identity).is<syntax>())
       {
-        return cdr(identity).as<syntax>().generate(*this, cdr(expression), bound_variables, continuation, tail);
+        return cdr(identity).as<syntax>().generate(*this, cdr(form), bound_variables, continuation, tail);
       }
       else
       {
-        return generator::call(*this, expression, bound_variables, continuation, tail);
+        return generator::call(*this, form, bound_variables, continuation, tail);
       }
     }
     catch (error & e)
     {
-      e.detail(error::in::generating, expression).raise();
+      e.detail(error::in::generating, form).raise();
       return unspecified;
     }
 
@@ -1151,7 +1147,6 @@ inline namespace kernel
       return xs;
     }
   };
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP

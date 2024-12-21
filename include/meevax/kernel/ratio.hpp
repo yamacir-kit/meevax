@@ -20,9 +20,7 @@
 #include <gmp.h>
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct ratio
   {
@@ -48,11 +46,14 @@ inline namespace kernel
 
     auto numerator() const -> exact_integer;
 
+    explicit operator int() const;
+
+    explicit operator float() const;
+
     explicit operator double() const;
   };
 
   auto operator <<(std::ostream &, ratio const&) -> std::ostream &;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_RATIO_HPP

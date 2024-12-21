@@ -23,22 +23,23 @@
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   template <typename T>
-  struct homogeneous_vector
+  struct homogeneous_vector : private std::valarray<T>
   {
-    std::valarray<T> valarray;
+    using          std::valarray<T>::operator [];
+    using          std::valarray<T>::size;
+    using          std::valarray<T>::valarray;
+    using typename std::valarray<T>::value_type;
 
-    homogeneous_vector() = default;
+    auto valarray()       -> decltype(auto) { return static_cast<std::valarray<T>      &>(*this); }
+    auto valarray() const -> decltype(auto) { return static_cast<std::valarray<T> const&>(*this); }
 
-    // list->@vector
-    explicit homogeneous_vector(object xs)
-      : valarray(length(xs))
+    explicit homogeneous_vector(from_list_tag, let xs)
+      : std::valarray<T>(length(xs))
     {
-      std::generate(std::begin(valarray), std::end(valarray), [&]() mutable
+      std::generate(std::begin(*this), std::end(*this), [&]() mutable
       {
         let const x = car(xs);
         xs = cdr(xs);
@@ -46,61 +47,20 @@ inline namespace kernel
       });
     }
 
-    // make-@vector
-    explicit homogeneous_vector(std::size_t size, object const& x)
-      : valarray(input_cast(x), size)
-    {}
-
-    // @vector-copy
-    explicit homogeneous_vector(homogeneous_vector const& v, std::size_t begin, std::size_t end)
-      : valarray(v.valarray[std::slice(begin, begin < end ? end - begin : 0, 1)])
-    {}
-
-    // @vector-copy
-    explicit homogeneous_vector(homogeneous_vector const& v, std::size_t begin = 0)
-      : homogeneous_vector { v, begin, v.valarray.size() }
-    {}
-
-    // @vector-append
-    explicit homogeneous_vector(homogeneous_vector const& a, homogeneous_vector const& b)
-      : valarray(a.valarray.size() + b.valarray.size())
+    static auto tag() -> auto const&
     {
-      slice(0, a.valarray.size()) = a.valarray;
-      slice(b.valarray.size(), valarray.size()) = b.valarray;
-    }
-
-    // string->u8vector
-    explicit homogeneous_vector(T const* data, std::size_t size)
-      : valarray(data, size)
-    {}
-
-    // get-output-u8vector
-    explicit homogeneous_vector(std::vector<T> const& v)
-      : valarray(v.data(), v.size())
-    {}
-
-    template <typename Iterator>
-    explicit homogeneous_vector(Iterator begin, Iterator end)
-      : valarray(std::distance(begin, end))
-    {
-      std::copy(begin, end, std::begin(valarray));
-    }
-
-    static auto tag() -> decltype(auto)
-    {
-      auto static const tag = lexical_cast<std::string>(std::is_integral_v<T> ? std::is_signed_v<T> ? 's' : 'u' : 'f', sizeof(T) * CHAR_BIT);
+      auto static const tag = (std::is_integral_v<T> ? std::is_signed_v<T> ? "s" : "u" : "f") + std::to_string(sizeof(T) * CHAR_BIT);
       return tag;
     }
 
-    template <auto I = 0>
+    template <auto I = 0, typename Tuple = std::tuple<exact_integer, float, double>>
     static auto input_cast(object const& x) -> T
     {
-      using Us = std::tuple<exact_integer, float, double>;
-
-      if constexpr (I < std::tuple_size_v<Us>)
+      if constexpr (I < std::tuple_size_v<Tuple>)
       {
-        using U = std::tuple_element_t<I, Us>;
-        return x.is<U>() ? static_cast<T>(x.as<U>()) : input_cast<I + 1>(x);
+        using type_i = std::tuple_element_t<I, Tuple>;
+
+        return x.is<type_i>() ? static_cast<T>(x.as<type_i>()) : input_cast<I + 1>(x);
       }
       else
       {
@@ -111,16 +71,6 @@ inline namespace kernel
     static auto output_cast(T x)
     {
       return make<std::conditional_t<std::is_floating_point_v<T>, T, exact_integer>>(x);
-    }
-
-    auto slice(std::size_t begin, std::size_t end, std::size_t stride = 1) -> decltype(auto)
-    {
-      return valarray[std::slice(begin, end - begin, stride)];
-    }
-
-    auto slice(std::size_t begin = 0) -> decltype(auto)
-    {
-      return slice(begin, valarray.size());
     }
   };
 
@@ -133,7 +83,7 @@ inline namespace kernel
 
     auto whitespace = "";
 
-    for (auto const& value : datum.valarray)
+    for (auto value : datum.valarray())
     {
       output << std::exchange(whitespace, " ") << cyan(homogeneous_vector<T>::output_cast(value));
     }
@@ -149,7 +99,7 @@ inline namespace kernel
       return std::all_of(std::begin(xs), std::end(xs), [](auto x) { return x; });
     };
 
-    return check(a.valarray == b.valarray);
+    return check(a.valarray() == b.valarray());
   }
 
   using s8vector  = homogeneous_vector<std::int8_t>;
@@ -171,7 +121,6 @@ inline namespace kernel
   using f32vector = homogeneous_vector<float>;
 
   using f64vector = homogeneous_vector<double>;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_HOMOGENEOUS_VECTOR_HPP

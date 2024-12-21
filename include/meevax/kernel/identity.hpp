@@ -19,9 +19,7 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct absolute : public virtual pair // (<identifier> . <object>)
   {
@@ -49,7 +47,6 @@ inline namespace kernel
   {
     return false; // for free-identifier=?
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_IDENTITY_HPP

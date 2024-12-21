@@ -20,9 +20,7 @@
 #include <tuple>
 #include <utility>
 
-namespace meevax
-{
-inline namespace functional
+namespace meevax::inline functional
 {
   template <typename F>
   constexpr auto curry(F&& f) -> decltype(auto)
@@ -39,7 +37,6 @@ inline namespace functional
       };
     };
   }
-} // namespace functional
-} // namespace meevax
+} // namespace meevax::functional
 
 #endif // INCLUDED_MEEVAX_FUNCTIONAL_CURRY_HPP

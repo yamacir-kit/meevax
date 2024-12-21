@@ -19,9 +19,7 @@
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/optimizer.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto environment::evaluate(object const& expression) -> object try
   {
@@ -245,9 +243,9 @@ inline namespace kernel
     }
   }
 
-  auto environment::load(std::string const& s) -> void
+  auto environment::load(std::filesystem::path const& p) -> void
   {
-    if (auto input = input_file_port(s); input.is_open())
+    if (auto input = input_file_port(p); input.is_open())
     {
       for (let const& x : input)
       {
@@ -257,7 +255,7 @@ inline namespace kernel
     else
     {
       throw file_error(make<string>("failed to open file"),
-                       make<string>(s));
+                       make<string>(p));
     }
   }
 
@@ -269,5 +267,4 @@ inline namespace kernel
   template struct configurator<environment>;
 
   template struct syntactic_environment<environment>;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

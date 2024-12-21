@@ -23,9 +23,7 @@
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/homogeneous_vector.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   template <typename T>
   struct input_homogeneous_vector_port : public binary_input_port
@@ -33,7 +31,7 @@ inline namespace kernel
     std::deque<T> deque;
 
     explicit input_homogeneous_vector_port(homogeneous_vector<T> const& v)
-      : deque(std::begin(v.valarray), std::end(v.valarray))
+      : deque(std::begin(v.valarray()), std::end(v.valarray()))
     {}
 
     auto close() -> void override
@@ -61,7 +59,8 @@ inline namespace kernel
       }
       else
       {
-        let const v =  make<homogeneous_vector<T>>(deque.begin(), std::next(deque.begin(), size));
+        let const v =  make<homogeneous_vector<T>>(direct_initialization, size);
+        std::copy(deque.begin(), std::next(deque.begin(), size), std::begin(v.as<homogeneous_vector<T>>().valarray()));
         deque.erase(deque.begin(), std::next(deque.begin(), size));
         return v;
       }
@@ -97,7 +96,6 @@ inline namespace kernel
   }
 
   using input_u8vector_port = input_homogeneous_vector_port<std::uint8_t>;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_INPUT_HOMOGENEOUS_VECTOR_PORT_HPP

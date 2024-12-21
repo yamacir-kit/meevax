@@ -20,9 +20,7 @@
 #include <ostream>
 #include <type_traits>
 
-namespace meevax
-{
-inline namespace type_traits
+namespace meevax::inline type_traits
 {
   template <typename T, typename = void>
   struct is_output_streamable : public std::false_type
@@ -35,7 +33,6 @@ inline namespace type_traits
 
   template <typename T>
   inline constexpr auto is_output_streamable_v = is_output_streamable<T>::value;
-} // namespace type_traits
-} // namespace meevax
+} // namespace meevax::type_traits
 
 #endif // INCLUDED_MEEVAX_TYPE_TRAITS_IS_OUTPUT_STREAMABLE_HPP

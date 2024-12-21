@@ -19,9 +19,7 @@
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/list.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto include(object const& names, bool case_sensitive, object const& xs) -> object
   {
@@ -53,5 +51,4 @@ inline namespace kernel
       return reverse(xs);
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

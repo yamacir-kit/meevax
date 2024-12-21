@@ -20,14 +20,11 @@
 #include <string>
 #include <typeinfo>
 
-namespace meevax
-{
-inline namespace utility
+namespace meevax::inline utility
 {
   auto demangle(char const* const name) -> std::string;
 
   auto demangle(std::type_info const&) -> std::string;
-} // namespace utility
-} // namespace meevax
+} // namespace meevax::utility
 
 #endif // INCLUDED_MEEVAX_UTILITY_DEMANGLE_HPP

@@ -17,13 +17,10 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 #define INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 
-#if __unix__
 #include <dlfcn.h> // dlopen, dlclose, dlerror
-#else
-#error
-#endif
 
 #include <memory> // std::allocator
+#include <queue>
 #include <unordered_map>
 
 #include <meevax/iostream/escape_sequence.hpp>
@@ -35,11 +32,21 @@
 #include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/utility/demangle.hpp>
 
-namespace meevax
+namespace meevax::inline memory
 {
-inline namespace memory
-{
-  using view = std::pair<void const*, std::size_t>; // TODO Adapt to C++20's std::range concept
+  struct direct_initialization_tag
+  {
+    explicit direct_initialization_tag() = default;
+  };
+
+  inline constexpr direct_initialization_tag direct_initialization {};
+
+  struct list_initialization_tag
+  {
+    explicit list_initialization_tag() = default;
+  };
+
+  inline constexpr list_initialization_tag list_initialization {};
 
   /*
      This mark-and-sweep garbage collector is based on the implementation of
@@ -62,7 +69,7 @@ inline namespace memory
 
       virtual auto write(std::ostream &) const -> std::ostream & = 0;
 
-      virtual auto view() const noexcept -> memory::view = 0;
+      virtual auto view() const noexcept -> std::pair<void const*, std::size_t> = 0;
 
       auto contains(void const* const data) const noexcept
       {
@@ -96,10 +103,18 @@ inline namespace memory
       static inline auto allocator = allocator_type();
 
       template <typename... Us>
+      explicit constexpr binder(direct_initialization_tag, Us&&... xs)
+        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound>(std::forward<decltype(xs)>(xs)...)
+      {}
+
+      template <typename... Us>
+      explicit constexpr binder(list_initialization_tag, Us&&... xs)
+        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound> { std::forward<decltype(xs)>(xs)... }
+      {}
+
+      template <typename... Us>
       explicit constexpr binder(Us&&... xs)
-        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound> {
-            std::forward<decltype(xs)>(xs)...
-          }
+        : binder { list_initialization, std::forward<decltype(xs)>(xs)... }
       {}
 
       ~binder() override = default;
@@ -140,7 +155,7 @@ inline namespace memory
         }
       }
 
-      auto view() const noexcept -> memory::view override
+      auto view() const noexcept -> std::pair<void const*, std::size_t> override
       {
         return { this, sizeof(*this) };
       }
@@ -152,8 +167,7 @@ inline namespace memory
 
       auto operator delete(void * data) noexcept -> void
       {
-        using pointer = typename std::allocator_traits<allocator_type>::pointer;
-        allocator.deallocate(reinterpret_cast<pointer>(data), 1);
+        allocator.deallocate(reinterpret_cast<typename std::allocator_traits<allocator_type>::pointer>(data), 1);
       }
     };
 
@@ -169,6 +183,7 @@ inline namespace memory
       {
         if (*this)
         {
+          assert(not mutators.contains(this));
           mutators.insert(this);
         }
       }
@@ -178,6 +193,7 @@ inline namespace memory
       {
         if (top)
         {
+          assert(not mutators.contains(this));
           mutators.insert(this);
         }
       }
@@ -191,8 +207,9 @@ inline namespace memory
 
       ~mutator()
       {
-        if (not cleared)
+        if (pointer::operator bool() and not cleared)
         {
+          assert(mutators.contains(this));
           mutators.erase(this);
         }
       }
@@ -209,22 +226,38 @@ inline namespace memory
         return *this;
       }
 
-      auto reset(mutator const& other) -> void
+      auto reset(mutator const& after) -> void
       {
-        if (pointer::reset(other); other)
+        auto const before = pointer::operator bool();
+
+        pointer::reset(after);
+
+        if (before)
         {
-          mutators.insert(this);
+          if (not after)
+          {
+            assert(mutators.contains(this));
+            mutators.erase(this);
+          }
         }
-        else
+        else if (after)
         {
-          mutators.erase(this);
+          assert(not mutators.contains(this));
+          mutators.insert(this);
         }
       }
 
       auto reset(std::nullptr_t = nullptr) -> void
       {
+        auto const before = pointer::operator bool();
+
         pointer::reset();
-        mutators.erase(this);
+
+        if (before)
+        {
+          assert(mutators.contains(this));
+          mutators.erase(this);
+        }
       }
 
       template <typename U>
@@ -285,7 +318,7 @@ inline namespace memory
       {
         if (pointer::dereferenceable())
         {
-          return *this ? pointer::get()->compare(rhs.get()) : rhs.is<std::nullptr_t>();
+          return *this ? pointer::unsafe_get()->compare(rhs.get()) : rhs.is<std::nullptr_t>();
         }
         else
         {
@@ -310,7 +343,7 @@ inline namespace memory
       {
         if (pointer::dereferenceable())
         {
-          return *this ? pointer::get()->type() : typeid(std::nullptr_t);
+          return *this ? pointer::unsafe_get()->type() : typeid(std::nullptr_t);
         }
         else
         {
@@ -322,7 +355,7 @@ inline namespace memory
       {
         if (pointer::dereferenceable())
         {
-          return *this ? pointer::get()->write(os) : os << magenta("()");
+          return *this ? pointer::unsafe_get()->write(os) : os << magenta("()");
         }
         else
         {
@@ -337,32 +370,32 @@ inline namespace memory
 
       inline auto begin()
       {
-        return *this ? pointer::get()->begin() : typename Top::iterator();
+        return *this ? pointer::unsafe_get()->begin() : typename Top::iterator();
       }
 
       inline auto begin() const
       {
-        return *this ? pointer::get()->cbegin() : typename Top::const_iterator();
+        return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator();
       }
 
       inline auto cbegin() const
       {
-        return *this ? pointer::get()->cbegin() : typename Top::const_iterator();
+        return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator();
       }
 
       inline auto end()
       {
-        return *this ? pointer::get()->end() : typename Top::iterator();
+        return *this ? pointer::unsafe_get()->end() : typename Top::iterator();
       }
 
       inline auto end() const
       {
-        return *this ? pointer::get()->cend() : typename Top::const_iterator();
+        return *this ? pointer::unsafe_get()->cend() : typename Top::const_iterator();
       }
 
       inline auto cend() const
       {
-        return *this ? pointer::get()->cend() : typename Top::const_iterator();
+        return *this ? pointer::unsafe_get()->cend() : typename Top::const_iterator();
       }
     };
 
@@ -372,7 +405,9 @@ inline namespace memory
        0x0000'0000'0000'0000 ~ 0x7FFF'FFFF'FFFF'FFFF
     */
     template <typename T>
-    using pointer_set = integer_set<T const*, 15, 16, 16>;
+    using pointer_set = integer_set<T const*, std::bit_width(0x7FFFu),
+                                              std::bit_width(0xFFFFu),
+                                              std::bit_width(0xFFFFu)>;
 
   private:
     static inline pointer_set<top> objects {};
@@ -381,31 +416,9 @@ inline namespace memory
 
     static inline std::size_t allocation = 0;
 
-    static inline std::size_t threshold = 8_MiB;
+    static inline std::size_t threshold = 128_MiB;
 
     static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
-
-    struct mutators_view
-    {
-      std::uintptr_t address;
-
-      std::size_t size;
-
-      constexpr mutators_view(view const& v)
-        : address { reinterpret_cast<std::uintptr_t>(v.first) }
-        , size    { v.second }
-      {}
-
-      auto begin() const noexcept
-      {
-        return mutators.lower_bound(reinterpret_cast<mutator const*>(address));
-      }
-
-      auto end() const noexcept
-      {
-        return mutators.lower_bound(reinterpret_cast<mutator const*>(address + size));
-      }
-    };
 
   public:
     collector() = delete;
@@ -449,9 +462,10 @@ inline namespace memory
 
     static auto clear() -> void
     {
-      for (auto&& object : objects)
+      for (auto const& object : objects)
       {
         delete object;
+        assert(objects.contains(object));
         objects.erase(object);
       }
     }
@@ -515,7 +529,7 @@ inline namespace memory
 
     static auto mark() noexcept -> pointer_set<top>
     {
-      auto is_root_object = [begin = objects.begin()](mutator const* given) // TODO INEFFICIENT!
+      auto is_root = [begin = objects.begin()](mutator const* given)
       {
         /*
            If the given mutator is a non-root object, then an object containing
@@ -531,44 +545,66 @@ inline namespace memory
         return iter == begin or not (*--iter)->contains(given);
       };
 
-      auto marked_objects = pointer_set<top>();
+      struct mutators_view
+      {
+        void const* data;
 
-      for (auto&& mutator : mutators)
+        std::size_t size;
+
+        explicit constexpr mutators_view(std::pair<void const*, std::size_t> const& p)
+          : data { p.first }
+          , size { p.second }
+        {}
+
+        auto begin() const noexcept
+        {
+          return mutators.lower_bound(reinterpret_cast<mutator const*>(data));
+        }
+
+        auto end() const noexcept
+        {
+          return mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(data) + size));
+        }
+      };
+
+      auto reachables = pointer_set<top>();
+
+      for (auto const& mutator : mutators)
       {
         assert(mutator);
-        assert(mutator->get());
+        assert(mutator->unsafe_get());
 
-        if (not marked_objects.contains(mutator->get()) and is_root_object(mutator))
+        if (auto object = mutator->unsafe_get(); not reachables.contains(object) and is_root(mutator))
         {
-          mark(mutator->get(), marked_objects);
+          auto queue = std::queue<top const*>();
+
+          for (queue.push(object); not queue.empty(); queue.pop())
+          {
+            if (not reachables.contains(queue.front()))
+            {
+              reachables.insert(queue.front());
+
+              for (auto const& mutator : mutators_view(queue.front()->view()))
+              {
+                assert(mutator);
+                assert(mutator->unsafe_get());
+
+                queue.push(mutator->unsafe_get());
+              }
+            }
+          }
         }
       }
 
-      return marked_objects;
+      return reachables;
     }
 
-    static auto mark(top const* const object, pointer_set<top> & marked_objects) noexcept -> void
+    static auto sweep(pointer_set<top> && reachables) -> void
     {
-      assert(object);
-
-      assert(objects.contains(object));
-
-      if (not marked_objects.contains(object))
+      for (auto reachable : reachables)
       {
-        marked_objects.insert(object);
-
-        for (auto each : mutators_view(object->view()))
-        {
-          mark(each->get(), marked_objects);
-        }
-      }
-    }
-
-    static auto sweep(pointer_set<top> && marked_objects) -> void
-    {
-      for (auto marked_object : marked_objects)
-      {
-        objects.erase(marked_object);
+        assert(objects.contains(reachable));
+        objects.erase(reachable);
       }
 
       for (auto object : objects)
@@ -576,10 +612,9 @@ inline namespace memory
         delete object;
       }
 
-      objects.swap(marked_objects);
+      objects.swap(reachables);
     }
   };
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 #endif // INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP

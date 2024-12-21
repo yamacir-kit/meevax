@@ -24,9 +24,7 @@
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   template <typename Environment>
   struct configurator
@@ -82,7 +80,7 @@ inline namespace kernel
 
         option("(l|load)", [this](auto read)
         {
-          static_cast<Environment &>(*this).load(read().template as<string>());
+          static_cast<Environment &>(*this).load(static_cast<std::filesystem::path>(read().template as<string>()));
         }),
 
         option("(v|version)", [](auto)
@@ -158,7 +156,6 @@ inline namespace kernel
       }
     }
   };
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP

@@ -16,9 +16,7 @@
 
 #include <meevax/kernel/standard_error_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto standard_error_port::close() -> void
   {}
@@ -37,5 +35,4 @@ inline namespace kernel
   {
     return output << magenta("#,(") << blue("standard-error") << magenta(")");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

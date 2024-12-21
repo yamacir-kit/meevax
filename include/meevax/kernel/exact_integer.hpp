@@ -19,11 +19,11 @@
 
 #include <gmp.h>
 
+#include <cstring> // std::strlen
+
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct exact_integer
   {
@@ -39,23 +39,22 @@ inline namespace kernel
 
     explicit exact_integer(mpz_t const) noexcept;
 
-    explicit exact_integer(std::int8_t);
-
-    explicit exact_integer(std::int16_t);
-
-    explicit exact_integer(std::int32_t);
-
-    explicit exact_integer(std::int64_t);
-
-    explicit exact_integer(std::uint8_t);
-
-    explicit exact_integer(std::uint16_t);
-
-    explicit exact_integer(std::uint32_t);
-
-    explicit exact_integer(std::uint64_t);
-
-    explicit exact_integer(double);
+    template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+    explicit exact_integer(T x)
+    {
+      if constexpr (std::is_floating_point_v<T>)
+      {
+        mpz_init_set_d(value, x);
+      }
+      else if constexpr (std::is_signed_v<T>)
+      {
+        mpz_init_set_si(value, x);
+      }
+      else
+      {
+        mpz_init_set_ui(value, x);
+      }
+    }
 
     explicit exact_integer(std::string const&, int = 0);
 
@@ -67,49 +66,50 @@ inline namespace kernel
 
     explicit operator bool() const;
 
-    operator std::int8_t() const;
+    template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+    operator T() const
+    {
+      if constexpr (std::is_floating_point_v<T>)
+      {
+        return mpz_get_d(value);
+      }
+      else if constexpr (std::is_signed_v<T>)
+      {
+        return mpz_get_si(value);
+      }
+      else
+      {
+        return mpz_get_ui(value);
+      }
+    }
 
-    operator std::int16_t() const;
-
-    operator std::int32_t() const;
-
-    operator std::int64_t() const;
-
-    operator std::uint8_t() const;
-
-    operator std::uint16_t() const;
-
-    operator std::uint32_t() const;
-
-    operator std::uint64_t() const;
-
-    explicit operator float() const;
-
-    explicit operator double() const;
-
-    auto square_root() const -> std::tuple<exact_integer, exact_integer>;
+    auto sqrt() const -> std::tuple<exact_integer, exact_integer>;
   };
 
-  auto operator ==(exact_integer const&, int const) -> bool;
-  auto operator !=(exact_integer const&, int const) -> bool;
-  auto operator < (exact_integer const&, int const) -> bool;
-  auto operator <=(exact_integer const&, int const) -> bool;
-  auto operator > (exact_integer const&, int const) -> bool;
-  auto operator >=(exact_integer const&, int const) -> bool;
+  #define DEFINE_COMPARISON_OPERATOR(SYMBOL)                                   \
+  template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>  \
+  auto operator SYMBOL(exact_integer const& a, T b)                            \
+  {                                                                            \
+    if constexpr (std::is_floating_point_v<T>)                                 \
+    {                                                                          \
+      return mpz_cmp_d(a.value, b) SYMBOL 0;                                   \
+    }                                                                          \
+    else if constexpr (std::is_signed_v<T>)                                    \
+    {                                                                          \
+      return mpz_cmp_si(a.value, b) SYMBOL 0;                                  \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      return mpz_cmp_ui(a.value, b) SYMBOL 0;                                  \
+    }                                                                          \
+  } static_assert(true)
 
-  auto operator ==(exact_integer const&, signed long const) -> bool;
-  auto operator !=(exact_integer const&, signed long const) -> bool;
-  auto operator < (exact_integer const&, signed long const) -> bool;
-  auto operator <=(exact_integer const&, signed long const) -> bool;
-  auto operator > (exact_integer const&, signed long const) -> bool;
-  auto operator >=(exact_integer const&, signed long const) -> bool;
-
-  auto operator ==(exact_integer const&, unsigned long const) -> bool;
-  auto operator !=(exact_integer const&, unsigned long const) -> bool;
-  auto operator < (exact_integer const&, unsigned long const) -> bool;
-  auto operator <=(exact_integer const&, unsigned long const) -> bool;
-  auto operator > (exact_integer const&, unsigned long const) -> bool;
-  auto operator >=(exact_integer const&, unsigned long const) -> bool;
+  DEFINE_COMPARISON_OPERATOR(==);
+  DEFINE_COMPARISON_OPERATOR(!=);
+  DEFINE_COMPARISON_OPERATOR(< );
+  DEFINE_COMPARISON_OPERATOR(<=);
+  DEFINE_COMPARISON_OPERATOR(> );
+  DEFINE_COMPARISON_OPERATOR(>=);
 
   auto operator <<(std::ostream &, exact_integer const&) -> std::ostream &;
 
@@ -129,7 +129,6 @@ inline namespace kernel
   };
 
   let extern const e0, e1; // Frequently used exact-integer values.
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP

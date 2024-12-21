@@ -18,9 +18,7 @@
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/homogeneous_vector.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto binary_input_file_port::close() -> void
   {
@@ -48,12 +46,12 @@ inline namespace kernel
   {
     if (auto buffer = std::vector<std::uint8_t>(size); ifstream.read(reinterpret_cast<char *>(buffer.data()), size))
     {
-      return make<u8vector>(buffer);
+      return make<u8vector>(direct_initialization, buffer.data(), buffer.size());
     }
     else
     {
       buffer.resize(ifstream.gcount());
-      return make<u8vector>(buffer);
+      return make<u8vector>(direct_initialization, buffer.data(), buffer.size());
     }
   }
 
@@ -78,5 +76,4 @@ inline namespace kernel
   {
     return output << magenta("#,(") << blue("open-binary-input-file ", datum.name) << magenta(")");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

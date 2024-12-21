@@ -22,9 +22,7 @@
 #include <meevax/kernel/binary_output_port.hpp>
 #include <meevax/kernel/string.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct binary_output_file_port : public binary_output_port
   {
@@ -50,7 +48,6 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, binary_output_file_port const&) -> std::ostream &;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_BINARY_OUTPUT_FILE_PORT_HPP

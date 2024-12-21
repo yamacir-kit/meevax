@@ -20,9 +20,7 @@
 #include <meevax/kernel/identifier.hpp>
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct symbol : public identifier
   {
@@ -40,12 +38,6 @@ inline namespace kernel
   };
 
   auto operator + (symbol const&, symbol const&) -> std::string;
-  auto operator ==(symbol const&, symbol const&) -> bool;
-  auto operator !=(symbol const&, symbol const&) -> bool;
-  auto operator < (symbol const&, symbol const&) -> bool;
-  auto operator <=(symbol const&, symbol const&) -> bool;
-  auto operator > (symbol const&, symbol const&) -> bool;
-  auto operator >=(symbol const&, symbol const&) -> bool;
 
   auto operator <<(std::ostream &, symbol const&) -> std::ostream &;
 
@@ -58,7 +50,6 @@ inline namespace kernel
   auto symbols() -> std::unordered_map<std::string, object> &;
 
   auto make_symbol(std::string const&) -> object const&;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP

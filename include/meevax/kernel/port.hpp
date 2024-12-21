@@ -17,9 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_PORT_HPP
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct port
   {
@@ -27,7 +25,6 @@ inline namespace kernel
 
     virtual auto is_open() const -> bool = 0;
   };
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_PORT_HPP

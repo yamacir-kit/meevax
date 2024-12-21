@@ -19,9 +19,7 @@
 
 #include <meevax/kernel/list.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct continuation : public virtual pair
   {
@@ -29,7 +27,6 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, continuation const&) -> std::ostream &;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_CONTINUATION_HPP

@@ -19,22 +19,22 @@
 
 #include <type_traits>
 
-namespace meevax
-{
-inline namespace type_traits
+namespace meevax::inline type_traits
 {
   template <typename T, typename = void>
+  [[deprecated]]
   struct is_array_subscriptable : public std::false_type
   {};
 
   template <typename T>
+  [[deprecated]]
   struct is_array_subscriptable<T, std::void_t<decltype(std::declval<T>()[std::declval<std::size_t>()])>>
     : public std::true_type
   {};
 
   template <typename T>
+  [[deprecated]]
   inline constexpr auto is_array_subscriptable_v = is_array_subscriptable<T>::value;
-} // namespace type_traits
-} // namespace meevax
+} // namespace meevax::type_traits
 
 #endif // INCLUDED_MEEVAX_TYPE_TRAITS_IS_ARRAY_SUBSCRIPTABLE_HPP

@@ -20,9 +20,7 @@
 #include <tuple>
 #include <utility>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   template <typename...>
   struct make_combination;
@@ -36,7 +34,6 @@ inline namespace kernel
 
   template <typename... Ts>
   using combination = typename make_combination<std::tuple<Ts...>, std::make_index_sequence<sizeof...(Ts) * sizeof...(Ts)>>::type;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_UTILITY_COMBINATION_HPP

@@ -21,9 +21,7 @@
 #include <meevax/kernel/dynamic_environment.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct environment : public configurator<environment>
                      , public dynamic_environment
@@ -35,7 +33,7 @@ inline namespace kernel
 
     auto import(object const&) -> void;
 
-    auto load(std::string const&) -> void;
+    auto load(std::filesystem::path const&) -> void;
   };
 
   auto operator <<(std::ostream &, environment const&) -> std::ostream &;
@@ -43,7 +41,6 @@ inline namespace kernel
   extern template struct configurator<environment>;
 
   extern template struct syntactic_environment<environment>;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP

@@ -19,15 +19,12 @@
 
 #include <meevax/kernel/port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct output_port : public virtual port
   {
     virtual auto flush() -> void = 0;
   };
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_OUTPUT_PORT_HPP

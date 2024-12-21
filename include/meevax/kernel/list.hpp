@@ -20,10 +20,15 @@
 #include <meevax/kernel/comparator.hpp>
 #include <meevax/kernel/number.hpp>
 
-namespace meevax
+namespace meevax::inline kernel
 {
-inline namespace kernel
-{
+  struct from_list_tag
+  {
+    explicit from_list_tag() = default;
+  };
+
+  inline constexpr from_list_tag from_list {};
+
   inline auto list = [](auto&&... xs) constexpr
   {
     return (std::forward<decltype(xs)>(xs) | ... | nullptr);
@@ -153,7 +158,6 @@ inline namespace kernel
   }
 
   auto longest_common_tail(let const&, let const&) -> object const&;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_LIST_HPP

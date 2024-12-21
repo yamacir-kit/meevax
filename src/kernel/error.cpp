@@ -20,9 +20,7 @@
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/textual_input_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto error::irritants() const noexcept -> object const&
   {
@@ -190,5 +188,4 @@ inline namespace kernel
 
     return os << magenta(")");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

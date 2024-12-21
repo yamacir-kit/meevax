@@ -20,9 +20,7 @@
 #include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/string.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct error : public virtual pair // (<message> . <irritants>)
                , public std::exception
@@ -120,7 +118,6 @@ inline namespace kernel
       return EXIT_FAILURE;
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_ERROR_HPP

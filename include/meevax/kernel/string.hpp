@@ -17,13 +17,12 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_STRING_HPP
 #define INCLUDED_MEEVAX_KERNEL_STRING_HPP
 
+#include <filesystem>
 #include <vector>
 
 #include <meevax/kernel/character.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct string : private std::vector<character>
   {
@@ -45,17 +44,14 @@ inline namespace kernel
 
     explicit string(std::string const&);
 
+    explicit operator std::filesystem::path() const;
+
     operator std::string() const;
 
-    friend auto operator ==(string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) == static_cast<std::vector<character> const&>(rhs); }
-    friend auto operator < (string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) <  static_cast<std::vector<character> const&>(rhs); }
-    friend auto operator > (string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) >  static_cast<std::vector<character> const&>(rhs); }
-    friend auto operator <=(string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) <= static_cast<std::vector<character> const&>(rhs); }
-    friend auto operator >=(string const& lhs, string const& rhs) { return static_cast<std::vector<character> const&>(lhs) >= static_cast<std::vector<character> const&>(rhs); }
+    auto operator <=>(string const&) const = default;
   };
 
   auto operator <<(std::ostream &, string const&) -> std::ostream &;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_STRING_HPP

@@ -19,9 +19,7 @@
 
 #include <meevax/kernel/textual_input_port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct standard_input_port : public textual_input_port
   {
@@ -37,7 +35,6 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, standard_input_port const&) -> std::ostream &;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_STANDARD_INPUT_PORT_HPP

@@ -17,9 +17,7 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identity.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto operator <<(std::ostream & os, absolute const& datum) -> std::ostream &
   {
@@ -32,5 +30,4 @@ inline namespace kernel
       return os << blue(datum.first);
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

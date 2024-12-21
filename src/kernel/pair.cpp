@@ -16,9 +16,7 @@
 
 #include <meevax/kernel/list.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   let unit = nullptr;
 
@@ -73,5 +71,4 @@ inline namespace kernel
       return os << magenta(")");
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

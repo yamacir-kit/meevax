@@ -21,9 +21,7 @@
 #include <meevax/kernel/textual_input_port.hpp>
 #include <meevax/kernel/vector.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   textual_input_port::iterator::iterator(textual_input_port & input)
     : input { std::addressof(input) }
@@ -392,10 +390,10 @@ inline namespace kernel
           switch (std::stoi(take_character_while(is_digit, character('0'))))
           {
           case 32:
-            return make<f32vector>(read());
+            return make<f32vector>(from_list, read());
 
           case 64:
-            return make<f64vector>(read());
+            return make<f64vector>(from_list, read());
 
           default:
             take_token(c2);
@@ -419,16 +417,16 @@ inline namespace kernel
           switch (auto n = take_character_while(is_digit); std::stoi(n))
           {
           case 8:
-            return make<s8vector>(read());
+            return make<s8vector>(from_list, read());
 
           case 16:
-            return make<s16vector>(read());
+            return make<s16vector>(from_list, read());
 
           case 32:
-            return make<s32vector>(read());
+            return make<s32vector>(from_list, read());
 
           case 64:
-            return make<s64vector>(read());
+            return make<s64vector>(from_list, read());
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
@@ -443,16 +441,16 @@ inline namespace kernel
           switch (auto const n = take_character_while(is_digit); std::stoi(n))
           {
           case 8:
-            return make<u8vector>(read());
+            return make<u8vector>(from_list, read());
 
           case 16:
-            return make<u16vector>(read());
+            return make<u16vector>(from_list, read());
 
           case 32:
-            return make<u32vector>(read());
+            return make<u32vector>(from_list, read());
 
           case 64:
-            return make<u64vector>(read());
+            return make<u64vector>(from_list, read());
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
@@ -692,5 +690,4 @@ inline namespace kernel
       throw read_error(make<string>("an end of file is encountered after the beginning of an object's external representation, but the external representation is incomplete and therefore not parsable"));
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

@@ -17,9 +17,7 @@
 #include <meevax/kernel/conditional_expand.hpp>
 #include <meevax/kernel/library.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto test(object const& requirement) -> bool
   {
@@ -70,5 +68,4 @@ inline namespace kernel
 
     throw error(make<string>("no matching clauses were found"), clauses);
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

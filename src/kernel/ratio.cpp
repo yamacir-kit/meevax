@@ -18,9 +18,7 @@
 
 #include <meevax/kernel/number.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   ratio::ratio()
   {
@@ -89,6 +87,16 @@ inline namespace kernel
     return exact_integer(mpq_numref(value));
   }
 
+  ratio::operator int() const
+  {
+    return mpq_get_d(value);
+  }
+
+  ratio::operator float() const
+  {
+    return mpq_get_d(value);
+  }
+
   ratio::operator double() const
   {
     return mpq_get_d(value);
@@ -105,5 +113,4 @@ inline namespace kernel
 
     return os << cyan(std::unique_ptr<char, decltype(free)>(mpq_get_str(nullptr, 10, datum.value), free).get());
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

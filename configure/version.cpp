@@ -17,9 +17,7 @@
 #include <meevax/kernel/version.hpp>
 #include <meevax/memory/model.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto help() noexcept -> std::string_view
   {
@@ -39,9 +37,18 @@ inline namespace kernel
       make_symbol("${${PROJECT_NAME}_SYSTEM_NAME}"),
       make_symbol("${CMAKE_SYSTEM_PROCESSOR}"),
       make_symbol(memory::model::name()),
-      make_symbol("${${PROJECT_NAME}_BYTE_ORDER}"),
+      make_symbol(std::endian::native == std::endian::little ? "little-endian" : "big-endian"),
       make_symbol("${PROJECT_NAME}"),
-      make_symbol("${PROJECT_NAME}-${PROJECT_VERSION}"));
+      make_symbol("${PROJECT_NAME}-${PROJECT_VERSION}")
+
+      #ifdef FP_FAST_FMA
+    , make_symbol("FP_FAST_FMA")
+      #endif
+
+      #if __cpp_lib_math_special_functions
+    , make_symbol("__cpp_lib_math_special_functions")
+      #endif
+      );
 
     return features;
   }
@@ -51,5 +58,4 @@ inline namespace kernel
     let static const version = make_symbol("${PROJECT_VERSION}");
     return version;
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

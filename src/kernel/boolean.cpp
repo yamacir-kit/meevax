@@ -17,12 +17,9 @@
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/comparator.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   let const t = make<bool>(true);
 
   let const f = make<bool>(false);
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

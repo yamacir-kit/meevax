@@ -20,9 +20,7 @@
 #include <meevax/kernel/binary_output_port.hpp>
 #include <meevax/kernel/eof.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   template <typename T>
   struct output_homogeneous_vector_port : public binary_output_port
@@ -49,7 +47,7 @@ inline namespace kernel
 
     auto put(u8vector const& v) -> void override
     {
-      std::copy(std::begin(v.valarray), std::end(v.valarray), std::back_inserter(vector));
+      std::copy(std::begin(v.valarray()), std::end(v.valarray()), std::back_inserter(vector));
     }
   };
 
@@ -60,7 +58,6 @@ inline namespace kernel
   }
 
   using output_u8vector_port = output_homogeneous_vector_port<std::uint8_t>;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_OUTPUT_HOMOGENEOUS_VECTOR_PORT_HPP

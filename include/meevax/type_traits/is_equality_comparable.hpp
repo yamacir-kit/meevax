@@ -19,9 +19,7 @@
 
 #include <type_traits>
 
-namespace meevax
-{
-inline namespace type_traits
+namespace meevax::inline type_traits
 {
   template <typename T, typename U, typename = void>
   struct is_equality_comparable
@@ -40,7 +38,6 @@ inline namespace type_traits
 
   template <typename T, typename U = T>
   inline constexpr bool is_equality_comparable_v = is_equality_comparable<T, U>::value;
-} // namespace type_traits
-} // namespace meevax
+} // namespace meevax::type_traits
 
 #endif // INCLUDED_MEEVAX_TYPE_TRAITS_IS_EQUALITY_COMPARABLE_HPP

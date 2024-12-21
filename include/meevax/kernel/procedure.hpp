@@ -21,9 +21,7 @@
 #include <meevax/kernel/describable.hpp>
 #include <meevax/kernel/ghost.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct primitive : public describable
   {
@@ -149,7 +147,6 @@ inline namespace kernel
 
   template <typename, typename... Ts>
   using procedure = procedure_traits<Ts...>;
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP

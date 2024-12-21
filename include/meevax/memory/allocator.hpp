@@ -22,9 +22,7 @@
 #include <type_traits>
 #include <utility> // std::exchange
 
-namespace meevax
-{
-inline namespace memory
+namespace meevax::inline memory
 {
 /*
    Simple Segregated Storage Allocator
@@ -32,16 +30,16 @@ inline namespace memory
 template <typename T, typename Capacity = std::integral_constant<std::size_t, 1024>>
 class allocator
 {
-  struct alignas(T) chunk
+  union chunk
   {
     chunk * tail;
+
+    T value;
   };
 
   struct block
   {
-    static constexpr auto chunk_size = std::max(sizeof(T), sizeof(chunk));
-
-    std::uint8_t data[chunk_size * Capacity::value] = {};
+    std::uint8_t data[sizeof(chunk) * Capacity::value] = {};
 
     std::size_t size = Capacity::value;
 
@@ -58,7 +56,7 @@ class allocator
 
     auto pop()
     {
-      return data + chunk_size * --size;
+      return data + sizeof(chunk) * --size;
     }
   };
 
@@ -123,7 +121,6 @@ public:
     free_list = reinterpret_cast<chunk *>(p);
   }
 };
-} // namespace memory
-} // namespace meevax
+} // namespace meevax::memory
 
 #endif // INCLUDED_MEEVAX_MEMORY_ALLOCATOR_HPP

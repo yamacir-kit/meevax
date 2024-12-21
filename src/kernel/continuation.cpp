@@ -16,13 +16,10 @@
 
 #include <meevax/kernel/continuation.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto operator <<(std::ostream & os, continuation const& datum) -> std::ostream &
   {
     return os << magenta("#,(") << green("continuation ") << faint(";#", std::addressof(datum)) << magenta(")");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

@@ -19,13 +19,10 @@
 
 #include <meevax/kernel/port.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   struct input_port : public virtual port
   {};
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_INPUT_PORT_HPP

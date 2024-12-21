@@ -18,9 +18,7 @@
 
 #include <meevax/kernel/instruction.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto operator <<(std::ostream & os, instruction const& datum) -> std::ostream &
   {
@@ -55,5 +53,4 @@ inline namespace kernel
         return os;
     }
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

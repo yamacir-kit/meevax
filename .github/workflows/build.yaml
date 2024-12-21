@@ -14,11 +14,11 @@ jobs:
       matrix:
         compiler: [ g++, clang++ ]
         configuration: [ Debug, Release ]
-        system: [ ubuntu-20.04, ubuntu-22.04 ]
+        system: [ ubuntu-22.04, ubuntu-24.04, macos-14 ]
     steps:
       - uses: actions/checkout@v3
-      - run: ./script/setup.sh --all
+      - run: ./script/setup-${{ matrix.system }}.sh --all
       - run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
-      - run: cmake --build build --target develop
+      - run: cmake --build build --target continuous-integration
       - run: cmake -B example/build -S example -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
-      - run: cmake --build example/build --target develop
+      - run: cmake --build example/build --target continuous-integration

@@ -20,9 +20,7 @@
 #include <chrono>
 #include <iostream>
 
-namespace meevax
-{
-inline namespace chrono
+namespace meevax::inline chrono
 {
   using days = std::chrono::duration<std::size_t, std::ratio_multiply<std::ratio<24>, std::chrono::hours::period>>;
 
@@ -39,7 +37,6 @@ inline namespace chrono
   }
 
   auto operator <<(std::ostream &, std::chrono::nanoseconds) -> std::ostream &;
-} // namespace chrono
-} // namespace meevax
+} // namespace meevax::chrono
 
 #endif // INCLUDED_MEEVAX_CHRONO_DURATION_HPP

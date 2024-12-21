@@ -77,13 +77,8 @@ inline namespace kernel
   auto operator + (exact_integer const&, complex const&) -> complex;
   auto operator - (exact_integer const&, complex const&) -> complex;
   auto operator / (exact_integer const&, complex const&) -> complex;
-  auto operator % (exact_integer const&, complex const&) -> complex;
   auto operator ==(exact_integer const&, complex const&) -> bool;
   auto operator !=(exact_integer const&, complex const&) -> bool;
-  auto operator < (exact_integer const&, complex const&) -> bool;
-  auto operator <=(exact_integer const&, complex const&) -> bool;
-  auto operator > (exact_integer const&, complex const&) -> bool;
-  auto operator >=(exact_integer const&, complex const&) -> bool;
 
   auto operator * (ratio const&, exact_integer const&) -> ratio;
   auto operator + (ratio const&, exact_integer const&) -> ratio;
@@ -137,13 +132,8 @@ inline namespace kernel
   auto operator - (ratio const&, complex const&) -> complex;
   auto operator * (ratio const&, complex const&) -> complex;
   auto operator / (ratio const&, complex const&) -> complex;
-  auto operator % (ratio const&, complex const&) -> complex;
   auto operator ==(ratio const&, complex const&) -> bool;
   auto operator !=(ratio const&, complex const&) -> bool;
-  auto operator < (ratio const&, complex const&) -> bool;
-  auto operator <=(ratio const&, complex const&) -> bool;
-  auto operator > (ratio const&, complex const&) -> bool;
-  auto operator >=(ratio const&, complex const&) -> bool;
 
   auto operator + (float, exact_integer const&) -> float;
   auto operator - (float, exact_integer const&) -> float;
@@ -173,13 +163,8 @@ inline namespace kernel
   auto operator - (float, complex const&) -> complex;
   auto operator * (float, complex const&) -> complex;
   auto operator / (float, complex const&) -> complex;
-  auto operator % (float, complex const&) -> complex;
   auto operator ==(float, complex const&) -> bool;
   auto operator !=(float, complex const&) -> bool;
-  auto operator < (float, complex const&) -> bool;
-  auto operator <=(float, complex const&) -> bool;
-  auto operator > (float, complex const&) -> bool;
-  auto operator >=(float, complex const&) -> bool;
 
   auto operator + (double, exact_integer const&) -> double;
   auto operator - (double, exact_integer const&) -> double;
@@ -209,73 +194,43 @@ inline namespace kernel
   auto operator - (double, complex const&) -> complex;
   auto operator * (double, complex const&) -> complex;
   auto operator / (double, complex const&) -> complex;
-  auto operator % (double, complex const&) -> complex;
   auto operator ==(double, complex const&) -> bool;
   auto operator !=(double, complex const&) -> bool;
-  auto operator < (double, complex const&) -> bool;
-  auto operator <=(double, complex const&) -> bool;
-  auto operator > (double, complex const&) -> bool;
-  auto operator >=(double, complex const&) -> bool;
 
   auto operator + (complex const&, complex const&) -> complex;
   auto operator - (complex const&, complex const&) -> complex;
   auto operator * (complex const&, complex const&) -> complex;
   auto operator / (complex const&, complex const&) -> complex;
-  auto operator % (complex const&, complex const&) -> complex;
   auto operator ==(complex const&, complex const&) -> bool;
   auto operator !=(complex const&, complex const&) -> bool;
-  auto operator < (complex const&, complex const&) -> bool;
-  auto operator <=(complex const&, complex const&) -> bool;
-  auto operator > (complex const&, complex const&) -> bool;
-  auto operator >=(complex const&, complex const&) -> bool;
 
   auto operator + (complex const&, float) -> complex;
   auto operator - (complex const&, float) -> complex;
   auto operator * (complex const&, float) -> complex;
   auto operator / (complex const&, float) -> complex;
-  auto operator % (complex const&, float) -> complex;
   auto operator ==(complex const&, float) -> bool;
   auto operator !=(complex const&, float) -> bool;
-  auto operator < (complex const&, float) -> bool;
-  auto operator <=(complex const&, float) -> bool;
-  auto operator > (complex const&, float) -> bool;
-  auto operator >=(complex const&, float) -> bool;
 
   auto operator + (complex const&, double) -> complex;
   auto operator - (complex const&, double) -> complex;
   auto operator * (complex const&, double) -> complex;
   auto operator / (complex const&, double) -> complex;
-  auto operator % (complex const&, double) -> complex;
   auto operator ==(complex const&, double) -> bool;
   auto operator !=(complex const&, double) -> bool;
-  auto operator < (complex const&, double) -> bool;
-  auto operator <=(complex const&, double) -> bool;
-  auto operator > (complex const&, double) -> bool;
-  auto operator >=(complex const&, double) -> bool;
 
   auto operator + (complex const&, ratio const&) -> complex;
   auto operator - (complex const&, ratio const&) -> complex;
   auto operator * (complex const&, ratio const&) -> complex;
   auto operator / (complex const&, ratio const&) -> complex;
-  auto operator % (complex const&, ratio const&) -> complex;
   auto operator ==(complex const&, ratio const&) -> bool;
   auto operator !=(complex const&, ratio const&) -> bool;
-  auto operator < (complex const&, ratio const&) -> bool;
-  auto operator <=(complex const&, ratio const&) -> bool;
-  auto operator > (complex const&, ratio const&) -> bool;
-  auto operator >=(complex const&, ratio const&) -> bool;
 
   auto operator + (complex const&, exact_integer const&) -> complex;
   auto operator - (complex const&, exact_integer const&) -> complex;
   auto operator * (complex const&, exact_integer const&) -> complex;
   auto operator / (complex const&, exact_integer const&) -> complex;
-  auto operator % (complex const&, exact_integer const&) -> complex;
   auto operator ==(complex const&, exact_integer const&) -> bool;
   auto operator !=(complex const&, exact_integer const&) -> bool;
-  auto operator < (complex const&, exact_integer const&) -> bool;
-  auto operator <=(complex const&, exact_integer const&) -> bool;
-  auto operator > (complex const&, exact_integer const&) -> bool;
-  auto operator >=(complex const&, exact_integer const&) -> bool;
 
   auto operator + (object const&, object const&) -> object;
   auto operator - (object const&, object const&) -> object;
@@ -292,23 +247,6 @@ inline namespace kernel
   auto make_complex(std::string const&, int = 10) -> object;
 
   auto make_number(std::string const&, int = 10) -> object;
-
-  template <typename T>
-  auto inexact_cast(T&& x) -> decltype(auto)
-  {
-    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
-    {
-      return std::complex<double>(std::forward<decltype(x)>(x));
-    }
-    else if constexpr (std::is_floating_point_v<std::decay_t<decltype(x)>>)
-    {
-      return std::forward<decltype(x)>(x);
-    }
-    else
-    {
-      return static_cast<double>(std::forward<decltype(x)>(x));
-    }
-  }
 
   template <typename T, typename U>
   auto inexact_equals(T const& x, U const& y)
@@ -383,10 +321,6 @@ inline namespace number
 
   auto is_even(object const&) -> bool;
 
-  auto max(object const&) -> object;
-
-  auto min(object const&) -> object;
-
   auto abs(object const&) -> object;
 
   auto quotient(object const&, object const&) -> object;
@@ -407,11 +341,15 @@ inline namespace number
 
   auto denominator(object const&) -> object;
 
+  auto ldexp(object const&, object const&) -> object;
+
+  auto number_to_string(object const&, int) -> object;
+
   auto floor(object const&) -> object;
 
-  auto ceil(object const&) -> object;
+  auto ceiling(object const&) -> object;
 
-  auto trunc(object const&) -> object;
+  auto truncate(object const&) -> object;
 
   auto round(object const&) -> object;
 
@@ -427,7 +365,7 @@ inline namespace number
 
   auto atan(object const&) -> object;
 
-  auto atan(object const&, object const&) -> object;
+  auto atan2(object const&, object const&) -> object;
 
   auto sinh(object const&) -> object;
 
@@ -445,7 +383,27 @@ inline namespace number
 
   auto log(object const&) -> object;
 
-  auto number_to_string(object const&, int) -> object;
+  auto fabs(object const&) -> object;
+
+  auto expm1(object const&) -> object;
+
+  auto log1p(object const&) -> object;
+
+  auto tgamma(object const&) -> object;
+
+  auto lgamma(object const&) -> object;
+
+  auto erf(object const&) -> object;
+
+  auto erfc(object const&) -> object;
+
+  auto copysign(object const&, object const&) -> object;
+
+  auto nextafter(object const&, object const&) -> object;
+
+  auto cyl_bessel_j(object const&, object const&) -> object;
+
+  auto cyl_neumann(object const&, object const&) -> object;
 } // namespace number
 } // namespace kernel
 } // namespace meevax

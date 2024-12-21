@@ -16,9 +16,7 @@
 
 #include <meevax/kernel/ghost.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto operator <<(std::ostream & os, ghost const& ghost) -> std::ostream &
   {
@@ -28,5 +26,4 @@ inline namespace kernel
   let const unspecified = make<ghost>("unspecified");
 
   let const undefined = make<ghost>("undefined");
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel

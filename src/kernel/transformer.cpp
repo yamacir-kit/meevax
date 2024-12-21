@@ -16,13 +16,10 @@
 
 #include <meevax/kernel/transformer.hpp>
 
-namespace meevax
-{
-inline namespace kernel
+namespace meevax::inline kernel
 {
   auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
   {
     return os << magenta("#,(") << green("transformer ") << faint("#;", &datum) << magenta(")");
   }
-} // namespace kernel
-} // namespace meevax
+} // namespace meevax::kernel
