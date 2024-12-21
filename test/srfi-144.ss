@@ -1,11 +1,4 @@
-(import (only (meevax inexact)
-          acosh
-          asinh
-          atanh
-          cosh
-          sinh
-          tanh
-          )
+(import (only (meevax inexact) acosh asinh atanh cosh sinh tanh)
         (scheme base)
         (scheme inexact)
         (scheme process-context)
@@ -380,6 +373,16 @@
 (check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 1.0 (* 1/3 fl-pi))) (else -0.74108949656080647)) => -0.74108949656080647)
 (check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 1.0 (* 2/3 fl-pi))) (else -0.05472495339562021)) => -0.05472495339562021)
 
+(check (flerf -inf.0) => -1.0)
+(check (flerf 0.0) => 0.0)
+(check (flerf 1.0) => 0.8427007929497149)
+(check (flerf +inf.0) => 1.0)
+
+(check (flerfc -inf.0) => 2.0)
+(check (flerfc 0.0) => 1.0)
+(check (flerfc 1.0) => 0.15729920705028513)
+(check (flerfc +inf.0) => 0.0)
+
 (check-report)
 
-(exit (check-passed? 250))
+(exit (check-passed? 258))

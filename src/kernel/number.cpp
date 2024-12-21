@@ -994,6 +994,8 @@ inline namespace number
     return apply_to<real_number>(f, x);                                        \
   }
 
+  DEFINE_REAL1(erf,       std::erf)
+  DEFINE_REAL1(erfc,      std::erfc)
   DEFINE_REAL1(gamma,     std::tgamma)
   DEFINE_REAL1(log_gamma, std::lgamma)
 

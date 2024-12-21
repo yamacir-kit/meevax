@@ -31,6 +31,8 @@
             cyl_bessel_j
             cyl_neumann
             e
+            erf
+            erfc
             euler
             gamma
             load-exponent
@@ -124,9 +126,7 @@
 
           flquotient flremainder flremquo
 
-          flgamma flloggamma flfirst-bessel flsecond-bessel
-          ; flerf flerfc
-    )
+          flgamma flloggamma flfirst-bessel flsecond-bessel flerf flerfc)
 
   (begin (define fl-e e)
 
@@ -395,5 +395,6 @@
 
          (define flsecond-bessel cyl_neumann)
 
-         )
-  )
+         (define flerf erf)
+
+         (define flerfc erfc)))

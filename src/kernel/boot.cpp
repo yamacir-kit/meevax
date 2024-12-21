@@ -575,6 +575,16 @@ namespace meevax::inline kernel
         return cyl_neumann(car(xs), cadr(xs));
       });
 
+      library.define<procedure>("erf", [](let const& xs)
+      {
+        return erf(car(xs));
+      });
+
+      library.define<procedure>("erfc", [](let const& xs)
+      {
+        return erfc(car(xs));
+      });
+
       library.define<double>("e", std::numbers::e);
 
       library.define<double>("pi", std::numbers::pi);

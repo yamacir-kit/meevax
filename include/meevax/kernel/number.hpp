@@ -385,6 +385,10 @@ inline namespace number
 
   auto gamma(object const&) -> object;
 
+  auto erf(object const&) -> object;
+
+  auto erfc(object const&) -> object;
+
   auto log_gamma(object const&) -> object;
 
   auto copy_sign(object const&, object const&) -> object;
