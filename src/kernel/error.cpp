@@ -42,23 +42,6 @@ namespace meevax::inline kernel
     throw *this;
   }
 
-  struct syntactic_context_of : private object
-  {
-    explicit syntactic_context_of(let const& c)
-      : object { c }
-    {}
-
-    friend auto operator <<(std::ostream & output, syntactic_context_of const& c) -> std::ostream &
-    {
-      for (auto context = environment::syntax::contexts.find(c.get()); context != environment::syntax::contexts.end(); context = environment::syntax::contexts.find(context->second.get()))
-      {
-        output << " ; " << context->second;
-      }
-
-      return output;
-    }
-  };
-
   auto disassemble(std::ostream & output, let const& c, std::size_t depth = 0) -> void
   {
     assert(c.is<pair>());
@@ -71,7 +54,7 @@ namespace meevax::inline kernel
     case instruction::tail_letrec:
     case instruction::return_:
     case instruction::stop:
-      output << std::string(depth, ' ') << car(c) << syntactic_context_of(c) << '\n';
+      output << std::string(depth, ' ') << car(c) << '\n';
       assert(cdr(c).is<null>());
       break;
 
@@ -80,7 +63,7 @@ namespace meevax::inline kernel
     case instruction::drop:
     case instruction::dummy:
     case instruction::letrec:
-      output << std::string(depth, ' ') << car(c) << syntactic_context_of(c) << '\n';
+      output << std::string(depth, ' ') << car(c) << '\n';
       disassemble(output, cdr(c), depth);
       break;
 
@@ -93,26 +76,26 @@ namespace meevax::inline kernel
     case instruction::store_absolute:
     case instruction::store_relative:
     case instruction::store_variadic:
-      output << std::string(depth, ' ') << car(c) << ' ' << cadr(c) << syntactic_context_of(c) << '\n';
+      output << std::string(depth, ' ') << car(c) << ' ' << cadr(c) << '\n';
       disassemble(output, cddr(c), depth);
       break;
 
     case instruction::load_closure:
     case instruction::load_continuation:
-      output << std::string(depth, ' ') << car(c) << syntactic_context_of(c) << '\n';
+      output << std::string(depth, ' ') << car(c) << '\n';
       disassemble(output, cadr(c), depth + 2);
       disassemble(output, cddr(c), depth);
       break;
 
     case instruction::select:
-      output << std::string(depth, ' ') << car(c) << syntactic_context_of(c) << '\n';
+      output << std::string(depth, ' ') << car(c) << '\n';
       disassemble(output, cadr(c), depth + 2);
       disassemble(output, caddr(c), depth + 2);
       disassemble(output, cdddr(c), depth);
       break;
 
     case instruction::tail_select:
-      output << std::string(depth, ' ') << car(c) << syntactic_context_of(c) << '\n';
+      output << std::string(depth, ' ') << car(c) << '\n';
       disassemble(output, cadr(c), depth + 2);
       disassemble(output, caddr(c), depth + 2);
       break;
@@ -128,7 +111,6 @@ namespace meevax::inline kernel
       switch (doing)
       {
       case in::running:
-        // disassemble(output, car(x)); // Disabled as it is still experimental and does not produce any useful output.
         [[fallthrough]];
 
       case in::expanding:
