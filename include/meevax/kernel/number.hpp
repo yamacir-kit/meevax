@@ -337,6 +337,14 @@ inline namespace number
 
   auto pow(object const&, object const&) -> object;
 
+  auto real(object const&) -> object;
+
+  auto imag(object const&) -> object;
+
+  auto magnitude(object const&) -> object;
+
+  auto angle(object const&) -> object;
+
   auto numerator(object const&) -> object;
 
   auto denominator(object const&) -> object;

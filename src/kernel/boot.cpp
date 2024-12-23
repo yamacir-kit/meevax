@@ -287,8 +287,8 @@ namespace meevax::inline kernel
 
       EXPORT1(angle);
       EXPORT1(magnitude);
-      EXPORT1_RENAME(imag_part, "imag-part");
-      EXPORT1_RENAME(real_part, "real-part");
+      EXPORT1_RENAME(imag, "imag-part");
+      EXPORT1_RENAME(real, "real-part");
     });
 
     define<library>("(meevax context)", [](library & library)

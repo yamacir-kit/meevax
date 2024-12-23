@@ -140,31 +140,4 @@ namespace meevax::inline kernel
       return os << z.real() << cyan(explicitly_signed(z.imag()), "i");
     }
   }
-
-  auto real_part(object const& x) -> object const&
-  {
-    return x.is<complex>() ? car(x) : x;
-  }
-
-  auto imag_part(object const& x) -> object const&
-  {
-    return x.is<complex>() ? cdr(x) : e0;
-  }
-
-  auto magnitude(object const& x) -> object
-  {
-    auto hypotenuse = [](let const& x, let const& y)
-    {
-      return sqrt(x * x + y * y);
-    };
-
-    return hypotenuse(real_part(x),
-                      imag_part(x));
-  }
-
-  auto angle(object const& x) -> object
-  {
-    return atan2(real_part(x),
-                 imag_part(x));
-  }
 } // namespace meevax::kernel

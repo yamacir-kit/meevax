@@ -41,14 +41,6 @@ namespace meevax::inline kernel
   };
 
   auto operator <<(std::ostream &, complex const&) -> std::ostream &;
-
-  auto real_part(object const&) -> object const&;
-
-  auto imag_part(object const&) -> object const&;
-
-  auto magnitude(object const&) -> object;
-
-  auto angle(object const&) -> object;
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_COMPLEX_HPP

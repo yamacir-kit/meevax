@@ -146,52 +146,12 @@ namespace meevax::inline kernel
                        object const& /* continuation    */,
                        bool          /* tail            */) -> object;
 
-      static inline std::unordered_map<pair const*, object> contexts;
-
       template <typename Expander, typename Generator>
       explicit syntax(std::string const& name, Expander const& expand, Generator const& generate)
         : describable { name }
         , expand { expand }
         , generate { generate }
       {}
-
-      struct constructor : private object
-      {
-        explicit constructor(let const& form)
-          : object { form }
-        {}
-
-        template <typename... Ts>
-        auto cons(let const& a,
-                  let const& b, Ts&&... xs) const
-        {
-          auto cons2 = [&](let const& a, let const& b)
-          {
-            let const& x = meevax::cons(a, b);
-            contexts[x.get()] = *this;
-            return x;
-          };
-
-          if constexpr (0 < sizeof...(Ts))
-          {
-            return cons2(a, cons(b, std::forward<decltype(xs)>(xs)...));
-          }
-          else
-          {
-            return cons2(a, b);
-          }
-        }
-
-        template <typename... Ts>
-        auto list(Ts&&... xs) const -> decltype(auto)
-        {
-          return cons(std::forward<decltype(xs)>(xs)..., unit);
-        }
-      };
-
-      #define CONS typename syntax::constructor(form).cons
-
-      #define LIST typename syntax::constructor(form).list
 
       friend auto operator <<(std::ostream & os, syntax const& datum) -> std::ostream &
       {
@@ -219,7 +179,7 @@ namespace meevax::inline kernel
 
       static EXPANDER(call)
       {
-        return CONS(expander.expand(car(form),
+        return cons(expander.expand(car(form),
                                     bound_variables,
                                     rename),
                     operand(expander,
@@ -232,7 +192,7 @@ namespace meevax::inline kernel
       {
         if (form.is<pair>())
         {
-          return CONS(expander.expand(car(form),
+          return cons(expander.expand(car(form),
                                       bound_variables,
                                       rename),
                       operand(expander,
@@ -250,8 +210,8 @@ namespace meevax::inline kernel
       {
         let const& formals = rename(cadr(form));
 
-        return CONS(rename(car(form)) /* lambda */,
-                    CONS(formals,
+        return cons(rename(car(form)) /* lambda */,
+                    cons(formals,
                          body(expander,
                               cddr(form),
                               cons(formals, bound_variables),
@@ -283,7 +243,7 @@ namespace meevax::inline kernel
 
             if (not variable.is<absolute>()) // The binding-spec is not an internal syntax definition.
             {
-              body = CONS(CONS(corename("set!"), binding_spec), body);
+              body = cons(cons(corename("set!"), binding_spec), body);
             }
           }
 
@@ -299,7 +259,7 @@ namespace meevax::inline kernel
             }
           }
 
-          return expander.expand(LIST(CONS(CONS(corename("lambda"),
+          return expander.expand(list(cons(cons(corename("lambda"),
                                                 formals,
                                                 body),
                                            make_list(length(binding_specs), unit))),
@@ -308,7 +268,7 @@ namespace meevax::inline kernel
         }
         else if (sequence.template is<pair>())
         {
-          return CONS(expander.expand(car(sequence),
+          return cons(expander.expand(car(sequence),
                                       bound_variables,
                                       rename),
                       body(expander,
@@ -324,7 +284,7 @@ namespace meevax::inline kernel
 
       static EXPANDER(conditional)
       {
-        return CONS(rename(car(form)),
+        return cons(rename(car(form)),
                     operand(expander,
                             cdr(form),
                             bound_variables,
@@ -333,7 +293,7 @@ namespace meevax::inline kernel
 
       static EXPANDER(set)
       {
-        return CONS(rename(car(form)),
+        return cons(rename(car(form)),
                     operand(expander,
                             cdr(form),
                             bound_variables,
@@ -342,7 +302,7 @@ namespace meevax::inline kernel
 
       static EXPANDER(include)
       {
-        return expander.expand(CONS(corename("begin"),
+        return expander.expand(cons(corename("begin"),
                                     meevax::include(cadr(form))),
                                bound_variables,
                                rename);
@@ -350,7 +310,7 @@ namespace meevax::inline kernel
 
       static EXPANDER(include_case_insensitive)
       {
-        return expander.expand(CONS(corename("begin"),
+        return expander.expand(cons(corename("begin"),
                                     meevax::include(cadr(form), false)),
                                bound_variables,
                                rename);
@@ -358,7 +318,7 @@ namespace meevax::inline kernel
 
       static EXPANDER(conditional_expand)
       {
-        return expander.expand(CONS(corename("begin"),
+        return expander.expand(cons(corename("begin"),
                                     meevax::conditional_expand(cdr(form))),
                                bound_variables,
                                rename);
@@ -368,10 +328,10 @@ namespace meevax::inline kernel
       {
         let const extended_bound_variables = cons(map(car, cadr(form)), bound_variables);
 
-        return CONS(car(form),
+        return cons(car(form),
                     map([&](let const& binding)
                         {
-                          return LIST(car(binding),
+                          return list(car(binding),
                                       expander.expand(cadr(binding),
                                                       extended_bound_variables,
                                                       rename));
@@ -387,7 +347,7 @@ namespace meevax::inline kernel
       {
         if (form.is<pair>())
         {
-          return CONS(expander.expand(car(form),
+          return cons(expander.expand(car(form),
                                       bound_variables,
                                       rename),
                       sequence(expander,
@@ -414,7 +374,7 @@ namespace meevax::inline kernel
 
         let const formals = map(formal, cadr(form));
 
-        return expander.expand(LIST(CONS(corename("lambda"),
+        return expander.expand(list(cons(corename("lambda"),
                                          formals,
                                          cddr(form) /* body */)),
                                bound_variables,
@@ -436,7 +396,7 @@ namespace meevax::inline kernel
 
         car(current_environment) = cons(formals, bound_variables);
 
-        return expander.expand(LIST(CONS(corename("lambda"),
+        return expander.expand(list(cons(corename("lambda"),
                                          formals,
                                          cddr(form) /* body */)),
                                bound_variables,
@@ -449,9 +409,9 @@ namespace meevax::inline kernel
         {
           if (cadr(form).is<pair>()) // (define (<variable> . <formals>) <body>)
           {
-            return LIST(rename(car(form)),
+            return list(rename(car(form)),
                         caadr(form) /* variable */,
-                        expander.expand(CONS(corename("lambda"),
+                        expander.expand(cons(corename("lambda"),
                                              cdadr(form) /* formals */,
                                              cddr(form) /* body */),
                                         bound_variables,
@@ -459,9 +419,9 @@ namespace meevax::inline kernel
           }
           else // (define <variable> <expression>)
           {
-            return CONS(rename(car(form)),
+            return cons(rename(car(form)),
                         cadr(form),
-                        cddr(form) ? LIST(expander.expand(caddr(form),
+                        cddr(form) ? list(expander.expand(caddr(form),
                                                                 bound_variables,
                                                                 rename))
                                          : unit);
@@ -475,7 +435,7 @@ namespace meevax::inline kernel
 
       static EXPANDER(define_syntax)
       {
-        return LIST(rename(car(form)),
+        return list(rename(car(form)),
                     cadr(form),
                     expander.expand(caddr(form),
                                     bound_variables,
@@ -484,7 +444,7 @@ namespace meevax::inline kernel
 
       static EXPANDER(call_with_current_continuation)
       {
-        return CONS(rename(car(form)),
+        return cons(rename(car(form)),
                     operand(expander,
                             cdr(form),
                             bound_variables,
@@ -493,7 +453,7 @@ namespace meevax::inline kernel
 
       static EXPANDER(current)
       {
-        return CONS(rename(car(form)),
+        return cons(rename(car(form)),
                     operand(expander,
                             cdr(form),
                             bound_variables,
@@ -502,7 +462,7 @@ namespace meevax::inline kernel
 
       static EXPANDER(install)
       {
-        return CONS(rename(car(form)),
+        return cons(rename(car(form)),
                     operand(expander,
                             cdr(form),
                             bound_variables,
@@ -523,14 +483,14 @@ namespace meevax::inline kernel
 
       static GENERATOR(quote)
       {
-        return CONS(make(instruction::load_constant), car(form).is<syntactic_closure>() ? car(form).as<syntactic_closure>().form
+        return cons(make(instruction::load_constant), car(form).is<syntactic_closure>() ? car(form).as<syntactic_closure>().form
                                                                                         : car(form),
                     continuation);
       }
 
       static GENERATOR(quote_syntax)
       {
-        return CONS(make(instruction::load_constant), car(form),
+        return cons(make(instruction::load_constant), car(form),
                     continuation);
       }
 
@@ -541,8 +501,8 @@ namespace meevax::inline kernel
                        bound_variables,
                        generator.generate(car(form),
                                           bound_variables,
-                                          tail ? LIST(make(instruction::tail_call))
-                                               : CONS(make(instruction::call), continuation)));
+                                          tail ? list(make(instruction::tail_call))
+                                               : cons(make(instruction::call), continuation)));
       }
 
       static GENERATOR(operand)
@@ -554,7 +514,7 @@ namespace meevax::inline kernel
                          bound_variables,
                          generator.generate(car(form),
                                             bound_variables,
-                                            CONS(make(instruction::cons),
+                                            cons(make(instruction::cons),
                                                  continuation)));
         }
         else
@@ -565,11 +525,11 @@ namespace meevax::inline kernel
 
       static GENERATOR(lambda)
       {
-        return CONS(make(instruction::load_closure),
+        return cons(make(instruction::load_closure),
                     body(generator,
                          cdr(form),
                          cons(car(form), bound_variables), // Extend scope.
-                         LIST(make(instruction::return_))),
+                         list(make(instruction::return_))),
                     continuation);
       }
 
@@ -586,7 +546,7 @@ namespace meevax::inline kernel
         {
           return generator.generate(car(form),
                                     bound_variables,
-                                    CONS(make(instruction::drop),
+                                    cons(make(instruction::drop),
                                          body(generator,
                                               cdr(form),
                                               bound_variables,
@@ -603,7 +563,7 @@ namespace meevax::inline kernel
 
           return generator.generate(car(form), // <test>
                                     bound_variables,
-                                    LIST(make(instruction::tail_select),
+                                    list(make(instruction::tail_select),
                                          generator.generate(cadr(form),
                                                             bound_variables,
                                                             continuation,
@@ -612,21 +572,21 @@ namespace meevax::inline kernel
                                                                          bound_variables,
                                                                          continuation,
                                                                          tail)
-                                                    : LIST(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
+                                                    : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
                                                            make(instruction::return_))));
         }
         else
         {
           return generator.generate(car(form), // <test>
                                     bound_variables,
-                                    CONS(make(instruction::select),
+                                    cons(make(instruction::select),
                                          generator.generate(cadr(form),
                                                             bound_variables,
-                                                            LIST(make(instruction::join))),
+                                                            list(make(instruction::join))),
                                          cddr(form) ? generator.generate(caddr(form),
                                                                          bound_variables,
-                                                                         LIST(make(instruction::join)))
-                                                    : LIST(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
+                                                                         list(make(instruction::join)))
+                                                    : list(make(instruction::load_constant), unspecified, // If <test> yields a false value and no <alternate> is specified, then the result of the expression is unspecified.
                                                            make(instruction::join)),
                                          continuation));
         }
@@ -638,14 +598,14 @@ namespace meevax::inline kernel
         {
           return generator.generate(cadr(form),
                                     bound_variables,
-                                    CONS(make(instruction::store_relative), identity,
+                                    cons(make(instruction::store_relative), identity,
                                          continuation));
         }
         else if (identity.is<variadic>())
         {
           return generator.generate(cadr(form),
                                     bound_variables,
-                                    CONS(make(instruction::store_variadic), identity,
+                                    cons(make(instruction::store_variadic), identity,
                                          continuation));
         }
         else
@@ -654,7 +614,7 @@ namespace meevax::inline kernel
 
           return generator.generate(cadr(form),
                                     bound_variables,
-                                    CONS(make(instruction::store_absolute), identity,
+                                    cons(make(instruction::store_absolute), identity,
                                          continuation));
         }
       }
@@ -671,15 +631,15 @@ namespace meevax::inline kernel
 
         let const formals = map(car, car(form));
 
-        return CONS(make(instruction::dummy),
+        return cons(make(instruction::dummy),
                     operand(generator,
                             map(cadr, car(form)),
                             cons(formals, bound_variables),
                             lambda(generator,
                                    cons(formals, cdr(form)), // (<formals> <body>)
                                    bound_variables,
-                                   tail ? LIST(make(instruction::tail_letrec))
-                                        : CONS(make(instruction::letrec), continuation))));
+                                   tail ? list(make(instruction::tail_letrec))
+                                        : cons(make(instruction::letrec), continuation))));
       }
 
       static GENERATOR(sequence)
@@ -706,7 +666,7 @@ namespace meevax::inline kernel
                                                bound_variables,
                                                unit);
           return append(head,
-                        CONS(make(instruction::drop), // Pop result of head expression
+                        cons(make(instruction::drop), // Pop result of head expression
                              sequence(generator,
                                       cdr(form), // Rest expression or definitions
                                       bound_variables,
@@ -727,7 +687,7 @@ namespace meevax::inline kernel
 
         return generator.generate(cdr(form) ? cadr(form) : unspecified,
                                   bound_variables,
-                                  CONS(make(instruction::store_absolute), generator.identify(car(form), bound_variables),
+                                  cons(make(instruction::store_absolute), generator.identify(car(form), bound_variables),
                                        continuation));
       }
 
@@ -740,7 +700,7 @@ namespace meevax::inline kernel
                                           make<syntactic_environment>(bound_variables,
                                                                       generator.second));
 
-        return CONS(make(instruction::load_constant), unspecified,
+        return cons(make(instruction::load_constant), unspecified,
                     continuation);
       }
 
@@ -749,17 +709,17 @@ namespace meevax::inline kernel
         assert(form.is<pair>());
         assert(cdr(form).is<null>());
 
-        return CONS(make(instruction::load_continuation),
+        return cons(make(instruction::load_continuation),
                     continuation,
                     generator.generate(car(form),
                                        bound_variables,
-                                       LIST(make(instruction::tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.
+                                       list(make(instruction::tail_call)), // The first argument passed to call-with-current-continuation must be called via a tail call.
                                        tail));
       }
 
       static GENERATOR(current)
       {
-        return CONS(make(instruction::current), car(form),
+        return cons(make(instruction::current), car(form),
                     continuation);
       }
 
@@ -767,7 +727,7 @@ namespace meevax::inline kernel
       {
         return generator.generate(cadr(form),
                                   bound_variables,
-                                  CONS(make(instruction::install), car(form),
+                                  cons(make(instruction::install), car(form),
                                        continuation));
       }
 
@@ -888,14 +848,12 @@ namespace meevax::inline kernel
           assert(cadr(identity).is<closure>());
           assert(cddr(identity).is<syntactic_environment>());
 
-          let const transformed = Environment().apply(cadr(identity),
-                                                      form,
-                                                      make<syntactic_environment>(bound_variables, second),
-                                                      cddr(identity));
-
-          syntax::contexts[transformed.get()] = form;
-
-          return expand(transformed, bound_variables, rename);
+          return expand(Environment().apply(cadr(identity),
+                                            form,
+                                            make<syntactic_environment>(bound_variables, second),
+                                            cddr(identity)),
+                        bound_variables,
+                        rename);
         }
         else if (cdr(identity).is<syntax>())
         {
@@ -924,21 +882,21 @@ namespace meevax::inline kernel
 
           if (let const& identity = identify(form, bound_variables); identity.is<relative>())
           {
-            return CONS(make(instruction::load_relative), identity, continuation);
+            return cons(make(instruction::load_relative), identity, continuation);
           }
           else if (identity.is<variadic>())
           {
-            return CONS(make(instruction::load_variadic), identity, continuation);
+            return cons(make(instruction::load_variadic), identity, continuation);
           }
           else
           {
             assert(identity.is<absolute>());
-            return CONS(make(instruction::load_absolute), identity, continuation);
+            return cons(make(instruction::load_absolute), identity, continuation);
           }
         }
         else // is <self-evaluating>
         {
-          return CONS(make(instruction::load_constant), form, continuation);
+          return cons(make(instruction::load_constant), form, continuation);
         }
       }
       else if (let const& identity = std::as_const(*this).identify(car(form), bound_variables); identity.is<absolute>() and cdr(identity).is<syntax>())

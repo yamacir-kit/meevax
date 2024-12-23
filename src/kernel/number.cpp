@@ -847,6 +847,62 @@ inline namespace number
     return apply_to<complex_numbers>(f, x, y);
   }
 
+  auto real(object const& x) -> object
+  {
+    auto f = []<typename T>(T const& x)
+    {
+      if constexpr (std::is_same_v<T, complex>)
+      {
+        return x.real();
+      }
+      else
+      {
+        return x;
+      }
+    };
+
+    return apply_to<complex_number>(f, x);
+  }
+
+  auto imag(object const& x) -> object
+  {
+    auto f = []<typename T>(T const& x)
+    {
+      if constexpr (std::is_same_v<T, complex>)
+      {
+        return x.imag();
+      }
+      else
+      {
+        return e0;
+      }
+    };
+
+    return apply_to<complex_number>(f, x);
+  }
+
+  auto magnitude(object const& x) -> object
+  {
+    auto f = []<typename T>(T const& x)
+    {
+      if constexpr (std::is_same_v<T, complex>)
+      {
+        return sqrt(x.real() * x.real() + x.imag() * x.imag());
+      }
+      else
+      {
+        return x;
+      }
+    };
+
+    return apply_to<complex_number>(f, x);
+  }
+
+  auto angle(object const& x) -> object
+  {
+    return atan2(real(x), imag(x));
+  }
+
   auto numerator(object const& x) -> object
   {
     if (x.is<ratio>())
