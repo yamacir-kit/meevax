@@ -933,37 +933,38 @@ namespace meevax::inline kernel
     {
       assert(variable.is_also<identifier>());
 
-      auto i = 0;
-
-      for (auto outer = bound_variables; outer.is<pair>(); ++i, outer = cdr(outer))
+      for (auto i = 0; let formals : bound_variables)
       {
-        auto j = 0;
-
-        for (auto inner = outer.is<pair>() ? car(outer) : unit; not inner.is<null>(); ++j, inner = inner.is<pair>() ? cdr(inner) : unit)
+        for (auto j = 0; not formals.is<null>(); formals = cdr(formals))
         {
-          if (inner.is<pair>())
+          if (formals.is<pair>())
           {
-            if (car(inner).is<absolute>() and eq(caar(inner), variable))
+            if (car(formals).is<absolute>() and eq(caar(formals), variable))
             {
-              return car(inner);
+              return car(formals);
             }
-            else if (eq(car(inner), variable))
+            else if (eq(car(formals), variable))
             {
               return make<relative>(make<std::int32_t>(i), make<std::int32_t>(j));
             }
           }
-          else if (inner.is_also<identifier>() and eq(inner, variable))
+          else if (formals.is_also<identifier>() and eq(formals, variable))
           {
             return make<variadic>(make<std::int32_t>(i), make<std::int32_t>(j));
           }
+
+          ++j;
         }
+
+        ++i;
       }
 
-      if (variable.is<syntactic_closure>()) // Resolve alias
+      if (variable.is<syntactic_closure>() and
+          variable.as<syntactic_closure>().form.template is_also<identifier>()) // if is an alias
       {
         return variable.as<syntactic_closure>()
                        .environment
-                       .template as<syntactic_environment>()
+                       .template as_const<syntactic_environment>()
                        .identify(variable.as<syntactic_closure>().form,
                                  unify(car(variable.as<syntactic_closure>().environment),
                                        bound_variables));
@@ -977,11 +978,9 @@ namespace meevax::inline kernel
     inline auto identify(object const& variable,
                          object const& bound_variables)
     {
-      if (not variable.is_also<identifier>())
-      {
-        return f;
-      }
-      else if (let const& identity = std::as_const(*this).identify(variable, bound_variables); identity != f)
+      assert(variable.is_also<identifier>());
+
+      if (let const& identity = std::as_const(*this).identify(variable, bound_variables); identity != f)
       {
         return identity;
       }
