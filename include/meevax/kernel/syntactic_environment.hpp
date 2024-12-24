@@ -594,6 +594,8 @@ namespace meevax::inline kernel
 
       static GENERATOR(set)
       {
+        assert(car(form).is_also<identifier>());
+
         if (let const& identity = generator.identify(car(form), bound_variables); identity.is<relative>())
         {
           return generator.generate(cadr(form),
@@ -685,6 +687,8 @@ namespace meevax::inline kernel
 
         assert(not car(form).is<pair>()); // This has been checked on previous passes.
 
+        assert(car(form).is_also<identifier>());
+
         return generator.generate(cdr(form) ? cadr(form) : unspecified,
                                   bound_variables,
                                   cons(make(instruction::store_absolute), generator.identify(car(form), bound_variables),
@@ -693,6 +697,8 @@ namespace meevax::inline kernel
 
       static GENERATOR(define_syntax)
       {
+        assert(car(form).is_also<identifier>());
+
         let identity = generator.identify(car(form), unit);
 
         cdr(identity) = make<transformer>(Environment().execute(generator.generate(cadr(form),
@@ -787,6 +793,7 @@ namespace meevax::inline kernel
 
     inline auto define(object const& variable, object const& value = undefined) -> void
     {
+      assert(variable.is_also<identifier>());
       assert(identify(variable, unit).template is<absolute>());
       cdr(identify(variable, unit)) = value;
     }
@@ -818,6 +825,8 @@ namespace meevax::inline kernel
       {
         if (form.is<syntactic_closure>())
         {
+          assert(form.is_also<identifier>());
+
           if (let const& identity = identify(form, bound_variables); identity == f)
           {
             return form.as<syntactic_closure>().expand(bound_variables, rename);
@@ -826,38 +835,42 @@ namespace meevax::inline kernel
 
         return form.is_also<identifier>() ? rename(form) : form;
       }
-      else if (let const& identity = identify(car(form), bound_variables); identity.is<absolute>())
+      else if (car(form).is_also<identifier>())
       {
-        if (cdr(identity).is<transformer>())
+        if (let const& identity = identify(car(form), bound_variables); identity.is<absolute>())
         {
-          /*
-             Scheme programs can define and use new derived expression types,
-             called macros. Program-defined expression types have the syntax
+          if (cdr(identity).is<transformer>())
+          {
+            /*
+               Scheme programs can define and use new derived expression types,
+               called macros. Program-defined expression types have the syntax
 
-               (<keyword> <datum>...)
+                 (<keyword> <datum>...)
 
-             where <keyword> is an identifier that uniquely determines the
-             expression type. This identifier is called the syntactic keyword,
-             or simply keyword, of the macro. The number of the <datum>s, and
-             their syntax, depends on the expression type.
+               where <keyword> is an identifier that uniquely determines the
+               expression type. This identifier is called the syntactic
+               keyword, or simply keyword, of the macro. The number of the
+               <datum>s, and their syntax, depends on the expression type.
 
-             Each instance of a macro is called a use of the macro. The set of
-             rules that specifies how a use of a macro is transcribed into a
-             more primitive expression is called the transformer of the macro.
-          */
-          assert(cadr(identity).is<closure>());
-          assert(cddr(identity).is<syntactic_environment>());
+               Each instance of a macro is called a use of the macro. The set
+               of rules that specifies how a use of a macro is transcribed into
+               a more primitive expression is called the transformer of the
+               macro.
+            */
+            assert(cadr(identity).is<closure>());
+            assert(cddr(identity).is<syntactic_environment>());
 
-          return expand(Environment().apply(cadr(identity),
-                                            form,
-                                            make<syntactic_environment>(bound_variables, second),
-                                            cddr(identity)),
-                        bound_variables,
-                        rename);
-        }
-        else if (cdr(identity).is<syntax>())
-        {
-          return cdr(identity).as<syntax>().expand(*this, form, bound_variables, rename);
+            return expand(Environment().apply(cadr(identity),
+                                              form,
+                                              make<syntactic_environment>(bound_variables, second),
+                                              cddr(identity)),
+                          bound_variables,
+                          rename);
+          }
+          else if (cdr(identity).is<syntax>())
+          {
+            return cdr(identity).as<syntax>().expand(*this, form, bound_variables, rename);
+          }
         }
       }
 
@@ -878,7 +891,7 @@ namespace meevax::inline kernel
       {
         if (form.is_also<identifier>())
         {
-          assert(form.is<symbol>() or form.is<syntactic_closure>());
+          assert(form.is_also<identifier>());
 
           if (let const& identity = identify(form, bound_variables); identity.is<relative>())
           {
@@ -899,14 +912,15 @@ namespace meevax::inline kernel
           return cons(make(instruction::load_constant), form, continuation);
         }
       }
-      else if (let const& identity = std::as_const(*this).identify(car(form), bound_variables); identity.is<absolute>() and cdr(identity).is<syntax>())
+      else if (car(form).is_also<identifier>())
       {
-        return cdr(identity).as<syntax>().generate(*this, cdr(form), bound_variables, continuation, tail);
+        if (let const& identity = std::as_const(*this).identify(car(form), bound_variables); identity.is<absolute>() and cdr(identity).is<syntax>())
+        {
+          return cdr(identity).as<syntax>().generate(*this, cdr(form), bound_variables, continuation, tail);
+        }
       }
-      else
-      {
-        return generator::call(*this, form, bound_variables, continuation, tail);
-      }
+
+      return generator::call(*this, form, bound_variables, continuation, tail);
     }
     catch (error & e)
     {
@@ -917,51 +931,46 @@ namespace meevax::inline kernel
     inline auto identify(object const& variable,
                          object const& bound_variables) const -> object
     {
-      if (not variable.is_also<identifier>())
+      assert(variable.is_also<identifier>());
+
+      auto i = 0;
+
+      for (auto outer = bound_variables; outer.is<pair>(); ++i, outer = cdr(outer))
       {
-        return f;
+        auto j = 0;
+
+        for (auto inner = outer.is<pair>() ? car(outer) : unit; not inner.is<null>(); ++j, inner = inner.is<pair>() ? cdr(inner) : unit)
+        {
+          if (inner.is<pair>())
+          {
+            if (car(inner).is<absolute>() and eq(caar(inner), variable))
+            {
+              return car(inner);
+            }
+            else if (eq(car(inner), variable))
+            {
+              return make<relative>(make<std::int32_t>(i), make<std::int32_t>(j));
+            }
+          }
+          else if (inner.is_also<identifier>() and eq(inner, variable))
+          {
+            return make<variadic>(make<std::int32_t>(i), make<std::int32_t>(j));
+          }
+        }
+      }
+
+      if (variable.is<syntactic_closure>()) // Resolve alias
+      {
+        return variable.as<syntactic_closure>()
+                       .environment
+                       .template as<syntactic_environment>()
+                       .identify(variable.as<syntactic_closure>().form,
+                                 unify(car(variable.as<syntactic_closure>().environment),
+                                       bound_variables));
       }
       else
       {
-        auto i = 0;
-
-        for (auto outer = bound_variables; outer.is<pair>(); ++i, outer = cdr(outer))
-        {
-          auto j = 0;
-
-          for (auto inner = outer.is<pair>() ? car(outer) : unit; not inner.is<null>(); ++j, inner = inner.is<pair>() ? cdr(inner) : unit)
-          {
-            if (inner.is<pair>())
-            {
-              if (car(inner).is<absolute>() and eq(caar(inner), variable))
-              {
-                return car(inner);
-              }
-              else if (eq(car(inner), variable))
-              {
-                return make<relative>(make<std::int32_t>(i), make<std::int32_t>(j));
-              }
-            }
-            else if (inner.is_also<identifier>() and eq(inner, variable))
-            {
-              return make<variadic>(make<std::int32_t>(i), make<std::int32_t>(j));
-            }
-          }
-        }
-
-        if (variable.is<syntactic_closure>()) // Resolve alias
-        {
-          return variable.as<syntactic_closure>()
-                         .environment
-                         .template as<syntactic_environment>()
-                         .identify(variable.as<syntactic_closure>().form,
-                                   unify(car(variable.as<syntactic_closure>().environment),
-                                         bound_variables));
-        }
-        else
-        {
-          return assq(variable, second);
-        }
+        return assq(variable, second);
       }
     }
 
@@ -1003,7 +1012,7 @@ namespace meevax::inline kernel
                       object const& bound_variables,
                       object const& binding_specs = unit) const -> pair
     {
-      if (form.is<pair>() and car(form).is<pair>())
+      if (form.is<pair>() and car(form).is<pair>() and caar(form).is_also<identifier>())
       {
         if (let const& identity = identify(caar(form), bound_variables); identity.is<absolute>())
         {
