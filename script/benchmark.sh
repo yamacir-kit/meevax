@@ -11,7 +11,7 @@ scripts()
 
 real()
 {
-  (time -p "$@") 2>&1 | grep -e 'real' | sed -e 's/real\s//'
+  (command time -p "$@") 2>&1 | grep -e 'real' | sed -e 's/real[ ]*//'
 }
 
 quotient()
@@ -37,4 +37,4 @@ tsv()
   done
 }
 
-tsv | column --table --separator "$(printf '\t')"
+tsv | column -t -s "$(printf '\t')"
