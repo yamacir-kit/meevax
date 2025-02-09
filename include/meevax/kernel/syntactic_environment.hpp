@@ -280,7 +280,9 @@ namespace meevax::inline kernel
 
       static EXPANDER(body)
       {
-        if (auto [binding_specs, sequence] = expander.sweep(form, bound_variables); binding_specs)
+        let current_environment = make<syntactic_environment>(bound_variables, expander.second);
+
+        if (auto [binding_specs, sequence] = expander.sweep(form, bound_variables, current_environment); binding_specs)
         {
           /*
              (letrec* <binding specs> <sequence>)
@@ -307,12 +309,11 @@ namespace meevax::inline kernel
             }
           }
 
-          let const current_environment = make<syntactic_environment>(cons(formals, bound_variables),
-                                                                      expander.second);
+          car(current_environment) = cons(formals, bound_variables);
 
           for (let & formal : formals)
           {
-            if (formal.is<absolute>())
+            if (formal.is<absolute>()) // is internal-sytnax-definition
             {
               cdr(formal) = make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cdr(formal) /* <transformer spec> */)),
                                               current_environment);
@@ -1064,6 +1065,7 @@ namespace meevax::inline kernel
 
     inline auto sweep(object const& form,
                       object const& bound_variables,
+                      object const& current_environment,
                       object const& binding_specs = unit) const -> pair
     {
       if (form.is<pair>() and car(form).is<pair>() and caar(form).is_also<identifier>())
@@ -1074,10 +1076,11 @@ namespace meevax::inline kernel
           {
             return sweep(cons(Environment().apply(cadr(identity), // <closure>
                                                   car(form),
-                                                  make<syntactic_environment>(bound_variables, second), // use-env
+                                                  current_environment, // use-env
                                                   cddr(identity)), // mac-env
                               cdr(form)),
                          bound_variables,
+                         current_environment,
                          binding_specs);
           }
           else if (value.is<syntax>())
@@ -1086,6 +1089,7 @@ namespace meevax::inline kernel
             {
               return sweep(append(cdar(form), cdr(form)),
                            bound_variables,
+                           current_environment,
                            binding_specs);
             }
             else if (name == "define") // <form> = ((define ...) <definition or expression>*)
@@ -1094,6 +1098,7 @@ namespace meevax::inline kernel
               {
                 return sweep(cdr(form),
                              bound_variables,
+                             current_environment,
                              cons(list(caadr(definition), // <variable>
                                        cons(corename("lambda"),
                                             cdadr(definition), // <formals>
@@ -1104,6 +1109,7 @@ namespace meevax::inline kernel
               {
                 return sweep(cdr(form),
                              bound_variables,
+                             current_environment,
                              cons(cdr(definition), binding_specs));
               }
             }
@@ -1111,6 +1117,7 @@ namespace meevax::inline kernel
             {
               return sweep(cdr(form),
                            bound_variables,
+                           current_environment,
                            cons(list(make<absolute>(cadar(form), // <keyword>
                                                     caddar(form))), // <transformer spec>
                                 binding_specs));

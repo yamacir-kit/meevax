@@ -473,8 +473,36 @@
          (+ x y z))
   => 6)
 
+(define-syntax COND
+  (er-macro-transformer-v2
+    (lambda (form rename compare)
+      (if (null? (cdr form))
+          (if #f #f)
+          ((lambda (clause)
+             (if (compare (rename 'else)
+                          (car clause))
+                 (cons (rename 'begin)
+                       (cdr clause))
+                 (list (rename 'if)
+                       (car clause)
+                       (cons (rename 'begin)
+                             (cdr clause))
+                       (cons (rename 'cond)
+                             (cddr form)))))
+           (cadr form))))))
+
+(define (f x)
+  (define y 'two-or-more)
+  (COND ((= x 0) 'zero)
+        ((= x 1) 'one)
+        (else y)))
+
+(check (f 0) => 'zero)
+(check (f 1) => 'one)
+(check (f 2) => 'two-or-more)
+
 ; ------------------------------------------------------------------------------
 
 (check-report)
 
-(exit (check-passed? 54))
+(exit (check-passed? 57))
