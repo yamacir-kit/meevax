@@ -31,6 +31,12 @@ namespace meevax::inline kernel
   {
     struct renamer
     {
+      let dictionary;
+
+      explicit renamer(let const& dictionary = unit)
+        : dictionary { dictionary }
+      {}
+
       virtual auto operator ()(let const& form) -> object
       {
         return form;
@@ -60,10 +66,11 @@ namespace meevax::inline kernel
 
           renamer & inject;
 
-          let renamings;
-
-          explicit local_renamer(syntactic_closure const* enclosure, renamer & inject)
-            : enclosure { enclosure }
+          explicit local_renamer(syntactic_closure const* enclosure,
+                                 let const& bound_variables,
+                                 renamer & inject)
+            : renamer   { eq(car(enclosure->environment), bound_variables) ? inject.dictionary : unit }
+            , enclosure { enclosure }
             , inject    { inject }
           {}
 
@@ -80,15 +87,15 @@ namespace meevax::inline kernel
               {
                 return inject(form);
               }
-              else if (let const& renaming = assq(form, renamings); renaming != f)
+              else if (let const& renaming = assq(form, renamer::dictionary); renaming != f)
               {
                 return cdr(renaming);
               }
               else
               {
-                return cdar(renamings = alist_cons(form,
-                                                   make<syntactic_closure>(enclosure->environment, unit, form),
-                                                   renamings));
+                return cdar(renamer::dictionary = alist_cons(form,
+                                                             make<syntactic_closure>(enclosure->environment, unit, form),
+                                                             renamer::dictionary));
               }
             }
             else
@@ -103,7 +110,7 @@ namespace meevax::inline kernel
           }
         };
 
-        auto rename = local_renamer(this, inject);
+        auto rename = local_renamer(this, bound_variables, inject);
 
         return environment.as<syntactic_environment>().expand(form,
                                                               unify(car(environment), bound_variables),
@@ -1067,7 +1074,8 @@ namespace meevax::inline kernel
       return pair(binding_specs, form);
     }
 
-    static auto unify(object const& a, object const& b) -> object
+    static auto unify(object const& mac_env,
+                      object const& use_env) -> object
     {
       /*
          Consider the following case where an expression that uses a local
@@ -1101,11 +1109,11 @@ namespace meevax::inline kernel
          appropriate de Bruijn index. In the example above, this is (() ()
          (x)).
       */
-      let xs = longest_common_tail(a, b);
+      assert(length(mac_env) <= length(use_env));
 
-      assert(length(xs) <= std::min(length(a), length(b)));
+      let xs = mac_env;
 
-      for (auto offset = std::max(length(a), length(b)) - length(xs); 0 < offset; --offset)
+      for (auto offset = length(use_env) - length(mac_env); 0 < offset; --offset)
       {
         xs = cons(unit, xs);
       }

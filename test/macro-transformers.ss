@@ -441,6 +441,40 @@
 
 ; ------------------------------------------------------------------------------
 
+(define-syntax LET
+  (er-macro-transformer-v2
+    (lambda (form rename compare)
+      (cons (cons (rename 'lambda)
+                  (cons (map car (cadr form))
+                        (cddr form)))
+            (map cadr (cadr form))))))
+
+(check (LET ((x 1)
+             (y 2)
+             (z 3))
+         (+ x y z)) => 6)
+
+(define-syntax LET*
+  (er-macro-transformer-v2
+    (lambda (form rename compare)
+      (if (null? (cadr form))
+          (cons (rename 'LET)
+                (cons (list)
+                      (cddr form)))
+          (cons (rename 'LET)
+                (cons (list (caadr form))
+                      (list (cons (rename 'LET*)
+                                  (cons (cdadr form)
+                                        (cddr form))))))))))
+
+(check (LET* ((x 1)
+              (y (+ x 1))
+              (z (+ y 1)))
+         (+ x y z))
+  => 6)
+
+; ------------------------------------------------------------------------------
+
 (check-report)
 
-(exit (check-passed? 52))
+(exit (check-passed? 54))
