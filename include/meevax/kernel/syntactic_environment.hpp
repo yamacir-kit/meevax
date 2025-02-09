@@ -31,12 +31,6 @@ namespace meevax::inline kernel
   {
     struct renamer
     {
-      let dictionary;
-
-      explicit renamer(let const& dictionary = unit)
-        : dictionary { dictionary }
-      {}
-
       virtual auto operator ()(let const& form) -> object
       {
         return form;
@@ -60,18 +54,22 @@ namespace meevax::inline kernel
 
       auto expand(let const& bound_variables, renamer & inject)
       {
-        struct local_renamer : public renamer
+        struct implicit_renamer : public renamer
         {
           syntactic_closure const* enclosure;
 
+          let bound_variables;
+
           renamer & inject;
 
-          explicit local_renamer(syntactic_closure const* enclosure,
-                                 let const& bound_variables,
-                                 renamer & inject)
-            : renamer   { eq(car(enclosure->environment), bound_variables) ? inject.dictionary : unit }
-            , enclosure { enclosure }
-            , inject    { inject }
+          let dictionary;
+
+          explicit implicit_renamer(syntactic_closure const* enclosure,
+                                    let const& bound_variables,
+                                    renamer & inject)
+            : enclosure       { enclosure }
+            , bound_variables { bound_variables }
+            , inject          { inject }
           {}
 
           auto rename(let const& form, let const& free_names) -> object
@@ -83,19 +81,19 @@ namespace meevax::inline kernel
             }
             else if (form.is<symbol>())
             {
-              if (let const& free_name = memq(form, free_names); free_name != f)
+              if (let const& free_name = memq(form, free_names); free_name != f or eq(car(enclosure->environment), bound_variables))
               {
                 return inject(form);
               }
-              else if (let const& renaming = assq(form, renamer::dictionary); renaming != f)
+              else if (let const& renaming = assq(form, dictionary); renaming != f)
               {
                 return cdr(renaming);
               }
               else
               {
-                return cdar(renamer::dictionary = alist_cons(form,
-                                                             make<syntactic_closure>(enclosure->environment, unit, form),
-                                                             renamer::dictionary));
+                return cdar(dictionary = alist_cons(form,
+                                                    make<syntactic_closure>(enclosure->environment, unit, form),
+                                                    dictionary));
               }
             }
             else
@@ -110,9 +108,9 @@ namespace meevax::inline kernel
           }
         };
 
-        auto rename = local_renamer(this, bound_variables, inject);
+        auto implicit_rename = implicit_renamer(this, bound_variables, inject);
 
-        return environment.as<syntactic_environment>().expand(form, unify(bound_variables), rename);
+        return environment.as<syntactic_environment>().expand(form, unify(bound_variables), implicit_rename);
       }
 
       auto identify(let const& bound_variables)
