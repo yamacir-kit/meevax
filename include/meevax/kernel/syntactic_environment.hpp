@@ -112,9 +112,64 @@ namespace meevax::inline kernel
 
         auto rename = local_renamer(this, bound_variables, inject);
 
-        return environment.as<syntactic_environment>().expand(form,
-                                                              unify(car(environment), bound_variables),
-                                                              rename);
+        return environment.as<syntactic_environment>().expand(form, unify(bound_variables), rename);
+      }
+
+      auto identify(let const& bound_variables)
+      {
+        return environment.as_const<syntactic_environment>().identify(form, unify(bound_variables));
+      }
+
+      auto unify(object const& bound_variables) -> object
+      {
+        /*
+           The bound variables of a macro defined by define-syntax are always
+           empty. On the other hand, the bound variables of local macros
+           defined by let-syntax and letrec-syntax have zero or more levels.
+        */
+        assert(length(car(environment)) <= length(bound_variables));
+
+
+        /*
+           Consider the following case where an expression that uses a local
+           macro is given:
+
+             (let ((x 'outer))
+               (let-syntax ((m (sc-macro-transformer
+                                 (lambda (form environment)
+                                   'x))))
+                 (let ((x 'inner))
+                   (m))))
+
+           Where, the bound variables that the syntactic closure returned by
+           sc-macro-transformer encloses are ((x)), and the bound variables
+           when using the local macro m are ((x) (m) (x)).
+
+           The result of the expansion of local macro m must be a reference to
+           the local variable x that binds the symbol "outer" and not the one
+           that binds the symbol "inner". That is, the operand of the relative
+           loading instruction resulting from the expansion of the local macro
+           m must be de Bruijn index (2 . 0).
+
+           However, since syntactic_environment::identify searches bound
+           variables from inside to outside to create de Bruijn index, it
+           straightforwardly uses bound variables ((x) (m) (x)) when using
+           local macro m would result in index (0 . 0).
+
+           By searching for the common tail of the two bound variables and cons
+           a dummy environment in front of the list to match the length of the
+           longer bound variables, we can create bound variables that lead to
+           an appropriate de Bruijn index. In the example above, this is (() ()
+           (x)).
+        */
+        let xs = car(environment);
+
+        for (auto offset = length(bound_variables) - length(car(environment)); 0 < offset; --offset)
+        {
+          xs = cons(unit, xs);
+        }
+
+        return xs;
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -969,12 +1024,7 @@ namespace meevax::inline kernel
       if (variable.is<syntactic_closure>() and
           variable.as<syntactic_closure>().form.template is_also<identifier>()) // if is an alias
       {
-        return variable.as<syntactic_closure>()
-                       .environment
-                       .template as_const<syntactic_environment>()
-                       .identify(variable.as<syntactic_closure>().form,
-                                 unify(car(variable.as<syntactic_closure>().environment),
-                                       bound_variables));
+        return variable.as<syntactic_closure>().identify(bound_variables);
       }
       else
       {
@@ -1072,53 +1122,6 @@ namespace meevax::inline kernel
       }
 
       return pair(binding_specs, form);
-    }
-
-    static auto unify(object const& mac_env,
-                      object const& use_env) -> object
-    {
-      /*
-         Consider the following case where an expression that uses a local
-         macro is given:
-
-           (let ((x 'outer))
-             (let-syntax ((m (sc-macro-transformer
-                               (lambda (form environment)
-                                 'x))))
-               (let ((x 'inner))
-                 (m))))
-
-         Where, the bound variables that the syntactic closure returned by
-         sc-macro-transformer encloses are ((x)), and the bound variables when
-         using the local macro m are ((x) (m) (x)).
-
-         The result of the expansion of local macro m must be a reference to
-         the local variable x that binds the symbol "outer" and not the one
-         that binds the symbol "inner". That is, the operand of the relative
-         loading instruction resulting from the expansion of the local macro m
-         must be de Bruijn index (2 . 0).
-
-         However, since syntactic_environment::identify searches bound
-         variables from inside to outside to create de Bruijn index, it
-         straightforwardly uses bound variables ((x) (m) (x)) when using local
-         macro m would result in index (0 . 0).
-
-         By searching for the common tail of the two bound variables and cons a
-         dummy environment in front of the list to match the length of the
-         longer bound variables, we can create bound variables that lead to an
-         appropriate de Bruijn index. In the example above, this is (() ()
-         (x)).
-      */
-      assert(length(mac_env) <= length(use_env));
-
-      let xs = mac_env;
-
-      for (auto offset = length(use_env) - length(mac_env); 0 < offset; --offset)
-      {
-        xs = cons(unit, xs);
-      }
-
-      return xs;
     }
   };
 } // namespace meevax::kernel
