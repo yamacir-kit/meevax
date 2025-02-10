@@ -196,6 +196,29 @@ namespace meevax::inline kernel
     {
       using pair::pair;
 
+      auto transform(let const& form, let const& environment) const -> object
+      {
+        /*
+           Scheme programs can define and use new derived expression types,
+           called macros. Program-defined expression types have the syntax
+
+             (<keyword> <datum>...)
+
+           where <keyword> is an identifier that uniquely determines the
+           expression type. This identifier is called the syntactic keyword, or
+           simply keyword, of the macro. The number of the <datum>s, and their
+           syntax, depends on the expression type.
+
+           Each instance of a macro is called a use of the macro. The set of
+           rules that specifies how a use of a macro is transcribed into a more
+           primitive expression is called the transformer of the macro.
+        */
+        assert(first.is<closure>());
+        assert(second.is<syntactic_environment>());
+
+        return Environment().apply(first, form, environment, second);
+      }
+
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
       {
         return os << magenta("#,(") << green("transformer ") << faint("#;", &datum) << magenta(")");
@@ -909,37 +932,15 @@ namespace meevax::inline kernel
       {
         if (let const& identity = identify(car(form), bound_variables); identity.is<absolute>())
         {
-          if (cdr(identity).is<transformer>())
+          if (let const& value = cdr(identity); value.is<transformer>())
           {
-            /*
-               Scheme programs can define and use new derived expression types,
-               called macros. Program-defined expression types have the syntax
-
-                 (<keyword> <datum>...)
-
-               where <keyword> is an identifier that uniquely determines the
-               expression type. This identifier is called the syntactic
-               keyword, or simply keyword, of the macro. The number of the
-               <datum>s, and their syntax, depends on the expression type.
-
-               Each instance of a macro is called a use of the macro. The set
-               of rules that specifies how a use of a macro is transcribed into
-               a more primitive expression is called the transformer of the
-               macro.
-            */
-            assert(cadr(identity).is<closure>());
-            assert(cddr(identity).is<syntactic_environment>());
-
-            return expand(Environment().apply(cadr(identity),
-                                              form,
-                                              make<syntactic_environment>(bound_variables, second),
-                                              cddr(identity)),
+            return expand(value.as<transformer>().transform(form, make<syntactic_environment>(bound_variables, second)),
                           bound_variables,
                           rename);
           }
-          else if (cdr(identity).is<syntax>())
+          else if (value.is<syntax>())
           {
-            return cdr(identity).as<syntax>().expand(*this, form, bound_variables, rename);
+            return value.as<syntax>().expand(*this, form, bound_variables, rename);
           }
         }
       }
@@ -1083,10 +1084,7 @@ namespace meevax::inline kernel
         {
           if (let const& value = cdr(identity); value.is<transformer>())
           {
-            return sweep(cons(Environment().apply(cadr(identity), // <closure>
-                                                  car(form),
-                                                  current_environment, // use-env
-                                                  cddr(identity)), // mac-env
+            return sweep(cons(value.as<transformer>().transform(car(form), current_environment),
                               cdr(form)),
                          bound_variables,
                          current_environment,
