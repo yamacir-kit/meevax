@@ -2,7 +2,7 @@
   (import (only (meevax core) include include-case-insensitive)
           (only (meevax error) error-object? read-error? file-error?)
           (only (meevax list) make-list list-copy)
-          (only (meevax macro-transformer) er-macro-transformer)
+          (only (meevax macro-transformer) er-macro-transformer er-macro-transformer-v2)
           (only (meevax number) exact-integer? exact-integer-square-root)
           (only (meevax port) binary-port? eof-object flush get-output-u8vector open-input-u8vector open-output-u8vector open? port? standard-error-port standard-input-port standard-output-port textual-port?)
           (only (meevax string) string-copy!)
@@ -99,19 +99,19 @@
   (begin (define include-ci include-case-insensitive)
 
          (define-syntax when
-           (er-macro-transformer
+           (er-macro-transformer-v2
              (lambda (form rename compare)
                `(,(rename 'if) ,(cadr form)
                                (,(rename 'begin) ,@(cddr form))))))
 
          (define-syntax unless
-           (er-macro-transformer
+           (er-macro-transformer-v2
              (lambda (form rename compare)
                `(,(rename 'if) (,(rename 'not) ,(cadr form))
                                (,(rename 'begin) ,@(cddr form))))))
 
          (define-syntax letrec*
-           (er-macro-transformer
+           (er-macro-transformer-v2
              (lambda (form rename compare)
                `(,(rename 'let) ()
                                 ,@(map (lambda (x) (cons (rename 'define) x))
@@ -119,7 +119,7 @@
                                 ,@(cddr form)))))
 
          (define-syntax syntax-error
-           (er-macro-transformer
+           (er-macro-transformer-v2
              (lambda (form rename compare)
                (apply error (cdr form)))))
 

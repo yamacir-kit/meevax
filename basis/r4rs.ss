@@ -197,7 +197,7 @@
                      ,@(map cadr (cadr form)))))))
 
          (define-syntax let*
-           (er-macro-transformer
+           (er-macro-transformer-v2
              (lambda (form rename compare)
                (if (null? (cadr form))
                    `(,(rename 'let) () ,@(cddr form))
@@ -206,7 +206,7 @@
                                                      ,@(cddr form)))))))
 
          (define-syntax do ; Chibi-Scheme
-           (er-macro-transformer
+           (er-macro-transformer-v2
              (lambda (form rename compare)
                (let ((body `(,(rename 'begin) ,@(cdddr form)
                                               (,(rename 'rec) ,@(map (lambda (x)
@@ -228,7 +228,7 @@
                                                        ,body)))))))
 
          (define-syntax case ; Chibi-Scheme
-           (er-macro-transformer
+           (er-macro-transformer-v2
              (lambda (form rename compare)
                (define (body xs)
                  (cond ((null? xs) (rename 'result))

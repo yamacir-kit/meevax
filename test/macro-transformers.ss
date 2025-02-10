@@ -444,10 +444,18 @@
 (define-syntax LET
   (er-macro-transformer-v2
     (lambda (form rename compare)
-      (cons (cons (rename 'lambda)
-                  (cons (map car (cadr form))
-                        (cddr form)))
-            (map cadr (cadr form))))))
+      (if (identifier? (cadr form))
+          (cons (rename 'letrec)
+                (cons (list (list (cadr form)
+                                  (cons (rename 'lambda)
+                                        (cons (map car (caddr form))
+                                              (cdddr form)))))
+                      (list (cons (cadr form)
+                                  (map cadr (caddr form))))))
+          (cons (cons (rename 'lambda)
+                      (cons (map car (cadr form))
+                            (cddr form)))
+                (map cadr (cadr form)))))))
 
 (check (LET ((x 1)
              (y 2)
@@ -501,8 +509,19 @@
 (check (f 1) => 'one)
 (check (f 2) => 'two-or-more)
 
+(define (LENGTH x)
+  (define something '())
+  (LET loop ((x x)
+             (n 0))
+    (if (pair? x)
+        (loop (cdr x)
+              (+ n 1))
+        n)))
+
+(check (LENGTH '(a b c . d)) => 3)
+
 ; ------------------------------------------------------------------------------
 
 (check-report)
 
-(exit (check-passed? 57))
+(exit (check-passed? 58))

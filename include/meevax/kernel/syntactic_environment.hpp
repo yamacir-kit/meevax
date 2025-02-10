@@ -109,24 +109,23 @@ namespace meevax::inline kernel
 
         auto implicit_rename = implicit_renamer(this, bound_variables, inject);
 
-        return environment.as<syntactic_environment>().expand(form, unify(bound_variables), implicit_rename);
+        return environment.as<syntactic_environment>().expand(form, car(environment), implicit_rename);
       }
 
       auto identify(let const& bound_variables)
       {
-        return environment.as_const<syntactic_environment>().identify(form, unify(bound_variables));
+        if (let const& identity = environment.as_const<syntactic_environment>().identify(form, unify(bound_variables)); identity != f)
+        {
+          return identity;
+        }
+        else
+        {
+          return environment.as_const<syntactic_environment>().identify(form, bound_variables);
+        }
       }
 
       auto unify(object const& bound_variables) -> object
       {
-        /*
-           The bound variables of a macro defined by define-syntax are always
-           empty. On the other hand, the bound variables of local macros
-           defined by let-syntax and letrec-syntax have zero or more levels.
-        */
-        assert(length(car(environment)) <= length(bound_variables));
-
-
         /*
            Consider the following case where an expression that uses a local
            macro is given:
