@@ -44,7 +44,7 @@
           (only (meevax core) begin define define-syntax if lambda letrec quote set!)
           (only (meevax inexact) exp log sqrt sin cos tan asin acos atan)
           (only (meevax list) null? list? list length append reverse list-tail list-ref memq memv assq assv)
-          (only (meevax macro-transformer) er-macro-transformer identifier?)
+          (only (meevax macro-transformer) er-macro-transformer er-macro-transformer-v2 identifier?)
           (only (meevax map) map)
           (only (meevax number) number? complex? real? rational? integer? exact? inexact? = < > <= >= zero? positive? negative? odd? even? max min + * - / abs quotient remainder modulo gcd lcm numerator denominator floor ceiling truncate round expt exact inexact number->string string->number)
           (only (meevax pair) pair? cons car cdr set-car! set-cdr! caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr)
@@ -91,7 +91,7 @@
           newline write-char load)
 
   (begin (define-syntax cond ; Chibi-Scheme
-           (er-macro-transformer
+           (er-macro-transformer-v2
              (lambda (form rename compare)
                (if (null? (cdr form))
                    (if #f #f)
@@ -117,7 +117,7 @@
                     (cadr form))))))
 
          (define-syntax and ; Chibi-Scheme
-           (er-macro-transformer
+           (er-macro-transformer-v2
              (lambda (form rename compare)
                (cond ((null? (cdr form)))
                      ((null? (cddr form))
@@ -129,7 +129,7 @@
                                  #f))))))
 
          (define-syntax or ; Chibi-Scheme
-           (er-macro-transformer
+           (er-macro-transformer-v2
              (lambda (form rename compare)
                (cond ((null? (cdr form)) #f)
                      ((null? (cddr form))
@@ -144,7 +144,7 @@
                                  (cadr form)))))))
 
          (define-syntax quasiquote ; Chibi-Scheme
-           (er-macro-transformer
+           (er-macro-transformer-v2
              (lambda (form rename compare)
                (define (expand x depth)
                  (cond ((pair? x)
