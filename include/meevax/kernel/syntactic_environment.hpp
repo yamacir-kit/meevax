@@ -34,8 +34,7 @@ namespace meevax::inline kernel
       {
         return form;
       }
-    }
-    static inline default_rename {};
+    };
 
     struct syntactic_closure : public identifier
     {
@@ -80,7 +79,7 @@ namespace meevax::inline kernel
             }
             else if (form.is<symbol>())
             {
-              if (let const& free_name = memq(form, free_names); free_name != f or eq(car(enclosure->environment), bound_variables))
+              if (memq(form, free_names) != f or eq(enclosure->environment.as<syntactic_environment>().first, bound_variables))
               {
                 return inject(form);
               }
@@ -109,7 +108,9 @@ namespace meevax::inline kernel
 
         auto implicit_rename = implicit_renamer(this, bound_variables, inject);
 
-        return environment.as<syntactic_environment>().expand(form, car(environment), implicit_rename);
+        return environment.as<syntactic_environment>().expand(form,
+                                                              environment.as<syntactic_environment>().first,
+                                                              implicit_rename);
       }
 
       auto identify(let const& bound_variables)
@@ -158,9 +159,9 @@ namespace meevax::inline kernel
            an appropriate de Bruijn index. In the example above, this is (() ()
            (x)).
         */
-        let xs = car(environment);
+        let xs = environment.as<syntactic_environment>().first;
 
-        for (auto offset = length(bound_variables) - length(car(environment)); 0 < offset; --offset)
+        for (auto offset = length(bound_variables) - length(environment.as<syntactic_environment>().first); 0 < offset; --offset)
         {
           xs = cons(unit, xs);
         }
@@ -181,8 +182,8 @@ namespace meevax::inline kernel
         */
         return x.form.template is_also<identifier>() and
                y.form.template is_also<identifier>() and
-               eqv(x.environment.template as<syntactic_environment>().identify(x.form, car(x.environment)),
-                   y.environment.template as<syntactic_environment>().identify(y.form, car(y.environment)));
+               eqv(x.environment.template as<syntactic_environment>().identify(x.form, x.environment.as<syntactic_environment>().first),
+                   y.environment.template as<syntactic_environment>().identify(y.form, y.environment.as<syntactic_environment>().first));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
@@ -340,7 +341,7 @@ namespace meevax::inline kernel
             }
           }
 
-          car(current_environment) = cons(formals, bound_variables);
+          current_environment.as<syntactic_environment>().first = cons(formals, bound_variables);
 
           for (let & formal : formals)
           {
@@ -486,7 +487,7 @@ namespace meevax::inline kernel
 
         let const formals = map(formal, cadr(form));
 
-        car(current_environment) = cons(formals, bound_variables);
+        current_environment.as<syntactic_environment>().first = cons(formals, bound_variables);
 
         return expander.expand(list(cons(corename("lambda"),
                                          formals,
@@ -831,6 +832,8 @@ namespace meevax::inline kernel
 
       #undef GENERATOR
     };
+
+    static inline renamer default_rename {};
 
     using pair::pair;
 

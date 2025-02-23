@@ -331,7 +331,7 @@ namespace meevax::inline kernel
 
     define<library>("(meevax core)", [](library & library)
     {
-      library.second = cdr(environment::core()); // DIRTY HACK!
+      library.second = environment::core().as<environment::syntactic_environment>().second; // DIRTY HACK!
       library.export_specs = map(car, library.second);
     });
 
