@@ -79,7 +79,7 @@ namespace meevax::inline kernel
             }
             else if (form.is<symbol>())
             {
-              if (memq(form, free_names) != f or eq(enclosure->environment.as<syntactic_environment>().first, bound_variables))
+              if (memq(form, free_names) != f or eq(enclosure->environment.template as<syntactic_environment>().first, bound_variables))
               {
                 return inject(form);
               }
@@ -115,18 +115,6 @@ namespace meevax::inline kernel
 
       auto identify(let const& bound_variables)
       {
-        if (let const& identity = environment.as_const<syntactic_environment>().identify(form, unify(bound_variables)); identity != f)
-        {
-          return identity;
-        }
-        else
-        {
-          return environment.as_const<syntactic_environment>().identify(form, bound_variables);
-        }
-      }
-
-      auto unify(object const& bound_variables) -> object
-      {
         /*
            Consider the following case where an expression that uses a local
            macro is given:
@@ -159,14 +147,21 @@ namespace meevax::inline kernel
            an appropriate de Bruijn index. In the example above, this is (() ()
            (x)).
         */
-        let xs = environment.as<syntactic_environment>().first;
+        let aligned_bound_variables = environment.as<syntactic_environment>().first;
 
         for (auto offset = length(bound_variables) - length(environment.as<syntactic_environment>().first); 0 < offset; --offset)
         {
-          xs = cons(unit, xs);
+          aligned_bound_variables = cons(unit, aligned_bound_variables);
         }
 
-        return xs;
+        if (let const& identity = environment.as_const<syntactic_environment>().identify(form, aligned_bound_variables); identity != f)
+        {
+          return identity;
+        }
+        else
+        {
+          return environment.as_const<syntactic_environment>().identify(form, bound_variables);
+        }
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -182,8 +177,8 @@ namespace meevax::inline kernel
         */
         return x.form.template is_also<identifier>() and
                y.form.template is_also<identifier>() and
-               eqv(x.environment.template as<syntactic_environment>().identify(x.form, x.environment.as<syntactic_environment>().first),
-                   y.environment.template as<syntactic_environment>().identify(y.form, y.environment.as<syntactic_environment>().first));
+               eqv(x.environment.template as<syntactic_environment>().identify(x.form, x.environment.template as<syntactic_environment>().first),
+                   y.environment.template as<syntactic_environment>().identify(y.form, y.environment.template as<syntactic_environment>().first));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
