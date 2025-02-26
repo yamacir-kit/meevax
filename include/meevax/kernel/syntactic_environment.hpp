@@ -56,18 +56,19 @@ namespace meevax::inline kernel
         {
           syntactic_closure const* enclosure;
 
-          let bound_variables;
-
           renamer & inject;
+
+          bool transparent;
 
           let dictionary;
 
           explicit implicit_renamer(syntactic_closure const* enclosure,
-                                    let const& bound_variables,
-                                    renamer & inject)
-            : enclosure       { enclosure }
-            , bound_variables { bound_variables }
-            , inject          { inject }
+                                    renamer & inject,
+                                    bool transparent
+                                    )
+            : enclosure   { enclosure }
+            , inject      { inject }
+            , transparent { transparent }
           {}
 
           auto rename(let const& form, let const& free_names) -> object
@@ -79,7 +80,7 @@ namespace meevax::inline kernel
             }
             else if (form.is<symbol>())
             {
-              if (memq(form, free_names) != f or eq(enclosure->environment.template as<syntactic_environment>().first, bound_variables))
+              if (memq(form, free_names) != f or transparent)
               {
                 return inject(form);
               }
@@ -106,7 +107,10 @@ namespace meevax::inline kernel
           }
         };
 
-        auto implicit_rename = implicit_renamer(this, bound_variables, inject);
+        auto implicit_rename = implicit_renamer(this,
+                                                inject,
+                                                eq(environment.template as<syntactic_environment>().first,
+                                                   bound_variables));
 
         return environment.as<syntactic_environment>().expand(form,
                                                               environment.as<syntactic_environment>().first,
