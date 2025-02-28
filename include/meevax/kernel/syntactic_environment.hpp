@@ -151,14 +151,19 @@ namespace meevax::inline kernel
            an appropriate de Bruijn index. In the example above, this is (() ()
            (x)).
         */
-        let aligned_bound_variables = environment.as<syntactic_environment>().first;
-
-        for (auto offset = length(bound_variables) - length(environment.as<syntactic_environment>().first); 0 < offset; --offset)
+        auto identify = [&]()
         {
-          aligned_bound_variables = cons(unit, aligned_bound_variables);
-        }
+          let xs = environment.as<syntactic_environment>().first;
 
-        if (let const& identity = environment.as_const<syntactic_environment>().identify(form, aligned_bound_variables); identity != f)
+          for (auto offset = length(bound_variables) - length(xs); 0 < offset; --offset)
+          {
+            xs = cons(unit, xs);
+          }
+
+          return environment.as_const<syntactic_environment>().identify(form, xs);
+        };
+
+        if (let const& identity = identify(); identity != f)
         {
           return identity;
         }
