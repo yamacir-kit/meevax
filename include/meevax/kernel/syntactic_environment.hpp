@@ -28,93 +28,191 @@ namespace meevax::inline kernel
   template <typename Environment>
   struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
   {
-    struct renamer
-    {
-      virtual auto operator ()(let const& form) -> object
-      {
-        return form;
-      }
-    };
-
     struct syntactic_closure : public identifier
     {
-      let environment, free_names, form;
-
-      explicit syntactic_closure(let const& environment,
-                                 let const& free_names,
-                                 let const& form)
-        : environment { environment }
-        , free_names  { free_names }
-        , form        { form }
+      struct renamer
       {
-        assert(environment.is<syntactic_environment>());
-      }
+        syntactic_closure const* enclosure;
 
-      auto expand(let const& bound_variables, renamer & inject)
-      {
-        struct implicit_renamer : public renamer
+        renamer * outer;
+
+        bool transparent;
+
+        let dictionary;
+
+        explicit renamer(syntactic_closure const* enclosure, renamer * outer, bool transparent)
+          : enclosure   { enclosure }
+          , outer       { outer }
+          , transparent { transparent }
         {
-          syntactic_closure const* enclosure;
+          assert(enclosure);
+        }
 
-          renamer & inject;
+        auto inject(let const& form)
+        {
+          return outer ? outer->rename(form) : form;
+        }
 
-          bool transparent;
+        auto count(let const& form) -> int
+        {
+          assert(form.is<symbol>());
 
-          let dictionary;
+          return (outer ? outer->count(form) : 0) + std::count_if(dictionary.begin(), dictionary.end(), [&](let const& entry)
+                                                                  {
+                                                                    return eq(car(entry), form);
+                                                                  });
+        }
 
-          explicit implicit_renamer(syntactic_closure const* enclosure,
-                                    renamer & inject,
-                                    bool transparent
-                                    )
-            : enclosure   { enclosure }
-            , inject      { inject }
-            , transparent { transparent }
-          {}
-
-          auto rename(let const& form, let const& free_names) -> object
+        auto unshadow(let const& formals, let const& bound_variables) -> object
+        {
+          auto rename = [&](let const& form)
           {
-            if (form.is<pair>()) // is <formals>
+            assert(form.is_also<identifier>() or form.is<absolute>() or form.is<null>());
+
+            if (form.is<symbol>() and std::any_of(bound_variables.begin(), bound_variables.end(), [&](let const& formals)
+                                                  {
+                                                    return memq(form, formals); // TODO variadic arguments
+                                                  }))
             {
-              return cons(rename(car(form), unit),
-                          rename(cdr(form), unit)); // Disable injection when renaming formals.
-            }
-            else if (form.is<symbol>())
-            {
-              if (memq(form, free_names) != f or transparent)
-              {
-                return inject(form);
-              }
-              else if (let const& renaming = assq(form, dictionary); renaming != f)
-              {
-                return cdr(renaming);
-              }
-              else
-              {
-                return cdar(dictionary = alist_cons(form,
-                                                    make<syntactic_closure>(enclosure->environment, unit, form),
-                                                    dictionary));
-              }
+              return cdar(dictionary = alist_cons(form,
+                                                  make<syntactic_closure>(enclosure->environment, unit, form, count(form) + 1),
+                                                  dictionary));
             }
             else
             {
               return form;
             }
-          }
+          };
 
-          auto operator ()(let const& form) -> object override
+          if (formals.is<pair>())
           {
-            return rename(form, enclosure->free_names);
+            return cons(rename(car(formals)), unshadow(cdr(formals), bound_variables));
           }
-        };
+          else
+          {
+            return rename(formals);
+          }
+        }
 
-        auto implicit_rename = implicit_renamer(this,
-                                                inject,
-                                                eq(environment.template as<syntactic_environment>().first,
-                                                   bound_variables));
+        auto transparent_memq(let const& form) -> object
+        {
+          if (let const& x = memq(form, enclosure->free_names); x != f)
+          {
+            return x;
+          }
+          else if (transparent and outer)
+          {
+            return outer->transparent_memq(form);
+          }
+          else
+          {
+            return f;
+          }
+        }
 
-        return environment.as<syntactic_environment>().expand(form,
-                                                              environment.as<syntactic_environment>().first,
-                                                              implicit_rename);
+        auto transparent_assq(let const& form) -> object
+        {
+          if (let const& x = assq(form, dictionary); x != f)
+          {
+            return x;
+          }
+          else if (outer)
+          {
+            return outer->transparent_assq(form);
+          }
+          else
+          {
+            return f;
+          }
+        }
+
+        auto implicit_rename(let const& form)
+        {
+          assert(form.is_also<identifier>() or form.is<absolute>() or form.is<null>());
+
+          if (form.is<symbol>())
+          {
+            if (transparent_memq(form) != f)
+            {
+              return inject(form);
+            }
+            else if (let const& renaming = transparent_assq(form); renaming != f)
+            {
+              return cdr(renaming);
+            }
+            else
+            {
+              return inject(form);
+            }
+          }
+          else
+          {
+            return form;
+          }
+        }
+
+        auto explicit_rename(let const& form) -> object
+        {
+          assert(form.is_also<identifier>() or form.is<absolute>() or form.is<null>());
+
+          if (form.is<symbol>())
+          {
+            if (memq(form, enclosure->free_names) != f)
+            {
+              return inject(form);
+            }
+            else if (let const& renaming = assq(form, dictionary); renaming != f)
+            {
+              return cdr(renaming);
+            }
+            else
+            {
+              return cdar(dictionary = alist_cons(form,
+                                                  make<syntactic_closure>(enclosure->environment, unit, form),
+                                                  dictionary));
+            }
+          }
+          else
+          {
+            return form;
+          }
+        }
+
+        auto rename(let const& form) -> object
+        {
+          return transparent ? implicit_rename(form) : explicit_rename(form);
+        }
+
+        auto operator ()(let const& form) -> object
+        {
+          return rename(form);
+        }
+      };
+
+      let environment, free_names, form;
+
+      int version;
+
+      explicit syntactic_closure(let const& environment,
+                                 let const& free_names,
+                                 let const& form,
+                                 int version = 0)
+        : environment { environment }
+        , free_names  { free_names }
+        , form        { form }
+        , version     { version }
+      {
+        assert(environment.is<syntactic_environment>());
+      }
+
+      auto expand(let const& bound_variables, renamer & outer)
+      {
+        auto rename = renamer(this,
+                              &outer,
+                              eq(environment.template as<syntactic_environment>().first,
+                                 bound_variables));
+
+        return environment.as<syntactic_environment>().expand(form, bound_variables, rename);
       }
 
       auto identify(let const& bound_variables)
@@ -192,7 +290,21 @@ namespace meevax::inline kernel
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
       {
-        return os << underline(datum.form);
+        if (datum.form.template is_also<identifier>())
+        {
+          if (0 < datum.version)
+          {
+            return os << datum.form << ':' << datum.version;
+          }
+          else
+          {
+            return os << '$' << datum.form;
+          }
+        }
+        else
+        {
+          return os << datum.form;
+        }
       }
     };
 
@@ -234,7 +346,7 @@ namespace meevax::inline kernel
       auto (*expand)(syntactic_environment const&,
                      object const& form,
                      object const& bound_variables,
-                     renamer &) -> object;
+                     typename syntactic_closure::renamer &) -> object;
 
       auto (*generate)(syntactic_environment &,
                        object const& /* form            */,
@@ -261,7 +373,7 @@ namespace meevax::inline kernel
       auto NAME([[maybe_unused]] syntactic_environment const& expander,        \
                                  object const& form,                           \
                 [[maybe_unused]] object const& bound_variables,                \
-                [[maybe_unused]] renamer & rename) -> object
+                [[maybe_unused]] typename syntactic_closure::renamer & rename) -> object
 
       static EXPANDER(quote)
       {
@@ -304,14 +416,16 @@ namespace meevax::inline kernel
 
       static EXPANDER(lambda)
       {
-        let const& formals = rename(cadr(form));
+        auto inner_rename = rename;
+
+        let const& formals = inner_rename.unshadow(cadr(form), bound_variables);
 
         return cons(rename(car(form)) /* lambda */,
                     cons(formals,
                          body(expander,
                               cddr(form),
                               cons(formals, bound_variables),
-                              rename)));
+                              inner_rename)));
       }
 
       static EXPANDER(body)
@@ -423,7 +537,8 @@ namespace meevax::inline kernel
 
       static EXPANDER(letrec)
       {
-        let const extended_bound_variables = cons(map(car, cadr(form)), bound_variables);
+        let const extended_bound_variables = cons(rename.unshadow(map(car, cadr(form)), bound_variables),
+                                                  bound_variables);
 
         return cons(car(form),
                     map([&](let const& binding)
@@ -837,15 +952,17 @@ namespace meevax::inline kernel
       #undef GENERATOR
     };
 
-    static inline renamer default_rename {};
-
     using pair::pair;
 
     template <typename... Ts>
     inline auto compile(object const& form,
                         object const& bound_variables, Ts&&... xs) -> decltype(auto)
     {
-      return generate(expand(form, bound_variables, default_rename),
+      auto sc = syntactic_closure(make<syntactic_environment>(bound_variables, second), unit, form);
+
+      auto rename = typename syntactic_closure::renamer(&sc, nullptr, true);
+
+      return generate(expand(form, bound_variables, rename),
                       bound_variables,
                       std::forward<decltype(xs)>(xs)...);
     }
@@ -918,7 +1035,7 @@ namespace meevax::inline kernel
 
     inline auto expand(object const& form,
                        object const& bound_variables,
-                       renamer & rename) const -> object try
+                       typename syntactic_closure::renamer & rename) const -> object try
     {
       if (not form.is<pair>())
       {
@@ -936,7 +1053,11 @@ namespace meevax::inline kernel
       }
       else if (car(form).is_also<identifier>())
       {
-        if (let const& identity = identify(car(form), bound_variables); identity.is<absolute>())
+        let const f0 = rename(car(form));
+
+        if (let const& identity = f0.is<syntactic_closure>() ? f0.as<syntactic_closure>().identify(bound_variables)
+                                                             : identify(car(form), bound_variables);
+            identity.is<absolute>())
         {
           if (let const& value = cdr(identity); value.is<transformer>())
           {
