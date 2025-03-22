@@ -2,7 +2,7 @@
   (import (only (meevax core) include include-case-insensitive)
           (only (meevax error) error-object? read-error? file-error?)
           (only (meevax list) make-list list-copy)
-          (only (meevax macro-transformer) er-macro-transformer er-macro-transformer-v2)
+          (only (meevax macro-transformer) er-macro-transformer-v2)
           (only (meevax number) exact-integer? exact-integer-square-root)
           (only (meevax port) binary-port? eof-object flush get-output-u8vector open-input-u8vector open-output-u8vector open? port? standard-error-port standard-input-port standard-output-port textual-port?)
           (only (meevax string) string-copy!)

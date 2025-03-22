@@ -25,7 +25,7 @@
           (only (meevax continuation) dynamic-wind)
           (only (meevax core) define define-syntax if lambda letrec quote)
           (only (meevax list) null? list append assq)
-          (only (meevax macro-transformer) er-macro-transformer)
+          (only (meevax macro-transformer) er-macro-transformer-v2)
           (only (meevax map) map)
           (only (meevax pair) cons car cdr cadr cddr set-car! set-cdr!))
 
@@ -72,7 +72,7 @@
                  values)))
 
          (define-syntax parameterize
-           (er-macro-transformer
+           (er-macro-transformer-v2
              (lambda (form rename compare)
                (list (rename 'dynamic-bind)
                      (cons (rename 'list)

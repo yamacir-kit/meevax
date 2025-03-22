@@ -44,7 +44,7 @@
           (only (meevax core) begin define define-syntax if lambda letrec quote set!)
           (only (meevax inexact) exp log sqrt sin cos tan asin acos atan)
           (only (meevax list) null? list? list length append reverse list-tail list-ref memq memv assq assv)
-          (only (meevax macro-transformer) er-macro-transformer er-macro-transformer-v2 identifier?)
+          (only (meevax macro-transformer) er-macro-transformer-v2 identifier?)
           (only (meevax map) map)
           (only (meevax number) number? complex? real? rational? integer? exact? inexact? = < > <= >= zero? positive? negative? odd? even? max min + * - / abs quotient remainder modulo gcd lcm numerator denominator floor ceiling truncate round expt exact inexact number->string string->number)
           (only (meevax pair) pair? cons car cdr set-car! set-cdr! caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr)
@@ -187,7 +187,7 @@
                (expand (cadr form) 0))))
 
          (define-syntax let ; Chibi-Scheme
-           (er-macro-transformer
+           (er-macro-transformer-v2
              (lambda (form rename compare)
                (if (identifier? (cadr form))
                    `(,(rename 'letrec) ((,(cadr form)

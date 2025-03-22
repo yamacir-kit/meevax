@@ -1,6 +1,7 @@
 (import (only (meevax environment) expand)
         (scheme base)
         (scheme eval)
+        (scheme list)
         (scheme process-context)
         (scheme read)
         (scheme repl)
@@ -22,6 +23,33 @@
                  (+ x y z)))
   => '(($lambda (x y z)
          (+ x y z))
+       1 2 3))
+
+(check (strip '(let ((x 1)
+                     (y 2)
+                     (z 3))
+                 (let ((y 4)
+                       (z 5))
+                   (+ x y z))))
+  => '(($lambda (x y z)
+         (($lambda (y:1 z:1)
+            (+ x y:1 z:1))
+          4 5))
+       1 2 3))
+
+(check (strip '(let ((x 1)
+                     (y 2)
+                     (z 3))
+                 (let ((y 4)
+                       (z 5))
+                   (let ((z 6))
+                     (+ x y z)))))
+  => '(($lambda (x y z)
+         (($lambda (y:1 z:1)
+            (($lambda (z:2)
+               (+ x y:1 z:2))
+             6))
+          4 5))
        1 2 3))
 
 (check (strip '(cond ((> 3 2) 'greater)
@@ -312,6 +340,36 @@
             $$xs)))
        1 2 3))
 
+(eval '(define-syntax aif
+         (sc-macro-transformer
+           (lambda (form at-use)
+             (let ((test (make-syntactic-closure at-use '() (cadr form)))
+                   (consequent (make-syntactic-closure at-use '(it) (caddr form)))
+                   (alternative (if (null? (cdddr form))
+                                    (if #f #f)
+                                    (make-syntactic-closure at-use '() (cadddr form)))))
+               `(let ((it ,test))
+                  (if it ,consequent ,alternative))))))
+      strip-environment)
+
+(check (strip '(aif (memq 'b '(a b c))
+                    (car it)))
+  => '(($lambda (it)
+         (if it ($car it)))
+       (memq (quote b)
+             (quote (a b c)))))
+
+(check (strip '(aif (memq 'b '(a b c))
+                    (let ((it '(inner)))
+                      (car it))))
+  => '(($lambda (it)
+         (if it
+             (($lambda (it:1)
+                       ($car it))
+              (quote (inner)))))
+       (memq (quote b)
+             (quote (a b c)))))
+
 (check (strip '(cond-expand
                  (r5rs 'r5rs)
                  (r6rs 'r6rs)
@@ -321,4 +379,4 @@
 
 (check-report)
 
-(exit (check-passed? 19))
+(exit (check-passed? 23))

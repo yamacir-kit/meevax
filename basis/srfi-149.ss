@@ -25,7 +25,7 @@
 
 (define-library (srfi 149)
   (import (only (meevax core) define-syntax quote-syntax)
-          (only (meevax macro-transformer) er-macro-transformer identifier?)
+          (only (meevax macro-transformer) er-macro-transformer er-macro-transformer-v2 identifier?)
           (only (meevax symbol) identifier->symbol)
           (scheme r4rs))
 
@@ -295,6 +295,6 @@
                                    #f)))))))))
 
          (define-syntax syntax-rules
-           (er-macro-transformer
+           (er-macro-transformer-v2
              (lambda (form rename compare)
                (syntax-rules-transformer form rename compare))))))
