@@ -430,9 +430,7 @@ namespace meevax::inline kernel
 
       static EXPANDER(body)
       {
-        let current_environment = make<syntactic_environment>(bound_variables, expander.second);
-
-        if (auto [binding_specs, sequence] = expander.sweep(form, bound_variables, current_environment); binding_specs)
+        if (auto [binding_specs, sequence, current_environment] = expander.sweep(form, form, bound_variables, rename); binding_specs)
         {
           /*
              (letrec* <binding specs> <sequence>)
@@ -443,36 +441,26 @@ namespace meevax::inline kernel
              where <binding specs> = ((<variable 1> <initial 1>) ...
                                       (<variable n> <initial n>))
           */
-          let formals = unit;
-
-          let body = sequence;
-
           for (let const& binding_spec : binding_specs) // The order of the list `binding_specs` returned from the function `sweep` is the reverse of the definition order.
           {
-            let const& variable = car(binding_spec);
-
-            formals = cons(variable, formals);
-
-            if (not variable.is<absolute>()) // The binding-spec is not an internal syntax definition.
+            if (not car(binding_spec).is<absolute>()) // The binding-spec is not an internal syntax definition.
             {
-              body = cons(cons(corename("set!"), binding_spec), body);
+              sequence = cons(cons(corename("set!"), binding_spec), sequence);
             }
           }
 
-          current_environment.as<syntactic_environment>().first = cons(formals, bound_variables);
-
-          for (let & formal : formals)
+          for (let & formal : caar(current_environment))
           {
             if (formal.is<absolute>()) // is internal-sytnax-definition
             {
-              cdr(formal) = make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cdr(formal) /* <transformer spec> */)),
+              cdr(formal) = make<transformer>(Environment().execute(current_environment.template as<syntactic_environment>().compile(cdr(formal) /* <transformer spec> */)),
                                               current_environment);
             }
           }
 
           return expander.expand(list(cons(cons(corename("lambda"),
-                                                formals,
-                                                body),
+                                                caar(current_environment), // <formals>
+                                                sequence),
                                            make_list(length(binding_specs), unit))),
                                  bound_variables,
                                  rename);
@@ -1039,14 +1027,9 @@ namespace meevax::inline kernel
     {
       if (not form.is<pair>())
       {
-        if (form.is<syntactic_closure>())
+        if (form.is<syntactic_closure>() and identify(form, bound_variables) == f)
         {
-          assert(form.is_also<identifier>());
-
-          if (let const& identity = identify(form, bound_variables); identity == f)
-          {
-            return form.as<syntactic_closure>().expand(bound_variables, rename);
-          }
+          return form.as<syntactic_closure>().expand(bound_variables, rename);
         }
 
         return form.is_also<identifier>() ? rename(form) : form;
@@ -1200,67 +1183,127 @@ namespace meevax::inline kernel
       }
     }
 
-    inline auto sweep(object const& form,
-                      object const& bound_variables,
-                      object const& current_environment,
-                      object const& binding_specs = unit) const -> pair
+    inline auto sweep(let const& form,
+                      let const& sequence,
+                      let const& bound_variables,
+                      typename syntactic_closure::renamer & rename,
+                      let const& reversed_formals = unit,
+                      let const& reversed_binding_specs = unit) const -> std::tuple<object, object, object>
     {
-      if (form.is<pair>() and car(form).is<pair>() and caar(form).is_also<identifier>())
+      let current_environment = make<syntactic_environment>(reversed_formals.is<null>() ? bound_variables
+                                                                                        : cons(reverse(reversed_formals), bound_variables),
+                                                            second);
+
+      if (sequence.is<pair>())
       {
-        if (let const& identity = identify(caar(form), bound_variables); identity.is<absolute>())
+        if (car(sequence).is<syntactic_closure>() and identify(car(sequence), car(current_environment)) == f)
         {
-          if (let const& value = cdr(identity); value.is<transformer>())
+          return sweep(form,
+                       cons(car(sequence).as<syntactic_closure>().expand(car(current_environment), rename),
+                            cdr(sequence)),
+                       bound_variables,
+                       rename,
+                       reversed_formals,
+                       reversed_binding_specs);
+        }
+        else if (car(sequence).is<pair>() and caar(sequence).is_also<identifier>())
+        {
+          if (let const& identity = identify(caar(sequence), bound_variables); identity.is<absolute>())
           {
-            return sweep(cons(value.as<transformer>().transform(car(form), current_environment),
-                              cdr(form)),
-                         bound_variables,
-                         current_environment,
-                         binding_specs);
-          }
-          else if (value.is<syntax>())
-          {
-            if (auto const& name = value.as<syntax>().name; name == "begin")
+            if (let const& value = cdr(identity); value.is<transformer>())
             {
-              return sweep(append(cdar(form), cdr(form)),
+              return sweep(form,
+                           cons(value.as<transformer>().transform(car(sequence), current_environment),
+                                cdr(sequence)),
                            bound_variables,
-                           current_environment,
-                           binding_specs);
+                           rename,
+                           reversed_formals,
+                           reversed_binding_specs);
             }
-            else if (name == "define") // <form> = ((define ...) <definition or expression>*)
+            else if (value.is<syntax>())
             {
-              if (let const& definition = car(form); cadr(definition).is<pair>()) // <form> = ((define (<variable> . <formals>) <body>) <definition or expression>*)
+              if (auto const& name = value.as<syntax>().name; name == "begin")
               {
-                return sweep(cdr(form),
+                return sweep(form,
+                             append(cdar(sequence), cdr(sequence)),
                              bound_variables,
-                             current_environment,
-                             cons(list(caadr(definition), // <variable>
-                                       cons(corename("lambda"),
-                                            cdadr(definition), // <formals>
-                                            cddr(definition))), // <body>
-                                  binding_specs));
+                             rename,
+                             reversed_formals,
+                             reversed_binding_specs);
               }
-              else // <form> = ((define <variable> <expression>) <definition or expression>*)
+              else if (name == "define") // <form> = ((define ...) <definition or expression>*)
               {
-                return sweep(cdr(form),
-                             bound_variables,
-                             current_environment,
-                             cons(cdr(definition), binding_specs));
+                if (cadar(sequence).is<pair>()) // <form> = ((define (<variable> . <formals>) <body>) <definition or expression>*)
+                {
+                  if (let const& variable = caadar(sequence); memq(variable, reversed_formals) != f)
+                  {
+                    return sweep(form,
+                                 cdr(sequence),
+                                 bound_variables,
+                                 rename,
+                                 reversed_formals,
+                                 cons(list(variable,
+                                           cons(corename("lambda"),
+                                                cdadar(sequence), // <formals>
+                                                cddar(sequence))),
+                                      reversed_binding_specs));
+                  }
+                  else
+                  {
+                    return sweep(form, form, bound_variables, rename, cons(variable, reversed_formals));
+                  }
+                }
+                else // <form> = ((define <variable> <expression>) <definition or expression>*)
+                {
+                  if (let const& variable = cadar(sequence); memq(variable, reversed_formals) != f)
+                  {
+                    return sweep(form,
+                                 cdr(sequence),
+                                 bound_variables,
+                                 rename,
+                                 reversed_formals,
+                                 cons(cdar(sequence), // (<variables> <expression>)
+                                      reversed_binding_specs));
+                  }
+                  else
+                  {
+                    return sweep(form, form, bound_variables, rename, cons(variable, reversed_formals));
+                  }
+                }
               }
-            }
-            else if (name == "define-syntax") // <form> = ((define-syntax <keyword> <transformer spec>) <definition or expression>*)
-            {
-              return sweep(cdr(form),
-                           bound_variables,
-                           current_environment,
-                           cons(list(make<absolute>(cadar(form), // <keyword>
-                                                    caddar(form))), // <transformer spec>
-                                binding_specs));
+              else if (name == "define-syntax") // <form> = ((define-syntax <keyword> <transformer spec>) <definition or expression>*)
+              {
+                if (auto iter = std::find_if(reversed_formals.begin(), reversed_formals.end(), [&](let const& each)
+                                             {
+                                               return each.is<absolute>() and eq(car(each), cadar(sequence));
+                                             });
+                    iter != reversed_formals.end())
+                {
+                  return sweep(form,
+                               cdr(sequence),
+                               bound_variables,
+                               rename,
+                               reversed_formals,
+                               cons(list(*iter), // <transformer spec>
+                                    reversed_binding_specs));
+                }
+                else
+                {
+                  return sweep(form,
+                               form,
+                               bound_variables,
+                               rename,
+                               cons(make<absolute>(cadar(sequence), // <keyword>
+                                                   caddar(sequence)), // <transformer spec>
+                                    reversed_formals));
+                }
+              }
             }
           }
         }
       }
 
-      return pair(binding_specs, form);
+      return std::make_tuple(reversed_binding_specs, sequence, current_environment);
     }
   };
 } // namespace meevax::kernel
