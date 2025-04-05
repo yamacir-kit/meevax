@@ -25,7 +25,7 @@
 
 (define-library (srfi 149)
   (import (only (meevax core) define-syntax quote-syntax)
-          (only (meevax macro-transformer) er-macro-transformer-v2 identifier?)
+          (only (meevax macro-transformer) er-macro-transformer identifier?)
           (only (meevax symbol) identifier->symbol)
           (scheme r4rs))
 
@@ -70,7 +70,7 @@
   (begin (define (syntax-rules-transformer expr rename compare)
            (let ((ellipsis-specified? (identifier? (cadr expr)))
                  (count 0)
-                 (_er-macro-transformer (rename 'er-macro-transformer-v2))
+                 (_er-macro-transformer (rename 'er-macro-transformer))
                  (_lambda (rename 'lambda))      (_let (rename 'let))
                  (_begin (rename 'begin))        (_if (rename 'if))
                  (_and (rename 'and))            (_or (rename 'or))
@@ -295,6 +295,6 @@
                                    #f)))))))))
 
          (define-syntax syntax-rules
-           (er-macro-transformer-v2
+           (er-macro-transformer
              (lambda (form rename compare)
                (syntax-rules-transformer form rename compare))))))

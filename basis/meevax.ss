@@ -10,8 +10,7 @@
           identifier=?
           sc-macro-transformer
           rsc-macro-transformer
-          er-macro-transformer
-          er-macro-transformer-v2)
+          er-macro-transformer)
 
   (begin (define (sc-macro-transformer f)
            (lambda (form use-env mac-env)
@@ -27,21 +26,6 @@
                  (if (syntactic-closure? identifier2) identifier2 (make-syntactic-closure environment2 '() identifier2))))
 
          (define (er-macro-transformer f)
-           (lambda (form use-env mac-env)
-             (define renames '())
-             (define (rename x)
-               ((lambda (it)
-                  (if it
-                      (cdr it)
-                      (begin (set! renames (cons (cons x (make-syntactic-closure mac-env '() x))
-                                                 renames))
-                             (cdar renames))))
-                (assq x renames)))
-             (define (compare x y)
-               (identifier=? use-env x use-env y))
-             (f form rename compare)))
-
-         (define (er-macro-transformer-v2 f)
            (lambda (form use-env mac-env)
              (define renames '())
              (define (rename x)

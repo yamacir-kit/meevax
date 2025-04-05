@@ -3,7 +3,7 @@
           (only (meevax comparator) eq?)
           (only (meevax core) define define-syntax if lambda quote)
           (only (meevax list) list)
-          (only (meevax macro-transformer) er-macro-transformer-v2)
+          (only (meevax macro-transformer) er-macro-transformer)
           (only (meevax pair) pair? cons car cdr cadr cddr set-car! set-cdr!))
 
   (export delay eager force lazy promise?)
@@ -37,12 +37,12 @@
                 ((promise-value promise)))))
 
          (define-syntax lazy
-           (er-macro-transformer-v2
+           (er-macro-transformer
              (lambda (form rename compare)
                (list (rename 'promise) #f (list (rename 'lambda) '() (cadr form))))))
 
          (define-syntax delay
-           (er-macro-transformer-v2
+           (er-macro-transformer
              (lambda (form rename compare)
                (list (rename 'lazy) (list (rename 'promise) #t (cadr form))))))
 
