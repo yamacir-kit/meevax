@@ -109,7 +109,7 @@
   => '(($lambda (x)
          (($lambda (m)
             (($lambda (x:1)
-               $x)
+               $$x)
              'inner))))
        'outer))
 
@@ -121,7 +121,7 @@
   => '(($lambda (x)
          (($lambda (m)
             (($lambda (x:1)
-               $x)
+               $$x)
              'inner))))
        'outer))
 
@@ -337,7 +337,7 @@
 (check (strip '((macro) 1 2 3))
   => '(($lambda $xs
          (($lambda ($inner-macro)
-            $$xs)))
+            $$$xs)))
        1 2 3))
 
 (eval '(define-syntax aif

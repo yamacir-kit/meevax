@@ -615,31 +615,24 @@ namespace meevax::inline kernel
 
       static EXPANDER(define)
       {
-        if (bound_variables.is<null>())
+        if (cadr(form).is<pair>()) // (define (<variable> . <formals>) <body>)
         {
-          if (cadr(form).is<pair>()) // (define (<variable> . <formals>) <body>)
-          {
-            return list(rename(car(form)),
-                        caadr(form) /* variable */,
-                        expander.expand(cons(corename("lambda"),
-                                             cdadr(form) /* formals */,
-                                             cddr(form) /* body */),
-                                        bound_variables,
-                                        rename));
-          }
-          else // (define <variable> <expression>)
-          {
-            return cons(rename(car(form)),
-                        cadr(form),
-                        cddr(form) ? list(expander.expand(caddr(form),
-                                                                bound_variables,
-                                                                rename))
-                                         : unit);
-          }
+          return list(rename(car(form)),
+                      caadr(form) /* variable */,
+                      expander.expand(cons(corename("lambda"),
+                                           cdadr(form) /* formals */,
+                                           cddr(form) /* body */),
+                                      bound_variables,
+                                      rename));
         }
-        else
+        else // (define <variable> <expression>)
         {
-          throw error(make<string>("definition cannot appear in this syntactic-context"));
+          return cons(rename(car(form)),
+                      cadr(form),
+                      cddr(form) ? list(expander.expand(caddr(form),
+                                                              bound_variables,
+                                                              rename))
+                                       : unit);
         }
       }
 
@@ -893,16 +886,21 @@ namespace meevax::inline kernel
 
       static GENERATOR(define)
       {
-        assert(bound_variables.is<null>()); // This has been checked on previous passes.
-
         assert(not car(form).is<pair>()); // This has been checked on previous passes.
 
         assert(car(form).is_also<identifier>());
 
-        return generator.generate(cdr(form) ? cadr(form) : unspecified,
-                                  bound_variables,
-                                  cons(make(instruction::store_absolute), generator.identify(car(form), bound_variables),
-                                       continuation));
+        if (bound_variables)
+        {
+          throw error(make<string>("definition cannot appear in this syntactic-context"));
+        }
+        else
+        {
+          return generator.generate(cdr(form) ? cadr(form) : unspecified,
+                                    bound_variables,
+                                    cons(make(instruction::store_absolute), generator.identify(car(form), bound_variables),
+                                         continuation));
+        }
       }
 
       static GENERATOR(define_syntax)
