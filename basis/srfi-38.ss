@@ -88,7 +88,6 @@
                                                  (write-obj (vector-ref obj i) alist)))))))
                      ;; else it's a string
                      (else (write obj outport) alist)))
-             'HACK
              (cond ((interesting? obj)
                     (let ((val (cdr (assq obj alist))))
                       (cond ((not val) (write-interesting alist))
