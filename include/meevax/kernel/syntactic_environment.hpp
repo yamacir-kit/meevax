@@ -22,92 +22,192 @@
 #include <meevax/kernel/describable.hpp>
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/include.hpp>
-#include <meevax/kernel/transformer.hpp>
 
 namespace meevax::inline kernel
 {
   template <typename Environment>
   struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
   {
-    struct renamer
-    {
-      virtual auto operator ()(let const& form) -> object
-      {
-        return form;
-      }
-    }
-    static inline default_rename {};
-
     struct syntactic_closure : public identifier
     {
-      let environment, free_names, form;
-
-      explicit syntactic_closure(let const& environment,
-                                 let const& free_names,
-                                 let const& form)
-        : environment { environment }
-        , free_names  { free_names }
-        , form        { form }
+      struct renamer
       {
-        assert(environment.is<syntactic_environment>());
-      }
+        syntactic_closure const* enclosure;
 
-      auto expand(let const& bound_variables, renamer & inject)
-      {
-        struct local_renamer : public renamer
+        renamer * outer;
+
+        bool transparent;
+
+        let dictionary;
+
+        explicit renamer(syntactic_closure const* enclosure, renamer * outer, bool transparent)
+          : enclosure   { enclosure }
+          , outer       { outer }
+          , transparent { transparent }
         {
-          syntactic_closure const* enclosure;
+          assert(enclosure);
+        }
 
-          renamer & inject;
+        auto count(let const& form) -> int
+        {
+          assert(form.is<symbol>());
 
-          let renamings;
+          return (outer ? outer->count(form) : 0) + std::count_if(dictionary.begin(), dictionary.end(), [&](let const& entry)
+                                                                  {
+                                                                    return eq(car(entry), form);
+                                                                  });
+        }
 
-          explicit local_renamer(syntactic_closure const* enclosure, renamer & inject)
-            : enclosure { enclosure }
-            , inject    { inject }
-          {}
+        template <typename... Ts>
+        auto make_syntactic_closure(let const& form, Ts&&... xs)
+        {
+          return cdar(dictionary = alist_cons(form,
+                                              make<syntactic_closure>(enclosure->environment, unit, form, std::forward<decltype(xs)>(xs)...),
+                                              dictionary));
+        }
 
-          auto rename(let const& form, let const& free_names) -> object
+        auto unshadow(let const& formals, let const& bound_variables) -> object
+        {
+          auto rename = [&](let const& form)
           {
-            if (form.is<pair>()) // is <formals>
+            assert(form.is_also<identifier>() or form.is<absolute>() or form.is<null>());
+
+            if (form.is<symbol>() and std::any_of(bound_variables.begin(), bound_variables.end(), [&](let const& formals)
+                                                  {
+                                                    return meevax::memq(form, formals); // TODO variadic arguments
+                                                  }))
             {
-              return cons(rename(car(form), unit),
-                          rename(cdr(form), unit)); // Disable injection when renaming formals.
-            }
-            else if (form.is<symbol>())
-            {
-              if (let const& free_name = memq(form, free_names); free_name != f)
-              {
-                return inject(form);
-              }
-              else if (let const& renaming = assq(form, renamings); renaming != f)
-              {
-                return cdr(renaming);
-              }
-              else
-              {
-                return cdar(renamings = alist_cons(form,
-                                                   make<syntactic_closure>(enclosure->environment, unit, form),
-                                                   renamings));
-              }
+              return make_syntactic_closure(form, count(form) + 1);
             }
             else
             {
               return form;
             }
+          };
+
+          if (formals.is<pair>())
+          {
+            return cons(rename(car(formals)), unshadow(cdr(formals), bound_variables));
+          }
+          else
+          {
+            return rename(formals);
+          }
+        }
+
+        auto memq(let const& form) const -> object
+        {
+          if (let const& x = meevax::memq(form, enclosure->free_names); x != f)
+          {
+            return x;
+          }
+          else
+          {
+            return transparent and outer ? outer->memq(form) : f;
+          }
+        }
+
+        auto assq(let const& form) const -> object
+        {
+          if (let const& x = meevax::assq(form, dictionary); x != f)
+          {
+            return x;
+          }
+          else
+          {
+            return transparent and outer ? outer->assq(form) : f;
+          }
+        }
+
+        auto rename(let const& form) -> object
+        {
+          assert(form.is_also<identifier>() or form.is<absolute>() or form.is<null>());
+
+          auto inject = [this](let const& form)
+          {
+            return outer ? outer->rename(form) : form;
+          };
+
+          if (form.is<symbol>())
+          {
+            if (memq(form) != f)
+            {
+              return inject(form);
+            }
+            else if (let const& renaming = assq(form); renaming != f)
+            {
+              return cdr(renaming);
+            }
+            else
+            {
+              return transparent ? inject(form) : make_syntactic_closure(form);
+            }
+          }
+          else
+          {
+            return form;
+          }
+        }
+
+        auto operator ()(let const& form) -> object
+        {
+          return rename(form);
+        }
+
+        auto operator ()(let const& formals, let const& bound_variables) -> object
+        {
+          return unshadow(formals, bound_variables);
+        }
+      };
+
+      let environment, free_names, form;
+
+      int version;
+
+      explicit syntactic_closure(let const& environment,
+                                 let const& free_names,
+                                 let const& form,
+                                 int version = 0)
+        : environment { environment }
+        , free_names  { free_names }
+        , form        { form }
+        , version     { version }
+      {
+        assert(environment.is<syntactic_environment>());
+      }
+
+      auto expand(let const& bound_variables, renamer & outer)
+      {
+        auto rename = renamer(this,
+                              &outer,
+                              eq(environment.template as<syntactic_environment>().first,
+                                 bound_variables));
+
+        return environment.as<syntactic_environment>().expand(form, bound_variables, rename);
+      }
+
+      auto identify(let const& bound_variables)
+      {
+        auto identify = [&]()
+        {
+          let xs = environment.as<syntactic_environment>().first;
+
+          for (auto offset = length(bound_variables) - length(xs); 0 < offset; --offset)
+          {
+            xs = cons(unit, xs);
           }
 
-          auto operator ()(let const& form) -> object override
-          {
-            return rename(form, enclosure->free_names);
-          }
+          return environment.as_const<syntactic_environment>().identify(form, xs);
         };
 
-        auto rename = local_renamer(this, inject);
-
-        return environment.as<syntactic_environment>().expand(form,
-                                                              unify(car(environment), bound_variables),
-                                                              rename);
+        if (let const& identity = identify(); identity != f)
+        {
+          return identity;
+        }
+        else
+        {
+          return environment.as_const<syntactic_environment>().identify(form, bound_variables);
+        }
       }
 
       friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool
@@ -123,13 +223,60 @@ namespace meevax::inline kernel
         */
         return x.form.template is_also<identifier>() and
                y.form.template is_also<identifier>() and
-               eqv(x.environment.template as<syntactic_environment>().identify(x.form, car(x.environment)),
-                   y.environment.template as<syntactic_environment>().identify(y.form, car(y.environment)));
+               eqv(x.environment.template as<syntactic_environment>().identify(x.form, x.environment.template as<syntactic_environment>().first),
+                   y.environment.template as<syntactic_environment>().identify(y.form, y.environment.template as<syntactic_environment>().first));
       }
 
       friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &
       {
-        return os << underline(datum.form);
+        if (datum.form.template is_also<identifier>())
+        {
+          if (0 < datum.version)
+          {
+            return os << datum.form << ':' << datum.version;
+          }
+          else
+          {
+            return os << '$' << datum.form;
+          }
+        }
+        else
+        {
+          return os << datum.form;
+        }
+      }
+    };
+
+    struct transformer : public virtual pair // (<closure> . <syntactic_environment>)
+    {
+      using pair::pair;
+
+      auto transform(let const& form, let const& environment) const -> object
+      {
+        /*
+           Scheme programs can define and use new derived expression types,
+           called macros. Program-defined expression types have the syntax
+
+             (<keyword> <datum>...)
+
+           where <keyword> is an identifier that uniquely determines the
+           expression type. This identifier is called the syntactic keyword, or
+           simply keyword, of the macro. The number of the <datum>s, and their
+           syntax, depends on the expression type.
+
+           Each instance of a macro is called a use of the macro. The set of
+           rules that specifies how a use of a macro is transcribed into a more
+           primitive expression is called the transformer of the macro.
+        */
+        assert(first.is<closure>());
+        assert(second.is<syntactic_environment>());
+
+        return Environment().apply(first, form, environment, second);
+      }
+
+      friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
+      {
+        return os << magenta("#,(") << green("transformer ") << faint("#;", &datum) << magenta(")");
       }
     };
 
@@ -138,7 +285,7 @@ namespace meevax::inline kernel
       auto (*expand)(syntactic_environment const&,
                      object const& form,
                      object const& bound_variables,
-                     renamer &) -> object;
+                     typename syntactic_closure::renamer &) -> object;
 
       auto (*generate)(syntactic_environment &,
                        object const& /* form            */,
@@ -165,7 +312,7 @@ namespace meevax::inline kernel
       auto NAME([[maybe_unused]] syntactic_environment const& expander,        \
                                  object const& form,                           \
                 [[maybe_unused]] object const& bound_variables,                \
-                [[maybe_unused]] renamer & rename) -> object
+                [[maybe_unused]] typename syntactic_closure::renamer & rename) -> object
 
       static EXPANDER(quote)
       {
@@ -208,19 +355,28 @@ namespace meevax::inline kernel
 
       static EXPANDER(lambda)
       {
-        let const& formals = rename(cadr(form));
+        auto scoped_rename = rename;
+
+        let const& formals = scoped_rename(cadr(form), bound_variables);
 
         return cons(rename(car(form)) /* lambda */,
                     cons(formals,
                          body(expander,
                               cddr(form),
                               cons(formals, bound_variables),
-                              rename)));
+                              scoped_rename)));
       }
 
       static EXPANDER(body)
       {
-        if (auto [binding_specs, sequence] = expander.sweep(form, bound_variables); binding_specs)
+        if (auto [reversed_binding_specs,
+                  sequence,
+                  current_environment] = expander.sweep(form,
+                                                        form,
+                                                        bound_variables,
+                                                        make<syntactic_environment>(bound_variables, expander.second),
+                                                        rename);
+            reversed_binding_specs)
         {
           /*
              (letrec* <binding specs> <sequence>)
@@ -231,38 +387,29 @@ namespace meevax::inline kernel
              where <binding specs> = ((<variable 1> <initial 1>) ...
                                       (<variable n> <initial n>))
           */
-          let formals = unit;
+          let & formals = caar(current_environment);
 
-          let body = sequence;
-
-          for (let const& binding_spec : binding_specs) // The order of the list `binding_specs` returned from the function `sweep` is the reverse of the definition order.
+          for (let const& binding_spec : reversed_binding_specs)
           {
-            let const& variable = car(binding_spec);
-
-            formals = cons(variable, formals);
-
-            if (not variable.is<absolute>()) // The binding-spec is not an internal syntax definition.
+            if (not car(binding_spec).is<absolute>()) // The binding-spec is not an internal syntax definition.
             {
-              body = cons(cons(corename("set!"), binding_spec), body);
+              sequence = cons(cons(corename("set!"), binding_spec), sequence);
             }
           }
 
-          let const current_environment = make<syntactic_environment>(cons(formals, bound_variables),
-                                                                      expander.second);
-
           for (let & formal : formals)
           {
-            if (formal.is<absolute>())
+            if (formal.is<absolute>()) // is internal-sytnax-definition
             {
-              cdr(formal) = make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cdr(formal) /* <transformer spec> */)),
+              cdr(formal) = make<transformer>(Environment().execute(current_environment.template as<syntactic_environment>().compile(cdr(formal) /* <transformer spec> */)),
                                               current_environment);
             }
           }
 
           return expander.expand(list(cons(cons(corename("lambda"),
                                                 formals,
-                                                body),
-                                           make_list(length(binding_specs), unit))),
+                                                sequence),
+                                           make_list(length(formals), unit))),
                                  bound_variables,
                                  rename);
         }
@@ -326,7 +473,8 @@ namespace meevax::inline kernel
 
       static EXPANDER(letrec)
       {
-        let const extended_bound_variables = cons(map(car, cadr(form)), bound_variables);
+        let const extended_bound_variables = cons(rename(map(car, cadr(form)), bound_variables),
+                                                  bound_variables);
 
         return cons(car(form),
                     map([&](let const& binding)
@@ -394,7 +542,7 @@ namespace meevax::inline kernel
 
         let const formals = map(formal, cadr(form));
 
-        car(current_environment) = cons(formals, bound_variables);
+        current_environment.as<syntactic_environment>().first = cons(formals, bound_variables);
 
         return expander.expand(list(cons(corename("lambda"),
                                          formals,
@@ -405,31 +553,24 @@ namespace meevax::inline kernel
 
       static EXPANDER(define)
       {
-        if (bound_variables.is<null>())
+        if (cadr(form).is<pair>()) // (define (<variable> . <formals>) <body>)
         {
-          if (cadr(form).is<pair>()) // (define (<variable> . <formals>) <body>)
-          {
-            return list(rename(car(form)),
-                        caadr(form) /* variable */,
-                        expander.expand(cons(corename("lambda"),
-                                             cdadr(form) /* formals */,
-                                             cddr(form) /* body */),
-                                        bound_variables,
-                                        rename));
-          }
-          else // (define <variable> <expression>)
-          {
-            return cons(rename(car(form)),
-                        cadr(form),
-                        cddr(form) ? list(expander.expand(caddr(form),
-                                                                bound_variables,
-                                                                rename))
-                                         : unit);
-          }
+          return list(rename(car(form)),
+                      caadr(form) /* variable */,
+                      expander.expand(cons(corename("lambda"),
+                                           cdadr(form) /* formals */,
+                                           cddr(form) /* body */),
+                                      bound_variables,
+                                      rename));
         }
-        else
+        else // (define <variable> <expression>)
         {
-          throw error(make<string>("definition cannot appear in this syntactic-context"));
+          return cons(rename(car(form)),
+                      cadr(form),
+                      cddr(form) ? list(expander.expand(caddr(form),
+                                                              bound_variables,
+                                                              rename))
+                                       : unit);
         }
       }
 
@@ -594,6 +735,8 @@ namespace meevax::inline kernel
 
       static GENERATOR(set)
       {
+        assert(car(form).is_also<identifier>());
+
         if (let const& identity = generator.identify(car(form), bound_variables); identity.is<relative>())
         {
           return generator.generate(cadr(form),
@@ -681,18 +824,27 @@ namespace meevax::inline kernel
 
       static GENERATOR(define)
       {
-        assert(bound_variables.is<null>()); // This has been checked on previous passes.
-
         assert(not car(form).is<pair>()); // This has been checked on previous passes.
 
-        return generator.generate(cdr(form) ? cadr(form) : unspecified,
-                                  bound_variables,
-                                  cons(make(instruction::store_absolute), generator.identify(car(form), bound_variables),
-                                       continuation));
+        assert(car(form).is_also<identifier>());
+
+        if (bound_variables)
+        {
+          throw error(make<string>("definition cannot appear in this syntactic-context"));
+        }
+        else
+        {
+          return generator.generate(cdr(form) ? cadr(form) : unspecified,
+                                    bound_variables,
+                                    cons(make(instruction::store_absolute), generator.identify(car(form), bound_variables),
+                                         continuation));
+        }
       }
 
       static GENERATOR(define_syntax)
       {
+        assert(car(form).is_also<identifier>());
+
         let identity = generator.identify(car(form), unit);
 
         cdr(identity) = make<transformer>(Environment().execute(generator.generate(cadr(form),
@@ -740,7 +892,7 @@ namespace meevax::inline kernel
     inline auto compile(object const& form,
                         object const& bound_variables, Ts&&... xs) -> decltype(auto)
     {
-      return generate(expand(form, bound_variables, default_rename),
+      return generate(expand(form, bound_variables),
                       bound_variables,
                       std::forward<decltype(xs)>(xs)...);
     }
@@ -787,6 +939,7 @@ namespace meevax::inline kernel
 
     inline auto define(object const& variable, object const& value = undefined) -> void
     {
+      assert(variable.is_also<identifier>());
       assert(identify(variable, unit).template is<absolute>());
       cdr(identify(variable, unit)) = value;
     }
@@ -811,53 +964,44 @@ namespace meevax::inline kernel
     }
 
     inline auto expand(object const& form,
+                       object const& bound_variables) const -> object
+    {
+      auto enclosure = syntactic_closure(make<syntactic_environment>(bound_variables, second), unit, form);
+      auto rename = typename syntactic_closure::renamer(&enclosure, nullptr, true);
+      return expand(form, bound_variables, rename);
+    }
+
+    inline auto expand(object const& form,
                        object const& bound_variables,
-                       renamer & rename) const -> object try
+                       typename syntactic_closure::renamer & rename) const -> object try
     {
       if (not form.is<pair>())
       {
-        if (form.is<syntactic_closure>())
+        if (form.is<syntactic_closure>() and identify(form, bound_variables) == f)
         {
-          if (let const& identity = identify(form, bound_variables); identity == f)
-          {
-            return form.as<syntactic_closure>().expand(bound_variables, rename);
-          }
+          return form.as<syntactic_closure>().expand(bound_variables, rename);
         }
 
         return form.is_also<identifier>() ? rename(form) : form;
       }
-      else if (let const& identity = identify(car(form), bound_variables); identity.is<absolute>())
+      else if (car(form).is_also<identifier>())
       {
-        if (cdr(identity).is<transformer>())
+        let const identifier = rename(car(form));
+
+        if (let const& identity = identifier.is<syntactic_closure>() ? identifier.as<syntactic_closure>().identify(bound_variables)
+                                                                     : identify(car(form), bound_variables);
+            identity.is<absolute>())
         {
-          /*
-             Scheme programs can define and use new derived expression types,
-             called macros. Program-defined expression types have the syntax
-
-               (<keyword> <datum>...)
-
-             where <keyword> is an identifier that uniquely determines the
-             expression type. This identifier is called the syntactic keyword,
-             or simply keyword, of the macro. The number of the <datum>s, and
-             their syntax, depends on the expression type.
-
-             Each instance of a macro is called a use of the macro. The set of
-             rules that specifies how a use of a macro is transcribed into a
-             more primitive expression is called the transformer of the macro.
-          */
-          assert(cadr(identity).is<closure>());
-          assert(cddr(identity).is<syntactic_environment>());
-
-          return expand(Environment().apply(cadr(identity),
-                                            form,
-                                            make<syntactic_environment>(bound_variables, second),
-                                            cddr(identity)),
-                        bound_variables,
-                        rename);
-        }
-        else if (cdr(identity).is<syntax>())
-        {
-          return cdr(identity).as<syntax>().expand(*this, form, bound_variables, rename);
+          if (let const& value = cdr(identity); value.is<transformer>())
+          {
+            return expand(value.as<transformer>().transform(form, make<syntactic_environment>(bound_variables, second)),
+                          bound_variables,
+                          rename);
+          }
+          else if (value.is<syntax>())
+          {
+            return value.as<syntax>().expand(*this, form, bound_variables, rename);
+          }
         }
       }
 
@@ -878,7 +1022,7 @@ namespace meevax::inline kernel
       {
         if (form.is_also<identifier>())
         {
-          assert(form.is<symbol>() or form.is<syntactic_closure>());
+          assert(form.is_also<identifier>());
 
           if (let const& identity = identify(form, bound_variables); identity.is<relative>())
           {
@@ -899,14 +1043,15 @@ namespace meevax::inline kernel
           return cons(make(instruction::load_constant), form, continuation);
         }
       }
-      else if (let const& identity = std::as_const(*this).identify(car(form), bound_variables); identity.is<absolute>() and cdr(identity).is<syntax>())
+      else if (car(form).is_also<identifier>())
       {
-        return cdr(identity).as<syntax>().generate(*this, cdr(form), bound_variables, continuation, tail);
+        if (let const& identity = std::as_const(*this).identify(car(form), bound_variables); identity.is<absolute>() and cdr(identity).is<syntax>())
+        {
+          return cdr(identity).as<syntax>().generate(*this, cdr(form), bound_variables, continuation, tail);
+        }
       }
-      else
-      {
-        return generator::call(*this, form, bound_variables, continuation, tail);
-      }
+
+      return generator::call(*this, form, bound_variables, continuation, tail);
     }
     catch (error & e)
     {
@@ -917,62 +1062,51 @@ namespace meevax::inline kernel
     inline auto identify(object const& variable,
                          object const& bound_variables) const -> object
     {
-      if (not variable.is_also<identifier>())
+      assert(variable.is_also<identifier>());
+
+      for (auto i = 0; let formals : bound_variables)
       {
-        return f;
+        for (auto j = 0; not formals.is<null>(); formals = cdr(formals))
+        {
+          if (formals.is<pair>())
+          {
+            if (car(formals).is<absolute>() and eq(caar(formals), variable))
+            {
+              return car(formals);
+            }
+            else if (eq(car(formals), variable))
+            {
+              return make<relative>(make<std::int32_t>(i), make<std::int32_t>(j));
+            }
+          }
+          else if (formals.is_also<identifier>() and eq(formals, variable))
+          {
+            return make<variadic>(make<std::int32_t>(i), make<std::int32_t>(j));
+          }
+
+          ++j;
+        }
+
+        ++i;
+      }
+
+      if (variable.is<syntactic_closure>() and
+          variable.as<syntactic_closure>().form.template is_also<identifier>()) // if is an alias
+      {
+        return variable.as<syntactic_closure>().identify(bound_variables);
       }
       else
       {
-        auto i = 0;
-
-        for (auto outer = bound_variables; outer.is<pair>(); ++i, outer = cdr(outer))
-        {
-          auto j = 0;
-
-          for (auto inner = outer.is<pair>() ? car(outer) : unit; not inner.is<null>(); ++j, inner = inner.is<pair>() ? cdr(inner) : unit)
-          {
-            if (inner.is<pair>())
-            {
-              if (car(inner).is<absolute>() and eq(caar(inner), variable))
-              {
-                return car(inner);
-              }
-              else if (eq(car(inner), variable))
-              {
-                return make<relative>(make<std::int32_t>(i), make<std::int32_t>(j));
-              }
-            }
-            else if (inner.is_also<identifier>() and eq(inner, variable))
-            {
-              return make<variadic>(make<std::int32_t>(i), make<std::int32_t>(j));
-            }
-          }
-        }
-
-        if (variable.is<syntactic_closure>()) // Resolve alias
-        {
-          return variable.as<syntactic_closure>()
-                         .environment
-                         .template as<syntactic_environment>()
-                         .identify(variable.as<syntactic_closure>().form,
-                                   unify(car(variable.as<syntactic_closure>().environment),
-                                         bound_variables));
-        }
-        else
-        {
-          return assq(variable, second);
-        }
+        return assq(variable, second);
       }
     }
 
     inline auto identify(object const& variable,
                          object const& bound_variables)
     {
-      if (not variable.is_also<identifier>())
-      {
-        return f;
-      }
-      else if (let const& identity = std::as_const(*this).identify(variable, bound_variables); identity != f)
+      assert(variable.is_also<identifier>());
+
+      if (let const& identity = std::as_const(*this).identify(variable, bound_variables); identity != f)
       {
         return identity;
       }
@@ -999,110 +1133,134 @@ namespace meevax::inline kernel
       }
     }
 
-    inline auto sweep(object const& form,
-                      object const& bound_variables,
-                      object const& binding_specs = unit) const -> pair
+    inline auto sweep(let const& form,
+                      let const& sequence,
+                      let const& bound_variables,
+                      let const& current_environment,
+                      typename syntactic_closure::renamer & rename,
+                      let const& formals = unit,
+                      let const& reversed_binding_specs = unit) const -> std::tuple<object, object, object>
     {
-      if (form.is<pair>() and car(form).is<pair>())
+      auto reset = [&](let const& formals)
       {
-        if (let const& identity = identify(caar(form), bound_variables); identity.is<absolute>())
+        return sweep(form,
+                     form,
+                     bound_variables,
+                     make<syntactic_environment>(cons(formals, bound_variables), second),
+                     rename,
+                     formals);
+      };
+
+      if (sequence.is<pair>())
+      {
+        if (car(sequence).is<syntactic_closure>() and identify(car(sequence), car(current_environment)) == f)
         {
-          if (let const& value = cdr(identity); value.is<transformer>())
+          return sweep(form,
+                       cons(car(sequence).as<syntactic_closure>().expand(car(current_environment), rename),
+                            cdr(sequence)),
+                       bound_variables,
+                       current_environment,
+                       rename,
+                       formals,
+                       reversed_binding_specs);
+        }
+        else if (car(sequence).is<pair>() and caar(sequence).is_also<identifier>())
+        {
+          if (let const& identity = identify(caar(sequence), bound_variables); identity.is<absolute>())
           {
-            return sweep(cons(Environment().apply(cadr(identity), // <closure>
-                                                  car(form),
-                                                  make<syntactic_environment>(bound_variables, second), // use-env
-                                                  cddr(identity)), // mac-env
-                              cdr(form)),
-                         bound_variables,
-                         binding_specs);
-          }
-          else if (value.is<syntax>())
-          {
-            if (auto const& name = value.as<syntax>().name; name == "begin")
+            if (let const& value = cdr(identity); value.is<transformer>())
             {
-              return sweep(append(cdar(form), cdr(form)),
+              return sweep(form,
+                           cons(value.as<transformer>().transform(car(sequence), current_environment),
+                                cdr(sequence)),
                            bound_variables,
-                           binding_specs);
+                           current_environment,
+                           rename,
+                           formals,
+                           reversed_binding_specs);
             }
-            else if (name == "define") // <form> = ((define ...) <definition or expression>*)
+            else if (value.is<syntax>())
             {
-              if (let const& definition = car(form); cadr(definition).is<pair>()) // <form> = ((define (<variable> . <formals>) <body>) <definition or expression>*)
+              if (auto const& name = value.as<syntax>().name; name == "begin")
               {
-                return sweep(cdr(form),
+                return sweep(form,
+                             append(cdar(sequence), cdr(sequence)),
                              bound_variables,
-                             cons(list(caadr(definition), // <variable>
-                                       cons(corename("lambda"),
-                                            cdadr(definition), // <formals>
-                                            cddr(definition))), // <body>
-                                  binding_specs));
+                             current_environment,
+                             rename,
+                             formals,
+                             reversed_binding_specs);
               }
-              else // <form> = ((define <variable> <expression>) <definition or expression>*)
+              else if (name == "define") // <form> = ((define ...) <definition or expression>*)
               {
-                return sweep(cdr(form),
-                             bound_variables,
-                             cons(cdr(definition), binding_specs));
+                if (cadar(sequence).is<pair>()) // <form> = ((define (<variable> . <formals>) <body>) <definition or expression>*)
+                {
+                  if (let const& variable = caadar(sequence); memq(variable, formals) != f)
+                  {
+                    return sweep(form,
+                                 cdr(sequence),
+                                 bound_variables,
+                                 current_environment,
+                                 rename,
+                                 formals,
+                                 cons(list(variable,
+                                           cons(corename("lambda"),
+                                                cdadar(sequence), // <formals>
+                                                cddar(sequence))),
+                                      reversed_binding_specs));
+                  }
+                  else
+                  {
+                    return reset(append(formals, list(variable)));
+                  }
+                }
+                else // <form> = ((define <variable> <expression>) <definition or expression>*)
+                {
+                  if (let const& variable = cadar(sequence); memq(variable, formals) != f)
+                  {
+                    return sweep(form,
+                                 cdr(sequence),
+                                 bound_variables,
+                                 current_environment,
+                                 rename,
+                                 formals,
+                                 cons(cdar(sequence), // (<variables> <expression>)
+                                      reversed_binding_specs));
+                  }
+                  else
+                  {
+                    return reset(append(formals, list(variable)));
+                  }
+                }
               }
-            }
-            else if (name == "define-syntax") // <form> = ((define-syntax <keyword> <transformer spec>) <definition or expression>*)
-            {
-              return sweep(cdr(form),
-                           bound_variables,
-                           cons(list(make<absolute>(cadar(form), // <keyword>
-                                                    caddar(form))), // <transformer spec>
-                                binding_specs));
+              else if (name == "define-syntax") // <form> = ((define-syntax <keyword> <transformer spec>) <definition or expression>*)
+              {
+                if (auto iter = std::find_if(formals.begin(), formals.end(), [&](let const& formal)
+                                             {
+                                               return formal.is<absolute>() and eq(car(formal), cadar(sequence));
+                                             });
+                    iter != formals.end())
+                {
+                  return sweep(form,
+                               cdr(sequence),
+                               bound_variables,
+                               current_environment,
+                               rename,
+                               formals,
+                               cons(list(*iter), // <transformer spec>
+                                    reversed_binding_specs));
+                }
+                else
+                {
+                  return reset(append(formals, list(make<absolute>(cadar(sequence), caddar(sequence))))); // (<keyword> . <transformer-spec>)
+                }
+              }
             }
           }
         }
       }
 
-      return pair(binding_specs, form);
-    }
-
-    static auto unify(object const& a, object const& b) -> object
-    {
-      /*
-         Consider the following case where an expression that uses a local
-         macro is given:
-
-           (let ((x 'outer))
-             (let-syntax ((m (sc-macro-transformer
-                               (lambda (form environment)
-                                 'x))))
-               (let ((x 'inner))
-                 (m))))
-
-         Where, the bound variables that the syntactic closure returned by
-         sc-macro-transformer encloses are ((x)), and the bound variables when
-         using the local macro m are ((x) (m) (x)).
-
-         The result of the expansion of local macro m must be a reference to
-         the local variable x that binds the symbol "outer" and not the one
-         that binds the symbol "inner". That is, the operand of the relative
-         loading instruction resulting from the expansion of the local macro m
-         must be de Bruijn index (2 . 0).
-
-         However, since syntactic_environment::identify searches bound
-         variables from inside to outside to create de Bruijn index, it
-         straightforwardly uses bound variables ((x) (m) (x)) when using local
-         macro m would result in index (0 . 0).
-
-         By searching for the common tail of the two bound variables and cons a
-         dummy environment in front of the list to match the length of the
-         longer bound variables, we can create bound variables that lead to an
-         appropriate de Bruijn index. In the example above, this is (() ()
-         (x)).
-      */
-      let xs = longest_common_tail(a, b);
-
-      assert(length(xs) <= std::min(length(a), length(b)));
-
-      for (auto offset = std::max(length(a), length(b)) - length(xs); 0 < offset; --offset)
-      {
-        xs = cons(unit, xs);
-      }
-
-      return xs;
+      return std::make_tuple(reversed_binding_specs, sequence, current_environment);
     }
   };
 } // namespace meevax::kernel

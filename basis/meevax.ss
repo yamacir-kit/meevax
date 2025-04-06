@@ -38,7 +38,7 @@
                 (assq x renames)))
              (define (compare x y)
                (identifier=? use-env x use-env y))
-             (f form rename compare)))))
+             (make-syntactic-closure use-env '() (f form rename compare))))))
 
 (define-library (meevax continuation)
   (import (only (meevax context) emergency-exit)
