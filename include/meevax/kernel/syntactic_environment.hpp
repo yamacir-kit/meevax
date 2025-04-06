@@ -48,11 +48,6 @@ namespace meevax::inline kernel
           assert(enclosure);
         }
 
-        auto inject(let const& form)
-        {
-          return outer ? outer->rename(form) : form;
-        }
-
         auto count(let const& form) -> int
         {
           assert(form.is<symbol>());
@@ -63,6 +58,14 @@ namespace meevax::inline kernel
                                                                   });
         }
 
+        template <typename... Ts>
+        auto make_syntactic_closure(let const& form, Ts&&... xs)
+        {
+          return cdar(dictionary = alist_cons(form,
+                                              make<syntactic_closure>(enclosure->environment, unit, form, std::forward<decltype(xs)>(xs)...),
+                                              dictionary));
+        }
+
         auto unshadow(let const& formals, let const& bound_variables) -> object
         {
           auto rename = [&](let const& form)
@@ -71,12 +74,10 @@ namespace meevax::inline kernel
 
             if (form.is<symbol>() and std::any_of(bound_variables.begin(), bound_variables.end(), [&](let const& formals)
                                                   {
-                                                    return memq(form, formals); // TODO variadic arguments
+                                                    return meevax::memq(form, formals); // TODO variadic arguments
                                                   }))
             {
-              return cdar(dictionary = alist_cons(form,
-                                                  make<syntactic_closure>(enclosure->environment, unit, form, count(form) + 1),
-                                                  dictionary));
+              return make_syntactic_closure(form, count(form) + 1);
             }
             else
             {
@@ -94,98 +95,68 @@ namespace meevax::inline kernel
           }
         }
 
-        auto transparent_memq(let const& form) -> object
+        auto memq(let const& form) const -> object
         {
-          if (let const& x = memq(form, enclosure->free_names); x != f)
+          if (let const& x = meevax::memq(form, enclosure->free_names); x != f)
           {
             return x;
           }
-          else if (transparent and outer)
-          {
-            return outer->transparent_memq(form);
-          }
           else
           {
-            return f;
+            return transparent and outer ? outer->memq(form) : f;
           }
         }
 
-        auto transparent_assq(let const& form) -> object
+        auto assq(let const& form) const -> object
         {
-          if (let const& x = assq(form, dictionary); x != f)
+          if (let const& x = meevax::assq(form, dictionary); x != f)
           {
             return x;
           }
-          else if (outer)
-          {
-            return outer->transparent_assq(form);
-          }
           else
           {
-            return f;
-          }
-        }
-
-        auto implicit_rename(let const& form)
-        {
-          assert(form.is_also<identifier>() or form.is<absolute>() or form.is<null>());
-
-          if (form.is<symbol>())
-          {
-            if (transparent_memq(form) != f)
-            {
-              return inject(form);
-            }
-            else if (let const& renaming = transparent_assq(form); renaming != f)
-            {
-              return cdr(renaming);
-            }
-            else
-            {
-              return inject(form);
-            }
-          }
-          else
-          {
-            return form;
-          }
-        }
-
-        auto explicit_rename(let const& form) -> object
-        {
-          assert(form.is_also<identifier>() or form.is<absolute>() or form.is<null>());
-
-          if (form.is<symbol>())
-          {
-            if (memq(form, enclosure->free_names) != f)
-            {
-              return inject(form);
-            }
-            else if (let const& renaming = assq(form, dictionary); renaming != f)
-            {
-              return cdr(renaming);
-            }
-            else
-            {
-              return cdar(dictionary = alist_cons(form,
-                                                  make<syntactic_closure>(enclosure->environment, unit, form),
-                                                  dictionary));
-            }
-          }
-          else
-          {
-            return form;
+            return transparent and outer ? outer->assq(form) : f;
           }
         }
 
         auto rename(let const& form) -> object
         {
-          return transparent ? implicit_rename(form) : explicit_rename(form);
+          assert(form.is_also<identifier>() or form.is<absolute>() or form.is<null>());
+
+          auto inject = [this](let const& form)
+          {
+            return outer ? outer->rename(form) : form;
+          };
+
+          if (form.is<symbol>())
+          {
+            if (memq(form) != f)
+            {
+              return inject(form);
+            }
+            else if (let const& renaming = assq(form); renaming != f)
+            {
+              return cdr(renaming);
+            }
+            else
+            {
+              return transparent ? inject(form) : make_syntactic_closure(form);
+            }
+          }
+          else
+          {
+            return form;
+          }
         }
 
         auto operator ()(let const& form) -> object
         {
           return rename(form);
+        }
+
+        auto operator ()(let const& formals, let const& bound_variables) -> object
+        {
+          return unshadow(formals, bound_variables);
         }
       };
 
@@ -217,38 +188,6 @@ namespace meevax::inline kernel
 
       auto identify(let const& bound_variables)
       {
-        /*
-           Consider the following case where an expression that uses a local
-           macro is given:
-
-             (let ((x 'outer))
-               (let-syntax ((m (sc-macro-transformer
-                                 (lambda (form environment)
-                                   'x))))
-                 (let ((x 'inner))
-                   (m))))
-
-           Where, the bound variables that the syntactic closure returned by
-           sc-macro-transformer encloses are ((x)), and the bound variables
-           when using the local macro m are ((x) (m) (x)).
-
-           The result of the expansion of local macro m must be a reference to
-           the local variable x that binds the symbol "outer" and not the one
-           that binds the symbol "inner". That is, the operand of the relative
-           loading instruction resulting from the expansion of the local macro
-           m must be de Bruijn index (2 . 0).
-
-           However, since syntactic_environment::identify searches bound
-           variables from inside to outside to create de Bruijn index, it
-           straightforwardly uses bound variables ((x) (m) (x)) when using
-           local macro m would result in index (0 . 0).
-
-           By searching for the common tail of the two bound variables and cons
-           a dummy environment in front of the list to match the length of the
-           longer bound variables, we can create bound variables that lead to
-           an appropriate de Bruijn index. In the example above, this is (() ()
-           (x)).
-        */
         auto identify = [&]()
         {
           let xs = environment.as<syntactic_environment>().first;
@@ -416,16 +355,16 @@ namespace meevax::inline kernel
 
       static EXPANDER(lambda)
       {
-        auto inner_rename = rename;
+        auto scoped_rename = rename;
 
-        let const& formals = inner_rename.unshadow(cadr(form), bound_variables);
+        let const& formals = scoped_rename(cadr(form), bound_variables);
 
         return cons(rename(car(form)) /* lambda */,
                     cons(formals,
                          body(expander,
                               cddr(form),
                               cons(formals, bound_variables),
-                              inner_rename)));
+                              scoped_rename)));
       }
 
       static EXPANDER(body)
@@ -535,7 +474,7 @@ namespace meevax::inline kernel
 
       static EXPANDER(letrec)
       {
-        let const extended_bound_variables = cons(rename.unshadow(map(car, cadr(form)), bound_variables),
+        let const extended_bound_variables = cons(rename(map(car, cadr(form)), bound_variables),
                                                   bound_variables);
 
         return cons(car(form),
