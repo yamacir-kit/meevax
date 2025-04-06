@@ -287,8 +287,8 @@ namespace meevax::inline kernel
 
       EXPORT1(angle);
       EXPORT1(magnitude);
-      EXPORT1_RENAME(imag_part, "imag-part");
-      EXPORT1_RENAME(real_part, "real-part");
+      EXPORT1_RENAME(imag, "imag-part");
+      EXPORT1_RENAME(real, "real-part");
     });
 
     define<library>("(meevax context)", [](library & library)
@@ -331,7 +331,7 @@ namespace meevax::inline kernel
 
     define<library>("(meevax core)", [](library & library)
     {
-      library.second = cdr(environment::core()); // DIRTY HACK!
+      library.second = environment::core().as<environment::syntactic_environment>().second; // DIRTY HACK!
       library.export_specs = map(car, library.second);
     });
 
@@ -356,7 +356,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("expand", [](let const& xs)
       {
-        return cadr(xs).as<environment>().expand(car(xs), unit, environment::default_rename);
+        return cadr(xs).as<environment>().expand(car(xs), unit);
       });
 
       library.define<procedure>("interaction-environment", []()
@@ -1659,6 +1659,8 @@ namespace meevax::inline kernel
     define<library>("(meevax syntactic-closure)", [](library & library)
     {
       using syntactic_closure = environment::syntactic_closure;
+
+      using transformer = environment::transformer;
 
       library.define<procedure>("identifier?", [](let const& xs)
       {

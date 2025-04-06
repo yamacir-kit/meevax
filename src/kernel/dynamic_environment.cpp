@@ -57,7 +57,7 @@ namespace meevax::inline kernel
         *  where <absolute> = (<symbol> . x)
         *
         * ------------------------------------------------------------------- */
-        assert(cadr(c).template is<absolute>());
+        assert(cadr(c).template is_also<absolute>());
 
         if (let const& x = cdadr(c); x == undefined)
         {

@@ -28,6 +28,11 @@ namespace meevax::inline kernel
 
   auto operator <<(std::ostream &, absolute const&) -> std::ostream &;
 
+  struct macro : public absolute // (<keyword> . <transformer-spec or transformer>)
+  {
+    using absolute::absolute;
+  };
+
   struct relative : public virtual pair // de Bruijn index
   {
     using pair::pair;
