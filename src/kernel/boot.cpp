@@ -356,9 +356,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("expand", [](let const& xs)
       {
-        auto sc = environment::syntactic_closure(make<syntactic_environment<environment>>(caadr(xs), cdadr(xs)), unit, car(xs));
-        auto rename = environment::syntactic_closure::renamer(&sc, nullptr, true);
-        return cadr(xs).as<environment>().expand(car(xs), unit, rename);
+        return cadr(xs).as<environment>().expand(car(xs), unit);
       });
 
       library.define<procedure>("interaction-environment", []()

@@ -954,11 +954,7 @@ namespace meevax::inline kernel
     inline auto compile(object const& form,
                         object const& bound_variables, Ts&&... xs) -> decltype(auto)
     {
-      auto sc = syntactic_closure(make<syntactic_environment>(bound_variables, second), unit, form);
-
-      auto rename = typename syntactic_closure::renamer(&sc, nullptr, true);
-
-      return generate(expand(form, bound_variables, rename),
+      return generate(expand(form, bound_variables),
                       bound_variables,
                       std::forward<decltype(xs)>(xs)...);
     }
@@ -1027,6 +1023,14 @@ namespace meevax::inline kernel
     inline auto define(Ts&&... xs) -> decltype(auto)
     {
       return define<typename Deducer<Ts...>::type>(std::forward<decltype(xs)>(xs)...);
+    }
+
+    inline auto expand(object const& form,
+                       object const& bound_variables) const -> object
+    {
+      auto enclosure = syntactic_closure(make<syntactic_environment>(bound_variables, second), unit, form);
+      auto rename = typename syntactic_closure::renamer(&enclosure, nullptr, true);
+      return expand(form, bound_variables, rename);
     }
 
     inline auto expand(object const& form,
