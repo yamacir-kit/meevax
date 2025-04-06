@@ -70,7 +70,7 @@ namespace meevax::inline kernel
         {
           auto rename = [&](let const& form)
           {
-            assert(form.is_also<identifier>() or form.is<absolute>() or form.is<null>());
+            assert(form.is_also<identifier>() or form.is<macro>() or form.is<null>());
 
             if (form.is<symbol>() and std::any_of(bound_variables.begin(), bound_variables.end(), [&](let const& formals)
                                                   {
@@ -121,7 +121,7 @@ namespace meevax::inline kernel
 
         auto rename(let const& form) -> object
         {
-          assert(form.is_also<identifier>() or form.is<absolute>() or form.is<null>());
+          assert(form.is_also<identifier>() or form.is<macro>() or form.is<null>());
 
           auto inject = [this](let const& form)
           {
@@ -391,7 +391,7 @@ namespace meevax::inline kernel
 
           for (let const& binding_spec : reversed_binding_specs)
           {
-            if (not car(binding_spec).is<absolute>()) // The binding-spec is not an internal syntax definition.
+            if (not car(binding_spec).is<macro>()) // The binding-spec is not an internal syntax definition.
             {
               sequence = cons(cons(corename("set!"), binding_spec), sequence);
             }
@@ -399,7 +399,7 @@ namespace meevax::inline kernel
 
           for (let & formal : formals)
           {
-            if (formal.is<absolute>()) // is internal-sytnax-definition
+            if (formal.is<macro>()) // is internal-sytnax-definition
             {
               cdr(formal) = make<transformer>(Environment().execute(current_environment.template as<syntactic_environment>().compile(cdr(formal) /* <transformer spec> */)),
                                               current_environment);
@@ -515,9 +515,9 @@ namespace meevax::inline kernel
 
         auto formal = [&](let const& syntax_spec)
         {
-          return make<absolute>(car(syntax_spec) /* keyword */,
-                                make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec) /* transformer spec */)),
-                                                  current_environment));
+          return make<macro>(car(syntax_spec) /* keyword */,
+                             make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec) /* transformer spec */)),
+                                               current_environment));
         };
 
         let const formals = map(formal, cadr(form));
@@ -535,9 +535,9 @@ namespace meevax::inline kernel
 
         auto formal = [&](let const& syntax_spec)
         {
-          return make<absolute>(car(syntax_spec) /* keyword */,
-                                make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec) /* transformer spec */)),
-                                                  current_environment));
+          return make<macro>(car(syntax_spec) /* keyword */,
+                             make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec) /* transformer spec */)),
+                                               current_environment));
         };
 
         let const formals = map(formal, cadr(form));
@@ -990,7 +990,7 @@ namespace meevax::inline kernel
 
         if (let const& identity = identifier.is<syntactic_closure>() ? identifier.as<syntactic_closure>().identify(bound_variables)
                                                                      : identify(car(form), bound_variables);
-            identity.is<absolute>())
+            identity.is_also<absolute>())
         {
           if (let const& value = cdr(identity); value.is<transformer>())
           {
@@ -1034,7 +1034,7 @@ namespace meevax::inline kernel
           }
           else
           {
-            assert(identity.is<absolute>());
+            assert(identity.is_also<absolute>());
             return cons(make(instruction::load_absolute), identity, continuation);
           }
         }
@@ -1070,7 +1070,7 @@ namespace meevax::inline kernel
         {
           if (formals.is<pair>())
           {
-            if (car(formals).is<absolute>() and eq(caar(formals), variable))
+            if (car(formals).is<macro>() and eq(caar(formals), variable))
             {
               return car(formals);
             }
@@ -1166,7 +1166,7 @@ namespace meevax::inline kernel
         }
         else if (car(sequence).is<pair>() and caar(sequence).is_also<identifier>())
         {
-          if (let const& identity = identify(caar(sequence), bound_variables); identity.is<absolute>())
+          if (let const& identity = identify(caar(sequence), bound_variables); identity.is_also<absolute>())
           {
             if (let const& value = cdr(identity); value.is<transformer>())
             {
@@ -1237,7 +1237,7 @@ namespace meevax::inline kernel
               {
                 if (auto iter = std::find_if(formals.begin(), formals.end(), [&](let const& formal)
                                              {
-                                               return formal.is<absolute>() and eq(car(formal), cadar(sequence));
+                                               return formal.is<macro>() and eq(car(formal), cadar(sequence));
                                              });
                     iter != formals.end())
                 {
@@ -1252,7 +1252,7 @@ namespace meevax::inline kernel
                 }
                 else
                 {
-                  return reset(append(formals, list(make<absolute>(cadar(sequence), caddar(sequence))))); // (<keyword> . <transformer-spec>)
+                  return reset(append(formals, list(make<macro>(cadar(sequence), caddar(sequence)))));
                 }
               }
             }
