@@ -48,7 +48,7 @@ extern "C"
 
   auto make_hoge(object & xs)
   {
-    return make<hoge>(car(xs).as<exact_integer>());
+    return make<hoge>(static_cast<int>(car(xs).as<exact_integer>()));
   }
 
   auto is_hoge(object & xs)

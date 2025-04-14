@@ -67,7 +67,7 @@ namespace meevax::inline kernel
     explicit operator bool() const;
 
     template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    operator T() const
+    explicit operator T() const
     {
       if constexpr (std::is_floating_point_v<T>)
       {
