@@ -476,12 +476,7 @@ inline namespace number
 {
   auto equals(object const& x, object const& y) -> bool
   {
-    auto f = [](auto&&... xs)
-    {
-      return inexact_equals(std::forward<decltype(xs)>(xs)...);
-    };
-
-    return test<complex_numbers>(f, x, y);
+    return test<complex_numbers>(inexact_equals, x, y);
   }
 
   auto not_equals(object const& x, object const& y) -> bool

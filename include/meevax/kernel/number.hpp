@@ -248,8 +248,7 @@ inline namespace kernel
 
   auto make_number(std::string const&, int = 10) -> object;
 
-  template <typename T, typename U>
-  auto inexact_equals(T const& x, U const& y)
+  inline auto inexact_equals = []<typename T, typename U>(T const& x, U const& y)
   {
     if constexpr (std::is_floating_point_v<T> and
                   std::is_floating_point_v<U>)
@@ -273,7 +272,7 @@ inline namespace kernel
     {
       return x == y;
     }
-  }
+  };
 
 inline namespace number
 {
