@@ -197,12 +197,19 @@ inline namespace kernel
   auto operator ==(double, complex const&) -> bool;
   auto operator !=(double, complex const&) -> bool;
 
-  auto operator + (complex const&, complex const&) -> complex;
-  auto operator - (complex const&, complex const&) -> complex;
-  auto operator * (complex const&, complex const&) -> complex;
-  auto operator / (complex const&, complex const&) -> complex;
-  auto operator ==(complex const&, complex const&) -> bool;
-  auto operator !=(complex const&, complex const&) -> bool;
+  auto operator + (complex const&, exact_integer const&) -> complex;
+  auto operator - (complex const&, exact_integer const&) -> complex;
+  auto operator * (complex const&, exact_integer const&) -> complex;
+  auto operator / (complex const&, exact_integer const&) -> complex;
+  auto operator ==(complex const&, exact_integer const&) -> bool;
+  auto operator !=(complex const&, exact_integer const&) -> bool;
+
+  auto operator + (complex const&, ratio const&) -> complex;
+  auto operator - (complex const&, ratio const&) -> complex;
+  auto operator * (complex const&, ratio const&) -> complex;
+  auto operator / (complex const&, ratio const&) -> complex;
+  auto operator ==(complex const&, ratio const&) -> bool;
+  auto operator !=(complex const&, ratio const&) -> bool;
 
   auto operator + (complex const&, float) -> complex;
   auto operator - (complex const&, float) -> complex;
@@ -218,19 +225,12 @@ inline namespace kernel
   auto operator ==(complex const&, double) -> bool;
   auto operator !=(complex const&, double) -> bool;
 
-  auto operator + (complex const&, ratio const&) -> complex;
-  auto operator - (complex const&, ratio const&) -> complex;
-  auto operator * (complex const&, ratio const&) -> complex;
-  auto operator / (complex const&, ratio const&) -> complex;
-  auto operator ==(complex const&, ratio const&) -> bool;
-  auto operator !=(complex const&, ratio const&) -> bool;
-
-  auto operator + (complex const&, exact_integer const&) -> complex;
-  auto operator - (complex const&, exact_integer const&) -> complex;
-  auto operator * (complex const&, exact_integer const&) -> complex;
-  auto operator / (complex const&, exact_integer const&) -> complex;
-  auto operator ==(complex const&, exact_integer const&) -> bool;
-  auto operator !=(complex const&, exact_integer const&) -> bool;
+  auto operator + (complex const&, complex const&) -> complex;
+  auto operator - (complex const&, complex const&) -> complex;
+  auto operator * (complex const&, complex const&) -> complex;
+  auto operator / (complex const&, complex const&) -> complex;
+  auto operator ==(complex const&, complex const&) -> bool;
+  auto operator !=(complex const&, complex const&) -> bool;
 
   auto operator + (object const&, object const&) -> object;
   auto operator - (object const&, object const&) -> object;

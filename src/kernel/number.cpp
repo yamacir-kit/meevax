@@ -198,12 +198,19 @@ namespace meevax::inline kernel
   auto operator ==(double a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(double a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
 
-  auto operator + (complex const& a, complex const& b) -> complex { return complex(a.real() + b.real(), a.imag() + b.imag()); }
-  auto operator - (complex const& a, complex const& b) -> complex { return complex(a.real() - b.real(), a.imag() - b.imag()); }
-  auto operator * (complex const& a, complex const& b) -> complex { return complex(a.real() * b.real() - a.imag() * b.imag(), a.imag() * b.real() + a.real() * b.imag()); }
-  auto operator / (complex const& a, complex const& b) -> complex { auto x = a.real() * b.real() + a.imag() * b.imag(); auto y = a.imag() * b.real() - a.real() * b.imag(); auto d = b.real() * b.real() + b.imag() * b.imag(); return complex(x / d, y / d); }
-  auto operator ==(complex const& a, complex const& b) -> bool    { return equals(a.real(), b.real()) and equals(a.imag(), b.imag()); }
-  auto operator !=(complex const& a, complex const& b) -> bool    { return not (a == b); }
+  auto operator + (complex const& a, exact_integer const& b) -> complex { return a +  complex(make(b), e0); }
+  auto operator - (complex const& a, exact_integer const& b) -> complex { return a -  complex(make(b), e0); }
+  auto operator * (complex const& a, exact_integer const& b) -> complex { return a *  complex(make(b), e0); }
+  auto operator / (complex const& a, exact_integer const& b) -> complex { return a /  complex(make(b), e0); }
+  auto operator ==(complex const& a, exact_integer const& b) -> bool    { return a == complex(make(b), e0); }
+  auto operator !=(complex const& a, exact_integer const& b) -> bool    { return a != complex(make(b), e0); }
+
+  auto operator + (complex const& a, ratio const& b) -> complex { return a +  complex(make(b), e0); }
+  auto operator - (complex const& a, ratio const& b) -> complex { return a -  complex(make(b), e0); }
+  auto operator * (complex const& a, ratio const& b) -> complex { return a *  complex(make(b), e0); }
+  auto operator / (complex const& a, ratio const& b) -> complex { return a /  complex(make(b), e0); }
+  auto operator ==(complex const& a, ratio const& b) -> bool    { return a == complex(make(b), e0); }
+  auto operator !=(complex const& a, ratio const& b) -> bool    { return a != complex(make(b), e0); }
 
   auto operator + (complex const& a, float b) -> complex { return a +  complex(make(b), e0); }
   auto operator - (complex const& a, float b) -> complex { return a -  complex(make(b), e0); }
@@ -219,19 +226,12 @@ namespace meevax::inline kernel
   auto operator ==(complex const& a, double b) -> bool    { return a == complex(make(b), e0); }
   auto operator !=(complex const& a, double b) -> bool    { return a != complex(make(b), e0); }
 
-  auto operator + (complex const& a, ratio const& b) -> complex { return a +  complex(make(b), e0); }
-  auto operator - (complex const& a, ratio const& b) -> complex { return a -  complex(make(b), e0); }
-  auto operator * (complex const& a, ratio const& b) -> complex { return a *  complex(make(b), e0); }
-  auto operator / (complex const& a, ratio const& b) -> complex { return a /  complex(make(b), e0); }
-  auto operator ==(complex const& a, ratio const& b) -> bool    { return a == complex(make(b), e0); }
-  auto operator !=(complex const& a, ratio const& b) -> bool    { return a != complex(make(b), e0); }
-
-  auto operator + (complex const& a, exact_integer const& b) -> complex { return a +  complex(make(b), e0); }
-  auto operator - (complex const& a, exact_integer const& b) -> complex { return a -  complex(make(b), e0); }
-  auto operator * (complex const& a, exact_integer const& b) -> complex { return a *  complex(make(b), e0); }
-  auto operator / (complex const& a, exact_integer const& b) -> complex { return a /  complex(make(b), e0); }
-  auto operator ==(complex const& a, exact_integer const& b) -> bool    { return a == complex(make(b), e0); }
-  auto operator !=(complex const& a, exact_integer const& b) -> bool    { return a != complex(make(b), e0); }
+  auto operator + (complex const& a, complex const& b) -> complex { return complex(a.real() + b.real(), a.imag() + b.imag()); }
+  auto operator - (complex const& a, complex const& b) -> complex { return complex(a.real() - b.real(), a.imag() - b.imag()); }
+  auto operator * (complex const& a, complex const& b) -> complex { return complex(a.real() * b.real() - a.imag() * b.imag(), a.imag() * b.real() + a.real() * b.imag()); }
+  auto operator / (complex const& a, complex const& b) -> complex { auto x = a.real() * b.real() + a.imag() * b.imag(); auto y = a.imag() * b.real() - a.real() * b.imag(); auto d = b.real() * b.real() + b.imag() * b.imag(); return complex(x / d, y / d); }
+  auto operator ==(complex const& a, complex const& b) -> bool    { return equals(a.real(), b.real()) and equals(a.imag(), b.imag()); }
+  auto operator !=(complex const& a, complex const& b) -> bool    { return not (a == b); }
 
   template <typename T>
   auto canonicalize(T&& x) -> decltype(auto)
