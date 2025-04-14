@@ -472,6 +472,18 @@ namespace meevax::inline kernel
     }
   }
 
+  auto size_cast(object const& x) -> std::size_t
+  {
+    if (auto const& t = x.type(); t == typeid(exact_integer))
+    {
+      return static_cast<std::size_t>(x.as<exact_integer>());
+    }
+    else
+    {
+      throw std::invalid_argument("not a positive integer");
+    }
+  }
+
 inline namespace number
 {
   auto equals(object const& x, object const& y) -> bool

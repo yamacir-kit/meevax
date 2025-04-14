@@ -274,6 +274,8 @@ inline namespace kernel
     }
   };
 
+  auto size_cast(object const&) -> std::size_t;
+
 inline namespace number
 {
   auto equals(object const&, object const&) -> bool;
