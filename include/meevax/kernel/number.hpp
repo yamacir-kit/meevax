@@ -197,12 +197,19 @@ inline namespace kernel
   auto operator ==(double, complex const&) -> bool;
   auto operator !=(double, complex const&) -> bool;
 
-  auto operator + (complex const&, complex const&) -> complex;
-  auto operator - (complex const&, complex const&) -> complex;
-  auto operator * (complex const&, complex const&) -> complex;
-  auto operator / (complex const&, complex const&) -> complex;
-  auto operator ==(complex const&, complex const&) -> bool;
-  auto operator !=(complex const&, complex const&) -> bool;
+  auto operator + (complex const&, exact_integer const&) -> complex;
+  auto operator - (complex const&, exact_integer const&) -> complex;
+  auto operator * (complex const&, exact_integer const&) -> complex;
+  auto operator / (complex const&, exact_integer const&) -> complex;
+  auto operator ==(complex const&, exact_integer const&) -> bool;
+  auto operator !=(complex const&, exact_integer const&) -> bool;
+
+  auto operator + (complex const&, ratio const&) -> complex;
+  auto operator - (complex const&, ratio const&) -> complex;
+  auto operator * (complex const&, ratio const&) -> complex;
+  auto operator / (complex const&, ratio const&) -> complex;
+  auto operator ==(complex const&, ratio const&) -> bool;
+  auto operator !=(complex const&, ratio const&) -> bool;
 
   auto operator + (complex const&, float) -> complex;
   auto operator - (complex const&, float) -> complex;
@@ -218,19 +225,12 @@ inline namespace kernel
   auto operator ==(complex const&, double) -> bool;
   auto operator !=(complex const&, double) -> bool;
 
-  auto operator + (complex const&, ratio const&) -> complex;
-  auto operator - (complex const&, ratio const&) -> complex;
-  auto operator * (complex const&, ratio const&) -> complex;
-  auto operator / (complex const&, ratio const&) -> complex;
-  auto operator ==(complex const&, ratio const&) -> bool;
-  auto operator !=(complex const&, ratio const&) -> bool;
-
-  auto operator + (complex const&, exact_integer const&) -> complex;
-  auto operator - (complex const&, exact_integer const&) -> complex;
-  auto operator * (complex const&, exact_integer const&) -> complex;
-  auto operator / (complex const&, exact_integer const&) -> complex;
-  auto operator ==(complex const&, exact_integer const&) -> bool;
-  auto operator !=(complex const&, exact_integer const&) -> bool;
+  auto operator + (complex const&, complex const&) -> complex;
+  auto operator - (complex const&, complex const&) -> complex;
+  auto operator * (complex const&, complex const&) -> complex;
+  auto operator / (complex const&, complex const&) -> complex;
+  auto operator ==(complex const&, complex const&) -> bool;
+  auto operator !=(complex const&, complex const&) -> bool;
 
   auto operator + (object const&, object const&) -> object;
   auto operator - (object const&, object const&) -> object;
@@ -248,8 +248,7 @@ inline namespace kernel
 
   auto make_number(std::string const&, int = 10) -> object;
 
-  template <typename T, typename U>
-  auto inexact_equals(T const& x, U const& y)
+  inline auto inexact_equals = []<typename T, typename U>(T const& x, U const& y)
   {
     if constexpr (std::is_floating_point_v<T> and
                   std::is_floating_point_v<U>)
@@ -273,7 +272,7 @@ inline namespace kernel
     {
       return x == y;
     }
-  }
+  };
 
 inline namespace number
 {
