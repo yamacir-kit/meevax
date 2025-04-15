@@ -25,6 +25,13 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto operator !=(exact_integer const&, std::int32_t) -> bool;
+  auto operator < (exact_integer const&, std::int32_t) -> bool;
+  auto operator <=(exact_integer const&, std::int32_t) -> bool;
+  auto operator ==(exact_integer const&, std::int32_t) -> bool;
+  auto operator > (exact_integer const&, std::int32_t) -> bool;
+  auto operator >=(exact_integer const&, std::int32_t) -> bool;
+
   auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator - (exact_integer const&, exact_integer const&) -> exact_integer;
@@ -250,8 +257,7 @@ inline namespace kernel
 
   inline auto inexact_equals = []<typename T, typename U>(T const& x, U const& y)
   {
-    if constexpr (std::is_floating_point_v<T> and
-                  std::is_floating_point_v<U>)
+    if constexpr (std::is_floating_point_v<T> and std::is_floating_point_v<U>)
     {
       if (std::isnan(x) and std::isnan(y))
       {

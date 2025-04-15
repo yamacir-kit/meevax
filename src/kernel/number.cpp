@@ -26,6 +26,13 @@
 
 namespace meevax::inline kernel
 {
+  auto operator ==(exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) == 0; }
+  auto operator !=(exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) != 0; }
+  auto operator < (exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) <  0; }
+  auto operator <=(exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) <= 0; }
+  auto operator > (exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) >  0; }
+  auto operator >=(exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) >= 0; }
+
   auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_add(n.value, a.value, b.value); return n; }
   auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_sub(n.value, a.value, b.value); return n; }
   auto operator * (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_mul(n.value, a.value, b.value); return n; }
@@ -55,12 +62,12 @@ namespace meevax::inline kernel
   auto operator * (exact_integer const& a, float b) -> float { return static_cast<float>(a) *  b; }
   auto operator / (exact_integer const& a, float b) -> float { return static_cast<float>(a) /  b; }
   auto operator % (exact_integer const& a, float b) -> float { return std::remainder(static_cast<float>(a), b); }
-  auto operator ==(exact_integer const& a, float b) -> bool  { return inexact_equals(static_cast<float>(a), b); }
-  auto operator !=(exact_integer const& a, float b) -> bool  { return not (a == b); }
-  auto operator < (exact_integer const& a, float b) -> bool  { return static_cast<float>(a) <  b; }
-  auto operator <=(exact_integer const& a, float b) -> bool  { return static_cast<float>(a) <= b; }
-  auto operator > (exact_integer const& a, float b) -> bool  { return static_cast<float>(a) >  b; }
-  auto operator >=(exact_integer const& a, float b) -> bool  { return static_cast<float>(a) >= b; }
+  auto operator ==(exact_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) == 0; }
+  auto operator !=(exact_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) != 0; }
+  auto operator < (exact_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) <  0; }
+  auto operator <=(exact_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) <= 0; }
+  auto operator > (exact_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) >  0; }
+  auto operator >=(exact_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) >= 0; }
 
   auto operator + (exact_integer const& a, double b) -> double { return static_cast<double>(a) +  b; }
   auto operator - (exact_integer const& a, double b) -> double { return static_cast<double>(a) -  b; }
@@ -141,12 +148,12 @@ namespace meevax::inline kernel
   auto operator * (float a, exact_integer const& b) -> float { return a *  static_cast<float>(b); }
   auto operator / (float a, exact_integer const& b) -> float { return a /  static_cast<float>(b); }
   auto operator % (float a, exact_integer const& b) -> float { return std::remainder(a, static_cast<float>(b)); }
-  auto operator ==(float a, exact_integer const& b) -> bool  { return inexact_equals(a, static_cast<float>(b)); }
-  auto operator !=(float a, exact_integer const& b) -> bool  { return not (a == b); }
-  auto operator < (float a, exact_integer const& b) -> bool  { return a <  static_cast<float>(b); }
-  auto operator <=(float a, exact_integer const& b) -> bool  { return a <= static_cast<float>(b); }
-  auto operator > (float a, exact_integer const& b) -> bool  { return a >  static_cast<float>(b); }
-  auto operator >=(float a, exact_integer const& b) -> bool  { return a >= static_cast<float>(b); }
+  auto operator ==(float a, exact_integer const& b) -> bool  { return 0 == mpz_cmp_d(b.value, a); }
+  auto operator !=(float a, exact_integer const& b) -> bool  { return 0 != mpz_cmp_d(b.value, a); }
+  auto operator < (float a, exact_integer const& b) -> bool  { return 0 <  mpz_cmp_d(b.value, a); }
+  auto operator <=(float a, exact_integer const& b) -> bool  { return 0 <= mpz_cmp_d(b.value, a); }
+  auto operator > (float a, exact_integer const& b) -> bool  { return 0 >  mpz_cmp_d(b.value, a); }
+  auto operator >=(float a, exact_integer const& b) -> bool  { return 0 >= mpz_cmp_d(b.value, a); }
 
   auto operator + (float a, ratio const& b) -> float { return a +  static_cast<float>(b); }
   auto operator - (float a, ratio const& b) -> float { return a -  static_cast<float>(b); }
@@ -172,12 +179,12 @@ namespace meevax::inline kernel
   auto operator * (double a, exact_integer const& b) -> double { return a * static_cast<double>(b); }
   auto operator / (double a, exact_integer const& b) -> double { return a / static_cast<double>(b); }
   auto operator % (double a, exact_integer const& b) -> double { return std::remainder(a, static_cast<double>(b)); }
-  auto operator ==(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) == 0; }
-  auto operator !=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) != 0; }
-  auto operator < (double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) >  0; }
-  auto operator <=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) >= 0; }
-  auto operator > (double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) <  0; }
-  auto operator >=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) <= 0; }
+  auto operator ==(double a, exact_integer const& b) -> bool   { return 0 == mpz_cmp_d(b.value, a); }
+  auto operator !=(double a, exact_integer const& b) -> bool   { return 0 != mpz_cmp_d(b.value, a); }
+  auto operator < (double a, exact_integer const& b) -> bool   { return 0 <  mpz_cmp_d(b.value, a); }
+  auto operator <=(double a, exact_integer const& b) -> bool   { return 0 <= mpz_cmp_d(b.value, a); }
+  auto operator > (double a, exact_integer const& b) -> bool   { return 0 >  mpz_cmp_d(b.value, a); }
+  auto operator >=(double a, exact_integer const& b) -> bool   { return 0 >= mpz_cmp_d(b.value, a); }
 
   auto operator + (double a, ratio const& b) -> double { return a +  static_cast<double>(b); }
   auto operator - (double a, ratio const& b) -> double { return a -  static_cast<double>(b); }
