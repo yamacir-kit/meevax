@@ -24,8 +24,46 @@
 #include <meevax/kernel/string.hpp>
 #include <meevax/utility/combination.hpp>
 
+#define UNIMPLEMENTED(LINE) throw std::runtime_error("UNIMPLEMENTED " + std::to_string(LINE))
+
 namespace meevax::inline kernel
 {
+  auto operator * (std::int32_t a, exact_integer const& b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator + (std::int32_t a, exact_integer const& b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator - (std::int32_t a, exact_integer const& b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator / (std::int32_t a, exact_integer const& b) -> ratio         { UNIMPLEMENTED(__LINE__); }
+  auto operator % (std::int32_t a, exact_integer const& b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator !=(std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
+  auto operator < (std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
+  auto operator <=(std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
+  auto operator ==(std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
+  auto operator > (std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
+  auto operator >=(std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
+
+  auto operator + (std::int32_t a, ratio const& b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator - (std::int32_t a, ratio const& b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator * (std::int32_t a, ratio const& b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator / (std::int32_t a, ratio const& b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator % (std::int32_t  , ratio const&  ) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator ==(std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator !=(std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator < (std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator <=(std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator > (std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator >=(std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
+
+  auto operator + (std::int32_t a, complex const& b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator - (std::int32_t a, complex const& b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator * (std::int32_t a, complex const& b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator / (std::int32_t a, complex const& b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator ==(std::int32_t a, complex const& b) -> bool    { UNIMPLEMENTED(__LINE__); }
+  auto operator !=(std::int32_t a, complex const& b) -> bool    { UNIMPLEMENTED(__LINE__); }
+
+  auto operator + (exact_integer const& a, std::int32_t b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator - (exact_integer const& a, std::int32_t b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator * (exact_integer const& a, std::int32_t b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator / (exact_integer const& a, std::int32_t b) -> ratio         { UNIMPLEMENTED(__LINE__); }
+  auto operator % (exact_integer const& a, std::int32_t b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
   auto operator ==(exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) == 0; }
   auto operator !=(exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) != 0; }
   auto operator < (exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) <  0; }
@@ -87,6 +125,18 @@ namespace meevax::inline kernel
   auto operator / (exact_integer const& a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
   auto operator ==(exact_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(exact_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
+
+  auto operator + (ratio const& a, std::int32_t b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator - (ratio const& a, std::int32_t b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator * (ratio const& a, std::int32_t b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator / (ratio const& a, std::int32_t b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator % (ratio const&  , std::int32_t  ) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator ==(ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator !=(ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator < (ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator <=(ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator > (ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator >=(ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
 
   auto operator + (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_add(q.value, a.value, ratio(b).value); return q; }
   auto operator - (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_sub(q.value, a.value, ratio(b).value); return q; }
@@ -205,6 +255,13 @@ namespace meevax::inline kernel
   auto operator ==(double a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(double a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
 
+  auto operator + (complex const& a, std::int32_t b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator - (complex const& a, std::int32_t b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator * (complex const& a, std::int32_t b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator / (complex const& a, std::int32_t b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator ==(complex const& a, std::int32_t b) -> bool    { UNIMPLEMENTED(__LINE__); }
+  auto operator !=(complex const& a, std::int32_t b) -> bool    { UNIMPLEMENTED(__LINE__); }
+
   auto operator + (complex const& a, exact_integer const& b) -> complex { return a +  complex(make(b), e0); }
   auto operator - (complex const& a, exact_integer const& b) -> complex { return a -  complex(make(b), e0); }
   auto operator * (complex const& a, exact_integer const& b) -> complex { return a *  complex(make(b), e0); }
@@ -262,13 +319,13 @@ namespace meevax::inline kernel
     }
   }
 
-  using complex_number = std::tuple<exact_integer, ratio, float, double, complex>;
+  using complex_number = std::tuple<std::int32_t, exact_integer, ratio, float, double, complex>;
 
-  using complex_numbers = combination<exact_integer, ratio, float, double, complex>;
+  using complex_numbers = combination<std::int32_t, exact_integer, ratio, float, double, complex>;
 
-  using real_number = std::tuple<exact_integer, ratio, float, double>;
+  using real_number = std::tuple<std::int32_t, exact_integer, ratio, float, double>;
 
-  using real_numbers = combination<exact_integer, ratio, float, double>;
+  using real_numbers = combination<std::int32_t, exact_integer, ratio, float, double>;
 
   template <typename Tuple, auto I = 0, typename F>
   auto apply_to([[maybe_unused]] F f, object const& x) -> object
@@ -356,8 +413,8 @@ namespace meevax::inline kernel
   {
     auto f = []<typename T, typename U>(T const& x, U const& y)
     {
-      if constexpr (std::is_floating_point_v<T> and
-                    std::is_floating_point_v<U>)
+      if constexpr ((std::is_floating_point_v<T> and std::is_arithmetic_v<U>) or
+                    (std::is_floating_point_v<U> and std::is_arithmetic_v<T>))
       {
         return std::fmod(x, y);
       }
@@ -998,7 +1055,7 @@ inline namespace number
       {                                                                        \
         return exact_integer(CMATH(static_cast<double>(x)));                   \
       }                                                                        \
-      else if constexpr (std::is_same_v<T, exact_integer>)                     \
+      else if constexpr (std::is_same_v<T, exact_integer> or std::is_integral_v<T>) \
       {                                                                        \
         return x;                                                              \
       }                                                                        \
