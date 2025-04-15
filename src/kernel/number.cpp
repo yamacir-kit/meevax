@@ -24,8 +24,53 @@
 #include <meevax/kernel/string.hpp>
 #include <meevax/utility/combination.hpp>
 
+#define UNIMPLEMENTED(LINE) throw std::runtime_error("UNIMPLEMENTED " + std::to_string(LINE))
+
 namespace meevax::inline kernel
 {
+  auto operator * (std::int32_t a, exact_integer const& b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator + (std::int32_t a, exact_integer const& b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator - (std::int32_t a, exact_integer const& b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator / (std::int32_t a, exact_integer const& b) -> ratio         { UNIMPLEMENTED(__LINE__); }
+  auto operator % (std::int32_t a, exact_integer const& b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator !=(std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
+  auto operator < (std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
+  auto operator <=(std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
+  auto operator ==(std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
+  auto operator > (std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
+  auto operator >=(std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
+
+  auto operator + (std::int32_t a, ratio const& b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator - (std::int32_t a, ratio const& b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator * (std::int32_t a, ratio const& b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator / (std::int32_t a, ratio const& b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator % (std::int32_t  , ratio const&  ) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator ==(std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator !=(std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator < (std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator <=(std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator > (std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator >=(std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
+
+  auto operator + (std::int32_t a, complex const& b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator - (std::int32_t a, complex const& b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator * (std::int32_t a, complex const& b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator / (std::int32_t a, complex const& b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator ==(std::int32_t a, complex const& b) -> bool    { UNIMPLEMENTED(__LINE__); }
+  auto operator !=(std::int32_t a, complex const& b) -> bool    { UNIMPLEMENTED(__LINE__); }
+
+  auto operator + (exact_integer const& a, std::int32_t b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator - (exact_integer const& a, std::int32_t b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator * (exact_integer const& a, std::int32_t b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator / (exact_integer const& a, std::int32_t b) -> ratio         { UNIMPLEMENTED(__LINE__); }
+  auto operator % (exact_integer const& a, std::int32_t b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
+  auto operator ==(exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) == 0; }
+  auto operator !=(exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) != 0; }
+  auto operator < (exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) <  0; }
+  auto operator <=(exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) <= 0; }
+  auto operator > (exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) >  0; }
+  auto operator >=(exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) >= 0; }
+
   auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_add(n.value, a.value, b.value); return n; }
   auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_sub(n.value, a.value, b.value); return n; }
   auto operator * (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_mul(n.value, a.value, b.value); return n; }
@@ -55,12 +100,12 @@ namespace meevax::inline kernel
   auto operator * (exact_integer const& a, float b) -> float { return static_cast<float>(a) *  b; }
   auto operator / (exact_integer const& a, float b) -> float { return static_cast<float>(a) /  b; }
   auto operator % (exact_integer const& a, float b) -> float { return std::remainder(static_cast<float>(a), b); }
-  auto operator ==(exact_integer const& a, float b) -> bool  { return inexact_equals(static_cast<float>(a), b); }
-  auto operator !=(exact_integer const& a, float b) -> bool  { return not (a == b); }
-  auto operator < (exact_integer const& a, float b) -> bool  { return static_cast<float>(a) <  b; }
-  auto operator <=(exact_integer const& a, float b) -> bool  { return static_cast<float>(a) <= b; }
-  auto operator > (exact_integer const& a, float b) -> bool  { return static_cast<float>(a) >  b; }
-  auto operator >=(exact_integer const& a, float b) -> bool  { return static_cast<float>(a) >= b; }
+  auto operator ==(exact_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) == 0; }
+  auto operator !=(exact_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) != 0; }
+  auto operator < (exact_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) <  0; }
+  auto operator <=(exact_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) <= 0; }
+  auto operator > (exact_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) >  0; }
+  auto operator >=(exact_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) >= 0; }
 
   auto operator + (exact_integer const& a, double b) -> double { return static_cast<double>(a) +  b; }
   auto operator - (exact_integer const& a, double b) -> double { return static_cast<double>(a) -  b; }
@@ -80,6 +125,18 @@ namespace meevax::inline kernel
   auto operator / (exact_integer const& a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
   auto operator ==(exact_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(exact_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
+
+  auto operator + (ratio const& a, std::int32_t b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator - (ratio const& a, std::int32_t b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator * (ratio const& a, std::int32_t b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator / (ratio const& a, std::int32_t b) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator % (ratio const&  , std::int32_t  ) -> ratio { UNIMPLEMENTED(__LINE__); }
+  auto operator ==(ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator !=(ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator < (ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator <=(ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator > (ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator >=(ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
 
   auto operator + (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_add(q.value, a.value, ratio(b).value); return q; }
   auto operator - (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_sub(q.value, a.value, ratio(b).value); return q; }
@@ -141,12 +198,12 @@ namespace meevax::inline kernel
   auto operator * (float a, exact_integer const& b) -> float { return a *  static_cast<float>(b); }
   auto operator / (float a, exact_integer const& b) -> float { return a /  static_cast<float>(b); }
   auto operator % (float a, exact_integer const& b) -> float { return std::remainder(a, static_cast<float>(b)); }
-  auto operator ==(float a, exact_integer const& b) -> bool  { return inexact_equals(a, static_cast<float>(b)); }
-  auto operator !=(float a, exact_integer const& b) -> bool  { return not (a == b); }
-  auto operator < (float a, exact_integer const& b) -> bool  { return a <  static_cast<float>(b); }
-  auto operator <=(float a, exact_integer const& b) -> bool  { return a <= static_cast<float>(b); }
-  auto operator > (float a, exact_integer const& b) -> bool  { return a >  static_cast<float>(b); }
-  auto operator >=(float a, exact_integer const& b) -> bool  { return a >= static_cast<float>(b); }
+  auto operator ==(float a, exact_integer const& b) -> bool  { return 0 == mpz_cmp_d(b.value, a); }
+  auto operator !=(float a, exact_integer const& b) -> bool  { return 0 != mpz_cmp_d(b.value, a); }
+  auto operator < (float a, exact_integer const& b) -> bool  { return 0 <  mpz_cmp_d(b.value, a); }
+  auto operator <=(float a, exact_integer const& b) -> bool  { return 0 <= mpz_cmp_d(b.value, a); }
+  auto operator > (float a, exact_integer const& b) -> bool  { return 0 >  mpz_cmp_d(b.value, a); }
+  auto operator >=(float a, exact_integer const& b) -> bool  { return 0 >= mpz_cmp_d(b.value, a); }
 
   auto operator + (float a, ratio const& b) -> float { return a +  static_cast<float>(b); }
   auto operator - (float a, ratio const& b) -> float { return a -  static_cast<float>(b); }
@@ -172,12 +229,12 @@ namespace meevax::inline kernel
   auto operator * (double a, exact_integer const& b) -> double { return a * static_cast<double>(b); }
   auto operator / (double a, exact_integer const& b) -> double { return a / static_cast<double>(b); }
   auto operator % (double a, exact_integer const& b) -> double { return std::remainder(a, static_cast<double>(b)); }
-  auto operator ==(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) == 0; }
-  auto operator !=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) != 0; }
-  auto operator < (double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) >  0; }
-  auto operator <=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) >= 0; }
-  auto operator > (double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) <  0; }
-  auto operator >=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) <= 0; }
+  auto operator ==(double a, exact_integer const& b) -> bool   { return 0 == mpz_cmp_d(b.value, a); }
+  auto operator !=(double a, exact_integer const& b) -> bool   { return 0 != mpz_cmp_d(b.value, a); }
+  auto operator < (double a, exact_integer const& b) -> bool   { return 0 <  mpz_cmp_d(b.value, a); }
+  auto operator <=(double a, exact_integer const& b) -> bool   { return 0 <= mpz_cmp_d(b.value, a); }
+  auto operator > (double a, exact_integer const& b) -> bool   { return 0 >  mpz_cmp_d(b.value, a); }
+  auto operator >=(double a, exact_integer const& b) -> bool   { return 0 >= mpz_cmp_d(b.value, a); }
 
   auto operator + (double a, ratio const& b) -> double { return a +  static_cast<double>(b); }
   auto operator - (double a, ratio const& b) -> double { return a -  static_cast<double>(b); }
@@ -197,6 +254,13 @@ namespace meevax::inline kernel
   auto operator / (double a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
   auto operator ==(double a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(double a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
+
+  auto operator + (complex const& a, std::int32_t b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator - (complex const& a, std::int32_t b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator * (complex const& a, std::int32_t b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator / (complex const& a, std::int32_t b) -> complex { UNIMPLEMENTED(__LINE__); }
+  auto operator ==(complex const& a, std::int32_t b) -> bool    { UNIMPLEMENTED(__LINE__); }
+  auto operator !=(complex const& a, std::int32_t b) -> bool    { UNIMPLEMENTED(__LINE__); }
 
   auto operator + (complex const& a, exact_integer const& b) -> complex { return a +  complex(make(b), e0); }
   auto operator - (complex const& a, exact_integer const& b) -> complex { return a -  complex(make(b), e0); }
@@ -255,13 +319,13 @@ namespace meevax::inline kernel
     }
   }
 
-  using complex_number = std::tuple<exact_integer, ratio, float, double, complex>;
+  using complex_number = std::tuple<std::int32_t, exact_integer, ratio, float, double, complex>;
 
-  using complex_numbers = combination<exact_integer, ratio, float, double, complex>;
+  using complex_numbers = combination<std::int32_t, exact_integer, ratio, float, double, complex>;
 
-  using real_number = std::tuple<exact_integer, ratio, float, double>;
+  using real_number = std::tuple<std::int32_t, exact_integer, ratio, float, double>;
 
-  using real_numbers = combination<exact_integer, ratio, float, double>;
+  using real_numbers = combination<std::int32_t, exact_integer, ratio, float, double>;
 
   template <typename Tuple, auto I = 0, typename F>
   auto apply_to([[maybe_unused]] F f, object const& x) -> object
@@ -349,8 +413,8 @@ namespace meevax::inline kernel
   {
     auto f = []<typename T, typename U>(T const& x, U const& y)
     {
-      if constexpr (std::is_floating_point_v<T> and
-                    std::is_floating_point_v<U>)
+      if constexpr ((std::is_floating_point_v<T> and std::is_arithmetic_v<U>) or
+                    (std::is_floating_point_v<U> and std::is_arithmetic_v<T>))
       {
         return std::fmod(x, y);
       }
@@ -469,6 +533,18 @@ namespace meevax::inline kernel
     catch (std::invalid_argument const&)
     {
       throw std::invalid_argument("not a number");
+    }
+  }
+
+  auto size_cast(object const& x) -> std::size_t
+  {
+    if (auto const& t = x.type(); t == typeid(exact_integer))
+    {
+      return static_cast<std::size_t>(x.as<exact_integer>());
+    }
+    else
+    {
+      throw std::invalid_argument("not a positive integer");
     }
   }
 
@@ -979,7 +1055,7 @@ inline namespace number
       {                                                                        \
         return exact_integer(CMATH(static_cast<double>(x)));                   \
       }                                                                        \
-      else if constexpr (std::is_same_v<T, exact_integer>)                     \
+      else if constexpr (std::is_same_v<T, exact_integer> or std::is_integral_v<T>) \
       {                                                                        \
         return x;                                                              \
       }                                                                        \

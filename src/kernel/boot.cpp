@@ -253,7 +253,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("integer->char", [](let const& xs)
       {
-        return make<character>(car(xs).as<exact_integer>());
+        return make<character>(static_cast<character::int_type>(car(xs).as<exact_integer>()));
       });
 
       library.define<procedure>("char-upcase", [](let const& xs)
@@ -626,10 +626,10 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 1:
-          return make_list(car(xs).as<exact_integer>());
+          return make_list(size_cast(car(xs)));
 
         case 2:
-          return make_list(car(xs).as<exact_integer>(), cadr(xs));
+          return make_list(size_cast(car(xs)), cadr(xs));
 
         default:
           throw error(make<string>("procedure make-list takes one or two arugments, but got"), xs);
@@ -641,13 +641,13 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 1:
-          return iota(car(xs).as<exact_integer>());
+          return iota(size_cast(car(xs)));
 
         case 2:
-          return iota(car(xs).as<exact_integer>(), cadr(xs));
+          return iota(size_cast(car(xs)), cadr(xs));
 
         case 3:
-          return iota(car(xs).as<exact_integer>(), cadr(xs), caddr(xs));
+          return iota(size_cast(car(xs)), cadr(xs), caddr(xs));
 
         default:
           throw error(make<string>("procedure iota takes one to three arugments, but got"), xs);
@@ -767,12 +767,12 @@ namespace meevax::inline kernel
 
       library.define<procedure>("list-tail", [](let const& xs)
       {
-        return tail(car(xs), cadr(xs).as<exact_integer>());
+        return tail(car(xs), size_cast(cadr(xs)));
       });
 
       library.define<procedure>("list-ref", [](let const& xs)
       {
-        return head(car(xs), cadr(xs).as<exact_integer>());
+        return head(car(xs), size_cast(cadr(xs)));
       });
 
       library.define<procedure>("first",   [](let const& xs) { return head(car(xs), 0); });
@@ -788,32 +788,32 @@ namespace meevax::inline kernel
 
       library.define<procedure>("take", [](let const& xs)
       {
-        return take(car(xs), cadr(xs).as<exact_integer>());
+        return take(car(xs), size_cast(cadr(xs)));
       });
 
       library.define<procedure>("take!", [](let & xs)
       {
-        return take(car(xs), cadr(xs).as<exact_integer>());
+        return take(car(xs), size_cast(cadr(xs)));
       });
 
       library.define<procedure>("take-right", [](let const& xs)
       {
-        return take_right(car(xs), cadr(xs).as<exact_integer>());
+        return take_right(car(xs), size_cast(cadr(xs)));
       });
 
       library.define<procedure>("drop", [](let const& xs)
       {
-        return drop(car(xs), cadr(xs).as<exact_integer>());
+        return drop(car(xs), size_cast(cadr(xs)));
       });
 
       library.define<procedure>("drop-right", [](let const& xs)
       {
-        return drop_right(car(xs), cadr(xs).as<exact_integer>());
+        return drop_right(car(xs), size_cast(cadr(xs)));
       });
 
       library.define<procedure>("drop-right!", [](let & xs)
       {
-        return drop_right(car(xs), cadr(xs).as<exact_integer>());
+        return drop_right(car(xs), size_cast(cadr(xs)));
       });
 
       EXPORT2(memq);
@@ -995,7 +995,7 @@ namespace meevax::inline kernel
           return number_to_string(car(xs), 10);
 
         case 2:
-          return number_to_string(car(xs), cadr(xs).as<exact_integer>());
+          return number_to_string(car(xs), size_cast(cadr(xs)));
 
         default:
           throw error(make<string>("procedure number->string takes one or two arugments, but got"), xs);
@@ -1010,7 +1010,7 @@ namespace meevax::inline kernel
           return make_number(car(xs).as<string>(), 10);
 
         case 2:
-          return make_number(car(xs).as<string>(), cadr(xs).as<exact_integer>());
+          return make_number(car(xs).as<string>(), size_cast(cadr(xs)));
 
         default:
           throw error(make<string>("procedure string->number takes one or two arugments, but got"), xs);
@@ -1261,7 +1261,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("get-string", [](let const& xs)
       {
-        return cadr(xs).as<textual_input_port>().get(car(xs).as<exact_integer>());
+        return cadr(xs).as<textual_input_port>().get(size_cast(car(xs)));
       });
 
       library.define<procedure>("peek-char", [](let const& xs)
@@ -1286,7 +1286,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("get-u8vector", [](let const& xs)
       {
-        return cadr(xs).as<binary_input_port>().get(car(xs).as<exact_integer>());
+        return cadr(xs).as<binary_input_port>().get(size_cast(car(xs)));
       });
 
       library.define<procedure>("read", [](let const& xs)
@@ -1307,10 +1307,10 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 1:
-          return make<string>(car(xs).as<exact_integer>(), character());
+          return make<string>(size_cast(car(xs)), character());
 
         case 2:
-          return make<string>(car(xs).as<exact_integer>(), cadr(xs).as<character>());
+          return make<string>(size_cast(car(xs)), cadr(xs).as<character>());
 
         default:
           throw error(make<string>("procedure make-string takes one or two arugments, but got"), xs);
@@ -1336,12 +1336,12 @@ namespace meevax::inline kernel
 
       library.define<procedure>("string-ref", [](let const& xs)
       {
-        return make(car(xs).as<string>().at(cadr(xs).as<exact_integer>()));
+        return make(car(xs).as<string>().at(size_cast(cadr(xs))));
       });
 
       library.define<procedure>("string-set!", [](let & xs)
       {
-        car(xs).as<string>().at(cadr(xs).as<exact_integer>()) = caddr(xs).as<character>();
+        car(xs).as<string>().at(size_cast(cadr(xs))) = caddr(xs).as<character>();
       });
 
       library.define<procedure>("string=?", [](let const& xs)
@@ -1502,19 +1502,14 @@ namespace meevax::inline kernel
                                  car(xs).as<string>().rend(),
                                  unit,
                                  push);
-
         case 2:
           return std::accumulate(car(xs).as<string>().rbegin(),
-                                 std::prev(car(xs).as<string>().rend(),
-                                           cadr(xs).as<exact_integer>()),
+                                 std::prev(car(xs).as<string>().rend(), size_cast(cadr(xs))),
                                  unit,
                                  push);
-
         case 3:
-          return std::accumulate(std::prev(car(xs).as<string>().rend(),
-                                           caddr(xs).as<exact_integer>()),
-                                 std::prev(car(xs).as<string>().rend(),
-                                           cadr(xs).as<exact_integer>()),
+          return std::accumulate(std::prev(car(xs).as<string>().rend(), size_cast(caddr(xs))),
+                                 std::prev(car(xs).as<string>().rend(), size_cast(cadr(xs))),
                                  unit,
                                  push);
 
@@ -1542,18 +1537,12 @@ namespace meevax::inline kernel
         case 1:
           return make<string>(car(xs).as<string>().begin(),
                               car(xs).as<string>().end());
-
         case 2:
-          return make<string>(std::next(car(xs).as<string>().begin(),
-                                        cadr(xs).as<exact_integer>()),
+          return make<string>(std::next(car(xs).as<string>().begin(), size_cast(cadr(xs))),
                               car(xs).as<string>().end());
-
         case 3:
-          return make<string>(std::next(car(xs).as<string>().begin(),
-                                        cadr(xs).as<exact_integer>()),
-                              std::next(car(xs).as<string>().begin(),
-                                        caddr(xs).as<exact_integer>()));
-
+          return make<string>(std::next(car(xs).as<string>().begin(), size_cast(cadr(xs))),
+                              std::next(car(xs).as<string>().begin(), size_cast(caddr(xs))));
         default:
           throw error(make<string>("procedure string-copy takes one to three arugments, but got"), xs);
         }
@@ -1569,25 +1558,19 @@ namespace meevax::inline kernel
         case 3:
           std::copy(caddr(xs).as<string>().begin(),
                     caddr(xs).as<string>().end(),
-                    std::next(car(xs).as<string>().begin(),
-                              cadr(xs).as<exact_integer>()));
+                    std::next(car(xs).as<string>().begin(), size_cast(cadr(xs))));
           break;
 
         case 4:
-          std::copy(std::next(caddr(xs).as<string>().begin(),
-                              cadddr(xs).as<exact_integer>()),
+          std::copy(std::next(caddr(xs).as<string>().begin(), size_cast(cadddr(xs))),
                     caddr(xs).as<string>().end(),
-                    std::next(car(xs).as<string>().begin(),
-                              cadr(xs).as<exact_integer>()));
+                    std::next(car(xs).as<string>().begin(), size_cast(cadr(xs))));
           break;
 
         case 5:
-          std::copy(std::next(caddr(xs).as<string>().begin(),
-                              cadddr(xs).as<exact_integer>()),
-                    std::next(caddr(xs).as<string>().begin(),
-                              caddddr(xs).as<exact_integer>()),
-                    std::next(car(xs).as<string>().begin(),
-                              cadr(xs).as<exact_integer>()));
+          std::copy(std::next(caddr(xs).as<string>().begin(), size_cast(cadddr(xs))),
+                    std::next(caddr(xs).as<string>().begin(), size_cast(caddddr(xs))),
+                    std::next(car(xs).as<string>().begin(), size_cast(cadr(xs))));
           break;
 
         default:
@@ -1606,17 +1589,14 @@ namespace meevax::inline kernel
           break;
 
         case 3:
-          std::fill(std::next(car(xs).as<string>().begin(),
-                              caddr(xs).as<exact_integer>()),
+          std::fill(std::next(car(xs).as<string>().begin(), size_cast(caddr(xs))),
                     car(xs).as<string>().end(),
                     cadr(xs).as<character>());
           break;
 
         case 4:
-          std::fill(std::next(car(xs).as<string>().begin(),
-                              caddr(xs).as<exact_integer>()),
-                    std::next(car(xs).as<string>().begin(),
-                              cadddr(xs).as<exact_integer>()),
+          std::fill(std::next(car(xs).as<string>().begin(), size_cast(caddr(xs))),
+                    std::next(car(xs).as<string>().begin(), size_cast(cadddr(xs))),
                     cadr(xs).as<character>());
           break;
 
@@ -1745,10 +1725,10 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 1:
-          return make<vector>(car(xs).as<exact_integer>(), unspecified);
+          return make<vector>(size_cast(car(xs)), unspecified);
 
         case 2:
-          return make<vector>(car(xs).as<exact_integer>(), cadr(xs));
+          return make<vector>(size_cast(car(xs)), cadr(xs));
 
         default:
           throw error(make<string>("procedure make-vector takes one or two arugments, but got"), xs);
@@ -1762,12 +1742,12 @@ namespace meevax::inline kernel
 
       library.define<procedure>("vector-ref", [](let const& xs)
       {
-        return car(xs).as<vector>()[cadr(xs).as<exact_integer>()];
+        return car(xs).as<vector>()[size_cast(cadr(xs))];
       });
 
       library.define<procedure>("vector-set!", [](let & xs)
       {
-        car(xs).as<vector>()[cadr(xs).as<exact_integer>()] = caddr(xs);
+        car(xs).as<vector>()[size_cast(cadr(xs))] = caddr(xs);
       });
 
       library.define<procedure>("vector->list", [](let const& xs)
@@ -1779,22 +1759,16 @@ namespace meevax::inline kernel
                                  car(xs).as<vector>().rend(),
                                  unit,
                                  xcons);
-
         case 2:
           return std::accumulate(car(xs).as<vector>().rbegin(),
-                                 std::prev(car(xs).as<vector>().rend(),
-                                           cadr(xs).as<exact_integer>()),
+                                 std::prev(car(xs).as<vector>().rend(), size_cast(cadr(xs))),
                                  unit,
                                  xcons);
-
         case 3:
-          return std::accumulate(std::prev(car(xs).as<vector>().rend(),
-                                           caddr(xs).as<exact_integer>()),
-                                 std::prev(car(xs).as<vector>().rend(),
-                                           cadr(xs).as<exact_integer>()),
+          return std::accumulate(std::prev(car(xs).as<vector>().rend(), size_cast(caddr(xs))),
+                                 std::prev(car(xs).as<vector>().rend(), size_cast(cadr(xs))),
                                  unit,
                                  xcons);
-
         default:
           throw error(make<string>("procedure vector->list takes one to three arugments, but got"), xs);
         }
@@ -1820,17 +1794,14 @@ namespace meevax::inline kernel
           return s;
 
         case 2:
-          std::for_each(std::next(car(xs).as<vector>().begin(),
-                                  cadr(xs).as<exact_integer>()),
+          std::for_each(std::next(car(xs).as<vector>().begin(), size_cast(cadr(xs))),
                         car(xs).as<vector>().end(),
                         push_back);
           return s;
 
         case 3:
-          std::for_each(std::next(car(xs).as<vector>().begin(),
-                                  cadr(xs).as<exact_integer>()),
-                        std::next(car(xs).as<vector>().begin(),
-                                  caddr(xs).as<exact_integer>()),
+          std::for_each(std::next(car(xs).as<vector>().begin(), size_cast(cadr(xs))),
+                        std::next(car(xs).as<vector>().begin(), size_cast(caddr(xs))),
                         push_back);
           return s;
 
@@ -1858,18 +1829,12 @@ namespace meevax::inline kernel
         case 1:
           return make<vector>(car(xs).as<vector>().begin(),
                               car(xs).as<vector>().end());
-
         case 2:
-          return make<vector>(std::next(car(xs).as<vector>().begin(),
-                                        cadr(xs).as<exact_integer>()),
+          return make<vector>(std::next(car(xs).as<vector>().begin(), size_cast(cadr(xs))),
                               car(xs).as<vector>().end());
-
         case 3:
-          return make<vector>(std::next(car(xs).as<vector>().begin(),
-                                        cadr(xs).as<exact_integer>()),
-                              std::next(car(xs).as<vector>().begin(),
-                                        caddr(xs).as<exact_integer>()));
-
+          return make<vector>(std::next(car(xs).as<vector>().begin(), size_cast(cadr(xs))),
+                              std::next(car(xs).as<vector>().begin(), size_cast(caddr(xs))));
         default:
           throw error(make<string>("procedure vector-copy takes one to three arugments, but got"), xs);
         }
@@ -1885,25 +1850,19 @@ namespace meevax::inline kernel
         case 3:
           std::copy(caddr(xs).as<vector>().begin(),
                     caddr(xs).as<vector>().end(),
-                    std::next(car(xs).as<vector>().begin(),
-                              cadr(xs).as<exact_integer>()));
+                    std::next(car(xs).as<vector>().begin(), size_cast(cadr(xs))));
           break;
 
         case 4:
-          std::copy(std::next(caddr(xs).as<vector>().begin(),
-                              cadddr(xs).as<exact_integer>()),
+          std::copy(std::next(caddr(xs).as<vector>().begin(), size_cast(cadddr(xs))),
                     caddr(xs).as<vector>().end(),
-                    std::next(car(xs).as<vector>().begin(),
-                              cadr(xs).as<exact_integer>()));
+                    std::next(car(xs).as<vector>().begin(), size_cast(cadr(xs))));
           break;
 
         case 5:
-          std::copy(std::next(caddr(xs).as<vector>().begin(),
-                              cadddr(xs).as<exact_integer>()),
-                    std::next(caddr(xs).as<vector>().begin(),
-                              caddddr(xs).as<exact_integer>()),
-                    std::next(car(xs).as<vector>().begin(),
-                              cadr(xs).as<exact_integer>()));
+          std::copy(std::next(caddr(xs).as<vector>().begin(), size_cast(cadddr(xs))),
+                    std::next(caddr(xs).as<vector>().begin(), size_cast(caddddr(xs))),
+                    std::next(car(xs).as<vector>().begin(), size_cast(cadr(xs))));
           break;
 
         default:
@@ -1936,17 +1895,14 @@ namespace meevax::inline kernel
           break;
 
         case 3:
-          std::fill(std::next(car(xs).as<vector>().begin(),
-                              caddr(xs).as<exact_integer>()),
+          std::fill(std::next(car(xs).as<vector>().begin(), size_cast(caddr(xs))),
                     car(xs).as<vector>().end(),
                     cadr(xs));
           break;
 
         case 4:
-          std::fill(std::next(car(xs).as<vector>().begin(),
-                              caddr(xs).as<exact_integer>()),
-                    std::next(car(xs).as<vector>().begin(),
-                              cadddr(xs).as<exact_integer>()),
+          std::fill(std::next(car(xs).as<vector>().begin(), size_cast(caddr(xs))),
+                    std::next(car(xs).as<vector>().begin(), size_cast(cadddr(xs))),
                     cadr(xs));
           break;
         }
@@ -1966,10 +1922,10 @@ namespace meevax::inline kernel
         switch (length(xs))                                                    \
         {                                                                      \
         case 1:                                                                \
-          return make<VECTOR>(direct_initialization, static_cast<VECTOR::value_type>(0), car(xs).as<exact_integer>()); \
+          return make<VECTOR>(direct_initialization, static_cast<VECTOR::value_type>(0), size_cast(car(xs))); \
                                                                                \
         case 2:                                                                \
-          return make<VECTOR>(direct_initialization, VECTOR::input_cast(cadr(xs)), car(xs).as<exact_integer>()); \
+          return make<VECTOR>(direct_initialization, VECTOR::input_cast(cadr(xs)), size_cast(car(xs))); \
                                                                                \
         default:                                                               \
           throw error(make<string>("procedure make-" #TAG "vector takes one or two arguments, but got"), xs); \
@@ -1988,12 +1944,12 @@ namespace meevax::inline kernel
                                                                                \
       library.define<procedure>(#TAG "vector-ref", [](let const& xs)           \
       {                                                                        \
-        return VECTOR::output_cast(car(xs).as<VECTOR>()[cadr(xs).as<exact_integer>()]); \
+        return VECTOR::output_cast(car(xs).as<VECTOR>()[size_cast(cadr(xs))]); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-set!", [](let const& xs)          \
       {                                                                        \
-        car(xs).as<VECTOR>()[cadr(xs).as<exact_integer>()] = VECTOR::input_cast(caddr(xs)); \
+        car(xs).as<VECTOR>()[size_cast(cadr(xs))] = VECTOR::input_cast(caddr(xs)); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-copy", [](let const& xs)          \
@@ -2010,7 +1966,7 @@ namespace meevax::inline kernel
                                                                                \
         case 2:                                                                \
           {                                                                    \
-            std::size_t begin = cadr(xs).as<exact_integer>();                  \
+            std::size_t begin = size_cast(cadr(xs));                           \
             std::size_t end = car(xs).as<VECTOR>().size();                     \
             assert(begin <= end);                                              \
             return make<VECTOR>(car(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]); \
@@ -2018,8 +1974,8 @@ namespace meevax::inline kernel
                                                                                \
         case 3:                                                                \
           {                                                                    \
-            std::size_t begin = cadr(xs).as<exact_integer>();                  \
-            std::size_t end = caddr(xs).as<exact_integer>();                   \
+            std::size_t begin = size_cast(cadr(xs));                           \
+            std::size_t end = size_cast(caddr(xs));                            \
             assert(begin <= end);                                              \
             return make<VECTOR>(car(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]); \
           }                                                                    \
@@ -2035,7 +1991,7 @@ namespace meevax::inline kernel
         {                                                                      \
         case 3:                                                                \
           {                                                                    \
-            std::size_t at = cadr(xs).as<exact_integer>();                     \
+            std::size_t at = size_cast(cadr(xs));                              \
             std::size_t begin = 0;                                             \
             std::size_t end = caddr(xs).as<VECTOR>().size();                   \
             assert(begin <= end);                                              \
@@ -2045,8 +2001,8 @@ namespace meevax::inline kernel
                                                                                \
         case 4:                                                                \
           {                                                                    \
-            std::size_t at = cadr(xs).as<exact_integer>();                     \
-            std::size_t begin = cadddr(xs).as<exact_integer>();                \
+            std::size_t at = size_cast(cadr(xs));                              \
+            std::size_t begin = size_cast(cadddr(xs));                         \
             std::size_t end = caddr(xs).as<VECTOR>().size();                   \
             assert(begin <= end);                                              \
             car(xs).as<VECTOR>()[std::slice(at, end - begin, 1)] = caddr(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]; \
@@ -2055,9 +2011,9 @@ namespace meevax::inline kernel
                                                                                \
         case 5:                                                                \
           {                                                                    \
-            std::size_t at = cadr(xs).as<exact_integer>();                     \
-            std::size_t begin = cadddr(xs).as<exact_integer>();                \
-            std::size_t end = caddddr(xs).as<exact_integer>();                 \
+            std::size_t at = size_cast(cadr(xs));                              \
+            std::size_t begin = size_cast(cadddr(xs));                         \
+            std::size_t end = size_cast(caddddr(xs));                          \
             assert(begin <= end);                                              \
             car(xs).as<VECTOR>()[std::slice(at, end - begin, 1)] = caddr(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]; \
           }                                                                    \
@@ -2100,13 +2056,13 @@ namespace meevax::inline kernel
                                                                                \
         case 2:                                                                \
           return list(car(xs).as<VECTOR>().valarray(),                         \
-                      cadr(xs).as<exact_integer>(),                            \
+                      size_cast(cadr(xs)),                                     \
                       car(xs).as<VECTOR>().size());                            \
                                                                                \
         case 3:                                                                \
           return list(car(xs).as<VECTOR>().valarray(),                         \
-                      cadr(xs).as<exact_integer>(),                            \
-                      caddr(xs).as<exact_integer>());                          \
+                      size_cast(cadr(xs)),                                     \
+                      size_cast(caddr(xs)));                                   \
                                                                                \
         default:                                                               \
           throw error(make<string>("procedure " #TAG "vector->list takes one to three arguments, but got"), xs); \
@@ -2145,17 +2101,14 @@ namespace meevax::inline kernel
           break;
 
         case 2:
-          std::for_each(std::next(std::begin(car(xs).as<u8vector>().valarray()),
-                                  cadr(xs).as<exact_integer>()),
+          std::for_each(std::next(std::begin(car(xs).as<u8vector>().valarray()), size_cast(cadr(xs))),
                         std::end(car(xs).as<u8vector>().valarray()),
                         print);
           break;
 
         case 3:
-          std::for_each(std::next(std::begin(car(xs).as<u8vector>().valarray()),
-                                  cadr(xs).as<exact_integer>()),
-                        std::next(std::begin(car(xs).as<u8vector>().valarray()),
-                                  caddr(xs).as<exact_integer>()),
+          std::for_each(std::next(std::begin(car(xs).as<u8vector>().valarray()), size_cast(cadr(xs))),
+                        std::next(std::begin(car(xs).as<u8vector>().valarray()), size_cast(caddr(xs))),
                         print);
           break;
 
