@@ -24,52 +24,50 @@
 #include <meevax/kernel/string.hpp>
 #include <meevax/utility/combination.hpp>
 
-#define UNIMPLEMENTED(LINE) throw std::runtime_error("UNIMPLEMENTED " + std::to_string(LINE))
-
 namespace meevax::inline kernel
 {
-  auto operator * (std::int32_t a, exact_integer const& b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
-  auto operator + (std::int32_t a, exact_integer const& b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
-  auto operator - (std::int32_t a, exact_integer const& b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
-  auto operator / (std::int32_t a, exact_integer const& b) -> ratio         { UNIMPLEMENTED(__LINE__); }
-  auto operator % (std::int32_t a, exact_integer const& b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
-  auto operator !=(std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
-  auto operator < (std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
-  auto operator <=(std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
-  auto operator ==(std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
-  auto operator > (std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
-  auto operator >=(std::int32_t a, exact_integer const& b) -> bool          { UNIMPLEMENTED(__LINE__); }
+  auto operator * (std::int32_t a, exact_integer const& b) -> exact_integer { return exact_integer(a) * b; }
+  auto operator + (std::int32_t a, exact_integer const& b) -> exact_integer { return exact_integer(a) + b; }
+  auto operator - (std::int32_t a, exact_integer const& b) -> exact_integer { return exact_integer(a) - b; }
+  auto operator / (std::int32_t a, exact_integer const& b) -> ratio         { return exact_integer(a) / b; }
+  auto operator % (std::int32_t a, exact_integer const& b) -> exact_integer { return exact_integer(a) % b; }
+  auto operator !=(std::int32_t a, exact_integer const& b) -> bool          { return 0 == mpz_cmp_si(b.value, a); }
+  auto operator < (std::int32_t a, exact_integer const& b) -> bool          { return 0 != mpz_cmp_si(b.value, a); }
+  auto operator <=(std::int32_t a, exact_integer const& b) -> bool          { return 0 <  mpz_cmp_si(b.value, a); }
+  auto operator ==(std::int32_t a, exact_integer const& b) -> bool          { return 0 <= mpz_cmp_si(b.value, a); }
+  auto operator > (std::int32_t a, exact_integer const& b) -> bool          { return 0 >  mpz_cmp_si(b.value, a); }
+  auto operator >=(std::int32_t a, exact_integer const& b) -> bool          { return 0 >= mpz_cmp_si(b.value, a); }
 
-  auto operator + (std::int32_t a, ratio const& b) -> ratio { UNIMPLEMENTED(__LINE__); }
-  auto operator - (std::int32_t a, ratio const& b) -> ratio { UNIMPLEMENTED(__LINE__); }
-  auto operator * (std::int32_t a, ratio const& b) -> ratio { UNIMPLEMENTED(__LINE__); }
-  auto operator / (std::int32_t a, ratio const& b) -> ratio { UNIMPLEMENTED(__LINE__); }
-  auto operator % (std::int32_t  , ratio const&  ) -> ratio { UNIMPLEMENTED(__LINE__); }
-  auto operator ==(std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
-  auto operator !=(std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
-  auto operator < (std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
-  auto operator <=(std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
-  auto operator > (std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
-  auto operator >=(std::int32_t a, ratio const& b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator + (std::int32_t a, ratio const& b) -> ratio { ratio q; mpq_add(q.value, ratio(a).value, b.value); return q; }
+  auto operator - (std::int32_t a, ratio const& b) -> ratio { ratio q; mpq_sub(q.value, ratio(a).value, b.value); return q; }
+  auto operator * (std::int32_t a, ratio const& b) -> ratio { ratio q; mpq_mul(q.value, ratio(a).value, b.value); return q; }
+  auto operator / (std::int32_t a, ratio const& b) -> ratio { ratio q; mpq_div(q.value, ratio(a).value, b.value); return q; }
+  auto operator % (std::int32_t  , ratio const&  ) -> ratio { throw std::runtime_error("unimplemented operation"); }
+  auto operator ==(std::int32_t a, ratio const& b) -> bool  { return 0 == mpq_cmp_si(b.value, a, 1); }
+  auto operator !=(std::int32_t a, ratio const& b) -> bool  { return 0 != mpq_cmp_si(b.value, a, 1); }
+  auto operator < (std::int32_t a, ratio const& b) -> bool  { return 0 <  mpq_cmp_si(b.value, a, 1); }
+  auto operator <=(std::int32_t a, ratio const& b) -> bool  { return 0 <= mpq_cmp_si(b.value, a, 1); }
+  auto operator > (std::int32_t a, ratio const& b) -> bool  { return 0 >  mpq_cmp_si(b.value, a, 1); }
+  auto operator >=(std::int32_t a, ratio const& b) -> bool  { return 0 >= mpq_cmp_si(b.value, a, 1); }
 
-  auto operator + (std::int32_t a, complex const& b) -> complex { UNIMPLEMENTED(__LINE__); }
-  auto operator - (std::int32_t a, complex const& b) -> complex { UNIMPLEMENTED(__LINE__); }
-  auto operator * (std::int32_t a, complex const& b) -> complex { UNIMPLEMENTED(__LINE__); }
-  auto operator / (std::int32_t a, complex const& b) -> complex { UNIMPLEMENTED(__LINE__); }
-  auto operator ==(std::int32_t a, complex const& b) -> bool    { UNIMPLEMENTED(__LINE__); }
-  auto operator !=(std::int32_t a, complex const& b) -> bool    { UNIMPLEMENTED(__LINE__); }
+  auto operator + (std::int32_t a, complex const& b) -> complex { return complex(make(a), make<std::int32_t>(0)) +  b; }
+  auto operator - (std::int32_t a, complex const& b) -> complex { return complex(make(a), make<std::int32_t>(0)) -  b; }
+  auto operator * (std::int32_t a, complex const& b) -> complex { return complex(make(a), make<std::int32_t>(0)) *  b; }
+  auto operator / (std::int32_t a, complex const& b) -> complex { return complex(make(a), make<std::int32_t>(0)) /  b; }
+  auto operator ==(std::int32_t a, complex const& b) -> bool    { return complex(make(a), make<std::int32_t>(0)) == b; }
+  auto operator !=(std::int32_t a, complex const& b) -> bool    { return complex(make(a), make<std::int32_t>(0)) != b; }
 
-  auto operator + (exact_integer const& a, std::int32_t b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
-  auto operator - (exact_integer const& a, std::int32_t b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
-  auto operator * (exact_integer const& a, std::int32_t b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
-  auto operator / (exact_integer const& a, std::int32_t b) -> ratio         { UNIMPLEMENTED(__LINE__); }
-  auto operator % (exact_integer const& a, std::int32_t b) -> exact_integer { UNIMPLEMENTED(__LINE__); }
-  auto operator ==(exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) == 0; }
-  auto operator !=(exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) != 0; }
-  auto operator < (exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) <  0; }
-  auto operator <=(exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) <= 0; }
-  auto operator > (exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) >  0; }
-  auto operator >=(exact_integer const& a, std::int32_t b) -> bool { return mpz_cmp_si(a.value, b) >= 0; }
+  auto operator + (exact_integer const& a, std::int32_t b) -> exact_integer { return a + exact_integer(b); }
+  auto operator - (exact_integer const& a, std::int32_t b) -> exact_integer { return a - exact_integer(b); }
+  auto operator * (exact_integer const& a, std::int32_t b) -> exact_integer { return a * exact_integer(b); }
+  auto operator / (exact_integer const& a, std::int32_t b) -> ratio         { return a / exact_integer(b); }
+  auto operator % (exact_integer const& a, std::int32_t b) -> exact_integer { return a % exact_integer(b); }
+  auto operator ==(exact_integer const& a, std::int32_t b) -> bool          { return mpz_cmp_si(a.value, b) == 0; }
+  auto operator !=(exact_integer const& a, std::int32_t b) -> bool          { return mpz_cmp_si(a.value, b) != 0; }
+  auto operator < (exact_integer const& a, std::int32_t b) -> bool          { return mpz_cmp_si(a.value, b) <  0; }
+  auto operator <=(exact_integer const& a, std::int32_t b) -> bool          { return mpz_cmp_si(a.value, b) <= 0; }
+  auto operator > (exact_integer const& a, std::int32_t b) -> bool          { return mpz_cmp_si(a.value, b) >  0; }
+  auto operator >=(exact_integer const& a, std::int32_t b) -> bool          { return mpz_cmp_si(a.value, b) >= 0; }
 
   auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_add(n.value, a.value, b.value); return n; }
   auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_sub(n.value, a.value, b.value); return n; }
@@ -126,17 +124,17 @@ namespace meevax::inline kernel
   auto operator ==(exact_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(exact_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
 
-  auto operator + (ratio const& a, std::int32_t b) -> ratio { UNIMPLEMENTED(__LINE__); }
-  auto operator - (ratio const& a, std::int32_t b) -> ratio { UNIMPLEMENTED(__LINE__); }
-  auto operator * (ratio const& a, std::int32_t b) -> ratio { UNIMPLEMENTED(__LINE__); }
-  auto operator / (ratio const& a, std::int32_t b) -> ratio { UNIMPLEMENTED(__LINE__); }
-  auto operator % (ratio const&  , std::int32_t  ) -> ratio { UNIMPLEMENTED(__LINE__); }
-  auto operator ==(ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
-  auto operator !=(ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
-  auto operator < (ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
-  auto operator <=(ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
-  auto operator > (ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
-  auto operator >=(ratio const& a, std::int32_t b) -> bool  { UNIMPLEMENTED(__LINE__); }
+  auto operator + (ratio const& a, std::int32_t b) -> ratio { ratio q; mpq_add(q.value, a.value, ratio(b).value); return q; }
+  auto operator - (ratio const& a, std::int32_t b) -> ratio { ratio q; mpq_sub(q.value, a.value, ratio(b).value); return q; }
+  auto operator * (ratio const& a, std::int32_t b) -> ratio { ratio q; mpq_mul(q.value, a.value, ratio(b).value); return q; }
+  auto operator / (ratio const& a, std::int32_t b) -> ratio { ratio q; mpq_div(q.value, a.value, ratio(b).value); return q; }
+  auto operator % (ratio const&  , std::int32_t  ) -> ratio { throw std::invalid_argument("unimplemented operation"); }
+  auto operator ==(ratio const& a, std::int32_t b) -> bool  { return mpq_cmp_si(a.value, b, 1) == 0; }
+  auto operator !=(ratio const& a, std::int32_t b) -> bool  { return mpq_cmp_si(a.value, b, 1) != 0; }
+  auto operator < (ratio const& a, std::int32_t b) -> bool  { return mpq_cmp_si(a.value, b, 1) <  0; }
+  auto operator <=(ratio const& a, std::int32_t b) -> bool  { return mpq_cmp_si(a.value, b, 1) <= 0; }
+  auto operator > (ratio const& a, std::int32_t b) -> bool  { return mpq_cmp_si(a.value, b, 1) >  0; }
+  auto operator >=(ratio const& a, std::int32_t b) -> bool  { return mpq_cmp_si(a.value, b, 1) >= 0; }
 
   auto operator + (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_add(q.value, a.value, ratio(b).value); return q; }
   auto operator - (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_sub(q.value, a.value, ratio(b).value); return q; }
@@ -255,12 +253,12 @@ namespace meevax::inline kernel
   auto operator ==(double a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(double a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
 
-  auto operator + (complex const& a, std::int32_t b) -> complex { UNIMPLEMENTED(__LINE__); }
-  auto operator - (complex const& a, std::int32_t b) -> complex { UNIMPLEMENTED(__LINE__); }
-  auto operator * (complex const& a, std::int32_t b) -> complex { UNIMPLEMENTED(__LINE__); }
-  auto operator / (complex const& a, std::int32_t b) -> complex { UNIMPLEMENTED(__LINE__); }
-  auto operator ==(complex const& a, std::int32_t b) -> bool    { UNIMPLEMENTED(__LINE__); }
-  auto operator !=(complex const& a, std::int32_t b) -> bool    { UNIMPLEMENTED(__LINE__); }
+  auto operator + (complex const& a, std::int32_t b) -> complex { return a +  complex(make(b), make<std::int32_t>(0)); }
+  auto operator - (complex const& a, std::int32_t b) -> complex { return a -  complex(make(b), make<std::int32_t>(0)); }
+  auto operator * (complex const& a, std::int32_t b) -> complex { return a *  complex(make(b), make<std::int32_t>(0)); }
+  auto operator / (complex const& a, std::int32_t b) -> complex { return a /  complex(make(b), make<std::int32_t>(0)); }
+  auto operator ==(complex const& a, std::int32_t b) -> bool    { return a == complex(make(b), make<std::int32_t>(0)); }
+  auto operator !=(complex const& a, std::int32_t b) -> bool    { return a != complex(make(b), make<std::int32_t>(0)); }
 
   auto operator + (complex const& a, exact_integer const& b) -> complex { return a +  complex(make(b), e0); }
   auto operator - (complex const& a, exact_integer const& b) -> complex { return a -  complex(make(b), e0); }

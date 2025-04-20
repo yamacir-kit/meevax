@@ -34,6 +34,8 @@ namespace meevax::inline kernel
 
     ~ratio();
 
+    explicit ratio(std::int32_t);
+
     explicit ratio(exact_integer const&);
 
     explicit ratio(exact_integer const&, exact_integer const&);

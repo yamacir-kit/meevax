@@ -39,6 +39,12 @@ namespace meevax::inline kernel
     mpq_canonicalize(value);
   }
 
+  ratio::ratio(std::int32_t n)
+  {
+    mpq_init(value);
+    mpq_set_si(value, n, 1);
+  }
+
   ratio::ratio(exact_integer const& z)
   {
     mpq_init(value);
