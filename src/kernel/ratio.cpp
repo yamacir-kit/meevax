@@ -93,21 +93,6 @@ namespace meevax::inline kernel
     return exact_integer(mpq_numref(value));
   }
 
-  ratio::operator int() const
-  {
-    return mpq_get_d(value);
-  }
-
-  ratio::operator float() const
-  {
-    return mpq_get_d(value);
-  }
-
-  ratio::operator double() const
-  {
-    return mpq_get_d(value);
-  }
-
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &
   {
     auto free = [](char * data)

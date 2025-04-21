@@ -238,7 +238,7 @@ namespace meevax::inline kernel
       {
         if (auto digit_value = car(xs).as<character>().digit_value(); digit_value)
         {
-          return make<exact_integer>(*digit_value);
+          return make<std::int32_t>(*digit_value);
         }
         else
         {
@@ -248,12 +248,12 @@ namespace meevax::inline kernel
 
       library.define<procedure>("char->integer", [](let const& xs)
       {
-        return make<exact_integer>(car(xs).as<character>().codepoint);
+        return make<std::int32_t>(car(xs).as<character>().codepoint);
       });
 
       library.define<procedure>("integer->char", [](let const& xs)
       {
-        return make<character>(static_cast<character::int_type>(car(xs).as<exact_integer>()));
+        return make<character>(exact_integer_cast<character::int_type>(car(xs)));
       });
 
       library.define<procedure>("char-upcase", [](let const& xs)
@@ -305,7 +305,7 @@ namespace meevax::inline kernel
         }
         else
         {
-          throw static_cast<int>(status.as<exact_integer>());
+          throw exact_integer_cast<int>(status);
         }
       });
 
@@ -539,7 +539,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("binary64-integer-log-binary", [](let const& xs)
       {
-        return make<exact_integer>(std::ilogb(car(xs).as<double>()));
+        return make<std::int32_t>(std::ilogb(car(xs).as<double>()));
       });
 
       library.define<procedure>("binary64-normalized-fraction", [](let const& xs)
@@ -552,7 +552,7 @@ namespace meevax::inline kernel
       {
         auto exponent = 0;
         std::frexp(car(xs).as<double>(), &exponent);
-        return make<exact_integer>(exponent);
+        return make<std::int64_t>(exponent);
       });
 
       library.define<procedure>("binary64-sign-bit", [](let const& xs)
@@ -603,7 +603,7 @@ namespace meevax::inline kernel
       {
         auto quotient = 0;
         auto remainder = std::remquo(car(xs).as<double>(), cadr(xs).as<double>(), &quotient);
-        return cons(make(remainder), make<exact_integer>(quotient));
+        return cons(make(remainder), make<std::int64_t>(quotient));
       });
     });
 
@@ -682,7 +682,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("length", [](let const& xs)
       {
-        return make<exact_integer>(length(car(xs)));
+        return make(static_cast<std::int32_t>(length(car(xs))));
       });
 
       library.define<procedure>("length+", [](let const& xs) -> object
@@ -693,7 +693,7 @@ namespace meevax::inline kernel
         }
         else
         {
-          return make<exact_integer>(length(car(xs)));
+          return make(static_cast<std::int32_t>(length(car(xs))));
         }
       });
 
@@ -841,7 +841,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("exact-integer?", [](let const& xs)
       {
-        return car(xs).is<exact_integer>();
+        return car(xs).is<std::int32_t>() or car(xs).is<exact_integer>();
       });
 
       library.define<procedure>("=", [](let const& xs)
@@ -977,7 +977,19 @@ namespace meevax::inline kernel
 
       library.define<procedure>("exact-integer-square-root", [](let const& xs)
       {
-        auto&& [s, r] = car(xs).as<exact_integer>().sqrt();
+        auto sqrt = [](let const& x)
+        {
+          if (x.is<std::int32_t>())
+          {
+            return exact_integer(x.as<std::int32_t>()).sqrt();
+          }
+          else
+          {
+            return x.as<exact_integer>().sqrt();
+          }
+        };
+
+        auto&& [s, r] = sqrt(car(xs));
 
         return cons(make(std::forward<decltype(s)>(s)),
                     make(std::forward<decltype(r)>(r)));
@@ -1331,7 +1343,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("string-length", [](let const& xs)
       {
-        return make<exact_integer>(car(xs).as<string>().size());
+        return make(static_cast<std::int32_t>(car(xs).as<string>().size())); // XXX DIRTY HACK (MAKE exact_integer IF THE LENGTH IS GREATER THAN INT_MAX)
       });
 
       library.define<procedure>("string-ref", [](let const& xs)
@@ -1737,7 +1749,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("vector-length", [](let const& xs)
       {
-        return make<exact_integer>(car(xs).as<vector>().size());
+        return make(static_cast<std::int32_t>(car(xs).as<vector>().size()));
       });
 
       library.define<procedure>("vector-ref", [](let const& xs)
@@ -1939,7 +1951,7 @@ namespace meevax::inline kernel
                                                                                \
       library.define<procedure>(#TAG "vector-length", [](let const& xs)        \
       {                                                                        \
-        return make<exact_integer>(car(xs).as<VECTOR>().size());               \
+        return make(static_cast<std::int32_t>(car(xs).as<VECTOR>().size()));   \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-ref", [](let const& xs)           \
@@ -2152,7 +2164,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("put-u8", [](let const& xs)
       {
-        cadr(xs).as<binary_output_port>().put(car(xs).as<exact_integer>());
+        cadr(xs).as<binary_output_port>().put(exact_integer_cast<std::uint8_t>(car(xs)));
       });
 
       library.define<procedure>("put-u8vector", [](let const& xs)

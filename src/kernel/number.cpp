@@ -31,10 +31,10 @@ namespace meevax::inline kernel
   auto operator - (std::int32_t a, exact_integer const& b) -> exact_integer { return exact_integer(a) - b; }
   auto operator / (std::int32_t a, exact_integer const& b) -> ratio         { return exact_integer(a) / b; }
   auto operator % (std::int32_t a, exact_integer const& b) -> exact_integer { return exact_integer(a) % b; }
-  auto operator !=(std::int32_t a, exact_integer const& b) -> bool          { return 0 == mpz_cmp_si(b.value, a); }
-  auto operator < (std::int32_t a, exact_integer const& b) -> bool          { return 0 != mpz_cmp_si(b.value, a); }
-  auto operator <=(std::int32_t a, exact_integer const& b) -> bool          { return 0 <  mpz_cmp_si(b.value, a); }
-  auto operator ==(std::int32_t a, exact_integer const& b) -> bool          { return 0 <= mpz_cmp_si(b.value, a); }
+  auto operator ==(std::int32_t a, exact_integer const& b) -> bool          { return 0 == mpz_cmp_si(b.value, a); }
+  auto operator !=(std::int32_t a, exact_integer const& b) -> bool          { return 0 != mpz_cmp_si(b.value, a); }
+  auto operator < (std::int32_t a, exact_integer const& b) -> bool          { return 0 <  mpz_cmp_si(b.value, a); }
+  auto operator <=(std::int32_t a, exact_integer const& b) -> bool          { return 0 <= mpz_cmp_si(b.value, a); }
   auto operator > (std::int32_t a, exact_integer const& b) -> bool          { return 0 >  mpz_cmp_si(b.value, a); }
   auto operator >=(std::int32_t a, exact_integer const& b) -> bool          { return 0 >= mpz_cmp_si(b.value, a); }
 
@@ -325,6 +325,8 @@ namespace meevax::inline kernel
 
   using real_numbers = combination<std::int32_t, exact_integer, ratio, float, double>;
 
+  using exact_integers = combination<std::int32_t, exact_integer>;
+
   template <typename Tuple, auto I = 0, typename F>
   auto apply_to([[maybe_unused]] F f, object const& x) -> object
   {
@@ -536,7 +538,11 @@ namespace meevax::inline kernel
 
   auto size_cast(object const& x) -> std::size_t
   {
-    if (auto const& t = x.type(); t == typeid(exact_integer))
+    if (auto const& t = x.type(); t == typeid(std::int32_t))
+    {
+      return static_cast<std::size_t>(x.as<std::int32_t>());
+    }
+    else if (t == typeid(exact_integer))
     {
       return static_cast<std::size_t>(x.as<exact_integer>());
     }
@@ -551,6 +557,11 @@ inline namespace number
   auto equals(object const& x, object const& y) -> bool
   {
     return test<complex_numbers>(inexact_equals, x, y);
+  }
+
+  auto exact_integer_equals(object const& x, object const& y) -> bool
+  {
+    return test<exact_integers>(std::equal_to(), x, y);
   }
 
   auto not_equals(object const& x, object const& y) -> bool
@@ -699,7 +710,7 @@ inline namespace number
       }
       else
       {
-        return std::is_same_v<T, ratio> or std::is_same_v<T, exact_integer>;
+        return std::is_same_v<T, std::int32_t> or std::is_same_v<T, exact_integer> or  std::is_same_v<T, ratio>;
       }
     };
 
@@ -782,8 +793,7 @@ inline namespace number
 
   auto is_even(object const& x) -> bool
   {
-    let static const e2 = make<exact_integer>(2);
-    return is_zero(remainder(x, e2));
+    return is_zero(remainder(x, make<std::int32_t>(2)));
   }
 
   auto abs(object const& x) -> object
@@ -806,8 +816,7 @@ inline namespace number
       }
       else
       {
-        static auto const zero = static_cast<exact_integer>(0);
-        return x < zero ? zero - x : x;
+        return x < 0 ? 0 - x : x;
       }
     };
 

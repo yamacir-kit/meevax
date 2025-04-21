@@ -40,7 +40,7 @@ namespace meevax::inline kernel
       return true;
     }
 
-    auto put(exact_integer const& x) -> void override
+    auto put(std::uint8_t x) -> void override
     {
       vector.push_back(static_cast<T>(x));
     }

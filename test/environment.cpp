@@ -11,10 +11,10 @@ auto main() -> int
 {
   using namespace meevax;
 
-  const auto specials_count = 6;
+  const auto specials_count = 4;
   {
-    assert(e0.is<exact_integer>());
-    assert(e1.is<exact_integer>());
+    assert(e0.is<std::int32_t>());
+    assert(e1.is<std::int32_t>());
     assert(eof_object.is<eof>());
     assert(undefined.is<ghost>());
     assert(unspecified.is<ghost>());

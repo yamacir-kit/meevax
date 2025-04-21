@@ -335,11 +335,34 @@ inline namespace kernel
     }
   };
 
-  auto size_cast(object const&) -> std::size_t;
+  auto size_cast(object const&) -> std::size_t; // TODO REMOVE THIS! USE exact_integer_cast
+
+  template <typename T>
+  auto exact_integer_cast(object const& x)
+  {
+    if (auto const& t = x.type(); t == typeid(std::int32_t))
+    {
+      return static_cast<T>(x.as<std::int32_t>());
+    }
+    else if (t == typeid(exact_integer))
+    {
+      return static_cast<T>(x.as<exact_integer>());
+    }
+    else if (t == typeid(ratio))
+    {
+      return static_cast<T>(x.as<ratio>());
+    }
+    else
+    {
+      throw std::invalid_argument("not an exact integer");
+    }
+  }
 
 inline namespace number
 {
   auto equals(object const&, object const&) -> bool;
+
+  auto exact_integer_equals(object const&, object const&) -> bool;
 
   auto not_equals(object const&, object const&) -> bool;
 
