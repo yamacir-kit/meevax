@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
 #include <meevax/kernel/complex.hpp>
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/ratio.hpp>
 
@@ -335,8 +336,6 @@ inline namespace kernel
     }
   };
 
-  auto size_cast(object const&) -> std::size_t; // TODO REMOVE THIS! USE exact_integer_cast
-
   template <typename T>
   auto exact_integer_cast(object const& x)
   {
@@ -354,7 +353,7 @@ inline namespace kernel
     }
     else
     {
-      throw std::invalid_argument("not an exact integer");
+      throw error(make<string>("not an exact integer"), x);
     }
   }
 

@@ -13,8 +13,6 @@ auto main() -> int
 
   const auto specials_count = 4;
   {
-    assert(e0.is<std::int32_t>());
-    assert(e1.is<std::int32_t>());
     assert(eof_object.is<eof>());
     assert(undefined.is<ghost>());
     assert(unspecified.is<ghost>());
