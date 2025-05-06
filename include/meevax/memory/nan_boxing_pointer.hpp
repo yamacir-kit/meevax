@@ -206,6 +206,10 @@ namespace meevax::inline memory
         {                                                                      \
           return os << yellow('#', as<TYPE>() ? 't' : 'f');                    \
         }                                                                      \
+        else if constexpr (std::is_arithmetic_v<TYPE>)                         \
+        {                                                                      \
+          return os << std::dec << yellow(as<TYPE>());                         \
+        }                                                                      \
         else                                                                   \
         {                                                                      \
           return os << yellow(as<TYPE>());                                     \

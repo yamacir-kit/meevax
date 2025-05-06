@@ -29,7 +29,7 @@ namespace meevax::inline kernel
 
   inline auto eqv = [](auto const& x, auto const& y)
   {
-    return eq(x, y) or x.compare(y) or exact_integer_equals(x, y);
+    return eq(x, y) or x.equal1(y) or exact_integer_equals(x, y);
   };
 
   auto equal(object const&, object const&) -> bool;

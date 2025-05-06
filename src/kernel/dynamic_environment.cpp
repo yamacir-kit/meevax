@@ -160,7 +160,7 @@ namespace meevax::inline kernel
         *  s e (%current i . c) => (a[i] . s) e c d
         *
         * ------------------------------------------------------------------- */
-        assert(cadr(c).template is<exact_integer>());
+        assert(cadr(c).template is<std::int32_t>());
         s = cons(a[size_cast(cadr(c))], s);
         c = cddr(c);
         goto fetch;
@@ -439,7 +439,7 @@ namespace meevax::inline kernel
         *  (x . s) e (%install i . c) d => (x . s) e c d
         *
         * ------------------------------------------------------------------- */
-        assert(cadr(c).template is<exact_integer>());
+        assert(cadr(c).template is<std::int32_t>());
         a[size_cast(cadr(c))] = car(s);
         c = cddr(c);
         goto fetch;

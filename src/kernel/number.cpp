@@ -406,7 +406,21 @@ namespace meevax::inline kernel
 
   auto operator /(object const& x, object const& y) -> object
   {
-    return apply_to<complex_numbers>(std::divides(), x, y);
+    auto f = []<typename T, typename U>(T const& x, U const& y)
+    {
+      if constexpr (std::is_same_v<T, std::int32_t> and
+                    std::is_same_v<U, std::int32_t>)
+      {
+        return make<ratio>(exact_integer(x),
+                           exact_integer(y));
+      }
+      else
+      {
+        return x / y;
+      }
+    };
+
+    return apply_to<complex_numbers>(f, x, y);
   }
 
   auto operator % (object const& x, object const& y) -> object
@@ -429,7 +443,23 @@ namespace meevax::inline kernel
 
   auto make_integer(std::string const& literal, int radix) -> object
   {
-    return make<exact_integer>(literal, radix);
+    try
+    {
+      auto index = std::size_t();
+
+      if (let i = make<std::int32_t>(std::stoi(literal, &index, radix)); index == literal.size())
+      {
+        return i;
+      }
+      else
+      {
+        return make<exact_integer>(literal, radix);
+      }
+    }
+    catch (...)
+    {
+      return make<exact_integer>(literal, radix);
+    }
   }
 
   auto make_rational(std::string const& literal, int radix) -> object
@@ -667,7 +697,8 @@ inline namespace number
       }
       else
       {
-        return std::is_same_v<T, exact_integer> or
+        return std::is_same_v<T, std::int32_t> or
+               std::is_same_v<T, exact_integer> or
                std::is_same_v<T, ratio>;
       }
     };
@@ -693,7 +724,7 @@ inline namespace number
       }
       else
       {
-        return std::is_same_v<T, exact_integer>;
+        return std::is_same_v<T, std::int32_t> or std::is_same_v<T, exact_integer>;
       }
     };
 
@@ -863,7 +894,20 @@ inline namespace number
       {
         auto sqrt = [](auto const& x)
         {
-          if constexpr (std::is_same_v<T, exact_integer>)
+          if constexpr (std::is_same_v<T, std::int32_t>)
+          {
+            auto s = std::sqrt(static_cast<double>(x));
+
+            if (auto i = static_cast<std::int32_t>(s); i * i == x)
+            {
+              return make(i);
+            }
+            else
+            {
+              return make(s);
+            }
+          }
+          else if constexpr (std::is_same_v<T, exact_integer>)
           {
             auto const [s, r] = x.sqrt();
 
@@ -907,6 +951,11 @@ inline namespace number
 
         return complex(make(z.real()),
                        make(z.imag()));
+      }
+      else if constexpr (std::is_same_v<T, std::int32_t> and
+                         std::is_same_v<U, std::int32_t>)
+      {
+        return static_cast<std::int32_t>(std::pow(x, y));
       }
       else if constexpr (std::is_same_v<T, exact_integer> and
                          std::is_same_v<U, exact_integer>)
@@ -1035,6 +1084,35 @@ inline namespace number
       if constexpr (std::is_floating_point_v<T>)
       {
         return string("TODO");
+      }
+      else if constexpr (std::is_same_v<T, std::int32_t>)
+      {
+        switch (radix)
+        {
+        case 2:
+          {
+            auto s = std::bitset<32>(x).to_string();
+
+            if (const auto position = s.find('1'); position != std::string::npos)
+            {
+              return string(s.substr(position));
+            }
+            else
+            {
+              return string("0");
+            }
+          }
+
+        case 8:
+          return string(lexical_cast<std::string>(std::oct, x));
+
+        default:
+        case 10:
+          return string(lexical_cast<std::string>(std::dec, x));
+
+        case 16:
+          return string(lexical_cast<std::string>(std::hex, x));
+        }
       }
       else if constexpr (std::is_same_v<T, exact_integer>)
       {

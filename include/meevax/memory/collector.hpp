@@ -48,6 +48,12 @@ namespace meevax::inline memory
 
   inline constexpr list_initialization_tag list_initialization {};
 
+  template <typename T>
+  struct equivalence
+  {
+    static inline constexpr auto strictness = 0;
+  };
+
   /*
      This mark-and-sweep garbage collector is based on the implementation of
      gc_ptr written by William E. Kempf and posted to CodeProject.
@@ -63,7 +69,9 @@ namespace meevax::inline memory
     {
       virtual ~top() = default;
 
-      virtual auto compare(top const*) const -> bool = 0;
+      virtual auto equal1(top const*) const -> bool = 0;
+
+      virtual auto equal2(top const*) const -> bool = 0;
 
       virtual auto type() const noexcept -> std::type_info const& = 0;
 
@@ -119,9 +127,28 @@ namespace meevax::inline memory
 
       ~binder() override = default;
 
-      auto compare([[maybe_unused]] top const* other) const -> bool override
+      auto equal1([[maybe_unused]] top const* other) const -> bool override
       {
-        if constexpr (is_equality_comparable_v<Bound const&>)
+        if constexpr (is_equality_comparable_v<Bound const&> and equivalence<Bound>::strictness <= 1)
+        {
+          if (auto const* bound = dynamic_cast<Bound const*>(other); bound)
+          {
+            return *bound == static_cast<Bound const&>(*this);
+          }
+          else
+          {
+            return std::is_same_v<Bound, std::nullptr_t>;
+          }
+        }
+        else
+        {
+          return false;
+        }
+      }
+
+      auto equal2([[maybe_unused]] top const* other) const -> bool override
+      {
+        if constexpr (is_equality_comparable_v<Bound const&> and equivalence<Bound>::strictness <= 2)
         {
           if (auto const* bound = dynamic_cast<Bound const*>(other); bound)
           {
@@ -314,11 +341,23 @@ namespace meevax::inline memory
         return as<std::add_const_t<U>>();
       }
 
-      inline auto compare(mutator const& rhs) const -> bool
+      inline auto equal1(mutator const& rhs) const -> bool
       {
         if (pointer::dereferenceable())
         {
-          return *this ? pointer::unsafe_get()->compare(rhs.get()) : rhs.is<std::nullptr_t>();
+          return *this ? pointer::unsafe_get()->equal1(rhs.get()) : rhs.is<std::nullptr_t>();
+        }
+        else
+        {
+          return pointer::compare(rhs);
+        }
+      }
+
+      inline auto equal2(mutator const& rhs) const -> bool
+      {
+        if (pointer::dereferenceable())
+        {
+          return *this ? pointer::unsafe_get()->equal2(rhs.get()) : rhs.is<std::nullptr_t>();
         }
         else
         {

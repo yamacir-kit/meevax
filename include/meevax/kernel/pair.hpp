@@ -155,7 +155,9 @@ namespace meevax::inline kernel
 
     ~pair() override = default;
 
-    auto compare(top const*) const -> bool override;
+    auto equal1(top const*) const -> bool override;
+
+    auto equal2(top const*) const -> bool override;
 
     auto type() const noexcept -> std::type_info const& override;
 
@@ -279,6 +281,12 @@ namespace meevax::inline kernel
   inline constexpr auto caddddr = compose(car, cddddr);
   inline constexpr auto cdddddr = compose(cdr, cddddr);
 } // namespace meevax::kernel
+
+template <>
+struct meevax::equivalence<meevax::pair>
+{
+  static inline constexpr auto strictness = 2;
+};
 
 template <>
 struct std::hash<meevax::object>

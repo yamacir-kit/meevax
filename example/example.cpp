@@ -23,13 +23,11 @@ extern "C"
 
     for (let const& x : xs)
     {
-      if (x.is<exact_integer>())
+      if (x.is<std::int32_t>())
       {
         std::cout << "; return incremented left-most integer object." << std::endl;
 
-        auto value = static_cast<int>(x.as<exact_integer>());
-
-        return make<std::int32_t>(++value);
+        return make(x.as<std::int32_t>() + 1);
       }
     }
 

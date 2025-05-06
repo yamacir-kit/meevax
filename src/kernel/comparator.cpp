@@ -88,9 +88,9 @@ namespace meevax::inline kernel
   */
   auto equal(object const& x, object const& y, std::unordered_map<object, object> & forest) -> bool
   {
-    return eqv(x, y) or (x.is<pair>() and
-                         y.is<pair>() and (union_find(x, y, forest) or (equal(car(x), car(y), forest) and
-                                                                        equal(cdr(x), cdr(y), forest))));
+    return eqv(x, y) or x.equal2(y) or (x.is<pair>() and
+                                        y.is<pair>() and (union_find(x, y, forest) or (equal(car(x), car(y), forest) and
+                                                                                       equal(cdr(x), cdr(y), forest))));
   }
 
   auto equal(object const& x, object const& y) -> bool
