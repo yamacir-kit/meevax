@@ -77,13 +77,7 @@ namespace meevax::inline memory
 
       virtual auto write(std::ostream &) const -> std::ostream & = 0;
 
-      virtual auto view() const noexcept -> std::pair<void const*, std::size_t> = 0;
-
-      auto contains(void const* const data) const noexcept
-      {
-        auto [address, size] = view();
-        return address <= data and data < static_cast<std::byte const*>(address) + size;
-      }
+      virtual auto view() const noexcept -> std::pair<void const*, void const*> = 0;
     };
 
     static inline auto cleared = false;
@@ -182,9 +176,9 @@ namespace meevax::inline memory
         }
       }
 
-      auto view() const noexcept -> std::pair<void const*, std::size_t> override
+      auto view() const noexcept -> std::pair<void const*, void const*> override
       {
-        return { this, sizeof(*this) };
+        return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
       }
 
       auto operator new(std::size_t) -> void *
@@ -581,28 +575,31 @@ namespace meevax::inline memory
         */
         auto iter = objects.lower_bound(reinterpret_cast<top const*>(given));
 
-        return iter == begin or not (*--iter)->contains(given);
+        auto is_out_of_range = [&](top const* object)
+        {
+          auto [begin, end] = object->view();
+          return given < begin or end <= reinterpret_cast<void const*>(given);
+        };
+
+        return iter == begin or is_out_of_range(*--iter);
       };
 
-      struct mutators_view
+      struct members
       {
-        void const* data;
+        std::pair<void const*, void const*> view;
 
-        std::size_t size;
-
-        explicit constexpr mutators_view(std::pair<void const*, std::size_t> const& p)
-          : data { p.first }
-          , size { p.second }
+        explicit members(top const* object)
+          : view { object->view() }
         {}
 
         auto begin() const noexcept
         {
-          return mutators.lower_bound(reinterpret_cast<mutator const*>(data));
+          return mutators.lower_bound(reinterpret_cast<mutator const*>(view.first));
         }
 
         auto end() const noexcept
         {
-          return mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(data) + size));
+          return mutators.lower_bound(reinterpret_cast<mutator const*>(view.second));
         }
       };
 
@@ -623,7 +620,7 @@ namespace meevax::inline memory
             {
               reachables.insert(queue.front());
 
-              for (auto const& mutator : mutators_view(queue.front()->view()))
+              for (auto const& mutator : members(queue.front()))
               {
                 assert(mutator);
                 assert(mutator->unsafe_get());
