@@ -70,13 +70,20 @@ namespace meevax::inline memory
 
       constexpr const_iterator() = default;
 
-      template <typename... Ts>
-      explicit const_iterator(subset const* const* data, std::size_t i, Ts&&... xs) noexcept
+      explicit const_iterator(subset const* const* data, std::size_t i, std::uintptr_t j) noexcept
         : data { data }
         , i    { i }
       {
         assert(i <= N);
-        increment_unless_truthy(std::forward<decltype(xs)>(xs)...);
+        increment_unless_truthy(j);
+      }
+
+      explicit const_iterator(subset const* const* data, std::size_t i) noexcept
+        : data { data }
+        , i    { i }
+      {
+        assert(i <= N);
+        increment_unless_truthy();
       }
 
       explicit const_iterator(subset const* const* data) noexcept
@@ -87,36 +94,35 @@ namespace meevax::inline memory
         assert(iter.data);
       }
 
-      template <typename... Ts>
-      auto increment_unless_truthy(Ts&&... xs) noexcept -> void
+      auto increment_unless_truthy(std::uintptr_t j) noexcept -> void
       {
         assert(data);
 
-        if constexpr (0 < sizeof...(Ts))
+        if (not operator bool() or not data[i] or not (iter = data[i]->lower_bound(j)))
         {
-          if (not operator bool() or not data[i] or not (iter = data[i]->lower_bound(std::forward<decltype(xs)>(xs)...)))
-          {
-            ++i;
-            increment_unless_truthy();
-          }
+          ++i;
+          increment_unless_truthy();
         }
-        else
+      }
+
+      auto increment_unless_truthy() noexcept -> void
+      {
+        assert(data);
+
+        if (operator bool())
         {
-          if (operator bool())
+          for (; i <= hint; ++i)
           {
-            for (; i <= hint; ++i)
+            if (data[i] and (iter = data[i]->lower_bound(0)))
             {
-              if (data[i] and (iter = data[i]->lower_bound(0)))
-              {
-                return;
-              }
+              return;
             }
-
-            i = N;
           }
 
-          iter = {};
+          i = N;
         }
+
+        iter = {};
       }
 
       auto decrement_unless_truthy() noexcept -> void
@@ -190,73 +196,38 @@ namespace meevax::inline memory
       }
     }
 
-    template <std::size_t X, std::size_t... Xs>
-    static constexpr auto split(std::uintptr_t x)
+    static constexpr auto split(T value) noexcept
     {
-      constexpr auto mask = (static_cast<std::size_t>(1) << X) - 1;
-
-      constexpr auto width = (Xs + ... + compressible_bitwidth_of<T>);
-
-      if constexpr (0 < sizeof...(Xs))
-      {
-        return std::tuple_cat(std::make_tuple(x >> width & mask), split<Xs...>(x));
-      }
-      else
-      {
-        return std::make_tuple(x >> width & mask);
-      }
+      auto j = reinterpret_cast<std::uintptr_t>(value) >> compressible_bitwidth_of<T>;
+      constexpr auto mask = (static_cast<std::size_t>(1) << E) - 1;
+      auto i = j >> (Es + ...) & mask;
+      return std::make_pair(i, j);
     }
 
-    template <typename... Ts>
-    auto insert(std::size_t i, Ts&&... xs) noexcept
+    auto insert(T value) noexcept
     {
+      auto [i, j] = split(value);
+
       if (not data[i])
       {
         hint = std::max(hint, i);
         data[i] = new subset();
       }
 
-      data[i]->insert(std::forward<decltype(xs)>(xs)...);
-    }
-
-    auto insert(T value) noexcept
-    {
-      return std::apply([this](auto&&... xs)
-                        {
-                          return this->insert(std::forward<decltype(xs)>(xs)...);
-                        },
-                        split<E, Es...>(reinterpret_cast<std::uintptr_t>(value)));
-    }
-
-    template <typename... Ts>
-    auto erase(std::size_t i, Ts&&... xs) noexcept
-    {
-      assert(data[i]);
-      data[i]->erase(std::forward<decltype(xs)>(xs)...);
+      data[i]->insert(j);
     }
 
     auto erase(T value) noexcept
     {
-      return std::apply([this](auto&&... xs)
-                        {
-                          return this->erase(std::forward<decltype(xs)>(xs)...);
-                        },
-                        split<E, Es...>(reinterpret_cast<std::uintptr_t>(value)));
-    }
-
-    template <typename... Ts>
-    constexpr auto contains(std::size_t i, Ts&&... xs) const noexcept
-    {
-      return data[i] and data[i]->contains(std::forward<decltype(xs)>(xs)...);
+      auto [i, j] = split(value);
+      assert(data[i]);
+      data[i]->erase(j);
     }
 
     constexpr auto contains(T value) const noexcept -> bool
     {
-      return std::apply([this](auto&&... xs)
-                        {
-                          return this->contains(std::forward<decltype(xs)>(xs)...);
-                        },
-                        split<E, Es...>(reinterpret_cast<std::uintptr_t>(value)));
+      auto [i, j] = split(value);
+      return data[i] and data[i]->contains(j);
     }
 
     auto begin() const noexcept
@@ -269,19 +240,10 @@ namespace meevax::inline memory
       return const_iterator(data, N);
     }
 
-    template <typename... Ts>
-    auto lower_bound(std::size_t i, Ts&&... xs) const noexcept
-    {
-      return const_iterator(data, i, std::forward<decltype(xs)>(xs)...);
-    }
-
     auto lower_bound(T value) const noexcept
     {
-      return std::apply([this](auto&&... xs)
-                        {
-                          return this->lower_bound(std::forward<decltype(xs)>(xs)...);
-                        },
-                        split<E, Es...>(reinterpret_cast<std::uintptr_t>(value)));
+      auto [i, j] = split(value);
+      return const_iterator(data, i, j);
     }
 
     auto size() const noexcept -> std::size_t
@@ -312,6 +274,12 @@ namespace meevax::inline memory
     {
       return std::make_pair(reinterpret_cast<std::size_t>(x) / 64,
                             reinterpret_cast<std::size_t>(x) % 64);
+    };
+
+    static constexpr auto index = [](auto x)
+    {
+      constexpr auto mask = (static_cast<std::size_t>(1) << E) - 1;
+      return reinterpret_cast<std::size_t>(x) >> compressible_bitwidth_of<T> & mask;
     };
 
     struct const_iterator
@@ -442,25 +410,25 @@ namespace meevax::inline memory
 
     auto insert(T value) noexcept
     {
-      auto [q, r] = split(value);
+      auto [q, r] = split(index(value));
       data[q] |= (1_u64 << r);
     }
 
     auto erase(T value) noexcept
     {
-      auto [q, r] = split(value);
+      auto [q, r] = split(index(value));
       data[q] &= ~(1_u64 << r);
     }
 
     auto contains(T value) noexcept -> bool
     {
-      auto [q, r] = split(value);
+      auto [q, r] = split(index(value));
       return data[q] & (1_u64 << r);
     }
 
     auto lower_bound(T value) const noexcept
     {
-      return const_iterator(data, reinterpret_cast<std::size_t>(value));
+      return const_iterator(data, index(value));
     }
   };
 } // namespace meevax::memory
