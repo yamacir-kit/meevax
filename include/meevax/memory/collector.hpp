@@ -482,7 +482,7 @@ namespace meevax::inline memory
 
           return data;
         }
-        else
+        else [[unlikely]]
         {
           throw std::bad_alloc();
         }
