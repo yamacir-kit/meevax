@@ -66,6 +66,115 @@ namespace meevax::inline kernel
       return IDENTIFIER1(car(xs), cadr(xs));                                   \
     })
 
+    define<library>("(meevax binary32)", [](library & library)
+    {
+      library.define<procedure>("binary32?", [](let const& xs)
+      {
+        return std::numeric_limits<float>::is_iec559 and car(xs).is<float>();
+      });
+    });
+
+    define<library>("(meevax binary64)", [](library & library)
+    {
+      library.define<procedure>("binary64?", [](let const& xs)
+      {
+        return std::numeric_limits<double>::is_iec559 and car(xs).is<double>();
+      });
+
+      library.define<double>("binary64-least", std::numeric_limits<double>::min());
+
+      library.define<double>("binary64-greatest", std::numeric_limits<double>::max());
+
+      library.define<double>("binary64-epsilon", std::numeric_limits<double>::epsilon());
+
+      library.define<procedure>("binary64-integral-part", [](let const& xs)
+      {
+        auto integral_part = 0.0;
+        std::modf(car(xs).as<double>(), &integral_part);
+        return make(integral_part);
+      });
+
+      library.define<procedure>("binary64-fractional-part", [](let const& xs)
+      {
+        auto integral_part = 0.0;
+        return make(std::modf(car(xs).as<double>(), &integral_part));
+      });
+
+      library.define<procedure>("binary64-log-binary", [](let const& xs)
+      {
+        return make(std::logb(car(xs).as<double>()));
+      });
+
+      library.define<procedure>("binary64-integer-log-binary", [](let const& xs)
+      {
+        return make<std::int32_t>(std::ilogb(car(xs).as<double>()));
+      });
+
+      library.define<procedure>("binary64-normalized-fraction", [](let const& xs)
+      {
+        auto exponent = 0;
+        return make(std::frexp(car(xs).as<double>(), &exponent));
+      });
+
+      library.define<procedure>("binary64-exponent", [](let const& xs)
+      {
+        auto exponent = 0;
+        std::frexp(car(xs).as<double>(), &exponent);
+        return make<std::int64_t>(exponent);
+      });
+
+      library.define<procedure>("binary64-sign-bit", [](let const& xs)
+      {
+        return make(std::signbit(car(xs).as<double>()));
+      });
+
+      library.define<procedure>("binary64-normalized?", [](let const& xs)
+      {
+        return std::fpclassify(car(xs).as<double>()) == FP_NORMAL;
+      });
+
+      library.define<procedure>("binary64-denormalized?", [](let const& xs)
+      {
+        return std::fpclassify(car(xs).as<double>()) == FP_SUBNORMAL;
+      });
+
+      library.define<procedure>("binary64-max", [](let const& xs)
+      {
+        auto max = -std::numeric_limits<double>::infinity();
+
+        for (let const& x : xs)
+        {
+          max = std::fmax(max, x.as<double>());
+        }
+
+        return make(max);
+      });
+
+      library.define<procedure>("binary64-min", [](let const& xs)
+      {
+        auto min = std::numeric_limits<double>::infinity();
+
+        for (let const& x : xs)
+        {
+          min = std::fmin(min, x.as<double>());
+        }
+
+        return make(min);
+      });
+
+      library.define<procedure>("binary64-fused-multiply-add", [](let const& xs)
+      {
+        return make(std::fma(car(xs).as<double>(), cadr(xs).as<double>(), caddr(xs).as<double>()));
+      });
+
+      library.define<procedure>("binary64-remquo", [](let const& xs)
+      {
+        auto quotient = 0;
+        auto remainder = std::remquo(car(xs).as<double>(), cadr(xs).as<double>(), &quotient);
+        return cons(make(remainder), make<std::int64_t>(quotient));
+      });
+    });
+
     define<library>("(meevax boolean)", [](library & library)
     {
       library.define<procedure>("boolean?", [](let const& xs)
@@ -496,115 +605,6 @@ namespace meevax::inline kernel
       library.define<double>("euler", std::numbers::egamma);
 
       library.define<double>("phi", std::numbers::phi);
-    });
-
-    define<library>("(meevax binary32)", [](library & library)
-    {
-      library.define<procedure>("binary32?", [](let const& xs)
-      {
-        return std::numeric_limits<float>::is_iec559 and car(xs).is<float>();
-      });
-    });
-
-    define<library>("(meevax binary64)", [](library & library)
-    {
-      library.define<procedure>("binary64?", [](let const& xs)
-      {
-        return std::numeric_limits<double>::is_iec559 and car(xs).is<double>();
-      });
-
-      library.define<double>("binary64-least", std::numeric_limits<double>::min());
-
-      library.define<double>("binary64-greatest", std::numeric_limits<double>::max());
-
-      library.define<double>("binary64-epsilon", std::numeric_limits<double>::epsilon());
-
-      library.define<procedure>("binary64-integral-part", [](let const& xs)
-      {
-        auto integral_part = 0.0;
-        std::modf(car(xs).as<double>(), &integral_part);
-        return make(integral_part);
-      });
-
-      library.define<procedure>("binary64-fractional-part", [](let const& xs)
-      {
-        auto integral_part = 0.0;
-        return make(std::modf(car(xs).as<double>(), &integral_part));
-      });
-
-      library.define<procedure>("binary64-log-binary", [](let const& xs)
-      {
-        return make(std::logb(car(xs).as<double>()));
-      });
-
-      library.define<procedure>("binary64-integer-log-binary", [](let const& xs)
-      {
-        return make<std::int32_t>(std::ilogb(car(xs).as<double>()));
-      });
-
-      library.define<procedure>("binary64-normalized-fraction", [](let const& xs)
-      {
-        auto exponent = 0;
-        return make(std::frexp(car(xs).as<double>(), &exponent));
-      });
-
-      library.define<procedure>("binary64-exponent", [](let const& xs)
-      {
-        auto exponent = 0;
-        std::frexp(car(xs).as<double>(), &exponent);
-        return make<std::int64_t>(exponent);
-      });
-
-      library.define<procedure>("binary64-sign-bit", [](let const& xs)
-      {
-        return make(std::signbit(car(xs).as<double>()));
-      });
-
-      library.define<procedure>("binary64-normalized?", [](let const& xs)
-      {
-        return std::fpclassify(car(xs).as<double>()) == FP_NORMAL;
-      });
-
-      library.define<procedure>("binary64-denormalized?", [](let const& xs)
-      {
-        return std::fpclassify(car(xs).as<double>()) == FP_SUBNORMAL;
-      });
-
-      library.define<procedure>("binary64-max", [](let const& xs)
-      {
-        auto max = -std::numeric_limits<double>::infinity();
-
-        for (let const& x : xs)
-        {
-          max = std::fmax(max, x.as<double>());
-        }
-
-        return make(max);
-      });
-
-      library.define<procedure>("binary64-min", [](let const& xs)
-      {
-        auto min = std::numeric_limits<double>::infinity();
-
-        for (let const& x : xs)
-        {
-          min = std::fmin(min, x.as<double>());
-        }
-
-        return make(min);
-      });
-
-      library.define<procedure>("binary64-fused-multiply-add", [](let const& xs)
-      {
-        return make(std::fma(car(xs).as<double>(), cadr(xs).as<double>(), caddr(xs).as<double>()));
-      });
-
-      library.define<procedure>("binary64-remquo", [](let const& xs)
-      {
-        auto quotient = 0;
-        auto remainder = std::remquo(car(xs).as<double>(), cadr(xs).as<double>(), &quotient);
-        return cons(make(remainder), make<std::int64_t>(quotient));
-      });
     });
 
     define<library>("(meevax list)", [](library & library)
