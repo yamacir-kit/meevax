@@ -163,9 +163,9 @@ namespace meevax::inline kernel
 
     auto write(std::ostream &) const -> std::ostream & override;
 
-    auto view() const noexcept -> std::pair<void const*, std::size_t> override
+    auto view() const noexcept -> std::pair<void const*, void const*> override
     {
-      return { this, sizeof(*this) };
+      return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
     }
 
     auto begin() noexcept
