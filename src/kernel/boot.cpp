@@ -607,6 +607,14 @@ namespace meevax::inline kernel
       library.define<double>("phi", std::numbers::phi);
     });
 
+    define<library>("(meevax integer32)", [](library & library)
+    {
+      library.define<procedure>("integer32?", [](let const& xs)
+      {
+        return car(xs).is<std::int32_t>();
+      });
+    });
+
     define<library>("(meevax list)", [](library & library)
     {
       library.define<procedure>("null?", [](let const& xs)

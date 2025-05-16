@@ -98,6 +98,6 @@ namespace meevax::inline kernel
 
   auto operator <<(std::ostream & os, exact_integer const& datum) -> std::ostream &
   {
-    return os << cyan(std::unique_ptr<char, gmp_free>(mpz_get_str(nullptr, 10, datum.value)).get());
+    return os << yellow(std::unique_ptr<char, gmp_free>(mpz_get_str(nullptr, 10, datum.value)).get());
   }
 } // namespace meevax::kernel
