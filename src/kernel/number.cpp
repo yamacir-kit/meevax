@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <charconv>
 #include <memory> // std::unique_ptr
 #include <regex>
 #include <string_view>
@@ -443,22 +444,34 @@ namespace meevax::inline kernel
 
   auto make_integer(std::string const& literal, int radix) -> object
   {
-    try
-    {
-      auto index = std::size_t();
+    auto value = std::int64_t(0);
 
-      if (let i = make<std::int32_t>(std::stoi(literal, &index, radix)); index == literal.size())
+    if (auto result = std::from_chars(literal.data(), literal.data() + literal.size(), value, radix); result.ec == std::errc())
+    {
+      if (result.ptr != literal.data() + literal.size())
       {
-        return i;
+        throw std::invalid_argument("not an integer");
+      }
+      else if (std::numeric_limits<std::int32_t>::min() <= value and value <= std::numeric_limits<std::int32_t>::max())
+      {
+        return make(static_cast<std::int32_t>(value));
       }
       else
       {
         return make<exact_integer>(literal, radix);
       }
     }
-    catch (...)
+    else
     {
-      return make<exact_integer>(literal, radix);
+      switch (result.ec)
+      {
+      case std::errc::result_out_of_range:
+        return make<exact_integer>(literal, radix);
+
+      default:
+      case std::errc::invalid_argument:
+        throw std::invalid_argument("not an integer");
+      }
     }
   }
 
