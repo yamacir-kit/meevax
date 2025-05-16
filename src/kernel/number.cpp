@@ -1079,36 +1079,33 @@ inline namespace number
     {
       if constexpr (std::is_floating_point_v<T>)
       {
-        return string("TODO");
-      }
-      else if constexpr (std::is_same_v<T, std::int32_t>)
-      {
         switch (radix)
         {
         case 2:
-          {
-            auto s = std::bitset<32>(x).to_string();
-
-            if (const auto position = s.find('1'); position != std::string::npos)
-            {
-              return string(s.substr(position));
-            }
-            else
-            {
-              return string("0");
-            }
-          }
-
         case 8:
-          return string(lexical_cast<std::string>(std::oct, x));
+          return string("TODO");
 
         default:
         case 10:
-          return string(lexical_cast<std::string>(std::dec, x));
+          {
+            char buffer[48] = {};
+            std::to_chars(buffer, buffer + sizeof(buffer), x, std::chars_format::general);
+            return string(buffer);
+          }
 
         case 16:
-          return string(lexical_cast<std::string>(std::hex, x));
+          {
+            auto buffer = std::ostringstream();
+            buffer << std::hexfloat << x << std::defaultfloat;
+            return string(buffer.str());
+          }
         }
+      }
+      else if constexpr (std::is_same_v<T, std::int32_t>)
+      {
+        char buffer[33] = {};
+        std::to_chars(buffer, buffer + sizeof(buffer), x, radix);
+        return string(buffer);
       }
       else if constexpr (std::is_same_v<T, exact_integer>)
       {
