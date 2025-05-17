@@ -72,8 +72,8 @@
 (check (inexact?  (+ 1 2 3)) => #f)
 
 (check (integer32? (+ 2147483647 0)) => #t)
-(check (integer32? (+ 2147483647 1)) => #t) ; TODO
-(check (+ 2147483647 1) => -2147483648) ; TODO
+(check (integer32? (+ 2147483647 1)) => #f)
+(check (+ 2147483647 1) => 2147483648)
 
 (check (+ 1 1/2) (=> =) 3/2)
 (check (number?   (+ 1 1/2)) => #t)

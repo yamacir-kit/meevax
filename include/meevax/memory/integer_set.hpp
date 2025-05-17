@@ -30,6 +30,11 @@ namespace meevax::inline memory
   template <typename T>
   constexpr auto compressible_bitwidth_of = std::is_pointer_v<T> ? std::bit_width(alignof(std::remove_pointer_t<T>)) - 1 : 0;
 
+  constexpr auto operator ""_i64(unsigned long long int value)
+  {
+    return static_cast<std::int64_t>(value);
+  }
+
   constexpr auto operator ""_u64(unsigned long long int value)
   {
     return static_cast<std::uint64_t>(value);
