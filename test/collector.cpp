@@ -175,7 +175,7 @@ auto main() -> int
 
     assert(default_collector::count() == gc_count + 1);
     assert(x.is<exact_integer>());
-    assert(x.as<exact_integer>() == 42);
+    assert(x.as<exact_integer>() == 42_i64);
   }
 
   default_collector::collect();

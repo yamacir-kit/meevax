@@ -67,7 +67,7 @@ namespace meevax::inline kernel
     explicit operator bool() const;
 
     template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    operator T() const
+    explicit operator T() const
     {
       if constexpr (std::is_floating_point_v<T>)
       {
@@ -85,31 +85,6 @@ namespace meevax::inline kernel
 
     auto sqrt() const -> std::tuple<exact_integer, exact_integer>;
   };
-
-  #define DEFINE_COMPARISON_OPERATOR(SYMBOL)                                   \
-  template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>  \
-  auto operator SYMBOL(exact_integer const& a, T b)                            \
-  {                                                                            \
-    if constexpr (std::is_floating_point_v<T>)                                 \
-    {                                                                          \
-      return mpz_cmp_d(a.value, b) SYMBOL 0;                                   \
-    }                                                                          \
-    else if constexpr (std::is_signed_v<T>)                                    \
-    {                                                                          \
-      return mpz_cmp_si(a.value, b) SYMBOL 0;                                  \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      return mpz_cmp_ui(a.value, b) SYMBOL 0;                                  \
-    }                                                                          \
-  } static_assert(true)
-
-  DEFINE_COMPARISON_OPERATOR(==);
-  DEFINE_COMPARISON_OPERATOR(!=);
-  DEFINE_COMPARISON_OPERATOR(< );
-  DEFINE_COMPARISON_OPERATOR(<=);
-  DEFINE_COMPARISON_OPERATOR(> );
-  DEFINE_COMPARISON_OPERATOR(>=);
 
   auto operator <<(std::ostream &, exact_integer const&) -> std::ostream &;
 

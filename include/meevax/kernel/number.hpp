@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
 #include <meevax/kernel/complex.hpp>
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/ratio.hpp>
 
@@ -25,6 +26,49 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto operator * (std::int64_t, exact_integer const&) -> exact_integer;
+  auto operator + (std::int64_t, exact_integer const&) -> exact_integer;
+  auto operator - (std::int64_t, exact_integer const&) -> exact_integer;
+  auto operator / (std::int64_t, exact_integer const&) -> ratio;
+  auto operator % (std::int64_t, exact_integer const&) -> exact_integer;
+  auto operator !=(std::int64_t, exact_integer const&) -> bool;
+  auto operator < (std::int64_t, exact_integer const&) -> bool;
+  auto operator <=(std::int64_t, exact_integer const&) -> bool;
+  auto operator ==(std::int64_t, exact_integer const&) -> bool;
+  auto operator > (std::int64_t, exact_integer const&) -> bool;
+  auto operator >=(std::int64_t, exact_integer const&) -> bool;
+
+  auto operator * (std::int64_t, ratio const&) -> ratio;
+  auto operator + (std::int64_t, ratio const&) -> ratio;
+  auto operator - (std::int64_t, ratio const&) -> ratio;
+  auto operator / (std::int64_t, ratio const&) -> ratio;
+  auto operator % (std::int64_t, ratio const&) -> ratio;
+  auto operator !=(std::int64_t, ratio const&) -> bool;
+  auto operator < (std::int64_t, ratio const&) -> bool;
+  auto operator <=(std::int64_t, ratio const&) -> bool;
+  auto operator ==(std::int64_t, ratio const&) -> bool;
+  auto operator > (std::int64_t, ratio const&) -> bool;
+  auto operator >=(std::int64_t, ratio const&) -> bool;
+
+  auto operator * (std::int64_t, complex const&) -> complex;
+  auto operator + (std::int64_t, complex const&) -> complex;
+  auto operator - (std::int64_t, complex const&) -> complex;
+  auto operator / (std::int64_t, complex const&) -> complex;
+  auto operator ==(std::int64_t, complex const&) -> bool;
+  auto operator !=(std::int64_t, complex const&) -> bool;
+
+  auto operator * (exact_integer const&, std::int64_t) -> exact_integer;
+  auto operator + (exact_integer const&, std::int64_t) -> exact_integer;
+  auto operator - (exact_integer const&, std::int64_t) -> exact_integer;
+  auto operator / (exact_integer const&, std::int64_t) -> ratio;
+  auto operator % (exact_integer const&, std::int64_t) -> exact_integer;
+  auto operator !=(exact_integer const&, std::int64_t) -> bool;
+  auto operator < (exact_integer const&, std::int64_t) -> bool;
+  auto operator <=(exact_integer const&, std::int64_t) -> bool;
+  auto operator ==(exact_integer const&, std::int64_t) -> bool;
+  auto operator > (exact_integer const&, std::int64_t) -> bool;
+  auto operator >=(exact_integer const&, std::int64_t) -> bool;
+
   auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator - (exact_integer const&, exact_integer const&) -> exact_integer;
@@ -79,6 +123,18 @@ inline namespace kernel
   auto operator / (exact_integer const&, complex const&) -> complex;
   auto operator ==(exact_integer const&, complex const&) -> bool;
   auto operator !=(exact_integer const&, complex const&) -> bool;
+
+  auto operator * (ratio const&, std::int64_t) -> ratio;
+  auto operator + (ratio const&, std::int64_t) -> ratio;
+  auto operator - (ratio const&, std::int64_t) -> ratio;
+  auto operator / (ratio const&, std::int64_t) -> ratio;
+  auto operator % (ratio const&, std::int64_t) -> ratio;
+  auto operator !=(ratio const&, std::int64_t) -> bool;
+  auto operator < (ratio const&, std::int64_t) -> bool;
+  auto operator <=(ratio const&, std::int64_t) -> bool;
+  auto operator ==(ratio const&, std::int64_t) -> bool;
+  auto operator > (ratio const&, std::int64_t) -> bool;
+  auto operator >=(ratio const&, std::int64_t) -> bool;
 
   auto operator * (ratio const&, exact_integer const&) -> ratio;
   auto operator + (ratio const&, exact_integer const&) -> ratio;
@@ -197,6 +253,13 @@ inline namespace kernel
   auto operator ==(double, complex const&) -> bool;
   auto operator !=(double, complex const&) -> bool;
 
+  auto operator + (complex const&, std::int64_t) -> complex;
+  auto operator - (complex const&, std::int64_t) -> complex;
+  auto operator * (complex const&, std::int64_t) -> complex;
+  auto operator / (complex const&, std::int64_t) -> complex;
+  auto operator ==(complex const&, std::int64_t) -> bool;
+  auto operator !=(complex const&, std::int64_t) -> bool;
+
   auto operator + (complex const&, exact_integer const&) -> complex;
   auto operator - (complex const&, exact_integer const&) -> complex;
   auto operator * (complex const&, exact_integer const&) -> complex;
@@ -250,8 +313,7 @@ inline namespace kernel
 
   inline auto inexact_equals = []<typename T, typename U>(T const& x, U const& y)
   {
-    if constexpr (std::is_floating_point_v<T> and
-                  std::is_floating_point_v<U>)
+    if constexpr (std::is_floating_point_v<T> and std::is_floating_point_v<U>)
     {
       if (std::isnan(x) and std::isnan(y))
       {
@@ -274,9 +336,32 @@ inline namespace kernel
     }
   };
 
+  template <typename T>
+  auto exact_integer_cast(object const& x)
+  {
+    if (auto const& t = x.type(); t == typeid(std::int32_t))
+    {
+      return static_cast<T>(x.as<std::int32_t>());
+    }
+    else if (t == typeid(exact_integer))
+    {
+      return static_cast<T>(x.as<exact_integer>());
+    }
+    else if (t == typeid(ratio))
+    {
+      return static_cast<T>(x.as<ratio>());
+    }
+    else
+    {
+      throw error(make<string>("not an exact integer"), x);
+    }
+  }
+
 inline namespace number
 {
   auto equals(object const&, object const&) -> bool;
+
+  auto exact_integer_equals(object const&, object const&) -> bool;
 
   auto not_equals(object const&, object const&) -> bool;
 

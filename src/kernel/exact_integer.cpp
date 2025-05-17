@@ -22,8 +22,8 @@
 
 namespace meevax::inline kernel
 {
-  let const e0 = make<exact_integer>(0);
-  let const e1 = make<exact_integer>(1);
+  let const e0 = make<std::int32_t>(0);
+  let const e1 = make<std::int32_t>(1);
 
   exact_integer::exact_integer() noexcept
   {
@@ -98,6 +98,6 @@ namespace meevax::inline kernel
 
   auto operator <<(std::ostream & os, exact_integer const& datum) -> std::ostream &
   {
-    return os << cyan(std::unique_ptr<char, gmp_free>(mpz_get_str(nullptr, 10, datum.value)).get());
+    return os << yellow(std::unique_ptr<char, gmp_free>(mpz_get_str(nullptr, 10, datum.value)).get());
   }
 } // namespace meevax::kernel

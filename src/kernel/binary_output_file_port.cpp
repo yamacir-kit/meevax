@@ -33,9 +33,8 @@ namespace meevax::inline kernel
     return ofstream.is_open();
   }
 
-  auto binary_output_file_port::put(exact_integer const& i) -> void
+  auto binary_output_file_port::put(std::uint8_t u8) -> void
   {
-    auto u8 = static_cast<std::uint8_t>(i);
     ofstream.write(reinterpret_cast<char const*>(&u8), 1);
   }
 

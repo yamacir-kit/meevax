@@ -358,11 +358,11 @@
          (eqv? f g))
   => #f)
 
-(check (eqv? '(a) '(a)) => #t)
+(check (eqv? '(a) '(a)) => #f)
 
 (check (eqv? "a" "a") => #t)
 
-(check (eqv? '(b) (cdr '(a b))) => #t)
+(check (eqv? '(b) (cdr '(a b))) => #f)
 
 (check (let ((x '(a)))
          (eqv? x x))
@@ -380,7 +380,7 @@
 
 (check (eq? '() '()) => #t)
 
-(check (eq? 2 2) => #f)
+(check (eq? 2 2) => #t)
 
 (check (eq? #\A #\A) => #f)
 
@@ -675,7 +675,7 @@
 
 (check (member (list 'a) '(b (a) c)) => '((a) c))
 
-(check (memq 101 '(100 101 102)) => #f)
+(check (memq 101 '(100 101 102)) => '(101 102))
 
 (check (memv 101 '(100 101 102)) => '(101 102))
 
@@ -691,7 +691,7 @@
 
 (check (assoc (list 'a) '(((a)) ((b)) ((c)))) => '((a)))
 
-(check (assq 5 '((2 3) (5 7) (11 13))) => #f)
+(check (assq 5 '((2 3) (5 7) (11 13))) => '(5 7))
 
 (check (assv 5 '((2 3) (5 7) (11 13))) => '(5 7))
 

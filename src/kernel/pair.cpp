@@ -20,15 +20,22 @@ namespace meevax::inline kernel
 {
   let unit = nullptr;
 
-  auto pair::compare(top const* other) const -> bool
+  auto pair::equal1(top const* other) const -> bool
   {
-    auto pare = dynamic_cast<pair const*>(other);
+    assert(false);
+    return this == dynamic_cast<pair const*>(other);
+  }
 
+  auto pair::equal2(top const* other) const -> bool
+  {
+    assert(false);
+    auto pare = dynamic_cast<pair const*>(other);
     return pare and *this == *pare;
   }
 
   auto pair::type() const noexcept -> std::type_info const&
   {
+    assert(false);
     return typeid(pair);
   }
 

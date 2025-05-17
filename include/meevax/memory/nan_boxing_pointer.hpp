@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_MEMORY_NAN_BOXING_POINTER_HPP
 
 #include <bit>
+#include <charconv>
 #include <cmath>
 #include <cstddef>
 #include <iomanip>
@@ -204,11 +205,15 @@ namespace meevax::inline memory
       case signature_##TYPE:                                                   \
         if constexpr (std::is_same_v<TYPE, bool>)                              \
         {                                                                      \
-          return os << yellow('#', as<TYPE>() ? 't' : 'f');                    \
+          return os << cyan('#', as<TYPE>() ? 't' : 'f');                      \
+        }                                                                      \
+        else if constexpr (std::is_arithmetic_v<TYPE>)                         \
+        {                                                                      \
+          return os << std::dec << cyan(as<TYPE>());                           \
         }                                                                      \
         else                                                                   \
         {                                                                      \
-          return os << yellow(as<TYPE>());                                     \
+          return os << cyan(as<TYPE>());                                       \
         }                                                                      \
         static_assert(true)
 
@@ -233,7 +238,9 @@ namespace meevax::inline memory
         }
         else
         {
-          return os << std::fixed << std::setprecision(std::numeric_limits<double>::max_digits10) << cyan(value);
+          char buffer[48] = {};
+          std::to_chars(buffer, buffer + sizeof(buffer), value, std::chars_format::general);
+          return os << cyan(buffer);
         }
       }
     }

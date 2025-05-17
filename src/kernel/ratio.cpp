@@ -39,6 +39,12 @@ namespace meevax::inline kernel
     mpq_canonicalize(value);
   }
 
+  ratio::ratio(std::int64_t n)
+  {
+    mpq_init(value);
+    mpq_set_si(value, n, 1);
+  }
+
   ratio::ratio(exact_integer const& z)
   {
     mpq_init(value);
@@ -85,21 +91,6 @@ namespace meevax::inline kernel
   auto ratio::numerator() const -> exact_integer
   {
     return exact_integer(mpq_numref(value));
-  }
-
-  ratio::operator int() const
-  {
-    return mpq_get_d(value);
-  }
-
-  ratio::operator float() const
-  {
-    return mpq_get_d(value);
-  }
-
-  ratio::operator double() const
-  {
-    return mpq_get_d(value);
   }
 
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &

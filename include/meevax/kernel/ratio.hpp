@@ -34,6 +34,8 @@ namespace meevax::inline kernel
 
     ~ratio();
 
+    explicit ratio(std::int64_t);
+
     explicit ratio(exact_integer const&);
 
     explicit ratio(exact_integer const&, exact_integer const&);
@@ -46,11 +48,11 @@ namespace meevax::inline kernel
 
     auto numerator() const -> exact_integer;
 
-    explicit operator int() const;
-
-    explicit operator float() const;
-
-    explicit operator double() const;
+    template <typename T>
+    explicit operator T() const
+    {
+      return mpq_get_d(value);
+    }
   };
 
   auto operator <<(std::ostream &, ratio const&) -> std::ostream &;
