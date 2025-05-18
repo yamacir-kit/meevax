@@ -21,6 +21,7 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/large_integer.hpp>
 #include <meevax/kernel/ratio.hpp>
+#include <meevax/utility/combination.hpp>
 
 namespace meevax
 {
@@ -359,6 +360,154 @@ inline namespace kernel
 
 inline namespace number
 {
+  using complex_number = std::tuple<std::int32_t, large_integer, ratio, float, double, complex>;
+
+  using complex_numbers = combination<std::int32_t, large_integer, ratio, float, double, complex>;
+
+  using real_number = std::tuple<std::int32_t, large_integer, ratio, float, double>;
+
+  using real_numbers = combination<std::int32_t, large_integer, ratio, float, double>;
+
+  using exact_integers = combination<std::int32_t, large_integer>;
+
+  template <typename T>
+  auto canonicalize(T&& x) -> decltype(auto)
+  {
+    if constexpr (std::is_same_v<std::decay_t<T>, object> or
+                  std::is_same_v<std::decay_t<T>, object::pointer>)
+    {
+      return std::forward<decltype(x)>(x);
+    }
+    else if constexpr (std::is_same_v<std::decay_t<T>, complex>)
+    {
+      return x.canonicalize();
+    }
+    else if constexpr (std::is_same_v<std::decay_t<T>, ratio>)
+    {
+      return x.denominator() == 1_i64 ? make(x.numerator()) : make(std::forward<decltype(x)>(x));
+    }
+    else if constexpr (std::is_same_v<std::decay_t<T>, std::int64_t>)
+    {
+      if (std::numeric_limits<std::int32_t>::min() <= x and x <= std::numeric_limits<std::int32_t>::max())
+      {
+        return make(static_cast<std::int32_t>(x));
+      }
+      else
+      {
+        return make<large_integer>(x);
+      }
+    }
+    else
+    {
+      return make(std::forward<decltype(x)>(x));
+    }
+  }
+
+  template <typename T>
+  auto widen(T&& x) -> decltype(auto)
+  {
+    if constexpr (std::is_same_v<T, std::int32_t>)
+    {
+      return static_cast<std::int64_t>(std::forward<decltype(x)>(x));
+    }
+    else
+    {
+      return std::forward<decltype(x)>(x);
+    }
+  }
+
+  template <typename Tuple, auto I = 0, typename F>
+  auto apply_to([[maybe_unused]] F f, object const& x) -> object
+  {
+    if constexpr (I < std::tuple_size_v<Tuple>)
+    {
+      using type_i = std::tuple_element_t<I, Tuple>;
+
+      if (x.is<type_i>())
+      {
+        return canonicalize(f(widen(x.as<type_i>())));
+      }
+      else
+      {
+        return apply_to<Tuple, I + 1>(f, x);
+      }
+    }
+    else
+    {
+      throw error(make<string>("not an number"));
+    }
+  }
+
+  template <typename Tuple, auto I = 0, typename F>
+  auto apply_to([[maybe_unused]] F f, object const& x, object const& y) -> object
+  {
+    if constexpr (I < std::tuple_size_v<Tuple>)
+    {
+      using type_i_0 = std::tuple_element_t<0, std::tuple_element_t<I, Tuple>>;
+      using type_i_1 = std::tuple_element_t<1, std::tuple_element_t<I, Tuple>>;
+
+      if (x.is<type_i_0>() and y.is<type_i_1>())
+      {
+        return canonicalize(f(widen(x.as<type_i_0>()),
+                              widen(y.as<type_i_1>())));
+      }
+      else
+      {
+        return apply_to<Tuple, I + 1>(f, x, y);
+      }
+    }
+    else
+    {
+      throw error(make<string>("not an number"));
+    }
+  }
+
+  template <typename Tuple, auto I = 0, typename F>
+  auto test([[maybe_unused]] F f, object const& x) -> bool
+  {
+    if constexpr (I < std::tuple_size_v<Tuple>)
+    {
+      using type_i = std::tuple_element_t<I, Tuple>;
+
+      if (x.is<type_i>())
+      {
+        return f(widen(x.as<type_i>()));
+      }
+      else
+      {
+        return test<Tuple, I + 1>(f, x);
+      }
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  template <typename Tuple, auto I = 0, typename F>
+  auto test([[maybe_unused]] F f, object const& x, object const& y) -> bool
+  {
+    if constexpr (I < std::tuple_size_v<Tuple>)
+    {
+      using type_i_0 = std::tuple_element_t<0, std::tuple_element_t<I, Tuple>>;
+      using type_i_1 = std::tuple_element_t<1, std::tuple_element_t<I, Tuple>>;
+
+      if (x.is<type_i_0>() and y.is<type_i_1>())
+      {
+        return f(widen(x.as<type_i_0>()),
+                 widen(y.as<type_i_1>()));
+      }
+      else
+      {
+        return test<Tuple, I + 1>(f, x, y);
+      }
+    }
+    else
+    {
+      return false;
+    }
+  }
+
   auto equals(object const&, object const&) -> bool;
 
   auto exact_integer_equals(object const&, object const&) -> bool;
