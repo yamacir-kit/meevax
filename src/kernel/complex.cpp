@@ -18,6 +18,7 @@
 
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
+#include <meevax/kernel/number/trigonometric.hpp>
 
 namespace meevax::inline kernel
 {

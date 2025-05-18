@@ -22,6 +22,7 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/number.hpp>
+#include <meevax/kernel/number/trigonometric.hpp> // TEMPORARY
 #include <meevax/kernel/string.hpp>
 
 namespace meevax::inline kernel
@@ -1057,52 +1058,14 @@ inline namespace number
   DEFINE_EXACTNESS_PRESERVED_COMPLEX1(round,    std::round)
   DEFINE_EXACTNESS_PRESERVED_COMPLEX1(truncate, std::trunc)
 
-  #define DEFINE_COMPLEX1(CMATH)                                               \
-  auto CMATH(object const& x) -> object                                        \
-  {                                                                            \
-    auto f = []<typename T>(T const& x)                                        \
-    {                                                                          \
-      if constexpr (std::is_same_v<T, complex>)                                \
-      {                                                                        \
-        auto const z = std::CMATH(static_cast<std::complex<double>>(std::forward<decltype(x)>(x))); \
-                                                                               \
-        return complex(make(z.real()),                                         \
-                       make(z.imag()));                                        \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-        return std::CMATH(static_cast<double>(std::forward<decltype(x)>(x)));  \
-      }                                                                        \
-    };                                                                         \
-                                                                               \
-    return apply_to<complex_number>(f, x);                                     \
-  }
-
-  DEFINE_COMPLEX1(acos)
   DEFINE_COMPLEX1(acosh)
-  DEFINE_COMPLEX1(asin)
   DEFINE_COMPLEX1(asinh)
-  DEFINE_COMPLEX1(atan)
   DEFINE_COMPLEX1(atanh)
-  DEFINE_COMPLEX1(cos)
   DEFINE_COMPLEX1(cosh)
   DEFINE_COMPLEX1(exp)
   DEFINE_COMPLEX1(log)
-  DEFINE_COMPLEX1(sin)
   DEFINE_COMPLEX1(sinh)
-  DEFINE_COMPLEX1(tan)
   DEFINE_COMPLEX1(tanh)
-
-  #define DEFINE_REAL1(CMATH)                                                  \
-  auto CMATH(object const& x) -> object                                        \
-  {                                                                            \
-    auto f = [](auto&& x)                                                      \
-    {                                                                          \
-      return std::CMATH(static_cast<double>(std::forward<decltype(x)>(x)));    \
-    };                                                                         \
-                                                                               \
-    return apply_to<real_number>(f, x);                                        \
-  }
 
   DEFINE_REAL1(erf)
   DEFINE_REAL1(erfc)
@@ -1112,19 +1075,6 @@ inline namespace number
   DEFINE_REAL1(log1p)
   DEFINE_REAL1(tgamma)
 
-  #define DEFINE_REAL2(CMATH)                                                  \
-  auto CMATH(object const& x, object const& y) -> object                       \
-  {                                                                            \
-    auto f = [](auto&& x, auto&& y)                                            \
-    {                                                                          \
-      return std::CMATH(static_cast<double>(std::forward<decltype(x)>(x)),     \
-                        static_cast<double>(std::forward<decltype(y)>(y)));    \
-    };                                                                         \
-                                                                               \
-    return apply_to<real_numbers>(f, x, y);                                    \
-  }
-
-  DEFINE_REAL2(atan2)
   DEFINE_REAL2(copysign)
   DEFINE_REAL2(nextafter)
 

@@ -360,16 +360,6 @@ inline namespace kernel
 
 inline namespace number
 {
-  using complex_number = std::tuple<std::int32_t, large_integer, ratio, float, double, complex>;
-
-  using complex_numbers = combination<std::int32_t, large_integer, ratio, float, double, complex>;
-
-  using real_number = std::tuple<std::int32_t, large_integer, ratio, float, double>;
-
-  using real_numbers = combination<std::int32_t, large_integer, ratio, float, double>;
-
-  using exact_integers = combination<std::int32_t, large_integer>;
-
   template <typename T>
   auto canonicalize(T&& x) -> decltype(auto)
   {
@@ -508,6 +498,60 @@ inline namespace number
     }
   }
 
+  using complex_number = std::tuple<std::int32_t, large_integer, ratio, float, double, complex>;
+
+  using complex_numbers = combination<std::int32_t, large_integer, ratio, float, double, complex>;
+
+  using real_number = std::tuple<std::int32_t, large_integer, ratio, float, double>;
+
+  using real_numbers = combination<std::int32_t, large_integer, ratio, float, double>;
+
+  using exact_integers = combination<std::int32_t, large_integer>;
+
+  #define DEFINE_COMPLEX1(CMATH)                                               \
+  auto CMATH(object const& x) -> object                                        \
+  {                                                                            \
+    auto f = []<typename T>(T const& x)                                        \
+    {                                                                          \
+      if constexpr (std::is_same_v<T, complex>)                                \
+      {                                                                        \
+        auto const z = std::CMATH(static_cast<std::complex<double>>(std::forward<decltype(x)>(x))); \
+                                                                               \
+        return complex(make(z.real()),                                         \
+                       make(z.imag()));                                        \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        return std::CMATH(static_cast<double>(std::forward<decltype(x)>(x)));  \
+      }                                                                        \
+    };                                                                         \
+                                                                               \
+    return apply_to<complex_number>(f, x);                                     \
+  }
+
+  #define DEFINE_REAL1(CMATH)                                                  \
+  auto CMATH(object const& x) -> object                                        \
+  {                                                                            \
+    auto f = [](auto&& x)                                                      \
+    {                                                                          \
+      return std::CMATH(static_cast<double>(std::forward<decltype(x)>(x)));    \
+    };                                                                         \
+                                                                               \
+    return apply_to<real_number>(f, x);                                        \
+  }
+
+  #define DEFINE_REAL2(CMATH)                                                  \
+  auto CMATH(object const& x, object const& y) -> object                       \
+  {                                                                            \
+    auto f = [](auto&& x, auto&& y)                                            \
+    {                                                                          \
+      return std::CMATH(static_cast<double>(std::forward<decltype(x)>(x)),     \
+                        static_cast<double>(std::forward<decltype(y)>(y)));    \
+    };                                                                         \
+                                                                               \
+    return apply_to<real_numbers>(f, x, y);                                    \
+  }
+
   auto equals(object const&, object const&) -> bool;
 
   auto exact_integer_equals(object const&, object const&) -> bool;
@@ -593,20 +637,6 @@ inline namespace number
   auto truncate(object const&) -> object;
 
   auto round(object const&) -> object;
-
-  auto sin(object const&) -> object;
-
-  auto cos(object const&) -> object;
-
-  auto tan(object const&) -> object;
-
-  auto asin(object const&) -> object;
-
-  auto acos(object const&) -> object;
-
-  auto atan(object const&) -> object;
-
-  auto atan2(object const&, object const&) -> object;
 
   auto sinh(object const&) -> object;
 
