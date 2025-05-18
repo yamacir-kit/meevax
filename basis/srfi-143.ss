@@ -5,29 +5,8 @@
             integer32-min
             integer32-max
             )
-          (only (scheme base)
-            define
-            =
-            <
-            >
-            <=
-            >=
-            zero?
-            positive?
-            negative?
-            odd?
-            even?
-            max
-            min
-            +
-            -
-            *
-            quotient
-            remainder
-            abs
-            square
-            sqrt
-            )
+          (scheme base)
+          (only (srfi 141) balanced/)
           )
 
   (export
@@ -63,9 +42,9 @@
     fxsqrt ; Semantically equivalent to exact-integer-sqrt (not sqrt).
 
     ; Arithmetic with carry
-    ; TODO fx+/carry
-    ; TODO fx-/carry
-    ; TODO fx*/carry
+    fx+/carry
+    fx-/carry
+    fx*/carry
 
     ; Bitwise operations
     ; TODO fxnot ; Semantically equivalent to bitwise-not.
@@ -135,5 +114,21 @@
          (define fxsquare square)
 
          (define fxsqrt sqrt)
+
+         (define (fx+/carry i j k)
+           (let*-values (((s) (+ i j k))
+                         ((q r) (balanced/ s (expt 2 fx-width))))
+             (values r q)))
+
+         (define (fx-/carry i j k)
+           (let*-values (((d) (- i j k))
+                         ((q r) (balanced/ d (expt 2 fx-width))))
+             (values r q)))
+
+         (define (fx*/carry i j k)
+           (let*-values (((s) (+ (* i j) k))
+                         ((q r) (balanced/ s (expt 2 fx-width))))
+             (values r q)))
+
     )
   )
