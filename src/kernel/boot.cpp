@@ -613,6 +613,12 @@ namespace meevax::inline kernel
       {
         return car(xs).is<std::int32_t>();
       });
+
+      library.define<std::int32_t>("integer32-width", 32);
+
+      library.define<std::int32_t>("integer32-min", std::numeric_limits<std::int32_t>::min());
+
+      library.define<std::int32_t>("integer32-max", std::numeric_limits<std::int32_t>::max());
     });
 
     define<library>("(meevax list)", [](library & library)

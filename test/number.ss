@@ -7,6 +7,8 @@
         (srfi 78)
         (srfi 144))
 
+; EXTERAL REPRESENTATIONS
+
 (check (number?        2147483647) => #t)
 (check (complex?       2147483647) => #t)
 (check (real?          2147483647) => #t)
@@ -61,6 +63,14 @@
 
 (check (rational? 1/3) => #t)
 (check (rational? 0.5) => #t)
+
+; INTEGER32
+
+(check integer32-width => 32)
+(check integer32-min => -2147483648)
+(check integer32-max => 2147483647)
+
+; ARITHMETIC OPERATIONS
 
 (check (+ 1 2 3) (=> =) 6)
 (check (number?   (+ 1 2 3)) => #t)
@@ -147,4 +157,4 @@
 
 (check-report)
 
-(exit (check-passed? 107))
+(exit (check-passed? 110))
