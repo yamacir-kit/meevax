@@ -638,18 +638,6 @@ inline namespace number
 
   auto round(object const&) -> object;
 
-  auto sinh(object const&) -> object;
-
-  auto cosh(object const&) -> object;
-
-  auto tanh(object const&) -> object;
-
-  auto asinh(object const&) -> object;
-
-  auto acosh(object const&) -> object;
-
-  auto atanh(object const&) -> object;
-
   auto exp(object const&) -> object;
 
   auto log(object const&) -> object;
