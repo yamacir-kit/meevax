@@ -17,7 +17,7 @@
 #include <numeric>
 
 #include <meevax/kernel/error.hpp>
-#include <meevax/kernel/exact_integer.hpp>
+#include <meevax/kernel/large_integer.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/vector.hpp>
 

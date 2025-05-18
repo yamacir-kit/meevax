@@ -36,17 +36,17 @@ namespace meevax::inline kernel
 
     explicit ratio(std::int64_t);
 
-    explicit ratio(exact_integer const&);
+    explicit ratio(large_integer const&);
 
-    explicit ratio(exact_integer const&, exact_integer const&);
+    explicit ratio(large_integer const&, large_integer const&);
 
     explicit ratio(double);
 
     explicit ratio(std::string const&, int = 10);
 
-    auto denominator() const -> exact_integer;
+    auto denominator() const -> large_integer;
 
-    auto numerator() const -> exact_integer;
+    auto numerator() const -> large_integer;
 
     template <typename T>
     explicit operator T() const

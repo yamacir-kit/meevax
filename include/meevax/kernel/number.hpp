@@ -19,24 +19,24 @@
 
 #include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/error.hpp>
-#include <meevax/kernel/exact_integer.hpp>
+#include <meevax/kernel/large_integer.hpp>
 #include <meevax/kernel/ratio.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto operator * (std::int64_t, exact_integer const&) -> exact_integer;
-  auto operator + (std::int64_t, exact_integer const&) -> exact_integer;
-  auto operator - (std::int64_t, exact_integer const&) -> exact_integer;
-  auto operator / (std::int64_t, exact_integer const&) -> ratio;
-  auto operator % (std::int64_t, exact_integer const&) -> exact_integer;
-  auto operator !=(std::int64_t, exact_integer const&) -> bool;
-  auto operator < (std::int64_t, exact_integer const&) -> bool;
-  auto operator <=(std::int64_t, exact_integer const&) -> bool;
-  auto operator ==(std::int64_t, exact_integer const&) -> bool;
-  auto operator > (std::int64_t, exact_integer const&) -> bool;
-  auto operator >=(std::int64_t, exact_integer const&) -> bool;
+  auto operator * (std::int64_t, large_integer const&) -> large_integer;
+  auto operator + (std::int64_t, large_integer const&) -> large_integer;
+  auto operator - (std::int64_t, large_integer const&) -> large_integer;
+  auto operator / (std::int64_t, large_integer const&) -> ratio;
+  auto operator % (std::int64_t, large_integer const&) -> large_integer;
+  auto operator !=(std::int64_t, large_integer const&) -> bool;
+  auto operator < (std::int64_t, large_integer const&) -> bool;
+  auto operator <=(std::int64_t, large_integer const&) -> bool;
+  auto operator ==(std::int64_t, large_integer const&) -> bool;
+  auto operator > (std::int64_t, large_integer const&) -> bool;
+  auto operator >=(std::int64_t, large_integer const&) -> bool;
 
   auto operator * (std::int64_t, ratio const&) -> ratio;
   auto operator + (std::int64_t, ratio const&) -> ratio;
@@ -57,72 +57,72 @@ inline namespace kernel
   auto operator ==(std::int64_t, complex const&) -> bool;
   auto operator !=(std::int64_t, complex const&) -> bool;
 
-  auto operator * (exact_integer const&, std::int64_t) -> exact_integer;
-  auto operator + (exact_integer const&, std::int64_t) -> exact_integer;
-  auto operator - (exact_integer const&, std::int64_t) -> exact_integer;
-  auto operator / (exact_integer const&, std::int64_t) -> ratio;
-  auto operator % (exact_integer const&, std::int64_t) -> exact_integer;
-  auto operator !=(exact_integer const&, std::int64_t) -> bool;
-  auto operator < (exact_integer const&, std::int64_t) -> bool;
-  auto operator <=(exact_integer const&, std::int64_t) -> bool;
-  auto operator ==(exact_integer const&, std::int64_t) -> bool;
-  auto operator > (exact_integer const&, std::int64_t) -> bool;
-  auto operator >=(exact_integer const&, std::int64_t) -> bool;
+  auto operator * (large_integer const&, std::int64_t) -> large_integer;
+  auto operator + (large_integer const&, std::int64_t) -> large_integer;
+  auto operator - (large_integer const&, std::int64_t) -> large_integer;
+  auto operator / (large_integer const&, std::int64_t) -> ratio;
+  auto operator % (large_integer const&, std::int64_t) -> large_integer;
+  auto operator !=(large_integer const&, std::int64_t) -> bool;
+  auto operator < (large_integer const&, std::int64_t) -> bool;
+  auto operator <=(large_integer const&, std::int64_t) -> bool;
+  auto operator ==(large_integer const&, std::int64_t) -> bool;
+  auto operator > (large_integer const&, std::int64_t) -> bool;
+  auto operator >=(large_integer const&, std::int64_t) -> bool;
 
-  auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
-  auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
-  auto operator - (exact_integer const&, exact_integer const&) -> exact_integer;
-  auto operator / (exact_integer const&, exact_integer const&) -> ratio;
-  auto operator % (exact_integer const&, exact_integer const&) -> exact_integer;
-  auto operator !=(exact_integer const&, exact_integer const&) -> bool;
-  auto operator < (exact_integer const&, exact_integer const&) -> bool;
-  auto operator <=(exact_integer const&, exact_integer const&) -> bool;
-  auto operator ==(exact_integer const&, exact_integer const&) -> bool;
-  auto operator > (exact_integer const&, exact_integer const&) -> bool;
-  auto operator >=(exact_integer const&, exact_integer const&) -> bool;
+  auto operator * (large_integer const&, large_integer const&) -> large_integer;
+  auto operator + (large_integer const&, large_integer const&) -> large_integer;
+  auto operator - (large_integer const&, large_integer const&) -> large_integer;
+  auto operator / (large_integer const&, large_integer const&) -> ratio;
+  auto operator % (large_integer const&, large_integer const&) -> large_integer;
+  auto operator !=(large_integer const&, large_integer const&) -> bool;
+  auto operator < (large_integer const&, large_integer const&) -> bool;
+  auto operator <=(large_integer const&, large_integer const&) -> bool;
+  auto operator ==(large_integer const&, large_integer const&) -> bool;
+  auto operator > (large_integer const&, large_integer const&) -> bool;
+  auto operator >=(large_integer const&, large_integer const&) -> bool;
 
-  auto operator * (exact_integer const&, ratio const&) -> ratio;
-  auto operator + (exact_integer const&, ratio const&) -> ratio;
-  auto operator - (exact_integer const&, ratio const&) -> ratio;
-  auto operator / (exact_integer const&, ratio const&) -> ratio;
-  auto operator % (exact_integer const&, ratio const&) -> ratio;
-  auto operator !=(exact_integer const&, ratio const&) -> bool;
-  auto operator < (exact_integer const&, ratio const&) -> bool;
-  auto operator <=(exact_integer const&, ratio const&) -> bool;
-  auto operator ==(exact_integer const&, ratio const&) -> bool;
-  auto operator > (exact_integer const&, ratio const&) -> bool;
-  auto operator >=(exact_integer const&, ratio const&) -> bool;
+  auto operator * (large_integer const&, ratio const&) -> ratio;
+  auto operator + (large_integer const&, ratio const&) -> ratio;
+  auto operator - (large_integer const&, ratio const&) -> ratio;
+  auto operator / (large_integer const&, ratio const&) -> ratio;
+  auto operator % (large_integer const&, ratio const&) -> ratio;
+  auto operator !=(large_integer const&, ratio const&) -> bool;
+  auto operator < (large_integer const&, ratio const&) -> bool;
+  auto operator <=(large_integer const&, ratio const&) -> bool;
+  auto operator ==(large_integer const&, ratio const&) -> bool;
+  auto operator > (large_integer const&, ratio const&) -> bool;
+  auto operator >=(large_integer const&, ratio const&) -> bool;
 
-  auto operator * (exact_integer const&, float) -> float;
-  auto operator + (exact_integer const&, float) -> float;
-  auto operator - (exact_integer const&, float) -> float;
-  auto operator / (exact_integer const&, float) -> float;
-  auto operator % (exact_integer const&, float) -> float;
-  auto operator !=(exact_integer const&, float) -> bool;
-  auto operator < (exact_integer const&, float) -> bool;
-  auto operator <=(exact_integer const&, float) -> bool;
-  auto operator ==(exact_integer const&, float) -> bool;
-  auto operator > (exact_integer const&, float) -> bool;
-  auto operator >=(exact_integer const&, float) -> bool;
+  auto operator * (large_integer const&, float) -> float;
+  auto operator + (large_integer const&, float) -> float;
+  auto operator - (large_integer const&, float) -> float;
+  auto operator / (large_integer const&, float) -> float;
+  auto operator % (large_integer const&, float) -> float;
+  auto operator !=(large_integer const&, float) -> bool;
+  auto operator < (large_integer const&, float) -> bool;
+  auto operator <=(large_integer const&, float) -> bool;
+  auto operator ==(large_integer const&, float) -> bool;
+  auto operator > (large_integer const&, float) -> bool;
+  auto operator >=(large_integer const&, float) -> bool;
 
-  auto operator * (exact_integer const&, double) -> double;
-  auto operator + (exact_integer const&, double) -> double;
-  auto operator - (exact_integer const&, double) -> double;
-  auto operator / (exact_integer const&, double) -> double;
-  auto operator % (exact_integer const&, double) -> double;
-  auto operator !=(exact_integer const&, double) -> bool;
-  auto operator < (exact_integer const&, double) -> bool;
-  auto operator <=(exact_integer const&, double) -> bool;
-  auto operator ==(exact_integer const&, double) -> bool;
-  auto operator > (exact_integer const&, double) -> bool;
-  auto operator >=(exact_integer const&, double) -> bool;
+  auto operator * (large_integer const&, double) -> double;
+  auto operator + (large_integer const&, double) -> double;
+  auto operator - (large_integer const&, double) -> double;
+  auto operator / (large_integer const&, double) -> double;
+  auto operator % (large_integer const&, double) -> double;
+  auto operator !=(large_integer const&, double) -> bool;
+  auto operator < (large_integer const&, double) -> bool;
+  auto operator <=(large_integer const&, double) -> bool;
+  auto operator ==(large_integer const&, double) -> bool;
+  auto operator > (large_integer const&, double) -> bool;
+  auto operator >=(large_integer const&, double) -> bool;
 
-  auto operator * (exact_integer const&, complex const&) -> complex;
-  auto operator + (exact_integer const&, complex const&) -> complex;
-  auto operator - (exact_integer const&, complex const&) -> complex;
-  auto operator / (exact_integer const&, complex const&) -> complex;
-  auto operator ==(exact_integer const&, complex const&) -> bool;
-  auto operator !=(exact_integer const&, complex const&) -> bool;
+  auto operator * (large_integer const&, complex const&) -> complex;
+  auto operator + (large_integer const&, complex const&) -> complex;
+  auto operator - (large_integer const&, complex const&) -> complex;
+  auto operator / (large_integer const&, complex const&) -> complex;
+  auto operator ==(large_integer const&, complex const&) -> bool;
+  auto operator !=(large_integer const&, complex const&) -> bool;
 
   auto operator * (ratio const&, std::int64_t) -> ratio;
   auto operator + (ratio const&, std::int64_t) -> ratio;
@@ -136,17 +136,17 @@ inline namespace kernel
   auto operator > (ratio const&, std::int64_t) -> bool;
   auto operator >=(ratio const&, std::int64_t) -> bool;
 
-  auto operator * (ratio const&, exact_integer const&) -> ratio;
-  auto operator + (ratio const&, exact_integer const&) -> ratio;
-  auto operator - (ratio const&, exact_integer const&) -> ratio;
-  auto operator / (ratio const&, exact_integer const&) -> ratio;
-  auto operator % (ratio const&, exact_integer const&) -> ratio;
-  auto operator !=(ratio const&, exact_integer const&) -> bool;
-  auto operator < (ratio const&, exact_integer const&) -> bool;
-  auto operator <=(ratio const&, exact_integer const&) -> bool;
-  auto operator ==(ratio const&, exact_integer const&) -> bool;
-  auto operator > (ratio const&, exact_integer const&) -> bool;
-  auto operator >=(ratio const&, exact_integer const&) -> bool;
+  auto operator * (ratio const&, large_integer const&) -> ratio;
+  auto operator + (ratio const&, large_integer const&) -> ratio;
+  auto operator - (ratio const&, large_integer const&) -> ratio;
+  auto operator / (ratio const&, large_integer const&) -> ratio;
+  auto operator % (ratio const&, large_integer const&) -> ratio;
+  auto operator !=(ratio const&, large_integer const&) -> bool;
+  auto operator < (ratio const&, large_integer const&) -> bool;
+  auto operator <=(ratio const&, large_integer const&) -> bool;
+  auto operator ==(ratio const&, large_integer const&) -> bool;
+  auto operator > (ratio const&, large_integer const&) -> bool;
+  auto operator >=(ratio const&, large_integer const&) -> bool;
 
   auto operator * (ratio const&, ratio const&) -> ratio;
   auto operator + (ratio const&, ratio const&) -> ratio;
@@ -191,17 +191,17 @@ inline namespace kernel
   auto operator ==(ratio const&, complex const&) -> bool;
   auto operator !=(ratio const&, complex const&) -> bool;
 
-  auto operator + (float, exact_integer const&) -> float;
-  auto operator - (float, exact_integer const&) -> float;
-  auto operator * (float, exact_integer const&) -> float;
-  auto operator / (float, exact_integer const&) -> float;
-  auto operator % (float, exact_integer const&) -> float;
-  auto operator ==(float, exact_integer const&) -> bool;
-  auto operator !=(float, exact_integer const&) -> bool;
-  auto operator < (float, exact_integer const&) -> bool;
-  auto operator <=(float, exact_integer const&) -> bool;
-  auto operator > (float, exact_integer const&) -> bool;
-  auto operator >=(float, exact_integer const&) -> bool;
+  auto operator + (float, large_integer const&) -> float;
+  auto operator - (float, large_integer const&) -> float;
+  auto operator * (float, large_integer const&) -> float;
+  auto operator / (float, large_integer const&) -> float;
+  auto operator % (float, large_integer const&) -> float;
+  auto operator ==(float, large_integer const&) -> bool;
+  auto operator !=(float, large_integer const&) -> bool;
+  auto operator < (float, large_integer const&) -> bool;
+  auto operator <=(float, large_integer const&) -> bool;
+  auto operator > (float, large_integer const&) -> bool;
+  auto operator >=(float, large_integer const&) -> bool;
 
   auto operator + (float, ratio const&) -> float;
   auto operator - (float, ratio const&) -> float;
@@ -222,17 +222,17 @@ inline namespace kernel
   auto operator ==(float, complex const&) -> bool;
   auto operator !=(float, complex const&) -> bool;
 
-  auto operator + (double, exact_integer const&) -> double;
-  auto operator - (double, exact_integer const&) -> double;
-  auto operator * (double, exact_integer const&) -> double;
-  auto operator / (double, exact_integer const&) -> double;
-  auto operator % (double, exact_integer const&) -> double;
-  auto operator ==(double, exact_integer const&) -> bool;
-  auto operator !=(double, exact_integer const&) -> bool;
-  auto operator < (double, exact_integer const&) -> bool;
-  auto operator <=(double, exact_integer const&) -> bool;
-  auto operator > (double, exact_integer const&) -> bool;
-  auto operator >=(double, exact_integer const&) -> bool;
+  auto operator + (double, large_integer const&) -> double;
+  auto operator - (double, large_integer const&) -> double;
+  auto operator * (double, large_integer const&) -> double;
+  auto operator / (double, large_integer const&) -> double;
+  auto operator % (double, large_integer const&) -> double;
+  auto operator ==(double, large_integer const&) -> bool;
+  auto operator !=(double, large_integer const&) -> bool;
+  auto operator < (double, large_integer const&) -> bool;
+  auto operator <=(double, large_integer const&) -> bool;
+  auto operator > (double, large_integer const&) -> bool;
+  auto operator >=(double, large_integer const&) -> bool;
 
   auto operator + (double, ratio const&) -> double;
   auto operator - (double, ratio const&) -> double;
@@ -260,12 +260,12 @@ inline namespace kernel
   auto operator ==(complex const&, std::int64_t) -> bool;
   auto operator !=(complex const&, std::int64_t) -> bool;
 
-  auto operator + (complex const&, exact_integer const&) -> complex;
-  auto operator - (complex const&, exact_integer const&) -> complex;
-  auto operator * (complex const&, exact_integer const&) -> complex;
-  auto operator / (complex const&, exact_integer const&) -> complex;
-  auto operator ==(complex const&, exact_integer const&) -> bool;
-  auto operator !=(complex const&, exact_integer const&) -> bool;
+  auto operator + (complex const&, large_integer const&) -> complex;
+  auto operator - (complex const&, large_integer const&) -> complex;
+  auto operator * (complex const&, large_integer const&) -> complex;
+  auto operator / (complex const&, large_integer const&) -> complex;
+  auto operator ==(complex const&, large_integer const&) -> bool;
+  auto operator !=(complex const&, large_integer const&) -> bool;
 
   auto operator + (complex const&, ratio const&) -> complex;
   auto operator - (complex const&, ratio const&) -> complex;
@@ -343,9 +343,9 @@ inline namespace kernel
     {
       return static_cast<T>(x.as<std::int32_t>());
     }
-    else if (t == typeid(exact_integer))
+    else if (t == typeid(large_integer))
     {
-      return static_cast<T>(x.as<exact_integer>());
+      return static_cast<T>(x.as<large_integer>());
     }
     else if (t == typeid(ratio))
     {

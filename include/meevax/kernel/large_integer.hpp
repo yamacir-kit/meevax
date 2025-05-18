@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP
-#define INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_LARGE_INTEGER_HPP
+#define INCLUDED_MEEVAX_KERNEL_LARGE_INTEGER_HPP
 
 #include <gmp.h>
 
@@ -25,22 +25,22 @@
 
 namespace meevax::inline kernel
 {
-  struct exact_integer
+  struct large_integer
   {
     mpz_t value;
 
-    exact_integer() noexcept;
+    large_integer() noexcept;
 
-    exact_integer(exact_integer const&) noexcept;
+    large_integer(large_integer const&) noexcept;
 
-    exact_integer(exact_integer &&) noexcept;
+    large_integer(large_integer &&) noexcept;
 
-    ~exact_integer();
+    ~large_integer();
 
-    explicit exact_integer(mpz_t const) noexcept;
+    explicit large_integer(mpz_t const) noexcept;
 
     template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    explicit exact_integer(T x)
+    explicit large_integer(T x)
     {
       if constexpr (std::is_floating_point_v<T>)
       {
@@ -56,13 +56,13 @@ namespace meevax::inline kernel
       }
     }
 
-    explicit exact_integer(std::string const&, int = 0);
+    explicit large_integer(std::string const&, int = 0);
 
-    auto operator=(exact_integer const&) -> exact_integer &;
+    auto operator=(large_integer const&) -> large_integer &;
 
-    auto operator=(exact_integer &&) noexcept -> exact_integer &;
+    auto operator=(large_integer &&) noexcept -> large_integer &;
 
-    auto operator=(std::string const&) -> exact_integer &;
+    auto operator=(std::string const&) -> large_integer &;
 
     explicit operator bool() const;
 
@@ -83,10 +83,10 @@ namespace meevax::inline kernel
       }
     }
 
-    auto sqrt() const -> std::tuple<exact_integer, exact_integer>;
+    auto sqrt() const -> std::tuple<large_integer, large_integer>;
   };
 
-  auto operator <<(std::ostream &, exact_integer const&) -> std::ostream &;
+  auto operator <<(std::ostream &, large_integer const&) -> std::ostream &;
 
   struct gmp_free
   {
@@ -106,4 +106,4 @@ namespace meevax::inline kernel
   let extern const e0, e1; // Frequently used exact-integer values.
 } // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_LARGE_INTEGER_HPP

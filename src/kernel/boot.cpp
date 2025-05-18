@@ -855,7 +855,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("exact-integer?", [](let const& xs)
       {
-        return car(xs).is<std::int32_t>() or car(xs).is<exact_integer>();
+        return car(xs).is<std::int32_t>() or car(xs).is<large_integer>();
       });
 
       library.define<procedure>("=", [](let const& xs)
@@ -995,11 +995,11 @@ namespace meevax::inline kernel
         {
           if (x.is<std::int32_t>())
           {
-            return exact_integer(x.as<std::int32_t>()).sqrt();
+            return large_integer(x.as<std::int32_t>()).sqrt();
           }
           else
           {
-            return x.as<exact_integer>().sqrt();
+            return x.as<large_integer>().sqrt();
           }
         };
 
@@ -1357,7 +1357,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("string-length", [](let const& xs)
       {
-        return make(static_cast<std::int32_t>(car(xs).as<string>().size())); // XXX DIRTY HACK (MAKE exact_integer IF THE LENGTH IS GREATER THAN INT_MAX)
+        return make(static_cast<std::int32_t>(car(xs).as<string>().size())); // XXX DIRTY HACK (MAKE large_integer IF THE LENGTH IS GREATER THAN INT_MAX)
       });
 
       library.define<procedure>("string-ref", [](let const& xs)
@@ -1725,12 +1725,12 @@ namespace meevax::inline kernel
     {
       library.define<procedure>("current-jiffy", []()
       {
-        return make<exact_integer>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+        return make<large_integer>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
       });
 
       library.define<procedure>("jiffies-per-second", []()
       {
-        return make<exact_integer>(std::chrono::high_resolution_clock::period::den);
+        return make<large_integer>(std::chrono::high_resolution_clock::period::den);
       });
     });
 

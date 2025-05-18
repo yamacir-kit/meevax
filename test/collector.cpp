@@ -169,13 +169,13 @@ auto main() -> int
     assert(x.is<symbol>());
     assert(x.as<symbol>() == "hoge");
 
-    x = make<exact_integer>(42);
+    x = make<large_integer>(42);
 
     default_collector::collect();
 
     assert(default_collector::count() == gc_count + 1);
-    assert(x.is<exact_integer>());
-    assert(x.as<exact_integer>() == 42_i64);
+    assert(x.is<large_integer>());
+    assert(x.as<large_integer>() == 42_i64);
   }
 
   default_collector::collect();
