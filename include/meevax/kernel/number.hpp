@@ -626,15 +626,9 @@ inline namespace number
 
   auto denominator(object const&) -> object;
 
-  auto ldexp(object const&, object const&) -> object;
-
   auto number_to_string(object const&, int) -> object;
 
   auto fabs(object const&) -> object;
-
-  auto copysign(object const&, object const&) -> object;
-
-  auto nextafter(object const&, object const&) -> object;
 
   auto cyl_bessel_j(object const&, object const&) -> object;
 

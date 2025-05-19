@@ -969,17 +969,6 @@ inline namespace number
     }
   }
 
-  auto ldexp(object const& x, object const& y) -> object
-  {
-    auto f = [](auto&& x, auto&& y)
-    {
-      return std::ldexp(static_cast<double>(std::forward<decltype(x)>(x)),
-                        static_cast<int   >(std::forward<decltype(y)>(y)));
-    };
-
-    return apply_to<real_numbers>(f, x, y);
-  }
-
   auto number_to_string(object const& x, int radix) -> object
   {
     auto f = [radix]<typename T>(T const& x)
@@ -1028,9 +1017,6 @@ inline namespace number
   }
 
   DEFINE_REAL1(fabs)
-
-  DEFINE_REAL2(copysign)
-  DEFINE_REAL2(nextafter)
 
   #define DEFINE_UNPROVIDED_REAL2(CMATH)                                       \
   auto CMATH(object const&, object const&) -> object                           \

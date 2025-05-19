@@ -29,6 +29,7 @@
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/number/error_and_gamma.hpp>
 #include <meevax/kernel/number/exponential.hpp>
+#include <meevax/kernel/number/floating_point_manipulation.hpp>
 #include <meevax/kernel/number/hyperbolic.hpp>
 #include <meevax/kernel/number/nearest_integer.hpp>
 #include <meevax/kernel/number/trigonometric.hpp>
@@ -591,11 +592,12 @@ namespace meevax::inline kernel
       EXPORT1_RENAME(is_infinite, "infinite?");
       EXPORT1_RENAME(is_nan, "nan?");
 
-      EXPORT2(copysign);
-      EXPORT2(cyl_bessel_j);
-      EXPORT2(cyl_neumann);
       EXPORT2(ldexp);
       EXPORT2(nextafter);
+      EXPORT2(copysign);
+
+      EXPORT2(cyl_bessel_j);
+      EXPORT2(cyl_neumann);
 
       library.define<double>("e", std::numbers::e);
 
