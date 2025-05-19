@@ -27,6 +27,7 @@
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/number/exponential.hpp>
 #include <meevax/kernel/number/hyperbolic.hpp>
 #include <meevax/kernel/number/trigonometric.hpp>
 #include <meevax/kernel/output_file_port.hpp>
@@ -568,25 +569,20 @@ namespace meevax::inline kernel
         }
       });
 
-      EXPORT1(acos);
-      EXPORT1(acosh);
-      EXPORT1(asin);
-      EXPORT1(asinh);
-      EXPORT1(atanh);
-      EXPORT1(cos);
-      EXPORT1(cosh);
+      EXPORT1(sin); EXPORT1(asin); EXPORT1(sinh); EXPORT1(asinh);
+      EXPORT1(cos); EXPORT1(acos); EXPORT1(cosh); EXPORT1(acosh);
+      EXPORT1(tan);                EXPORT1(tanh); EXPORT1(atanh);
+
       EXPORT1(erf);
       EXPORT1(erfc);
-      EXPORT1(exp);
-      EXPORT1(expm1);
-      EXPORT1(fabs);
-      EXPORT1(lgamma);
-      EXPORT1(log1p);
-      EXPORT1(sin);
-      EXPORT1(sinh);
+
       EXPORT1(sqrt);
-      EXPORT1(tan);
-      EXPORT1(tanh);
+      EXPORT1(fabs);
+
+      EXPORT1(exp); EXPORT1(expm1);
+                    EXPORT1(log1p);
+
+      EXPORT1(lgamma);
       EXPORT1(tgamma);
 
       EXPORT1_RENAME(is_finite, "finite?");

@@ -1058,15 +1058,10 @@ inline namespace number
   DEFINE_EXACTNESS_PRESERVED_COMPLEX1(round,    std::round)
   DEFINE_EXACTNESS_PRESERVED_COMPLEX1(truncate, std::trunc)
 
-  DEFINE_COMPLEX1(exp)
-  DEFINE_COMPLEX1(log)
-
   DEFINE_REAL1(erf)
   DEFINE_REAL1(erfc)
-  DEFINE_REAL1(expm1)
   DEFINE_REAL1(fabs)
   DEFINE_REAL1(lgamma)
-  DEFINE_REAL1(log1p)
   DEFINE_REAL1(tgamma)
 
   DEFINE_REAL2(copysign)

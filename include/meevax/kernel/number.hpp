@@ -638,15 +638,7 @@ inline namespace number
 
   auto round(object const&) -> object;
 
-  auto exp(object const&) -> object;
-
-  auto log(object const&) -> object;
-
   auto fabs(object const&) -> object;
-
-  auto expm1(object const&) -> object;
-
-  auto log1p(object const&) -> object;
 
   auto tgamma(object const&) -> object;
 
