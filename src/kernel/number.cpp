@@ -22,7 +22,8 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/number.hpp>
-#include <meevax/kernel/number/trigonometric.hpp> // TEMPORARY
+#include <meevax/kernel/number/nearest_integer.hpp>
+#include <meevax/kernel/number/trigonometric.hpp>
 #include <meevax/kernel/string.hpp>
 
 namespace meevax::inline kernel
@@ -1025,38 +1026,6 @@ inline namespace number
 
     return apply_to<complex_number>(f, x);
   }
-
-  #define DEFINE_EXACTNESS_PRESERVED_COMPLEX1(NAME, CMATH)                     \
-  auto NAME(object const& x) -> object                                         \
-  {                                                                            \
-    auto f = []<typename T>(T const& x)                                        \
-    {                                                                          \
-      if constexpr (std::is_floating_point_v<T>)                               \
-      {                                                                        \
-        return CMATH(x);                                                       \
-      }                                                                        \
-      else if constexpr (std::is_same_v<T, ratio>)                             \
-      {                                                                        \
-        return large_integer(CMATH(static_cast<double>(x)));                   \
-      }                                                                        \
-      else if constexpr (std::is_same_v<T, large_integer> or std::is_integral_v<T>) \
-      {                                                                        \
-        return x;                                                              \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-        return complex(NAME(x.real()),                                         \
-                       NAME(x.imag()));                                        \
-      }                                                                        \
-    };                                                                         \
-                                                                               \
-    return apply_to<complex_number>(f, x);                                     \
-  }
-
-  DEFINE_EXACTNESS_PRESERVED_COMPLEX1(ceiling,  std::ceil)
-  DEFINE_EXACTNESS_PRESERVED_COMPLEX1(floor,    std::floor)
-  DEFINE_EXACTNESS_PRESERVED_COMPLEX1(round,    std::round)
-  DEFINE_EXACTNESS_PRESERVED_COMPLEX1(truncate, std::trunc)
 
   DEFINE_REAL1(fabs)
 

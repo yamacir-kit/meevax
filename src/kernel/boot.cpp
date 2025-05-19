@@ -30,6 +30,7 @@
 #include <meevax/kernel/number/error_and_gamma.hpp>
 #include <meevax/kernel/number/exponential.hpp>
 #include <meevax/kernel/number/hyperbolic.hpp>
+#include <meevax/kernel/number/nearest_integer.hpp>
 #include <meevax/kernel/number/trigonometric.hpp>
 #include <meevax/kernel/output_file_port.hpp>
 #include <meevax/kernel/output_homogeneous_vector_port.hpp>

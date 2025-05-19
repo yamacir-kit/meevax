@@ -14,13 +14,20 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/number/error_and_gamma.hpp>
+#ifndef INCLUDED_MEEVAX_KERNEL_NUMBER_NEAREST_INTEGER_HPP
+#define INCLUDED_MEEVAX_KERNEL_NUMBER_NEAREST_INTEGER_HPP
+
+#include <meevax/kernel/number.hpp>
 
 namespace meevax::inline kernel::inline number
 {
-  DEFINE_REAL1(erf)
-  DEFINE_REAL1(erfc)
+  auto floor(object const&) -> object;
 
-  DEFINE_REAL1(tgamma)
-  DEFINE_REAL1(lgamma)
+  auto ceiling(object const&) -> object;
+
+  auto truncate(object const&) -> object;
+
+  auto round(object const&) -> object;
 } // namespace meevax::kernel::number
+
+#endif // INCLUDED_MEEVAX_KERNEL_NUMBER_NEAREST_INTEGER_HPP

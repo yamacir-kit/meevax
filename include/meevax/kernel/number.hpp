@@ -630,14 +630,6 @@ inline namespace number
 
   auto number_to_string(object const&, int) -> object;
 
-  auto floor(object const&) -> object;
-
-  auto ceiling(object const&) -> object;
-
-  auto truncate(object const&) -> object;
-
-  auto round(object const&) -> object;
-
   auto fabs(object const&) -> object;
 
   auto copysign(object const&, object const&) -> object;
