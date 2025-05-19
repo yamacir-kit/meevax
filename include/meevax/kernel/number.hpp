@@ -640,14 +640,6 @@ inline namespace number
 
   auto fabs(object const&) -> object;
 
-  auto tgamma(object const&) -> object;
-
-  auto lgamma(object const&) -> object;
-
-  auto erf(object const&) -> object;
-
-  auto erfc(object const&) -> object;
-
   auto copysign(object const&, object const&) -> object;
 
   auto nextafter(object const&, object const&) -> object;

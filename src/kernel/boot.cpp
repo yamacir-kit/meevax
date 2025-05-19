@@ -27,6 +27,7 @@
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/number/error_and_gamma.hpp>
 #include <meevax/kernel/number/exponential.hpp>
 #include <meevax/kernel/number/hyperbolic.hpp>
 #include <meevax/kernel/number/trigonometric.hpp>
@@ -576,14 +577,14 @@ namespace meevax::inline kernel
       EXPORT1(erf);
       EXPORT1(erfc);
 
+      EXPORT1(tgamma);
+      EXPORT1(lgamma);
+
       EXPORT1(sqrt);
       EXPORT1(fabs);
 
       EXPORT1(exp); EXPORT1(expm1);
                     EXPORT1(log1p);
-
-      EXPORT1(lgamma);
-      EXPORT1(tgamma);
 
       EXPORT1_RENAME(is_finite, "finite?");
       EXPORT1_RENAME(is_infinite, "infinite?");
