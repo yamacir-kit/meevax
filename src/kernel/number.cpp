@@ -926,19 +926,5 @@ inline namespace number
 
     return apply_to<complex_number>(f, x);
   }
-
-  #define DEFINE_UNPROVIDED_REAL2(CMATH)                                       \
-  auto CMATH(object const&, object const&) -> object                           \
-  {                                                                            \
-    throw error(make<string>("The mathematical special function std::" #CMATH " is not provided in this environment.")); \
-  }
-
-  #if __cpp_lib_math_special_functions
-  DEFINE_REAL2(cyl_bessel_j)
-  DEFINE_REAL2(cyl_neumann)
-  #else
-  DEFINE_UNPROVIDED_REAL2(cyl_bessel_j)
-  DEFINE_UNPROVIDED_REAL2(cyl_neumann)
-  #endif
 } // namespace number
 } // namespace meevax::kernel

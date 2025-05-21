@@ -625,10 +625,6 @@ inline namespace number
   auto denominator(object const&) -> object;
 
   auto number_to_string(object const&, int) -> object;
-
-  auto cyl_bessel_j(object const&, object const&) -> object;
-
-  auto cyl_neumann(object const&, object const&) -> object;
 } // namespace number
 } // namespace kernel
 } // namespace meevax
