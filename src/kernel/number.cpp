@@ -23,6 +23,7 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/number/nearest_integer.hpp>
+#include <meevax/kernel/number/power.hpp>
 #include <meevax/kernel/number/trigonometric.hpp>
 #include <meevax/kernel/string.hpp>
 
@@ -781,100 +782,6 @@ inline namespace number
   auto lcm(object const& x, object const& y) -> object
   {
     return abs(quotient(x * y, gcd(x, y)));
-  }
-
-  auto sqrt(object const& x) -> object
-  {
-    auto f = []<typename T>(T const& x)
-    {
-      if constexpr (std::is_same_v<T, complex>)
-      {
-        auto const z = std::sqrt(static_cast<std::complex<double>>(x));
-
-        return complex(make(z.real()),
-                       make(z.imag()));
-      }
-      else
-      {
-        auto sqrt = [](auto const& x)
-        {
-          if constexpr (std::is_same_v<T, std::int64_t>)
-          {
-            auto s = std::sqrt(static_cast<double>(x));
-
-            if (auto i = static_cast<std::int32_t>(s); i * i == x)
-            {
-              return make(i);
-            }
-            else
-            {
-              return make(s);
-            }
-          }
-          else if constexpr (std::is_same_v<T, large_integer>)
-          {
-            auto const [s, r] = x.sqrt();
-
-            return r == 0_i64 ? make(s) : make(std::sqrt(static_cast<double>(x)));
-          }
-          else
-          {
-            return make(std::sqrt(static_cast<double>(x)));
-          }
-        };
-
-        return x < 0_i64 ? make<complex>(e0, sqrt(0_i64 - x)) : sqrt(x);
-      }
-    };
-
-    return apply_to<complex_number>(f, x);
-  }
-
-  auto pow(object const& x, object const& y) -> object
-  {
-    auto f = []<typename T, typename U>(T const& x, U const& y)
-    {
-      if constexpr (std::is_same_v<T, complex> or
-                    std::is_same_v<U, complex>)
-      {
-        auto inexact = [](auto&& x)
-        {
-          if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
-          {
-            return static_cast<std::complex<double>>(std::forward<decltype(x)>(x));
-          }
-          else
-          {
-            return static_cast<double>(std::forward<decltype(x)>(x));
-          }
-        };
-
-        auto const z = std::pow(inexact(std::forward<decltype(x)>(x)),
-                                inexact(std::forward<decltype(y)>(y)));
-
-        return complex(make(z.real()),
-                       make(z.imag()));
-      }
-      else if constexpr (std::is_same_v<T, std::int64_t> and
-                         std::is_same_v<U, std::int64_t>)
-      {
-        return static_cast<std::int64_t>(std::pow(x, y));
-      }
-      else if constexpr (std::is_same_v<T, large_integer> and
-                         std::is_same_v<U, large_integer>)
-      {
-        large_integer result {};
-        mpz_pow_ui(result.value, x.value, static_cast<unsigned long>(y));
-        return result;
-      }
-      else
-      {
-        return std::pow(static_cast<double>(std::forward<decltype(x)>(x)),
-                        static_cast<double>(std::forward<decltype(y)>(y)));
-      }
-    };
-
-    return apply_to<complex_numbers>(f, x, y);
   }
 
   auto real(object const& x) -> object

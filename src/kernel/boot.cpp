@@ -32,6 +32,7 @@
 #include <meevax/kernel/number/floating_point_manipulation.hpp>
 #include <meevax/kernel/number/hyperbolic.hpp>
 #include <meevax/kernel/number/nearest_integer.hpp>
+#include <meevax/kernel/number/power.hpp>
 #include <meevax/kernel/number/trigonometric.hpp>
 #include <meevax/kernel/output_file_port.hpp>
 #include <meevax/kernel/output_homogeneous_vector_port.hpp>
@@ -599,13 +600,10 @@ namespace meevax::inline kernel
       EXPORT2(cyl_bessel_j);
       EXPORT2(cyl_neumann);
 
-      library.define<double>("e", std::numbers::e);
-
-      library.define<double>("pi", std::numbers::pi);
-
+      library.define<double>("e",     std::numbers::e);
+      library.define<double>("pi",    std::numbers::pi);
       library.define<double>("euler", std::numbers::egamma);
-
-      library.define<double>("phi", std::numbers::phi);
+      library.define<double>("phi",   std::numbers::phi);
     });
 
     define<library>("(meevax integer32)", [](library & library)
@@ -859,30 +857,11 @@ namespace meevax::inline kernel
         return car(xs).is<std::int32_t>() or car(xs).is<large_integer>();
       });
 
-      library.define<procedure>("=", [](let const& xs)
-      {
-        return std::adjacent_find(xs.begin(), xs.end(), not_equals) == xs.end();
-      });
-
-      library.define<procedure>("<", [](let const& xs)
-      {
-        return std::adjacent_find(xs.begin(), xs.end(), greater_than_or_equals) == xs.end();
-      });
-
-      library.define<procedure>("<=", [](let const& xs)
-      {
-        return std::adjacent_find(xs.begin(), xs.end(), greater_than) == xs.end();
-      });
-
-      library.define<procedure>(">", [](let const& xs)
-      {
-        return std::adjacent_find(xs.begin(), xs.end(), less_than_or_equals) == xs.end();
-      });
-
-      library.define<procedure>(">=", [](let const& xs)
-      {
-        return std::adjacent_find(xs.begin(), xs.end(), less_than) == xs.end();
-      });
+      library.define<procedure>("=",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), not_equals            ) == xs.end(); });
+      library.define<procedure>("<",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), greater_than_or_equals) == xs.end(); });
+      library.define<procedure>("<=", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), greater_than          ) == xs.end(); });
+      library.define<procedure>(">",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), less_than_or_equals   ) == xs.end(); });
+      library.define<procedure>(">=", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), less_than             ) == xs.end(); });
 
       EXPORT1_RENAME(is_zero, "zero?");
       EXPORT1_RENAME(is_positive, "positive?");

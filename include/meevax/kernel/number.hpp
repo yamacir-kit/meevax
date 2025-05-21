@@ -508,6 +508,8 @@ inline namespace number
 
   using exact_integers = combination<std::int32_t, large_integer>;
 
+  using exact_integer = std::tuple<std::int32_t, large_integer>;
+
   #define DEFINE_COMPLEX1(CMATH)                                               \
   auto CMATH(object const& x) -> object                                        \
   {                                                                            \
@@ -609,10 +611,6 @@ inline namespace number
   auto gcd(object const&, object const&) -> object;
 
   auto lcm(object const&, object const&) -> object;
-
-  auto sqrt(object const&) -> object;
-
-  auto pow(object const&, object const&) -> object;
 
   auto real(object const&) -> object;
 
