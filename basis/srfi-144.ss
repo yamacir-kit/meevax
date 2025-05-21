@@ -7,11 +7,30 @@
             binary64-max binary64-min binary64-normalized-fraction
             binary64-normalized? binary64-remquo binary64-sign-bit binary64?)
           (only (meevax inexact)
-            acosh asinh atanh copysign cosh cyl_bessel_j cyl_neumann e erf erfc
-            euler expm1 fabs ldexp lgamma log1p nextafter phi pi sinh tanh
-            tgamma)
+            sinh asinh
+            cosh acosh
+            tanh atanh
+
+            erf
+            erfc
+
+            tgamma
+            lgamma
+
+            expm1
+            log1p
+
+            ldexp nextafter copysign
+
+            cyl_bessel_j
+            cyl_neumann
+
+            e
+            pi
+            euler
+            phi)
           (only (scheme base)
-            * + - / < <= = > >= and car cdr ceiling cond-expand define
+            * + - / < <= = > >= abs and car cdr ceiling cond-expand define
             denominator even? expt floor if inexact integer? lambda let
             negative? numerator odd? or positive? quotient remainder round
             square truncate values zero?)
@@ -220,7 +239,7 @@
 
          (define fl/ /)
 
-         (define flabs fabs)
+         (define flabs abs)
 
          (define (flabsdiff x y)
            (flabs (- x y)))

@@ -30,6 +30,11 @@ namespace meevax::inline memory
   template <typename T>
   constexpr auto compressible_bitwidth_of = std::is_pointer_v<T> ? std::bit_width(alignof(std::remove_pointer_t<T>)) - 1 : 0;
 
+  constexpr auto operator ""_i64(unsigned long long int value)
+  {
+    return static_cast<std::int64_t>(value);
+  }
+
   constexpr auto operator ""_u64(unsigned long long int value)
   {
     return static_cast<std::uint64_t>(value);
@@ -48,7 +53,8 @@ namespace meevax::inline memory
 
     subset * data[N] = {};
 
-    static inline std::size_t hint = 0;
+    std::size_t i_min = N;
+    std::size_t i_max = 0;
 
     struct const_iterator
     {
@@ -62,7 +68,7 @@ namespace meevax::inline memory
 
       using iterator_category = std::bidirectional_iterator_tag;
 
-      subset const* const* data = nullptr;
+      integer_set const* p = nullptr;
 
       std::size_t i = std::numeric_limits<std::size_t>::max();
 
@@ -70,66 +76,73 @@ namespace meevax::inline memory
 
       constexpr const_iterator() = default;
 
-      template <typename... Ts>
-      explicit const_iterator(subset const* const* data, std::size_t i, Ts&&... xs) noexcept
-        : data { data }
-        , i    { i }
+      explicit const_iterator(integer_set const* p, std::size_t i, std::uintptr_t j) noexcept
+        : p { p }
+        , i { i }
+      {
+        assert(p->data);
+        assert(operator bool());
+        increment_unless_truthy(j);
+      }
+
+      explicit const_iterator(integer_set const* p, std::size_t i) noexcept
+        : p { p }
+        , i { i }
       {
         assert(i <= N);
-        increment_unless_truthy(std::forward<decltype(xs)>(xs)...);
+        increment_unless_truthy();
       }
 
-      explicit const_iterator(subset const* const* data) noexcept
-        : data { data }
-        , i    { N }
+      explicit const_iterator(integer_set const* p) noexcept
+        : p { p }
+        , i { N }
       {
         decrement_unless_truthy();
-        assert(iter.data);
+        assert(iter.p->data);
       }
 
-      template <typename... Ts>
-      auto increment_unless_truthy(Ts&&... xs) noexcept -> void
+      auto increment_unless_truthy(std::uintptr_t j) noexcept -> void
       {
-        assert(data);
+        assert(p->data);
+        assert(operator bool());
 
-        if constexpr (0 < sizeof...(Ts))
+        if (not p->data[i] or not (iter = p->data[i]->lower_bound(j)))
         {
-          if (not operator bool() or not data[i] or not (iter = data[i]->lower_bound(std::forward<decltype(xs)>(xs)...)))
-          {
-            ++i;
-            increment_unless_truthy();
-          }
-        }
-        else
-        {
-          if (operator bool())
-          {
-            for (; i <= hint; ++i)
-            {
-              if (data[i] and (iter = data[i]->lower_bound(0)))
-              {
-                return;
-              }
-            }
-
-            i = N;
-          }
-
-          iter = {};
+          ++i;
+          increment_unless_truthy();
         }
       }
 
-      auto decrement_unless_truthy() noexcept -> void
+      auto increment_unless_truthy() noexcept -> void
       {
-        assert(data);
+        assert(p->data);
 
-        for (i = std::min(i, N - 1); operator bool(); --i)
+        for (; i <= p->i_max; ++i)
         {
-          if (data[i] and (iter = typename subset::const_iterator(data[i]->data)))
+          if (p->data[i] and (iter = p->data[i]->lower_bound()))
           {
             return;
           }
         }
+
+        i = N;
+
+        iter = {};
+      }
+
+      auto decrement_unless_truthy() noexcept -> void
+      {
+        assert(p->data);
+
+        for (i = std::min(i, N - 1); p->i_min <= i; --i)
+        {
+          if (p->data[i] and (iter = typename subset::const_iterator(p->data[i])))
+          {
+            return;
+          }
+        }
+
+        i = N;
 
         iter = {};
       }
@@ -147,7 +160,7 @@ namespace meevax::inline memory
 
       auto operator --() noexcept -> auto &
       {
-        if (not iter.data)
+        if (not iter.p->data)
         {
           decrement_unless_truthy();
         }
@@ -190,98 +203,60 @@ namespace meevax::inline memory
       }
     }
 
-    template <std::size_t X, std::size_t... Xs>
-    static constexpr auto split(std::uintptr_t x)
+    static constexpr auto split(T value) noexcept
     {
-      constexpr auto mask = (static_cast<std::size_t>(1) << X) - 1;
-
-      constexpr auto width = (Xs + ... + compressible_bitwidth_of<T>);
-
-      if constexpr (0 < sizeof...(Xs))
-      {
-        return std::tuple_cat(std::make_tuple(x >> width & mask), split<Xs...>(x));
-      }
-      else
-      {
-        return std::make_tuple(x >> width & mask);
-      }
-    }
-
-    template <typename... Ts>
-    auto insert(std::size_t i, Ts&&... xs) noexcept
-    {
-      if (not data[i])
-      {
-        hint = std::max(hint, i);
-        data[i] = new subset();
-      }
-
-      data[i]->insert(std::forward<decltype(xs)>(xs)...);
+      auto j = reinterpret_cast<std::uintptr_t>(value) >> compressible_bitwidth_of<T>;
+      constexpr auto mask = (static_cast<std::size_t>(1) << E) - 1;
+      auto i = j >> (Es + ...) & mask;
+      return std::make_pair(i, j);
     }
 
     auto insert(T value) noexcept
     {
-      return std::apply([this](auto&&... xs)
-                        {
-                          return this->insert(std::forward<decltype(xs)>(xs)...);
-                        },
-                        split<E, Es...>(reinterpret_cast<std::uintptr_t>(value)));
-    }
+      auto [i, j] = split(value);
 
-    template <typename... Ts>
-    auto erase(std::size_t i, Ts&&... xs) noexcept
-    {
-      assert(data[i]);
-      data[i]->erase(std::forward<decltype(xs)>(xs)...);
+      if (not data[i])
+      {
+        i_min = std::min(i_min, i);
+        i_max = std::max(i_max, i);
+        data[i] = new subset();
+      }
+
+      data[i]->insert(j);
     }
 
     auto erase(T value) noexcept
     {
-      return std::apply([this](auto&&... xs)
-                        {
-                          return this->erase(std::forward<decltype(xs)>(xs)...);
-                        },
-                        split<E, Es...>(reinterpret_cast<std::uintptr_t>(value)));
-    }
-
-    template <typename... Ts>
-    constexpr auto contains(std::size_t i, Ts&&... xs) const noexcept
-    {
-      return data[i] and data[i]->contains(std::forward<decltype(xs)>(xs)...);
+      auto [i, j] = split(value);
+      assert(data[i]);
+      data[i]->erase(j);
     }
 
     constexpr auto contains(T value) const noexcept -> bool
     {
-      return std::apply([this](auto&&... xs)
-                        {
-                          return this->contains(std::forward<decltype(xs)>(xs)...);
-                        },
-                        split<E, Es...>(reinterpret_cast<std::uintptr_t>(value)));
+      auto [i, j] = split(value);
+      return data[i] and data[i]->contains(j);
     }
 
     auto begin() const noexcept
     {
-      return const_iterator(data, 0);
+      return const_iterator(this, 0);
     }
 
     auto end() const noexcept
     {
-      return const_iterator(data, N);
-    }
-
-    template <typename... Ts>
-    auto lower_bound(std::size_t i, Ts&&... xs) const noexcept
-    {
-      return const_iterator(data, i, std::forward<decltype(xs)>(xs)...);
+      return const_iterator(this, N);
     }
 
     auto lower_bound(T value) const noexcept
     {
-      return std::apply([this](auto&&... xs)
-                        {
-                          return this->lower_bound(std::forward<decltype(xs)>(xs)...);
-                        },
-                        split<E, Es...>(reinterpret_cast<std::uintptr_t>(value)));
+      auto [i, j] = split(value);
+      return const_iterator(this, i, j);
+    }
+
+    auto lower_bound() const noexcept
+    {
+      return const_iterator(this, i_min);
     }
 
     auto size() const noexcept -> std::size_t
@@ -298,8 +273,6 @@ namespace meevax::inline memory
   template <typename T, std::size_t E>
   struct integer_set<T, E>
   {
-    static_assert(std::is_same_v<decltype(0_u64), std::uint64_t>);
-
     static constexpr auto N = 1_u64 << E;
 
     static constexpr auto Q = N / 64;
@@ -314,6 +287,12 @@ namespace meevax::inline memory
                             reinterpret_cast<std::size_t>(x) % 64);
     };
 
+    static constexpr auto index = [](auto x)
+    {
+      constexpr auto mask = (static_cast<std::size_t>(1) << E) - 1;
+      return reinterpret_cast<std::size_t>(x) >> compressible_bitwidth_of<T> & mask;
+    };
+
     struct const_iterator
     {
       using value_type = T;
@@ -326,35 +305,35 @@ namespace meevax::inline memory
 
       using iterator_category = std::bidirectional_iterator_tag;
 
-      std::uint64_t const* data = nullptr;
+      integer_set const* p = nullptr;
 
-      std::size_t index = std::numeric_limits<std::size_t>::max();
+      std::size_t i = std::numeric_limits<std::size_t>::max();
 
       auto increment_unless_truthy() noexcept
       {
         if (operator bool())
         {
-          auto [q, r] = split(index);
+          auto [q, r] = split(i);
 
-          if (auto b = std::countr_zero(data[q] & (~0_u64 << r)); b != 64)
+          if (auto b = std::countr_zero(p->data[q] & (~0_u64 << r)); b != 64)
           {
-            index = q * 64 + b;
-            assert(data[index / 64] & (1_u64 << index % 64));
+            i = q * 64 + b;
+            assert(p->data[i / 64] & (1_u64 << i % 64));
             return;
           }
 
           while (++q < Q)
           {
-            if (auto b = std::countr_zero(data[q]); b != 64)
+            if (auto b = std::countr_zero(p->data[q]); b != 64)
             {
-              index = q * 64 + b;
-              assert(data[index / 64] & (1_u64 << index % 64));
+              i = q * 64 + b;
+              assert(p->data[i / 64] & (1_u64 << i % 64));
               return;
             }
           }
         }
 
-        index = N;
+        i = N;
 
         assert(not operator bool());
       }
@@ -363,57 +342,57 @@ namespace meevax::inline memory
       {
         if (operator bool())
         {
-          auto [q, r] = split(index);
+          auto [q, r] = split(i);
 
-          if (auto b = std::countl_zero(data[q] & (~0_u64 >> (R - r))); b != 64)
+          if (auto b = std::countl_zero(p->data[q] & (~0_u64 >> (R - r))); b != 64)
           {
-            index = q * 64 + R - b;
-            assert(data[index / 64] & (1_u64 << index % 64));
+            i = q * 64 + R - b;
+            assert(p->data[i / 64] & (1_u64 << i % 64));
             return;
           }
 
           while (--q < Q)
           {
-            if (auto b = std::countl_zero(data[q]); b != 64)
+            if (auto b = std::countl_zero(p->data[q]); b != 64)
             {
-              index = q * 64 + R - b;
-              assert(data[index / 64] & (1_u64 << index % 64));
+              i = q * 64 + R - b;
+              assert(p->data[i / 64] & (1_u64 << i % 64));
               return;
             }
           }
         }
 
-        index = N;
+        i = N;
 
         assert(not operator bool());
       }
 
       constexpr const_iterator() = default;
 
-      explicit const_iterator(std::uint64_t const* data, std::size_t index) noexcept
-        : data  { data }
-        , index { index }
+      explicit const_iterator(integer_set const* p, std::size_t i) noexcept
+        : p { p }
+        , i { i }
       {
         increment_unless_truthy();
       }
 
-      explicit const_iterator(std::uint64_t const* data) noexcept
-        : data  { data }
-        , index { N - 1 }
+      explicit const_iterator(integer_set const* p) noexcept
+        : p { p }
+        , i { N - 1 }
       {
         decrement_unless_truthy();
       }
 
       auto operator ++() noexcept -> decltype(auto)
       {
-        ++index;
+        ++i;
         increment_unless_truthy();
         return *this;
       }
 
       auto operator --() noexcept -> decltype(auto)
       {
-        --index;
+        --i;
         decrement_unless_truthy();
         return *this;
       }
@@ -421,17 +400,17 @@ namespace meevax::inline memory
       constexpr auto operator *() const noexcept
       {
         assert(operator bool());
-        return reinterpret_cast<T>(index);
+        return reinterpret_cast<T>(i);
       }
 
       constexpr operator bool() const noexcept
       {
-        return index < N;
+        return i < N;
       }
 
       friend auto operator ==(const_iterator const& a, const_iterator const& b) noexcept
       {
-        return not b ? not a : a.index == b.index;
+        return not b ? not a : a.i == b.i;
       }
 
       friend auto operator !=(const_iterator const& a, const_iterator const& b) noexcept
@@ -442,25 +421,30 @@ namespace meevax::inline memory
 
     auto insert(T value) noexcept
     {
-      auto [q, r] = split(value);
+      auto [q, r] = split(index(value));
       data[q] |= (1_u64 << r);
     }
 
     auto erase(T value) noexcept
     {
-      auto [q, r] = split(value);
+      auto [q, r] = split(index(value));
       data[q] &= ~(1_u64 << r);
     }
 
     auto contains(T value) noexcept -> bool
     {
-      auto [q, r] = split(value);
+      auto [q, r] = split(index(value));
       return data[q] & (1_u64 << r);
     }
 
     auto lower_bound(T value) const noexcept
     {
-      return const_iterator(data, reinterpret_cast<std::size_t>(value));
+      return const_iterator(this, index(value));
+    }
+
+    auto lower_bound() const noexcept
+    {
+      return const_iterator(this, 0);
     }
   };
 } // namespace meevax::memory

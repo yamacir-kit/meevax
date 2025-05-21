@@ -42,7 +42,7 @@ namespace meevax::inline kernel
 
     auto is_open() const -> bool override;
 
-    auto put(exact_integer const&) -> void override;
+    auto put(std::uint8_t) -> void override;
 
     auto put(u8vector const&) -> void override;
   };

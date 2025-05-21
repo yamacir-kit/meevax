@@ -18,6 +18,7 @@
 
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
+#include <meevax/kernel/number/trigonometric.hpp>
 
 namespace meevax::inline kernel
 {
@@ -73,25 +74,8 @@ namespace meevax::inline kernel
     assert(is_real(real()));
     assert(is_real(imag()));
 
-    auto to_int = [](let const& x)
-    {
-      if (x.is<exact_integer>())
-      {
-        return static_cast<int>(x.as<exact_integer>());
-      }
-      else if (x.is<ratio>())
-      {
-        return static_cast<int>(x.as<ratio>());
-      }
-      else
-      {
-        assert(x.is<std::int32_t>());
-        return static_cast<int>(x.as<std::int32_t>());
-      }
-    };
-
-    return std::complex(to_int(exact(real())),
-                        to_int(exact(imag())));
+    return std::complex(exact_integer_cast<int>(exact(real())),
+                        exact_integer_cast<int>(exact(imag())));
   }
 
   complex::operator std::complex<double>() const

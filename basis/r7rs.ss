@@ -18,7 +18,8 @@
           (srfi 11)
           (srfi 23)
           (srfi 34)
-          (srfi 39))
+          (srfi 39)
+          (srfi 141))
 
   (export ; 4.1. Primitive expression types
           quote lambda if set! include include-ci cond else => case and or when
@@ -156,23 +157,6 @@
              ((define-values identifier expression)
               (define identifier
                 (call-with-values (lambda () expression) list)))))
-
-         (define (floor-quotient x y)
-           (floor (/ x y)))
-
-         (define floor-remainder modulo)
-
-         (define (floor/ x y)
-           (values (floor-quotient x y)
-                   (floor-remainder x y)))
-
-         (define truncate-quotient quotient)
-
-         (define truncate-remainder remainder)
-
-         (define (truncate/ x y)
-           (values (truncate-quotient x y)
-                   (truncate-remainder x y)))
 
          (define (square z)
            (* z z))
@@ -407,6 +391,21 @@
           cdadr cadadr cddadr
           cddar caddar cdddar
           cdddr cadddr cddddr))
+
+(define-library (scheme division)
+  (import (srfi 141))
+  (export ceiling/
+          ceiling-quotient
+          ceiling-remainder
+          round/
+          round-quotient
+          round-remainder
+          euclidean/
+          euclidean-quotient
+          euclidean-remainder
+          balanced/
+          balanced-quotient
+          balanced-remainder))
 
 (define-library (scheme eval)
   (import (only (meevax environment) environment eval))

@@ -1,10 +1,53 @@
-(import (scheme base)
+(import (meevax integer32)
+        (scheme base)
         (scheme inexact)
         (scheme process-context)
         (only (meevax binary32) binary32?)
         (only (meevax binary64) binary64?)
         (srfi 78)
         (srfi 144))
+
+; EXTERAL REPRESENTATIONS
+
+(check (number?        2147483647) => #t)
+(check (complex?       2147483647) => #t)
+(check (real?          2147483647) => #t)
+(check (rational?      2147483647) => #t)
+(check (integer?       2147483647) => #t)
+(check (exact?         2147483647) => #t)
+(check (exact-integer? 2147483647) => #t)
+(check (integer32?     2147483647) => #t)
+(check (inexact?       2147483647) => #f)
+(check (binary32?      2147483647) => #f)
+(check (binary64?      2147483647) => #f)
+(check (finite?        2147483647) => #t)
+(check (infinite?      2147483647) => #f)
+(check (nan?           2147483647) => #f)
+(check (zero?          2147483647) => #f)
+(check (positive?      2147483647) => #t)
+(check (negative?      2147483647) => #f)
+(check (odd?           2147483647) => #t)
+(check (even?          2147483647) => #f)
+
+(check (number?        2147483648) => #t)
+(check (complex?       2147483648) => #t)
+(check (real?          2147483648) => #t)
+(check (rational?      2147483648) => #t)
+(check (integer?       2147483648) => #t)
+(check (exact?         2147483648) => #t)
+(check (exact-integer? 2147483648) => #t)
+(check (integer32?     2147483648) => #f)
+(check (inexact?       2147483648) => #f)
+(check (binary32?      2147483648) => #f)
+(check (binary64?      2147483648) => #f)
+(check (finite?        2147483648) => #t)
+(check (infinite?      2147483648) => #f)
+(check (nan?           2147483648) => #f)
+(check (zero?          2147483648) => #f)
+(check (positive?      2147483648) => #t)
+(check (negative?      2147483648) => #f)
+(check (odd?           2147483648) => #f)
+(check (even?          2147483648) => #t)
 
 (check (real?     1.0e0) => #t)
 (check (binary32? 1.0e0) => #f)
@@ -21,6 +64,14 @@
 (check (rational? 1/3) => #t)
 (check (rational? 0.5) => #t)
 
+; INTEGER32
+
+(check integer32-width => 32)
+(check integer32-min => -2147483648)
+(check integer32-max => 2147483647)
+
+; ARITHMETIC OPERATIONS
+
 (check (+ 1 2 3) (=> =) 6)
 (check (number?   (+ 1 2 3)) => #t)
 (check (complex?  (+ 1 2 3)) => #t)
@@ -29,6 +80,10 @@
 (check (integer?  (+ 1 2 3)) => #t)
 (check (exact?    (+ 1 2 3)) => #t)
 (check (inexact?  (+ 1 2 3)) => #f)
+
+(check (integer32? (+ 2147483647 0)) => #t)
+(check (integer32? (+ 2147483647 1)) => #f)
+(check (+ 2147483647 1) => 2147483648)
 
 (check (+ 1 1/2) (=> =) 3/2)
 (check (number?   (+ 1 1/2)) => #t)
@@ -102,4 +157,4 @@
 
 (check-report)
 
-(exit (check-passed? 66))
+(exit (check-passed? 110))

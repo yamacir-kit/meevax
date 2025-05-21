@@ -155,15 +155,17 @@ namespace meevax::inline kernel
 
     ~pair() override = default;
 
-    auto compare(top const*) const -> bool override;
+    auto equal1(top const*) const -> bool override;
+
+    auto equal2(top const*) const -> bool override;
 
     auto type() const noexcept -> std::type_info const& override;
 
     auto write(std::ostream &) const -> std::ostream & override;
 
-    auto view() const noexcept -> std::pair<void const*, std::size_t> override
+    auto view() const noexcept -> std::pair<void const*, void const*> override
     {
-      return { this, sizeof(*this) };
+      return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
     }
 
     auto begin() noexcept
@@ -279,6 +281,12 @@ namespace meevax::inline kernel
   inline constexpr auto caddddr = compose(car, cddddr);
   inline constexpr auto cdddddr = compose(cdr, cddddr);
 } // namespace meevax::kernel
+
+template <>
+struct meevax::equivalence<meevax::pair>
+{
+  static inline constexpr auto strictness = 2;
+};
 
 template <>
 struct std::hash<meevax::object>
