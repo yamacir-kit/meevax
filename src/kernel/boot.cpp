@@ -584,7 +584,6 @@ namespace meevax::inline kernel
       EXPORT1(lgamma);
 
       EXPORT1(sqrt);
-      EXPORT1(fabs);
 
       EXPORT1(exp); EXPORT1(expm1);
                     EXPORT1(log1p);

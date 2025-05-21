@@ -626,8 +626,6 @@ inline namespace number
 
   auto number_to_string(object const&, int) -> object;
 
-  auto fabs(object const&) -> object;
-
   auto cyl_bessel_j(object const&, object const&) -> object;
 
   auto cyl_neumann(object const&, object const&) -> object;

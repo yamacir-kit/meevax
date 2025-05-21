@@ -742,6 +742,10 @@ inline namespace number
         mpz_abs(i.value, x.value);
         return i;
       }
+      else if constexpr (std::is_floating_point_v<T>)
+      {
+        return std::fabs(std::forward<decltype(x)>(x));
+      }
       else if constexpr (std::is_arithmetic_v<T>)
       {
         return std::abs(std::forward<decltype(x)>(x));
@@ -922,8 +926,6 @@ inline namespace number
 
     return apply_to<complex_number>(f, x);
   }
-
-  DEFINE_REAL1(fabs)
 
   #define DEFINE_UNPROVIDED_REAL2(CMATH)                                       \
   auto CMATH(object const&, object const&) -> object                           \
