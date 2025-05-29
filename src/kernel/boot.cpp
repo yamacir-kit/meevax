@@ -27,6 +27,7 @@
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/number/bitwise.hpp>
 #include <meevax/kernel/number/error_and_gamma.hpp>
 #include <meevax/kernel/number/exponential.hpp>
 #include <meevax/kernel/number/floating_point_manipulation.hpp>
@@ -908,6 +909,26 @@ namespace meevax::inline kernel
       EXPORT1(exact);
       EXPORT1(inexact);
 
+      EXPORT1_RENAME(bitwise_not, "bitwise-not");
+
+      library.define<procedure>("bitwise-and", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<std::int32_t>(-1), bitwise_and); });
+      library.define<procedure>("bitwise-ior", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<std::int32_t>( 0), bitwise_ior); });
+      library.define<procedure>("bitwise-xor", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<std::int32_t>( 0), bitwise_xor); });
+
+      EXPORT2_RENAME(bitwise_nand, "bitwise-nand");
+      EXPORT2_RENAME(bitwise_nior, "bitwise-nior");
+      library.define<procedure>("bitwise-nxor", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<std::int32_t>(-1), bitwise_nxor); });
+
+      library.define<procedure>("bit-shift", [](let const& xs)
+      {
+        return bit_shift(car(xs), exact_integer_cast<std::int32_t>(cadr(xs)));
+      });
+
+      EXPORT1_RENAME(bit_count, "bit-count");
+      EXPORT1_RENAME(bit_width, "bit-width");
+
+      EXPORT1_RENAME(bitwise_count_trailing_zeros, "bitwise-count-trailing-zeros");
+
       library.define<procedure>("number->string", [](let const& xs)
       {
         switch (length(xs))
@@ -1670,31 +1691,24 @@ namespace meevax::inline kernel
                                                                                \
       library.define<procedure>(#TAG "vector-copy", [](let const& xs)          \
       {                                                                        \
+        auto copy = [&](std::size_t begin, std::size_t end)                    \
+        {                                                                      \
+          assert(begin <= end);                                                \
+          return make<VECTOR>(car(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]); \
+        };                                                                     \
+                                                                               \
         switch (length(xs))                                                    \
         {                                                                      \
         case 1:                                                                \
-          {                                                                    \
-            std::size_t begin = 0;                                             \
-            std::size_t end = car(xs).as<VECTOR>().size();                     \
-            assert(begin <= end);                                              \
-            return make<VECTOR>(car(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]); \
-          }                                                                    \
+          return copy(0, car(xs).as<VECTOR>().size());                         \
                                                                                \
         case 2:                                                                \
-          {                                                                    \
-            std::size_t begin = exact_integer_cast<std::size_t>(cadr(xs));     \
-            std::size_t end = car(xs).as<VECTOR>().size();                     \
-            assert(begin <= end);                                              \
-            return make<VECTOR>(car(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]); \
-          }                                                                    \
+          return copy(exact_integer_cast<std::size_t>(cadr(xs)),               \
+                      car(xs).as<VECTOR>().size());                            \
                                                                                \
         case 3:                                                                \
-          {                                                                    \
-            std::size_t begin = exact_integer_cast<std::size_t>(cadr(xs));     \
-            std::size_t end = exact_integer_cast<std::size_t>(caddr(xs));      \
-            assert(begin <= end);                                              \
-            return make<VECTOR>(car(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]); \
-          }                                                                    \
+          return copy(exact_integer_cast<std::size_t>(cadr(xs)),               \
+                      exact_integer_cast<std::size_t>(caddr(xs)));             \
                                                                                \
         default:                                                               \
           throw error(make<string>("procedure " #TAG "vector-copy takes one to three arguments, but got"), xs); \
@@ -1703,36 +1717,32 @@ namespace meevax::inline kernel
                                                                                \
       library.define<procedure>(#TAG "vector-copy!", [](let & xs)              \
       {                                                                        \
+        auto copy = [&](std::size_t at, std::size_t begin, std::size_t end)    \
+        {                                                                      \
+          assert(begin <= end);                                                \
+          auto i = std::slice(at, end - begin, 1);                             \
+          auto j = std::slice(begin, end - begin, 1);                          \
+          car(xs).as<VECTOR>()[i] = caddr(xs).as<VECTOR>()[j];                 \
+        };                                                                     \
+                                                                               \
         switch (length(xs))                                                    \
         {                                                                      \
         case 3:                                                                \
-          {                                                                    \
-            std::size_t at = exact_integer_cast<std::size_t>(cadr(xs));        \
-            std::size_t begin = 0;                                             \
-            std::size_t end = caddr(xs).as<VECTOR>().size();                   \
-            assert(begin <= end);                                              \
-            car(xs).as<VECTOR>()[std::slice(at, end - begin, 1)] = caddr(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]; \
-          }                                                                    \
+          copy(exact_integer_cast<std::size_t>(cadr(xs)),                      \
+               0,                                                              \
+               caddr(xs).as<VECTOR>().size());                                 \
           break;                                                               \
                                                                                \
         case 4:                                                                \
-          {                                                                    \
-            std::size_t at = exact_integer_cast<std::size_t>(cadr(xs));        \
-            std::size_t begin = exact_integer_cast<std::size_t>(cadddr(xs));   \
-            std::size_t end = caddr(xs).as<VECTOR>().size();                   \
-            assert(begin <= end);                                              \
-            car(xs).as<VECTOR>()[std::slice(at, end - begin, 1)] = caddr(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]; \
-          }                                                                    \
+          copy(exact_integer_cast<std::size_t>(cadr(xs)),                      \
+               exact_integer_cast<std::size_t>(cadddr(xs)),                    \
+               caddr(xs).as<VECTOR>().size());                                 \
           break;                                                               \
                                                                                \
         case 5:                                                                \
-          {                                                                    \
-            std::size_t at = exact_integer_cast<std::size_t>(cadr(xs));        \
-            std::size_t begin = exact_integer_cast<std::size_t>(cadddr(xs));   \
-            std::size_t end = exact_integer_cast<std::size_t>(caddddr(xs));    \
-            assert(begin <= end);                                              \
-            car(xs).as<VECTOR>()[std::slice(at, end - begin, 1)] = caddr(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]; \
-          }                                                                    \
+          copy(exact_integer_cast<std::size_t>(cadr(xs)),                      \
+               exact_integer_cast<std::size_t>(cadddr(xs)),                    \
+               exact_integer_cast<std::size_t>(caddddr(xs)));                  \
           break;                                                               \
                                                                                \
         default:                                                               \

@@ -46,7 +46,14 @@ namespace meevax::inline kernel::inline number
       else if constexpr (std::is_same_v<T, std::int64_t> and
                          std::is_same_v<U, std::int64_t>)
       {
-        return static_cast<std::int64_t>(std::pow(x, y));
+        if (auto result = std::pow(x, y); std::numeric_limits<std::int32_t>::min() <= result and result <= std::numeric_limits<std::int32_t>::max())
+        {
+          return make(static_cast<std::int32_t>(result));
+        }
+        else
+        {
+          return make<large_integer>(result);
+        }
       }
       else if constexpr (std::is_same_v<T, large_integer> and
                          std::is_same_v<U, large_integer>)
