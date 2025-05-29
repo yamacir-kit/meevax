@@ -14,25 +14,17 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
-#define INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
+#include <meevax/kernel/number/trigonometric.hpp>
 
-#include <meevax/kernel/number.hpp>
-#include <meevax/kernel/pair.hpp>
-
-namespace meevax::inline kernel
+namespace meevax::inline kernel::inline number
 {
-  inline auto eq = [](auto const& x, auto const& y) constexpr
-  {
-    return x == y;
-  };
+  DEFINE_COMPLEX1(sin)
+  DEFINE_COMPLEX1(cos)
+  DEFINE_COMPLEX1(tan)
 
-  inline auto eqv = [](auto const& x, auto const& y)
-  {
-    return eq(x, y) or x.equal1(y) or exact_integer_equals(x, y);
-  };
+  DEFINE_COMPLEX1(asin)
+  DEFINE_COMPLEX1(acos)
+  DEFINE_COMPLEX1(atan)
 
-  auto equal(object const&, object const&) -> bool;
-} // namespace meevax::kernel
-
-#endif // INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
+  DEFINE_REAL2(atan2)
+} // namespace meevax::kernel::number

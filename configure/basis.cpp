@@ -42,8 +42,11 @@ namespace meevax
       R"##(${srfi-78.ss})##",
       R"##(${srfi-98.ss})##",
       R"##(${srfi-111.ss})##",
+      R"##(${srfi-141.ss})##",
+      R"##(${srfi-143.ss})##",
       R"##(${srfi-144.ss})##",
       R"##(${srfi-149.ss})##",
+      R"##(${srfi-151.ss})##",
     };
   }
 } // namespace meevax
