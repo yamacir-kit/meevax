@@ -75,7 +75,6 @@
 (check (first-set-bit (expt  2 99)) => 99)
 (check (first-set-bit (expt -2 99)) => 99)
 
-
 (check (bit-field #b1101101010 0 4) => #b1010)
 (check (bit-field #b1101101010 3 9) => #b101101)
 (check (bit-field #b1101101010 4 9) => #b10110)
@@ -101,6 +100,57 @@
 
 (check (bit-field-replace-same #b1111 #b0000 1 3) => #b1001)
 
+(check (bit-field-rotate #b110 0 0 10) => #b110)
+(check (bit-field-rotate #b110 0 0 256) => #b110)
+(check (bit-field-rotate #x100000000000000000000000000000000 1 0 129) => 1)
+(check (bit-field-rotate #b110 1 1 2) => #b110)
+(check (bit-field-rotate #b110 1 2 4) => #b1010)
+(check (bit-field-rotate #b0111 -1 1 4) => #b1011)
+
+(check (bit-field-reverse 6 1 3) => 6)
+(check (bit-field-reverse 6 1 4) => 12)
+(check (bit-field-reverse 1 0 32) => #x80000000)
+(check (bit-field-reverse 1 0 31) => #x40000000)
+(check (bit-field-reverse 1 0 30) => #x20000000)
+(check (bit-field-reverse #x140000000000000000000000000000000 0 129) => 5)
+
+(check (bits->list #b1110101) => '(#t #f #t #f #t #t #t))
+(check (bits->list 3 5) => '(#t #t #f #f #f))
+(check (bits->list 6 4) => '(#f #t #t #f))
+
+(check (list->bits '(#t #f #t #f #t #t #t)) => #b1110101)
+(check (list->bits '(#f #f #t #f #t #f #t #t #t)) => #b111010100)
+(check (list->bits '(#f #t #t)) => 6)
+(check (list->bits '(#f #t #t #f)) => 6)
+(check (list->bits '(#f #f #t #t)) => 12)
+
+(check (bits->vector #b1110101) => #(#t #f #t #f #t #t #t))
+
+(check (vector->bits '#(#t #f #t #f #t #t #t)) => #b1110101)
+(check (vector->bits '#(#f #f #t #f #t #f #t #t #t)) => #b111010100)
+(check (vector->bits '#(#f #t #t)) => 6)
+(check (vector->bits '#(#f #t #t #f)) => 6)
+(check (vector->bits '#(#f #f #t #t)) => 12)
+
+(check (bits #t #f #t #f #t #t #t) => #b1110101)
+(check (bits #f #f #t #f #t #f #t #t #t) => #b111010100)
+
+(check (bitwise-fold cons '() #b1010111) => '(#t #f #t #f #t #t #t))
+
+(check (let ((count 0))
+         (bitwise-for-each (lambda (b) (if b (set! count (+ count 1))))
+                           #b1010111)
+         count)
+  => 5)
+
+(check (bitwise-unfold (lambda (i) (= i 10)) even? (lambda (i) (+ i 1)) 0) => #b101010101)
+
+(let ((g (make-bitwise-generator #b110)))
+  (check (g) => #f)
+  (check (g) => #t)
+  (check (g) => #t)
+  (check (g) => #f))
+
 (check-report)
 
-(exit (check-passed? 77))
+(exit (check-passed? 112))

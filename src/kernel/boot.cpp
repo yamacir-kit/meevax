@@ -915,10 +915,6 @@ namespace meevax::inline kernel
       library.define<procedure>("bitwise-ior", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<std::int32_t>( 0), bitwise_ior); });
       library.define<procedure>("bitwise-xor", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<std::int32_t>( 0), bitwise_xor); });
 
-      EXPORT2_RENAME(bitwise_nand, "bitwise-nand");
-      EXPORT2_RENAME(bitwise_nior, "bitwise-nior");
-      library.define<procedure>("bitwise-nxor", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<std::int32_t>(-1), bitwise_nxor); });
-
       library.define<procedure>("bit-shift", [](let const& xs)
       {
         return bit_shift(car(xs), exact_integer_cast<std::int32_t>(cadr(xs)));
@@ -926,8 +922,6 @@ namespace meevax::inline kernel
 
       EXPORT1_RENAME(bit_count, "bit-count");
       EXPORT1_RENAME(bit_width, "bit-width");
-
-      EXPORT1_RENAME(bitwise_count_trailing_zeros, "bitwise-count-trailing-zeros");
 
       library.define<procedure>("number->string", [](let const& xs)
       {

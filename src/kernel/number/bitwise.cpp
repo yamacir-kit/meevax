@@ -79,35 +79,7 @@ namespace meevax::inline kernel::inline number
   DEFINE_BITWISE2(ior, ior, |)
   DEFINE_BITWISE2(xor, xor, ^)
 
-  auto bitwise_nand(object const& x, object const& y) -> object { return bitwise_not(bitwise_and(x, y)); }
-  auto bitwise_nior(object const& x, object const& y) -> object { return bitwise_not(bitwise_ior(x, y)); }
-  auto bitwise_nxor(object const& x, object const& y) -> object { return bitwise_not(bitwise_xor(x, y)); }
-
-  auto bitwise_count_trailing_zeros(object const& x) -> object
-  {
-    auto f = []<typename T>(T const& x)
-    {
-      if (x == 0_i64)
-      {
-        return -1_i64;
-      }
-      else
-      {
-        if constexpr (std::is_same_v<T, large_integer>)
-        {
-          return static_cast<std::int64_t>(mpz_scan1(x.value, 0));
-        }
-        else
-        {
-          return static_cast<std::int64_t>(std::countr_zero(static_cast<std::uint64_t>(x)));
-        }
-      }
-    };
-
-    return apply_to<exact_integer>(f, x);
-  }
-
-  auto bit_shift(object const& x, int c) -> object
+  auto bit_shift(object const& x, std::int32_t c) -> object
   {
     auto f = [c]<typename T>(T const& x)
     {
@@ -134,15 +106,24 @@ namespace meevax::inline kernel::inline number
       {
         if (c < 0)
         {
-          return x >> -c;
+          return canonicalize(x >> -c);
         }
         else if (c == 0)
         {
-          return x;
+          return canonicalize(x);
         }
         else // 0 < c
         {
-          return x << c;
+          if (64 <= c or x < (std::numeric_limits<std::int64_t>::min() >> c) or (std::numeric_limits<std::int64_t>::max() >> c) < x)
+          {
+            auto i = large_integer();
+            mpz_mul_2exp(i.value, large_integer(x).value, c);
+            return make(i);
+          }
+          else
+          {
+            return canonicalize(x << c);
+          }
         }
       }
     };

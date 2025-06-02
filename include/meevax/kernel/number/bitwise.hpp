@@ -27,13 +27,7 @@ namespace meevax::inline kernel::inline number
   auto bitwise_ior(object const& x, object const& y) -> object;
   auto bitwise_xor(object const& x, object const& y) -> object;
 
-  auto bitwise_nand(object const& x, object const& y) -> object;
-  auto bitwise_nior(object const& x, object const& y) -> object;
-  auto bitwise_nxor(object const& x, object const& y) -> object;
-
-  auto bitwise_count_trailing_zeros(object const&) -> object;
-
-  auto bit_shift(object const&, int) -> object;
+  auto bit_shift(object const&, std::int32_t) -> object;
   auto bit_count(object const&) -> object;
   auto bit_width(object const&) -> object;
 } // namespace meevax::kernel::number
