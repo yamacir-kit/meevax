@@ -14,25 +14,22 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
-#define INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_NUMBER_BITWISE_HPP
+#define INCLUDED_MEEVAX_KERNEL_NUMBER_BITWISE_HPP
 
 #include <meevax/kernel/number.hpp>
-#include <meevax/kernel/pair.hpp>
 
-namespace meevax::inline kernel
+namespace meevax::inline kernel::inline number
 {
-  inline auto eq = [](auto const& x, auto const& y) constexpr
-  {
-    return x == y;
-  };
+  auto bitwise_not(object const& x) -> object;
 
-  inline auto eqv = [](auto const& x, auto const& y)
-  {
-    return eq(x, y) or x.equal1(y) or exact_integer_equals(x, y);
-  };
+  auto bitwise_and(object const& x, object const& y) -> object;
+  auto bitwise_ior(object const& x, object const& y) -> object;
+  auto bitwise_xor(object const& x, object const& y) -> object;
 
-  auto equal(object const&, object const&) -> bool;
-} // namespace meevax::kernel
+  auto bit_shift(object const&, std::int32_t) -> object;
+  auto bit_count(object const&) -> object;
+  auto bit_width(object const&) -> object;
+} // namespace meevax::kernel::number
 
-#endif // INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_NUMBER_BITWISE_HPP

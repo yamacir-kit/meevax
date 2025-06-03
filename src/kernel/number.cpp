@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <charconv>
 #include <memory> // std::unique_ptr
 #include <regex>
 #include <string_view>
@@ -21,77 +22,134 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/number.hpp>
+#include <meevax/kernel/number/nearest_integer.hpp>
+#include <meevax/kernel/number/power.hpp>
+#include <meevax/kernel/number/trigonometric.hpp>
 #include <meevax/kernel/string.hpp>
-#include <meevax/utility/combination.hpp>
 
 namespace meevax::inline kernel
 {
-  auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_add(n.value, a.value, b.value); return n; }
-  auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_sub(n.value, a.value, b.value); return n; }
-  auto operator * (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_mul(n.value, a.value, b.value); return n; }
-  auto operator / (exact_integer const& a, exact_integer const& b) -> ratio         { return ratio(a, b); }
-  auto operator % (exact_integer const& a, exact_integer const& b) -> exact_integer { exact_integer n; mpz_tdiv_r(n.value, a.value, b.value); return n; }
-  auto operator ==(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) == 0; }
-  auto operator !=(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) != 0; }
-  auto operator < (exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) <  0; }
-  auto operator <=(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) <= 0; }
-  auto operator > (exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) >  0; }
-  auto operator >=(exact_integer const& a, exact_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) >= 0; }
+  auto operator * (std::int64_t a, large_integer const& b) -> large_integer { return large_integer(a) * b; }
+  auto operator + (std::int64_t a, large_integer const& b) -> large_integer { return large_integer(a) + b; }
+  auto operator - (std::int64_t a, large_integer const& b) -> large_integer { return large_integer(a) - b; }
+  auto operator / (std::int64_t a, large_integer const& b) -> ratio         { return large_integer(a) / b; }
+  auto operator % (std::int64_t a, large_integer const& b) -> large_integer { return large_integer(a) % b; }
+  auto operator ==(std::int64_t a, large_integer const& b) -> bool          { return 0 == mpz_cmp_si(b.value, a); }
+  auto operator !=(std::int64_t a, large_integer const& b) -> bool          { return 0 != mpz_cmp_si(b.value, a); }
+  auto operator < (std::int64_t a, large_integer const& b) -> bool          { return 0 <  mpz_cmp_si(b.value, a); }
+  auto operator <=(std::int64_t a, large_integer const& b) -> bool          { return 0 <= mpz_cmp_si(b.value, a); }
+  auto operator > (std::int64_t a, large_integer const& b) -> bool          { return 0 >  mpz_cmp_si(b.value, a); }
+  auto operator >=(std::int64_t a, large_integer const& b) -> bool          { return 0 >= mpz_cmp_si(b.value, a); }
 
-  auto operator + (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_add(q.value, ratio(a).value, b.value); return q; }
-  auto operator - (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_sub(q.value, ratio(a).value, b.value); return q; }
-  auto operator * (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_mul(q.value, ratio(a).value, b.value); return q; }
-  auto operator / (exact_integer const& a, ratio const& b) -> ratio { ratio q; mpq_div(q.value, ratio(a).value, b.value); return q; }
-  auto operator % (exact_integer const&  , ratio const&  ) -> ratio { throw std::invalid_argument("unimplemented operation"); }
-  auto operator ==(exact_integer const& a, ratio const& b) -> bool  { return 0 == mpq_cmp_z(b.value, a.value); }
-  auto operator !=(exact_integer const& a, ratio const& b) -> bool  { return 0 != mpq_cmp_z(b.value, a.value); }
-  auto operator < (exact_integer const& a, ratio const& b) -> bool  { return 0 <  mpq_cmp_z(b.value, a.value); }
-  auto operator <=(exact_integer const& a, ratio const& b) -> bool  { return 0 <= mpq_cmp_z(b.value, a.value); }
-  auto operator > (exact_integer const& a, ratio const& b) -> bool  { return 0 >  mpq_cmp_z(b.value, a.value); }
-  auto operator >=(exact_integer const& a, ratio const& b) -> bool  { return 0 >= mpq_cmp_z(b.value, a.value); }
+  auto operator + (std::int64_t a, ratio const& b) -> ratio { ratio q; mpq_add(q.value, ratio(a).value, b.value); return q; }
+  auto operator - (std::int64_t a, ratio const& b) -> ratio { ratio q; mpq_sub(q.value, ratio(a).value, b.value); return q; }
+  auto operator * (std::int64_t a, ratio const& b) -> ratio { ratio q; mpq_mul(q.value, ratio(a).value, b.value); return q; }
+  auto operator / (std::int64_t a, ratio const& b) -> ratio { ratio q; mpq_div(q.value, ratio(a).value, b.value); return q; }
+  auto operator % (std::int64_t  , ratio const&  ) -> ratio { throw std::runtime_error("unimplemented operation"); }
+  auto operator ==(std::int64_t a, ratio const& b) -> bool  { return 0 == mpq_cmp_si(b.value, a, 1); }
+  auto operator !=(std::int64_t a, ratio const& b) -> bool  { return 0 != mpq_cmp_si(b.value, a, 1); }
+  auto operator < (std::int64_t a, ratio const& b) -> bool  { return 0 <  mpq_cmp_si(b.value, a, 1); }
+  auto operator <=(std::int64_t a, ratio const& b) -> bool  { return 0 <= mpq_cmp_si(b.value, a, 1); }
+  auto operator > (std::int64_t a, ratio const& b) -> bool  { return 0 >  mpq_cmp_si(b.value, a, 1); }
+  auto operator >=(std::int64_t a, ratio const& b) -> bool  { return 0 >= mpq_cmp_si(b.value, a, 1); }
 
-  auto operator + (exact_integer const& a, float b) -> float { return static_cast<float>(a) +  b; }
-  auto operator - (exact_integer const& a, float b) -> float { return static_cast<float>(a) -  b; }
-  auto operator * (exact_integer const& a, float b) -> float { return static_cast<float>(a) *  b; }
-  auto operator / (exact_integer const& a, float b) -> float { return static_cast<float>(a) /  b; }
-  auto operator % (exact_integer const& a, float b) -> float { return std::remainder(static_cast<float>(a), b); }
-  auto operator ==(exact_integer const& a, float b) -> bool  { return inexact_equals(static_cast<float>(a), b); }
-  auto operator !=(exact_integer const& a, float b) -> bool  { return not (a == b); }
-  auto operator < (exact_integer const& a, float b) -> bool  { return static_cast<float>(a) <  b; }
-  auto operator <=(exact_integer const& a, float b) -> bool  { return static_cast<float>(a) <= b; }
-  auto operator > (exact_integer const& a, float b) -> bool  { return static_cast<float>(a) >  b; }
-  auto operator >=(exact_integer const& a, float b) -> bool  { return static_cast<float>(a) >= b; }
+  auto operator + (std::int64_t a, complex const& b) -> complex { return complex(make(static_cast<std::int32_t>(a)), e0) +  b; }
+  auto operator - (std::int64_t a, complex const& b) -> complex { return complex(make(static_cast<std::int32_t>(a)), e0) -  b; }
+  auto operator * (std::int64_t a, complex const& b) -> complex { return complex(make(static_cast<std::int32_t>(a)), e0) *  b; }
+  auto operator / (std::int64_t a, complex const& b) -> complex { return complex(make(static_cast<std::int32_t>(a)), e0) /  b; }
+  auto operator ==(std::int64_t a, complex const& b) -> bool    { return complex(make(static_cast<std::int32_t>(a)), e0) == b; }
+  auto operator !=(std::int64_t a, complex const& b) -> bool    { return complex(make(static_cast<std::int32_t>(a)), e0) != b; }
 
-  auto operator + (exact_integer const& a, double b) -> double { return static_cast<double>(a) +  b; }
-  auto operator - (exact_integer const& a, double b) -> double { return static_cast<double>(a) -  b; }
-  auto operator * (exact_integer const& a, double b) -> double { return static_cast<double>(a) *  b; }
-  auto operator / (exact_integer const& a, double b) -> double { return static_cast<double>(a) /  b; }
-  auto operator % (exact_integer const& a, double b) -> double { return std::remainder(static_cast<double>(a), b); }
-  auto operator ==(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) == 0; }
-  auto operator !=(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) != 0; }
-  auto operator < (exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) <  0; }
-  auto operator <=(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) <= 0; }
-  auto operator > (exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) >  0; }
-  auto operator >=(exact_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) >= 0; }
+  auto operator + (large_integer const& a, std::int64_t b) -> large_integer { return a + large_integer(b); }
+  auto operator - (large_integer const& a, std::int64_t b) -> large_integer { return a - large_integer(b); }
+  auto operator * (large_integer const& a, std::int64_t b) -> large_integer { return a * large_integer(b); }
+  auto operator / (large_integer const& a, std::int64_t b) -> ratio         { return a / large_integer(b); }
+  auto operator % (large_integer const& a, std::int64_t b) -> large_integer { return a % large_integer(b); }
+  auto operator ==(large_integer const& a, std::int64_t b) -> bool          { return mpz_cmp_si(a.value, b) == 0; }
+  auto operator !=(large_integer const& a, std::int64_t b) -> bool          { return mpz_cmp_si(a.value, b) != 0; }
+  auto operator < (large_integer const& a, std::int64_t b) -> bool          { return mpz_cmp_si(a.value, b) <  0; }
+  auto operator <=(large_integer const& a, std::int64_t b) -> bool          { return mpz_cmp_si(a.value, b) <= 0; }
+  auto operator > (large_integer const& a, std::int64_t b) -> bool          { return mpz_cmp_si(a.value, b) >  0; }
+  auto operator >=(large_integer const& a, std::int64_t b) -> bool          { return mpz_cmp_si(a.value, b) >= 0; }
 
-  auto operator + (exact_integer const& a, complex const& b) -> complex { return complex(make(a), e0) +  b; }
-  auto operator - (exact_integer const& a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
-  auto operator * (exact_integer const& a, complex const& b) -> complex { return complex(make(a), e0) *  b; }
-  auto operator / (exact_integer const& a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
-  auto operator ==(exact_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
-  auto operator !=(exact_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
+  auto operator + (large_integer const& a, large_integer const& b) -> large_integer { large_integer n; mpz_add(n.value, a.value, b.value); return n; }
+  auto operator - (large_integer const& a, large_integer const& b) -> large_integer { large_integer n; mpz_sub(n.value, a.value, b.value); return n; }
+  auto operator * (large_integer const& a, large_integer const& b) -> large_integer { large_integer n; mpz_mul(n.value, a.value, b.value); return n; }
+  auto operator / (large_integer const& a, large_integer const& b) -> ratio         { return ratio(a, b); }
+  auto operator % (large_integer const& a, large_integer const& b) -> large_integer { large_integer n; mpz_tdiv_r(n.value, a.value, b.value); return n; }
+  auto operator ==(large_integer const& a, large_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) == 0; }
+  auto operator !=(large_integer const& a, large_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) != 0; }
+  auto operator < (large_integer const& a, large_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) <  0; }
+  auto operator <=(large_integer const& a, large_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) <= 0; }
+  auto operator > (large_integer const& a, large_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) >  0; }
+  auto operator >=(large_integer const& a, large_integer const& b) -> bool          { return mpz_cmp(a.value, b.value) >= 0; }
 
-  auto operator + (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_add(q.value, a.value, ratio(b).value); return q; }
-  auto operator - (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_sub(q.value, a.value, ratio(b).value); return q; }
-  auto operator * (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_mul(q.value, a.value, ratio(b).value); return q; }
-  auto operator / (ratio const& a, exact_integer const& b) -> ratio { ratio q; mpq_div(q.value, a.value, ratio(b).value); return q; }
-  auto operator % (ratio const&  , exact_integer const&  ) -> ratio { throw std::invalid_argument("unimplemented operation"); }
-  auto operator ==(ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) == 0; }
-  auto operator !=(ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) != 0; }
-  auto operator < (ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) <  0; }
-  auto operator <=(ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) <= 0; }
-  auto operator > (ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) >  0; }
-  auto operator >=(ratio const& a, exact_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) >= 0; }
+  auto operator + (large_integer const& a, ratio const& b) -> ratio { ratio q; mpq_add(q.value, ratio(a).value, b.value); return q; }
+  auto operator - (large_integer const& a, ratio const& b) -> ratio { ratio q; mpq_sub(q.value, ratio(a).value, b.value); return q; }
+  auto operator * (large_integer const& a, ratio const& b) -> ratio { ratio q; mpq_mul(q.value, ratio(a).value, b.value); return q; }
+  auto operator / (large_integer const& a, ratio const& b) -> ratio { ratio q; mpq_div(q.value, ratio(a).value, b.value); return q; }
+  auto operator % (large_integer const&  , ratio const&  ) -> ratio { throw std::invalid_argument("unimplemented operation"); }
+  auto operator ==(large_integer const& a, ratio const& b) -> bool  { return 0 == mpq_cmp_z(b.value, a.value); }
+  auto operator !=(large_integer const& a, ratio const& b) -> bool  { return 0 != mpq_cmp_z(b.value, a.value); }
+  auto operator < (large_integer const& a, ratio const& b) -> bool  { return 0 <  mpq_cmp_z(b.value, a.value); }
+  auto operator <=(large_integer const& a, ratio const& b) -> bool  { return 0 <= mpq_cmp_z(b.value, a.value); }
+  auto operator > (large_integer const& a, ratio const& b) -> bool  { return 0 >  mpq_cmp_z(b.value, a.value); }
+  auto operator >=(large_integer const& a, ratio const& b) -> bool  { return 0 >= mpq_cmp_z(b.value, a.value); }
+
+  auto operator + (large_integer const& a, float b) -> float { return static_cast<float>(a) +  b; }
+  auto operator - (large_integer const& a, float b) -> float { return static_cast<float>(a) -  b; }
+  auto operator * (large_integer const& a, float b) -> float { return static_cast<float>(a) *  b; }
+  auto operator / (large_integer const& a, float b) -> float { return static_cast<float>(a) /  b; }
+  auto operator % (large_integer const& a, float b) -> float { return std::remainder(static_cast<float>(a), b); }
+  auto operator ==(large_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) == 0; }
+  auto operator !=(large_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) != 0; }
+  auto operator < (large_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) <  0; }
+  auto operator <=(large_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) <= 0; }
+  auto operator > (large_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) >  0; }
+  auto operator >=(large_integer const& a, float b) -> bool  { return mpz_cmp_d(a.value, b) >= 0; }
+
+  auto operator + (large_integer const& a, double b) -> double { return static_cast<double>(a) +  b; }
+  auto operator - (large_integer const& a, double b) -> double { return static_cast<double>(a) -  b; }
+  auto operator * (large_integer const& a, double b) -> double { return static_cast<double>(a) *  b; }
+  auto operator / (large_integer const& a, double b) -> double { return static_cast<double>(a) /  b; }
+  auto operator % (large_integer const& a, double b) -> double { return std::remainder(static_cast<double>(a), b); }
+  auto operator ==(large_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) == 0; }
+  auto operator !=(large_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) != 0; }
+  auto operator < (large_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) <  0; }
+  auto operator <=(large_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) <= 0; }
+  auto operator > (large_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) >  0; }
+  auto operator >=(large_integer const& a, double b) -> bool   { return mpz_cmp_d(a.value, b) >= 0; }
+
+  auto operator + (large_integer const& a, complex const& b) -> complex { return complex(make(a), e0) +  b; }
+  auto operator - (large_integer const& a, complex const& b) -> complex { return complex(make(a), e0) -  b; }
+  auto operator * (large_integer const& a, complex const& b) -> complex { return complex(make(a), e0) *  b; }
+  auto operator / (large_integer const& a, complex const& b) -> complex { return complex(make(a), e0) /  b; }
+  auto operator ==(large_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
+  auto operator !=(large_integer const& a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
+
+  auto operator + (ratio const& a, std::int64_t b) -> ratio { ratio q; mpq_add(q.value, a.value, ratio(b).value); return q; }
+  auto operator - (ratio const& a, std::int64_t b) -> ratio { ratio q; mpq_sub(q.value, a.value, ratio(b).value); return q; }
+  auto operator * (ratio const& a, std::int64_t b) -> ratio { ratio q; mpq_mul(q.value, a.value, ratio(b).value); return q; }
+  auto operator / (ratio const& a, std::int64_t b) -> ratio { ratio q; mpq_div(q.value, a.value, ratio(b).value); return q; }
+  auto operator % (ratio const&  , std::int64_t  ) -> ratio { throw std::invalid_argument("unimplemented operation"); }
+  auto operator ==(ratio const& a, std::int64_t b) -> bool  { return mpq_cmp_si(a.value, b, 1) == 0; }
+  auto operator !=(ratio const& a, std::int64_t b) -> bool  { return mpq_cmp_si(a.value, b, 1) != 0; }
+  auto operator < (ratio const& a, std::int64_t b) -> bool  { return mpq_cmp_si(a.value, b, 1) <  0; }
+  auto operator <=(ratio const& a, std::int64_t b) -> bool  { return mpq_cmp_si(a.value, b, 1) <= 0; }
+  auto operator > (ratio const& a, std::int64_t b) -> bool  { return mpq_cmp_si(a.value, b, 1) >  0; }
+  auto operator >=(ratio const& a, std::int64_t b) -> bool  { return mpq_cmp_si(a.value, b, 1) >= 0; }
+
+  auto operator + (ratio const& a, large_integer const& b) -> ratio { ratio q; mpq_add(q.value, a.value, ratio(b).value); return q; }
+  auto operator - (ratio const& a, large_integer const& b) -> ratio { ratio q; mpq_sub(q.value, a.value, ratio(b).value); return q; }
+  auto operator * (ratio const& a, large_integer const& b) -> ratio { ratio q; mpq_mul(q.value, a.value, ratio(b).value); return q; }
+  auto operator / (ratio const& a, large_integer const& b) -> ratio { ratio q; mpq_div(q.value, a.value, ratio(b).value); return q; }
+  auto operator % (ratio const&  , large_integer const&  ) -> ratio { throw std::invalid_argument("unimplemented operation"); }
+  auto operator ==(ratio const& a, large_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) == 0; }
+  auto operator !=(ratio const& a, large_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) != 0; }
+  auto operator < (ratio const& a, large_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) <  0; }
+  auto operator <=(ratio const& a, large_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) <= 0; }
+  auto operator > (ratio const& a, large_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) >  0; }
+  auto operator >=(ratio const& a, large_integer const& b) -> bool  { return mpq_cmp_z(a.value, b.value) >= 0; }
 
   auto operator + (ratio const& a, ratio const& b) -> ratio { ratio q; mpq_add(q.value, a.value, b.value); return q; }
   auto operator - (ratio const& a, ratio const& b) -> ratio { ratio q; mpq_sub(q.value, a.value, b.value); return q; }
@@ -136,17 +194,17 @@ namespace meevax::inline kernel
   auto operator ==(ratio const& a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(ratio const& a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
 
-  auto operator + (float a, exact_integer const& b) -> float { return a +  static_cast<float>(b); }
-  auto operator - (float a, exact_integer const& b) -> float { return a -  static_cast<float>(b); }
-  auto operator * (float a, exact_integer const& b) -> float { return a *  static_cast<float>(b); }
-  auto operator / (float a, exact_integer const& b) -> float { return a /  static_cast<float>(b); }
-  auto operator % (float a, exact_integer const& b) -> float { return std::remainder(a, static_cast<float>(b)); }
-  auto operator ==(float a, exact_integer const& b) -> bool  { return inexact_equals(a, static_cast<float>(b)); }
-  auto operator !=(float a, exact_integer const& b) -> bool  { return not (a == b); }
-  auto operator < (float a, exact_integer const& b) -> bool  { return a <  static_cast<float>(b); }
-  auto operator <=(float a, exact_integer const& b) -> bool  { return a <= static_cast<float>(b); }
-  auto operator > (float a, exact_integer const& b) -> bool  { return a >  static_cast<float>(b); }
-  auto operator >=(float a, exact_integer const& b) -> bool  { return a >= static_cast<float>(b); }
+  auto operator + (float a, large_integer const& b) -> float { return a +  static_cast<float>(b); }
+  auto operator - (float a, large_integer const& b) -> float { return a -  static_cast<float>(b); }
+  auto operator * (float a, large_integer const& b) -> float { return a *  static_cast<float>(b); }
+  auto operator / (float a, large_integer const& b) -> float { return a /  static_cast<float>(b); }
+  auto operator % (float a, large_integer const& b) -> float { return std::remainder(a, static_cast<float>(b)); }
+  auto operator ==(float a, large_integer const& b) -> bool  { return 0 == mpz_cmp_d(b.value, a); }
+  auto operator !=(float a, large_integer const& b) -> bool  { return 0 != mpz_cmp_d(b.value, a); }
+  auto operator < (float a, large_integer const& b) -> bool  { return 0 <  mpz_cmp_d(b.value, a); }
+  auto operator <=(float a, large_integer const& b) -> bool  { return 0 <= mpz_cmp_d(b.value, a); }
+  auto operator > (float a, large_integer const& b) -> bool  { return 0 >  mpz_cmp_d(b.value, a); }
+  auto operator >=(float a, large_integer const& b) -> bool  { return 0 >= mpz_cmp_d(b.value, a); }
 
   auto operator + (float a, ratio const& b) -> float { return a +  static_cast<float>(b); }
   auto operator - (float a, ratio const& b) -> float { return a -  static_cast<float>(b); }
@@ -167,17 +225,17 @@ namespace meevax::inline kernel
   auto operator ==(float a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(float a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
 
-  auto operator + (double a, exact_integer const& b) -> double { return a + static_cast<double>(b); }
-  auto operator - (double a, exact_integer const& b) -> double { return a - static_cast<double>(b); }
-  auto operator * (double a, exact_integer const& b) -> double { return a * static_cast<double>(b); }
-  auto operator / (double a, exact_integer const& b) -> double { return a / static_cast<double>(b); }
-  auto operator % (double a, exact_integer const& b) -> double { return std::remainder(a, static_cast<double>(b)); }
-  auto operator ==(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) == 0; }
-  auto operator !=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) != 0; }
-  auto operator < (double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) >  0; }
-  auto operator <=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) >= 0; }
-  auto operator > (double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) <  0; }
-  auto operator >=(double a, exact_integer const& b) -> bool   { return mpz_cmp_d(b.value, a) <= 0; }
+  auto operator + (double a, large_integer const& b) -> double { return a + static_cast<double>(b); }
+  auto operator - (double a, large_integer const& b) -> double { return a - static_cast<double>(b); }
+  auto operator * (double a, large_integer const& b) -> double { return a * static_cast<double>(b); }
+  auto operator / (double a, large_integer const& b) -> double { return a / static_cast<double>(b); }
+  auto operator % (double a, large_integer const& b) -> double { return std::remainder(a, static_cast<double>(b)); }
+  auto operator ==(double a, large_integer const& b) -> bool   { return 0 == mpz_cmp_d(b.value, a); }
+  auto operator !=(double a, large_integer const& b) -> bool   { return 0 != mpz_cmp_d(b.value, a); }
+  auto operator < (double a, large_integer const& b) -> bool   { return 0 <  mpz_cmp_d(b.value, a); }
+  auto operator <=(double a, large_integer const& b) -> bool   { return 0 <= mpz_cmp_d(b.value, a); }
+  auto operator > (double a, large_integer const& b) -> bool   { return 0 >  mpz_cmp_d(b.value, a); }
+  auto operator >=(double a, large_integer const& b) -> bool   { return 0 >= mpz_cmp_d(b.value, a); }
 
   auto operator + (double a, ratio const& b) -> double { return a +  static_cast<double>(b); }
   auto operator - (double a, ratio const& b) -> double { return a -  static_cast<double>(b); }
@@ -198,12 +256,19 @@ namespace meevax::inline kernel
   auto operator ==(double a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(double a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
 
-  auto operator + (complex const& a, exact_integer const& b) -> complex { return a +  complex(make(b), e0); }
-  auto operator - (complex const& a, exact_integer const& b) -> complex { return a -  complex(make(b), e0); }
-  auto operator * (complex const& a, exact_integer const& b) -> complex { return a *  complex(make(b), e0); }
-  auto operator / (complex const& a, exact_integer const& b) -> complex { return a /  complex(make(b), e0); }
-  auto operator ==(complex const& a, exact_integer const& b) -> bool    { return a == complex(make(b), e0); }
-  auto operator !=(complex const& a, exact_integer const& b) -> bool    { return a != complex(make(b), e0); }
+  auto operator + (complex const& a, std::int64_t b) -> complex { return a +  complex(make(static_cast<std::int32_t>(b)), e0); }
+  auto operator - (complex const& a, std::int64_t b) -> complex { return a -  complex(make(static_cast<std::int32_t>(b)), e0); }
+  auto operator * (complex const& a, std::int64_t b) -> complex { return a *  complex(make(static_cast<std::int32_t>(b)), e0); }
+  auto operator / (complex const& a, std::int64_t b) -> complex { return a /  complex(make(static_cast<std::int32_t>(b)), e0); }
+  auto operator ==(complex const& a, std::int64_t b) -> bool    { return a == complex(make(static_cast<std::int32_t>(b)), e0); }
+  auto operator !=(complex const& a, std::int64_t b) -> bool    { return a != complex(make(static_cast<std::int32_t>(b)), e0); }
+
+  auto operator + (complex const& a, large_integer const& b) -> complex { return a +  complex(make(b), e0); }
+  auto operator - (complex const& a, large_integer const& b) -> complex { return a -  complex(make(b), e0); }
+  auto operator * (complex const& a, large_integer const& b) -> complex { return a *  complex(make(b), e0); }
+  auto operator / (complex const& a, large_integer const& b) -> complex { return a /  complex(make(b), e0); }
+  auto operator ==(complex const& a, large_integer const& b) -> bool    { return a == complex(make(b), e0); }
+  auto operator !=(complex const& a, large_integer const& b) -> bool    { return a != complex(make(b), e0); }
 
   auto operator + (complex const& a, ratio const& b) -> complex { return a +  complex(make(b), e0); }
   auto operator - (complex const& a, ratio const& b) -> complex { return a -  complex(make(b), e0); }
@@ -233,98 +298,6 @@ namespace meevax::inline kernel
   auto operator ==(complex const& a, complex const& b) -> bool    { return equals(a.real(), b.real()) and equals(a.imag(), b.imag()); }
   auto operator !=(complex const& a, complex const& b) -> bool    { return not (a == b); }
 
-  template <typename T>
-  auto canonicalize(T&& x) -> decltype(auto)
-  {
-    if constexpr (std::is_same_v<std::decay_t<T>, object> or
-                  std::is_same_v<std::decay_t<T>, object::pointer>)
-    {
-      return std::forward<decltype(x)>(x);
-    }
-    else if constexpr (std::is_same_v<std::decay_t<T>, complex>)
-    {
-      return x.canonicalize();
-    }
-    else if constexpr (std::is_same_v<std::decay_t<T>, ratio>)
-    {
-      return x.denominator() == 1 ? make(x.numerator()) : make(std::forward<decltype(x)>(x));
-    }
-    else
-    {
-      return make(std::forward<decltype(x)>(x));
-    }
-  }
-
-  using complex_number = std::tuple<exact_integer, ratio, float, double, complex>;
-
-  using complex_numbers = combination<exact_integer, ratio, float, double, complex>;
-
-  using real_number = std::tuple<exact_integer, ratio, float, double>;
-
-  using real_numbers = combination<exact_integer, ratio, float, double>;
-
-  template <typename Tuple, auto I = 0, typename F>
-  auto apply_to([[maybe_unused]] F f, object const& x) -> object
-  {
-    if constexpr (I < std::tuple_size_v<Tuple>)
-    {
-      using type_i = std::tuple_element_t<I, Tuple>;
-
-      return x.is<type_i>() ? canonicalize(f(x.as<type_i>())) : apply_to<Tuple, I + 1>(f, x);
-    }
-    else
-    {
-      throw error(make<string>("not an number"));
-    }
-  }
-
-  template <typename Tuple, auto I = 0, typename F>
-  auto apply_to([[maybe_unused]] F f, object const& x, object const& y) -> object
-  {
-    if constexpr (I < std::tuple_size_v<Tuple>)
-    {
-      using type_i_0 = std::tuple_element_t<0, std::tuple_element_t<I, Tuple>>;
-      using type_i_1 = std::tuple_element_t<1, std::tuple_element_t<I, Tuple>>;
-
-      return x.is<type_i_0>() and y.is<type_i_1>() ? canonicalize(f(x.as<type_i_0>(), y.as<type_i_1>())) : apply_to<Tuple, I + 1>(f, x, y);
-    }
-    else
-    {
-      throw error(make<string>("not an number"));
-    }
-  }
-
-  template <typename Tuple, auto I = 0, typename F>
-  auto test([[maybe_unused]] F f, object const& x) -> bool
-  {
-    if constexpr (I < std::tuple_size_v<Tuple>)
-    {
-      using type_i = std::tuple_element_t<I, Tuple>;
-
-      return x.is<type_i>() ? f(x.as<type_i>()) : test<Tuple, I + 1>(f, x);
-    }
-    else
-    {
-      return false;
-    }
-  }
-
-  template <typename Tuple, auto I = 0, typename F>
-  auto test([[maybe_unused]] F f, object const& x, object const& y) -> bool
-  {
-    if constexpr (I < std::tuple_size_v<Tuple>)
-    {
-      using type_i_0 = std::tuple_element_t<0, std::tuple_element_t<I, Tuple>>;
-      using type_i_1 = std::tuple_element_t<1, std::tuple_element_t<I, Tuple>>;
-
-      return x.is<type_i_0>() and y.is<type_i_1>() ? f(x.as<type_i_0>(), y.as<type_i_1>()) : test<Tuple, I + 1>(f, x, y);
-    }
-    else
-    {
-      return false;
-    }
-  }
-
   auto operator +(object const& x, object const& y) -> object
   {
     return apply_to<complex_numbers>(std::plus(), x, y);
@@ -342,15 +315,29 @@ namespace meevax::inline kernel
 
   auto operator /(object const& x, object const& y) -> object
   {
-    return apply_to<complex_numbers>(std::divides(), x, y);
+    auto f = []<typename T, typename U>(T const& x, U const& y)
+    {
+      if constexpr (std::is_same_v<T, std::int64_t> and
+                    std::is_same_v<U, std::int64_t>)
+      {
+        return make<ratio>(large_integer(x),
+                           large_integer(y));
+      }
+      else
+      {
+        return x / y;
+      }
+    };
+
+    return apply_to<complex_numbers>(f, x, y);
   }
 
   auto operator % (object const& x, object const& y) -> object
   {
     auto f = []<typename T, typename U>(T const& x, U const& y)
     {
-      if constexpr (std::is_floating_point_v<T> and
-                    std::is_floating_point_v<U>)
+      if constexpr ((std::is_floating_point_v<T> and std::is_arithmetic_v<U>) or
+                    (std::is_floating_point_v<U> and std::is_arithmetic_v<T>))
       {
         return std::fmod(x, y);
       }
@@ -365,7 +352,35 @@ namespace meevax::inline kernel
 
   auto make_integer(std::string const& literal, int radix) -> object
   {
-    return make<exact_integer>(literal, radix);
+    auto value = std::int64_t(0);
+
+    if (auto result = std::from_chars(literal.data(), literal.data() + literal.size(), value, radix); result.ec == std::errc())
+    {
+      if (result.ptr != literal.data() + literal.size())
+      {
+        throw std::invalid_argument("not an integer");
+      }
+      else if (std::numeric_limits<std::int32_t>::min() <= value and value <= std::numeric_limits<std::int32_t>::max())
+      {
+        return make(static_cast<std::int32_t>(value));
+      }
+      else
+      {
+        return make<large_integer>(literal, radix);
+      }
+    }
+    else
+    {
+      switch (result.ec)
+      {
+      case std::errc::result_out_of_range:
+        return make<large_integer>(literal, radix);
+
+      default:
+      case std::errc::invalid_argument:
+        throw std::invalid_argument("not an integer");
+      }
+    }
   }
 
   auto make_rational(std::string const& literal, int radix) -> object
@@ -479,6 +494,11 @@ inline namespace number
     return test<complex_numbers>(inexact_equals, x, y);
   }
 
+  auto exact_integer_equals(object const& x, object const& y) -> bool
+  {
+    return test<exact_integers>(std::equal_to(), x, y);
+  }
+
   auto not_equals(object const& x, object const& y) -> bool
   {
     return not equals(x, y);
@@ -582,7 +602,8 @@ inline namespace number
       }
       else
       {
-        return std::is_same_v<T, exact_integer> or
+        return std::is_same_v<T, std::int64_t> or
+               std::is_same_v<T, large_integer> or
                std::is_same_v<T, ratio>;
       }
     };
@@ -604,11 +625,11 @@ inline namespace number
       }
       else if constexpr (std::is_same_v<T, ratio>)
       {
-        return x.denominator() == 1;
+        return x.denominator() == 1_i64;
       }
       else
       {
-        return std::is_same_v<T, exact_integer>;
+        return std::is_same_v<T, std::int64_t> or std::is_same_v<T, large_integer>;
       }
     };
 
@@ -625,7 +646,7 @@ inline namespace number
       }
       else
       {
-        return std::is_same_v<T, ratio> or std::is_same_v<T, exact_integer>;
+        return std::is_same_v<T, std::int64_t> or std::is_same_v<T, large_integer> or  std::is_same_v<T, ratio>;
       }
     };
 
@@ -708,19 +729,22 @@ inline namespace number
 
   auto is_even(object const& x) -> bool
   {
-    let static const e2 = make<exact_integer>(2);
-    return is_zero(remainder(x, e2));
+    return is_zero(remainder(x, make<std::int32_t>(2)));
   }
 
   auto abs(object const& x) -> object
   {
     auto f = []<typename T>(T const& x)
     {
-      if constexpr (std::is_same_v<T, exact_integer>)
+      if constexpr (std::is_same_v<T, large_integer>)
       {
-        exact_integer i {};
+        large_integer i {};
         mpz_abs(i.value, x.value);
         return i;
+      }
+      else if constexpr (std::is_floating_point_v<T>)
+      {
+        return std::fabs(std::forward<decltype(x)>(x));
       }
       else if constexpr (std::is_arithmetic_v<T>)
       {
@@ -732,8 +756,7 @@ inline namespace number
       }
       else
       {
-        static auto const zero = static_cast<exact_integer>(0);
-        return x < zero ? zero - x : x;
+        return x < 0_i64 ? 0_i64 - x : x;
       }
     };
 
@@ -763,83 +786,6 @@ inline namespace number
   auto lcm(object const& x, object const& y) -> object
   {
     return abs(quotient(x * y, gcd(x, y)));
-  }
-
-  auto sqrt(object const& x) -> object
-  {
-    auto f = []<typename T>(T const& x)
-    {
-      if constexpr (std::is_same_v<T, complex>)
-      {
-        auto const z = std::sqrt(static_cast<std::complex<double>>(x));
-
-        return complex(make(z.real()),
-                       make(z.imag()));
-      }
-      else
-      {
-        auto sqrt = [](auto const& x)
-        {
-          if constexpr (std::is_same_v<T, exact_integer>)
-          {
-            auto const [s, r] = x.sqrt();
-
-            return r == 0 ? make(s) : make(std::sqrt(static_cast<double>(x)));
-          }
-          else
-          {
-            return make(std::sqrt(static_cast<double>(x)));
-          }
-        };
-
-        return x < exact_integer(0) ? make<complex>(e0, sqrt(exact_integer(0) - x))
-                                    : sqrt(x);
-      }
-    };
-
-    return apply_to<complex_number>(f, x);
-  }
-
-  auto pow(object const& x, object const& y) -> object
-  {
-    auto f = []<typename T, typename U>(T const& x, U const& y)
-    {
-      if constexpr (std::is_same_v<T, complex> or
-                    std::is_same_v<U, complex>)
-      {
-        auto inexact = [](auto&& x)
-        {
-          if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
-          {
-            return static_cast<std::complex<double>>(std::forward<decltype(x)>(x));
-          }
-          else
-          {
-            return static_cast<double>(std::forward<decltype(x)>(x));
-          }
-        };
-
-        auto const z = std::pow(inexact(std::forward<decltype(x)>(x)),
-                                inexact(std::forward<decltype(y)>(y)));
-
-        return complex(make(z.real()),
-                       make(z.imag()));
-      }
-      else if constexpr (std::is_same_v<T, exact_integer> and
-                         std::is_same_v<U, exact_integer>)
-      {
-        exact_integer result {};
-        mpz_pow_ui(result.value, x.value, static_cast<unsigned long>(y));
-        return result;
-      }
-      else
-      {
-        return std::pow(static_cast<double>(std::forward<decltype(x)>(x)),
-                        static_cast<double>(std::forward<decltype(y)>(y)));
-      }
-    };
-
-    return apply_to<complex_numbers>(f, x, y);
   }
 
   auto real(object const& x) -> object
@@ -934,26 +880,41 @@ inline namespace number
     }
   }
 
-  auto ldexp(object const& x, object const& y) -> object
-  {
-    auto f = [](auto&& x, auto&& y)
-    {
-      return std::ldexp(static_cast<double>(std::forward<decltype(x)>(x)),
-                        static_cast<int   >(std::forward<decltype(y)>(y)));
-    };
-
-    return apply_to<real_numbers>(f, x, y);
-  }
-
   auto number_to_string(object const& x, int radix) -> object
   {
     auto f = [radix]<typename T>(T const& x)
     {
       if constexpr (std::is_floating_point_v<T>)
       {
-        return string("TODO");
+        switch (radix)
+        {
+        case 2:
+        case 8:
+          return string("TODO");
+
+        default:
+        case 10:
+          {
+            char buffer[48] = {};
+            std::to_chars(buffer, buffer + sizeof(buffer), x, std::chars_format::general);
+            return string(buffer);
+          }
+
+        case 16:
+          {
+            auto buffer = std::ostringstream();
+            buffer << std::hexfloat << x << std::defaultfloat;
+            return string(buffer.str());
+          }
+        }
       }
-      else if constexpr (std::is_same_v<T, exact_integer>)
+      else if constexpr (std::is_same_v<T, std::int64_t>)
+      {
+        char buffer[33] = {};
+        std::to_chars(buffer, buffer + sizeof(buffer), x, radix);
+        return string(buffer);
+      }
+      else if constexpr (std::is_same_v<T, large_integer>)
       {
         return string(std::unique_ptr<char, gmp_free>(mpz_get_str(nullptr, radix, x.value)).get());
       }
@@ -965,122 +926,5 @@ inline namespace number
 
     return apply_to<complex_number>(f, x);
   }
-
-  #define DEFINE_EXACTNESS_PRESERVED_COMPLEX1(NAME, CMATH)                     \
-  auto NAME(object const& x) -> object                                         \
-  {                                                                            \
-    auto f = []<typename T>(T const& x)                                        \
-    {                                                                          \
-      if constexpr (std::is_floating_point_v<T>)                               \
-      {                                                                        \
-        return CMATH(x);                                                       \
-      }                                                                        \
-      else if constexpr (std::is_same_v<T, ratio>)                             \
-      {                                                                        \
-        return exact_integer(CMATH(static_cast<double>(x)));                   \
-      }                                                                        \
-      else if constexpr (std::is_same_v<T, exact_integer>)                     \
-      {                                                                        \
-        return x;                                                              \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-        return complex(NAME(x.real()),                                         \
-                       NAME(x.imag()));                                        \
-      }                                                                        \
-    };                                                                         \
-                                                                               \
-    return apply_to<complex_number>(f, x);                                     \
-  }
-
-  DEFINE_EXACTNESS_PRESERVED_COMPLEX1(ceiling,  std::ceil)
-  DEFINE_EXACTNESS_PRESERVED_COMPLEX1(floor,    std::floor)
-  DEFINE_EXACTNESS_PRESERVED_COMPLEX1(round,    std::round)
-  DEFINE_EXACTNESS_PRESERVED_COMPLEX1(truncate, std::trunc)
-
-  #define DEFINE_COMPLEX1(CMATH)                                               \
-  auto CMATH(object const& x) -> object                                        \
-  {                                                                            \
-    auto f = []<typename T>(T const& x)                                        \
-    {                                                                          \
-      if constexpr (std::is_same_v<T, complex>)                                \
-      {                                                                        \
-        auto const z = std::CMATH(static_cast<std::complex<double>>(std::forward<decltype(x)>(x))); \
-                                                                               \
-        return complex(make(z.real()),                                         \
-                       make(z.imag()));                                        \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-        return std::CMATH(static_cast<double>(std::forward<decltype(x)>(x)));  \
-      }                                                                        \
-    };                                                                         \
-                                                                               \
-    return apply_to<complex_number>(f, x);                                     \
-  }
-
-  DEFINE_COMPLEX1(acos)
-  DEFINE_COMPLEX1(acosh)
-  DEFINE_COMPLEX1(asin)
-  DEFINE_COMPLEX1(asinh)
-  DEFINE_COMPLEX1(atan)
-  DEFINE_COMPLEX1(atanh)
-  DEFINE_COMPLEX1(cos)
-  DEFINE_COMPLEX1(cosh)
-  DEFINE_COMPLEX1(exp)
-  DEFINE_COMPLEX1(log)
-  DEFINE_COMPLEX1(sin)
-  DEFINE_COMPLEX1(sinh)
-  DEFINE_COMPLEX1(tan)
-  DEFINE_COMPLEX1(tanh)
-
-  #define DEFINE_REAL1(CMATH)                                                  \
-  auto CMATH(object const& x) -> object                                        \
-  {                                                                            \
-    auto f = [](auto&& x)                                                      \
-    {                                                                          \
-      return std::CMATH(static_cast<double>(std::forward<decltype(x)>(x)));    \
-    };                                                                         \
-                                                                               \
-    return apply_to<real_number>(f, x);                                        \
-  }
-
-  DEFINE_REAL1(erf)
-  DEFINE_REAL1(erfc)
-  DEFINE_REAL1(expm1)
-  DEFINE_REAL1(fabs)
-  DEFINE_REAL1(lgamma)
-  DEFINE_REAL1(log1p)
-  DEFINE_REAL1(tgamma)
-
-  #define DEFINE_REAL2(CMATH)                                                  \
-  auto CMATH(object const& x, object const& y) -> object                       \
-  {                                                                            \
-    auto f = [](auto&& x, auto&& y)                                            \
-    {                                                                          \
-      return std::CMATH(static_cast<double>(std::forward<decltype(x)>(x)),     \
-                        static_cast<double>(std::forward<decltype(y)>(y)));    \
-    };                                                                         \
-                                                                               \
-    return apply_to<real_numbers>(f, x, y);                                    \
-  }
-
-  DEFINE_REAL2(atan2)
-  DEFINE_REAL2(copysign)
-  DEFINE_REAL2(nextafter)
-
-  #define DEFINE_UNPROVIDED_REAL2(CMATH)                                       \
-  auto CMATH(object const&, object const&) -> object                           \
-  {                                                                            \
-    throw error(make<string>("The mathematical special function std::" #CMATH " is not provided in this environment.")); \
-  }
-
-  #if __cpp_lib_math_special_functions
-  DEFINE_REAL2(cyl_bessel_j)
-  DEFINE_REAL2(cyl_neumann)
-  #else
-  DEFINE_UNPROVIDED_REAL2(cyl_bessel_j)
-  DEFINE_UNPROVIDED_REAL2(cyl_neumann)
-  #endif
 } // namespace number
 } // namespace meevax::kernel

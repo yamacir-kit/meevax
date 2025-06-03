@@ -14,25 +14,24 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
-#define INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_NUMBER_HYPERBOLIC_HPP
+#define INCLUDED_MEEVAX_KERNEL_NUMBER_HYPERBOLIC_HPP
 
 #include <meevax/kernel/number.hpp>
-#include <meevax/kernel/pair.hpp>
 
-namespace meevax::inline kernel
+namespace meevax::inline kernel::inline number
 {
-  inline auto eq = [](auto const& x, auto const& y) constexpr
-  {
-    return x == y;
-  };
+  auto sinh(object const&) -> object;
 
-  inline auto eqv = [](auto const& x, auto const& y)
-  {
-    return eq(x, y) or x.equal1(y) or exact_integer_equals(x, y);
-  };
+  auto cosh(object const&) -> object;
 
-  auto equal(object const&, object const&) -> bool;
-} // namespace meevax::kernel
+  auto tanh(object const&) -> object;
 
-#endif // INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
+  auto asinh(object const&) -> object;
+
+  auto acosh(object const&) -> object;
+
+  auto atanh(object const&) -> object;
+} // namespace meevax::kernel::number
+
+#endif // INCLUDED_MEEVAX_KERNEL_NUMBER_HYPERBOLIC_HPP

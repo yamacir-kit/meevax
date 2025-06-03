@@ -14,25 +14,22 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
-#define INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
+#include <meevax/kernel/number/floating_point_manipulation.hpp>
 
-#include <meevax/kernel/number.hpp>
-#include <meevax/kernel/pair.hpp>
-
-namespace meevax::inline kernel
+namespace meevax::inline kernel::inline number
 {
-  inline auto eq = [](auto const& x, auto const& y) constexpr
+  auto ldexp(object const& x, object const& y) -> object
   {
-    return x == y;
-  };
+    auto f = [](auto&& x, auto&& y)
+    {
+      return std::ldexp(static_cast<double>(std::forward<decltype(x)>(x)),
+                        static_cast<int   >(std::forward<decltype(y)>(y)));
+    };
 
-  inline auto eqv = [](auto const& x, auto const& y)
-  {
-    return eq(x, y) or x.equal1(y) or exact_integer_equals(x, y);
-  };
+    return apply_to<real_numbers>(f, x, y);
+  }
 
-  auto equal(object const&, object const&) -> bool;
-} // namespace meevax::kernel
+  DEFINE_REAL2(nextafter)
 
-#endif // INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
+  DEFINE_REAL2(copysign)
+} // namespace meevax::kernel::number

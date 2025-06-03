@@ -19,7 +19,7 @@
 
 namespace meevax::inline kernel
 {
-  auto test(object const& requirement) -> bool
+  auto conditional_expand_test(object const& requirement) -> bool
   {
     if (requirement.is<pair>() and car(requirement).is<symbol>())
     {
@@ -30,16 +30,16 @@ namespace meevax::inline kernel
       else if (car(requirement).as<symbol>() == "and")
       {
         return std::all_of(cdr(requirement).begin(),
-                           cdr(requirement).end(), test);
+                           cdr(requirement).end(), conditional_expand_test);
       }
       else if (car(requirement).as<symbol>() == "or")
       {
         return std::any_of(cdr(requirement).begin(),
-                           cdr(requirement).end(), test);
+                           cdr(requirement).end(), conditional_expand_test);
       }
       else if (car(requirement).as<symbol>() == "not")
       {
-        return not test(cadr(requirement));
+        return not conditional_expand_test(cadr(requirement));
       }
       else
       {
@@ -60,7 +60,7 @@ namespace meevax::inline kernel
       {
         throw error(make<string>("each clause of conditional-expand takes the form (<feature requirement> <expression> ...)"), clause);
       }
-      else if (test(car(clause)))
+      else if (conditional_expand_test(car(clause)))
       {
         return cdr(clause);
       }

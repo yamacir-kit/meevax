@@ -14,25 +14,13 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
-#define INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
+#include <meevax/kernel/number/exponential.hpp>
 
-#include <meevax/kernel/number.hpp>
-#include <meevax/kernel/pair.hpp>
-
-namespace meevax::inline kernel
+namespace meevax::inline kernel::inline number
 {
-  inline auto eq = [](auto const& x, auto const& y) constexpr
-  {
-    return x == y;
-  };
+  DEFINE_COMPLEX1(exp)
+  DEFINE_REAL1(expm1)
 
-  inline auto eqv = [](auto const& x, auto const& y)
-  {
-    return eq(x, y) or x.equal1(y) or exact_integer_equals(x, y);
-  };
-
-  auto equal(object const&, object const&) -> bool;
-} // namespace meevax::kernel
-
-#endif // INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
+  DEFINE_COMPLEX1(log)
+  DEFINE_REAL1(log1p)
+} // namespace meevax::kernel::number

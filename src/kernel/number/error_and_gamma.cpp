@@ -14,25 +14,13 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
-#define INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
+#include <meevax/kernel/number/error_and_gamma.hpp>
 
-#include <meevax/kernel/number.hpp>
-#include <meevax/kernel/pair.hpp>
-
-namespace meevax::inline kernel
+namespace meevax::inline kernel::inline number
 {
-  inline auto eq = [](auto const& x, auto const& y) constexpr
-  {
-    return x == y;
-  };
+  DEFINE_REAL1(erf)
+  DEFINE_REAL1(erfc)
 
-  inline auto eqv = [](auto const& x, auto const& y)
-  {
-    return eq(x, y) or x.equal1(y) or exact_integer_equals(x, y);
-  };
-
-  auto equal(object const&, object const&) -> bool;
-} // namespace meevax::kernel
-
-#endif // INCLUDED_MEEVAX_KERNEL_COMPARATOR_HPP
+  DEFINE_REAL1(tgamma)
+  DEFINE_REAL1(lgamma)
+} // namespace meevax::kernel::number

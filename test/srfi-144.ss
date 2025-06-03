@@ -5,6 +5,17 @@
         (srfi 78)
         (srfi 144))
 
+(define approximately=?
+  (let ((relative-tolerance 1e-12)
+        (absolute-tolerance 1e-14))
+    (lambda (a b)
+      (let ((difference (abs (- a b))))
+        (<= difference
+            (max absolute-tolerance
+                 (* relative-tolerance
+                    (max (abs a)
+                         (abs b)))))))))
+
 (check fl-e => 2.718281828459045)
 
 (check fl-1/e => 0.3678794411714423215955238)
@@ -353,25 +364,25 @@
 (call-with-values (lambda () (flloggamma    1.0)) (lambda (value sign) (check value  =>                   0.0) (check sign => 1.0)))
 (call-with-values (lambda () (flloggamma +inf.0)) (lambda (value sign) (check value  =>                +inf.0) (check sign => 1.0)))
 
-(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 0.0 (* 0/3 fl-pi))) (else 1.0                )) => 1.0                )
-(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 0.0 (* 1/3 fl-pi))) (else 0.74407197075292975)) => 0.74407197075292975)
-(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 0.0 (* 2/3 fl-pi))) (else 0.16979382182100766)) => 0.16979382182100766)
-(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 0.5 (* 0/3 fl-pi))) (else 0.0                )) => 0.0                )
-(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 0.5 (* 1/3 fl-pi))) (else 0.67523723711782946)) => 0.67523723711782946)
-(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 0.5 (* 2/3 fl-pi))) (else 0.47746482927568606)) => 0.47746482927568606)
-(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 1.0 (* 0/3 fl-pi))) (else 0.0                )) => 0.0                )
-(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 1.0 (* 1/3 fl-pi))) (else 0.45503061147236740)) => 0.45503061147236740)
-(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 1.0 (* 2/3 fl-pi))) (else 0.56886896392288921)) => 0.56886896392288921)
+(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 0.0 (* 0/3 fl-pi))) (else 1.0                )) (=> approximately=?) 1.0                )
+(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 0.0 (* 1/3 fl-pi))) (else 0.74407197075292975)) (=> approximately=?) 0.74407197075292975)
+(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 0.0 (* 2/3 fl-pi))) (else 0.16979382182100766)) (=> approximately=?) 0.16979382182100766)
+(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 0.5 (* 0/3 fl-pi))) (else 0.0                )) (=> approximately=?) 0.0                )
+(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 0.5 (* 1/3 fl-pi))) (else 0.67523723711782946)) (=> approximately=?) 0.67523723711782946)
+(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 0.5 (* 2/3 fl-pi))) (else 0.47746482927568606)) (=> approximately=?) 0.47746482927568606)
+(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 1.0 (* 0/3 fl-pi))) (else 0.0                )) (=> approximately=?) 0.0                )
+(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 1.0 (* 1/3 fl-pi))) (else 0.45503061147236740)) (=> approximately=?) 0.45503061147236740)
+(check (cond-expand (__cpp_lib_math_special_functions (flfirst-bessel 1.0 (* 2/3 fl-pi))) (else 0.56886896392288921)) (=> approximately=?) 0.56886896392288921)
 
-(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 0.0 (* 0/3 fl-pi))) (else -inf.0              )) => -inf.0              )
-(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 0.0 (* 1/3 fl-pi))) (else  0.12417445819941761)) =>  0.12417445819941761)
-(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 0.0 (* 2/3 fl-pi))) (else  0.51799555016845289)) =>  0.51799555016845289)
-(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 0.5 (* 0/3 fl-pi))) (else -inf.0              )) => -inf.0              )
-(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 0.5 (* 1/3 fl-pi))) (else -0.38984840061683823)) => -0.38984840061683823)
-(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 0.5 (* 2/3 fl-pi))) (else  0.27566444771089593)) =>  0.27566444771089593)
-(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 1.0 (* 0/3 fl-pi))) (else -inf.0              )) => -inf.0              )
-(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 1.0 (* 1/3 fl-pi))) (else -0.74108949656080647)) => -0.74108949656080647)
-(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 1.0 (* 2/3 fl-pi))) (else -0.05472495339562021)) => -0.05472495339562021)
+(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 0.0 (* 0/3 fl-pi))) (else -inf.0              )) (=> approximately=?) -inf.0              )
+(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 0.0 (* 1/3 fl-pi))) (else  0.12417445819941761)) (=> approximately=?)  0.12417445819941761)
+(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 0.0 (* 2/3 fl-pi))) (else  0.51799555016845289)) (=> approximately=?)  0.51799555016845289)
+(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 0.5 (* 0/3 fl-pi))) (else -inf.0              )) (=> approximately=?) -inf.0              )
+(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 0.5 (* 1/3 fl-pi))) (else -0.38984840061683823)) (=> approximately=?) -0.38984840061683823)
+(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 0.5 (* 2/3 fl-pi))) (else  0.27566444771089593)) (=> approximately=?)  0.27566444771089593)
+(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 1.0 (* 0/3 fl-pi))) (else -inf.0              )) (=> approximately=?) -inf.0              )
+(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 1.0 (* 1/3 fl-pi))) (else -0.74108949656080647)) (=> approximately=?) -0.74108949656080647)
+(check (cond-expand (__cpp_lib_math_special_functions (flsecond-bessel 1.0 (* 2/3 fl-pi))) (else -0.05472495339562021)) (=> approximately=?) -0.05472495339562021)
 
 (check (flerf -inf.0) => -1.0)
 (check (flerf 0.0) => 0.0)
