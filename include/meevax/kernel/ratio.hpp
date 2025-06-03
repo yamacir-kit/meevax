@@ -34,23 +34,25 @@ namespace meevax::inline kernel
 
     ~ratio();
 
-    explicit ratio(exact_integer const&);
+    explicit ratio(std::int64_t);
 
-    explicit ratio(exact_integer const&, exact_integer const&);
+    explicit ratio(large_integer const&);
+
+    explicit ratio(large_integer const&, large_integer const&);
 
     explicit ratio(double);
 
     explicit ratio(std::string const&, int = 10);
 
-    auto denominator() const -> exact_integer;
+    auto denominator() const -> large_integer;
 
-    auto numerator() const -> exact_integer;
+    auto numerator() const -> large_integer;
 
-    explicit operator int() const;
-
-    explicit operator float() const;
-
-    explicit operator double() const;
+    template <typename T>
+    explicit operator T() const
+    {
+      return mpq_get_d(value);
+    }
   };
 
   auto operator <<(std::ostream &, ratio const&) -> std::ostream &;

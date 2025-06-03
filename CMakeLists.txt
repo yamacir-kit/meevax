@@ -219,14 +219,14 @@ endforeach()
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
   execute_process(COMMAND nproc OUTPUT_VARIABLE ${PROJECT_NAME}_NPROC)
   add_custom_target(continuous-integration
-    COMMAND ${CMAKE_MAKE_PROGRAM} -j${${PROJECT_NAME}_NPROC}
+    COMMAND cmake --build ${CMAKE_CURRENT_BINARY_DIR} --parallel
     COMMAND ${CMAKE_MAKE_PROGRAM} test ARGS=-j${${PROJECT_NAME}_NPROC}
-    COMMAND ${CMAKE_MAKE_PROGRAM} package
+    COMMAND cmake --build ${CMAKE_CURRENT_BINARY_DIR} --parallel --target package
     COMMAND sudo dpkg -i ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb)
 else()
   execute_process(COMMAND sysctl -n hw.ncpu OUTPUT_VARIABLE ${PROJECT_NAME}_NCPU)
   add_custom_target(continuous-integration
-    COMMAND ${CMAKE_MAKE_PROGRAM} -j${${PROJECT_NAME}_NCPU}
+    COMMAND cmake --build ${CMAKE_CURRENT_BINARY_DIR} --parallel
     COMMAND ${CMAKE_MAKE_PROGRAM} test ARGS=-j${${PROJECT_NAME}_NCPU}
     COMMAND sudo ${CMAKE_MAKE_PROGRAM} install)
 endif()

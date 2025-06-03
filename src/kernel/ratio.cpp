@@ -39,13 +39,19 @@ namespace meevax::inline kernel
     mpq_canonicalize(value);
   }
 
-  ratio::ratio(exact_integer const& z)
+  ratio::ratio(std::int64_t n)
+  {
+    mpq_init(value);
+    mpq_set_si(value, n, 1);
+  }
+
+  ratio::ratio(large_integer const& z)
   {
     mpq_init(value);
     mpq_set_z(value, z.value);
   }
 
-  ratio::ratio(exact_integer const& n, exact_integer const& d)
+  ratio::ratio(large_integer const& n, large_integer const& d)
   {
     mpq_init(value);
     mpq_set_num(value, n.value);
@@ -77,29 +83,14 @@ namespace meevax::inline kernel
     mpq_clear(value);
   }
 
-  auto ratio::denominator() const -> exact_integer
+  auto ratio::denominator() const -> large_integer
   {
-    return exact_integer(mpq_denref(value));
+    return large_integer(mpq_denref(value));
   }
 
-  auto ratio::numerator() const -> exact_integer
+  auto ratio::numerator() const -> large_integer
   {
-    return exact_integer(mpq_numref(value));
-  }
-
-  ratio::operator int() const
-  {
-    return mpq_get_d(value);
-  }
-
-  ratio::operator float() const
-  {
-    return mpq_get_d(value);
-  }
-
-  ratio::operator double() const
-  {
-    return mpq_get_d(value);
+    return large_integer(mpq_numref(value));
   }
 
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &

@@ -33,8 +33,6 @@ namespace meevax::inline kernel
 
   auto union_find(object const& x, object const& y, std::unordered_map<object, object> & forest)
   {
-    using rank = std::int32_t;
-
     if (auto iterator_x = forest.find(x); iterator_x != forest.end())
     {
       if (auto iterator_y = forest.find(y); iterator_y != forest.end())
@@ -48,16 +46,16 @@ namespace meevax::inline kernel
         }
         else
         {
-          if (auto rank_x = car(root_x).as<rank>(),
-                   rank_y = car(root_y).as<rank>(); rank_x > rank_y)
+          if (auto rank_x = car(root_x).as<small_integer>(),
+                   rank_y = car(root_y).as<small_integer>(); rank_x > rank_y)
           {
-            car(root_x) = make<rank>(rank_x + rank_y);
+            car(root_x) = make<small_integer>(rank_x + rank_y);
             car(root_y) = root_x;
           }
           else
           {
             car(root_x) = root_y;
-            car(root_y) = make<rank>(rank_x + rank_y);
+            car(root_y) = make<small_integer>(rank_x + rank_y);
           }
         }
       }
@@ -74,7 +72,7 @@ namespace meevax::inline kernel
       }
       else
       {
-        let const b = make<box>(make<rank>(1));
+        let const b = make<box>(make<small_integer>(1));
         forest.emplace(x, b);
         forest.emplace(y, b);
       }
@@ -88,9 +86,9 @@ namespace meevax::inline kernel
   */
   auto equal(object const& x, object const& y, std::unordered_map<object, object> & forest) -> bool
   {
-    return eqv(x, y) or (x.is<pair>() and
-                         y.is<pair>() and (union_find(x, y, forest) or (equal(car(x), car(y), forest) and
-                                                                        equal(cdr(x), cdr(y), forest))));
+    return eqv(x, y) or x.equal2(y) or (x.is<pair>() and
+                                        y.is<pair>() and (union_find(x, y, forest) or (equal(car(x), car(y), forest) and
+                                                                                       equal(cdr(x), cdr(y), forest))));
   }
 
   auto equal(object const& x, object const& y) -> bool

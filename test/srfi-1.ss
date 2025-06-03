@@ -346,7 +346,7 @@
 (check (memq 'a '(b c d)) => #f)
 (check (memq (list 'a) '(b (a) c)) => #f)
 (check (member (list 'a) '(b (a) c)) => '((a) c))
-(check (memq 101 '(100 101 102)) => #f)
+(check (memq 101 '(100 101 102)) => '(101 102))
 (check (memv 101 '(100 101 102)) => '(101 102))
 
 (check (delete 2 '(1 2 3)) => '(1 3))
@@ -362,7 +362,7 @@
 (check (assq 'd '((a 1) (b 2) (c 3))) => #f)
 (check (assq (list 'a) '(((a)) ((b)) ((c)))) => #f)
 (check (assoc (list 'a) '(((a)) ((b)) ((c)))) => '((a)))
-(check (assq 5 '((2 3) (5 7) (11 13))) => #f)
+(check (assq 5 '((2 3) (5 7) (11 13))) => '(5 7))
 (check (assv 5 '((2 3) (5 7) (11 13))) => '(5 7))
 
 (check (alist-cons 'a 1 '((b . 2) (c . 3))) => '((a . 1) (b . 2) (c . 3)))

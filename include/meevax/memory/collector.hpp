@@ -48,6 +48,12 @@ namespace meevax::inline memory
 
   inline constexpr list_initialization_tag list_initialization {};
 
+  template <typename T>
+  struct equivalence
+  {
+    static inline constexpr auto strictness = 0;
+  };
+
   /*
      This mark-and-sweep garbage collector is based on the implementation of
      gc_ptr written by William E. Kempf and posted to CodeProject.
@@ -63,19 +69,15 @@ namespace meevax::inline memory
     {
       virtual ~top() = default;
 
-      virtual auto compare(top const*) const -> bool = 0;
+      virtual auto equal1(top const*) const -> bool = 0;
+
+      virtual auto equal2(top const*) const -> bool = 0;
 
       virtual auto type() const noexcept -> std::type_info const& = 0;
 
       virtual auto write(std::ostream &) const -> std::ostream & = 0;
 
-      virtual auto view() const noexcept -> std::pair<void const*, std::size_t> = 0;
-
-      auto contains(void const* const data) const noexcept
-      {
-        auto [address, size] = view();
-        return address <= data and data < static_cast<std::byte const*>(address) + size;
-      }
+      virtual auto view() const noexcept -> std::pair<void const*, void const*> = 0;
     };
 
     static inline auto cleared = false;
@@ -119,9 +121,28 @@ namespace meevax::inline memory
 
       ~binder() override = default;
 
-      auto compare([[maybe_unused]] top const* other) const -> bool override
+      auto equal1([[maybe_unused]] top const* other) const -> bool override
       {
-        if constexpr (is_equality_comparable_v<Bound const&>)
+        if constexpr (is_equality_comparable_v<Bound const&> and equivalence<Bound>::strictness <= 1)
+        {
+          if (auto const* bound = dynamic_cast<Bound const*>(other); bound)
+          {
+            return *bound == static_cast<Bound const&>(*this);
+          }
+          else
+          {
+            return std::is_same_v<Bound, std::nullptr_t>;
+          }
+        }
+        else
+        {
+          return false;
+        }
+      }
+
+      auto equal2([[maybe_unused]] top const* other) const -> bool override
+      {
+        if constexpr (is_equality_comparable_v<Bound const&> and equivalence<Bound>::strictness <= 2)
         {
           if (auto const* bound = dynamic_cast<Bound const*>(other); bound)
           {
@@ -155,9 +176,9 @@ namespace meevax::inline memory
         }
       }
 
-      auto view() const noexcept -> std::pair<void const*, std::size_t> override
+      auto view() const noexcept -> std::pair<void const*, void const*> override
       {
-        return { this, sizeof(*this) };
+        return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
       }
 
       auto operator new(std::size_t) -> void *
@@ -314,11 +335,23 @@ namespace meevax::inline memory
         return as<std::add_const_t<U>>();
       }
 
-      inline auto compare(mutator const& rhs) const -> bool
+      inline auto equal1(mutator const& rhs) const -> bool
       {
         if (pointer::dereferenceable())
         {
-          return *this ? pointer::unsafe_get()->compare(rhs.get()) : rhs.is<std::nullptr_t>();
+          return *this ? pointer::unsafe_get()->equal1(rhs.get()) : rhs.is<std::nullptr_t>();
+        }
+        else
+        {
+          return pointer::compare(rhs);
+        }
+      }
+
+      inline auto equal2(mutator const& rhs) const -> bool
+      {
+        if (pointer::dereferenceable())
+        {
+          return *this ? pointer::unsafe_get()->equal2(rhs.get()) : rhs.is<std::nullptr_t>();
         }
         else
         {
@@ -449,7 +482,7 @@ namespace meevax::inline memory
 
           return data;
         }
-        else
+        else [[unlikely]]
         {
           throw std::bad_alloc();
         }
@@ -542,28 +575,31 @@ namespace meevax::inline memory
         */
         auto iter = objects.lower_bound(reinterpret_cast<top const*>(given));
 
-        return iter == begin or not (*--iter)->contains(given);
+        auto is_out_of_range = [&](top const* object)
+        {
+          auto [begin, end] = object->view();
+          return given < begin or end <= reinterpret_cast<void const*>(given);
+        };
+
+        return iter == begin or is_out_of_range(*--iter);
       };
 
-      struct mutators_view
+      struct members
       {
-        void const* data;
+        std::pair<void const*, void const*> view;
 
-        std::size_t size;
-
-        explicit constexpr mutators_view(std::pair<void const*, std::size_t> const& p)
-          : data { p.first }
-          , size { p.second }
+        explicit members(top const* object)
+          : view { object->view() }
         {}
 
         auto begin() const noexcept
         {
-          return mutators.lower_bound(reinterpret_cast<mutator const*>(data));
+          return mutators.lower_bound(reinterpret_cast<mutator const*>(view.first));
         }
 
         auto end() const noexcept
         {
-          return mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(data) + size));
+          return mutators.lower_bound(reinterpret_cast<mutator const*>(view.second));
         }
       };
 
@@ -584,7 +620,7 @@ namespace meevax::inline memory
             {
               reachables.insert(queue.front());
 
-              for (auto const& mutator : mutators_view(queue.front()->view()))
+              for (auto const& mutator : members(queue.front()))
               {
                 assert(mutator);
                 assert(mutator->unsafe_get());

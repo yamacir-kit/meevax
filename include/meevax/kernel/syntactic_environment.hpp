@@ -1076,12 +1076,12 @@ namespace meevax::inline kernel
             }
             else if (eq(car(formals), variable))
             {
-              return make<relative>(make<std::int32_t>(i), make<std::int32_t>(j));
+              return make<relative>(make<small_integer>(i), make<small_integer>(j));
             }
           }
           else if (formals.is_also<identifier>() and eq(formals, variable))
           {
-            return make<variadic>(make<std::int32_t>(i), make<std::int32_t>(j));
+            return make<variadic>(make<small_integer>(i), make<small_integer>(j));
           }
 
           ++j;

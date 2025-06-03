@@ -7,7 +7,7 @@ extern "C"
 {
   auto argument_length(object & xs)
   {
-    return make<exact_integer>(length(xs));
+    return make(static_cast<small_integer>(length(xs)));
   }
 
   auto dummy_procedure(object & xs)
@@ -23,13 +23,11 @@ extern "C"
 
     for (let const& x : xs)
     {
-      if (x.is<exact_integer>())
+      if (x.is<small_integer>())
       {
         std::cout << "; return incremented left-most integer object." << std::endl;
 
-        auto value = static_cast<int>(x.as<exact_integer>());
-
-        return make<exact_integer>(++value);
+        return make(x.as<small_integer>() + 1);
       }
     }
 
@@ -38,7 +36,7 @@ extern "C"
 
   struct hoge
   {
-    int value;
+    small_integer value;
 
     ~hoge()
     {
@@ -48,7 +46,7 @@ extern "C"
 
   auto make_hoge(object & xs)
   {
-    return make<hoge>(car(xs).as<exact_integer>());
+    return make<hoge>(exact_integer_cast<small_integer>(car(xs)));
   }
 
   auto is_hoge(object & xs)
@@ -58,6 +56,6 @@ extern "C"
 
   auto hoge_value(object & xs)
   {
-    return make<exact_integer>(car(xs).as<hoge>().value);
+    return make<small_integer>(car(xs).as<hoge>().value);
   }
 }

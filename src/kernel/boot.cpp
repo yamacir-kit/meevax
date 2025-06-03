@@ -15,7 +15,6 @@
 */
 
 #include <chrono>
-#include <filesystem>
 #include <numbers>
 #include <numeric>
 
@@ -28,6 +27,15 @@
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/number/bitwise.hpp>
+#include <meevax/kernel/number/error_and_gamma.hpp>
+#include <meevax/kernel/number/exponential.hpp>
+#include <meevax/kernel/number/floating_point_manipulation.hpp>
+#include <meevax/kernel/number/hyperbolic.hpp>
+#include <meevax/kernel/number/nearest_integer.hpp>
+#include <meevax/kernel/number/power.hpp>
+#include <meevax/kernel/number/special.hpp>
+#include <meevax/kernel/number/trigonometric.hpp>
 #include <meevax/kernel/output_file_port.hpp>
 #include <meevax/kernel/output_homogeneous_vector_port.hpp>
 #include <meevax/kernel/output_string_port.hpp>
@@ -66,12 +74,118 @@ namespace meevax::inline kernel
       return IDENTIFIER1(car(xs), cadr(xs));                                   \
     })
 
+    #define EXPORT_PREDICATE(TYPENAME, IDENTIFIER)                             \
+    library.define<procedure>(IDENTIFIER, [](let const& xs)                    \
+    {                                                                          \
+      return car(xs).is<TYPENAME>();                                           \
+    })
+
+    define<library>("(meevax binary32)", [](library & library)
+    {
+      EXPORT_PREDICATE(float, "binary32?");
+    });
+
+    define<library>("(meevax binary64)", [](library & library)
+    {
+      EXPORT_PREDICATE(double, "binary64?");
+
+      library.define<double>("binary64-least", std::numeric_limits<double>::min());
+
+      library.define<double>("binary64-greatest", std::numeric_limits<double>::max());
+
+      library.define<double>("binary64-epsilon", std::numeric_limits<double>::epsilon());
+
+      library.define<procedure>("binary64-integral-part", [](let const& xs)
+      {
+        auto integral_part = 0.0;
+        std::modf(car(xs).as<double>(), &integral_part);
+        return make(integral_part);
+      });
+
+      library.define<procedure>("binary64-fractional-part", [](let const& xs)
+      {
+        auto integral_part = 0.0;
+        return make(std::modf(car(xs).as<double>(), &integral_part));
+      });
+
+      library.define<procedure>("binary64-log-binary", [](let const& xs)
+      {
+        return make(std::logb(car(xs).as<double>()));
+      });
+
+      library.define<procedure>("binary64-integer-log-binary", [](let const& xs)
+      {
+        return make<small_integer>(std::ilogb(car(xs).as<double>()));
+      });
+
+      library.define<procedure>("binary64-normalized-fraction", [](let const& xs)
+      {
+        auto exponent = 0;
+        return make(std::frexp(car(xs).as<double>(), &exponent));
+      });
+
+      library.define<procedure>("binary64-exponent", [](let const& xs)
+      {
+        auto exponent = 0;
+        std::frexp(car(xs).as<double>(), &exponent);
+        return make<std::int64_t>(exponent);
+      });
+
+      library.define<procedure>("binary64-sign-bit", [](let const& xs)
+      {
+        return make(std::signbit(car(xs).as<double>()));
+      });
+
+      library.define<procedure>("binary64-normalized?", [](let const& xs)
+      {
+        return std::fpclassify(car(xs).as<double>()) == FP_NORMAL;
+      });
+
+      library.define<procedure>("binary64-denormalized?", [](let const& xs)
+      {
+        return std::fpclassify(car(xs).as<double>()) == FP_SUBNORMAL;
+      });
+
+      library.define<procedure>("binary64-max", [](let const& xs)
+      {
+        auto max = -std::numeric_limits<double>::infinity();
+
+        for (let const& x : xs)
+        {
+          max = std::fmax(max, x.as<double>());
+        }
+
+        return make(max);
+      });
+
+      library.define<procedure>("binary64-min", [](let const& xs)
+      {
+        auto min = std::numeric_limits<double>::infinity();
+
+        for (let const& x : xs)
+        {
+          min = std::fmin(min, x.as<double>());
+        }
+
+        return make(min);
+      });
+
+      library.define<procedure>("binary64-fused-multiply-add", [](let const& xs)
+      {
+        return make(std::fma(car(xs).as<double>(), cadr(xs).as<double>(), caddr(xs).as<double>()));
+      });
+
+      library.define<procedure>("binary64-remquo", [](let const& xs)
+      {
+        auto quotient = 0;
+        auto remainder = std::remquo(car(xs).as<double>(), cadr(xs).as<double>(), &quotient);
+        return cons(make(remainder), make<std::int64_t>(quotient));
+      });
+    });
+
     define<library>("(meevax boolean)", [](library & library)
     {
-      library.define<procedure>("boolean?", [](let const& xs)
-      {
-        return car(xs).is<bool>();
-      });
+      EXPORT_PREDICATE(bool, "boolean?");
 
       library.define<procedure>("not", [](let const& xs)
       {
@@ -86,10 +200,7 @@ namespace meevax::inline kernel
         return make<box>(car(xs));
       });
 
-      library.define<procedure>("box?", [](let const& xs)
-      {
-        return car(xs).is<box>();
-      });
+      EXPORT_PREDICATE(box, "box?");
 
       library.define<procedure>("box-ref", [](let const& xs)
       {
@@ -104,10 +215,7 @@ namespace meevax::inline kernel
 
     define<library>("(meevax character)", [](library & library)
     {
-      library.define<procedure>("char?", [](let const& xs)
-      {
-        return car(xs).is<character>();
-      });
+      EXPORT_PREDICATE(character, "char?");
 
       library.define<procedure>("char=?", [](let const& xs)
       {
@@ -209,36 +317,17 @@ namespace meevax::inline kernel
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
       });
 
-      library.define<procedure>("char-alphabetic?", [](let const& xs)
-      {
-        return car(xs).as<character>().property().is_letter();
-      });
-
-      library.define<procedure>("char-numeric?", [](let const& xs)
-      {
-        return car(xs).as<character>().property().is_numeric();
-      });
-
-      library.define<procedure>("char-whitespace?", [](let const& xs)
-      {
-        return car(xs).as<character>().property().is_whitespace();
-      });
-
-      library.define<procedure>("char-upper-case?", [](let const& xs)
-      {
-        return car(xs).as<character>().property().is_upper_case();
-      });
-
-      library.define<procedure>("char-lower-case?", [](let const& xs)
-      {
-        return car(xs).as<character>().property().is_lower_case();
-      });
+      library.define<procedure>("char-alphabetic?", [](let const& xs) { return car(xs).as<character>().property().is_letter    (); });
+      library.define<procedure>("char-numeric?",    [](let const& xs) { return car(xs).as<character>().property().is_numeric   (); });
+      library.define<procedure>("char-whitespace?", [](let const& xs) { return car(xs).as<character>().property().is_whitespace(); });
+      library.define<procedure>("char-upper-case?", [](let const& xs) { return car(xs).as<character>().property().is_upper_case(); });
+      library.define<procedure>("char-lower-case?", [](let const& xs) { return car(xs).as<character>().property().is_lower_case(); });
 
       library.define<procedure>("digit-value", [](let const& xs) -> object
       {
         if (auto digit_value = car(xs).as<character>().digit_value(); digit_value)
         {
-          return make<exact_integer>(*digit_value);
+          return make<small_integer>(*digit_value);
         }
         else
         {
@@ -248,23 +337,16 @@ namespace meevax::inline kernel
 
       library.define<procedure>("char->integer", [](let const& xs)
       {
-        return make<exact_integer>(car(xs).as<character>().codepoint);
+        return make<small_integer>(car(xs).as<character>().codepoint);
       });
 
       library.define<procedure>("integer->char", [](let const& xs)
       {
-        return make<character>(car(xs).as<exact_integer>());
+        return make<character>(exact_integer_cast<character::int_type>(car(xs)));
       });
 
-      library.define<procedure>("char-upcase", [](let const& xs)
-      {
-        return make<character>(car(xs).as<character>().upcase());
-      });
-
-      library.define<procedure>("char-downcase", [](let const& xs)
-      {
-        return make<character>(car(xs).as<character>().downcase());
-      });
+      library.define<procedure>("char-upcase",   [](let const& xs) { return make<character>(car(xs).as<character>().upcase  ()); });
+      library.define<procedure>("char-downcase", [](let const& xs) { return make<character>(car(xs).as<character>().downcase()); });
     });
 
     define<library>("(meevax complex)", [](library & library)
@@ -305,7 +387,7 @@ namespace meevax::inline kernel
         }
         else
         {
-          throw static_cast<int>(status.as<exact_integer>());
+          throw exact_integer_cast<int>(status);
         }
       });
 
@@ -387,15 +469,8 @@ namespace meevax::inline kernel
         return car(xs).is_also<error>();
       });
 
-      library.define<procedure>("read-error?", [](let const& xs)
-      {
-        return car(xs).is<read_error>();
-      });
-
-      library.define<procedure>("file-error?", [](let const& xs)
-      {
-        return car(xs).is<file_error>();
-      });
+      EXPORT_PREDICATE(read_error, "read-error?");
+      EXPORT_PREDICATE(file_error, "file-error?");
 
       library.define<procedure>("kernel-exception-handler-set!", [](let const& xs)
       {
@@ -458,161 +533,51 @@ namespace meevax::inline kernel
         }
       });
 
-      EXPORT1(acos);
-      EXPORT1(acosh);
-      EXPORT1(asin);
-      EXPORT1(asinh);
-      EXPORT1(atanh);
-      EXPORT1(cos);
-      EXPORT1(cosh);
+      EXPORT1(sin); EXPORT1(asin); EXPORT1(sinh); EXPORT1(asinh);
+      EXPORT1(cos); EXPORT1(acos); EXPORT1(cosh); EXPORT1(acosh);
+      EXPORT1(tan);                EXPORT1(tanh); EXPORT1(atanh);
+
       EXPORT1(erf);
       EXPORT1(erfc);
-      EXPORT1(exp);
-      EXPORT1(expm1);
-      EXPORT1(fabs);
-      EXPORT1(lgamma);
-      EXPORT1(log1p);
-      EXPORT1(sin);
-      EXPORT1(sinh);
-      EXPORT1(sqrt);
-      EXPORT1(tan);
-      EXPORT1(tanh);
+
       EXPORT1(tgamma);
+      EXPORT1(lgamma);
+
+      EXPORT1(sqrt);
+
+      EXPORT1(exp); EXPORT1(expm1);
+                    EXPORT1(log1p);
 
       EXPORT1_RENAME(is_finite, "finite?");
       EXPORT1_RENAME(is_infinite, "infinite?");
       EXPORT1_RENAME(is_nan, "nan?");
 
-      EXPORT2(copysign);
-      EXPORT2(cyl_bessel_j);
-      EXPORT2(cyl_neumann);
       EXPORT2(ldexp);
       EXPORT2(nextafter);
+      EXPORT2(copysign);
 
-      library.define<double>("e", std::numbers::e);
+      EXPORT2(cyl_bessel_j);
+      EXPORT2(cyl_neumann);
 
-      library.define<double>("pi", std::numbers::pi);
-
+      library.define<double>("e",     std::numbers::e);
+      library.define<double>("pi",    std::numbers::pi);
       library.define<double>("euler", std::numbers::egamma);
-
-      library.define<double>("phi", std::numbers::phi);
+      library.define<double>("phi",   std::numbers::phi);
     });
 
-    define<library>("(meevax binary32)", [](library & library)
+    define<library>("(meevax integer32)", [](library & library)
     {
-      library.define<procedure>("binary32?", [](let const& xs)
-      {
-        return std::numeric_limits<float>::is_iec559 and car(xs).is<float>();
-      });
-    });
+      EXPORT_PREDICATE(small_integer, "integer32?");
 
-    define<library>("(meevax binary64)", [](library & library)
-    {
-      library.define<procedure>("binary64?", [](let const& xs)
-      {
-        return std::numeric_limits<double>::is_iec559 and car(xs).is<double>();
-      });
+      library.define<small_integer>("integer32-width", 32);
 
-      library.define<double>("binary64-least", std::numeric_limits<double>::min());
-
-      library.define<double>("binary64-greatest", std::numeric_limits<double>::max());
-
-      library.define<double>("binary64-epsilon", std::numeric_limits<double>::epsilon());
-
-      library.define<procedure>("binary64-integral-part", [](let const& xs)
-      {
-        auto integral_part = 0.0;
-        std::modf(car(xs).as<double>(), &integral_part);
-        return make(integral_part);
-      });
-
-      library.define<procedure>("binary64-fractional-part", [](let const& xs)
-      {
-        auto integral_part = 0.0;
-        return make(std::modf(car(xs).as<double>(), &integral_part));
-      });
-
-      library.define<procedure>("binary64-log-binary", [](let const& xs)
-      {
-        return make(std::logb(car(xs).as<double>()));
-      });
-
-      library.define<procedure>("binary64-integer-log-binary", [](let const& xs)
-      {
-        return make<exact_integer>(std::ilogb(car(xs).as<double>()));
-      });
-
-      library.define<procedure>("binary64-normalized-fraction", [](let const& xs)
-      {
-        auto exponent = 0;
-        return make(std::frexp(car(xs).as<double>(), &exponent));
-      });
-
-      library.define<procedure>("binary64-exponent", [](let const& xs)
-      {
-        auto exponent = 0;
-        std::frexp(car(xs).as<double>(), &exponent);
-        return make<exact_integer>(exponent);
-      });
-
-      library.define<procedure>("binary64-sign-bit", [](let const& xs)
-      {
-        return make(std::signbit(car(xs).as<double>()));
-      });
-
-      library.define<procedure>("binary64-normalized?", [](let const& xs)
-      {
-        return std::fpclassify(car(xs).as<double>()) == FP_NORMAL;
-      });
-
-      library.define<procedure>("binary64-denormalized?", [](let const& xs)
-      {
-        return std::fpclassify(car(xs).as<double>()) == FP_SUBNORMAL;
-      });
-
-      library.define<procedure>("binary64-max", [](let const& xs)
-      {
-        auto max = -std::numeric_limits<double>::infinity();
-
-        for (let const& x : xs)
-        {
-          max = std::fmax(max, x.as<double>());
-        }
-
-        return make(max);
-      });
-
-      library.define<procedure>("binary64-min", [](let const& xs)
-      {
-        auto min = std::numeric_limits<double>::infinity();
-
-        for (let const& x : xs)
-        {
-          min = std::fmin(min, x.as<double>());
-        }
-
-        return make(min);
-      });
-
-      library.define<procedure>("binary64-fused-multiply-add", [](let const& xs)
-      {
-        return make(std::fma(car(xs).as<double>(), cadr(xs).as<double>(), caddr(xs).as<double>()));
-      });
-
-      library.define<procedure>("binary64-remquo", [](let const& xs)
-      {
-        auto quotient = 0;
-        auto remainder = std::remquo(car(xs).as<double>(), cadr(xs).as<double>(), &quotient);
-        return cons(make(remainder), make<exact_integer>(quotient));
-      });
+      library.define<small_integer>("integer32-min", std::numeric_limits<small_integer>::min());
+      library.define<small_integer>("integer32-max", std::numeric_limits<small_integer>::max());
     });
 
     define<library>("(meevax list)", [](library & library)
     {
-      library.define<procedure>("null?", [](let const& xs)
-      {
-        return car(xs).is<null>();
-      });
+      EXPORT_PREDICATE(null, "null?");
 
       EXPORT1_RENAME(is_list, "list?");
 
@@ -626,10 +591,10 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 1:
-          return make_list(car(xs).as<exact_integer>());
+          return make_list(exact_integer_cast<std::size_t>(car(xs)));
 
         case 2:
-          return make_list(car(xs).as<exact_integer>(), cadr(xs));
+          return make_list(exact_integer_cast<std::size_t>(car(xs)), cadr(xs));
 
         default:
           throw error(make<string>("procedure make-list takes one or two arugments, but got"), xs);
@@ -641,13 +606,13 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 1:
-          return iota(car(xs).as<exact_integer>());
+          return iota(exact_integer_cast<std::size_t>(car(xs)));
 
         case 2:
-          return iota(car(xs).as<exact_integer>(), cadr(xs));
+          return iota(exact_integer_cast<std::size_t>(car(xs)), cadr(xs));
 
         case 3:
-          return iota(car(xs).as<exact_integer>(), cadr(xs), caddr(xs));
+          return iota(exact_integer_cast<std::size_t>(car(xs)), cadr(xs), caddr(xs));
 
         default:
           throw error(make<string>("procedure iota takes one to three arugments, but got"), xs);
@@ -682,7 +647,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("length", [](let const& xs)
       {
-        return make<exact_integer>(length(car(xs)));
+        return make(static_cast<small_integer>(length(car(xs))));
       });
 
       library.define<procedure>("length+", [](let const& xs) -> object
@@ -693,7 +658,7 @@ namespace meevax::inline kernel
         }
         else
         {
-          return make<exact_integer>(length(car(xs)));
+          return make(static_cast<small_integer>(length(car(xs))));
         }
       });
 
@@ -765,15 +730,8 @@ namespace meevax::inline kernel
 
       EXPORT1_RENAME(list_copy, "list-copy");
 
-      library.define<procedure>("list-tail", [](let const& xs)
-      {
-        return tail(car(xs), cadr(xs).as<exact_integer>());
-      });
-
-      library.define<procedure>("list-ref", [](let const& xs)
-      {
-        return head(car(xs), cadr(xs).as<exact_integer>());
-      });
+      library.define<procedure>("list-ref",  [](let const& xs) { return head(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
+      library.define<procedure>("list-tail", [](let const& xs) { return tail(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
 
       library.define<procedure>("first",   [](let const& xs) { return head(car(xs), 0); });
       library.define<procedure>("second",  [](let const& xs) { return head(car(xs), 1); });
@@ -786,35 +744,12 @@ namespace meevax::inline kernel
       library.define<procedure>("ninth",   [](let const& xs) { return head(car(xs), 8); });
       library.define<procedure>("tenth",   [](let const& xs) { return head(car(xs), 9); });
 
-      library.define<procedure>("take", [](let const& xs)
-      {
-        return take(car(xs), cadr(xs).as<exact_integer>());
-      });
-
-      library.define<procedure>("take!", [](let & xs)
-      {
-        return take(car(xs), cadr(xs).as<exact_integer>());
-      });
-
-      library.define<procedure>("take-right", [](let const& xs)
-      {
-        return take_right(car(xs), cadr(xs).as<exact_integer>());
-      });
-
-      library.define<procedure>("drop", [](let const& xs)
-      {
-        return drop(car(xs), cadr(xs).as<exact_integer>());
-      });
-
-      library.define<procedure>("drop-right", [](let const& xs)
-      {
-        return drop_right(car(xs), cadr(xs).as<exact_integer>());
-      });
-
-      library.define<procedure>("drop-right!", [](let & xs)
-      {
-        return drop_right(car(xs), cadr(xs).as<exact_integer>());
-      });
+      library.define<procedure>("take",        [](let const& xs) { return take      (car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
+      library.define<procedure>("take!",       [](let      & xs) { return take      (car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
+      library.define<procedure>("take-right",  [](let const& xs) { return take_right(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
+      library.define<procedure>("drop",        [](let const& xs) { return drop      (car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
+      library.define<procedure>("drop-right",  [](let const& xs) { return drop_right(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
+      library.define<procedure>("drop-right!", [](let      & xs) { return drop_right(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
 
       EXPORT2(memq);
       EXPORT2(memv);
@@ -831,49 +766,30 @@ namespace meevax::inline kernel
 
     define<library>("(meevax number)", [](library & library)
     {
-      EXPORT1_RENAME(is_complex, "number?");
-      EXPORT1_RENAME(is_complex, "complex?");
-      EXPORT1_RENAME(is_real, "real?");
+      EXPORT1_RENAME(is_complex,  "number?");
+      EXPORT1_RENAME(is_complex,  "complex?");
+      EXPORT1_RENAME(is_real,     "real?");
       EXPORT1_RENAME(is_rational, "rational?");
-      EXPORT1_RENAME(is_integer, "integer?");
-      EXPORT1_RENAME(is_exact, "exact?");
-      EXPORT1_RENAME(is_inexact, "inexact?");
+      EXPORT1_RENAME(is_integer,  "integer?");
+      EXPORT1_RENAME(is_exact,    "exact?");
+      EXPORT1_RENAME(is_inexact,  "inexact?");
 
       library.define<procedure>("exact-integer?", [](let const& xs)
       {
-        return car(xs).is<exact_integer>();
+        return car(xs).is<small_integer>() or car(xs).is<large_integer>();
       });
 
-      library.define<procedure>("=", [](let const& xs)
-      {
-        return std::adjacent_find(xs.begin(), xs.end(), not_equals) == xs.end();
-      });
+      library.define<procedure>("=",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), not_equals            ) == xs.end(); });
+      library.define<procedure>("<",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), greater_than_or_equals) == xs.end(); });
+      library.define<procedure>("<=", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), greater_than          ) == xs.end(); });
+      library.define<procedure>(">",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), less_than_or_equals   ) == xs.end(); });
+      library.define<procedure>(">=", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), less_than             ) == xs.end(); });
 
-      library.define<procedure>("<", [](let const& xs)
-      {
-        return std::adjacent_find(xs.begin(), xs.end(), greater_than_or_equals) == xs.end();
-      });
-
-      library.define<procedure>("<=", [](let const& xs)
-      {
-        return std::adjacent_find(xs.begin(), xs.end(), greater_than) == xs.end();
-      });
-
-      library.define<procedure>(">", [](let const& xs)
-      {
-        return std::adjacent_find(xs.begin(), xs.end(), less_than_or_equals) == xs.end();
-      });
-
-      library.define<procedure>(">=", [](let const& xs)
-      {
-        return std::adjacent_find(xs.begin(), xs.end(), less_than) == xs.end();
-      });
-
-      EXPORT1_RENAME(is_zero, "zero?");
+      EXPORT1_RENAME(is_zero,     "zero?");
       EXPORT1_RENAME(is_positive, "positive?");
       EXPORT1_RENAME(is_negative, "negative?");
-      EXPORT1_RENAME(is_odd, "odd?");
-      EXPORT1_RENAME(is_even, "even?");
+      EXPORT1_RENAME(is_odd,      "odd?");
+      EXPORT1_RENAME(is_even,     "even?");
 
       library.define<procedure>("max", [](let const& xs)
       {
@@ -899,15 +815,8 @@ namespace meevax::inline kernel
         }
       });
 
-      library.define<procedure>("+", [](let const& xs)
-      {
-        return std::accumulate(xs.begin(), xs.end(), e0, std::plus());
-      });
-
-      library.define<procedure>("*", [](let const& xs)
-      {
-        return std::accumulate(xs.begin(), xs.end(), e1, std::multiplies());
-      });
+      library.define<procedure>("+", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), e0, std::plus      ()); });
+      library.define<procedure>("*", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), e1, std::multiplies()); });
 
       library.define<procedure>("-", [](let const& xs)
       {
@@ -977,15 +886,42 @@ namespace meevax::inline kernel
 
       library.define<procedure>("exact-integer-square-root", [](let const& xs)
       {
-        auto&& [s, r] = car(xs).as<exact_integer>().sqrt();
+        auto sqrt = [](let const& x)
+        {
+          if (x.is<small_integer>())
+          {
+            return large_integer(x.as<small_integer>()).sqrt();
+          }
+          else
+          {
+            return x.as<large_integer>().sqrt();
+          }
+        };
+
+        auto&& [s, r] = sqrt(car(xs));
 
         return cons(make(std::forward<decltype(s)>(s)),
                     make(std::forward<decltype(r)>(r)));
       });
 
       EXPORT2_RENAME(pow, "expt");
+
       EXPORT1(exact);
       EXPORT1(inexact);
+
+      EXPORT1_RENAME(bitwise_not, "bitwise-not");
+
+      library.define<procedure>("bitwise-and", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<small_integer>(-1), bitwise_and); });
+      library.define<procedure>("bitwise-ior", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<small_integer>( 0), bitwise_ior); });
+      library.define<procedure>("bitwise-xor", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<small_integer>( 0), bitwise_xor); });
+
+      library.define<procedure>("bit-shift", [](let const& xs)
+      {
+        return bit_shift(car(xs), exact_integer_cast<small_integer>(cadr(xs)));
+      });
+
+      EXPORT1_RENAME(bit_count, "bit-count");
+      EXPORT1_RENAME(bit_width, "bit-width");
 
       library.define<procedure>("number->string", [](let const& xs)
       {
@@ -995,7 +931,7 @@ namespace meevax::inline kernel
           return number_to_string(car(xs), 10);
 
         case 2:
-          return number_to_string(car(xs), cadr(xs).as<exact_integer>());
+          return number_to_string(car(xs), exact_integer_cast<std::size_t>(cadr(xs)));
 
         default:
           throw error(make<string>("procedure number->string takes one or two arugments, but got"), xs);
@@ -1010,7 +946,7 @@ namespace meevax::inline kernel
           return make_number(car(xs).as<string>(), 10);
 
         case 2:
-          return make_number(car(xs).as<string>(), cadr(xs).as<exact_integer>());
+          return make_number(car(xs).as<string>(), exact_integer_cast<std::size_t>(cadr(xs)));
 
         default:
           throw error(make<string>("procedure string->number takes one or two arugments, but got"), xs);
@@ -1020,10 +956,7 @@ namespace meevax::inline kernel
 
     define<library>("(meevax pair)", [](library & library)
     {
-      library.define<procedure>("pair?", [](let const& xs)
-      {
-        return car(xs).is<pair>();
-      });
+      EXPORT_PREDICATE(pair, "pair?");
 
       library.define<procedure>("not-pair?", [](let const& xs)
       {
@@ -1064,34 +997,23 @@ namespace meevax::inline kernel
 
       EXPORT1(car);
       EXPORT1(cdr);
-      EXPORT1(caar);
-      EXPORT1(cadr);
-      EXPORT1(cdar);
-      EXPORT1(cddr);
-      EXPORT1(caaar);
-      EXPORT1(caadr);
-      EXPORT1(cadar);
-      EXPORT1(caddr);
-      EXPORT1(cdaar);
-      EXPORT1(cdadr);
-      EXPORT1(cddar);
-      EXPORT1(cdddr);
-      EXPORT1(caaaar);
-      EXPORT1(caaadr);
-      EXPORT1(caadar);
-      EXPORT1(caaddr);
-      EXPORT1(cadaar);
-      EXPORT1(cadadr);
-      EXPORT1(caddar);
-      EXPORT1(cadddr);
-      EXPORT1(cdaaar);
-      EXPORT1(cdaadr);
-      EXPORT1(cdadar);
-      EXPORT1(cdaddr);
-      EXPORT1(cddaar);
-      EXPORT1(cddadr);
-      EXPORT1(cdddar);
-      EXPORT1(cddddr);
+
+      EXPORT1(caar); EXPORT1(cdar);
+      EXPORT1(cadr); EXPORT1(cddr);
+
+      EXPORT1(caaar); EXPORT1(cdaar);
+      EXPORT1(caadr); EXPORT1(cdadr);
+      EXPORT1(cadar); EXPORT1(cddar);
+      EXPORT1(caddr); EXPORT1(cdddr);
+
+      EXPORT1(caaaar); EXPORT1(cdaaar);
+      EXPORT1(caaadr); EXPORT1(cdaadr);
+      EXPORT1(caadar); EXPORT1(cdadar);
+      EXPORT1(caaddr); EXPORT1(cdaddr);
+      EXPORT1(cadaar); EXPORT1(cddaar);
+      EXPORT1(cadadr); EXPORT1(cddadr);
+      EXPORT1(caddar); EXPORT1(cdddar);
+      EXPORT1(cadddr); EXPORT1(cddddr);
 
       library.define<procedure>("set-car!", [](let & xs) { caar(xs) = cadr(xs); });
       library.define<procedure>("set-cdr!", [](let & xs) { cdar(xs) = cadr(xs); });
@@ -1099,70 +1021,25 @@ namespace meevax::inline kernel
 
     define<library>("(meevax port)", [](library & library)
     {
-      library.define<procedure>("input-port?", [](let const& xs)
-      {
-        return car(xs).is_also<input_port>();
-      });
-
-      library.define<procedure>("output-port?", [](let const& xs)
-      {
-        return car(xs).is_also<output_port>();
-      });
-
-      library.define<procedure>("binary-port?", [](let const& xs)
-      {
-        return car(xs).is_also<binary_port>();
-      });
-
-      library.define<procedure>("textual-port?", [](let const& xs)
-      {
-        return car(xs).is_also<textual_port>();
-      });
-
-      library.define<procedure>("port?", [](let const& xs)
-      {
-        return car(xs).is_also<port>();
-      });
+      library.define<procedure>(  "input-port?", [](let const& xs) { return car(xs).is_also<  input_port>(); });
+      library.define<procedure>( "output-port?", [](let const& xs) { return car(xs).is_also< output_port>(); });
+      library.define<procedure>( "binary-port?", [](let const& xs) { return car(xs).is_also< binary_port>(); });
+      library.define<procedure>("textual-port?", [](let const& xs) { return car(xs).is_also<textual_port>(); });
+      library.define<procedure>(        "port?", [](let const& xs) { return car(xs).is_also<        port>(); });
 
       library.define<procedure>("open?", [](let const& xs)
       {
         return car(xs).as<port>().is_open();
       });
 
-      library.define<procedure>("standard-input-port", []()
-      {
-        return make<standard_input_port>();
-      });
+      library.define<procedure>( "standard-input-port", []() { return make< standard_input_port>(); });
+      library.define<procedure>("standard-output-port", []() { return make<standard_output_port>(); });
+      library.define<procedure>( "standard-error-port", []() { return make< standard_error_port>(); });
 
-      library.define<procedure>("standard-output-port", []()
-      {
-        return make<standard_output_port>();
-      });
-
-      library.define<procedure>("standard-error-port", []()
-      {
-        return make<standard_error_port>();
-      });
-
-      library.define<procedure>("open-input-file", [](let const& xs)
-      {
-        return make<input_file_port>(car(xs).as<string>());
-      });
-
-      library.define<procedure>("open-output-file", [](let const& xs)
-      {
-        return make<output_file_port>(car(xs).as<string>());
-      });
-
-      library.define<procedure>("open-binary-input-file", [](let const& xs)
-      {
-        return make<binary_input_file_port>(car(xs).as<string>());
-      });
-
-      library.define<procedure>("open-binary-output-file", [](let const& xs)
-      {
-        return make<binary_output_file_port>(car(xs).as<string>());
-      });
+      library.define<procedure>(        "open-input-file", [](let const& xs) { return make<        input_file_port>(car(xs).as<string>()); });
+      library.define<procedure>(       "open-output-file", [](let const& xs) { return make<       output_file_port>(car(xs).as<string>()); });
+      library.define<procedure>( "open-binary-input-file", [](let const& xs) { return make< binary_input_file_port>(car(xs).as<string>()); });
+      library.define<procedure>("open-binary-output-file", [](let const& xs) { return make<binary_output_file_port>(car(xs).as<string>()); });
 
       library.define<procedure>("close", [](let const& xs)
       {
@@ -1218,15 +1095,8 @@ namespace meevax::inline kernel
 
     define<library>("(meevax procedure)", [](library & library)
     {
-      library.define<procedure>("closure?", [](let const& xs)
-      {
-        return car(xs).is<closure>();
-      });
-
-      library.define<procedure>("continuation?", [](let const& xs)
-      {
-        return car(xs).is<continuation>();
-      });
+      EXPORT_PREDICATE(closure,      "closure?");
+      EXPORT_PREDICATE(continuation, "continuation?");
 
       library.define<procedure>("procedure?", [](let const& xs)
       {
@@ -1244,73 +1114,40 @@ namespace meevax::inline kernel
 
     define<library>("(meevax read)", [](library & library)
     {
-      library.define<procedure>("get-char", [](let const& xs)
-      {
-        return car(xs).as<textual_input_port>().get();
-      });
-
-      library.define<procedure>("get-char-ready?", [](let const& xs)
-      {
-        return car(xs).as<textual_input_port>().get_ready();
-      });
-
-      library.define<procedure>("get-line", [](let const& xs)
-      {
-        return car(xs).as<textual_input_port>().get_line();
-      });
+      library.define<procedure>("get-char",        [](let const& xs) { return car(xs).as<textual_input_port>().get      (); });
+      library.define<procedure>("get-char-ready?", [](let const& xs) { return car(xs).as<textual_input_port>().get_ready(); });
+      library.define<procedure>("get-line",        [](let const& xs) { return car(xs).as<textual_input_port>().get_line (); });
+      library.define<procedure>("peek-char",       [](let const& xs) { return car(xs).as<textual_input_port>().peek     (); });
+      library.define<procedure>("read",            [](let const& xs) { return car(xs).as<textual_input_port>().read     (); });
 
       library.define<procedure>("get-string", [](let const& xs)
       {
-        return cadr(xs).as<textual_input_port>().get(car(xs).as<exact_integer>());
+        return cadr(xs).as<textual_input_port>().get(exact_integer_cast<std::size_t>(car(xs)));
       });
 
-      library.define<procedure>("peek-char", [](let const& xs)
-      {
-        return car(xs).as<textual_input_port>().peek();
-      });
-
-      library.define<procedure>("get-u8", [](let const& xs)
-      {
-        return car(xs).as<binary_input_port>().get();
-      });
-
-      library.define<procedure>("get-u8-ready?", [](let const& xs)
-      {
-        return car(xs).as<binary_input_port>().get_ready();
-      });
-
-      library.define<procedure>("peek-u8", [](let const& xs)
-      {
-        return car(xs).as<binary_input_port>().peek();
-      });
+      library.define<procedure>("get-u8",        [](let const& xs) { return car(xs).as<binary_input_port>().get      (); });
+      library.define<procedure>("get-u8-ready?", [](let const& xs) { return car(xs).as<binary_input_port>().get_ready(); });
+      library.define<procedure>("peek-u8",       [](let const& xs) { return car(xs).as<binary_input_port>().peek     (); });
 
       library.define<procedure>("get-u8vector", [](let const& xs)
       {
-        return cadr(xs).as<binary_input_port>().get(car(xs).as<exact_integer>());
-      });
-
-      library.define<procedure>("read", [](let const& xs)
-      {
-        return car(xs).as<textual_input_port>().read();
+        return cadr(xs).as<binary_input_port>().get(exact_integer_cast<std::size_t>(car(xs)));
       });
     });
 
     define<library>("(meevax string)", [](library & library)
     {
-      library.define<procedure>("string?", [](let const& xs)
-      {
-        return car(xs).is<string>();
-      });
+      EXPORT_PREDICATE(string, "string?");
 
       library.define<procedure>("make-string", [](let const& xs)
       {
         switch (length(xs))
         {
         case 1:
-          return make<string>(car(xs).as<exact_integer>(), character());
+          return make<string>(exact_integer_cast<std::size_t>(car(xs)), character());
 
         case 2:
-          return make<string>(car(xs).as<exact_integer>(), cadr(xs).as<character>());
+          return make<string>(exact_integer_cast<std::size_t>(car(xs)), cadr(xs).as<character>());
 
         default:
           throw error(make<string>("procedure make-string takes one or two arugments, but got"), xs);
@@ -1331,148 +1168,58 @@ namespace meevax::inline kernel
 
       library.define<procedure>("string-length", [](let const& xs)
       {
-        return make<exact_integer>(car(xs).as<string>().size());
+        return make(static_cast<small_integer>(car(xs).as<string>().size())); // XXX DIRTY HACK (MAKE large_integer IF THE LENGTH IS GREATER THAN INT_MAX)
       });
 
       library.define<procedure>("string-ref", [](let const& xs)
       {
-        return make(car(xs).as<string>().at(cadr(xs).as<exact_integer>()));
+        return make(car(xs).as<string>().at(exact_integer_cast<std::size_t>(cadr(xs))));
       });
 
       library.define<procedure>("string-set!", [](let & xs)
       {
-        car(xs).as<string>().at(cadr(xs).as<exact_integer>()) = caddr(xs).as<character>();
+        car(xs).as<string>().at(exact_integer_cast<std::size_t>(cadr(xs))) = caddr(xs).as<character>();
       });
 
-      library.define<procedure>("string=?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<string>() == b.as<string>());
-        };
+      #define EXPORT_STRING_COMPARE(OPERATOR, IDENTIFIER)                      \
+      library.define<procedure>(IDENTIFIER, [](let const& xs)                  \
+      {                                                                        \
+        auto compare = [](let const& a, let const& b)                          \
+        {                                                                      \
+          return not (a.as<string>() OPERATOR b.as<string>());                 \
+        };                                                                     \
+                                                                               \
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();  \
+      })
 
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+      EXPORT_STRING_COMPARE(==, "string=?");
+      EXPORT_STRING_COMPARE(< , "string<?");
+      EXPORT_STRING_COMPARE(> , "string>?");
+      EXPORT_STRING_COMPARE(<=, "string<=?");
+      EXPORT_STRING_COMPARE(>=, "string>=?");
+
+      #define EXPORT_STRING_CI_COMPARE(OPERATOR, IDENTIFIER)                   \
+      library.define<procedure>(IDENTIFIER, [](let const& xs)                  \
+      {                                                                        \
+        auto compare = [](let const& s1, let const& s2)                        \
+        {                                                                      \
+          auto compare = [](auto const& c1, auto const& c2)                    \
+          {                                                                    \
+            return c1.downcase() OPERATOR c2.downcase();                       \
+          };                                                                   \
+                                                                               \
+          return not std::lexicographical_compare(s1.as<string>().begin(), s1.as<string>().end(), \
+                                                  s2.as<string>().begin(), s2.as<string>().end(), compare); \
+        };                                                                     \
+                                                                               \
+        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();  \
       });
 
-      library.define<procedure>("string<?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<string>() < b.as<string>());
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("string>?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<string>() > b.as<string>());
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("string<=?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<string>() <= b.as<string>());
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("string>=?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<string>() >= b.as<string>());
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("string-ci=?", [](let const& xs)
-      {
-        auto compare = [](let const& s1, let const& s2)
-        {
-          auto compare = [](auto const& c1, auto const& c2)
-          {
-            return c1.downcase() == c2.downcase();
-          };
-
-          return not std::lexicographical_compare(s1.as<string>().begin(), s1.as<string>().end(),
-                                                  s2.as<string>().begin(), s2.as<string>().end(), compare);
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("string-ci<?", [](let const& xs)
-      {
-        auto compare = [](let const& s1, let const& s2)
-        {
-          auto compare = [](auto const& c1, auto const& c2)
-          {
-            return c1.downcase() < c2.downcase();
-          };
-
-          return not std::lexicographical_compare(s1.as<string>().begin(), s1.as<string>().end(),
-                                                  s2.as<string>().begin(), s2.as<string>().end(), compare);
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("string-ci>?", [](let const& xs)
-      {
-        auto compare = [](let const& s1, let const& s2)
-        {
-          auto compare = [](auto const& c1, auto const& c2)
-          {
-            return c1.downcase() > c2.downcase();
-          };
-
-          return not std::lexicographical_compare(s1.as<string>().begin(), s1.as<string>().end(),
-                                                  s2.as<string>().begin(), s2.as<string>().end(), compare);
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("string-ci<=?", [](let const& xs)
-      {
-        auto compare = [](let const& s1, let const& s2)
-        {
-          auto compare = [](auto const& c1, auto const& c2)
-          {
-            return c1.downcase() <= c2.downcase();
-          };
-
-          return not std::lexicographical_compare(s1.as<string>().begin(), s1.as<string>().end(),
-                                                  s2.as<string>().begin(), s2.as<string>().end(), compare);
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("string-ci>=?", [](let const& xs)
-      {
-        auto compare = [](let const& s1, let const& s2)
-        {
-          auto compare = [](auto const& c1, auto const& c2)
-          {
-            return c1.downcase() >= c2.downcase();
-          };
-
-          return not std::lexicographical_compare(s1.as<string>().begin(), s1.as<string>().end(),
-                                                  s2.as<string>().begin(), s2.as<string>().end(), compare);
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
+      EXPORT_STRING_CI_COMPARE(==, "string-ci=?");
+      EXPORT_STRING_CI_COMPARE(< , "string-ci<?");
+      EXPORT_STRING_CI_COMPARE(> , "string-ci>?");
+      EXPORT_STRING_CI_COMPARE(<=, "string-ci<=?");
+      EXPORT_STRING_CI_COMPARE(>=, "string-ci>=?");
 
       library.define<procedure>("string-append", [](let const& xs)
       {
@@ -1502,19 +1249,14 @@ namespace meevax::inline kernel
                                  car(xs).as<string>().rend(),
                                  unit,
                                  push);
-
         case 2:
           return std::accumulate(car(xs).as<string>().rbegin(),
-                                 std::prev(car(xs).as<string>().rend(),
-                                           cadr(xs).as<exact_integer>()),
+                                 std::prev(car(xs).as<string>().rend(), exact_integer_cast<std::size_t>(cadr(xs))),
                                  unit,
                                  push);
-
         case 3:
-          return std::accumulate(std::prev(car(xs).as<string>().rend(),
-                                           caddr(xs).as<exact_integer>()),
-                                 std::prev(car(xs).as<string>().rend(),
-                                           cadr(xs).as<exact_integer>()),
+          return std::accumulate(std::prev(car(xs).as<string>().rend(), exact_integer_cast<std::size_t>(caddr(xs))),
+                                 std::prev(car(xs).as<string>().rend(), exact_integer_cast<std::size_t>(cadr(xs))),
                                  unit,
                                  push);
 
@@ -1542,18 +1284,12 @@ namespace meevax::inline kernel
         case 1:
           return make<string>(car(xs).as<string>().begin(),
                               car(xs).as<string>().end());
-
         case 2:
-          return make<string>(std::next(car(xs).as<string>().begin(),
-                                        cadr(xs).as<exact_integer>()),
+          return make<string>(std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadr(xs))),
                               car(xs).as<string>().end());
-
         case 3:
-          return make<string>(std::next(car(xs).as<string>().begin(),
-                                        cadr(xs).as<exact_integer>()),
-                              std::next(car(xs).as<string>().begin(),
-                                        caddr(xs).as<exact_integer>()));
-
+          return make<string>(std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadr(xs))),
+                              std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(caddr(xs))));
         default:
           throw error(make<string>("procedure string-copy takes one to three arugments, but got"), xs);
         }
@@ -1569,25 +1305,19 @@ namespace meevax::inline kernel
         case 3:
           std::copy(caddr(xs).as<string>().begin(),
                     caddr(xs).as<string>().end(),
-                    std::next(car(xs).as<string>().begin(),
-                              cadr(xs).as<exact_integer>()));
+                    std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadr(xs))));
           break;
 
         case 4:
-          std::copy(std::next(caddr(xs).as<string>().begin(),
-                              cadddr(xs).as<exact_integer>()),
+          std::copy(std::next(caddr(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
                     caddr(xs).as<string>().end(),
-                    std::next(car(xs).as<string>().begin(),
-                              cadr(xs).as<exact_integer>()));
+                    std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadr(xs))));
           break;
 
         case 5:
-          std::copy(std::next(caddr(xs).as<string>().begin(),
-                              cadddr(xs).as<exact_integer>()),
-                    std::next(caddr(xs).as<string>().begin(),
-                              caddddr(xs).as<exact_integer>()),
-                    std::next(car(xs).as<string>().begin(),
-                              cadr(xs).as<exact_integer>()));
+          std::copy(std::next(caddr(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
+                    std::next(caddr(xs).as<string>().begin(), exact_integer_cast<std::size_t>(caddddr(xs))),
+                    std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadr(xs))));
           break;
 
         default:
@@ -1606,17 +1336,14 @@ namespace meevax::inline kernel
           break;
 
         case 3:
-          std::fill(std::next(car(xs).as<string>().begin(),
-                              caddr(xs).as<exact_integer>()),
+          std::fill(std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(caddr(xs))),
                     car(xs).as<string>().end(),
                     cadr(xs).as<character>());
           break;
 
         case 4:
-          std::fill(std::next(car(xs).as<string>().begin(),
-                              caddr(xs).as<exact_integer>()),
-                    std::next(car(xs).as<string>().begin(),
-                              cadddr(xs).as<exact_integer>()),
+          std::fill(std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(caddr(xs))),
+                    std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
                     cadr(xs).as<character>());
           break;
 
@@ -1628,10 +1355,7 @@ namespace meevax::inline kernel
 
     define<library>("(meevax symbol)", [](library & library)
     {
-      library.define<procedure>("symbol?", [](let const& xs)
-      {
-        return car(xs).is<symbol>();
-      });
+      EXPORT_PREDICATE(symbol, "symbol?");
 
       library.define<procedure>("symbol->string", [](let const& xs)
       {
@@ -1667,15 +1391,8 @@ namespace meevax::inline kernel
         return car(xs).is_also<identifier>();
       });
 
-      library.define<procedure>("transformer?", [](let const& xs)
-      {
-        return car(xs).is<transformer>();
-      });
-
-      library.define<procedure>("syntactic-closure?", [](let const& xs)
-      {
-        return car(xs).is<syntactic_closure>();
-      });
+      EXPORT_PREDICATE(transformer, "transformer?");
+      EXPORT_PREDICATE(syntactic_closure, "syntactic-closure?");
 
       library.define<procedure>("make-syntactic-closure", [](let const& xs)
       {
@@ -1719,21 +1436,18 @@ namespace meevax::inline kernel
     {
       library.define<procedure>("current-jiffy", []()
       {
-        return make<exact_integer>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+        return make<large_integer>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
       });
 
       library.define<procedure>("jiffies-per-second", []()
       {
-        return make<exact_integer>(std::chrono::high_resolution_clock::period::den);
+        return make<large_integer>(std::chrono::high_resolution_clock::period::den);
       });
     });
 
     define<library>("(meevax vector)", [](library & library)
     {
-      library.define<procedure>("vector?", [](let const& xs)
-      {
-        return car(xs).is<vector>();
-      });
+      EXPORT_PREDICATE(vector, "vector?");
 
       library.define<procedure>("vector", [](let const& xs)
       {
@@ -1745,10 +1459,10 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 1:
-          return make<vector>(car(xs).as<exact_integer>(), unspecified);
+          return make<vector>(exact_integer_cast<std::size_t>(car(xs)), unspecified);
 
         case 2:
-          return make<vector>(car(xs).as<exact_integer>(), cadr(xs));
+          return make<vector>(exact_integer_cast<std::size_t>(car(xs)), cadr(xs));
 
         default:
           throw error(make<string>("procedure make-vector takes one or two arugments, but got"), xs);
@@ -1757,17 +1471,17 @@ namespace meevax::inline kernel
 
       library.define<procedure>("vector-length", [](let const& xs)
       {
-        return make<exact_integer>(car(xs).as<vector>().size());
+        return make(static_cast<small_integer>(car(xs).as<vector>().size()));
       });
 
       library.define<procedure>("vector-ref", [](let const& xs)
       {
-        return car(xs).as<vector>()[cadr(xs).as<exact_integer>()];
+        return car(xs).as<vector>()[exact_integer_cast<std::size_t>(cadr(xs))];
       });
 
       library.define<procedure>("vector-set!", [](let & xs)
       {
-        car(xs).as<vector>()[cadr(xs).as<exact_integer>()] = caddr(xs);
+        car(xs).as<vector>()[exact_integer_cast<std::size_t>(cadr(xs))] = caddr(xs);
       });
 
       library.define<procedure>("vector->list", [](let const& xs)
@@ -1779,22 +1493,16 @@ namespace meevax::inline kernel
                                  car(xs).as<vector>().rend(),
                                  unit,
                                  xcons);
-
         case 2:
           return std::accumulate(car(xs).as<vector>().rbegin(),
-                                 std::prev(car(xs).as<vector>().rend(),
-                                           cadr(xs).as<exact_integer>()),
+                                 std::prev(car(xs).as<vector>().rend(), exact_integer_cast<std::size_t>(cadr(xs))),
                                  unit,
                                  xcons);
-
         case 3:
-          return std::accumulate(std::prev(car(xs).as<vector>().rend(),
-                                           caddr(xs).as<exact_integer>()),
-                                 std::prev(car(xs).as<vector>().rend(),
-                                           cadr(xs).as<exact_integer>()),
+          return std::accumulate(std::prev(car(xs).as<vector>().rend(), exact_integer_cast<std::size_t>(caddr(xs))),
+                                 std::prev(car(xs).as<vector>().rend(), exact_integer_cast<std::size_t>(cadr(xs))),
                                  unit,
                                  xcons);
-
         default:
           throw error(make<string>("procedure vector->list takes one to three arugments, but got"), xs);
         }
@@ -1820,17 +1528,14 @@ namespace meevax::inline kernel
           return s;
 
         case 2:
-          std::for_each(std::next(car(xs).as<vector>().begin(),
-                                  cadr(xs).as<exact_integer>()),
+          std::for_each(std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadr(xs))),
                         car(xs).as<vector>().end(),
                         push_back);
           return s;
 
         case 3:
-          std::for_each(std::next(car(xs).as<vector>().begin(),
-                                  cadr(xs).as<exact_integer>()),
-                        std::next(car(xs).as<vector>().begin(),
-                                  caddr(xs).as<exact_integer>()),
+          std::for_each(std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadr(xs))),
+                        std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(caddr(xs))),
                         push_back);
           return s;
 
@@ -1858,18 +1563,12 @@ namespace meevax::inline kernel
         case 1:
           return make<vector>(car(xs).as<vector>().begin(),
                               car(xs).as<vector>().end());
-
         case 2:
-          return make<vector>(std::next(car(xs).as<vector>().begin(),
-                                        cadr(xs).as<exact_integer>()),
+          return make<vector>(std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadr(xs))),
                               car(xs).as<vector>().end());
-
         case 3:
-          return make<vector>(std::next(car(xs).as<vector>().begin(),
-                                        cadr(xs).as<exact_integer>()),
-                              std::next(car(xs).as<vector>().begin(),
-                                        caddr(xs).as<exact_integer>()));
-
+          return make<vector>(std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadr(xs))),
+                              std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(caddr(xs))));
         default:
           throw error(make<string>("procedure vector-copy takes one to three arugments, but got"), xs);
         }
@@ -1885,25 +1584,19 @@ namespace meevax::inline kernel
         case 3:
           std::copy(caddr(xs).as<vector>().begin(),
                     caddr(xs).as<vector>().end(),
-                    std::next(car(xs).as<vector>().begin(),
-                              cadr(xs).as<exact_integer>()));
+                    std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadr(xs))));
           break;
 
         case 4:
-          std::copy(std::next(caddr(xs).as<vector>().begin(),
-                              cadddr(xs).as<exact_integer>()),
+          std::copy(std::next(caddr(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
                     caddr(xs).as<vector>().end(),
-                    std::next(car(xs).as<vector>().begin(),
-                              cadr(xs).as<exact_integer>()));
+                    std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadr(xs))));
           break;
 
         case 5:
-          std::copy(std::next(caddr(xs).as<vector>().begin(),
-                              cadddr(xs).as<exact_integer>()),
-                    std::next(caddr(xs).as<vector>().begin(),
-                              caddddr(xs).as<exact_integer>()),
-                    std::next(car(xs).as<vector>().begin(),
-                              cadr(xs).as<exact_integer>()));
+          std::copy(std::next(caddr(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
+                    std::next(caddr(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(caddddr(xs))),
+                    std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadr(xs))));
           break;
 
         default:
@@ -1936,17 +1629,14 @@ namespace meevax::inline kernel
           break;
 
         case 3:
-          std::fill(std::next(car(xs).as<vector>().begin(),
-                              caddr(xs).as<exact_integer>()),
+          std::fill(std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(caddr(xs))),
                     car(xs).as<vector>().end(),
                     cadr(xs));
           break;
 
         case 4:
-          std::fill(std::next(car(xs).as<vector>().begin(),
-                              caddr(xs).as<exact_integer>()),
-                    std::next(car(xs).as<vector>().begin(),
-                              cadddr(xs).as<exact_integer>()),
+          std::fill(std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(caddr(xs))),
+                    std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
                     cadr(xs));
           break;
         }
@@ -1956,20 +1646,17 @@ namespace meevax::inline kernel
     define<library>("(meevax vector homogeneous)", [](library & library)
     {
       #define DEFINE_VECTOR_AUX(TAG, VECTOR)                                   \
-      library.define<procedure>(#TAG "vector?", [](let const& xs)              \
-      {                                                                        \
-        return car(xs).is<VECTOR>();                                           \
-      });                                                                      \
+      EXPORT_PREDICATE(VECTOR, #TAG "vector?"); \
                                                                                \
       library.define<procedure>("make-" #TAG "vector", [](let const& xs)       \
       {                                                                        \
         switch (length(xs))                                                    \
         {                                                                      \
         case 1:                                                                \
-          return make<VECTOR>(direct_initialization, static_cast<VECTOR::value_type>(0), car(xs).as<exact_integer>()); \
+          return make<VECTOR>(direct_initialization, static_cast<VECTOR::value_type>(0), exact_integer_cast<std::size_t>(car(xs))); \
                                                                                \
         case 2:                                                                \
-          return make<VECTOR>(direct_initialization, VECTOR::input_cast(cadr(xs)), car(xs).as<exact_integer>()); \
+          return make<VECTOR>(direct_initialization, VECTOR::input_cast(cadr(xs)), exact_integer_cast<std::size_t>(car(xs))); \
                                                                                \
         default:                                                               \
           throw error(make<string>("procedure make-" #TAG "vector takes one or two arguments, but got"), xs); \
@@ -1983,46 +1670,39 @@ namespace meevax::inline kernel
                                                                                \
       library.define<procedure>(#TAG "vector-length", [](let const& xs)        \
       {                                                                        \
-        return make<exact_integer>(car(xs).as<VECTOR>().size());               \
+        return make(static_cast<small_integer>(car(xs).as<VECTOR>().size()));  \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-ref", [](let const& xs)           \
       {                                                                        \
-        return VECTOR::output_cast(car(xs).as<VECTOR>()[cadr(xs).as<exact_integer>()]); \
+        return VECTOR::output_cast(car(xs).as<VECTOR>()[exact_integer_cast<std::size_t>(cadr(xs))]); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-set!", [](let const& xs)          \
       {                                                                        \
-        car(xs).as<VECTOR>()[cadr(xs).as<exact_integer>()] = VECTOR::input_cast(caddr(xs)); \
+        car(xs).as<VECTOR>()[exact_integer_cast<std::size_t>(cadr(xs))] = VECTOR::input_cast(caddr(xs)); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-copy", [](let const& xs)          \
       {                                                                        \
+        auto copy = [&](std::size_t begin, std::size_t end)                    \
+        {                                                                      \
+          assert(begin <= end);                                                \
+          return make<VECTOR>(car(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]); \
+        };                                                                     \
+                                                                               \
         switch (length(xs))                                                    \
         {                                                                      \
         case 1:                                                                \
-          {                                                                    \
-            std::size_t begin = 0;                                             \
-            std::size_t end = car(xs).as<VECTOR>().size();                     \
-            assert(begin <= end);                                              \
-            return make<VECTOR>(car(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]); \
-          }                                                                    \
+          return copy(0, car(xs).as<VECTOR>().size());                         \
                                                                                \
         case 2:                                                                \
-          {                                                                    \
-            std::size_t begin = cadr(xs).as<exact_integer>();                  \
-            std::size_t end = car(xs).as<VECTOR>().size();                     \
-            assert(begin <= end);                                              \
-            return make<VECTOR>(car(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]); \
-          }                                                                    \
+          return copy(exact_integer_cast<std::size_t>(cadr(xs)),               \
+                      car(xs).as<VECTOR>().size());                            \
                                                                                \
         case 3:                                                                \
-          {                                                                    \
-            std::size_t begin = cadr(xs).as<exact_integer>();                  \
-            std::size_t end = caddr(xs).as<exact_integer>();                   \
-            assert(begin <= end);                                              \
-            return make<VECTOR>(car(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]); \
-          }                                                                    \
+          return copy(exact_integer_cast<std::size_t>(cadr(xs)),               \
+                      exact_integer_cast<std::size_t>(caddr(xs)));             \
                                                                                \
         default:                                                               \
           throw error(make<string>("procedure " #TAG "vector-copy takes one to three arguments, but got"), xs); \
@@ -2031,36 +1711,32 @@ namespace meevax::inline kernel
                                                                                \
       library.define<procedure>(#TAG "vector-copy!", [](let & xs)              \
       {                                                                        \
+        auto copy = [&](std::size_t at, std::size_t begin, std::size_t end)    \
+        {                                                                      \
+          assert(begin <= end);                                                \
+          auto i = std::slice(at, end - begin, 1);                             \
+          auto j = std::slice(begin, end - begin, 1);                          \
+          car(xs).as<VECTOR>()[i] = caddr(xs).as<VECTOR>()[j];                 \
+        };                                                                     \
+                                                                               \
         switch (length(xs))                                                    \
         {                                                                      \
         case 3:                                                                \
-          {                                                                    \
-            std::size_t at = cadr(xs).as<exact_integer>();                     \
-            std::size_t begin = 0;                                             \
-            std::size_t end = caddr(xs).as<VECTOR>().size();                   \
-            assert(begin <= end);                                              \
-            car(xs).as<VECTOR>()[std::slice(at, end - begin, 1)] = caddr(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]; \
-          }                                                                    \
+          copy(exact_integer_cast<std::size_t>(cadr(xs)),                      \
+               0,                                                              \
+               caddr(xs).as<VECTOR>().size());                                 \
           break;                                                               \
                                                                                \
         case 4:                                                                \
-          {                                                                    \
-            std::size_t at = cadr(xs).as<exact_integer>();                     \
-            std::size_t begin = cadddr(xs).as<exact_integer>();                \
-            std::size_t end = caddr(xs).as<VECTOR>().size();                   \
-            assert(begin <= end);                                              \
-            car(xs).as<VECTOR>()[std::slice(at, end - begin, 1)] = caddr(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]; \
-          }                                                                    \
+          copy(exact_integer_cast<std::size_t>(cadr(xs)),                      \
+               exact_integer_cast<std::size_t>(cadddr(xs)),                    \
+               caddr(xs).as<VECTOR>().size());                                 \
           break;                                                               \
                                                                                \
         case 5:                                                                \
-          {                                                                    \
-            std::size_t at = cadr(xs).as<exact_integer>();                     \
-            std::size_t begin = cadddr(xs).as<exact_integer>();                \
-            std::size_t end = caddddr(xs).as<exact_integer>();                 \
-            assert(begin <= end);                                              \
-            car(xs).as<VECTOR>()[std::slice(at, end - begin, 1)] = caddr(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]; \
-          }                                                                    \
+          copy(exact_integer_cast<std::size_t>(cadr(xs)),                      \
+               exact_integer_cast<std::size_t>(cadddr(xs)),                    \
+               exact_integer_cast<std::size_t>(caddddr(xs)));                  \
           break;                                                               \
                                                                                \
         default:                                                               \
@@ -2100,13 +1776,13 @@ namespace meevax::inline kernel
                                                                                \
         case 2:                                                                \
           return list(car(xs).as<VECTOR>().valarray(),                         \
-                      cadr(xs).as<exact_integer>(),                            \
+                      exact_integer_cast<std::size_t>(cadr(xs)),               \
                       car(xs).as<VECTOR>().size());                            \
                                                                                \
         case 3:                                                                \
           return list(car(xs).as<VECTOR>().valarray(),                         \
-                      cadr(xs).as<exact_integer>(),                            \
-                      caddr(xs).as<exact_integer>());                          \
+                      exact_integer_cast<std::size_t>(cadr(xs)),               \
+                      exact_integer_cast<std::size_t>(caddr(xs)));             \
                                                                                \
         default:                                                               \
           throw error(make<string>("procedure " #TAG "vector->list takes one to three arguments, but got"), xs); \
@@ -2145,17 +1821,14 @@ namespace meevax::inline kernel
           break;
 
         case 2:
-          std::for_each(std::next(std::begin(car(xs).as<u8vector>().valarray()),
-                                  cadr(xs).as<exact_integer>()),
+          std::for_each(std::next(std::begin(car(xs).as<u8vector>().valarray()), exact_integer_cast<std::size_t>(cadr(xs))),
                         std::end(car(xs).as<u8vector>().valarray()),
                         print);
           break;
 
         case 3:
-          std::for_each(std::next(std::begin(car(xs).as<u8vector>().valarray()),
-                                  cadr(xs).as<exact_integer>()),
-                        std::next(std::begin(car(xs).as<u8vector>().valarray()),
-                                  caddr(xs).as<exact_integer>()),
+          std::for_each(std::next(std::begin(car(xs).as<u8vector>().valarray()), exact_integer_cast<std::size_t>(cadr(xs))),
+                        std::next(std::begin(car(xs).as<u8vector>().valarray()), exact_integer_cast<std::size_t>(caddr(xs))),
                         print);
           break;
 
@@ -2199,7 +1872,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("put-u8", [](let const& xs)
       {
-        cadr(xs).as<binary_output_port>().put(car(xs).as<exact_integer>());
+        cadr(xs).as<binary_output_port>().put(exact_integer_cast<std::uint8_t>(car(xs)));
       });
 
       library.define<procedure>("put-u8vector", [](let const& xs)

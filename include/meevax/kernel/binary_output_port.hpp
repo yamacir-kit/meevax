@@ -25,7 +25,7 @@ namespace meevax::inline kernel
 {
   struct binary_output_port : public virtual binary_port, public virtual output_port
   {
-    virtual auto put(exact_integer const&) -> void = 0;
+    virtual auto put(std::uint8_t) -> void = 0;
 
     virtual auto put(u8vector const&) -> void = 0;
   };

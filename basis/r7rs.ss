@@ -18,7 +18,8 @@
           (srfi 11)
           (srfi 23)
           (srfi 34)
-          (srfi 39))
+          (srfi 39)
+          (srfi 141))
 
   (export ; 4.1. Primitive expression types
           quote lambda if set! include include-ci cond else => case and or when
@@ -156,23 +157,6 @@
              ((define-values identifier expression)
               (define identifier
                 (call-with-values (lambda () expression) list)))))
-
-         (define (floor-quotient x y)
-           (floor (/ x y)))
-
-         (define floor-remainder modulo)
-
-         (define (floor/ x y)
-           (values (floor-quotient x y)
-                   (floor-remainder x y)))
-
-         (define truncate-quotient quotient)
-
-         (define truncate-remainder remainder)
-
-         (define (truncate/ x y)
-           (values (truncate-quotient x y)
-                   (truncate-remainder x y)))
 
          (define (square z)
            (* z z))
@@ -363,6 +347,18 @@
                       (car xs)
                       (current-output-port))))))
 
+(define-library (scheme bitwise)
+  (import (srfi 151))
+  (export bitwise-not bitwise-and bitwise-ior bitwise-xor bitwise-eqv
+          bitwise-nand bitwise-nor bitwise-andc1 bitwise-andc2 bitwise-orc1
+          bitwise-orc2 arithmetic-shift bit-count integer-length bitwise-if
+          bit-set? copy-bit bit-swap any-bit-set? every-bit-set? first-set-bit
+          bit-field bit-field-any? bit-field-every? bit-field-clear
+          bit-field-set bit-field-replace bit-field-replace-same
+          bit-field-rotate bit-field-reverse bits->list list->bits bits->vector
+          vector->bits bits bitwise-fold bitwise-for-each bitwise-unfold
+          make-bitwise-generator))
+
 (define-library (scheme box)
   (import (srfi 111))
   (export box box? unbox set-box!))
@@ -408,6 +404,21 @@
           cddar caddar cdddar
           cdddr cadddr cddddr))
 
+(define-library (scheme division)
+  (import (srfi 141))
+  (export ceiling/
+          ceiling-quotient
+          ceiling-remainder
+          round/
+          round-quotient
+          round-remainder
+          euclidean/
+          euclidean-quotient
+          euclidean-remainder
+          balanced/
+          balanced-quotient
+          balanced-remainder))
+
 (define-library (scheme eval)
   (import (only (meevax environment) environment eval))
   (export environment eval))
@@ -420,6 +431,16 @@
   (export call-with-input-file call-with-output-file delete-file file-exists?
           open-binary-input-file open-binary-output-file open-input-file
           open-output-file with-input-from-file with-output-to-file))
+
+(define-library (scheme fixnum)
+  (import (srfi 143))
+  (export fx-width fx-greatest fx-least fixnum? fx=? fx<? fx>? fx<=? fx>=?
+          fxzero? fxpositive? fxnegative? fxodd? fxeven? fxmax fxmin fx+ fx-
+          fxneg fx* fxquotient fxremainder fxabs fxsquare fxsqrt fx+/carry
+          fx-/carry fx*/carry fxnot fxand fxior fxxor fxarithmetic-shift
+          fxarithmetic-shift-left fxarithmetic-shift-right fxbit-count fxlength
+          fxif fxbit-set? fxcopy-bit fxfirst-set-bit fxbit-field
+          fxbit-field-rotate fxbit-field-reverse))
 
 (define-library (scheme flonum)
   (import (srfi 144))

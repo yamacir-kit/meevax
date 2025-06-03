@@ -84,11 +84,11 @@ namespace meevax::inline kernel
 
           assert(operand.is<relative>());
 
-          assert(car(operand).is<std::int32_t>());
-          assert(cdr(operand).is<std::int32_t>());
+          assert(car(operand).is<small_integer>());
+          assert(cdr(operand).is<small_integer>());
 
-          auto i = car(operand).as<std::int32_t>();
-          auto j = cdr(operand).as<std::int32_t>();
+          auto i = car(operand).as<small_integer>();
+          auto j = cdr(operand).as<small_integer>();
 
           assert(i < length(e));
 
@@ -111,11 +111,11 @@ namespace meevax::inline kernel
 
           assert(operand.is<variadic>());
 
-          assert(car(operand).is<std::int32_t>());
-          assert(cdr(operand).is<std::int32_t>());
+          assert(car(operand).is<small_integer>());
+          assert(cdr(operand).is<small_integer>());
 
-          auto i = car(operand).as<std::int32_t>();
-          auto j = cdr(operand).as<std::int32_t>();
+          auto i = car(operand).as<small_integer>();
+          auto j = cdr(operand).as<small_integer>();
 
           assert(i < length(e));
 
@@ -160,8 +160,8 @@ namespace meevax::inline kernel
         *  s e (%current i . c) => (a[i] . s) e c d
         *
         * ------------------------------------------------------------------- */
-        assert(cadr(c).template is<exact_integer>());
-        s = cons(a[cadr(c).template as<exact_integer>()], s);
+        assert(cadr(c).template is<small_integer>());
+        s = cons(a[exact_integer_cast<std::size_t>(cadr(c))], s);
         c = cddr(c);
         goto fetch;
 
@@ -396,11 +396,11 @@ namespace meevax::inline kernel
 
           assert(operand.is<relative>());
 
-          assert(car(operand).is<std::int32_t>());
-          assert(cdr(operand).is<std::int32_t>());
+          assert(car(operand).is<small_integer>());
+          assert(cdr(operand).is<small_integer>());
 
-          auto i = car(operand).as<std::int32_t>();
-          auto j = cdr(operand).as<std::int32_t>();
+          auto i = car(operand).as<small_integer>();
+          auto j = cdr(operand).as<small_integer>();
 
           assert(i < length(e));
 
@@ -420,11 +420,11 @@ namespace meevax::inline kernel
 
           assert(operand.is<variadic>());
 
-          assert(car(operand).is<std::int32_t>());
-          assert(cdr(operand).is<std::int32_t>());
+          assert(car(operand).is<small_integer>());
+          assert(cdr(operand).is<small_integer>());
 
-          auto i = car(operand).as<std::int32_t>();
-          auto j = cdr(operand).as<std::int32_t>();
+          auto i = car(operand).as<small_integer>();
+          auto j = cdr(operand).as<small_integer>();
 
           assert(i < length(e));
 
@@ -439,8 +439,8 @@ namespace meevax::inline kernel
         *  (x . s) e (%install i . c) d => (x . s) e c d
         *
         * ------------------------------------------------------------------- */
-        assert(cadr(c).template is<exact_integer>());
-        a[cadr(c).template as<exact_integer>()] = car(s);
+        assert(cadr(c).template is<small_integer>());
+        a[exact_integer_cast<std::size_t>(cadr(c))] = car(s);
         c = cddr(c);
         goto fetch;
 

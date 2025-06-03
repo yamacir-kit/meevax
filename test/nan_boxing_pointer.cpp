@@ -97,10 +97,10 @@ auto main() -> int
     assert(x.is<double>());
     assert(x.as<double>() == 1.23);
 
-    x = make<std::int32_t>(-42);
+    x = make<small_integer>(-42);
 
-    assert(x.is<std::int32_t>());
-    assert(x.as<std::int32_t>() == -42);
+    assert(x.is<small_integer>());
+    assert(x.as<small_integer>() == -42);
 
     x = make<bool>(true);
 
@@ -109,13 +109,13 @@ auto main() -> int
   }
 
   {
-    let x = make<std::int32_t>(1),
-        y = make<std::int32_t>(1),
-        z = make<std::int32_t>(2);
+    let x = make<small_integer>(1),
+        y = make<small_integer>(1),
+        z = make<small_integer>(2);
 
-    assert(x.is<std::int32_t>());
-    assert(y.is<std::int32_t>());
-    assert(z.is<std::int32_t>());
+    assert(x.is<small_integer>());
+    assert(y.is<small_integer>());
+    assert(z.is<small_integer>());
 
     assert(x == y);
     assert(x.compare(y));
@@ -125,34 +125,34 @@ auto main() -> int
   }
 
   {
-    assert(lexical_cast<std::string>(make<double>(3.14)) == "3.14000000000000012");
-    assert(lexical_cast<std::string>(make<std::int32_t>(42)) == "42");
+    assert(lexical_cast<std::string>(make<double>(3.14)) == "3.14");
+    assert(lexical_cast<std::string>(make<small_integer>(42)) == "42");
   }
 
   {
-    let x = make(static_cast<std::int32_t>(1)),
-        y = make(static_cast<std::int32_t>(2));
+    let x = make(static_cast<small_integer>(1)),
+        y = make(static_cast<small_integer>(2));
 
     // PRINT(demangle(x.type()));
     // PRINT(demangle(y.type()));
 
-    assert(x.is<std::int32_t>());
-    assert(y.is<std::int32_t>());
+    assert(x.is<small_integer>());
+    assert(y.is<small_integer>());
 
     let const pare = cons(x, y);
 
     PRINT(demangle(pare.as<pair>().first.type()));
     PRINT(demangle(pare.as<pair>().second.type()));
 
-    assert(pare.as<pair>().first.is<std::int32_t>());
-    assert(pare.as<pair>().first.as<std::int32_t>() == 1);
-    assert(pare.as<pair>().second.is<std::int32_t>());
-    assert(pare.as<pair>().second.as<std::int32_t>() == 2);
+    assert(pare.as<pair>().first.is<small_integer>());
+    assert(pare.as<pair>().first.as<small_integer>() == 1);
+    assert(pare.as<pair>().second.is<small_integer>());
+    assert(pare.as<pair>().second.as<small_integer>() == 2);
 
-    assert(car(pare).is<std::int32_t>());
-    assert(car(pare).as<std::int32_t>() == 1);
-    assert(cdr(pare).is<std::int32_t>());
-    assert(cdr(pare).as<std::int32_t>() == 2);
+    assert(car(pare).is<small_integer>());
+    assert(car(pare).as<small_integer>() == 1);
+    assert(cdr(pare).is<small_integer>());
+    assert(cdr(pare).as<small_integer>() == 2);
   }
 
   delete p;
