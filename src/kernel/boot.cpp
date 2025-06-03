@@ -115,7 +115,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("binary64-integer-log-binary", [](let const& xs)
       {
-        return make<std::int32_t>(std::ilogb(car(xs).as<double>()));
+        return make<small_integer>(std::ilogb(car(xs).as<double>()));
       });
 
       library.define<procedure>("binary64-normalized-fraction", [](let const& xs)
@@ -327,7 +327,7 @@ namespace meevax::inline kernel
       {
         if (auto digit_value = car(xs).as<character>().digit_value(); digit_value)
         {
-          return make<std::int32_t>(*digit_value);
+          return make<small_integer>(*digit_value);
         }
         else
         {
@@ -337,7 +337,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("char->integer", [](let const& xs)
       {
-        return make<std::int32_t>(car(xs).as<character>().codepoint);
+        return make<small_integer>(car(xs).as<character>().codepoint);
       });
 
       library.define<procedure>("integer->char", [](let const& xs)
@@ -567,12 +567,12 @@ namespace meevax::inline kernel
 
     define<library>("(meevax integer32)", [](library & library)
     {
-      EXPORT_PREDICATE(std::int32_t, "integer32?");
+      EXPORT_PREDICATE(small_integer, "integer32?");
 
-      library.define<std::int32_t>("integer32-width", 32);
+      library.define<small_integer>("integer32-width", 32);
 
-      library.define<std::int32_t>("integer32-min", std::numeric_limits<std::int32_t>::min());
-      library.define<std::int32_t>("integer32-max", std::numeric_limits<std::int32_t>::max());
+      library.define<small_integer>("integer32-min", std::numeric_limits<small_integer>::min());
+      library.define<small_integer>("integer32-max", std::numeric_limits<small_integer>::max());
     });
 
     define<library>("(meevax list)", [](library & library)
@@ -647,7 +647,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("length", [](let const& xs)
       {
-        return make(static_cast<std::int32_t>(length(car(xs))));
+        return make(static_cast<small_integer>(length(car(xs))));
       });
 
       library.define<procedure>("length+", [](let const& xs) -> object
@@ -658,7 +658,7 @@ namespace meevax::inline kernel
         }
         else
         {
-          return make(static_cast<std::int32_t>(length(car(xs))));
+          return make(static_cast<small_integer>(length(car(xs))));
         }
       });
 
@@ -776,7 +776,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("exact-integer?", [](let const& xs)
       {
-        return car(xs).is<std::int32_t>() or car(xs).is<large_integer>();
+        return car(xs).is<small_integer>() or car(xs).is<large_integer>();
       });
 
       library.define<procedure>("=",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), not_equals            ) == xs.end(); });
@@ -888,9 +888,9 @@ namespace meevax::inline kernel
       {
         auto sqrt = [](let const& x)
         {
-          if (x.is<std::int32_t>())
+          if (x.is<small_integer>())
           {
-            return large_integer(x.as<std::int32_t>()).sqrt();
+            return large_integer(x.as<small_integer>()).sqrt();
           }
           else
           {
@@ -911,13 +911,13 @@ namespace meevax::inline kernel
 
       EXPORT1_RENAME(bitwise_not, "bitwise-not");
 
-      library.define<procedure>("bitwise-and", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<std::int32_t>(-1), bitwise_and); });
-      library.define<procedure>("bitwise-ior", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<std::int32_t>( 0), bitwise_ior); });
-      library.define<procedure>("bitwise-xor", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<std::int32_t>( 0), bitwise_xor); });
+      library.define<procedure>("bitwise-and", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<small_integer>(-1), bitwise_and); });
+      library.define<procedure>("bitwise-ior", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<small_integer>( 0), bitwise_ior); });
+      library.define<procedure>("bitwise-xor", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<small_integer>( 0), bitwise_xor); });
 
       library.define<procedure>("bit-shift", [](let const& xs)
       {
-        return bit_shift(car(xs), exact_integer_cast<std::int32_t>(cadr(xs)));
+        return bit_shift(car(xs), exact_integer_cast<small_integer>(cadr(xs)));
       });
 
       EXPORT1_RENAME(bit_count, "bit-count");
@@ -1168,7 +1168,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("string-length", [](let const& xs)
       {
-        return make(static_cast<std::int32_t>(car(xs).as<string>().size())); // XXX DIRTY HACK (MAKE large_integer IF THE LENGTH IS GREATER THAN INT_MAX)
+        return make(static_cast<small_integer>(car(xs).as<string>().size())); // XXX DIRTY HACK (MAKE large_integer IF THE LENGTH IS GREATER THAN INT_MAX)
       });
 
       library.define<procedure>("string-ref", [](let const& xs)
@@ -1471,7 +1471,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("vector-length", [](let const& xs)
       {
-        return make(static_cast<std::int32_t>(car(xs).as<vector>().size()));
+        return make(static_cast<small_integer>(car(xs).as<vector>().size()));
       });
 
       library.define<procedure>("vector-ref", [](let const& xs)
@@ -1670,7 +1670,7 @@ namespace meevax::inline kernel
                                                                                \
       library.define<procedure>(#TAG "vector-length", [](let const& xs)        \
       {                                                                        \
-        return make(static_cast<std::int32_t>(car(xs).as<VECTOR>().size()));   \
+        return make(static_cast<small_integer>(car(xs).as<VECTOR>().size()));  \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-ref", [](let const& xs)           \

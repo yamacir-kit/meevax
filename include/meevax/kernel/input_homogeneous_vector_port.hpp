@@ -45,7 +45,7 @@ namespace meevax::inline kernel
       }
       else
       {
-        let const x = make<std::int32_t>(static_cast<std::int32_t>(deque.front()));
+        let const x = make(static_cast<small_integer>(deque.front()));
         deque.pop_front();
         return x;
       }
@@ -84,7 +84,7 @@ namespace meevax::inline kernel
       }
       else
       {
-        return make<std::int32_t>(static_cast<std::int32_t>(deque.front()));
+        return make(static_cast<small_integer>(deque.front()));
       }
     }
   };

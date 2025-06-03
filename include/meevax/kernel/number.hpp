@@ -340,9 +340,9 @@ inline namespace kernel
   template <typename T>
   auto exact_integer_cast(object const& x)
   {
-    if (auto const& t = x.type(); t == typeid(std::int32_t))
+    if (auto const& t = x.type(); t == typeid(small_integer))
     {
-      return static_cast<T>(x.as<std::int32_t>());
+      return static_cast<T>(x.as<small_integer>());
     }
     else if (t == typeid(large_integer))
     {
@@ -378,9 +378,9 @@ inline namespace number
     }
     else if constexpr (std::is_same_v<std::decay_t<T>, std::int64_t>)
     {
-      if (std::numeric_limits<std::int32_t>::min() <= x and x <= std::numeric_limits<std::int32_t>::max())
+      if (std::numeric_limits<small_integer>::min() <= x and x <= std::numeric_limits<small_integer>::max())
       {
-        return make(static_cast<std::int32_t>(x));
+        return make(static_cast<small_integer>(x));
       }
       else
       {
@@ -396,7 +396,7 @@ inline namespace number
   template <typename T>
   auto widen(T&& x) -> decltype(auto)
   {
-    if constexpr (std::is_same_v<T, std::int32_t>)
+    if constexpr (std::is_same_v<T, small_integer>)
     {
       return static_cast<std::int64_t>(std::forward<decltype(x)>(x));
     }
@@ -498,17 +498,17 @@ inline namespace number
     }
   }
 
-  using complex_number = std::tuple<std::int32_t, large_integer, ratio, float, double, complex>;
+  using complex_number = std::tuple<small_integer, large_integer, ratio, float, double, complex>;
 
-  using complex_numbers = combination<std::int32_t, large_integer, ratio, float, double, complex>;
+  using complex_numbers = combination<small_integer, large_integer, ratio, float, double, complex>;
 
-  using real_number = std::tuple<std::int32_t, large_integer, ratio, float, double>;
+  using real_number = std::tuple<small_integer, large_integer, ratio, float, double>;
 
-  using real_numbers = combination<std::int32_t, large_integer, ratio, float, double>;
+  using real_numbers = combination<small_integer, large_integer, ratio, float, double>;
 
-  using exact_integers = combination<std::int32_t, large_integer>;
+  using exact_integer = std::tuple<small_integer, large_integer>;
 
-  using exact_integer = std::tuple<std::int32_t, large_integer>;
+  using exact_integers = combination<small_integer, large_integer>;
 
   #define DEFINE_COMPLEX1(CMATH)                                               \
   auto CMATH(object const& x) -> object                                        \

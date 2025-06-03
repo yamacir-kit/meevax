@@ -22,8 +22,8 @@
 
 namespace meevax::inline kernel
 {
-  let const e0 = make<std::int32_t>(0);
-  let const e1 = make<std::int32_t>(1);
+  let const e0 = make<small_integer>(0);
+  let const e1 = make<small_integer>(1);
 
   large_integer::large_integer() noexcept
   {

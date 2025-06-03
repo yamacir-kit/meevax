@@ -79,7 +79,7 @@ namespace meevax::inline kernel::inline number
   DEFINE_BITWISE2(ior, ior, |)
   DEFINE_BITWISE2(xor, xor, ^)
 
-  auto bit_shift(object const& x, std::int32_t c) -> object
+  auto bit_shift(object const& x, small_integer c) -> object
   {
     auto f = [c]<typename T>(T const& x)
     {
@@ -141,16 +141,16 @@ namespace meevax::inline kernel::inline number
         {
           auto i = large_integer();
           mpz_com(i.value, x.value);
-          return static_cast<std::int32_t>(mpz_popcount(i.value));
+          return static_cast<small_integer>(mpz_popcount(i.value));
         }
         else
         {
-          return static_cast<std::int32_t>(mpz_popcount(x.value));
+          return static_cast<small_integer>(mpz_popcount(x.value));
         }
       }
       else
       {
-        return static_cast<std::int32_t>(std::popcount(static_cast<std::uint64_t>(x < 0 ? ~x : x)));
+        return static_cast<small_integer>(std::popcount(static_cast<std::uint64_t>(x < 0 ? ~x : x)));
       }
     };
 

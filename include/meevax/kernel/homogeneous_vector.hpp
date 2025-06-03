@@ -53,7 +53,7 @@ namespace meevax::inline kernel
       return tag;
     }
 
-    template <auto I = 0, typename Tuple = std::tuple<std::int32_t, large_integer, float, double>>
+    template <auto I = 0, typename Tuple = std::tuple<small_integer, large_integer, float, double>>
     static auto input_cast(object const& x) -> T
     {
       if constexpr (I < std::tuple_size_v<Tuple>)

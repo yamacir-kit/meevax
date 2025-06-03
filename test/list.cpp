@@ -18,11 +18,11 @@ auto main() -> int
 
   assert(lexical_cast<std::string>(cons(make<string>("a"), list(b, c))) == "(\"a\" b c)");
 
-  assert(lexical_cast<std::string>(cons(a, make<std::int32_t>(3))) == "(a . 3)");
+  assert(lexical_cast<std::string>(cons(a, make<small_integer>(3))) == "(a . 3)");
 
   assert(lexical_cast<std::string>(cons(list(a, b), c)) == "((a b) . c)");
 
-  assert(lexical_cast<std::string>(list(a, make<std::int32_t>(3 + 4), c)) == "(a 7 c)");
+  assert(lexical_cast<std::string>(list(a, make<small_integer>(3 + 4), c)) == "(a 7 c)");
 
   assert(lexical_cast<std::string>(list()) == "nullptr");
 

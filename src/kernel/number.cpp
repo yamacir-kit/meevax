@@ -53,12 +53,12 @@ namespace meevax::inline kernel
   auto operator > (std::int64_t a, ratio const& b) -> bool  { return 0 >  mpq_cmp_si(b.value, a, 1); }
   auto operator >=(std::int64_t a, ratio const& b) -> bool  { return 0 >= mpq_cmp_si(b.value, a, 1); }
 
-  auto operator + (std::int64_t a, complex const& b) -> complex { return complex(make(static_cast<std::int32_t>(a)), e0) +  b; }
-  auto operator - (std::int64_t a, complex const& b) -> complex { return complex(make(static_cast<std::int32_t>(a)), e0) -  b; }
-  auto operator * (std::int64_t a, complex const& b) -> complex { return complex(make(static_cast<std::int32_t>(a)), e0) *  b; }
-  auto operator / (std::int64_t a, complex const& b) -> complex { return complex(make(static_cast<std::int32_t>(a)), e0) /  b; }
-  auto operator ==(std::int64_t a, complex const& b) -> bool    { return complex(make(static_cast<std::int32_t>(a)), e0) == b; }
-  auto operator !=(std::int64_t a, complex const& b) -> bool    { return complex(make(static_cast<std::int32_t>(a)), e0) != b; }
+  auto operator + (std::int64_t a, complex const& b) -> complex { return complex(make(static_cast<small_integer>(a)), e0) +  b; }
+  auto operator - (std::int64_t a, complex const& b) -> complex { return complex(make(static_cast<small_integer>(a)), e0) -  b; }
+  auto operator * (std::int64_t a, complex const& b) -> complex { return complex(make(static_cast<small_integer>(a)), e0) *  b; }
+  auto operator / (std::int64_t a, complex const& b) -> complex { return complex(make(static_cast<small_integer>(a)), e0) /  b; }
+  auto operator ==(std::int64_t a, complex const& b) -> bool    { return complex(make(static_cast<small_integer>(a)), e0) == b; }
+  auto operator !=(std::int64_t a, complex const& b) -> bool    { return complex(make(static_cast<small_integer>(a)), e0) != b; }
 
   auto operator + (large_integer const& a, std::int64_t b) -> large_integer { return a + large_integer(b); }
   auto operator - (large_integer const& a, std::int64_t b) -> large_integer { return a - large_integer(b); }
@@ -256,12 +256,12 @@ namespace meevax::inline kernel
   auto operator ==(double a, complex const& b) -> bool    { return complex(make(a), e0) == b; }
   auto operator !=(double a, complex const& b) -> bool    { return complex(make(a), e0) != b; }
 
-  auto operator + (complex const& a, std::int64_t b) -> complex { return a +  complex(make(static_cast<std::int32_t>(b)), e0); }
-  auto operator - (complex const& a, std::int64_t b) -> complex { return a -  complex(make(static_cast<std::int32_t>(b)), e0); }
-  auto operator * (complex const& a, std::int64_t b) -> complex { return a *  complex(make(static_cast<std::int32_t>(b)), e0); }
-  auto operator / (complex const& a, std::int64_t b) -> complex { return a /  complex(make(static_cast<std::int32_t>(b)), e0); }
-  auto operator ==(complex const& a, std::int64_t b) -> bool    { return a == complex(make(static_cast<std::int32_t>(b)), e0); }
-  auto operator !=(complex const& a, std::int64_t b) -> bool    { return a != complex(make(static_cast<std::int32_t>(b)), e0); }
+  auto operator + (complex const& a, std::int64_t b) -> complex { return a +  complex(make(static_cast<small_integer>(b)), e0); }
+  auto operator - (complex const& a, std::int64_t b) -> complex { return a -  complex(make(static_cast<small_integer>(b)), e0); }
+  auto operator * (complex const& a, std::int64_t b) -> complex { return a *  complex(make(static_cast<small_integer>(b)), e0); }
+  auto operator / (complex const& a, std::int64_t b) -> complex { return a /  complex(make(static_cast<small_integer>(b)), e0); }
+  auto operator ==(complex const& a, std::int64_t b) -> bool    { return a == complex(make(static_cast<small_integer>(b)), e0); }
+  auto operator !=(complex const& a, std::int64_t b) -> bool    { return a != complex(make(static_cast<small_integer>(b)), e0); }
 
   auto operator + (complex const& a, large_integer const& b) -> complex { return a +  complex(make(b), e0); }
   auto operator - (complex const& a, large_integer const& b) -> complex { return a -  complex(make(b), e0); }
@@ -360,9 +360,9 @@ namespace meevax::inline kernel
       {
         throw std::invalid_argument("not an integer");
       }
-      else if (std::numeric_limits<std::int32_t>::min() <= value and value <= std::numeric_limits<std::int32_t>::max())
+      else if (std::numeric_limits<small_integer>::min() <= value and value <= std::numeric_limits<small_integer>::max())
       {
-        return make(static_cast<std::int32_t>(value));
+        return make(static_cast<small_integer>(value));
       }
       else
       {
@@ -729,7 +729,7 @@ inline namespace number
 
   auto is_even(object const& x) -> bool
   {
-    return is_zero(remainder(x, make<std::int32_t>(2)));
+    return is_zero(remainder(x, make<small_integer>(2)));
   }
 
   auto abs(object const& x) -> object

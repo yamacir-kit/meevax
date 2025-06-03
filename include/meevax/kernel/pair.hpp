@@ -27,9 +27,11 @@ namespace meevax::inline kernel
 {
   using null = std::nullptr_t;
 
+  using small_integer = std::int32_t;
+
   struct pair;
 
-  using default_collector = collector<pair, bool, std::int32_t, float, character, instruction>;
+  using default_collector = collector<pair, bool, small_integer, float, character, instruction>;
 
   using object = default_collector::mutator;
 
