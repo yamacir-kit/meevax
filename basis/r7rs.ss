@@ -432,6 +432,16 @@
           open-binary-input-file open-binary-output-file open-input-file
           open-output-file with-input-from-file with-output-to-file))
 
+(define-library (scheme fixnum)
+  (import (srfi 143))
+  (export fx-width fx-greatest fx-least fixnum? fx=? fx<? fx>? fx<=? fx>=?
+          fxzero? fxpositive? fxnegative? fxodd? fxeven? fxmax fxmin fx+ fx-
+          fxneg fx* fxquotient fxremainder fxabs fxsquare fxsqrt fx+/carry
+          fx-/carry fx*/carry fxnot fxand fxior fxxor fxarithmetic-shift
+          fxarithmetic-shift-left fxarithmetic-shift-right fxbit-count fxlength
+          fxif fxbit-set? fxcopy-bit fxfirst-set-bit fxbit-field
+          fxbit-field-rotate fxbit-field-reverse))
+
 (define-library (scheme flonum)
   (import (srfi 144))
   (export fl-e fl-1/e fl-e-2 fl-e-pi/4 fl-log2-e fl-log10-e fl-log-2 fl-1/log-2

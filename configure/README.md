@@ -41,7 +41,7 @@ Procedures for each standard are provided by the following R7RS-style libraries:
 |:--------:|--------------|
 | R4RS     | [`(scheme r4rs)`](./basis/r4rs.ss)
 | R5RS     | [`(scheme r5rs)`](./basis/r5rs.ss)
-| R7RS     | [`(scheme base)`](./basis/r7rs.ss) [`(scheme bitwise)`](./basis/r7rs.ss) [`(scheme box)`](./basis/r7rs.ss) [`(scheme case-lambda)`](./basis/r7rs.ss) [`(scheme char)`](./basis/r7rs.ss) [`(scheme complex)`](./basis/r7rs.ss) [`(scheme cxr)`](./basis/r7rs.ss) [`(scheme division)`](./basis/r7rs.ss) [`(scheme eval)`](./basis/r7rs.ss) [`(scheme file)`](./basis/r7rs.ss) [`(scheme flonum)`](./basis/r7rs.ss) [`(scheme inexact)`](./basis/r7rs.ss) [`(scheme lazy)`](./basis/r7rs.ss) [`(scheme list)`](./basis/r7rs.ss) [`(scheme load)`](./basis/r7rs.ss) [`(scheme process-context)`](./basis/r7rs.ss) [`(scheme read)`](./basis/r7rs.ss) [`(scheme repl)`](./basis/r7rs.ss) [`(scheme time)`](./basis/r7rs.ss) [`(scheme write)`](./basis/r7rs.ss)
+| R7RS     | [`(scheme base)`](./basis/r7rs.ss) [`(scheme bitwise)`](./basis/r7rs.ss) [`(scheme box)`](./basis/r7rs.ss) [`(scheme case-lambda)`](./basis/r7rs.ss) [`(scheme char)`](./basis/r7rs.ss) [`(scheme complex)`](./basis/r7rs.ss) [`(scheme cxr)`](./basis/r7rs.ss) [`(scheme division)`](./basis/r7rs.ss) [`(scheme eval)`](./basis/r7rs.ss) [`(scheme file)`](./basis/r7rs.ss) [`(scheme fixnum)`](./basis/r7rs.ss) [`(scheme flonum)`](./basis/r7rs.ss) [`(scheme inexact)`](./basis/r7rs.ss) [`(scheme lazy)`](./basis/r7rs.ss) [`(scheme list)`](./basis/r7rs.ss) [`(scheme load)`](./basis/r7rs.ss) [`(scheme process-context)`](./basis/r7rs.ss) [`(scheme read)`](./basis/r7rs.ss) [`(scheme repl)`](./basis/r7rs.ss) [`(scheme time)`](./basis/r7rs.ss) [`(scheme write)`](./basis/r7rs.ss)
 
 ### SRFIs
 
@@ -69,6 +69,7 @@ Procedures for each standard are provided by the following R7RS-style libraries:
 | [ 98](https://srfi.schemers.org/srfi-98/srfi-98.html)   | An interface to access environment variables           | [`(srfi 98)`](./basis/srfi-98.ss)   | R7RS 6.14                              |
 | [111](https://srfi.schemers.org/srfi-111/srfi-111.html) | Boxes                                                  | [`(srfi 111)`](./basis/srfi-111.ss) | [`(scheme box)`](./basis/r7rs.ss)      |
 | [141](https://srfi.schemers.org/srfi-141/srfi-141.html) | Integer division                                       | [`(srfi 141)`](./basis/srfi-141.ss) | [`(scheme division)`](./basis/r7rs.ss) |
+| [143](https://srfi.schemers.org/srfi-143/srfi-143.html) | Fixnums                                                | [`(srfi 143)`](./basis/srfi-143.ss) | [`(scheme fixnum)`](./basis/r7rs.ss)   |
 | [144](https://srfi.schemers.org/srfi-144/srfi-144.html) | Flonums                                                | [`(srfi 144)`](./basis/srfi-144.ss) | [`(scheme flonum)`](./basis/r7rs.ss)   |
 | [149](https://srfi.schemers.org/srfi-149/srfi-149.html) | Basic syntax-rules template extensions                 | [`(srfi 149)`](./basis/srfi-149.ss) | R7RS 4.3.2                             |
 | [151](https://srfi.schemers.org/srfi-151/srfi-151.html) | Bitwise Operations                                     | [`(srfi 151)`](./basis/srfi-151.ss) | [`(scheme bitwise)`](./basis/r7rs.ss)  |
