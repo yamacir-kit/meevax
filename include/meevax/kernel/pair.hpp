@@ -240,15 +240,8 @@ namespace meevax::inline kernel
     }
   }
 
-  inline auto car = [](auto&& x) -> decltype(auto)
-  {
-    return get<0>(std::forward<decltype(x)>(x));
-  };
-
-  inline auto cdr = [](auto&& x) -> decltype(auto)
-  {
-    return get<1>(std::forward<decltype(x)>(x));
-  };
+  inline auto car = [](auto&& x) -> decltype(auto) { return get<0>(std::forward<decltype(x)>(x)); };
+  inline auto cdr = [](auto&& x) -> decltype(auto) { return get<1>(std::forward<decltype(x)>(x)); };
 
   inline constexpr auto caar = compose(car, car);
   inline constexpr auto cadr = compose(car, cdr);
