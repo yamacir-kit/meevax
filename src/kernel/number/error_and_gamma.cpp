@@ -16,7 +16,7 @@
 
 #include <meevax/kernel/number/error_and_gamma.hpp>
 
-namespace meevax::inline kernel::inline number
+namespace meevax::inline kernel::number
 {
   DEFINE_REAL1(erf)
   DEFINE_REAL1(erfc)

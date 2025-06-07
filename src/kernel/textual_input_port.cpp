@@ -384,7 +384,7 @@ namespace meevax::inline kernel
           }
 
         case 'e':
-          return exact(read()); // NOTE: Same as #,(exact (read))
+          return number::exact(read()); // NOTE: Same as #,(exact (read))
 
         case 'f':
           switch (std::stoi(take_character_while(is_digit, character('0'))))
@@ -401,7 +401,7 @@ namespace meevax::inline kernel
           }
 
         case 'i':
-          return inexact(read()); // NOTE: Same as #,(inexact (read))
+          return number::inexact(read()); // NOTE: Same as #,(inexact (read))
 
         case 'o':
           switch (auto c3 = take_character())

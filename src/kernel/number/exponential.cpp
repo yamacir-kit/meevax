@@ -16,7 +16,7 @@
 
 #include <meevax/kernel/number/exponential.hpp>
 
-namespace meevax::inline kernel::inline number
+namespace meevax::inline kernel::number
 {
   DEFINE_COMPLEX1(exp)
   DEFINE_REAL1(expm1)
