@@ -50,29 +50,11 @@ namespace meevax::inline kernel
 {
   auto boot() -> void
   {
-    #define EXPORT1(IDENTIFIER)                                                \
-    library.define<procedure>(#IDENTIFIER, [](let const& xs)                   \
-    {                                                                          \
-      return IDENTIFIER(car(xs));                                              \
-    })
+    #define EXPORT1(IDENTIFIER) library.define<procedure>(#IDENTIFIER, [](let const& xs) { return IDENTIFIER(car(xs)); })
+    #define EXPORT2(IDENTIFIER) library.define<procedure>(#IDENTIFIER, [](let const& xs) { return IDENTIFIER(car(xs), cadr(xs)); })
 
-    #define EXPORT2(IDENTIFIER)                                                \
-    library.define<procedure>(#IDENTIFIER, [](let const& xs)                   \
-    {                                                                          \
-      return IDENTIFIER(car(xs), cadr(xs));                                    \
-    })
-
-    #define EXPORT1_RENAME(IDENTIFIER1, IDENTIFIER2)                           \
-    library.define<procedure>(IDENTIFIER2, [](let const& xs)                   \
-    {                                                                          \
-      return IDENTIFIER1(car(xs));                                             \
-    })
-
-    #define EXPORT2_RENAME(IDENTIFIER1, IDENTIFIER2)                           \
-    library.define<procedure>(IDENTIFIER2, [](let const& xs)                   \
-    {                                                                          \
-      return IDENTIFIER1(car(xs), cadr(xs));                                   \
-    })
+    #define EXPORT1_RENAME(IDENTIFIER1, IDENTIFIER2) library.define<procedure>(IDENTIFIER2, [](let const& xs) { return IDENTIFIER1(car(xs)); })
+    #define EXPORT2_RENAME(IDENTIFIER1, IDENTIFIER2) library.define<procedure>(IDENTIFIER2, [](let const& xs) { return IDENTIFIER1(car(xs), cadr(xs)); })
 
     #define EXPORT_PREDICATE(TYPENAME, IDENTIFIER)                             \
     library.define<procedure>(IDENTIFIER, [](let const& xs)                    \
@@ -89,11 +71,9 @@ namespace meevax::inline kernel
     {
       EXPORT_PREDICATE(double, "binary64?");
 
-      library.define<double>("binary64-least", std::numeric_limits<double>::min());
-
+      library.define<double>("binary64-least",    std::numeric_limits<double>::min());
       library.define<double>("binary64-greatest", std::numeric_limits<double>::max());
-
-      library.define<double>("binary64-epsilon", std::numeric_limits<double>::epsilon());
+      library.define<double>("binary64-epsilon",  std::numeric_limits<double>::epsilon());
 
       library.define<procedure>("binary64-integral-part", [](let const& xs)
       {
@@ -136,39 +116,11 @@ namespace meevax::inline kernel
         return make(std::signbit(car(xs).as<double>()));
       });
 
-      library.define<procedure>("binary64-normalized?", [](let const& xs)
-      {
-        return std::fpclassify(car(xs).as<double>()) == FP_NORMAL;
-      });
+      library.define<procedure>("binary64-normalized?",   [](let const& xs) { return std::fpclassify(car(xs).as<double>()) == FP_NORMAL; });
+      library.define<procedure>("binary64-denormalized?", [](let const& xs) { return std::fpclassify(car(xs).as<double>()) == FP_SUBNORMAL; });
 
-      library.define<procedure>("binary64-denormalized?", [](let const& xs)
-      {
-        return std::fpclassify(car(xs).as<double>()) == FP_SUBNORMAL;
-      });
-
-      library.define<procedure>("binary64-max", [](let const& xs)
-      {
-        auto max = -std::numeric_limits<double>::infinity();
-
-        for (let const& x : xs)
-        {
-          max = std::fmax(max, x.as<double>());
-        }
-
-        return make(max);
-      });
-
-      library.define<procedure>("binary64-min", [](let const& xs)
-      {
-        auto min = std::numeric_limits<double>::infinity();
-
-        for (let const& x : xs)
-        {
-          min = std::fmin(min, x.as<double>());
-        }
-
-        return make(min);
-      });
+      library.define<procedure>("binary64-max", [](let const& xs) { auto max = -std::numeric_limits<double>::infinity(); for (let const& x : xs) { max = std::fmax(max, x.as<double>()); } return make(max); });
+      library.define<procedure>("binary64-min", [](let const& xs) { auto min =  std::numeric_limits<double>::infinity(); for (let const& x : xs) { min = std::fmin(min, x.as<double>()); } return make(min); });
 
       library.define<procedure>("binary64-fused-multiply-add", [](let const& xs)
       {
@@ -703,91 +655,22 @@ namespace meevax::inline kernel
       EXPORT1_RENAME(is_odd,      "odd?");
       EXPORT1_RENAME(is_even,     "even?");
 
-      library.define<procedure>("max", [](let const& xs)
-      {
-        if (auto iter = std::max_element(xs.begin(), xs.end(), less_than); iter != xs.end())
-        {
-          return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
-        }
-        else
-        {
-          return unspecified;
-        }
-      });
-
-      library.define<procedure>("min", [](let const& xs)
-      {
-        if (auto iter = std::min_element(xs.begin(), xs.end(), less_than); iter != xs.end())
-        {
-          return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter;
-        }
-        else
-        {
-          return unspecified;
-        }
-      });
+      library.define<procedure>("max", [](let const& xs) { if (auto iter = std::max_element(xs.begin(), xs.end(), less_than); iter != xs.end()) { return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter; } else { return unspecified; } });
+      library.define<procedure>("min", [](let const& xs) { if (auto iter = std::min_element(xs.begin(), xs.end(), less_than); iter != xs.end()) { return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter; } else { return unspecified; } });
 
       library.define<procedure>("+", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), e0, std::plus      ()); });
       library.define<procedure>("*", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), e1, std::multiplies()); });
 
-      library.define<procedure>("-", [](let const& xs)
-      {
-        if (cdr(xs).is<pair>())
-        {
-          return std::accumulate(std::next(xs.begin()), xs.end(), car(xs), std::minus());
-        }
-        else
-        {
-          return e0 - car(xs);
-        }
-      });
-
-      library.define<procedure>("/", [](let const& xs)
-      {
-        if (cdr(xs).is<pair>())
-        {
-          return std::accumulate(std::next(xs.begin()), xs.end(), car(xs), std::divides());
-        }
-        else
-        {
-          return e1 / car(xs);
-        }
-      });
+      library.define<procedure>("-", [](let const& xs) { if (cdr(xs).is<pair>()) { return std::accumulate(std::next(xs.begin()), xs.end(), car(xs), std::minus  ()); } else { return e0 - car(xs); } });
+      library.define<procedure>("/", [](let const& xs) { if (cdr(xs).is<pair>()) { return std::accumulate(std::next(xs.begin()), xs.end(), car(xs), std::divides()); } else { return e1 / car(xs); } });
 
       EXPORT1(abs);
       EXPORT2(quotient);
       EXPORT2(remainder);
       EXPORT2(modulo);
 
-      library.define<procedure>("gcd", [](let const& xs)
-      {
-        switch (length(xs))
-        {
-        case 0:
-          return e0;
-
-        case 1:
-          return car(xs);
-
-        default:
-          return std::accumulate(cdr(xs).begin(), xs.end(), car(xs), gcd);
-        }
-      });
-
-      library.define<procedure>("lcm", [](let const& xs)
-      {
-        switch (length(xs))
-        {
-        case 0:
-          return e1;
-
-        case 1:
-          return car(xs);
-
-        default:
-          return std::accumulate(cdr(xs).begin(), xs.end(), car(xs), lcm);
-        }
-      });
+      library.define<procedure>("gcd", [](let const& xs) { switch (length(xs)) { case 0: return e0; case 1: return car(xs); default: return std::accumulate(cdr(xs).begin(), xs.end(), car(xs), gcd); } });
+      library.define<procedure>("lcm", [](let const& xs) { switch (length(xs)) { case 0: return e1; case 1: return car(xs); default: return std::accumulate(cdr(xs).begin(), xs.end(), car(xs), lcm); } });
 
       EXPORT1(numerator);
       EXPORT1(denominator);
@@ -876,6 +759,7 @@ namespace meevax::inline kernel
       });
 
       EXPORT2(cons);
+      EXPORT2(xcons);
 
       library.define<procedure>("cons*", [](let & xs)
       {
@@ -900,11 +784,6 @@ namespace meevax::inline kernel
 
           return xs;
         }
-      });
-
-      library.define<procedure>("xcons", [](let const& xs)
-      {
-        return cons(cadr(xs), car(xs));
       });
 
       EXPORT1(car);
