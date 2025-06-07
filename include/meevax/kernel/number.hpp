@@ -362,8 +362,80 @@ inline namespace kernel
 
 namespace number
 {
+  auto equals(object const&, object const&) -> bool;
+
+  auto exact_integer_equals(object const&, object const&) -> bool;
+
+  auto not_equals(object const&, object const&) -> bool;
+
+  auto less_than(object const&, object const&) -> bool;
+
+  auto less_than_or_equals(object const&, object const&) -> bool;
+
+  auto greater_than(object const&, object const&) -> bool;
+
+  auto greater_than_or_equals(object const&, object const&) -> bool;
+
+  auto exact(object const&) -> object;
+
+  auto inexact(object const&) -> object;
+
+  auto is_complex(object const&) -> bool;
+
+  auto is_real(object const&) -> bool;
+
+  auto is_rational(object const&) -> bool;
+
+  auto is_integer(object const&) -> bool;
+
+  auto is_exact(object const&) -> bool;
+
+  auto is_inexact(object const&) -> bool;
+
+  auto is_finite(object const&) -> bool;
+
+  auto is_infinite(object const&) -> bool;
+
+  auto is_nan(object const&) -> bool;
+
+  auto is_zero(object const&) -> bool;
+
+  auto is_positive(object const&) -> bool;
+
+  auto is_negative(object const&) -> bool;
+
+  auto is_odd(object const&) -> bool;
+
+  auto is_even(object const&) -> bool;
+
+  auto abs(object const&) -> object;
+
+  auto quotient(object const&, object const&) -> object;
+
+  auto remainder(object const&, object const&) -> object;
+
+  auto modulo(object const&, object const&) -> object;
+
+  auto gcd(object const&, object const&) -> object;
+
+  auto lcm(object const&, object const&) -> object;
+
+  auto real(object const&) -> object;
+
+  auto imag(object const&) -> object;
+
+  auto magnitude(object const&) -> object;
+
+  auto angle(object const&) -> object;
+
+  auto numerator(object const&) -> object;
+
+  auto denominator(object const&) -> object;
+
+  auto number_to_string(object const&, int) -> object;
+
   template <typename T>
-  auto canonicalize(T&& x) -> decltype(auto)
+  auto canonicalize(T&& x)
   {
     if constexpr (std::is_same_v<std::decay_t<T>, object> or
                   std::is_same_v<std::decay_t<T>, object::pointer>)
@@ -372,11 +444,25 @@ namespace number
     }
     else if constexpr (std::is_same_v<std::decay_t<T>, complex>)
     {
-      return x.canonicalize();
+      if (equals(x.imag(), e0))
+      {
+        return x.real();
+      }
+      else
+      {
+        return make(std::forward<decltype(x)>(x));
+      }
     }
     else if constexpr (std::is_same_v<std::decay_t<T>, ratio>)
     {
-      return x.denominator() == 1_i64 ? make(x.numerator()) : make(std::forward<decltype(x)>(x));
+      if (x.denominator() == 1_i64)
+      {
+        return make(x.numerator());
+      }
+      else
+      {
+        return make(std::forward<decltype(x)>(x));
+      }
     }
     else if constexpr (std::is_same_v<std::decay_t<T>, widen_integer>)
     {
@@ -555,78 +641,6 @@ namespace number
                                                                                \
     return apply_to<real_numbers>(f, x, y);                                    \
   }
-
-  auto equals(object const&, object const&) -> bool;
-
-  auto exact_integer_equals(object const&, object const&) -> bool;
-
-  auto not_equals(object const&, object const&) -> bool;
-
-  auto less_than(object const&, object const&) -> bool;
-
-  auto less_than_or_equals(object const&, object const&) -> bool;
-
-  auto greater_than(object const&, object const&) -> bool;
-
-  auto greater_than_or_equals(object const&, object const&) -> bool;
-
-  auto exact(object const&) -> object;
-
-  auto inexact(object const&) -> object;
-
-  auto is_complex(object const&) -> bool;
-
-  auto is_real(object const&) -> bool;
-
-  auto is_rational(object const&) -> bool;
-
-  auto is_integer(object const&) -> bool;
-
-  auto is_exact(object const&) -> bool;
-
-  auto is_inexact(object const&) -> bool;
-
-  auto is_finite(object const&) -> bool;
-
-  auto is_infinite(object const&) -> bool;
-
-  auto is_nan(object const&) -> bool;
-
-  auto is_zero(object const&) -> bool;
-
-  auto is_positive(object const&) -> bool;
-
-  auto is_negative(object const&) -> bool;
-
-  auto is_odd(object const&) -> bool;
-
-  auto is_even(object const&) -> bool;
-
-  auto abs(object const&) -> object;
-
-  auto quotient(object const&, object const&) -> object;
-
-  auto remainder(object const&, object const&) -> object;
-
-  auto modulo(object const&, object const&) -> object;
-
-  auto gcd(object const&, object const&) -> object;
-
-  auto lcm(object const&, object const&) -> object;
-
-  auto real(object const&) -> object;
-
-  auto imag(object const&) -> object;
-
-  auto magnitude(object const&) -> object;
-
-  auto angle(object const&) -> object;
-
-  auto numerator(object const&) -> object;
-
-  auto denominator(object const&) -> object;
-
-  auto number_to_string(object const&, int) -> object;
 } // namespace number
 } // namespace kernel
 } // namespace meevax

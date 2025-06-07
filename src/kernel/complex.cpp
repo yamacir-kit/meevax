@@ -47,18 +47,6 @@ namespace meevax::inline kernel
     }
   }
 
-  auto complex::canonicalize() const -> object
-  {
-    if (number::equals(imag(), e0))
-    {
-      return real();
-    }
-    else
-    {
-      return make(*this);
-    }
-  }
-
   auto complex::imag() const noexcept -> object const&
   {
     return second;
