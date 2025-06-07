@@ -43,8 +43,8 @@ namespace meevax::inline kernel::number
         return complex(make(z.real()),
                        make(z.imag()));
       }
-      else if constexpr (std::is_same_v<T, std::int64_t> and
-                         std::is_same_v<U, std::int64_t>)
+      else if constexpr (std::is_same_v<T, widen_integer> and
+                         std::is_same_v<U, widen_integer>)
       {
         if (auto result = std::pow(x, y); std::numeric_limits<small_integer>::min() <= result and result <= std::numeric_limits<small_integer>::max())
         {
@@ -87,7 +87,7 @@ namespace meevax::inline kernel::number
       {
         auto sqrt = [](auto const& x)
         {
-          if constexpr (std::is_same_v<T, std::int64_t>)
+          if constexpr (std::is_same_v<T, widen_integer>)
           {
             auto s = std::sqrt(static_cast<double>(x));
 

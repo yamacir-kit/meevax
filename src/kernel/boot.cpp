@@ -108,7 +108,7 @@ namespace meevax::inline kernel
       {
         auto exponent = 0;
         std::frexp(car(xs).as<double>(), &exponent);
-        return make<std::int64_t>(exponent);
+        return make<small_integer>(exponent);
       });
 
       library.define<procedure>("binary64-sign-bit", [](let const& xs)
@@ -131,7 +131,7 @@ namespace meevax::inline kernel
       {
         auto quotient = 0;
         auto remainder = std::remquo(car(xs).as<double>(), cadr(xs).as<double>(), &quotient);
-        return cons(make(remainder), make<std::int64_t>(quotient));
+        return cons(make(remainder), make<small_integer>(quotient));
       });
     });
 

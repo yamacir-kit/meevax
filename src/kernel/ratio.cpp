@@ -39,7 +39,7 @@ namespace meevax::inline kernel
     mpq_canonicalize(value);
   }
 
-  ratio::ratio(std::int64_t n)
+  ratio::ratio(widen_integer n)
   {
     mpq_init(value);
     mpq_set_si(value, n, 1);
