@@ -217,105 +217,17 @@ namespace meevax::inline kernel
     {
       EXPORT_PREDICATE(character, "char?");
 
-      library.define<procedure>("char=?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<character>().codepoint == b.as<character>().codepoint);
-        };
+      library.define<procedure>("char=?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint == b.as<character>().codepoint); }) == xs.end(); });
+      library.define<procedure>("char<?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint <  b.as<character>().codepoint); }) == xs.end(); });
+      library.define<procedure>("char>?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint >  b.as<character>().codepoint); }) == xs.end(); });
+      library.define<procedure>("char<=?", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint <= b.as<character>().codepoint); }) == xs.end(); });
+      library.define<procedure>("char>=?", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint >= b.as<character>().codepoint); }) == xs.end(); });
 
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("char<?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<character>().codepoint < b.as<character>().codepoint);
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("char>?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<character>().codepoint > b.as<character>().codepoint);
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("char<=?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<character>().codepoint <= b.as<character>().codepoint);
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("char>=?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<character>().codepoint >= b.as<character>().codepoint);
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("char-ci=?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<character>().downcase() == b.as<character>().downcase());
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("char-ci<?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<character>().downcase() < b.as<character>().downcase());
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("char-ci>?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<character>().downcase() > b.as<character>().downcase());
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("char-ci<=?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<character>().downcase() <= b.as<character>().downcase());
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
-
-      library.define<procedure>("char-ci>=?", [](let const& xs)
-      {
-        auto compare = [](let const& a, let const& b)
-        {
-          return not (a.as<character>().downcase() >= b.as<character>().downcase());
-        };
-
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
-      });
+      library.define<procedure>("char-ci=?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() == b.as<character>().downcase()); }) == xs.end(); });
+      library.define<procedure>("char-ci<?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() <  b.as<character>().downcase()); }) == xs.end(); });
+      library.define<procedure>("char-ci>?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() >  b.as<character>().downcase()); }) == xs.end(); });
+      library.define<procedure>("char-ci<=?", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() <= b.as<character>().downcase()); }) == xs.end(); });
+      library.define<procedure>("char-ci>=?", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() >= b.as<character>().downcase()); }) == xs.end(); });
 
       library.define<procedure>("char-alphabetic?", [](let const& xs) { return car(xs).as<character>().property().is_letter    (); });
       library.define<procedure>("char-numeric?",    [](let const& xs) { return car(xs).as<character>().property().is_numeric   (); });
