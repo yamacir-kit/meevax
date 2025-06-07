@@ -45,7 +45,7 @@ Procedures for each standard are provided by the following R7RS-style libraries:
 
 ### SRFIs
 
-| Number                                                  | Title                                                  | Library name                        | Note                                   |
+| #                                                       | Title                                                  | Library name                        | Note                                   |
 |--------------------------------------------------------:|--------------------------------------------------------|-------------------------------------|----------------------------------------|
 | [  0](https://srfi.schemers.org/srfi-0/srfi-0.html)     | Feature-based conditional expansion construct          | [`(srfi 0)`](./basis/srfi-0.ss)     | R7RS 4.2.1                             |
 | [  1](https://srfi.schemers.org/srfi-1/srfi-1.html)     | List Library                                           | [`(srfi 1)`](./basis/srfi-1.ss)     | [`(scheme list)`](./basis/r7rs.ss)     |

@@ -215,11 +215,10 @@ namespace meevax::inline kernel
 
     define<library>("(meevax complex)", [](library & library)
     {
+      using namespace number;
+
       library.define<procedure>("make-rectangular", [](let const& xs)
       {
-        assert(is_real(car(xs)));
-        assert(is_real(cadr(xs)));
-
         return make<complex>(car(xs), cadr(xs));
       });
 
@@ -367,6 +366,8 @@ namespace meevax::inline kernel
 
     define<library>("(meevax inexact)", [](library & library)
     {
+      using namespace number;
+
       library.define<procedure>("log", [](let const& xs)
       {
         switch (length(xs))
@@ -630,6 +631,8 @@ namespace meevax::inline kernel
 
     define<library>("(meevax number)", [](library & library)
     {
+      using namespace number;
+
       EXPORT1_RENAME(is_complex,  "number?");
       EXPORT1_RENAME(is_complex,  "complex?");
       EXPORT1_RENAME(is_real,     "real?");

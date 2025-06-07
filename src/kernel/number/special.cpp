@@ -16,7 +16,7 @@
 
 #include <meevax/kernel/number/special.hpp>
 
-namespace meevax::inline kernel::inline number
+namespace meevax::inline kernel::number
 {
   #define DEFINE_UNPROVIDED_REAL2(CMATH)                                       \
   auto CMATH(object const&, object const&) -> object                           \

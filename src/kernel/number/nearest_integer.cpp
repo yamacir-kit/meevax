@@ -16,7 +16,7 @@
 
 #include <meevax/kernel/number/nearest_integer.hpp>
 
-namespace meevax::inline kernel::inline number
+namespace meevax::inline kernel::number
 {
   #define DEFINE(NAME, CMATH)                                                  \
   auto NAME(object const& x) -> object                                         \

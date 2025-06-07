@@ -16,7 +16,7 @@
 
 #include <meevax/kernel/number/power.hpp>
 
-namespace meevax::inline kernel::inline number
+namespace meevax::inline kernel::number
 {
   auto pow(object const& x, object const& y) -> object
   {

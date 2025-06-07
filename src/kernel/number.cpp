@@ -295,26 +295,31 @@ namespace meevax::inline kernel
   auto operator - (complex const& a, complex const& b) -> complex { return complex(a.real() - b.real(), a.imag() - b.imag()); }
   auto operator * (complex const& a, complex const& b) -> complex { return complex(a.real() * b.real() - a.imag() * b.imag(), a.imag() * b.real() + a.real() * b.imag()); }
   auto operator / (complex const& a, complex const& b) -> complex { auto x = a.real() * b.real() + a.imag() * b.imag(); auto y = a.imag() * b.real() - a.real() * b.imag(); auto d = b.real() * b.real() + b.imag() * b.imag(); return complex(x / d, y / d); }
-  auto operator ==(complex const& a, complex const& b) -> bool    { return equals(a.real(), b.real()) and equals(a.imag(), b.imag()); }
+  auto operator ==(complex const& a, complex const& b) -> bool    { return number::equals(a.real(), b.real()) and number::equals(a.imag(), b.imag()); }
   auto operator !=(complex const& a, complex const& b) -> bool    { return not (a == b); }
 
   auto operator +(object const& x, object const& y) -> object
   {
+    using namespace number;
     return apply_to<complex_numbers>(std::plus(), x, y);
   }
 
   auto operator -(object const& x, object const& y) -> object
   {
+    using namespace number;
     return apply_to<complex_numbers>(std::minus(), x, y);
   }
 
   auto operator *(object const& x, object const& y) -> object
   {
+    using namespace number;
     return apply_to<complex_numbers>(std::multiplies(), x, y);
   }
 
   auto operator /(object const& x, object const& y) -> object
   {
+    using namespace number;
+
     auto f = []<typename T, typename U>(T const& x, U const& y)
     {
       if constexpr (std::is_same_v<T, std::int64_t> and
@@ -334,6 +339,8 @@ namespace meevax::inline kernel
 
   auto operator % (object const& x, object const& y) -> object
   {
+    using namespace number;
+
     auto f = []<typename T, typename U>(T const& x, U const& y)
     {
       if constexpr ((std::is_floating_point_v<T> and std::is_arithmetic_v<U>) or
@@ -487,7 +494,7 @@ namespace meevax::inline kernel
     }
   }
 
-inline namespace number
+namespace number
 {
   auto equals(object const& x, object const& y) -> bool
   {

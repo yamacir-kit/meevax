@@ -38,8 +38,8 @@ namespace meevax::inline kernel
       auto const magnitude = make_real(result.str(1), radix);
       auto const angle     = make_real(result.str(2), radix);
 
-      std::get<0>(*this) = magnitude * cos(angle);
-      std::get<1>(*this) = magnitude * sin(angle);
+      std::get<0>(*this) = magnitude * number::cos(angle);
+      std::get<1>(*this) = magnitude * number::sin(angle);
     }
     else
     {
@@ -49,7 +49,7 @@ namespace meevax::inline kernel
 
   auto complex::canonicalize() const -> object
   {
-    if (equals(imag(), e0))
+    if (number::equals(imag(), e0))
     {
       return real();
     }
@@ -71,17 +71,17 @@ namespace meevax::inline kernel
 
   complex::operator std::complex<int>() const
   {
-    assert(is_real(real()));
-    assert(is_real(imag()));
+    assert(number::is_real(real()));
+    assert(number::is_real(imag()));
 
-    return std::complex(exact_integer_cast<int>(exact(real())),
-                        exact_integer_cast<int>(exact(imag())));
+    return std::complex(exact_integer_cast<int>(number::exact(real())),
+                        exact_integer_cast<int>(number::exact(imag())));
   }
 
   complex::operator std::complex<double>() const
   {
-    assert(is_real(real()));
-    assert(is_real(imag()));
+    assert(number::is_real(real()));
+    assert(number::is_real(imag()));
 
     auto to_double = [](let const& x)
     {
@@ -96,13 +96,13 @@ namespace meevax::inline kernel
       }
     };
 
-    return std::complex(to_double(inexact(real())),
-                        to_double(inexact(imag())));
+    return std::complex(to_double(number::inexact(real())),
+                        to_double(number::inexact(imag())));
   }
 
   auto operator <<(std::ostream & os, complex const& z) -> std::ostream &
   {
-    if (equals(z.imag(), e0))
+    if (number::equals(z.imag(), e0))
     {
       return os << z.real();
     }

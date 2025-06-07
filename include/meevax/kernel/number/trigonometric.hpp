@@ -19,18 +19,14 @@
 
 #include <meevax/kernel/number.hpp>
 
-namespace meevax::inline kernel::inline number
+namespace meevax::inline kernel::number
 {
   auto sin(object const&) -> object;
-
   auto cos(object const&) -> object;
-
   auto tan(object const&) -> object;
 
   auto asin(object const&) -> object;
-
   auto acos(object const&) -> object;
-
   auto atan(object const&) -> object;
 
   auto atan2(object const&, object const&) -> object;

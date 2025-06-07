@@ -45,7 +45,7 @@ Procedures for each standard are provided by the following R7RS-style libraries:
 
 ### SRFIs
 
-| Number                                                  | Title                                                  | Library name                        | Note                                   |
+| #                                                       | Title                                                  | Library name                        | Note                                   |
 |--------------------------------------------------------:|--------------------------------------------------------|-------------------------------------|----------------------------------------|
 | [  0](https://srfi.schemers.org/srfi-0/srfi-0.html)     | Feature-based conditional expansion construct          | [`(srfi 0)`](./basis/srfi-0.ss)     | R7RS 4.2.1                             |
 | [  1](https://srfi.schemers.org/srfi-1/srfi-1.html)     | List Library                                           | [`(srfi 1)`](./basis/srfi-1.ss)     | [`(scheme list)`](./basis/r7rs.ss)     |
@@ -101,9 +101,9 @@ Then, select one of the following targets and `make` it according to your purpos
 
 | Target      | Description
 |-------------|-------------
-| `all`       | Build shared-library `libmeevax.0.5.371.so` and executable `meevax`.
+| `all`       | Build shared-library `libmeevax.0.5.372.so` and executable `meevax`.
 | `install`   | Copy files into `/usr/local` directly.
-| `package`   | Generate debian package `meevax_0.5.371_amd64.deb` (only Ubuntu). The generated package can be installed by `sudo apt install build/meevax_0.5.371_amd64.deb`.
+| `package`   | Generate debian package `meevax_0.5.372_amd64.deb` (only Ubuntu). The generated package can be installed by `sudo apt install build/meevax_0.5.372_amd64.deb`.
 | `test`      | Test executable `meevax`. This target requires Valgrind to be installed.
 | `uninstall` | Remove files copied to `/usr/local` directly by target `install`.
 

@@ -16,7 +16,7 @@
 
 #include <meevax/kernel/number/bitwise.hpp>
 
-namespace meevax::inline kernel::inline number
+namespace meevax::inline kernel::number
 {
   auto bitwise_not(object const& x) -> object
   {

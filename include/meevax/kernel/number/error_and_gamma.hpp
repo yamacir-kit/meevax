@@ -19,7 +19,7 @@
 
 #include <meevax/kernel/number.hpp>
 
-namespace meevax::inline kernel::inline number
+namespace meevax::inline kernel::number
 {
   auto erf(object const&) -> object;
   auto erfc(object const&) -> object;

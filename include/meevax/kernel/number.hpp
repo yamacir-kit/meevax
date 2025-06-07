@@ -358,7 +358,7 @@ inline namespace kernel
     }
   }
 
-inline namespace number
+namespace number
 {
   template <typename T>
   auto canonicalize(T&& x) -> decltype(auto)
