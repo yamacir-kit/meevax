@@ -27,7 +27,8 @@ namespace meevax::inline kernel
 {
   using null = std::nullptr_t;
 
-  using small_integer = std::int32_t;
+  using small_integer = std::int32_t; // Fixed sized integer that can be boxed.
+  using widen_integer = std::int64_t; // Fixed sized integer that is temporarily widened to prevent possible overflow.
 
   struct pair;
 
@@ -157,6 +158,8 @@ namespace meevax::inline kernel
 
     ~pair() override = default;
 
+    auto bounds() const noexcept -> std::pair<void const*, void const*> override;
+
     auto equal1(top const*) const -> bool override;
 
     auto equal2(top const*) const -> bool override;
@@ -164,11 +167,6 @@ namespace meevax::inline kernel
     auto type() const noexcept -> std::type_info const& override;
 
     auto write(std::ostream &) const -> std::ostream & override;
-
-    auto view() const noexcept -> std::pair<void const*, void const*> override
-    {
-      return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
-    }
 
     auto begin() noexcept
     {
@@ -239,15 +237,8 @@ namespace meevax::inline kernel
     }
   }
 
-  inline auto car = [](auto&& x) -> decltype(auto)
-  {
-    return get<0>(std::forward<decltype(x)>(x));
-  };
-
-  inline auto cdr = [](auto&& x) -> decltype(auto)
-  {
-    return get<1>(std::forward<decltype(x)>(x));
-  };
+  inline auto car = [](auto&& x) -> decltype(auto) { return get<0>(std::forward<decltype(x)>(x)); };
+  inline auto cdr = [](auto&& x) -> decltype(auto) { return get<1>(std::forward<decltype(x)>(x)); };
 
   inline constexpr auto caar = compose(car, car);
   inline constexpr auto cadr = compose(car, cdr);

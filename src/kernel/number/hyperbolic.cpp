@@ -16,7 +16,7 @@
 
 #include <meevax/kernel/number/hyperbolic.hpp>
 
-namespace meevax::inline kernel::inline number
+namespace meevax::inline kernel::number
 {
   DEFINE_COMPLEX1(sinh)
   DEFINE_COMPLEX1(cosh)

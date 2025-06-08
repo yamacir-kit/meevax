@@ -16,7 +16,7 @@
 
 #include <meevax/kernel/number/trigonometric.hpp>
 
-namespace meevax::inline kernel::inline number
+namespace meevax::inline kernel::number
 {
   DEFINE_COMPLEX1(sin)
   DEFINE_COMPLEX1(cos)

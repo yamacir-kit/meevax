@@ -16,7 +16,7 @@
 
 #include <meevax/kernel/number/floating_point_manipulation.hpp>
 
-namespace meevax::inline kernel::inline number
+namespace meevax::inline kernel::number
 {
   auto ldexp(object const& x, object const& y) -> object
   {

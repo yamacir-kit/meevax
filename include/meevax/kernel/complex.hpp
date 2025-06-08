@@ -29,8 +29,6 @@ namespace meevax::inline kernel
 
     explicit complex(std::string const&, int = 10);
 
-    auto canonicalize() const -> object;
-
     auto imag() const noexcept -> object const&;
 
     auto real() const noexcept -> object const&;

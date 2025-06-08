@@ -34,7 +34,7 @@ namespace meevax::inline kernel
 
     ~ratio();
 
-    explicit ratio(std::int64_t);
+    explicit ratio(widen_integer);
 
     explicit ratio(large_integer const&);
 
