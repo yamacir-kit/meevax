@@ -596,27 +596,26 @@ namespace meevax::inline memory
 
       auto reachables = pointer_set<top>();
 
+      auto q = std::queue<top const*>();
+
       for (auto const& mutator : mutators)
       {
         assert(mutator);
         assert(mutator->unsafe_get());
 
-        if (auto object = mutator->unsafe_get(); not reachables.contains(object) and is_root(mutator))
+        if (not reachables.contains(mutator->unsafe_get()) and is_root(mutator))
         {
-          auto queue = std::queue<top const*>();
-
-          for (queue.push(object); not queue.empty(); queue.pop())
+          for (q.push(mutator->unsafe_get()); not q.empty(); q.pop())
           {
-            if (not reachables.contains(queue.front()))
+            if (not reachables.contains(q.front()))
             {
-              reachables.insert(queue.front());
+              reachables.insert(q.front());
 
-              for (auto const& mutator : mutators_range(queue.front()))
+              for (auto const& mutator : mutators_range(q.front()))
               {
                 assert(mutator);
                 assert(mutator->unsafe_get());
-
-                queue.push(mutator->unsafe_get());
+                q.push(mutator->unsafe_get());
               }
             }
           }

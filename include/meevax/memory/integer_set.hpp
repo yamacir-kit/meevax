@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <type_traits>
 
 namespace meevax::inline memory
 {
