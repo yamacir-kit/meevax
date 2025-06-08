@@ -69,6 +69,8 @@ namespace meevax::inline memory
     {
       virtual ~top() = default;
 
+      virtual auto bounds() const noexcept -> std::pair<void const*, void const*> = 0;
+
       virtual auto equal1(top const*) const -> bool = 0;
 
       virtual auto equal2(top const*) const -> bool = 0;
@@ -76,8 +78,6 @@ namespace meevax::inline memory
       virtual auto type() const noexcept -> std::type_info const& = 0;
 
       virtual auto write(std::ostream &) const -> std::ostream & = 0;
-
-      virtual auto view() const noexcept -> std::pair<void const*, void const*> = 0;
     };
 
     static inline auto cleared = false;
@@ -120,6 +120,11 @@ namespace meevax::inline memory
       {}
 
       ~binder() override = default;
+
+      auto bounds() const noexcept -> std::pair<void const*, void const*> override
+      {
+        return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
+      }
 
       auto equal1([[maybe_unused]] top const* other) const -> bool override
       {
@@ -174,11 +179,6 @@ namespace meevax::inline memory
         {
           return os << magenta("#,(") << green(typeid(Bound).name()) << faint(" #;", static_cast<Bound const*>(this)) << magenta(")");
         }
-      }
-
-      auto view() const noexcept -> std::pair<void const*, void const*> override
-      {
-        return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
       }
 
       auto operator new(std::size_t) -> void *
@@ -435,7 +435,7 @@ namespace meevax::inline memory
     /*
        https://www.kernel.org/doc/html/latest/arch/x86/x86_64/mm.html
 
-       0x0000'0000'0000'0000 ~ 0x7FFF'FFFF'FFFF'FFFF
+       0x0000'0000'0000'0000 ~ 0x0000'7FFF'FFFF'FFFF
     */
     template <typename T>
     using pointer_set = integer_set<T const*, std::bit_width(0x7FFFu),
@@ -449,9 +449,19 @@ namespace meevax::inline memory
 
     static inline std::size_t allocation = 0;
 
-    static inline std::size_t threshold = 128_MiB;
+    static inline std::size_t threshold = 8_MiB;
 
     static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
+
+    struct mutators_range : public std::pair<void const*, void const*>
+    {
+      explicit mutators_range(top const* object)
+        : std::pair<void const*, void const*> { object->bounds() }
+      {}
+
+      auto begin() const noexcept { return mutators.lower_bound(reinterpret_cast<mutator const*>(first )); }
+      auto end  () const noexcept { return mutators.lower_bound(reinterpret_cast<mutator const*>(second)); }
+    };
 
   public:
     collector() = delete;
@@ -575,32 +585,13 @@ namespace meevax::inline memory
         */
         auto iter = objects.lower_bound(reinterpret_cast<top const*>(given));
 
-        auto is_out_of_range = [&](top const* object)
+        auto out_of_bounds = [&](top const* object)
         {
-          auto [begin, end] = object->view();
+          auto [begin, end] = object->bounds();
           return given < begin or end <= reinterpret_cast<void const*>(given);
         };
 
-        return iter == begin or is_out_of_range(*--iter);
-      };
-
-      struct members
-      {
-        std::pair<void const*, void const*> view;
-
-        explicit members(top const* object)
-          : view { object->view() }
-        {}
-
-        auto begin() const noexcept
-        {
-          return mutators.lower_bound(reinterpret_cast<mutator const*>(view.first));
-        }
-
-        auto end() const noexcept
-        {
-          return mutators.lower_bound(reinterpret_cast<mutator const*>(view.second));
-        }
+        return iter == begin or out_of_bounds(*--iter);
       };
 
       auto reachables = pointer_set<top>();
@@ -620,7 +611,7 @@ namespace meevax::inline memory
             {
               reachables.insert(queue.front());
 
-              for (auto const& mutator : members(queue.front()))
+              for (auto const& mutator : mutators_range(queue.front()))
               {
                 assert(mutator);
                 assert(mutator->unsafe_get());

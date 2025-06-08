@@ -158,6 +158,8 @@ namespace meevax::inline kernel
 
     ~pair() override = default;
 
+    auto bounds() const noexcept -> std::pair<void const*, void const*> override;
+
     auto equal1(top const*) const -> bool override;
 
     auto equal2(top const*) const -> bool override;
@@ -165,11 +167,6 @@ namespace meevax::inline kernel
     auto type() const noexcept -> std::type_info const& override;
 
     auto write(std::ostream &) const -> std::ostream & override;
-
-    auto view() const noexcept -> std::pair<void const*, void const*> override
-    {
-      return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
-    }
 
     auto begin() noexcept
     {
