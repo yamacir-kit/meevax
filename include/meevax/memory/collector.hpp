@@ -69,30 +69,15 @@ namespace meevax::inline memory
     {
       virtual ~top() = default;
 
-      auto bounds() const noexcept -> std::pair<void const*, void const*>
-      {
-        return static_cast<Top const&>(*this).bounds();
-      }
+      virtual auto bounds() const noexcept -> std::pair<void const*, void const*> = 0;
 
-      auto equal1(Top const* x) const -> bool
-      {
-        return static_cast<Top const&>(*this).equal1(x);
-      }
+      virtual auto equal1(Top const* x) const -> bool = 0;
 
-      auto equal2(Top const* x) const -> bool
-      {
-        return static_cast<Top const&>(*this).equal2(x);
-      }
+      virtual auto equal2(Top const* x) const -> bool = 0;
 
-      auto type() const noexcept -> std::type_info const&
-      {
-        return static_cast<Top const&>(*this).type();
-      }
+      virtual auto type() const noexcept -> std::type_info const& = 0;
 
-      auto write(std::ostream & o) const -> std::ostream &
-      {
-        return static_cast<Top const&>(*this).write(o);
-      }
+      virtual auto write(std::ostream & o) const -> std::ostream & = 0;
     };
 
     static inline auto cleared = false;
@@ -441,35 +426,12 @@ namespace meevax::inline memory
         return datum.write(os);
       }
 
-      inline auto begin()
-      {
-        return *this ? pointer::unsafe_get()->begin() : typename Top::iterator();
-      }
-
-      inline auto begin() const
-      {
-        return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator();
-      }
-
-      inline auto cbegin() const
-      {
-        return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator();
-      }
-
-      inline auto end()
-      {
-        return *this ? pointer::unsafe_get()->end() : typename Top::iterator();
-      }
-
-      inline auto end() const
-      {
-        return *this ? pointer::unsafe_get()->cend() : typename Top::const_iterator();
-      }
-
-      inline auto cend() const
-      {
-        return *this ? pointer::unsafe_get()->cend() : typename Top::const_iterator();
-      }
+      inline auto  begin()       { return *this ? pointer::unsafe_get()-> begin() : typename Top::      iterator(); }
+      inline auto  begin() const { return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator(); }
+      inline auto cbegin() const { return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator(); }
+      inline auto    end()       { return *this ? pointer::unsafe_get()->   end() : typename Top::      iterator(); }
+      inline auto    end() const { return *this ? pointer::unsafe_get()->  cend() : typename Top::const_iterator(); }
+      inline auto   cend() const { return *this ? pointer::unsafe_get()->  cend() : typename Top::const_iterator(); }
     };
 
     /*
