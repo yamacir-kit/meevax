@@ -25,15 +25,14 @@ namespace meevax::inline kernel
     return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
   }
 
-  auto pair::equal1(top const* other) const -> bool
+  auto pair::equal1(pair const* other) const -> bool
   {
-    return this == dynamic_cast<pair const*>(other);
+    return this == other;
   }
 
-  auto pair::equal2(top const* other) const -> bool
+  auto pair::equal2(pair const* other) const -> bool
   {
-    auto pare = dynamic_cast<pair const*>(other);
-    return pare and *this == *pare;
+    return other and *this == *other;
   }
 
   auto pair::type() const noexcept -> std::type_info const&

@@ -69,22 +69,38 @@ namespace meevax::inline memory
     {
       virtual ~top() = default;
 
-      virtual auto bounds() const noexcept -> std::pair<void const*, void const*> = 0;
+      auto bounds() const noexcept -> std::pair<void const*, void const*>
+      {
+        return static_cast<Top const&>(*this).bounds();
+      }
 
-      virtual auto equal1(top const*) const -> bool = 0;
+      auto equal1(Top const* x) const -> bool
+      {
+        return static_cast<Top const&>(*this).equal1(x);
+      }
 
-      virtual auto equal2(top const*) const -> bool = 0;
+      auto equal2(Top const* x) const -> bool
+      {
+        return static_cast<Top const&>(*this).equal2(x);
+      }
 
-      virtual auto type() const noexcept -> std::type_info const& = 0;
+      auto type() const noexcept -> std::type_info const&
+      {
+        return static_cast<Top const&>(*this).type();
+      }
 
-      virtual auto write(std::ostream &) const -> std::ostream & = 0;
+      auto write(std::ostream & o) const -> std::ostream &
+      {
+        return static_cast<Top const&>(*this).write(o);
+      }
     };
 
     static inline auto cleared = false;
 
-    struct finalizer
+    template <typename Allocator>
+    struct stateful : public Allocator
     {
-      ~finalizer()
+      ~stateful()
       {
         /*
            Execute clear before any static allocator is destroyed. Otherwise,
@@ -102,11 +118,9 @@ namespace meevax::inline memory
     struct binder : public virtual Top
                   , public Bound
     {
-      using allocator = AllocatorTraits::template rebind_alloc<binder<Bound, AllocatorTraits>>;
+      using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<Bound, AllocatorTraits>>>;
 
       static inline auto a = allocator();
-
-      static inline auto finalization = finalizer();
 
       template <typename... Us>
       explicit constexpr binder(direct_initialization_tag, Us&&... xs)
@@ -130,7 +144,7 @@ namespace meevax::inline memory
         return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
       }
 
-      auto equal1([[maybe_unused]] top const* other) const -> bool override
+      auto equal1([[maybe_unused]] Top const* other) const -> bool override
       {
         if constexpr (is_equality_comparable_v<Bound const&> and equivalence<Bound>::strictness <= 1)
         {
@@ -149,7 +163,7 @@ namespace meevax::inline memory
         }
       }
 
-      auto equal2([[maybe_unused]] top const* other) const -> bool override
+      auto equal2([[maybe_unused]] Top const* other) const -> bool override
       {
         if constexpr (is_equality_comparable_v<Bound const&> and equivalence<Bound>::strictness <= 2)
         {
@@ -199,11 +213,9 @@ namespace meevax::inline memory
     template <typename AllocatorTraits>
     struct binder<Top, AllocatorTraits> : public Top
     {
-      using allocator = AllocatorTraits::template rebind_alloc<binder<Top, AllocatorTraits>>;
+      using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<Top, AllocatorTraits>>>;
 
       static inline auto a = allocator();
-
-      static inline auto finalization = finalizer();
 
       using Top::Top;
 
