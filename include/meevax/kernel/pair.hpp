@@ -72,7 +72,7 @@ namespace meevax::inline kernel
     return make<typename Traits<Ts...>::type, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
-  struct pair : public virtual default_collector::top
+  struct pair : public default_collector::top
               , public std::pair<object, object>
   {
     template <auto Const>

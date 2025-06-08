@@ -82,27 +82,31 @@ namespace meevax::inline memory
 
     static inline auto cleared = false;
 
+    struct finalizer
+    {
+      ~finalizer()
+      {
+        /*
+           Execute clear before any static allocator is destroyed. Otherwise,
+           when the destructor of the collector executes clear, the collector
+           may touch the freed memory of the stateful allocator.
+        */
+        if (not std::exchange(cleared, true))
+        {
+          clear();
+        }
+      }
+    };
+
     template <typename Bound, typename AllocatorTraits>
-    struct binder : public virtual std::conditional_t<std::is_same_v<Top, Bound>, top, Top>
+    struct binder : public virtual Top
                   , public Bound
     {
-      struct allocator_type : public AllocatorTraits::template rebind_alloc<binder<Bound, AllocatorTraits>>
-      {
-        ~allocator_type()
-        {
-          /*
-             Execute clear before any static allocator is destroyed. Otherwise,
-             when the destructor of the collector executes clear, the collector
-             may touch the freed memory of the stateful allocator.
-          */
-          if (not std::exchange(cleared, true))
-          {
-            clear();
-          }
-        }
-      };
+      using allocator = AllocatorTraits::template rebind_alloc<binder<Bound, AllocatorTraits>>;
 
-      static inline auto allocator = allocator_type();
+      static inline auto a = allocator();
+
+      static inline auto finalization = finalizer();
 
       template <typename... Us>
       explicit constexpr binder(direct_initialization_tag, Us&&... xs)
@@ -183,12 +187,36 @@ namespace meevax::inline memory
 
       auto operator new(std::size_t) -> void *
       {
-        return allocator.allocate(1);
+        return a.allocate(1);
       }
 
       auto operator delete(void * data) noexcept -> void
       {
-        allocator.deallocate(reinterpret_cast<typename std::allocator_traits<allocator_type>::pointer>(data), 1);
+        a.deallocate(reinterpret_cast<typename std::allocator_traits<allocator>::pointer>(data), 1);
+      }
+    };
+
+    template <typename AllocatorTraits>
+    struct binder<Top, AllocatorTraits> : public Top
+    {
+      using allocator = AllocatorTraits::template rebind_alloc<binder<Top, AllocatorTraits>>;
+
+      static inline auto a = allocator();
+
+      static inline auto finalization = finalizer();
+
+      using Top::Top;
+
+      ~binder() override = default;
+
+      auto operator new(std::size_t) -> void *
+      {
+        return a.allocate(1);
+      }
+
+      auto operator delete(void * data) noexcept -> void
+      {
+        a.deallocate(reinterpret_cast<typename std::allocator_traits<allocator>::pointer>(data), 1);
       }
     };
 
