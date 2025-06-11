@@ -276,8 +276,8 @@ namespace meevax::inline kernel
 
     define<library>("(meevax core)", [](library & library)
     {
-      library.second = environment::core().as<environment::syntactic_environment>().second; // DIRTY HACK!
-      library.export_specs = map(car, library.second);
+      library.evaluator.second = environment::core().as<environment::syntactic_environment>().second; // DIRTY HACK!
+      library.export_specs = map(car, library.evaluator.second);
     });
 
     define<library>("(meevax environment)", [](library & library)

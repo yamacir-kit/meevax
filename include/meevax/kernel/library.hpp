@@ -24,11 +24,13 @@
 
 namespace meevax::inline kernel
 {
-  struct library : public environment
+  struct library
   {
-    let declarations = nullptr;
+    environment evaluator;
 
-    let export_specs = nullptr;
+    let declarations = unit;
+
+    let export_specs = unit;
 
     template <typename F, typename = std::enable_if_t<std::is_invocable_v<F, library &>>>
     explicit library(F declare)
@@ -43,7 +45,7 @@ namespace meevax::inline kernel
     template <typename T, typename... Ts>
     auto define(std::string const& name, Ts&&... xs) -> void
     {
-      environment::define<T>(name, std::forward<decltype(xs)>(xs)...);
+      evaluator.define<T>(name, std::forward<decltype(xs)>(xs)...);
       export_specs = cons(input_string_port(name).read(), export_specs);
     }
 
@@ -60,14 +62,14 @@ namespace meevax::inline kernel
 
   auto operator <<(std::ostream &, library const&) -> std::ostream &;
 
-  auto libraries() -> std::map<std::string, library> &;
+  auto libraries() -> std::map<std::string, object> &;
 
   template <typename T, typename... Ts>
   auto define(std::string const& name, Ts&&... xs) -> decltype(auto)
   {
     if constexpr (std::is_same_v<T, library>)
     {
-      return libraries().emplace(name, std::forward<decltype(xs)>(xs)...);
+      return libraries().emplace(name, make<library>(std::forward<decltype(xs)>(xs)...));
     }
     else
     {

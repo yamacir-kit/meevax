@@ -590,7 +590,7 @@ namespace meevax::inline memory
         auto out_of_bounds = [&](top const* object)
         {
           auto [begin, end] = object->bounds();
-          return given < begin or end <= reinterpret_cast<void const*>(given);
+          return given < begin or end < given;
         };
 
         return iter == begin or out_of_bounds(*--iter);

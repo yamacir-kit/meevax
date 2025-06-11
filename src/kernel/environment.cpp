@@ -218,7 +218,7 @@ namespace meevax::inline kernel
     }
     else if (auto iter = libraries().find(lexical_cast<std::string>(form)); iter != libraries().end())
     {
-      return std::get<1>(*iter).resolve();
+      return std::get<1>(*iter).as<library>().resolve();
     }
     else
     {

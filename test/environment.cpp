@@ -39,6 +39,7 @@ auto main() -> int
   assert(libraries().empty());
 
   default_collector::collect();
+  default_collector::collect();
 
   assert(gc_count - 1 == default_collector::count()); // -1 is interaction_environment
 
