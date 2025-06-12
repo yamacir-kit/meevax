@@ -126,7 +126,8 @@ namespace meevax::inline memory
 
       auto bounds() const noexcept -> std::pair<void const*, void const*> override
       {
-        return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
+        auto base = reinterpret_cast<std::byte const*>(static_cast<Bound const*>(this));
+        return { base, base + sizeof(Bound) };
       }
 
       auto equal1([[maybe_unused]] Top const* other) const -> bool override
@@ -589,8 +590,8 @@ namespace meevax::inline memory
 
         auto out_of_bounds = [&](top const* object)
         {
-          auto [begin, end] = object->bounds();
-          return given < begin or end < given;
+          auto [lower, upper] = object->bounds();
+          return given < lower or upper <= given;
         };
 
         return iter == begin or out_of_bounds(*--iter);
