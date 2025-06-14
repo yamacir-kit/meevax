@@ -207,7 +207,7 @@ namespace meevax::inline memory
     static constexpr auto split(T value) noexcept
     {
       auto j = reinterpret_cast<std::uintptr_t>(value) >> compressible_bitwidth_of<T>;
-      constexpr auto mask = (static_cast<std::size_t>(1) << E) - 1;
+      constexpr auto mask = (1_u64 << E) - 1;
       auto i = j >> (Es + ...) & mask;
       return std::make_pair(i, j);
     }

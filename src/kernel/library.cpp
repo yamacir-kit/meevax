@@ -68,6 +68,8 @@ namespace meevax::inline kernel
   {
     if (let const unresolved_declarations = std::exchange(declarations, unit); unresolved_declarations.is<pair>())
     {
+      assert(declarations.is<null>());
+
       for (let const& unresolved_declaration : unresolved_declarations)
       {
         evaluate(unresolved_declaration);

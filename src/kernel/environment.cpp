@@ -111,6 +111,8 @@ namespace meevax::inline kernel
 
   auto resolve(object const& form) -> object
   {
+    assert(form.is<pair>());
+
     if (car(form).as<symbol>() == "only") /* -----------------------------------
     *
     *  <declaration> = (only <import set> <identifier> ...)

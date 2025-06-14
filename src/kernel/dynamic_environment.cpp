@@ -460,6 +460,11 @@ namespace meevax::inline kernel
           s = cdr(s);
           c = cdr(c);
 
+          assert(s.is<null>());
+          assert(e.is<null>());
+          assert(c.is<null>());
+          assert(d.is<null>());
+
           return x;
         }();
       }

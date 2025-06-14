@@ -573,52 +573,52 @@ namespace meevax::inline memory
       }
     }
 
-    static auto mark() noexcept -> pointer_set<top>
+    static auto is_root(mutator const* m) noexcept
     {
-      auto is_root = [begin = objects.begin()](mutator const* given)
+      /*
+         If the given mutator is a non-root object, then an object containing
+         this mutator as a data member exists somewhere in memory.
+
+         Containing the mutator as a data member means that the address of the
+         mutator is contained in the interval of the object's base-address ~
+         base-address + object-size. The top is present to keep track of the
+         base-address and size of the object needed here.
+      */
+      auto out_of_bounds = [&](top const* object)
       {
-        /*
-           If the given mutator is a non-root object, then an object containing
-           this mutator as a data member exists somewhere in memory.
-
-           Containing the mutator as a data member means that the address of
-           the mutator is contained in the interval of the object's
-           base-address ~ base-address + object-size. The top is present to
-           keep track of the base-address and size of the object needed here.
-        */
-        auto iter = objects.lower_bound(reinterpret_cast<top const*>(given));
-
-        auto out_of_bounds = [&](top const* object)
-        {
-          auto [lower, upper] = object->bounds();
-          return given < lower or upper <= given;
-        };
-
-        return iter == begin or out_of_bounds(*--iter);
+        auto [lower, upper] = object->bounds();
+        return m < lower or upper <= m;
       };
 
+      auto iter = objects.lower_bound(reinterpret_cast<top const*>(m));
+
+      return not --iter or out_of_bounds(*iter);
+    }
+
+    static auto mark() noexcept -> pointer_set<top>
+    {
       auto reachables = pointer_set<top>();
 
       auto q = std::queue<top const*>();
 
-      for (auto const& mutator : mutators)
+      for (auto const& m1 : mutators)
       {
-        assert(mutator);
-        assert(mutator->unsafe_get());
+        assert(m1);
+        assert(m1->unsafe_get());
 
-        if (not reachables.contains(mutator->unsafe_get()) and is_root(mutator))
+        if (not reachables.contains(m1->unsafe_get()) and is_root(m1))
         {
-          for (q.push(mutator->unsafe_get()); not q.empty(); q.pop())
+          for (q.push(m1->unsafe_get()); not q.empty(); q.pop())
           {
             if (not reachables.contains(q.front()))
             {
               reachables.insert(q.front());
 
-              for (auto const& mutator : mutators_range(q.front()))
+              for (auto const& m2 : mutators_range(q.front()))
               {
-                assert(mutator);
-                assert(mutator->unsafe_get());
-                q.push(mutator->unsafe_get());
+                assert(m2);
+                assert(m2->unsafe_get());
+                q.push(m2->unsafe_get());
               }
             }
           }
