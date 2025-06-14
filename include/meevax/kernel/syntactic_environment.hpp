@@ -973,7 +973,7 @@ namespace meevax::inline kernel
 
     inline auto expand(object const& form,
                        object const& bound_variables,
-                       typename syntactic_closure::renamer & rename) const -> object try
+                       typename syntactic_closure::renamer & rename) const -> object
     {
       if (not form.is<pair>())
       {
@@ -1007,16 +1007,11 @@ namespace meevax::inline kernel
 
       return expander::call(*this, form, bound_variables, rename);
     }
-    catch (error & e)
-    {
-      e.detail(error::in::expanding, form).raise();
-      return unspecified;
-    }
 
     inline auto generate(object const& form,
                          object const& bound_variables,
                          object const& continuation = list(make(instruction::stop)),
-                         bool tail = false) -> object try
+                         bool tail = false) -> object
     {
       if (not form.is<pair>())
       {
@@ -1052,11 +1047,6 @@ namespace meevax::inline kernel
       }
 
       return generator::call(*this, form, bound_variables, continuation, tail);
-    }
-    catch (error & e)
-    {
-      e.detail(error::in::generating, form).raise();
-      return unspecified;
     }
 
     inline auto identify(object const& variable,

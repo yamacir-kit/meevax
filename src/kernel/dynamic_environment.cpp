@@ -473,7 +473,6 @@ namespace meevax::inline kernel
       }
       else
       {
-        error::contexts.emplace_back(error::in::running, cons(control, c));
         throw error(make<string>("uncaught exception"), thrown);
       }
     }
@@ -481,7 +480,6 @@ namespace meevax::inline kernel
     {
       if (exception_handler)
       {
-        error::contexts.emplace_back(error::in::running, cons(control, c));
         return apply(exception_handler, thrown.make());
       }
       else // In most cases, this clause will never be called.
@@ -494,7 +492,6 @@ namespace meevax::inline kernel
     {
       if (auto thrown = error(make<string>(exception.what())); exception_handler)
       {
-        error::contexts.emplace_back(error::in::running, cons(control, c));
         return apply(exception_handler, thrown.make());
       }
       else // In most cases, this clause will never be called.

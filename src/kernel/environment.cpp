@@ -21,7 +21,7 @@
 
 namespace meevax::inline kernel
 {
-  auto environment::evaluate(object const& expression) -> object try
+  auto environment::evaluate(object const& expression) -> object
   {
     if (expression.is<pair>() and car(expression).is<symbol>())
     {
@@ -107,11 +107,6 @@ namespace meevax::inline kernel
     auto undump = dump(this);
 
     return execute(optimize(compile(expression)));
-  }
-  catch (error & e)
-  {
-    e.detail(error::in::evaluating, expression).raise();
-    return unspecified;
   }
 
   auto resolve(object const& form) -> object
