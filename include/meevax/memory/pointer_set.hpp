@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_INTEGER_SET_HPP
-#define INCLUDED_MEEVAX_MEMORY_INTEGER_SET_HPP
+#ifndef INCLUDED_MEEVAX_MEMORY_POINTER_SET_HPP
+#define INCLUDED_MEEVAX_MEMORY_POINTER_SET_HPP
 
 #include <algorithm>
 #include <bit>
@@ -42,7 +42,7 @@ namespace meevax::inline memory
   }
 
   template <typename T, std::size_t E, std::size_t... Es>
-  struct integer_set
+  struct pointer_set
   {
     static_assert(sizeof(T) <= sizeof(std::uintptr_t));
 
@@ -50,7 +50,7 @@ namespace meevax::inline memory
 
     static constexpr auto N = static_cast<std::size_t>(1) << (E - compressible_bitwidth_of<T>);
 
-    using subset = integer_set<std::uintptr_t, Es...>; // Only the outermost implementation knows the original type name T.
+    using subset = pointer_set<std::uintptr_t, Es...>; // Only the outermost implementation knows the original type name T.
 
     subset * data[N] = {};
 
@@ -69,7 +69,7 @@ namespace meevax::inline memory
 
       using iterator_category = std::bidirectional_iterator_tag;
 
-      integer_set const* p = nullptr;
+      pointer_set const* p = nullptr;
 
       std::size_t i = std::numeric_limits<std::size_t>::max();
 
@@ -77,7 +77,7 @@ namespace meevax::inline memory
 
       constexpr const_iterator() = default;
 
-      explicit const_iterator(integer_set const* p, std::size_t i, std::uintptr_t j) noexcept
+      explicit const_iterator(pointer_set const* p, std::size_t i, std::uintptr_t j) noexcept
         : p { p }
         , i { i }
       {
@@ -86,7 +86,7 @@ namespace meevax::inline memory
         increment_unless_truthy(j);
       }
 
-      explicit const_iterator(integer_set const* p, std::size_t i) noexcept
+      explicit const_iterator(pointer_set const* p, std::size_t i) noexcept
         : p { p }
         , i { i }
       {
@@ -94,7 +94,7 @@ namespace meevax::inline memory
         increment_unless_truthy();
       }
 
-      explicit const_iterator(integer_set const* p) noexcept
+      explicit const_iterator(pointer_set const* p) noexcept
         : p { p }
         , i { N }
       {
@@ -196,7 +196,7 @@ namespace meevax::inline memory
       }
     };
 
-    ~integer_set()
+    ~pointer_set()
     {
       for (auto datum : data)
       {
@@ -265,14 +265,14 @@ namespace meevax::inline memory
       return std::distance(begin(), end());
     }
 
-    auto swap(integer_set & other)
+    auto swap(pointer_set & other)
     {
       std::swap(data, other.data);
     }
   };
 
   template <typename T, std::size_t E>
-  struct integer_set<T, E>
+  struct pointer_set<T, E>
   {
     static constexpr auto N = 1_u64 << E;
 
@@ -306,7 +306,7 @@ namespace meevax::inline memory
 
       using iterator_category = std::bidirectional_iterator_tag;
 
-      integer_set const* p = nullptr;
+      pointer_set const* p = nullptr;
 
       std::size_t i = std::numeric_limits<std::size_t>::max();
 
@@ -370,14 +370,14 @@ namespace meevax::inline memory
 
       constexpr const_iterator() = default;
 
-      explicit const_iterator(integer_set const* p, std::size_t i) noexcept
+      explicit const_iterator(pointer_set const* p, std::size_t i) noexcept
         : p { p }
         , i { i }
       {
         increment_unless_truthy();
       }
 
-      explicit const_iterator(integer_set const* p) noexcept
+      explicit const_iterator(pointer_set const* p) noexcept
         : p { p }
         , i { N - 1 }
       {
@@ -450,4 +450,4 @@ namespace meevax::inline memory
   };
 } // namespace meevax::memory
 
-#endif // INCLUDED_MEEVAX_MEMORY_INTEGER_SET_HPP
+#endif // INCLUDED_MEEVAX_MEMORY_POINTER_SET_HPP

@@ -25,9 +25,9 @@
 
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
-#include <meevax/memory/integer_set.hpp>
 #include <meevax/memory/literal.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
+#include <meevax/memory/pointer_set.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/utility/demangle.hpp>
@@ -441,9 +441,9 @@ namespace meevax::inline memory
        0x0000'0000'0000'0000 ~ 0x0000'7FFF'FFFF'FFFF
     */
     template <typename T>
-    using pointer_set = integer_set<T const*, std::bit_width(0x7FFFu),
-                                              std::bit_width(0xFFFFu),
-                                              std::bit_width(0xFFFFu)>;
+    using pointer_set = memory::pointer_set<T const*, std::bit_width(0x7FFFu),
+                                                      std::bit_width(0xFFFFu),
+                                                      std::bit_width(0xFFFFu)>;
 
   private:
     static inline pointer_set<top> objects {};
