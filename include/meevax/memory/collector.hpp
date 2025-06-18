@@ -573,7 +573,7 @@ namespace meevax::inline memory
       }
     }
 
-    static auto is_root(mutator const* m, pointer_set<top>::const_iterator const& begin) noexcept
+    static auto is_root(mutator const* m, typename pointer_set<top>::const_iterator const& begin) noexcept
     {
       /*
          If the given mutator is a non-root object, then an object containing
