@@ -573,7 +573,7 @@ namespace meevax::inline memory
       }
     }
 
-    static auto is_root(mutator const* m) noexcept
+    static auto is_root(mutator const* m, pointer_set<top>::const_iterator const& begin) noexcept
     {
       /*
          If the given mutator is a non-root object, then an object containing
@@ -592,12 +592,19 @@ namespace meevax::inline memory
 
       auto iter = objects.lower_bound(reinterpret_cast<top const*>(m));
 
-      return not --iter or out_of_bounds(*iter);
+      return iter == begin or out_of_bounds(*--iter);
+    }
+
+    static auto is_root(mutator const* m) noexcept
+    {
+      return is_root(m, objects.begin());
     }
 
     static auto mark() noexcept -> pointer_set<top>
     {
       auto reachables = pointer_set<top>();
+
+      auto begin = objects.begin();
 
       auto q = std::queue<top const*>();
 
@@ -606,7 +613,7 @@ namespace meevax::inline memory
         assert(m1);
         assert(m1->unsafe_get());
 
-        if (not reachables.contains(m1->unsafe_get()) and is_root(m1))
+        if (not reachables.contains(m1->unsafe_get()) and is_root(m1, begin))
         {
           for (q.push(m1->unsafe_get()); not q.empty(); q.pop())
           {
