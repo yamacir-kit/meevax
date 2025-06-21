@@ -21,7 +21,7 @@ string(JOIN " " ${PROJECT_NAME}_UNSTABLE_OPTIONS
   )
 
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -pipe")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Wno-pointer-bool-conversion -pipe") # NOTE: Apple Clang 17.0.0 reports false positive warning for -Wpointer-bool-conversion
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -gdwarf-4") # NOTE: The `-gdwarf-4` option is set due to the following issues with Clang 14 and Valgrind versions below 3.20: https://bugzilla.mozilla.org/show_bug.cgi?id=1758782
 set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG ${${PROJECT_NAME}_UNSTABLE_OPTIONS}")

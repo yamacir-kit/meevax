@@ -29,13 +29,17 @@ auto main(int const argc, char const* const* const argv) -> int
     if (e.configure(argc, argv); e.interactive)
     {
       e.import("(scheme base)"_r);
+      e.import("(scheme bitwise)"_r);
       e.import("(scheme box)"_r);
       e.import("(scheme case-lambda)"_r);
       e.import("(scheme char)"_r);
       e.import("(scheme complex)"_r);
       e.import("(scheme cxr)"_r);
+      e.import("(scheme division)"_r);
       e.import("(scheme eval)"_r);
       e.import("(scheme file)"_r);
+      e.import("(scheme fixnum)"_r);
+      e.import("(scheme flonum)"_r);
       e.import("(scheme inexact)"_r);
       e.import("(scheme lazy)"_r);
       e.import("(scheme list)"_r);

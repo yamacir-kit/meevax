@@ -25,9 +25,9 @@
 
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
-#include <meevax/memory/integer_set.hpp>
 #include <meevax/memory/literal.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
+#include <meevax/memory/pointer_set.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/utility/demangle.hpp>
@@ -71,38 +71,41 @@ namespace meevax::inline memory
 
       virtual auto bounds() const noexcept -> std::pair<void const*, void const*> = 0;
 
-      virtual auto equal1(top const*) const -> bool = 0;
+      virtual auto equal1(Top const* x) const -> bool = 0;
 
-      virtual auto equal2(top const*) const -> bool = 0;
+      virtual auto equal2(Top const* x) const -> bool = 0;
 
       virtual auto type() const noexcept -> std::type_info const& = 0;
 
-      virtual auto write(std::ostream &) const -> std::ostream & = 0;
+      virtual auto write(std::ostream & o) const -> std::ostream & = 0;
     };
 
     static inline auto cleared = false;
 
+    template <typename Allocator>
+    struct stateful : public Allocator
+    {
+      ~stateful()
+      {
+        /*
+           Execute clear before any static allocator is destroyed. Otherwise,
+           when the destructor of the collector executes clear, the collector
+           may touch the freed memory of the stateful allocator.
+        */
+        if (not std::exchange(cleared, true))
+        {
+          clear();
+        }
+      }
+    };
+
     template <typename Bound, typename AllocatorTraits>
-    struct binder : public virtual std::conditional_t<std::is_same_v<Top, Bound>, top, Top>
+    struct binder : public virtual Top
                   , public Bound
     {
-      struct allocator_type : public AllocatorTraits::template rebind_alloc<binder<Bound, AllocatorTraits>>
-      {
-        ~allocator_type()
-        {
-          /*
-             Execute clear before any static allocator is destroyed. Otherwise,
-             when the destructor of the collector executes clear, the collector
-             may touch the freed memory of the stateful allocator.
-          */
-          if (not std::exchange(cleared, true))
-          {
-            clear();
-          }
-        }
-      };
+      using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<Bound, AllocatorTraits>>>;
 
-      static inline auto allocator = allocator_type();
+      static inline auto a = allocator();
 
       template <typename... Us>
       explicit constexpr binder(direct_initialization_tag, Us&&... xs)
@@ -123,10 +126,11 @@ namespace meevax::inline memory
 
       auto bounds() const noexcept -> std::pair<void const*, void const*> override
       {
-        return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
+        auto base = reinterpret_cast<std::byte const*>(static_cast<Bound const*>(this));
+        return { base, base + sizeof(Bound) };
       }
 
-      auto equal1([[maybe_unused]] top const* other) const -> bool override
+      auto equal1([[maybe_unused]] Top const* other) const -> bool override
       {
         if constexpr (is_equality_comparable_v<Bound const&> and equivalence<Bound>::strictness <= 1)
         {
@@ -145,7 +149,7 @@ namespace meevax::inline memory
         }
       }
 
-      auto equal2([[maybe_unused]] top const* other) const -> bool override
+      auto equal2([[maybe_unused]] Top const* other) const -> bool override
       {
         if constexpr (is_equality_comparable_v<Bound const&> and equivalence<Bound>::strictness <= 2)
         {
@@ -183,12 +187,34 @@ namespace meevax::inline memory
 
       auto operator new(std::size_t) -> void *
       {
-        return allocator.allocate(1);
+        return a.allocate(1);
       }
 
       auto operator delete(void * data) noexcept -> void
       {
-        allocator.deallocate(reinterpret_cast<typename std::allocator_traits<allocator_type>::pointer>(data), 1);
+        a.deallocate(reinterpret_cast<typename std::allocator_traits<allocator>::pointer>(data), 1);
+      }
+    };
+
+    template <typename AllocatorTraits>
+    struct binder<Top, AllocatorTraits> : public Top
+    {
+      using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<Top, AllocatorTraits>>>;
+
+      static inline auto a = allocator();
+
+      using Top::Top;
+
+      ~binder() override = default;
+
+      auto operator new(std::size_t) -> void *
+      {
+        return a.allocate(1);
+      }
+
+      auto operator delete(void * data) noexcept -> void
+      {
+        a.deallocate(reinterpret_cast<typename std::allocator_traits<allocator>::pointer>(data), 1);
       }
     };
 
@@ -401,35 +427,12 @@ namespace meevax::inline memory
         return datum.write(os);
       }
 
-      inline auto begin()
-      {
-        return *this ? pointer::unsafe_get()->begin() : typename Top::iterator();
-      }
-
-      inline auto begin() const
-      {
-        return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator();
-      }
-
-      inline auto cbegin() const
-      {
-        return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator();
-      }
-
-      inline auto end()
-      {
-        return *this ? pointer::unsafe_get()->end() : typename Top::iterator();
-      }
-
-      inline auto end() const
-      {
-        return *this ? pointer::unsafe_get()->cend() : typename Top::const_iterator();
-      }
-
-      inline auto cend() const
-      {
-        return *this ? pointer::unsafe_get()->cend() : typename Top::const_iterator();
-      }
+      inline auto  begin()       { return *this ? pointer::unsafe_get()-> begin() : typename Top::      iterator(); }
+      inline auto  begin() const { return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator(); }
+      inline auto cbegin() const { return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator(); }
+      inline auto    end()       { return *this ? pointer::unsafe_get()->   end() : typename Top::      iterator(); }
+      inline auto    end() const { return *this ? pointer::unsafe_get()->  cend() : typename Top::const_iterator(); }
+      inline auto   cend() const { return *this ? pointer::unsafe_get()->  cend() : typename Top::const_iterator(); }
     };
 
     /*
@@ -438,9 +441,9 @@ namespace meevax::inline memory
        0x0000'0000'0000'0000 ~ 0x0000'7FFF'FFFF'FFFF
     */
     template <typename T>
-    using pointer_set = integer_set<T const*, std::bit_width(0x7FFFu),
-                                              std::bit_width(0xFFFFu),
-                                              std::bit_width(0xFFFFu)>;
+    using pointer_set = memory::pointer_set<T const*, std::bit_width(0x7FFFu),
+                                                      std::bit_width(0xFFFFu),
+                                                      std::bit_width(0xFFFFu)>;
 
   private:
     static inline pointer_set<top> objects {};
@@ -570,53 +573,59 @@ namespace meevax::inline memory
       }
     }
 
-    static auto mark() noexcept -> pointer_set<top>
+    static auto is_root(mutator const* m, typename pointer_set<top>::const_iterator const& begin) noexcept
     {
-      auto is_root = [begin = objects.begin()](mutator const* given)
+      /*
+         If the given mutator is a non-root object, then an object containing
+         this mutator as a data member exists somewhere in memory.
+
+         Containing the mutator as a data member means that the address of the
+         mutator is contained in the interval of the object's base-address ~
+         base-address + object-size. The top is present to keep track of the
+         base-address and size of the object needed here.
+      */
+      auto out_of_bounds = [&](top const* object)
       {
-        /*
-           If the given mutator is a non-root object, then an object containing
-           this mutator as a data member exists somewhere in memory.
-
-           Containing the mutator as a data member means that the address of
-           the mutator is contained in the interval of the object's
-           base-address ~ base-address + object-size. The top is present to
-           keep track of the base-address and size of the object needed here.
-        */
-        auto iter = objects.lower_bound(reinterpret_cast<top const*>(given));
-
-        auto out_of_bounds = [&](top const* object)
-        {
-          auto [begin, end] = object->bounds();
-          return given < begin or end <= reinterpret_cast<void const*>(given);
-        };
-
-        return iter == begin or out_of_bounds(*--iter);
+        auto [lower, upper] = object->bounds();
+        return m < lower or upper <= m;
       };
 
+      auto iter = objects.lower_bound(reinterpret_cast<top const*>(m));
+
+      return iter == begin or out_of_bounds(*--iter);
+    }
+
+    static auto is_root(mutator const* m) noexcept
+    {
+      return is_root(m, objects.begin());
+    }
+
+    static auto mark() noexcept -> pointer_set<top>
+    {
       auto reachables = pointer_set<top>();
 
-      for (auto const& mutator : mutators)
+      auto begin = objects.begin();
+
+      auto q = std::queue<top const*>();
+
+      for (auto const& m1 : mutators)
       {
-        assert(mutator);
-        assert(mutator->unsafe_get());
+        assert(m1);
+        assert(m1->unsafe_get());
 
-        if (auto object = mutator->unsafe_get(); not reachables.contains(object) and is_root(mutator))
+        if (not reachables.contains(m1->unsafe_get()) and is_root(m1, begin))
         {
-          auto queue = std::queue<top const*>();
-
-          for (queue.push(object); not queue.empty(); queue.pop())
+          for (q.push(m1->unsafe_get()); not q.empty(); q.pop())
           {
-            if (not reachables.contains(queue.front()))
+            if (not reachables.contains(q.front()))
             {
-              reachables.insert(queue.front());
+              reachables.insert(q.front());
 
-              for (auto const& mutator : mutators_range(queue.front()))
+              for (auto const& m2 : mutators_range(q.front()))
               {
-                assert(mutator);
-                assert(mutator->unsafe_get());
-
-                queue.push(mutator->unsafe_get());
+                assert(m2);
+                assert(m2->unsafe_get());
+                q.push(m2->unsafe_get());
               }
             }
           }
