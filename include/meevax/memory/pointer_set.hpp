@@ -126,13 +126,12 @@ namespace meevax::inline memory
           }
         }
 
-        i = N;
-
-        iter = {};
+        invalidate();
       }
 
       auto decrement_unless_truthy() noexcept -> void
       {
+        assert(decrementable());
         assert(p->data);
 
         for (i = std::min(i, N - 1); p->i_min <= i; --i)
@@ -143,8 +142,33 @@ namespace meevax::inline memory
           }
         }
 
-        i = N;
+        invalidate();
+      }
 
+      auto decrementable() const noexcept -> bool
+      {
+        return p; // NOTE: If `p` is nullptr, this is non-decrementable end iterator (= default constructed).
+      }
+
+      auto invalidate()
+      {
+        /*
+           The default constructed iterator (= end iterator) has nullptr set to
+           pointer `p`. However, once the pointer `p` is set to non-nullptr, it
+           must not be changed.
+
+           This is because an iterator that has reached end as a result of
+           being incremented must be able to return to the valid state by
+           decrementing it.
+
+           In other words, the invalidity of an iterator depends on whether `i`
+           is out of range and whether the sub iterator is invalid.
+
+           Whether or not the pointer `p` is nullptr is used to determine
+           whether or not it is decrementable (see the member function
+           `decrementable`)
+        */
+        i = N;
         iter = {};
       }
 
@@ -161,11 +185,7 @@ namespace meevax::inline memory
 
       auto operator --() noexcept -> auto &
       {
-        if (not iter.p->data)
-        {
-          decrement_unless_truthy();
-        }
-        else if (not --iter)
+        if (decrementable() and not --iter)
         {
           --i;
           decrement_unless_truthy();
