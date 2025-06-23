@@ -134,8 +134,12 @@ namespace meevax::inline memory
         assert(decrementable());
         assert(p->data);
 
-        for (i = std::min(i, N - 1); p->i_min <= i; --i)
+        auto const i_min = p->i_min;
+
+        for (i = std::min(i, N - 1); i - i_min < N - i_min; --i)
         {
+          assert(i < N);
+
           if (p->data[i] and (iter = typename subset::const_iterator(p->data[i])))
           {
             return;
@@ -185,9 +189,8 @@ namespace meevax::inline memory
 
       auto operator --() noexcept -> auto &
       {
-        if (decrementable() and not --iter)
+        if (decrementable() and not --iter and --i < N)
         {
-          --i;
           decrement_unless_truthy();
         }
 

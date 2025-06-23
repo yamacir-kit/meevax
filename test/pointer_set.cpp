@@ -38,11 +38,6 @@ auto main() -> int
     integers.insert(i);
   }
 
-  for (auto i : integers)
-  {
-    PRINT(i);
-  }
-
   LINE();
   PRINT(integers.begin().p);
   PRINT(integers.begin().i);
@@ -62,19 +57,22 @@ auto main() -> int
   assert(integers.begin() != integers.end());
 
   LINE();
-  PRINT(std::prev(integers.begin()).p);
-  PRINT(std::prev(integers.begin()).i);
-  PRINT(std::prev(integers.begin()).iter.p);
-  PRINT(std::prev(integers.begin()).iter.i);
-  PRINT(std::prev(integers.begin()).iter.iter.p);
-  PRINT(std::prev(integers.begin()).iter.iter.i);
+  auto prev_begin = --integers.begin();
 
-  assert(std::prev(integers.begin()).p           == integers.end().p);
-  assert(std::prev(integers.begin()).i           == integers.end().i);
-  assert(std::prev(integers.begin()).iter.p      == integers.end().iter.p);
-  assert(std::prev(integers.begin()).iter.i      == integers.end().iter.i);
-  assert(std::prev(integers.begin()).iter.iter.p == integers.end().iter.iter.p);
-  assert(std::prev(integers.begin()).iter.iter.i == integers.end().iter.iter.i);
+  LINE();
+  PRINT(prev_begin.p);
+  PRINT(prev_begin.i);
+  PRINT(prev_begin.iter.p);
+  PRINT(prev_begin.iter.i);
+  PRINT(prev_begin.iter.iter.p);
+  PRINT(prev_begin.iter.iter.i);
+
+  assert(prev_begin.p           == integers.end().p);
+  assert(prev_begin.i           == integers.end().i);
+  assert(prev_begin.iter.p      == integers.end().iter.p);
+  assert(prev_begin.iter.i      == integers.end().iter.i);
+  assert(prev_begin.iter.iter.p == integers.end().iter.iter.p);
+  assert(prev_begin.iter.iter.i == integers.end().iter.iter.i);
 
   return EXIT_SUCCESS;
 }
