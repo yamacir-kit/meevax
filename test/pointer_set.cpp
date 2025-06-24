@@ -67,12 +67,20 @@ auto main() -> int
   PRINT(prev_begin.iter.iter.p);
   PRINT(prev_begin.iter.iter.i);
 
-  assert(prev_begin.p           == integers.end().p);
-  assert(prev_begin.i           == integers.end().i);
-  assert(prev_begin.iter.p      == integers.end().iter.p);
-  assert(prev_begin.iter.i      == integers.end().iter.i);
-  assert(prev_begin.iter.iter.p == integers.end().iter.iter.p);
-  assert(prev_begin.iter.iter.i == integers.end().iter.iter.i);
+  LINE();
+  PRINT(prev_begin.p           == integers.end().p);
+  PRINT(prev_begin.i           == integers.end().i);
+  PRINT(prev_begin.iter.p      == integers.end().iter.p);
+  PRINT(prev_begin.iter.i      == integers.end().iter.i);
+  PRINT(prev_begin.iter.iter.p == integers.end().iter.iter.p);
+  PRINT(prev_begin.iter.iter.i == integers.end().iter.iter.i);
+
+  assert(prev_begin == integers.end());
+
+  for (auto p : integers)
+  {
+    delete p;
+  }
 
   return EXIT_SUCCESS;
 }

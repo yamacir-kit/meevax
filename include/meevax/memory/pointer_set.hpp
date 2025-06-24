@@ -71,7 +71,7 @@ namespace meevax::inline memory
 
       pointer_set const* p = nullptr;
 
-      std::size_t i = std::numeric_limits<std::size_t>::max();
+      std::size_t i = N;
 
       typename subset::const_iterator iter;
 
@@ -331,7 +331,7 @@ namespace meevax::inline memory
 
       pointer_set const* p = nullptr;
 
-      std::size_t i = std::numeric_limits<std::size_t>::max();
+      std::size_t i = N;
 
       auto increment_unless_truthy() noexcept
       {
