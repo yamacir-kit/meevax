@@ -41,18 +41,18 @@ auto main() -> int
   LINE();
   PRINT(integers.begin().p);
   PRINT(integers.begin().i);
-  PRINT(integers.begin().iter.p);
-  PRINT(integers.begin().iter.i);
-  PRINT(integers.begin().iter.iter.p);
-  PRINT(integers.begin().iter.iter.i);
+  PRINT(integers.begin().sub.p);
+  PRINT(integers.begin().sub.i);
+  PRINT(integers.begin().sub.sub.p);
+  PRINT(integers.begin().sub.sub.i);
 
   LINE();
   PRINT(integers.end().p);
   PRINT(integers.end().i);
-  PRINT(integers.end().iter.p);
-  PRINT(integers.end().iter.i);
-  PRINT(integers.end().iter.iter.p);
-  PRINT(integers.end().iter.iter.i);
+  PRINT(integers.end().sub.p);
+  PRINT(integers.end().sub.i);
+  PRINT(integers.end().sub.sub.p);
+  PRINT(integers.end().sub.sub.i);
 
   assert(integers.begin() != integers.end());
 
@@ -62,18 +62,18 @@ auto main() -> int
   LINE();
   PRINT(prev_begin.p);
   PRINT(prev_begin.i);
-  PRINT(prev_begin.iter.p);
-  PRINT(prev_begin.iter.i);
-  PRINT(prev_begin.iter.iter.p);
-  PRINT(prev_begin.iter.iter.i);
+  PRINT(prev_begin.sub.p);
+  PRINT(prev_begin.sub.i);
+  PRINT(prev_begin.sub.sub.p);
+  PRINT(prev_begin.sub.sub.i);
 
   LINE();
-  PRINT(prev_begin.p           == integers.end().p);
-  PRINT(prev_begin.i           == integers.end().i);
-  PRINT(prev_begin.iter.p      == integers.end().iter.p);
-  PRINT(prev_begin.iter.i      == integers.end().iter.i);
-  PRINT(prev_begin.iter.iter.p == integers.end().iter.iter.p);
-  PRINT(prev_begin.iter.iter.i == integers.end().iter.iter.i);
+  PRINT(prev_begin.p         == integers.end().p);
+  PRINT(prev_begin.i         == integers.end().i);
+  PRINT(prev_begin.sub.p     == integers.end().sub.p);
+  PRINT(prev_begin.sub.i     == integers.end().sub.i);
+  PRINT(prev_begin.sub.sub.p == integers.end().sub.sub.p);
+  PRINT(prev_begin.sub.sub.i == integers.end().sub.sub.i);
 
   assert(prev_begin == integers.end());
 

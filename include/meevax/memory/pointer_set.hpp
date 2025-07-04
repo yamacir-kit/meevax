@@ -73,7 +73,7 @@ namespace meevax::inline memory
 
       std::size_t i = N;
 
-      typename subset::const_iterator iter;
+      typename subset::const_iterator sub;
 
       constexpr const_iterator() = default;
 
@@ -99,7 +99,7 @@ namespace meevax::inline memory
         , i { N }
       {
         decrement_unless_truthy();
-        assert(iter.p->data);
+        assert(sub.p->data);
       }
 
       auto increment_unless_truthy(std::uintptr_t j) noexcept -> void
@@ -107,7 +107,7 @@ namespace meevax::inline memory
         assert(p->data);
         assert(operator bool());
 
-        if (not p->data[i] or not (iter = p->data[i]->lower_bound(j)))
+        if (not p->data[i] or not (sub = p->data[i]->lower_bound(j)))
         {
           ++i;
           increment_unless_truthy();
@@ -120,7 +120,7 @@ namespace meevax::inline memory
 
         for (; i <= p->i_max; ++i)
         {
-          if (p->data[i] and (iter = p->data[i]->lower_bound()))
+          if (p->data[i] and (sub = p->data[i]->lower_bound()))
           {
             return;
           }
@@ -140,7 +140,7 @@ namespace meevax::inline memory
         {
           assert(i < N);
 
-          if (p->data[i] and (iter = typename subset::const_iterator(p->data[i])))
+          if (p->data[i] and (sub = typename subset::const_iterator(p->data[i])))
           {
             return;
           }
@@ -173,12 +173,12 @@ namespace meevax::inline memory
            `decrementable`)
         */
         i = N;
-        iter = {};
+        sub = {};
       }
 
       auto operator ++() noexcept -> auto &
       {
-        if (not ++iter)
+        if (not ++sub)
         {
           ++i;
           increment_unless_truthy();
@@ -189,7 +189,7 @@ namespace meevax::inline memory
 
       auto operator --() noexcept -> auto &
       {
-        if (decrementable() and not --iter and --i < N)
+        if (decrementable() and not --sub and --i < N)
         {
           decrement_unless_truthy();
         }
@@ -200,7 +200,7 @@ namespace meevax::inline memory
       constexpr auto operator *() const noexcept -> T
       {
         assert(operator bool());
-        return reinterpret_cast<T>((i << (Es + ...) | *iter) << compressible_bitwidth_of<T>);
+        return reinterpret_cast<T>((i << (Es + ...) | *sub) << compressible_bitwidth_of<T>);
       }
 
       constexpr operator bool() const noexcept
@@ -210,7 +210,7 @@ namespace meevax::inline memory
 
       friend auto operator ==(const_iterator const& a, const_iterator const& b) noexcept
       {
-        return not b ? not a : a.i == b.i and a.iter == b.iter;
+        return not b ? not a : a.i == b.i and a.sub == b.sub;
       }
 
       friend auto operator !=(const_iterator const& a, const_iterator const& b) noexcept
