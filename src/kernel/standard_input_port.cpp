@@ -18,11 +18,6 @@
 
 namespace meevax::inline kernel
 {
-  standard_input_port::standard_input_port()
-  {
-    enable_source_cons("/dev/stdin");
-  }
-
   auto standard_input_port::is_open() const -> bool
   {
     return true;
