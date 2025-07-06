@@ -46,7 +46,7 @@ namespace meevax::inline kernel
     auto define(std::string const& name, Ts&&... xs) -> void
     {
       evaluator.define<T>(name, std::forward<decltype(xs)>(xs)...);
-      export_specs = cons(input_string_port(name).read(), export_specs);
+      export_specs = cons(make_symbol(name), export_specs);
     }
 
     template <template <typename...> typename Traits, typename... Ts>

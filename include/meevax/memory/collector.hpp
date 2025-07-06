@@ -62,9 +62,8 @@ namespace meevax::inline memory
      - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
   */
   template <typename Top, typename... Ts>
-  class collector
+  struct collector
   {
-  public:
     struct top
     {
       virtual ~top() = default;
@@ -445,7 +444,6 @@ namespace meevax::inline memory
                                                       std::bit_width(0xFFFFu),
                                                       std::bit_width(0xFFFFu)>;
 
-  private:
     static inline pointer_set<top> objects {};
 
     static inline pointer_set<mutator> mutators {};
@@ -466,7 +464,6 @@ namespace meevax::inline memory
       auto end  () const noexcept { return mutators.lower_bound(reinterpret_cast<mutator const*>(second)); }
     };
 
-  public:
     collector() = delete;
 
     collector(collector &&) = delete;
@@ -590,9 +587,17 @@ namespace meevax::inline memory
         return m < lower or upper <= m;
       };
 
+      /*
+         The memory layout of the base class Top and Bound of the binder is
+         implementation-defined. That is, there is no guarantee that the
+         pointer value of Top const* is smaller than the pointer value of Bound
+         const*. Therefore, the iterator returned by lower_bound here points to
+         top const*, which may be an iterator to the object itself, which may
+         contain m, or the next iterator of the object, which may contain m.
+      */
       auto iter = objects.lower_bound(reinterpret_cast<top const*>(m));
 
-      return not --iter or out_of_bounds(*iter);
+      return (not iter or out_of_bounds(*iter)) and (not --iter or out_of_bounds(*iter));
     }
 
     static auto mark() noexcept -> pointer_set<top>
