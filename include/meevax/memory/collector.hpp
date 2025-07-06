@@ -581,23 +581,25 @@ namespace meevax::inline memory
          base-address + object-size. The top is present to keep track of the
          base-address and size of the object needed here.
       */
-      auto out_of_bounds = [&](top const* object)
+      auto contains = [&](top const* object)
       {
         auto [lower, upper] = object->bounds();
-        return m < lower or upper <= m;
+        return lower <= m and m < upper;
       };
 
       /*
          The memory layout of the base class Top and Bound of the binder is
          implementation-defined. That is, there is no guarantee that the
-         pointer value of Top const* is smaller than the pointer value of Bound
+         pointer value of Top const* is less than the pointer value of Bound
          const*. Therefore, the iterator returned by lower_bound here points to
          top const*, which may be an iterator to the object itself, which may
          contain m, or the next iterator of the object, which may contain m.
       */
-      auto iter = objects.lower_bound(reinterpret_cast<top const*>(m));
+      auto next = objects.lower_bound(reinterpret_cast<top const*>(m));
 
-      return (not iter or out_of_bounds(*iter)) and (not --iter or out_of_bounds(*iter));
+      auto prev = std::prev(next);
+
+      return not ((next and contains(*next)) or (prev and contains(*prev)));
     }
 
     static auto mark() noexcept -> pointer_set<top>

@@ -102,6 +102,32 @@ auto main() -> int
 
   boot(basis());
 
+  {
+    auto [root_count, non_root_count, count_of] = root_object_counts_by_type();
+
+    assert(count_of.size() == 6);
+    assert(count_of[typeid(environment                       )] ==   1); // The interaction-environment
+    assert(count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
+    assert(count_of[typeid(eof                               )] ==   1);
+    assert(count_of[typeid(ghost                             )] ==   2);
+    assert(count_of[typeid(library                           )] ==  78);
+    assert(count_of[typeid(symbol                            )] >= 459);
+  }
+
+  default_collector::collect();
+
+  {
+    auto [root_count, non_root_count, count_of] = root_object_counts_by_type();
+
+    assert(count_of.size() == 6);
+    assert(count_of[typeid(environment                       )] ==   1); // The interaction-environment
+    assert(count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
+    assert(count_of[typeid(eof                               )] ==   1);
+    assert(count_of[typeid(ghost                             )] ==   2);
+    assert(count_of[typeid(library                           )] ==  78);
+    assert(count_of[typeid(symbol                            )] >= 459); // There are 459 builtin definitions
+  }
+
   symbols().clear();
   assert(symbols().empty());
 
@@ -113,7 +139,14 @@ auto main() -> int
   const_cast<object &>(environment::core()).reset(); // DIRTY HACK!
 
   default_collector::collect();
-  default_collector::collect();
+
+  {
+    auto [root_count, non_root_count, count_of] = root_object_counts_by_type();
+
+    assert(count_of.size() == 2);
+    assert(count_of[typeid(eof  )] == 1);
+    assert(count_of[typeid(ghost)] == 2);
+  }
 
   assert(default_collector::count() == 3); // -1 is interaction_environment
 
