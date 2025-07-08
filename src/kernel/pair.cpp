@@ -20,9 +20,9 @@ namespace meevax::inline kernel
 {
   let unit = nullptr;
 
-  auto pair::bounds() const noexcept -> std::pair<void const*, void const*>
+  auto pair::extent() const noexcept -> std::pair<void const*, std::size_t>
   {
-    return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
+    return { this, sizeof(*this) };
   }
 
   auto pair::equal1(pair const* other) const -> bool

@@ -156,11 +156,11 @@ namespace meevax::inline kernel
       : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
 
-    virtual auto bounds() const noexcept -> std::pair<void const*, void const*>;
-
     virtual auto equal1(pair const*) const -> bool;
 
     virtual auto equal2(pair const*) const -> bool;
+
+    virtual auto extent() const noexcept -> std::pair<void const*, std::size_t>;
 
     virtual auto type() const noexcept -> std::type_info const&;
 

@@ -68,11 +68,11 @@ namespace meevax::inline memory
     {
       virtual ~top() = default;
 
-      virtual auto bounds() const noexcept -> std::pair<void const*, void const*> = 0;
-
       virtual auto equal1(Top const* x) const -> bool = 0;
 
       virtual auto equal2(Top const* x) const -> bool = 0;
+
+      virtual auto extent() const noexcept -> std::pair<void const*, std::size_t> = 0;
 
       virtual auto type() const noexcept -> std::type_info const& = 0;
 
@@ -123,12 +123,6 @@ namespace meevax::inline memory
 
       ~binder() override = default;
 
-      auto bounds() const noexcept -> std::pair<void const*, void const*> override
-      {
-        auto base = reinterpret_cast<std::byte const*>(static_cast<Bound const*>(this));
-        return { base, base + sizeof(Bound) };
-      }
-
       auto equal1([[maybe_unused]] Top const* other) const -> bool override
       {
         if constexpr (is_equality_comparable_v<Bound const&> and equivalence<Bound>::strictness <= 1)
@@ -165,6 +159,11 @@ namespace meevax::inline memory
         {
           return false;
         }
+      }
+
+      auto extent() const noexcept -> std::pair<void const*, std::size_t> override
+      {
+        return { static_cast<Bound const*>(this), sizeof(Bound) };
       }
 
       auto type() const noexcept -> std::type_info const& override
@@ -454,21 +453,6 @@ namespace meevax::inline memory
 
     static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
 
-    struct mutators_range : public std::pair<void const*, void const*>
-    {
-      explicit mutators_range(top const* object)
-        : std::pair<void const*, void const*> { object->bounds() }
-      {}
-
-      auto size() const noexcept
-      {
-        return static_cast<std::size_t>(reinterpret_cast<std::uintptr_t>(second) - reinterpret_cast<std::uintptr_t>(first));
-      }
-
-      auto begin() const noexcept { return mutators.lower_bound(reinterpret_cast<mutator const*>(first )); }
-      auto end  () const noexcept { return mutators.lower_bound(reinterpret_cast<mutator const*>(second)); }
-    };
-
     collector() = delete;
 
     collector(collector &&) = delete;
@@ -588,8 +572,8 @@ namespace meevax::inline memory
       */
       auto contains = [&](top const* object)
       {
-        auto [lower, upper] = object->bounds();
-        return lower <= m and m < upper;
+        auto [base, size] = object->extent();
+        return base <= m and m < reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + size);
       };
 
       /*
@@ -628,16 +612,18 @@ namespace meevax::inline memory
             {
               reachables.insert(q.front());
 
-              auto r = mutators_range(q.front());
+              auto [base, size_] = q.front()->extent();
 
-              size += r.size();
+              size += size_;
 
-              for (auto const& m2 : r)
-              {
-                assert(m2);
-                assert(m2->unsafe_get());
-                q.push(m2->unsafe_get());
-              }
+              std::for_each(mutators.lower_bound(reinterpret_cast<mutator const*>(base)),
+                            mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
+                            [&](auto const& m2)
+                            {
+                              assert(m2);
+                              assert(m2->unsafe_get());
+                              q.push(m2->unsafe_get());
+                            });
             }
           }
         }
