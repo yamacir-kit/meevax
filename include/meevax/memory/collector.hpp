@@ -448,9 +448,9 @@ namespace meevax::inline memory
 
     static inline pointer_set<mutator> mutators {};
 
-    static inline std::size_t allocation = 0;
+    static inline std::size_t size = 0;
 
-    static inline std::size_t threshold = 8_MiB;
+    static inline std::size_t threshold = 16_MiB;
 
     static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
 
@@ -459,6 +459,11 @@ namespace meevax::inline memory
       explicit mutators_range(top const* object)
         : std::pair<void const*, void const*> { object->bounds() }
       {}
+
+      auto size() const noexcept
+      {
+        return static_cast<std::size_t>(reinterpret_cast<std::uintptr_t>(second) - reinterpret_cast<std::uintptr_t>(first));
+      }
 
       auto begin() const noexcept { return mutators.lower_bound(reinterpret_cast<mutator const*>(first )); }
       auto end  () const noexcept { return mutators.lower_bound(reinterpret_cast<mutator const*>(second)); }
@@ -481,7 +486,7 @@ namespace meevax::inline memory
     {
       if constexpr (std::is_class_v<T>)
       {
-        if (allocation += sizeof(T); threshold < allocation)
+        if (size += sizeof(T); threshold < size)
         {
           collect();
         }
@@ -515,9 +520,9 @@ namespace meevax::inline memory
 
     static auto collect() -> void
     {
-      allocation = 0;
+      sweep(mark());
 
-      return sweep(mark());
+      threshold = std::max(threshold, size + (size / 2));
     }
 
     static auto count() noexcept -> std::size_t
@@ -606,6 +611,8 @@ namespace meevax::inline memory
     {
       auto reachables = pointer_set<top>();
 
+      size = 0;
+
       auto q = std::queue<top const*>();
 
       for (auto const& m1 : mutators)
@@ -621,7 +628,11 @@ namespace meevax::inline memory
             {
               reachables.insert(q.front());
 
-              for (auto const& m2 : mutators_range(q.front()))
+              auto r = mutators_range(q.front());
+
+              size += r.size();
+
+              for (auto const& m2 : r)
               {
                 assert(m2);
                 assert(m2->unsafe_get());
