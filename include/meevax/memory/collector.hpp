@@ -504,7 +504,55 @@ namespace meevax::inline memory
 
     static auto collect() -> void
     {
-      sweep(mark());
+      size = 0;
+
+      auto live_objects = pointer_set<top>();
+
+      auto q = std::queue<top const*>();
+
+      for (auto const& m : mutators)
+      {
+        assert(m);
+        assert(m->unsafe_get());
+
+        if (is_root(m))
+        {
+          for (q.push(m->unsafe_get()); not q.empty(); q.pop())
+          {
+            live_objects.insert(q.front());
+
+            auto [base, size_] = q.front()->extent();
+
+            size += size_;
+
+            std::for_each(mutators.lower_bound(reinterpret_cast<mutator const*>(base)),
+                          mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
+                          [&](auto const& m)
+                          {
+                            assert(m);
+                            assert(m->unsafe_get());
+
+                            if (not live_objects.contains(m->unsafe_get()))
+                            {
+                              q.push(m->unsafe_get());
+                            }
+                          });
+          }
+        }
+      }
+
+      for (auto live_object : live_objects)
+      {
+        assert(objects.contains(live_object));
+        objects.erase(live_object);
+      }
+
+      for (auto object : objects)
+      {
+        delete object;
+      }
+
+      objects.swap(live_objects);
 
       threshold = std::max(threshold, size + (size / 2));
     }
@@ -589,63 +637,6 @@ namespace meevax::inline memory
       auto prev = std::prev(next);
 
       return not ((next and contains(*next)) or (prev and contains(*prev)));
-    }
-
-    static auto mark() noexcept -> pointer_set<top>
-    {
-      auto reachables = pointer_set<top>();
-
-      size = 0;
-
-      auto q = std::queue<top const*>();
-
-      for (auto const& m1 : mutators)
-      {
-        assert(m1);
-        assert(m1->unsafe_get());
-
-        if (not reachables.contains(m1->unsafe_get()) and is_root(m1))
-        {
-          for (q.push(m1->unsafe_get()); not q.empty(); q.pop())
-          {
-            if (not reachables.contains(q.front()))
-            {
-              reachables.insert(q.front());
-
-              auto [base, size_] = q.front()->extent();
-
-              size += size_;
-
-              std::for_each(mutators.lower_bound(reinterpret_cast<mutator const*>(base)),
-                            mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
-                            [&](auto const& m2)
-                            {
-                              assert(m2);
-                              assert(m2->unsafe_get());
-                              q.push(m2->unsafe_get());
-                            });
-            }
-          }
-        }
-      }
-
-      return reachables;
-    }
-
-    static auto sweep(pointer_set<top> && reachables) -> void
-    {
-      for (auto reachable : reachables)
-      {
-        assert(objects.contains(reachable));
-        objects.erase(reachable);
-      }
-
-      for (auto object : objects)
-      {
-        delete object;
-      }
-
-      objects.swap(reachables);
     }
   };
 } // namespace meevax::memory
