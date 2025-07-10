@@ -508,7 +508,7 @@ namespace meevax::inline memory
 
       auto live_objects = pointer_set<top>();
 
-      auto q = std::queue<top const*>();
+      auto s = std::stack<top const*>();
 
       for (auto const& m : mutators)
       {
@@ -517,11 +517,15 @@ namespace meevax::inline memory
 
         if (is_root(m))
         {
-          for (q.push(m->unsafe_get()); not q.empty(); q.pop())
-          {
-            live_objects.insert(q.front());
+          live_objects.insert(m->unsafe_get());
 
-            auto [base, size_] = q.front()->extent();
+          s.push(m->unsafe_get());
+
+          while (not s.empty())
+          {
+            auto [base, size_] = s.top()->extent();
+
+            s.pop();
 
             size += size_;
 
@@ -534,7 +538,9 @@ namespace meevax::inline memory
 
                             if (not live_objects.contains(m->unsafe_get()))
                             {
-                              q.push(m->unsafe_get());
+                              live_objects.insert(m->unsafe_get());
+
+                              s.push(m->unsafe_get());
                             }
                           });
           }
