@@ -20,7 +20,7 @@
 #include <dlfcn.h> // dlopen, dlclose, dlerror
 
 #include <memory> // std::allocator
-#include <queue>
+#include <stack>
 #include <unordered_map>
 
 #include <meevax/iostream/escape_sequence.hpp>
@@ -517,9 +517,11 @@ namespace meevax::inline memory
 
         if (is_root(m))
         {
-          live_objects.insert(m->unsafe_get());
+          auto p = m->unsafe_get();
 
-          s.push(m->unsafe_get());
+          live_objects.insert(p);
+
+          s.push(p);
 
           while (not s.empty())
           {
@@ -536,11 +538,11 @@ namespace meevax::inline memory
                             assert(m);
                             assert(m->unsafe_get());
 
-                            if (not live_objects.contains(m->unsafe_get()))
+                            if (auto p = m->unsafe_get(); not live_objects.contains(p))
                             {
-                              live_objects.insert(m->unsafe_get());
+                              live_objects.insert(p);
 
-                              s.push(m->unsafe_get());
+                              s.push(p);
                             }
                           });
           }
