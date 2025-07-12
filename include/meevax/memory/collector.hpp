@@ -508,56 +508,46 @@ namespace meevax::inline memory
 
       auto live_objects = pointer_set<top>();
 
-      auto s = std::stack<top const*>();
+      auto static stack = std::vector<top const*>();
 
-      for (auto const& m : mutators)
+      auto mark = [&](auto const& m)
       {
         assert(m);
         assert(m->unsafe_get());
 
+        if (auto p = m->unsafe_get(); live_objects.insert(p))
+        {
+          stack.push_back(p);
+        }
+      };
+
+      for (auto const& m : mutators)
+      {
         if (is_root(m))
         {
-          auto p = m->unsafe_get();
+          mark(m);
 
-          live_objects.insert(p);
-
-          s.push(p);
-
-          while (not s.empty())
+          while (not stack.empty())
           {
-            auto [base, size_] = s.top()->extent();
+            auto [base, size_] = stack.back()->extent();
 
-            s.pop();
+            stack.pop_back();
 
             size += size_;
 
             std::for_each(mutators.lower_bound(reinterpret_cast<mutator const*>(base)),
                           mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
-                          [&](auto const& m)
-                          {
-                            assert(m);
-                            assert(m->unsafe_get());
-
-                            if (auto p = m->unsafe_get(); not live_objects.contains(p))
-                            {
-                              live_objects.insert(p);
-
-                              s.push(p);
-                            }
-                          });
+                          mark);
           }
         }
       }
 
-      for (auto live_object : live_objects)
-      {
-        assert(objects.contains(live_object));
-        objects.erase(live_object);
-      }
-
       for (auto object : objects)
       {
-        delete object;
+        if (not live_objects.contains(object))
+        {
+          delete object;
+        }
       }
 
       objects.swap(live_objects);

@@ -246,7 +246,7 @@ namespace meevax::inline memory
         data[i] = new subset();
       }
 
-      data[i]->insert(j);
+      return data[i]->insert(j);
     }
 
     auto erase(T value) noexcept
@@ -446,7 +446,10 @@ namespace meevax::inline memory
     auto insert(T value) noexcept
     {
       auto [q, r] = split(index(value));
-      data[q] |= (1_u64 << r);
+      auto mask = 1_u64 << r;
+      auto already_inserted = data[q] & mask;
+      data[q] |= mask;
+      return not already_inserted;
     }
 
     auto erase(T value) noexcept
