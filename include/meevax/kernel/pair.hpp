@@ -72,7 +72,7 @@ namespace meevax::inline kernel
     return make<typename Traits<Ts...>::type, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
-  struct pair : public virtual default_collector::top
+  struct pair : public default_collector::top
               , public std::pair<object, object>
   {
     template <auto Const>
@@ -156,17 +156,15 @@ namespace meevax::inline kernel
       : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
 
-    ~pair() override = default;
+    virtual auto equal1(pair const*) const -> bool;
 
-    auto bounds() const noexcept -> std::pair<void const*, void const*> override;
+    virtual auto equal2(pair const*) const -> bool;
 
-    auto equal1(top const*) const -> bool override;
+    virtual auto extent() const noexcept -> std::pair<void const*, std::size_t>;
 
-    auto equal2(top const*) const -> bool override;
+    virtual auto type() const noexcept -> std::type_info const&;
 
-    auto type() const noexcept -> std::type_info const& override;
-
-    auto write(std::ostream &) const -> std::ostream & override;
+    virtual auto write(std::ostream &) const -> std::ostream &;
 
     auto begin() noexcept
     {

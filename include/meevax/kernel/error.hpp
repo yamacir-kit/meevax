@@ -25,25 +25,11 @@ namespace meevax::inline kernel
   struct error : public virtual pair // (<message> . <irritants>)
                , public std::exception
   {
-    enum class in
-    {
-      evaluating, expanding, generating, running,
-    };
-
-    static thread_local inline std::vector<std::pair<in, object>> contexts;
-
     mutable std::string cache {};
 
     using pair::pair;
 
     ~error() override = default;
-
-    template <typename... Ts>
-    auto detail(Ts&&... xs) -> auto &
-    {
-      contexts.emplace_back(std::forward<decltype(xs)>(xs)...);
-      return *this;
-    }
 
     auto irritants() const noexcept -> object const&;
 

@@ -60,9 +60,11 @@ class allocator
     }
   };
 
-  chunk * free_list = nullptr;
+  static inline chunk * free_list = nullptr;
 
-  block * free_space;
+  static inline block * free_space = new block();
+
+  static inline std::size_t count = 0;
 
 public:
   using value_type = T;
@@ -82,23 +84,33 @@ public:
   };
 
   explicit allocator()
-    : free_space { new block() }
-  {}
+  {
+    ++count;
+  }
 
-  allocator(allocator &&) = delete;
+  allocator(allocator &&)
+  {
+    ++count;
+  }
 
-  allocator(allocator const&) = delete;
+  allocator(allocator const&)
+  {
+    ++count;
+  }
 
   ~allocator()
   {
-    delete free_space;
+    if (not --count)
+    {
+      delete free_space;
+    }
   }
 
-  auto operator =(allocator &&) -> allocator & = delete;
+  auto operator =(allocator &&) -> allocator & = default;
 
-  auto operator =(allocator const&) -> allocator & = delete;
+  auto operator =(allocator const&) -> allocator & = default;
 
-  auto allocate(size_type = 1)
+  static auto allocate(size_type = 1)
   {
     if (free_list)
     {
@@ -115,7 +127,7 @@ public:
     }
   }
 
-  auto deallocate(value_type * p, size_type = 1) -> void
+  static auto deallocate(value_type * p, size_type = 1) -> void
   {
     reinterpret_cast<chunk *>(p)->tail = free_list;
     free_list = reinterpret_cast<chunk *>(p);

@@ -20,27 +20,23 @@ namespace meevax::inline kernel
 {
   let unit = nullptr;
 
-  auto pair::bounds() const noexcept -> std::pair<void const*, void const*>
+  auto pair::extent() const noexcept -> std::pair<void const*, std::size_t>
   {
-    return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
+    return { this, sizeof(*this) };
   }
 
-  auto pair::equal1(top const* other) const -> bool
+  auto pair::equal1(pair const* other) const -> bool
   {
-    assert(false);
-    return this == dynamic_cast<pair const*>(other);
+    return this == other;
   }
 
-  auto pair::equal2(top const* other) const -> bool
+  auto pair::equal2(pair const* other) const -> bool
   {
-    assert(false);
-    auto pare = dynamic_cast<pair const*>(other);
-    return pare and *this == *pare;
+    return other and *this == *other;
   }
 
   auto pair::type() const noexcept -> std::type_info const&
   {
-    assert(false);
     return typeid(pair);
   }
 

@@ -20,14 +20,14 @@
 #include <dlfcn.h> // dlopen, dlclose, dlerror
 
 #include <memory> // std::allocator
-#include <queue>
+#include <stack>
 #include <unordered_map>
 
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
-#include <meevax/memory/integer_set.hpp>
 #include <meevax/memory/literal.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
+#include <meevax/memory/pointer_set.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
 #include <meevax/utility/demangle.hpp>
@@ -62,47 +62,49 @@ namespace meevax::inline memory
      - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
   */
   template <typename Top, typename... Ts>
-  class collector
+  struct collector
   {
-  public:
     struct top
     {
       virtual ~top() = default;
 
-      virtual auto bounds() const noexcept -> std::pair<void const*, void const*> = 0;
+      virtual auto equal1(Top const* x) const -> bool = 0;
 
-      virtual auto equal1(top const*) const -> bool = 0;
+      virtual auto equal2(Top const* x) const -> bool = 0;
 
-      virtual auto equal2(top const*) const -> bool = 0;
+      virtual auto extent() const noexcept -> std::pair<void const*, std::size_t> = 0;
 
       virtual auto type() const noexcept -> std::type_info const& = 0;
 
-      virtual auto write(std::ostream &) const -> std::ostream & = 0;
+      virtual auto write(std::ostream & o) const -> std::ostream & = 0;
     };
 
     static inline auto cleared = false;
 
+    template <typename Allocator>
+    struct stateful : public Allocator
+    {
+      ~stateful()
+      {
+        /*
+           Execute clear before any static allocator is destroyed. Otherwise,
+           when the destructor of the collector executes clear, the collector
+           may touch the freed memory of the stateful allocator.
+        */
+        if (not std::exchange(cleared, true))
+        {
+          clear();
+        }
+      }
+    };
+
     template <typename Bound, typename AllocatorTraits>
-    struct binder : public virtual std::conditional_t<std::is_same_v<Top, Bound>, top, Top>
+    struct binder : public virtual Top
                   , public Bound
     {
-      struct allocator_type : public AllocatorTraits::template rebind_alloc<binder<Bound, AllocatorTraits>>
-      {
-        ~allocator_type()
-        {
-          /*
-             Execute clear before any static allocator is destroyed. Otherwise,
-             when the destructor of the collector executes clear, the collector
-             may touch the freed memory of the stateful allocator.
-          */
-          if (not std::exchange(cleared, true))
-          {
-            clear();
-          }
-        }
-      };
+      using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<Bound, AllocatorTraits>>>;
 
-      static inline auto allocator = allocator_type();
+      static inline auto a = allocator();
 
       template <typename... Us>
       explicit constexpr binder(direct_initialization_tag, Us&&... xs)
@@ -121,12 +123,7 @@ namespace meevax::inline memory
 
       ~binder() override = default;
 
-      auto bounds() const noexcept -> std::pair<void const*, void const*> override
-      {
-        return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
-      }
-
-      auto equal1([[maybe_unused]] top const* other) const -> bool override
+      auto equal1([[maybe_unused]] Top const* other) const -> bool override
       {
         if constexpr (is_equality_comparable_v<Bound const&> and equivalence<Bound>::strictness <= 1)
         {
@@ -145,7 +142,7 @@ namespace meevax::inline memory
         }
       }
 
-      auto equal2([[maybe_unused]] top const* other) const -> bool override
+      auto equal2([[maybe_unused]] Top const* other) const -> bool override
       {
         if constexpr (is_equality_comparable_v<Bound const&> and equivalence<Bound>::strictness <= 2)
         {
@@ -162,6 +159,11 @@ namespace meevax::inline memory
         {
           return false;
         }
+      }
+
+      auto extent() const noexcept -> std::pair<void const*, std::size_t> override
+      {
+        return { static_cast<Bound const*>(this), sizeof(Bound) };
       }
 
       auto type() const noexcept -> std::type_info const& override
@@ -183,12 +185,34 @@ namespace meevax::inline memory
 
       auto operator new(std::size_t) -> void *
       {
-        return allocator.allocate(1);
+        return a.allocate(1);
       }
 
       auto operator delete(void * data) noexcept -> void
       {
-        allocator.deallocate(reinterpret_cast<typename std::allocator_traits<allocator_type>::pointer>(data), 1);
+        a.deallocate(reinterpret_cast<typename std::allocator_traits<allocator>::pointer>(data), 1);
+      }
+    };
+
+    template <typename AllocatorTraits>
+    struct binder<Top, AllocatorTraits> : public Top
+    {
+      using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<Top, AllocatorTraits>>>;
+
+      static inline auto a = allocator();
+
+      using Top::Top;
+
+      ~binder() override = default;
+
+      auto operator new(std::size_t) -> void *
+      {
+        return a.allocate(1);
+      }
+
+      auto operator delete(void * data) noexcept -> void
+      {
+        a.deallocate(reinterpret_cast<typename std::allocator_traits<allocator>::pointer>(data), 1);
       }
     };
 
@@ -401,35 +425,12 @@ namespace meevax::inline memory
         return datum.write(os);
       }
 
-      inline auto begin()
-      {
-        return *this ? pointer::unsafe_get()->begin() : typename Top::iterator();
-      }
-
-      inline auto begin() const
-      {
-        return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator();
-      }
-
-      inline auto cbegin() const
-      {
-        return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator();
-      }
-
-      inline auto end()
-      {
-        return *this ? pointer::unsafe_get()->end() : typename Top::iterator();
-      }
-
-      inline auto end() const
-      {
-        return *this ? pointer::unsafe_get()->cend() : typename Top::const_iterator();
-      }
-
-      inline auto cend() const
-      {
-        return *this ? pointer::unsafe_get()->cend() : typename Top::const_iterator();
-      }
+      inline auto  begin()       { return *this ? pointer::unsafe_get()-> begin() : typename Top::      iterator(); }
+      inline auto  begin() const { return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator(); }
+      inline auto cbegin() const { return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator(); }
+      inline auto    end()       { return *this ? pointer::unsafe_get()->   end() : typename Top::      iterator(); }
+      inline auto    end() const { return *this ? pointer::unsafe_get()->  cend() : typename Top::const_iterator(); }
+      inline auto   cend() const { return *this ? pointer::unsafe_get()->  cend() : typename Top::const_iterator(); }
     };
 
     /*
@@ -438,32 +439,20 @@ namespace meevax::inline memory
        0x0000'0000'0000'0000 ~ 0x0000'7FFF'FFFF'FFFF
     */
     template <typename T>
-    using pointer_set = integer_set<T const*, std::bit_width(0x7FFFu),
-                                              std::bit_width(0xFFFFu),
-                                              std::bit_width(0xFFFFu)>;
+    using pointer_set = memory::pointer_set<T const*, std::bit_width(0x7FFFu),
+                                                      std::bit_width(0xFFFFu),
+                                                      std::bit_width(0xFFFFu)>;
 
-  private:
     static inline pointer_set<top> objects {};
 
     static inline pointer_set<mutator> mutators {};
 
-    static inline std::size_t allocation = 0;
+    static inline std::size_t size = 0;
 
-    static inline std::size_t threshold = 8_MiB;
+    static inline std::size_t threshold = 16_MiB;
 
     static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
 
-    struct mutators_range : public std::pair<void const*, void const*>
-    {
-      explicit mutators_range(top const* object)
-        : std::pair<void const*, void const*> { object->bounds() }
-      {}
-
-      auto begin() const noexcept { return mutators.lower_bound(reinterpret_cast<mutator const*>(first )); }
-      auto end  () const noexcept { return mutators.lower_bound(reinterpret_cast<mutator const*>(second)); }
-    };
-
-  public:
     collector() = delete;
 
     collector(collector &&) = delete;
@@ -481,7 +470,7 @@ namespace meevax::inline memory
     {
       if constexpr (std::is_class_v<T>)
       {
-        if (allocation += sizeof(T); threshold < allocation)
+        if (size += sizeof(T); threshold < size)
         {
           collect();
         }
@@ -515,9 +504,55 @@ namespace meevax::inline memory
 
     static auto collect() -> void
     {
-      allocation = 0;
+      size = 0;
 
-      return sweep(mark());
+      auto live_objects = pointer_set<top>();
+
+      auto static stack = std::vector<top const*>();
+
+      auto mark = [&](auto const& m)
+      {
+        assert(m);
+        assert(m->unsafe_get());
+
+        if (auto p = m->unsafe_get(); live_objects.insert(p))
+        {
+          stack.push_back(p);
+        }
+      };
+
+      for (auto const& m : mutators)
+      {
+        if (is_root(m))
+        {
+          mark(m);
+
+          while (not stack.empty())
+          {
+            auto [base, size_] = stack.back()->extent();
+
+            stack.pop_back();
+
+            size += size_;
+
+            std::for_each(mutators.lower_bound(reinterpret_cast<mutator const*>(base)),
+                          mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
+                          mark);
+          }
+        }
+      }
+
+      for (auto object : objects)
+      {
+        if (not live_objects.contains(object))
+        {
+          delete object;
+        }
+      }
+
+      objects.swap(live_objects);
+
+      threshold = std::max(threshold, size + (size / 2));
     }
 
     static auto count() noexcept -> std::size_t
@@ -570,76 +605,36 @@ namespace meevax::inline memory
       }
     }
 
-    static auto mark() noexcept -> pointer_set<top>
+    static auto is_root(mutator const* m) noexcept
     {
-      auto is_root = [begin = objects.begin()](mutator const* given)
+      /*
+         If the given mutator is a non-root object, then an object containing
+         this mutator as a data member exists somewhere in memory.
+
+         Containing the mutator as a data member means that the address of the
+         mutator is contained in the interval of the object's base-address ~
+         base-address + object-size. The top is present to keep track of the
+         base-address and size of the object needed here.
+      */
+      auto contains = [&](top const* object)
       {
-        /*
-           If the given mutator is a non-root object, then an object containing
-           this mutator as a data member exists somewhere in memory.
-
-           Containing the mutator as a data member means that the address of
-           the mutator is contained in the interval of the object's
-           base-address ~ base-address + object-size. The top is present to
-           keep track of the base-address and size of the object needed here.
-        */
-        auto iter = objects.lower_bound(reinterpret_cast<top const*>(given));
-
-        auto out_of_bounds = [&](top const* object)
-        {
-          auto [begin, end] = object->bounds();
-          return given < begin or end <= reinterpret_cast<void const*>(given);
-        };
-
-        return iter == begin or out_of_bounds(*--iter);
+        auto [base, size] = object->extent();
+        return base <= m and m < reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + size);
       };
 
-      auto reachables = pointer_set<top>();
+      /*
+         The memory layout of the base class Top and Bound of the binder is
+         implementation-defined. That is, there is no guarantee that the
+         pointer value of Top const* is less than the pointer value of Bound
+         const*. Therefore, the iterator returned by lower_bound here points to
+         top const*, which may be an iterator to the object itself, which may
+         contain m, or the next iterator of the object, which may contain m.
+      */
+      auto next = objects.lower_bound(reinterpret_cast<top const*>(m));
 
-      for (auto const& mutator : mutators)
-      {
-        assert(mutator);
-        assert(mutator->unsafe_get());
+      auto prev = std::prev(next);
 
-        if (auto object = mutator->unsafe_get(); not reachables.contains(object) and is_root(mutator))
-        {
-          auto queue = std::queue<top const*>();
-
-          for (queue.push(object); not queue.empty(); queue.pop())
-          {
-            if (not reachables.contains(queue.front()))
-            {
-              reachables.insert(queue.front());
-
-              for (auto const& mutator : mutators_range(queue.front()))
-              {
-                assert(mutator);
-                assert(mutator->unsafe_get());
-
-                queue.push(mutator->unsafe_get());
-              }
-            }
-          }
-        }
-      }
-
-      return reachables;
-    }
-
-    static auto sweep(pointer_set<top> && reachables) -> void
-    {
-      for (auto reachable : reachables)
-      {
-        assert(objects.contains(reachable));
-        objects.erase(reachable);
-      }
-
-      for (auto object : objects)
-      {
-        delete object;
-      }
-
-      objects.swap(reachables);
+      return not ((next and contains(*next)) or (prev and contains(*prev)));
     }
   };
 } // namespace meevax::memory
