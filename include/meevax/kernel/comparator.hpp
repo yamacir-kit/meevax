@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ namespace meevax::inline kernel
 
   inline auto eqv = [](auto const& x, auto const& y)
   {
-    return eq(x, y) or x.equal1(y) or exact_integer_equals(x, y);
+    return eq(x, y) or x.equal1(y) or number::exact_integer_equals(x, y);
   };
 
   auto equal(object const&, object const&) -> bool;

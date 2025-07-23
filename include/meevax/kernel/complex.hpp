@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -28,8 +28,6 @@ namespace meevax::inline kernel
     using pair::pair;
 
     explicit complex(std::string const&, int = 10);
-
-    auto canonicalize() const -> object;
 
     auto imag() const noexcept -> object const&;
 

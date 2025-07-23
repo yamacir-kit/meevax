@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -23,8 +23,6 @@ namespace meevax::inline kernel
 {
   struct standard_input_port : public textual_input_port
   {
-    standard_input_port();
-
     auto close() -> void override;
 
     auto is_open() const -> bool override;

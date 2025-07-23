@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ namespace meevax::inline kernel
 
     ~ratio();
 
-    explicit ratio(std::int64_t);
+    explicit ratio(widen_integer);
 
     explicit ratio(large_integer const&);
 

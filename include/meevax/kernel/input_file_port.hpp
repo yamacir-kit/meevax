@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -33,9 +33,7 @@ namespace meevax::inline kernel
     explicit input_file_port(T&& x, Ts&&... xs)
       : name     { std::forward<decltype(x)>(x) }
       , ifstream { name, std::forward<decltype(xs)>(xs)... }
-    {
-      enable_source_cons(name);
-    }
+    {}
 
     auto close() -> void override;
 

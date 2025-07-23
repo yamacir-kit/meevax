@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -27,48 +27,50 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto operator * (std::int64_t, large_integer const&) -> large_integer;
-  auto operator + (std::int64_t, large_integer const&) -> large_integer;
-  auto operator - (std::int64_t, large_integer const&) -> large_integer;
-  auto operator / (std::int64_t, large_integer const&) -> ratio;
-  auto operator % (std::int64_t, large_integer const&) -> large_integer;
-  auto operator !=(std::int64_t, large_integer const&) -> bool;
-  auto operator < (std::int64_t, large_integer const&) -> bool;
-  auto operator <=(std::int64_t, large_integer const&) -> bool;
-  auto operator ==(std::int64_t, large_integer const&) -> bool;
-  auto operator > (std::int64_t, large_integer const&) -> bool;
-  auto operator >=(std::int64_t, large_integer const&) -> bool;
+  using widen_integer = std::int64_t; // Fixed sized integer that is temporarily widened to prevent possible overflow.
 
-  auto operator * (std::int64_t, ratio const&) -> ratio;
-  auto operator + (std::int64_t, ratio const&) -> ratio;
-  auto operator - (std::int64_t, ratio const&) -> ratio;
-  auto operator / (std::int64_t, ratio const&) -> ratio;
-  auto operator % (std::int64_t, ratio const&) -> ratio;
-  auto operator !=(std::int64_t, ratio const&) -> bool;
-  auto operator < (std::int64_t, ratio const&) -> bool;
-  auto operator <=(std::int64_t, ratio const&) -> bool;
-  auto operator ==(std::int64_t, ratio const&) -> bool;
-  auto operator > (std::int64_t, ratio const&) -> bool;
-  auto operator >=(std::int64_t, ratio const&) -> bool;
+  auto operator * (widen_integer, large_integer const&) -> large_integer;
+  auto operator + (widen_integer, large_integer const&) -> large_integer;
+  auto operator - (widen_integer, large_integer const&) -> large_integer;
+  auto operator / (widen_integer, large_integer const&) -> ratio;
+  auto operator % (widen_integer, large_integer const&) -> large_integer;
+  auto operator !=(widen_integer, large_integer const&) -> bool;
+  auto operator < (widen_integer, large_integer const&) -> bool;
+  auto operator <=(widen_integer, large_integer const&) -> bool;
+  auto operator ==(widen_integer, large_integer const&) -> bool;
+  auto operator > (widen_integer, large_integer const&) -> bool;
+  auto operator >=(widen_integer, large_integer const&) -> bool;
 
-  auto operator * (std::int64_t, complex const&) -> complex;
-  auto operator + (std::int64_t, complex const&) -> complex;
-  auto operator - (std::int64_t, complex const&) -> complex;
-  auto operator / (std::int64_t, complex const&) -> complex;
-  auto operator ==(std::int64_t, complex const&) -> bool;
-  auto operator !=(std::int64_t, complex const&) -> bool;
+  auto operator * (widen_integer, ratio const&) -> ratio;
+  auto operator + (widen_integer, ratio const&) -> ratio;
+  auto operator - (widen_integer, ratio const&) -> ratio;
+  auto operator / (widen_integer, ratio const&) -> ratio;
+  auto operator % (widen_integer, ratio const&) -> ratio;
+  auto operator !=(widen_integer, ratio const&) -> bool;
+  auto operator < (widen_integer, ratio const&) -> bool;
+  auto operator <=(widen_integer, ratio const&) -> bool;
+  auto operator ==(widen_integer, ratio const&) -> bool;
+  auto operator > (widen_integer, ratio const&) -> bool;
+  auto operator >=(widen_integer, ratio const&) -> bool;
 
-  auto operator * (large_integer const&, std::int64_t) -> large_integer;
-  auto operator + (large_integer const&, std::int64_t) -> large_integer;
-  auto operator - (large_integer const&, std::int64_t) -> large_integer;
-  auto operator / (large_integer const&, std::int64_t) -> ratio;
-  auto operator % (large_integer const&, std::int64_t) -> large_integer;
-  auto operator !=(large_integer const&, std::int64_t) -> bool;
-  auto operator < (large_integer const&, std::int64_t) -> bool;
-  auto operator <=(large_integer const&, std::int64_t) -> bool;
-  auto operator ==(large_integer const&, std::int64_t) -> bool;
-  auto operator > (large_integer const&, std::int64_t) -> bool;
-  auto operator >=(large_integer const&, std::int64_t) -> bool;
+  auto operator * (widen_integer, complex const&) -> complex;
+  auto operator + (widen_integer, complex const&) -> complex;
+  auto operator - (widen_integer, complex const&) -> complex;
+  auto operator / (widen_integer, complex const&) -> complex;
+  auto operator ==(widen_integer, complex const&) -> bool;
+  auto operator !=(widen_integer, complex const&) -> bool;
+
+  auto operator * (large_integer const&, widen_integer) -> large_integer;
+  auto operator + (large_integer const&, widen_integer) -> large_integer;
+  auto operator - (large_integer const&, widen_integer) -> large_integer;
+  auto operator / (large_integer const&, widen_integer) -> ratio;
+  auto operator % (large_integer const&, widen_integer) -> large_integer;
+  auto operator !=(large_integer const&, widen_integer) -> bool;
+  auto operator < (large_integer const&, widen_integer) -> bool;
+  auto operator <=(large_integer const&, widen_integer) -> bool;
+  auto operator ==(large_integer const&, widen_integer) -> bool;
+  auto operator > (large_integer const&, widen_integer) -> bool;
+  auto operator >=(large_integer const&, widen_integer) -> bool;
 
   auto operator * (large_integer const&, large_integer const&) -> large_integer;
   auto operator + (large_integer const&, large_integer const&) -> large_integer;
@@ -125,17 +127,17 @@ inline namespace kernel
   auto operator ==(large_integer const&, complex const&) -> bool;
   auto operator !=(large_integer const&, complex const&) -> bool;
 
-  auto operator * (ratio const&, std::int64_t) -> ratio;
-  auto operator + (ratio const&, std::int64_t) -> ratio;
-  auto operator - (ratio const&, std::int64_t) -> ratio;
-  auto operator / (ratio const&, std::int64_t) -> ratio;
-  auto operator % (ratio const&, std::int64_t) -> ratio;
-  auto operator !=(ratio const&, std::int64_t) -> bool;
-  auto operator < (ratio const&, std::int64_t) -> bool;
-  auto operator <=(ratio const&, std::int64_t) -> bool;
-  auto operator ==(ratio const&, std::int64_t) -> bool;
-  auto operator > (ratio const&, std::int64_t) -> bool;
-  auto operator >=(ratio const&, std::int64_t) -> bool;
+  auto operator * (ratio const&, widen_integer) -> ratio;
+  auto operator + (ratio const&, widen_integer) -> ratio;
+  auto operator - (ratio const&, widen_integer) -> ratio;
+  auto operator / (ratio const&, widen_integer) -> ratio;
+  auto operator % (ratio const&, widen_integer) -> ratio;
+  auto operator !=(ratio const&, widen_integer) -> bool;
+  auto operator < (ratio const&, widen_integer) -> bool;
+  auto operator <=(ratio const&, widen_integer) -> bool;
+  auto operator ==(ratio const&, widen_integer) -> bool;
+  auto operator > (ratio const&, widen_integer) -> bool;
+  auto operator >=(ratio const&, widen_integer) -> bool;
 
   auto operator * (ratio const&, large_integer const&) -> ratio;
   auto operator + (ratio const&, large_integer const&) -> ratio;
@@ -254,12 +256,12 @@ inline namespace kernel
   auto operator ==(double, complex const&) -> bool;
   auto operator !=(double, complex const&) -> bool;
 
-  auto operator + (complex const&, std::int64_t) -> complex;
-  auto operator - (complex const&, std::int64_t) -> complex;
-  auto operator * (complex const&, std::int64_t) -> complex;
-  auto operator / (complex const&, std::int64_t) -> complex;
-  auto operator ==(complex const&, std::int64_t) -> bool;
-  auto operator !=(complex const&, std::int64_t) -> bool;
+  auto operator + (complex const&, widen_integer) -> complex;
+  auto operator - (complex const&, widen_integer) -> complex;
+  auto operator * (complex const&, widen_integer) -> complex;
+  auto operator / (complex const&, widen_integer) -> complex;
+  auto operator ==(complex const&, widen_integer) -> bool;
+  auto operator !=(complex const&, widen_integer) -> bool;
 
   auto operator + (complex const&, large_integer const&) -> complex;
   auto operator - (complex const&, large_integer const&) -> complex;
@@ -358,10 +360,82 @@ inline namespace kernel
     }
   }
 
-inline namespace number
+namespace number
 {
+  auto equals(object const&, object const&) -> bool;
+
+  auto exact_integer_equals(object const&, object const&) -> bool;
+
+  auto not_equals(object const&, object const&) -> bool;
+
+  auto less_than(object const&, object const&) -> bool;
+
+  auto less_than_or_equals(object const&, object const&) -> bool;
+
+  auto greater_than(object const&, object const&) -> bool;
+
+  auto greater_than_or_equals(object const&, object const&) -> bool;
+
+  auto exact(object const&) -> object;
+
+  auto inexact(object const&) -> object;
+
+  auto is_complex(object const&) -> bool;
+
+  auto is_real(object const&) -> bool;
+
+  auto is_rational(object const&) -> bool;
+
+  auto is_integer(object const&) -> bool;
+
+  auto is_exact(object const&) -> bool;
+
+  auto is_inexact(object const&) -> bool;
+
+  auto is_finite(object const&) -> bool;
+
+  auto is_infinite(object const&) -> bool;
+
+  auto is_nan(object const&) -> bool;
+
+  auto is_zero(object const&) -> bool;
+
+  auto is_positive(object const&) -> bool;
+
+  auto is_negative(object const&) -> bool;
+
+  auto is_odd(object const&) -> bool;
+
+  auto is_even(object const&) -> bool;
+
+  auto abs(object const&) -> object;
+
+  auto quotient(object const&, object const&) -> object;
+
+  auto remainder(object const&, object const&) -> object;
+
+  auto modulo(object const&, object const&) -> object;
+
+  auto gcd(object const&, object const&) -> object;
+
+  auto lcm(object const&, object const&) -> object;
+
+  auto real(object const&) -> object;
+
+  auto imag(object const&) -> object;
+
+  auto magnitude(object const&) -> object;
+
+  auto angle(object const&) -> object;
+
+  auto numerator(object const&) -> object;
+
+  auto denominator(object const&) -> object;
+
+  auto number_to_string(object const&, int) -> object;
+
   template <typename T>
-  auto canonicalize(T&& x) -> decltype(auto)
+  auto canonicalize(T&& x)
   {
     if constexpr (std::is_same_v<std::decay_t<T>, object> or
                   std::is_same_v<std::decay_t<T>, object::pointer>)
@@ -370,13 +444,27 @@ inline namespace number
     }
     else if constexpr (std::is_same_v<std::decay_t<T>, complex>)
     {
-      return x.canonicalize();
+      if (equals(x.imag(), e0))
+      {
+        return x.real();
+      }
+      else
+      {
+        return make(std::forward<decltype(x)>(x));
+      }
     }
     else if constexpr (std::is_same_v<std::decay_t<T>, ratio>)
     {
-      return x.denominator() == 1_i64 ? make(x.numerator()) : make(std::forward<decltype(x)>(x));
+      if (x.denominator() == 1_i64)
+      {
+        return make(x.numerator());
+      }
+      else
+      {
+        return make(std::forward<decltype(x)>(x));
+      }
     }
-    else if constexpr (std::is_same_v<std::decay_t<T>, std::int64_t>)
+    else if constexpr (std::is_same_v<std::decay_t<T>, widen_integer>)
     {
       if (std::numeric_limits<small_integer>::min() <= x and x <= std::numeric_limits<small_integer>::max())
       {
@@ -398,7 +486,7 @@ inline namespace number
   {
     if constexpr (std::is_same_v<T, small_integer>)
     {
-      return static_cast<std::int64_t>(std::forward<decltype(x)>(x));
+      return static_cast<widen_integer>(std::forward<decltype(x)>(x));
     }
     else
     {
@@ -553,78 +641,6 @@ inline namespace number
                                                                                \
     return apply_to<real_numbers>(f, x, y);                                    \
   }
-
-  auto equals(object const&, object const&) -> bool;
-
-  auto exact_integer_equals(object const&, object const&) -> bool;
-
-  auto not_equals(object const&, object const&) -> bool;
-
-  auto less_than(object const&, object const&) -> bool;
-
-  auto less_than_or_equals(object const&, object const&) -> bool;
-
-  auto greater_than(object const&, object const&) -> bool;
-
-  auto greater_than_or_equals(object const&, object const&) -> bool;
-
-  auto exact(object const&) -> object;
-
-  auto inexact(object const&) -> object;
-
-  auto is_complex(object const&) -> bool;
-
-  auto is_real(object const&) -> bool;
-
-  auto is_rational(object const&) -> bool;
-
-  auto is_integer(object const&) -> bool;
-
-  auto is_exact(object const&) -> bool;
-
-  auto is_inexact(object const&) -> bool;
-
-  auto is_finite(object const&) -> bool;
-
-  auto is_infinite(object const&) -> bool;
-
-  auto is_nan(object const&) -> bool;
-
-  auto is_zero(object const&) -> bool;
-
-  auto is_positive(object const&) -> bool;
-
-  auto is_negative(object const&) -> bool;
-
-  auto is_odd(object const&) -> bool;
-
-  auto is_even(object const&) -> bool;
-
-  auto abs(object const&) -> object;
-
-  auto quotient(object const&, object const&) -> object;
-
-  auto remainder(object const&, object const&) -> object;
-
-  auto modulo(object const&, object const&) -> object;
-
-  auto gcd(object const&, object const&) -> object;
-
-  auto lcm(object const&, object const&) -> object;
-
-  auto real(object const&) -> object;
-
-  auto imag(object const&) -> object;
-
-  auto magnitude(object const&) -> object;
-
-  auto angle(object const&) -> object;
-
-  auto numerator(object const&) -> object;
-
-  auto denominator(object const&) -> object;
-
-  auto number_to_string(object const&, int) -> object;
 } // namespace number
 } // namespace kernel
 } // namespace meevax

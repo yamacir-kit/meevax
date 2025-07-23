@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -109,11 +109,6 @@ namespace meevax::inline kernel
     return iterator(*this);
   }
 
-  auto textual_input_port::enable_source_cons(std::filesystem::path const& path) -> void
-  {
-    sources.emplace(this, path);
-  }
-
   auto textual_input_port::end() -> iterator
   {
     return iterator();
@@ -188,11 +183,6 @@ namespace meevax::inline kernel
     for (auto iter = std::rbegin(s); iter != std::rend(s); ++iter)
     {
       istream().putback(*iter);
-    }
-
-    if (auto iter = sources.find(this); iter != sources.end())
-    {
-      iter->second.code.pop_back();
     }
 
     return c;
@@ -384,7 +374,7 @@ namespace meevax::inline kernel
           }
 
         case 'e':
-          return exact(read()); // NOTE: Same as #,(exact (read))
+          return number::exact(read()); // NOTE: Same as #,(exact (read))
 
         case 'f':
           switch (std::stoi(take_character_while(is_digit, character('0'))))
@@ -401,7 +391,7 @@ namespace meevax::inline kernel
           }
 
         case 'i':
-          return inexact(read()); // NOTE: Same as #,(inexact (read))
+          return number::inexact(read()); // NOTE: Same as #,(inexact (read))
 
         case 'o':
           switch (auto c3 = take_character())
@@ -555,30 +545,9 @@ namespace meevax::inline kernel
       case '(':  // 0x28
         try
         {
-          auto position = [this]()
-          {
-            if (auto source = sources.find(this); source != sources.end())
-            {
-              return source->second.code.size();
-            }
-            else
-            {
-              return std::numeric_limits<string::size_type>::max();
-            }
-          }();
-
           let const& x = read();
 
-          let const& pare = cons(x, read(c1));
-
-          if (auto source = sources.find(this); source != sources.end()) // The iterator may be invalidated by calling read, so the iterator must be retrieved again.
-          {
-            contexts.emplace(std::piecewise_construct,
-                             std::make_tuple(pare.get()),
-                             std::make_tuple(&source->second, position));
-          }
-
-          return pare;
+          return cons(x, read(c1));
         }
         catch (std::integral_constant<char, ')'> const&)
         {
@@ -650,40 +619,27 @@ namespace meevax::inline kernel
     */
     auto & source = istream();
 
-    auto make_character = [this](auto&&... xs)
-    {
-      if (auto iter = sources.find(this); iter != sources.end())
-      {
-        iter->second.code.emplace_back(std::forward<decltype(xs)>(xs)...);
-        return iter->second.code.back();
-      }
-      else
-      {
-        return character(std::forward<decltype(xs)>(xs)...);
-      }
-    };
-
     if (auto const c = source.peek(); character::is_eof(c) or character::is_ascii(c))
     {
-      return make_character(source.get());
+      return character(source.get());
     }
     else if (0xC2 <= c and c <= 0xDF) // 11 bit
     {
-      return make_character((source.get() & 0b0001'1111) << 6 |
-                            (source.get() & 0b0011'1111));
+      return character((source.get() & 0b0001'1111) << 6 |
+                       (source.get() & 0b0011'1111));
     }
     else if (0xE0 <= c and c <= 0xEF) // 16 bit
     {
-      return make_character((source.get() & 0b0000'1111) << 12 |
-                            (source.get() & 0b0011'1111) <<  6 |
-                            (source.get() & 0b0011'1111));
+      return character((source.get() & 0b0000'1111) << 12 |
+                       (source.get() & 0b0011'1111) <<  6 |
+                       (source.get() & 0b0011'1111));
     }
     else if (0xF0 <= c and c <= 0xF4) // 21 bit
     {
-      return make_character((source.get() & 0b0000'0111) << 18 |
-                            (source.get() & 0b0011'1111) << 12 |
-                            (source.get() & 0b0011'1111) <<  6 |
-                            (source.get() & 0b0011'1111));
+      return character((source.get() & 0b0000'0111) << 18 |
+                       (source.get() & 0b0011'1111) << 12 |
+                       (source.get() & 0b0011'1111) <<  6 |
+                       (source.get() & 0b0011'1111));
     }
     else
     {

@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 #include <meevax/kernel/number/bitwise.hpp>
 
-namespace meevax::inline kernel::inline number
+namespace meevax::inline kernel::number
 {
   auto bitwise_not(object const& x) -> object
   {
@@ -114,7 +114,7 @@ namespace meevax::inline kernel::inline number
         }
         else // 0 < c
         {
-          if (64 <= c or x < (std::numeric_limits<std::int64_t>::min() >> c) or (std::numeric_limits<std::int64_t>::max() >> c) < x)
+          if (64 <= c or x < (std::numeric_limits<widen_integer>::min() >> c) or (std::numeric_limits<widen_integer>::max() >> c) < x)
           {
             auto i = large_integer();
             mpz_mul_2exp(i.value, large_integer(x).value, c);
@@ -167,7 +167,7 @@ namespace meevax::inline kernel::inline number
         {
           auto i = large_integer();
           mpz_com(i.value, x.value);
-          return static_cast<std::int64_t>(mpz_sizeinbase(i.value, 2));
+          return static_cast<widen_integer>(mpz_sizeinbase(i.value, 2));
         }
         else if (sign == 0)
         {
@@ -175,7 +175,7 @@ namespace meevax::inline kernel::inline number
         }
         else // 0 < sign
         {
-          return static_cast<std::int64_t>(mpz_sizeinbase(x.value, 2));
+          return static_cast<widen_integer>(mpz_sizeinbase(x.value, 2));
         }
       }
       else

@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,18 +19,14 @@
 
 #include <meevax/kernel/number.hpp>
 
-namespace meevax::inline kernel::inline number
+namespace meevax::inline kernel::number
 {
   auto sinh(object const&) -> object;
-
   auto cosh(object const&) -> object;
-
   auto tanh(object const&) -> object;
 
   auto asinh(object const&) -> object;
-
   auto acosh(object const&) -> object;
-
   auto atanh(object const&) -> object;
 } // namespace meevax::kernel::number
 

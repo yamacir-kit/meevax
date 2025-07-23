@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ namespace meevax::inline kernel
     mpq_canonicalize(value);
   }
 
-  ratio::ratio(std::int64_t n)
+  ratio::ratio(widen_integer n)
   {
     mpq_init(value);
     mpq_set_si(value, n, 1);

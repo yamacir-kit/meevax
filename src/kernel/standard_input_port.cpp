@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,11 +18,6 @@
 
 namespace meevax::inline kernel
 {
-  standard_input_port::standard_input_port()
-  {
-    enable_source_cons("/dev/stdin");
-  }
-
   auto standard_input_port::is_open() const -> bool
   {
     return true;

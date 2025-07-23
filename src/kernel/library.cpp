@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ namespace meevax::inline kernel
       {
         for (let const& command_or_definition : cdr(declaration))
         {
-          environment::evaluate(command_or_definition);
+          evaluator.evaluate(command_or_definition);
         }
 
         return unspecified;
@@ -61,13 +61,15 @@ namespace meevax::inline kernel
       }
     }
 
-    return environment::evaluate(declaration); // Non-standard extension.
+    return evaluator.evaluate(declaration); // Non-standard extension.
   }
 
   auto library::resolve() -> object
   {
-    if (let const unresolved_declarations = std::exchange(declarations, nullptr); unresolved_declarations.is<pair>())
+    if (let const unresolved_declarations = std::exchange(declarations, unit); unresolved_declarations.is<pair>())
     {
+      assert(declarations.is<null>());
+
       for (let const& unresolved_declaration : unresolved_declarations)
       {
         evaluate(unresolved_declaration);
@@ -83,12 +85,12 @@ namespace meevax::inline kernel
                    assert(cadr(export_spec).is_also<identifier>());
                    assert(caddr(export_spec).is_also<identifier>());
                    return make<absolute>(caddr(export_spec),
-                                         cdr(identify(cadr(export_spec), unit)));
+                                         cdr(evaluator.identify(cadr(export_spec), unit)));
                  }
                  else
                  {
                    assert(export_spec.is_also<identifier>());
-                   return identify(export_spec, unit);
+                   return evaluator.identify(export_spec, unit);
                  }
                },
                export_specs);
@@ -96,12 +98,12 @@ namespace meevax::inline kernel
 
   auto operator <<(std::ostream & os, library const& library) -> std::ostream &
   {
-    return os << library.second; // free-variables
+    return os << library.evaluator.second; // free-variables
   }
 
-  auto libraries() -> std::map<std::string, library> &
+  auto libraries() -> std::map<std::string, object> &
   {
-    static auto libraries = std::map<std::string, library>();
+    static auto libraries = std::map<std::string, object>();
     return libraries;
   }
 } // namespace meevax::kernel

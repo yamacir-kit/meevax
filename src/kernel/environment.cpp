@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 
 namespace meevax::inline kernel
 {
-  auto environment::evaluate(object const& expression) -> object try
+  auto environment::evaluate(object const& expression) -> object
   {
     if (expression.is<pair>() and car(expression).is<symbol>())
     {
@@ -108,14 +108,11 @@ namespace meevax::inline kernel
 
     return execute(optimize(compile(expression)));
   }
-  catch (error & e)
-  {
-    e.detail(error::in::evaluating, expression).raise();
-    return unspecified;
-  }
 
   auto resolve(object const& form) -> object
   {
+    assert(form.is<pair>());
+
     if (car(form).as<symbol>() == "only") /* -----------------------------------
     *
     *  <declaration> = (only <import set> <identifier> ...)
@@ -218,7 +215,7 @@ namespace meevax::inline kernel
     }
     else if (auto iter = libraries().find(lexical_cast<std::string>(form)); iter != libraries().end())
     {
-      return std::get<1>(*iter).resolve();
+      return std::get<1>(*iter).as<library>().resolve();
     }
     else
     {

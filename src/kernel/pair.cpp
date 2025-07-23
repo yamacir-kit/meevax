@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,22 +20,23 @@ namespace meevax::inline kernel
 {
   let unit = nullptr;
 
-  auto pair::equal1(top const* other) const -> bool
+  auto pair::extent() const noexcept -> std::pair<void const*, std::size_t>
   {
-    assert(false);
-    return this == dynamic_cast<pair const*>(other);
+    return { this, sizeof(*this) };
   }
 
-  auto pair::equal2(top const* other) const -> bool
+  auto pair::equal1(pair const* other) const -> bool
   {
-    assert(false);
-    auto pare = dynamic_cast<pair const*>(other);
-    return pare and *this == *pare;
+    return this == other;
+  }
+
+  auto pair::equal2(pair const* other) const -> bool
+  {
+    return other and *this == *other;
   }
 
   auto pair::type() const noexcept -> std::type_info const&
   {
-    assert(false);
     return typeid(pair);
   }
 

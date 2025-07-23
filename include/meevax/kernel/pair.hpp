@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -27,7 +27,8 @@ namespace meevax::inline kernel
 {
   using null = std::nullptr_t;
 
-  using small_integer = std::int32_t;
+  using small_integer = std::int32_t; // Fixed sized integer that can be boxed.
+  using widen_integer = std::int64_t; // Fixed sized integer that is temporarily widened to prevent possible overflow.
 
   struct pair;
 
@@ -71,7 +72,7 @@ namespace meevax::inline kernel
     return make<typename Traits<Ts...>::type, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
-  struct pair : public virtual default_collector::top
+  struct pair : public default_collector::top
               , public std::pair<object, object>
   {
     template <auto Const>
@@ -155,20 +156,15 @@ namespace meevax::inline kernel
       : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
 
-    ~pair() override = default;
+    virtual auto equal1(pair const*) const -> bool;
 
-    auto equal1(top const*) const -> bool override;
+    virtual auto equal2(pair const*) const -> bool;
 
-    auto equal2(top const*) const -> bool override;
+    virtual auto extent() const noexcept -> std::pair<void const*, std::size_t>;
 
-    auto type() const noexcept -> std::type_info const& override;
+    virtual auto type() const noexcept -> std::type_info const&;
 
-    auto write(std::ostream &) const -> std::ostream & override;
-
-    auto view() const noexcept -> std::pair<void const*, void const*> override
-    {
-      return { this, reinterpret_cast<std::byte const*>(this) + sizeof(*this) };
-    }
+    virtual auto write(std::ostream &) const -> std::ostream &;
 
     auto begin() noexcept
     {
@@ -239,15 +235,8 @@ namespace meevax::inline kernel
     }
   }
 
-  inline auto car = [](auto&& x) -> decltype(auto)
-  {
-    return get<0>(std::forward<decltype(x)>(x));
-  };
-
-  inline auto cdr = [](auto&& x) -> decltype(auto)
-  {
-    return get<1>(std::forward<decltype(x)>(x));
-  };
+  inline auto car = [](auto&& x) -> decltype(auto) { return get<0>(std::forward<decltype(x)>(x)); };
+  inline auto cdr = [](auto&& x) -> decltype(auto) { return get<1>(std::forward<decltype(x)>(x)); };
 
   inline constexpr auto caar = compose(car, car);
   inline constexpr auto cadr = compose(car, cdr);

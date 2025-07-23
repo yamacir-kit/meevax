@@ -1,5 +1,5 @@
 /*
-   Copyright 2018-2024 Tatsuya Yamasaki.
+   Copyright 2018-2025 Tatsuya Yamasaki.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -104,32 +104,7 @@ namespace meevax::inline kernel
 
   auto error::report(std::ostream & output) const -> std::ostream &
   {
-    output << red("; error! ", what()) << "\n";
-
-    for (auto const& [doing, x] : contexts)
-    {
-      switch (doing)
-      {
-      case in::running:
-        [[fallthrough]];
-
-      case in::expanding:
-        [[fallthrough]];
-
-      case in::evaluating: // x is expression
-        if (auto context = textual_input_port::contexts.find(x.get()); context != textual_input_port::contexts.end())
-        {
-          output << "; " << context->second << ": " << x << std::endl;
-        }
-        break;
-
-      default:
-        assert(false);
-        break;
-      }
-    }
-
-    return output;
+    return output << red("; error! ", what()) << std::endl;
   }
 
   auto error::what() const noexcept -> char const*
