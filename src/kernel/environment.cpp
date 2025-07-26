@@ -219,18 +219,18 @@ namespace meevax::inline kernel
     }
     else // SRFI 138
     {
-      auto name = std::filesystem::path("");
+      auto pathname = std::filesystem::path("");
 
-      for (auto each : form)
+      for (let const& each : form)
       {
-        name /= lexical_cast<std::string>(each);
+        pathname /= lexical_cast<std::string>(each);
       }
 
-      name.replace_extension("sld");
+      pathname.replace_extension("sld");
 
       for (auto const& directory : environment::directories)
       {
-        if (auto path = directory / name; std::filesystem::exists(path))
+        if (auto path = directory / pathname; std::filesystem::exists(path))
         {
           environment().load(path);
 

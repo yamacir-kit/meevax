@@ -1,7 +1,7 @@
 (import (scheme base)
         (scheme process-context)
         (srfi 78)
-        (test print)
+        (test utility)
         )
 
 (check (procedure? print) => #t)

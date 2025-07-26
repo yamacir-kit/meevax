@@ -1,7 +1,0 @@
-(define-library (test print)
-  (import (scheme base)
-          (scheme write))
-  (export print)
-  (define (print . xs)
-    (for-each display xs)
-    (newline)))
