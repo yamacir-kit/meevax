@@ -211,7 +211,7 @@ endforeach()
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SS)
   get_filename_component(FILENAME ${EACH} NAME_WE)
-  add_test(NAME ${FILENAME} COMMAND ${${PROJECT_NAME}_TEST} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax ${EACH})
+  add_test(NAME ${FILENAME} COMMAND ${${PROJECT_NAME}_TEST} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax -I ${CMAKE_CURRENT_SOURCE_DIR} ${EACH})
 endforeach()
 
 # ---- TARGET continuous-integration -------------------------------------------

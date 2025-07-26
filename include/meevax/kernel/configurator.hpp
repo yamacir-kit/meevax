@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 #define INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 
+#include <list>
 #include <regex>
 
 #include <meevax/kernel/error.hpp>
@@ -46,6 +47,8 @@ namespace meevax::inline kernel
 
     std::vector<std::string> command_line;
 
+    auto static inline directories = std::list<std::filesystem::path>();
+
     auto configure(int const argc, char const* const* const argv)
     {
       for (auto i = 0; i < argc; ++i)
@@ -56,12 +59,38 @@ namespace meevax::inline kernel
       return configure(command_line);
     }
 
+    static auto pseudo_display(let const& x)
+    {
+      if (x.is<character>())
+      {
+        return static_cast<std::string>(x.as<character>());
+      }
+      else if (x.is<string>())
+      {
+        return static_cast<std::string>(x.as<string>());
+      }
+      else
+      {
+        return lexical_cast<std::string>(x);
+      }
+    }
+
     auto configure(std::vector<std::string> const& args) -> void
     {
       auto const static pattern = std::regex(R"(--(\w[-\w]+)(=(.*))?|-([\w]+))");
 
-      auto const options = std::array<option, 6>
+      auto const options = std::array<option, 8>
       {
+        option("(A|append-directory)", [](auto read)
+        {
+          directories.emplace_back(std::filesystem::canonical(pseudo_display(read())));
+        }),
+
+        option("(I|prepend-directory)", [](auto read)
+        {
+          directories.emplace_front(std::filesystem::canonical(pseudo_display(read())));
+        }),
+
         option("(i|interactive)", [this](auto)
         {
           interactive = true;

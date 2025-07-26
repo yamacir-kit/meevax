@@ -217,8 +217,30 @@ namespace meevax::inline kernel
     {
       return std::get<1>(*iter).as<library>().resolve();
     }
-    else
+    else // SRFI 138
     {
+      auto name = std::filesystem::path("");
+
+      for (auto each : form)
+      {
+        name /= lexical_cast<std::string>(each);
+      }
+
+      name.replace_extension("sld");
+
+      for (auto const& directory : environment::directories)
+      {
+        if (auto path = directory / name; std::filesystem::exists(path))
+        {
+          environment().load(path);
+
+          if (auto iterator = libraries().find(lexical_cast<std::string>(form)); iterator != libraries().end())
+          {
+            return std::get<1>(*iterator).as<library>().resolve();
+          }
+        }
+      }
+
       throw error(make<string>("No such library"), form);
     }
   }
