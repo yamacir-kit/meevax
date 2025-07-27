@@ -228,7 +228,7 @@ namespace meevax::inline kernel
 
       pathname.replace_extension("sld");
 
-      for (auto const& directory : environment::directories)
+      for (auto const& directory : configurator::directories)
       {
         if (auto path = directory / pathname; std::filesystem::exists(path))
         {
@@ -282,8 +282,6 @@ namespace meevax::inline kernel
   {
     return os << magenta("#,(") << green("environment ") << faint("#;", &datum) << magenta(")");
   }
-
-  template struct configurator<environment>;
 
   template struct syntactic_environment<environment>;
 } // namespace meevax::kernel

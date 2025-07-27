@@ -16,6 +16,7 @@
 
 #include <meevax/kernel/conditional_expand.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/version.hpp> // features
 
 namespace meevax::inline kernel
 {

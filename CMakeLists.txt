@@ -184,6 +184,8 @@ endif()
 
 enable_testing()
 
+set(ENV{CTEST_OUTPUT_ON_FAILURE} ON)
+
 find_program(${PROJECT_NAME}_VALGRIND valgrind)
 
 if(${PROJECT_NAME}_VALGRIND STREQUAL ${PROJECT_NAME}_VALGRIND-NOTFOUND)

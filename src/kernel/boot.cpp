@@ -39,10 +39,12 @@
 #include <meevax/kernel/output_file_port.hpp>
 #include <meevax/kernel/output_homogeneous_vector_port.hpp>
 #include <meevax/kernel/output_string_port.hpp>
+#include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/standard_error_port.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
 #include <meevax/kernel/standard_output_port.hpp>
 #include <meevax/kernel/vector.hpp>
+#include <meevax/kernel/version.hpp>
 
 extern char ** environ; // for procedure get-environment-variables
 
@@ -258,7 +260,7 @@ namespace meevax::inline kernel
       {
         let xs = list();
 
-        for (auto&& each : interaction_environment().as<environment>().command_line)
+        for (auto&& each : configurator::command_line)
         {
           xs = cons(make<string>(each), xs);
         }

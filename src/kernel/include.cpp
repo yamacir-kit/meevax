@@ -28,7 +28,7 @@ namespace meevax::inline kernel
     {
       auto pathname = std::filesystem::path(name.as<string>());
 
-      for (auto const& directory : environment::directories)
+      for (auto const& directory : configurator::directories)
       {
         if (auto path = directory / pathname; std::filesystem::exists(path))
         {

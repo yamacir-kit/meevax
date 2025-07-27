@@ -2,7 +2,9 @@
 
 #include <cassert>
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/vector.hpp>
+#include <meevax/kernel/procedure.hpp>
 
 auto main() -> int
 {
