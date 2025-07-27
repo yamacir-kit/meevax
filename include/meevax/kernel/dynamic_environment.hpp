@@ -70,8 +70,8 @@ namespace meevax::inline kernel
     {
       s = list(procedure, list(std::forward<decltype(xs)>(xs)...));
       e = nullptr;
-      c = list(make(instruction::call),
-               make(instruction::stop));
+      c = list(make(instruction::secd_call),
+               make(instruction::secd_stop));
       d = nullptr;
 
       return run();

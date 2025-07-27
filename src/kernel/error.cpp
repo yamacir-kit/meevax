@@ -49,52 +49,52 @@ namespace meevax::inline kernel
 
     switch (car(c).as<instruction>())
     {
-    case instruction::join:
-    case instruction::tail_call:
-    case instruction::tail_letrec:
-    case instruction::return_:
-    case instruction::stop:
+    case instruction::secd_join:
+    case instruction::secd_tail_call:
+    case instruction::secd_tail_letrec:
+    case instruction::secd_return:
+    case instruction::secd_stop:
       output << std::string(depth, ' ') << car(c) << '\n';
       assert(cdr(c).is<null>());
       break;
 
-    case instruction::call:
-    case instruction::cons:
-    case instruction::drop:
-    case instruction::dummy:
-    case instruction::letrec:
+    case instruction::secd_call:
+    case instruction::secd_cons:
+    case instruction::secd_drop:
+    case instruction::secd_dummy:
+    case instruction::secd_letrec:
       output << std::string(depth, ' ') << car(c) << '\n';
       disassemble(output, cdr(c), depth);
       break;
 
-    case instruction::current:
-    case instruction::install:
-    case instruction::load_absolute:
-    case instruction::load_constant:
-    case instruction::load_relative:
-    case instruction::load_variadic:
-    case instruction::store_absolute:
-    case instruction::store_relative:
-    case instruction::store_variadic:
+    case instruction::secd_current:
+    case instruction::secd_install:
+    case instruction::secd_load_absolute:
+    case instruction::secd_load_constant:
+    case instruction::secd_load_relative:
+    case instruction::secd_load_variadic:
+    case instruction::secd_store_absolute:
+    case instruction::secd_store_relative:
+    case instruction::secd_store_variadic:
       output << std::string(depth, ' ') << car(c) << ' ' << cadr(c) << '\n';
       disassemble(output, cddr(c), depth);
       break;
 
-    case instruction::load_closure:
-    case instruction::load_continuation:
+    case instruction::secd_load_closure:
+    case instruction::secd_load_continuation:
       output << std::string(depth, ' ') << car(c) << '\n';
       disassemble(output, cadr(c), depth + 2);
       disassemble(output, cddr(c), depth);
       break;
 
-    case instruction::select:
+    case instruction::secd_select:
       output << std::string(depth, ' ') << car(c) << '\n';
       disassemble(output, cadr(c), depth + 2);
       disassemble(output, caddr(c), depth + 2);
       disassemble(output, cdddr(c), depth);
       break;
 
-    case instruction::tail_select:
+    case instruction::secd_tail_select:
       output << std::string(depth, ' ') << car(c) << '\n';
       disassemble(output, cadr(c), depth + 2);
       disassemble(output, caddr(c), depth + 2);

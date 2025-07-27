@@ -23,29 +23,29 @@ namespace meevax::inline kernel
 {
   enum class instruction
   {
-    call,              // a.k.a APP
-    cons,              //
-    current,           //
-    drop,              //
-    dummy,             // a.k.a DUM
-    install,           //
-    join,              //
-    letrec,            // a.k.a RAP
-    load_absolute,     // a.k.a LDG
-    load_closure,      // a.k.a LDF
-    load_constant,     // a.k.a LDC
-    load_continuation, //
-    load_relative,     // a.k.a LDL
-    load_variadic,     //
-    return_,           // a.k.a RTN
-    select,            // a.k.a SEL
-    stop,              //
-    store_absolute,    //
-    store_relative,    //
-    store_variadic,    //
-    tail_call,         //
-    tail_letrec,       //
-    tail_select,       //
+    secd_call,              // a.k.a APP
+    secd_cons,              //
+    secd_current,           //
+    secd_drop,              //
+    secd_dummy,             // a.k.a DUM
+    secd_install,           //
+    secd_join,              //
+    secd_letrec,            // a.k.a RAP
+    secd_load_absolute,     // a.k.a LDG
+    secd_load_closure,      // a.k.a LDF
+    secd_load_constant,     // a.k.a LDC
+    secd_load_continuation, //
+    secd_load_relative,     // a.k.a LDL
+    secd_load_variadic,     //
+    secd_return,            // a.k.a RTN
+    secd_select,            // a.k.a SEL
+    secd_stop,              //
+    secd_store_absolute,    //
+    secd_store_relative,    //
+    secd_store_variadic,    //
+    secd_tail_call,         //
+    secd_tail_letrec,       //
+    secd_tail_select,       //
   };
 
   auto operator <<(std::ostream &, instruction const&) -> std::ostream &;

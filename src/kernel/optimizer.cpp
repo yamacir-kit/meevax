@@ -68,51 +68,51 @@ namespace meevax::inline kernel
 
     switch (car(c).as<instruction>())
     {
-    case instruction::join:
-    case instruction::tail_call:
-    case instruction::tail_letrec:
-    case instruction::return_:
-    case instruction::stop:
+    case instruction::secd_join:
+    case instruction::secd_tail_call:
+    case instruction::secd_tail_letrec:
+    case instruction::secd_return:
+    case instruction::secd_stop:
       assert(cdr(c).is<null>());
       break;
 
-    case instruction::call:
-    case instruction::cons:
-    case instruction::drop:
-    case instruction::dummy:
-    case instruction::letrec:
+    case instruction::secd_call:
+    case instruction::secd_cons:
+    case instruction::secd_drop:
+    case instruction::secd_dummy:
+    case instruction::secd_letrec:
       analyze(cdr(c));
       a.adjacency(car(c), cadr(c))++;
       break;
 
-    case instruction::current:
-    case instruction::install:
-    case instruction::load_absolute:
-    case instruction::load_constant:
-    case instruction::load_relative:
-    case instruction::load_variadic:
-    case instruction::store_absolute:
-    case instruction::store_relative:
-    case instruction::store_variadic:
+    case instruction::secd_current:
+    case instruction::secd_install:
+    case instruction::secd_load_absolute:
+    case instruction::secd_load_constant:
+    case instruction::secd_load_relative:
+    case instruction::secd_load_variadic:
+    case instruction::secd_store_absolute:
+    case instruction::secd_store_relative:
+    case instruction::secd_store_variadic:
       analyze(cddr(c));
       a.adjacency(car(c), caddr(c))++;
       break;
 
-    case instruction::load_closure:
-    case instruction::load_continuation:
+    case instruction::secd_load_closure:
+    case instruction::secd_load_continuation:
       analyze(cadr(c));
       analyze(cddr(c));
       a.adjacency(car(c), caddr(c))++;
       break;
 
-    case instruction::select:
+    case instruction::secd_select:
       analyze(cadr(c));
       analyze(caddr(c));
       analyze(cdddr(c));
       a.adjacency(car(c), cadddr(c))++;
       break;
 
-    case instruction::tail_select:
+    case instruction::secd_tail_select:
       assert(cdddr(c).is<null>());
       analyze(cadr(c));
       analyze(caddr(c));
@@ -128,7 +128,7 @@ namespace meevax::inline kernel
 
     switch (car(c).as<instruction>())
     {
-    case instruction::load_constant: /* ----------------------------------------
+    case instruction::secd_load_constant: /* -----------------------------------
     *
     *  (load-constant x
     *   load-constant y
@@ -140,9 +140,9 @@ namespace meevax::inline kernel
     *
     * ----------------------------------------------------------------------- */
       if (cddr(c).is<pair>() and
-          caddr(c).is<instruction>() and caddr(c).as<instruction>() == instruction::load_constant and
+          caddr(c).is<instruction>() and caddr(c).as<instruction>() == instruction::secd_load_constant and
           cddddr(c).is<pair>() and
-          caddddr(c).is<instruction>() and caddddr(c).as<instruction>() == instruction::cons)
+          caddddr(c).is<instruction>() and caddddr(c).as<instruction>() == instruction::secd_cons)
       {
         cadr(c) = cons(cadddr(c), cadr(c));
         cddr(c) = cdddddr(c);
@@ -154,46 +154,46 @@ namespace meevax::inline kernel
       }
       break;
 
-    case instruction::join:
-    case instruction::tail_call:
-    case instruction::tail_letrec:
-    case instruction::return_:
-    case instruction::stop:
+    case instruction::secd_join:
+    case instruction::secd_tail_call:
+    case instruction::secd_tail_letrec:
+    case instruction::secd_return:
+    case instruction::secd_stop:
       assert(cdr(c).is<null>());
       break;
 
-    case instruction::call:
-    case instruction::cons:
-    case instruction::drop:
-    case instruction::dummy:
-    case instruction::letrec:
+    case instruction::secd_call:
+    case instruction::secd_cons:
+    case instruction::secd_drop:
+    case instruction::secd_dummy:
+    case instruction::secd_letrec:
       merge_constants(cdr(c));
       break;
 
-    case instruction::current:
-    case instruction::install:
-    case instruction::load_absolute:
-    case instruction::load_relative:
-    case instruction::load_variadic:
-    case instruction::store_absolute:
-    case instruction::store_relative:
-    case instruction::store_variadic:
+    case instruction::secd_current:
+    case instruction::secd_install:
+    case instruction::secd_load_absolute:
+    case instruction::secd_load_relative:
+    case instruction::secd_load_variadic:
+    case instruction::secd_store_absolute:
+    case instruction::secd_store_relative:
+    case instruction::secd_store_variadic:
       merge_constants(cddr(c));
       break;
 
-    case instruction::load_closure:
-    case instruction::load_continuation:
+    case instruction::secd_load_closure:
+    case instruction::secd_load_continuation:
       merge_constants(cadr(c));
       merge_constants(cddr(c));
       break;
 
-    case instruction::select:
+    case instruction::secd_select:
       merge_constants(cadr(c));
       merge_constants(caddr(c));
       merge_constants(cdddr(c));
       break;
 
-    case instruction::tail_select:
+    case instruction::secd_tail_select:
       assert(cdddr(c).is<null>());
       merge_constants(cadr(c));
       merge_constants(caddr(c));
