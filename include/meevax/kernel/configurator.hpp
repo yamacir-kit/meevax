@@ -17,10 +17,12 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 #define INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 
+#include <list>
 #include <regex>
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/input_string_port.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
@@ -42,11 +44,13 @@ namespace meevax::inline kernel
       {}
     };
 
-    bool interactive = false;
+    auto static inline interactive = false;
 
-    std::vector<std::string> command_line;
+    auto static inline command_line = std::vector<std::string>();
 
-    auto configure(int const argc, char const* const* const argv)
+    auto static inline directories = std::list<std::filesystem::path>();
+
+    auto static configure(int const argc, char const* const* const argv)
     {
       for (auto i = 0; i < argc; ++i)
       {
@@ -56,37 +60,61 @@ namespace meevax::inline kernel
       return configure(command_line);
     }
 
-    auto configure(std::vector<std::string> const& args) -> void
+    auto static pseudo_display(let const& x)
+    {
+      if (x.is<character>())
+      {
+        return static_cast<std::string>(x.as<character>());
+      }
+      else if (x.is<string>())
+      {
+        return static_cast<std::string>(x.as<string>());
+      }
+      else
+      {
+        return lexical_cast<std::string>(x);
+      }
+    }
+
+    auto static configure(std::vector<std::string> const& args) -> void
     {
       auto const static pattern = std::regex(R"(--(\w[-\w]+)(=(.*))?|-([\w]+))");
 
-      auto const options = std::array<option, 6>
+      auto const static options = std::array<option, 8>
       {
-        option("(i|interactive)", [this](auto)
+        option("(A|append-directory)", [](auto read)
+        {
+          directories.emplace_back(std::filesystem::canonical(pseudo_display(read())));
+        }),
+
+        option("(I|prepend-directory)", [](auto read)
+        {
+          directories.emplace_front(std::filesystem::canonical(pseudo_display(read())));
+        }),
+
+        option("(i|interactive)", [](auto)
         {
           interactive = true;
         }),
 
-        option("(e|evaluate)", [this](auto read)
+        option("(e|evaluate)", [](auto read)
         {
-          static_cast<Environment &>(*this).evaluate(read());
+          interaction_environment().as<Environment>().evaluate(read());
         }),
 
         option("(h|help)", [](auto)
         {
           std::cout << help() << std::endl;
-          throw EXIT_SUCCESS;
         }),
 
-        option("(l|load)", [this](auto read)
+        option("(l|load)", [](auto read)
         {
-          static_cast<Environment &>(*this).load(static_cast<std::filesystem::path>(read().template as<string>()));
+          interaction_environment().as<Environment>().load(static_cast<std::filesystem::path>(read().template as<string>()));
         }),
 
         option("(v|version)", [](auto)
         {
           std::cout << version() << std::endl;
-          throw EXIT_SUCCESS;
         }),
 
         option("(w|write)", [](auto read)

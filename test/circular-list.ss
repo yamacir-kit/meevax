@@ -3,11 +3,8 @@
         (scheme process-context)
         (scheme write)
         (only (srfi 1) circular-list?)
-        (srfi 78))
-
-(define (print . xs)
-  (for-each display xs)
-  (newline))
+        (srfi 78)
+        (test utility))
 
 (let ((x (list 'a 'b 'c 'd)))
   (set-cdr! (cdddr x) x)

@@ -217,25 +217,47 @@ namespace meevax::inline kernel
     {
       return std::get<1>(*iter).as<library>().resolve();
     }
-    else
+    else // SRFI 138
     {
+      auto pathname = std::filesystem::path("");
+
+      for (let const& each : form)
+      {
+        pathname /= lexical_cast<std::string>(each);
+      }
+
+      pathname.replace_extension("sld");
+
+      for (auto const& directory : environment::directories)
+      {
+        if (auto path = directory / pathname; std::filesystem::exists(path))
+        {
+          environment().load(path);
+
+          if (auto iterator = libraries().find(lexical_cast<std::string>(form)); iterator != libraries().end())
+          {
+            return std::get<1>(*iterator).as<library>().resolve();
+          }
+        }
+      }
+
       throw error(make<string>("No such library"), form);
     }
   }
 
   auto environment::import(object const& import_set) -> void
   {
-    for (let const& immigrant : resolve(import_set))
+    for (let const& x : resolve(import_set))
     {
-      assert(immigrant.is<absolute>());
+      assert(x.is<absolute>());
 
-      if (let const& inhabitant = std::as_const(*this).identify(car(immigrant), unit); inhabitant == f or interactive)
+      if (let const& y = std::as_const(*this).identify(car(x), unit); y == f or this == std::addressof(interaction_environment().as<environment>()))
       {
-        second = cons(immigrant, second);
+        second = cons(x, second);
       }
-      else if (immigrant != inhabitant)
+      else if (x != y)
       {
-        throw error(make<string>("in a program or library declaration, it is an error to import the same identifier more than once with different bindings"), immigrant);
+        throw error(make<string>("in a program or library declaration, it is an error to import the same identifier more than once with different bindings"), x);
       }
     }
   }
