@@ -430,6 +430,33 @@ namespace meevax::inline kernel
       library.define<double>("phi",   std::numbers::phi);
     });
 
+    define<library>("(meevax instruction)", [](library & library)
+    {
+      library.define<instruction>("secd-call",              instruction::call             );
+      library.define<instruction>("secd-cons",              instruction::cons             );
+      library.define<instruction>("secd-current",           instruction::current          );
+      library.define<instruction>("secd-drop",              instruction::drop             );
+      library.define<instruction>("secd-dummy",             instruction::dummy            );
+      library.define<instruction>("secd-install",           instruction::install          );
+      library.define<instruction>("secd-join",              instruction::join             );
+      library.define<instruction>("secd-letrec",            instruction::letrec           );
+      library.define<instruction>("secd-load-absolute",     instruction::load_absolute    );
+      library.define<instruction>("secd-load-closure",      instruction::load_closure     );
+      library.define<instruction>("secd-load-constant",     instruction::load_constant    );
+      library.define<instruction>("secd-load-continuation", instruction::load_continuation);
+      library.define<instruction>("secd-load-relative",     instruction::load_relative    );
+      library.define<instruction>("secd-load-variadic",     instruction::load_variadic    );
+      library.define<instruction>("secd-return",            instruction::return_          );
+      library.define<instruction>("secd-select",            instruction::select           );
+      library.define<instruction>("secd-stop",              instruction::stop             );
+      library.define<instruction>("secd-store-absolute",    instruction::store_absolute   );
+      library.define<instruction>("secd-store-relative",    instruction::store_relative   );
+      library.define<instruction>("secd-store-variadic",    instruction::store_variadic   );
+      library.define<instruction>("secd-tail-call",         instruction::tail_call        );
+      library.define<instruction>("secd-tail-letrec",       instruction::tail_letrec      );
+      library.define<instruction>("secd-tail-select",       instruction::tail_select      );
+    });
+
     define<library>("(meevax integer32)", [](library & library)
     {
       EXPORT_PREDICATE(small_integer, "integer32?");
