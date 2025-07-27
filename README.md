@@ -101,9 +101,9 @@ Then, select one of the following targets and `make` it according to your purpos
 
 | Target      | Description
 |-------------|-------------
-| `all`       | Build shared-library `libmeevax.0.5.403.so` and executable `meevax`.
+| `all`       | Build shared-library `libmeevax.0.5.404.so` and executable `meevax`.
 | `install`   | Copy files into `/usr/local` directly.
-| `package`   | Generate debian package `meevax_0.5.403_amd64.deb` (only Ubuntu). The generated package can be installed by `sudo apt install build/meevax_0.5.403_amd64.deb`.
+| `package`   | Generate debian package `meevax_0.5.404_amd64.deb` (only Ubuntu). The generated package can be installed by `sudo apt install build/meevax_0.5.404_amd64.deb`.
 | `test`      | Test executable `meevax`. This target requires Valgrind to be installed.
 | `uninstall` | Remove files copied to `/usr/local` directly by target `install`.
 
