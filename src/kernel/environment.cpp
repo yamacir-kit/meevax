@@ -109,7 +109,7 @@ namespace meevax::inline kernel
     return execute(optimize(compile(expression)));
   }
 
-  auto resolve(object const& form) -> object
+  auto import_set(object const& form) -> object
   {
     assert(form.is<pair>());
 
@@ -119,21 +119,13 @@ namespace meevax::inline kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      auto only = [](let const& import_set)
+      auto only = [identifiers = cddr(form)](let const& identity)
       {
-        return [=](let const& identities)
-        {
-          return filter([&](let const& identity)
-                        {
-                          assert(identity.is<absolute>());
-                          return memq(car(identity), identities) != f;
-                        },
-                        resolve(import_set));
-        };
+        assert(identity.is<absolute>());
+        return memq(car(identity), identifiers) != f;
       };
 
-      return only(cadr(form))
-                 (cddr(form));
+      return filter(only, import_set(cadr(form)));
     }
     else if (car(form).as<symbol>() == "except") /* ----------------------------
     *
@@ -141,21 +133,13 @@ namespace meevax::inline kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      auto except = [](let const& import_set)
+      auto except = [identifiers = cddr(form)](let const& identity)
       {
-        return [=](let const& identities)
-        {
-          return filter([&](let const& identity)
-                        {
-                          assert(identity.is<absolute>());
-                          return memq(car(identity), identities) == f;
-                        },
-                        resolve(import_set));
-        };
+        assert(identity.is<absolute>());
+        return memq(car(identity), identifiers) == f;
       };
 
-      return except(cadr(form))
-                   (cddr(form));
+      return filter(except, import_set(cadr(form)));
     }
     else if (car(form).as<symbol>() == "prefix") /* ----------------------------
     *
@@ -163,22 +147,15 @@ namespace meevax::inline kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      auto prefix = [](let const& import_set)
+      auto prefix = [prefix = caddr(form)](let const& identity)
       {
-        return [=](let const& prefixes)
-        {
-          return map([&](let const& identity)
-                     {
-                       assert(identity.is<absolute>());
-                       return make<absolute>(make_symbol(lexical_cast<std::string>(car(prefixes)) + lexical_cast<std::string>(car(identity))),
-                                             cdr(identity));
-                     },
-                     resolve(import_set));
-        };
+        assert(identity.is<absolute>());
+        return make<absolute>(make_symbol(lexical_cast<std::string>(prefix) +
+                                          lexical_cast<std::string>(car(identity))),
+                              cdr(identity));
       };
 
-      return prefix(cadr(form))
-                   (cddr(form));
+      return map(prefix, import_set(cadr(form)));
     }
     else if (car(form).as<symbol>() == "rename") /* ----------------------------
     *
@@ -187,35 +164,27 @@ namespace meevax::inline kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      auto rename = [](let const& import_set)
+      auto rename = [renamings = cddr(form)](let const& identity) -> object
       {
-        return [=](let const& renamings)
-        {
-          return map([&](let const& identity) -> object
-                     {
-                       assert(identity.is<absolute>());
-                       assert(car(identity).is_also<identifier>());
+        assert(identity.is<absolute>());
+        assert(car(identity).is_also<identifier>());
 
-                       if (let const& renaming = assq(car(identity), renamings); renaming != f)
-                       {
-                         assert(cadr(renaming).is<symbol>());
-                         return make<absolute>(cadr(renaming), cdr(identity));
-                       }
-                       else
-                       {
-                         return identity;
-                       }
-                     },
-                     resolve(import_set));
-        };
+        if (let const& renaming = assq(car(identity), renamings); renaming != f)
+        {
+          assert(cadr(renaming).is<symbol>());
+          return make<absolute>(cadr(renaming), cdr(identity));
+        }
+        else
+        {
+          return identity;
+        }
       };
 
-      return rename(cadr(form))
-                   (cddr(form));
+      return map(rename, import_set(cadr(form)));
     }
     else if (auto iter = libraries().find(lexical_cast<std::string>(form)); iter != libraries().end())
     {
-      return std::get<1>(*iter).as<library>().resolve();
+      return std::get<1>(*iter).as<library>().import_set();
     }
     else // SRFI 138
     {
@@ -236,7 +205,7 @@ namespace meevax::inline kernel
 
           if (auto iterator = libraries().find(lexical_cast<std::string>(form)); iterator != libraries().end())
           {
-            return std::get<1>(*iterator).as<library>().resolve();
+            return std::get<1>(*iterator).as<library>().import_set();
           }
         }
       }
@@ -245,9 +214,9 @@ namespace meevax::inline kernel
     }
   }
 
-  auto environment::import(object const& import_set) -> void
+  auto environment::import(object const& form) -> void
   {
-    for (let const& x : resolve(import_set))
+    for (let const& x : import_set(form))
     {
       assert(x.is<absolute>());
 

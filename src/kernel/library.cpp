@@ -64,7 +64,7 @@ namespace meevax::inline kernel
     return evaluator.evaluate(declaration); // Non-standard extension.
   }
 
-  auto library::resolve() -> object
+  auto library::import_set() -> object
   {
     if (let const unresolved_declarations = std::exchange(declarations, unit); unresolved_declarations.is<pair>())
     {
