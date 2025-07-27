@@ -247,17 +247,17 @@ namespace meevax::inline kernel
 
   auto environment::import(object const& import_set) -> void
   {
-    for (let const& immigrant : resolve(import_set))
+    for (let const& x : resolve(import_set))
     {
-      assert(immigrant.is<absolute>());
+      assert(x.is<absolute>());
 
-      if (let const& inhabitant = std::as_const(*this).identify(car(immigrant), unit); inhabitant == f or interactive)
+      if (let const& y = std::as_const(*this).identify(car(x), unit); y == f or this == std::addressof(interaction_environment().as<environment>()))
       {
-        second = cons(immigrant, second);
+        second = cons(x, second);
       }
-      else if (immigrant != inhabitant)
+      else if (x != y)
       {
-        throw error(make<string>("in a program or library declaration, it is an error to import the same identifier more than once with different bindings"), immigrant);
+        throw error(make<string>("in a program or library declaration, it is an error to import the same identifier more than once with different bindings"), x);
       }
     }
   }

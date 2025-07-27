@@ -22,6 +22,7 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/input_string_port.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
@@ -43,13 +44,13 @@ namespace meevax::inline kernel
       {}
     };
 
-    bool interactive = false;
+    auto static inline interactive = false;
 
-    std::vector<std::string> command_line;
+    auto static inline command_line = std::vector<std::string>();
 
     auto static inline directories = std::list<std::filesystem::path>();
 
-    auto configure(int const argc, char const* const* const argv)
+    auto static configure(int const argc, char const* const* const argv)
     {
       for (auto i = 0; i < argc; ++i)
       {
@@ -59,7 +60,7 @@ namespace meevax::inline kernel
       return configure(command_line);
     }
 
-    static auto pseudo_display(let const& x)
+    auto static pseudo_display(let const& x)
     {
       if (x.is<character>())
       {
@@ -75,11 +76,11 @@ namespace meevax::inline kernel
       }
     }
 
-    auto configure(std::vector<std::string> const& args) -> void
+    auto static configure(std::vector<std::string> const& args) -> void
     {
       auto const static pattern = std::regex(R"(--(\w[-\w]+)(=(.*))?|-([\w]+))");
 
-      auto const options = std::array<option, 8>
+      auto const static options = std::array<option, 8>
       {
         option("(A|append-directory)", [](auto read)
         {
@@ -91,31 +92,29 @@ namespace meevax::inline kernel
           directories.emplace_front(std::filesystem::canonical(pseudo_display(read())));
         }),
 
-        option("(i|interactive)", [this](auto)
+        option("(i|interactive)", [](auto)
         {
           interactive = true;
         }),
 
-        option("(e|evaluate)", [this](auto read)
+        option("(e|evaluate)", [](auto read)
         {
-          static_cast<Environment &>(*this).evaluate(read());
+          interaction_environment().as<Environment>().evaluate(read());
         }),
 
         option("(h|help)", [](auto)
         {
           std::cout << help() << std::endl;
-          throw EXIT_SUCCESS;
         }),
 
-        option("(l|load)", [this](auto read)
+        option("(l|load)", [](auto read)
         {
-          static_cast<Environment &>(*this).load(static_cast<std::filesystem::path>(read().template as<string>()));
+          interaction_environment().as<Environment>().load(static_cast<std::filesystem::path>(read().template as<string>()));
         }),
 
         option("(v|version)", [](auto)
         {
           std::cout << version() << std::endl;
-          throw EXIT_SUCCESS;
         }),
 
         option("(w|write)", [](auto read)
