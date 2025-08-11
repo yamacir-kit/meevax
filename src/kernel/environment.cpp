@@ -188,7 +188,7 @@ namespace meevax::inline kernel
     }
     else // SRFI 138
     {
-      auto pathname = std::filesystem::path("");
+      auto pathname = std::filesystem::path();
 
       for (let const& each : form)
       {

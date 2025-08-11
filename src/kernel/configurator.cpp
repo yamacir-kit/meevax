@@ -53,14 +53,19 @@ namespace meevax::inline kernel
   {
     auto const static pattern = std::regex(R"(--(\w[-\w]+)(=(.*))?|-([\w]+))");
 
-    auto const static options = std::array<option, 8>
+    auto const static options = std::array<option, 9>
     {
-      option("(A|append-directory)", [](auto read)
+      option("(A|append-directory)", [](auto read) // SRFI 138
       {
         directories.emplace_back(std::filesystem::canonical(pseudo_display(read())));
       }),
 
-      option("(I|prepend-directory)", [](auto read)
+      option("(D|define-feature-identifier)", [](auto read) // SRFI 138
+      {
+        features() = cons(read(), features());
+      }),
+
+      option("(I|prepend-directory)", [](auto read) // SRFI 138
       {
         directories.emplace_front(std::filesystem::canonical(pseudo_display(read())));
       }),
