@@ -4,7 +4,7 @@
         (scheme write)
         (only (srfi 1) circular-list?)
         (srfi 78)
-        (test utility))
+        (test write))
 
 (let ((x (list 'a 'b 'c 'd)))
   (set-cdr! (cdddr x) x)

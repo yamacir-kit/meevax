@@ -4,7 +4,7 @@
         (scheme process-context)
         (scheme write)
         (srfi 78)
-        (test utility))
+        (test write))
 
 ; ---- DEFINE-SYNTAX -----------------------------------------------------------
 

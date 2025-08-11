@@ -1,5 +1,5 @@
-(define-library (test utility)
+(define-library (test write)
   (import (scheme base)
           (scheme write))
   (export print)
-  (include "utility/print.ss"))
+  (include "write/print.ss"))
