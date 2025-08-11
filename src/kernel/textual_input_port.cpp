@@ -109,6 +109,11 @@ namespace meevax::inline kernel
     return iterator(*this);
   }
 
+  auto textual_input_port::cons(object const& a, object const& b) -> object
+  {
+    return meevax::cons(a, b);
+  }
+
   auto textual_input_port::end() -> iterator
   {
     return iterator();

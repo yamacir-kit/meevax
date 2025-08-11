@@ -17,12 +17,10 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_TEXTUAL_INPUT_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_TEXTUAL_INPUT_PORT_HPP
 
-#include <filesystem>
-#include <istream>
-
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/input_port.hpp>
 #include <meevax/kernel/string.hpp>
+#include <meevax/kernel/textual_context.hpp>
 #include <meevax/kernel/textual_port.hpp>
 
 namespace meevax::inline kernel
@@ -113,6 +111,8 @@ namespace meevax::inline kernel
 
       return s;
     }
+
+    virtual auto cons(object const&, object const&) -> object;
 
     virtual auto istream() -> std::istream & = 0;
 

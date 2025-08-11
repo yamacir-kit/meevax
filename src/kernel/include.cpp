@@ -26,19 +26,9 @@ namespace meevax::inline kernel
   {
     auto open = [&](object const& name) // SRFI 138
     {
-      auto pathname = std::filesystem::path(name.as<string>());
-
-      for (auto const& directory : configurator::directories)
-      {
-        if (auto path = directory / pathname; std::filesystem::exists(path))
-        {
-          auto port = input_file_port(path);
-          port.case_sensitive = case_sensitive;
-          return port;
-        }
-      }
-
-      throw error(make<string>("No such file"), name);
+      auto port = input_file_port(textual_context::of(names).resolve(std::filesystem::path(name.as<string>())));
+      port.case_sensitive = case_sensitive;
+      return port;
     };
 
     if (names.is<pair>())

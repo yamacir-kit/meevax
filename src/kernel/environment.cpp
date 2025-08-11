@@ -197,17 +197,11 @@ namespace meevax::inline kernel
 
       pathname.replace_extension("sld");
 
-      for (auto const& directory : configurator::directories)
-      {
-        if (auto path = directory / pathname; std::filesystem::exists(path))
-        {
-          environment().load(path);
+      environment().load(textual_context::of(form).resolve(pathname));
 
-          if (auto iterator = libraries().find(lexical_cast<std::string>(form)); iterator != libraries().end())
-          {
-            return std::get<1>(*iterator).as<library>().import_set();
-          }
-        }
+      if (auto iterator = libraries().find(lexical_cast<std::string>(form)); iterator != libraries().end())
+      {
+        return std::get<1>(*iterator).as<library>().import_set();
       }
 
       throw error(make<string>("No such library"), form);
