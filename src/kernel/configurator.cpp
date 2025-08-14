@@ -55,17 +55,17 @@ namespace meevax::inline kernel
 
     auto const static options = std::array<option, 9>
     {
-      option("(A|append-directory)", [](auto read) // SRFI 138
+      option("(A)", [](auto read) // SRFI 138
       {
         directories.emplace_back(std::filesystem::canonical(pseudo_display(read())));
       }),
 
-      option("(D|define-feature-identifier)", [](auto read) // SRFI 138
+      option("(D)", [](auto read) // SRFI 138
       {
         features() = cons(read(), features());
       }),
 
-      option("(I|prepend-directory)", [](auto read) // SRFI 138
+      option("(I)", [](auto read) // SRFI 138
       {
         directories.emplace_front(std::filesystem::canonical(pseudo_display(read())));
       }),

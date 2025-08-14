@@ -101,9 +101,9 @@ Then, select one of the following targets and `make` it according to your purpos
 
 | Target      | Description
 |-------------|-------------
-| `all`       | Build shared-library `libmeevax.0.5.410.so` and executable `meevax`.
+| `all`       | Build shared-library `libmeevax.0.5.411.so` and executable `meevax`.
 | `install`   | Copy files into `/usr/local` directly.
-| `package`   | Generate debian package `meevax_0.5.410_amd64.deb` (only Ubuntu). The generated package can be installed by `sudo apt install build/meevax_0.5.410_amd64.deb`.
+| `package`   | Generate debian package `meevax_0.5.411_amd64.deb` (only Ubuntu). The generated package can be installed by `sudo apt install build/meevax_0.5.411_amd64.deb`.
 | `test`      | Test executable `meevax`. This target requires Valgrind to be installed.
 | `uninstall` | Remove files copied to `/usr/local` directly by target `install`.
 
@@ -114,12 +114,29 @@ Usage:
   meevax [OPTION...] [FILE...]
 
 Options:
-  -e, --evaluate=STRING  read and evaluate STRING on interaction-environment
-  -h, --help             display this help and exit
-  -i, --interactive      enter an interactive session
-  -l, --load=FILE        load FILE into interaction-environment
-  -v, --version          display version information and exit
-  -w, --write=STRING     same as `(write (read STRING))`
+  -A DIRECTORY          Append DIRECTORY to the list of directories that are
+                        searched in order to locate imported libraries.
+
+  -D NAME               Add NAME to the list of feature identifiers.
+
+  -I DIRECTORY          Prepend DIRECTORY to the list of directories that are
+                        searched in order to locate imported libraries.
+
+  -e, --evaluate STRING
+                        Read and evaluate STRING as a S-expression in the
+                        interaction environment.
+
+  -h, --help            Display this help message and exit.
+
+  -i, --interactive     After evaluating any FILEs given as arguments, enter
+                        the REPL session.
+
+  -l, --load FILE       Load FILE into the interaction environment.
+
+  -v, --version         Display version information and exit.
+
+  -w, --write STRING    Read STRING as a S-expression and write it to standard
+                        output. Equivalent to `(write (read STRING))`.
 ```
 
 ## License
