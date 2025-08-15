@@ -44,7 +44,7 @@ namespace meevax::inline kernel
 
     explicit string(std::string const&);
 
-    operator std::filesystem::path() const;
+    explicit operator std::filesystem::path() const;
 
     operator std::string() const;
 

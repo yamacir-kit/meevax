@@ -859,10 +859,10 @@ namespace meevax::inline kernel
       library.define<procedure>("standard-output-port", []() { return make<standard_output_port>(); });
       library.define<procedure>( "standard-error-port", []() { return make< standard_error_port>(); });
 
-      library.define<procedure>(        "open-input-file", [](let const& xs) { return make<        input_file_port>(car(xs).as<string>()); });
-      library.define<procedure>(       "open-output-file", [](let const& xs) { return make<       output_file_port>(car(xs).as<string>()); });
-      library.define<procedure>( "open-binary-input-file", [](let const& xs) { return make< binary_input_file_port>(car(xs).as<string>()); });
-      library.define<procedure>("open-binary-output-file", [](let const& xs) { return make<binary_output_file_port>(car(xs).as<string>()); });
+      library.define<procedure>(        "open-input-file", [](let const& xs) { return make<        input_file_port>(static_cast<std::filesystem::path>(car(xs).as<string>())); });
+      library.define<procedure>(       "open-output-file", [](let const& xs) { return make<       output_file_port>(static_cast<std::filesystem::path>(car(xs).as<string>())); });
+      library.define<procedure>( "open-binary-input-file", [](let const& xs) { return make< binary_input_file_port>(static_cast<std::filesystem::path>(car(xs).as<string>())); });
+      library.define<procedure>("open-binary-output-file", [](let const& xs) { return make<binary_output_file_port>(static_cast<std::filesystem::path>(car(xs).as<string>())); });
 
       library.define<procedure>("close", [](let const& xs)
       {

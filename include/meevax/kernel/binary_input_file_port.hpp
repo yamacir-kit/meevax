@@ -26,13 +26,13 @@ namespace meevax::inline kernel
 {
   struct binary_input_file_port : public binary_input_port
   {
-    string const name;
+    std::filesystem::path const name;
 
     std::ifstream ifstream;
 
-    template <typename T, typename... Ts>
-    explicit binary_input_file_port(T&& x, Ts&&... xs)
-      : name { std::forward<decltype(x)>(x) }
+    template <typename... Ts>
+    explicit binary_input_file_port(std::filesystem::path const& name, Ts&&... xs)
+      : name     { std::filesystem::canonical(name) }
       , ifstream { name, (std::ios::binary | ... | std::forward<decltype(xs)>(xs)) }
     {}
 
