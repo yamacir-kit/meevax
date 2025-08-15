@@ -26,7 +26,7 @@ auto main(int const argc, char const* const* const argv) -> int
 
   auto interact = [&](environment & e)
   {
-    if (e.configure(argc, argv); e.interactive)
+    if (configurator::configure(argc, argv); configurator::interactive)
     {
       e.import("(scheme base)"_r);
       e.import("(scheme bitwise)"_r);

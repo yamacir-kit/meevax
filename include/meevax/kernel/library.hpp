@@ -57,7 +57,7 @@ namespace meevax::inline kernel
 
     auto evaluate(object const&) -> object;
 
-    auto resolve() -> object;
+    auto import_set() -> object;
   };
 
   auto operator <<(std::ostream &, library const&) -> std::ostream &;

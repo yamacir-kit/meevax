@@ -3,11 +3,8 @@
         (scheme cxr)
         (scheme process-context)
         (scheme write)
-        (srfi 78))
-
-(define (print . xs)
-  (for-each display xs)
-  (newline))
+        (srfi 78)
+        (test write))
 
 ; ---- DEFINE-SYNTAX -----------------------------------------------------------
 

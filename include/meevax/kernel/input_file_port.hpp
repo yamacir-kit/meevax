@@ -31,11 +31,15 @@ namespace meevax::inline kernel
 
     template <typename T, typename... Ts>
     explicit input_file_port(T&& x, Ts&&... xs)
-      : name     { std::forward<decltype(x)>(x) }
+      : name     { std::filesystem::canonical(std::filesystem::path(std::forward<decltype(x)>(x))) }
       , ifstream { name, std::forward<decltype(xs)>(xs)... }
-    {}
+    {
+      textual_context::paths.emplace(name);
+    }
 
     auto close() -> void override;
+
+    auto cons(object const&, object const&) -> object override;
 
     auto is_open() const -> bool override;
 

@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/include.hpp>
 #include <meevax/kernel/input_file_port.hpp>
@@ -23,9 +24,9 @@ namespace meevax::inline kernel
 {
   auto include(object const& names, bool case_sensitive, object const& xs) -> object
   {
-    auto open = [&](object const& name)
+    auto open = [&](object const& name) // SRFI 138
     {
-      auto port = input_file_port(name.as<string>());
+      auto port = input_file_port(textual_context::of(names).resolve(std::filesystem::path(name.as<string>())));
       port.case_sensitive = case_sensitive;
       return port;
     };

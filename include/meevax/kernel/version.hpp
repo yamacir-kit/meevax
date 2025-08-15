@@ -26,7 +26,7 @@ namespace meevax::inline kernel
 {
   auto help() noexcept -> std::string_view;
 
-  auto features() -> object const&;
+  auto features() -> object &;
 
   auto version() -> object const&;
 } // namespace meevax::kernel

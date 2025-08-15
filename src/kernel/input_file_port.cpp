@@ -23,6 +23,11 @@ namespace meevax::inline kernel
     return ifstream.close();
   }
 
+  auto input_file_port::cons(object const& x, object const& y) -> object
+  {
+    return textual_context::cons(x, y, name);
+  }
+
   auto input_file_port::is_open() const -> bool
   {
     return ifstream.is_open();
