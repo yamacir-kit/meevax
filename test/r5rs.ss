@@ -614,7 +614,7 @@
 
 (check (begin (set-car! (f) 3)
               (car (f)))
-  => 3)
+  => 'not-a-constant-list)
 
 (check (begin (set-car! (g) 3)
               (car (g)))

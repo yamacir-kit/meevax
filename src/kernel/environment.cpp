@@ -17,7 +17,6 @@
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/library.hpp>
-#include <meevax/kernel/optimizer.hpp>
 
 namespace meevax::inline kernel
 {
@@ -106,7 +105,7 @@ namespace meevax::inline kernel
 
     auto undump = dump(this);
 
-    return execute(optimize(compile(expression)));
+    return execute(compile(expression));
   }
 
   auto import_set(object const& form) -> object

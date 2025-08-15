@@ -15,7 +15,9 @@
   (car '(a b)))
 
 (check (disassemble f)
-  => '(load-constant ((a b))
+  => '(load-constant ()
+       load-constant (a b)
+       cons
        load-absolute car
        tail-call))
 
@@ -25,8 +27,12 @@
    42))
 
 (check (disassemble f)
-  => '(load-constant (42)
-       load-closure (load-constant (1)
+  => '(load-constant ()
+       load-constant 42
+       cons
+       load-closure (load-constant ()
+                     load-constant 1
+                     cons
                      load-relative (0 . 0)
                      cons
                      load-absolute +
@@ -38,8 +44,12 @@
     (+ x 1)))
 
 (check (disassemble f)
-  => '(load-constant (42)
-       load-closure (load-constant (1)
+  => '(load-constant ()
+       load-constant 42
+       cons
+       load-closure (load-constant ()
+                     load-constant 1
+                     cons
                      load-relative (0 . 0)
                      cons
                      load-absolute +
@@ -52,7 +62,11 @@
   (+ x y))
 
 (check (disassemble f)
-  => '(load-constant (() ())
+  => '(load-constant ()
+       load-constant ()
+       cons
+       load-constant ()
+       cons
        load-closure (load-constant 1
                      store-relative (0 . 0)
                      drop
@@ -77,7 +91,11 @@
    '()))
 
 (check (disassemble f)
-  => '(load-constant (() ())
+  => '(load-constant ()
+       load-constant ()
+       cons
+       load-constant ()
+       cons
        load-closure (load-constant 1
                      store-relative (0 . 0)
                      drop
@@ -115,7 +133,11 @@
 
 (check (disassemble f)
   => '(dummy
-       load-constant (1 2)
+       load-constant ()
+       load-constant 2
+       cons
+       load-constant 1
+       cons
        load-closure (load-constant ()
                      load-relative (0 . 1)
                      cons
@@ -131,15 +153,27 @@
          (+ 5 6)))
 
 (check (disassemble f)
-  => '(load-constant (1 2)
+  => '(load-constant ()
+       load-constant 2
+       cons
+       load-constant 1
+       cons
        load-absolute +
        call
        drop
-       load-constant (3 4)
+       load-constant ()
+       load-constant 4
+       cons
+       load-constant 3
+       cons
        load-absolute +
        call
        drop
-       load-constant (5 6)
+       load-constant ()
+       load-constant 6
+       cons
+       load-constant 5
+       cons
        load-absolute +
        tail-call))
 
@@ -149,15 +183,27 @@
          (begin (+ 5 6))))
 
 (check (disassemble f)
-  => '(load-constant (1 2)
+  => '(load-constant ()
+       load-constant 2
+       cons
+       load-constant 1
+       cons
        load-absolute +
        call
        drop
-       load-constant (3 4)
+       load-constant ()
+       load-constant 4
+       cons
+       load-constant 3
+       cons
        load-absolute +
        call
        drop
-       load-constant (5 6)
+       load-constant ()
+       load-constant 6
+       cons
+       load-constant 5
+       cons
        load-absolute +
        tail-call))
 
