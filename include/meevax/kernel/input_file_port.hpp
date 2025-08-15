@@ -29,9 +29,9 @@ namespace meevax::inline kernel
 
     std::ifstream ifstream;
 
-    template <typename T, typename... Ts>
-    explicit input_file_port(T&& x, Ts&&... xs)
-      : name     { std::filesystem::canonical(std::filesystem::path(std::forward<decltype(x)>(x))) }
+    template <typename... Ts>
+    explicit input_file_port(std::filesystem::path const& name, Ts&&... xs)
+      : name     { std::filesystem::canonical(name) }
       , ifstream { name, std::forward<decltype(xs)>(xs)... }
     {
       textual_context::paths.emplace(name);
