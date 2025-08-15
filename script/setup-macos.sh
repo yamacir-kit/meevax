@@ -8,6 +8,7 @@ required()
 optional()
 {
   echo gcc
+  echo shellcheck # GitHub Actions
 }
 
 documentation()
