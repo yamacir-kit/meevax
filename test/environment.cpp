@@ -1,6 +1,7 @@
 #undef NDEBUG
 
 #include <cassert>
+#include <regex>
 #include <typeindex>
 
 #include <meevax/basis.hpp>

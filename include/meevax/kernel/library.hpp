@@ -19,7 +19,6 @@
 
 #include <map>
 
-#include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 
 namespace meevax::inline kernel

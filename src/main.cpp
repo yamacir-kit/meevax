@@ -16,6 +16,7 @@
 
 #include <meevax/basis.hpp>
 #include <meevax/kernel/boot.hpp>
+#include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
 

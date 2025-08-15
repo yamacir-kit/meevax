@@ -21,7 +21,6 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/number.hpp>
 
 namespace meevax::inline kernel
 {

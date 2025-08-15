@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_INTERACTION_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_INTERACTION_ENVIRONMENT_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/environment.hpp>
 
 namespace meevax::inline kernel
 {
