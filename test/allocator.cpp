@@ -4,7 +4,6 @@
 #include <random>
 #include <vector>
 
-#include <meevax/chrono/duration.hpp>
 #include <meevax/kernel/pair.hpp>
 #include <meevax/memory/allocator.hpp>
 #include <meevax/utility/debug.hpp>
@@ -12,6 +11,49 @@
 
 namespace meevax
 {
+  template <typename Thunk>
+  auto duration(Thunk thunk)
+  {
+    auto begin = std::chrono::high_resolution_clock::now();
+    thunk();
+    return std::chrono::high_resolution_clock::now() - begin;
+  }
+
+  // TODO Remove this function once all major compilers implement std::format.
+  auto operator <<(std::ostream & os, std::chrono::nanoseconds nanoseconds) -> std::ostream &
+  {
+    auto const fill = os.fill();
+
+    os.fill('0');
+
+    auto const years = std::chrono::duration_cast<std::chrono::years>(nanoseconds);
+
+    auto const months = std::chrono::duration_cast<std::chrono::months>(nanoseconds -= years);
+
+    auto const days = std::chrono::duration_cast<std::chrono::days>(nanoseconds -= months);
+
+    auto const hours = std::chrono::duration_cast<std::chrono::hours>(nanoseconds -= days);
+
+    auto const minutes = std::chrono::duration_cast<std::chrono::minutes>(nanoseconds -= hours);
+
+    auto const seconds = std::chrono::duration_cast<std::chrono::seconds>(nanoseconds -= minutes);
+
+    nanoseconds -= seconds;
+
+    os << 'P'
+       << std::setw(4) <<       years.count() << '-'
+       << std::setw(2) <<      months.count() << '-'
+       << std::setw(2) <<        days.count() << 'T'
+       << std::setw(2) <<       hours.count() << ':'
+       << std::setw(2) <<     minutes.count() << ':'
+       << std::setw(2) <<     seconds.count() << '.'
+       << std::setw(9) << nanoseconds.count();
+
+    os.fill(fill);
+
+    return os;
+  }
+
   struct result : public std::map<std::string, std::chrono::nanoseconds>
   {
     std::string name;
