@@ -19,29 +19,6 @@
 
 namespace meevax::inline kernel
 {
-  auto syntactic_environment::transformer::transform(let const& form, let const& environment) const -> object
-  {
-    /*
-       Scheme programs can define and use new derived expression types,
-       called macros. Program-defined expression types have the syntax
-
-         (<keyword> <datum>...)
-
-       where <keyword> is an identifier that uniquely determines the
-       expression type. This identifier is called the syntactic keyword, or
-       simply keyword, of the macro. The number of the <datum>s, and their
-       syntax, depends on the expression type.
-
-       Each instance of a macro is called a use of the macro. The set of
-       rules that specifies how a use of a macro is transcribed into a more
-       primitive expression is called the transformer of the macro.
-    */
-    assert(first.is<closure>());
-    assert(second.is<syntactic_environment>());
-
-    return meevax::environment().apply(first, form, environment, second);
-  }
-
   auto syntactic_environment::expander::body([[maybe_unused]] syntactic_environment const& expander,
                                                               object const& form,
                                              [[maybe_unused]] object const& bound_variables,

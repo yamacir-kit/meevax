@@ -24,6 +24,8 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/include.hpp>
+#include <meevax/kernel/list.hpp>
+#include <meevax/kernel/transformer.hpp>
 
 namespace meevax::inline kernel
 {
@@ -245,18 +247,6 @@ namespace meevax::inline kernel
         {
           return os << datum.form;
         }
-      }
-    };
-
-    struct transformer : public virtual pair // (<closure> . <syntactic_environment>)
-    {
-      using pair::pair;
-
-      auto transform(let const& form, let const& environment) const -> object;
-
-      friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
-      {
-        return os << magenta("#,(") << green("transformer ") << faint("#;", &datum) << magenta(")");
       }
     };
 

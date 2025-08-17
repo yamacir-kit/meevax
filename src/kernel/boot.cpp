@@ -1207,8 +1207,6 @@ namespace meevax::inline kernel
     {
       using syntactic_closure = syntactic_environment::syntactic_closure;
 
-      using transformer = syntactic_environment::transformer;
-
       library.define<procedure>("identifier?", [](let const& xs)
       {
         return car(xs).is_also<identifier>();
