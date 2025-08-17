@@ -184,6 +184,8 @@ endif()
 
 enable_testing()
 
+set(ENV{CTEST_OUTPUT_ON_FAILURE} ON)
+
 find_program(${PROJECT_NAME}_VALGRIND valgrind)
 
 if(${PROJECT_NAME}_VALGRIND STREQUAL ${PROJECT_NAME}_VALGRIND-NOTFOUND)
@@ -211,7 +213,7 @@ endforeach()
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_TEST_SS)
   get_filename_component(FILENAME ${EACH} NAME_WE)
-  add_test(NAME ${FILENAME} COMMAND ${${PROJECT_NAME}_TEST} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax ${EACH})
+  add_test(NAME ${FILENAME} COMMAND ${${PROJECT_NAME}_TEST} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax -I ${CMAKE_CURRENT_SOURCE_DIR} ${EACH})
 endforeach()
 
 # ---- TARGET continuous-integration -------------------------------------------

@@ -22,7 +22,7 @@
 #include <meevax/kernel/binary_output_file_port.hpp>
 #include <meevax/kernel/boot.hpp>
 #include <meevax/kernel/box.hpp>
-#include <meevax/kernel/closure.hpp>
+#include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
@@ -39,10 +39,12 @@
 #include <meevax/kernel/output_file_port.hpp>
 #include <meevax/kernel/output_homogeneous_vector_port.hpp>
 #include <meevax/kernel/output_string_port.hpp>
+#include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/standard_error_port.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
 #include <meevax/kernel/standard_output_port.hpp>
 #include <meevax/kernel/vector.hpp>
+#include <meevax/kernel/version.hpp>
 
 extern char ** environ; // for procedure get-environment-variables
 
@@ -258,7 +260,7 @@ namespace meevax::inline kernel
       {
         let xs = list();
 
-        for (auto&& each : interaction_environment().as<environment>().command_line)
+        for (auto&& each : configurator::command_line)
         {
           xs = cons(make<string>(each), xs);
         }
@@ -428,6 +430,33 @@ namespace meevax::inline kernel
       library.define<double>("pi",    std::numbers::pi);
       library.define<double>("euler", std::numbers::egamma);
       library.define<double>("phi",   std::numbers::phi);
+    });
+
+    define<library>("(meevax instruction)", [](library & library)
+    {
+      library.define<instruction>("secd-call",              instruction::secd_call             );
+      library.define<instruction>("secd-cons",              instruction::secd_cons             );
+      library.define<instruction>("secd-current",           instruction::secd_current          );
+      library.define<instruction>("secd-drop",              instruction::secd_drop             );
+      library.define<instruction>("secd-dummy",             instruction::secd_dummy            );
+      library.define<instruction>("secd-install",           instruction::secd_install          );
+      library.define<instruction>("secd-join",              instruction::secd_join             );
+      library.define<instruction>("secd-letrec",            instruction::secd_letrec           );
+      library.define<instruction>("secd-load-absolute",     instruction::secd_load_absolute    );
+      library.define<instruction>("secd-load-closure",      instruction::secd_load_closure     );
+      library.define<instruction>("secd-load-constant",     instruction::secd_load_constant    );
+      library.define<instruction>("secd-load-continuation", instruction::secd_load_continuation);
+      library.define<instruction>("secd-load-relative",     instruction::secd_load_relative    );
+      library.define<instruction>("secd-load-variadic",     instruction::secd_load_variadic    );
+      library.define<instruction>("secd-return",            instruction::secd_return           );
+      library.define<instruction>("secd-select",            instruction::secd_select           );
+      library.define<instruction>("secd-stop",              instruction::secd_stop             );
+      library.define<instruction>("secd-store-absolute",    instruction::secd_store_absolute   );
+      library.define<instruction>("secd-store-relative",    instruction::secd_store_relative   );
+      library.define<instruction>("secd-store-variadic",    instruction::secd_store_variadic   );
+      library.define<instruction>("secd-tail-call",         instruction::secd_tail_call        );
+      library.define<instruction>("secd-tail-letrec",       instruction::secd_tail_letrec      );
+      library.define<instruction>("secd-tail-select",       instruction::secd_tail_select      );
     });
 
     define<library>("(meevax integer32)", [](library & library)
@@ -830,10 +859,10 @@ namespace meevax::inline kernel
       library.define<procedure>("standard-output-port", []() { return make<standard_output_port>(); });
       library.define<procedure>( "standard-error-port", []() { return make< standard_error_port>(); });
 
-      library.define<procedure>(        "open-input-file", [](let const& xs) { return make<        input_file_port>(car(xs).as<string>()); });
-      library.define<procedure>(       "open-output-file", [](let const& xs) { return make<       output_file_port>(car(xs).as<string>()); });
-      library.define<procedure>( "open-binary-input-file", [](let const& xs) { return make< binary_input_file_port>(car(xs).as<string>()); });
-      library.define<procedure>("open-binary-output-file", [](let const& xs) { return make<binary_output_file_port>(car(xs).as<string>()); });
+      library.define<procedure>(        "open-input-file", [](let const& xs) { return make<        input_file_port>(static_cast<std::filesystem::path>(car(xs).as<string>())); });
+      library.define<procedure>(       "open-output-file", [](let const& xs) { return make<       output_file_port>(static_cast<std::filesystem::path>(car(xs).as<string>())); });
+      library.define<procedure>( "open-binary-input-file", [](let const& xs) { return make< binary_input_file_port>(static_cast<std::filesystem::path>(car(xs).as<string>())); });
+      library.define<procedure>("open-binary-output-file", [](let const& xs) { return make<binary_output_file_port>(static_cast<std::filesystem::path>(car(xs).as<string>())); });
 
       library.define<procedure>("close", [](let const& xs)
       {

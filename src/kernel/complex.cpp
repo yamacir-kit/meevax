@@ -98,7 +98,7 @@ namespace meevax::inline kernel
     {
       auto explicitly_signed = [](auto const& number)
       {
-        switch (auto const s = lexical_cast<std::string>(number); s[0])
+        switch (auto const s = lexical_cast(number); s[0])
         {
         case '+':
         case '-':

@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
-#include <meevax/functional/compose.hpp>
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/memory/allocator.hpp>
@@ -238,39 +237,39 @@ namespace meevax::inline kernel
   inline auto car = [](auto&& x) -> decltype(auto) { return get<0>(std::forward<decltype(x)>(x)); };
   inline auto cdr = [](auto&& x) -> decltype(auto) { return get<1>(std::forward<decltype(x)>(x)); };
 
-  inline constexpr auto caar = compose(car, car);
-  inline constexpr auto cadr = compose(car, cdr);
-  inline constexpr auto cdar = compose(cdr, car);
-  inline constexpr auto cddr = compose(cdr, cdr);
+  inline auto caar = [](auto&& x) -> decltype(auto) { return car(car(std::forward<decltype(x)>(x))); };
+  inline auto cadr = [](auto&& x) -> decltype(auto) { return car(cdr(std::forward<decltype(x)>(x))); };
+  inline auto cdar = [](auto&& x) -> decltype(auto) { return cdr(car(std::forward<decltype(x)>(x))); };
+  inline auto cddr = [](auto&& x) -> decltype(auto) { return cdr(cdr(std::forward<decltype(x)>(x))); };
 
-  inline constexpr auto caaar = compose(car, caar);
-  inline constexpr auto caadr = compose(car, cadr);
-  inline constexpr auto cadar = compose(car, cdar);
-  inline constexpr auto caddr = compose(car, cddr);
-  inline constexpr auto cdaar = compose(cdr, caar);
-  inline constexpr auto cdadr = compose(cdr, cadr);
-  inline constexpr auto cddar = compose(cdr, cdar);
-  inline constexpr auto cdddr = compose(cdr, cddr);
+  inline auto caaar = [](auto&& x) -> decltype(auto) { return car(caar(std::forward<decltype(x)>(x))); };
+  inline auto caadr = [](auto&& x) -> decltype(auto) { return car(cadr(std::forward<decltype(x)>(x))); };
+  inline auto cadar = [](auto&& x) -> decltype(auto) { return car(cdar(std::forward<decltype(x)>(x))); };
+  inline auto caddr = [](auto&& x) -> decltype(auto) { return car(cddr(std::forward<decltype(x)>(x))); };
+  inline auto cdaar = [](auto&& x) -> decltype(auto) { return cdr(caar(std::forward<decltype(x)>(x))); };
+  inline auto cdadr = [](auto&& x) -> decltype(auto) { return cdr(cadr(std::forward<decltype(x)>(x))); };
+  inline auto cddar = [](auto&& x) -> decltype(auto) { return cdr(cdar(std::forward<decltype(x)>(x))); };
+  inline auto cdddr = [](auto&& x) -> decltype(auto) { return cdr(cddr(std::forward<decltype(x)>(x))); };
 
-  inline constexpr auto caaaar = compose(car, caaar);
-  inline constexpr auto caaadr = compose(car, caadr);
-  inline constexpr auto caadar = compose(car, cadar);
-  inline constexpr auto caaddr = compose(car, caddr);
-  inline constexpr auto cadaar = compose(car, cdaar);
-  inline constexpr auto cadadr = compose(car, cdadr);
-  inline constexpr auto caddar = compose(car, cddar);
-  inline constexpr auto cadddr = compose(car, cdddr);
-  inline constexpr auto cdaaar = compose(cdr, caaar);
-  inline constexpr auto cdaadr = compose(cdr, caadr);
-  inline constexpr auto cdadar = compose(cdr, cadar);
-  inline constexpr auto cdaddr = compose(cdr, caddr);
-  inline constexpr auto cddaar = compose(cdr, cdaar);
-  inline constexpr auto cddadr = compose(cdr, cdadr);
-  inline constexpr auto cdddar = compose(cdr, cddar);
-  inline constexpr auto cddddr = compose(cdr, cdddr);
+  inline auto caaaar = [](auto&& x) -> decltype(auto) { return car(caaar(std::forward<decltype(x)>(x))); };
+  inline auto caaadr = [](auto&& x) -> decltype(auto) { return car(caadr(std::forward<decltype(x)>(x))); };
+  inline auto caadar = [](auto&& x) -> decltype(auto) { return car(cadar(std::forward<decltype(x)>(x))); };
+  inline auto caaddr = [](auto&& x) -> decltype(auto) { return car(caddr(std::forward<decltype(x)>(x))); };
+  inline auto cadaar = [](auto&& x) -> decltype(auto) { return car(cdaar(std::forward<decltype(x)>(x))); };
+  inline auto cadadr = [](auto&& x) -> decltype(auto) { return car(cdadr(std::forward<decltype(x)>(x))); };
+  inline auto caddar = [](auto&& x) -> decltype(auto) { return car(cddar(std::forward<decltype(x)>(x))); };
+  inline auto cadddr = [](auto&& x) -> decltype(auto) { return car(cdddr(std::forward<decltype(x)>(x))); };
+  inline auto cdaaar = [](auto&& x) -> decltype(auto) { return cdr(caaar(std::forward<decltype(x)>(x))); };
+  inline auto cdaadr = [](auto&& x) -> decltype(auto) { return cdr(caadr(std::forward<decltype(x)>(x))); };
+  inline auto cdadar = [](auto&& x) -> decltype(auto) { return cdr(cadar(std::forward<decltype(x)>(x))); };
+  inline auto cdaddr = [](auto&& x) -> decltype(auto) { return cdr(caddr(std::forward<decltype(x)>(x))); };
+  inline auto cddaar = [](auto&& x) -> decltype(auto) { return cdr(cdaar(std::forward<decltype(x)>(x))); };
+  inline auto cddadr = [](auto&& x) -> decltype(auto) { return cdr(cdadr(std::forward<decltype(x)>(x))); };
+  inline auto cdddar = [](auto&& x) -> decltype(auto) { return cdr(cddar(std::forward<decltype(x)>(x))); };
+  inline auto cddddr = [](auto&& x) -> decltype(auto) { return cdr(cdddr(std::forward<decltype(x)>(x))); };
 
-  inline constexpr auto caddddr = compose(car, cddddr);
-  inline constexpr auto cdddddr = compose(cdr, cddddr);
+  inline auto caddddr = [](auto&& x) -> decltype(auto) { return car(cddddr(std::forward<decltype(x)>(x))); };
+  inline auto cdddddr = [](auto&& x) -> decltype(auto) { return cdr(cddddr(std::forward<decltype(x)>(x))); };
 } // namespace meevax::kernel
 
 template <>

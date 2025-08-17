@@ -31,7 +31,7 @@ namespace meevax::inline kernel
     c = control;
 
     assert(last(c).is<instruction>());
-    assert(last(c).as<instruction>() == instruction::stop);
+    assert(last(c).as<instruction>() == instruction::secd_stop);
 
     return run();
   }
@@ -39,7 +39,7 @@ namespace meevax::inline kernel
   auto dynamic_environment::run() -> object
   {
     assert(last(c).template is<instruction>());
-    assert(last(c).template as<instruction>() == instruction::stop);
+    assert(last(c).template as<instruction>() == instruction::secd_stop);
 
     let const control = c;
 
@@ -50,7 +50,7 @@ namespace meevax::inline kernel
 
       switch (car(c).template as<instruction>())
       {
-      case instruction::load_absolute: /* --------------------------------------
+      case instruction::secd_load_absolute: /* ---------------------------------
         *
         *  s e (%load-absolute <absolute> . c) d => (x . s) e c d
         *
@@ -70,7 +70,7 @@ namespace meevax::inline kernel
           goto fetch;
         }
 
-      case instruction::load_relative: /* --------------------------------------
+      case instruction::secd_load_relative: /* ---------------------------------
         *
         *  s  e (%load-relative <relative> . c) d => (x . s) e c d
         *
@@ -97,7 +97,7 @@ namespace meevax::inline kernel
         }
         goto fetch;
 
-      case instruction::load_variadic: /* --------------------------------------
+      case instruction::secd_load_variadic: /* ---------------------------------
         *
         *  s  e (%load-variadic <variadic> . c) d => (x . s) e c d
         *
@@ -124,7 +124,7 @@ namespace meevax::inline kernel
         }
         goto fetch;
 
-      case instruction::load_constant: /* --------------------------------------
+      case instruction::secd_load_constant: /* ---------------------------------
         *
         *  s e (%load-constant <object> . c) d => (x . s) e c d
         *
@@ -133,7 +133,7 @@ namespace meevax::inline kernel
         c = cddr(c);
         goto fetch;
 
-      case instruction::load_closure: /* ---------------------------------------
+      case instruction::secd_load_closure: /* ----------------------------------
         *
         *  s e (%load-closure c' . c) d => (<closure> . s) e c d
         *
@@ -144,7 +144,7 @@ namespace meevax::inline kernel
         c = cddr(c);
         goto fetch;
 
-      case instruction::load_continuation: /* ----------------------------------
+      case instruction::secd_load_continuation: /* -----------------------------
         *
         *  s e (%load-continuation c' . c) d => ((<continuation>) . s) e c d
         *
@@ -155,7 +155,7 @@ namespace meevax::inline kernel
         c = cddr(c);
         goto fetch;
 
-      case instruction::current: /* --------------------------------------------
+      case instruction::secd_current: /* ---------------------------------------
         *
         *  s e (%current i . c) => (a[i] . s) e c d
         *
@@ -165,7 +165,7 @@ namespace meevax::inline kernel
         c = cddr(c);
         goto fetch;
 
-      case instruction::select: /* ---------------------------------------------
+      case instruction::secd_select: /* ----------------------------------------
         *
         *  (<boolean> . s) e (%select c1 c2 . c) d => s e c' (c . d)
         *
@@ -177,7 +177,7 @@ namespace meevax::inline kernel
         s = cdr(s);
         goto fetch;
 
-      case instruction::tail_select: /* ----------------------------------------
+      case instruction::secd_tail_select: /* -----------------------------------
         *
         *  (<boolean> . s) e (%tail-select c1 c2) d => s e c' d
         *
@@ -189,7 +189,7 @@ namespace meevax::inline kernel
         s = cdr(s);
         goto fetch;
 
-      case instruction::join: /* -----------------------------------------------
+      case instruction::secd_join: /* ------------------------------------------
         *
         *  s e (%join) (c . d) => s e c d
         *
@@ -199,7 +199,7 @@ namespace meevax::inline kernel
         d = cdr(d);
         goto fetch;
 
-      case instruction::call:
+      case instruction::secd_call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
         *  (<closure> xs . s) e (%call . c) d => () (xs . e') c' (s e c . d)
@@ -249,7 +249,7 @@ namespace meevax::inline kernel
           throw error(make<string>("not applicable"), callee);
         }
 
-      case instruction::tail_call:
+      case instruction::secd_tail_call:
         if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
         *  (<closure> xs) e (%tail-call) d => () (xs . e') c' d
@@ -302,7 +302,7 @@ namespace meevax::inline kernel
           throw error(make<string>("not applicable"), callee);
         }
 
-      case instruction::dummy: /* ----------------------------------------------
+      case instruction::secd_dummy: /* -----------------------------------------
         *
         *  s e (%dummy . c) d => s (<null> . e) c d
         *
@@ -311,7 +311,7 @@ namespace meevax::inline kernel
         c = cdr(c);
         goto fetch;
 
-      case instruction::letrec: /* ---------------------------------------------
+      case instruction::secd_letrec: /* ----------------------------------------
         *
         *  (<closure> xs . s) (<null> . e) (%letrec . c) d => () (set-car! e' xs) c' (s e c . d)
         *
@@ -325,7 +325,7 @@ namespace meevax::inline kernel
         s = nullptr;
         goto fetch;
 
-      case instruction::tail_letrec: /* ----------------------------------------
+      case instruction::secd_tail_letrec: /* -----------------------------------
         *
         *  (<closure> xs . s) (<null> . e) (%tail-letrec) d => () (set-car! e' xs) c' d
         *
@@ -339,7 +339,7 @@ namespace meevax::inline kernel
         s = nullptr;
         goto fetch;
 
-      case instruction::return_: /* --------------------------------------------
+      case instruction::secd_return: /* ----------------------------------------
         *
         *  (x)  e (%return) (s' e' c' . d) => (x . s') e' c' d
         *
@@ -353,7 +353,7 @@ namespace meevax::inline kernel
         d = cdddr(d);
         goto fetch;
 
-      case instruction::cons: /* -----------------------------------------------
+      case instruction::secd_cons: /* ------------------------------------------
         *
         *  (x y . s) e (%cons . c) d => ((x . y) . s) e c d
         *
@@ -363,7 +363,7 @@ namespace meevax::inline kernel
         c = cdr(c);
         goto fetch;
 
-      case instruction::drop: /* -----------------------------------------------
+      case instruction::secd_drop: /* ------------------------------------------
         *
         *  (x . s) e (%drop . c) d => s e c d
         *
@@ -372,7 +372,7 @@ namespace meevax::inline kernel
         c = cdr(c);
         goto fetch;
 
-      case instruction::store_absolute: /* -------------------------------------
+      case instruction::secd_store_absolute: /* --------------------------------
         *
         *  (x . s) e (%store-absolute <absolute> . c) d => (x . s) e c d
         *
@@ -386,7 +386,7 @@ namespace meevax::inline kernel
         c = cddr(c);
         goto fetch;
 
-      case instruction::store_relative: /* -------------------------------------
+      case instruction::secd_store_relative: /* --------------------------------
         *
         *  (x . s) e (%store-relative <relative> . c) d => (x . s) e c d
         *
@@ -410,7 +410,7 @@ namespace meevax::inline kernel
         }
         goto fetch;
 
-      case instruction::store_variadic: /* -------------------------------------
+      case instruction::secd_store_variadic: /* --------------------------------
         *
         *  (x . s) e (%store-variadic <variadic> . c) d => (x . s) e c d
         *
@@ -434,7 +434,7 @@ namespace meevax::inline kernel
         }
         goto fetch;
 
-      case instruction::install: /* --------------------------------------------
+      case instruction::secd_install: /* ---------------------------------------
         *
         *  (x . s) e (%install i . c) d => (x . s) e c d
         *
@@ -445,7 +445,7 @@ namespace meevax::inline kernel
         goto fetch;
 
       default: // ERROR
-      case instruction::stop: /* -----------------------------------------------
+      case instruction::secd_stop: /* ------------------------------------------
         *
         *  (x) e (%stop) d => () e () d
         *

@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/input_string_port.hpp>
 
 auto main() -> int
 {
@@ -188,7 +189,7 @@ auto main() -> int
       assert(x.is<double>());
       assert(x.as<double>() == 42);
 
-      let const y = make(lexical_cast<double>("42"));
+      let const y = make(std::stod("42"));
 
       assert(y.is<double>());
       assert(y.as<double>() == 42);

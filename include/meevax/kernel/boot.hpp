@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_BOOT_HPP
 #define INCLUDED_MEEVAX_KERNEL_BOOT_HPP
 
-#include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 
 namespace meevax::inline kernel

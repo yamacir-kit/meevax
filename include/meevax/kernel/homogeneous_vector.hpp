@@ -21,7 +21,6 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/number.hpp>
 
 namespace meevax::inline kernel
 {
@@ -64,7 +63,7 @@ namespace meevax::inline kernel
       }
       else
       {
-        throw error(make<string>(lexical_cast<std::string>(tag(), "vector expects real numbers to store, but was given a value that is not")), x);
+        throw error(make<string>(tag() + "vector expects real numbers to store, but was given a value that is not"), x);
       }
     }
 

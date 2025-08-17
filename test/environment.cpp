@@ -1,6 +1,7 @@
 #undef NDEBUG
 
 #include <cassert>
+#include <regex>
 #include <typeindex>
 
 #include <meevax/basis.hpp>
@@ -89,15 +90,15 @@ auto main() -> int
   {
     auto [root_count, non_root_count, count_of] = root_object_counts_by_type();
 
-    assert(root_count == 493);
+    assert(root_count == 517);
 
     assert(count_of.size() == 6);
     assert(count_of[typeid(environment                       )] ==   1); // The interaction-environment
     assert(count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
     assert(count_of[typeid(eof                               )] ==   1);
     assert(count_of[typeid(ghost                             )] ==   2);
-    assert(count_of[typeid(library                           )] ==  29); // There are 29 builtin libraries
-    assert(count_of[typeid(symbol                            )] == 459); // There are 459 builtin definitions
+    assert(count_of[typeid(library                           )] ==  30); // There are 29 builtin libraries
+    assert(count_of[typeid(symbol                            )] == 482); // There are 459 builtin definitions
   }
 
   boot(basis());
@@ -110,8 +111,8 @@ auto main() -> int
     assert(count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
     assert(count_of[typeid(eof                               )] ==   1);
     assert(count_of[typeid(ghost                             )] ==   2);
-    assert(count_of[typeid(library                           )] ==  78);
-    assert(count_of[typeid(symbol                            )] >= 459);
+    assert(count_of[typeid(library                           )] ==  79);
+    assert(count_of[typeid(symbol                            )] >= 482);
   }
 
   default_collector::collect();
@@ -124,8 +125,8 @@ auto main() -> int
     assert(count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
     assert(count_of[typeid(eof                               )] ==   1);
     assert(count_of[typeid(ghost                             )] ==   2);
-    assert(count_of[typeid(library                           )] ==  78);
-    assert(count_of[typeid(symbol                            )] >= 459); // There are 459 builtin definitions
+    assert(count_of[typeid(library                           )] ==  79);
+    assert(count_of[typeid(symbol                            )] >= 482); // There are 459 builtin definitions
   }
 
   symbols().clear();

@@ -16,6 +16,7 @@
 
 #include <meevax/kernel/conditional_expand.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/version.hpp> // features
 
 namespace meevax::inline kernel
 {
@@ -25,7 +26,7 @@ namespace meevax::inline kernel
     {
       if (car(requirement).as<symbol>() == "library")
       {
-        return libraries().find(lexical_cast<std::string>(cadr(requirement))) != libraries().end();
+        return libraries().find(lexical_cast(cadr(requirement))) != libraries().end();
       }
       else if (car(requirement).as<symbol>() == "and")
       {

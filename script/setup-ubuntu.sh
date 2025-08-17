@@ -10,6 +10,7 @@ optional()
 {
   echo kcachegrind # script/callgrind.sh
   echo massif-visualizer # script/massif.sh
+  echo shellcheck # GitHub Actions
   echo valgrind
 }
 

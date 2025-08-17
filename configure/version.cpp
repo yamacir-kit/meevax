@@ -24,9 +24,9 @@ namespace meevax::inline kernel
     return R"(${${PROJECT_NAME}_HELP})";
   }
 
-  auto features() -> object const&
+  auto features() -> object &
   {
-    let static const features = list(
+    let static features = list(
       make_symbol("r7rs"),
       make_symbol("exact-closed"),
       make_symbol("exact-complex"),

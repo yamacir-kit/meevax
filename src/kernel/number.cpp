@@ -460,7 +460,7 @@ namespace meevax::inline kernel
         }
         else
         {
-          return make(lexical_cast<double>(literal));
+          return make(std::stod(literal));
         }
       }
       else

@@ -68,6 +68,7 @@ Procedures for each standard are provided by the following R7RS-style libraries:
 | [ 87](https://srfi.schemers.org/srfi-87/srfi-87.html)   | => in case clauses                                     |                                     | R7RS 4.2.1                             |
 | [ 98](https://srfi.schemers.org/srfi-98/srfi-98.html)   | An interface to access environment variables           | [`(srfi 98)`](./basis/srfi-98.ss)   | R7RS 6.14                              |
 | [111](https://srfi.schemers.org/srfi-111/srfi-111.html) | Boxes                                                  | [`(srfi 111)`](./basis/srfi-111.ss) | [`(scheme box)`](./basis/r7rs.ss)      |
+| [138](https://srfi.schemers.org/srfi-138/srfi-138.html) | Compiling Scheme programs to executables               |                                     |                                        |
 | [141](https://srfi.schemers.org/srfi-141/srfi-141.html) | Integer division                                       | [`(srfi 141)`](./basis/srfi-141.ss) | [`(scheme division)`](./basis/r7rs.ss) |
 | [143](https://srfi.schemers.org/srfi-143/srfi-143.html) | Fixnums                                                | [`(srfi 143)`](./basis/srfi-143.ss) | [`(scheme fixnum)`](./basis/r7rs.ss)   |
 | [144](https://srfi.schemers.org/srfi-144/srfi-144.html) | Flonums                                                | [`(srfi 144)`](./basis/srfi-144.ss) | [`(scheme flonum)`](./basis/r7rs.ss)   |
@@ -101,9 +102,9 @@ Then, select one of the following targets and `make` it according to your purpos
 
 | Target      | Description
 |-------------|-------------
-| `all`       | Build shared-library `libmeevax.0.5.402.so` and executable `meevax`.
+| `all`       | Build shared-library `libmeevax.0.5.424.so` and executable `meevax`.
 | `install`   | Copy files into `/usr/local` directly.
-| `package`   | Generate debian package `meevax_0.5.402_amd64.deb` (only Ubuntu). The generated package can be installed by `sudo apt install build/meevax_0.5.402_amd64.deb`.
+| `package`   | Generate debian package `meevax_0.5.424_amd64.deb` (only Ubuntu). The generated package can be installed by `sudo apt install build/meevax_0.5.424_amd64.deb`.
 | `test`      | Test executable `meevax`. This target requires Valgrind to be installed.
 | `uninstall` | Remove files copied to `/usr/local` directly by target `install`.
 
@@ -114,12 +115,29 @@ Usage:
   meevax [OPTION...] [FILE...]
 
 Options:
-  -e, --evaluate=STRING  read and evaluate STRING on interaction-environment
-  -h, --help             display this help and exit
-  -i, --interactive      enter an interactive session
-  -l, --load=FILE        load FILE into interaction-environment
-  -v, --version          display version information and exit
-  -w, --write=STRING     same as `(write (read STRING))`
+  -A DIRECTORY          Append DIRECTORY to the list of directories that are
+                        searched in order to locate imported libraries.
+
+  -D NAME               Add NAME to the list of feature identifiers.
+
+  -I DIRECTORY          Prepend DIRECTORY to the list of directories that are
+                        searched in order to locate imported libraries.
+
+  -e, --evaluate STRING
+                        Read and evaluate STRING as a S-expression in the
+                        interaction environment.
+
+  -h, --help            Display this help message and exit.
+
+  -i, --interactive     After evaluating any FILEs given as arguments, enter
+                        the REPL session.
+
+  -l, --load FILE       Load FILE into the interaction environment.
+
+  -v, --version         Display version information and exit.
+
+  -w, --write STRING    Read STRING as a S-expression and write it to standard
+                        output. Equivalent to `(write (read STRING))`.
 ```
 
 ## License
