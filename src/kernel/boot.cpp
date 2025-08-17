@@ -278,7 +278,7 @@ namespace meevax::inline kernel
 
     define<library>("(meevax core)", [](library & library)
     {
-      library.evaluator.second = environment::core().as<environment::syntactic_environment>().second; // DIRTY HACK!
+      library.evaluator.second = environment::core().as<syntactic_environment>().second; // DIRTY HACK!
       library.export_specs = map(car, library.evaluator.second);
     });
 
@@ -1192,7 +1192,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("identifier->symbol", [](let const& xs)
       {
-        if (let const& x = car(xs); x.is<environment::syntactic_closure>())
+        if (let const& x = car(xs); x.is<syntactic_environment::syntactic_closure>())
         {
           return cddr(x);
         }
@@ -1205,9 +1205,9 @@ namespace meevax::inline kernel
 
     define<library>("(meevax syntactic-closure)", [](library & library)
     {
-      using syntactic_closure = environment::syntactic_closure;
+      using syntactic_closure = syntactic_environment::syntactic_closure;
 
-      using transformer = environment::transformer;
+      using transformer = syntactic_environment::transformer;
 
       library.define<procedure>("identifier?", [](let const& xs)
       {

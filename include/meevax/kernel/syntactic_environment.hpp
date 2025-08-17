@@ -27,7 +27,6 @@
 
 namespace meevax::inline kernel
 {
-  template <typename Environment>
   struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
   {
     struct syntactic_closure : public identifier
@@ -253,28 +252,7 @@ namespace meevax::inline kernel
     {
       using pair::pair;
 
-      auto transform(let const& form, let const& environment) const -> object
-      {
-        /*
-           Scheme programs can define and use new derived expression types,
-           called macros. Program-defined expression types have the syntax
-
-             (<keyword> <datum>...)
-
-           where <keyword> is an identifier that uniquely determines the
-           expression type. This identifier is called the syntactic keyword, or
-           simply keyword, of the macro. The number of the <datum>s, and their
-           syntax, depends on the expression type.
-
-           Each instance of a macro is called a use of the macro. The set of
-           rules that specifies how a use of a macro is transcribed into a more
-           primitive expression is called the transformer of the macro.
-        */
-        assert(first.is<closure>());
-        assert(second.is<syntactic_environment>());
-
-        return Environment().apply(first, form, environment, second);
-      }
+      auto transform(let const& form, let const& environment) const -> object;
 
       friend auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &
       {
@@ -369,67 +347,7 @@ namespace meevax::inline kernel
                               scoped_rename)));
       }
 
-      static EXPANDER(body)
-      {
-        if (auto [reversed_binding_specs,
-                  sequence,
-                  current_environment] = expander.sweep(form,
-                                                        form,
-                                                        bound_variables,
-                                                        make<syntactic_environment>(bound_variables, expander.second),
-                                                        rename);
-            reversed_binding_specs)
-        {
-          /*
-             (letrec* <binding specs> <sequence>)
-
-                 => ((lambda <variables> <assignments> <sequence>)
-                     <dummy 1> ... <dummy n>)
-
-             where <binding specs> = ((<variable 1> <initial 1>) ...
-                                      (<variable n> <initial n>))
-          */
-          let & formals = caar(current_environment);
-
-          for (let const& binding_spec : reversed_binding_specs)
-          {
-            if (not car(binding_spec).is<macro>()) // The binding-spec is not an internal syntax definition.
-            {
-              sequence = cons(cons(corename("set!"), binding_spec), sequence);
-            }
-          }
-
-          for (let & formal : formals)
-          {
-            if (formal.is<macro>()) // is internal-sytnax-definition
-            {
-              cdr(formal) = make<transformer>(Environment().execute(current_environment.template as<syntactic_environment>().compile(cdr(formal) /* <transformer spec> */)),
-                                              current_environment);
-            }
-          }
-
-          return expander.expand(list(cons(cons(corename("lambda"),
-                                                formals,
-                                                sequence),
-                                           make_list(length(formals), unit))),
-                                 bound_variables,
-                                 rename);
-        }
-        else if (sequence.template is<pair>())
-        {
-          return cons(expander.expand(car(sequence),
-                                      bound_variables,
-                                      rename),
-                      body(expander,
-                           cdr(sequence),
-                           bound_variables,
-                           rename));
-        }
-        else
-        {
-          return expander.expand(sequence, bound_variables, rename);
-        }
-      }
+      static EXPANDER(body);
 
       static EXPANDER(conditional)
       {
@@ -511,47 +429,9 @@ namespace meevax::inline kernel
         }
       }
 
-      static EXPANDER(let_syntax)
-      {
-        let const current_environment = make<syntactic_environment>(bound_variables, expander.second);
+      static EXPANDER(let_syntax);
 
-        auto formal = [&](let const& syntax_spec)
-        {
-          return make<macro>(car(syntax_spec) /* keyword */,
-                             make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec) /* transformer spec */)),
-                                               current_environment));
-        };
-
-        let const formals = map(formal, cadr(form));
-
-        return expander.expand(list(cons(corename("lambda"),
-                                         formals,
-                                         cddr(form) /* body */)),
-                               bound_variables,
-                               rename);
-      }
-
-      static EXPANDER(letrec_syntax)
-      {
-        let current_environment = make<syntactic_environment>(bound_variables, expander.second);
-
-        auto formal = [&](let const& syntax_spec)
-        {
-          return make<macro>(car(syntax_spec) /* keyword */,
-                             make<transformer>(Environment().execute(current_environment.as<syntactic_environment>().compile(cadr(syntax_spec) /* transformer spec */)),
-                                               current_environment));
-        };
-
-        let const formals = map(formal, cadr(form));
-
-        current_environment.as<syntactic_environment>().first = cons(formals, bound_variables);
-
-        return expander.expand(list(cons(corename("lambda"),
-                                         formals,
-                                         cddr(form) /* body */)),
-                               bound_variables,
-                               rename);
-      }
+      static EXPANDER(letrec_syntax);
 
       static EXPANDER(define)
       {
@@ -843,20 +723,7 @@ namespace meevax::inline kernel
         }
       }
 
-      static GENERATOR(define_syntax)
-      {
-        assert(car(form).is_also<identifier>());
-
-        let identity = generator.identify(car(form), unit);
-
-        cdr(identity) = make<transformer>(Environment().execute(generator.generate(cadr(form),
-                                                                                   bound_variables)),
-                                          make<syntactic_environment>(bound_variables,
-                                                                      generator.second));
-
-        return cons(make(instruction::secd_load_constant), unspecified,
-                    continuation);
-      }
+      static GENERATOR(define_syntax);
 
       static GENERATOR(call_with_current_continuation)
       {
@@ -934,7 +801,7 @@ namespace meevax::inline kernel
       return core;
     }
 
-    static auto corename(std::string const& variable)
+    static auto corename(std::string const& variable) -> object
     {
       return make<syntactic_closure>(core(), unit, make_symbol(variable));
     }
@@ -1094,7 +961,7 @@ namespace meevax::inline kernel
     }
 
     inline auto identify(object const& variable,
-                         object const& bound_variables)
+                         object const& bound_variables) -> object
     {
       assert(variable.is_also<identifier>());
 

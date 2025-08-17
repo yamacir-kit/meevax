@@ -23,7 +23,7 @@
 namespace meevax::inline kernel
 {
   struct environment : public dynamic_environment
-                     , public syntactic_environment<environment>
+                     , public syntactic_environment
   {
     using syntactic_environment::syntactic_environment;
 
@@ -35,8 +35,6 @@ namespace meevax::inline kernel
   };
 
   auto operator <<(std::ostream &, environment const&) -> std::ostream &;
-
-  extern template struct syntactic_environment<environment>;
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP

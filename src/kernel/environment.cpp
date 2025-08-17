@@ -244,6 +244,4 @@ namespace meevax::inline kernel
   {
     return os << magenta("#,(") << green("environment ") << faint("#;", &datum) << magenta(")");
   }
-
-  template struct syntactic_environment<environment>;
 } // namespace meevax::kernel
