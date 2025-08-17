@@ -12,25 +12,25 @@ auto main() -> int
       c = make<symbol>("c"),
       d = make<symbol>("d");
 
-  assert(lexical_cast<std::string>(cons(a, nullptr)) == "(a)");
+  assert(lexical_cast(cons(a, nullptr)) == "(a)");
 
-  assert(lexical_cast<std::string>(cons(list(a), list(b, c, d))) == "((a) b c d)");
+  assert(lexical_cast(cons(list(a), list(b, c, d))) == "((a) b c d)");
 
-  assert(lexical_cast<std::string>(cons(make<string>("a"), list(b, c))) == "(\"a\" b c)");
+  assert(lexical_cast(cons(make<string>("a"), list(b, c))) == "(\"a\" b c)");
 
-  assert(lexical_cast<std::string>(cons(a, make<small_integer>(3))) == "(a . 3)");
+  assert(lexical_cast(cons(a, make<small_integer>(3))) == "(a . 3)");
 
-  assert(lexical_cast<std::string>(cons(list(a, b), c)) == "((a b) . c)");
+  assert(lexical_cast(cons(list(a, b), c)) == "((a b) . c)");
 
-  assert(lexical_cast<std::string>(list(a, make<small_integer>(3 + 4), c)) == "(a 7 c)");
+  assert(lexical_cast(list(a, make<small_integer>(3 + 4), c)) == "(a 7 c)");
 
-  assert(lexical_cast<std::string>(list()) == "nullptr");
+  assert(lexical_cast(list()) == "nullptr");
 
-  assert(lexical_cast<std::string>(object(list())) == "()");
+  assert(lexical_cast(object(list())) == "()");
 
-  assert(lexical_cast<std::string>(xcons(list(b, c), a)) == "(a b c)");
+  assert(lexical_cast(xcons(list(b, c), a)) == "(a b c)");
 
-  assert(lexical_cast<std::string>(make_list(4, c)) == "(c c c c)");
+  assert(lexical_cast(make_list(4, c)) == "(c c c c)");
 
   {
     let x = list(a, b, c);

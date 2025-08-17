@@ -125,8 +125,8 @@ auto main() -> int
   }
 
   {
-    assert(lexical_cast<std::string>(make<double>(3.14)) == "3.14");
-    assert(lexical_cast<std::string>(make<small_integer>(42)) == "42");
+    assert(lexical_cast(make<double>(3.14)) == "3.14");
+    assert(lexical_cast(make<small_integer>(42)) == "42");
   }
 
   {

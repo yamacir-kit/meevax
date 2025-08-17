@@ -329,7 +329,7 @@ namespace meevax::inline kernel
               else
               {
                 throw read_error(make<string>("it is an error to attempt a forward reference"),
-                                 make<string>(lexical_cast<std::string>('#', n, '#')));
+                                 make<string>('#' + n + '#'));
               }
 
             case '=':
@@ -354,7 +354,7 @@ namespace meevax::inline kernel
 
             default:
               throw read_error(make<string>("unknown discriminator"),
-                               make<string>(lexical_cast<std::string>('#', n, c)));
+                               make<string>(lexical_cast('#', n, c)));
             }
           }
 
@@ -362,7 +362,7 @@ namespace meevax::inline kernel
           switch (auto c3 = take_character())
           {
           case '#':
-            return make_number(lexical_cast<std::string>(read()), 2);
+            return make_number(lexical_cast(read()), 2);
 
           default:
             return make_number(take_token(c3), 2);
@@ -372,7 +372,7 @@ namespace meevax::inline kernel
           switch (auto c3 = take_character())
           {
           case '#':
-            return make_number(lexical_cast<std::string>(read()), 10);
+            return make_number(lexical_cast(read()), 10);
 
           default:
             return make_number(take_token(c3), 10);
@@ -402,7 +402,7 @@ namespace meevax::inline kernel
           switch (auto c3 = take_character())
           {
           case '#':
-            return make_number(lexical_cast<std::string>(read()), 8);
+            return make_number(lexical_cast(read()), 8);
 
           default:
             return make_number(take_token(c3), 8);
@@ -425,7 +425,7 @@ namespace meevax::inline kernel
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
-                             make<string>(lexical_cast<std::string>(c1, c2, n)));
+                             make<string>(lexical_cast(c1, c2, n)));
           }
 
         case 't':
@@ -449,14 +449,14 @@ namespace meevax::inline kernel
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
-                             make<string>(lexical_cast<std::string>(c1, c2, n)));
+                             make<string>(lexical_cast(c1, c2, n)));
           }
 
         case 'x':
           switch (auto c3 = take_character())
           {
           case '#':
-            return make_number(lexical_cast<std::string>(read()), 16);
+            return make_number(lexical_cast(read()), 16);
 
           default:
             return make_number(take_token(c3), 16);

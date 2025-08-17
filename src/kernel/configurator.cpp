@@ -23,22 +23,6 @@
 
 namespace meevax::inline kernel
 {
-  auto pseudo_display(let const& x)
-  {
-    if (x.is<character>())
-    {
-      return static_cast<std::string>(x.as<character>());
-    }
-    else if (x.is<string>())
-    {
-      return static_cast<std::string>(x.as<string>());
-    }
-    else
-    {
-      return lexical_cast<std::string>(x);
-    }
-  }
-
   auto configurator::configure(int const argc, char const* const* const argv) -> void
   {
     for (auto i = 0; i < argc; ++i)
@@ -57,7 +41,7 @@ namespace meevax::inline kernel
     {
       option("(A)", [](auto read) // SRFI 138
       {
-        directories.emplace_back(std::filesystem::canonical(pseudo_display(read())));
+        directories.emplace_back(std::filesystem::canonical(lexical_cast(read())));
       }),
 
       option("(D)", [](auto read) // SRFI 138
@@ -67,7 +51,7 @@ namespace meevax::inline kernel
 
       option("(I)", [](auto read) // SRFI 138
       {
-        directories.emplace_front(std::filesystem::canonical(pseudo_display(read())));
+        directories.emplace_front(std::filesystem::canonical(lexical_cast(read())));
       }),
 
       option("(i|interactive)", [](auto)

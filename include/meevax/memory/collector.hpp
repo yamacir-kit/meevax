@@ -30,7 +30,6 @@
 #include <meevax/memory/pointer_set.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
-#include <meevax/utility/demangle.hpp>
 
 namespace meevax::inline memory
 {
@@ -320,7 +319,7 @@ namespace meevax::inline memory
           }
           else
           {
-            throw std::runtime_error(lexical_cast<std::string>("no viable conversion from ", demangle(type()), " to ", demangle(typeid(U))));
+            throw std::runtime_error("no viable conversion from " + demangle(type()) + " to " + demangle(typeid(U)));
           }
         }
         else
@@ -344,7 +343,7 @@ namespace meevax::inline memory
           }
           else
           {
-            throw std::runtime_error(lexical_cast<std::string>("no viable conversion from ", demangle(type()), " to ", demangle(typeid(U))));
+            throw std::runtime_error("no viable conversion from " + demangle(type()) + " to " + demangle(typeid(U)));
           }
         }
         else

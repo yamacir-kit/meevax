@@ -24,7 +24,6 @@
 #include <iomanip>
 #include <limits>
 #include <ostream>
-#include <typeinfo>
 
 #include <meevax/type_traits/integer.hpp>
 

@@ -19,37 +19,38 @@
 
 #include <sstream>
 #include <stdexcept>
-#include <typeinfo>
+
+#include <meevax/utility/demangle.hpp>
 
 namespace meevax::inline iostream
 {
-  template <typename To, typename... Ts>
-  auto lexical_cast(Ts&&... xs) -> To
+  template <typename T = std::string, typename... Ts>
+  auto lexical_cast(Ts&&... xs) -> T
   {
     if (std::stringstream ss; (ss << ... << xs))
     {
-      if constexpr (std::is_same_v<std::decay_t<To>, std::string>)
+      if constexpr (std::is_same_v<std::decay_t<T>, std::string>)
       {
         return ss.str();
       }
       else
       {
-        if (To to; ss >> to)
+        if (auto x = T(); ss >> x)
         {
-          return to;
+          return x;
         }
         else
         {
-          std::stringstream what;
-          what << "failed to read " << typeid(To).name() << " type object from std::stringstream";
+          auto what = std::stringstream();
+          what << "failed to deserialize " << demangle(typeid(T)) << " type object";
           throw std::runtime_error(what.str());
         }
       }
     }
     else
     {
-      std::stringstream what;
-      ((what << "failed to write"), ..., (what << " " << typeid(Ts).name())) << " type object to std::stringstream";
+      auto what = std::stringstream();
+      ((what << "failed to serialize"), ..., (what << " " << demangle(typeid(Ts)))) << " type object";
       throw std::runtime_error(what.str());
     }
   }

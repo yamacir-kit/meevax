@@ -26,7 +26,7 @@ namespace meevax::inline kernel
     {
       if (auto&& name = car(expression).as<symbol>().name; name == "define-library")
       {
-        meevax::define<library>(lexical_cast<std::string>(cadr(expression)), cddr(expression));
+        meevax::define<library>(lexical_cast(cadr(expression)), cddr(expression));
 
         return unspecified;
       }
@@ -149,8 +149,8 @@ namespace meevax::inline kernel
       auto prefix = [prefix = caddr(form)](let const& identity)
       {
         assert(identity.is<absolute>());
-        return make<absolute>(make_symbol(lexical_cast<std::string>(prefix) +
-                                          lexical_cast<std::string>(car(identity))),
+        return make<absolute>(make_symbol(lexical_cast(prefix) +
+                                          lexical_cast(car(identity))),
                               cdr(identity));
       };
 
@@ -181,7 +181,7 @@ namespace meevax::inline kernel
 
       return map(rename, import_set(cadr(form)));
     }
-    else if (auto iter = libraries().find(lexical_cast<std::string>(form)); iter != libraries().end())
+    else if (auto iter = libraries().find(lexical_cast(form)); iter != libraries().end())
     {
       return std::get<1>(*iter).as<library>().import_set();
     }
@@ -191,14 +191,14 @@ namespace meevax::inline kernel
 
       for (let const& each : form)
       {
-        pathname /= lexical_cast<std::string>(each);
+        pathname /= lexical_cast(each);
       }
 
       pathname.replace_extension("sld");
 
       environment().load(textual_context::of(form).resolve(pathname));
 
-      if (auto iterator = libraries().find(lexical_cast<std::string>(form)); iterator != libraries().end())
+      if (auto iterator = libraries().find(lexical_cast(form)); iterator != libraries().end())
       {
         return std::get<1>(*iterator).as<library>().import_set();
       }

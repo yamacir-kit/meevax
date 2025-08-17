@@ -702,7 +702,7 @@ namespace meevax::inline kernel
       {
         if (tail)
         {
-          assert(lexical_cast<std::string>(continuation) == "(return)");
+          assert(lexical_cast(continuation) == "(return)");
 
           return generator.generate(car(form), // <test>
                                     bound_variables,
@@ -772,7 +772,7 @@ namespace meevax::inline kernel
 
       static GENERATOR(letrec)
       {
-        assert(not tail or lexical_cast<std::string>(continuation) == "(return)");
+        assert(not tail or lexical_cast(continuation) == "(return)");
 
         let const formals = map(car, car(form));
 
