@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/conditional_expand.hpp>
+#include <meevax/kernel/include.hpp>
 #include <meevax/kernel/library.hpp>
 
 namespace meevax::inline kernel

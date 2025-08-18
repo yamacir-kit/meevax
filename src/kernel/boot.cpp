@@ -43,6 +43,7 @@
 #include <meevax/kernel/standard_error_port.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
 #include <meevax/kernel/standard_output_port.hpp>
+#include <meevax/kernel/transformer.hpp>
 #include <meevax/kernel/vector.hpp>
 #include <meevax/kernel/version.hpp>
 

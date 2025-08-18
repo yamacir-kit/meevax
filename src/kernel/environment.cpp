@@ -15,6 +15,7 @@
 */
 
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/include.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/library.hpp>
 
