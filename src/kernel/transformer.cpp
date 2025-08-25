@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
 #include <meevax/kernel/transformer.hpp>

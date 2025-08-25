@@ -52,57 +52,6 @@ namespace meevax::inline kernel
       }
     };
 
-    struct expander
-    {
-      #define EXPANDER(NAME)                                                   \
-      auto NAME([[maybe_unused]] syntactic_environment const& expander,        \
-                                 object const& form,                           \
-                [[maybe_unused]] object const& bound_variables,                \
-                [[maybe_unused]] typename syntactic_closure::renamer & rename) -> object
-
-      static EXPANDER(quote);
-
-      static EXPANDER(quote_syntax);
-
-      static EXPANDER(call);
-
-      static EXPANDER(operand);
-
-      static EXPANDER(lambda);
-
-      static EXPANDER(body);
-
-      static EXPANDER(conditional);
-
-      static EXPANDER(set);
-
-      static EXPANDER(include);
-
-      static EXPANDER(include_case_insensitive);
-
-      static EXPANDER(conditional_expand);
-
-      static EXPANDER(letrec);
-
-      static EXPANDER(sequence);
-
-      static EXPANDER(let_syntax);
-
-      static EXPANDER(letrec_syntax);
-
-      static EXPANDER(define);
-
-      static EXPANDER(define_syntax);
-
-      static EXPANDER(call_with_current_continuation);
-
-      static EXPANDER(current);
-
-      static EXPANDER(install);
-
-      #undef EXPANDER
-    };
-
     struct generator
     {
       #define GENERATOR(NAME)                                                  \

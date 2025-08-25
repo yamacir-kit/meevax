@@ -15,6 +15,7 @@
 */
 
 #include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/syntactic_closure.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
 
