@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/conditional_expand.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/version.hpp> // features

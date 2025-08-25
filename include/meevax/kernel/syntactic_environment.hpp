@@ -17,66 +17,15 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 
-#include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/describable.hpp>
 #include <meevax/kernel/ghost.hpp>
-#include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/syntactic_closure.hpp>
 
 namespace meevax::inline kernel
 {
   struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
   {
-    struct syntactic_closure : public identifier
-    {
-      struct renamer
-      {
-        syntactic_closure const* enclosure;
-
-        renamer * outer;
-
-        bool transparent;
-
-        let dictionary;
-
-        explicit renamer(syntactic_closure const* enclosure, renamer * outer, bool transparent);
-
-        auto count(let const& form) -> int;
-
-        auto make_syntactic_closure(let const& form, int version = 0) -> object const&;
-
-        auto unshadow(let const& formals, let const& bound_variables) -> object;
-
-        auto memq(let const& form) const -> object;
-
-        auto assq(let const& form) const -> object;
-
-        auto rename(let const& form) -> object;
-
-        auto operator ()(let const& form) -> object;
-
-        auto operator ()(let const& formals, let const& bound_variables) -> object;
-      };
-
-      let environment, free_names, form;
-
-      int version;
-
-      explicit syntactic_closure(let const& environment,
-                                 let const& free_names,
-                                 let const& form,
-                                 int version = 0);
-
-      auto expand(let const& bound_variables, renamer & outer) -> object;
-
-      auto identify(let const& bound_variables) -> object;
-
-      friend auto operator ==(syntactic_closure const& x, syntactic_closure const& y) -> bool;
-
-      friend auto operator <<(std::ostream & os, syntactic_closure const& datum) -> std::ostream &;
-    };
-
     struct syntax : public describable
     {
       auto (*expand)(syntactic_environment const&,

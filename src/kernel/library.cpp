@@ -15,6 +15,7 @@
 */
 
 #include <meevax/kernel/conditional_expand.hpp>
+#include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/include.hpp>
 #include <meevax/kernel/library.hpp>
 

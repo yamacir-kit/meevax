@@ -22,6 +22,7 @@
 #include <meevax/kernel/binary_output_file_port.hpp>
 #include <meevax/kernel/boot.hpp>
 #include <meevax/kernel/box.hpp>
+#include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/input_file_port.hpp>
@@ -1193,7 +1194,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("identifier->symbol", [](let const& xs)
       {
-        if (let const& x = car(xs); x.is<syntactic_environment::syntactic_closure>())
+        if (let const& x = car(xs); x.is<syntactic_closure>())
         {
           return cddr(x);
         }
@@ -1206,8 +1207,6 @@ namespace meevax::inline kernel
 
     define<library>("(meevax syntactic-closure)", [](library & library)
     {
-      using syntactic_closure = syntactic_environment::syntactic_closure;
-
       library.define<procedure>("identifier?", [](let const& xs)
       {
         return car(xs).is_also<identifier>();
