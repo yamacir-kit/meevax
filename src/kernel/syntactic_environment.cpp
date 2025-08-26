@@ -76,13 +76,13 @@ namespace meevax::inline kernel
                                      object const& bound_variables) const -> object
   {
     auto enclosure = syntactic_closure(make<syntactic_environment>(bound_variables, second), unit, form);
-    auto rename = typename syntactic_closure::renamer(&enclosure, nullptr, true);
+    auto rename = syntactic_closure::renamer(&enclosure, nullptr, true);
     return expand(form, bound_variables, rename);
   }
 
   auto syntactic_environment::expand(object const& form,
                                      object const& bound_variables,
-                                     typename syntactic_closure::renamer & rename) const -> object
+                                     syntactic_closure::renamer & rename) const -> object
   {
     if (not form.is<pair>())
     {
@@ -235,7 +235,7 @@ namespace meevax::inline kernel
                                     let const& sequence,
                                     let const& bound_variables,
                                     let const& current_environment,
-                                    typename syntactic_closure::renamer & rename,
+                                    syntactic_closure::renamer & rename,
                                     let const& formals,
                                     let const& reversed_binding_specs) const -> std::tuple<object, object, object>
   {

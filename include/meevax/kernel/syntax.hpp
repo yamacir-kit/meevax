@@ -26,7 +26,7 @@ namespace meevax::inline kernel
     auto (*expand)(syntactic_environment const& expander,
                    object const& form,
                    object const& bound_variables,
-                   typename syntactic_closure::renamer & rename) -> object;
+                   syntactic_closure::renamer & rename) -> object;
 
     auto (*generate)(syntactic_environment & generator,
                      object const& form,

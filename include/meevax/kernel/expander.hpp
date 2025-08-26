@@ -27,7 +27,7 @@ namespace meevax::inline kernel
     auto NAME([[maybe_unused]] syntactic_environment const& expander,        \
                                object const& form,                           \
               [[maybe_unused]] object const& bound_variables,                \
-              [[maybe_unused]] typename syntactic_closure::renamer & rename) -> object
+              [[maybe_unused]] syntactic_closure::renamer & rename) -> object
 
     static EXPANDER(quote);
 
