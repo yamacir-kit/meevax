@@ -26,32 +26,6 @@ namespace meevax::inline kernel
 {
   struct syntactic_environment : public virtual pair // (<bound-variables> . <free-variables>)
   {
-    struct syntax : public describable
-    {
-      auto (*expand)(syntactic_environment const&,
-                     object const& form,
-                     object const& bound_variables,
-                     typename syntactic_closure::renamer &) -> object;
-
-      auto (*generate)(syntactic_environment &,
-                       object const& /* form            */,
-                       object const& /* bound_variables */,
-                       object const& /* continuation    */,
-                       bool          /* tail            */) -> object;
-
-      template <typename Expander, typename Generator>
-      explicit syntax(std::string const& name, Expander const& expand, Generator const& generate)
-        : describable { name }
-        , expand { expand }
-        , generate { generate }
-      {}
-
-      friend auto operator <<(std::ostream & os, syntax const& datum) -> std::ostream &
-      {
-        return os << magenta("#,(") << green("syntax ") << datum.name << magenta(")");
-      }
-    };
-
     using pair::pair;
 
     auto compile(object const& form) -> object;

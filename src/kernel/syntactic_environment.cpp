@@ -20,6 +20,7 @@
 #include <meevax/kernel/generator.hpp>
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
+#include <meevax/kernel/syntax.hpp>
 #include <meevax/kernel/transformer.hpp>
 
 namespace meevax::inline kernel
