@@ -52,58 +52,6 @@ namespace meevax::inline kernel
       }
     };
 
-    struct generator
-    {
-      #define GENERATOR(NAME)                                                  \
-      auto NAME([[maybe_unused]] syntactic_environment & generator,            \
-                [[maybe_unused]] object const& form,                           \
-                [[maybe_unused]] object const& bound_variables,                \
-                [[maybe_unused]] object const& continuation,                   \
-                [[maybe_unused]] bool tail = false) -> object
-
-      static GENERATOR(quote);
-
-      static GENERATOR(quote_syntax);
-
-      static GENERATOR(call);
-
-      static GENERATOR(operand);
-
-      static GENERATOR(lambda);
-
-      static GENERATOR(body);
-
-      static GENERATOR(conditional);
-
-      static GENERATOR(set);
-
-      static constexpr auto include = nullptr;
-
-      static constexpr auto include_case_insensitive = nullptr;
-
-      static constexpr auto conditional_expand = nullptr;
-
-      static GENERATOR(letrec);
-
-      static GENERATOR(sequence);
-
-      static constexpr auto let_syntax = nullptr;
-
-      static constexpr auto letrec_syntax = nullptr;
-
-      static GENERATOR(define);
-
-      static GENERATOR(define_syntax);
-
-      static GENERATOR(call_with_current_continuation);
-
-      static GENERATOR(current);
-
-      static GENERATOR(install);
-
-      #undef GENERATOR
-    };
-
     using pair::pair;
 
     auto compile(object const& form) -> object;
