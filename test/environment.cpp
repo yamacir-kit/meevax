@@ -137,7 +137,7 @@ auto main() -> int
 
   const_cast<object &>(interaction_environment()).reset(); // DIRTY HACK!
 
-  const_cast<object &>(environment::core()).reset(); // DIRTY HACK!
+  const_cast<object &>(core_syntactic_environment()).reset(); // DIRTY HACK!
 
   default_collector::collect();
 

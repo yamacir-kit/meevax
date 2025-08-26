@@ -30,10 +30,6 @@ namespace meevax::inline kernel
 
     auto compile(object const& form) -> object;
 
-    static auto core() -> object const&;
-
-    static auto corename(std::string const&) -> object;
-
     auto define(object const&, object const& = undefined) -> void;
 
     template <typename T, typename... Ts>
@@ -76,6 +72,10 @@ namespace meevax::inline kernel
                let const& formals = unit,
                let const& reversed_binding_specs = unit) const -> std::tuple<object, object, object>;
   };
+
+  auto core_syntactic_environment() -> object const&;
+
+  auto default_rename(std::string const&) -> object;
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP

@@ -108,7 +108,7 @@ namespace meevax::inline kernel
       {
         if (not car(binding_spec).is<macro>()) // The binding-spec is not an internal syntax definition.
         {
-          sequence = cons(cons(syntactic_environment::corename("set!"), binding_spec), sequence);
+          sequence = cons(cons(default_rename("set!"), binding_spec), sequence);
         }
       }
 
@@ -121,7 +121,7 @@ namespace meevax::inline kernel
         }
       }
 
-      return expander.expand(list(cons(cons(syntactic_environment::corename("lambda"),
+      return expander.expand(list(cons(cons(default_rename("lambda"),
                                             formals,
                                             sequence),
                                        make_list(length(formals), unit))),
@@ -164,7 +164,7 @@ namespace meevax::inline kernel
 
   EXPANDER(expander::include)
   {
-    return expander.expand(cons(syntactic_environment::corename("begin"),
+    return expander.expand(cons(default_rename("begin"),
                                 meevax::include(cadr(form))),
                            bound_variables,
                            rename);
@@ -172,7 +172,7 @@ namespace meevax::inline kernel
 
   EXPANDER(expander::include_case_insensitive)
   {
-    return expander.expand(cons(syntactic_environment::corename("begin"),
+    return expander.expand(cons(default_rename("begin"),
                                 meevax::include(cadr(form), false)),
                            bound_variables,
                            rename);
@@ -180,7 +180,7 @@ namespace meevax::inline kernel
 
   EXPANDER(expander::conditional_expand)
   {
-    return expander.expand(cons(syntactic_environment::corename("begin"),
+    return expander.expand(cons(default_rename("begin"),
                                 meevax::conditional_expand(cdr(form))),
                            bound_variables,
                            rename);
@@ -237,7 +237,7 @@ namespace meevax::inline kernel
 
     let const formals = map(formal, cadr(form));
 
-    return expander.expand(list(cons(syntactic_environment::corename("lambda"),
+    return expander.expand(list(cons(default_rename("lambda"),
                                      formals,
                                      cddr(form) /* body */)),
                            bound_variables,
@@ -259,7 +259,7 @@ namespace meevax::inline kernel
 
     current_environment.as<syntactic_environment>().first = cons(formals, bound_variables);
 
-    return expander.expand(list(cons(syntactic_environment::corename("lambda"),
+    return expander.expand(list(cons(default_rename("lambda"),
                                      formals,
                                      cddr(form) /* body */)),
                            bound_variables,
@@ -272,7 +272,7 @@ namespace meevax::inline kernel
     {
       return list(rename(car(form)),
                   caadr(form) /* variable */,
-                  expander.expand(cons(syntactic_environment::corename("lambda"),
+                  expander.expand(cons(default_rename("lambda"),
                                        cdadr(form) /* formals */,
                                        cddr(form) /* body */),
                                   bound_variables,

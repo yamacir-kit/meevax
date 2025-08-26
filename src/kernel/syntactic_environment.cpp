@@ -30,40 +30,6 @@ namespace meevax::inline kernel
     return generate(expand(form, first), first);
   }
 
-  auto syntactic_environment::core() -> object const&
-  {
-    #define BIND(NAME, SYNTAX) make<absolute>(make_symbol(NAME), make<syntax>(NAME, expander::SYNTAX, generator::SYNTAX))
-
-    let static const core = make<syntactic_environment>(
-      unit,
-      list(BIND("begin"                          , sequence                      ),
-           BIND("call-with-current-continuation!", call_with_current_continuation),
-           BIND("conditional-expand"             , conditional_expand            ),
-           BIND("current"                        , current                       ),
-           BIND("define"                         , define                        ),
-           BIND("define-syntax"                  , define_syntax                 ),
-           BIND("if"                             , conditional                   ),
-           BIND("include"                        , include                       ),
-           BIND("include-case-insensitive"       , include_case_insensitive      ),
-           BIND("install"                        , install                       ),
-           BIND("lambda"                         , lambda                        ),
-           BIND("let-syntax"                     , let_syntax                    ),
-           BIND("letrec"                         , letrec                        ),
-           BIND("letrec-syntax"                  , letrec_syntax                 ),
-           BIND("quote"                          , quote                         ),
-           BIND("quote-syntax"                   , quote_syntax                  ),
-           BIND("set!"                           , set                           )));
-
-    #undef BIND
-
-    return core;
-  }
-
-  auto syntactic_environment::corename(std::string const& variable) -> object
-  {
-    return make<syntactic_closure>(core(), unit, make_symbol(variable));
-  }
-
   auto syntactic_environment::define(object const& variable,
                                      object const& value) -> void
   {
@@ -302,7 +268,7 @@ namespace meevax::inline kernel
                                rename,
                                formals,
                                cons(list(variable,
-                                         cons(syntactic_environment::corename("lambda"),
+                                         cons(default_rename("lambda"),
                                               cdadar(sequence), // <formals>
                                               cddar(sequence))),
                                     reversed_binding_specs));
@@ -359,5 +325,39 @@ namespace meevax::inline kernel
     }
 
     return std::make_tuple(reversed_binding_specs, sequence, current_environment);
+  }
+
+  auto core_syntactic_environment() -> object const&
+  {
+    #define BIND(NAME, SYNTAX) make<absolute>(make_symbol(NAME), make<syntax>(NAME, expander::SYNTAX, generator::SYNTAX))
+
+    let static const core_syntactic_environment = make<syntactic_environment>(
+      unit,
+      list(BIND("begin"                          , sequence                      ),
+           BIND("call-with-current-continuation!", call_with_current_continuation),
+           BIND("conditional-expand"             , conditional_expand            ),
+           BIND("current"                        , current                       ),
+           BIND("define"                         , define                        ),
+           BIND("define-syntax"                  , define_syntax                 ),
+           BIND("if"                             , conditional                   ),
+           BIND("include"                        , include                       ),
+           BIND("include-case-insensitive"       , include_case_insensitive      ),
+           BIND("install"                        , install                       ),
+           BIND("lambda"                         , lambda                        ),
+           BIND("let-syntax"                     , let_syntax                    ),
+           BIND("letrec"                         , letrec                        ),
+           BIND("letrec-syntax"                  , letrec_syntax                 ),
+           BIND("quote"                          , quote                         ),
+           BIND("quote-syntax"                   , quote_syntax                  ),
+           BIND("set!"                           , set                           )));
+
+    #undef BIND
+
+    return core_syntactic_environment;
+  }
+
+  auto default_rename(std::string const& variable) -> object
+  {
+    return make<syntactic_closure>(core_syntactic_environment(), unit, make_symbol(variable));
   }
 } // namespace meevax::kernel

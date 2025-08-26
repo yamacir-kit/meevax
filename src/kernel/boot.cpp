@@ -280,7 +280,7 @@ namespace meevax::inline kernel
 
     define<library>("(meevax core)", [](library & library)
     {
-      library.evaluator.second = environment::core().as<syntactic_environment>().second; // DIRTY HACK!
+      library.evaluator.second = core_syntactic_environment().as<syntactic_environment>().second;
       library.export_specs = map(car, library.evaluator.second);
     });
 
