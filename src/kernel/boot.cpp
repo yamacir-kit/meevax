@@ -368,72 +368,6 @@ namespace meevax::inline kernel
       });
     });
 
-    define<library>("(meevax inexact)", [](library & library)
-    {
-      using namespace number;
-
-      library.define<procedure>("log", [](let const& xs)
-      {
-        switch (length(xs))
-        {
-        case 1:
-          return log(car(xs));
-
-        case 2:
-          return log(car(xs)) / log(cadr(xs));
-
-        default:
-          throw error(make<string>("procedure log takes one or two arguments, but got"), xs);
-        }
-      });
-
-      library.define<procedure>("atan", [](let const& xs)
-      {
-        switch (length(xs))
-        {
-        case 1:
-          return atan(car(xs));
-
-        case 2:
-          return atan2(car(xs), cadr(xs));
-
-        default:
-          throw error(make<string>("procedure atan takes one or two arguments, but got"), xs);
-        }
-      });
-
-      EXPORT1(sin); EXPORT1(asin); EXPORT1(sinh); EXPORT1(asinh);
-      EXPORT1(cos); EXPORT1(acos); EXPORT1(cosh); EXPORT1(acosh);
-      EXPORT1(tan);                EXPORT1(tanh); EXPORT1(atanh);
-
-      EXPORT1(erf);
-      EXPORT1(erfc);
-
-      EXPORT1(tgamma);
-      EXPORT1(lgamma);
-
-      EXPORT1(sqrt);
-
-      EXPORT1(exp); EXPORT1(expm1);
-                    EXPORT1(log1p);
-
-      EXPORT1_RENAME(is_finite, "finite?");
-      EXPORT1_RENAME(is_infinite, "infinite?");
-      EXPORT1_RENAME(is_nan, "nan?");
-
-      EXPORT2(ldexp);
-      EXPORT2(nextafter);
-      EXPORT2(copysign);
-
-      EXPORT2(cyl_bessel_j);
-      EXPORT2(cyl_neumann);
-
-      library.define<double>("e",     std::numbers::e);
-      library.define<double>("pi",    std::numbers::pi);
-      library.define<double>("euler", std::numbers::egamma);
-      library.define<double>("phi",   std::numbers::phi);
-    });
-
     define<library>("(meevax instruction)", [](library & library)
     {
       library.define<instruction>("secd-call",              instruction::secd_call             );
@@ -664,6 +598,8 @@ namespace meevax::inline kernel
     {
       using namespace number;
 
+      // R7RS 6.2.6 Numerial operations
+
       EXPORT1_RENAME(is_complex,  "number?");
       EXPORT1_RENAME(is_complex,  "complex?");
       EXPORT1_RENAME(is_real,     "real?");
@@ -676,6 +612,10 @@ namespace meevax::inline kernel
       {
         return car(xs).is<small_integer>() or car(xs).is<large_integer>();
       });
+
+      EXPORT1_RENAME(is_finite, "finite?");
+      EXPORT1_RENAME(is_infinite, "infinite?");
+      EXPORT1_RENAME(is_nan, "nan?");
 
       library.define<procedure>("=",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), not_equals            ) == xs.end(); });
       library.define<procedure>("<",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), greater_than_or_equals) == xs.end(); });
@@ -713,6 +653,44 @@ namespace meevax::inline kernel
       EXPORT1(truncate);
       EXPORT1(round);
 
+      EXPORT1(exp);
+
+      library.define<procedure>("log", [](let const& xs)
+      {
+        switch (length(xs))
+        {
+        case 1:
+          return log(car(xs));
+
+        case 2:
+          return log(car(xs)) / log(cadr(xs));
+
+        default:
+          throw error(make<string>("procedure log takes one or two arguments, but got"), xs);
+        }
+      });
+
+      EXPORT1(sin); EXPORT1(asin); EXPORT1(sinh); EXPORT1(asinh);
+      EXPORT1(cos); EXPORT1(acos); EXPORT1(cosh); EXPORT1(acosh);
+      EXPORT1(tan);                EXPORT1(tanh); EXPORT1(atanh);
+
+      library.define<procedure>("atan", [](let const& xs)
+      {
+        switch (length(xs))
+        {
+        case 1:
+          return atan(car(xs));
+
+        case 2:
+          return atan2(car(xs), cadr(xs));
+
+        default:
+          throw error(make<string>("procedure atan takes one or two arguments, but got"), xs);
+        }
+      });
+
+      EXPORT1(sqrt);
+
       library.define<procedure>("exact-integer-square-root", [](let const& xs)
       {
         auto sqrt = [](let const& x)
@@ -738,6 +716,32 @@ namespace meevax::inline kernel
       EXPORT1(exact);
       EXPORT1(inexact);
 
+      // Exponential functions (cmath)
+      EXPORT1(expm1);
+      EXPORT1(log1p);
+
+      // Error and gamma functions (cmath)
+      EXPORT1(erf);
+      EXPORT1(erfc);
+      EXPORT1(tgamma);
+      EXPORT1(lgamma);
+
+      // Floating-point manipulation functions (cmath)
+      EXPORT2(ldexp);
+      EXPORT2(nextafter);
+      EXPORT2(copysign);
+
+      // Mathematical special functions (cmath)
+      EXPORT2(cyl_bessel_j);
+      EXPORT2(cyl_neumann);
+
+      library.define<double>("e",     std::numbers::e);
+      library.define<double>("pi",    std::numbers::pi);
+      library.define<double>("euler", std::numbers::egamma);
+      library.define<double>("phi",   std::numbers::phi);
+
+      // SRFI 151: Bitwise Operations
+
       EXPORT1_RENAME(bitwise_not, "bitwise-not");
 
       library.define<procedure>("bitwise-and", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<small_integer>(-1), bitwise_and); });
@@ -751,6 +755,8 @@ namespace meevax::inline kernel
 
       EXPORT1_RENAME(bit_count, "bit-count");
       EXPORT1_RENAME(bit_width, "bit-width");
+
+      // R7RS 6.2.7 Numerial input and output
 
       library.define<procedure>("number->string", [](let const& xs)
       {

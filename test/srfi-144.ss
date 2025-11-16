@@ -1,4 +1,4 @@
-(import (only (meevax inexact) acosh asinh atanh cosh sinh tanh)
+(import (only (meevax number) acosh asinh atanh cosh sinh tanh)
         (scheme base)
         (scheme inexact)
         (scheme process-context)
