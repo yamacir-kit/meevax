@@ -217,29 +217,6 @@ namespace meevax::inline kernel
       library.define<procedure>("char-downcase", [](let const& xs) { return make<character>(car(xs).as<character>().downcase()); });
     });
 
-    define<library>("(meevax complex)", [](library & library)
-    {
-      using namespace number;
-
-      library.define<procedure>("make-rectangular", [](let const& xs)
-      {
-        return make<complex>(car(xs), cadr(xs));
-      });
-
-      library.define<procedure>("make-polar", [](let const& xs)
-      {
-        let const& radius = car(xs), angle = cadr(xs);
-
-        return make<complex>(radius * cos(angle),
-                             radius * sin(angle));
-      });
-
-      EXPORT1(angle);
-      EXPORT1(magnitude);
-      EXPORT1_RENAME(imag, "imag-part");
-      EXPORT1_RENAME(real, "real-part");
-    });
-
     define<library>("(meevax context)", [](library & library)
     {
       library.define<procedure>("emergency-exit", [](let const& xs)
@@ -712,6 +689,24 @@ namespace meevax::inline kernel
       });
 
       EXPORT2_RENAME(pow, "expt");
+
+      library.define<procedure>("make-rectangular", [](let const& xs)
+      {
+        return make<complex>(car(xs), cadr(xs));
+      });
+
+      library.define<procedure>("make-polar", [](let const& xs)
+      {
+        let const& radius = car(xs), angle = cadr(xs);
+
+        return make<complex>(radius * cos(angle),
+                             radius * sin(angle));
+      });
+
+      EXPORT1_RENAME(real, "real-part");
+      EXPORT1_RENAME(imag, "imag-part");
+      EXPORT1(magnitude);
+      EXPORT1(angle);
 
       EXPORT1(exact);
       EXPORT1(inexact);
