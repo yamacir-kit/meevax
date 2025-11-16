@@ -577,22 +577,17 @@ namespace meevax::inline kernel
 
       // R7RS 6.2.6 Numerial operations
 
-      EXPORT1_RENAME(is_complex,  "number?");
-      EXPORT1_RENAME(is_complex,  "complex?");
-      EXPORT1_RENAME(is_real,     "real?");
-      EXPORT1_RENAME(is_rational, "rational?");
-      EXPORT1_RENAME(is_integer,  "integer?");
-      EXPORT1_RENAME(is_exact,    "exact?");
-      EXPORT1_RENAME(is_inexact,  "inexact?");
-
-      library.define<procedure>("exact-integer?", [](let const& xs)
-      {
-        return car(xs).is<small_integer>() or car(xs).is<large_integer>();
-      });
-
-      EXPORT1_RENAME(is_finite, "finite?");
-      EXPORT1_RENAME(is_infinite, "infinite?");
-      EXPORT1_RENAME(is_nan, "nan?");
+      EXPORT1_RENAME(is_complex,       "number?");
+      EXPORT1_RENAME(is_complex,       "complex?");
+      EXPORT1_RENAME(is_real,          "real?");
+      EXPORT1_RENAME(is_rational,      "rational?");
+      EXPORT1_RENAME(is_integer,       "integer?");
+      EXPORT1_RENAME(is_exact,         "exact?");
+      EXPORT1_RENAME(is_inexact,       "inexact?");
+      EXPORT1_RENAME(is_exact_integer, "exact-integer?");
+      EXPORT1_RENAME(is_finite,        "finite?");
+      EXPORT1_RENAME(is_infinite,      "infinite?");
+      EXPORT1_RENAME(is_nan,           "nan?");
 
       library.define<procedure>("=",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), not_equals            ) == xs.end(); });
       library.define<procedure>("<",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), greater_than_or_equals) == xs.end(); });
