@@ -54,11 +54,23 @@ namespace meevax::inline kernel
 {
   auto boot() -> void
   {
-    #define EXPORT1(IDENTIFIER) library.define<procedure>(#IDENTIFIER, [](let const& xs) { return IDENTIFIER(car(xs)); })
-    #define EXPORT2(IDENTIFIER) library.define<procedure>(#IDENTIFIER, [](let const& xs) { return IDENTIFIER(car(xs), cadr(xs)); })
+    #define EXPORT1_RENAME(IDENTIFIER1, IDENTIFIER2)                           \
+    library.define<procedure>(IDENTIFIER2, [](let const& xs)                   \
+    {                                                                          \
+      return IDENTIFIER1(car(xs));                                             \
+    })
 
-    #define EXPORT1_RENAME(IDENTIFIER1, IDENTIFIER2) library.define<procedure>(IDENTIFIER2, [](let const& xs) { return IDENTIFIER1(car(xs)); })
-    #define EXPORT2_RENAME(IDENTIFIER1, IDENTIFIER2) library.define<procedure>(IDENTIFIER2, [](let const& xs) { return IDENTIFIER1(car(xs), cadr(xs)); })
+    #define EXPORT2_RENAME(IDENTIFIER1, IDENTIFIER2)                           \
+    library.define<procedure>(IDENTIFIER2, [](let const& xs)                   \
+    {                                                                          \
+      return IDENTIFIER1(car(xs), cadr(xs));                                   \
+    })
+
+    #define EXPORT3_RENAME(IDENTIFIER1, IDENTIFIER2)                           \
+    library.define<procedure>(IDENTIFIER2, [](let const& xs)                   \
+    {                                                                          \
+      return IDENTIFIER1(car(xs), cadr(xs), caddr(xs));                        \
+    })
 
     #define EXPORT_PREDICATE(TYPENAME, IDENTIFIER)                             \
     library.define<procedure>(IDENTIFIER, [](let const& xs)                    \
@@ -151,10 +163,7 @@ namespace meevax::inline kernel
 
     define<library>("(meevax box)", [](library & library)
     {
-      library.define<procedure>("box", [](let const& xs)
-      {
-        return make<box>(car(xs));
-      });
+      EXPORT1_RENAME(make<box>, "box");
 
       EXPORT_PREDICATE(box, "box?");
 
@@ -250,9 +259,9 @@ namespace meevax::inline kernel
 
     define<library>("(meevax comparator)", [](library & library)
     {
-      EXPORT2_RENAME(eq, "eq?");
+      EXPORT2_RENAME(eq,    "eq?");
       EXPORT2_RENAME(equal, "equal?");
-      EXPORT2_RENAME(eqv, "eqv?");
+      EXPORT2_RENAME(eqv,   "eqv?");
     });
 
     define<library>("(meevax core)", [](library & library)
@@ -448,7 +457,7 @@ namespace meevax::inline kernel
         }
       });
 
-      EXPORT1(last);
+      EXPORT1_RENAME(last, "last");
 
       EXPORT1_RENAME(last_pair, "last-pair");
 
@@ -502,7 +511,7 @@ namespace meevax::inline kernel
         return append_reverse(car(xs), cadr(xs));
       });
 
-      EXPORT1(reverse);
+      EXPORT1_RENAME(reverse, "reverse");
 
       library.define<procedure>("reverse!", [](let & xs)
       {
@@ -558,16 +567,12 @@ namespace meevax::inline kernel
       library.define<procedure>("drop-right",  [](let const& xs) { return drop_right(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
       library.define<procedure>("drop-right!", [](let      & xs) { return drop_right(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
 
-      EXPORT2(memq);
-      EXPORT2(memv);
-      EXPORT2(assq);
-      EXPORT2(assv);
+      EXPORT2_RENAME(memq, "memq");
+      EXPORT2_RENAME(memv, "memv");
+      EXPORT2_RENAME(assq, "assq");
+      EXPORT2_RENAME(assv, "assv");
 
-      library.define<procedure>("alist-cons", [](let const& xs)
-      {
-        return alist_cons(car(xs), cadr(xs), caddr(xs));
-      });
-
+      EXPORT3_RENAME(alist_cons, "alist-cons");
       EXPORT1_RENAME(alist_copy, "alist-copy");
     });
 
@@ -610,22 +615,22 @@ namespace meevax::inline kernel
       library.define<procedure>("-", [](let const& xs) { if (cdr(xs).is<pair>()) { return std::accumulate(std::next(xs.begin()), xs.end(), car(xs), std::minus  ()); } else { return e0 - car(xs); } });
       library.define<procedure>("/", [](let const& xs) { if (cdr(xs).is<pair>()) { return std::accumulate(std::next(xs.begin()), xs.end(), car(xs), std::divides()); } else { return e1 / car(xs); } });
 
-      EXPORT1(abs);
-      EXPORT2(quotient);
-      EXPORT2(remainder);
-      EXPORT2(modulo);
+      EXPORT1_RENAME(abs,       "abs");
+      EXPORT2_RENAME(quotient,  "quotient");
+      EXPORT2_RENAME(remainder, "remainder");
+      EXPORT2_RENAME(modulo,    "modulo");
 
       library.define<procedure>("gcd", [](let const& xs) { switch (length(xs)) { case 0: return e0; case 1: return car(xs); default: return std::accumulate(cdr(xs).begin(), xs.end(), car(xs), gcd); } });
       library.define<procedure>("lcm", [](let const& xs) { switch (length(xs)) { case 0: return e1; case 1: return car(xs); default: return std::accumulate(cdr(xs).begin(), xs.end(), car(xs), lcm); } });
 
-      EXPORT1(numerator);
-      EXPORT1(denominator);
-      EXPORT1(floor);
-      EXPORT1(ceiling);
-      EXPORT1(truncate);
-      EXPORT1(round);
+      EXPORT1_RENAME(numerator,   "numerator");
+      EXPORT1_RENAME(denominator, "denominator");
+      EXPORT1_RENAME(floor,       "floor");
+      EXPORT1_RENAME(ceiling,     "ceiling");
+      EXPORT1_RENAME(truncate,    "truncate");
+      EXPORT1_RENAME(round,       "round");
 
-      EXPORT1(exp);
+      EXPORT1_RENAME(exp, "exp");
 
       library.define<procedure>("log", [](let const& xs)
       {
@@ -642,9 +647,9 @@ namespace meevax::inline kernel
         }
       });
 
-      EXPORT1(sin); EXPORT1(asin); EXPORT1(sinh); EXPORT1(asinh);
-      EXPORT1(cos); EXPORT1(acos); EXPORT1(cosh); EXPORT1(acosh);
-      EXPORT1(tan);                EXPORT1(tanh); EXPORT1(atanh);
+      EXPORT1_RENAME(sin, "sin"); EXPORT1_RENAME(asin, "asin"); EXPORT1_RENAME(sinh, "sinh"); EXPORT1_RENAME(asinh, "asinh");
+      EXPORT1_RENAME(cos, "cos"); EXPORT1_RENAME(acos, "acos"); EXPORT1_RENAME(cosh, "cosh"); EXPORT1_RENAME(acosh, "acosh");
+      EXPORT1_RENAME(tan, "tan");                               EXPORT1_RENAME(tanh, "tanh"); EXPORT1_RENAME(atanh, "atanh");
 
       library.define<procedure>("atan", [](let const& xs)
       {
@@ -661,7 +666,7 @@ namespace meevax::inline kernel
         }
       });
 
-      EXPORT1(sqrt);
+      EXPORT1_RENAME(sqrt, "sqrt");
 
       library.define<procedure>("exact-integer-square-root", [](let const& xs)
       {
@@ -685,10 +690,7 @@ namespace meevax::inline kernel
 
       EXPORT2_RENAME(pow, "expt");
 
-      library.define<procedure>("make-rectangular", [](let const& xs)
-      {
-        return make<complex>(car(xs), cadr(xs));
-      });
+      EXPORT2_RENAME(make<complex>, "make-rectangular");
 
       library.define<procedure>("make-polar", [](let const& xs)
       {
@@ -698,32 +700,32 @@ namespace meevax::inline kernel
                              radius * sin(angle));
       });
 
-      EXPORT1_RENAME(real, "real-part");
-      EXPORT1_RENAME(imag, "imag-part");
-      EXPORT1(magnitude);
-      EXPORT1(angle);
+      EXPORT1_RENAME(real,      "real-part");
+      EXPORT1_RENAME(imag,      "imag-part");
+      EXPORT1_RENAME(magnitude, "magnitude");
+      EXPORT1_RENAME(angle,     "angle");
 
-      EXPORT1(exact);
-      EXPORT1(inexact);
+      EXPORT1_RENAME(exact,   "exact");
+      EXPORT1_RENAME(inexact, "inexact");
 
       // Exponential functions (cmath)
-      EXPORT1(expm1);
-      EXPORT1(log1p);
+      EXPORT1_RENAME(expm1, "expm1");
+      EXPORT1_RENAME(log1p, "log1p");
 
       // Error and gamma functions (cmath)
-      EXPORT1(erf);
-      EXPORT1(erfc);
-      EXPORT1(tgamma);
-      EXPORT1(lgamma);
+      EXPORT1_RENAME(erf,    "erf");
+      EXPORT1_RENAME(erfc,   "erfc");
+      EXPORT1_RENAME(tgamma, "tgamma");
+      EXPORT1_RENAME(lgamma, "lgamma");
 
       // Floating-point manipulation functions (cmath)
-      EXPORT2(ldexp);
-      EXPORT2(nextafter);
-      EXPORT2(copysign);
+      EXPORT2_RENAME(ldexp,     "ldexp");
+      EXPORT2_RENAME(nextafter, "nextafter");
+      EXPORT2_RENAME(copysign,  "copysign");
 
       // Mathematical special functions (cmath)
-      EXPORT2(cyl_bessel_j);
-      EXPORT2(cyl_neumann);
+      EXPORT2_RENAME(cyl_bessel_j, "cyl_bessel_j");
+      EXPORT2_RENAME(cyl_neumann,  "cyl_neumann");
 
       library.define<double>("e",     std::numbers::e);
       library.define<double>("pi",    std::numbers::pi);
@@ -788,8 +790,8 @@ namespace meevax::inline kernel
         return not car(xs).is<pair>();
       });
 
-      EXPORT2(cons);
-      EXPORT2(xcons);
+      EXPORT2_RENAME(cons,  "cons");
+      EXPORT2_RENAME(xcons, "xcons");
 
       library.define<procedure>("cons*", [](let & xs)
       {
@@ -816,25 +818,25 @@ namespace meevax::inline kernel
         }
       });
 
-      EXPORT1(car);
-      EXPORT1(cdr);
+      EXPORT1_RENAME(car, "car");
+      EXPORT1_RENAME(cdr, "cdr");
 
-      EXPORT1(caar); EXPORT1(cdar);
-      EXPORT1(cadr); EXPORT1(cddr);
+      EXPORT1_RENAME(caar, "caar"); EXPORT1_RENAME(cdar, "cdar");
+      EXPORT1_RENAME(cadr, "cadr"); EXPORT1_RENAME(cddr, "cddr");
 
-      EXPORT1(caaar); EXPORT1(cdaar);
-      EXPORT1(caadr); EXPORT1(cdadr);
-      EXPORT1(cadar); EXPORT1(cddar);
-      EXPORT1(caddr); EXPORT1(cdddr);
+      EXPORT1_RENAME(caaar, "caaar"); EXPORT1_RENAME(cdaar, "cdaar");
+      EXPORT1_RENAME(caadr, "caadr"); EXPORT1_RENAME(cdadr, "cdadr");
+      EXPORT1_RENAME(cadar, "cadar"); EXPORT1_RENAME(cddar, "cddar");
+      EXPORT1_RENAME(caddr, "caddr"); EXPORT1_RENAME(cdddr, "cdddr");
 
-      EXPORT1(caaaar); EXPORT1(cdaaar);
-      EXPORT1(caaadr); EXPORT1(cdaadr);
-      EXPORT1(caadar); EXPORT1(cdadar);
-      EXPORT1(caaddr); EXPORT1(cdaddr);
-      EXPORT1(cadaar); EXPORT1(cddaar);
-      EXPORT1(cadadr); EXPORT1(cddadr);
-      EXPORT1(caddar); EXPORT1(cdddar);
-      EXPORT1(cadddr); EXPORT1(cddddr);
+      EXPORT1_RENAME(caaaar, "caaaar"); EXPORT1_RENAME(cdaaar, "cdaaar");
+      EXPORT1_RENAME(caaadr, "caaadr"); EXPORT1_RENAME(cdaadr, "cdaadr");
+      EXPORT1_RENAME(caadar, "caadar"); EXPORT1_RENAME(cdadar, "cdadar");
+      EXPORT1_RENAME(caaddr, "caaddr"); EXPORT1_RENAME(cdaddr, "cdaddr");
+      EXPORT1_RENAME(cadaar, "cadaar"); EXPORT1_RENAME(cddaar, "cddaar");
+      EXPORT1_RENAME(cadadr, "cadadr"); EXPORT1_RENAME(cddadr, "cddadr");
+      EXPORT1_RENAME(caddar, "caddar"); EXPORT1_RENAME(cdddar, "cdddar");
+      EXPORT1_RENAME(cadddr, "cadddr"); EXPORT1_RENAME(cddddr, "cddddr");
 
       library.define<procedure>("set-car!", [](let & xs) { caar(xs) = cadr(xs); });
       library.define<procedure>("set-cdr!", [](let & xs) { cdar(xs) = cadr(xs); });
@@ -1211,10 +1213,7 @@ namespace meevax::inline kernel
       EXPORT_PREDICATE(transformer, "transformer?");
       EXPORT_PREDICATE(syntactic_closure, "syntactic-closure?");
 
-      library.define<procedure>("make-syntactic-closure", [](let const& xs)
-      {
-        return make<syntactic_closure>(car(xs), cadr(xs), caddr(xs));
-      });
+      EXPORT3_RENAME(make<syntactic_closure>, "make-syntactic-closure");
     });
 
     define<library>("(meevax system)", [](library & library)
