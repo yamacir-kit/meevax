@@ -1,4 +1,5 @@
 #include <meevax/basis.hpp>
+#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/environment.hpp>
 
 using namespace meevax; // NOTE: DIRTY HACK

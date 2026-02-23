@@ -6,7 +6,7 @@
             binary64-integral-part binary64-least binary64-log-binary
             binary64-max binary64-min binary64-normalized-fraction
             binary64-normalized? binary64-remquo binary64-sign-bit binary64?)
-          (only (meevax inexact)
+          (only (meevax number)
             sinh asinh
             cosh acosh
             tanh atanh

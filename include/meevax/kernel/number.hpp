@@ -392,6 +392,8 @@ namespace number
 
   auto is_inexact(object const&) -> bool;
 
+  auto is_exact_integer(object const&) -> bool;
+
   auto is_finite(object const&) -> bool;
 
   auto is_infinite(object const&) -> bool;

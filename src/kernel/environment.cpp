@@ -14,7 +14,10 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/identity.hpp>
+#include <meevax/kernel/include.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/library.hpp>
 
@@ -244,6 +247,4 @@ namespace meevax::inline kernel
   {
     return os << magenta("#,(") << green("environment ") << faint("#;", &datum) << magenta(")");
   }
-
-  template struct syntactic_environment<environment>;
 } // namespace meevax::kernel

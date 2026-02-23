@@ -665,6 +665,17 @@ namespace number
     return not is_exact(x);
   }
 
+  auto is_exact_integer(object const& x) -> bool
+  {
+    auto f = []<typename T>(T const&)
+    {
+      static_assert(not std::is_same_v<T, small_integer>);
+      return std::is_same_v<T, widen_integer> or std::is_same_v<T, large_integer>;
+    };
+
+    return test<complex_number>(f, x);
+  }
+
   auto is_finite(object const& x) -> bool
   {
     return not is_infinite(x);

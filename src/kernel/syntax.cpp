@@ -14,27 +14,12 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
-#define INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
-
-#include <meevax/kernel/dynamic_environment.hpp>
-#include <meevax/kernel/syntactic_environment.hpp>
+#include <meevax/kernel/syntax.hpp>
 
 namespace meevax::inline kernel
 {
-  struct environment : public dynamic_environment
-                     , public syntactic_environment
+  auto operator <<(std::ostream & os, syntax const& datum) -> std::ostream &
   {
-    using syntactic_environment::syntactic_environment;
-
-    auto evaluate(object const&) -> object;
-
-    auto import(object const&) -> void;
-
-    auto load(std::filesystem::path const&) -> void;
-  };
-
-  auto operator <<(std::ostream &, environment const&) -> std::ostream &;
+    return os << magenta("#,(") << green("syntax ") << datum.name << magenta(")");
+  }
 } // namespace meevax::kernel
-
-#endif // INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP

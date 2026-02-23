@@ -91,62 +91,47 @@ namespace meevax::inline kernel
      into function pointer types to reduce the number of template
      instantiations.
   */
-  template <typename F, typename = void>
-  struct procedure_traits
+  template <typename, typename F, typename = void>
+  struct procedure
   {
     using type = generic_procedure<F>;
   };
 
-  using thunk = auto (*)() -> object;
-
-  template <typename F>
-  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, thunk>>>
+  template <typename String, typename F>
+  struct procedure<String, F, std::enable_if_t<std::is_convertible_v<F, auto (*)() -> object>>>
   {
-    using type = generic_procedure<thunk>;
+    using type = generic_procedure<auto (*)() -> object>;
   };
 
-  using normal_procedure = auto (*)(object const&) -> object;
-
-  template <typename F>
-  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, normal_procedure>>>
+  template <typename String, typename F>
+  struct procedure<String, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> object>>>
   {
-    using type = generic_procedure<normal_procedure>;
+    using type = generic_procedure<auto (*)(object const&) -> object>;
   };
 
-  using linear_update_procedure = auto (*)(object &) -> object;
-
-  template <typename F>
-  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, linear_update_procedure>>>
+  template <typename String, typename F>
+  struct procedure<String, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object &) -> object>>>
   {
-    using type = generic_procedure<linear_update_procedure>;
+    using type = generic_procedure<auto (*)(object &) -> object>;
   };
 
-  using predicate = auto (*)(object const&) -> bool;
-
-  template <typename F>
-  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, predicate>>>
+  template <typename String, typename F>
+  struct procedure<String, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> bool>>>
   {
-    using type = generic_procedure<predicate>;
+    using type = generic_procedure<auto (*)(object const&) -> bool>;
   };
 
-  using command = auto (*)(object const&) -> void;
-
-  template <typename F>
-  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, command>>>
+  template <typename String, typename F>
+  struct procedure<String, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> void>>>
   {
-    using type = generic_procedure<command>;
+    using type = generic_procedure<auto (*)(object const&) -> void>;
   };
 
-  using mutation = auto (*)(object &) -> void;
-
-  template <typename F>
-  struct procedure_traits<F, std::enable_if_t<std::is_convertible_v<F, mutation>>>
+  template <typename String, typename F>
+  struct procedure<String, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object &) -> void>>>
   {
-    using type = generic_procedure<mutation>;
+    using type = generic_procedure<auto (*)(object &) -> void>;
   };
-
-  template <typename, typename... Ts>
-  using procedure = procedure_traits<Ts...>;
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP

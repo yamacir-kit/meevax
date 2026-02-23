@@ -14,27 +14,21 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
-#define INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_TRANSFORMER_HPP
+#define INCLUDED_MEEVAX_KERNEL_TRANSFORMER_HPP
 
-#include <meevax/kernel/dynamic_environment.hpp>
-#include <meevax/kernel/syntactic_environment.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax::inline kernel
 {
-  struct environment : public dynamic_environment
-                     , public syntactic_environment
+  struct transformer : public virtual pair // (<closure> . <syntactic_environment>)
   {
-    using syntactic_environment::syntactic_environment;
+    using pair::pair;
 
-    auto evaluate(object const&) -> object;
-
-    auto import(object const&) -> void;
-
-    auto load(std::filesystem::path const&) -> void;
+    auto transform(let const& form, let const& environment) const -> object;
   };
 
-  auto operator <<(std::ostream &, environment const&) -> std::ostream &;
+  auto operator <<(std::ostream & os, transformer const& datum) -> std::ostream &;
 } // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_TRANSFORMER_HPP

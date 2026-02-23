@@ -465,7 +465,7 @@
           flsecond-bessel flerf flerfc))
 
 (define-library (scheme inexact)
-  (import (only (meevax inexact) finite? infinite? nan?)
+  (import (only (meevax number) finite? infinite? nan?)
           (only (scheme r5rs) exp log sin cos tan asin acos atan sqrt))
   (export finite? infinite? nan? exp log sin cos tan asin acos atan sqrt))
 
