@@ -95,11 +95,6 @@ namespace meevax::inline kernel
     }
   }
 
-  auto circulate(object & xs, std::string const& n) -> void
-  {
-    return circulate(xs, xs, n);
-  }
-
   auto textual_input_port::at_end_of_file() const -> bool
   {
     return istream().eof();
@@ -338,7 +333,7 @@ namespace meevax::inline kernel
               {
                 if (let xs = read(); xs != iter->second)
                 {
-                  circulate(xs, n);
+                  circulate(xs, xs, n);
                   datum_labels.erase(n);
                   return xs;
                 }
