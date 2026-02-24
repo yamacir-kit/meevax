@@ -39,10 +39,29 @@ endif()
 
 # ---- CONFIGURE ---------------------------------------------------------------
 
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --digit-value OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DIGIT_VALUE)
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --downcase    OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DOWNCASE)
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --property    OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_PROPERTY)
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/script/unicode.sh --upcase      OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_UPCASE)
+execute_process(
+  COMMAND sed -E "s/^([^;]*);([^;]*;){01}([^;]*).*$/case 0x\\1: return \\3;/g" ${CMAKE_CURRENT_SOURCE_DIR}/configure/UnicodeData.txt
+  OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_PROPERTY)
+
+execute_process(
+  COMMAND sed -E "s/^([^;]*);([^;]*;){06}([^;]*).*$/case 0x\\1: return \\3;/g" ${CMAKE_CURRENT_SOURCE_DIR}/configure/UnicodeData.txt
+  COMMAND grep -e "case 0x.\\+: return .\\+;"
+  OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DIGIT_VALUE)
+
+execute_process(
+  COMMAND sed -E "s/^([^;]*);([^;]*;){11}([^;]*).*$/case 0x\\1: return 0x\\3;/g" ${CMAKE_CURRENT_SOURCE_DIR}/configure/UnicodeData.txt
+  COMMAND grep -e "case 0x.\\+: return 0x.\\+;"
+  OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_UPCASE)
+
+execute_process(
+  COMMAND sed -E "s/^([^;]*);([^;]*;){12}([^;]*).*$/case 0x\\1: return 0x\\3;/g" ${CMAKE_CURRENT_SOURCE_DIR}/configure/UnicodeData.txt
+  COMMAND grep -e "case 0x.\\+: return 0x.\\+;"
+  OUTPUT_VARIABLE ${PROJECT_NAME}_UNICODE_DOWNCASE)
+
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/digit_value.hpp "${${PROJECT_NAME}_UNICODE_DIGIT_VALUE}")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/downcase.hpp    "${${PROJECT_NAME}_UNICODE_DOWNCASE}")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/property.hpp    "${${PROJECT_NAME}_UNICODE_PROPERTY}")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/upcase.hpp      "${${PROJECT_NAME}_UNICODE_UPCASE}")
 
 execute_process(
   COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/configure/help.txt
@@ -50,11 +69,6 @@ execute_process(
   COMMAND sed s/\r$//
   COMMAND tr \r \n
   OUTPUT_VARIABLE ${PROJECT_NAME}_HELP)
-
-file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/digit_value.hpp "${${PROJECT_NAME}_UNICODE_DIGIT_VALUE}")
-file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/downcase.hpp    "${${PROJECT_NAME}_UNICODE_DOWNCASE}")
-file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/property.hpp    "${${PROJECT_NAME}_UNICODE_PROPERTY}")
-file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/unicode/upcase.hpp      "${${PROJECT_NAME}_UNICODE_UPCASE}")
 
 string(TOLOWER ${CMAKE_SYSTEM_NAME} ${PROJECT_NAME}_SYSTEM_NAME)
 

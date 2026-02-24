@@ -45,20 +45,62 @@ namespace meevax::inline kernel
     return os << *this;
   }
 
+  struct datum_labels
+  {
+    std::ostream & os;
+
+    auto static inline count_index = std::ios_base::xalloc();
+
+    auto static inline table_index = std::ios_base::xalloc();
+
+    using table = std::unordered_map<pair const*, std::size_t>;
+
+    explicit datum_labels(std::ostream & os)
+      : os { os }
+    {
+      if (not os.iword(count_index)++)
+      {
+        os.pword(table_index) = new table();
+      }
+    }
+
+    ~datum_labels()
+    {
+      if (not --os.iword(count_index))
+      {
+        delete static_cast<table *>(os.pword(table_index));
+
+        os.pword(table_index) = nullptr;
+      }
+    }
+
+    auto static of(std::ostream & os)
+    {
+      return static_cast<table *>(os.pword(table_index));
+    }
+  };
+
   auto operator <<(std::ostream & os, pair const& datum) -> std::ostream &
   {
+    auto _ = datum_labels(os);
+
     if (is_circular_list(cdr(datum)))
     {
-      auto n = reinterpret_cast<std::uintptr_t>(&datum);
-
-      os << magenta("#", n, "=(");
-
-      for (auto&& x : datum)
+      if (auto [iterator, success] = datum_labels::of(os)->emplace(&datum, datum_labels::of(os)->size() + 1); success)
       {
-        os << x << " ";
-      }
+        os << magenta("#", iterator->second, "=(");
 
-      return os << magenta(". #", n, "#)");
+        for (auto&& x : datum)
+        {
+          os << x << " ";
+        }
+
+        return os << magenta(". #", iterator->second, "#)");
+      }
+      else
+      {
+        return os << magenta("#", iterator->second, "#");
+      }
     }
     else
     {
