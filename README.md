@@ -102,9 +102,9 @@ Then, select one of the following targets and `make` it according to your purpos
 
 | Target      | Description
 |-------------|-------------
-| `all`       | Build shared-library `libmeevax.0.5.441.so` and executable `meevax`.
+| `all`       | Build shared-library `libmeevax.0.5.445.so` and executable `meevax`.
 | `install`   | Copy files into `/usr/local` directly.
-| `package`   | Generate debian package `meevax_0.5.441_amd64.deb` (only Ubuntu). The generated package can be installed by `sudo apt install build/meevax_0.5.441_amd64.deb`.
+| `package`   | Generate debian package `meevax_0.5.445_amd64.deb` (only Ubuntu). The generated package can be installed by `sudo apt install build/meevax_0.5.445_amd64.deb`.
 | `test`      | Test executable `meevax`. This target requires Valgrind to be installed.
 | `uninstall` | Remove files copied to `/usr/local` directly by target `install`.
 
@@ -129,10 +129,14 @@ Options:
 
   -h, --help            Display this help message and exit.
 
-  -i, --interactive     After evaluating any FILEs given as arguments, enter
-                        the REPL session.
+  -i, --interactive     Enter the REPL session after evaluating any FILEs given
+                        as command-line arguments.
 
   -l, --load FILE       Load FILE into the interaction environment.
+
+      --library-directories
+                        Display the list of directories that are searched in
+                        order to locate imported libraries.
 
   -v, --version         Display version information and exit.
 
