@@ -21,11 +21,6 @@
 
 namespace meevax::inline kernel
 {
-  auto help() noexcept -> std::string_view
-  {
-    return R"(${${PROJECT_NAME}_HELP})";
-  }
-
   auto features() -> object &
   {
     let static features = list(
@@ -55,6 +50,11 @@ namespace meevax::inline kernel
     return features;
   }
 
+  auto help() noexcept -> std::string_view
+  {
+    return R"(${${PROJECT_NAME}_HELP})";
+  }
+
   auto home_directory() -> std::filesystem::path
   {
     if (auto home = std::getenv("HOME"))
@@ -71,15 +71,20 @@ namespace meevax::inline kernel
     }
   }
 
+  auto system_library_directory() -> std::filesystem::path
+  {
+    return "${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}";
+  }
+
   auto user_library_directory() -> std::filesystem::path
   {
     if (auto xdg_data_home = std::getenv("XDG_DATA_HOME"))
     {
-      return xdg_data_home;
+      return std::filesystem::path(xdg_data_home) / "${PROJECT_NAME}";
     }
     else
     {
-      return home_directory() / ".local/share";
+      return home_directory() / ".local/share/${PROJECT_NAME}";
     }
   }
 
