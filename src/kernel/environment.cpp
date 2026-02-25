@@ -205,8 +205,10 @@ namespace meevax::inline kernel
       {
         return std::get<1>(*iterator).as<library>().import_set();
       }
-
-      throw error(make<string>("No such library"), form);
+      else
+      {
+        throw error(make<string>("No such library"), form);
+      }
     }
   }
 

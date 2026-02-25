@@ -38,36 +38,33 @@ namespace meevax::inline kernel
     return source_file().parent_path();
   }
 
-  auto textual_context::proxy::resolve(std::filesystem::path const& pathname) const -> std::filesystem::path
+  auto textual_context::proxy::resolve(std::filesystem::path const& given) const -> std::filesystem::path
   {
-    if (pathname.is_absolute())
+    if (std::filesystem::exists(given))
     {
-      return pathname;
+      return std::filesystem::canonical(given);
     }
-
-    if (auto directory = source_directory(); not directory.empty())
-    {
-      if (auto p = directory / pathname; std::filesystem::exists(p))
-      {
-        return p;
-      }
-    }
-
-    if (auto p = std::filesystem::current_path() / pathname; std::filesystem::exists(p))
+    else if (auto p = source_directory() / given; std::filesystem::exists(p))
     {
       return p;
     }
-
-    for (auto const& directory : configurator::directories)
+    else if (auto p = std::filesystem::current_path() / given; std::filesystem::exists(p))
     {
-      if (auto p = directory / pathname; std::filesystem::exists(p))
-      {
-        return p;
-      }
+      return p;
     }
+    else
+    {
+      for (auto const& directory : configurator::directories)
+      {
+        if (auto p = directory / given; std::filesystem::exists(p))
+        {
+          return p;
+        }
+      }
 
-    throw error(make<string>("No such file"),
-                make<string>(pathname));
+      throw error(make<string>("No such file"),
+                  make<string>(given));
+    }
   }
 
   auto textual_context::cons(object const& a, object const& b, std::filesystem::path const& path) -> object
