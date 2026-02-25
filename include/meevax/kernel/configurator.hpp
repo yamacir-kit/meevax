@@ -22,6 +22,7 @@
 #include <regex>
 
 #include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/version.hpp>
 
 namespace meevax::inline kernel
 {
@@ -44,7 +45,7 @@ namespace meevax::inline kernel
 
     auto static inline command_line = std::vector<std::string>();
 
-    auto static inline directories = std::list<std::filesystem::path>();
+    auto static inline directories = std::list<std::filesystem::path> { user_library_directory() };
 
     auto static configure(int const, char const* const* const) -> void;
 

@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#include <pwd.h>
+
 #include <meevax/kernel/version.hpp>
 #include <meevax/memory/model.hpp>
 
@@ -51,6 +53,34 @@ namespace meevax::inline kernel
       );
 
     return features;
+  }
+
+  auto home_directory() -> std::filesystem::path
+  {
+    if (auto home = std::getenv("HOME"))
+    {
+      return home;
+    }
+    else if (auto password = getpwuid(getuid()))
+    {
+      return password->pw_dir;
+    }
+    else
+    {
+      throw std::system_error(errno, std::system_category());
+    }
+  }
+
+  auto user_library_directory() -> std::filesystem::path
+  {
+    if (auto xdg_data_home = std::getenv("XDG_DATA_HOME"))
+    {
+      return xdg_data_home;
+    }
+    else
+    {
+      return home_directory() / ".local/share";
+    }
   }
 
   auto version() -> object const&

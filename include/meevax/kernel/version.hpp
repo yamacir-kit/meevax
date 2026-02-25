@@ -28,6 +28,10 @@ namespace meevax::inline kernel
 
   auto features() -> object &;
 
+  auto home_directory() -> std::filesystem::path;
+
+  auto user_library_directory() -> std::filesystem::path;
+
   auto version() -> object const&;
 } // namespace meevax::kernel
 

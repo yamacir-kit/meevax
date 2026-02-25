@@ -19,7 +19,6 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
-#include <meevax/kernel/version.hpp>
 
 namespace meevax::inline kernel
 {

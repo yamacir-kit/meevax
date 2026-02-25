@@ -68,9 +68,7 @@ namespace meevax::inline kernel
     {
       if (not --os.iword(count_index))
       {
-        delete static_cast<table *>(os.pword(table_index));
-
-        os.pword(table_index) = nullptr;
+        delete static_cast<table *>(std::exchange(os.pword(table_index), nullptr));
       }
     }
 
