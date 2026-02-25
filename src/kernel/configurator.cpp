@@ -36,7 +36,7 @@ namespace meevax::inline kernel
   {
     auto const static pattern = std::regex(R"(--(\w[-\w]+)(=(.*))?|-([\w]+))");
 
-    auto const static options = std::array<option, 9>
+    auto const static options = std::array<option, 10>
     {
       option("(A)", [](auto read) // SRFI 138
       {
@@ -71,6 +71,14 @@ namespace meevax::inline kernel
       option("(l|load)", [](auto read)
       {
         interaction_environment().as<environment>().load(static_cast<std::filesystem::path>(read().template as<string>()));
+      }),
+
+      option("library-directories", [](auto)
+      {
+        for (auto const& directory : directories)
+        {
+          std::cout << directory.native() << std::endl;
+        }
       }),
 
       option("(v|version)", [](auto)
