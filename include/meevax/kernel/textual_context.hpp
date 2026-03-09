@@ -41,6 +41,8 @@ namespace meevax::inline kernel
       auto source_directory() const -> std::filesystem::path;
 
       auto resolve(std::filesystem::path const&) const -> std::filesystem::path;
+
+      auto canonical(std::filesystem::path const&) const -> std::filesystem::path;
     };
 
     static inline std::set<std::filesystem::path> paths {};

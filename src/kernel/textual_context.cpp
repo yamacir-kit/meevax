@@ -67,6 +67,68 @@ namespace meevax::inline kernel
     }
   }
 
+  auto textual_context::proxy::canonical(std::filesystem::path const& given) const -> std::filesystem::path
+  {
+    auto static const extensions = { "ss", "sld", "scm" };
+
+    if (std::filesystem::exists(given))
+    {
+      return std::filesystem::canonical(given);
+    }
+
+    if (auto p = source_directory() / given; std::filesystem::exists(p))
+    {
+      return p;
+    }
+    else if (given.extension().empty())
+    {
+      for (auto const& extension : extensions)
+      {
+        if (p.replace_extension(extension); std::filesystem::exists(p))
+        {
+          return p;
+        }
+      }
+    }
+
+    if (auto p = std::filesystem::current_path() / given; std::filesystem::exists(p))
+    {
+      return p;
+    }
+    else if (given.extension().empty())
+    {
+      for (auto const& extension : extensions)
+      {
+        if (p.replace_extension(extension); std::filesystem::exists(p))
+        {
+          return p;
+        }
+      }
+    }
+
+
+    for (auto const& directory : configurator::directories)
+    {
+      if (auto p = directory / given; std::filesystem::exists(p))
+      {
+        return p;
+      }
+      else if (given.extension().empty())
+      {
+        for (auto const& extension : extensions)
+        {
+          if (p.replace_extension(extension); std::filesystem::exists(p))
+          {
+            return p;
+          }
+        }
+      }
+    }
+
+    throw error(make<string>("No such file"),
+                make<string>(given));
+  }
+
   auto textual_context::cons(object const& a, object const& b, std::filesystem::path const& path) -> object
   {
     let const x = meevax::cons(a, b);
