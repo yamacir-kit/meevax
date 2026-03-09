@@ -30,6 +30,8 @@ namespace meevax::inline kernel
 
     struct proxy
     {
+      using acceptor = std::function<auto (std::filesystem::path const&) -> bool>;
+
       std::set<std::filesystem::path>::const_iterator path;
 
       explicit proxy();
@@ -40,7 +42,7 @@ namespace meevax::inline kernel
 
       auto source_directory() const -> std::filesystem::path;
 
-      auto locate(std::filesystem::path const&) const -> std::filesystem::path;
+      auto locate(std::filesystem::path const&, acceptor const&) const -> std::filesystem::path;
     };
 
     static inline std::set<std::filesystem::path> paths {};
@@ -51,6 +53,8 @@ namespace meevax::inline kernel
 
     auto static of(object const&) -> proxy;
   };
+
+  auto is_existing_non_directory(std::filesystem::path const&) -> bool;
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_TEXTUAL_CONTEXT_HPP

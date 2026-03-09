@@ -197,7 +197,7 @@ namespace meevax::inline kernel
         pathname /= lexical_cast(each);
       }
 
-      environment().load(textual_context::of(form).locate(pathname));
+      environment().load(textual_context::of(form).locate(pathname, is_existing_non_directory));
 
       if (auto iterator = libraries().find(lexical_cast(form)); iterator != libraries().end())
       {

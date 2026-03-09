@@ -38,21 +38,16 @@ namespace meevax::inline kernel
     return source_file().parent_path();
   }
 
-  auto textual_context::proxy::locate(std::filesystem::path const& given) const -> std::filesystem::path
+  auto textual_context::proxy::locate(std::filesystem::path const& given, acceptor const& accept) const -> std::filesystem::path
   {
     auto static const extensions = { "ss", "sld", "scm" };
 
-    auto is_loadable = [&](auto const& p)
-    {
-      return std::filesystem::exists(p) and not std::filesystem::is_directory(p);
-    };
-
-    if (is_loadable(given))
+    if (accept(given))
     {
       return std::filesystem::canonical(given);
     }
 
-    if (auto p = source_directory() / given; is_loadable(p))
+    if (auto p = source_directory() / given; accept(p))
     {
       return p;
     }
@@ -60,14 +55,14 @@ namespace meevax::inline kernel
     {
       for (auto const& extension : extensions)
       {
-        if (p.replace_extension(extension); is_loadable(p))
+        if (p.replace_extension(extension); accept(p))
         {
           return p;
         }
       }
     }
 
-    if (auto p = std::filesystem::current_path() / given; is_loadable(p))
+    if (auto p = std::filesystem::current_path() / given; accept(p))
     {
       return p;
     }
@@ -75,17 +70,16 @@ namespace meevax::inline kernel
     {
       for (auto const& extension : extensions)
       {
-        if (p.replace_extension(extension); is_loadable(p))
+        if (p.replace_extension(extension); accept(p))
         {
           return p;
         }
       }
     }
-
 
     for (auto const& directory : configurator::directories)
     {
-      if (auto p = directory / given; is_loadable(p))
+      if (auto p = directory / given; accept(p))
       {
         return p;
       }
@@ -93,7 +87,7 @@ namespace meevax::inline kernel
       {
         for (auto const& extension : extensions)
         {
-          if (p.replace_extension(extension); is_loadable(p))
+          if (p.replace_extension(extension); accept(p))
           {
             return p;
           }
@@ -124,5 +118,10 @@ namespace meevax::inline kernel
     {
       return proxy();
     }
+  }
+
+  auto is_existing_non_directory(std::filesystem::path const& p) -> bool
+  {
+    return std::filesystem::exists(p) and not std::filesystem::is_directory(p);
   }
 } // namespace meevax::kernel
