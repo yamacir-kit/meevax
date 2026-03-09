@@ -24,6 +24,8 @@
 
 namespace meevax::inline kernel
 {
+  auto extensions() -> std::vector<std::string_view> const&;
+
   auto features() -> object &;
 
   auto help() noexcept -> std::string_view;

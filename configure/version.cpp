@@ -21,6 +21,12 @@
 
 namespace meevax::inline kernel
 {
+  auto extensions() -> std::vector<std::string_view> const&
+  {
+    auto static const extensions = std::vector<std::string_view> { "ss", "sld", "scm" };
+    return extensions;
+  }
+
   auto features() -> object &
   {
     let static features = list(

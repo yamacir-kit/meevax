@@ -40,60 +40,38 @@ namespace meevax::inline kernel
 
   auto textual_context::proxy::locate(std::filesystem::path const& given, acceptor const& accept) const -> std::filesystem::path
   {
-    auto static const extensions = { "ss", "sld", "scm" };
-
     if (accept(given))
     {
       return std::filesystem::canonical(given);
     }
 
-    if (auto p = source_directory() / given; accept(p))
-    {
-      return p;
-    }
-    else if (given.extension().empty())
-    {
-      for (auto const& extension : extensions)
-      {
-        if (p.replace_extension(extension); accept(p))
-        {
-          return p;
-        }
-      }
-    }
+    #define LOCATE(...)                                                        \
+    if (auto p = __VA_ARGS__ / given; accept(p))                               \
+    {                                                                          \
+      return p;                                                                \
+    }                                                                          \
+    else if (given.extension().empty())                                        \
+    {                                                                          \
+      for (auto const& extension : extensions())                               \
+      {                                                                        \
+        if (p.replace_extension(extension); accept(p))                         \
+        {                                                                      \
+          return p;                                                            \
+        }                                                                      \
+      }                                                                        \
+    }                                                                          \
+    static_assert(true)
 
-    if (auto p = std::filesystem::current_path() / given; accept(p))
-    {
-      return p;
-    }
-    else if (given.extension().empty())
-    {
-      for (auto const& extension : extensions)
-      {
-        if (p.replace_extension(extension); accept(p))
-        {
-          return p;
-        }
-      }
-    }
+    LOCATE(source_directory());
+
+    LOCATE(std::filesystem::current_path());
 
     for (auto const& directory : configurator::directories)
     {
-      if (auto p = directory / given; accept(p))
-      {
-        return p;
-      }
-      else if (given.extension().empty())
-      {
-        for (auto const& extension : extensions)
-        {
-          if (p.replace_extension(extension); accept(p))
-          {
-            return p;
-          }
-        }
-      }
+      LOCATE(directory);
     }
+
+    #undef LOCATE
 
     throw error(make<string>("No such file"),
                 make<string>(given));
