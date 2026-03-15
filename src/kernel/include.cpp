@@ -27,7 +27,7 @@ namespace meevax::inline kernel
     auto open = [&](object const& name) // SRFI 138
     {
       auto port = input_file_port(textual_context::of(names).locate(std::filesystem::path(name.as<string>()), is_existing_non_directory));
-      port.case_sensitive = case_sensitive;
+      port.fold_case = not case_sensitive;
       return port;
     };
 

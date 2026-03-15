@@ -244,12 +244,12 @@ namespace meevax::inline kernel
     {
       auto token = string();
 
-      token.emplace_back(case_sensitive ? c : c.downcase());
+      token.emplace_back(fold_case ? c.downcase() : c);
 
       while (not is_special_character(peek_character()))
       {
-        token.emplace_back(case_sensitive ? take_character()
-                                          : take_character().downcase());
+        token.emplace_back(fold_case ? take_character().downcase()
+                                     : take_character());
       }
 
       return static_cast<std::string>(token);
@@ -279,11 +279,11 @@ namespace meevax::inline kernel
         case '!': // SRFI 22
           if (auto token = take_token(c2); token == "!fold-case")
           {
-            case_sensitive = false;
+            fold_case = true;
           }
           else if (token == "!no-fold-case")
           {
-            case_sensitive = true;
+            fold_case = false;
           }
           else
           {
