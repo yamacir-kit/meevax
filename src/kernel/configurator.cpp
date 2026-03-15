@@ -73,7 +73,7 @@ namespace meevax::inline kernel
         interaction_environment().as<environment>().load(static_cast<std::filesystem::path>(read().template as<string>()));
       }),
 
-      option("library-directories", [](auto)
+      option("(library-directories)", [](auto)
       {
         for (auto const& directory : directories)
         {

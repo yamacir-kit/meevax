@@ -73,7 +73,7 @@ namespace meevax::inline kernel
 
     #undef LOCATE
 
-    throw error(make<string>("No such file"),
+    throw error(make<string>("Failed to locate"),
                 make<string>(given));
   }
 

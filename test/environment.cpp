@@ -90,7 +90,7 @@ auto main() -> int
   {
     auto [root_count, non_root_count, count_of] = root_object_counts_by_type();
 
-    assert(root_count == 515);
+    assert(root_count == 516);
 
     assert(count_of.size() == 6);
     assert(count_of[typeid(environment                       )] ==   1); // The interaction-environment
@@ -98,7 +98,7 @@ auto main() -> int
     assert(count_of[typeid(eof                               )] ==   1);
     assert(count_of[typeid(ghost                             )] ==   2);
     assert(count_of[typeid(library                           )] ==  28); // There are 28 builtin libraries
-    assert(count_of[typeid(symbol                            )] == 482); // There are 459 builtin definitions
+    assert(count_of[typeid(symbol                            )] == 483); // There are 483 builtin definitions
   }
 
   boot(basis());
@@ -126,7 +126,7 @@ auto main() -> int
     assert(count_of[typeid(eof                               )] ==   1);
     assert(count_of[typeid(ghost                             )] ==   2);
     assert(count_of[typeid(library                           )] ==  77);
-    assert(count_of[typeid(symbol                            )] >= 482); // There are 459 builtin definitions
+    assert(count_of[typeid(symbol                            )] >= 483); // There are 483 builtin definitions
   }
 
   symbols().clear();
