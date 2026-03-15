@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_VERSION_HPP
-#define INCLUDED_MEEVAX_KERNEL_VERSION_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_SYSTEM_HPP
+#define INCLUDED_MEEVAX_KERNEL_SYSTEM_HPP
 
 #include <string_view>
 
@@ -39,4 +39,4 @@ namespace meevax::inline kernel
   auto version() -> object const&;
 } // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_KERNEL_VERSION_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_SYSTEM_HPP

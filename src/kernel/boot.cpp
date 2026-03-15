@@ -44,9 +44,9 @@
 #include <meevax/kernel/standard_error_port.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
 #include <meevax/kernel/standard_output_port.hpp>
+#include <meevax/kernel/system.hpp>
 #include <meevax/kernel/transformer.hpp>
 #include <meevax/kernel/vector.hpp>
-#include <meevax/kernel/version.hpp>
 
 extern char ** environ; // for procedure get-environment-variables
 
@@ -1230,6 +1230,11 @@ namespace meevax::inline kernel
 
     define<library>("(meevax system)", [](library & library)
     {
+      library.define<procedure>("features", []()
+      {
+        return features();
+      });
+
       library.define<procedure>("get-environment-variable", [](let const& xs) -> object
       {
         if (auto s = std::getenv(static_cast<std::string>(car(xs).as<string>()).c_str()))
@@ -1675,14 +1680,6 @@ namespace meevax::inline kernel
         };
 
         return convert(car(xs).as<string>());
-      });
-    });
-
-    define<library>("(meevax version)", [](library & library)
-    {
-      library.define<procedure>("features", []()
-      {
-        return features();
       });
     });
 

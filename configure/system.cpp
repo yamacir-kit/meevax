@@ -16,7 +16,7 @@
 
 #include <pwd.h>
 
-#include <meevax/kernel/version.hpp>
+#include <meevax/kernel/system.hpp>
 #include <meevax/memory/model.hpp>
 
 namespace meevax::inline kernel

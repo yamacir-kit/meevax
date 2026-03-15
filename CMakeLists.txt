@@ -72,9 +72,9 @@ execute_process(
 
 string(TOLOWER ${CMAKE_SYSTEM_NAME} ${PROJECT_NAME}_SYSTEM_NAME)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/Doxyfile    ${CMAKE_CURRENT_SOURCE_DIR}/document/Doxyfile)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md   ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/version.cpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/Doxyfile   ${CMAKE_CURRENT_SOURCE_DIR}/document/Doxyfile)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md  ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/system.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/system.cpp)
 
 # ---- TARGET basis ------------------------------------------------------------
 
