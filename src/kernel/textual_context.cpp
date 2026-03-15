@@ -38,36 +38,43 @@ namespace meevax::inline kernel
     return source_file().parent_path();
   }
 
-  auto textual_context::proxy::resolve(std::filesystem::path const& pathname) const -> std::filesystem::path
+  auto textual_context::proxy::locate(std::filesystem::path const& given, acceptor const& accept) const -> std::filesystem::path
   {
-    if (pathname.is_absolute())
+    if (accept(given))
     {
-      return pathname;
+      return std::filesystem::canonical(given);
     }
 
-    if (auto directory = source_directory(); not directory.empty())
-    {
-      if (auto p = directory / pathname; std::filesystem::exists(p))
-      {
-        return p;
-      }
-    }
+    #define LOCATE(...)                                                        \
+    if (auto p = __VA_ARGS__ / given; accept(p))                               \
+    {                                                                          \
+      return p;                                                                \
+    }                                                                          \
+    else if (given.extension().empty())                                        \
+    {                                                                          \
+      for (auto const& extension : extensions())                               \
+      {                                                                        \
+        if (p.replace_extension(extension); accept(p))                         \
+        {                                                                      \
+          return p;                                                            \
+        }                                                                      \
+      }                                                                        \
+    }                                                                          \
+    static_assert(true)
 
-    if (auto p = std::filesystem::current_path() / pathname; std::filesystem::exists(p))
-    {
-      return p;
-    }
+    LOCATE(source_directory());
+
+    LOCATE(std::filesystem::current_path());
 
     for (auto const& directory : configurator::directories)
     {
-      if (auto p = directory / pathname; std::filesystem::exists(p))
-      {
-        return p;
-      }
+      LOCATE(directory);
     }
 
-    throw error(make<string>("No such file"),
-                make<string>(pathname));
+    #undef LOCATE
+
+    throw error(make<string>("Failed to locate"),
+                make<string>(given));
   }
 
   auto textual_context::cons(object const& a, object const& b, std::filesystem::path const& path) -> object
@@ -89,5 +96,10 @@ namespace meevax::inline kernel
     {
       return proxy();
     }
+  }
+
+  auto is_existing_non_directory(std::filesystem::path const& p) -> bool
+  {
+    return std::filesystem::exists(p) and not std::filesystem::is_directory(p);
   }
 } // namespace meevax::kernel

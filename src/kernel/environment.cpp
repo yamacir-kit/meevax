@@ -197,16 +197,16 @@ namespace meevax::inline kernel
         pathname /= lexical_cast(each);
       }
 
-      pathname.replace_extension("sld");
-
-      environment().load(textual_context::of(form).resolve(pathname));
+      environment().load(textual_context::of(form).locate(pathname, is_existing_non_directory));
 
       if (auto iterator = libraries().find(lexical_cast(form)); iterator != libraries().end())
       {
         return std::get<1>(*iterator).as<library>().import_set();
       }
-
-      throw error(make<string>("No such library"), form);
+      else
+      {
+        throw error(make<string>("No such library"), form);
+      }
     }
   }
 

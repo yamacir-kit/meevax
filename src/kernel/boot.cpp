@@ -352,6 +352,18 @@ namespace meevax::inline kernel
           throw file_error(make<string>(e.what()), car(xs));
         }
       });
+
+      library.define<procedure>("library-directories", [](let const&)
+      {
+        let directories = unit;
+
+        for (auto iterator = configurator::directories.rbegin(); iterator != configurator::directories.rend(); ++iterator)
+        {
+          directories = cons(make<string>(iterator->native()), directories);
+        }
+
+        return directories;
+      });
     });
 
     define<library>("(meevax instruction)", [](library & library)

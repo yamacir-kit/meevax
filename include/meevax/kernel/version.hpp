@@ -24,9 +24,17 @@
 
 namespace meevax::inline kernel
 {
-  auto help() noexcept -> std::string_view;
+  auto extensions() -> std::vector<std::string_view> const&;
 
   auto features() -> object &;
+
+  auto help() noexcept -> std::string_view;
+
+  auto home_directory() -> std::filesystem::path;
+
+  auto system_library_directory() -> std::filesystem::path;
+
+  auto user_library_directory() -> std::filesystem::path;
 
   auto version() -> object const&;
 } // namespace meevax::kernel
