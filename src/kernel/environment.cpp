@@ -44,7 +44,7 @@ namespace meevax::inline kernel
       }
       else if (name == "include")
       {
-        for (let const& command_or_definition : include(cdr(expression), true))
+        for (let const& command_or_definition : include(cdr(expression)))
         {
           evaluate(command_or_definition);
         }
@@ -53,7 +53,7 @@ namespace meevax::inline kernel
       }
       else if (name == "include-ci")
       {
-        for (let const& command_or_definition : include(cdr(expression), false))
+        for (let const& command_or_definition : include<case_insensitive>(cdr(expression)))
         {
           evaluate(command_or_definition);
         }
