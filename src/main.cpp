@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <meevax/basis.hpp>
+#include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/boot.hpp>
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/library.hpp>

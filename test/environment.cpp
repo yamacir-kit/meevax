@@ -4,7 +4,7 @@
 #include <regex>
 #include <typeindex>
 
-#include <meevax/basis.hpp>
+#include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/boot.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/interaction_environment.hpp>

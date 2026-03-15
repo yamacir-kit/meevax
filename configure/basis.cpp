@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <meevax/basis.hpp>
+#include <meevax/kernel/basis.hpp>
 
 namespace meevax
 {

@@ -1,6 +1,6 @@
 .DS_Store
-basis/src
 build
 document
 include/meevax/unicode
+src/kernel/basis.cpp
 src/kernel/system.cpp

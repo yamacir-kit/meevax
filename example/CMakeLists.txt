@@ -13,7 +13,7 @@ target_compile_options(${PROJECT_NAME} PUBLIC
   "-Wno-return-type-c-linkage"
   )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Meevax::kernel Meevax::basis)
+target_link_libraries(${PROJECT_NAME} PRIVATE Meevax::kernel)
 
 enable_testing()
 
