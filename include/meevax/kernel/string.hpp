@@ -24,25 +24,16 @@
 
 namespace meevax::inline kernel
 {
-  struct string : private std::vector<character>
+  struct string
   {
-    using std::vector<character>::at;
-    using std::vector<character>::back;
-    using std::vector<character>::begin;
-    using std::vector<character>::emplace_back;
-    using std::vector<character>::end;
-    using std::vector<character>::insert;
-    using std::vector<character>::operator [];
-    using std::vector<character>::pop_back;
-    using std::vector<character>::push_back;
-    using std::vector<character>::rbegin;
-    using std::vector<character>::rend;
-    using std::vector<character>::reserve;
-    using std::vector<character>::size;
-    using std::vector<character>::size_type;
-    using std::vector<character>::vector;
+    std::vector<character> characters;
 
     explicit string(std::string const&);
+
+    template <typename... Ts, typename = std::enable_if_t<std::is_constructible_v<std::vector<character>, Ts...>>>
+    explicit string(Ts&&... xs)
+      : characters { std::forward<decltype(xs)>(xs)... }
+    {}
 
     explicit operator std::filesystem::path() const;
 
@@ -50,6 +41,10 @@ namespace meevax::inline kernel
 
     auto operator <=>(string const&) const = default;
   };
+
+  static_assert(std::three_way_comparable<std::vector<character>>);
+
+  static_assert(std::three_way_comparable<string>);
 
   auto operator <<(std::ostream &, string const&) -> std::ostream &;
 } // namespace meevax::kernel

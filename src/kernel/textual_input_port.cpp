@@ -139,7 +139,7 @@ namespace meevax::inline kernel
 
       while (size-- and not peek_character().is_eof())
       {
-        s.push_back(take_character());
+        s.characters.push_back(take_character());
       }
 
       return make(s);
@@ -211,14 +211,14 @@ namespace meevax::inline kernel
         case '\\':
           switch (auto const c = take_character(); c)
           {
-          case 'a': s.emplace_back('\a'); break;
-          case 'b': s.emplace_back('\b'); break;
-          case 'f': s.emplace_back('\f'); break;
-          case 'n': s.emplace_back('\n'); break;
-          case 'r': s.emplace_back('\r'); break;
-          case 't': s.emplace_back('\t'); break;
-          case 'v': s.emplace_back('\v'); break;
-          case 'x': s.emplace_back(lexical_cast<character::int_type>(std::hex, take_character_until([](auto c) { return c == ';'; }))); break;
+          case 'a': s.characters.emplace_back('\a'); break;
+          case 'b': s.characters.emplace_back('\b'); break;
+          case 'f': s.characters.emplace_back('\f'); break;
+          case 'n': s.characters.emplace_back('\n'); break;
+          case 'r': s.characters.emplace_back('\r'); break;
+          case 't': s.characters.emplace_back('\t'); break;
+          case 'v': s.characters.emplace_back('\v'); break;
+          case 'x': s.characters.emplace_back(lexical_cast<character::int_type>(std::hex, take_character_until([](auto c) { return c == ';'; }))); break;
 
           case '\n':
           case '\r':
@@ -226,13 +226,13 @@ namespace meevax::inline kernel
             break;
 
           default:
-            s.emplace_back(c);
+            s.characters.emplace_back(c);
             break;
           }
           break;
 
         default:
-          s.emplace_back(c);
+          s.characters.emplace_back(c);
           break;
         }
       }
@@ -244,12 +244,12 @@ namespace meevax::inline kernel
     {
       auto token = string();
 
-      token.emplace_back(fold_case ? c.downcase() : c);
+      token.characters.emplace_back(fold_case ? c.downcase() : c);
 
       while (not is_special_character(peek_character()))
       {
-        token.emplace_back(fold_case ? take_character().downcase()
-                                     : take_character());
+        token.characters.emplace_back(fold_case ? take_character().downcase()
+                                                : take_character());
       }
 
       return static_cast<std::string>(token);

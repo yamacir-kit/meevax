@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
 #include <climits> // CHAR_BIT
+#include <compare>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -202,6 +203,8 @@ namespace meevax::inline kernel
 
     auto operator <=>(character const&) const = default;
   };
+
+  static_assert(std::three_way_comparable<character>);
 
   auto operator <<(std::ostream &, character const&) -> std::ostream &; // write
 } // namespace meevax::kernel
