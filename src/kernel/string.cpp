@@ -49,6 +49,13 @@ namespace meevax::inline kernel
     return result;
   }
 
+  auto operator ==(string const& a, string const& b) -> bool { return a.characters == b.characters; }
+  auto operator !=(string const& a, string const& b) -> bool { return a.characters != b.characters; }
+  auto operator < (string const& a, string const& b) -> bool { return a.characters <  b.characters; }
+  auto operator <=(string const& a, string const& b) -> bool { return a.characters <= b.characters; }
+  auto operator > (string const& a, string const& b) -> bool { return a.characters >  b.characters; }
+  auto operator >=(string const& a, string const& b) -> bool { return a.characters >= b.characters; }
+
   auto operator <<(std::ostream & os, string const& datum) -> std::ostream &
   {
     auto put = [&](character const& c) -> decltype(auto)

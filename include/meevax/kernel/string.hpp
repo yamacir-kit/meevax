@@ -38,13 +38,14 @@ namespace meevax::inline kernel
     explicit operator std::filesystem::path() const;
 
     operator std::string() const;
-
-    auto operator <=>(string const&) const = default;
   };
 
-  static_assert(std::three_way_comparable<std::vector<character>>);
-
-  static_assert(std::three_way_comparable<string>);
+  auto operator ==(string const&, string const&) -> bool;
+  auto operator !=(string const&, string const&) -> bool;
+  auto operator < (string const&, string const&) -> bool;
+  auto operator <=(string const&, string const&) -> bool;
+  auto operator > (string const&, string const&) -> bool;
+  auto operator >=(string const&, string const&) -> bool;
 
   auto operator <<(std::ostream &, string const&) -> std::ostream &;
 } // namespace meevax::kernel
