@@ -81,7 +81,6 @@ endforeach()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/Doxyfile   ${CMAKE_CURRENT_SOURCE_DIR}/document/Doxyfile)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md  ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/basis.cpp  ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/basis.cpp)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/system.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/system.cpp)
 
 # ---- TARGET kernel -----------------------------------------------------------

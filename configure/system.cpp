@@ -16,6 +16,8 @@
 
 #include <pwd.h>
 
+#include <meevax/kernel/input_string_port.hpp>
+#include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/system.hpp>
 #include <meevax/memory/model.hpp>
 
@@ -98,5 +100,45 @@ namespace meevax::inline kernel
   {
     let static const version = make_symbol("${PROJECT_VERSION}");
     return version;
+  }
+
+  auto environment::load_scheme_libraries() -> void
+  {
+    char const* sources[] = {
+      R"##(${meevax.ss})##",
+      R"##(${r4rs.ss})##",
+      R"##(${r5rs.ss})##",
+      R"##(${r7rs.ss})##",
+      R"##(${srfi-0.ss})##",
+      R"##(${srfi-1.ss})##",
+      R"##(${srfi-4.ss})##",
+      R"##(${srfi-6.ss})##",
+      R"##(${srfi-8.ss})##",
+      R"##(${srfi-9.ss})##",
+      R"##(${srfi-11.ss})##",
+      R"##(${srfi-16.ss})##",
+      R"##(${srfi-23.ss})##",
+      R"##(${srfi-31.ss})##",
+      R"##(${srfi-34.ss})##",
+      R"##(${srfi-38.ss})##",
+      R"##(${srfi-39.ss})##",
+      R"##(${srfi-45.ss})##",
+      R"##(${srfi-78.ss})##",
+      R"##(${srfi-98.ss})##",
+      R"##(${srfi-111.ss})##",
+      R"##(${srfi-141.ss})##",
+      R"##(${srfi-143.ss})##",
+      R"##(${srfi-144.ss})##",
+      R"##(${srfi-149.ss})##",
+      R"##(${srfi-151.ss})##",
+    };
+
+    for (auto const& source : sources)
+    {
+      for (let const& x : input_string_port(source))
+      {
+        evaluate(x);
+      }
+    }
   }
 } // namespace meevax::kernel

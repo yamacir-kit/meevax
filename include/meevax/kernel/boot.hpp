@@ -17,24 +17,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_BOOT_HPP
 #define INCLUDED_MEEVAX_KERNEL_BOOT_HPP
 
-#include <meevax/kernel/input_string_port.hpp>
-#include <meevax/kernel/interaction_environment.hpp>
-
 namespace meevax::inline kernel
 {
   auto boot() -> void;
-
-  template <typename Sources>
-  auto boot(Sources const& sources) -> void
-  {
-    for (auto&& source : sources)
-    {
-      for (let const& x : input_string_port(source))
-      {
-        interaction_environment().as<environment>().evaluate(x);
-      }
-    }
-  }
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_BOOT_HPP

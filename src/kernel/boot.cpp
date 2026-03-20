@@ -27,6 +27,7 @@
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
+#include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/number/bitwise.hpp>
 #include <meevax/kernel/number/error_and_gamma.hpp>
