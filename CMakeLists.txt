@@ -76,7 +76,10 @@ file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
   get_filename_component(FILENAME ${EACH} NAME)
-  file(READ ${EACH} ${FILENAME})
+  execute_process(
+    COMMAND cat ${EACH}
+    COMMAND awk -f ${CMAKE_CURRENT_SOURCE_DIR}/script/format.awk
+    OUTPUT_VARIABLE ${FILENAME})
 endforeach()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/Doxyfile   ${CMAKE_CURRENT_SOURCE_DIR}/document/Doxyfile)
