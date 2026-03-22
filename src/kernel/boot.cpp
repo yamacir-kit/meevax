@@ -1307,17 +1307,17 @@ namespace meevax::inline kernel
 
       library.define<procedure>("vector-length", [](let const& xs)
       {
-        return make(static_cast<small_integer>(car(xs).as<vector>().size()));
+        return make(static_cast<small_integer>(car(xs).as<vector>().objects.size()));
       });
 
       library.define<procedure>("vector-ref", [](let const& xs)
       {
-        return car(xs).as<vector>()[exact_integer_cast<std::size_t>(cadr(xs))];
+        return car(xs).as<vector>().objects[exact_integer_cast<std::size_t>(cadr(xs))];
       });
 
       library.define<procedure>("vector-set!", [](let & xs)
       {
-        car(xs).as<vector>()[exact_integer_cast<std::size_t>(cadr(xs))] = caddr(xs);
+        car(xs).as<vector>().objects[exact_integer_cast<std::size_t>(cadr(xs))] = caddr(xs);
       });
 
       library.define<procedure>("vector->list", [](let const& xs)
@@ -1325,18 +1325,18 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 1:
-          return std::accumulate(car(xs).as<vector>().rbegin(),
-                                 car(xs).as<vector>().rend(),
+          return std::accumulate(car(xs).as<vector>().objects.rbegin(),
+                                 car(xs).as<vector>().objects.rend(),
                                  unit,
                                  xcons);
         case 2:
-          return std::accumulate(car(xs).as<vector>().rbegin(),
-                                 std::prev(car(xs).as<vector>().rend(), exact_integer_cast<std::size_t>(cadr(xs))),
+          return std::accumulate(car(xs).as<vector>().objects.rbegin(),
+                                 std::prev(car(xs).as<vector>().objects.rend(), exact_integer_cast<std::size_t>(cadr(xs))),
                                  unit,
                                  xcons);
         case 3:
-          return std::accumulate(std::prev(car(xs).as<vector>().rend(), exact_integer_cast<std::size_t>(caddr(xs))),
-                                 std::prev(car(xs).as<vector>().rend(), exact_integer_cast<std::size_t>(cadr(xs))),
+          return std::accumulate(std::prev(car(xs).as<vector>().objects.rend(), exact_integer_cast<std::size_t>(caddr(xs))),
+                                 std::prev(car(xs).as<vector>().objects.rend(), exact_integer_cast<std::size_t>(cadr(xs))),
                                  unit,
                                  xcons);
         default:
@@ -1358,20 +1358,20 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 1:
-          std::for_each(car(xs).as<vector>().begin(),
-                        car(xs).as<vector>().end(),
+          std::for_each(car(xs).as<vector>().objects.begin(),
+                        car(xs).as<vector>().objects.end(),
                         push_back);
           return s;
 
         case 2:
-          std::for_each(std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadr(xs))),
-                        car(xs).as<vector>().end(),
+          std::for_each(std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadr(xs))),
+                        car(xs).as<vector>().objects.end(),
                         push_back);
           return s;
 
         case 3:
-          std::for_each(std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadr(xs))),
-                        std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(caddr(xs))),
+          std::for_each(std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadr(xs))),
+                        std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(caddr(xs))),
                         push_back);
           return s;
 
@@ -1386,7 +1386,7 @@ namespace meevax::inline kernel
 
         for (auto character : car(xs).as<string>().characters)
         {
-          v.as<vector>().push_back(make(character));
+          v.as<vector>().objects.push_back(make(character));
         }
 
         return v;
@@ -1397,14 +1397,14 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 1:
-          return make<vector>(car(xs).as<vector>().begin(),
-                              car(xs).as<vector>().end());
+          return make<vector>(car(xs).as<vector>().objects.begin(),
+                              car(xs).as<vector>().objects.end());
         case 2:
-          return make<vector>(std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadr(xs))),
-                              car(xs).as<vector>().end());
+          return make<vector>(std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadr(xs))),
+                              car(xs).as<vector>().objects.end());
         case 3:
-          return make<vector>(std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadr(xs))),
-                              std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(caddr(xs))));
+          return make<vector>(std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadr(xs))),
+                              std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(caddr(xs))));
         default:
           throw error(make<string>("procedure vector-copy takes one to three arugments, but got"), xs);
         }
@@ -1412,27 +1412,26 @@ namespace meevax::inline kernel
 
       library.define<procedure>("vector-copy!", [](let const& xs)
       {
-        car(xs).as<vector>().reserve(car(xs).as<vector>().size() +
-                                     caddr(xs).as<vector>().size());
+        car(xs).as<vector>().objects.reserve(car(xs).as<vector>().objects.size() + caddr(xs).as<vector>().objects.size());
 
         switch (length(xs))
         {
         case 3:
-          std::copy(caddr(xs).as<vector>().begin(),
-                    caddr(xs).as<vector>().end(),
-                    std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadr(xs))));
+          std::copy(caddr(xs).as<vector>().objects.begin(),
+                    caddr(xs).as<vector>().objects.end(),
+                    std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadr(xs))));
           break;
 
         case 4:
-          std::copy(std::next(caddr(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
-                    caddr(xs).as<vector>().end(),
-                    std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadr(xs))));
+          std::copy(std::next(caddr(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
+                    caddr(xs).as<vector>().objects.end(),
+                    std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadr(xs))));
           break;
 
         case 5:
-          std::copy(std::next(caddr(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
-                    std::next(caddr(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(caddddr(xs))),
-                    std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadr(xs))));
+          std::copy(std::next(caddr(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
+                    std::next(caddr(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(caddddr(xs))),
+                    std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadr(xs))));
           break;
 
         default:
@@ -1446,9 +1445,9 @@ namespace meevax::inline kernel
 
         for (let const& x : xs)
         {
-          v.as<vector>().insert(v.as<vector>().end(),
-                                x.as<vector>().begin(),
-                                x.as<vector>().end());
+          v.as<vector>().objects.insert(v.as<vector>().objects.end(),
+                                        x.as<vector>().objects.begin(),
+                                        x.as<vector>().objects.end());
         }
 
         return v;
@@ -1459,20 +1458,20 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 2:
-          std::fill(car(xs).as<vector>().begin(),
-                    car(xs).as<vector>().end(),
+          std::fill(car(xs).as<vector>().objects.begin(),
+                    car(xs).as<vector>().objects.end(),
                     cadr(xs));
           break;
 
         case 3:
-          std::fill(std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(caddr(xs))),
-                    car(xs).as<vector>().end(),
+          std::fill(std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(caddr(xs))),
+                    car(xs).as<vector>().objects.end(),
                     cadr(xs));
           break;
 
         case 4:
-          std::fill(std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(caddr(xs))),
-                    std::next(car(xs).as<vector>().begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
+          std::fill(std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(caddr(xs))),
+                    std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
                     cadr(xs));
           break;
         }
