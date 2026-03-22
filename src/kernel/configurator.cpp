@@ -40,7 +40,7 @@ namespace meevax::inline kernel
     {
       option("(A)", [](auto read) // SRFI 138
       {
-        directories.emplace_back(std::filesystem::canonical(lexical_cast(read())));
+        directories.emplace_back(std::filesystem::weakly_canonical(lexical_cast(read())));
       }),
 
       option("(D)", [](auto read) // SRFI 138
@@ -50,7 +50,7 @@ namespace meevax::inline kernel
 
       option("(I)", [](auto read) // SRFI 138
       {
-        directories.emplace_front(std::filesystem::canonical(lexical_cast(read())));
+        directories.emplace_front(std::filesystem::weakly_canonical(lexical_cast(read())));
       }),
 
       option("(i|interactive)", [](auto)
