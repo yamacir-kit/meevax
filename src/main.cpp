@@ -14,9 +14,9 @@
    limitations under the License.
 */
 
-#include <meevax/basis.hpp>
 #include <meevax/kernel/boot.hpp>
 #include <meevax/kernel/configurator.hpp>
+#include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
 
@@ -27,6 +27,8 @@ auto main(int const argc, char const* const* const argv) -> int
 
   auto interact = [&](environment & e)
   {
+    e.load_scheme_libraries();
+
     if (configurator::configure(argc, argv); configurator::interactive)
     {
       e.import("(scheme base)"_r);
@@ -68,7 +70,7 @@ auto main(int const argc, char const* const* const argv) -> int
   return with_exception_handler([&]()
   {
     boot();
-    boot(basis());
+
     interact(interaction_environment().as<environment>());
   });
 }

@@ -80,9 +80,7 @@ namespace meevax::inline kernel
       {
         switch (codepoint)
         {
-        #if __has_include(<meevax/unicode/property.hpp>)
         #include <meevax/unicode/property.hpp>
-        #endif
 
         default:
           return Cn;
@@ -146,9 +144,7 @@ namespace meevax::inline kernel
     {
       switch (codepoint)
       {
-      #if __has_include(<meevax/unicode/digit_value.hpp>)
       #include <meevax/unicode/digit_value.hpp>
-      #endif
 
       default:
         return std::nullopt;
@@ -159,9 +155,7 @@ namespace meevax::inline kernel
     {
       switch (codepoint)
       {
-      #if __has_include(<meevax/unicode/downcase.hpp>)
       #include <meevax/unicode/downcase.hpp>
-      #endif
 
       default:
         return codepoint;
@@ -192,9 +186,7 @@ namespace meevax::inline kernel
     {
       switch (codepoint)
       {
-      #if __has_include(<meevax/unicode/upcase.hpp>)
       #include <meevax/unicode/upcase.hpp>
-      #endif
 
       default:
         return codepoint;

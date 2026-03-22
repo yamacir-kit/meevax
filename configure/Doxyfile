@@ -3,9 +3,7 @@ PROJECT_NUMBER         = ${CURRENT_VERSION}
 OUTPUT_DIRECTORY       = ${CMAKE_CURRENT_SOURCE_DIR}/document
 CREATE_SUBDIRS         = YES
 INLINE_INHERITED_MEMB  = YES
-STRIP_FROM_PATH        = ${CMAKE_CURRENT_SOURCE_DIR}/basis/include \
-                         ${CMAKE_CURRENT_SOURCE_DIR}/basis/src \
-                         ${CMAKE_CURRENT_SOURCE_DIR}/include \
+STRIP_FROM_PATH        = ${CMAKE_CURRENT_SOURCE_DIR}/include \
                          ${CMAKE_CURRENT_SOURCE_DIR}/src
 TAB_SIZE               = 2
 BUILTIN_STL_SUPPORT    = YES
@@ -18,8 +16,6 @@ SORT_BY_SCOPE_NAME     = YES
 
 QUIET                  = YES
 INPUT                  = ${CMAKE_CURRENT_SOURCE_DIR}/README.md \
-                         ${CMAKE_CURRENT_SOURCE_DIR}/basis/include \
-                         ${CMAKE_CURRENT_SOURCE_DIR}/basis/src \
                          ${CMAKE_CURRENT_SOURCE_DIR}/include \
                          ${CMAKE_CURRENT_SOURCE_DIR}/src
 RECURSIVE              = YES

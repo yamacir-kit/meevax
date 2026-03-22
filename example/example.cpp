@@ -1,4 +1,3 @@
-#include <meevax/basis.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/environment.hpp>
 

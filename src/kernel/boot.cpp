@@ -27,6 +27,7 @@
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/input_homogeneous_vector_port.hpp>
+#include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/library.hpp>
 #include <meevax/kernel/number/bitwise.hpp>
 #include <meevax/kernel/number/error_and_gamma.hpp>
@@ -44,9 +45,9 @@
 #include <meevax/kernel/standard_error_port.hpp>
 #include <meevax/kernel/standard_input_port.hpp>
 #include <meevax/kernel/standard_output_port.hpp>
+#include <meevax/kernel/system.hpp>
 #include <meevax/kernel/transformer.hpp>
 #include <meevax/kernel/vector.hpp>
-#include <meevax/kernel/version.hpp>
 
 extern char ** environ; // for procedure get-environment-variables
 
@@ -351,6 +352,18 @@ namespace meevax::inline kernel
         {
           throw file_error(make<string>(e.what()), car(xs));
         }
+      });
+
+      library.define<procedure>("library-directories", [](let const&)
+      {
+        let directories = unit;
+
+        for (auto iterator = configurator::directories.rbegin(); iterator != configurator::directories.rend(); ++iterator)
+        {
+          directories = cons(make<string>(iterator->native()), directories);
+        }
+
+        return directories;
       });
     });
 
@@ -983,7 +996,7 @@ namespace meevax::inline kernel
 
         for (let const& x : xs)
         {
-          s.as<string>().push_back(x.as<character>());
+          s.as<string>().characters.push_back(x.as<character>());
         }
 
         return s;
@@ -991,17 +1004,17 @@ namespace meevax::inline kernel
 
       library.define<procedure>("string-length", [](let const& xs)
       {
-        return make(static_cast<small_integer>(car(xs).as<string>().size())); // XXX DIRTY HACK (MAKE large_integer IF THE LENGTH IS GREATER THAN INT_MAX)
+        return make(static_cast<small_integer>(car(xs).as<string>().characters.size())); // XXX DIRTY HACK (MAKE large_integer IF THE LENGTH IS GREATER THAN INT_MAX)
       });
 
       library.define<procedure>("string-ref", [](let const& xs)
       {
-        return make(car(xs).as<string>().at(exact_integer_cast<std::size_t>(cadr(xs))));
+        return make(car(xs).as<string>().characters.at(exact_integer_cast<std::size_t>(cadr(xs))));
       });
 
       library.define<procedure>("string-set!", [](let & xs)
       {
-        car(xs).as<string>().at(exact_integer_cast<std::size_t>(cadr(xs))) = caddr(xs).as<character>();
+        car(xs).as<string>().characters.at(exact_integer_cast<std::size_t>(cadr(xs))) = caddr(xs).as<character>();
       });
 
       #define EXPORT_STRING_COMPARE(OPERATOR, IDENTIFIER)                      \
@@ -1031,8 +1044,11 @@ namespace meevax::inline kernel
             return c1.downcase() OPERATOR c2.downcase();                       \
           };                                                                   \
                                                                                \
-          return not std::lexicographical_compare(s1.as<string>().begin(), s1.as<string>().end(), \
-                                                  s2.as<string>().begin(), s2.as<string>().end(), compare); \
+          return not std::lexicographical_compare(s1.as<string>().characters.begin(), \
+                                                  s1.as<string>().characters.end(), \
+                                                  s2.as<string>().characters.begin(), \
+                                                  s2.as<string>().characters.end(), \
+                                                  compare); \
         };                                                                     \
                                                                                \
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();  \
@@ -1050,9 +1066,9 @@ namespace meevax::inline kernel
 
         for (let const& x : xs)
         {
-          s.as<string>().insert(s.as<string>().end(),
-                                x.as<string>().begin(),
-                                x.as<string>().end());
+          s.as<string>().characters.insert(s.as<string>().characters.end(),
+                                           x.as<string>().characters.begin(),
+                                           x.as<string>().characters.end());
         }
 
         return s;
@@ -1068,18 +1084,18 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 1:
-          return std::accumulate(car(xs).as<string>().rbegin(),
-                                 car(xs).as<string>().rend(),
+          return std::accumulate(car(xs).as<string>().characters.rbegin(),
+                                 car(xs).as<string>().characters.rend(),
                                  unit,
                                  push);
         case 2:
-          return std::accumulate(car(xs).as<string>().rbegin(),
-                                 std::prev(car(xs).as<string>().rend(), exact_integer_cast<std::size_t>(cadr(xs))),
+          return std::accumulate(car(xs).as<string>().characters.rbegin(),
+                                 std::prev(car(xs).as<string>().characters.rend(), exact_integer_cast<std::size_t>(cadr(xs))),
                                  unit,
                                  push);
         case 3:
-          return std::accumulate(std::prev(car(xs).as<string>().rend(), exact_integer_cast<std::size_t>(caddr(xs))),
-                                 std::prev(car(xs).as<string>().rend(), exact_integer_cast<std::size_t>(cadr(xs))),
+          return std::accumulate(std::prev(car(xs).as<string>().characters.rend(), exact_integer_cast<std::size_t>(caddr(xs))),
+                                 std::prev(car(xs).as<string>().characters.rend(), exact_integer_cast<std::size_t>(cadr(xs))),
                                  unit,
                                  push);
 
@@ -1094,7 +1110,7 @@ namespace meevax::inline kernel
 
         for (let const& x : car(xs))
         {
-          s.as<string>().push_back(x.as<character>());
+          s.as<string>().characters.push_back(x.as<character>());
         }
 
         return s;
@@ -1105,14 +1121,14 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 1:
-          return make<string>(car(xs).as<string>().begin(),
-                              car(xs).as<string>().end());
+          return make<string>(car(xs).as<string>().characters.begin(),
+                              car(xs).as<string>().characters.end());
         case 2:
-          return make<string>(std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadr(xs))),
-                              car(xs).as<string>().end());
+          return make<string>(std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(cadr(xs))),
+                              car(xs).as<string>().characters.end());
         case 3:
-          return make<string>(std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadr(xs))),
-                              std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(caddr(xs))));
+          return make<string>(std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(cadr(xs))),
+                              std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(caddr(xs))));
         default:
           throw error(make<string>("procedure string-copy takes one to three arugments, but got"), xs);
         }
@@ -1120,27 +1136,26 @@ namespace meevax::inline kernel
 
       library.define<procedure>("string-copy!", [](let const& xs)
       {
-        car(xs).as<string>().reserve(car(xs).as<string>().size() +
-                                     caddr(xs).as<string>().size());
+        car(xs).as<string>().characters.reserve(car(xs).as<string>().characters.size() + caddr(xs).as<string>().characters.size());
 
         switch (length(xs))
         {
         case 3:
-          std::copy(caddr(xs).as<string>().begin(),
-                    caddr(xs).as<string>().end(),
-                    std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadr(xs))));
+          std::copy(caddr(xs).as<string>().characters.begin(),
+                    caddr(xs).as<string>().characters.end(),
+                    std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(cadr(xs))));
           break;
 
         case 4:
-          std::copy(std::next(caddr(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
-                    caddr(xs).as<string>().end(),
-                    std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadr(xs))));
+          std::copy(std::next(caddr(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
+                    caddr(xs).as<string>().characters.end(),
+                    std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(cadr(xs))));
           break;
 
         case 5:
-          std::copy(std::next(caddr(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
-                    std::next(caddr(xs).as<string>().begin(), exact_integer_cast<std::size_t>(caddddr(xs))),
-                    std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadr(xs))));
+          std::copy(std::next(caddr(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
+                    std::next(caddr(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(caddddr(xs))),
+                    std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(cadr(xs))));
           break;
 
         default:
@@ -1153,20 +1168,20 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 2:
-          std::fill(car(xs).as<string>().begin(),
-                    car(xs).as<string>().end(),
+          std::fill(car(xs).as<string>().characters.begin(),
+                    car(xs).as<string>().characters.end(),
                     cadr(xs).as<character>());
           break;
 
         case 3:
-          std::fill(std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(caddr(xs))),
-                    car(xs).as<string>().end(),
+          std::fill(std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(caddr(xs))),
+                    car(xs).as<string>().characters.end(),
                     cadr(xs).as<character>());
           break;
 
         case 4:
-          std::fill(std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(caddr(xs))),
-                    std::next(car(xs).as<string>().begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
+          std::fill(std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(caddr(xs))),
+                    std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
                     cadr(xs).as<character>());
           break;
 
@@ -1218,6 +1233,11 @@ namespace meevax::inline kernel
 
     define<library>("(meevax system)", [](library & library)
     {
+      library.define<procedure>("features", []()
+      {
+        return features();
+      });
+
       library.define<procedure>("get-environment-variable", [](let const& xs) -> object
       {
         if (auto s = std::getenv(static_cast<std::string>(car(xs).as<string>()).c_str()))
@@ -1332,7 +1352,7 @@ namespace meevax::inline kernel
 
         auto push_back = [&](let const& x)
         {
-          s.as<string>().push_back(x.as<character>());
+          s.as<string>().characters.push_back(x.as<character>());
         };
 
         switch (length(xs))
@@ -1364,7 +1384,7 @@ namespace meevax::inline kernel
       {
         let v = make<vector>();
 
-        for (auto character : car(xs).as<string>())
+        for (auto character : car(xs).as<string>().characters)
         {
           v.as<vector>().push_back(make(character));
         }
@@ -1663,14 +1683,6 @@ namespace meevax::inline kernel
         };
 
         return convert(car(xs).as<string>());
-      });
-    });
-
-    define<library>("(meevax version)", [](library & library)
-    {
-      library.define<procedure>("features", []()
-      {
-        return features();
       });
     });
 

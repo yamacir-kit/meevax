@@ -22,7 +22,7 @@ Lisp-1 scripts](./example/example.ss) [via simple stubs](example/example.cpp).
   [[4](#Bawden-and-Rees-1988), [6](#Hanson-1991)] and *explicit renaming*
   [[5](#Clinger-1991)]. For these, the well-known macro transformers
   `sc-macro-transformer`, `rsc-macro-transformer` and `er-macro-transformer`
-  from the library [`(meevax macro-transformer)`](./basis/meevax.ss) are
+  from the library [`(meevax macro-transformer)`](./library/meevax.ss) are
   provided. Note that these are non-Scheme standards.
 - C++ friendly precise garbage collection [[10](#Kempf-2001a),
   [11](#Kempf-2001b)]
@@ -39,41 +39,41 @@ Procedures for each standard are provided by the following R7RS-style libraries:
 
 | Language | Library name |
 |:--------:|--------------|
-| R4RS     | [`(scheme r4rs)`](./basis/r4rs.ss)
-| R5RS     | [`(scheme r5rs)`](./basis/r5rs.ss)
-| R7RS     | [`(scheme base)`](./basis/r7rs.ss) [`(scheme bitwise)`](./basis/r7rs.ss) [`(scheme box)`](./basis/r7rs.ss) [`(scheme case-lambda)`](./basis/r7rs.ss) [`(scheme char)`](./basis/r7rs.ss) [`(scheme complex)`](./basis/r7rs.ss) [`(scheme cxr)`](./basis/r7rs.ss) [`(scheme division)`](./basis/r7rs.ss) [`(scheme eval)`](./basis/r7rs.ss) [`(scheme file)`](./basis/r7rs.ss) [`(scheme fixnum)`](./basis/r7rs.ss) [`(scheme flonum)`](./basis/r7rs.ss) [`(scheme inexact)`](./basis/r7rs.ss) [`(scheme lazy)`](./basis/r7rs.ss) [`(scheme list)`](./basis/r7rs.ss) [`(scheme load)`](./basis/r7rs.ss) [`(scheme process-context)`](./basis/r7rs.ss) [`(scheme read)`](./basis/r7rs.ss) [`(scheme repl)`](./basis/r7rs.ss) [`(scheme time)`](./basis/r7rs.ss) [`(scheme write)`](./basis/r7rs.ss)
+| R4RS     | [`(scheme r4rs)`](./library/r4rs.ss)
+| R5RS     | [`(scheme r5rs)`](./library/r5rs.ss)
+| R7RS     | [`(scheme base)`](./library/r7rs.ss) [`(scheme bitwise)`](./library/r7rs.ss) [`(scheme box)`](./library/r7rs.ss) [`(scheme case-lambda)`](./library/r7rs.ss) [`(scheme char)`](./library/r7rs.ss) [`(scheme complex)`](./library/r7rs.ss) [`(scheme cxr)`](./library/r7rs.ss) [`(scheme division)`](./library/r7rs.ss) [`(scheme eval)`](./library/r7rs.ss) [`(scheme file)`](./library/r7rs.ss) [`(scheme fixnum)`](./library/r7rs.ss) [`(scheme flonum)`](./library/r7rs.ss) [`(scheme inexact)`](./library/r7rs.ss) [`(scheme lazy)`](./library/r7rs.ss) [`(scheme list)`](./library/r7rs.ss) [`(scheme load)`](./library/r7rs.ss) [`(scheme process-context)`](./library/r7rs.ss) [`(scheme read)`](./library/r7rs.ss) [`(scheme repl)`](./library/r7rs.ss) [`(scheme time)`](./library/r7rs.ss) [`(scheme write)`](./library/r7rs.ss)
 
 ### SRFIs
 
-| #                                                       | Title                                                  | Library name                        | Note                                   |
-|--------------------------------------------------------:|--------------------------------------------------------|-------------------------------------|----------------------------------------|
-| [  0](https://srfi.schemers.org/srfi-0/srfi-0.html)     | Feature-based conditional expansion construct          | [`(srfi 0)`](./basis/srfi-0.ss)     | R7RS 4.2.1                             |
-| [  1](https://srfi.schemers.org/srfi-1/srfi-1.html)     | List Library                                           | [`(srfi 1)`](./basis/srfi-1.ss)     | [`(scheme list)`](./basis/r7rs.ss)     |
-| [  4](https://srfi.schemers.org/srfi-4/srfi-4.html)     | Homogeneous numeric vector datatypes                   | [`(srfi 4)`](./basis/srfi-4.ss)     | R7RS 6.9                               |
-| [  6](https://srfi.schemers.org/srfi-6/srfi-6.html)     | Basic String Ports                                     | [`(srfi 6)`](./basis/srfi-6.ss)     | R7RS 6.13                              |
-| [  8](https://srfi.schemers.org/srfi-8/srfi-8.html)     | receive: Binding to multiple values                    | [`(srfi 8)`](./basis/srfi-8.ss)     |                                        |
-| [  9](https://srfi.schemers.org/srfi-9/srfi-9.html)     | Defining Record Types                                  | [`(srfi 9)`](./basis/srfi-9.ss)     | R7RS 5.5                               |
-| [ 10](https://srfi.schemers.org/srfi-10/srfi-10.html)   | #, external form                                       |                                     |                                        |
-| [ 11](https://srfi.schemers.org/srfi-11/srfi-11.html)   | Syntax for receiving multiple values                   | [`(srfi 11)`](./basis/srfi-11.ss)   | R7RS 4.2.2                             |
-| [ 16](https://srfi.schemers.org/srfi-16/srfi-16.html)   | Syntax for procedures of variable arity                | [`(srfi 16)`](./basis/srfi-16.ss)   | R7RS 4.2.9                             |
-| [ 23](https://srfi.schemers.org/srfi-23/srfi-23.html)   | Error reporting mechanism                              | [`(srfi 23)`](./basis/srfi-23.ss)   | R7RS 6.11                              |
-| [ 30](https://srfi.schemers.org/srfi-30/srfi-30.html)   | Nested Multi-line Comments                             |                                     | R7RS 2.2                               |
-| [ 31](https://srfi.schemers.org/srfi-31/srfi-31.html)   | A special form rec for recursive evaluation            | [`(srfi 31)`](./basis/srfi-31.ss)   |                                        |
-| [ 34](https://srfi.schemers.org/srfi-34/srfi-34.html)   | Exception Handling for Programs                        | [`(srfi 34)`](./basis/srfi-34.ss)   | R7RS 6.11                              |
-| [ 38](https://srfi.schemers.org/srfi-38/srfi-38.html)   | External Representation for Data With Shared Structure | [`(srfi 38)`](./basis/srfi-38.ss)   | R7RS 6.13.3                            |
-| [ 39](https://srfi.schemers.org/srfi-39/srfi-39.html)   | Parameter objects                                      | [`(srfi 39)`](./basis/srfi-39.ss)   | R7RS 4.2.6                             |
-| [ 45](https://srfi.schemers.org/srfi-45/srfi-45.html)   | Primitives for Expressing Iterative Lazy Algorithms    | [`(srfi 45)`](./basis/srfi-45.ss)   | R7RS 4.2.5                             |
-| [ 62](https://srfi.schemers.org/srfi-62/srfi-62.html)   | S-expression comments                                  |                                     | R7RS 2.2                               |
-| [ 78](https://srfi.schemers.org/srfi-78/srfi-78.html)   | Lightweight testing                                    | [`(srfi 78)`](./basis/srfi-78.ss)   | Except `check-ec`                      |
-| [ 87](https://srfi.schemers.org/srfi-87/srfi-87.html)   | => in case clauses                                     |                                     | R7RS 4.2.1                             |
-| [ 98](https://srfi.schemers.org/srfi-98/srfi-98.html)   | An interface to access environment variables           | [`(srfi 98)`](./basis/srfi-98.ss)   | R7RS 6.14                              |
-| [111](https://srfi.schemers.org/srfi-111/srfi-111.html) | Boxes                                                  | [`(srfi 111)`](./basis/srfi-111.ss) | [`(scheme box)`](./basis/r7rs.ss)      |
-| [138](https://srfi.schemers.org/srfi-138/srfi-138.html) | Compiling Scheme programs to executables               |                                     |                                        |
-| [141](https://srfi.schemers.org/srfi-141/srfi-141.html) | Integer division                                       | [`(srfi 141)`](./basis/srfi-141.ss) | [`(scheme division)`](./basis/r7rs.ss) |
-| [143](https://srfi.schemers.org/srfi-143/srfi-143.html) | Fixnums                                                | [`(srfi 143)`](./basis/srfi-143.ss) | [`(scheme fixnum)`](./basis/r7rs.ss)   |
-| [144](https://srfi.schemers.org/srfi-144/srfi-144.html) | Flonums                                                | [`(srfi 144)`](./basis/srfi-144.ss) | [`(scheme flonum)`](./basis/r7rs.ss)   |
-| [149](https://srfi.schemers.org/srfi-149/srfi-149.html) | Basic syntax-rules template extensions                 | [`(srfi 149)`](./basis/srfi-149.ss) | R7RS 4.3.2                             |
-| [151](https://srfi.schemers.org/srfi-151/srfi-151.html) | Bitwise Operations                                     | [`(srfi 151)`](./basis/srfi-151.ss) | [`(scheme bitwise)`](./basis/r7rs.ss)  |
+| #                                                       | Title                                                  | Library name                          | Note                                     |
+|--------------------------------------------------------:|--------------------------------------------------------|---------------------------------------|------------------------------------------|
+| [  0](https://srfi.schemers.org/srfi-0/srfi-0.html)     | Feature-based conditional expansion construct          | [`(srfi 0)`](./library/srfi-0.ss)     | R7RS 4.2.1                               |
+| [  1](https://srfi.schemers.org/srfi-1/srfi-1.html)     | List Library                                           | [`(srfi 1)`](./library/srfi-1.ss)     | [`(scheme list)`](./library/r7rs.ss)     |
+| [  4](https://srfi.schemers.org/srfi-4/srfi-4.html)     | Homogeneous numeric vector datatypes                   | [`(srfi 4)`](./library/srfi-4.ss)     | R7RS 6.9                                 |
+| [  6](https://srfi.schemers.org/srfi-6/srfi-6.html)     | Basic String Ports                                     | [`(srfi 6)`](./library/srfi-6.ss)     | R7RS 6.13                                |
+| [  8](https://srfi.schemers.org/srfi-8/srfi-8.html)     | receive: Binding to multiple values                    | [`(srfi 8)`](./library/srfi-8.ss)     |                                          |
+| [  9](https://srfi.schemers.org/srfi-9/srfi-9.html)     | Defining Record Types                                  | [`(srfi 9)`](./library/srfi-9.ss)     | R7RS 5.5                                 |
+| [ 10](https://srfi.schemers.org/srfi-10/srfi-10.html)   | #, external form                                       |                                       |                                          |
+| [ 11](https://srfi.schemers.org/srfi-11/srfi-11.html)   | Syntax for receiving multiple values                   | [`(srfi 11)`](./library/srfi-11.ss)   | R7RS 4.2.2                               |
+| [ 16](https://srfi.schemers.org/srfi-16/srfi-16.html)   | Syntax for procedures of variable arity                | [`(srfi 16)`](./library/srfi-16.ss)   | R7RS 4.2.9                               |
+| [ 23](https://srfi.schemers.org/srfi-23/srfi-23.html)   | Error reporting mechanism                              | [`(srfi 23)`](./library/srfi-23.ss)   | R7RS 6.11                                |
+| [ 30](https://srfi.schemers.org/srfi-30/srfi-30.html)   | Nested Multi-line Comments                             |                                       | R7RS 2.2                                 |
+| [ 31](https://srfi.schemers.org/srfi-31/srfi-31.html)   | A special form rec for recursive evaluation            | [`(srfi 31)`](./library/srfi-31.ss)   |                                          |
+| [ 34](https://srfi.schemers.org/srfi-34/srfi-34.html)   | Exception Handling for Programs                        | [`(srfi 34)`](./library/srfi-34.ss)   | R7RS 6.11                                |
+| [ 38](https://srfi.schemers.org/srfi-38/srfi-38.html)   | External Representation for Data With Shared Structure | [`(srfi 38)`](./library/srfi-38.ss)   | R7RS 6.13.3                              |
+| [ 39](https://srfi.schemers.org/srfi-39/srfi-39.html)   | Parameter objects                                      | [`(srfi 39)`](./library/srfi-39.ss)   | R7RS 4.2.6                               |
+| [ 45](https://srfi.schemers.org/srfi-45/srfi-45.html)   | Primitives for Expressing Iterative Lazy Algorithms    | [`(srfi 45)`](./library/srfi-45.ss)   | R7RS 4.2.5                               |
+| [ 62](https://srfi.schemers.org/srfi-62/srfi-62.html)   | S-expression comments                                  |                                       | R7RS 2.2                                 |
+| [ 78](https://srfi.schemers.org/srfi-78/srfi-78.html)   | Lightweight testing                                    | [`(srfi 78)`](./library/srfi-78.ss)   | Except `check-ec`                        |
+| [ 87](https://srfi.schemers.org/srfi-87/srfi-87.html)   | => in case clauses                                     |                                       | R7RS 4.2.1                               |
+| [ 98](https://srfi.schemers.org/srfi-98/srfi-98.html)   | An interface to access environment variables           | [`(srfi 98)`](./library/srfi-98.ss)   | R7RS 6.14                                |
+| [111](https://srfi.schemers.org/srfi-111/srfi-111.html) | Boxes                                                  | [`(srfi 111)`](./library/srfi-111.ss) | [`(scheme box)`](./library/r7rs.ss)      |
+| [138](https://srfi.schemers.org/srfi-138/srfi-138.html) | Compiling Scheme programs to executables               |                                       |                                          |
+| [141](https://srfi.schemers.org/srfi-141/srfi-141.html) | Integer division                                       | [`(srfi 141)`](./library/srfi-141.ss) | [`(scheme division)`](./library/r7rs.ss) |
+| [143](https://srfi.schemers.org/srfi-143/srfi-143.html) | Fixnums                                                | [`(srfi 143)`](./library/srfi-143.ss) | [`(scheme fixnum)`](./library/r7rs.ss)   |
+| [144](https://srfi.schemers.org/srfi-144/srfi-144.html) | Flonums                                                | [`(srfi 144)`](./library/srfi-144.ss) | [`(scheme flonum)`](./library/r7rs.ss)   |
+| [149](https://srfi.schemers.org/srfi-149/srfi-149.html) | Basic syntax-rules template extensions                 | [`(srfi 149)`](./library/srfi-149.ss) | R7RS 4.3.2                               |
+| [151](https://srfi.schemers.org/srfi-151/srfi-151.html) | Bitwise Operations                                     | [`(srfi 151)`](./library/srfi-151.ss) | [`(scheme bitwise)`](./library/r7rs.ss)  |
 
 ## Installation
 

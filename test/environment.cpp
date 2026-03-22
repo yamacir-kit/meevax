@@ -4,7 +4,6 @@
 #include <regex>
 #include <typeindex>
 
-#include <meevax/basis.hpp>
 #include <meevax/kernel/boot.hpp>
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
@@ -97,21 +96,23 @@ auto main() -> int
     assert(count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
     assert(count_of[typeid(eof                               )] ==   1);
     assert(count_of[typeid(ghost                             )] ==   2);
-    assert(count_of[typeid(library                           )] ==  28); // There are 28 builtin libraries
-    assert(count_of[typeid(symbol                            )] == 482); // There are 459 builtin definitions
+    assert(count_of[typeid(library                           )] ==  27); // There are 27 primitive libraries
+    assert(count_of[typeid(symbol                            )] == 483); // There are 483 builtin definitions
   }
 
-  boot(basis());
+  interaction_environment().as<environment>().load_scheme_libraries();
 
   {
     auto [root_count, non_root_count, count_of] = root_object_counts_by_type();
+
+    assert(root_count == 1431);
 
     assert(count_of.size() == 6);
     assert(count_of[typeid(environment                       )] ==   1); // The interaction-environment
     assert(count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
     assert(count_of[typeid(eof                               )] ==   1);
     assert(count_of[typeid(ghost                             )] ==   2);
-    assert(count_of[typeid(library                           )] ==  77);
+    assert(count_of[typeid(library                           )] ==  76);
     assert(count_of[typeid(symbol                            )] >= 482);
   }
 
@@ -125,8 +126,8 @@ auto main() -> int
     assert(count_of[typeid(environment::syntactic_environment)] ==   1); // The core syntactic-environment
     assert(count_of[typeid(eof                               )] ==   1);
     assert(count_of[typeid(ghost                             )] ==   2);
-    assert(count_of[typeid(library                           )] ==  77);
-    assert(count_of[typeid(symbol                            )] >= 482); // There are 459 builtin definitions
+    assert(count_of[typeid(library                           )] ==  76);
+    assert(count_of[typeid(symbol                            )] >= 483); // There are 483 builtin definitions
   }
 
   symbols().clear();

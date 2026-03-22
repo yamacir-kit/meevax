@@ -17,11 +17,43 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_INCLUDE_HPP
 #define INCLUDED_MEEVAX_KERNEL_INCLUDE_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/input_file_port.hpp>
+#include <meevax/kernel/list.hpp>
 
 namespace meevax::inline kernel
 {
-  auto include(object const&, bool = true, object const& = nullptr) -> object;
+  struct case_insensitive
+  {};
+
+  template <typename T = void>
+  auto include(object const& names, object const& xs = nullptr) -> object
+  {
+    if (names.is<pair>())
+    {
+      auto port = input_file_port(textual_context::of(names).locate(std::filesystem::path(car(names).as<string>()), is_existing_non_directory));
+
+      port.fold_case = std::is_same_v<T, case_insensitive>;
+
+      return include<T>(port, names, xs);
+    }
+    else
+    {
+      return reverse(xs);
+    }
+  }
+
+  template <typename T>
+  auto include(input_file_port & port, object const& names, object const& xs) -> object
+  {
+    if (let const& x = port.read(); not x.is<eof>())
+    {
+      return include<T>(port, names, cons(x, xs));
+    }
+    else
+    {
+      return include<T>(cdr(names), xs);
+    }
+  }
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_INCLUDE_HPP

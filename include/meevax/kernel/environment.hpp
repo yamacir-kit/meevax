@@ -32,6 +32,8 @@ namespace meevax::inline kernel
     auto import(object const&) -> void;
 
     auto load(std::filesystem::path const&) -> void;
+
+    auto load_scheme_libraries() -> void;
   };
 
   auto operator <<(std::ostream &, environment const&) -> std::ostream &;

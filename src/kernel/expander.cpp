@@ -173,7 +173,7 @@ namespace meevax::inline kernel
   EXPANDER(expander::include_case_insensitive)
   {
     return expander.expand(cons(default_rename("begin"),
-                                meevax::include(cadr(form), false)),
+                                meevax::include<case_insensitive>(cadr(form))),
                            bound_variables,
                            rename);
   }

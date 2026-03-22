@@ -16,10 +16,14 @@ Options:
 
   -h, --help            Display this help message and exit.
 
-  -i, --interactive     After evaluating any FILEs given as arguments, enter
-                        the REPL session.
+  -i, --interactive     Enter the REPL session after evaluating any FILEs given
+                        as command-line arguments.
 
   -l, --load FILE       Load FILE into the interaction environment.
+
+      --library-directories
+                        Display the list of directories that are searched in
+                        order to locate imported libraries.
 
   -v, --version         Display version information and exit.
 

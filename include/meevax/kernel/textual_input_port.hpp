@@ -62,7 +62,7 @@ namespace meevax::inline kernel
 
     std::unordered_map<std::string, object> datum_labels;
 
-    bool case_sensitive = true;
+    bool fold_case = false;
 
     auto at_end_of_file() const -> bool;
 

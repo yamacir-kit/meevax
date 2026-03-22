@@ -12,4 +12,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: ./script/setup-${{ matrix.system }}.sh --all
-      - run: shellcheck ./script/*
+      - run: shellcheck ./script/*.sh

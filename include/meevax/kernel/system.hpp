@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_VERSION_HPP
-#define INCLUDED_MEEVAX_KERNEL_VERSION_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_SYSTEM_HPP
+#define INCLUDED_MEEVAX_KERNEL_SYSTEM_HPP
 
 #include <string_view>
 
@@ -24,11 +24,19 @@
 
 namespace meevax::inline kernel
 {
-  auto help() noexcept -> std::string_view;
+  auto extensions() -> std::vector<std::string_view> const&;
 
   auto features() -> object &;
+
+  auto help() noexcept -> std::string_view;
+
+  auto home_directory() -> std::filesystem::path;
+
+  auto system_library_directory() -> std::filesystem::path;
+
+  auto user_library_directory() -> std::filesystem::path;
 
   auto version() -> object const&;
 } // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_KERNEL_VERSION_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_SYSTEM_HPP

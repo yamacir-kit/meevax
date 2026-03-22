@@ -19,7 +19,6 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
-#include <meevax/kernel/version.hpp>
 
 namespace meevax::inline kernel
 {
@@ -37,11 +36,11 @@ namespace meevax::inline kernel
   {
     auto const static pattern = std::regex(R"(--(\w[-\w]+)(=(.*))?|-([\w]+))");
 
-    auto const static options = std::array<option, 9>
+    auto const static options = std::array<option, 10>
     {
       option("(A)", [](auto read) // SRFI 138
       {
-        directories.emplace_back(std::filesystem::canonical(lexical_cast(read())));
+        directories.emplace_back(std::filesystem::weakly_canonical(lexical_cast(read())));
       }),
 
       option("(D)", [](auto read) // SRFI 138
@@ -51,7 +50,7 @@ namespace meevax::inline kernel
 
       option("(I)", [](auto read) // SRFI 138
       {
-        directories.emplace_front(std::filesystem::canonical(lexical_cast(read())));
+        directories.emplace_front(std::filesystem::weakly_canonical(lexical_cast(read())));
       }),
 
       option("(i|interactive)", [](auto)
@@ -72,6 +71,14 @@ namespace meevax::inline kernel
       option("(l|load)", [](auto read)
       {
         interaction_environment().as<environment>().load(static_cast<std::filesystem::path>(read().template as<string>()));
+      }),
+
+      option("(library-directories)", [](auto)
+      {
+        for (auto const& directory : directories)
+        {
+          std::cout << directory.native() << std::endl;
+        }
       }),
 
       option("(v|version)", [](auto)

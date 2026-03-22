@@ -27,7 +27,7 @@ namespace meevax::inline kernel
     {
       for (auto c = input.take_character(); not c.is_eof(); c = input.take_character())
       {
-        push_back(c);
+        characters.push_back(c);
       }
     }
   }
@@ -41,13 +41,20 @@ namespace meevax::inline kernel
   {
     std::string result;
 
-    for (character const& each : *this)
+    for (auto const& character : characters)
     {
-      result.append(static_cast<std::string>(each));
+      result.append(static_cast<std::string>(character));
     }
 
     return result;
   }
+
+  auto operator ==(string const& a, string const& b) -> bool { return a.characters == b.characters; }
+  auto operator !=(string const& a, string const& b) -> bool { return a.characters != b.characters; }
+  auto operator < (string const& a, string const& b) -> bool { return a.characters <  b.characters; }
+  auto operator <=(string const& a, string const& b) -> bool { return a.characters <= b.characters; }
+  auto operator > (string const& a, string const& b) -> bool { return a.characters >  b.characters; }
+  auto operator >=(string const& a, string const& b) -> bool { return a.characters >= b.characters; }
 
   auto operator <<(std::ostream & os, string const& datum) -> std::ostream &
   {
@@ -78,9 +85,9 @@ namespace meevax::inline kernel
 
     os << cyan("\"");
 
-    for (auto const& each : datum)
+    for (auto const& character : datum.characters)
     {
-      put(each);
+      put(character);
     }
 
     return os << cyan("\"");
