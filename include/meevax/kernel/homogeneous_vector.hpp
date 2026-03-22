@@ -25,20 +25,21 @@
 namespace meevax::inline kernel
 {
   template <typename T>
-  struct homogeneous_vector : private std::valarray<T>
+  struct homogeneous_vector
   {
-    using          std::valarray<T>::operator [];
-    using          std::valarray<T>::size;
-    using          std::valarray<T>::valarray;
-    using typename std::valarray<T>::value_type;
+    using values_type = std::valarray<T>;
 
-    auto valarray()       -> decltype(auto) { return static_cast<std::valarray<T>      &>(*this); }
-    auto valarray() const -> decltype(auto) { return static_cast<std::valarray<T> const&>(*this); }
+    std::valarray<T> values;
+
+    template <typename... Ts, typename = std::enable_if_t<std::is_constructible_v<std::valarray<T>, Ts...>>>
+    explicit homogeneous_vector(Ts&&... xs)
+      : values(std::forward<decltype(xs)>(xs)...)
+    {}
 
     explicit homogeneous_vector(from_list_tag, let xs)
-      : std::valarray<T>(length(xs))
+      : values(length(xs))
     {
-      std::generate(std::begin(*this), std::end(*this), [&]() mutable
+      std::generate(std::begin(values), std::end(values), [&]() mutable
       {
         let const x = car(xs);
         xs = cdr(xs);
@@ -82,7 +83,7 @@ namespace meevax::inline kernel
 
     auto whitespace = "";
 
-    for (auto value : datum.valarray())
+    for (auto value : datum.values)
     {
       output << std::exchange(whitespace, " ") << cyan(homogeneous_vector<T>::output_cast(value));
     }
@@ -98,7 +99,7 @@ namespace meevax::inline kernel
       return std::all_of(std::begin(xs), std::end(xs), [](auto x) { return x; });
     };
 
-    return check(a.valarray() == b.valarray());
+    return check(a.values == b.values);
   }
 
   using s8vector  = homogeneous_vector<std::int8_t>;

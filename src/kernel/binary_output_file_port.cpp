@@ -40,7 +40,7 @@ namespace meevax::inline kernel
 
   auto binary_output_file_port::put(u8vector const& v) -> void
   {
-    for (auto u8 : v.valarray())
+    for (auto u8 : v.values)
     {
       ofstream.write(reinterpret_cast<char const*>(&u8), 1);
     }

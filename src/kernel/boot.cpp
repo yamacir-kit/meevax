@@ -1481,14 +1481,14 @@ namespace meevax::inline kernel
     define<library>("(meevax vector homogeneous)", [](library & library)
     {
       #define DEFINE_VECTOR_AUX(TAG, VECTOR)                                   \
-      EXPORT_PREDICATE(VECTOR, #TAG "vector?"); \
+      EXPORT_PREDICATE(VECTOR, #TAG "vector?");                                \
                                                                                \
       library.define<procedure>("make-" #TAG "vector", [](let const& xs)       \
       {                                                                        \
         switch (length(xs))                                                    \
         {                                                                      \
         case 1:                                                                \
-          return make<VECTOR>(direct_initialization, static_cast<VECTOR::value_type>(0), exact_integer_cast<std::size_t>(car(xs))); \
+          return make<VECTOR>(direct_initialization, static_cast<VECTOR::values_type::value_type>(0), exact_integer_cast<std::size_t>(car(xs))); \
                                                                                \
         case 2:                                                                \
           return make<VECTOR>(direct_initialization, VECTOR::input_cast(cadr(xs)), exact_integer_cast<std::size_t>(car(xs))); \
@@ -1505,17 +1505,17 @@ namespace meevax::inline kernel
                                                                                \
       library.define<procedure>(#TAG "vector-length", [](let const& xs)        \
       {                                                                        \
-        return make(static_cast<small_integer>(car(xs).as<VECTOR>().size()));  \
+        return make(static_cast<small_integer>(car(xs).as<VECTOR>().values.size())); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-ref", [](let const& xs)           \
       {                                                                        \
-        return VECTOR::output_cast(car(xs).as<VECTOR>()[exact_integer_cast<std::size_t>(cadr(xs))]); \
+        return VECTOR::output_cast(car(xs).as<VECTOR>().values[exact_integer_cast<std::size_t>(cadr(xs))]); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-set!", [](let const& xs)          \
       {                                                                        \
-        car(xs).as<VECTOR>()[exact_integer_cast<std::size_t>(cadr(xs))] = VECTOR::input_cast(caddr(xs)); \
+        car(xs).as<VECTOR>().values[exact_integer_cast<std::size_t>(cadr(xs))] = VECTOR::input_cast(caddr(xs)); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-copy", [](let const& xs)          \
@@ -1523,17 +1523,17 @@ namespace meevax::inline kernel
         auto copy = [&](std::size_t begin, std::size_t end)                    \
         {                                                                      \
           assert(begin <= end);                                                \
-          return make<VECTOR>(car(xs).as<VECTOR>()[std::slice(begin, end - begin, 1)]); \
+          return make<VECTOR>(car(xs).as<VECTOR>().values[std::slice(begin, end - begin, 1)]); \
         };                                                                     \
                                                                                \
         switch (length(xs))                                                    \
         {                                                                      \
         case 1:                                                                \
-          return copy(0, car(xs).as<VECTOR>().size());                         \
+          return copy(0, car(xs).as<VECTOR>().values.size());                  \
                                                                                \
         case 2:                                                                \
           return copy(exact_integer_cast<std::size_t>(cadr(xs)),               \
-                      car(xs).as<VECTOR>().size());                            \
+                      car(xs).as<VECTOR>().values.size());                     \
                                                                                \
         case 3:                                                                \
           return copy(exact_integer_cast<std::size_t>(cadr(xs)),               \
@@ -1551,7 +1551,7 @@ namespace meevax::inline kernel
           assert(begin <= end);                                                \
           auto i = std::slice(at, end - begin, 1);                             \
           auto j = std::slice(begin, end - begin, 1);                          \
-          car(xs).as<VECTOR>()[i] = caddr(xs).as<VECTOR>()[j];                 \
+          car(xs).as<VECTOR>().values[i] = caddr(xs).as<VECTOR>().values[j];   \
         };                                                                     \
                                                                                \
         switch (length(xs))                                                    \
@@ -1559,13 +1559,13 @@ namespace meevax::inline kernel
         case 3:                                                                \
           copy(exact_integer_cast<std::size_t>(cadr(xs)),                      \
                0,                                                              \
-               caddr(xs).as<VECTOR>().size());                                 \
+               caddr(xs).as<VECTOR>().values.size());                          \
           break;                                                               \
                                                                                \
         case 4:                                                                \
           copy(exact_integer_cast<std::size_t>(cadr(xs)),                      \
                exact_integer_cast<std::size_t>(cadddr(xs)),                    \
-               caddr(xs).as<VECTOR>().size());                                 \
+               caddr(xs).as<VECTOR>().values.size());                          \
           break;                                                               \
                                                                                \
         case 5:                                                                \
@@ -1583,9 +1583,9 @@ namespace meevax::inline kernel
       {                                                                        \
         auto const& a = car(xs).as<VECTOR>();                                  \
         auto const& b = cadr(xs).as<VECTOR>();                                 \
-        let const c = make<VECTOR>(direct_initialization, a.size() + b.size()); \
-        c.as<VECTOR>()[std::slice(0, a.size(), 1)] = a.valarray();             \
-        c.as<VECTOR>()[std::slice(a.size(), b.size(), 1)] = b.valarray();      \
+        let const c = make<VECTOR>(direct_initialization, a.values.size() + b.values.size()); \
+        c.as<VECTOR>().values[std::slice(0, a.values.size(), 1)] = a.values;   \
+        c.as<VECTOR>().values[std::slice(a.values.size(), b.values.size(), 1)] = b.values; \
         return c;                                                              \
       });                                                                      \
                                                                                \
@@ -1605,17 +1605,17 @@ namespace meevax::inline kernel
         switch (length(xs))                                                    \
         {                                                                      \
         case 1:                                                                \
-          return list(car(xs).as<VECTOR>().valarray(),                         \
+          return list(car(xs).as<VECTOR>().values,                             \
                       0,                                                       \
-                      car(xs).as<VECTOR>().size());                            \
+                      car(xs).as<VECTOR>().values.size());                     \
                                                                                \
         case 2:                                                                \
-          return list(car(xs).as<VECTOR>().valarray(),                         \
+          return list(car(xs).as<VECTOR>().values,                             \
                       exact_integer_cast<std::size_t>(cadr(xs)),               \
-                      car(xs).as<VECTOR>().size());                            \
+                      car(xs).as<VECTOR>().values.size());                     \
                                                                                \
         case 3:                                                                \
-          return list(car(xs).as<VECTOR>().valarray(),                         \
+          return list(car(xs).as<VECTOR>().values,                             \
                       exact_integer_cast<std::size_t>(cadr(xs)),               \
                       exact_integer_cast<std::size_t>(caddr(xs)));             \
                                                                                \
@@ -1650,20 +1650,20 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 1:
-          std::for_each(std::begin(car(xs).as<u8vector>().valarray()),
-                        std::end(car(xs).as<u8vector>().valarray()),
+          std::for_each(std::begin(car(xs).as<u8vector>().values),
+                        std::end(car(xs).as<u8vector>().values),
                         print);
           break;
 
         case 2:
-          std::for_each(std::next(std::begin(car(xs).as<u8vector>().valarray()), exact_integer_cast<std::size_t>(cadr(xs))),
-                        std::end(car(xs).as<u8vector>().valarray()),
+          std::for_each(std::next(std::begin(car(xs).as<u8vector>().values), exact_integer_cast<std::size_t>(cadr(xs))),
+                        std::end(car(xs).as<u8vector>().values),
                         print);
           break;
 
         case 3:
-          std::for_each(std::next(std::begin(car(xs).as<u8vector>().valarray()), exact_integer_cast<std::size_t>(cadr(xs))),
-                        std::next(std::begin(car(xs).as<u8vector>().valarray()), exact_integer_cast<std::size_t>(caddr(xs))),
+          std::for_each(std::next(std::begin(car(xs).as<u8vector>().values), exact_integer_cast<std::size_t>(cadr(xs))),
+                        std::next(std::begin(car(xs).as<u8vector>().values), exact_integer_cast<std::size_t>(caddr(xs))),
                         print);
           break;
 

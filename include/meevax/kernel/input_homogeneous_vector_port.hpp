@@ -31,7 +31,7 @@ namespace meevax::inline kernel
     std::deque<T> deque;
 
     explicit input_homogeneous_vector_port(homogeneous_vector<T> const& v)
-      : deque(std::begin(v.valarray()), std::end(v.valarray()))
+      : deque(std::begin(v.values), std::end(v.values))
     {}
 
     auto close() -> void override
@@ -60,7 +60,7 @@ namespace meevax::inline kernel
       else
       {
         let const v =  make<homogeneous_vector<T>>(direct_initialization, size);
-        std::copy(deque.begin(), std::next(deque.begin(), size), std::begin(v.as<homogeneous_vector<T>>().valarray()));
+        std::copy(deque.begin(), std::next(deque.begin(), size), std::begin(v.as<homogeneous_vector<T>>().values));
         deque.erase(deque.begin(), std::next(deque.begin(), size));
         return v;
       }
