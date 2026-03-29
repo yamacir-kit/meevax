@@ -61,9 +61,7 @@ namespace meevax::inline memory
     {
       virtual ~top() = default;
 
-      virtual auto equal1(Top const* x) const -> bool = 0;
-
-      virtual auto equal2(Top const* x) const -> bool = 0;
+      virtual auto eqv(Top const* x) const -> bool = 0;
 
       virtual auto extent() const noexcept -> std::pair<void const*, std::size_t> = 0;
 
@@ -116,32 +114,13 @@ namespace meevax::inline memory
 
       ~binder() override = default;
 
-      auto equal1([[maybe_unused]] Top const* other) const -> bool override
+      auto eqv([[maybe_unused]] Top const* other) const -> bool override
       {
         if constexpr (is_equality_comparable_v<Bound const&>)
         {
           if (auto const* bound = dynamic_cast<Bound const*>(other); bound)
           {
-            return *bound == static_cast<Bound const&>(*this);
-          }
-          else
-          {
-            return std::is_same_v<Bound, std::nullptr_t>;
-          }
-        }
-        else
-        {
-          return false;
-        }
-      }
-
-      auto equal2([[maybe_unused]] Top const* other) const -> bool override
-      {
-        if constexpr (is_equality_comparable_v<Bound const&>)
-        {
-          if (auto const* bound = dynamic_cast<Bound const*>(other); bound)
-          {
-            return *bound == static_cast<Bound const&>(*this);
+            return this == bound or *static_cast<Bound const*>(this) == *bound;
           }
           else
           {
@@ -352,23 +331,11 @@ namespace meevax::inline memory
         return as<std::add_const_t<U>>();
       }
 
-      inline auto equal1(mutator const& rhs) const -> bool
+      inline auto eqv(mutator const& rhs) const -> bool
       {
         if (pointer::dereferenceable())
         {
-          return *this ? pointer::unsafe_get()->equal1(rhs.get()) : rhs.is<std::nullptr_t>();
-        }
-        else
-        {
-          return pointer::compare(rhs);
-        }
-      }
-
-      inline auto equal2(mutator const& rhs) const -> bool
-      {
-        if (pointer::dereferenceable())
-        {
-          return *this ? pointer::unsafe_get()->equal2(rhs.get()) : rhs.is<std::nullptr_t>();
+          return *this ? pointer::unsafe_get()->eqv(rhs.get()) : rhs.is<std::nullptr_t>();
         }
         else
         {

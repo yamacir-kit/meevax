@@ -25,14 +25,9 @@ namespace meevax::inline kernel
     return { this, sizeof(*this) };
   }
 
-  auto pair::equal1(pair const* other) const -> bool
+  auto pair::eqv(pair const* other) const -> bool
   {
-    return this == other;
-  }
-
-  auto pair::equal2(pair const* other) const -> bool
-  {
-    return other and *this == *other;
+    return this == other and *this == *other;
   }
 
   auto pair::type() const noexcept -> std::type_info const&
