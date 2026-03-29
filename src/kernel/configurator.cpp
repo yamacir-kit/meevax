@@ -70,7 +70,7 @@ namespace meevax::inline kernel
 
       option("(l|load)", [](auto read)
       {
-        interaction_environment().as<environment>().load(static_cast<std::filesystem::path>(read().template as<string>()));
+        interaction_environment().as<environment>().load(read().template as<string>().utf8());
       }),
 
       option("(library-directories)", [](auto)

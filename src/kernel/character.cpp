@@ -21,7 +21,7 @@
 
 namespace meevax::inline kernel
 {
-  character::operator std::string() const
+  auto character::utf8() const -> std::string
   {
     auto chars = std::array<char, 5>();
 
@@ -74,7 +74,7 @@ namespace meevax::inline kernel
     case 0x7F: return os << cyan("delete"   );
 
     default:
-      return os << cyan(static_cast<std::string>(datum));
+      return os << cyan(datum.utf8());
     }
   }
 } // namespace meevax::kernel

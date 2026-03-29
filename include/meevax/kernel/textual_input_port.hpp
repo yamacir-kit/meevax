@@ -89,7 +89,7 @@ namespace meevax::inline kernel
     template <typename F>
     auto take_character_until(F satisfy, character c = {})
     {
-      auto s = static_cast<std::string>(c);
+      auto s = c.utf8();
 
       while (get_ready() and not satisfy(c = take_character()))
       {
@@ -102,7 +102,7 @@ namespace meevax::inline kernel
     template <typename F>
     auto take_character_while(F satisfy, character c = {})
     {
-      auto s = static_cast<std::string>(c);
+      auto s = c.utf8();
 
       while (get_ready() and satisfy(peek_character()))
       {

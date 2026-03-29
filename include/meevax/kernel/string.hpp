@@ -35,9 +35,7 @@ namespace meevax::inline kernel
       : characters { std::forward<decltype(xs)>(xs)... }
     {}
 
-    explicit operator std::filesystem::path() const;
-
-    operator std::string() const;
+    auto utf8() const -> std::string;
   };
 
   auto operator ==(string const&, string const&) -> bool;

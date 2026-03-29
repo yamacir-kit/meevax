@@ -32,18 +32,13 @@ namespace meevax::inline kernel
     }
   }
 
-  string::operator std::filesystem::path() const
+  auto string::utf8() const -> std::string
   {
-    return operator std::string();
-  }
-
-  string::operator std::string() const
-  {
-    std::string result;
+    auto result = std::string();
 
     for (auto const& character : characters)
     {
-      result.append(static_cast<std::string>(character));
+      result.append(character.utf8());
     }
 
     return result;

@@ -302,7 +302,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("load", [](let const& xs)
       {
-        return car(xs).as<environment>().load(static_cast<std::filesystem::path>(cadr(xs).as<string>()));
+        return car(xs).as<environment>().load(cadr(xs).as<string>().utf8());
       });
     });
 
@@ -336,14 +336,14 @@ namespace meevax::inline kernel
     {
       library.define<procedure>("file-exists?", [](let const& xs)
       {
-        return std::filesystem::exists(static_cast<std::string>(car(xs).as<string>()));
+        return std::filesystem::exists(car(xs).as<string>().utf8());
       });
 
       library.define<procedure>("delete-file", [](let const& xs)
       {
         try
         {
-          if (not std::filesystem::remove(static_cast<std::string>(car(xs).as<string>())))
+          if (not std::filesystem::remove(car(xs).as<string>().utf8()))
           {
             throw file_error(make<string>("failed to remove file"), car(xs));
           }
@@ -783,10 +783,10 @@ namespace meevax::inline kernel
         switch (length(xs))
         {
         case 1:
-          return make_number(car(xs).as<string>(), 10);
+          return make_number(car(xs).as<string>().utf8(), 10);
 
         case 2:
-          return make_number(car(xs).as<string>(), exact_integer_cast<std::size_t>(cadr(xs)));
+          return make_number(car(xs).as<string>().utf8(), exact_integer_cast<std::size_t>(cadr(xs)));
 
         default:
           throw error(make<string>("procedure string->number takes one or two arugments, but got"), xs);
@@ -872,10 +872,10 @@ namespace meevax::inline kernel
       library.define<procedure>("standard-output-port", []() { return make<standard_output_port>(); });
       library.define<procedure>( "standard-error-port", []() { return make< standard_error_port>(); });
 
-      library.define<procedure>(        "open-input-file", [](let const& xs) { return make<        input_file_port>(static_cast<std::filesystem::path>(car(xs).as<string>())); });
-      library.define<procedure>(       "open-output-file", [](let const& xs) { return make<       output_file_port>(static_cast<std::filesystem::path>(car(xs).as<string>())); });
-      library.define<procedure>( "open-binary-input-file", [](let const& xs) { return make< binary_input_file_port>(static_cast<std::filesystem::path>(car(xs).as<string>())); });
-      library.define<procedure>("open-binary-output-file", [](let const& xs) { return make<binary_output_file_port>(static_cast<std::filesystem::path>(car(xs).as<string>())); });
+      library.define<procedure>(        "open-input-file", [](let const& xs) { return make<        input_file_port>(car(xs).as<string>().utf8()); });
+      library.define<procedure>(       "open-output-file", [](let const& xs) { return make<       output_file_port>(car(xs).as<string>().utf8()); });
+      library.define<procedure>( "open-binary-input-file", [](let const& xs) { return make< binary_input_file_port>(car(xs).as<string>().utf8()); });
+      library.define<procedure>("open-binary-output-file", [](let const& xs) { return make<binary_output_file_port>(car(xs).as<string>().utf8()); });
 
       library.define<procedure>("close", [](let const& xs)
       {
@@ -884,7 +884,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("open-input-string", [](let const& xs)
       {
-        return make<input_string_port>(car(xs).as<string>());
+        return make<input_string_port>(car(xs).as<string>().utf8());
       });
 
       library.define<procedure>("open-output-string", [](let const&)
@@ -944,7 +944,7 @@ namespace meevax::inline kernel
         return make<procedure>(cadr(xs).as<symbol>(),
                                reinterpret_cast<primitive::signature>(
                                  default_collector::dlsym(cadr(xs).as<symbol>(),
-                                                          default_collector::dlopen(car(xs).as<string>()))));
+                                                          default_collector::dlopen(car(xs).as<string>().utf8()))));
       });
     });
 
@@ -1202,7 +1202,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("string->symbol", [](let const& xs)
       {
-        return make_symbol(car(xs).as<string>());
+        return make_symbol(car(xs).as<string>().utf8());
       });
 
       library.define<procedure>("identifier->symbol", [](let const& xs)
@@ -1240,7 +1240,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("get-environment-variable", [](let const& xs) -> object
       {
-        if (auto s = std::getenv(static_cast<std::string>(car(xs).as<string>()).c_str()))
+        if (auto s = std::getenv(car(xs).as<string>().utf8().c_str()))
         {
           return make<string>(s);
         }
@@ -1681,7 +1681,7 @@ namespace meevax::inline kernel
           return make<u8vector>(reinterpret_cast<std::uint8_t const*>(s.data()), s.size());
         };
 
-        return convert(car(xs).as<string>());
+        return convert(car(xs).as<string>().utf8());
       });
     });
 

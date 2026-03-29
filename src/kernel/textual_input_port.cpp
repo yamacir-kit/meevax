@@ -179,7 +179,7 @@ namespace meevax::inline kernel
   {
     auto c = take_character();
 
-    auto const s = static_cast<std::string>(c);
+    auto const s = c.utf8();
 
     for (auto iter = std::rbegin(s); iter != std::rend(s); ++iter)
     {
@@ -252,7 +252,7 @@ namespace meevax::inline kernel
                                                 : take_character());
       }
 
-      return static_cast<std::string>(token);
+      return token.utf8();
     };
 
     while (get_ready())
@@ -300,7 +300,7 @@ namespace meevax::inline kernel
           return read();
 
         case '"':
-          return make_symbol(take_quoted(c2));
+          return make_symbol(take_quoted(c2).utf8());
 
         case '0':
         case '1':
@@ -582,7 +582,7 @@ namespace meevax::inline kernel
         return list(make_symbol("quasiquote"), read());
 
       case '|':  // 0x7C
-        return make_symbol(take_quoted(c1));
+        return make_symbol(take_quoted(c1).utf8());
 
       case '[':  // 0x5B
       case ']':  // 0x5D

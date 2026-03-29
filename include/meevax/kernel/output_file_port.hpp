@@ -32,7 +32,7 @@ namespace meevax::inline kernel
     template <typename T, typename... Ts>
     explicit output_file_port(T&& x, Ts&&... xs)
       : name { std::forward<decltype(x)>(x) }
-      , ofstream { name, std::forward<decltype(xs)>(xs)... }
+      , ofstream { name.utf8(), std::forward<decltype(xs)>(xs)... }
     {}
 
     auto close() -> void override;
