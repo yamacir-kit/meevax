@@ -273,12 +273,6 @@ namespace meevax::inline kernel
 } // namespace meevax::kernel
 
 template <>
-struct meevax::equivalence<meevax::pair>
-{
-  static inline constexpr auto strictness = 2;
-};
-
-template <>
 struct std::hash<meevax::object>
 {
   auto operator ()(meevax::object const& x) const noexcept

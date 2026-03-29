@@ -47,12 +47,6 @@ namespace meevax::inline memory
 
   inline constexpr list_initialization_tag list_initialization {};
 
-  template <typename T>
-  struct equivalence
-  {
-    static inline constexpr auto strictness = 0;
-  };
-
   /*
      This mark-and-sweep garbage collector is based on the implementation of
      gc_ptr written by William E. Kempf and posted to CodeProject.
@@ -124,7 +118,7 @@ namespace meevax::inline memory
 
       auto equal1([[maybe_unused]] Top const* other) const -> bool override
       {
-        if constexpr (is_equality_comparable_v<Bound const&> and equivalence<Bound>::strictness <= 1)
+        if constexpr (is_equality_comparable_v<Bound const&>)
         {
           if (auto const* bound = dynamic_cast<Bound const*>(other); bound)
           {
@@ -143,7 +137,7 @@ namespace meevax::inline memory
 
       auto equal2([[maybe_unused]] Top const* other) const -> bool override
       {
-        if constexpr (is_equality_comparable_v<Bound const&> and equivalence<Bound>::strictness <= 2)
+        if constexpr (is_equality_comparable_v<Bound const&>)
         {
           if (auto const* bound = dynamic_cast<Bound const*>(other); bound)
           {
