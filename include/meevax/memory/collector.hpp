@@ -61,13 +61,25 @@ namespace meevax::inline memory
     {
       virtual ~top() = default;
 
-      virtual auto eqv(Top const* x) const -> bool = 0;
+      virtual auto eqv(Top const* x) const -> bool
+      {
+        return static_cast<Top const*>(this) == x and static_cast<Top const&>(*this) == *x;
+      }
 
-      virtual auto extent() const noexcept -> std::pair<void const*, std::size_t> = 0;
+      virtual auto extent() const noexcept -> std::pair<void const*, std::size_t>
+      {
+        return { static_cast<Top const*>(this), sizeof(Top) };
+      }
 
-      virtual auto type() const noexcept -> std::type_info const& = 0;
+      virtual auto type() const noexcept -> std::type_info const&
+      {
+        return typeid(Top);
+      }
 
-      virtual auto write(std::ostream & o) const -> std::ostream & = 0;
+      virtual auto write(std::ostream & o) const -> std::ostream &
+      {
+        return o << static_cast<Top const&>(*this);
+      }
     };
 
     static inline auto cleared = false;
@@ -90,8 +102,8 @@ namespace meevax::inline memory
     };
 
     template <typename Bound, typename AllocatorTraits>
-    struct binder : public virtual Top
-                  , public Bound
+    struct binder final : public virtual Top
+                        , public Bound
     {
       using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<Bound, AllocatorTraits>>>;
 
@@ -167,7 +179,7 @@ namespace meevax::inline memory
     };
 
     template <typename AllocatorTraits>
-    struct binder<Top, AllocatorTraits> : public Top
+    struct binder<Top, AllocatorTraits> final : public Top
     {
       using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<Top, AllocatorTraits>>>;
 
@@ -403,7 +415,7 @@ namespace meevax::inline memory
                                                       std::bit_width(0xFFFFu),
                                                       std::bit_width(0xFFFFu)>;
 
-    static inline pointer_set<top> objects {};
+    static inline pointer_set<Top> objects {};
 
     static inline pointer_set<mutator> mutators {};
 
@@ -466,9 +478,9 @@ namespace meevax::inline memory
     {
       size = 0;
 
-      auto live_objects = pointer_set<top>();
+      auto live_objects = pointer_set<Top>();
 
-      auto static stack = std::vector<top const*>();
+      auto static stack = std::vector<Top const*>();
 
       auto mark = [&](auto const& m)
       {
@@ -576,7 +588,7 @@ namespace meevax::inline memory
          base-address + object-size. The top is present to keep track of the
          base-address and size of the object needed here.
       */
-      auto contains = [&](top const* object)
+      auto contains = [&](Top const* object)
       {
         auto [base, size] = object->extent();
         return base <= m and m < reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + size);
@@ -587,10 +599,10 @@ namespace meevax::inline memory
          implementation-defined. That is, there is no guarantee that the
          pointer value of Top const* is less than the pointer value of Bound
          const*. Therefore, the iterator returned by lower_bound here points to
-         top const*, which may be an iterator to the object itself, which may
+         Top const*, which may be an iterator to the object itself, which may
          contain m, or the next iterator of the object, which may contain m.
       */
-      auto next = objects.lower_bound(reinterpret_cast<top const*>(m));
+      auto next = objects.lower_bound(reinterpret_cast<Top const*>(m));
 
       auto prev = std::prev(next);
 

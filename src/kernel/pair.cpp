@@ -20,26 +20,6 @@ namespace meevax::inline kernel
 {
   let unit = nullptr;
 
-  auto pair::extent() const noexcept -> std::pair<void const*, std::size_t>
-  {
-    return { this, sizeof(*this) };
-  }
-
-  auto pair::eqv(pair const* other) const -> bool
-  {
-    return this == other and *this == *other;
-  }
-
-  auto pair::type() const noexcept -> std::type_info const&
-  {
-    return typeid(pair);
-  }
-
-  auto pair::write(std::ostream & os) const -> std::ostream &
-  {
-    return os << *this;
-  }
-
   struct datum_labels
   {
     std::ostream & os;
