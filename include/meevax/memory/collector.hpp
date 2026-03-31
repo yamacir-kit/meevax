@@ -82,7 +82,7 @@ namespace meevax::inline memory
       }
     };
 
-    static inline auto cleared = false;
+    auto static inline cleared = false;
 
     template <typename Allocator>
     struct stateful : public Allocator
@@ -107,7 +107,7 @@ namespace meevax::inline memory
     {
       using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<Bound, AllocatorTraits>>>;
 
-      static inline auto a = allocator();
+      auto static inline a = allocator();
 
       template <typename... Us>
       explicit constexpr binder(direct_initialization_tag, Us&&... xs)
@@ -183,7 +183,7 @@ namespace meevax::inline memory
     {
       using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<Top, AllocatorTraits>>>;
 
-      static inline auto a = allocator();
+      auto static inline a = allocator();
 
       using Top::Top;
 
@@ -316,7 +316,7 @@ namespace meevax::inline memory
       template <typename U> auto as() const -> decltype(auto) { return as<U>(*this); }
       template <typename U> auto as()       -> decltype(auto) { return as<U>(*this); }
 
-      inline auto eqv(mutator const& rhs) const -> bool
+      auto eqv(mutator const& rhs) const -> bool
       {
         if (pointer::dereferenceable())
         {
@@ -329,19 +329,18 @@ namespace meevax::inline memory
       }
 
       template <typename U>
-      inline auto is() const
+      auto is() const
       {
         return type() == typeid(std::decay_t<U>);
       }
 
-      template <typename U,
-                typename = std::enable_if_t<std::is_class_v<U>>>
-      inline auto is_also() const
+      template <typename U, typename = std::enable_if_t<std::is_class_v<U>>>
+      auto is_also() const
       {
         return dynamic_cast<std::add_pointer_t<U>>(pointer::get()) != nullptr;
       }
 
-      inline auto type() const -> std::type_info const&
+      auto type() const -> std::type_info const&
       {
         if (pointer::dereferenceable())
         {
@@ -353,7 +352,7 @@ namespace meevax::inline memory
         }
       }
 
-      inline auto write(std::ostream & os) const -> std::ostream &
+      auto write(std::ostream & os) const -> std::ostream &
       {
         if (pointer::dereferenceable())
         {
@@ -365,17 +364,17 @@ namespace meevax::inline memory
         }
       }
 
-      friend auto operator <<(std::ostream & os, mutator const& datum) -> std::ostream &
+      auto friend operator <<(std::ostream & os, mutator const& datum) -> std::ostream &
       {
         return datum.write(os);
       }
 
-      inline auto  begin()       { return *this ? pointer::unsafe_get()-> begin() : typename Top::      iterator(); }
-      inline auto  begin() const { return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator(); }
-      inline auto cbegin() const { return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator(); }
-      inline auto    end()       { return *this ? pointer::unsafe_get()->   end() : typename Top::      iterator(); }
-      inline auto    end() const { return *this ? pointer::unsafe_get()->  cend() : typename Top::const_iterator(); }
-      inline auto   cend() const { return *this ? pointer::unsafe_get()->  cend() : typename Top::const_iterator(); }
+      auto  begin()       { return *this ? pointer::unsafe_get()-> begin() : typename Top::      iterator(); }
+      auto  begin() const { return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator(); }
+      auto cbegin() const { return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator(); }
+      auto    end()       { return *this ? pointer::unsafe_get()->   end() : typename Top::      iterator(); }
+      auto    end() const { return *this ? pointer::unsafe_get()->  cend() : typename Top::const_iterator(); }
+      auto   cend() const { return *this ? pointer::unsafe_get()->  cend() : typename Top::const_iterator(); }
     };
 
     /*
@@ -388,7 +387,7 @@ namespace meevax::inline memory
                                                       std::bit_width(0xFFFFu),
                                                       std::bit_width(0xFFFFu)>;
 
-    static inline pointer_set<Top> objects {};
+    static inline pointer_set<top> objects {};
 
     static inline pointer_set<mutator> mutators {};
 
@@ -411,7 +410,7 @@ namespace meevax::inline memory
     auto operator =(collector const&) -> collector & = delete;
 
     template <typename T, typename Allocator = std::allocator<void>, typename... Us>
-    static auto make(Us&&... xs) -> mutator
+    auto static make(Us&&... xs) -> mutator
     {
       if constexpr (std::is_class_v<T>)
       {
@@ -437,7 +436,7 @@ namespace meevax::inline memory
       }
     }
 
-    static auto clear() -> void
+    auto static clear() -> void
     {
       for (auto const& object : objects)
       {
@@ -447,13 +446,13 @@ namespace meevax::inline memory
       }
     }
 
-    static auto collect() -> void
+    auto static collect() -> void
     {
       size = 0;
 
-      auto live_objects = pointer_set<Top>();
+      auto live_objects = pointer_set<top>();
 
-      auto static stack = std::vector<Top const*>();
+      auto static stack = std::vector<top const*>();
 
       auto mark = [&](auto const& m)
       {
@@ -500,12 +499,12 @@ namespace meevax::inline memory
       threshold = std::max(threshold, size + (size / 2));
     }
 
-    static auto count() noexcept -> std::size_t
+    auto static count() noexcept -> std::size_t
     {
       return objects.size();
     }
 
-    static auto dlclose(void * const handle) -> void
+    auto static dlclose(void * const handle) -> void
     {
       if (handle and ::dlclose(handle))
       {
@@ -513,7 +512,7 @@ namespace meevax::inline memory
       }
     }
 
-    static auto dlopen(std::string const& filename) -> void *
+    auto static dlopen(std::string const& filename) -> void *
     {
       ::dlerror(); // Clear
 
@@ -538,7 +537,7 @@ namespace meevax::inline memory
       }
     }
 
-    static auto dlsym(std::string const& symbol, void * const handle) -> void *
+    auto static dlsym(std::string const& symbol, void * const handle) -> void *
     {
       if (auto address = ::dlsym(handle, symbol.c_str()); address)
       {
@@ -550,7 +549,7 @@ namespace meevax::inline memory
       }
     }
 
-    static auto is_root(mutator const* m) noexcept
+    auto static is_root(mutator const* m) noexcept
     {
       /*
          If the given mutator is a non-root object, then an object containing
@@ -561,7 +560,7 @@ namespace meevax::inline memory
          base-address + object-size. The top is present to keep track of the
          base-address and size of the object needed here.
       */
-      auto contains = [&](Top const* object)
+      auto contains = [&](top const* object)
       {
         auto [base, size] = object->extent();
         return base <= m and m < reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + size);
@@ -572,10 +571,10 @@ namespace meevax::inline memory
          implementation-defined. That is, there is no guarantee that the
          pointer value of Top const* is less than the pointer value of Bound
          const*. Therefore, the iterator returned by lower_bound here points to
-         Top const*, which may be an iterator to the object itself, which may
+         top const*, which may be an iterator to the object itself, which may
          contain m, or the next iterator of the object, which may contain m.
       */
-      auto next = objects.lower_bound(reinterpret_cast<Top const*>(m));
+      auto next = objects.lower_bound(reinterpret_cast<top const*>(m));
 
       auto prev = std::prev(next);
 
