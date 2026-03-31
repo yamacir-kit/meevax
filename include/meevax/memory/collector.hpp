@@ -289,59 +289,32 @@ namespace meevax::inline memory
         }
       }
 
-      template <typename U>
-      inline auto as() const -> decltype(auto)
+      template <typename U, typename Mutator>
+      auto static as(Mutator&& m) -> decltype(auto)
       {
         if constexpr (std::is_same_v<std::decay_t<U>, Top>)
         {
-          return pointer::operator *();
+          return m.pointer::operator *();
         }
         else if constexpr (std::is_class_v<std::decay_t<U>>)
         {
-          if (auto data = dynamic_cast<std::add_pointer_t<U>>(pointer::get()); data)
+          if (auto data = dynamic_cast<std::add_pointer_t<U>>(m.pointer::get()); data)
           {
             return *data;
           }
           else
           {
-            throw std::runtime_error("no viable conversion from " + demangle(type()) + " to " + demangle(typeid(U)));
+            throw std::runtime_error("no viable conversion from " + demangle(m.type()) + " to " + demangle(typeid(U)));
           }
         }
         else
         {
-          return pointer::template as<U>();
+          return m.pointer::template as<U>();
         }
       }
 
-      template <typename U>
-      inline auto as() -> decltype(auto)
-      {
-        if constexpr (std::is_same_v<std::decay_t<U>, Top>)
-        {
-          return pointer::operator *();
-        }
-        else if constexpr (std::is_class_v<std::decay_t<U>>)
-        {
-          if (auto data = dynamic_cast<std::add_pointer_t<U>>(pointer::get()); data)
-          {
-            return *data;
-          }
-          else
-          {
-            throw std::runtime_error("no viable conversion from " + demangle(type()) + " to " + demangle(typeid(U)));
-          }
-        }
-        else
-        {
-          return pointer::template as<U>();
-        }
-      }
-
-      template <typename U>
-      inline auto as_const() const -> decltype(auto)
-      {
-        return as<std::add_const_t<U>>();
-      }
+      template <typename U> auto as() const -> decltype(auto) { return as<U>(*this); }
+      template <typename U> auto as()       -> decltype(auto) { return as<U>(*this); }
 
       inline auto eqv(mutator const& rhs) const -> bool
       {
