@@ -29,7 +29,7 @@
 namespace meevax::inline memory
 {
   template <typename T>
-  constexpr auto compressible_bitwidth_of = std::is_pointer_v<T> ? std::bit_width(alignof(std::remove_pointer_t<T>)) - 1 : 0;
+  constexpr auto compressible_bitwidth_of = std::is_pointer_v<T> ? std::bit_width(alignof(std::max_align_t)) - 1 : 0;
 
   constexpr auto operator ""_i64(unsigned long long int value)
   {

@@ -294,11 +294,11 @@ namespace meevax::inline memory
       {
         if constexpr (std::is_same_v<std::decay_t<U>, Top>)
         {
-          return m.pointer::operator *();
+          return *m;
         }
         else if constexpr (std::is_class_v<std::decay_t<U>>)
         {
-          if (auto data = dynamic_cast<std::add_pointer_t<U>>(m.pointer::get()); data)
+          if (auto data = dynamic_cast<std::add_pointer_t<U>>(m.get()); data)
           {
             return *data;
           }
