@@ -54,6 +54,8 @@ namespace meevax::inline memory
 
     subset * data[N] = {};
 
+    std::size_t n = 0;
+
     std::size_t i_min = N;
     std::size_t i_max = 0;
 
@@ -245,14 +247,29 @@ namespace meevax::inline memory
         data[i] = new subset();
       }
 
-      return data[i]->insert(j);
+      auto success = data[i]->insert(j);
+
+      if (success)
+      {
+        ++n;
+      }
+
+      return success;
     }
 
     auto erase(T value) noexcept
     {
+      --n;
+
       auto [i, j] = split(value);
       assert(data[i]);
       data[i]->erase(j);
+
+      if (data[i]->empty())
+      {
+        delete data[i];
+        data[i] = nullptr;
+      }
     }
 
     constexpr auto contains(T value) const noexcept -> bool
@@ -284,12 +301,20 @@ namespace meevax::inline memory
 
     auto size() const noexcept -> std::size_t
     {
-      return std::distance(begin(), end());
+      return n;
+    }
+
+    auto empty() const noexcept
+    {
+      return size() == 0;
     }
 
     auto swap(pointer_set & other)
     {
       std::swap(data, other.data);
+      std::swap(n, other.n);
+      std::swap(i_min, other.i_min);
+      std::swap(i_max, other.i_max);
     }
   };
 
@@ -301,6 +326,8 @@ namespace meevax::inline memory
     static constexpr auto Q = N / 64;
 
     static constexpr auto R = 63;
+
+    std::size_t n = 0;
 
     std::uint64_t data[Q] {};
 
@@ -444,6 +471,7 @@ namespace meevax::inline memory
 
     auto insert(T value) noexcept
     {
+      ++n;
       auto [q, r] = split(index(value));
       auto before = data[q];
       return before != (data[q] |= 1_u64 << r);
@@ -451,6 +479,7 @@ namespace meevax::inline memory
 
     auto erase(T value) noexcept
     {
+      --n;
       auto [q, r] = split(index(value));
       data[q] &= ~(1_u64 << r);
     }
@@ -469,6 +498,16 @@ namespace meevax::inline memory
     auto lower_bound() const noexcept
     {
       return const_iterator(this, 0);
+    }
+
+    auto size() const noexcept
+    {
+      return n;
+    }
+
+    auto empty() const noexcept
+    {
+      return size() == 0;
     }
   };
 } // namespace meevax::memory
