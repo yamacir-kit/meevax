@@ -99,7 +99,6 @@ namespace meevax::inline memory
         , i { N }
       {
         decrement_unless_truthy();
-        assert(sub.p->data);
       }
 
       auto increment_unless_truthy(std::uintptr_t j) noexcept -> void
@@ -446,10 +445,8 @@ namespace meevax::inline memory
     auto insert(T value) noexcept
     {
       auto [q, r] = split(index(value));
-      auto mask = 1_u64 << r;
-      auto already_inserted = data[q] & mask;
-      data[q] |= mask;
-      return not already_inserted;
+      auto before = data[q];
+      return before != (data[q] |= 1_u64 << r);
     }
 
     auto erase(T value) noexcept

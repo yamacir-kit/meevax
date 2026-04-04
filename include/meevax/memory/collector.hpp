@@ -454,18 +454,19 @@ namespace meevax::inline memory
 
       auto static stack = std::vector<top const*>();
 
-      auto mark = [&](auto const& m)
+      auto mark = [&](auto m)
       {
         assert(m);
         assert(m->unsafe_get());
 
         if (auto p = m->unsafe_get(); live_objects.insert(p))
         {
+          objects.erase(p);
           stack.push_back(p);
         }
       };
 
-      for (auto const& m : mutators)
+      for (auto m : mutators)
       {
         if (is_root(m))
         {
@@ -488,10 +489,7 @@ namespace meevax::inline memory
 
       for (auto object : objects)
       {
-        if (not live_objects.contains(object))
-        {
-          delete object;
-        }
+        delete object;
       }
 
       objects.swap(live_objects);
