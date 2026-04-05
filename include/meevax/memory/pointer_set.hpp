@@ -50,9 +50,15 @@ namespace meevax::inline memory
 
     static constexpr auto N = static_cast<std::size_t>(1) << (E - compressible_bitwidth_of<T>);
 
+    static constexpr auto Q = (N + 63) / 64;
+
+    static constexpr auto R = 63;
+
     using subset = pointer_set<std::uintptr_t, Es...>; // Only the outermost implementation knows the original type name T.
 
     subset * data[N] = {};
+
+    std::uint64_t occupancy[Q] = {};
 
     std::size_t n = 0;
 
@@ -117,9 +123,33 @@ namespace meevax::inline memory
 
       auto increment_unless_truthy() noexcept -> void
       {
+        assert(p);
         assert(p->data);
 
-        for (; i <= p->i_max; ++i)
+        auto seek = [this](auto i)
+        {
+          auto q = i / 64;
+          auto r = i % 64;
+
+          if (auto word = p->occupancy[q] & (~0_u64 << r); word)
+          {
+            return q * 64 + std::countr_zero(word);
+          }
+          else
+          {
+            while (++q < Q)
+            {
+              if (auto word = p->occupancy[q]; word)
+              {
+                return q * 64 + std::countr_zero(word);
+              }
+            }
+
+            return N;
+          }
+        };
+
+        for (i = seek(i); i <= p->i_max; i = seek(i + 1))
         {
           if (p->data[i] and (sub = p->data[i]->lower_bound()))
           {
@@ -133,14 +163,34 @@ namespace meevax::inline memory
       auto decrement_unless_truthy() noexcept -> void
       {
         assert(decrementable());
+        assert(p);
         assert(p->data);
 
-        auto const i_min = p->i_min;
-
-        for (i = std::min(i, N - 1); i - i_min < N - i_min; --i)
+        auto seek = [this](auto i)
         {
-          assert(i < N);
+          auto q = i / 64;
+          auto r = i % 64;
 
+          if (auto word = p->occupancy[q] & (~0_u64 >> (R - r)); word)
+          {
+            return q * 64 + R - std::countl_zero(word);
+          }
+          else
+          {
+            while (--q < Q)
+            {
+              if (auto word = p->occupancy[q]; word)
+              {
+                return q * 64 + R - std::countl_zero(word);
+              }
+            }
+
+            return N;
+          }
+        };
+
+        for (i = seek(std::min(i, N - 1)); i - p->i_min < N - p->i_min; i = seek(i - 1))
+        {
           if (p->data[i] and (sub = typename subset::const_iterator(p->data[i])))
           {
             return;
@@ -238,6 +288,8 @@ namespace meevax::inline memory
 
     auto insert(T value) noexcept
     {
+      assert(not contains(value));
+
       auto [i, j] = split(value);
 
       if (not data[i])
@@ -245,20 +297,22 @@ namespace meevax::inline memory
         i_min = std::min(i_min, i);
         i_max = std::max(i_max, i);
         data[i] = new subset();
+
+        auto const q = i / 64;
+        auto const r = i % 64;
+        occupancy[q] |= (1_u64 << r);
       }
 
-      auto success = data[i]->insert(j);
+      assert(data[i]);
 
-      if (success)
-      {
-        ++n;
-      }
-
-      return success;
+      data[i]->insert(j);
+      ++n;
     }
 
     auto erase(T value) noexcept
     {
+      assert(contains(value));
+
       --n;
 
       auto [i, j] = split(value);
@@ -269,6 +323,10 @@ namespace meevax::inline memory
       {
         delete data[i];
         data[i] = nullptr;
+
+        auto const q = i / 64;
+        auto const r = i % 64;
+        occupancy[q] &= ~(1_u64 << r);
       }
     }
 
@@ -473,8 +531,7 @@ namespace meevax::inline memory
     {
       ++n;
       auto [q, r] = split(index(value));
-      auto before = data[q];
-      return before != (data[q] |= 1_u64 << r);
+      data[q] |= (1_u64 << r);
     }
 
     auto erase(T value) noexcept

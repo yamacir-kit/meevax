@@ -459,9 +459,9 @@ namespace meevax::inline memory
         assert(m);
         assert(m->unsafe_get());
 
-        if (auto p = m->unsafe_get(); live_objects.insert(p))
+        if (auto p = m->unsafe_get(); not live_objects.contains(p))
         {
-          objects.erase(p);
+          live_objects.insert(p);
           stack.push_back(p);
         }
       };
@@ -489,7 +489,10 @@ namespace meevax::inline memory
 
       for (auto object : objects)
       {
-        delete object;
+        if (not live_objects.contains(object))
+        {
+          delete object;
+        }
       }
 
       objects.swap(live_objects);
