@@ -106,9 +106,6 @@ target_link_libraries(kernel
   PRIVATE ${CMAKE_DL_LIBS}
   PUBLIC gmp)
 
-target_compile_options(kernel
-  PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang>>:-fsanitize=address>)
-
 set_target_properties(kernel PROPERTIES
   OUTPUT_NAME ${PROJECT_NAME}-kernel # Rename libkernel => libmeevax-kernel
   VERSION     ${PROJECT_VERSION}
@@ -122,9 +119,6 @@ add_executable(shell)
 target_sources(shell PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 target_link_libraries(shell PRIVATE kernel)
-
-target_compile_options(shell
-  PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang>>:-fsanitize=address>)
 
 set_target_properties(shell PROPERTIES
   OUTPUT_NAME ${PROJECT_NAME} # Rename shell => meevax

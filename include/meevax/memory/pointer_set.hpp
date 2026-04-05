@@ -89,9 +89,15 @@ namespace meevax::inline memory
         : p { p }
         , i { i }
       {
+        assert(p);
         assert(p->data);
         assert(operator bool());
-        increment_unless_truthy(j);
+
+        if (not p->data[i] or not (sub = p->data[i]->lower_bound(j)))
+        {
+          ++this->i;
+          increment_unless_truthy();
+        }
       }
 
       explicit const_iterator(pointer_set const* p, std::size_t i) noexcept
@@ -107,18 +113,6 @@ namespace meevax::inline memory
         , i { N }
       {
         decrement_unless_truthy();
-      }
-
-      auto increment_unless_truthy(std::uintptr_t j) noexcept -> void
-      {
-        assert(p->data);
-        assert(operator bool());
-
-        if (not p->data[i] or not (sub = p->data[i]->lower_bound(j)))
-        {
-          ++i;
-          increment_unless_truthy();
-        }
       }
 
       auto increment_unless_truthy() noexcept -> void
@@ -304,7 +298,6 @@ namespace meevax::inline memory
       }
 
       assert(data[i]);
-
       data[i]->insert(j);
       ++n;
     }
@@ -313,11 +306,11 @@ namespace meevax::inline memory
     {
       assert(contains(value));
 
-      --n;
-
       auto [i, j] = split(value);
+
       assert(data[i]);
       data[i]->erase(j);
+      --n;
 
       if (data[i]->empty())
       {
