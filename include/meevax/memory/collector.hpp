@@ -71,6 +71,12 @@ namespace meevax::inline memory
         return { static_cast<Top const*>(this), sizeof(Top) };
       }
 
+      virtual auto contains(void const* p) const noexcept -> bool
+      {
+        auto base = static_cast<Top const*>(this);
+        return base <= p and p < reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + sizeof(Top));
+      }
+
       virtual auto type() const noexcept -> std::type_info const&
       {
         return typeid(Top);
@@ -148,6 +154,12 @@ namespace meevax::inline memory
       auto extent() const noexcept -> std::pair<void const*, std::size_t> override
       {
         return { static_cast<Bound const*>(this), sizeof(Bound) };
+      }
+
+      auto contains(void const* p) const noexcept -> bool override
+      {
+        auto base = static_cast<Bound const*>(this);
+        return base <= p and p < reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + sizeof(Bound));
       }
 
       auto type() const noexcept -> std::type_info const& override
@@ -560,14 +572,7 @@ namespace meevax::inline memory
          mutator is contained in the interval of the object's base-address ~
          base-address + object-size. The top is present to keep track of the
          base-address and size of the object needed here.
-      */
-      auto contains = [&](top const* object)
-      {
-        auto [base, size] = object->extent();
-        return base <= m and m < reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + size);
-      };
 
-      /*
          The memory layout of the base class Top and Bound of the binder is
          implementation-defined. That is, there is no guarantee that the
          pointer value of Top const* is less than the pointer value of Bound
@@ -577,7 +582,7 @@ namespace meevax::inline memory
       */
       auto iterator = objects.lower_bound(reinterpret_cast<top const*>(m));
 
-      return not ((iterator and contains(*iterator)) or (--iterator and contains(*iterator)));
+      return not ((iterator and (*iterator)->contains(m)) or (--iterator and (*iterator)->contains(m)));
     }
   };
 } // namespace meevax::memory

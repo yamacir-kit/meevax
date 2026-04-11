@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_MEMORY_POINTER_SET_HPP
 
 #include <algorithm>
+#include <array>
 #include <bit>
 #include <cassert>
 #include <climits> // CHAR_BIT
@@ -54,7 +55,7 @@ namespace meevax::inline memory
 
     using subset = pointer_set<std::uintptr_t, Es...>; // Only the outermost implementation knows the original type name T.
 
-    subset * data[N] = {};
+    std::array<subset *, N> data {};
 
     std::array<std::uint64_t, Q> occupancy {};
 
@@ -88,7 +89,6 @@ namespace meevax::inline memory
         , i { i }
       {
         assert(p);
-        assert(p->data);
         assert(operator bool());
 
         if (not p->data[i] or not (sub = p->data[i]->lower_bound(j)))
@@ -116,7 +116,6 @@ namespace meevax::inline memory
       auto increment_unless_truthy() noexcept -> void
       {
         assert(p);
-        assert(p->data);
 
         auto seek = [this](auto i)
         {
@@ -154,7 +153,6 @@ namespace meevax::inline memory
       auto decrement_unless_truthy() noexcept -> void
       {
         assert(p);
-        assert(p->data);
 
         auto seek = [this](auto i)
         {
