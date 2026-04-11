@@ -14,7 +14,7 @@ project(meevax
 include(GNUInstallDirs)
 
 string(JOIN " " ${PROJECT_NAME}_UNSTABLE_OPTIONS
-  # "-flto" # This optimization causes a problem in Apple Clang 15.0.0 where some static inline data members are no longer unique. It is unclear whether this is a code issue or a compiler issue.
+  "-flto"
   # "-fmerge-all-constants" # This optimization is very effective in reducing binary size, but non-standard to the C++ standard.
   # "-march=native" # This optimization causes "Illegal instruction" error (is Valgrind's bug) on CI.
   # "-mtune=native"
