@@ -274,9 +274,16 @@ namespace meevax::inline memory
 
     static constexpr auto split(T value) noexcept -> std::pair<std::size_t, std::uintptr_t>
     {
-      auto j = reinterpret_cast<std::uintptr_t>(value) >> compressible_bitwidth_of<T>;
-      constexpr auto mask = (1_u64 << E) - 1;
-      auto i = j >> (Es + ...) & mask;
+      auto x = reinterpret_cast<std::uintptr_t>(value) >> compressible_bitwidth_of<T>;
+
+      constexpr auto upper_mask = (1_u64 << E) - 1;
+      static_assert(std::countr_one(upper_mask) == E);
+      auto i = (x >> (Es + ...)) & upper_mask;
+
+      auto constexpr lower_mask = (1_u64 << (Es + ...)) - 1;
+      static_assert(std::countr_one(lower_mask) == (Es + ...));
+      auto j = x & lower_mask;
+
       return { i, j };
     }
 
@@ -291,9 +298,14 @@ namespace meevax::inline memory
         i_min = std::min(i_min, i);
         i_max = std::max(i_max, i);
         data[i] = new subset();
+        assert(data[i]->empty());
+      }
 
+      if (data[i]->empty())
+      {
         auto const q = i / 64;
         auto const r = i % 64;
+        assert(occupancy[q] != (occupancy[q] | (1_u64 << r)));
         occupancy[q] |= (1_u64 << r);
       }
 
@@ -314,11 +326,9 @@ namespace meevax::inline memory
 
       if (data[i]->empty())
       {
-        delete data[i];
-        data[i] = nullptr;
-
         auto const q = i / 64;
         auto const r = i % 64;
+        assert(occupancy[q] != (occupancy[q] & ~(1_u64 << r)));
         occupancy[q] &= ~(1_u64 << r);
       }
     }
@@ -363,6 +373,7 @@ namespace meevax::inline memory
     auto swap(pointer_set & other)
     {
       std::swap(data, other.data);
+      std::swap(occupancy, other.occupancy);
       std::swap(n, other.n);
       std::swap(i_min, other.i_min);
       std::swap(i_max, other.i_max);
@@ -522,6 +533,7 @@ namespace meevax::inline memory
 
     auto insert(T value) noexcept
     {
+      assert(not contains(value));
       ++n;
       auto [q, r] = split(index(value));
       data[q] |= (1_u64 << r);
@@ -529,6 +541,7 @@ namespace meevax::inline memory
 
     auto erase(T value) noexcept
     {
+      assert(contains(value));
       --n;
       auto [q, r] = split(index(value));
       data[q] &= ~(1_u64 << r);
@@ -538,6 +551,16 @@ namespace meevax::inline memory
     {
       auto [q, r] = split(index(value));
       return data[q] & (1_u64 << r);
+    }
+
+    auto begin() const noexcept
+    {
+      return const_iterator(this, 0);
+    }
+
+    auto end() const noexcept
+    {
+      return const_iterator(this, N);
     }
 
     auto lower_bound(T value) const noexcept

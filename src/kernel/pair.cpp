@@ -16,6 +16,11 @@
 
 #include <meevax/kernel/list.hpp>
 
+namespace meevax::inline memory
+{
+  template struct collector<pair, bool, small_integer, float, character, instruction>;
+}
+
 namespace meevax::inline kernel
 {
   let unit = nullptr;
