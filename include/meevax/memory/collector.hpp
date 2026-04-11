@@ -575,11 +575,9 @@ namespace meevax::inline memory
          top const*, which may be an iterator to the object itself, which may
          contain m, or the next iterator of the object, which may contain m.
       */
-      auto next = objects.lower_bound(reinterpret_cast<top const*>(m));
+      auto iterator = objects.lower_bound(reinterpret_cast<top const*>(m));
 
-      auto prev = std::prev(next);
-
-      return not ((next and contains(*next)) or (prev and contains(*prev)));
+      return not ((iterator and contains(*iterator)) or (--iterator and contains(*iterator)));
     }
   };
 } // namespace meevax::memory

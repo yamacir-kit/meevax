@@ -29,16 +29,14 @@
 namespace meevax::inline memory
 {
   template <typename T>
-  constexpr auto compressible_bitwidth_of = std::is_pointer_v<T> ? std::bit_width(alignof(std::remove_pointer_t<T>)) - 1 : 0;
+  auto constexpr compressible_bitwidth_of = std::is_pointer_v<T> ? std::bit_width(alignof(std::remove_pointer_t<T>)) - 1 : 0;
 
-  constexpr auto operator ""_i64(unsigned long long int value)
-  {
-    return static_cast<std::int64_t>(value);
-  }
+  auto constexpr operator ""_i64(unsigned long long int value) { return static_cast<std:: int64_t>(value); }
+  auto constexpr operator ""_u64(unsigned long long int value) { return static_cast<std::uint64_t>(value); }
 
-  constexpr auto operator ""_u64(unsigned long long int value)
+  auto constexpr qr64(auto i)
   {
-    return static_cast<std::uint64_t>(value);
+    return std::make_pair(i / 64, i % 64);
   }
 
   template <typename T, std::size_t E, std::size_t... Es>
@@ -48,17 +46,17 @@ namespace meevax::inline memory
 
     static_assert(compressible_bitwidth_of<T> < E);
 
-    static constexpr auto N = static_cast<std::size_t>(1) << (E - compressible_bitwidth_of<T>);
+    auto static constexpr N = static_cast<std::size_t>(1) << (E - compressible_bitwidth_of<T>);
 
-    static constexpr auto Q = (N + 63) / 64;
+    auto static constexpr Q = (N + 63) / 64;
 
-    static constexpr auto R = 63;
+    auto static constexpr R = 63;
 
     using subset = pointer_set<std::uintptr_t, Es...>; // Only the outermost implementation knows the original type name T.
 
     subset * data[N] = {};
 
-    std::uint64_t occupancy[Q] = {};
+    std::array<std::uint64_t, Q> occupancy {};
 
     std::size_t n = 0;
 
@@ -122,8 +120,7 @@ namespace meevax::inline memory
 
         auto seek = [this](auto i)
         {
-          auto q = i / 64;
-          auto r = i % 64;
+          auto [q, r] = qr64(i);
 
           if (auto word = p->occupancy[q] & (~0_u64 << r); word)
           {
@@ -156,14 +153,12 @@ namespace meevax::inline memory
 
       auto decrement_unless_truthy() noexcept -> void
       {
-        assert(decrementable());
         assert(p);
         assert(p->data);
 
         auto seek = [this](auto i)
         {
-          auto q = i / 64;
-          auto r = i % 64;
+          auto [q, r] = qr64(i);
 
           if (auto word = p->occupancy[q] & (~0_u64 >> (R - r)); word)
           {
@@ -194,12 +189,7 @@ namespace meevax::inline memory
         invalidate();
       }
 
-      auto decrementable() const noexcept -> bool
-      {
-        return p; // NOTE: If `p` is nullptr, this is non-decrementable end iterator (= default constructed).
-      }
-
-      auto invalidate()
+      auto invalidate() noexcept
       {
         /*
            The default constructed iterator (= end iterator) has nullptr set to
@@ -212,10 +202,6 @@ namespace meevax::inline memory
 
            In other words, the invalidity of an iterator depends on whether `i`
            is out of range and whether the sub iterator is invalid.
-
-           Whether or not the pointer `p` is nullptr is used to determine
-           whether or not it is decrementable (see the member function
-           `decrementable`)
         */
         i = N;
         sub = {};
@@ -234,7 +220,7 @@ namespace meevax::inline memory
 
       auto operator --() noexcept -> auto &
       {
-        if (decrementable() and not --sub and --i < N)
+        if (p and not --sub and --i < N)
         {
           decrement_unless_truthy();
         }
@@ -276,7 +262,7 @@ namespace meevax::inline memory
     {
       auto x = reinterpret_cast<std::uintptr_t>(value) >> compressible_bitwidth_of<T>;
 
-      constexpr auto upper_mask = (1_u64 << E) - 1;
+      auto constexpr upper_mask = (1_u64 << E) - 1;
       static_assert(std::countr_one(upper_mask) == E);
       auto i = (x >> (Es + ...)) & upper_mask;
 
@@ -303,8 +289,7 @@ namespace meevax::inline memory
 
       if (data[i]->empty())
       {
-        auto const q = i / 64;
-        auto const r = i % 64;
+        auto const [q, r] = qr64(i);
         assert(occupancy[q] != (occupancy[q] | (1_u64 << r)));
         occupancy[q] |= (1_u64 << r);
       }
@@ -326,8 +311,7 @@ namespace meevax::inline memory
 
       if (data[i]->empty())
       {
-        auto const q = i / 64;
-        auto const r = i % 64;
+        auto const [q, r] = qr64(i);
         assert(occupancy[q] != (occupancy[q] & ~(1_u64 << r)));
         occupancy[q] &= ~(1_u64 << r);
       }
@@ -383,27 +367,15 @@ namespace meevax::inline memory
   template <typename T, std::size_t E>
   struct pointer_set<T, E>
   {
-    static constexpr auto N = 1_u64 << E;
+    auto static constexpr N = 1_u64 << E;
 
-    static constexpr auto Q = N / 64;
+    auto static constexpr Q = N / 64;
 
-    static constexpr auto R = 63;
+    auto static constexpr R = 63;
 
     std::size_t n = 0;
 
-    std::uint64_t data[Q] {};
-
-    static constexpr auto split = [](auto x)
-    {
-      return std::make_pair(reinterpret_cast<std::size_t>(x) / 64,
-                            reinterpret_cast<std::size_t>(x) % 64);
-    };
-
-    static constexpr auto index = [](auto x)
-    {
-      constexpr auto mask = (static_cast<std::size_t>(1) << E) - 1;
-      return reinterpret_cast<std::size_t>(x) >> compressible_bitwidth_of<T> & mask;
-    };
+    std::array<std::uint64_t, Q> data {};
 
     struct const_iterator
     {
@@ -425,7 +397,7 @@ namespace meevax::inline memory
       {
         if (operator bool())
         {
-          auto [q, r] = split(i);
+          auto [q, r] = qr64(i);
 
           if (auto b = std::countr_zero(p->data[q] & (~0_u64 << r)); b != 64)
           {
@@ -454,7 +426,7 @@ namespace meevax::inline memory
       {
         if (operator bool())
         {
-          auto [q, r] = split(i);
+          auto [q, r] = qr64(i);
 
           if (auto b = std::countl_zero(p->data[q] & (~0_u64 >> (R - r))); b != 64)
           {
@@ -531,11 +503,17 @@ namespace meevax::inline memory
       }
     };
 
+    auto static constexpr index(auto x) noexcept
+    {
+      auto constexpr mask = (1_u64 << E) - 1;
+      return reinterpret_cast<std::size_t>(x) >> compressible_bitwidth_of<T> & mask;
+    };
+
     auto insert(T value) noexcept
     {
       assert(not contains(value));
       ++n;
-      auto [q, r] = split(index(value));
+      auto const [q, r] = qr64(index(value));
       data[q] |= (1_u64 << r);
     }
 
@@ -543,13 +521,13 @@ namespace meevax::inline memory
     {
       assert(contains(value));
       --n;
-      auto [q, r] = split(index(value));
+      auto const [q, r] = qr64(index(value));
       data[q] &= ~(1_u64 << r);
     }
 
     auto contains(T value) noexcept -> bool
     {
-      auto [q, r] = split(index(value));
+      auto const [q, r] = qr64(index(value));
       return data[q] & (1_u64 << r);
     }
 
