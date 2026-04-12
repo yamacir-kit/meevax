@@ -20,8 +20,8 @@
 #include <dlfcn.h> // dlopen, dlclose, dlerror
 
 #include <memory> // std::allocator
-#include <stack>
 #include <unordered_map>
+#include <vector>
 
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
@@ -460,43 +460,50 @@ namespace meevax::inline memory
 
     auto static collect() -> void
     {
-      size = 0;
-
-      auto live_objects = pointer_set<top>();
-
-      auto static stack = std::vector<top const*>();
-
-      auto mark = [&](auto m)
-      {
-        assert(m);
-        assert(m->unsafe_get());
-
-        if (auto p = m->unsafe_get(); not live_objects.contains(p))
-        {
-          live_objects.insert(p);
-          objects.erase(p);
-          stack.push_back(p);
-        }
-      };
+      auto roots = pointer_set<mutator>();
 
       for (auto m : mutators)
       {
         if (is_root(m))
         {
-          mark(m);
+          roots.insert(m);
+        }
+      }
 
-          while (not stack.empty())
+      size = 0;
+
+      auto reachables = pointer_set<top>();
+
+      for (auto root : roots)
+      {
+        auto static stack = std::vector<top const*>();
+
+        auto mark = [&](auto m)
+        {
+          assert(m);
+          assert(m->unsafe_get());
+
+          if (auto p = m->unsafe_get(); not reachables.contains(p))
           {
-            auto [base, size_] = stack.back()->extent();
-
-            stack.pop_back();
-
-            size += size_;
-
-            std::for_each(mutators.lower_bound(reinterpret_cast<mutator const*>(base)),
-                          mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
-                          mark);
+            reachables.insert(p);
+            objects.erase(p);
+            stack.push_back(p);
           }
+        };
+
+        mark(root);
+
+        while (not stack.empty())
+        {
+          auto [base, size_] = stack.back()->extent();
+
+          stack.pop_back();
+
+          size += size_;
+
+          std::for_each(mutators.lower_bound(reinterpret_cast<mutator const*>(base)),
+                        mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
+                        mark);
         }
       }
 
@@ -505,7 +512,7 @@ namespace meevax::inline memory
         delete object;
       }
 
-      objects.swap(live_objects);
+      objects.swap(reachables);
 
       threshold = std::max(threshold, size + (size / 2));
     }
