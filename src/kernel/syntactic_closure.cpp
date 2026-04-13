@@ -174,7 +174,7 @@ namespace meevax::inline kernel
         xs = cons(unit, xs);
       }
 
-      return environment.as_const<syntactic_environment>().identify(form, xs);
+      return environment.as<syntactic_environment const>().identify(form, xs);
     };
 
     if (let const& identity = identify(); identity != f)
@@ -183,7 +183,7 @@ namespace meevax::inline kernel
     }
     else
     {
-      return environment.as_const<syntactic_environment>().identify(form, bound_variables);
+      return environment.as<syntactic_environment const>().identify(form, bound_variables);
     }
   }
 

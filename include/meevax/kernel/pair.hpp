@@ -30,7 +30,15 @@ namespace meevax::inline kernel
   using widen_integer = std::int64_t; // Fixed sized integer that is temporarily widened to prevent possible overflow.
 
   struct pair;
+}
 
+namespace meevax::inline memory
+{
+  extern template struct collector<pair, bool, small_integer, float, character, instruction>;
+}
+
+namespace meevax::inline kernel
+{
   using default_collector = collector<pair, bool, small_integer, float, character, instruction>;
 
   using object = default_collector::mutator;
@@ -154,14 +162,6 @@ namespace meevax::inline kernel
     explicit pair(T&& x, U&& y = nullptr)
       : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
-
-    virtual auto eqv(pair const*) const -> bool;
-
-    virtual auto extent() const noexcept -> std::pair<void const*, std::size_t>;
-
-    virtual auto type() const noexcept -> std::type_info const&;
-
-    virtual auto write(std::ostream &) const -> std::ostream &;
 
     auto begin() noexcept
     {
