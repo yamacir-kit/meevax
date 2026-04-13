@@ -1480,18 +1480,18 @@ namespace meevax::inline kernel
 
     define<library>("(meevax vector homogeneous)", [](library & library)
     {
-      #define DEFINE_VECTOR_AUX(TAG, VECTOR)                                   \
-      EXPORT_PREDICATE(VECTOR, #TAG "vector?");                                \
+      #define DEFINE_VECTOR(TAG)                                               \
+      EXPORT_PREDICATE(TAG##vector, #TAG "vector?");                           \
                                                                                \
       library.define<procedure>("make-" #TAG "vector", [](let const& xs)       \
       {                                                                        \
         switch (length(xs))                                                    \
         {                                                                      \
         case 1:                                                                \
-          return make<VECTOR>(direct_initialization, static_cast<VECTOR::values_type::value_type>(0), exact_integer_cast<std::size_t>(car(xs))); \
+          return make<TAG##vector>(direct_initialization, static_cast<TAG##vector::values_type::value_type>(0), exact_integer_cast<std::size_t>(car(xs))); \
                                                                                \
         case 2:                                                                \
-          return make<VECTOR>(direct_initialization, VECTOR::input_cast(cadr(xs)), exact_integer_cast<std::size_t>(car(xs))); \
+          return make<TAG##vector>(direct_initialization, TAG##vector::input_cast(cadr(xs)), exact_integer_cast<std::size_t>(car(xs))); \
                                                                                \
         default:                                                               \
           throw error(make<string>("procedure make-" #TAG "vector takes one or two arguments, but got"), xs); \
@@ -1500,22 +1500,22 @@ namespace meevax::inline kernel
                                                                                \
       library.define<procedure>(#TAG "vector", [](let const& xs)               \
       {                                                                        \
-        return make<VECTOR>(from_list, xs);                                    \
+        return make_homogeneous_vector_from_list_of<TAG>(xs);                  \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-length", [](let const& xs)        \
       {                                                                        \
-        return make(static_cast<small_integer>(car(xs).as<VECTOR>().values.size())); \
+        return make(static_cast<small_integer>(car(xs).as<TAG##vector>().values.size())); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-ref", [](let const& xs)           \
       {                                                                        \
-        return VECTOR::output_cast(car(xs).as<VECTOR>().values[exact_integer_cast<std::size_t>(cadr(xs))]); \
+        return TAG##vector::output_cast(car(xs).as<TAG##vector>().values[exact_integer_cast<std::size_t>(cadr(xs))]); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-set!", [](let const& xs)          \
       {                                                                        \
-        car(xs).as<VECTOR>().values[exact_integer_cast<std::size_t>(cadr(xs))] = VECTOR::input_cast(caddr(xs)); \
+        car(xs).as<TAG##vector>().values[exact_integer_cast<std::size_t>(cadr(xs))] = TAG##vector::input_cast(caddr(xs)); \
       });                                                                      \
                                                                                \
       library.define<procedure>(#TAG "vector-copy", [](let const& xs)          \
@@ -1523,17 +1523,17 @@ namespace meevax::inline kernel
         auto copy = [&](std::size_t begin, std::size_t end)                    \
         {                                                                      \
           assert(begin <= end);                                                \
-          return make<VECTOR>(car(xs).as<VECTOR>().values[std::slice(begin, end - begin, 1)]); \
+          return make<TAG##vector>(car(xs).as<TAG##vector>().values[std::slice(begin, end - begin, 1)]); \
         };                                                                     \
                                                                                \
         switch (length(xs))                                                    \
         {                                                                      \
         case 1:                                                                \
-          return copy(0, car(xs).as<VECTOR>().values.size());                  \
+          return copy(0, car(xs).as<TAG##vector>().values.size());             \
                                                                                \
         case 2:                                                                \
           return copy(exact_integer_cast<std::size_t>(cadr(xs)),               \
-                      car(xs).as<VECTOR>().values.size());                     \
+                      car(xs).as<TAG##vector>().values.size());                \
                                                                                \
         case 3:                                                                \
           return copy(exact_integer_cast<std::size_t>(cadr(xs)),               \
@@ -1551,7 +1551,7 @@ namespace meevax::inline kernel
           assert(begin <= end);                                                \
           auto i = std::slice(at, end - begin, 1);                             \
           auto j = std::slice(begin, end - begin, 1);                          \
-          car(xs).as<VECTOR>().values[i] = caddr(xs).as<VECTOR>().values[j];   \
+          car(xs).as<TAG##vector>().values[i] = caddr(xs).as<TAG##vector>().values[j];   \
         };                                                                     \
                                                                                \
         switch (length(xs))                                                    \
@@ -1559,13 +1559,13 @@ namespace meevax::inline kernel
         case 3:                                                                \
           copy(exact_integer_cast<std::size_t>(cadr(xs)),                      \
                0,                                                              \
-               caddr(xs).as<VECTOR>().values.size());                          \
+               caddr(xs).as<TAG##vector>().values.size());                     \
           break;                                                               \
                                                                                \
         case 4:                                                                \
           copy(exact_integer_cast<std::size_t>(cadr(xs)),                      \
                exact_integer_cast<std::size_t>(cadddr(xs)),                    \
-               caddr(xs).as<VECTOR>().values.size());                          \
+               caddr(xs).as<TAG##vector>().values.size());                     \
           break;                                                               \
                                                                                \
         case 5:                                                                \
@@ -1581,11 +1581,11 @@ namespace meevax::inline kernel
                                                                                \
       library.define<procedure>(#TAG "vector-append", [](let const& xs)        \
       {                                                                        \
-        auto const& a = car(xs).as<VECTOR>();                                  \
-        auto const& b = cadr(xs).as<VECTOR>();                                 \
-        let const c = make<VECTOR>(direct_initialization, a.values.size() + b.values.size()); \
-        c.as<VECTOR>().values[std::slice(0, a.values.size(), 1)] = a.values;   \
-        c.as<VECTOR>().values[std::slice(a.values.size(), b.values.size(), 1)] = b.values; \
+        auto const& a = car(xs).as<TAG##vector>();                             \
+        auto const& b = cadr(xs).as<TAG##vector>();                            \
+        let const c = make<TAG##vector>(direct_initialization, a.values.size() + b.values.size()); \
+        c.as<TAG##vector>().values[std::slice(0, a.values.size(), 1)] = a.values; \
+        c.as<TAG##vector>().values[std::slice(a.values.size(), b.values.size(), 1)] = b.values; \
         return c;                                                              \
       });                                                                      \
                                                                                \
@@ -1595,7 +1595,7 @@ namespace meevax::inline kernel
         {                                                                      \
           auto xcons = [](auto&& x, auto&& y)                                  \
           {                                                                    \
-            return cons(VECTOR::output_cast(y), x);                            \
+            return cons(TAG##vector::output_cast(y), x);                       \
           };                                                                   \
                                                                                \
           return reverse(std::accumulate(std::next(std::begin(v), a),          \
@@ -1605,17 +1605,17 @@ namespace meevax::inline kernel
         switch (length(xs))                                                    \
         {                                                                      \
         case 1:                                                                \
-          return list(car(xs).as<VECTOR>().values,                             \
+          return list(car(xs).as<TAG##vector>().values,                        \
                       0,                                                       \
-                      car(xs).as<VECTOR>().values.size());                     \
+                      car(xs).as<TAG##vector>().values.size());                \
                                                                                \
         case 2:                                                                \
-          return list(car(xs).as<VECTOR>().values,                             \
+          return list(car(xs).as<TAG##vector>().values,                        \
                       exact_integer_cast<std::size_t>(cadr(xs)),               \
-                      car(xs).as<VECTOR>().values.size());                     \
+                      car(xs).as<TAG##vector>().values.size());                \
                                                                                \
         case 3:                                                                \
-          return list(car(xs).as<VECTOR>().values,                             \
+          return list(car(xs).as<TAG##vector>().values,                        \
                       exact_integer_cast<std::size_t>(cadr(xs)),               \
                       exact_integer_cast<std::size_t>(caddr(xs)));             \
                                                                                \
@@ -1626,17 +1626,14 @@ namespace meevax::inline kernel
                                                                                \
       library.define<procedure>("list->" #TAG "vector", [](let const& xs)      \
       {                                                                        \
-        return make<VECTOR>(from_list, car(xs));                               \
+        return make_homogeneous_vector_from_list_of<TAG>(car(xs));             \
       })
-
-      #define DEFINE_VECTOR(TAG) DEFINE_VECTOR_AUX(TAG, TAG##vector)
 
       DEFINE_VECTOR(s8); DEFINE_VECTOR(s16); DEFINE_VECTOR(s32); DEFINE_VECTOR(s64);
       DEFINE_VECTOR(u8); DEFINE_VECTOR(u16); DEFINE_VECTOR(u32); DEFINE_VECTOR(u64);
                                              DEFINE_VECTOR(f32); DEFINE_VECTOR(f64);
 
       #undef DEFINE_VECTOR
-      #undef DEFINE_VECTOR_AUX
 
       library.define<procedure>("u8vector->string", [](let const& xs)
       {

@@ -36,17 +36,6 @@ namespace meevax::inline kernel
       : values(std::forward<decltype(xs)>(xs)...)
     {}
 
-    explicit homogeneous_vector(from_list_tag, let xs)
-      : values(length(xs))
-    {
-      std::generate(std::begin(values), std::end(values), [&]() mutable
-      {
-        let const x = car(xs);
-        xs = cdr(xs);
-        return input_cast(x);
-      });
-    }
-
     static auto tag() -> auto const&
     {
       auto static const tag = (std::is_integral_v<T> ? std::is_signed_v<T> ? "s" : "u" : "f") + std::to_string(sizeof(T) * CHAR_BIT);
@@ -73,6 +62,21 @@ namespace meevax::inline kernel
       return make<std::conditional_t<std::is_floating_point_v<T>, T, large_integer>>(x);
     }
   };
+
+  template <typename T>
+  auto make_homogeneous_vector_from_list_of(object const& xs)
+  {
+    auto v = make<homogeneous_vector<T>>(direct_initialization, length(xs));
+
+    auto i = std::size_t(0);
+
+    for (let const& x : xs)
+    {
+      v.template as<homogeneous_vector<T>>().values[i++] = homogeneous_vector<T>::input_cast(x);
+    }
+
+    return v;
+  }
 
   template <typename T>
   auto operator <<(std::ostream & output, homogeneous_vector<T> const& datum) -> std::ostream &
@@ -102,24 +106,23 @@ namespace meevax::inline kernel
     return check(a.values == b.values);
   }
 
-  using s8vector  = homogeneous_vector<std::int8_t>;
+  #define FOR_EACH_BITS(F) F(8) F(16) F(32) F(64)
 
-  using s16vector = homogeneous_vector<std::int16_t>;
+  #define DEFINE_EXACT_INTEGER_HOMOGENEOUS_VECTORS(BIT) \
+  using s##BIT = std:: int##BIT##_t; \
+  using u##BIT = std::uint##BIT##_t; \
+  using s##BIT##vector = homogeneous_vector<s##BIT>; \
+  using u##BIT##vector = homogeneous_vector<u##BIT>;
 
-  using s32vector = homogeneous_vector<std::int32_t>;
+  FOR_EACH_BITS(DEFINE_EXACT_INTEGER_HOMOGENEOUS_VECTORS);
 
-  using s64vector = homogeneous_vector<std::int64_t>;
+  #undef DEFINE_EXACT_INTEGER_HOMOGENEOUS_VECTORS
+  #undef FOR_EACH_BITS
 
-  using u8vector  = homogeneous_vector<std::uint8_t>;
-
-  using u16vector = homogeneous_vector<std::uint16_t>;
-
-  using u32vector = homogeneous_vector<std::uint32_t>;
-
-  using u64vector = homogeneous_vector<std::uint64_t>;
+  using f32 = float;
+  using f64 = double;
 
   using f32vector = homogeneous_vector<float>;
-
   using f64vector = homogeneous_vector<double>;
 } // namespace meevax::kernel
 
