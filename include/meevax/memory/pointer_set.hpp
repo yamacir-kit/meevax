@@ -100,7 +100,7 @@ namespace meevax::inline memory
 
       explicit const_iterator(pointer_set const* p, std::size_t i) noexcept
         : p { p }
-        , i { i }
+        , i { std::max(i, p->i_min) }
       {
         assert(i <= N);
         increment_unless_truthy();
@@ -108,7 +108,7 @@ namespace meevax::inline memory
 
       explicit const_iterator(pointer_set const* p) noexcept
         : p { p }
-        , i { N }
+        , i { p->i_max }
       {
         decrement_unless_truthy();
       }
@@ -141,7 +141,7 @@ namespace meevax::inline memory
 
         for (i = seek(i); i <= p->i_max; i = seek(i + 1))
         {
-          if (p->data[i] and (sub = p->data[i]->lower_bound()))
+          if (p->data[i] and (sub = p->data[i]->lower_bound(0)))
           {
             return;
           }
@@ -315,7 +315,7 @@ namespace meevax::inline memory
       }
     }
 
-    constexpr auto contains(T value) const noexcept -> bool
+    auto contains(T value) const noexcept -> bool
     {
       auto [i, j] = split(value);
       return data[i] and data[i]->contains(j);
@@ -335,11 +335,6 @@ namespace meevax::inline memory
     {
       auto [i, j] = split(value);
       return const_iterator(this, i, j);
-    }
-
-    auto lower_bound() const noexcept
-    {
-      return const_iterator(this, i_min);
     }
 
     auto size() const noexcept -> std::size_t
@@ -542,11 +537,6 @@ namespace meevax::inline memory
     auto lower_bound(T value) const noexcept
     {
       return const_iterator(this, index(value));
-    }
-
-    auto lower_bound() const noexcept
-    {
-      return const_iterator(this, 0);
     }
 
     auto size() const noexcept
