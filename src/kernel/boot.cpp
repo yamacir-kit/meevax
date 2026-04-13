@@ -1474,10 +1474,10 @@ namespace meevax::inline kernel
         switch (length(xs))                                                    \
         {                                                                      \
         case 1:                                                                \
-          return make<TAG##vector>(direct_initialization, static_cast<TAG##vector::values_type::value_type>(0), exact_integer_cast<std::size_t>(car(xs))); \
+          return make<TAG##vector>(static_cast<TAG##vector::values_type::value_type>(0), exact_integer_cast<std::size_t>(car(xs))); \
                                                                                \
         case 2:                                                                \
-          return make<TAG##vector>(direct_initialization, TAG##vector::input_cast(cadr(xs)), exact_integer_cast<std::size_t>(car(xs))); \
+          return make<TAG##vector>(TAG##vector::input_cast(cadr(xs)), exact_integer_cast<std::size_t>(car(xs))); \
                                                                                \
         default:                                                               \
           throw error(make<string>("procedure make-" #TAG "vector takes one or two arguments, but got"), xs); \
@@ -1569,7 +1569,7 @@ namespace meevax::inline kernel
       {                                                                        \
         auto const& a = car(xs).as<TAG##vector>();                             \
         auto const& b = cadr(xs).as<TAG##vector>();                            \
-        let const c = make<TAG##vector>(direct_initialization, a.values.size() + b.values.size()); \
+        let const c = make<TAG##vector>(a.values.size() + b.values.size()); \
         c.as<TAG##vector>().values[std::slice(0, a.values.size(), 1)] = a.values; \
         c.as<TAG##vector>().values[std::slice(a.values.size(), b.values.size(), 1)] = b.values; \
         return c;                                                              \

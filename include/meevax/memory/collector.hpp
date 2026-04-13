@@ -33,19 +33,7 @@
 
 namespace meevax::inline memory
 {
-  struct direct_initialization_tag
-  {
-    explicit direct_initialization_tag() = default;
-  };
-
-  inline constexpr direct_initialization_tag direct_initialization {};
-
-  struct list_initialization_tag
-  {
-    explicit list_initialization_tag() = default;
-  };
-
-  inline constexpr list_initialization_tag list_initialization {};
+  inline constexpr struct with_braces_tag {} with_braces {};
 
   /*
      This mark-and-sweep garbage collector is based on the implementation of
@@ -116,18 +104,13 @@ namespace meevax::inline memory
       auto static inline a = allocator();
 
       template <typename... Us>
-      explicit constexpr binder(direct_initialization_tag, Us&&... xs)
+      explicit constexpr binder(Us&&... xs)
         : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound>(std::forward<decltype(xs)>(xs)...)
       {}
 
       template <typename... Us>
-      explicit constexpr binder(list_initialization_tag, Us&&... xs)
+      explicit constexpr binder(with_braces_tag, Us&&... xs)
         : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound> { std::forward<decltype(xs)>(xs)... }
-      {}
-
-      template <typename... Us>
-      explicit constexpr binder(Us&&... xs)
-        : binder { list_initialization, std::forward<decltype(xs)>(xs)... }
       {}
 
       ~binder() override = default;

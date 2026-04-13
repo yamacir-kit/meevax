@@ -66,7 +66,7 @@ namespace meevax::inline kernel
   template <typename T>
   auto make_homogeneous_vector_from_list_of(object const& xs)
   {
-    auto v = make<homogeneous_vector<T>>(direct_initialization, length(xs));
+    auto v = make<homogeneous_vector<T>>(length(xs));
 
     auto i = std::size_t(0);
 

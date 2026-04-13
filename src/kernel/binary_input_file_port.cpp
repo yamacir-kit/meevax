@@ -46,12 +46,12 @@ namespace meevax::inline kernel
   {
     if (auto buffer = std::vector<std::uint8_t>(size); ifstream.read(reinterpret_cast<char *>(buffer.data()), size))
     {
-      return make<u8vector>(direct_initialization, buffer.data(), buffer.size());
+      return make<u8vector>(buffer.data(), buffer.size());
     }
     else
     {
       buffer.resize(ifstream.gcount());
-      return make<u8vector>(direct_initialization, buffer.data(), buffer.size());
+      return make<u8vector>(buffer.data(), buffer.size());
     }
   }
 

@@ -59,7 +59,7 @@ namespace meevax::inline kernel
       }
       else
       {
-        let const v =  make<homogeneous_vector<T>>(direct_initialization, size);
+        let const v =  make<homogeneous_vector<T>>(size);
         std::copy(deque.begin(), std::next(deque.begin(), size), std::begin(v.as<homogeneous_vector<T>>().values));
         deque.erase(deque.begin(), std::next(deque.begin(), size));
         return v;
