@@ -992,14 +992,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("string", [](let const& xs)
       {
-        let s = make<string>();
-
-        for (let const& x : xs)
-        {
-          s.as<string>().characters.push_back(x.as<character>());
-        }
-
-        return s;
+        return make_string_from_list_of_character(xs);
       });
 
       library.define<procedure>("string-length", [](let const& xs)
@@ -1106,14 +1099,7 @@ namespace meevax::inline kernel
 
       library.define<procedure>("list->string", [](let const& xs)
       {
-        let s = make<string>();
-
-        for (let const& x : car(xs))
-        {
-          s.as<string>().characters.push_back(x.as<character>());
-        }
-
-        return s;
+        return make_string_from_list_of_character(car(xs));
       });
 
       library.define<procedure>("string-copy", [](let const& xs)

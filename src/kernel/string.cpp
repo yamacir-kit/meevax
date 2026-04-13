@@ -44,6 +44,18 @@ namespace meevax::inline kernel
     return result;
   }
 
+  auto make_string_from_list_of_character(let const& xs) -> object
+  {
+    let s = make<string>();
+
+    for (let const& x : xs)
+    {
+      s.as<string>().characters.push_back(x.as<character>());
+    }
+
+    return s;
+  }
+
   auto operator ==(string const& a, string const& b) -> bool { return a.characters == b.characters; }
   auto operator !=(string const& a, string const& b) -> bool { return a.characters != b.characters; }
   auto operator < (string const& a, string const& b) -> bool { return a.characters <  b.characters; }

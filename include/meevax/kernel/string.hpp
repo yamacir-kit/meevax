@@ -38,6 +38,8 @@ namespace meevax::inline kernel
     auto utf8() const -> std::string;
   };
 
+  auto make_string_from_list_of_character(let const&) -> object;
+
   auto operator ==(string const&, string const&) -> bool;
   auto operator !=(string const&, string const&) -> bool;
   auto operator < (string const&, string const&) -> bool;
