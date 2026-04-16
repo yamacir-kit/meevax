@@ -24,8 +24,8 @@
 
 namespace meevax::inline iostream
 {
-  template <typename T = std::string, typename... Ts>
-  auto lexical_cast(Ts&&... xs) -> T
+  template <typename T = std::string>
+  auto lexical_cast(auto&&... xs) -> T
   {
     if (std::stringstream ss; (ss << ... << xs))
     {
@@ -50,7 +50,7 @@ namespace meevax::inline iostream
     else
     {
       auto what = std::stringstream();
-      ((what << "failed to serialize"), ..., (what << " " << demangle(typeid(Ts)))) << " type object";
+      ((what << "failed to serialize"), ..., (what << " " << demangle(typeid(decltype(xs))))) << " type object";
       throw std::runtime_error(what.str());
     }
   }

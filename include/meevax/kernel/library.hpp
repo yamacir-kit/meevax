@@ -41,8 +41,8 @@ namespace meevax::inline kernel
 
     friend auto boot() -> void;
 
-    template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs) -> void
+    template <typename T>
+    auto define(std::string const& name, auto&&... xs) -> void
     {
       evaluator.define<T>(name, std::forward<decltype(xs)>(xs)...);
       export_specs = cons(make_symbol(name), export_specs);
@@ -63,8 +63,8 @@ namespace meevax::inline kernel
 
   auto libraries() -> std::map<std::string, object> &;
 
-  template <typename T, typename... Ts>
-  auto define(std::string const& name, Ts&&... xs) -> decltype(auto)
+  template <typename T>
+  auto define(std::string const& name, auto&&... xs) -> decltype(auto)
   {
     if constexpr (std::is_same_v<T, library>)
     {

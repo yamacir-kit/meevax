@@ -87,8 +87,7 @@ namespace meevax::inline kernel
         }
       }
 
-      template <typename... Ts>
-      constexpr auto is_any_of(Ts&&... xs) const noexcept
+      constexpr auto is_any_of(auto&&... xs) const noexcept
       {
         return ((value == xs) or ...);
       }

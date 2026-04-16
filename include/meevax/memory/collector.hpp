@@ -283,8 +283,8 @@ namespace meevax::inline memory
         }
       }
 
-      template <typename U, typename Mutator>
-      auto static as(Mutator&& m) -> decltype(auto)
+      template <typename U>
+      auto static as(auto&& m) -> decltype(auto)
       {
         if constexpr (std::is_same_v<std::decay_t<U>, Top>)
         {

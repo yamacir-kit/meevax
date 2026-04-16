@@ -72,8 +72,7 @@ namespace meevax::inline kernel
   {
     std::string const n;
 
-    template <typename... Ts>
-    explicit datum_label(Ts&&... xs)
+    explicit datum_label(auto&&... xs)
       : n { std::forward<decltype(xs)>(xs)... }
     {}
   };

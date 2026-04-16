@@ -94,8 +94,7 @@ namespace meevax::inline memory
 
     #undef DEFINE
 
-    template <typename... Ts>
-    auto operator =(Ts&&... xs) -> auto &
+    auto operator =(auto&&... xs) -> auto &
     {
       reset(std::forward<decltype(xs)>(xs)...);
       return *this;

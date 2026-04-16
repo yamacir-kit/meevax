@@ -32,8 +32,8 @@ namespace meevax::inline kernel
 
     auto define(object const&, object const& = undefined) -> void;
 
-    template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs) -> void
+    template <typename T>
+    auto define(std::string const& name, auto&&... xs) -> void
     {
       if constexpr (std::is_base_of_v<describable, T>)
       {

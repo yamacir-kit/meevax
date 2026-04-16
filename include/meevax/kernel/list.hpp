@@ -31,26 +31,22 @@ namespace meevax::inline kernel
 
   auto iota(std::size_t, object const& = e0, object const& = e1) -> object;
 
-  template <typename T>
-  auto last_pair(T&& x) -> decltype(x)
+  auto last_pair(auto&& x) -> decltype(x)
   {
     return cdr(x).template is<pair>() ? last_pair(cdr(std::forward<decltype(x)>(x))) : std::forward<decltype(x)>(x);
   }
 
-  template <typename T>
-  auto last(T&& x) -> decltype(x)
+  auto last(auto&& x) -> decltype(x)
   {
     return car(last_pair(std::forward<decltype(x)>(x)));
   }
 
-  template <typename T>
-  auto circulate(T&& x)
+  auto circulate(auto&& x)
   {
     cdr(last_pair(std::forward<decltype(x)>(x))) = x;
   }
 
-  template <typename... Ts>
-  auto circular_list(Ts&&... xs)
+  auto circular_list(auto&&... xs)
   {
     let x = list(std::forward<decltype(xs)>(xs)...);
     circulate(x);
@@ -65,14 +61,12 @@ namespace meevax::inline kernel
 
   auto list_copy(object const&) -> object;
 
-  template <typename T>
-  auto tail(T&& x, std::size_t size) -> decltype(x)
+  auto tail(auto&& x, std::size_t size) -> decltype(x)
   {
     return 0 < size ? tail(cdr(std::forward<decltype(x)>(x)), --size) : std::forward<decltype(x)>(x);
   }
 
-  template <typename... Ts>
-  auto head(Ts&&... xs) -> decltype(auto)
+  auto head(auto&&... xs) -> decltype(auto)
   {
     return car(tail(std::forward<decltype(xs)>(xs)...));
   }
@@ -105,8 +99,7 @@ namespace meevax::inline kernel
 
   auto reverse(object &) -> object;
 
-  template <typename F>
-  auto map(F f, object const& xs, object const& ys = nullptr) -> object
+  auto map(auto f, object const& xs, object const& ys = nullptr) -> object
   {
     if (xs.is<pair>())
     {
@@ -130,8 +123,7 @@ namespace meevax::inline kernel
 
   auto alist_copy(object const&) -> object;
 
-  template <typename F>
-  auto filter(F test, object const& xs) -> object
+  auto filter(auto test, object const& xs) -> object
   {
     if (xs.is<pair>())
     {

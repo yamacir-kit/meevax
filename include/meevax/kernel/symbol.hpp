@@ -26,8 +26,7 @@ namespace meevax::inline kernel
   {
     std::string const name;
 
-    template <typename... Ts>
-    explicit symbol(Ts&&... xs)
+    explicit symbol(auto&&... xs)
       : name { std::forward<decltype(xs)>(xs)... }
     {}
 

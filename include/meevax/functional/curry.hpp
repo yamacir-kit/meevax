@@ -22,8 +22,7 @@
 
 namespace meevax::inline functional
 {
-  template <typename F>
-  constexpr auto curry(F&& f) -> decltype(auto)
+  constexpr auto curry(auto&& f) -> decltype(auto)
   {
     return [f](auto&&... xs)
     {

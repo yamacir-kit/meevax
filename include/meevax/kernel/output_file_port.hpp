@@ -29,8 +29,7 @@ namespace meevax::inline kernel
 
     std::ofstream ofstream;
 
-    template <typename T, typename... Ts>
-    explicit output_file_port(T&& x, Ts&&... xs)
+    explicit output_file_port(auto&& x, auto&&... xs)
       : name { std::forward<decltype(x)>(x) }
       , ofstream { name.utf8(), std::forward<decltype(xs)>(xs)... }
     {}

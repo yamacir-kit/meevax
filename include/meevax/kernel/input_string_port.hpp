@@ -25,8 +25,7 @@ namespace meevax::inline kernel
   {
     std::istringstream istringstream;
 
-    template <typename... Ts>
-    explicit input_string_port(Ts&&... xs)
+    explicit input_string_port(auto&&... xs)
       : istringstream { std::forward<decltype(xs)>(xs)... }
     {}
 

@@ -436,15 +436,14 @@ namespace number
 
   auto number_to_string(object const&, int) -> object;
 
-  template <typename T>
-  auto canonicalize(T&& x)
+  auto canonicalize(auto&& x)
   {
-    if constexpr (std::is_same_v<std::decay_t<T>, object> or
-                  std::is_same_v<std::decay_t<T>, object::pointer>)
+    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, object> or
+                  std::is_same_v<std::decay_t<decltype(x)>, object::pointer>)
     {
       return std::forward<decltype(x)>(x);
     }
-    else if constexpr (std::is_same_v<std::decay_t<T>, complex>)
+    else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, complex>)
     {
       if (equals(x.imag(), e0))
       {
@@ -455,7 +454,7 @@ namespace number
         return make(std::forward<decltype(x)>(x));
       }
     }
-    else if constexpr (std::is_same_v<std::decay_t<T>, ratio>)
+    else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, ratio>)
     {
       if (x.denominator() == 1_i64)
       {
@@ -466,7 +465,7 @@ namespace number
         return make(std::forward<decltype(x)>(x));
       }
     }
-    else if constexpr (std::is_same_v<std::decay_t<T>, widen_integer>)
+    else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, widen_integer>)
     {
       if (std::numeric_limits<small_integer>::min() <= x and x <= std::numeric_limits<small_integer>::max())
       {
@@ -483,10 +482,9 @@ namespace number
     }
   }
 
-  template <typename T>
-  auto widen(T&& x) -> decltype(auto)
+  auto widen(auto&& x) -> decltype(auto)
   {
-    if constexpr (std::is_same_v<T, small_integer>)
+    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, small_integer>)
     {
       return static_cast<widen_integer>(std::forward<decltype(x)>(x));
     }

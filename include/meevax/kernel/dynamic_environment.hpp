@@ -65,8 +65,7 @@ namespace meevax::inline kernel
     */
     let static inline exception_handler = nullptr;
 
-    template <typename... Ts>
-    auto apply(object const& procedure, Ts&&... xs) -> decltype(auto)
+    auto apply(object const& procedure, auto&&... xs) -> decltype(auto)
     {
       s = list(procedure, list(std::forward<decltype(xs)>(xs)...));
       e = nullptr;

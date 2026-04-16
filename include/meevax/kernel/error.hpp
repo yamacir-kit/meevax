@@ -81,8 +81,7 @@ namespace meevax::inline kernel
     }
   };
 
-  template <typename Thunk>
-  auto with_exception_handler(Thunk && thunk)
+  auto with_exception_handler(auto&& thunk)
   {
     try
     {

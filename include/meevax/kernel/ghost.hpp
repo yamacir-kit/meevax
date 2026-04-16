@@ -25,8 +25,7 @@ namespace meevax::inline kernel
   {
     std::string const name;
 
-    template <typename... Ts>
-    explicit ghost(Ts&&... xs)
+    explicit ghost(auto&&... xs)
       : name { std::forward<decltype(xs)>(xs)... }
     {}
   };

@@ -47,14 +47,14 @@ namespace meevax::inline kernel
 
   let extern unit;
 
-  template <typename T, typename Allocator, typename... Ts>
-  auto make(Ts&&... xs) -> decltype(auto)
+  template <typename T, typename Allocator>
+  auto make(auto&&... xs) -> decltype(auto)
   {
     return default_collector::make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
-  template <typename T, typename... Ts>
-  auto make(Ts&&... xs) -> decltype(auto)
+  template <typename T>
+  auto make(auto&&... xs) -> decltype(auto)
   {
     if constexpr (std::is_same_v<T, pair>) {
       return default_collector::make<T, allocator<void>>(std::forward<decltype(xs)>(xs)...);
@@ -215,14 +215,14 @@ namespace meevax::inline kernel
                 std::forward<decltype(x)>(x));
   };
 
-  template <auto N, typename T>
-  auto get(T&& x) -> decltype(auto)
+  template <auto N>
+  auto get(auto&& x) -> decltype(auto)
   {
-    if constexpr (std::is_same_v<std::decay_t<T>, pair::iterator>)
+    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, pair::iterator>)
     {
       return std::get<N>(*x.current);
     }
-    else if constexpr (std::is_same_v<std::decay_t<T>, object>)
+    else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, object>)
     {
       return std::get<N>(x.template as<pair>());
     }
