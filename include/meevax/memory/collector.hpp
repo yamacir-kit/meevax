@@ -29,7 +29,6 @@
 #include <meevax/memory/literal.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
 #include <meevax/memory/pointer_set.hpp>
-#include <meevax/type_traits/is_output_streamable.hpp>
 
 namespace meevax::inline memory
 {
@@ -152,7 +151,7 @@ namespace meevax::inline memory
 
       auto write(std::ostream & os) const -> std::ostream & override
       {
-        if constexpr (is_output_streamable_v<Bound const&>)
+        if constexpr (requires { os << static_cast<Bound const&>(*this); })
         {
           return os << static_cast<Bound const&>(*this);
         }

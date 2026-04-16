@@ -38,6 +38,10 @@ extern "C"
   {
     small_integer value;
 
+    explicit hoge(small_integer value)
+      : value { value }
+    {}
+
     ~hoge()
     {
       std::cout << "DESTRUCTOR!" << std::endl;
