@@ -245,7 +245,7 @@ namespace meevax::inline kernel
           }
           else if (value.is<syntax>())
           {
-            if (auto const& name = value.as<syntax>().name; name == "begin")
+            if (auto const& name = value.as<syntax>().name.name; name == "begin")
             {
               return sweep(form,
                            append(cdar(sequence), cdr(sequence)),

@@ -19,6 +19,7 @@
 
 #include <dlfcn.h> // dlopen, dlclose, dlerror
 
+#include <concepts>
 #include <memory> // std::allocator
 #include <unordered_map>
 #include <vector>
@@ -28,7 +29,6 @@
 #include <meevax/memory/literal.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
 #include <meevax/memory/pointer_set.hpp>
-#include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/type_traits/is_output_streamable.hpp>
 
 namespace meevax::inline memory
@@ -117,7 +117,7 @@ namespace meevax::inline memory
 
       auto eqv([[maybe_unused]] Top const* other) const -> bool override
       {
-        if constexpr (is_equality_comparable_v<Bound const&>)
+        if constexpr (std::equality_comparable<Bound const&>)
         {
           if (auto const* bound = dynamic_cast<Bound const*>(other); bound)
           {

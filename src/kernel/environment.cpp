@@ -115,7 +115,7 @@ namespace meevax::inline kernel
   {
     assert(form.is<pair>());
 
-    if (car(form).as<symbol>() == "only") /* -----------------------------------
+    if (car(form).as<symbol>().name == "only") /* ------------------------------
     *
     *  <declaration> = (only <import set> <identifier> ...)
     *
@@ -129,7 +129,7 @@ namespace meevax::inline kernel
 
       return filter(only, import_set(cadr(form)));
     }
-    else if (car(form).as<symbol>() == "except") /* ----------------------------
+    else if (car(form).as<symbol>().name == "except") /* -----------------------
     *
     *  <declaration> = (except <import set> <identifier> ...)
     *
@@ -143,7 +143,7 @@ namespace meevax::inline kernel
 
       return filter(except, import_set(cadr(form)));
     }
-    else if (car(form).as<symbol>() == "prefix") /* ----------------------------
+    else if (car(form).as<symbol>().name == "prefix") /* -----------------------
     *
     *  <declaration> = (prefix <import set> <identifier>)
     *
@@ -159,7 +159,7 @@ namespace meevax::inline kernel
 
       return map(prefix, import_set(cadr(form)));
     }
-    else if (car(form).as<symbol>() == "rename") /* ----------------------------
+    else if (car(form).as<symbol>().name == "rename") /* -----------------------
     *
     *  <declaration> = (rename <import set>
     *                          (<identifier 1> <identifier 2>) ...)

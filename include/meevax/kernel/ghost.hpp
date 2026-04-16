@@ -24,6 +24,11 @@ namespace meevax::inline kernel
   struct ghost
   {
     std::string const name;
+
+    template <typename... Ts>
+    explicit ghost(Ts&&... xs)
+      : name { std::forward<decltype(xs)>(xs)... }
+    {}
   };
 
   auto operator <<(std::ostream &, ghost const&) -> std::ostream &;

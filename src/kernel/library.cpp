@@ -84,7 +84,7 @@ namespace meevax::inline kernel
                  if (export_spec.is<pair>())
                  {
                    assert(car(export_spec).is<symbol>());
-                   assert(car(export_spec).as<symbol>() == "rename");
+                   assert(car(export_spec).as<symbol>().name == "rename");
                    assert(cadr(export_spec).is_also<identifier>());
                    assert(caddr(export_spec).is_also<identifier>());
                    return make<absolute>(caddr(export_spec),
