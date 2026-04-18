@@ -56,19 +56,6 @@ namespace meevax::inline kernel
   auto operator <<(std::ostream &, library const&) -> std::ostream &;
 
   auto libraries() -> std::map<std::string, object> &;
-
-  template <typename T>
-  auto define(std::string const& name, auto&&... xs) -> decltype(auto)
-  {
-    if constexpr (std::is_same_v<T, library>)
-    {
-      return libraries().emplace(name, make<library>(std::forward<decltype(xs)>(xs)...));
-    }
-    else
-    {
-      return interaction_environment().as<environment>().define<T>(name, std::forward<decltype(xs)>(xs)...);
-    }
-  }
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP

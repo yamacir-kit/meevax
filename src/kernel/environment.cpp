@@ -29,7 +29,7 @@ namespace meevax::inline kernel
     {
       if (auto&& name = car(expression).as<symbol>().name; name == "define-library")
       {
-        meevax::define<library>(lexical_cast(cadr(expression)), cddr(expression));
+        libraries().emplace(lexical_cast(cadr(expression)), make<library>(cddr(expression)));
 
         return unspecified;
       }

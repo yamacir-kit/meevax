@@ -46,13 +46,6 @@ namespace meevax::inline kernel
       }
     }
 
-    template <template <typename...> typename Deducer>
-    [[deprecated]]
-    auto define(auto&&... xs) -> decltype(auto)
-    {
-      return define<typename Deducer<decltype(xs)...>::type>(std::forward<decltype(xs)>(xs)...);
-    }
-
     auto expand(object const& form, object const& bound_variables) const -> object;
 
     auto expand(object const& form, object const& bound_variables, syntactic_closure::renamer & rename) const -> object;

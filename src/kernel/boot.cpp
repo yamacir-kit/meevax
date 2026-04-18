@@ -79,12 +79,12 @@ namespace meevax::inline kernel
       return car(xs).is<TYPENAME>();                                           \
     }))
 
-    define<library>("(meevax binary32)", [](library & library)
+    libraries().emplace("(meevax binary32)", make<library>([](library & library)
     {
       EXPORT_PREDICATE(float, "binary32?");
-    });
+    }));
 
-    define<library>("(meevax binary64)", [](library & library)
+    libraries().emplace("(meevax binary64)", make<library>([](library & library)
     {
       EXPORT_PREDICATE(double, "binary64?");
 
@@ -178,9 +178,9 @@ namespace meevax::inline kernel
         auto remainder = std::remquo(car(xs).as<double>(), cadr(xs).as<double>(), &quotient);
         return cons(make(remainder), make<small_integer>(quotient));
       }));
-    });
+    }));
 
-    define<library>("(meevax boolean)", [](library & library)
+    libraries().emplace("(meevax boolean)", make<library>([](library & library)
     {
       EXPORT_PREDICATE(bool, "boolean?");
 
@@ -188,9 +188,9 @@ namespace meevax::inline kernel
       {
         return car(xs) == f;
       }));
-    });
+    }));
 
-    define<library>("(meevax box)", [](library & library)
+    libraries().emplace("(meevax box)", make<library>([](library & library)
     {
       EXPORT1_RENAME(make<box>, "box");
 
@@ -205,9 +205,9 @@ namespace meevax::inline kernel
       {
         caar(xs) = cadr(xs);
       }));
-    });
+    }));
 
-    define<library>("(meevax character)", [](library & library)
+    libraries().emplace("(meevax character)", make<library>([](library & library)
     {
       EXPORT_PREDICATE(character, "char?");
 
@@ -253,9 +253,9 @@ namespace meevax::inline kernel
 
       library.define("char-upcase",   make<procedure>("char-upcase",   [](let const& xs) { return make<character>(car(xs).as<character>().upcase  ()); }));
       library.define("char-downcase", make<procedure>("char-downcase", [](let const& xs) { return make<character>(car(xs).as<character>().downcase()); }));
-    });
+    }));
 
-    define<library>("(meevax context)", [](library & library)
+    libraries().emplace("(meevax context)", make<library>([](library & library)
     {
       library.define("emergency-exit", make<procedure>("emergency-exit", [](let const& xs)
       {
@@ -284,22 +284,22 @@ namespace meevax::inline kernel
 
         return reverse(xs);
       }));
-    });
+    }));
 
-    define<library>("(meevax comparator)", [](library & library)
+    libraries().emplace("(meevax comparator)", make<library>([](library & library)
     {
       EXPORT2_RENAME(eq,    "eq?");
       EXPORT2_RENAME(equal, "equal?");
       EXPORT2_RENAME(eqv,   "eqv?");
-    });
+    }));
 
-    define<library>("(meevax core)", [](library & library)
+    libraries().emplace("(meevax core)", make<library>([](library & library)
     {
       library.evaluator.second = core_syntactic_environment().as<syntactic_environment>().second;
       library.export_specs = map(car, library.evaluator.second);
-    });
+    }));
 
-    define<library>("(meevax environment)", [](library & library)
+    libraries().emplace("(meevax environment)", make<library>([](library & library)
     {
       library.define("environment", make<procedure>("environment", [](let const& xs)
       {
@@ -332,9 +332,9 @@ namespace meevax::inline kernel
       {
         return car(xs).as<environment>().load(cadr(xs).as<string>().utf8());
       }));
-    });
+    }));
 
-    define<library>("(meevax error)", [](library & library)
+    libraries().emplace("(meevax error)", make<library>([](library & library)
     {
       library.define("throw", make<procedure>("throw", [](let const& xs)
       {
@@ -358,9 +358,9 @@ namespace meevax::inline kernel
       {
         environment::exception_handler = car(xs);
       }));
-    });
+    }));
 
-    define<library>("(meevax file)", [](library & library)
+    libraries().emplace("(meevax file)", make<library>([](library & library)
     {
       library.define("file-exists?", make<procedure>("file-exists?", [](let const& xs)
       {
@@ -393,9 +393,9 @@ namespace meevax::inline kernel
 
         return directories;
       }));
-    });
+    }));
 
-    define<library>("(meevax instruction)", [](library & library)
+    libraries().emplace("(meevax instruction)", make<library>([](library & library)
     {
       library.define("secd-call",              make<instruction>(instruction::secd_call             ));
       library.define("secd-cons",              make<instruction>(instruction::secd_cons             ));
@@ -420,9 +420,9 @@ namespace meevax::inline kernel
       library.define("secd-tail-call",         make<instruction>(instruction::secd_tail_call        ));
       library.define("secd-tail-letrec",       make<instruction>(instruction::secd_tail_letrec      ));
       library.define("secd-tail-select",       make<instruction>(instruction::secd_tail_select      ));
-    });
+    }));
 
-    define<library>("(meevax integer32)", [](library & library)
+    libraries().emplace("(meevax integer32)", make<library>([](library & library)
     {
       EXPORT_PREDICATE(small_integer, "integer32?");
 
@@ -430,9 +430,9 @@ namespace meevax::inline kernel
 
       library.define("integer32-min", make<small_integer>(std::numeric_limits<small_integer>::min()));
       library.define("integer32-max", make<small_integer>(std::numeric_limits<small_integer>::max()));
-    });
+    }));
 
-    define<library>("(meevax list)", [](library & library)
+    libraries().emplace("(meevax list)", make<library>([](library & library)
     {
       EXPORT_PREDICATE(null, "null?");
 
@@ -615,9 +615,9 @@ namespace meevax::inline kernel
 
       EXPORT3_RENAME(alist_cons, "alist-cons");
       EXPORT1_RENAME(alist_copy, "alist-copy");
-    });
+    }));
 
-    define<library>("(meevax number)", [](library & library)
+    libraries().emplace("(meevax number)", make<library>([](library & library)
     {
       using namespace number;
 
@@ -820,9 +820,9 @@ namespace meevax::inline kernel
           throw error(make<string>("procedure string->number takes one or two arugments, but got"), xs);
         }
       }));
-    });
+    }));
 
-    define<library>("(meevax pair)", [](library & library)
+    libraries().emplace("(meevax pair)", make<library>([](library & library)
     {
       EXPORT_PREDICATE(pair, "pair?");
 
@@ -881,9 +881,9 @@ namespace meevax::inline kernel
 
       library.define("set-car!", make<procedure>("set-car!", [](let & xs) { caar(xs) = cadr(xs); }));
       library.define("set-cdr!", make<procedure>("set-cdr!", [](let & xs) { cdar(xs) = cadr(xs); }));
-    });
+    }));
 
-    define<library>("(meevax port)", [](library & library)
+    libraries().emplace("(meevax port)", make<library>([](library & library)
     {
       library.define(  "input-port?", make<procedure>(  "input-port?", [](let const& xs) { return car(xs).is_also<  input_port>(); }));
       library.define( "output-port?", make<procedure>( "output-port?", [](let const& xs) { return car(xs).is_also< output_port>(); }));
@@ -955,9 +955,9 @@ namespace meevax::inline kernel
       {
         car(xs).as<output_port>().flush();
       }));
-    });
+    }));
 
-    define<library>("(meevax procedure)", [](library & library)
+    libraries().emplace("(meevax procedure)", make<library>([](library & library)
     {
       EXPORT_PREDICATE(closure,      "closure?");
       EXPORT_PREDICATE(continuation, "continuation?");
@@ -974,9 +974,9 @@ namespace meevax::inline kernel
                                  default_collector::dlsym(cadr(xs).as<symbol>(),
                                                           default_collector::dlopen(car(xs).as<string>().utf8()))));
       }));
-    });
+    }));
 
-    define<library>("(meevax read)", [](library & library)
+    libraries().emplace("(meevax read)", make<library>([](library & library)
     {
       library.define("get-char",        make<procedure>("get-char",        [](let const& xs) { return car(xs).as<textual_input_port>().get      (); }));
       library.define("get-char-ready?", make<procedure>("get-char-ready?", [](let const& xs) { return car(xs).as<textual_input_port>().get_ready(); }));
@@ -997,9 +997,9 @@ namespace meevax::inline kernel
       {
         return cadr(xs).as<binary_input_port>().get(exact_integer_cast<std::size_t>(car(xs)));
       }));
-    });
+    }));
 
-    define<library>("(meevax string)", [](library & library)
+    libraries().emplace("(meevax string)", make<library>([](library & library)
     {
       EXPORT_PREDICATE(string, "string?");
 
@@ -1203,9 +1203,9 @@ namespace meevax::inline kernel
           throw error(make<string>("procedure string-fill! takes one to three arugments, but got"), xs);
         }
       }));
-    });
+    }));
 
-    define<library>("(meevax symbol)", [](library & library)
+    libraries().emplace("(meevax symbol)", make<library>([](library & library)
     {
       EXPORT_PREDICATE(symbol, "symbol?");
 
@@ -1230,9 +1230,9 @@ namespace meevax::inline kernel
           return x;
         }
       }));
-    });
+    }));
 
-    define<library>("(meevax syntactic-closure)", [](library & library)
+    libraries().emplace("(meevax syntactic-closure)", make<library>([](library & library)
     {
       library.define("identifier?", make<procedure>("identifier?", [](let const& xs)
       {
@@ -1243,9 +1243,9 @@ namespace meevax::inline kernel
       EXPORT_PREDICATE(syntactic_closure, "syntactic-closure?");
 
       EXPORT3_RENAME(make<syntactic_closure>, "make-syntactic-closure");
-    });
+    }));
 
-    define<library>("(meevax system)", [](library & library)
+    libraries().emplace("(meevax system)", make<library>([](library & library)
     {
       library.define("features", make<procedure>("features", []()
       {
@@ -1280,9 +1280,9 @@ namespace meevax::inline kernel
 
         return alist;
       }));
-    });
+    }));
 
-    define<library>("(meevax time)", [](library & library)
+    libraries().emplace("(meevax time)", make<library>([](library & library)
     {
       library.define("current-jiffy", make<procedure>("current-jiffy", []()
       {
@@ -1293,9 +1293,9 @@ namespace meevax::inline kernel
       {
         return make<large_integer>(std::chrono::high_resolution_clock::period::den);
       }));
-    });
+    }));
 
-    define<library>("(meevax vector)", [](library & library)
+    libraries().emplace("(meevax vector)", make<library>([](library & library)
     {
       EXPORT_PREDICATE(vector, "vector?");
 
@@ -1490,9 +1490,9 @@ namespace meevax::inline kernel
           break;
         }
       }));
-    });
+    }));
 
-    define<library>("(meevax vector homogeneous)", [](library & library)
+    libraries().emplace("(meevax vector homogeneous)", make<library>([](library & library)
     {
       #define DEFINE_VECTOR(TAG)                                               \
       EXPORT_PREDICATE(TAG##vector, #TAG "vector?");                           \
@@ -1694,9 +1694,9 @@ namespace meevax::inline kernel
 
         return convert(car(xs).as<string>().utf8());
       }));
-    });
+    }));
 
-    define<library>("(meevax write)", [](library & library)
+    libraries().emplace("(meevax write)", make<library>([](library & library)
     {
       library.define("put-char", make<procedure>("put-char", [](let const& xs)
       {
@@ -1727,6 +1727,6 @@ namespace meevax::inline kernel
       {
         cadr(xs).as<textual_output_port>().write_simple(car(xs));
       }));
-    });
+    }));
   }
 } // namespace meevax::kernel
