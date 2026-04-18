@@ -33,6 +33,7 @@ namespace meevax::inline kernel
     auto define(object const&, object const& = undefined) -> void;
 
     template <typename T>
+    [[deprecated]]
     auto define(std::string const& name, auto&&... xs) -> void
     {
       if constexpr (std::is_base_of_v<describable, T>)
@@ -46,6 +47,7 @@ namespace meevax::inline kernel
     }
 
     template <template <typename...> typename Deducer>
+    [[deprecated]]
     auto define(auto&&... xs) -> decltype(auto)
     {
       return define<typename Deducer<decltype(xs)...>::type>(std::forward<decltype(xs)>(xs)...);

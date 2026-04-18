@@ -175,10 +175,10 @@ auto main() -> int
   {
     auto module = environment();
 
-    module.define<procedure>("vector", [](let const& xs)
+    module.define(make_symbol("vector"), make<procedure>("vector", [](let const& xs)
     {
       return make<vector>(xs.begin(), xs.end());
-    });
+    }));
 
     module.evaluate(input_string_port("(vector 1 2 3)").read());
   }

@@ -21,7 +21,7 @@
 
 namespace meevax::inline kernel
 {
-  struct describable
+  struct [[deprecated]] describable
   {
     symbol const name;
 

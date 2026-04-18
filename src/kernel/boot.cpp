@@ -55,29 +55,29 @@ namespace meevax::inline kernel
 {
   auto boot() -> void
   {
-    #define EXPORT1_RENAME(IDENTIFIER1, IDENTIFIER2)                           \
-    library.define<procedure>(IDENTIFIER2, [](let const& xs)                   \
+    #define EXPORT1_RENAME(FUNCTION, IDENTIFIER)                               \
+    library.define(IDENTIFIER, make<procedure>(IDENTIFIER, [](let const& xs)   \
     {                                                                          \
-      return IDENTIFIER1(car(xs));                                             \
-    })
+      return FUNCTION(car(xs));                                                \
+    }))
 
-    #define EXPORT2_RENAME(IDENTIFIER1, IDENTIFIER2)                           \
-    library.define<procedure>(IDENTIFIER2, [](let const& xs)                   \
+    #define EXPORT2_RENAME(FUNCTION, IDENTIFIER)                               \
+    library.define(IDENTIFIER, make<procedure>(IDENTIFIER, [](let const& xs)   \
     {                                                                          \
-      return IDENTIFIER1(car(xs), cadr(xs));                                   \
-    })
+      return FUNCTION(car(xs), cadr(xs));                                      \
+    }))
 
-    #define EXPORT3_RENAME(IDENTIFIER1, IDENTIFIER2)                           \
-    library.define<procedure>(IDENTIFIER2, [](let const& xs)                   \
+    #define EXPORT3_RENAME(FUNCTION, IDENTIFIER)                               \
+    library.define(IDENTIFIER, make<procedure>(IDENTIFIER, [](let const& xs)   \
     {                                                                          \
-      return IDENTIFIER1(car(xs), cadr(xs), caddr(xs));                        \
-    })
+      return FUNCTION(car(xs), cadr(xs), caddr(xs));                           \
+    }))
 
     #define EXPORT_PREDICATE(TYPENAME, IDENTIFIER)                             \
-    library.define<procedure>(IDENTIFIER, [](let const& xs)                    \
+    library.define(IDENTIFIER, make<procedure>(IDENTIFIER, [](let const& xs)   \
     {                                                                          \
       return car(xs).is<TYPENAME>();                                           \
-    })
+    }))
 
     define<library>("(meevax binary32)", [](library & library)
     {
@@ -88,78 +88,106 @@ namespace meevax::inline kernel
     {
       EXPORT_PREDICATE(double, "binary64?");
 
-      library.define<double>("binary64-least",    std::numeric_limits<double>::min());
-      library.define<double>("binary64-greatest", std::numeric_limits<double>::max());
-      library.define<double>("binary64-epsilon",  std::numeric_limits<double>::epsilon());
+      library.define("binary64-least",    make<double>(std::numeric_limits<double>::min()));
+      library.define("binary64-greatest", make<double>(std::numeric_limits<double>::max()));
+      library.define("binary64-epsilon",  make<double>(std::numeric_limits<double>::epsilon()));
 
-      library.define<procedure>("binary64-integral-part", [](let const& xs)
+      library.define("binary64-integral-part", make<procedure>("binary64-integral-part", [](let const& xs)
       {
         auto integral_part = 0.0;
         std::modf(car(xs).as<double>(), &integral_part);
         return make(integral_part);
-      });
+      }));
 
-      library.define<procedure>("binary64-fractional-part", [](let const& xs)
+      library.define("binary64-fractional-part", make<procedure>("binary64-fractional-part", [](let const& xs)
       {
         auto integral_part = 0.0;
         return make(std::modf(car(xs).as<double>(), &integral_part));
-      });
+      }));
 
-      library.define<procedure>("binary64-log-binary", [](let const& xs)
+      library.define("binary64-log-binary", make<procedure>("binary64-log-binary", [](let const& xs)
       {
         return make(std::logb(car(xs).as<double>()));
-      });
+      }));
 
-      library.define<procedure>("binary64-integer-log-binary", [](let const& xs)
+      library.define("binary64-integer-log-binary", make<procedure>("binary64-integer-log-binary", [](let const& xs)
       {
         return make<small_integer>(std::ilogb(car(xs).as<double>()));
-      });
+      }));
 
-      library.define<procedure>("binary64-normalized-fraction", [](let const& xs)
+      library.define("binary64-normalized-fraction", make<procedure>("binary64-normalized-fraction", [](let const& xs)
       {
         auto exponent = 0;
         return make(std::frexp(car(xs).as<double>(), &exponent));
-      });
+      }));
 
-      library.define<procedure>("binary64-exponent", [](let const& xs)
+      library.define("binary64-exponent", make<procedure>("binary64-exponent", [](let const& xs)
       {
         auto exponent = 0;
         std::frexp(car(xs).as<double>(), &exponent);
         return make<small_integer>(exponent);
-      });
+      }));
 
-      library.define<procedure>("binary64-sign-bit", [](let const& xs)
+      library.define("binary64-sign-bit", make<procedure>("binary64-sign-bit", [](let const& xs)
       {
         return make(std::signbit(car(xs).as<double>()));
-      });
+      }));
 
-      library.define<procedure>("binary64-normalized?",   [](let const& xs) { return std::fpclassify(car(xs).as<double>()) == FP_NORMAL; });
-      library.define<procedure>("binary64-denormalized?", [](let const& xs) { return std::fpclassify(car(xs).as<double>()) == FP_SUBNORMAL; });
+      library.define("binary64-normalized?", make<procedure>("binary64-normalized?", [](let const& xs)
+      {
+        return std::fpclassify(car(xs).as<double>()) == FP_NORMAL;
+      }));
 
-      library.define<procedure>("binary64-max", [](let const& xs) { auto max = -std::numeric_limits<double>::infinity(); for (let const& x : xs) { max = std::fmax(max, x.as<double>()); } return make(max); });
-      library.define<procedure>("binary64-min", [](let const& xs) { auto min =  std::numeric_limits<double>::infinity(); for (let const& x : xs) { min = std::fmin(min, x.as<double>()); } return make(min); });
+      library.define("binary64-denormalized?", make<procedure>("binary64-denormalized?", [](let const& xs)
+      {
+        return std::fpclassify(car(xs).as<double>()) == FP_SUBNORMAL;
+      }));
 
-      library.define<procedure>("binary64-fused-multiply-add", [](let const& xs)
+      library.define("binary64-max", make<procedure>("binary64-max", [](let const& xs)
+      {
+        auto max = -std::numeric_limits<double>::infinity();
+
+        for (let const& x : xs)
+        {
+          max = std::fmax(max, x.as<double>());
+        }
+
+        return make(max);
+      }));
+
+      library.define("binary64-min", make<procedure>("binary64-min", [](let const& xs)
+      {
+        auto min = std::numeric_limits<double>::infinity();
+
+        for (let const& x : xs)
+        {
+          min = std::fmin(min, x.as<double>());
+        }
+
+        return make(min);
+      }));
+
+      library.define("binary64-fused-multiply-add", make<procedure>("binary64-fused-multiply-add", [](let const& xs)
       {
         return make(std::fma(car(xs).as<double>(), cadr(xs).as<double>(), caddr(xs).as<double>()));
-      });
+      }));
 
-      library.define<procedure>("binary64-remquo", [](let const& xs)
+      library.define("binary64-remquo", make<procedure>("binary64-remquo", [](let const& xs)
       {
         auto quotient = 0;
         auto remainder = std::remquo(car(xs).as<double>(), cadr(xs).as<double>(), &quotient);
         return cons(make(remainder), make<small_integer>(quotient));
-      });
+      }));
     });
 
     define<library>("(meevax boolean)", [](library & library)
     {
       EXPORT_PREDICATE(bool, "boolean?");
 
-      library.define<procedure>("not", [](let const& xs)
+      library.define("not", make<procedure>("not", [](let const& xs)
       {
         return car(xs) == f;
-      });
+      }));
     });
 
     define<library>("(meevax box)", [](library & library)
@@ -168,40 +196,40 @@ namespace meevax::inline kernel
 
       EXPORT_PREDICATE(box, "box?");
 
-      library.define<procedure>("box-ref", [](let const& xs)
+      library.define("box-ref", make<procedure>("box-ref", [](let const& xs)
       {
         return caar(xs);
-      });
+      }));
 
-      library.define<procedure>("box-set!", [](let & xs)
+      library.define("box-set!", make<procedure>("box-set!", [](let & xs)
       {
         caar(xs) = cadr(xs);
-      });
+      }));
     });
 
     define<library>("(meevax character)", [](library & library)
     {
       EXPORT_PREDICATE(character, "char?");
 
-      library.define<procedure>("char=?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint == b.as<character>().codepoint); }) == xs.end(); });
-      library.define<procedure>("char<?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint <  b.as<character>().codepoint); }) == xs.end(); });
-      library.define<procedure>("char>?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint >  b.as<character>().codepoint); }) == xs.end(); });
-      library.define<procedure>("char<=?", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint <= b.as<character>().codepoint); }) == xs.end(); });
-      library.define<procedure>("char>=?", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint >= b.as<character>().codepoint); }) == xs.end(); });
+      library.define("char=?",  make<procedure>("char=?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint == b.as<character>().codepoint); }) == xs.end(); }));
+      library.define("char<?",  make<procedure>("char<?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint <  b.as<character>().codepoint); }) == xs.end(); }));
+      library.define("char>?",  make<procedure>("char>?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint >  b.as<character>().codepoint); }) == xs.end(); }));
+      library.define("char<=?", make<procedure>("char<=?", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint <= b.as<character>().codepoint); }) == xs.end(); }));
+      library.define("char>=?", make<procedure>("char>=?", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint >= b.as<character>().codepoint); }) == xs.end(); }));
 
-      library.define<procedure>("char-ci=?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() == b.as<character>().downcase()); }) == xs.end(); });
-      library.define<procedure>("char-ci<?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() <  b.as<character>().downcase()); }) == xs.end(); });
-      library.define<procedure>("char-ci>?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() >  b.as<character>().downcase()); }) == xs.end(); });
-      library.define<procedure>("char-ci<=?", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() <= b.as<character>().downcase()); }) == xs.end(); });
-      library.define<procedure>("char-ci>=?", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() >= b.as<character>().downcase()); }) == xs.end(); });
+      library.define("char-ci=?",  make<procedure>("char-ci=?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() == b.as<character>().downcase()); }) == xs.end(); }));
+      library.define("char-ci<?",  make<procedure>("char-ci<?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() <  b.as<character>().downcase()); }) == xs.end(); }));
+      library.define("char-ci>?",  make<procedure>("char-ci>?",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() >  b.as<character>().downcase()); }) == xs.end(); }));
+      library.define("char-ci<=?", make<procedure>("char-ci<=?", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() <= b.as<character>().downcase()); }) == xs.end(); }));
+      library.define("char-ci>=?", make<procedure>("char-ci>=?", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() >= b.as<character>().downcase()); }) == xs.end(); }));
 
-      library.define<procedure>("char-alphabetic?", [](let const& xs) { return car(xs).as<character>().property().is_letter    (); });
-      library.define<procedure>("char-numeric?",    [](let const& xs) { return car(xs).as<character>().property().is_numeric   (); });
-      library.define<procedure>("char-whitespace?", [](let const& xs) { return car(xs).as<character>().property().is_whitespace(); });
-      library.define<procedure>("char-upper-case?", [](let const& xs) { return car(xs).as<character>().property().is_upper_case(); });
-      library.define<procedure>("char-lower-case?", [](let const& xs) { return car(xs).as<character>().property().is_lower_case(); });
+      library.define("char-alphabetic?", make<procedure>("char-alphabetic?", [](let const& xs) { return car(xs).as<character>().property().is_letter    (); }));
+      library.define("char-numeric?",    make<procedure>("char-numeric?",    [](let const& xs) { return car(xs).as<character>().property().is_numeric   (); }));
+      library.define("char-whitespace?", make<procedure>("char-whitespace?", [](let const& xs) { return car(xs).as<character>().property().is_whitespace(); }));
+      library.define("char-upper-case?", make<procedure>("char-upper-case?", [](let const& xs) { return car(xs).as<character>().property().is_upper_case(); }));
+      library.define("char-lower-case?", make<procedure>("char-lower-case?", [](let const& xs) { return car(xs).as<character>().property().is_lower_case(); }));
 
-      library.define<procedure>("digit-value", [](let const& xs) -> object
+      library.define("digit-value", make<procedure>("digit-value", [](let const& xs) -> object
       {
         if (auto digit_value = car(xs).as<character>().digit_value(); digit_value)
         {
@@ -211,25 +239,25 @@ namespace meevax::inline kernel
         {
           return f;
         }
-      });
+      }));
 
-      library.define<procedure>("char->integer", [](let const& xs)
+      library.define("char->integer", make<procedure>("char->integer", [](let const& xs)
       {
         return make<small_integer>(car(xs).as<character>().codepoint);
-      });
+      }));
 
-      library.define<procedure>("integer->char", [](let const& xs)
+      library.define("integer->char", make<procedure>("integer->char", [](let const& xs)
       {
         return make<character>(exact_integer_cast<character::int_type>(car(xs)));
-      });
+      }));
 
-      library.define<procedure>("char-upcase",   [](let const& xs) { return make<character>(car(xs).as<character>().upcase  ()); });
-      library.define<procedure>("char-downcase", [](let const& xs) { return make<character>(car(xs).as<character>().downcase()); });
+      library.define("char-upcase",   make<procedure>("char-upcase",   [](let const& xs) { return make<character>(car(xs).as<character>().upcase  ()); }));
+      library.define("char-downcase", make<procedure>("char-downcase", [](let const& xs) { return make<character>(car(xs).as<character>().downcase()); }));
     });
 
     define<library>("(meevax context)", [](library & library)
     {
-      library.define<procedure>("emergency-exit", [](let const& xs)
+      library.define("emergency-exit", make<procedure>("emergency-exit", [](let const& xs)
       {
         if (xs.is<null>())
         {
@@ -243,9 +271,9 @@ namespace meevax::inline kernel
         {
           throw exact_integer_cast<int>(status);
         }
-      });
+      }));
 
-      library.define<procedure>("command-line", []()
+      library.define("command-line", make<procedure>("command-line", []()
       {
         let xs = list();
 
@@ -255,7 +283,7 @@ namespace meevax::inline kernel
         }
 
         return reverse(xs);
-      });
+      }));
     });
 
     define<library>("(meevax comparator)", [](library & library)
@@ -273,7 +301,7 @@ namespace meevax::inline kernel
 
     define<library>("(meevax environment)", [](library & library)
     {
-      library.define<procedure>("environment", [](let const& xs)
+      library.define("environment", make<procedure>("environment", [](let const& xs)
       {
         auto e = environment();
 
@@ -283,63 +311,63 @@ namespace meevax::inline kernel
         }
 
         return make(e);
-      });
+      }));
 
-      library.define<procedure>("eval", [](let const& xs)
+      library.define("eval", make<procedure>("eval", [](let const& xs)
       {
         return cadr(xs).as<environment>().evaluate(car(xs));
-      });
+      }));
 
-      library.define<procedure>("expand", [](let const& xs)
+      library.define("expand", make<procedure>("expand", [](let const& xs)
       {
         return cadr(xs).as<environment>().expand(car(xs), unit);
-      });
+      }));
 
-      library.define<procedure>("interaction-environment", []()
+      library.define("interaction-environment", make<procedure>("interaction-environment", []()
       {
         return interaction_environment();
-      });
+      }));
 
-      library.define<procedure>("load", [](let const& xs)
+      library.define("load", make<procedure>("load", [](let const& xs)
       {
         return car(xs).as<environment>().load(cadr(xs).as<string>().utf8());
-      });
+      }));
     });
 
     define<library>("(meevax error)", [](library & library)
     {
-      library.define<procedure>("throw", [](let const& xs)
+      library.define("throw", make<procedure>("throw", [](let const& xs)
       {
         throw car(xs);
-      });
+      }));
 
-      library.define<procedure>("error-object", [](let const& xs)
+      library.define("error-object", make<procedure>("error-object", [](let const& xs)
       {
         return make<error>(car(xs), cdr(xs));
-      });
+      }));
 
-      library.define<procedure>("error-object?", [](let const& xs)
+      library.define("error-object?", make<procedure>("error-object?", [](let const& xs)
       {
         return car(xs).is_also<error>();
-      });
+      }));
 
       EXPORT_PREDICATE(read_error, "read-error?");
       EXPORT_PREDICATE(file_error, "file-error?");
 
-      library.define<procedure>("kernel-exception-handler-set!", [](let const& xs)
+      library.define("kernel-exception-handler-set!", make<procedure>("kernel-exception-handler-set!", [](let const& xs)
       {
         environment::exception_handler = car(xs);
-      });
+      }));
     });
 
     define<library>("(meevax file)", [](library & library)
     {
-      library.define<procedure>("file-exists?", [](let const& xs)
+      library.define("file-exists?", make<procedure>("file-exists?", [](let const& xs)
       {
         return std::filesystem::exists(car(xs).as<string>().utf8());
-      });
+      }));
 
-      library.define<procedure>("delete-file", [](let const& xs)
+      library.define("delete-file", make<procedure>("delete-file", [](let const& xs)
       {
         try
         {
@@ -352,9 +380,9 @@ namespace meevax::inline kernel
         {
           throw file_error(make<string>(e.what()), car(xs));
         }
-      });
+      }));
 
-      library.define<procedure>("library-directories", [](let const&)
+      library.define("library-directories", make<procedure>("library-directories", [](let const&)
       {
         let directories = unit;
 
@@ -364,44 +392,44 @@ namespace meevax::inline kernel
         }
 
         return directories;
-      });
+      }));
     });
 
     define<library>("(meevax instruction)", [](library & library)
     {
-      library.define<instruction>("secd-call",              instruction::secd_call             );
-      library.define<instruction>("secd-cons",              instruction::secd_cons             );
-      library.define<instruction>("secd-current",           instruction::secd_current          );
-      library.define<instruction>("secd-drop",              instruction::secd_drop             );
-      library.define<instruction>("secd-dummy",             instruction::secd_dummy            );
-      library.define<instruction>("secd-install",           instruction::secd_install          );
-      library.define<instruction>("secd-join",              instruction::secd_join             );
-      library.define<instruction>("secd-letrec",            instruction::secd_letrec           );
-      library.define<instruction>("secd-load-absolute",     instruction::secd_load_absolute    );
-      library.define<instruction>("secd-load-closure",      instruction::secd_load_closure     );
-      library.define<instruction>("secd-load-constant",     instruction::secd_load_constant    );
-      library.define<instruction>("secd-load-continuation", instruction::secd_load_continuation);
-      library.define<instruction>("secd-load-relative",     instruction::secd_load_relative    );
-      library.define<instruction>("secd-load-variadic",     instruction::secd_load_variadic    );
-      library.define<instruction>("secd-return",            instruction::secd_return           );
-      library.define<instruction>("secd-select",            instruction::secd_select           );
-      library.define<instruction>("secd-stop",              instruction::secd_stop             );
-      library.define<instruction>("secd-store-absolute",    instruction::secd_store_absolute   );
-      library.define<instruction>("secd-store-relative",    instruction::secd_store_relative   );
-      library.define<instruction>("secd-store-variadic",    instruction::secd_store_variadic   );
-      library.define<instruction>("secd-tail-call",         instruction::secd_tail_call        );
-      library.define<instruction>("secd-tail-letrec",       instruction::secd_tail_letrec      );
-      library.define<instruction>("secd-tail-select",       instruction::secd_tail_select      );
+      library.define("secd-call",              make<instruction>(instruction::secd_call             ));
+      library.define("secd-cons",              make<instruction>(instruction::secd_cons             ));
+      library.define("secd-current",           make<instruction>(instruction::secd_current          ));
+      library.define("secd-drop",              make<instruction>(instruction::secd_drop             ));
+      library.define("secd-dummy",             make<instruction>(instruction::secd_dummy            ));
+      library.define("secd-install",           make<instruction>(instruction::secd_install          ));
+      library.define("secd-join",              make<instruction>(instruction::secd_join             ));
+      library.define("secd-letrec",            make<instruction>(instruction::secd_letrec           ));
+      library.define("secd-load-absolute",     make<instruction>(instruction::secd_load_absolute    ));
+      library.define("secd-load-closure",      make<instruction>(instruction::secd_load_closure     ));
+      library.define("secd-load-constant",     make<instruction>(instruction::secd_load_constant    ));
+      library.define("secd-load-continuation", make<instruction>(instruction::secd_load_continuation));
+      library.define("secd-load-relative",     make<instruction>(instruction::secd_load_relative    ));
+      library.define("secd-load-variadic",     make<instruction>(instruction::secd_load_variadic    ));
+      library.define("secd-return",            make<instruction>(instruction::secd_return           ));
+      library.define("secd-select",            make<instruction>(instruction::secd_select           ));
+      library.define("secd-stop",              make<instruction>(instruction::secd_stop             ));
+      library.define("secd-store-absolute",    make<instruction>(instruction::secd_store_absolute   ));
+      library.define("secd-store-relative",    make<instruction>(instruction::secd_store_relative   ));
+      library.define("secd-store-variadic",    make<instruction>(instruction::secd_store_variadic   ));
+      library.define("secd-tail-call",         make<instruction>(instruction::secd_tail_call        ));
+      library.define("secd-tail-letrec",       make<instruction>(instruction::secd_tail_letrec      ));
+      library.define("secd-tail-select",       make<instruction>(instruction::secd_tail_select      ));
     });
 
     define<library>("(meevax integer32)", [](library & library)
     {
       EXPORT_PREDICATE(small_integer, "integer32?");
 
-      library.define<small_integer>("integer32-width", 32);
+      library.define("integer32-width", make<small_integer>(32));
 
-      library.define<small_integer>("integer32-min", std::numeric_limits<small_integer>::min());
-      library.define<small_integer>("integer32-max", std::numeric_limits<small_integer>::max());
+      library.define("integer32-min", make<small_integer>(std::numeric_limits<small_integer>::min()));
+      library.define("integer32-max", make<small_integer>(std::numeric_limits<small_integer>::max()));
     });
 
     define<library>("(meevax list)", [](library & library)
@@ -410,12 +438,12 @@ namespace meevax::inline kernel
 
       EXPORT1_RENAME(is_list, "list?");
 
-      library.define<procedure>("list", [](let const& xs)
+      library.define("list", make<procedure>("list", [](let const& xs)
       {
         return xs;
-      });
+      }));
 
-      library.define<procedure>("make-list", [](let const& xs)
+      library.define("make-list", make<procedure>("make-list", [](let const& xs)
       {
         switch (length(xs))
         {
@@ -428,9 +456,9 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure make-list takes one or two arugments, but got"), xs);
         }
-      });
+      }));
 
-      library.define<procedure>("iota", [](let const& xs)
+      library.define("iota", make<procedure>("iota", [](let const& xs)
       {
         switch (length(xs))
         {
@@ -446,19 +474,19 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure iota takes one to three arugments, but got"), xs);
         }
-      });
+      }));
 
       EXPORT1_RENAME(is_circular_list, "circular-list?");
 
-      library.define<procedure>("circular-list", [](let & xs)
+      library.define("circular-list", make<procedure>("circular-list", [](let & xs)
       {
         circulate(xs);
         return xs;
-      });
+      }));
 
       EXPORT1_RENAME(is_dotted_list, "dotted-list?");
 
-      library.define<procedure>("null-list?", [](let const& xs)
+      library.define("null-list?", make<procedure>("null-list?", [](let const& xs)
       {
         if (is_list(car(xs)) or is_circular_list(car(xs)))
         {
@@ -468,18 +496,18 @@ namespace meevax::inline kernel
         {
           throw error(make<string>("procedure null-list? takes a proper-list or a circular-list, but got"), xs);
         }
-      });
+      }));
 
       EXPORT1_RENAME(last, "last");
 
       EXPORT1_RENAME(last_pair, "last-pair");
 
-      library.define<procedure>("length", [](let const& xs)
+      library.define("length", make<procedure>("length", [](let const& xs)
       {
         return make(static_cast<small_integer>(length(car(xs))));
-      });
+      }));
 
-      library.define<procedure>("length+", [](let const& xs) -> object
+      library.define("length+", make<procedure>("length+", [](let const& xs) -> object
       {
         if (is_circular_list(car(xs)))
         {
@@ -489,14 +517,14 @@ namespace meevax::inline kernel
         {
           return make(static_cast<small_integer>(length(car(xs))));
         }
-      });
+      }));
 
-      library.define<procedure>("append", [](let const& xs)
+      library.define("append", make<procedure>("append", [](let const& xs)
       {
         return std::accumulate(xs.begin(), xs.end(), unit, [](let const& x, let const& y) { return append(x, y); });
-      });
+      }));
 
-      library.define<procedure>("append!", [](let & xs)
+      library.define("append!", make<procedure>("append!", [](let & xs)
       {
         auto append = [](auto append, let & x, let & xs) -> auto &
         {
@@ -515,28 +543,28 @@ namespace meevax::inline kernel
         };
 
         return not xs.is<pair>() ? xs : append(append, car(xs), cdr(xs));
-      });
+      }));
 
       EXPORT2_RENAME(append_reverse, "append-reverse");
 
-      library.define<procedure>("append-reverse!", [](let & xs)
+      library.define("append-reverse!", make<procedure>("append-reverse!", [](let & xs)
       {
         return append_reverse(car(xs), cadr(xs));
-      });
+      }));
 
       EXPORT1_RENAME(reverse, "reverse");
 
-      library.define<procedure>("reverse!", [](let & xs)
+      library.define("reverse!", make<procedure>("reverse!", [](let & xs)
       {
         return reverse(car(xs));
-      });
+      }));
 
-      library.define<procedure>("concatenate", [](let const& xs)
+      library.define("concatenate", make<procedure>("concatenate", [](let const& xs)
       {
         return std::accumulate(car(xs).begin(), car(xs).end(), unit, [](let const& x, let const& y) { return append(x, y); });
-      });
+      }));
 
-      library.define<procedure>("concatenate!", [](let & xs)
+      library.define("concatenate!", make<procedure>("concatenate!", [](let & xs)
       {
         auto concatenate = [](auto concatenate, let & x, let & xs) -> auto &
         {
@@ -555,30 +583,30 @@ namespace meevax::inline kernel
         };
 
         return not xs.is<pair>() ? xs : concatenate(concatenate, caar(xs), cdar(xs));
-      });
+      }));
 
       EXPORT1_RENAME(list_copy, "list-copy");
 
-      library.define<procedure>("list-ref",  [](let const& xs) { return head(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
-      library.define<procedure>("list-tail", [](let const& xs) { return tail(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
+      library.define("list-ref",  make<procedure>("list-ref",  [](let const& xs) { return head(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); }));
+      library.define("list-tail", make<procedure>("list-tail", [](let const& xs) { return tail(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); }));
 
-      library.define<procedure>("first",   [](let const& xs) { return head(car(xs), 0); });
-      library.define<procedure>("second",  [](let const& xs) { return head(car(xs), 1); });
-      library.define<procedure>("third",   [](let const& xs) { return head(car(xs), 2); });
-      library.define<procedure>("fourth",  [](let const& xs) { return head(car(xs), 3); });
-      library.define<procedure>("fifth",   [](let const& xs) { return head(car(xs), 4); });
-      library.define<procedure>("sixth",   [](let const& xs) { return head(car(xs), 5); });
-      library.define<procedure>("seventh", [](let const& xs) { return head(car(xs), 6); });
-      library.define<procedure>("eighth",  [](let const& xs) { return head(car(xs), 7); });
-      library.define<procedure>("ninth",   [](let const& xs) { return head(car(xs), 8); });
-      library.define<procedure>("tenth",   [](let const& xs) { return head(car(xs), 9); });
+      library.define("first",   make<procedure>("first",   [](let const& xs) { return head(car(xs), 0); }));
+      library.define("second",  make<procedure>("second",  [](let const& xs) { return head(car(xs), 1); }));
+      library.define("third",   make<procedure>("third",   [](let const& xs) { return head(car(xs), 2); }));
+      library.define("fourth",  make<procedure>("fourth",  [](let const& xs) { return head(car(xs), 3); }));
+      library.define("fifth",   make<procedure>("fifth",   [](let const& xs) { return head(car(xs), 4); }));
+      library.define("sixth",   make<procedure>("sixth",   [](let const& xs) { return head(car(xs), 5); }));
+      library.define("seventh", make<procedure>("seventh", [](let const& xs) { return head(car(xs), 6); }));
+      library.define("eighth",  make<procedure>("eighth",  [](let const& xs) { return head(car(xs), 7); }));
+      library.define("ninth",   make<procedure>("ninth",   [](let const& xs) { return head(car(xs), 8); }));
+      library.define("tenth",   make<procedure>("tenth",   [](let const& xs) { return head(car(xs), 9); }));
 
-      library.define<procedure>("take",        [](let const& xs) { return take      (car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
-      library.define<procedure>("take!",       [](let      & xs) { return take      (car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
-      library.define<procedure>("take-right",  [](let const& xs) { return take_right(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
-      library.define<procedure>("drop",        [](let const& xs) { return drop      (car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
-      library.define<procedure>("drop-right",  [](let const& xs) { return drop_right(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
-      library.define<procedure>("drop-right!", [](let      & xs) { return drop_right(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); });
+      library.define("take",        make<procedure>("take",        [](let const& xs) { return take      (car(xs), exact_integer_cast<std::size_t>(cadr(xs))); }));
+      library.define("take!",       make<procedure>("take!",       [](let      & xs) { return take      (car(xs), exact_integer_cast<std::size_t>(cadr(xs))); }));
+      library.define("take-right",  make<procedure>("take-right",  [](let const& xs) { return take_right(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); }));
+      library.define("drop",        make<procedure>("drop",        [](let const& xs) { return drop      (car(xs), exact_integer_cast<std::size_t>(cadr(xs))); }));
+      library.define("drop-right",  make<procedure>("drop-right",  [](let const& xs) { return drop_right(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); }));
+      library.define("drop-right!", make<procedure>("drop-right!", [](let      & xs) { return drop_right(car(xs), exact_integer_cast<std::size_t>(cadr(xs))); }));
 
       EXPORT2_RENAME(memq, "memq");
       EXPORT2_RENAME(memv, "memv");
@@ -607,11 +635,11 @@ namespace meevax::inline kernel
       EXPORT1_RENAME(is_infinite,      "infinite?");
       EXPORT1_RENAME(is_nan,           "nan?");
 
-      library.define<procedure>("=",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), not_equals            ) == xs.end(); });
-      library.define<procedure>("<",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), greater_than_or_equals) == xs.end(); });
-      library.define<procedure>("<=", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), greater_than          ) == xs.end(); });
-      library.define<procedure>(">",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), less_than_or_equals   ) == xs.end(); });
-      library.define<procedure>(">=", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), less_than             ) == xs.end(); });
+      library.define("=",  make<procedure>("=",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), not_equals            ) == xs.end(); }));
+      library.define("<",  make<procedure>("<",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), greater_than_or_equals) == xs.end(); }));
+      library.define("<=", make<procedure>("<=", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), greater_than          ) == xs.end(); }));
+      library.define(">",  make<procedure>(">",  [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), less_than_or_equals   ) == xs.end(); }));
+      library.define(">=", make<procedure>(">=", [](let const& xs) { return std::adjacent_find(xs.begin(), xs.end(), less_than             ) == xs.end(); }));
 
       EXPORT1_RENAME(is_zero,     "zero?");
       EXPORT1_RENAME(is_positive, "positive?");
@@ -619,22 +647,22 @@ namespace meevax::inline kernel
       EXPORT1_RENAME(is_odd,      "odd?");
       EXPORT1_RENAME(is_even,     "even?");
 
-      library.define<procedure>("max", [](let const& xs) { if (auto iter = std::max_element(xs.begin(), xs.end(), less_than); iter != xs.end()) { return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter; } else { return unspecified; } });
-      library.define<procedure>("min", [](let const& xs) { if (auto iter = std::min_element(xs.begin(), xs.end(), less_than); iter != xs.end()) { return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter; } else { return unspecified; } });
+      library.define("max", make<procedure>("max", [](let const& xs) { if (auto iter = std::max_element(xs.begin(), xs.end(), less_than); iter != xs.end()) { return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter; } else { return unspecified; } }));
+      library.define("min", make<procedure>("min", [](let const& xs) { if (auto iter = std::min_element(xs.begin(), xs.end(), less_than); iter != xs.end()) { return std::any_of(xs.begin(), xs.end(), is_inexact) ? inexact(*iter) : *iter; } else { return unspecified; } }));
 
-      library.define<procedure>("+", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), e0, std::plus      ()); });
-      library.define<procedure>("*", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), e1, std::multiplies()); });
+      library.define("+", make<procedure>("+", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), e0, std::plus      ()); }));
+      library.define("*", make<procedure>("*", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), e1, std::multiplies()); }));
 
-      library.define<procedure>("-", [](let const& xs) { if (cdr(xs).is<pair>()) { return std::accumulate(std::next(xs.begin()), xs.end(), car(xs), std::minus  ()); } else { return e0 - car(xs); } });
-      library.define<procedure>("/", [](let const& xs) { if (cdr(xs).is<pair>()) { return std::accumulate(std::next(xs.begin()), xs.end(), car(xs), std::divides()); } else { return e1 / car(xs); } });
+      library.define("-", make<procedure>("-", [](let const& xs) { if (cdr(xs).is<pair>()) { return std::accumulate(std::next(xs.begin()), xs.end(), car(xs), std::minus  ()); } else { return e0 - car(xs); } }));
+      library.define("/", make<procedure>("/", [](let const& xs) { if (cdr(xs).is<pair>()) { return std::accumulate(std::next(xs.begin()), xs.end(), car(xs), std::divides()); } else { return e1 / car(xs); } }));
 
       EXPORT1_RENAME(abs,       "abs");
       EXPORT2_RENAME(quotient,  "quotient");
       EXPORT2_RENAME(remainder, "remainder");
       EXPORT2_RENAME(modulo,    "modulo");
 
-      library.define<procedure>("gcd", [](let const& xs) { switch (length(xs)) { case 0: return e0; case 1: return car(xs); default: return std::accumulate(cdr(xs).begin(), xs.end(), car(xs), gcd); } });
-      library.define<procedure>("lcm", [](let const& xs) { switch (length(xs)) { case 0: return e1; case 1: return car(xs); default: return std::accumulate(cdr(xs).begin(), xs.end(), car(xs), lcm); } });
+      library.define("gcd", make<procedure>("gcd", [](let const& xs) { switch (length(xs)) { case 0: return e0; case 1: return car(xs); default: return std::accumulate(cdr(xs).begin(), xs.end(), car(xs), gcd); } }));
+      library.define("lcm", make<procedure>("lcm", [](let const& xs) { switch (length(xs)) { case 0: return e1; case 1: return car(xs); default: return std::accumulate(cdr(xs).begin(), xs.end(), car(xs), lcm); } }));
 
       EXPORT1_RENAME(numerator,   "numerator");
       EXPORT1_RENAME(denominator, "denominator");
@@ -645,7 +673,7 @@ namespace meevax::inline kernel
 
       EXPORT1_RENAME(exp, "exp");
 
-      library.define<procedure>("log", [](let const& xs)
+      library.define("log", make<procedure>("log", [](let const& xs)
       {
         switch (length(xs))
         {
@@ -658,13 +686,13 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure log takes one or two arguments, but got"), xs);
         }
-      });
+      }));
 
       EXPORT1_RENAME(sin, "sin"); EXPORT1_RENAME(asin, "asin"); EXPORT1_RENAME(sinh, "sinh"); EXPORT1_RENAME(asinh, "asinh");
       EXPORT1_RENAME(cos, "cos"); EXPORT1_RENAME(acos, "acos"); EXPORT1_RENAME(cosh, "cosh"); EXPORT1_RENAME(acosh, "acosh");
       EXPORT1_RENAME(tan, "tan");                               EXPORT1_RENAME(tanh, "tanh"); EXPORT1_RENAME(atanh, "atanh");
 
-      library.define<procedure>("atan", [](let const& xs)
+      library.define("atan", make<procedure>("atan", [](let const& xs)
       {
         switch (length(xs))
         {
@@ -677,11 +705,11 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure atan takes one or two arguments, but got"), xs);
         }
-      });
+      }));
 
       EXPORT1_RENAME(sqrt, "sqrt");
 
-      library.define<procedure>("exact-integer-square-root", [](let const& xs)
+      library.define("exact-integer-square-root", make<procedure>("exact-integer-square-root", [](let const& xs)
       {
         auto sqrt = [](let const& x)
         {
@@ -699,19 +727,19 @@ namespace meevax::inline kernel
 
         return cons(make(std::forward<decltype(s)>(s)),
                     make(std::forward<decltype(r)>(r)));
-      });
+      }));
 
       EXPORT2_RENAME(pow, "expt");
 
       EXPORT2_RENAME(make<complex>, "make-rectangular");
 
-      library.define<procedure>("make-polar", [](let const& xs)
+      library.define("make-polar", make<procedure>("make-polar", [](let const& xs)
       {
         let const& radius = car(xs), angle = cadr(xs);
 
         return make<complex>(radius * cos(angle),
                              radius * sin(angle));
-      });
+      }));
 
       EXPORT1_RENAME(real,      "real-part");
       EXPORT1_RENAME(imag,      "imag-part");
@@ -740,30 +768,30 @@ namespace meevax::inline kernel
       EXPORT2_RENAME(cyl_bessel_j, "cyl_bessel_j");
       EXPORT2_RENAME(cyl_neumann,  "cyl_neumann");
 
-      library.define<double>("e",     std::numbers::e);
-      library.define<double>("pi",    std::numbers::pi);
-      library.define<double>("euler", std::numbers::egamma);
-      library.define<double>("phi",   std::numbers::phi);
+      library.define("e",     make<double>(std::numbers::e));
+      library.define("pi",    make<double>(std::numbers::pi));
+      library.define("euler", make<double>(std::numbers::egamma));
+      library.define("phi",   make<double>(std::numbers::phi));
 
       // SRFI 151: Bitwise Operations
 
       EXPORT1_RENAME(bitwise_not, "bitwise-not");
 
-      library.define<procedure>("bitwise-and", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<small_integer>(-1), bitwise_and); });
-      library.define<procedure>("bitwise-ior", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<small_integer>( 0), bitwise_ior); });
-      library.define<procedure>("bitwise-xor", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<small_integer>( 0), bitwise_xor); });
+      library.define("bitwise-and", make<procedure>("bitwise-and", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<small_integer>(-1), bitwise_and); }));
+      library.define("bitwise-ior", make<procedure>("bitwise-ior", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<small_integer>( 0), bitwise_ior); }));
+      library.define("bitwise-xor", make<procedure>("bitwise-xor", [](let const& xs) { return std::accumulate(xs.begin(), xs.end(), make<small_integer>( 0), bitwise_xor); }));
 
-      library.define<procedure>("bit-shift", [](let const& xs)
+      library.define("bit-shift", make<procedure>("bit-shift", [](let const& xs)
       {
         return bit_shift(car(xs), exact_integer_cast<small_integer>(cadr(xs)));
-      });
+      }));
 
       EXPORT1_RENAME(bit_count, "bit-count");
       EXPORT1_RENAME(bit_width, "bit-width");
 
       // R7RS 6.2.7 Numerial input and output
 
-      library.define<procedure>("number->string", [](let const& xs)
+      library.define("number->string", make<procedure>("number->string", [](let const& xs)
       {
         switch (length(xs))
         {
@@ -776,9 +804,9 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure number->string takes one or two arugments, but got"), xs);
         }
-      });
+      }));
 
-      library.define<procedure>("string->number", [](let const& xs)
+      library.define("string->number", make<procedure>("string->number", [](let const& xs)
       {
         switch (length(xs))
         {
@@ -791,22 +819,22 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure string->number takes one or two arugments, but got"), xs);
         }
-      });
+      }));
     });
 
     define<library>("(meevax pair)", [](library & library)
     {
       EXPORT_PREDICATE(pair, "pair?");
 
-      library.define<procedure>("not-pair?", [](let const& xs)
+      library.define("not-pair?", make<procedure>("not-pair?", [](let const& xs)
       {
         return not car(xs).is<pair>();
-      });
+      }));
 
       EXPORT2_RENAME(cons,  "cons");
       EXPORT2_RENAME(xcons, "xcons");
 
-      library.define<procedure>("cons*", [](let & xs)
+      library.define("cons*", make<procedure>("cons*", [](let & xs)
       {
         if (xs.is<null>())
         {
@@ -829,7 +857,7 @@ namespace meevax::inline kernel
 
           return xs;
         }
-      });
+      }));
 
       EXPORT1_RENAME(car, "car");
       EXPORT1_RENAME(cdr, "cdr");
@@ -851,82 +879,82 @@ namespace meevax::inline kernel
       EXPORT1_RENAME(caddar, "caddar"); EXPORT1_RENAME(cdddar, "cdddar");
       EXPORT1_RENAME(cadddr, "cadddr"); EXPORT1_RENAME(cddddr, "cddddr");
 
-      library.define<procedure>("set-car!", [](let & xs) { caar(xs) = cadr(xs); });
-      library.define<procedure>("set-cdr!", [](let & xs) { cdar(xs) = cadr(xs); });
+      library.define("set-car!", make<procedure>("set-car!", [](let & xs) { caar(xs) = cadr(xs); }));
+      library.define("set-cdr!", make<procedure>("set-cdr!", [](let & xs) { cdar(xs) = cadr(xs); }));
     });
 
     define<library>("(meevax port)", [](library & library)
     {
-      library.define<procedure>(  "input-port?", [](let const& xs) { return car(xs).is_also<  input_port>(); });
-      library.define<procedure>( "output-port?", [](let const& xs) { return car(xs).is_also< output_port>(); });
-      library.define<procedure>( "binary-port?", [](let const& xs) { return car(xs).is_also< binary_port>(); });
-      library.define<procedure>("textual-port?", [](let const& xs) { return car(xs).is_also<textual_port>(); });
-      library.define<procedure>(        "port?", [](let const& xs) { return car(xs).is_also<        port>(); });
+      library.define(  "input-port?", make<procedure>(  "input-port?", [](let const& xs) { return car(xs).is_also<  input_port>(); }));
+      library.define( "output-port?", make<procedure>( "output-port?", [](let const& xs) { return car(xs).is_also< output_port>(); }));
+      library.define( "binary-port?", make<procedure>( "binary-port?", [](let const& xs) { return car(xs).is_also< binary_port>(); }));
+      library.define("textual-port?", make<procedure>("textual-port?", [](let const& xs) { return car(xs).is_also<textual_port>(); }));
+      library.define(        "port?", make<procedure>(        "port?", [](let const& xs) { return car(xs).is_also<        port>(); }));
 
-      library.define<procedure>("open?", [](let const& xs)
+      library.define("open?", make<procedure>("open?", [](let const& xs)
       {
         return car(xs).as<port>().is_open();
-      });
+      }));
 
-      library.define<procedure>( "standard-input-port", []() { return make< standard_input_port>(); });
-      library.define<procedure>("standard-output-port", []() { return make<standard_output_port>(); });
-      library.define<procedure>( "standard-error-port", []() { return make< standard_error_port>(); });
+      library.define( "standard-input-port", make<procedure>( "standard-input-port", []() { return make< standard_input_port>(); }));
+      library.define("standard-output-port", make<procedure>("standard-output-port", []() { return make<standard_output_port>(); }));
+      library.define( "standard-error-port", make<procedure>( "standard-error-port", []() { return make< standard_error_port>(); }));
 
-      library.define<procedure>(        "open-input-file", [](let const& xs) { return make<        input_file_port>(car(xs).as<string>().utf8()); });
-      library.define<procedure>(       "open-output-file", [](let const& xs) { return make<       output_file_port>(car(xs).as<string>().utf8()); });
-      library.define<procedure>( "open-binary-input-file", [](let const& xs) { return make< binary_input_file_port>(car(xs).as<string>().utf8()); });
-      library.define<procedure>("open-binary-output-file", [](let const& xs) { return make<binary_output_file_port>(car(xs).as<string>().utf8()); });
+      library.define(        "open-input-file", make<procedure>(        "open-input-file", [](let const& xs) { return make<        input_file_port>(car(xs).as<string>().utf8()); }));
+      library.define(       "open-output-file", make<procedure>(       "open-output-file", [](let const& xs) { return make<       output_file_port>(car(xs).as<string>().utf8()); }));
+      library.define( "open-binary-input-file", make<procedure>( "open-binary-input-file", [](let const& xs) { return make< binary_input_file_port>(car(xs).as<string>().utf8()); }));
+      library.define("open-binary-output-file", make<procedure>("open-binary-output-file", [](let const& xs) { return make<binary_output_file_port>(car(xs).as<string>().utf8()); }));
 
-      library.define<procedure>("close", [](let const& xs)
+      library.define("close", make<procedure>("close", [](let const& xs)
       {
         car(xs).as<port>().close();
-      });
+      }));
 
-      library.define<procedure>("open-input-string", [](let const& xs)
+      library.define("open-input-string", make<procedure>("open-input-string", [](let const& xs)
       {
         return make<input_string_port>(car(xs).as<string>().utf8());
-      });
+      }));
 
-      library.define<procedure>("open-output-string", [](let const&)
+      library.define("open-output-string", make<procedure>("open-output-string", [](let const&)
       {
         return make<output_string_port>();
-      });
+      }));
 
-      library.define<procedure>("get-output-string", [](let const& xs)
+      library.define("get-output-string", make<procedure>("get-output-string", [](let const& xs)
       {
         return make<string>(car(xs).as<output_string_port>().ostringstream.str());
-      });
+      }));
 
-      library.define<procedure>("open-input-u8vector", [](let const& xs)
+      library.define("open-input-u8vector", make<procedure>("open-input-u8vector", [](let const& xs)
       {
         return make<input_u8vector_port>(car(xs).as<u8vector>());
-      });
+      }));
 
-      library.define<procedure>("open-output-u8vector", [](let const&)
+      library.define("open-output-u8vector", make<procedure>("open-output-u8vector", [](let const&)
       {
         return make<output_u8vector_port>();
-      });
+      }));
 
-      library.define<procedure>("get-output-u8vector", [](let const& xs)
+      library.define("get-output-u8vector", make<procedure>("get-output-u8vector", [](let const& xs)
       {
         return make<u8vector>(car(xs).as<output_u8vector_port>().vector.data(),
                               car(xs).as<output_u8vector_port>().vector.size());
-      });
+      }));
 
-      library.define<procedure>("eof-object?", [](let const& xs)
+      library.define("eof-object?", make<procedure>("eof-object?", [](let const& xs)
       {
         return car(xs).is<eof>();
-      });
+      }));
 
-      library.define<procedure>("eof-object", []()
+      library.define("eof-object", make<procedure>("eof-object", []()
       {
         return eof_object;
-      });
+      }));
 
-      library.define<procedure>("flush", [](let const& xs)
+      library.define("flush", make<procedure>("flush", [](let const& xs)
       {
         car(xs).as<output_port>().flush();
-      });
+      }));
     });
 
     define<library>("(meevax procedure)", [](library & library)
@@ -934,48 +962,48 @@ namespace meevax::inline kernel
       EXPORT_PREDICATE(closure,      "closure?");
       EXPORT_PREDICATE(continuation, "continuation?");
 
-      library.define<procedure>("procedure?", [](let const& xs)
+      library.define("procedure?", make<procedure>("procedure?", [](let const& xs)
       {
         return car(xs).is<closure>() or car(xs).is<continuation>() or car(xs).is_also<primitive>();
-      });
+      }));
 
-      library.define<procedure>("procedure", [](let const& xs)
+      library.define("procedure", make<procedure>("procedure", [](let const& xs)
       {
         return make<procedure>(cadr(xs).as<symbol>(),
                                reinterpret_cast<primitive::signature>(
                                  default_collector::dlsym(cadr(xs).as<symbol>(),
                                                           default_collector::dlopen(car(xs).as<string>().utf8()))));
-      });
+      }));
     });
 
     define<library>("(meevax read)", [](library & library)
     {
-      library.define<procedure>("get-char",        [](let const& xs) { return car(xs).as<textual_input_port>().get      (); });
-      library.define<procedure>("get-char-ready?", [](let const& xs) { return car(xs).as<textual_input_port>().get_ready(); });
-      library.define<procedure>("get-line",        [](let const& xs) { return car(xs).as<textual_input_port>().get_line (); });
-      library.define<procedure>("peek-char",       [](let const& xs) { return car(xs).as<textual_input_port>().peek     (); });
-      library.define<procedure>("read",            [](let const& xs) { return car(xs).as<textual_input_port>().read     (); });
+      library.define("get-char",        make<procedure>("get-char",        [](let const& xs) { return car(xs).as<textual_input_port>().get      (); }));
+      library.define("get-char-ready?", make<procedure>("get-char-ready?", [](let const& xs) { return car(xs).as<textual_input_port>().get_ready(); }));
+      library.define("get-line",        make<procedure>("get-line",        [](let const& xs) { return car(xs).as<textual_input_port>().get_line (); }));
+      library.define("peek-char",       make<procedure>("peek-char",       [](let const& xs) { return car(xs).as<textual_input_port>().peek     (); }));
+      library.define("read",            make<procedure>("read",            [](let const& xs) { return car(xs).as<textual_input_port>().read     (); }));
 
-      library.define<procedure>("get-string", [](let const& xs)
+      library.define("get-string", make<procedure>("get-string", [](let const& xs)
       {
         return cadr(xs).as<textual_input_port>().get(exact_integer_cast<std::size_t>(car(xs)));
-      });
+      }));
 
-      library.define<procedure>("get-u8",        [](let const& xs) { return car(xs).as<binary_input_port>().get      (); });
-      library.define<procedure>("get-u8-ready?", [](let const& xs) { return car(xs).as<binary_input_port>().get_ready(); });
-      library.define<procedure>("peek-u8",       [](let const& xs) { return car(xs).as<binary_input_port>().peek     (); });
+      library.define("get-u8",        make<procedure>("get-u8",        [](let const& xs) { return car(xs).as<binary_input_port>().get      (); }));
+      library.define("get-u8-ready?", make<procedure>("get-u8-ready?", [](let const& xs) { return car(xs).as<binary_input_port>().get_ready(); }));
+      library.define("peek-u8",       make<procedure>("peek-u8",       [](let const& xs) { return car(xs).as<binary_input_port>().peek     (); }));
 
-      library.define<procedure>("get-u8vector", [](let const& xs)
+      library.define("get-u8vector", make<procedure>("get-u8vector", [](let const& xs)
       {
         return cadr(xs).as<binary_input_port>().get(exact_integer_cast<std::size_t>(car(xs)));
-      });
+      }));
     });
 
     define<library>("(meevax string)", [](library & library)
     {
       EXPORT_PREDICATE(string, "string?");
 
-      library.define<procedure>("make-string", [](let const& xs)
+      library.define("make-string", make<procedure>("make-string", [](let const& xs)
       {
         switch (length(xs))
         {
@@ -988,30 +1016,30 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure make-string takes one or two arugments, but got"), xs);
         }
-      });
+      }));
 
-      library.define<procedure>("string", [](let const& xs)
+      library.define("string", make<procedure>("string", [](let const& xs)
       {
         return make_string_from_list_of_character(xs);
-      });
+      }));
 
-      library.define<procedure>("string-length", [](let const& xs)
+      library.define("string-length", make<procedure>("string-length", [](let const& xs)
       {
         return make(static_cast<small_integer>(car(xs).as<string>().characters.size())); // XXX DIRTY HACK (MAKE large_integer IF THE LENGTH IS GREATER THAN INT_MAX)
-      });
+      }));
 
-      library.define<procedure>("string-ref", [](let const& xs)
+      library.define("string-ref", make<procedure>("string-ref", [](let const& xs)
       {
         return make(car(xs).as<string>().characters.at(exact_integer_cast<std::size_t>(cadr(xs))));
-      });
+      }));
 
-      library.define<procedure>("string-set!", [](let & xs)
+      library.define("string-set!", make<procedure>("string-set!", [](let & xs)
       {
         car(xs).as<string>().characters.at(exact_integer_cast<std::size_t>(cadr(xs))) = caddr(xs).as<character>();
-      });
+      }));
 
       #define EXPORT_STRING_COMPARE(OPERATOR, IDENTIFIER)                      \
-      library.define<procedure>(IDENTIFIER, [](let const& xs)                  \
+      library.define(IDENTIFIER, make<procedure>(IDENTIFIER, [](let const& xs) \
       {                                                                        \
         auto compare = [](let const& a, let const& b)                          \
         {                                                                      \
@@ -1019,7 +1047,7 @@ namespace meevax::inline kernel
         };                                                                     \
                                                                                \
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();  \
-      })
+      }))
 
       EXPORT_STRING_COMPARE(==, "string=?");
       EXPORT_STRING_COMPARE(< , "string<?");
@@ -1028,7 +1056,7 @@ namespace meevax::inline kernel
       EXPORT_STRING_COMPARE(>=, "string>=?");
 
       #define EXPORT_STRING_CI_COMPARE(OPERATOR, IDENTIFIER)                   \
-      library.define<procedure>(IDENTIFIER, [](let const& xs)                  \
+      library.define(IDENTIFIER, make<procedure>(IDENTIFIER, [](let const& xs) \
       {                                                                        \
         auto compare = [](let const& s1, let const& s2)                        \
         {                                                                      \
@@ -1045,7 +1073,7 @@ namespace meevax::inline kernel
         };                                                                     \
                                                                                \
         return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();  \
-      });
+      }))
 
       EXPORT_STRING_CI_COMPARE(==, "string-ci=?");
       EXPORT_STRING_CI_COMPARE(< , "string-ci<?");
@@ -1053,7 +1081,7 @@ namespace meevax::inline kernel
       EXPORT_STRING_CI_COMPARE(<=, "string-ci<=?");
       EXPORT_STRING_CI_COMPARE(>=, "string-ci>=?");
 
-      library.define<procedure>("string-append", [](let const& xs)
+      library.define("string-append", make<procedure>("string-append", [](let const& xs)
       {
         let s = make<string>();
 
@@ -1065,9 +1093,9 @@ namespace meevax::inline kernel
         }
 
         return s;
-      });
+      }));
 
-      library.define<procedure>("string->list", [](let const& xs)
+      library.define("string->list", make<procedure>("string->list", [](let const& xs)
       {
         auto push = [](let const& xs, character const& c)
         {
@@ -1095,14 +1123,14 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure string->list takes one to three arugments, but got"), xs);
         }
-      });
+      }));
 
-      library.define<procedure>("list->string", [](let const& xs)
+      library.define("list->string", make<procedure>("list->string", [](let const& xs)
       {
         return make_string_from_list_of_character(car(xs));
-      });
+      }));
 
-      library.define<procedure>("string-copy", [](let const& xs)
+      library.define("string-copy", make<procedure>("string-copy", [](let const& xs)
       {
         switch (length(xs))
         {
@@ -1118,9 +1146,9 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure string-copy takes one to three arugments, but got"), xs);
         }
-      });
+      }));
 
-      library.define<procedure>("string-copy!", [](let const& xs)
+      library.define("string-copy!", make<procedure>("string-copy!", [](let const& xs)
       {
         car(xs).as<string>().characters.reserve(car(xs).as<string>().characters.size() + caddr(xs).as<string>().characters.size());
 
@@ -1147,9 +1175,9 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure string-copy takes three to five arugments, but got"), xs);
         }
-      });
+      }));
 
-      library.define<procedure>("string-fill!", [](let & xs)
+      library.define("string-fill!", make<procedure>("string-fill!", [](let & xs)
       {
         switch (length(xs))
         {
@@ -1174,24 +1202,24 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure string-fill! takes one to three arugments, but got"), xs);
         }
-      });
+      }));
     });
 
     define<library>("(meevax symbol)", [](library & library)
     {
       EXPORT_PREDICATE(symbol, "symbol?");
 
-      library.define<procedure>("symbol->string", [](let const& xs)
+      library.define("symbol->string", make<procedure>("symbol->string", [](let const& xs)
       {
         return make<string>(car(xs).as<symbol>());
-      });
+      }));
 
-      library.define<procedure>("string->symbol", [](let const& xs)
+      library.define("string->symbol", make<procedure>("string->symbol", [](let const& xs)
       {
         return make_symbol(car(xs).as<string>().utf8());
-      });
+      }));
 
-      library.define<procedure>("identifier->symbol", [](let const& xs)
+      library.define("identifier->symbol", make<procedure>("identifier->symbol", [](let const& xs)
       {
         if (let const& x = car(xs); x.is<syntactic_closure>())
         {
@@ -1201,15 +1229,15 @@ namespace meevax::inline kernel
         {
           return x;
         }
-      });
+      }));
     });
 
     define<library>("(meevax syntactic-closure)", [](library & library)
     {
-      library.define<procedure>("identifier?", [](let const& xs)
+      library.define("identifier?", make<procedure>("identifier?", [](let const& xs)
       {
         return car(xs).is_also<identifier>();
-      });
+      }));
 
       EXPORT_PREDICATE(transformer, "transformer?");
       EXPORT_PREDICATE(syntactic_closure, "syntactic-closure?");
@@ -1219,12 +1247,12 @@ namespace meevax::inline kernel
 
     define<library>("(meevax system)", [](library & library)
     {
-      library.define<procedure>("features", []()
+      library.define("features", make<procedure>("features", []()
       {
         return features();
-      });
+      }));
 
-      library.define<procedure>("get-environment-variable", [](let const& xs) -> object
+      library.define("get-environment-variable", make<procedure>("get-environment-variable", [](let const& xs) -> object
       {
         if (auto s = std::getenv(car(xs).as<string>().utf8().c_str()))
         {
@@ -1234,9 +1262,9 @@ namespace meevax::inline kernel
         {
           return f;
         }
-      });
+      }));
 
-      library.define<procedure>("get-environment-variables", []()
+      library.define("get-environment-variables", make<procedure>("get-environment-variables", []()
       {
         let alist = nullptr;
 
@@ -1251,32 +1279,32 @@ namespace meevax::inline kernel
         }
 
         return alist;
-      });
+      }));
     });
 
     define<library>("(meevax time)", [](library & library)
     {
-      library.define<procedure>("current-jiffy", []()
+      library.define("current-jiffy", make<procedure>("current-jiffy", []()
       {
         return make<large_integer>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
-      });
+      }));
 
-      library.define<procedure>("jiffies-per-second", []()
+      library.define("jiffies-per-second", make<procedure>("jiffies-per-second", []()
       {
         return make<large_integer>(std::chrono::high_resolution_clock::period::den);
-      });
+      }));
     });
 
     define<library>("(meevax vector)", [](library & library)
     {
       EXPORT_PREDICATE(vector, "vector?");
 
-      library.define<procedure>("vector", [](let const& xs)
+      library.define("vector", make<procedure>("vector", [](let const& xs)
       {
         return make_vector(xs);
-      });
+      }));
 
-      library.define<procedure>("make-vector", [](let const& xs)
+      library.define("make-vector", make<procedure>("make-vector", [](let const& xs)
       {
         switch (length(xs))
         {
@@ -1289,24 +1317,24 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure make-vector takes one or two arugments, but got"), xs);
         }
-      });
+      }));
 
-      library.define<procedure>("vector-length", [](let const& xs)
+      library.define("vector-length", make<procedure>("vector-length", [](let const& xs)
       {
         return make(static_cast<small_integer>(car(xs).as<vector>().objects.size()));
-      });
+      }));
 
-      library.define<procedure>("vector-ref", [](let const& xs)
+      library.define("vector-ref", make<procedure>("vector-ref", [](let const& xs)
       {
         return car(xs).as<vector>().objects[exact_integer_cast<std::size_t>(cadr(xs))];
-      });
+      }));
 
-      library.define<procedure>("vector-set!", [](let & xs)
+      library.define("vector-set!", make<procedure>("vector-set!", [](let & xs)
       {
         car(xs).as<vector>().objects[exact_integer_cast<std::size_t>(cadr(xs))] = caddr(xs);
-      });
+      }));
 
-      library.define<procedure>("vector->list", [](let const& xs)
+      library.define("vector->list", make<procedure>("vector->list", [](let const& xs)
       {
         switch (length(xs))
         {
@@ -1328,11 +1356,11 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure vector->list takes one to three arugments, but got"), xs);
         }
-      });
+      }));
 
       EXPORT1_RENAME(make_vector, "list->vector");
 
-      library.define<procedure>("vector->string", [](let const& xs)
+      library.define("vector->string", make<procedure>("vector->string", [](let const& xs)
       {
         let s = make<string>();
 
@@ -1364,9 +1392,9 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure vector->list takes one to three arugments, but got"), xs);
         }
-      });
+      }));
 
-      library.define<procedure>("string->vector", [](let const& xs)
+      library.define("string->vector", make<procedure>("string->vector", [](let const& xs)
       {
         let v = make<vector>();
 
@@ -1376,9 +1404,9 @@ namespace meevax::inline kernel
         }
 
         return v;
-      });
+      }));
 
-      library.define<procedure>("vector-copy", [](let const& xs)
+      library.define("vector-copy", make<procedure>("vector-copy", [](let const& xs)
       {
         switch (length(xs))
         {
@@ -1394,9 +1422,9 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure vector-copy takes one to three arugments, but got"), xs);
         }
-      });
+      }));
 
-      library.define<procedure>("vector-copy!", [](let const& xs)
+      library.define("vector-copy!", make<procedure>("vector-copy!", [](let const& xs)
       {
         car(xs).as<vector>().objects.reserve(car(xs).as<vector>().objects.size() + caddr(xs).as<vector>().objects.size());
 
@@ -1423,9 +1451,9 @@ namespace meevax::inline kernel
         default:
           throw error(make<string>("procedure vector-copy takes three to five arugments, but got"), xs);
         }
-      });
+      }));
 
-      library.define<procedure>("vector-append", [](let const& xs)
+      library.define("vector-append", make<procedure>("vector-append", [](let const& xs)
       {
         let v = make<vector>();
 
@@ -1437,9 +1465,9 @@ namespace meevax::inline kernel
         }
 
         return v;
-      });
+      }));
 
-      library.define<procedure>("vector-fill!", [](let & xs)
+      library.define("vector-fill!", make<procedure>("vector-fill!", [](let & xs)
       {
         switch (length(xs))
         {
@@ -1461,7 +1489,7 @@ namespace meevax::inline kernel
                     cadr(xs));
           break;
         }
-      });
+      }));
     });
 
     define<library>("(meevax vector homogeneous)", [](library & library)
@@ -1469,7 +1497,7 @@ namespace meevax::inline kernel
       #define DEFINE_VECTOR(TAG)                                               \
       EXPORT_PREDICATE(TAG##vector, #TAG "vector?");                           \
                                                                                \
-      library.define<procedure>("make-" #TAG "vector", [](let const& xs)       \
+      library.define("make-" #TAG "vector", make<procedure>("make-" #TAG "vector", [](let const& xs) \
       {                                                                        \
         switch (length(xs))                                                    \
         {                                                                      \
@@ -1482,29 +1510,29 @@ namespace meevax::inline kernel
         default:                                                               \
           throw error(make<string>("procedure make-" #TAG "vector takes one or two arguments, but got"), xs); \
         }                                                                      \
-      });                                                                      \
+      }));                                                                     \
                                                                                \
-      library.define<procedure>(#TAG "vector", [](let const& xs)               \
+      library.define(#TAG "vector", make<procedure>(#TAG "vector", [](let const& xs) \
       {                                                                        \
         return make_homogeneous_vector_from_list_of<TAG>(xs);                  \
-      });                                                                      \
+      }));                                                                     \
                                                                                \
-      library.define<procedure>(#TAG "vector-length", [](let const& xs)        \
+      library.define(#TAG "vector-length", make<procedure>(#TAG "vector-length", [](let const& xs) \
       {                                                                        \
         return make(static_cast<small_integer>(car(xs).as<TAG##vector>().values.size())); \
-      });                                                                      \
+      }));                                                                     \
                                                                                \
-      library.define<procedure>(#TAG "vector-ref", [](let const& xs)           \
+      library.define(#TAG "vector-ref", make<procedure>(#TAG "vector-ref", [](let const& xs) \
       {                                                                        \
         return TAG##vector::output_cast(car(xs).as<TAG##vector>().values[exact_integer_cast<std::size_t>(cadr(xs))]); \
-      });                                                                      \
+      }));                                                                     \
                                                                                \
-      library.define<procedure>(#TAG "vector-set!", [](let const& xs)          \
+      library.define(#TAG "vector-set!", make<procedure>(#TAG "vector-set!", [](let const& xs) \
       {                                                                        \
         car(xs).as<TAG##vector>().values[exact_integer_cast<std::size_t>(cadr(xs))] = TAG##vector::input_cast(caddr(xs)); \
-      });                                                                      \
+      }));                                                                     \
                                                                                \
-      library.define<procedure>(#TAG "vector-copy", [](let const& xs)          \
+      library.define(#TAG "vector-copy", make<procedure>(#TAG "vector-copy", [](let const& xs) \
       {                                                                        \
         auto copy = [&](std::size_t begin, std::size_t end)                    \
         {                                                                      \
@@ -1528,9 +1556,9 @@ namespace meevax::inline kernel
         default:                                                               \
           throw error(make<string>("procedure " #TAG "vector-copy takes one to three arguments, but got"), xs); \
         }                                                                      \
-      });                                                                      \
+      }));                                                                     \
                                                                                \
-      library.define<procedure>(#TAG "vector-copy!", [](let & xs)              \
+      library.define(#TAG "vector-copy!", make<procedure>(#TAG "vector-copy!", [](let & xs) \
       {                                                                        \
         auto copy = [&](std::size_t at, std::size_t begin, std::size_t end)    \
         {                                                                      \
@@ -1563,9 +1591,9 @@ namespace meevax::inline kernel
         default:                                                               \
           throw error(make<string>("procedure " #TAG "vector-copy! takes three to five arguments, but got"), xs); \
         }                                                                      \
-      });                                                                      \
+      }));                                                                     \
                                                                                \
-      library.define<procedure>(#TAG "vector-append", [](let const& xs)        \
+      library.define(#TAG "vector-append", make<procedure>(#TAG "vector-append", [](let const& xs) \
       {                                                                        \
         auto const& a = car(xs).as<TAG##vector>();                             \
         auto const& b = cadr(xs).as<TAG##vector>();                            \
@@ -1573,9 +1601,9 @@ namespace meevax::inline kernel
         c.as<TAG##vector>().values[std::slice(0, a.values.size(), 1)] = a.values; \
         c.as<TAG##vector>().values[std::slice(a.values.size(), b.values.size(), 1)] = b.values; \
         return c;                                                              \
-      });                                                                      \
+      }));                                                                     \
                                                                                \
-      library.define<procedure>(#TAG "vector->list", [](let const& xs)         \
+      library.define(#TAG "vector->list", make<procedure>(#TAG "vector->list", [](let const& xs) \
       {                                                                        \
         auto list = [](auto&& v, auto&& a, auto&& b)                           \
         {                                                                      \
@@ -1608,12 +1636,12 @@ namespace meevax::inline kernel
         default:                                                               \
           throw error(make<string>("procedure " #TAG "vector->list takes one to three arguments, but got"), xs); \
         }                                                                      \
-      });                                                                      \
+      }));                                                                     \
                                                                                \
-      library.define<procedure>("list->" #TAG "vector", [](let const& xs)      \
+      library.define("list->" #TAG "vector", make<procedure>("list->" #TAG "vector", [](let const& xs) \
       {                                                                        \
         return make_homogeneous_vector_from_list_of<TAG>(car(xs));             \
-      })
+      }))
 
       DEFINE_VECTOR(s8); DEFINE_VECTOR(s16); DEFINE_VECTOR(s32); DEFINE_VECTOR(s64);
       DEFINE_VECTOR(u8); DEFINE_VECTOR(u16); DEFINE_VECTOR(u32); DEFINE_VECTOR(u64);
@@ -1621,7 +1649,7 @@ namespace meevax::inline kernel
 
       #undef DEFINE_VECTOR
 
-      library.define<procedure>("u8vector->string", [](let const& xs)
+      library.define("u8vector->string", make<procedure>("u8vector->string", [](let const& xs)
       {
         auto buffer = std::ostringstream();
 
@@ -1655,9 +1683,9 @@ namespace meevax::inline kernel
         }
 
         return input_string_port(buffer.str()).get(std::numeric_limits<std::size_t>::max());
-      });
+      }));
 
-      library.define<procedure>("string->u8vector", [](let const& xs)
+      library.define("string->u8vector", make<procedure>("string->u8vector", [](let const& xs)
       {
         auto convert = [](std::string const& s)
         {
@@ -1665,40 +1693,40 @@ namespace meevax::inline kernel
         };
 
         return convert(car(xs).as<string>().utf8());
-      });
+      }));
     });
 
     define<library>("(meevax write)", [](library & library)
     {
-      library.define<procedure>("put-char", [](let const& xs)
+      library.define("put-char", make<procedure>("put-char", [](let const& xs)
       {
         cadr(xs).as<textual_output_port>().put(car(xs).as<character>());
-      });
+      }));
 
-      library.define<procedure>("put-string", [](let const& xs)
+      library.define("put-string", make<procedure>("put-string", [](let const& xs)
       {
         cadr(xs).as<textual_output_port>().put(car(xs).as<string>());
-      });
+      }));
 
-      library.define<procedure>("put-u8", [](let const& xs)
+      library.define("put-u8", make<procedure>("put-u8", [](let const& xs)
       {
         cadr(xs).as<binary_output_port>().put(exact_integer_cast<std::uint8_t>(car(xs)));
-      });
+      }));
 
-      library.define<procedure>("put-u8vector", [](let const& xs)
+      library.define("put-u8vector", make<procedure>("put-u8vector", [](let const& xs)
       {
         cadr(xs).as<binary_output_port>().put(car(xs).as<u8vector>());
-      });
+      }));
 
-      library.define<procedure>("write", [](let const& xs)
+      library.define("write", make<procedure>("write", [](let const& xs)
       {
         cadr(xs).as<textual_output_port>().write(car(xs));
-      });
+      }));
 
-      library.define<procedure>("write-simple", [](let const& xs)
+      library.define("write-simple", make<procedure>("write-simple", [](let const& xs)
       {
         cadr(xs).as<textual_output_port>().write_simple(car(xs));
-      });
+      }));
     });
   }
 } // namespace meevax::kernel

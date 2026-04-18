@@ -41,17 +41,11 @@ namespace meevax::inline kernel
 
     friend auto boot() -> void;
 
-    template <typename T>
-    auto define(std::string const& name, auto&&... xs) -> void
+    auto define(std::string const& name, object const& x)
     {
-      evaluator.define<T>(name, std::forward<decltype(xs)>(xs)...);
-      export_specs = cons(make_symbol(name), export_specs);
-    }
-
-    template <template <typename...> typename Traits>
-    auto define(auto&&... xs) -> decltype(auto)
-    {
-      return define<typename Traits<decltype(xs)...>::type>(std::forward<decltype(xs)>(xs)...);
+      let const identifier = make_symbol(name);
+      evaluator.define(identifier, x);
+      export_specs = cons(identifier, export_specs);
     }
 
     auto evaluate(object const&) -> object;
