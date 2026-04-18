@@ -31,8 +31,7 @@ namespace meevax::inline kernel
 
     std::valarray<T> values;
 
-    template <typename... Ts, typename = std::enable_if_t<std::is_constructible_v<std::valarray<T>, Ts...>>>
-    explicit homogeneous_vector(Ts&&... xs)
+    explicit homogeneous_vector(auto&&... xs)
       : values(std::forward<decltype(xs)>(xs)...)
     {}
 

@@ -102,14 +102,12 @@ namespace meevax::inline memory
 
       auto static inline a = allocator();
 
-      template <typename... Us>
-      explicit constexpr binder(Us&&... xs)
-        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound>(std::forward<decltype(xs)>(xs)...)
+      explicit constexpr binder(auto&&... xs)
+        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, decltype(xs)...>, Top, Bound>(std::forward<decltype(xs)>(xs)...)
       {}
 
-      template <typename... Us>
-      explicit constexpr binder(with_braces_tag, Us&&... xs)
-        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, Us...>, Top, Bound> { std::forward<decltype(xs)>(xs)... }
+      explicit constexpr binder(with_braces_tag, auto&&... xs)
+        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, decltype(xs)...>, Top, Bound> { std::forward<decltype(xs)>(xs)... }
       {}
 
       ~binder() override = default;
@@ -403,8 +401,8 @@ namespace meevax::inline memory
 
     auto operator =(collector const&) -> collector & = delete;
 
-    template <typename T, typename Allocator = std::allocator<void>, typename... Us>
-    auto static make(Us&&... xs) -> mutator
+    template <typename T, typename Allocator = std::allocator<void>>
+    auto static make(auto&&... xs) -> mutator
     {
       if constexpr (std::is_class_v<T>)
       {

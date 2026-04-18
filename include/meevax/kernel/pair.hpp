@@ -63,17 +63,14 @@ namespace meevax::inline kernel
     }
   }
 
-  template <typename T,
-            typename Allocator = std::allocator<void>>
+  template <typename T, typename Allocator = std::allocator<void>>
   auto make(T&& x) -> decltype(auto)
   {
     return default_collector::make<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
   }
 
-  template <template <typename...> typename Traits,
-            typename Allocator = std::allocator<void>,
-            typename... Ts,
-            typename = std::enable_if_t<std::is_constructible_v<typename Traits<Ts...>::type, Ts...>>>
+  template <template <typename...> typename Traits, typename Allocator = std::allocator<void>, typename... Ts>
+  requires std::constructible_from<typename Traits<Ts...>::type, Ts...>
   auto make(Ts&&... xs) -> decltype(auto)
   {
     return make<typename Traits<Ts...>::type, Allocator>(std::forward<decltype(xs)>(xs)...);

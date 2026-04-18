@@ -48,10 +48,10 @@ namespace meevax::inline kernel
       export_specs = cons(make_symbol(name), export_specs);
     }
 
-    template <template <typename...> typename Traits, typename... Ts>
-    auto define(Ts&&... xs) -> decltype(auto)
+    template <template <typename...> typename Traits>
+    auto define(auto&&... xs) -> decltype(auto)
     {
-      return define<typename Traits<Ts...>::type>(std::forward<decltype(xs)>(xs)...);
+      return define<typename Traits<decltype(xs)...>::type>(std::forward<decltype(xs)>(xs)...);
     }
 
     auto evaluate(object const&) -> object;

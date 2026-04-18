@@ -30,7 +30,8 @@ namespace meevax::inline kernel
 
     explicit string(std::string const&);
 
-    template <typename... Ts, typename = std::enable_if_t<std::is_constructible_v<std::vector<character>, Ts...>>>
+    template <typename... Ts>
+    requires std::constructible_from<std::vector<character>, Ts...>
     explicit string(Ts&&... xs)
       : characters { std::forward<decltype(xs)>(xs)... }
     {}

@@ -25,8 +25,7 @@ namespace meevax::inline kernel
   {
     std::vector<object> objects;
 
-    template <typename... Ts, typename = std::enable_if_t<std::is_constructible_v<std::vector<object>, Ts...>>>
-    explicit heterogeneous_vector(Ts&&... xs)
+    explicit heterogeneous_vector(auto&&... xs)
       : objects { std::forward<decltype(xs)>(xs)... }
     {}
   };
