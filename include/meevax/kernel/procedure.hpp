@@ -18,16 +18,20 @@
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
 #include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/describable.hpp>
 #include <meevax/kernel/ghost.hpp>
+#include <meevax/kernel/symbol.hpp>
 
 namespace meevax::inline kernel
 {
-  struct primitive : public describable
+  struct primitive
   {
     using signature = auto (*)(object &) -> object;
 
-    using describable::describable;
+    symbol name;
+
+    explicit primitive(auto&&... xs)
+      : name { std::forward<decltype(xs)>(xs)... }
+    {}
 
     virtual auto operator ()(object & = unit) const -> object = 0;
   };

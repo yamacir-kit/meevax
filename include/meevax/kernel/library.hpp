@@ -20,6 +20,7 @@
 #include <map>
 
 #include <meevax/kernel/interaction_environment.hpp>
+#include <meevax/kernel/symbol.hpp>
 
 namespace meevax::inline kernel
 {

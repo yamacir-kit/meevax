@@ -19,6 +19,7 @@
 #include <meevax/kernel/homogeneous_vector.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/string.hpp>
+#include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/textual_input_port.hpp>
 #include <meevax/kernel/vector.hpp>
 

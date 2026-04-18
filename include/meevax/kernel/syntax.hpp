@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 
+#include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
 
 namespace meevax::inline kernel
