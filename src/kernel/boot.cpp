@@ -55,31 +55,7 @@ namespace meevax::inline kernel
 {
   auto boot() -> void
   {
-    #define EXPORT1_RENAME(FUNCTION, IDENTIFIER)                               \
-    library.define(IDENTIFIER, make<procedure>(IDENTIFIER, [](let const& xs)   \
-    {                                                                          \
-      return FUNCTION(car(xs));                                                \
-    }))
-
-    #define EXPORT2_RENAME(FUNCTION, IDENTIFIER)                               \
-    library.define(IDENTIFIER, make<procedure>(IDENTIFIER, [](let const& xs)   \
-    {                                                                          \
-      return FUNCTION(car(xs), cadr(xs));                                      \
-    }))
-
-    #define EXPORT3_RENAME(FUNCTION, IDENTIFIER)                               \
-    library.define(IDENTIFIER, make<procedure>(IDENTIFIER, [](let const& xs)   \
-    {                                                                          \
-      return FUNCTION(car(xs), cadr(xs), caddr(xs));                           \
-    }))
-
-    #define EXPORT_PREDICATE(TYPENAME, IDENTIFIER)                             \
-    library.define(IDENTIFIER, make<procedure>(IDENTIFIER, [](let const& xs)   \
-    {                                                                          \
-      return car(xs).is<TYPENAME>();                                           \
-    }))
-
-    libraries().emplace("(meevax binary32)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax binary32)", make<library>([](auto define)
     {
       define(make_symbol("binary32?"), make<procedure>("binary32?", [](let const& xs)
       {
@@ -89,7 +65,7 @@ namespace meevax::inline kernel
       return list(make_symbol("binary32?"));
     }));
 
-    libraries().emplace("(meevax binary64)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax binary64)", make<library>([](auto define)
     {
       define(make_symbol("binary64?"), make<procedure>("binary64?", [](let const& xs)
       {
@@ -208,7 +184,7 @@ namespace meevax::inline kernel
                   make_symbol("binary64-remquo"));
     }));
 
-    libraries().emplace("(meevax boolean)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax boolean)", make<library>([](auto define)
     {
       define(make_symbol("boolean?"), make<procedure>("boolean?", [](let const& xs)
       {
@@ -224,7 +200,7 @@ namespace meevax::inline kernel
                   make_symbol("not"));
     }));
 
-    libraries().emplace("(meevax box)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax box)", make<library>([](auto define)
     {
       define(make_symbol("box"), make<procedure>("box", [](let const& xs)
       {
@@ -252,7 +228,7 @@ namespace meevax::inline kernel
                   make_symbol("box-set!"));
     }));
 
-    libraries().emplace("(meevax character)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax character)", make<library>([](auto define)
     {
       define(make_symbol("char?"), make<procedure>("char?", [](let const& xs)
       {
@@ -389,7 +365,7 @@ namespace meevax::inline kernel
                   make_symbol("char-downcase"));
     }));
 
-    libraries().emplace("(meevax context)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax context)", make<library>([](auto define)
     {
       define(make_symbol("emergency-exit"), make<procedure>("emergency-exit", [](let const& xs)
       {
@@ -423,7 +399,7 @@ namespace meevax::inline kernel
                   make_symbol("command-line"));
     }));
 
-    libraries().emplace("(meevax comparator)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax comparator)", make<library>([](auto define)
     {
       define(make_symbol("eq?"), make<procedure>("eq?", [](let const& xs)
       {
@@ -445,7 +421,7 @@ namespace meevax::inline kernel
                   make_symbol("equal?"));
     }));
 
-    libraries().emplace("(meevax core)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax core)", make<library>([](auto define)
     {
       for (let const& binding : core_syntactic_environment().as<syntactic_environment>().second)
       {
@@ -455,7 +431,7 @@ namespace meevax::inline kernel
       return map(car, core_syntactic_environment().as<syntactic_environment>().second);
     }));
 
-    libraries().emplace("(meevax environment)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax environment)", make<library>([](auto define)
     {
       define(make_symbol("environment"), make<procedure>("environment", [](let const& xs)
       {
@@ -496,7 +472,7 @@ namespace meevax::inline kernel
                   make_symbol("load"));
     }));
 
-    libraries().emplace("(meevax error)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax error)", make<library>([](auto define)
     {
       define(make_symbol("throw"), make<procedure>("throw", [](let const& xs)
       {
@@ -536,7 +512,7 @@ namespace meevax::inline kernel
                   make_symbol("kernel-exception-handler-set!"));
     }));
 
-    libraries().emplace("(meevax file)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax file)", make<library>([](auto define)
     {
       define(make_symbol("file-exists?"), make<procedure>("file-exists?", [](let const& xs)
       {
@@ -575,7 +551,7 @@ namespace meevax::inline kernel
                   make_symbol("library-directories"));
     }));
 
-    libraries().emplace("(meevax instruction)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax instruction)", make<library>([](auto define)
     {
       define(make_symbol("secd-call"),              make<instruction>(instruction::secd_call             ));
       define(make_symbol("secd-cons"),              make<instruction>(instruction::secd_cons             ));
@@ -626,7 +602,7 @@ namespace meevax::inline kernel
                   make_symbol("secd-tail-select"));
     }));
 
-    libraries().emplace("(meevax integer32)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax integer32)", make<library>([](auto define)
     {
       define(make_symbol("integer32?"), make<procedure>("integer32?", [](let const& xs)
       {
@@ -645,7 +621,7 @@ namespace meevax::inline kernel
                   make_symbol("integer32-max"));
     }));
 
-    libraries().emplace("(meevax list)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax list)", make<library>([](auto define)
     {
       define(make_symbol("null?"), make<procedure>("null?", [](let const& xs)
       {
@@ -995,7 +971,7 @@ namespace meevax::inline kernel
                   make_symbol("alist-copy"));
     }));
 
-    libraries().emplace("(meevax number)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax number)", make<library>([](auto define)
     {
       using namespace number;
 
@@ -1623,7 +1599,7 @@ namespace meevax::inline kernel
                   make_symbol("string->number"));
     }));
 
-    libraries().emplace("(meevax pair)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax pair)", make<library>([](auto define)
     {
       define(make_symbol("pair?"), make<procedure>("pair?", [](let const& xs)
       {
@@ -1869,7 +1845,7 @@ namespace meevax::inline kernel
                   make_symbol("set-cdr!"));
     }));
 
-    libraries().emplace("(meevax port)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax port)", make<library>([](auto define)
     {
       define(make_symbol("input-port?"), make<procedure>("input-port?", [](let const& xs)
       {
@@ -2012,7 +1988,7 @@ namespace meevax::inline kernel
                   make_symbol("flush"));
     }));
 
-    libraries().emplace("(meevax procedure)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax procedure)", make<library>([](auto define)
     {
       define(make_symbol("closure?"), make<procedure>("closure?", [](let const& xs)
       {
@@ -2043,7 +2019,7 @@ namespace meevax::inline kernel
                   make_symbol("procedure"));
     }));
 
-    libraries().emplace("(meevax read)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax read)", make<library>([](auto define)
     {
       define(make_symbol("get-char"), make<procedure>("get-char", [](let const& xs)
       {
@@ -2107,7 +2083,7 @@ namespace meevax::inline kernel
                   make_symbol("get-u8vector"));
     }));
 
-    libraries().emplace("(meevax string)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax string)", make<library>([](auto define)
     {
       define(make_symbol("string?"), make<procedure>("string?", [](let const& xs)
       {
@@ -2441,7 +2417,7 @@ namespace meevax::inline kernel
                   make_symbol("string-fill!"));
     }));
 
-    libraries().emplace("(meevax symbol)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax symbol)", make<library>([](auto define)
     {
       define(make_symbol("symbol?"), make<procedure>("symbol?", [](let const& xs)
       {
@@ -2476,7 +2452,7 @@ namespace meevax::inline kernel
                   make_symbol("identifier->symbol"));
     }));
 
-    libraries().emplace("(meevax syntactic-closure)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax syntactic-closure)", make<library>([](auto define)
     {
       define(make_symbol("identifier?"), make<procedure>("identifier?", [](let const& xs)
       {
@@ -2504,7 +2480,7 @@ namespace meevax::inline kernel
                   make_symbol("make-syntactic-closure"));
     }));
 
-    libraries().emplace("(meevax system)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax system)", make<library>([](auto define)
     {
       define(make_symbol("features"), make<procedure>("features", []()
       {
@@ -2545,7 +2521,7 @@ namespace meevax::inline kernel
                   make_symbol("get-environment-variables"));
     }));
 
-    libraries().emplace("(meevax time)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax time)", make<library>([](auto define)
     {
       define(make_symbol("current-jiffy"), make<procedure>("current-jiffy", []()
       {
@@ -2561,7 +2537,7 @@ namespace meevax::inline kernel
                   make_symbol("jiffies-per-second"));
     }));
 
-    libraries().emplace("(meevax vector)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax vector)", make<library>([](auto define)
     {
       define(make_symbol("vector?"), make<procedure>("vector?", [](let const& xs)
       {
@@ -2779,7 +2755,7 @@ namespace meevax::inline kernel
                   make_symbol("vector-fill!"));
     }));
 
-    libraries().emplace("(meevax vector homogeneous)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax vector homogeneous)", make<library>([](auto define)
     {
       #define DEFINE_VECTOR(TAG)                                               \
       define(make_symbol(#TAG "vector?"), make<procedure>(#TAG "vector?", [](let const& xs) \
@@ -3005,7 +2981,7 @@ namespace meevax::inline kernel
                   make_symbol("string->u8vector"));
     }));
 
-    libraries().emplace("(meevax write)", make<library>(nullptr, [](auto define)
+    libraries().emplace("(meevax write)", make<library>([](auto define)
     {
       define(make_symbol("put-char"), make<procedure>("put-char", [](let const& xs)
       {

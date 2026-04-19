@@ -32,29 +32,15 @@ namespace meevax::inline kernel
 
     let export_specs = unit;
 
-    template <typename F, typename = std::enable_if_t<std::is_invocable_v<F, library &>>>
-    [[deprecated]]
-    explicit library(F declare)
-    {
-      declare(*this);
-    }
-
     template <typename F>
-    explicit library(std::nullptr_t, F body)
+    requires std::invocable<F, std::function<auto (object const&, object const&) -> object>>
+    explicit library(F body)
       : export_specs { std::invoke(body, [this](auto&&... xs) { return evaluator.define(std::forward<decltype(xs)>(xs)...); }) }
     {}
 
     explicit library(object const&);
 
     friend auto boot() -> void;
-
-    [[deprecated]]
-    auto define(std::string const& name, object const& x)
-    {
-      let const identifier = make_symbol(name);
-      evaluator.define(identifier, x);
-      export_specs = cons(identifier, export_specs);
-    }
 
     auto evaluate(object const&) -> object;
 
