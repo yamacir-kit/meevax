@@ -277,7 +277,7 @@ namespace meevax::inline kernel
       {
         let xs = list();
 
-        for (auto&& each : configurator::command_line)
+        for (auto&& each : configurator::command_line())
         {
           xs = cons(make<string>(each), xs);
         }
@@ -386,7 +386,7 @@ namespace meevax::inline kernel
       {
         let directories = unit;
 
-        for (auto iterator = configurator::directories.rbegin(); iterator != configurator::directories.rend(); ++iterator)
+        for (auto iterator = configurator::directories().rbegin(); iterator != configurator::directories().rend(); ++iterator)
         {
           directories = cons(make<string>(iterator->native()), directories);
         }
