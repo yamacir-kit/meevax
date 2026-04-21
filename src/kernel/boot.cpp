@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#include <dlfcn.h> // dlopen, dlclose, dlerror
+
 #include <chrono>
 #include <numbers>
 #include <numeric>
@@ -2007,9 +2009,78 @@ namespace meevax::inline kernel
 
       define(make_symbol("procedure"), make<procedure>("procedure", [](let const& xs)
       {
-        auto resolve = reinterpret_cast<auto (*)(char const*) -> void *>(default_collector::dlsym("lookup", default_collector::dlopen(car(xs).as<string>().utf8())));
+        auto lookup = [](std::string const& pathname, char const* symbol)
+        {
+          auto lookup = [](std::string const& pathname)
+          {
+            auto dlopen = [](std::string const& pathname)
+            {
+              auto dlclose = [](void * const handle) -> void
+              {
+                if (handle and ::dlclose(handle))
+                {
+                  std::cerr << ::dlerror() << std::endl;
+                }
+              };
 
-        return make<procedure>(cadr(xs).as<symbol>(), reinterpret_cast<primitive::signature>(resolve(cadr(xs).as<symbol>().name.c_str())));
+              auto static libraries = std::unordered_map<std::string, std::unique_ptr<void, decltype(dlclose)>>();
+
+              if (auto found = libraries.find(pathname); found != libraries.end())
+              {
+                return found->second.get();
+              }
+              else
+              {
+                ::dlerror(); // clear
+
+                if (auto handle = ::dlopen(pathname.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
+                {
+                  auto [emplaced, success] = libraries.emplace(std::piecewise_construct,
+                                                               std::forward_as_tuple(pathname),
+                                                               std::forward_as_tuple(handle, dlclose));
+                  return emplaced->second.get();
+                }
+                else
+                {
+                  throw std::runtime_error(::dlerror());
+                }
+              }
+            };
+
+            auto dlsym = [](std::string const& symbol, auto const handle)
+            {
+              ::dlerror(); // clear
+
+              if (auto address = ::dlsym(handle, symbol.c_str()); address)
+              {
+                return address;
+              }
+              else
+              {
+                throw std::runtime_error(::dlerror());
+              }
+            };
+
+            using interface = auto (*)(char const*) -> void *;
+
+            auto static interfaces = std::unordered_map<std::string, interface>();
+
+            if (auto found = interfaces.find(pathname); found != interfaces.end())
+            {
+              return found->second;
+            }
+            else
+            {
+              auto [emplaced, success] = interfaces.emplace(pathname, reinterpret_cast<interface>(dlsym("lookup", dlopen(pathname))));
+
+              return emplaced->second;
+            }
+          };
+
+          return reinterpret_cast<primitive::signature>(lookup(pathname)(symbol));
+        };
+
+        return make<procedure>(cadr(xs).as<symbol>(), lookup(car(xs).as<string>().utf8(), cadr(xs).as<symbol>().name.c_str()));
       }));
 
       return list(make_symbol("closure?"),
