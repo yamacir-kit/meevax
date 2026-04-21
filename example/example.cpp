@@ -1,9 +1,7 @@
-#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/procedure.hpp>
 
-using namespace meevax; // NOTE: DIRTY HACK
-
-extern "C"
+namespace meevax::inline example
 {
   auto argument_length(object & xs)
   {
@@ -53,13 +51,32 @@ extern "C"
     return make<hoge>(exact_integer_cast<small_integer>(car(xs)));
   }
 
-  auto is_hoge(object & xs)
-  {
-    return car(xs).is<hoge>() ? t : f;
-  }
-
   auto hoge_value(object & xs)
   {
     return make<small_integer>(car(xs).as<hoge>().value);
+  }
+
+  extern "C"
+  {
+    auto lookup(char const* name) -> void *
+    {
+      auto static registry = std::unordered_map<std::string, meevax::primitive::signature>
+      {
+        { "argument_length", argument_length },
+        { "dummy_procedure", dummy_procedure },
+        { "make_hoge", make_hoge },
+        { "is_hoge", [](object & xs) { return car(xs).is<hoge>() ? t : f; } },
+        { "hoge_value", hoge_value }
+      };
+
+      if (auto iterator = registry.find(name); iterator != registry.end())
+      {
+        return reinterpret_cast<void *>(iterator->second);
+      }
+      else
+      {
+        return nullptr;
+      }
+    }
   }
 }

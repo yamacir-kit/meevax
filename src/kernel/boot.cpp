@@ -2007,10 +2007,9 @@ namespace meevax::inline kernel
 
       define(make_symbol("procedure"), make<procedure>("procedure", [](let const& xs)
       {
-        return make<procedure>(cadr(xs).as<symbol>(),
-                               reinterpret_cast<primitive::signature>(
-                                 default_collector::dlsym(cadr(xs).as<symbol>(),
-                                                          default_collector::dlopen(car(xs).as<string>().utf8()))));
+        auto resolve = reinterpret_cast<auto (*)(char const*) -> void *>(default_collector::dlsym("lookup", default_collector::dlopen(car(xs).as<string>().utf8())));
+
+        return make<procedure>(cadr(xs).as<symbol>(), reinterpret_cast<primitive::signature>(resolve(cadr(xs).as<symbol>().name.c_str())));
       }));
 
       return list(make_symbol("closure?"),
