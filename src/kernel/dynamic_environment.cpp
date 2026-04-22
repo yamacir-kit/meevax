@@ -215,16 +215,16 @@ namespace meevax::inline kernel
           s = nullptr;
           goto fetch;
         }
-        else if (callee.is_also<primitive>()) /* -------------------------------
+        else if (callee.is<procedure>()) /* ------------------------------------
         *
-        *  (<primitive> xs . s) e (%call . c) d => (x . s) e c d
+        *  (<procedure> xs . s) e (%call . c) d => (x . s) e c d
         *
-        *  where x = primitive-procedure(xs)
+        *  where x = procedure(xs)
         *
         * ------------------------------------------------------------------- */
         {
           assert(tail(c, 1).template is<pair>());
-          s = cons(callee.as<primitive>()(cadr(s)), cddr(s));
+          s = cons(callee.as<procedure>().call(cadr(s)), cddr(s));
           c = cdr(c);
           goto fetch;
         }
@@ -265,17 +265,17 @@ namespace meevax::inline kernel
           s = nullptr;
           goto fetch;
         }
-        else if (callee.is_also<primitive>()) /* -------------------------------
+        else if (callee.is<procedure>()) /* ------------------------------------
         *
-        *  (<primitive> xs) e (%tail-call) (s' e' c' . d) => (x . s') e' c' d
+        *  (<procedure> xs) e (%tail-call) (s' e' c' . d) => (x . s') e' c' d
         *
-        *  where x = primitive-procedure(xs)
+        *  where x = procedure(xs)
         *
         * ------------------------------------------------------------------- */
         {
           assert(tail(s, 2).template is<null>());
           assert(tail(c, 1).template is<null>());
-          s = cons(callee.as<primitive>()(cadr(s)), car(d));
+          s = cons(callee.as<procedure>().call(cadr(s)), car(d));
           e = cadr(d);
           c = caddr(d);
           d = cdddr(d);
@@ -469,7 +469,7 @@ namespace meevax::inline kernel
         }();
       }
     }
-    catch (object const& thrown) // by the primitive procedure `throw`.
+    catch (object const& thrown) // by the procedure `throw`.
     {
       if (thrown.is_also<error>())
       {
@@ -481,7 +481,7 @@ namespace meevax::inline kernel
         throw error(make<string>("uncaught exception"), thrown);
       }
     }
-    catch (error & thrown) // by any primitive procedure other than `throw`.
+    catch (error & thrown) // by any procedure other than `throw`.
     {
       if (exception_handler)
       {

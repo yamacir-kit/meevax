@@ -61,7 +61,7 @@ namespace meevax::inline kernel
     {
       define(make_symbol("binary32?"), make<procedure>("binary32?", [](let const& xs)
       {
-        return car(xs).is<float>();
+        return make(car(xs).is<float>());
       }));
 
       return list(make_symbol("binary32?"));
@@ -71,7 +71,7 @@ namespace meevax::inline kernel
     {
       define(make_symbol("binary64?"), make<procedure>("binary64?", [](let const& xs)
       {
-        return car(xs).is<double>();
+        return make(car(xs).is<double>());
       }));
 
       define(make_symbol("binary64-least"), make<double>(std::numeric_limits<double>::min()));
@@ -123,12 +123,12 @@ namespace meevax::inline kernel
 
       define(make_symbol("binary64-normalized?"), make<procedure>("binary64-normalized?", [](let const& xs)
       {
-        return std::fpclassify(car(xs).as<double>()) == FP_NORMAL;
+        return make(std::fpclassify(car(xs).as<double>()) == FP_NORMAL);
       }));
 
       define(make_symbol("binary64-denormalized?"), make<procedure>("binary64-denormalized?", [](let const& xs)
       {
-        return std::fpclassify(car(xs).as<double>()) == FP_SUBNORMAL;
+        return make(std::fpclassify(car(xs).as<double>()) == FP_SUBNORMAL);
       }));
 
       define(make_symbol("binary64-max"), make<procedure>("binary64-max", [](let const& xs)
@@ -190,12 +190,12 @@ namespace meevax::inline kernel
     {
       define(make_symbol("boolean?"), make<procedure>("boolean?", [](let const& xs)
       {
-        return car(xs).is<bool>();
+        return make(car(xs).is<bool>());
       }));
 
       define(make_symbol("not"), make<procedure>("not", [](let const& xs)
       {
-        return car(xs) == f;
+        return make(car(xs) == f);
       }));
 
       return list(make_symbol("boolean?"),
@@ -211,7 +211,7 @@ namespace meevax::inline kernel
 
       define(make_symbol("box?"), make<procedure>("box?", [](let const& xs)
       {
-        return car(xs).is<box>();
+        return make(car(xs).is<box>());
       }));
 
       define(make_symbol("box-ref"), make<procedure>("box-ref", [](let const& xs)
@@ -219,9 +219,10 @@ namespace meevax::inline kernel
         return caar(xs);
       }));
 
-      define(make_symbol("box-set!"), make<procedure>("box-set!", [](let & xs)
+      define(make_symbol("box-set!"), make<procedure>("box-set!", [](let const& xs)
       {
-        caar(xs) = cadr(xs);
+        car(xs).as_mutable<box>().first = cadr(xs);
+        return unspecified;
       }));
 
       return list(make_symbol("box"),
@@ -234,82 +235,82 @@ namespace meevax::inline kernel
     {
       define(make_symbol("char?"), make<procedure>("char?", [](let const& xs)
       {
-        return car(xs).is<character>();
+        return make(car(xs).is<character>());
       }));
 
       define(make_symbol("char=?"), make<procedure>("char=?", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint == b.as<character>().codepoint); }) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint == b.as<character>().codepoint); }) == xs.end());
       }));
 
       define(make_symbol("char<?"), make<procedure>("char<?", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint < b.as<character>().codepoint); }) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint < b.as<character>().codepoint); }) == xs.end());
       }));
 
       define(make_symbol("char>?"), make<procedure>("char>?", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint > b.as<character>().codepoint); }) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint > b.as<character>().codepoint); }) == xs.end());
       }));
 
       define(make_symbol("char<=?"), make<procedure>("char<=?", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint <= b.as<character>().codepoint); }) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint <= b.as<character>().codepoint); }) == xs.end());
       }));
 
       define(make_symbol("char>=?"), make<procedure>("char>=?", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint >= b.as<character>().codepoint); }) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().codepoint >= b.as<character>().codepoint); }) == xs.end());
       }));
 
       define(make_symbol("char-ci=?"), make<procedure>("char-ci=?", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() == b.as<character>().downcase()); }) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() == b.as<character>().downcase()); }) == xs.end());
       }));
 
       define(make_symbol("char-ci<?"), make<procedure>("char-ci<?", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() < b.as<character>().downcase()); }) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() < b.as<character>().downcase()); }) == xs.end());
       }));
 
       define(make_symbol("char-ci>?"), make<procedure>("char-ci>?", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() > b.as<character>().downcase()); }) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() > b.as<character>().downcase()); }) == xs.end());
       }));
 
       define(make_symbol("char-ci<=?"), make<procedure>("char-ci<=?", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() <= b.as<character>().downcase()); }) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() <= b.as<character>().downcase()); }) == xs.end());
       }));
 
       define(make_symbol("char-ci>=?"), make<procedure>("char-ci>=?", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() >= b.as<character>().downcase()); }) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), [](let const& a, let const& b) { return not (a.as<character>().downcase() >= b.as<character>().downcase()); }) == xs.end());
       }));
 
       define(make_symbol("char-alphabetic?"), make<procedure>("char-alphabetic?", [](let const& xs)
       {
-        return car(xs).as<character>().property().is_letter();
+        return make(car(xs).as<character>().property().is_letter());
       }));
 
       define(make_symbol("char-numeric?"), make<procedure>("char-numeric?", [](let const& xs)
       {
-        return car(xs).as<character>().property().is_numeric();
+        return make(car(xs).as<character>().property().is_numeric());
       }));
 
       define(make_symbol("char-whitespace?"), make<procedure>("char-whitespace?", [](let const& xs)
       {
-        return car(xs).as<character>().property().is_whitespace();
+        return make(car(xs).as<character>().property().is_whitespace());
       }));
 
       define(make_symbol("char-upper-case?"), make<procedure>("char-upper-case?", [](let const& xs)
       {
-        return car(xs).as<character>().property().is_upper_case();
+        return make(car(xs).as<character>().property().is_upper_case());
       }));
 
       define(make_symbol("char-lower-case?"), make<procedure>("char-lower-case?", [](let const& xs)
       {
-        return car(xs).as<character>().property().is_lower_case();
+        return make(car(xs).as<character>().property().is_lower_case());
       }));
 
       define(make_symbol("digit-value"), make<procedure>("digit-value", [](let const& xs) -> object
@@ -369,7 +370,7 @@ namespace meevax::inline kernel
 
     libraries().emplace("(meevax context)", make<library>([](auto define)
     {
-      define(make_symbol("emergency-exit"), make<procedure>("emergency-exit", [](let const& xs)
+      define(make_symbol("emergency-exit"), make<procedure>("emergency-exit", [](let const& xs) -> object
       {
         if (xs.is<null>())
         {
@@ -385,7 +386,7 @@ namespace meevax::inline kernel
         }
       }));
 
-      define(make_symbol("command-line"), make<procedure>("command-line", []()
+      define(make_symbol("command-line"), make<procedure>("command-line", [](let const&)
       {
         let xs = list();
 
@@ -405,17 +406,17 @@ namespace meevax::inline kernel
     {
       define(make_symbol("eq?"), make<procedure>("eq?", [](let const& xs)
       {
-        return eq(car(xs), cadr(xs));
+        return make(eq(car(xs), cadr(xs)));
       }));
 
       define(make_symbol("eqv?"), make<procedure>("eqv?", [](let const& xs)
       {
-        return eqv(car(xs), cadr(xs));
+        return make(eqv(car(xs), cadr(xs)));
       }));
 
       define(make_symbol("equal?"), make<procedure>("equal?", [](let const& xs)
       {
-        return equal(car(xs), cadr(xs));
+        return make(equal(car(xs), cadr(xs)));
       }));
 
       return list(make_symbol("eq?"),
@@ -457,14 +458,15 @@ namespace meevax::inline kernel
         return cadr(xs).as<environment>().expand(car(xs), unit);
       }));
 
-      define(make_symbol("interaction-environment"), make<procedure>("interaction-environment", []()
+      define(make_symbol("interaction-environment"), make<procedure>("interaction-environment", [](let const&)
       {
         return interaction_environment();
       }));
 
       define(make_symbol("load"), make<procedure>("load", [](let const& xs)
       {
-        return car(xs).as<environment>().load(cadr(xs).as<string>().utf8());
+        car(xs).as<environment>().load(cadr(xs).as<string>().utf8());
+        return unspecified;
       }));
 
       return list(make_symbol("environment"),
@@ -476,7 +478,7 @@ namespace meevax::inline kernel
 
     libraries().emplace("(meevax error)", make<library>([](auto define)
     {
-      define(make_symbol("throw"), make<procedure>("throw", [](let const& xs)
+      define(make_symbol("throw"), make<procedure>("throw", [](let const& xs) -> object
       {
         throw car(xs);
       }));
@@ -488,22 +490,22 @@ namespace meevax::inline kernel
 
       define(make_symbol("error-object?"), make<procedure>("error-object?", [](let const& xs)
       {
-        return car(xs).is_also<error>();
+        return make(car(xs).is_also<error>());
       }));
 
       define(make_symbol("read-error?"), make<procedure>("read-error?", [](let const& xs)
       {
-        return car(xs).is<read_error>();
+        return make(car(xs).is<read_error>());
       }));
 
       define(make_symbol("file-error?"), make<procedure>("file-error?", [](let const& xs)
       {
-        return car(xs).is<file_error>();
+        return make(car(xs).is<file_error>());
       }));
 
       define(make_symbol("kernel-exception-handler-set!"), make<procedure>("kernel-exception-handler-set!", [](let const& xs)
       {
-        environment::exception_handler = car(xs);
+        return environment::exception_handler = car(xs);
       }));
 
       return list(make_symbol("throw"),
@@ -518,7 +520,7 @@ namespace meevax::inline kernel
     {
       define(make_symbol("file-exists?"), make<procedure>("file-exists?", [](let const& xs)
       {
-        return std::filesystem::exists(car(xs).as<string>().utf8());
+        return make(std::filesystem::exists(car(xs).as<string>().utf8()));
       }));
 
       define(make_symbol("delete-file"), make<procedure>("delete-file", [](let const& xs)
@@ -528,6 +530,10 @@ namespace meevax::inline kernel
           if (not std::filesystem::remove(car(xs).as<string>().utf8()))
           {
             throw file_error(make<string>("failed to remove file"), car(xs));
+          }
+          else
+          {
+            return unspecified;
           }
         }
         catch (std::filesystem::filesystem_error const& e)
@@ -608,7 +614,7 @@ namespace meevax::inline kernel
     {
       define(make_symbol("integer32?"), make<procedure>("integer32?", [](let const& xs)
       {
-        return car(xs).is<small_integer>();
+        return make(car(xs).is<small_integer>());
       }));
 
       define(make_symbol("integer32-width"), make<small_integer>(32));
@@ -627,12 +633,12 @@ namespace meevax::inline kernel
     {
       define(make_symbol("null?"), make<procedure>("null?", [](let const& xs)
       {
-        return car(xs).is<null>();
+        return make(car(xs).is<null>());
       }));
 
       define(make_symbol("list?"), make<procedure>("list?", [](let const& xs)
       {
-        return is_list(car(xs));
+        return make(is_list(car(xs)));
       }));
 
       define(make_symbol("list"), make<procedure>("list", [](let const& xs)
@@ -675,25 +681,26 @@ namespace meevax::inline kernel
 
       define(make_symbol("circular-list?"), make<procedure>("circular-list?", [](let const& xs)
       {
-        return is_circular_list(car(xs));
+        return make(is_circular_list(car(xs)));
       }));
 
-      define(make_symbol("circular-list"), make<procedure>("circular-list", [](let & xs)
+      define(make_symbol("circular-list"), make<procedure>("circular-list", [](let const& xs)
       {
-        circulate(xs);
-        return xs;
+        let copy = list_copy(xs);
+        circulate(copy);
+        return copy;
       }));
 
       define(make_symbol("dotted-list?"), make<procedure>("dotted-list?", [](let const& xs)
       {
-        return is_dotted_list(car(xs));
+        return make(is_dotted_list(car(xs)));
       }));
 
       define(make_symbol("null-list?"), make<procedure>("null-list?", [](let const& xs)
       {
         if (is_list(car(xs)) or is_circular_list(car(xs)))
         {
-          return car(xs).is<null>();
+          return make(car(xs).is<null>());
         }
         else
         {
@@ -733,7 +740,7 @@ namespace meevax::inline kernel
         return std::accumulate(xs.begin(), xs.end(), unit, [](let const& x, let const& y) { return append(x, y); });
       }));
 
-      define(make_symbol("append!"), make<procedure>("append!", [](let & xs)
+      define(make_symbol("append!"), make<procedure>("append!", [](let const& xs)
       {
         auto append = [](auto append, let & x, let & xs) -> auto &
         {
@@ -751,7 +758,16 @@ namespace meevax::inline kernel
           }
         };
 
-        return not xs.is<pair>() ? xs : append(append, car(xs), cdr(xs));
+        if (not xs.is<pair>())
+        {
+          return xs;
+        }
+        else
+        {
+          let head = car(xs);
+          let tail = cdr(xs);
+          return append(append, head, tail);
+        }
       }));
 
       define(make_symbol("append-reverse"), make<procedure>("append-reverse", [](let const& xs)
@@ -759,9 +775,11 @@ namespace meevax::inline kernel
         return append_reverse(car(xs), cadr(xs));
       }));
 
-      define(make_symbol("append-reverse!"), make<procedure>("append-reverse!", [](let & xs)
+      define(make_symbol("append-reverse!"), make<procedure>("append-reverse!", [](let const& xs)
       {
-        return append_reverse(car(xs), cadr(xs));
+        let x = car(xs);
+        let y = cadr(xs);
+        return append_reverse(x, y);
       }));
 
       define(make_symbol("reverse"), make<procedure>("reverse", [](let const& xs)
@@ -769,9 +787,10 @@ namespace meevax::inline kernel
         return reverse(car(xs));
       }));
 
-      define(make_symbol("reverse!"), make<procedure>("reverse!", [](let & xs)
+      define(make_symbol("reverse!"), make<procedure>("reverse!", [](let const& xs)
       {
-        return reverse(car(xs));
+        let x = car(xs);
+        return reverse(x);
       }));
 
       define(make_symbol("concatenate"), make<procedure>("concatenate", [](let const& xs)
@@ -779,7 +798,7 @@ namespace meevax::inline kernel
         return std::accumulate(car(xs).begin(), car(xs).end(), unit, [](let const& x, let const& y) { return append(x, y); });
       }));
 
-      define(make_symbol("concatenate!"), make<procedure>("concatenate!", [](let & xs)
+      define(make_symbol("concatenate!"), make<procedure>("concatenate!", [](let const& xs)
       {
         auto concatenate = [](auto concatenate, let & x, let & xs) -> auto &
         {
@@ -797,7 +816,15 @@ namespace meevax::inline kernel
           }
         };
 
-        return not xs.is<pair>() ? xs : concatenate(concatenate, caar(xs), cdar(xs));
+        if (not xs.is<pair>())
+        {
+          return xs;
+        }
+        else
+        {
+          let x = car(xs);
+          return concatenate(concatenate, car(x), cdr(x));
+        }
       }));
 
       define(make_symbol("list-copy"), make<procedure>("list-copy", [](let const& xs)
@@ -870,9 +897,10 @@ namespace meevax::inline kernel
         return take(car(xs), exact_integer_cast<std::size_t>(cadr(xs)));
       }));
 
-      define(make_symbol("take!"), make<procedure>("take!", [](let & xs)
+      define(make_symbol("take!"), make<procedure>("take!", [](let const& xs)
       {
-        return take(car(xs), exact_integer_cast<std::size_t>(cadr(xs)));
+        let x = car(xs);
+        return take(x, exact_integer_cast<std::size_t>(cadr(xs)));
       }));
 
       define(make_symbol("take-right"), make<procedure>("take-right", [](let const& xs)
@@ -890,9 +918,10 @@ namespace meevax::inline kernel
         return drop_right(car(xs), exact_integer_cast<std::size_t>(cadr(xs)));
       }));
 
-      define(make_symbol("drop-right!"), make<procedure>("drop-right!", [](let & xs)
+      define(make_symbol("drop-right!"), make<procedure>("drop-right!", [](let const& xs)
       {
-        return drop_right(car(xs), exact_integer_cast<std::size_t>(cadr(xs)));
+        let x = car(xs);
+        return drop_right(x, exact_integer_cast<std::size_t>(cadr(xs)));
       }));
 
       define(make_symbol("memq"), make<procedure>("memq", [](let const& xs)
@@ -979,107 +1008,107 @@ namespace meevax::inline kernel
 
       define(make_symbol("number?"), make<procedure>("number?", [](let const& xs)
       {
-        return is_complex(car(xs));
+        return make(is_complex(car(xs)));
       }));
 
       define(make_symbol("complex?"), make<procedure>("complex?", [](let const& xs)
       {
-        return is_complex(car(xs));
+        return make(is_complex(car(xs)));
       }));
 
       define(make_symbol("real?"), make<procedure>("real?", [](let const& xs)
       {
-        return is_real(car(xs));
+        return make(is_real(car(xs)));
       }));
 
       define(make_symbol("rational?"), make<procedure>("rational?", [](let const& xs)
       {
-        return is_rational(car(xs));
+        return make(is_rational(car(xs)));
       }));
 
       define(make_symbol("integer?"), make<procedure>("integer?", [](let const& xs)
       {
-        return is_integer(car(xs));
+        return make(is_integer(car(xs)));
       }));
 
       define(make_symbol("exact?"), make<procedure>("exact?", [](let const& xs)
       {
-        return is_exact(car(xs));
+        return make(is_exact(car(xs)));
       }));
 
       define(make_symbol("inexact?"), make<procedure>("inexact?", [](let const& xs)
       {
-        return is_inexact(car(xs));
+        return make(is_inexact(car(xs)));
       }));
 
       define(make_symbol("exact-integer?"), make<procedure>("exact-integer?", [](let const& xs)
       {
-        return is_exact_integer(car(xs));
+        return make(is_exact_integer(car(xs)));
       }));
 
       define(make_symbol("finite?"), make<procedure>("finite?", [](let const& xs)
       {
-        return is_finite(car(xs));
+        return make(is_finite(car(xs)));
       }));
 
       define(make_symbol("infinite?"), make<procedure>("infinite?", [](let const& xs)
       {
-        return is_infinite(car(xs));
+        return make(is_infinite(car(xs)));
       }));
 
       define(make_symbol("nan?"), make<procedure>("nan?", [](let const& xs)
       {
-        return is_nan(car(xs));
+        return make(is_nan(car(xs)));
       }));
 
       define(make_symbol("="), make<procedure>("=", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), not_equals) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), not_equals) == xs.end());
       }));
 
       define(make_symbol("<"), make<procedure>("<", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), greater_than_or_equals) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), greater_than_or_equals) == xs.end());
       }));
 
       define(make_symbol("<="), make<procedure>("<=", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), greater_than) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), greater_than) == xs.end());
       }));
 
       define(make_symbol(">"), make<procedure>(">", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), less_than_or_equals) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), less_than_or_equals) == xs.end());
       }));
 
       define(make_symbol(">="), make<procedure>(">=", [](let const& xs)
       {
-        return std::adjacent_find(xs.begin(), xs.end(), less_than) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), less_than) == xs.end());
       }));
 
       define(make_symbol("zero?"), make<procedure>("zero?", [](let const& xs)
       {
-        return is_zero(car(xs));
+        return make(is_zero(car(xs)));
       }));
 
       define(make_symbol("positive?"), make<procedure>("positive?", [](let const& xs)
       {
-        return is_positive(car(xs));
+        return make(is_positive(car(xs)));
       }));
 
       define(make_symbol("negative?"), make<procedure>("negative?", [](let const& xs)
       {
-        return is_negative(car(xs));
+        return make(is_negative(car(xs)));
       }));
 
       define(make_symbol("odd?"), make<procedure>("odd?", [](let const& xs)
       {
-        return is_odd(car(xs));
+        return make(is_odd(car(xs)));
       }));
 
       define(make_symbol("even?"), make<procedure>("even?", [](let const& xs)
       {
-        return is_even(car(xs));
+        return make(is_even(car(xs)));
       }));
 
       define(make_symbol("max"), make<procedure>("max", [](let const& xs)
@@ -1605,12 +1634,12 @@ namespace meevax::inline kernel
     {
       define(make_symbol("pair?"), make<procedure>("pair?", [](let const& xs)
       {
-        return car(xs).is<pair>();
+        return make(car(xs).is<pair>());
       }));
 
       define(make_symbol("not-pair?"), make<procedure>("not-pair?", [](let const& xs)
       {
-        return not car(xs).is<pair>();
+        return make(not car(xs).is<pair>());
       }));
 
       define(make_symbol("cons"), make<procedure>("cons", [](let const& xs)
@@ -1623,7 +1652,7 @@ namespace meevax::inline kernel
         return cons(cadr(xs), car(xs));
       }));
 
-      define(make_symbol("cons*"), make<procedure>("cons*", [](let & xs)
+      define(make_symbol("cons*"), make<procedure>("cons*", [](let const& xs)
       {
         if (xs.is<null>())
         {
@@ -1798,14 +1827,14 @@ namespace meevax::inline kernel
         return cddddr(car(xs));
       }));
 
-      define(make_symbol("set-car!"), make<procedure>("set-car!", [](let & xs)
+      define(make_symbol("set-car!"), make<procedure>("set-car!", [](let const& xs)
       {
-        caar(xs) = cadr(xs);
+        return car(xs).as_mutable<pair>().first = cadr(xs);
       }));
 
-      define(make_symbol("set-cdr!"), make<procedure>("set-cdr!", [](let & xs)
+      define(make_symbol("set-cdr!"), make<procedure>("set-cdr!", [](let const& xs)
       {
-        cdar(xs) = cadr(xs);
+        return car(xs).as_mutable<pair>().second = cadr(xs);
       }));
 
       return list(make_symbol("pair?"),
@@ -1851,45 +1880,45 @@ namespace meevax::inline kernel
     {
       define(make_symbol("input-port?"), make<procedure>("input-port?", [](let const& xs)
       {
-        return car(xs).is_also<input_port>();
+        return make(car(xs).is_also<input_port>());
       }));
 
       define(make_symbol("output-port?"), make<procedure>("output-port?", [](let const& xs)
       {
-        return car(xs).is_also<output_port>();
+        return make(car(xs).is_also<output_port>());
       }));
 
       define(make_symbol("binary-port?"), make<procedure>("binary-port?", [](let const& xs)
       {
-        return car(xs).is_also<binary_port>();
+        return make(car(xs).is_also<binary_port>());
       }));
 
       define(make_symbol("textual-port?"), make<procedure>("textual-port?", [](let const& xs)
       {
-        return car(xs).is_also<textual_port>();
+        return make(car(xs).is_also<textual_port>());
       }));
 
       define(make_symbol("port?"), make<procedure>("port?", [](let const& xs)
       {
-        return car(xs).is_also<port>();
+        return make(car(xs).is_also<port>());
       }));
 
       define(make_symbol("open?"), make<procedure>("open?", [](let const& xs)
       {
-        return car(xs).as<port>().is_open();
+        return make(car(xs).as<port>().is_open());
       }));
 
-      define(make_symbol("standard-input-port"), make<procedure>("standard-input-port", []()
+      define(make_symbol("standard-input-port"), make<procedure>("standard-input-port", [](let const&)
       {
         return make<standard_input_port>();
       }));
 
-      define(make_symbol("standard-output-port"), make<procedure>("standard-output-port", []()
+      define(make_symbol("standard-output-port"), make<procedure>("standard-output-port", [](let const&)
       {
         return make<standard_output_port>();
       }));
 
-      define(make_symbol("standard-error-port"), make<procedure>("standard-error-port", []()
+      define(make_symbol("standard-error-port"), make<procedure>("standard-error-port", [](let const&)
       {
         return make<standard_error_port>();
       }));
@@ -1917,6 +1946,7 @@ namespace meevax::inline kernel
       define(make_symbol("close"), make<procedure>("close", [](let const& xs)
       {
         car(xs).as<port>().close();
+        return unspecified;
       }));
 
       define(make_symbol("open-input-string"), make<procedure>("open-input-string", [](let const& xs)
@@ -1952,10 +1982,10 @@ namespace meevax::inline kernel
 
       define(make_symbol("eof-object?"), make<procedure>("eof-object?", [](let const& xs)
       {
-        return car(xs).is<eof>();
+        return make(car(xs).is<eof>());
       }));
 
-      define(make_symbol("eof-object"), make<procedure>("eof-object", []()
+      define(make_symbol("eof-object"), make<procedure>("eof-object", [](let const&)
       {
         return eof_object;
       }));
@@ -1963,6 +1993,7 @@ namespace meevax::inline kernel
       define(make_symbol("flush"), make<procedure>("flush", [](let const& xs)
       {
         car(xs).as<output_port>().flush();
+        return unspecified;
       }));
 
       return list(make_symbol("input-port?"),
@@ -1994,17 +2025,17 @@ namespace meevax::inline kernel
     {
       define(make_symbol("closure?"), make<procedure>("closure?", [](let const& xs)
       {
-        return car(xs).is<closure>();
+        return make(car(xs).is<closure>());
       }));
 
       define(make_symbol("continuation?"), make<procedure>("continuation?", [](let const& xs)
       {
-        return car(xs).is<continuation>();
+        return make(car(xs).is<continuation>());
       }));
 
       define(make_symbol("procedure?"), make<procedure>("procedure?", [](let const& xs)
       {
-        return car(xs).is<closure>() or car(xs).is<continuation>() or car(xs).is_also<primitive>();
+        return make(car(xs).is<closure>() or car(xs).is<continuation>() or car(xs).is<procedure>());
       }));
 
       define(make_symbol("procedure"), make<procedure>("procedure", [](let const& xs)
@@ -2077,7 +2108,7 @@ namespace meevax::inline kernel
             }
           };
 
-          return reinterpret_cast<primitive::signature>(lookup(pathname)(symbol));
+          return reinterpret_cast<procedure::signature>(lookup(pathname)(symbol));
         };
 
         return make<procedure>(cadr(xs).as<symbol>(), lookup(car(xs).as<string>().utf8(), cadr(xs).as<symbol>().name.c_str()));
@@ -2098,7 +2129,7 @@ namespace meevax::inline kernel
 
       define(make_symbol("get-char-ready?"), make<procedure>("get-char-ready?", [](let const& xs)
       {
-        return car(xs).as<textual_input_port>().get_ready();
+        return make(car(xs).as<textual_input_port>().get_ready());
       }));
 
       define(make_symbol("get-line"), make<procedure>("get-line", [](let const& xs)
@@ -2128,7 +2159,7 @@ namespace meevax::inline kernel
 
       define(make_symbol("get-u8-ready?"), make<procedure>("get-u8-ready?", [](let const& xs)
       {
-        return car(xs).as<binary_input_port>().get_ready();
+        return make(car(xs).as<binary_input_port>().get_ready());
       }));
 
       define(make_symbol("peek-u8"), make<procedure>("peek-u8", [](let const& xs)
@@ -2157,7 +2188,7 @@ namespace meevax::inline kernel
     {
       define(make_symbol("string?"), make<procedure>("string?", [](let const& xs)
       {
-        return car(xs).is<string>();
+        return make(car(xs).is<string>());
       }));
 
       define(make_symbol("make-string"), make<procedure>("make-string", [](let const& xs)
@@ -2190,9 +2221,10 @@ namespace meevax::inline kernel
         return make(car(xs).as<string>().characters.at(exact_integer_cast<std::size_t>(cadr(xs))));
       }));
 
-      define(make_symbol("string-set!"), make<procedure>("string-set!", [](let & xs)
+      define(make_symbol("string-set!"), make<procedure>("string-set!", [](let const& xs)
       {
-        car(xs).as<string>().characters.at(exact_integer_cast<std::size_t>(cadr(xs))) = caddr(xs).as<character>();
+        car(xs).as_mutable<string>().characters.at(exact_integer_cast<std::size_t>(cadr(xs))) = caddr(xs).as<character>();
+        return unspecified;
       }));
 
       define(make_symbol("string=?"), make<procedure>("string=?", [](let const& xs)
@@ -2202,7 +2234,7 @@ namespace meevax::inline kernel
           return not (a.as<string>() == b.as<string>());
         };
 
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end());
       }));
 
       define(make_symbol("string<?"), make<procedure>("string<?", [](let const& xs)
@@ -2212,7 +2244,7 @@ namespace meevax::inline kernel
           return not (a.as<string>() < b.as<string>());
         };
 
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end());
       }));
 
       define(make_symbol("string>?"), make<procedure>("string>?", [](let const& xs)
@@ -2222,7 +2254,7 @@ namespace meevax::inline kernel
           return not (a.as<string>() > b.as<string>());
         };
 
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end());
       }));
 
       define(make_symbol("string<=?"), make<procedure>("string<=?", [](let const& xs)
@@ -2232,7 +2264,7 @@ namespace meevax::inline kernel
           return not (a.as<string>() <= b.as<string>());
         };
 
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end());
       }));
 
       define(make_symbol("string>=?"), make<procedure>("string>=?", [](let const& xs)
@@ -2242,7 +2274,7 @@ namespace meevax::inline kernel
           return not (a.as<string>() >= b.as<string>());
         };
 
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end());
       }));
 
       define(make_symbol("string-ci=?"), make<procedure>("string-ci=?", [](let const& xs)
@@ -2261,7 +2293,7 @@ namespace meevax::inline kernel
                                                   compare);
         };
 
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end());
       }));
 
       define(make_symbol("string-ci<?"), make<procedure>("string-ci<?", [](let const& xs)
@@ -2280,7 +2312,7 @@ namespace meevax::inline kernel
                                                   compare);
         };
 
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end());
       }));
 
       define(make_symbol("string-ci>?"), make<procedure>("string-ci>?", [](let const& xs)
@@ -2299,7 +2331,7 @@ namespace meevax::inline kernel
                                                   compare);
         };
 
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end());
       }));
 
       define(make_symbol("string-ci<=?"), make<procedure>("string-ci<=?", [](let const& xs)
@@ -2318,7 +2350,7 @@ namespace meevax::inline kernel
                                                   compare);
         };
 
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end());
       }));
 
       define(make_symbol("string-ci>=?"), make<procedure>("string-ci>=?", [](let const& xs)
@@ -2337,7 +2369,7 @@ namespace meevax::inline kernel
                                                   compare);
         };
 
-        return std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end();
+        return make(std::adjacent_find(xs.begin(), xs.end(), compare) == xs.end());
       }));
 
       define(make_symbol("string-append"), make<procedure>("string-append", [](let const& xs)
@@ -2417,46 +2449,46 @@ namespace meevax::inline kernel
           std::copy(caddr(xs).as<string>().characters.begin(),
                     caddr(xs).as<string>().characters.end(),
                     std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(cadr(xs))));
-          break;
+          return unspecified;
 
         case 4:
           std::copy(std::next(caddr(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
                     caddr(xs).as<string>().characters.end(),
                     std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(cadr(xs))));
-          break;
+          return unspecified;
 
         case 5:
           std::copy(std::next(caddr(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
                     std::next(caddr(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(caddddr(xs))),
                     std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(cadr(xs))));
-          break;
+          return unspecified;
 
         default:
           throw error(make<string>("procedure string-copy takes three to five arugments, but got"), xs);
         }
       }));
 
-      define(make_symbol("string-fill!"), make<procedure>("string-fill!", [](let & xs)
+      define(make_symbol("string-fill!"), make<procedure>("string-fill!", [](let const& xs)
       {
         switch (length(xs))
         {
         case 2:
-          std::fill(car(xs).as<string>().characters.begin(),
-                    car(xs).as<string>().characters.end(),
+          std::fill(car(xs).as_mutable<string>().characters.begin(),
+                    car(xs).as_mutable<string>().characters.end(),
                     cadr(xs).as<character>());
-          break;
+          return unspecified;
 
         case 3:
-          std::fill(std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(caddr(xs))),
-                    car(xs).as<string>().characters.end(),
+          std::fill(std::next(car(xs).as_mutable<string>().characters.begin(), exact_integer_cast<std::size_t>(caddr(xs))),
+                    car(xs).as_mutable<string>().characters.end(),
                     cadr(xs).as<character>());
-          break;
+          return unspecified;
 
         case 4:
-          std::fill(std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(caddr(xs))),
-                    std::next(car(xs).as<string>().characters.begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
+          std::fill(std::next(car(xs).as_mutable<string>().characters.begin(), exact_integer_cast<std::size_t>(caddr(xs))),
+                    std::next(car(xs).as_mutable<string>().characters.begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
                     cadr(xs).as<character>());
-          break;
+          return unspecified;
 
         default:
           throw error(make<string>("procedure string-fill! takes one to three arugments, but got"), xs);
@@ -2491,7 +2523,7 @@ namespace meevax::inline kernel
     {
       define(make_symbol("symbol?"), make<procedure>("symbol?", [](let const& xs)
       {
-        return car(xs).is<symbol>();
+        return make(car(xs).is<symbol>());
       }));
 
       define(make_symbol("symbol->string"), make<procedure>("symbol->string", [](let const& xs)
@@ -2526,17 +2558,17 @@ namespace meevax::inline kernel
     {
       define(make_symbol("identifier?"), make<procedure>("identifier?", [](let const& xs)
       {
-        return car(xs).is_also<identifier>();
+        return make(car(xs).is_also<identifier>());
       }));
 
       define(make_symbol("transformer?"), make<procedure>("transformer?", [](let const& xs)
       {
-        return car(xs).is_also<transformer>();
+        return make(car(xs).is_also<transformer>());
       }));
 
       define(make_symbol("syntactic-closure?"), make<procedure>("syntactic-closure?", [](let const& xs)
       {
-        return car(xs).is_also<syntactic_closure>();
+        return make(car(xs).is_also<syntactic_closure>());
       }));
 
       define(make_symbol("make-syntactic-closure"), make<procedure>("make-syntactic-closure", [](let const& xs)
@@ -2552,7 +2584,7 @@ namespace meevax::inline kernel
 
     libraries().emplace("(meevax system)", make<library>([](auto define)
     {
-      define(make_symbol("features"), make<procedure>("features", []()
+      define(make_symbol("features"), make<procedure>("features", [](let const&)
       {
         return features();
       }));
@@ -2569,7 +2601,7 @@ namespace meevax::inline kernel
         }
       }));
 
-      define(make_symbol("get-environment-variables"), make<procedure>("get-environment-variables", []()
+      define(make_symbol("get-environment-variables"), make<procedure>("get-environment-variables", [](let const&)
       {
         let alist = nullptr;
 
@@ -2593,12 +2625,12 @@ namespace meevax::inline kernel
 
     libraries().emplace("(meevax time)", make<library>([](auto define)
     {
-      define(make_symbol("current-jiffy"), make<procedure>("current-jiffy", []()
+      define(make_symbol("current-jiffy"), make<procedure>("current-jiffy", [](let const&)
       {
         return make<large_integer>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
       }));
 
-      define(make_symbol("jiffies-per-second"), make<procedure>("jiffies-per-second", []()
+      define(make_symbol("jiffies-per-second"), make<procedure>("jiffies-per-second", [](let const&)
       {
         return make<large_integer>(std::chrono::high_resolution_clock::period::den);
       }));
@@ -2611,7 +2643,7 @@ namespace meevax::inline kernel
     {
       define(make_symbol("vector?"), make<procedure>("vector?", [](let const& xs)
       {
-        return car(xs).is<vector>();
+        return make(car(xs).is<vector>());
       }));
 
       define(make_symbol("vector"), make<procedure>("vector", [](let const& xs)
@@ -2644,9 +2676,10 @@ namespace meevax::inline kernel
         return car(xs).as<vector>().objects[exact_integer_cast<std::size_t>(cadr(xs))];
       }));
 
-      define(make_symbol("vector-set!"), make<procedure>("vector-set!", [](let & xs)
+      define(make_symbol("vector-set!"), make<procedure>("vector-set!", [](let const& xs)
       {
-        car(xs).as<vector>().objects[exact_integer_cast<std::size_t>(cadr(xs))] = caddr(xs);
+        car(xs).as_mutable<vector>().objects[exact_integer_cast<std::size_t>(cadr(xs))] = caddr(xs);
+        return unspecified;
       }));
 
       define(make_symbol("vector->list"), make<procedure>("vector->list", [](let const& xs)
@@ -2752,19 +2785,19 @@ namespace meevax::inline kernel
           std::copy(caddr(xs).as<vector>().objects.begin(),
                     caddr(xs).as<vector>().objects.end(),
                     std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadr(xs))));
-          break;
+          return unspecified;
 
         case 4:
           std::copy(std::next(caddr(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
                     caddr(xs).as<vector>().objects.end(),
                     std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadr(xs))));
-          break;
+          return unspecified;
 
         case 5:
           std::copy(std::next(caddr(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
                     std::next(caddr(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(caddddr(xs))),
                     std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadr(xs))));
-          break;
+          return unspecified;
 
         default:
           throw error(make<string>("procedure vector-copy takes three to five arugments, but got"), xs);
@@ -2785,27 +2818,30 @@ namespace meevax::inline kernel
         return v;
       }));
 
-      define(make_symbol("vector-fill!"), make<procedure>("vector-fill!", [](let & xs)
+      define(make_symbol("vector-fill!"), make<procedure>("vector-fill!", [](let const& xs)
       {
         switch (length(xs))
         {
         case 2:
-          std::fill(car(xs).as<vector>().objects.begin(),
-                    car(xs).as<vector>().objects.end(),
+          std::fill(car(xs).as_mutable<vector>().objects.begin(),
+                    car(xs).as_mutable<vector>().objects.end(),
                     cadr(xs));
-          break;
+          return unspecified;
 
         case 3:
-          std::fill(std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(caddr(xs))),
-                    car(xs).as<vector>().objects.end(),
+          std::fill(std::next(car(xs).as_mutable<vector>().objects.begin(), exact_integer_cast<std::size_t>(caddr(xs))),
+                    car(xs).as_mutable<vector>().objects.end(),
                     cadr(xs));
-          break;
+          return unspecified;
 
         case 4:
-          std::fill(std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(caddr(xs))),
-                    std::next(car(xs).as<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
+          std::fill(std::next(car(xs).as_mutable<vector>().objects.begin(), exact_integer_cast<std::size_t>(caddr(xs))),
+                    std::next(car(xs).as_mutable<vector>().objects.begin(), exact_integer_cast<std::size_t>(cadddr(xs))),
                     cadr(xs));
-          break;
+          return unspecified;
+
+        default:
+          return unspecified;
         }
       }));
 
@@ -2830,7 +2866,7 @@ namespace meevax::inline kernel
       #define DEFINE_VECTOR(TAG)                                               \
       define(make_symbol(#TAG "vector?"), make<procedure>(#TAG "vector?", [](let const& xs) \
       {                                                                        \
-        return car(xs).is<TAG##vector>();                                      \
+        return make(car(xs).is<TAG##vector>());                                \
       }));                                                                     \
                                                                                \
       define(make_symbol("make-" #TAG "vector"), make<procedure>("make-" #TAG "vector", [](let const& xs) \
@@ -2866,6 +2902,7 @@ namespace meevax::inline kernel
       define(make_symbol(#TAG "vector-set!"), make<procedure>(#TAG "vector-set!", [](let const& xs) \
       {                                                                        \
         car(xs).as<TAG##vector>().values[exact_integer_cast<std::size_t>(cadr(xs))] = TAG##vector::input_cast(caddr(xs)); \
+        return unspecified;                                                    \
       }));                                                                     \
                                                                                \
       define(make_symbol(#TAG "vector-copy"), make<procedure>(#TAG "vector-copy", [](let const& xs) \
@@ -2894,14 +2931,14 @@ namespace meevax::inline kernel
         }                                                                      \
       }));                                                                     \
                                                                                \
-      define(make_symbol(#TAG "vector-copy!"), make<procedure>(#TAG "vector-copy!", [](let & xs) \
+      define(make_symbol(#TAG "vector-copy!"), make<procedure>(#TAG "vector-copy!", [](let const& xs) \
       {                                                                        \
         auto copy = [&](std::size_t at, std::size_t begin, std::size_t end)    \
         {                                                                      \
           assert(begin <= end);                                                \
           auto i = std::slice(at, end - begin, 1);                             \
           auto j = std::slice(begin, end - begin, 1);                          \
-          car(xs).as<TAG##vector>().values[i] = caddr(xs).as<TAG##vector>().values[j];   \
+          car(xs).as_mutable<TAG##vector>().values[i] = caddr(xs).as<TAG##vector>().values[j];   \
         };                                                                     \
                                                                                \
         switch (length(xs))                                                    \
@@ -2910,19 +2947,19 @@ namespace meevax::inline kernel
           copy(exact_integer_cast<std::size_t>(cadr(xs)),                      \
                0,                                                              \
                caddr(xs).as<TAG##vector>().values.size());                     \
-          break;                                                               \
+          return unspecified;                                                  \
                                                                                \
         case 4:                                                                \
           copy(exact_integer_cast<std::size_t>(cadr(xs)),                      \
                exact_integer_cast<std::size_t>(cadddr(xs)),                    \
                caddr(xs).as<TAG##vector>().values.size());                     \
-          break;                                                               \
+          return unspecified;                                                  \
                                                                                \
         case 5:                                                                \
           copy(exact_integer_cast<std::size_t>(cadr(xs)),                      \
                exact_integer_cast<std::size_t>(cadddr(xs)),                    \
                exact_integer_cast<std::size_t>(caddddr(xs)));                  \
-          break;                                                               \
+          return unspecified;                                                  \
                                                                                \
         default:                                                               \
           throw error(make<string>("procedure " #TAG "vector-copy! takes three to five arguments, but got"), xs); \
@@ -3056,31 +3093,37 @@ namespace meevax::inline kernel
       define(make_symbol("put-char"), make<procedure>("put-char", [](let const& xs)
       {
         cadr(xs).as<textual_output_port>().put(car(xs).as<character>());
+        return unspecified;
       }));
 
       define(make_symbol("put-string"), make<procedure>("put-string", [](let const& xs)
       {
         cadr(xs).as<textual_output_port>().put(car(xs).as<string>());
+        return unspecified;
       }));
 
       define(make_symbol("put-u8"), make<procedure>("put-u8", [](let const& xs)
       {
         cadr(xs).as<binary_output_port>().put(exact_integer_cast<std::uint8_t>(car(xs)));
+        return unspecified;
       }));
 
       define(make_symbol("put-u8vector"), make<procedure>("put-u8vector", [](let const& xs)
       {
         cadr(xs).as<binary_output_port>().put(car(xs).as<u8vector>());
+        return unspecified;
       }));
 
       define(make_symbol("write"), make<procedure>("write", [](let const& xs)
       {
         cadr(xs).as<textual_output_port>().write(car(xs));
+        return unspecified;
       }));
 
       define(make_symbol("write-simple"), make<procedure>("write-simple", [](let const& xs)
       {
         cadr(xs).as<textual_output_port>().write_simple(car(xs));
+        return unspecified;
       }));
 
       return list(make_symbol("put-char"),

@@ -303,8 +303,9 @@ namespace meevax::inline memory
         }
       }
 
-      template <typename U> auto as() const -> decltype(auto) { return as<U>(*this); }
-      template <typename U> auto as()       -> decltype(auto) { return as<U>(*this); }
+      template <typename U> auto as        ()       -> decltype(auto) { return as<U>                      (*this) ; }
+      template <typename U> auto as        () const -> decltype(auto) { return as<U>                      (*this) ; }
+      template <typename U> auto as_mutable() const -> decltype(auto) { return as<U>(const_cast<mutator &>(*this)); }
 
       auto eqv(mutator const& rhs) const -> bool
       {

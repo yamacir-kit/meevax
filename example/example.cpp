@@ -3,12 +3,12 @@
 
 namespace meevax::inline example
 {
-  auto argument_length(object & xs)
+  auto argument_length(object const& xs)
   {
     return make(static_cast<small_integer>(length(xs)));
   }
 
-  auto dummy_procedure(object & xs)
+  auto dummy_procedure(object const& xs)
   {
     std::cout << "\n; calling C++ function." << std::endl;
 
@@ -46,12 +46,12 @@ namespace meevax::inline example
     }
   };
 
-  auto make_hoge(object & xs)
+  auto make_hoge(object const& xs)
   {
     return make<hoge>(exact_integer_cast<small_integer>(car(xs)));
   }
 
-  auto hoge_value(object & xs)
+  auto hoge_value(object const& xs)
   {
     return make<small_integer>(car(xs).as<hoge>().value);
   }
@@ -60,12 +60,12 @@ namespace meevax::inline example
   {
     auto lookup(char const* name) -> void *
     {
-      auto static registry = std::unordered_map<std::string, meevax::primitive::signature>
+      auto static registry = std::unordered_map<std::string, meevax::procedure::signature>
       {
         { "argument_length", argument_length },
         { "dummy_procedure", dummy_procedure },
         { "make_hoge", make_hoge },
-        { "is_hoge", [](object & xs) { return car(xs).is<hoge>() ? t : f; } },
+        { "is_hoge", [](object const& xs) { return car(xs).is<hoge>() ? t : f; } },
         { "hoge_value", hoge_value }
       };
 

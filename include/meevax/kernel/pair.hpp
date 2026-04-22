@@ -71,6 +71,7 @@ namespace meevax::inline kernel
 
   template <template <typename...> typename Traits, typename Allocator = std::allocator<void>, typename... Ts>
   requires std::constructible_from<typename Traits<Ts...>::type, Ts...>
+  [[deprecated]]
   auto make(Ts&&... xs) -> decltype(auto)
   {
     return make<typename Traits<Ts...>::type, Allocator>(std::forward<decltype(xs)>(xs)...);
