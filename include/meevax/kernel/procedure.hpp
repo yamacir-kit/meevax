@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
-#include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax::inline kernel
@@ -35,6 +33,8 @@ namespace meevax::inline kernel
       : name { name }
       , call { call }
     {}
+
+    explicit procedure(std::string const&, std::string const&);
   };
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;

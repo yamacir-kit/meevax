@@ -65,7 +65,7 @@ namespace meevax::inline example
         { "argument_length", argument_length },
         { "dummy_procedure", dummy_procedure },
         { "make_hoge", make_hoge },
-        { "is_hoge", [](object const& xs) { return car(xs).is<hoge>() ? t : f; } },
+        { "is_hoge", [](object const& xs) { return make(car(xs).is<hoge>()); } },
         { "hoge_value", hoge_value }
       };
 

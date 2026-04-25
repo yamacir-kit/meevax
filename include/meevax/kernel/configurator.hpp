@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 #define INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 
-#include <filesystem>
 #include <list>
 #include <regex>
 
@@ -34,8 +33,7 @@ namespace meevax::inline kernel
 
       std::function<auto (std::function<auto () -> object> const&) -> void> evaluate;
 
-      template <typename S, typename F>
-      explicit option(S&& s, F&& f)
+      explicit option(auto&& s, auto&& f)
         : pattern  { std::forward<decltype(s)>(s) }
         , evaluate { std::forward<decltype(f)>(f) }
       {}

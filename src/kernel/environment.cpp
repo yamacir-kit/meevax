@@ -20,6 +20,7 @@
 #include <meevax/kernel/include.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/symbol.hpp>
 
 namespace meevax::inline kernel
 {

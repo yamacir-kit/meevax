@@ -32,6 +32,10 @@ namespace meevax::inline kernel
 
   auto home_directory() -> std::filesystem::path;
 
+  auto shared_library_prefix() -> std::string;
+
+  auto shared_library_suffix() -> std::string;
+
   auto system_library_directory() -> std::filesystem::path;
 
   auto user_library_directory() -> std::filesystem::path;

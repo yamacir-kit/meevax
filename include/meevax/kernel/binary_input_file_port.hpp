@@ -20,7 +20,6 @@
 #include <fstream>
 
 #include <meevax/kernel/binary_input_port.hpp>
-#include <meevax/kernel/string.hpp>
 
 namespace meevax::inline kernel
 {

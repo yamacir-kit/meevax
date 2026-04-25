@@ -14,10 +14,12 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/dynamic_environment.hpp>
 #include <meevax/kernel/error.hpp>
+#include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/procedure.hpp>

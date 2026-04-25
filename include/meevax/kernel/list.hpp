@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_LIST_HPP
 
 #include <meevax/kernel/comparator.hpp>
-#include <meevax/kernel/number.hpp>
 
 namespace meevax::inline kernel
 {
