@@ -60,7 +60,7 @@ namespace meevax::inline example
   {
     auto lookup(char const* name) -> void *
     {
-      auto static registry = std::unordered_map<std::string, meevax::procedure::signature>
+      auto static const registry = std::unordered_map<std::string, meevax::procedure::signature>
       {
         { "argument_length", argument_length },
         { "dummy_procedure", dummy_procedure },

@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYSTEM_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYSTEM_HPP
 
+#include <filesystem>
 #include <string_view>
 
 #include <meevax/kernel/list.hpp>

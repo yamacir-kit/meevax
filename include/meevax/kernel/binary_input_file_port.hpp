@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_BINARY_INPUT_FILE_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_BINARY_INPUT_FILE_PORT_HPP
 
+#include <filesystem>
 #include <fstream>
 
 #include <meevax/kernel/binary_input_port.hpp>

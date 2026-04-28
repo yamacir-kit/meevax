@@ -55,11 +55,11 @@ namespace meevax::inline kernel
   }
 
   template <typename T>
-  auto dlsym(auto const& handle, std::string const& symbol)
+  auto dlsym(auto const& handle, auto const& symbol)
   {
     ::dlerror(); // clear
 
-    if (auto address = ::dlsym(handle, symbol.c_str()); address)
+    if (auto address = ::dlsym(handle, symbol); address)
     {
       return reinterpret_cast<T>(address);
     }
@@ -69,32 +69,33 @@ namespace meevax::inline kernel
     }
   }
 
-  auto link(std::string const& shared_library_name, std::string const& symbol_name)
+  auto stub(auto const& shared_library_name)
   {
-    auto lookup = [](std::string const& pathname)
+    auto const name = shared_library_prefix() + shared_library_name + shared_library_suffix();
+
+    auto static stubs = std::unordered_map<std::string, decltype(&lookup)>
     {
-      using interface = auto (*)(char const*) -> void *;
-
-      auto static interfaces = std::unordered_map<std::string, interface>();
-
-      if (auto found = interfaces.find(pathname); found != interfaces.end())
-      {
-        return found->second;
-      }
-      else
-      {
-        auto [emplaced, success] = interfaces.emplace(pathname, dlsym<interface>(dlopen(pathname), "lookup"));
-
-        return emplaced->second;
-      }
+      { shared_library_prefix() + "meevax" + shared_library_suffix(), lookup }
     };
 
-    return reinterpret_cast<procedure::signature>(lookup(shared_library_prefix() + shared_library_name + shared_library_suffix())(symbol_name.c_str()));
+    if (auto found = stubs.find(name); found != stubs.end())
+    {
+      return found->second;
+    }
+    else if (auto [emplaced, success] = stubs.emplace(name, dlsym<decltype(&lookup)>(dlopen(name), "lookup")); success)
+    {
+      return emplaced->second;
+    }
+    else
+    {
+      throw error(make<string>("failed to load shared-library"), make<string>(name));
+    }
   }
 
-  procedure::procedure(std::string const& file, std::string const& name)
-    : name { name }
-    , call { link(file, name) }
+  procedure::procedure(std::string const& shared_library_name, std::string const& symbol_name)
+    : shared_library_name { shared_library_name }
+    , name { symbol_name }
+    , call { reinterpret_cast<procedure::signature>(stub(shared_library_name)(symbol_name.c_str())) }
   {}
 
   auto operator <<(std::ostream & os, procedure const& datum) -> std::ostream &

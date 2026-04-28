@@ -54,6 +54,35 @@ extern char ** environ; // for procedure get-environment-variables
 
 namespace meevax::inline kernel
 {
+  auto lookup(char const* name) -> void *
+  {
+    auto static const registry = std::unordered_map<std::string, procedure::signature>
+    {
+      {
+        "boolean?", [](let const& xs)
+        {
+          return make(car(xs).is<bool>());
+        }
+      },
+
+      {
+        "not", [](let const& xs)
+        {
+          return make(car(xs) == f);
+        }
+      }
+    };
+
+    if (auto iterator = registry.find(name); iterator != registry.end())
+    {
+      return reinterpret_cast<void *>(iterator->second);
+    }
+    else
+    {
+      return nullptr;
+    }
+  }
+
   auto boot() -> void
   {
     libraries().emplace("(meevax binary32)", make<library>([](auto define)
@@ -187,15 +216,9 @@ namespace meevax::inline kernel
 
     libraries().emplace("(meevax boolean)", make<library>([](auto define)
     {
-      define(make_symbol("boolean?"), make<procedure>("boolean?", [](let const& xs)
-      {
-        return make(car(xs).is<bool>());
-      }));
+      define(make_symbol("boolean?"), make<procedure>("meevax", "boolean?"));
 
-      define(make_symbol("not"), make<procedure>("not", [](let const& xs)
-      {
-        return make(car(xs) == f);
-      }));
+      define(make_symbol("not"), make<procedure>("meevax", "not"));
 
       return list(make_symbol("boolean?"),
                   make_symbol("not"));

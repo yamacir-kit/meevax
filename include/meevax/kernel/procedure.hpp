@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
+#include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax::inline kernel
@@ -25,12 +26,15 @@ namespace meevax::inline kernel
   {
     using signature = auto (*)(object const&) -> object;
 
+    string shared_library_name;
+
     symbol name;
 
     signature call;
 
     explicit procedure(std::string const& name, signature call)
-      : name { name }
+      : shared_library_name { "meevax" }
+      , name { name }
       , call { call }
     {}
 
@@ -38,6 +42,11 @@ namespace meevax::inline kernel
   };
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
+
+  extern "C"
+  {
+    auto lookup(char const*) -> void *;
+  }
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
