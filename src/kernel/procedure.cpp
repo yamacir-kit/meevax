@@ -69,37 +69,48 @@ namespace meevax::inline kernel
     }
   }
 
-  auto stub(auto const& shared_library_name)
-  {
-    auto const name = shared_library_prefix() + shared_library_name + shared_library_suffix();
-
-    auto static stubs = std::unordered_map<std::string, decltype(&lookup)>
-    {
-      { shared_library_prefix() + "meevax" + shared_library_suffix(), lookup }
-    };
-
-    if (auto found = stubs.find(name); found != stubs.end())
-    {
-      return found->second;
-    }
-    else if (auto [emplaced, success] = stubs.emplace(name, dlsym<decltype(&lookup)>(dlopen(name), "lookup")); success)
-    {
-      return emplaced->second;
-    }
-    else
-    {
-      throw error(make<string>("failed to load shared-library"), make<string>(name));
-    }
-  }
-
   procedure::procedure(std::string const& shared_library_name, std::string const& symbol_name)
     : shared_library_name { shared_library_name }
     , name { symbol_name }
-    , call { reinterpret_cast<procedure::signature>(stub(shared_library_name)(symbol_name.c_str())) }
+    , call
+      {
+        [&]()
+        {
+          auto stub = [](auto const& name)
+          {
+            auto static stubs = std::unordered_map<std::string, decltype(&lookup)>
+            {
+              { shared_library_prefix() + "meevax" + shared_library_suffix(), lookup }
+            };
+
+            if (auto found = stubs.find(name); found != stubs.end())
+            {
+              return found->second;
+            }
+            else if (auto [emplaced, success] = stubs.emplace(name, dlsym<decltype(&lookup)>(dlopen(name), "lookup")); success)
+            {
+              return emplaced->second;
+            }
+            else
+            {
+              throw error(make<string>("failed to load shared-library"), make<string>(name));
+            }
+          };
+
+          if (auto p = stub(shared_library_prefix() + shared_library_name + shared_library_suffix())(symbol_name.c_str()))
+          {
+            return reinterpret_cast<signature>(p);
+          }
+          else
+          {
+            throw error(make<string>("no such procedure"), cons(make<string>(shared_library_name), make_symbol(symbol_name)));
+          }
+        }()
+      }
   {}
 
   auto operator <<(std::ostream & os, procedure const& datum) -> std::ostream &
   {
-    return os << magenta("#,(") << green("procedure ") << datum.name << magenta(")");
+    return os << magenta("#,(") << green("procedure ") << datum.shared_library_name << magenta(" '") << datum.name << magenta(")");
   }
 } // namespace meevax::kernel

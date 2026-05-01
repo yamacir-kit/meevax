@@ -32,6 +32,7 @@ namespace meevax::inline kernel
 
     signature call;
 
+    [[deprecated]]
     explicit procedure(std::string const& name, signature call)
       : shared_library_name { "meevax" }
       , name { name }
