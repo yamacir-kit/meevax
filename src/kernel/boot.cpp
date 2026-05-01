@@ -440,137 +440,80 @@ namespace meevax::inline kernel
   {
     libraries().emplace("(meevax binary32)", make<library>([](auto define)
     {
-      define(make_symbol("binary32?"), make<procedure>("meevax", "binary32?"));
-
-      return list(make_symbol("binary32?"));
+      return list(define(make_symbol("binary32?"), make<procedure>("meevax", "binary32?")));
     }));
 
     libraries().emplace("(meevax binary64)", make<library>([](auto define)
     {
-      define(make_symbol("binary64?"                   ), make<procedure>("meevax", "binary64?"                   ));
-      define(make_symbol("binary64-least"              ), make<double>(std::numeric_limits<double>::min()         ));
-      define(make_symbol("binary64-greatest"           ), make<double>(std::numeric_limits<double>::max()         ));
-      define(make_symbol("binary64-epsilon"            ), make<double>(std::numeric_limits<double>::epsilon()     ));
-      define(make_symbol("binary64-integral-part"      ), make<procedure>("meevax", "binary64-integral-part"      ));
-      define(make_symbol("binary64-fractional-part"    ), make<procedure>("meevax", "binary64-fractional-part"    ));
-      define(make_symbol("binary64-log-binary"         ), make<procedure>("meevax", "binary64-log-binary"         ));
-      define(make_symbol("binary64-integer-log-binary" ), make<procedure>("meevax", "binary64-integer-log-binary" ));
-      define(make_symbol("binary64-normalized-fraction"), make<procedure>("meevax", "binary64-normalized-fraction"));
-      define(make_symbol("binary64-exponent"           ), make<procedure>("meevax", "binary64-exponent"           ));
-      define(make_symbol("binary64-sign-bit"           ), make<procedure>("meevax", "binary64-sign-bit"           ));
-      define(make_symbol("binary64-normalized?"        ), make<procedure>("meevax", "binary64-normalized?"        ));
-      define(make_symbol("binary64-denormalized?"      ), make<procedure>("meevax", "binary64-denormalized?"      ));
-      define(make_symbol("binary64-max"                ), make<procedure>("meevax", "binary64-max"                ));
-      define(make_symbol("binary64-min"                ), make<procedure>("meevax", "binary64-min"                ));
-      define(make_symbol("binary64-fused-multiply-add" ), make<procedure>("meevax", "binary64-fused-multiply-add" ));
-      define(make_symbol("binary64-remquo"             ), make<procedure>("meevax", "binary64-remquo"             ));
-
-      return list(make_symbol("binary64?"),
-                  make_symbol("binary64-least"),
-                  make_symbol("binary64-greatest"),
-                  make_symbol("binary64-epsilon"),
-                  make_symbol("binary64-integral-part"),
-                  make_symbol("binary64-fractional-part"),
-                  make_symbol("binary64-log-binary"),
-                  make_symbol("binary64-integer-log-binary"),
-                  make_symbol("binary64-normalized-fraction"),
-                  make_symbol("binary64-exponent"),
-                  make_symbol("binary64-sign-bit"),
-                  make_symbol("binary64-normalized?"),
-                  make_symbol("binary64-denormalized?"),
-                  make_symbol("binary64-max"),
-                  make_symbol("binary64-min"),
-                  make_symbol("binary64-fused-multiply-add"),
-                  make_symbol("binary64-remquo"));
+      return list(define(make_symbol("binary64?"                   ), make<procedure>("meevax", "binary64?"                   )),
+                  define(make_symbol("binary64-least"              ), make<double>(std::numeric_limits<double>::min()         )),
+                  define(make_symbol("binary64-greatest"           ), make<double>(std::numeric_limits<double>::max()         )),
+                  define(make_symbol("binary64-epsilon"            ), make<double>(std::numeric_limits<double>::epsilon()     )),
+                  define(make_symbol("binary64-integral-part"      ), make<procedure>("meevax", "binary64-integral-part"      )),
+                  define(make_symbol("binary64-fractional-part"    ), make<procedure>("meevax", "binary64-fractional-part"    )),
+                  define(make_symbol("binary64-log-binary"         ), make<procedure>("meevax", "binary64-log-binary"         )),
+                  define(make_symbol("binary64-integer-log-binary" ), make<procedure>("meevax", "binary64-integer-log-binary" )),
+                  define(make_symbol("binary64-normalized-fraction"), make<procedure>("meevax", "binary64-normalized-fraction")),
+                  define(make_symbol("binary64-exponent"           ), make<procedure>("meevax", "binary64-exponent"           )),
+                  define(make_symbol("binary64-sign-bit"           ), make<procedure>("meevax", "binary64-sign-bit"           )),
+                  define(make_symbol("binary64-normalized?"        ), make<procedure>("meevax", "binary64-normalized?"        )),
+                  define(make_symbol("binary64-denormalized?"      ), make<procedure>("meevax", "binary64-denormalized?"      )),
+                  define(make_symbol("binary64-max"                ), make<procedure>("meevax", "binary64-max"                )),
+                  define(make_symbol("binary64-min"                ), make<procedure>("meevax", "binary64-min"                )),
+                  define(make_symbol("binary64-fused-multiply-add" ), make<procedure>("meevax", "binary64-fused-multiply-add" )),
+                  define(make_symbol("binary64-remquo"             ), make<procedure>("meevax", "binary64-remquo"             )));
     }));
 
     libraries().emplace("(meevax boolean)", make<library>([](auto define)
     {
-      define(make_symbol("boolean?"), make<procedure>("meevax", "boolean?"));
-      define(make_symbol("not"     ), make<procedure>("meevax", "not"     ));
-
-      return list(make_symbol("boolean?"),
-                  make_symbol("not"));
+      return list(define(make_symbol("boolean?"), make<procedure>("meevax", "boolean?")),
+                  define(make_symbol("not"     ), make<procedure>("meevax", "not"     )));
     }));
 
     libraries().emplace("(meevax box)", make<library>([](auto define)
     {
-      define(make_symbol("box"     ), make<procedure>("meevax", "box"     ));
-      define(make_symbol("box-ref" ), make<procedure>("meevax", "box-ref" ));
-      define(make_symbol("box-set!"), make<procedure>("meevax", "box-set!"));
-      define(make_symbol("box?"    ), make<procedure>("meevax", "box?"    ));
-
-      return list(make_symbol("box"),
-                  make_symbol("box?"),
-                  make_symbol("box-ref"),
-                  make_symbol("box-set!"));
+      return list(define(make_symbol("box"     ), make<procedure>("meevax", "box"     )),
+                  define(make_symbol("box-ref" ), make<procedure>("meevax", "box-ref" )),
+                  define(make_symbol("box-set!"), make<procedure>("meevax", "box-set!")),
+                  define(make_symbol("box?"    ), make<procedure>("meevax", "box?"    )));
     }));
 
     libraries().emplace("(meevax character)", make<library>([](auto define)
     {
-      define(make_symbol("char?"           ), make<procedure>("meevax", "char?"           ));
-      define(make_symbol("char=?"          ), make<procedure>("meevax", "char=?"          ));
-      define(make_symbol("char<?"          ), make<procedure>("meevax", "char<?"          ));
-      define(make_symbol("char>?"          ), make<procedure>("meevax", "char>?"          ));
-      define(make_symbol("char<=?"         ), make<procedure>("meevax", "char<=?"         ));
-      define(make_symbol("char>=?"         ), make<procedure>("meevax", "char>=?"         ));
-      define(make_symbol("char-ci=?"       ), make<procedure>("meevax", "char-ci=?"       ));
-      define(make_symbol("char-ci<?"       ), make<procedure>("meevax", "char-ci<?"       ));
-      define(make_symbol("char-ci>?"       ), make<procedure>("meevax", "char-ci>?"       ));
-      define(make_symbol("char-ci<=?"      ), make<procedure>("meevax", "char-ci<=?"      ));
-      define(make_symbol("char-ci>=?"      ), make<procedure>("meevax", "char-ci>=?"      ));
-      define(make_symbol("char-alphabetic?"), make<procedure>("meevax", "char-alphabetic?"));
-      define(make_symbol("char-numeric?"   ), make<procedure>("meevax", "char-numeric?"   ));
-      define(make_symbol("char-whitespace?"), make<procedure>("meevax", "char-whitespace?"));
-      define(make_symbol("char-upper-case?"), make<procedure>("meevax", "char-upper-case?"));
-      define(make_symbol("char-lower-case?"), make<procedure>("meevax", "char-lower-case?"));
-      define(make_symbol("digit-value"     ), make<procedure>("meevax", "digit-value"     ));
-      define(make_symbol("char->integer"   ), make<procedure>("meevax", "char->integer"   ));
-      define(make_symbol("integer->char"   ), make<procedure>("meevax", "integer->char"   ));
-      define(make_symbol("char-upcase"     ), make<procedure>("meevax", "char-upcase"     ));
-      define(make_symbol("char-downcase"   ), make<procedure>("meevax", "char-downcase"   ));
-
-      return list(make_symbol("char?"),
-                  make_symbol("char=?"),
-                  make_symbol("char<?"),
-                  make_symbol("char>?"),
-                  make_symbol("char<=?"),
-                  make_symbol("char>=?"),
-                  make_symbol("char-ci=?"),
-                  make_symbol("char-ci<?"),
-                  make_symbol("char-ci>?"),
-                  make_symbol("char-ci<=?"),
-                  make_symbol("char-ci>=?"),
-                  make_symbol("char-alphabetic?"),
-                  make_symbol("char-numeric?"),
-                  make_symbol("char-whitespace?"),
-                  make_symbol("char-upper-case?"),
-                  make_symbol("char-lower-case?"),
-                  make_symbol("digit-value"),
-                  make_symbol("char->integer"),
-                  make_symbol("integer->char"),
-                  make_symbol("char-upcase"),
-                  make_symbol("char-downcase"));
+      return list(define(make_symbol("char?"           ), make<procedure>("meevax", "char?"           )),
+                  define(make_symbol("char=?"          ), make<procedure>("meevax", "char=?"          )),
+                  define(make_symbol("char<?"          ), make<procedure>("meevax", "char<?"          )),
+                  define(make_symbol("char>?"          ), make<procedure>("meevax", "char>?"          )),
+                  define(make_symbol("char<=?"         ), make<procedure>("meevax", "char<=?"         )),
+                  define(make_symbol("char>=?"         ), make<procedure>("meevax", "char>=?"         )),
+                  define(make_symbol("char-ci=?"       ), make<procedure>("meevax", "char-ci=?"       )),
+                  define(make_symbol("char-ci<?"       ), make<procedure>("meevax", "char-ci<?"       )),
+                  define(make_symbol("char-ci>?"       ), make<procedure>("meevax", "char-ci>?"       )),
+                  define(make_symbol("char-ci<=?"      ), make<procedure>("meevax", "char-ci<=?"      )),
+                  define(make_symbol("char-ci>=?"      ), make<procedure>("meevax", "char-ci>=?"      )),
+                  define(make_symbol("char-alphabetic?"), make<procedure>("meevax", "char-alphabetic?")),
+                  define(make_symbol("char-numeric?"   ), make<procedure>("meevax", "char-numeric?"   )),
+                  define(make_symbol("char-whitespace?"), make<procedure>("meevax", "char-whitespace?")),
+                  define(make_symbol("char-upper-case?"), make<procedure>("meevax", "char-upper-case?")),
+                  define(make_symbol("char-lower-case?"), make<procedure>("meevax", "char-lower-case?")),
+                  define(make_symbol("digit-value"     ), make<procedure>("meevax", "digit-value"     )),
+                  define(make_symbol("char->integer"   ), make<procedure>("meevax", "char->integer"   )),
+                  define(make_symbol("integer->char"   ), make<procedure>("meevax", "integer->char"   )),
+                  define(make_symbol("char-upcase"     ), make<procedure>("meevax", "char-upcase"     )),
+                  define(make_symbol("char-downcase"   ), make<procedure>("meevax", "char-downcase"   )));
     }));
 
     libraries().emplace("(meevax context)", make<library>([](auto define)
     {
-      define(make_symbol("emergency-exit"), make<procedure>("meevax", "emergency-exit"));
-      define(make_symbol("command-line"  ), make<procedure>("meevax", "command-line"  ));
-
-      return list(make_symbol("emergency-exit"),
-                  make_symbol("command-line"));
+      return list(define(make_symbol("emergency-exit"), make<procedure>("meevax", "emergency-exit")),
+                  define(make_symbol("command-line"  ), make<procedure>("meevax", "command-line"  )));
     }));
 
     libraries().emplace("(meevax comparator)", make<library>([](auto define)
     {
-      define(make_symbol("eq?"),    make<procedure>("meevax", "eq?"   ));
-      define(make_symbol("eqv?"),   make<procedure>("meevax", "eqv?"  ));
-      define(make_symbol("equal?"), make<procedure>("meevax", "equal?"));
-
-      return list(make_symbol("eq?"),
-                  make_symbol("eqv?"),
-                  make_symbol("equal?"));
+      return list(define(make_symbol("eq?"),    make<procedure>("meevax", "eq?"   )),
+                  define(make_symbol("eqv?"),   make<procedure>("meevax", "eqv?"  )),
+                  define(make_symbol("equal?"), make<procedure>("meevax", "equal?")));
     }));
 
     libraries().emplace("(meevax core)", make<library>([](auto define)
@@ -585,742 +528,400 @@ namespace meevax::inline kernel
 
     libraries().emplace("(meevax environment)", make<library>([](auto define)
     {
-      define(make_symbol("environment"            ), make<procedure>("meevax", "environment"            ));
-      define(make_symbol("eval"                   ), make<procedure>("meevax", "eval"                   ));
-      define(make_symbol("expand"                 ), make<procedure>("meevax", "expand"                 ));
-      define(make_symbol("interaction-environment"), make<procedure>("meevax", "interaction-environment"));
-      define(make_symbol("load"                   ), make<procedure>("meevax", "load"                   ));
-
-      return list(make_symbol("environment"),
-                  make_symbol("eval"),
-                  make_symbol("expand"),
-                  make_symbol("interaction-environment"),
-                  make_symbol("load"));
+      return list(define(make_symbol("environment"            ), make<procedure>("meevax", "environment"            )),
+                  define(make_symbol("eval"                   ), make<procedure>("meevax", "eval"                   )),
+                  define(make_symbol("expand"                 ), make<procedure>("meevax", "expand"                 )),
+                  define(make_symbol("interaction-environment"), make<procedure>("meevax", "interaction-environment")),
+                  define(make_symbol("load"                   ), make<procedure>("meevax", "load"                   )));
     }));
 
     libraries().emplace("(meevax error)", make<library>([](auto define)
     {
-      define(make_symbol("throw"                        ), make<procedure>("meevax", "throw"                        ));
-      define(make_symbol("error-object"                 ), make<procedure>("meevax", "error-object"                 ));
-      define(make_symbol("error-object?"                ), make<procedure>("meevax", "error-object?"                ));
-      define(make_symbol("read-error?"                  ), make<procedure>("meevax", "read-error?"                  ));
-      define(make_symbol("file-error?"                  ), make<procedure>("meevax", "file-error?"                  ));
-      define(make_symbol("kernel-exception-handler-set!"), make<procedure>("meevax", "kernel-exception-handler-set!"));
-
-      return list(make_symbol("throw"),
-                  make_symbol("error-object"),
-                  make_symbol("error-object?"),
-                  make_symbol("read-error?"),
-                  make_symbol("file-error?"),
-                  make_symbol("kernel-exception-handler-set!"));
+      return list(define(make_symbol("throw"                        ), make<procedure>("meevax", "throw"                        )),
+                  define(make_symbol("error-object"                 ), make<procedure>("meevax", "error-object"                 )),
+                  define(make_symbol("error-object?"                ), make<procedure>("meevax", "error-object?"                )),
+                  define(make_symbol("read-error?"                  ), make<procedure>("meevax", "read-error?"                  )),
+                  define(make_symbol("file-error?"                  ), make<procedure>("meevax", "file-error?"                  )),
+                  define(make_symbol("kernel-exception-handler-set!"), make<procedure>("meevax", "kernel-exception-handler-set!")));
     }));
 
     libraries().emplace("(meevax file)", make<library>([](auto define)
     {
-      define(make_symbol("file-exists?"       ), make<procedure>("meevax", "file-exists?"       ));
-      define(make_symbol("delete-file"        ), make<procedure>("meevax", "delete-file"        ));
-      define(make_symbol("library-directories"), make<procedure>("meevax", "library-directories"));
-
-      return list(make_symbol("file-exists?"),
-                  make_symbol("delete-file"),
-                  make_symbol("library-directories"));
+      return list(define(make_symbol("file-exists?"       ), make<procedure>("meevax", "file-exists?"       )),
+                  define(make_symbol("delete-file"        ), make<procedure>("meevax", "delete-file"        )),
+                  define(make_symbol("library-directories"), make<procedure>("meevax", "library-directories")));
     }));
 
     libraries().emplace("(meevax instruction)", make<library>([](auto define)
     {
-      define(make_symbol("secd-call"),              make<instruction>(instruction::secd_call             ));
-      define(make_symbol("secd-cons"),              make<instruction>(instruction::secd_cons             ));
-      define(make_symbol("secd-current"),           make<instruction>(instruction::secd_current          ));
-      define(make_symbol("secd-drop"),              make<instruction>(instruction::secd_drop             ));
-      define(make_symbol("secd-dummy"),             make<instruction>(instruction::secd_dummy            ));
-      define(make_symbol("secd-install"),           make<instruction>(instruction::secd_install          ));
-      define(make_symbol("secd-join"),              make<instruction>(instruction::secd_join             ));
-      define(make_symbol("secd-letrec"),            make<instruction>(instruction::secd_letrec           ));
-      define(make_symbol("secd-load-absolute"),     make<instruction>(instruction::secd_load_absolute    ));
-      define(make_symbol("secd-load-closure"),      make<instruction>(instruction::secd_load_closure     ));
-      define(make_symbol("secd-load-constant"),     make<instruction>(instruction::secd_load_constant    ));
-      define(make_symbol("secd-load-continuation"), make<instruction>(instruction::secd_load_continuation));
-      define(make_symbol("secd-load-relative"),     make<instruction>(instruction::secd_load_relative    ));
-      define(make_symbol("secd-load-variadic"),     make<instruction>(instruction::secd_load_variadic    ));
-      define(make_symbol("secd-return"),            make<instruction>(instruction::secd_return           ));
-      define(make_symbol("secd-select"),            make<instruction>(instruction::secd_select           ));
-      define(make_symbol("secd-stop"),              make<instruction>(instruction::secd_stop             ));
-      define(make_symbol("secd-store-absolute"),    make<instruction>(instruction::secd_store_absolute   ));
-      define(make_symbol("secd-store-relative"),    make<instruction>(instruction::secd_store_relative   ));
-      define(make_symbol("secd-store-variadic"),    make<instruction>(instruction::secd_store_variadic   ));
-      define(make_symbol("secd-tail-call"),         make<instruction>(instruction::secd_tail_call        ));
-      define(make_symbol("secd-tail-letrec"),       make<instruction>(instruction::secd_tail_letrec      ));
-      define(make_symbol("secd-tail-select"),       make<instruction>(instruction::secd_tail_select      ));
-
-      return list(make_symbol("secd-call"),
-                  make_symbol("secd-cons"),
-                  make_symbol("secd-current"),
-                  make_symbol("secd-drop"),
-                  make_symbol("secd-dummy"),
-                  make_symbol("secd-install"),
-                  make_symbol("secd-join"),
-                  make_symbol("secd-letrec"),
-                  make_symbol("secd-load-absolute"),
-                  make_symbol("secd-load-closure"),
-                  make_symbol("secd-load-constant"),
-                  make_symbol("secd-load-continuation"),
-                  make_symbol("secd-load-relative"),
-                  make_symbol("secd-load-variadic"),
-                  make_symbol("secd-return"),
-                  make_symbol("secd-select"),
-                  make_symbol("secd-stop"),
-                  make_symbol("secd-store-absolute"),
-                  make_symbol("secd-store-relative"),
-                  make_symbol("secd-store-variadic"),
-                  make_symbol("secd-tail-call"),
-                  make_symbol("secd-tail-letrec"),
-                  make_symbol("secd-tail-select"));
+      return list(define(make_symbol("secd-call"),              make<instruction>(instruction::secd_call             )),
+                  define(make_symbol("secd-cons"),              make<instruction>(instruction::secd_cons             )),
+                  define(make_symbol("secd-current"),           make<instruction>(instruction::secd_current          )),
+                  define(make_symbol("secd-drop"),              make<instruction>(instruction::secd_drop             )),
+                  define(make_symbol("secd-dummy"),             make<instruction>(instruction::secd_dummy            )),
+                  define(make_symbol("secd-install"),           make<instruction>(instruction::secd_install          )),
+                  define(make_symbol("secd-join"),              make<instruction>(instruction::secd_join             )),
+                  define(make_symbol("secd-letrec"),            make<instruction>(instruction::secd_letrec           )),
+                  define(make_symbol("secd-load-absolute"),     make<instruction>(instruction::secd_load_absolute    )),
+                  define(make_symbol("secd-load-closure"),      make<instruction>(instruction::secd_load_closure     )),
+                  define(make_symbol("secd-load-constant"),     make<instruction>(instruction::secd_load_constant    )),
+                  define(make_symbol("secd-load-continuation"), make<instruction>(instruction::secd_load_continuation)),
+                  define(make_symbol("secd-load-relative"),     make<instruction>(instruction::secd_load_relative    )),
+                  define(make_symbol("secd-load-variadic"),     make<instruction>(instruction::secd_load_variadic    )),
+                  define(make_symbol("secd-return"),            make<instruction>(instruction::secd_return           )),
+                  define(make_symbol("secd-select"),            make<instruction>(instruction::secd_select           )),
+                  define(make_symbol("secd-stop"),              make<instruction>(instruction::secd_stop             )),
+                  define(make_symbol("secd-store-absolute"),    make<instruction>(instruction::secd_store_absolute   )),
+                  define(make_symbol("secd-store-relative"),    make<instruction>(instruction::secd_store_relative   )),
+                  define(make_symbol("secd-store-variadic"),    make<instruction>(instruction::secd_store_variadic   )),
+                  define(make_symbol("secd-tail-call"),         make<instruction>(instruction::secd_tail_call        )),
+                  define(make_symbol("secd-tail-letrec"),       make<instruction>(instruction::secd_tail_letrec      )),
+                  define(make_symbol("secd-tail-select"),       make<instruction>(instruction::secd_tail_select      )));
     }));
 
     libraries().emplace("(meevax integer32)", make<library>([](auto define)
     {
-      define(make_symbol("integer32?"     ), make<procedure>("meevax", "integer32?"));
-      define(make_symbol("integer32-width"), make<small_integer>(32));
-      define(make_symbol("integer32-min"  ), make<small_integer>(std::numeric_limits<small_integer>::min()));
-      define(make_symbol("integer32-max"  ), make<small_integer>(std::numeric_limits<small_integer>::max()));
-
-      return list(make_symbol("integer32?"),
-                  make_symbol("integer32-width"),
-                  make_symbol("integer32-min"),
-                  make_symbol("integer32-max"));
+      return list(define(make_symbol("integer32?"     ), make<procedure>("meevax", "integer32?")),
+                  define(make_symbol("integer32-width"), make<small_integer>(32)),
+                  define(make_symbol("integer32-min"  ), make<small_integer>(std::numeric_limits<small_integer>::min())),
+                  define(make_symbol("integer32-max"  ), make<small_integer>(std::numeric_limits<small_integer>::max())));
     }));
 
     libraries().emplace("(meevax list)", make<library>([](auto define)
     {
-      define(make_symbol("null?"          ), make<procedure>("meevax", "null?"          ));
-      define(make_symbol("list?"          ), make<procedure>("meevax", "list?"          ));
-      define(make_symbol("list"           ), make<procedure>("meevax", "list"           ));
-      define(make_symbol("make-list"      ), make<procedure>("meevax", "make-list"      ));
-      define(make_symbol("iota"           ), make<procedure>("meevax", "iota"           ));
-      define(make_symbol("circular-list?" ), make<procedure>("meevax", "circular-list?" ));
-      define(make_symbol("circular-list"  ), make<procedure>("meevax", "circular-list"  ));
-      define(make_symbol("dotted-list?"   ), make<procedure>("meevax", "dotted-list?"   ));
-      define(make_symbol("null-list?"     ), make<procedure>("meevax", "null-list?"     ));
-      define(make_symbol("last"           ), make<procedure>("meevax", "last"           ));
-      define(make_symbol("last-pair"      ), make<procedure>("meevax", "last-pair"      ));
-      define(make_symbol("length"         ), make<procedure>("meevax", "length"         ));
-      define(make_symbol("length+"        ), make<procedure>("meevax", "length+"        ));
-      define(make_symbol("append"         ), make<procedure>("meevax", "append"         ));
-      define(make_symbol("append!"        ), make<procedure>("meevax", "append!"        ));
-      define(make_symbol("append-reverse" ), make<procedure>("meevax", "append-reverse" ));
-      define(make_symbol("append-reverse!"), make<procedure>("meevax", "append-reverse!"));
-      define(make_symbol("reverse"        ), make<procedure>("meevax", "reverse"        ));
-      define(make_symbol("reverse!"       ), make<procedure>("meevax", "reverse!"       ));
-      define(make_symbol("concatenate"    ), make<procedure>("meevax", "concatenate"    ));
-      define(make_symbol("concatenate!"   ), make<procedure>("meevax", "concatenate!"   ));
-      define(make_symbol("list-copy"      ), make<procedure>("meevax", "list-copy"      ));
-      define(make_symbol("list-ref"       ), make<procedure>("meevax", "list-ref"       ));
-      define(make_symbol("list-tail"      ), make<procedure>("meevax", "list-tail"      ));
-      define(make_symbol("first"          ), make<procedure>("meevax", "first"          ));
-      define(make_symbol("second"         ), make<procedure>("meevax", "second"         ));
-      define(make_symbol("third"          ), make<procedure>("meevax", "third"          ));
-      define(make_symbol("fourth"         ), make<procedure>("meevax", "fourth"         ));
-      define(make_symbol("fifth"          ), make<procedure>("meevax", "fifth"          ));
-      define(make_symbol("sixth"          ), make<procedure>("meevax", "sixth"          ));
-      define(make_symbol("seventh"        ), make<procedure>("meevax", "seventh"        ));
-      define(make_symbol("eighth"         ), make<procedure>("meevax", "eighth"         ));
-      define(make_symbol("ninth"          ), make<procedure>("meevax", "ninth"          ));
-      define(make_symbol("tenth"          ), make<procedure>("meevax", "tenth"          ));
-      define(make_symbol("take"           ), make<procedure>("meevax", "take"           ));
-      define(make_symbol("take!"          ), make<procedure>("meevax", "take!"          ));
-      define(make_symbol("take-right"     ), make<procedure>("meevax", "take-right"     ));
-      define(make_symbol("drop"           ), make<procedure>("meevax", "drop"           ));
-      define(make_symbol("drop-right"     ), make<procedure>("meevax", "drop-right"     ));
-      define(make_symbol("drop-right!"    ), make<procedure>("meevax", "drop-right!"    ));
-      define(make_symbol("memq"           ), make<procedure>("meevax", "memq"           ));
-      define(make_symbol("memv"           ), make<procedure>("meevax", "memv"           ));
-      define(make_symbol("assq"           ), make<procedure>("meevax", "assq"           ));
-      define(make_symbol("assv"           ), make<procedure>("meevax", "assv"           ));
-      define(make_symbol("alist-cons"     ), make<procedure>("meevax", "alist-cons"     ));
-      define(make_symbol("alist-copy"     ), make<procedure>("meevax", "alist-copy"     ));
-
-      return list(make_symbol("null?"),
-                  make_symbol("list?"),
-                  make_symbol("list"),
-                  make_symbol("make-list"),
-                  make_symbol("iota"),
-                  make_symbol("circular-list?"),
-                  make_symbol("circular-list"),
-                  make_symbol("dotted-list?"),
-                  make_symbol("null-list?"),
-                  make_symbol("last"),
-                  make_symbol("last-pair"),
-                  make_symbol("length"),
-                  make_symbol("length+"),
-                  make_symbol("append"),
-                  make_symbol("append!"),
-                  make_symbol("append-reverse"),
-                  make_symbol("append-reverse!"),
-                  make_symbol("reverse"),
-                  make_symbol("reverse!"),
-                  make_symbol("concatenate"),
-                  make_symbol("concatenate!"),
-                  make_symbol("list-copy"),
-                  make_symbol("list-ref"),
-                  make_symbol("list-tail"),
-                  make_symbol("first"),
-                  make_symbol("second"),
-                  make_symbol("third"),
-                  make_symbol("fourth"),
-                  make_symbol("fifth"),
-                  make_symbol("sixth"),
-                  make_symbol("seventh"),
-                  make_symbol("eighth"),
-                  make_symbol("ninth"),
-                  make_symbol("tenth"),
-                  make_symbol("take"),
-                  make_symbol("take!"),
-                  make_symbol("take-right"),
-                  make_symbol("drop"),
-                  make_symbol("drop-right"),
-                  make_symbol("drop-right!"),
-                  make_symbol("memq"),
-                  make_symbol("memv"),
-                  make_symbol("assq"),
-                  make_symbol("assv"),
-                  make_symbol("alist-cons"),
-                  make_symbol("alist-copy"));
+      return list(define(make_symbol("null?"          ), make<procedure>("meevax", "null?"          )),
+                  define(make_symbol("list?"          ), make<procedure>("meevax", "list?"          )),
+                  define(make_symbol("list"           ), make<procedure>("meevax", "list"           )),
+                  define(make_symbol("make-list"      ), make<procedure>("meevax", "make-list"      )),
+                  define(make_symbol("iota"           ), make<procedure>("meevax", "iota"           )),
+                  define(make_symbol("circular-list?" ), make<procedure>("meevax", "circular-list?" )),
+                  define(make_symbol("circular-list"  ), make<procedure>("meevax", "circular-list"  )),
+                  define(make_symbol("dotted-list?"   ), make<procedure>("meevax", "dotted-list?"   )),
+                  define(make_symbol("null-list?"     ), make<procedure>("meevax", "null-list?"     )),
+                  define(make_symbol("last"           ), make<procedure>("meevax", "last"           )),
+                  define(make_symbol("last-pair"      ), make<procedure>("meevax", "last-pair"      )),
+                  define(make_symbol("length"         ), make<procedure>("meevax", "length"         )),
+                  define(make_symbol("length+"        ), make<procedure>("meevax", "length+"        )),
+                  define(make_symbol("append"         ), make<procedure>("meevax", "append"         )),
+                  define(make_symbol("append!"        ), make<procedure>("meevax", "append!"        )),
+                  define(make_symbol("append-reverse" ), make<procedure>("meevax", "append-reverse" )),
+                  define(make_symbol("append-reverse!"), make<procedure>("meevax", "append-reverse!")),
+                  define(make_symbol("reverse"        ), make<procedure>("meevax", "reverse"        )),
+                  define(make_symbol("reverse!"       ), make<procedure>("meevax", "reverse!"       )),
+                  define(make_symbol("concatenate"    ), make<procedure>("meevax", "concatenate"    )),
+                  define(make_symbol("concatenate!"   ), make<procedure>("meevax", "concatenate!"   )),
+                  define(make_symbol("list-copy"      ), make<procedure>("meevax", "list-copy"      )),
+                  define(make_symbol("list-ref"       ), make<procedure>("meevax", "list-ref"       )),
+                  define(make_symbol("list-tail"      ), make<procedure>("meevax", "list-tail"      )),
+                  define(make_symbol("first"          ), make<procedure>("meevax", "first"          )),
+                  define(make_symbol("second"         ), make<procedure>("meevax", "second"         )),
+                  define(make_symbol("third"          ), make<procedure>("meevax", "third"          )),
+                  define(make_symbol("fourth"         ), make<procedure>("meevax", "fourth"         )),
+                  define(make_symbol("fifth"          ), make<procedure>("meevax", "fifth"          )),
+                  define(make_symbol("sixth"          ), make<procedure>("meevax", "sixth"          )),
+                  define(make_symbol("seventh"        ), make<procedure>("meevax", "seventh"        )),
+                  define(make_symbol("eighth"         ), make<procedure>("meevax", "eighth"         )),
+                  define(make_symbol("ninth"          ), make<procedure>("meevax", "ninth"          )),
+                  define(make_symbol("tenth"          ), make<procedure>("meevax", "tenth"          )),
+                  define(make_symbol("take"           ), make<procedure>("meevax", "take"           )),
+                  define(make_symbol("take!"          ), make<procedure>("meevax", "take!"          )),
+                  define(make_symbol("take-right"     ), make<procedure>("meevax", "take-right"     )),
+                  define(make_symbol("drop"           ), make<procedure>("meevax", "drop"           )),
+                  define(make_symbol("drop-right"     ), make<procedure>("meevax", "drop-right"     )),
+                  define(make_symbol("drop-right!"    ), make<procedure>("meevax", "drop-right!"    )),
+                  define(make_symbol("memq"           ), make<procedure>("meevax", "memq"           )),
+                  define(make_symbol("memv"           ), make<procedure>("meevax", "memv"           )),
+                  define(make_symbol("assq"           ), make<procedure>("meevax", "assq"           )),
+                  define(make_symbol("assv"           ), make<procedure>("meevax", "assv"           )),
+                  define(make_symbol("alist-cons"     ), make<procedure>("meevax", "alist-cons"     )),
+                  define(make_symbol("alist-copy"     ), make<procedure>("meevax", "alist-copy"     )));
     }));
 
     libraries().emplace("(meevax number)", make<library>([](auto define)
     {
-      define(make_symbol("number?"                  ), make<procedure>("meevax", "number?"                  ));
-      define(make_symbol("complex?"                 ), make<procedure>("meevax", "complex?"                 ));
-      define(make_symbol("real?"                    ), make<procedure>("meevax", "real?"                    ));
-      define(make_symbol("rational?"                ), make<procedure>("meevax", "rational?"                ));
-      define(make_symbol("integer?"                 ), make<procedure>("meevax", "integer?"                 ));
-      define(make_symbol("exact?"                   ), make<procedure>("meevax", "exact?"                   ));
-      define(make_symbol("inexact?"                 ), make<procedure>("meevax", "inexact?"                 ));
-      define(make_symbol("exact-integer?"           ), make<procedure>("meevax", "exact-integer?"           ));
-      define(make_symbol("finite?"                  ), make<procedure>("meevax", "finite?"                  ));
-      define(make_symbol("infinite?"                ), make<procedure>("meevax", "infinite?"                ));
-      define(make_symbol("nan?"                     ), make<procedure>("meevax", "nan?"                     ));
-      define(make_symbol("="                        ), make<procedure>("meevax", "="                        ));
-      define(make_symbol("<"                        ), make<procedure>("meevax", "<"                        ));
-      define(make_symbol("<="                       ), make<procedure>("meevax", "<="                       ));
-      define(make_symbol(">"                        ), make<procedure>("meevax", ">"                        ));
-      define(make_symbol(">="                       ), make<procedure>("meevax", ">="                       ));
-      define(make_symbol("zero?"                    ), make<procedure>("meevax", "zero?"                    ));
-      define(make_symbol("positive?"                ), make<procedure>("meevax", "positive?"                ));
-      define(make_symbol("negative?"                ), make<procedure>("meevax", "negative?"                ));
-      define(make_symbol("odd?"                     ), make<procedure>("meevax", "odd?"                     ));
-      define(make_symbol("even?"                    ), make<procedure>("meevax", "even?"                    ));
-      define(make_symbol("max"                      ), make<procedure>("meevax", "max"                      ));
-      define(make_symbol("min"                      ), make<procedure>("meevax", "min"                      ));
-      define(make_symbol("+"                        ), make<procedure>("meevax", "+"                        ));
-      define(make_symbol("*"                        ), make<procedure>("meevax", "*"                        ));
-      define(make_symbol("-"                        ), make<procedure>("meevax", "-"                        ));
-      define(make_symbol("/"                        ), make<procedure>("meevax", "/"                        ));
-      define(make_symbol("abs"                      ), make<procedure>("meevax", "abs"                      ));
-      define(make_symbol("quotient"                 ), make<procedure>("meevax", "quotient"                 ));
-      define(make_symbol("remainder"                ), make<procedure>("meevax", "remainder"                ));
-      define(make_symbol("modulo"                   ), make<procedure>("meevax", "modulo"                   ));
-      define(make_symbol("gcd"                      ), make<procedure>("meevax", "gcd"                      ));
-      define(make_symbol("lcm"                      ), make<procedure>("meevax", "lcm"                      ));
-      define(make_symbol("numerator"                ), make<procedure>("meevax", "numerator"                ));
-      define(make_symbol("denominator"              ), make<procedure>("meevax", "denominator"              ));
-      define(make_symbol("floor"                    ), make<procedure>("meevax", "floor"                    ));
-      define(make_symbol("ceiling"                  ), make<procedure>("meevax", "ceiling"                  ));
-      define(make_symbol("truncate"                 ), make<procedure>("meevax", "truncate"                 ));
-      define(make_symbol("round"                    ), make<procedure>("meevax", "round"                    ));
-      define(make_symbol("exp"                      ), make<procedure>("meevax", "exp"                      ));
-      define(make_symbol("log"                      ), make<procedure>("meevax", "log"                      ));
-      define(make_symbol("sin"                      ), make<procedure>("meevax", "sin"                      ));
-      define(make_symbol("cos"                      ), make<procedure>("meevax", "cos"                      ));
-      define(make_symbol("tan"                      ), make<procedure>("meevax", "tan"                      ));
-      define(make_symbol("asin"                     ), make<procedure>("meevax", "asin"                     ));
-      define(make_symbol("acos"                     ), make<procedure>("meevax", "acos"                     ));
-      define(make_symbol("atan"                     ), make<procedure>("meevax", "atan"                     ));
-      define(make_symbol("sinh"                     ), make<procedure>("meevax", "sinh"                     ));
-      define(make_symbol("cosh"                     ), make<procedure>("meevax", "cosh"                     ));
-      define(make_symbol("tanh"                     ), make<procedure>("meevax", "tanh"                     ));
-      define(make_symbol("asinh"                    ), make<procedure>("meevax", "asinh"                    ));
-      define(make_symbol("acosh"                    ), make<procedure>("meevax", "acosh"                    ));
-      define(make_symbol("atanh"                    ), make<procedure>("meevax", "atanh"                    ));
-      define(make_symbol("sqrt"                     ), make<procedure>("meevax", "sqrt"                     ));
-      define(make_symbol("exact-integer-square-root"), make<procedure>("meevax", "exact-integer-square-root"));
-      define(make_symbol("expt"                     ), make<procedure>("meevax", "expt"                     ));
-      define(make_symbol("make-rectangular"         ), make<procedure>("meevax", "make-rectangular"         ));
-      define(make_symbol("make-polar"               ), make<procedure>("meevax", "make-polar"               ));
-      define(make_symbol("real-part"                ), make<procedure>("meevax", "real-part"                ));
-      define(make_symbol("imag-part"                ), make<procedure>("meevax", "imag-part"                ));
-      define(make_symbol("magnitude"                ), make<procedure>("meevax", "magnitude"                ));
-      define(make_symbol("angle"                    ), make<procedure>("meevax", "angle"                    ));
-      define(make_symbol("exact"                    ), make<procedure>("meevax", "exact"                    ));
-      define(make_symbol("inexact"                  ), make<procedure>("meevax", "inexact"                  ));
-      define(make_symbol("expm1"                    ), make<procedure>("meevax", "expm1"                    ));
-      define(make_symbol("log1p"                    ), make<procedure>("meevax", "log1p"                    ));
-      define(make_symbol("erf"                      ), make<procedure>("meevax", "erf"                      ));
-      define(make_symbol("erfc"                     ), make<procedure>("meevax", "erfc"                     ));
-      define(make_symbol("tgamma"                   ), make<procedure>("meevax", "tgamma"                   ));
-      define(make_symbol("lgamma"                   ), make<procedure>("meevax", "lgamma"                   ));
-      define(make_symbol("ldexp"                    ), make<procedure>("meevax", "ldexp"                    ));
-      define(make_symbol("nextafter"                ), make<procedure>("meevax", "nextafter"                ));
-      define(make_symbol("copysign"                 ), make<procedure>("meevax", "copysign"                 ));
-      define(make_symbol("cyl_bessel_j"             ), make<procedure>("meevax", "cyl_bessel_j"             ));
-      define(make_symbol("cyl_neumann"              ), make<procedure>("meevax", "cyl_neumann"              ));
-      define(make_symbol("e"                        ), make<double>(std::numbers::e));
-      define(make_symbol("pi"                       ), make<double>(std::numbers::pi));
-      define(make_symbol("euler"                    ), make<double>(std::numbers::egamma));
-      define(make_symbol("phi"                      ), make<double>(std::numbers::phi));
-      define(make_symbol("bitwise-not"              ), make<procedure>("meevax", "bitwise-not"              ));
-      define(make_symbol("bitwise-and"              ), make<procedure>("meevax", "bitwise-and"              ));
-      define(make_symbol("bitwise-ior"              ), make<procedure>("meevax", "bitwise-ior"              ));
-      define(make_symbol("bitwise-xor"              ), make<procedure>("meevax", "bitwise-xor"              ));
-      define(make_symbol("bit-shift"                ), make<procedure>("meevax", "bit-shift"                ));
-      define(make_symbol("bit-count"                ), make<procedure>("meevax", "bit-count"                ));
-      define(make_symbol("bit-width"                ), make<procedure>("meevax", "bit-width"                ));
-      define(make_symbol("number->string"           ), make<procedure>("meevax", "number->string"           ));
-      define(make_symbol("string->number"           ), make<procedure>("meevax", "string->number"           ));
-
-      return list(make_symbol("number?"),
-                  make_symbol("complex?"),
-                  make_symbol("real?"),
-                  make_symbol("rational?"),
-                  make_symbol("integer?"),
-                  make_symbol("exact?"),
-                  make_symbol("inexact?"),
-                  make_symbol("exact-integer?"),
-                  make_symbol("finite?"),
-                  make_symbol("infinite?"),
-                  make_symbol("nan?"),
-                  make_symbol("="),
-                  make_symbol("<"),
-                  make_symbol("<="),
-                  make_symbol(">"),
-                  make_symbol(">="),
-                  make_symbol("zero?"),
-                  make_symbol("positive?"),
-                  make_symbol("negative?"),
-                  make_symbol("odd?"),
-                  make_symbol("even?"),
-                  make_symbol("max"),
-                  make_symbol("min"),
-                  make_symbol("+"),
-                  make_symbol("*"),
-                  make_symbol("-"),
-                  make_symbol("/"),
-                  make_symbol("abs"),
-                  make_symbol("quotient"),
-                  make_symbol("remainder"),
-                  make_symbol("modulo"),
-                  make_symbol("gcd"),
-                  make_symbol("lcm"),
-                  make_symbol("numerator"),
-                  make_symbol("denominator"),
-                  make_symbol("floor"),
-                  make_symbol("ceiling"),
-                  make_symbol("truncate"),
-                  make_symbol("round"),
-                  make_symbol("exp"),
-                  make_symbol("log"),
-                  make_symbol("sin"),
-                  make_symbol("cos"),
-                  make_symbol("tan"),
-                  make_symbol("asin"),
-                  make_symbol("acos"),
-                  make_symbol("atan"),
-                  make_symbol("sinh"),
-                  make_symbol("cosh"),
-                  make_symbol("tanh"),
-                  make_symbol("asinh"),
-                  make_symbol("acosh"),
-                  make_symbol("atanh"),
-                  make_symbol("sqrt"),
-                  make_symbol("exact-integer-square-root"),
-                  make_symbol("expt"),
-                  make_symbol("make-rectangular"),
-                  make_symbol("make-polar"),
-                  make_symbol("real-part"),
-                  make_symbol("imag-part"),
-                  make_symbol("magnitude"),
-                  make_symbol("angle"),
-                  make_symbol("exact"),
-                  make_symbol("inexact"),
-                  make_symbol("expm1"),
-                  make_symbol("log1p"),
-                  make_symbol("erf"),
-                  make_symbol("erfc"),
-                  make_symbol("tgamma"),
-                  make_symbol("lgamma"),
-                  make_symbol("ldexp"),
-                  make_symbol("nextafter"),
-                  make_symbol("copysign"),
-                  make_symbol("cyl_bessel_j"),
-                  make_symbol("cyl_neumann"),
-                  make_symbol("e"),
-                  make_symbol("pi"),
-                  make_symbol("euler"),
-                  make_symbol("phi"),
-                  make_symbol("bitwise-not"),
-                  make_symbol("bitwise-and"),
-                  make_symbol("bitwise-ior"),
-                  make_symbol("bitwise-xor"),
-                  make_symbol("bit-shift"),
-                  make_symbol("bit-count"),
-                  make_symbol("bit-width"),
-                  make_symbol("number->string"),
-                  make_symbol("string->number"));
+      return list(define(make_symbol("number?"                  ), make<procedure>("meevax", "number?"                  )),
+                  define(make_symbol("complex?"                 ), make<procedure>("meevax", "complex?"                 )),
+                  define(make_symbol("real?"                    ), make<procedure>("meevax", "real?"                    )),
+                  define(make_symbol("rational?"                ), make<procedure>("meevax", "rational?"                )),
+                  define(make_symbol("integer?"                 ), make<procedure>("meevax", "integer?"                 )),
+                  define(make_symbol("exact?"                   ), make<procedure>("meevax", "exact?"                   )),
+                  define(make_symbol("inexact?"                 ), make<procedure>("meevax", "inexact?"                 )),
+                  define(make_symbol("exact-integer?"           ), make<procedure>("meevax", "exact-integer?"           )),
+                  define(make_symbol("finite?"                  ), make<procedure>("meevax", "finite?"                  )),
+                  define(make_symbol("infinite?"                ), make<procedure>("meevax", "infinite?"                )),
+                  define(make_symbol("nan?"                     ), make<procedure>("meevax", "nan?"                     )),
+                  define(make_symbol("="                        ), make<procedure>("meevax", "="                        )),
+                  define(make_symbol("<"                        ), make<procedure>("meevax", "<"                        )),
+                  define(make_symbol("<="                       ), make<procedure>("meevax", "<="                       )),
+                  define(make_symbol(">"                        ), make<procedure>("meevax", ">"                        )),
+                  define(make_symbol(">="                       ), make<procedure>("meevax", ">="                       )),
+                  define(make_symbol("zero?"                    ), make<procedure>("meevax", "zero?"                    )),
+                  define(make_symbol("positive?"                ), make<procedure>("meevax", "positive?"                )),
+                  define(make_symbol("negative?"                ), make<procedure>("meevax", "negative?"                )),
+                  define(make_symbol("odd?"                     ), make<procedure>("meevax", "odd?"                     )),
+                  define(make_symbol("even?"                    ), make<procedure>("meevax", "even?"                    )),
+                  define(make_symbol("max"                      ), make<procedure>("meevax", "max"                      )),
+                  define(make_symbol("min"                      ), make<procedure>("meevax", "min"                      )),
+                  define(make_symbol("+"                        ), make<procedure>("meevax", "+"                        )),
+                  define(make_symbol("*"                        ), make<procedure>("meevax", "*"                        )),
+                  define(make_symbol("-"                        ), make<procedure>("meevax", "-"                        )),
+                  define(make_symbol("/"                        ), make<procedure>("meevax", "/"                        )),
+                  define(make_symbol("abs"                      ), make<procedure>("meevax", "abs"                      )),
+                  define(make_symbol("quotient"                 ), make<procedure>("meevax", "quotient"                 )),
+                  define(make_symbol("remainder"                ), make<procedure>("meevax", "remainder"                )),
+                  define(make_symbol("modulo"                   ), make<procedure>("meevax", "modulo"                   )),
+                  define(make_symbol("gcd"                      ), make<procedure>("meevax", "gcd"                      )),
+                  define(make_symbol("lcm"                      ), make<procedure>("meevax", "lcm"                      )),
+                  define(make_symbol("numerator"                ), make<procedure>("meevax", "numerator"                )),
+                  define(make_symbol("denominator"              ), make<procedure>("meevax", "denominator"              )),
+                  define(make_symbol("floor"                    ), make<procedure>("meevax", "floor"                    )),
+                  define(make_symbol("ceiling"                  ), make<procedure>("meevax", "ceiling"                  )),
+                  define(make_symbol("truncate"                 ), make<procedure>("meevax", "truncate"                 )),
+                  define(make_symbol("round"                    ), make<procedure>("meevax", "round"                    )),
+                  define(make_symbol("exp"                      ), make<procedure>("meevax", "exp"                      )),
+                  define(make_symbol("log"                      ), make<procedure>("meevax", "log"                      )),
+                  define(make_symbol("sin"                      ), make<procedure>("meevax", "sin"                      )),
+                  define(make_symbol("cos"                      ), make<procedure>("meevax", "cos"                      )),
+                  define(make_symbol("tan"                      ), make<procedure>("meevax", "tan"                      )),
+                  define(make_symbol("asin"                     ), make<procedure>("meevax", "asin"                     )),
+                  define(make_symbol("acos"                     ), make<procedure>("meevax", "acos"                     )),
+                  define(make_symbol("atan"                     ), make<procedure>("meevax", "atan"                     )),
+                  define(make_symbol("sinh"                     ), make<procedure>("meevax", "sinh"                     )),
+                  define(make_symbol("cosh"                     ), make<procedure>("meevax", "cosh"                     )),
+                  define(make_symbol("tanh"                     ), make<procedure>("meevax", "tanh"                     )),
+                  define(make_symbol("asinh"                    ), make<procedure>("meevax", "asinh"                    )),
+                  define(make_symbol("acosh"                    ), make<procedure>("meevax", "acosh"                    )),
+                  define(make_symbol("atanh"                    ), make<procedure>("meevax", "atanh"                    )),
+                  define(make_symbol("sqrt"                     ), make<procedure>("meevax", "sqrt"                     )),
+                  define(make_symbol("exact-integer-square-root"), make<procedure>("meevax", "exact-integer-square-root")),
+                  define(make_symbol("expt"                     ), make<procedure>("meevax", "expt"                     )),
+                  define(make_symbol("make-rectangular"         ), make<procedure>("meevax", "make-rectangular"         )),
+                  define(make_symbol("make-polar"               ), make<procedure>("meevax", "make-polar"               )),
+                  define(make_symbol("real-part"                ), make<procedure>("meevax", "real-part"                )),
+                  define(make_symbol("imag-part"                ), make<procedure>("meevax", "imag-part"                )),
+                  define(make_symbol("magnitude"                ), make<procedure>("meevax", "magnitude"                )),
+                  define(make_symbol("angle"                    ), make<procedure>("meevax", "angle"                    )),
+                  define(make_symbol("exact"                    ), make<procedure>("meevax", "exact"                    )),
+                  define(make_symbol("inexact"                  ), make<procedure>("meevax", "inexact"                  )),
+                  define(make_symbol("expm1"                    ), make<procedure>("meevax", "expm1"                    )),
+                  define(make_symbol("log1p"                    ), make<procedure>("meevax", "log1p"                    )),
+                  define(make_symbol("erf"                      ), make<procedure>("meevax", "erf"                      )),
+                  define(make_symbol("erfc"                     ), make<procedure>("meevax", "erfc"                     )),
+                  define(make_symbol("tgamma"                   ), make<procedure>("meevax", "tgamma"                   )),
+                  define(make_symbol("lgamma"                   ), make<procedure>("meevax", "lgamma"                   )),
+                  define(make_symbol("ldexp"                    ), make<procedure>("meevax", "ldexp"                    )),
+                  define(make_symbol("nextafter"                ), make<procedure>("meevax", "nextafter"                )),
+                  define(make_symbol("copysign"                 ), make<procedure>("meevax", "copysign"                 )),
+                  define(make_symbol("cyl_bessel_j"             ), make<procedure>("meevax", "cyl_bessel_j"             )),
+                  define(make_symbol("cyl_neumann"              ), make<procedure>("meevax", "cyl_neumann"              )),
+                  define(make_symbol("e"                        ), make<double>(std::numbers::e)),
+                  define(make_symbol("pi"                       ), make<double>(std::numbers::pi)),
+                  define(make_symbol("euler"                    ), make<double>(std::numbers::egamma)),
+                  define(make_symbol("phi"                      ), make<double>(std::numbers::phi)),
+                  define(make_symbol("bitwise-not"              ), make<procedure>("meevax", "bitwise-not"              )),
+                  define(make_symbol("bitwise-and"              ), make<procedure>("meevax", "bitwise-and"              )),
+                  define(make_symbol("bitwise-ior"              ), make<procedure>("meevax", "bitwise-ior"              )),
+                  define(make_symbol("bitwise-xor"              ), make<procedure>("meevax", "bitwise-xor"              )),
+                  define(make_symbol("bit-shift"                ), make<procedure>("meevax", "bit-shift"                )),
+                  define(make_symbol("bit-count"                ), make<procedure>("meevax", "bit-count"                )),
+                  define(make_symbol("bit-width"                ), make<procedure>("meevax", "bit-width"                )),
+                  define(make_symbol("number->string"           ), make<procedure>("meevax", "number->string"           )),
+                  define(make_symbol("string->number"           ), make<procedure>("meevax", "string->number"           )));
     }));
 
     libraries().emplace("(meevax pair)", make<library>([](auto define)
     {
-      define(make_symbol("pair?"    ), make<procedure>("meevax", "pair?"    ));
-      define(make_symbol("not-pair?"), make<procedure>("meevax", "not-pair?"));
-      define(make_symbol("cons"     ), make<procedure>("meevax", "cons"     ));
-      define(make_symbol("xcons"    ), make<procedure>("meevax", "xcons"    ));
-      define(make_symbol("cons*"    ), make<procedure>("meevax", "cons*"    ));
-      define(make_symbol("car"      ), make<procedure>("meevax", "car"      ));
-      define(make_symbol("cdr"      ), make<procedure>("meevax", "cdr"      ));
-      define(make_symbol("caar"     ), make<procedure>("meevax", "caar"     ));
-      define(make_symbol("cadr"     ), make<procedure>("meevax", "cadr"     ));
-      define(make_symbol("cdar"     ), make<procedure>("meevax", "cdar"     ));
-      define(make_symbol("cddr"     ), make<procedure>("meevax", "cddr"     ));
-      define(make_symbol("caaar"    ), make<procedure>("meevax", "caaar"    ));
-      define(make_symbol("cdaar"    ), make<procedure>("meevax", "cdaar"    ));
-      define(make_symbol("caadr"    ), make<procedure>("meevax", "caadr"    ));
-      define(make_symbol("cdadr"    ), make<procedure>("meevax", "cdadr"    ));
-      define(make_symbol("cadar"    ), make<procedure>("meevax", "cadar"    ));
-      define(make_symbol("cddar"    ), make<procedure>("meevax", "cddar"    ));
-      define(make_symbol("caddr"    ), make<procedure>("meevax", "caddr"    ));
-      define(make_symbol("cdddr"    ), make<procedure>("meevax", "cdddr"    ));
-      define(make_symbol("caaaar"   ), make<procedure>("meevax", "caaaar"   ));
-      define(make_symbol("cdaaar"   ), make<procedure>("meevax", "cdaaar"   ));
-      define(make_symbol("caaadr"   ), make<procedure>("meevax", "caaadr"   ));
-      define(make_symbol("cdaadr"   ), make<procedure>("meevax", "cdaadr"   ));
-      define(make_symbol("caadar"   ), make<procedure>("meevax", "caadar"   ));
-      define(make_symbol("cdadar"   ), make<procedure>("meevax", "cdadar"   ));
-      define(make_symbol("caaddr"   ), make<procedure>("meevax", "caaddr"   ));
-      define(make_symbol("cdaddr"   ), make<procedure>("meevax", "cdaddr"   ));
-      define(make_symbol("cadaar"   ), make<procedure>("meevax", "cadaar"   ));
-      define(make_symbol("cddaar"   ), make<procedure>("meevax", "cddaar"   ));
-      define(make_symbol("cadadr"   ), make<procedure>("meevax", "cadadr"   ));
-      define(make_symbol("cddadr"   ), make<procedure>("meevax", "cddadr"   ));
-      define(make_symbol("caddar"   ), make<procedure>("meevax", "caddar"   ));
-      define(make_symbol("cdddar"   ), make<procedure>("meevax", "cdddar"   ));
-      define(make_symbol("cadddr"   ), make<procedure>("meevax", "cadddr"   ));
-      define(make_symbol("cddddr"   ), make<procedure>("meevax", "cddddr"   ));
-      define(make_symbol("set-car!" ), make<procedure>("meevax", "set-car!" ));
-      define(make_symbol("set-cdr!" ), make<procedure>("meevax", "set-cdr!" ));
-
-      return list(make_symbol("pair?"),
-                  make_symbol("not-pair?"),
-                  make_symbol("cons"),
-                  make_symbol("xcons"),
-                  make_symbol("cons*"),
-                  make_symbol("car"),
-                  make_symbol("cdr"),
-                  make_symbol("caar"),
-                  make_symbol("cadr"),
-                  make_symbol("cdar"),
-                  make_symbol("cddr"),
-                  make_symbol("caaar"),
-                  make_symbol("cdaar"),
-                  make_symbol("caadr"),
-                  make_symbol("cdadr"),
-                  make_symbol("cadar"),
-                  make_symbol("cddar"),
-                  make_symbol("caddr"),
-                  make_symbol("cdddr"),
-                  make_symbol("caaaar"),
-                  make_symbol("cdaaar"),
-                  make_symbol("caaadr"),
-                  make_symbol("cdaadr"),
-                  make_symbol("caadar"),
-                  make_symbol("cdadar"),
-                  make_symbol("caaddr"),
-                  make_symbol("cdaddr"),
-                  make_symbol("cadaar"),
-                  make_symbol("cddaar"),
-                  make_symbol("cadadr"),
-                  make_symbol("cddadr"),
-                  make_symbol("caddar"),
-                  make_symbol("cdddar"),
-                  make_symbol("cadddr"),
-                  make_symbol("cddddr"),
-                  make_symbol("set-car!"),
-                  make_symbol("set-cdr!"));
+      return list(define(make_symbol("pair?"    ), make<procedure>("meevax", "pair?"    )),
+                  define(make_symbol("not-pair?"), make<procedure>("meevax", "not-pair?")),
+                  define(make_symbol("cons"     ), make<procedure>("meevax", "cons"     )),
+                  define(make_symbol("xcons"    ), make<procedure>("meevax", "xcons"    )),
+                  define(make_symbol("cons*"    ), make<procedure>("meevax", "cons*"    )),
+                  define(make_symbol("car"      ), make<procedure>("meevax", "car"      )),
+                  define(make_symbol("cdr"      ), make<procedure>("meevax", "cdr"      )),
+                  define(make_symbol("caar"     ), make<procedure>("meevax", "caar"     )),
+                  define(make_symbol("cadr"     ), make<procedure>("meevax", "cadr"     )),
+                  define(make_symbol("cdar"     ), make<procedure>("meevax", "cdar"     )),
+                  define(make_symbol("cddr"     ), make<procedure>("meevax", "cddr"     )),
+                  define(make_symbol("caaar"    ), make<procedure>("meevax", "caaar"    )),
+                  define(make_symbol("cdaar"    ), make<procedure>("meevax", "cdaar"    )),
+                  define(make_symbol("caadr"    ), make<procedure>("meevax", "caadr"    )),
+                  define(make_symbol("cdadr"    ), make<procedure>("meevax", "cdadr"    )),
+                  define(make_symbol("cadar"    ), make<procedure>("meevax", "cadar"    )),
+                  define(make_symbol("cddar"    ), make<procedure>("meevax", "cddar"    )),
+                  define(make_symbol("caddr"    ), make<procedure>("meevax", "caddr"    )),
+                  define(make_symbol("cdddr"    ), make<procedure>("meevax", "cdddr"    )),
+                  define(make_symbol("caaaar"   ), make<procedure>("meevax", "caaaar"   )),
+                  define(make_symbol("cdaaar"   ), make<procedure>("meevax", "cdaaar"   )),
+                  define(make_symbol("caaadr"   ), make<procedure>("meevax", "caaadr"   )),
+                  define(make_symbol("cdaadr"   ), make<procedure>("meevax", "cdaadr"   )),
+                  define(make_symbol("caadar"   ), make<procedure>("meevax", "caadar"   )),
+                  define(make_symbol("cdadar"   ), make<procedure>("meevax", "cdadar"   )),
+                  define(make_symbol("caaddr"   ), make<procedure>("meevax", "caaddr"   )),
+                  define(make_symbol("cdaddr"   ), make<procedure>("meevax", "cdaddr"   )),
+                  define(make_symbol("cadaar"   ), make<procedure>("meevax", "cadaar"   )),
+                  define(make_symbol("cddaar"   ), make<procedure>("meevax", "cddaar"   )),
+                  define(make_symbol("cadadr"   ), make<procedure>("meevax", "cadadr"   )),
+                  define(make_symbol("cddadr"   ), make<procedure>("meevax", "cddadr"   )),
+                  define(make_symbol("caddar"   ), make<procedure>("meevax", "caddar"   )),
+                  define(make_symbol("cdddar"   ), make<procedure>("meevax", "cdddar"   )),
+                  define(make_symbol("cadddr"   ), make<procedure>("meevax", "cadddr"   )),
+                  define(make_symbol("cddddr"   ), make<procedure>("meevax", "cddddr"   )),
+                  define(make_symbol("set-car!" ), make<procedure>("meevax", "set-car!" )),
+                  define(make_symbol("set-cdr!" ), make<procedure>("meevax", "set-cdr!" )));
     }));
 
     libraries().emplace("(meevax port)", make<library>([](auto define)
     {
-      define(make_symbol("input-port?"            ), make<procedure>("meevax", "input-port?"            ));
-      define(make_symbol("output-port?"           ), make<procedure>("meevax", "output-port?"           ));
-      define(make_symbol("binary-port?"           ), make<procedure>("meevax", "binary-port?"           ));
-      define(make_symbol("textual-port?"          ), make<procedure>("meevax", "textual-port?"          ));
-      define(make_symbol("port?"                  ), make<procedure>("meevax", "port?"                  ));
-      define(make_symbol("open?"                  ), make<procedure>("meevax", "open?"                  ));
-      define(make_symbol("standard-input-port"    ), make<procedure>("meevax", "standard-input-port"    ));
-      define(make_symbol("standard-output-port"   ), make<procedure>("meevax", "standard-output-port"   ));
-      define(make_symbol("standard-error-port"    ), make<procedure>("meevax", "standard-error-port"    ));
-      define(make_symbol("open-input-file"        ), make<procedure>("meevax", "open-input-file"        ));
-      define(make_symbol("open-output-file"       ), make<procedure>("meevax", "open-output-file"       ));
-      define(make_symbol("open-binary-input-file" ), make<procedure>("meevax", "open-binary-input-file" ));
-      define(make_symbol("open-binary-output-file"), make<procedure>("meevax", "open-binary-output-file"));
-      define(make_symbol("close"                  ), make<procedure>("meevax", "close"                  ));
-      define(make_symbol("open-input-string"      ), make<procedure>("meevax", "open-input-string"      ));
-      define(make_symbol("open-output-string"     ), make<procedure>("meevax", "open-output-string"     ));
-      define(make_symbol("get-output-string"      ), make<procedure>("meevax", "get-output-string"      ));
-      define(make_symbol("open-input-u8vector"    ), make<procedure>("meevax", "open-input-u8vector"    ));
-      define(make_symbol("open-output-u8vector"   ), make<procedure>("meevax", "open-output-u8vector"   ));
-      define(make_symbol("get-output-u8vector"    ), make<procedure>("meevax", "get-output-u8vector"    ));
-      define(make_symbol("eof-object?"            ), make<procedure>("meevax", "eof-object?"            ));
-      define(make_symbol("eof-object"             ), make<procedure>("meevax", "eof-object"             ));
-      define(make_symbol("flush"                  ), make<procedure>("meevax", "flush"                  ));
-
-      return list(make_symbol("input-port?"),
-                  make_symbol("output-port?"),
-                  make_symbol("binary-port?"),
-                  make_symbol("textual-port?"),
-                  make_symbol("port?"),
-                  make_symbol("open?"),
-                  make_symbol("standard-input-port"),
-                  make_symbol("standard-output-port"),
-                  make_symbol("standard-error-port"),
-                  make_symbol("open-input-file"),
-                  make_symbol("open-output-file"),
-                  make_symbol("open-binary-input-file"),
-                  make_symbol("open-binary-output-file"),
-                  make_symbol("close"),
-                  make_symbol("open-input-string"),
-                  make_symbol("open-output-string"),
-                  make_symbol("get-output-string"),
-                  make_symbol("open-input-u8vector"),
-                  make_symbol("open-output-u8vector"),
-                  make_symbol("get-output-u8vector"),
-                  make_symbol("eof-object?"),
-                  make_symbol("eof-object"),
-                  make_symbol("flush"));
+      return list(define(make_symbol("input-port?"            ), make<procedure>("meevax", "input-port?"            )),
+                  define(make_symbol("output-port?"           ), make<procedure>("meevax", "output-port?"           )),
+                  define(make_symbol("binary-port?"           ), make<procedure>("meevax", "binary-port?"           )),
+                  define(make_symbol("textual-port?"          ), make<procedure>("meevax", "textual-port?"          )),
+                  define(make_symbol("port?"                  ), make<procedure>("meevax", "port?"                  )),
+                  define(make_symbol("open?"                  ), make<procedure>("meevax", "open?"                  )),
+                  define(make_symbol("standard-input-port"    ), make<procedure>("meevax", "standard-input-port"    )),
+                  define(make_symbol("standard-output-port"   ), make<procedure>("meevax", "standard-output-port"   )),
+                  define(make_symbol("standard-error-port"    ), make<procedure>("meevax", "standard-error-port"    )),
+                  define(make_symbol("open-input-file"        ), make<procedure>("meevax", "open-input-file"        )),
+                  define(make_symbol("open-output-file"       ), make<procedure>("meevax", "open-output-file"       )),
+                  define(make_symbol("open-binary-input-file" ), make<procedure>("meevax", "open-binary-input-file" )),
+                  define(make_symbol("open-binary-output-file"), make<procedure>("meevax", "open-binary-output-file")),
+                  define(make_symbol("close"                  ), make<procedure>("meevax", "close"                  )),
+                  define(make_symbol("open-input-string"      ), make<procedure>("meevax", "open-input-string"      )),
+                  define(make_symbol("open-output-string"     ), make<procedure>("meevax", "open-output-string"     )),
+                  define(make_symbol("get-output-string"      ), make<procedure>("meevax", "get-output-string"      )),
+                  define(make_symbol("open-input-u8vector"    ), make<procedure>("meevax", "open-input-u8vector"    )),
+                  define(make_symbol("open-output-u8vector"   ), make<procedure>("meevax", "open-output-u8vector"   )),
+                  define(make_symbol("get-output-u8vector"    ), make<procedure>("meevax", "get-output-u8vector"    )),
+                  define(make_symbol("eof-object?"            ), make<procedure>("meevax", "eof-object?"            )),
+                  define(make_symbol("eof-object"             ), make<procedure>("meevax", "eof-object"             )),
+                  define(make_symbol("flush"                  ), make<procedure>("meevax", "flush"                  )));
     }));
 
     libraries().emplace("(meevax procedure)", make<library>([](auto define)
     {
-      define(make_symbol("closure?"     ), make<procedure>("meevax", "closure?"     ));
-      define(make_symbol("continuation?"), make<procedure>("meevax", "continuation?"));
-      define(make_symbol("procedure?"   ), make<procedure>("meevax", "procedure?"   ));
-      define(make_symbol("procedure"    ), make<procedure>("meevax", "procedure"    ));
-
-      return list(make_symbol("closure?"),
-                  make_symbol("continuation?"),
-                  make_symbol("procedure?"),
-                  make_symbol("procedure"));
+      return list(define(make_symbol("closure?"     ), make<procedure>("meevax", "closure?"     )),
+                  define(make_symbol("continuation?"), make<procedure>("meevax", "continuation?")),
+                  define(make_symbol("procedure?"   ), make<procedure>("meevax", "procedure?"   )),
+                  define(make_symbol("procedure"    ), make<procedure>("meevax", "procedure"    )));
     }));
 
     libraries().emplace("(meevax read)", make<library>([](auto define)
     {
-      define(make_symbol("get-char"       ), make<procedure>("meevax", "get-char"       ));
-      define(make_symbol("get-char-ready?"), make<procedure>("meevax", "get-char-ready?"));
-      define(make_symbol("get-line"       ), make<procedure>("meevax", "get-line"       ));
-      define(make_symbol("peek-char"      ), make<procedure>("meevax", "peek-char"      ));
-      define(make_symbol("read"           ), make<procedure>("meevax", "read"           ));
-      define(make_symbol("get-string"     ), make<procedure>("meevax", "get-string"     ));
-      define(make_symbol("get-u8"         ), make<procedure>("meevax", "get-u8"         ));
-      define(make_symbol("get-u8-ready?"  ), make<procedure>("meevax", "get-u8-ready?"  ));
-      define(make_symbol("peek-u8"        ), make<procedure>("meevax", "peek-u8"        ));
-      define(make_symbol("get-u8vector"   ), make<procedure>("meevax", "get-u8vector"   ));
-
-      return list(make_symbol("get-char"),
-                  make_symbol("get-char-ready?"),
-                  make_symbol("get-line"),
-                  make_symbol("peek-char"),
-                  make_symbol("read"),
-                  make_symbol("get-string"),
-                  make_symbol("get-u8"),
-                  make_symbol("get-u8-ready?"),
-                  make_symbol("peek-u8"),
-                  make_symbol("get-u8vector"));
+      return list(define(make_symbol("get-char"       ), make<procedure>("meevax", "get-char"       )),
+                  define(make_symbol("get-char-ready?"), make<procedure>("meevax", "get-char-ready?")),
+                  define(make_symbol("get-line"       ), make<procedure>("meevax", "get-line"       )),
+                  define(make_symbol("peek-char"      ), make<procedure>("meevax", "peek-char"      )),
+                  define(make_symbol("read"           ), make<procedure>("meevax", "read"           )),
+                  define(make_symbol("get-string"     ), make<procedure>("meevax", "get-string"     )),
+                  define(make_symbol("get-u8"         ), make<procedure>("meevax", "get-u8"         )),
+                  define(make_symbol("get-u8-ready?"  ), make<procedure>("meevax", "get-u8-ready?"  )),
+                  define(make_symbol("peek-u8"        ), make<procedure>("meevax", "peek-u8"        )),
+                  define(make_symbol("get-u8vector"   ), make<procedure>("meevax", "get-u8vector"   )));
     }));
 
     libraries().emplace("(meevax string)", make<library>([](auto define)
     {
-      define(make_symbol("string?"      ), make<procedure>("meevax", "string?"      ));
-      define(make_symbol("make-string"  ), make<procedure>("meevax", "make-string"  ));
-      define(make_symbol("string"       ), make<procedure>("meevax", "string"       ));
-      define(make_symbol("string-length"), make<procedure>("meevax", "string-length"));
-      define(make_symbol("string-ref"   ), make<procedure>("meevax", "string-ref"   ));
-      define(make_symbol("string-set!"  ), make<procedure>("meevax", "string-set!"  ));
-      define(make_symbol("string=?"     ), make<procedure>("meevax", "string=?"     ));
-      define(make_symbol("string<?"     ), make<procedure>("meevax", "string<?"     ));
-      define(make_symbol("string>?"     ), make<procedure>("meevax", "string>?"     ));
-      define(make_symbol("string<=?"    ), make<procedure>("meevax", "string<=?"    ));
-      define(make_symbol("string>=?"    ), make<procedure>("meevax", "string>=?"    ));
-      define(make_symbol("string-ci=?"  ), make<procedure>("meevax", "string-ci=?"  ));
-      define(make_symbol("string-ci<?"  ), make<procedure>("meevax", "string-ci<?"  ));
-      define(make_symbol("string-ci>?"  ), make<procedure>("meevax", "string-ci>?"  ));
-      define(make_symbol("string-ci<=?" ), make<procedure>("meevax", "string-ci<=?" ));
-      define(make_symbol("string-ci>=?" ), make<procedure>("meevax", "string-ci>=?" ));
-      define(make_symbol("string-append"), make<procedure>("meevax", "string-append"));
-      define(make_symbol("string->list" ), make<procedure>("meevax", "string->list" ));
-      define(make_symbol("list->string" ), make<procedure>("meevax", "list->string" ));
-      define(make_symbol("string-copy"  ), make<procedure>("meevax", "string-copy"  ));
-      define(make_symbol("string-copy!" ), make<procedure>("meevax", "string-copy!" ));
-      define(make_symbol("string-fill!" ), make<procedure>("meevax", "string-fill!" ));
-
-      return list(make_symbol("string?"),
-                  make_symbol("make-string"),
-                  make_symbol("string"),
-                  make_symbol("string-length"),
-                  make_symbol("string-ref"),
-                  make_symbol("string-set!"),
-                  make_symbol("string=?"),
-                  make_symbol("string<?"),
-                  make_symbol("string>?"),
-                  make_symbol("string<=?"),
-                  make_symbol("string>=?"),
-                  make_symbol("string-ci=?"),
-                  make_symbol("string-ci<?"),
-                  make_symbol("string-ci>?"),
-                  make_symbol("string-ci<=?"),
-                  make_symbol("string-ci>=?"),
-                  make_symbol("string-append"),
-                  make_symbol("string->list"),
-                  make_symbol("list->string"),
-                  make_symbol("string-copy"),
-                  make_symbol("string-copy!"),
-                  make_symbol("string-fill!"));
+      return list(define(make_symbol("string?"      ), make<procedure>("meevax", "string?"      )),
+                  define(make_symbol("make-string"  ), make<procedure>("meevax", "make-string"  )),
+                  define(make_symbol("string"       ), make<procedure>("meevax", "string"       )),
+                  define(make_symbol("string-length"), make<procedure>("meevax", "string-length")),
+                  define(make_symbol("string-ref"   ), make<procedure>("meevax", "string-ref"   )),
+                  define(make_symbol("string-set!"  ), make<procedure>("meevax", "string-set!"  )),
+                  define(make_symbol("string=?"     ), make<procedure>("meevax", "string=?"     )),
+                  define(make_symbol("string<?"     ), make<procedure>("meevax", "string<?"     )),
+                  define(make_symbol("string>?"     ), make<procedure>("meevax", "string>?"     )),
+                  define(make_symbol("string<=?"    ), make<procedure>("meevax", "string<=?"    )),
+                  define(make_symbol("string>=?"    ), make<procedure>("meevax", "string>=?"    )),
+                  define(make_symbol("string-ci=?"  ), make<procedure>("meevax", "string-ci=?"  )),
+                  define(make_symbol("string-ci<?"  ), make<procedure>("meevax", "string-ci<?"  )),
+                  define(make_symbol("string-ci>?"  ), make<procedure>("meevax", "string-ci>?"  )),
+                  define(make_symbol("string-ci<=?" ), make<procedure>("meevax", "string-ci<=?" )),
+                  define(make_symbol("string-ci>=?" ), make<procedure>("meevax", "string-ci>=?" )),
+                  define(make_symbol("string-append"), make<procedure>("meevax", "string-append")),
+                  define(make_symbol("string->list" ), make<procedure>("meevax", "string->list" )),
+                  define(make_symbol("list->string" ), make<procedure>("meevax", "list->string" )),
+                  define(make_symbol("string-copy"  ), make<procedure>("meevax", "string-copy"  )),
+                  define(make_symbol("string-copy!" ), make<procedure>("meevax", "string-copy!" )),
+                  define(make_symbol("string-fill!" ), make<procedure>("meevax", "string-fill!" )));
     }));
 
     libraries().emplace("(meevax symbol)", make<library>([](auto define)
     {
-      define(make_symbol("symbol?"           ), make<procedure>("meevax", "symbol?"           ));
-      define(make_symbol("symbol->string"    ), make<procedure>("meevax", "symbol->string"    ));
-      define(make_symbol("string->symbol"    ), make<procedure>("meevax", "string->symbol"    ));
-      define(make_symbol("identifier->symbol"), make<procedure>("meevax", "identifier->symbol"));
-
-      return list(make_symbol("symbol?"),
-                  make_symbol("symbol->string"),
-                  make_symbol("string->symbol"),
-                  make_symbol("identifier->symbol"));
+      return list(define(make_symbol("symbol?"           ), make<procedure>("meevax", "symbol?"           )),
+                  define(make_symbol("symbol->string"    ), make<procedure>("meevax", "symbol->string"    )),
+                  define(make_symbol("string->symbol"    ), make<procedure>("meevax", "string->symbol"    )),
+                  define(make_symbol("identifier->symbol"), make<procedure>("meevax", "identifier->symbol")));
     }));
 
     libraries().emplace("(meevax syntactic-closure)", make<library>([](auto define)
     {
-      define(make_symbol("identifier?"           ), make<procedure>("meevax", "identifier?"           ));
-      define(make_symbol("transformer?"          ), make<procedure>("meevax", "transformer?"          ));
-      define(make_symbol("syntactic-closure?"    ), make<procedure>("meevax", "syntactic-closure?"    ));
-      define(make_symbol("make-syntactic-closure"), make<procedure>("meevax", "make-syntactic-closure"));
-
-      return list(make_symbol("identifier?"),
-                  make_symbol("transformer?"),
-                  make_symbol("syntactic-closure?"),
-                  make_symbol("make-syntactic-closure"));
+      return list(define(make_symbol("identifier?"           ), make<procedure>("meevax", "identifier?"           )),
+                  define(make_symbol("transformer?"          ), make<procedure>("meevax", "transformer?"          )),
+                  define(make_symbol("syntactic-closure?"    ), make<procedure>("meevax", "syntactic-closure?"    )),
+                  define(make_symbol("make-syntactic-closure"), make<procedure>("meevax", "make-syntactic-closure")));
     }));
 
     libraries().emplace("(meevax system)", make<library>([](auto define)
     {
-      define(make_symbol("features"                 ), make<procedure>("meevax", "features"                 ));
-      define(make_symbol("get-environment-variable" ), make<procedure>("meevax", "get-environment-variable" ));
-      define(make_symbol("get-environment-variables"), make<procedure>("meevax", "get-environment-variables"));
-
-      return list(make_symbol("features"),
-                  make_symbol("get-environment-variable"),
-                  make_symbol("get-environment-variables"));
+      return list(define(make_symbol("features"                 ), make<procedure>("meevax", "features"                 )),
+                  define(make_symbol("get-environment-variable" ), make<procedure>("meevax", "get-environment-variable" )),
+                  define(make_symbol("get-environment-variables"), make<procedure>("meevax", "get-environment-variables")));
     }));
 
     libraries().emplace("(meevax time)", make<library>([](auto define)
     {
-      define(make_symbol("current-jiffy"     ), make<procedure>("meevax", "current-jiffy"     ));
-      define(make_symbol("jiffies-per-second"), make<procedure>("meevax", "jiffies-per-second"));
-
-      return list(make_symbol("current-jiffy"),
-                  make_symbol("jiffies-per-second"));
+      return list(define(make_symbol("current-jiffy"     ), make<procedure>("meevax", "current-jiffy"     )),
+                  define(make_symbol("jiffies-per-second"), make<procedure>("meevax", "jiffies-per-second")));
     }));
 
     libraries().emplace("(meevax vector)", make<library>([](auto define)
     {
-      define(make_symbol("vector?"       ), make<procedure>("meevax", "vector?"       ));
-      define(make_symbol("vector"        ), make<procedure>("meevax", "vector"        ));
-      define(make_symbol("make-vector"   ), make<procedure>("meevax", "make-vector"   ));
-      define(make_symbol("vector-length" ), make<procedure>("meevax", "vector-length" ));
-      define(make_symbol("vector-ref"    ), make<procedure>("meevax", "vector-ref"    ));
-      define(make_symbol("vector-set!"   ), make<procedure>("meevax", "vector-set!"   ));
-      define(make_symbol("vector->list"  ), make<procedure>("meevax", "vector->list"  ));
-      define(make_symbol("list->vector"  ), make<procedure>("meevax", "list->vector"  ));
-      define(make_symbol("vector->string"), make<procedure>("meevax", "vector->string"));
-      define(make_symbol("string->vector"), make<procedure>("meevax", "string->vector"));
-      define(make_symbol("vector-copy"   ), make<procedure>("meevax", "vector-copy"   ));
-      define(make_symbol("vector-copy!"  ), make<procedure>("meevax", "vector-copy!"  ));
-      define(make_symbol("vector-append" ), make<procedure>("meevax", "vector-append" ));
-      define(make_symbol("vector-fill!"  ), make<procedure>("meevax", "vector-fill!"  ));
-
-      return list(make_symbol("vector?"),
-                  make_symbol("vector"),
-                  make_symbol("make-vector"),
-                  make_symbol("vector-length"),
-                  make_symbol("vector-ref"),
-                  make_symbol("vector-set!"),
-                  make_symbol("vector->list"),
-                  make_symbol("list->vector"),
-                  make_symbol("vector->string"),
-                  make_symbol("string->vector"),
-                  make_symbol("vector-copy"),
-                  make_symbol("vector-copy!"),
-                  make_symbol("vector-append"),
-                  make_symbol("vector-fill!"));
+      return list(define(make_symbol("vector?"       ), make<procedure>("meevax", "vector?"       )),
+                  define(make_symbol("vector"        ), make<procedure>("meevax", "vector"        )),
+                  define(make_symbol("make-vector"   ), make<procedure>("meevax", "make-vector"   )),
+                  define(make_symbol("vector-length" ), make<procedure>("meevax", "vector-length" )),
+                  define(make_symbol("vector-ref"    ), make<procedure>("meevax", "vector-ref"    )),
+                  define(make_symbol("vector-set!"   ), make<procedure>("meevax", "vector-set!"   )),
+                  define(make_symbol("vector->list"  ), make<procedure>("meevax", "vector->list"  )),
+                  define(make_symbol("list->vector"  ), make<procedure>("meevax", "list->vector"  )),
+                  define(make_symbol("vector->string"), make<procedure>("meevax", "vector->string")),
+                  define(make_symbol("string->vector"), make<procedure>("meevax", "string->vector")),
+                  define(make_symbol("vector-copy"   ), make<procedure>("meevax", "vector-copy"   )),
+                  define(make_symbol("vector-copy!"  ), make<procedure>("meevax", "vector-copy!"  )),
+                  define(make_symbol("vector-append" ), make<procedure>("meevax", "vector-append" )),
+                  define(make_symbol("vector-fill!"  ), make<procedure>("meevax", "vector-fill!"  )));
     }));
 
     libraries().emplace("(meevax vector homogeneous)", make<library>([](auto define)
     {
       #define DEFINE_VECTOR(TAG)                                               \
-      define(make_symbol(#TAG "vector?"        ), make<procedure>("meevax", #TAG "vector?"        )); \
-      define(make_symbol("make-" #TAG "vector" ), make<procedure>("meevax", "make-" #TAG "vector" )); \
-      define(make_symbol(#TAG "vector"         ), make<procedure>("meevax", #TAG "vector"         )); \
-      define(make_symbol(#TAG "vector-length"  ), make<procedure>("meevax", #TAG "vector-length"  )); \
-      define(make_symbol(#TAG "vector-ref"     ), make<procedure>("meevax", #TAG "vector-ref"     )); \
-      define(make_symbol(#TAG "vector-set!"    ), make<procedure>("meevax", #TAG "vector-set!"    )); \
-      define(make_symbol(#TAG "vector-copy"    ), make<procedure>("meevax", #TAG "vector-copy"    )); \
-      define(make_symbol(#TAG "vector-copy!"   ), make<procedure>("meevax", #TAG "vector-copy!"   )); \
-      define(make_symbol(#TAG "vector-append"  ), make<procedure>("meevax", #TAG "vector-append"  )); \
-      define(make_symbol(#TAG "vector->list"   ), make<procedure>("meevax", #TAG "vector->list"   )); \
+      define(make_symbol(#TAG "vector?"        ), make<procedure>("meevax", #TAG "vector?"        )), \
+      define(make_symbol("make-" #TAG "vector" ), make<procedure>("meevax", "make-" #TAG "vector" )), \
+      define(make_symbol(#TAG "vector"         ), make<procedure>("meevax", #TAG "vector"         )), \
+      define(make_symbol(#TAG "vector-length"  ), make<procedure>("meevax", #TAG "vector-length"  )), \
+      define(make_symbol(#TAG "vector-ref"     ), make<procedure>("meevax", #TAG "vector-ref"     )), \
+      define(make_symbol(#TAG "vector-set!"    ), make<procedure>("meevax", #TAG "vector-set!"    )), \
+      define(make_symbol(#TAG "vector-copy"    ), make<procedure>("meevax", #TAG "vector-copy"    )), \
+      define(make_symbol(#TAG "vector-copy!"   ), make<procedure>("meevax", #TAG "vector-copy!"   )), \
+      define(make_symbol(#TAG "vector-append"  ), make<procedure>("meevax", #TAG "vector-append"  )), \
+      define(make_symbol(#TAG "vector->list"   ), make<procedure>("meevax", #TAG "vector->list"   )), \
       define(make_symbol("list->" #TAG "vector"), make<procedure>("meevax", "list->" #TAG "vector"))
 
-      DEFINE_VECTOR(s8); DEFINE_VECTOR(s16); DEFINE_VECTOR(s32); DEFINE_VECTOR(s64);
-      DEFINE_VECTOR(u8); DEFINE_VECTOR(u16); DEFINE_VECTOR(u32); DEFINE_VECTOR(u64);
-                                             DEFINE_VECTOR(f32); DEFINE_VECTOR(f64);
-
-      define(make_symbol("u8vector->string"), make<procedure>("meevax", "u8vector->string"));
-      define(make_symbol("string->u8vector"), make<procedure>("meevax", "string->u8vector"));
-
-      #define EXPORT_VECTOR(TAG)                                               \
-      make_symbol(#TAG "vector?"),                                             \
-      make_symbol("make-" #TAG "vector"),                                      \
-      make_symbol(#TAG "vector"),                                              \
-      make_symbol(#TAG "vector-length"),                                       \
-      make_symbol(#TAG "vector-ref"),                                          \
-      make_symbol(#TAG "vector-set!"),                                         \
-      make_symbol(#TAG "vector-copy"),                                         \
-      make_symbol(#TAG "vector-copy!"),                                        \
-      make_symbol(#TAG "vector-append"),                                       \
-      make_symbol(#TAG "vector->list"),                                        \
-      make_symbol("list->" #TAG "vector")
-
-      return list(EXPORT_VECTOR(s8), EXPORT_VECTOR(s16), EXPORT_VECTOR(s32), EXPORT_VECTOR(s64),
-                  EXPORT_VECTOR(u8), EXPORT_VECTOR(u16), EXPORT_VECTOR(u32), EXPORT_VECTOR(u64),
-                                                         EXPORT_VECTOR(f32), EXPORT_VECTOR(f64),
-                  make_symbol("u8vector->string"),
-                  make_symbol("string->u8vector"));
+      return list(DEFINE_VECTOR(s8), DEFINE_VECTOR(s16), DEFINE_VECTOR(s32), DEFINE_VECTOR(s64),
+                  DEFINE_VECTOR(u8), DEFINE_VECTOR(u16), DEFINE_VECTOR(u32), DEFINE_VECTOR(u64),
+                                                         DEFINE_VECTOR(f32), DEFINE_VECTOR(f64),
+                  define(make_symbol("u8vector->string"), make<procedure>("meevax", "u8vector->string")),
+                  define(make_symbol("string->u8vector"), make<procedure>("meevax", "string->u8vector")));
     }));
 
     libraries().emplace("(meevax write)", make<library>([](auto define)
     {
-      define(make_symbol("put-char"    ), make<procedure>("meevax", "put-char"    ));
-      define(make_symbol("put-string"  ), make<procedure>("meevax", "put-string"  ));
-      define(make_symbol("put-u8"      ), make<procedure>("meevax", "put-u8"      ));
-      define(make_symbol("put-u8vector"), make<procedure>("meevax", "put-u8vector"));
-      define(make_symbol("write"       ), make<procedure>("meevax", "write"       ));
-      define(make_symbol("write-simple"), make<procedure>("meevax", "write-simple"));
-
-      return list(make_symbol("put-char"),
-                  make_symbol("put-string"),
-                  make_symbol("put-u8"),
-                  make_symbol("put-u8vector"),
-                  make_symbol("write"),
-                  make_symbol("write-simple"));
+      return list(define(make_symbol("put-char"    ), make<procedure>("meevax", "put-char"    )),
+                  define(make_symbol("put-string"  ), make<procedure>("meevax", "put-string"  )),
+                  define(make_symbol("put-u8"      ), make<procedure>("meevax", "put-u8"      )),
+                  define(make_symbol("put-u8vector"), make<procedure>("meevax", "put-u8vector")),
+                  define(make_symbol("write"       ), make<procedure>("meevax", "write"       )),
+                  define(make_symbol("write-simple"), make<procedure>("meevax", "write-simple")));
     }));
   }
 } // namespace meevax::kernel

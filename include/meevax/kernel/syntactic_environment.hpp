@@ -29,7 +29,7 @@ namespace meevax::inline kernel
 
     auto compile(object const& form) -> object;
 
-    auto define(object const&, object const& = undefined) -> void;
+    auto define(object const&, object const& = undefined) -> object;
 
     auto expand(object const& form, object const& bound_variables) const -> object;
 

@@ -31,12 +31,12 @@ namespace meevax::inline kernel
     return generate(expand(form, first), first);
   }
 
-  auto syntactic_environment::define(object const& variable,
-                                     object const& value) -> void
+  auto syntactic_environment::define(object const& variable, object const& value) -> object
   {
     assert(variable.is_also<identifier>());
     assert(identify(variable, unit).template is<absolute>());
     cdr(identify(variable, unit)) = value;
+    return variable;
   }
 
   auto syntactic_environment::expand(object const& form,
