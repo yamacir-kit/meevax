@@ -18,9 +18,9 @@
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
 #include <meevax/kernel/character.hpp>
+#include <meevax/kernel/collector.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/memory/allocator.hpp>
-#include <meevax/memory/collector.hpp>
 
 namespace meevax::inline kernel
 {
@@ -30,15 +30,9 @@ namespace meevax::inline kernel
   using widen_integer = std::int64_t; // Fixed sized integer that is temporarily widened to prevent possible overflow.
 
   struct pair;
-}
 
-namespace meevax::inline memory
-{
   extern template struct collector<pair, bool, small_integer, float, character, instruction>;
-}
 
-namespace meevax::inline kernel
-{
   using default_collector = collector<pair, bool, small_integer, float, character, instruction>;
 
   using object = default_collector::mutator;
@@ -47,20 +41,10 @@ namespace meevax::inline kernel
 
   let extern unit;
 
-  template <typename T, typename Allocator>
+  template <typename T, typename Allocator = std::conditional_t<std::is_same_v<T, pair>, allocator<void>, std::allocator<void>>>
   auto make(auto&&... xs) -> decltype(auto)
   {
     return default_collector::make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
-  }
-
-  template <typename T>
-  auto make(auto&&... xs) -> decltype(auto)
-  {
-    if constexpr (std::is_same_v<T, pair>) {
-      return default_collector::make<T, allocator<void>>(std::forward<decltype(xs)>(xs)...);
-    } else {
-      return default_collector::make<T, std::allocator<void>>(std::forward<decltype(xs)>(xs)...);
-    }
   }
 
   struct pair : public default_collector::top

@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
-#define INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_COLLECTOR_HPP
+#define INCLUDED_MEEVAX_KERNEL_COLLECTOR_HPP
 
 #include <concepts>
 #include <memory> // std::allocator
@@ -28,7 +28,7 @@
 #include <meevax/memory/nan_boxing_pointer.hpp>
 #include <meevax/memory/pointer_set.hpp>
 
-namespace meevax::inline memory
+namespace meevax::inline kernel
 {
   inline constexpr struct with_braces_tag {} with_braces {};
 
@@ -522,6 +522,6 @@ namespace meevax::inline memory
       return not ((iterator and (*iterator)->contains(m)) or (--iterator and (*iterator)->contains(m)));
     }
   };
-} // namespace meevax::memory
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_COLLECTOR_HPP
