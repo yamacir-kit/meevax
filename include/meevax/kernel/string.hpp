@@ -17,10 +17,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_STRING_HPP
 #define INCLUDED_MEEVAX_KERNEL_STRING_HPP
 
-#include <filesystem>
 #include <vector>
 
-#include <meevax/kernel/character.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax::inline kernel
 {

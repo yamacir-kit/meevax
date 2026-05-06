@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_ENVIRONMENT_HPP
 
-#include <meevax/kernel/describable.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/syntactic_closure.hpp>
@@ -30,26 +29,7 @@ namespace meevax::inline kernel
 
     auto compile(object const& form) -> object;
 
-    auto define(object const&, object const& = undefined) -> void;
-
-    template <typename T>
-    auto define(std::string const& name, auto&&... xs) -> void
-    {
-      if constexpr (std::is_base_of_v<describable, T>)
-      {
-        return define(make_symbol(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
-      }
-      else
-      {
-        return define(make_symbol(name), make<T>(std::forward<decltype(xs)>(xs)...));
-      }
-    }
-
-    template <template <typename...> typename Deducer>
-    auto define(auto&&... xs) -> decltype(auto)
-    {
-      return define<typename Deducer<decltype(xs)...>::type>(std::forward<decltype(xs)>(xs)...);
-    }
+    auto define(object const&, object const& = undefined) -> object;
 
     auto expand(object const& form, object const& bound_variables) const -> object;
 

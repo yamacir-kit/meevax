@@ -18,6 +18,7 @@
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/include.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/symbol.hpp>
 
 namespace meevax::inline kernel
 {

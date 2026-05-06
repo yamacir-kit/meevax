@@ -17,12 +17,15 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 
+#include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
 
 namespace meevax::inline kernel
 {
-  struct syntax : public describable
+  struct syntax
   {
+    symbol name;
+
     auto (*expand)(syntactic_environment const& expander,
                    object const& form,
                    object const& bound_variables,
@@ -36,7 +39,7 @@ namespace meevax::inline kernel
 
     template <typename Expander, typename Generator>
     explicit syntax(std::string const& name, Expander const& expand, Generator const& generate)
-      : describable { name }
+      : name { name }
       , expand { expand }
       , generate { generate }
     {}

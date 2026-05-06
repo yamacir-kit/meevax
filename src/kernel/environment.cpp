@@ -20,6 +20,7 @@
 #include <meevax/kernel/include.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/symbol.hpp>
 
 namespace meevax::inline kernel
 {
@@ -29,7 +30,7 @@ namespace meevax::inline kernel
     {
       if (auto&& name = car(expression).as<symbol>().name; name == "define-library")
       {
-        meevax::define<library>(lexical_cast(cadr(expression)), cddr(expression));
+        libraries().emplace(lexical_cast(cadr(expression)), make<library>(cddr(expression)));
 
         return unspecified;
       }

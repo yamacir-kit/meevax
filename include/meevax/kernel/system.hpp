@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYSTEM_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYSTEM_HPP
 
+#include <filesystem>
 #include <string_view>
 
 #include <meevax/kernel/list.hpp>
@@ -31,6 +32,10 @@ namespace meevax::inline kernel
   auto help() noexcept -> std::string_view;
 
   auto home_directory() -> std::filesystem::path;
+
+  auto shared_library_prefix() -> std::string;
+
+  auto shared_library_suffix() -> std::string;
 
   auto system_library_directory() -> std::filesystem::path;
 

@@ -8,6 +8,7 @@
 #include <meevax/kernel/eof.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/symbol.hpp>
 #include <meevax/utility/debug.hpp>
 
 auto root_object_counts_by_type()

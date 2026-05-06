@@ -17,6 +17,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
 #define INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
 
+#include <filesystem>
+
 #include <meevax/kernel/dynamic_environment.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
 

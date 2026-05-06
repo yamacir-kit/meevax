@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 #define INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 
-#include <dlfcn.h> // dlopen, dlclose, dlerror
-
 #include <concepts>
 #include <memory> // std::allocator
 #include <unordered_map>
@@ -305,8 +303,9 @@ namespace meevax::inline memory
         }
       }
 
-      template <typename U> auto as() const -> decltype(auto) { return as<U>(*this); }
-      template <typename U> auto as()       -> decltype(auto) { return as<U>(*this); }
+      template <typename U> auto as        ()       -> decltype(auto) { return as<U>                      (*this) ; }
+      template <typename U> auto as        () const -> decltype(auto) { return as<U>                      (*this) ; }
+      template <typename U> auto as_mutable() const -> decltype(auto) { return as<U>(const_cast<mutator &>(*this)); }
 
       auto eqv(mutator const& rhs) const -> bool
       {
@@ -386,8 +385,6 @@ namespace meevax::inline memory
     static inline std::size_t size = 0;
 
     static inline std::size_t threshold = 16_MiB;
-
-    static inline std::unordered_map<std::string, std::unique_ptr<void, void (*)(void * const)>> dynamic_linked_libraries {};
 
     collector() = delete;
 
@@ -500,51 +497,6 @@ namespace meevax::inline memory
     auto static count() noexcept -> std::size_t
     {
       return objects.size();
-    }
-
-    auto static dlclose(void * const handle) -> void
-    {
-      if (handle and ::dlclose(handle))
-      {
-        std::cerr << ::dlerror() << std::endl;
-      }
-    }
-
-    auto static dlopen(std::string const& filename) -> void *
-    {
-      ::dlerror(); // Clear
-
-      try
-      {
-        return dynamic_linked_libraries.at(filename).get();
-      }
-      catch (std::out_of_range const&)
-      {
-        if (auto handle = ::dlopen(filename.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
-        {
-          dynamic_linked_libraries.emplace(std::piecewise_construct,
-                                           std::forward_as_tuple(filename),
-                                           std::forward_as_tuple(handle, dlclose));
-
-          return dlopen(filename);
-        }
-        else
-        {
-          throw std::runtime_error(::dlerror());
-        }
-      }
-    }
-
-    auto static dlsym(std::string const& symbol, void * const handle) -> void *
-    {
-      if (auto address = ::dlsym(handle, symbol.c_str()); address)
-      {
-        return address;
-      }
-      else
-      {
-        throw std::runtime_error(::dlerror());
-      }
     }
 
     auto static is_root(mutator const* m) noexcept

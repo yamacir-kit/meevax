@@ -22,14 +22,20 @@
 
 namespace meevax::inline kernel
 {
+  auto configurator::command_line() -> std::vector<std::string> &
+  {
+    auto static command_line = std::vector<std::string>();
+    return command_line;
+  }
+
   auto configurator::configure(int const argc, char const* const* const argv) -> void
   {
     for (auto i = 0; i < argc; ++i)
     {
-      command_line.emplace_back(argv[i]);
+      command_line().emplace_back(argv[i]);
     }
 
-    return configure(command_line);
+    return configure(command_line());
   }
 
   auto configurator::configure(std::vector<std::string> const& args) -> void
@@ -40,7 +46,7 @@ namespace meevax::inline kernel
     {
       option("(A)", [](auto read) // SRFI 138
       {
-        directories.emplace_back(std::filesystem::weakly_canonical(lexical_cast(read())));
+        directories().emplace_back(std::filesystem::weakly_canonical(lexical_cast(read())));
       }),
 
       option("(D)", [](auto read) // SRFI 138
@@ -50,12 +56,12 @@ namespace meevax::inline kernel
 
       option("(I)", [](auto read) // SRFI 138
       {
-        directories.emplace_front(std::filesystem::weakly_canonical(lexical_cast(read())));
+        directories().emplace_front(std::filesystem::weakly_canonical(lexical_cast(read())));
       }),
 
       option("(i|interactive)", [](auto)
       {
-        interactive = true;
+        interactive() = true;
       }),
 
       option("(e|evaluate)", [](auto read)
@@ -75,7 +81,7 @@ namespace meevax::inline kernel
 
       option("(library-directories)", [](auto)
       {
-        for (auto const& directory : directories)
+        for (auto const& directory : directories())
         {
           std::cout << directory.native() << std::endl;
         }
@@ -152,5 +158,16 @@ namespace meevax::inline kernel
       }
     }
   }
-} // namespace meevax::kernel
 
+  auto configurator::directories() -> std::list<std::filesystem::path> &
+  {
+    auto static directories = std::list<std::filesystem::path> { user_library_directory(), system_library_directory() };
+    return directories;
+  }
+
+  auto configurator::interactive() -> bool &
+  {
+    auto static interactive = false;
+    return interactive;
+  }
+} // namespace meevax::kernel

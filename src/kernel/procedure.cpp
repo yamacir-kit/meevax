@@ -14,12 +14,103 @@
    limitations under the License.
 */
 
+#include <dlfcn.h> // dlopen, dlclose, dlerror
 #include <meevax/kernel/procedure.hpp>
+#include <meevax/kernel/system.hpp>
 
 namespace meevax::inline kernel
 {
-  auto operator <<(std::ostream & os, primitive const& datum) -> std::ostream &
+  auto dlopen(std::string const& pathname)
   {
-    return os << magenta("#,(") << green("procedure ") << datum.name << magenta(")");
+    auto dlclose = [](void * const handle) -> void
+    {
+      if (handle and ::dlclose(handle))
+      {
+        std::cerr << ::dlerror() << std::endl;
+      }
+    };
+
+    auto static libraries = std::unordered_map<std::string, std::unique_ptr<void, decltype(dlclose)>>();
+
+    if (auto found = libraries.find(pathname); found != libraries.end())
+    {
+      return found->second.get();
+    }
+    else
+    {
+      ::dlerror(); // clear
+
+      if (auto handle = ::dlopen(pathname.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
+      {
+        auto [emplaced, success] = libraries.emplace(std::piecewise_construct,
+                                                     std::forward_as_tuple(pathname),
+                                                     std::forward_as_tuple(handle, dlclose));
+        return emplaced->second.get();
+      }
+      else
+      {
+        throw std::runtime_error(::dlerror());
+      }
+    }
+  }
+
+  template <typename T>
+  auto dlsym(auto const& handle, auto const& symbol)
+  {
+    ::dlerror(); // clear
+
+    if (auto address = ::dlsym(handle, symbol); address)
+    {
+      return reinterpret_cast<T>(address);
+    }
+    else
+    {
+      throw std::runtime_error(::dlerror());
+    }
+  }
+
+  procedure::procedure(std::string const& shared_library_name, std::string const& symbol_name)
+    : shared_library_name { shared_library_name }
+    , name { symbol_name }
+    , call
+      {
+        [&]()
+        {
+          auto resolver = [](auto const& name)
+          {
+            auto static stubs = std::unordered_map<std::string, decltype(&resolve)>
+            {
+              { shared_library_prefix() + "meevax" + shared_library_suffix(), resolve }
+            };
+
+            if (auto found = stubs.find(name); found != stubs.end())
+            {
+              return found->second;
+            }
+            else if (auto [emplaced, success] = stubs.emplace(name, dlsym<decltype(&resolve)>(dlopen(name), "resolve")); success)
+            {
+              return emplaced->second;
+            }
+            else
+            {
+              throw error(make<string>("failed to load resolver from shared-library"), make<string>(name));
+            }
+          };
+
+          if (auto p = resolver(shared_library_prefix() + shared_library_name + shared_library_suffix())(symbol_name.c_str()))
+          {
+            return reinterpret_cast<signature>(p);
+          }
+          else
+          {
+            throw error(make<string>("no such procedure"), cons(make<string>(shared_library_name), make_symbol(symbol_name)));
+          }
+        }()
+      }
+  {}
+
+  auto operator <<(std::ostream & os, procedure const& datum) -> std::ostream &
+  {
+    return os << magenta("#,(") << green("procedure ") << datum.shared_library_name << magenta(" '") << datum.name << magenta(")");
   }
 } // namespace meevax::kernel
