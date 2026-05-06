@@ -30,7 +30,7 @@ namespace meevax::inline kernel
   {
     if (names.is<pair>())
     {
-      auto port = input_file_port(textual_context::of(names).locate(std::filesystem::path(car(names).as<string>()), is_existing_non_directory));
+      auto port = input_file_port(textual_context::of(names).locate(car(names).as<string>().utf8(), is_existing_non_directory));
 
       port.fold_case = std::is_same_v<T, case_insensitive>;
 

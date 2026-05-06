@@ -79,6 +79,16 @@ namespace meevax::inline kernel
     }
   }
 
+  auto shared_library_prefix() -> std::string
+  {
+    return "${CMAKE_SHARED_LIBRARY_PREFIX}";
+  }
+
+  auto shared_library_suffix() -> std::string
+  {
+    return "${CMAKE_SHARED_LIBRARY_SUFFIX}";
+  }
+
   auto system_library_directory() -> std::filesystem::path
   {
     return "${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}";

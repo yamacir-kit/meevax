@@ -17,10 +17,10 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_BINARY_INPUT_FILE_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_BINARY_INPUT_FILE_PORT_HPP
 
+#include <filesystem>
 #include <fstream>
 
 #include <meevax/kernel/binary_input_port.hpp>
-#include <meevax/kernel/string.hpp>
 
 namespace meevax::inline kernel
 {
@@ -30,8 +30,7 @@ namespace meevax::inline kernel
 
     std::ifstream ifstream;
 
-    template <typename... Ts>
-    explicit binary_input_file_port(std::filesystem::path const& name, Ts&&... xs)
+    explicit binary_input_file_port(std::filesystem::path const& name, auto&&... xs)
       : name     { std::filesystem::canonical(name) }
       , ifstream { name, (std::ios::binary | ... | std::forward<decltype(xs)>(xs)) }
     {}

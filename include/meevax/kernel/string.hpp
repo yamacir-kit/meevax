@@ -17,10 +17,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_STRING_HPP
 #define INCLUDED_MEEVAX_KERNEL_STRING_HPP
 
-#include <filesystem>
 #include <vector>
 
-#include <meevax/kernel/character.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax::inline kernel
 {
@@ -30,15 +29,16 @@ namespace meevax::inline kernel
 
     explicit string(std::string const&);
 
-    template <typename... Ts, typename = std::enable_if_t<std::is_constructible_v<std::vector<character>, Ts...>>>
+    template <typename... Ts>
+    requires std::constructible_from<std::vector<character>, Ts...>
     explicit string(Ts&&... xs)
       : characters { std::forward<decltype(xs)>(xs)... }
     {}
 
-    explicit operator std::filesystem::path() const;
-
-    operator std::string() const;
+    auto utf8() const -> std::string;
   };
+
+  auto make_string_from_list_of_character(let const&) -> object;
 
   auto operator ==(string const&, string const&) -> bool;
   auto operator !=(string const&, string const&) -> bool;

@@ -25,8 +25,7 @@ namespace meevax::inline kernel
   {
     std::ostringstream ostringstream;
 
-    template <typename... Ts>
-    explicit output_string_port(Ts&&... xs)
+    explicit output_string_port(auto&&... xs)
       : ostringstream { std::forward<decltype(xs)>(xs)... }
     {}
 

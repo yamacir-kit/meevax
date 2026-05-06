@@ -16,34 +16,14 @@
 
 #include <meevax/kernel/list.hpp>
 
+namespace meevax::inline memory
+{
+  template struct collector<pair, bool, small_integer, float, character, instruction>;
+}
+
 namespace meevax::inline kernel
 {
   let unit = nullptr;
-
-  auto pair::extent() const noexcept -> std::pair<void const*, std::size_t>
-  {
-    return { this, sizeof(*this) };
-  }
-
-  auto pair::equal1(pair const* other) const -> bool
-  {
-    return this == other;
-  }
-
-  auto pair::equal2(pair const* other) const -> bool
-  {
-    return other and *this == *other;
-  }
-
-  auto pair::type() const noexcept -> std::type_info const&
-  {
-    return typeid(pair);
-  }
-
-  auto pair::write(std::ostream & os) const -> std::ostream &
-  {
-    return os << *this;
-  }
 
   struct datum_labels
   {

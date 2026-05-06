@@ -11,8 +11,7 @@
 
 namespace meevax
 {
-  template <typename Thunk>
-  auto duration(Thunk thunk)
+  auto duration(auto thunk)
   {
     auto begin = std::chrono::high_resolution_clock::now();
     thunk();

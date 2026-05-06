@@ -115,7 +115,7 @@ namespace meevax::inline kernel
       {
         auto output = std::stringstream();
 
-        output << static_cast<std::string>(message().as<string>());
+        output << message().as<string>().utf8();
 
         if (irritants())
         {

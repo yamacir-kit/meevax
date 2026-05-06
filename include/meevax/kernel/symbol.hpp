@@ -26,8 +26,7 @@ namespace meevax::inline kernel
   {
     std::string const name;
 
-    template <typename... Ts>
-    explicit symbol(Ts&&... xs)
+    explicit symbol(auto&&... xs)
       : name { std::forward<decltype(xs)>(xs)... }
     {}
 
@@ -40,12 +39,6 @@ namespace meevax::inline kernel
   auto operator + (symbol const&, symbol const&) -> std::string;
 
   auto operator <<(std::ostream &, symbol const&) -> std::ostream &;
-
-  template <typename T, typename = std::enable_if_t<is_equality_comparable_v<std::string const&, T const&>>>
-  auto operator ==(symbol const& a, T const& b) -> bool
-  {
-    return a.name == b;
-  }
 
   auto symbols() -> std::unordered_map<std::string, object> &;
 

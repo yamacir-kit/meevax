@@ -17,121 +17,37 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
-#include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/describable.hpp>
-#include <meevax/kernel/ghost.hpp>
+#include <meevax/kernel/string.hpp>
+#include <meevax/kernel/symbol.hpp>
 
 namespace meevax::inline kernel
 {
-  struct primitive : public describable
-  {
-    using signature = auto (*)(object &) -> object;
-
-    using describable::describable;
-
-    virtual auto operator ()(object & = unit) const -> object = 0;
-  };
-
-  auto operator <<(std::ostream &, primitive const&) -> std::ostream &;
-
-  template <typename F>
-  struct generic_procedure : public primitive
-  {
-    std::enable_if_t<std::is_invocable_v<F> or std::is_invocable_v<F, object &>, F> invocable;
-
-    explicit generic_procedure(std::string const& name, F invocable)
-      : primitive { name }
-      , invocable { invocable }
-    {}
-
-    auto operator ()(object & xs) const -> object override
-    {
-      if constexpr (std::is_invocable_v<F>)
-      {
-        if constexpr (std::is_same_v<std::invoke_result_t<F>, void>)
-        {
-          std::invoke(invocable);
-          return unspecified;
-        }
-        else if constexpr (std::is_same_v<std::invoke_result_t<F>, bool>)
-        {
-          return std::invoke(invocable) ? t : f;
-        }
-        else
-        {
-          return std::invoke(invocable);
-        }
-      }
-      else
-      {
-        if constexpr (std::is_same_v<std::invoke_result_t<F, object &>, void>)
-        {
-          std::invoke(invocable, xs);
-          return unspecified;
-        }
-        else if constexpr (std::is_same_v<std::invoke_result_t<F, object &>, bool>)
-        {
-          return std::invoke(invocable, xs) ? t : f;
-        }
-        else
-        {
-          return std::invoke(invocable, xs);
-        }
-      }
-    }
-  };
-
-  /*
-     There is no need to define specializations for this primary template to
-     work. However, since the template parameter `F` is usually given a
-     closure, there will be a unique template instantiation for each lambda
-     expression. The problem in this case is that the binary size becomes huge.
-     To deal with this, we take advantage of the fact that closures that do not
-     capture anything can be converted to function pointers, and decay closures
-     into function pointer types to reduce the number of template
-     instantiations.
-  */
-  template <typename, typename F, typename = void>
   struct procedure
   {
-    using type = generic_procedure<F>;
+    using signature = auto (*)(object const&) -> object;
+
+    string shared_library_name;
+
+    symbol name;
+
+    signature call;
+
+    [[deprecated]]
+    explicit procedure(std::string const& name, signature call)
+      : shared_library_name { "meevax" }
+      , name { name }
+      , call { call }
+    {}
+
+    explicit procedure(std::string const&, std::string const&);
   };
 
-  template <typename String, typename F>
-  struct procedure<String, F, std::enable_if_t<std::is_convertible_v<F, auto (*)() -> object>>>
-  {
-    using type = generic_procedure<auto (*)() -> object>;
-  };
+  auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
 
-  template <typename String, typename F>
-  struct procedure<String, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> object>>>
+  extern "C"
   {
-    using type = generic_procedure<auto (*)(object const&) -> object>;
-  };
-
-  template <typename String, typename F>
-  struct procedure<String, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object &) -> object>>>
-  {
-    using type = generic_procedure<auto (*)(object &) -> object>;
-  };
-
-  template <typename String, typename F>
-  struct procedure<String, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> bool>>>
-  {
-    using type = generic_procedure<auto (*)(object const&) -> bool>;
-  };
-
-  template <typename String, typename F>
-  struct procedure<String, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object const&) -> void>>>
-  {
-    using type = generic_procedure<auto (*)(object const&) -> void>;
-  };
-
-  template <typename String, typename F>
-  struct procedure<String, F, std::enable_if_t<std::is_convertible_v<F, auto (*)(object &) -> void>>>
-  {
-    using type = generic_procedure<auto (*)(object &) -> void>;
-  };
+    auto resolve(char const*) -> void *;
+  }
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP

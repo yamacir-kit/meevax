@@ -47,7 +47,7 @@ namespace meevax::inline kernel
 
     auto put(u8vector const& v) -> void override
     {
-      std::copy(std::begin(v.valarray()), std::end(v.valarray()), std::back_inserter(vector));
+      std::copy(std::begin(v.values), std::end(v.values), std::back_inserter(vector));
     }
   };
 

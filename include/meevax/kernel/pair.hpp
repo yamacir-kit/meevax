@@ -30,7 +30,15 @@ namespace meevax::inline kernel
   using widen_integer = std::int64_t; // Fixed sized integer that is temporarily widened to prevent possible overflow.
 
   struct pair;
+}
 
+namespace meevax::inline memory
+{
+  extern template struct collector<pair, bool, small_integer, float, character, instruction>;
+}
+
+namespace meevax::inline kernel
+{
   using default_collector = collector<pair, bool, small_integer, float, character, instruction>;
 
   using object = default_collector::mutator;
@@ -39,14 +47,14 @@ namespace meevax::inline kernel
 
   let extern unit;
 
-  template <typename T, typename Allocator, typename... Ts>
-  auto make(Ts&&... xs) -> decltype(auto)
+  template <typename T, typename Allocator>
+  auto make(auto&&... xs) -> decltype(auto)
   {
     return default_collector::make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
 
-  template <typename T, typename... Ts>
-  auto make(Ts&&... xs) -> decltype(auto)
+  template <typename T>
+  auto make(auto&&... xs) -> decltype(auto)
   {
     if constexpr (std::is_same_v<T, pair>) {
       return default_collector::make<T, allocator<void>>(std::forward<decltype(xs)>(xs)...);
@@ -55,17 +63,15 @@ namespace meevax::inline kernel
     }
   }
 
-  template <typename T,
-            typename Allocator = std::allocator<void>>
+  template <typename T, typename Allocator = std::allocator<void>>
   auto make(T&& x) -> decltype(auto)
   {
     return default_collector::make<std::decay_t<T>, Allocator>(std::forward<decltype(x)>(x));
   }
 
-  template <template <typename...> typename Traits,
-            typename Allocator = std::allocator<void>,
-            typename... Ts,
-            typename = std::enable_if_t<std::is_constructible_v<typename Traits<Ts...>::type, Ts...>>>
+  template <template <typename...> typename Traits, typename Allocator = std::allocator<void>, typename... Ts>
+  requires std::constructible_from<typename Traits<Ts...>::type, Ts...>
+  [[deprecated]]
   auto make(Ts&&... xs) -> decltype(auto)
   {
     return make<typename Traits<Ts...>::type, Allocator>(std::forward<decltype(xs)>(xs)...);
@@ -155,16 +161,6 @@ namespace meevax::inline kernel
       : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
 
-    virtual auto equal1(pair const*) const -> bool;
-
-    virtual auto equal2(pair const*) const -> bool;
-
-    virtual auto extent() const noexcept -> std::pair<void const*, std::size_t>;
-
-    virtual auto type() const noexcept -> std::type_info const&;
-
-    virtual auto write(std::ostream &) const -> std::ostream &;
-
     auto begin() noexcept
     {
       return iterator(this);
@@ -217,14 +213,14 @@ namespace meevax::inline kernel
                 std::forward<decltype(x)>(x));
   };
 
-  template <auto N, typename T>
-  auto get(T&& x) -> decltype(auto)
+  template <auto N>
+  auto get(auto&& x) -> decltype(auto)
   {
-    if constexpr (std::is_same_v<std::decay_t<T>, pair::iterator>)
+    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, pair::iterator>)
     {
       return std::get<N>(*x.current);
     }
-    else if constexpr (std::is_same_v<std::decay_t<T>, object>)
+    else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, object>)
     {
       return std::get<N>(x.template as<pair>());
     }
@@ -271,12 +267,6 @@ namespace meevax::inline kernel
   inline auto caddddr = [](auto&& x) -> decltype(auto) { return car(cddddr(std::forward<decltype(x)>(x))); };
   inline auto cdddddr = [](auto&& x) -> decltype(auto) { return cdr(cddddr(std::forward<decltype(x)>(x))); };
 } // namespace meevax::kernel
-
-template <>
-struct meevax::equivalence<meevax::pair>
-{
-  static inline constexpr auto strictness = 2;
-};
 
 template <>
 struct std::hash<meevax::object>

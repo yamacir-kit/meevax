@@ -26,12 +26,12 @@ namespace meevax::inline kernel
 
   auto textual_output_port::put(character const& c) -> void
   {
-    static_cast<std::ostream &>(*this) << static_cast<std::string>(c);
+    static_cast<std::ostream &>(*this) << c.utf8();
   }
 
   auto textual_output_port::put(string const& s) -> void
   {
-    static_cast<std::ostream &>(*this) << static_cast<std::string>(s);
+    static_cast<std::ostream &>(*this) << s.utf8();
   }
 
   auto textual_output_port::write(object const& x) -> void

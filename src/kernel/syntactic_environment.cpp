@@ -19,6 +19,7 @@
 #include <meevax/kernel/expander.hpp>
 #include <meevax/kernel/generator.hpp>
 #include <meevax/kernel/identity.hpp>
+#include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
 #include <meevax/kernel/syntax.hpp>
 #include <meevax/kernel/transformer.hpp>
@@ -30,12 +31,12 @@ namespace meevax::inline kernel
     return generate(expand(form, first), first);
   }
 
-  auto syntactic_environment::define(object const& variable,
-                                     object const& value) -> void
+  auto syntactic_environment::define(object const& variable, object const& value) -> object
   {
     assert(variable.is_also<identifier>());
     assert(identify(variable, unit).template is<absolute>());
     cdr(identify(variable, unit)) = value;
+    return variable;
   }
 
   auto syntactic_environment::expand(object const& form,
@@ -245,7 +246,7 @@ namespace meevax::inline kernel
           }
           else if (value.is<syntax>())
           {
-            if (auto const& name = value.as<syntax>().name; name == "begin")
+            if (auto const& name = value.as<syntax>().name.name; name == "begin")
             {
               return sweep(form,
                            append(cdar(sequence), cdr(sequence)),

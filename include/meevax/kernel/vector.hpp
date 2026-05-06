@@ -21,20 +21,13 @@
 
 namespace meevax::inline kernel
 {
-  struct heterogeneous_vector : private std::vector<object>
+  struct heterogeneous_vector
   {
-    using std::vector<object>::begin;
-    using std::vector<object>::clear;
-    using std::vector<object>::end;
-    using std::vector<object>::insert;
-    using std::vector<object>::operator [];
-    using std::vector<object>::push_back;
-    using std::vector<object>::rbegin;
-    using std::vector<object>::rend;
-    using std::vector<object>::reserve;
-    using std::vector<object>::size;
-    using std::vector<object>::value_type;
-    using std::vector<object>::vector;
+    std::vector<object> objects;
+
+    explicit heterogeneous_vector(auto&&... xs)
+      : objects { std::forward<decltype(xs)>(xs)... }
+    {}
   };
 
   auto operator ==(heterogeneous_vector const&, heterogeneous_vector const&) -> bool;

@@ -31,28 +31,15 @@ namespace meevax::inline kernel
 
     let export_specs = unit;
 
-    template <typename F, typename = std::enable_if_t<std::is_invocable_v<F, library &>>>
-    explicit library(F declare)
-    {
-      declare(*this);
-    }
+    template <typename F>
+    requires std::invocable<F, std::function<auto (object const&, object const&) -> object>>
+    explicit library(F body)
+      : export_specs { std::invoke(body, [this](auto&&... xs) { return evaluator.define(std::forward<decltype(xs)>(xs)...); }) }
+    {}
 
     explicit library(object const&);
 
     friend auto boot() -> void;
-
-    template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs) -> void
-    {
-      evaluator.define<T>(name, std::forward<decltype(xs)>(xs)...);
-      export_specs = cons(make_symbol(name), export_specs);
-    }
-
-    template <template <typename...> typename Traits, typename... Ts>
-    auto define(Ts&&... xs) -> decltype(auto)
-    {
-      return define<typename Traits<Ts...>::type>(std::forward<decltype(xs)>(xs)...);
-    }
 
     auto evaluate(object const&) -> object;
 
@@ -62,19 +49,6 @@ namespace meevax::inline kernel
   auto operator <<(std::ostream &, library const&) -> std::ostream &;
 
   auto libraries() -> std::map<std::string, object> &;
-
-  template <typename T, typename... Ts>
-  auto define(std::string const& name, Ts&&... xs) -> decltype(auto)
-  {
-    if constexpr (std::is_same_v<T, library>)
-    {
-      return libraries().emplace(name, make<library>(std::forward<decltype(xs)>(xs)...));
-    }
-    else
-    {
-      return interaction_environment().as<environment>().define<T>(name, std::forward<decltype(xs)>(xs)...);
-    }
-  }
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP

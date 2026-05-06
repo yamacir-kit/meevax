@@ -20,6 +20,7 @@
 #include <meevax/kernel/include.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/symbol.hpp>
 
 namespace meevax::inline kernel
 {
@@ -29,7 +30,7 @@ namespace meevax::inline kernel
     {
       if (auto&& name = car(expression).as<symbol>().name; name == "define-library")
       {
-        meevax::define<library>(lexical_cast(cadr(expression)), cddr(expression));
+        libraries().emplace(lexical_cast(cadr(expression)), make<library>(cddr(expression)));
 
         return unspecified;
       }
@@ -115,7 +116,7 @@ namespace meevax::inline kernel
   {
     assert(form.is<pair>());
 
-    if (car(form).as<symbol>() == "only") /* -----------------------------------
+    if (car(form).as<symbol>().name == "only") /* ------------------------------
     *
     *  <declaration> = (only <import set> <identifier> ...)
     *
@@ -129,7 +130,7 @@ namespace meevax::inline kernel
 
       return filter(only, import_set(cadr(form)));
     }
-    else if (car(form).as<symbol>() == "except") /* ----------------------------
+    else if (car(form).as<symbol>().name == "except") /* -----------------------
     *
     *  <declaration> = (except <import set> <identifier> ...)
     *
@@ -143,7 +144,7 @@ namespace meevax::inline kernel
 
       return filter(except, import_set(cadr(form)));
     }
-    else if (car(form).as<symbol>() == "prefix") /* ----------------------------
+    else if (car(form).as<symbol>().name == "prefix") /* -----------------------
     *
     *  <declaration> = (prefix <import set> <identifier>)
     *
@@ -159,7 +160,7 @@ namespace meevax::inline kernel
 
       return map(prefix, import_set(cadr(form)));
     }
-    else if (car(form).as<symbol>() == "rename") /* ----------------------------
+    else if (car(form).as<symbol>().name == "rename") /* -----------------------
     *
     *  <declaration> = (rename <import set>
     *                          (<identifier 1> <identifier 2>) ...)

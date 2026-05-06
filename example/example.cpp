@@ -1,16 +1,14 @@
-#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/procedure.hpp>
 
-using namespace meevax; // NOTE: DIRTY HACK
-
-extern "C"
+namespace meevax::inline example
 {
-  auto argument_length(object & xs)
+  auto argument_length(object const& xs)
   {
     return make(static_cast<small_integer>(length(xs)));
   }
 
-  auto dummy_procedure(object & xs)
+  auto dummy_procedure(object const& xs)
   {
     std::cout << "\n; calling C++ function." << std::endl;
 
@@ -38,24 +36,47 @@ extern "C"
   {
     small_integer value;
 
+    explicit hoge(small_integer value)
+      : value { value }
+    {}
+
     ~hoge()
     {
       std::cout << "DESTRUCTOR!" << std::endl;
     }
   };
 
-  auto make_hoge(object & xs)
+  auto make_hoge(object const& xs)
   {
     return make<hoge>(exact_integer_cast<small_integer>(car(xs)));
   }
 
-  auto is_hoge(object & xs)
-  {
-    return car(xs).is<hoge>() ? t : f;
-  }
-
-  auto hoge_value(object & xs)
+  auto hoge_value(object const& xs)
   {
     return make<small_integer>(car(xs).as<hoge>().value);
+  }
+
+  extern "C"
+  {
+    auto resolve(char const* name) -> void *
+    {
+      auto static const registry = std::unordered_map<std::string, meevax::procedure::signature>
+      {
+        { "argument_length", argument_length },
+        { "dummy_procedure", dummy_procedure },
+        { "make_hoge", make_hoge },
+        { "is_hoge", [](object const& xs) { return make(car(xs).is<hoge>()); } },
+        { "hoge_value", hoge_value }
+      };
+
+      if (auto iterator = registry.find(name); iterator != registry.end())
+      {
+        return reinterpret_cast<void *>(iterator->second);
+      }
+      else
+      {
+        return nullptr;
+      }
+    }
   }
 }

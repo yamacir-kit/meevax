@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/symbol.hpp>
 
 auto main() -> int
 {

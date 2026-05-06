@@ -29,8 +29,7 @@ namespace meevax::inline kernel
 
     std::ifstream ifstream;
 
-    template <typename... Ts>
-    explicit input_file_port(std::filesystem::path const& name, Ts&&... xs)
+    explicit input_file_port(std::filesystem::path const& name, auto&&... xs)
       : name     { std::filesystem::canonical(name) }
       , ifstream { name, std::forward<decltype(xs)>(xs)... }
     {

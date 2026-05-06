@@ -25,26 +25,15 @@
 namespace meevax::inline kernel
 {
   template <typename T>
-  struct homogeneous_vector : private std::valarray<T>
+  struct homogeneous_vector
   {
-    using          std::valarray<T>::operator [];
-    using          std::valarray<T>::size;
-    using          std::valarray<T>::valarray;
-    using typename std::valarray<T>::value_type;
+    using values_type = std::valarray<T>;
 
-    auto valarray()       -> decltype(auto) { return static_cast<std::valarray<T>      &>(*this); }
-    auto valarray() const -> decltype(auto) { return static_cast<std::valarray<T> const&>(*this); }
+    std::valarray<T> values;
 
-    explicit homogeneous_vector(from_list_tag, let xs)
-      : std::valarray<T>(length(xs))
-    {
-      std::generate(std::begin(*this), std::end(*this), [&]() mutable
-      {
-        let const x = car(xs);
-        xs = cdr(xs);
-        return input_cast(x);
-      });
-    }
+    explicit homogeneous_vector(auto&&... xs)
+      : values(std::forward<decltype(xs)>(xs)...)
+    {}
 
     static auto tag() -> auto const&
     {
@@ -74,6 +63,21 @@ namespace meevax::inline kernel
   };
 
   template <typename T>
+  auto make_homogeneous_vector_from_list_of(object const& xs)
+  {
+    auto v = make<homogeneous_vector<T>>(length(xs));
+
+    auto i = std::size_t(0);
+
+    for (let const& x : xs)
+    {
+      v.template as<homogeneous_vector<T>>().values[i++] = homogeneous_vector<T>::input_cast(x);
+    }
+
+    return v;
+  }
+
+  template <typename T>
   auto operator <<(std::ostream & output, homogeneous_vector<T> const& datum) -> std::ostream &
   {
     static_assert(std::is_arithmetic_v<T>);
@@ -82,7 +86,7 @@ namespace meevax::inline kernel
 
     auto whitespace = "";
 
-    for (auto value : datum.valarray())
+    for (auto value : datum.values)
     {
       output << std::exchange(whitespace, " ") << cyan(homogeneous_vector<T>::output_cast(value));
     }
@@ -98,27 +102,26 @@ namespace meevax::inline kernel
       return std::all_of(std::begin(xs), std::end(xs), [](auto x) { return x; });
     };
 
-    return check(a.valarray() == b.valarray());
+    return check(a.values == b.values);
   }
 
-  using s8vector  = homogeneous_vector<std::int8_t>;
+  #define FOR_EACH_BITS(F) F(8) F(16) F(32) F(64)
 
-  using s16vector = homogeneous_vector<std::int16_t>;
+  #define DEFINE_EXACT_INTEGER_HOMOGENEOUS_VECTORS(BIT) \
+  using s##BIT = std:: int##BIT##_t; \
+  using u##BIT = std::uint##BIT##_t; \
+  using s##BIT##vector = homogeneous_vector<s##BIT>; \
+  using u##BIT##vector = homogeneous_vector<u##BIT>;
 
-  using s32vector = homogeneous_vector<std::int32_t>;
+  FOR_EACH_BITS(DEFINE_EXACT_INTEGER_HOMOGENEOUS_VECTORS);
 
-  using s64vector = homogeneous_vector<std::int64_t>;
+  #undef DEFINE_EXACT_INTEGER_HOMOGENEOUS_VECTORS
+  #undef FOR_EACH_BITS
 
-  using u8vector  = homogeneous_vector<std::uint8_t>;
-
-  using u16vector = homogeneous_vector<std::uint16_t>;
-
-  using u32vector = homogeneous_vector<std::uint32_t>;
-
-  using u64vector = homogeneous_vector<std::uint64_t>;
+  using f32 = float;
+  using f64 = double;
 
   using f32vector = homogeneous_vector<float>;
-
   using f64vector = homogeneous_vector<double>;
 } // namespace meevax::kernel
 

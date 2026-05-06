@@ -87,8 +87,7 @@ namespace meevax::inline kernel
         }
       }
 
-      template <typename... Ts>
-      constexpr auto is_any_of(Ts&&... xs) const noexcept
+      constexpr auto is_any_of(auto&&... xs) const noexcept
       {
         return ((value == xs) or ...);
       }
@@ -125,22 +124,22 @@ namespace meevax::inline kernel
       : codepoint { codepoint }
     {}
 
-    static constexpr auto eof()
+    auto static constexpr eof()
     {
       return std::char_traits<char_type>::eof();
     }
 
-    static constexpr auto eq(int_type const& c1, int_type const& c2)
+    auto static constexpr eq(int_type const& c1, int_type const& c2)
     {
       return std::char_traits<char_type>::eq_int_type(c1, c2);
     }
 
-    constexpr auto eq(int_type const& c) const
+    auto constexpr eq(int_type const& c) const
     {
       return std::char_traits<char_type>::eq_int_type(codepoint, c);
     }
 
-    constexpr auto digit_value() const noexcept -> std::optional<int>
+    auto constexpr digit_value() const noexcept -> std::optional<int>
     {
       switch (codepoint)
       {
@@ -151,7 +150,7 @@ namespace meevax::inline kernel
       }
     }
 
-    constexpr auto downcase() const noexcept
+    auto constexpr downcase() const noexcept
     {
       switch (codepoint)
       {
@@ -162,27 +161,27 @@ namespace meevax::inline kernel
       }
     }
 
-    static constexpr auto is_ascii(int_type c)
+    auto static constexpr is_ascii(int_type c)
     {
       return 0x00 <= c and c <= 0x7F;
     }
 
-    static constexpr auto is_eof(int_type c)
+    auto static constexpr is_eof(int_type c)
     {
       return eq(eof(), c);
     }
 
-    constexpr auto is_eof() const noexcept
+    auto constexpr is_eof() const noexcept
     {
       return is_eof(codepoint);
     }
 
-    constexpr auto property() const noexcept -> property_code
+    auto constexpr property() const noexcept -> property_code
     {
       return codepoint;
     }
 
-    constexpr auto upcase() const noexcept
+    auto constexpr upcase() const noexcept
     {
       switch (codepoint)
       {
@@ -193,12 +192,12 @@ namespace meevax::inline kernel
       }
     }
 
+    auto utf8() const -> std::string;
+
     constexpr operator int_type() const
     {
       return codepoint;
     }
-
-    explicit operator std::string() const; // write-char (for display)
   };
 
   auto operator <<(std::ostream &, character const&) -> std::ostream &; // write

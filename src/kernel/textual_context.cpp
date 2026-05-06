@@ -66,7 +66,7 @@ namespace meevax::inline kernel
 
     LOCATE(std::filesystem::current_path());
 
-    for (auto const& directory : configurator::directories)
+    for (auto const& directory : configurator::directories())
     {
       LOCATE(directory);
     }

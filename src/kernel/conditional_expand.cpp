@@ -25,21 +25,21 @@ namespace meevax::inline kernel
   {
     if (requirement.is<pair>() and car(requirement).is<symbol>())
     {
-      if (car(requirement).as<symbol>() == "library")
+      if (car(requirement).as<symbol>().name == "library")
       {
         return libraries().find(lexical_cast(cadr(requirement))) != libraries().end();
       }
-      else if (car(requirement).as<symbol>() == "and")
+      else if (car(requirement).as<symbol>().name == "and")
       {
         return std::all_of(cdr(requirement).begin(),
                            cdr(requirement).end(), conditional_expand_test);
       }
-      else if (car(requirement).as<symbol>() == "or")
+      else if (car(requirement).as<symbol>().name == "or")
       {
         return std::any_of(cdr(requirement).begin(),
                            cdr(requirement).end(), conditional_expand_test);
       }
-      else if (car(requirement).as<symbol>() == "not")
+      else if (car(requirement).as<symbol>().name == "not")
       {
         return not conditional_expand_test(cadr(requirement));
       }

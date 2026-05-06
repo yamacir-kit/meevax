@@ -34,22 +34,21 @@ namespace meevax::inline kernel
 
       std::function<auto (std::function<auto () -> object> const&) -> void> evaluate;
 
-      template <typename S, typename F>
-      explicit option(S&& s, F&& f)
+      explicit option(auto&& s, auto&& f)
         : pattern  { std::forward<decltype(s)>(s) }
         , evaluate { std::forward<decltype(f)>(f) }
       {}
     };
 
-    auto static inline interactive = false;
-
-    auto static inline command_line = std::vector<std::string>();
-
-    auto static inline directories = std::list<std::filesystem::path> { user_library_directory(), system_library_directory() };
+    auto static command_line() -> std::vector<std::string> &;
 
     auto static configure(int const, char const* const* const) -> void;
 
     auto static configure(std::vector<std::string> const&) -> void;
+
+    auto static directories() -> std::list<std::filesystem::path> &;
+
+    auto static interactive() -> bool &;
   };
 } // namespace meevax::kernel
 

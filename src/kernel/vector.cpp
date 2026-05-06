@@ -25,8 +25,7 @@ namespace meevax::inline kernel
 {
   auto operator ==(heterogeneous_vector const& v, heterogeneous_vector const& u) -> bool
   {
-    return std::equal(v.begin(), v.end(),
-                      u.begin(), u.end(), equal);
+    return std::equal(v.objects.begin(), v.objects.end(), u.objects.begin(), u.objects.end(), equal);
   }
 
   auto operator <<(std::ostream & output, heterogeneous_vector const& datum) -> std::ostream &
@@ -35,9 +34,9 @@ namespace meevax::inline kernel
 
     auto whitespace = "";
 
-    for (auto const& each : datum)
+    for (auto const& object : datum.objects)
     {
-      output << std::exchange(whitespace, " ") << each;
+      output << std::exchange(whitespace, " ") << object;
     }
 
     return output << magenta(")");

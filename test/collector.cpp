@@ -3,6 +3,7 @@
 #include <cassert>
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/input_string_port.hpp>
+#include <meevax/kernel/symbol.hpp>
 
 auto main() -> int
 {
@@ -54,7 +55,7 @@ auto main() -> int
       let x = make<symbol>("x");
 
       assert(x.is<symbol>());
-      assert(x.as<symbol>() == "x");
+      assert(x.as<symbol>().name == "x");
 
       return x; // return value optimization
     };
@@ -62,14 +63,14 @@ auto main() -> int
     let x = f();
 
     assert(x.is<symbol>());
-    assert(x.as<symbol>() == "x");
+    assert(x.as<symbol>().name == "x");
 
     assert(default_collector::count() == gc_count + 1);
     default_collector::collect();
     assert(default_collector::count() == gc_count + 1);
 
     assert(x.is<symbol>());
-    assert(x.as<symbol>() == "x");
+    assert(x.as<symbol>().name == "x");
   }
 
   assert(default_collector::count() == gc_count + 1);
@@ -88,9 +89,9 @@ auto main() -> int
       assert(y.is<symbol>());
       assert(z.is<symbol>());
 
-      assert(x.as<symbol>() == "x");
-      assert(y.as<symbol>() == "y");
-      assert(z.as<symbol>() == "z");
+      assert(x.as<symbol>().name == "x");
+      assert(y.as<symbol>().name == "y");
+      assert(z.as<symbol>().name == "z");
 
       assert(default_collector::count() == gc_count + 3);
       default_collector::collect();
@@ -134,9 +135,9 @@ auto main() -> int
       assert(b.is<symbol>());
       assert(c.is<symbol>());
 
-      assert(a.as<symbol>() == "a");
-      assert(b.as<symbol>() == "b");
-      assert(c.as<symbol>() == "c");
+      assert(a.as<symbol>().name == "a");
+      assert(b.as<symbol>().name == "b");
+      assert(c.as<symbol>().name == "c");
 
       assert(default_collector::count() == gc_count + 3);
 
@@ -145,17 +146,17 @@ auto main() -> int
 
     let x = f();
 
-    assert(car(x).as<symbol>() == "a");
-    assert(cadr(x).as<symbol>() == "b");
-    assert(caddr(x).as<symbol>() == "c");
-    assert(cadddr(x).as<symbol>() == "a");
+    assert(car(x).as<symbol>().name == "a");
+    assert(cadr(x).as<symbol>().name == "b");
+    assert(caddr(x).as<symbol>().name == "c");
+    assert(cadddr(x).as<symbol>().name == "a");
 
     default_collector::collect();
 
-    assert(car(x).as<symbol>() == "a");
-    assert(cadr(x).as<symbol>() == "b");
-    assert(caddr(x).as<symbol>() == "c");
-    assert(cadddr(x).as<symbol>() == "a");
+    assert(car(x).as<symbol>().name == "a");
+    assert(cadr(x).as<symbol>().name == "b");
+    assert(caddr(x).as<symbol>().name == "c");
+    assert(cadddr(x).as<symbol>().name == "a");
   }
 
   default_collector::collect();
@@ -168,7 +169,7 @@ auto main() -> int
 
     assert(default_collector::count() == gc_count + 1);
     assert(x.is<symbol>());
-    assert(x.as<symbol>() == "hoge");
+    assert(x.as<symbol>().name == "hoge");
 
     x = make<large_integer>(42);
 

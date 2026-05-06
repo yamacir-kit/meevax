@@ -16,6 +16,7 @@
 
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/identity.hpp>
+#include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/syntactic_closure.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
 
@@ -174,7 +175,7 @@ namespace meevax::inline kernel
         xs = cons(unit, xs);
       }
 
-      return environment.as_const<syntactic_environment>().identify(form, xs);
+      return environment.as<syntactic_environment const>().identify(form, xs);
     };
 
     if (let const& identity = identify(); identity != f)
@@ -183,7 +184,7 @@ namespace meevax::inline kernel
     }
     else
     {
-      return environment.as_const<syntactic_environment>().identify(form, bound_variables);
+      return environment.as<syntactic_environment const>().identify(form, bound_variables);
     }
   }
 

@@ -32,21 +32,28 @@ namespace meevax::inline kernel
     }
   }
 
-  string::operator std::filesystem::path() const
+  auto string::utf8() const -> std::string
   {
-    return operator std::string();
-  }
-
-  string::operator std::string() const
-  {
-    std::string result;
+    auto result = std::string();
 
     for (auto const& character : characters)
     {
-      result.append(static_cast<std::string>(character));
+      result.append(character.utf8());
     }
 
     return result;
+  }
+
+  auto make_string_from_list_of_character(let const& xs) -> object
+  {
+    let s = make<string>();
+
+    for (let const& x : xs)
+    {
+      s.as<string>().characters.push_back(x.as<character>());
+    }
+
+    return s;
   }
 
   auto operator ==(string const& a, string const& b) -> bool { return a.characters == b.characters; }

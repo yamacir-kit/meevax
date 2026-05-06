@@ -19,6 +19,7 @@
 #include <meevax/kernel/homogeneous_vector.hpp>
 #include <meevax/kernel/interaction_environment.hpp>
 #include <meevax/kernel/string.hpp>
+#include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/textual_input_port.hpp>
 #include <meevax/kernel/vector.hpp>
 
@@ -72,8 +73,7 @@ namespace meevax::inline kernel
   {
     std::string const n;
 
-    template <typename... Ts>
-    explicit datum_label(Ts&&... xs)
+    explicit datum_label(auto&&... xs)
       : n { std::forward<decltype(xs)>(xs)... }
     {}
   };
@@ -179,7 +179,7 @@ namespace meevax::inline kernel
   {
     auto c = take_character();
 
-    auto const s = static_cast<std::string>(c);
+    auto const s = c.utf8();
 
     for (auto iter = std::rbegin(s); iter != std::rend(s); ++iter)
     {
@@ -252,7 +252,7 @@ namespace meevax::inline kernel
                                                 : take_character());
       }
 
-      return static_cast<std::string>(token);
+      return token.utf8();
     };
 
     while (get_ready())
@@ -300,7 +300,7 @@ namespace meevax::inline kernel
           return read();
 
         case '"':
-          return make_symbol(take_quoted(c2));
+          return make_symbol(take_quoted(c2).utf8());
 
         case '0':
         case '1':
@@ -381,10 +381,10 @@ namespace meevax::inline kernel
           switch (std::stoi(take_character_while(is_digit, character('0'))))
           {
           case 32:
-            return make<f32vector>(from_list, read());
+            return make_homogeneous_vector_from_list_of<f32>(read());
 
           case 64:
-            return make<f64vector>(from_list, read());
+            return make_homogeneous_vector_from_list_of<f64>(read());
 
           default:
             take_token(c2);
@@ -408,16 +408,16 @@ namespace meevax::inline kernel
           switch (auto n = take_character_while(is_digit); std::stoi(n))
           {
           case 8:
-            return make<s8vector>(from_list, read());
+            return make_homogeneous_vector_from_list_of<s8>(read());
 
           case 16:
-            return make<s16vector>(from_list, read());
+            return make_homogeneous_vector_from_list_of<s16>(read());
 
           case 32:
-            return make<s32vector>(from_list, read());
+            return make_homogeneous_vector_from_list_of<s32>(read());
 
           case 64:
-            return make<s64vector>(from_list, read());
+            return make_homogeneous_vector_from_list_of<s64>(read());
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
@@ -432,16 +432,16 @@ namespace meevax::inline kernel
           switch (auto const n = take_character_while(is_digit); std::stoi(n))
           {
           case 8:
-            return make<u8vector>(from_list, read());
+            return make_homogeneous_vector_from_list_of<u8>(read());
 
           case 16:
-            return make<u16vector>(from_list, read());
+            return make_homogeneous_vector_from_list_of<u16>(read());
 
           case 32:
-            return make<u32vector>(from_list, read());
+            return make_homogeneous_vector_from_list_of<u32>(read());
 
           case 64:
-            return make<u64vector>(from_list, read());
+            return make_homogeneous_vector_from_list_of<u64>(read());
 
           default:
             throw read_error(make<string>("An unknown literal expression was encountered"),
@@ -582,7 +582,7 @@ namespace meevax::inline kernel
         return list(make_symbol("quasiquote"), read());
 
       case '|':  // 0x7C
-        return make_symbol(take_quoted(c1));
+        return make_symbol(take_quoted(c1).utf8());
 
       case '[':  // 0x5B
       case ']':  // 0x5D
