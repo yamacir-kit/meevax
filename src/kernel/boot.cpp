@@ -54,7 +54,7 @@ extern char ** environ; // for procedure get-environment-variables
 
 namespace meevax::inline kernel
 {
-  auto lookup(char const* name) -> void *
+  auto resolve(char const* name) -> void *
   {
     using namespace number;
 

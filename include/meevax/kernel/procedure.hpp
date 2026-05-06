@@ -46,7 +46,7 @@ namespace meevax::inline kernel
 
   extern "C"
   {
-    auto lookup(char const*) -> void *;
+    auto resolve(char const*) -> void *;
   }
 } // namespace meevax::kernel
 

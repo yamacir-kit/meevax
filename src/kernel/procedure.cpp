@@ -76,28 +76,28 @@ namespace meevax::inline kernel
       {
         [&]()
         {
-          auto stub = [](auto const& name)
+          auto resolver = [](auto const& name)
           {
-            auto static stubs = std::unordered_map<std::string, decltype(&lookup)>
+            auto static stubs = std::unordered_map<std::string, decltype(&resolve)>
             {
-              { shared_library_prefix() + "meevax" + shared_library_suffix(), lookup }
+              { shared_library_prefix() + "meevax" + shared_library_suffix(), resolve }
             };
 
             if (auto found = stubs.find(name); found != stubs.end())
             {
               return found->second;
             }
-            else if (auto [emplaced, success] = stubs.emplace(name, dlsym<decltype(&lookup)>(dlopen(name), "lookup")); success)
+            else if (auto [emplaced, success] = stubs.emplace(name, dlsym<decltype(&resolve)>(dlopen(name), "resolve")); success)
             {
               return emplaced->second;
             }
             else
             {
-              throw error(make<string>("failed to load shared-library"), make<string>(name));
+              throw error(make<string>("failed to load resolver from shared-library"), make<string>(name));
             }
           };
 
-          if (auto p = stub(shared_library_prefix() + shared_library_name + shared_library_suffix())(symbol_name.c_str()))
+          if (auto p = resolver(shared_library_prefix() + shared_library_name + shared_library_suffix())(symbol_name.c_str()))
           {
             return reinterpret_cast<signature>(p);
           }

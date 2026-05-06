@@ -58,7 +58,7 @@ namespace meevax::inline example
 
   extern "C"
   {
-    auto lookup(char const* name) -> void *
+    auto resolve(char const* name) -> void *
     {
       auto static const registry = std::unordered_map<std::string, meevax::procedure::signature>
       {
