@@ -57,7 +57,7 @@ namespace meevax::inline kernel
 
     auto make() const -> object override
     {
-      return meevax::make(*this);
+      return meevax::make<file_error>(*this);
     }
 
     auto raise() const -> void override
@@ -72,7 +72,7 @@ namespace meevax::inline kernel
 
     auto make() const -> object override
     {
-      return meevax::make(*this);
+      return meevax::make<read_error>(*this);
     }
 
     auto raise() const -> void override

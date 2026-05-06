@@ -190,7 +190,7 @@ auto main() -> int
       assert(x.is<double>());
       assert(x.as<double>() == 42);
 
-      let const y = make(std::stod("42"));
+      let const y = make<double>(std::stod("42"));
 
       assert(y.is<double>());
       assert(y.as<double>() == 42);

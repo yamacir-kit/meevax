@@ -40,15 +40,15 @@ namespace meevax::inline kernel::number
         auto const z = std::pow(inexact(std::forward<decltype(x)>(x)),
                                 inexact(std::forward<decltype(y)>(y)));
 
-        return complex(make(z.real()),
-                       make(z.imag()));
+        return complex(make<double>(z.real()),
+                       make<double>(z.imag()));
       }
       else if constexpr (std::is_same_v<T, widen_integer> and
                          std::is_same_v<U, widen_integer>)
       {
         if (auto result = std::pow(x, y); std::numeric_limits<small_integer>::min() <= result and result <= std::numeric_limits<small_integer>::max())
         {
-          return make(static_cast<small_integer>(result));
+          return make<small_integer>(static_cast<small_integer>(result));
         }
         else
         {
@@ -80,8 +80,8 @@ namespace meevax::inline kernel::number
       {
         auto const z = std::sqrt(static_cast<std::complex<double>>(x));
 
-        return complex(make(z.real()),
-                       make(z.imag()));
+        return complex(make<double>(z.real()),
+                       make<double>(z.imag()));
       }
       else
       {
@@ -93,22 +93,22 @@ namespace meevax::inline kernel::number
 
             if (auto i = static_cast<small_integer>(s); i * i == x)
             {
-              return make(i);
+              return make<small_integer>(i);
             }
             else
             {
-              return make(s);
+              return make<double>(s);
             }
           }
           else if constexpr (std::is_same_v<T, large_integer>)
           {
             auto const [s, r] = x.sqrt();
 
-            return r == 0_i64 ? make(s) : make(std::sqrt(static_cast<double>(x)));
+            return r == 0_i64 ? make<large_integer>(s) : make<large_integer>(std::sqrt(static_cast<double>(x)));
           }
           else
           {
-            return make(std::sqrt(static_cast<double>(x)));
+            return make<double>(std::sqrt(static_cast<double>(x)));
           }
         };
 

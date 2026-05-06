@@ -130,8 +130,8 @@ auto main() -> int
   }
 
   {
-    let x = make(static_cast<small_integer>(1)),
-        y = make(static_cast<small_integer>(2));
+    let x = make<small_integer>(1),
+        y = make<small_integer>(2);
 
     // PRINT(demangle(x.type()));
     // PRINT(demangle(y.type()));

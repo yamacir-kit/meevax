@@ -29,7 +29,7 @@ namespace meevax::inline kernel
 
   auto error::make() const -> object
   {
-    return meevax::make(*this);
+    return meevax::make<error>(*this);
   }
 
   auto error::message() const noexcept -> object const&

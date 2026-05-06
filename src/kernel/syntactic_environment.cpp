@@ -97,21 +97,21 @@ namespace meevax::inline kernel
 
         if (let const& identity = identify(form, bound_variables); identity.is<relative>())
         {
-          return cons(make(instruction::secd_load_relative), identity, continuation);
+          return cons(make<instruction>(instruction::secd_load_relative), identity, continuation);
         }
         else if (identity.is<variadic>())
         {
-          return cons(make(instruction::secd_load_variadic), identity, continuation);
+          return cons(make<instruction>(instruction::secd_load_variadic), identity, continuation);
         }
         else
         {
           assert(identity.is_also<absolute>());
-          return cons(make(instruction::secd_load_absolute), identity, continuation);
+          return cons(make<instruction>(instruction::secd_load_absolute), identity, continuation);
         }
       }
       else // is <self-evaluating>
       {
-        return cons(make(instruction::secd_load_constant), form, continuation);
+        return cons(make<instruction>(instruction::secd_load_constant), form, continuation);
       }
     }
     else if (car(form).is_also<identifier>())

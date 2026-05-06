@@ -135,14 +135,14 @@ namespace meevax::inline kernel
     }
     else
     {
-      auto s = string();
+      let s = make<string>();
 
       while (size-- and not peek_character().is_eof())
       {
-        s.characters.push_back(take_character());
+        s.as<string>().characters.push_back(take_character());
       }
 
-      return make(s);
+      return s;
     }
   }
 
@@ -271,7 +271,7 @@ namespace meevax::inline kernel
         break;
 
       case '"':  // 0x22
-        return make(take_quoted(c1));
+        return make<string>(take_quoted(c1));
 
       case '#':  // 0x23
         switch (auto const c2 = take_character())
@@ -464,7 +464,7 @@ namespace meevax::inline kernel
         case '\\':
           if (auto c3 = take_character(); is_special_character(peek_character())) // #\<character>
           {
-            return make(c3);
+            return make<character>(c3);
           }
           else if (c3 == 'x') // #\x<hex scalar value>
           {
