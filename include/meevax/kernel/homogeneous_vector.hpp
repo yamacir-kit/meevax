@@ -21,6 +21,7 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/proper_list.hpp>
 
 namespace meevax::inline kernel
 {
@@ -69,7 +70,7 @@ namespace meevax::inline kernel
 
     auto i = std::size_t(0);
 
-    for (let const& x : xs)
+    for (let const& x : xs | as_proper_list)
     {
       v.template as<homogeneous_vector<T>>().values[i++] = homogeneous_vector<T>::input_cast(x);
     }

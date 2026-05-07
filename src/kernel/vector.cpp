@@ -18,6 +18,7 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/large_integer.hpp>
+#include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/vector.hpp>
 
@@ -44,6 +45,6 @@ namespace meevax::inline kernel
 
   auto make_vector(object const& xs) -> object
   {
-    return make<vector>(xs.begin(), xs.end());
+    return make<vector>(std::ranges::begin(xs | as_proper_list), std::ranges::end(xs | as_proper_list));
   }
 } // namespace meevax::kernel

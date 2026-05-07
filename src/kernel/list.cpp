@@ -16,6 +16,7 @@
 
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/proper_list.hpp>
 
 namespace meevax::inline kernel
 {

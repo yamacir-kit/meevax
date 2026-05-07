@@ -360,12 +360,12 @@ namespace meevax::inline kernel
         return datum.write(os);
       }
 
-      auto  begin()       { return *this ? pointer::unsafe_get()-> begin() : typename Top::      iterator(); }
-      auto  begin() const { return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator(); }
-      auto cbegin() const { return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator(); }
-      auto    end()       { return *this ? pointer::unsafe_get()->   end() : typename Top::      iterator(); }
-      auto    end() const { return *this ? pointer::unsafe_get()->  cend() : typename Top::const_iterator(); }
-      auto   cend() const { return *this ? pointer::unsafe_get()->  cend() : typename Top::const_iterator(); }
+      [[deprecated]] auto  begin()       { return *this ? pointer::unsafe_get()-> begin() : typename Top::      iterator(); }
+      [[deprecated]] auto  begin() const { return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator(); }
+      [[deprecated]] auto cbegin() const { return *this ? pointer::unsafe_get()->cbegin() : typename Top::const_iterator(); }
+      [[deprecated]] auto    end()       { return *this ? pointer::unsafe_get()->   end() : typename Top::      iterator(); }
+      [[deprecated]] auto    end() const { return *this ? pointer::unsafe_get()->  cend() : typename Top::const_iterator(); }
+      [[deprecated]] auto   cend() const { return *this ? pointer::unsafe_get()->  cend() : typename Top::const_iterator(); }
     };
 
     /*

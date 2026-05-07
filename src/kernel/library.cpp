@@ -18,6 +18,7 @@
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/include.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax::inline kernel
@@ -38,7 +39,7 @@ namespace meevax::inline kernel
       }
       else if (name == "begin")
       {
-        for (let const& command_or_definition : cdr(declaration))
+        for (let const& command_or_definition : cdr(declaration) | as_proper_list)
         {
           evaluator.evaluate(command_or_definition);
         }
@@ -47,7 +48,7 @@ namespace meevax::inline kernel
       }
       else if (name == "include-library-declarations")
       {
-        for (let const& library_declaration : include(cdr(declaration)))
+        for (let const& library_declaration : include(cdr(declaration)) | as_proper_list)
         {
           evaluate(library_declaration);
         }
@@ -56,7 +57,7 @@ namespace meevax::inline kernel
       }
       else if (name == "cond-expand")
       {
-        for (let const& library_declaration : conditional_expand(cdr(declaration)))
+        for (let const& library_declaration : conditional_expand(cdr(declaration)) | as_proper_list)
         {
           evaluate(library_declaration);
         }
@@ -74,7 +75,7 @@ namespace meevax::inline kernel
     {
       assert(declarations.is<null>());
 
-      for (let const& unresolved_declaration : unresolved_declarations)
+      for (let const& unresolved_declaration : unresolved_declarations | as_proper_list)
       {
         evaluate(unresolved_declaration);
       }

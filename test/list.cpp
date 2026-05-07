@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 auto main() -> int
@@ -49,6 +50,24 @@ auto main() -> int
     {
       assert(iter->template is<symbol>());
     }
+  }
+
+  {
+    let xs = list(a, b, c);
+
+    for (auto x : xs | as_proper_list)
+    {
+      assert(x.template is<symbol>());
+    }
+  }
+
+  {
+    let xs = list(a, b, c);
+
+    std::ranges::for_each(xs | as_proper_list, [](let const& x)
+    {
+      assert(x.is<symbol>());
+    });
   }
 
   {

@@ -16,6 +16,7 @@
 
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/identity.hpp>
+#include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/syntactic_closure.hpp>
 #include <meevax/kernel/syntactic_environment.hpp>
@@ -34,10 +35,10 @@ namespace meevax::inline kernel
   {
     assert(form.is<symbol>());
 
-    return (outer ? outer->count(form) : 0) + std::count_if(dictionary.begin(), dictionary.end(), [&](let const& entry)
-                                                            {
-                                                              return eq(car(entry), form);
-                                                            });
+    return (outer ? outer->count(form) : 0) + std::ranges::count_if(dictionary | as_proper_list, [&](let const& entry)
+                                                                    {
+                                                                      return eq(car(entry), form);
+                                                                    });
   }
 
   auto syntactic_closure::renamer::unshadow(let const& formals,
@@ -47,10 +48,10 @@ namespace meevax::inline kernel
     {
       assert(form.is_also<identifier>() or form.is<macro>() or form.is<null>());
 
-      if (form.is<symbol>() and std::any_of(bound_variables.begin(), bound_variables.end(), [&](let const& formals)
-                                            {
-                                              return meevax::memq(form, formals); // TODO variadic arguments
-                                            }))
+      if (form.is<symbol>() and std::ranges::any_of(bound_variables | as_proper_list, [&](let const& formals)
+                                                    {
+                                                      return static_cast<bool>(meevax::memq(form, formals)); // TODO variadic arguments
+                                                    }))
       {
         return make_syntactic_closure(form, count(form) + 1);
       }
@@ -170,7 +171,7 @@ namespace meevax::inline kernel
     {
       let xs = environment.as<syntactic_environment>().first;
 
-      for (auto offset = length(bound_variables) - length(xs); 0 < offset; --offset)
+      for (auto offset = length(bound_variables | as_proper_list) - length(xs | as_proper_list); 0 < offset; --offset)
       {
         xs = cons(unit, xs);
       }

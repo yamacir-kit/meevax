@@ -1,5 +1,6 @@
 #include <meevax/kernel/environment.hpp>
 #include <meevax/kernel/procedure.hpp>
+#include <meevax/kernel/proper_list.hpp>
 
 namespace meevax::inline example
 {
@@ -14,12 +15,12 @@ namespace meevax::inline example
 
     std::size_t count = 0;
 
-    for (let const& each : xs)
+    for (let const& each : xs | as_proper_list)
     {
       std::cout << "; [" << count++ << "] is " << each << " (C++ typename " << each.type().name() << ")" << std::endl;
     }
 
-    for (let const& x : xs)
+    for (let const& x : xs | as_proper_list)
     {
       if (x.is<small_integer>())
       {

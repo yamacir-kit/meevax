@@ -20,6 +20,7 @@
 #include <meevax/kernel/include.hpp>
 #include <meevax/kernel/input_file_port.hpp>
 #include <meevax/kernel/library.hpp>
+#include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax::inline kernel
@@ -36,7 +37,7 @@ namespace meevax::inline kernel
       }
       else if (name == "import")
       {
-        for (let const& import_set : cdr(expression))
+        for (let const& import_set : cdr(expression) | as_proper_list)
         {
           import(import_set);
         }
@@ -45,7 +46,7 @@ namespace meevax::inline kernel
       }
       else if (name == "include")
       {
-        for (let const& command_or_definition : include(cdr(expression)))
+        for (let const& command_or_definition : include(cdr(expression)) | as_proper_list)
         {
           evaluate(command_or_definition);
         }
@@ -54,7 +55,7 @@ namespace meevax::inline kernel
       }
       else if (name == "include-ci")
       {
-        for (let const& command_or_definition : include<case_insensitive>(cdr(expression)))
+        for (let const& command_or_definition : include<case_insensitive>(cdr(expression)) | as_proper_list)
         {
           evaluate(command_or_definition);
         }
@@ -193,7 +194,7 @@ namespace meevax::inline kernel
     {
       auto pathname = std::filesystem::path();
 
-      for (let const& each : form)
+      for (let const& each : form | as_proper_list)
       {
         pathname /= lexical_cast(each);
       }
@@ -213,7 +214,7 @@ namespace meevax::inline kernel
 
   auto environment::import(object const& form) -> void
   {
-    for (let const& x : import_set(form))
+    for (let const& x : import_set(form) | as_proper_list)
     {
       assert(x.is<absolute>());
 

@@ -23,6 +23,7 @@
 #include <meevax/kernel/identity.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/procedure.hpp>
+#include <meevax/kernel/proper_list.hpp>
 
 namespace meevax::inline kernel
 {
@@ -92,7 +93,7 @@ namespace meevax::inline kernel
           auto i = car(operand).as<small_integer>();
           auto j = cdr(operand).as<small_integer>();
 
-          assert(i < length(e));
+          assert(i < length(e | as_proper_list));
 
           s = cons(head(head(e, i), j), s);
           c = cddr(c);
@@ -119,7 +120,7 @@ namespace meevax::inline kernel
           auto i = car(operand).as<small_integer>();
           auto j = cdr(operand).as<small_integer>();
 
-          assert(i < length(e));
+          assert(i < length(e | as_proper_list));
 
           s = cons(tail(head(e, i), j), s);
           c = cddr(c);
@@ -404,7 +405,7 @@ namespace meevax::inline kernel
           auto i = car(operand).as<small_integer>();
           auto j = cdr(operand).as<small_integer>();
 
-          assert(i < length(e));
+          assert(i < length(e | as_proper_list));
 
           head(head(e, i), j) = car(s);
 
@@ -428,7 +429,7 @@ namespace meevax::inline kernel
           auto i = car(operand).as<small_integer>();
           auto j = cdr(operand).as<small_integer>();
 
-          assert(i < length(e));
+          assert(i < length(e | as_proper_list));
 
           tail(head(e, i), j) = car(s);
 

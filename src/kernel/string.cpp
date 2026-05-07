@@ -17,6 +17,7 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/input_string_port.hpp>
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/proper_list.hpp>
 #include <meevax/kernel/string.hpp>
 
 namespace meevax::inline kernel
@@ -48,7 +49,7 @@ namespace meevax::inline kernel
   {
     let s = make<string>();
 
-    for (let const& x : xs)
+    for (let const& x : xs | as_proper_list)
     {
       s.as<string>().characters.push_back(x.as<character>());
     }

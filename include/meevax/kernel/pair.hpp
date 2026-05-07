@@ -131,34 +131,40 @@ namespace meevax::inline kernel
       : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
 
+    [[deprecated]]
     auto begin() noexcept
     {
       return iterator(this);
     }
 
+    [[deprecated]]
     auto begin() const noexcept
     {
       return const_iterator(this);
     }
 
+    [[deprecated]]
     auto end() noexcept
     {
       return iterator(nullptr);
     }
 
+    [[deprecated]]
     auto end() const noexcept
     {
       return const_iterator(nullptr);
     }
 
+    [[deprecated]]
     auto cbegin() const -> const_iterator
     {
-      return std::as_const(*this).begin();
+      return const_iterator(this);
     }
 
+    [[deprecated]]
     auto cend() const noexcept
     {
-      return std::as_const(*this).end();
+      return const_iterator(nullptr);
     }
   };
 
