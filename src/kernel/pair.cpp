@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/circular_list.hpp>
 #include <meevax/kernel/list.hpp>
 
 namespace meevax::inline kernel
@@ -65,7 +66,7 @@ namespace meevax::inline kernel
       {
         os << magenta("#", iterator->second, "=(");
 
-        for (auto&& x : datum)
+        for (auto&& x : datum | as_circular_list)
         {
           os << x << " ";
         }

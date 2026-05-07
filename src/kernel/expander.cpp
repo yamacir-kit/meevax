@@ -125,7 +125,7 @@ namespace meevax::inline kernel
       return expander.expand(list(cons(cons(default_rename("lambda"),
                                             formals,
                                             sequence),
-                                       make_list(length(formals | as_proper_list), unit))),
+                                       make_list(length(formals), unit))),
                              bound_variables,
                              rename);
     }

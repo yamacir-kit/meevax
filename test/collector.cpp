@@ -103,7 +103,7 @@ auto main() -> int
 
     let a = f();
 
-    assert(length(a | as_proper_list) == 3);
+    assert(length(a) == 3);
 
     assert(car(a).is<symbol>());
     assert(cadr(a).is<symbol>());
@@ -113,7 +113,7 @@ auto main() -> int
     default_collector::collect();
     assert(default_collector::count() == gc_count + 6);
 
-    assert(length(a | as_proper_list) == 3);
+    assert(length(a) == 3);
 
     assert(car(a).is<symbol>());
     assert(cadr(a).is<symbol>());

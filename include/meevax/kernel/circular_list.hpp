@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_PROPER_LIST_HPP
-#define INCLUDED_MEEVAX_KERNEL_PROPER_LIST_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_CIRCULAR_LIST_HPP
+#define INCLUDED_MEEVAX_KERNEL_CIRCULAR_LIST_HPP
 
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/pair.hpp>
@@ -23,11 +23,11 @@
 namespace meevax::inline kernel
 {
   template <typename Pair>
-  struct proper_list_view : public std::ranges::view_interface<proper_list_view<Pair>>
+  struct circular_list_view : public std::ranges::view_interface<circular_list_view<Pair>>
   {
     Pair * p;
 
-    explicit constexpr proper_list_view(Pair * p)
+    explicit constexpr circular_list_view(Pair * p)
       : p { p }
     {}
 
@@ -52,27 +52,45 @@ namespace meevax::inline kernel
     }
   };
 
-  struct proper_list_adaptor
+  struct circular_list_adaptor
   {
-    auto operator ()(auto&& x) const
+    auto operator ()(pair & p) const
     {
-      assert(is_list(x));
-      return proper_list_view(x.get());
+      assert(is_circular_list(p.second));
+      return circular_list_view(&p);
+    }
+
+    auto operator ()(pair const& p) const
+    {
+      assert(is_circular_list(p.second));
+      return circular_list_view(&p);
+    }
+
+    auto operator ()(object & x) const
+    {
+      assert(is_circular_list(x));
+      return circular_list_view(x.get());
+    }
+
+    auto operator ()(object const& x) const
+    {
+      assert(is_circular_list(x));
+      return circular_list_view(x.get());
     }
   };
 
-  auto inline constexpr as_proper_list = proper_list_adaptor();
+  auto inline constexpr as_circular_list = circular_list_adaptor();
 
-  auto operator |(auto&& x, proper_list_adaptor const&)
+  auto operator |(auto&& x, circular_list_adaptor const&)
   {
-    return as_proper_list(std::forward<decltype(x)>(x));
+    return as_circular_list(std::forward<decltype(x)>(x));
   }
 } // namespace meevax::kernel
 
 namespace std::ranges
 {
   template <typename Pair>
-  inline constexpr bool enable_borrowed_range<meevax::kernel::proper_list_view<Pair>> = true;
+  inline constexpr bool enable_borrowed_range<meevax::kernel::circular_list_view<Pair>> = true;
 }
 
-#endif // INCLUDED_MEEVAX_KERNEL_PROPER_LIST_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_CIRCULAR_LIST_HPP

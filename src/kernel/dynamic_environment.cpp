@@ -93,7 +93,7 @@ namespace meevax::inline kernel
           auto i = car(operand).as<small_integer>();
           auto j = cdr(operand).as<small_integer>();
 
-          assert(i < length(e | as_proper_list));
+          assert(i < length(e));
 
           s = cons(head(head(e, i), j), s);
           c = cddr(c);
@@ -120,7 +120,7 @@ namespace meevax::inline kernel
           auto i = car(operand).as<small_integer>();
           auto j = cdr(operand).as<small_integer>();
 
-          assert(i < length(e | as_proper_list));
+          assert(i < length(e));
 
           s = cons(tail(head(e, i), j), s);
           c = cddr(c);
@@ -405,7 +405,7 @@ namespace meevax::inline kernel
           auto i = car(operand).as<small_integer>();
           auto j = cdr(operand).as<small_integer>();
 
-          assert(i < length(e | as_proper_list));
+          assert(i < length(e));
 
           head(head(e, i), j) = car(s);
 
@@ -429,7 +429,7 @@ namespace meevax::inline kernel
           auto i = car(operand).as<small_integer>();
           auto j = cdr(operand).as<small_integer>();
 
-          assert(i < length(e | as_proper_list));
+          assert(i < length(e));
 
           tail(head(e, i), j) = car(s);
 

@@ -247,7 +247,7 @@ namespace meevax::inline kernel
 
   auto length(object const& x) -> std::ptrdiff_t
   {
-    return std::distance(x.begin(), x.end());
+    return std::ranges::distance(x | as_proper_list);
   }
 
   auto append(object const& x, object const& y) -> object

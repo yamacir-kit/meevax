@@ -14,13 +14,13 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/proper_list.hpp>
+#include <meevax/kernel/circular_list.hpp>
 
 namespace meevax::inline kernel
 {
-  static_assert(std::ranges::range<proper_list_view<pair>>);
-  static_assert(std::ranges::range<proper_list_view<pair const>>);
+  static_assert(std::ranges::range<circular_list_view<pair>>);
+  static_assert(std::ranges::range<circular_list_view<pair const>>);
 
-  static_assert(std::ranges::input_range<proper_list_view<pair>>);
-  static_assert(std::ranges::input_range<proper_list_view<pair const>>);
+  static_assert(std::ranges::input_range<circular_list_view<pair>>);
+  static_assert(std::ranges::input_range<circular_list_view<pair const>>);
 } // namespace meevax::kernel

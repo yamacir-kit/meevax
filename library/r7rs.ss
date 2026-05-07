@@ -319,7 +319,7 @@
                             (current-output-port))))
 
          (define (write-string x . xs)
-           (%put-string (if (< 1 (length x))
+           (%put-string (if (< 1 (length xs))
                             (apply string-copy x (cdr xs))
                             x)
                         (if (pair? xs)

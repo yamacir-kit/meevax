@@ -171,7 +171,7 @@ namespace meevax::inline kernel
     {
       let xs = environment.as<syntactic_environment>().first;
 
-      for (auto offset = length(bound_variables | as_proper_list) - length(xs | as_proper_list); 0 < offset; --offset)
+      for (auto offset = length(bound_variables) - length(xs); 0 < offset; --offset)
       {
         xs = cons(unit, xs);
       }
