@@ -116,6 +116,16 @@ namespace meevax::inline kernel
       {
         return a.current != b.current;
       }
+
+      auto friend constexpr operator ==(forward_iterator const& a, std::default_sentinel_t)
+      {
+        return a.current == nullptr;
+      }
+
+      auto friend constexpr operator ==(std::default_sentinel_t, forward_iterator const& b)
+      {
+        return b.current == nullptr;
+      }
     };
 
     using iterator = forward_iterator<false>;

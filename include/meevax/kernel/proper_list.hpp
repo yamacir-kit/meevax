@@ -43,12 +43,12 @@ namespace meevax::inline kernel
 
     auto end()
     {
-      return std::conditional_t<std::is_const_v<Pair>, pair::const_iterator, pair::iterator>(nullptr);
+      return std::default_sentinel_t();
     }
 
     auto end() const
     {
-      return pair::const_iterator(nullptr);
+      return std::default_sentinel_t();
     }
   };
 

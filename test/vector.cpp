@@ -14,9 +14,9 @@ auto main() -> int
 
   // make-vector
   {
-    let const v = make_vector(list(make<symbol>("a"),
-                                   make<symbol>("b"),
-                                   make<symbol>("c")));
+    let const v = make_vector_from_list(list(make<symbol>("a"),
+                                             make<symbol>("b"),
+                                             make<symbol>("c")));
     default_collector::collect();
 
     assert(v.is<vector>());
@@ -52,9 +52,9 @@ auto main() -> int
 
   // list->vector
   {
-    let const v = make_vector(list(make<symbol>("a"),
-                                   make<symbol>("b"),
-                                   make<symbol>("c")));
+    let const v = make_vector_from_list(list(make<symbol>("a"),
+                                             make<symbol>("b"),
+                                             make<symbol>("c")));
 
     assert(v.is<vector>());
     assert(v.as<vector>().objects.size() == 3);
@@ -91,7 +91,7 @@ auto main() -> int
   {
     auto const gc_count = default_collector::count();
 
-    let const v = make_vector(input_string_port("(a b c)").read());
+    let const v = make_vector_from_list(input_string_port("(a b c)").read());
 
     assert(v.is<vector>());
     assert(v.as<vector>().objects.size() == 3);

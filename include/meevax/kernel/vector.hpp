@@ -36,7 +36,7 @@ namespace meevax::inline kernel
 
   using vector = heterogeneous_vector;
 
-  auto make_vector(object const&) -> object; // list->vector
+  auto make_vector_from_list(object const&) -> object;
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_VECTOR_HPP

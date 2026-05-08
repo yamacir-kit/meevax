@@ -43,8 +43,12 @@ namespace meevax::inline kernel
     return output << magenta(")");
   }
 
-  auto make_vector(object const& xs) -> object
+  auto make_vector_from_list(object const& xs) -> object
   {
-    return make<vector>(std::ranges::begin(xs | as_proper_list), std::ranges::end(xs | as_proper_list));
+    let v = make<vector>();
+
+    std::ranges::copy(xs | as_proper_list, std::back_inserter(v.as<vector>().objects));
+
+    return v;
   }
 } // namespace meevax::kernel
