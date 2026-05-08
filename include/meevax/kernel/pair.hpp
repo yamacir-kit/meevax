@@ -50,84 +50,6 @@ namespace meevax::inline kernel
   struct pair : public default_collector::top
               , public std::pair<object, object>
   {
-    template <auto Const>
-    struct forward_iterator
-    {
-      using iterator_category = std::forward_iterator_tag;
-
-      using value_type = object;
-
-      using reference = std::add_lvalue_reference_t<std::conditional_t<Const, std::add_const_t<value_type>, value_type>>;
-
-      using pointer = std::add_pointer_t<reference>;
-
-      using difference_type = std::ptrdiff_t;
-
-      using size_type = std::size_t;
-
-      using node_type = std::conditional_t<Const, pair const*, pair *>;
-
-      node_type current = nullptr;
-
-      node_type initial = nullptr;
-
-      forward_iterator() = default;
-
-      explicit constexpr forward_iterator(node_type current)
-        : current { current }
-        , initial { current }
-      {}
-
-      constexpr auto operator *() const -> reference
-      {
-        return current->first;
-      }
-
-      constexpr auto operator ->() const -> pointer
-      {
-        return &current->first;
-      }
-
-      auto operator ++() -> decltype(auto)
-      {
-        if (current = current->second.get(); current == initial or (current and current->type() != typeid(pair)))
-        {
-          current = nullptr;
-        }
-
-        return *this;
-      }
-
-      auto operator ++(int) -> decltype(auto)
-      {
-        auto copy = *this;
-        operator ++();
-        return copy;
-      }
-
-      friend constexpr auto operator ==(forward_iterator const& a,
-                                        forward_iterator const& b) noexcept -> bool
-      {
-        return a.current == b.current;
-      }
-
-      friend constexpr auto operator !=(forward_iterator const& a,
-                                        forward_iterator const& b) noexcept -> bool
-      {
-        return a.current != b.current;
-      }
-
-      auto friend constexpr operator ==(forward_iterator const& a, std::default_sentinel_t) { return a.current == nullptr; }
-      auto friend constexpr operator !=(forward_iterator const& a, std::default_sentinel_t) { return a.current != nullptr; }
-
-      auto friend constexpr operator ==(std::default_sentinel_t, forward_iterator const& b) { return b.current == nullptr; }
-      auto friend constexpr operator !=(std::default_sentinel_t, forward_iterator const& b) { return b.current != nullptr; }
-    };
-
-    using iterator = forward_iterator<false>;
-
-    using const_iterator = forward_iterator<true>;
-
     pair() = default;
 
     template <typename T,
@@ -162,11 +84,7 @@ namespace meevax::inline kernel
   template <auto N>
   auto get(auto&& x) -> decltype(auto)
   {
-    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, pair::iterator>)
-    {
-      return std::get<N>(*x.current);
-    }
-    else if constexpr (std::is_same_v<std::decay_t<decltype(x)>, object>)
+    if constexpr (std::is_same_v<std::decay_t<decltype(x)>, object>)
     {
       return std::get<N>(x.template as<pair>());
     }

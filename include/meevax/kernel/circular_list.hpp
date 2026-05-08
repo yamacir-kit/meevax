@@ -17,13 +17,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CIRCULAR_LIST_HPP
 #define INCLUDED_MEEVAX_KERNEL_CIRCULAR_LIST_HPP
 
+#include <meevax/kernel/iterator.hpp>
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/pair.hpp>
 
 namespace meevax::inline kernel
 {
   template <typename Pair>
-  struct circular_list_view : public std::ranges::view_interface<circular_list_view<Pair>>
+  struct circular_list_view // : public std::ranges::view_interface<circular_list_view<Pair>>
   {
     Pair * p;
 
@@ -33,12 +33,12 @@ namespace meevax::inline kernel
 
     auto begin()
     {
-      return std::conditional_t<std::is_const_v<Pair>, pair::const_iterator, pair::iterator>(p);
+      return forward_list_iterator<Pair, circular_list_policy>(p);
     }
 
     auto begin() const
     {
-      return pair::const_iterator(p);
+      return forward_list_iterator<pair const, circular_list_policy>(p);
     }
 
     auto end()
