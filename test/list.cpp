@@ -35,18 +35,22 @@ auto main() -> int
   assert(lexical_cast(make_list(4, c)) == "(c c c c)");
 
   {
-    let x = list(a, b, c);
+    let xs = list(a, b, c);
 
-    for (auto iter = x.begin(); iter != x.end(); ++iter)
+    auto v = xs | as_proper_list;
+
+    for (auto iter = v.begin(); iter != v.end(); ++iter)
     {
       assert((*iter).template is<symbol>());
     }
   }
 
   {
-    let x = list(a, b, c);
+    let const xs = list(a, b, c);
 
-    for (auto iter = x.begin(); iter != x.end(); ++iter)
+    auto v = xs | as_proper_list;
+
+    for (auto iter = v.begin(); iter != v.end(); ++iter)
     {
       assert(iter->template is<symbol>());
     }

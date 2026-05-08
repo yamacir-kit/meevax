@@ -177,7 +177,7 @@ auto main() -> int
 
     module.define(make_symbol("vector"), make<procedure>("vector", [](let const& xs)
     {
-      return make<vector>(xs.begin(), xs.end());
+      return make_vector_from_list(xs);
     }));
 
     module.evaluate(input_string_port("(vector 1 2 3)").read());

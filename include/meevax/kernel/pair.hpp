@@ -117,15 +117,11 @@ namespace meevax::inline kernel
         return a.current != b.current;
       }
 
-      auto friend constexpr operator ==(forward_iterator const& a, std::default_sentinel_t)
-      {
-        return a.current == nullptr;
-      }
+      auto friend constexpr operator ==(forward_iterator const& a, std::default_sentinel_t) { return a.current == nullptr; }
+      auto friend constexpr operator !=(forward_iterator const& a, std::default_sentinel_t) { return a.current != nullptr; }
 
-      auto friend constexpr operator ==(std::default_sentinel_t, forward_iterator const& b)
-      {
-        return b.current == nullptr;
-      }
+      auto friend constexpr operator ==(std::default_sentinel_t, forward_iterator const& b) { return b.current == nullptr; }
+      auto friend constexpr operator !=(std::default_sentinel_t, forward_iterator const& b) { return b.current != nullptr; }
     };
 
     using iterator = forward_iterator<false>;
@@ -140,42 +136,6 @@ namespace meevax::inline kernel
     explicit pair(T&& x, U&& y = nullptr)
       : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
     {}
-
-    [[deprecated]]
-    auto begin() noexcept
-    {
-      return iterator(this);
-    }
-
-    [[deprecated]]
-    auto begin() const noexcept
-    {
-      return const_iterator(this);
-    }
-
-    [[deprecated]]
-    auto end() noexcept
-    {
-      return iterator(nullptr);
-    }
-
-    [[deprecated]]
-    auto end() const noexcept
-    {
-      return const_iterator(nullptr);
-    }
-
-    [[deprecated]]
-    auto cbegin() const -> const_iterator
-    {
-      return const_iterator(this);
-    }
-
-    [[deprecated]]
-    auto cend() const noexcept
-    {
-      return const_iterator(nullptr);
-    }
   };
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;
