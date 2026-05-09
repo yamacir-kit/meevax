@@ -39,37 +39,48 @@ namespace meevax::inline kernel
      - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
      - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
   */
-  template <typename Top, typename... Ts>
+  template <typename... Ts>
   struct collector
   {
-    struct top
-    {
-      virtual ~top() = default;
+    struct mutator;
 
-      virtual auto eqv(Top const* x) const -> bool
+    struct pair : public std::pair<mutator, mutator>
+    {
+      pair() = default;
+
+      template <typename T,
+                typename U = std::nullptr_t,
+                typename = std::enable_if_t<std::is_constructible_v<std::pair<mutator, mutator>, T, U>>>
+      explicit pair(T&& x, U&& y = nullptr)
+        : std::pair<mutator, mutator> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
+      {}
+
+      virtual ~pair() = default;
+
+      virtual auto eqv(pair const* x) const -> bool
       {
-        return static_cast<Top const*>(this) == x and static_cast<Top const&>(*this) == *x;
+        return static_cast<pair const*>(this) == x and static_cast<pair const&>(*this) == *x;
       }
 
       virtual auto extent() const noexcept -> std::pair<void const*, std::size_t>
       {
-        return { static_cast<Top const*>(this), sizeof(Top) };
+        return { static_cast<pair const*>(this), sizeof(pair) };
       }
 
       virtual auto contains(void const* p) const noexcept -> bool
       {
-        auto base = static_cast<Top const*>(this);
-        return base <= p and p < reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + sizeof(Top));
+        auto base = static_cast<pair const*>(this);
+        return base <= p and p < reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + sizeof(pair));
       }
 
       virtual auto type() const noexcept -> std::type_info const&
       {
-        return typeid(Top);
+        return typeid(pair);
       }
 
       virtual auto write(std::ostream & o) const -> std::ostream &
       {
-        return o << static_cast<Top const&>(*this);
+        return o << static_cast<pair const&>(*this);
       }
     };
 
@@ -93,7 +104,7 @@ namespace meevax::inline kernel
     };
 
     template <typename Bound, typename AllocatorTraits>
-    struct binder final : public virtual Top
+    struct binder final : public virtual pair
                         , public Bound
     {
       using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<Bound, AllocatorTraits>>>;
@@ -101,16 +112,16 @@ namespace meevax::inline kernel
       auto static inline a = allocator();
 
       explicit constexpr binder(auto&&... xs)
-        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, decltype(xs)...>, Top, Bound>(std::forward<decltype(xs)>(xs)...)
+        : std::conditional_t<std::is_base_of_v<pair, Bound> and std::is_constructible_v<pair, decltype(xs)...>, pair, Bound>(std::forward<decltype(xs)>(xs)...)
       {}
 
       explicit constexpr binder(with_braces_tag, auto&&... xs)
-        : std::conditional_t<std::is_base_of_v<Top, Bound> and std::is_constructible_v<Top, decltype(xs)...>, Top, Bound> { std::forward<decltype(xs)>(xs)... }
+        : std::conditional_t<std::is_base_of_v<pair, Bound> and std::is_constructible_v<pair, decltype(xs)...>, pair, Bound> { std::forward<decltype(xs)>(xs)... }
       {}
 
       ~binder() override = default;
 
-      auto eqv([[maybe_unused]] Top const* other) const -> bool override
+      auto eqv([[maybe_unused]] pair const* other) const -> bool override
       {
         if constexpr (std::equality_comparable<Bound const&>)
         {
@@ -169,13 +180,13 @@ namespace meevax::inline kernel
     };
 
     template <typename AllocatorTraits>
-    struct binder<Top, AllocatorTraits> final : public Top
+    struct binder<pair, AllocatorTraits> final : public pair
     {
-      using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<Top, AllocatorTraits>>>;
+      using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<pair, AllocatorTraits>>>;
 
       auto static inline a = allocator();
 
-      using Top::Top;
+      using pair::pair;
 
       ~binder() override = default;
 
@@ -190,9 +201,9 @@ namespace meevax::inline kernel
       }
     };
 
-    struct mutator : public nan_boxing_pointer<Top, Ts...>
+    struct mutator : public nan_boxing_pointer<pair, Ts...>
     {
-      using pointer = nan_boxing_pointer<Top, Ts...>;
+      using pointer = nan_boxing_pointer<pair, Ts...>;
 
       mutator(std::nullptr_t = nullptr) noexcept
       {}
@@ -207,10 +218,10 @@ namespace meevax::inline kernel
         }
       }
 
-      mutator(Top * top)
-        : pointer { top }
+      mutator(pair * pair)
+        : pointer { pair }
       {
-        if (top)
+        if (pair)
         {
           assert(not mutators.contains(this));
           mutators.insert(this);
@@ -282,7 +293,7 @@ namespace meevax::inline kernel
       template <typename U>
       auto static as(auto&& m) -> decltype(auto)
       {
-        if constexpr (std::is_same_v<std::decay_t<U>, Top>)
+        if constexpr (std::is_same_v<std::decay_t<U>, pair>)
         {
           return *m;
         }
@@ -371,7 +382,7 @@ namespace meevax::inline kernel
                                                       std::bit_width(0xFFFFu),
                                                       std::bit_width(0xFFFFu)>;
 
-    static inline pointer_set<top> objects {};
+    static inline pointer_set<pair> objects {};
 
     static inline pointer_set<mutator> mutators {};
 
@@ -442,11 +453,11 @@ namespace meevax::inline kernel
 
       size = 0;
 
-      auto reachables = pointer_set<top>();
+      auto reachables = pointer_set<pair>();
 
       for (auto root : roots)
       {
-        auto static stack = std::vector<top const*>();
+        auto static stack = std::vector<pair const*>();
 
         auto mark = [&](auto m)
         {
@@ -500,17 +511,17 @@ namespace meevax::inline kernel
 
          Containing the mutator as a data member means that the address of the
          mutator is contained in the interval of the object's base-address ~
-         base-address + object-size. The top is present to keep track of the
+         base-address + object-size. The pair is present to keep track of the
          base-address and size of the object needed here.
 
-         The memory layout of the base class Top and Bound of the binder is
+         The memory layout of the base class pair and Bound of the binder is
          implementation-defined. That is, there is no guarantee that the
-         pointer value of Top const* is less than the pointer value of Bound
+         pointer value of pair const* is less than the pointer value of Bound
          const*. Therefore, the iterator returned by lower_bound here points to
-         top const*, which may be an iterator to the object itself, which may
+         pair const*, which may be an iterator to the object itself, which may
          contain m, or the next iterator of the object, which may contain m.
       */
-      auto iterator = objects.lower_bound(reinterpret_cast<top const*>(m));
+      auto iterator = objects.lower_bound(reinterpret_cast<pair const*>(m));
 
       return not ((iterator and (*iterator)->contains(m)) or (--iterator and (*iterator)->contains(m)));
     }

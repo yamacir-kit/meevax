@@ -54,7 +54,7 @@ namespace meevax::inline kernel
   {
     using iterator_category = std::forward_iterator_tag;
 
-    using value_type = Pair::first_type;
+    using value_type = typename Pair::first_type;
 
     using reference = std::add_lvalue_reference_t<std::conditional_t<std::is_const_v<Pair>, std::add_const_t<value_type>, value_type>>;
 

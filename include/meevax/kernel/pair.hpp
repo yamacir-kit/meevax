@@ -29,11 +29,9 @@ namespace meevax::inline kernel
   using small_integer = std::int32_t; // Fixed sized integer that can be boxed.
   using widen_integer = std::int64_t; // Fixed sized integer that is temporarily widened to prevent possible overflow.
 
-  struct pair;
+  extern template struct collector<bool, small_integer, float, character, instruction>;
 
-  extern template struct collector<pair, bool, small_integer, float, character, instruction>;
-
-  using default_collector = collector<pair, bool, small_integer, float, character, instruction>;
+  using default_collector = collector<bool, small_integer, float, character, instruction>;
 
   using object = default_collector::mutator;
 
@@ -41,24 +39,13 @@ namespace meevax::inline kernel
 
   let extern unit;
 
+  using pair = default_collector::pair;
+
   template <typename T, typename Allocator = std::conditional_t<std::is_same_v<T, pair>, allocator<void>, std::allocator<void>>>
   auto make(auto&&... xs) -> decltype(auto)
   {
     return default_collector::make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
   }
-
-  struct pair : public default_collector::top
-              , public std::pair<object, object>
-  {
-    pair() = default;
-
-    template <typename T,
-              typename U = std::nullptr_t,
-              typename = std::enable_if_t<std::is_constructible_v<std::pair<object, object>, T, U>>>
-    explicit pair(T&& x, U&& y = nullptr)
-      : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
-    {}
-  };
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;
 

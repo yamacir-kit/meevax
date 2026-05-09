@@ -19,7 +19,7 @@
 
 namespace meevax::inline kernel
 {
-  template struct collector<pair, bool, small_integer, float, character, instruction>;
+  template struct collector<bool, small_integer, float, character, instruction>;
 
   let unit = nullptr;
 
