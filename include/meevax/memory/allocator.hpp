@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_ALLOCATOR_HPP
 #define INCLUDED_MEEVAX_MEMORY_ALLOCATOR_HPP
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
@@ -24,115 +25,117 @@
 
 namespace meevax::inline memory
 {
-/*
-   Simple Segregated Storage Allocator
-*/
-template <typename T, typename Capacity = std::integral_constant<std::size_t, 1024>>
-class allocator
-{
-  union chunk
+  template <typename T, std::size_t N = 1024>
+  struct segregated_storage_allocator
   {
-    chunk * tail;
+    using value_type = T;
 
-    T value;
-  };
+    using propagate_on_container_move_assignment = std::false_type;
 
-  struct block
-  {
-    std::uint8_t data[sizeof(chunk) * Capacity::value] = {};
+    using size_type = std::size_t;
 
-    std::size_t size = Capacity::value;
+    using difference_type = std::ptrdiff_t;
 
-    block * const tail;
+    using is_always_equal = std::false_type;
 
-    explicit constexpr block(block * tail = nullptr)
-      : tail { tail }
-    {}
-
-    ~block()
+    template <typename U>
+    struct rebind
     {
-      delete tail;
-    }
+      using other = segregated_storage_allocator<U, N>;
+    };
 
-    auto pop()
+    union chunk
     {
-      return data + sizeof(chunk) * --size;
-    }
-  };
+      chunk * tail;
 
-  static inline chunk * free_list = nullptr;
+      T value;
 
-  static inline block * free_space = new block();
+      ~chunk()
+      {}
+    };
 
-  static inline std::size_t count = 0;
-
-public:
-  using value_type = T;
-
-  using propagate_on_container_move_assignment = std::false_type;
-
-  using size_type = std::size_t;
-
-  using difference_type = std::ptrdiff_t;
-
-  using is_always_equal = std::false_type;
-
-  template <typename U>
-  struct rebind
-  {
-    using other = allocator<U, Capacity>;
-  };
-
-  explicit allocator()
-  {
-    ++count;
-  }
-
-  allocator(allocator &&)
-  {
-    ++count;
-  }
-
-  allocator(allocator const&)
-  {
-    ++count;
-  }
-
-  ~allocator()
-  {
-    if (not --count)
+    struct block
     {
-      delete free_space;
-    }
-  }
+      chunk data[N] = {};
 
-  auto operator =(allocator &&) -> allocator & = default;
+      size_type size = N;
 
-  auto operator =(allocator const&) -> allocator & = default;
+      block * const tail;
 
-  static auto allocate(size_type = 1)
-  {
-    if (free_list)
-    {
-      return reinterpret_cast<value_type *>(std::exchange(free_list, free_list->tail));
-    }
-    else
-    {
-      if (not free_space->size)
+      explicit constexpr block(block * tail = nullptr)
+        : tail { tail }
+      {}
+
+      ~block()
       {
-        free_space = new block(free_space);
+        delete tail;
       }
 
-      return reinterpret_cast<value_type *>(free_space->pop());
-    }
-  }
+      auto pop()
+      {
+        return &data[--size];
+      }
+    };
 
-  static auto deallocate(value_type * p, size_type = 1) -> void
-  {
-    reinterpret_cast<chunk *>(p)->tail = free_list;
-    free_list = reinterpret_cast<chunk *>(p);
-  }
-};
+    static inline chunk * free_list = nullptr;
+
+    static inline block * free_space = new block();
+
+    static inline size_type count = 0;
+
+    explicit segregated_storage_allocator()
+    {
+      ++count;
+    }
+
+    segregated_storage_allocator(segregated_storage_allocator &&)
+    {
+      ++count;
+    }
+
+    segregated_storage_allocator(segregated_storage_allocator const&)
+    {
+      ++count;
+    }
+
+    ~segregated_storage_allocator()
+    {
+      if (not --count)
+      {
+        delete free_space;
+      }
+    }
+
+    auto operator =(segregated_storage_allocator &&) -> segregated_storage_allocator & = default;
+
+    auto operator =(segregated_storage_allocator const&) -> segregated_storage_allocator & = default;
+
+    auto static allocate([[maybe_unused]] size_type n = 1)
+    {
+      assert(n == 1);
+
+      if (free_list)
+      {
+        return reinterpret_cast<value_type *>(std::exchange(free_list, free_list->tail));
+      }
+      else
+      {
+        if (not free_space->size)
+        {
+          free_space = new block(free_space);
+        }
+
+        return reinterpret_cast<value_type *>(free_space->pop());
+      }
+    }
+
+    auto static deallocate(value_type * p, [[maybe_unused]] size_type n = 1) -> void
+    {
+      assert(n == 1);
+
+      reinterpret_cast<chunk *>(p)->tail = std::exchange(free_list, reinterpret_cast<chunk *>(p));
+    }
+  };
 } // namespace meevax::memory
 
 #endif // INCLUDED_MEEVAX_MEMORY_ALLOCATOR_HPP

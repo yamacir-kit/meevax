@@ -20,7 +20,6 @@
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/collector.hpp>
 #include <meevax/kernel/instruction.hpp>
-#include <meevax/memory/allocator.hpp>
 
 namespace meevax::inline kernel
 {
@@ -41,11 +40,8 @@ namespace meevax::inline kernel
 
   using pair = default_collector::pair;
 
-  template <typename T, typename Allocator = std::conditional_t<std::is_same_v<T, pair>, allocator<void>, std::allocator<void>>>
-  auto make(auto&&... xs) -> decltype(auto)
-  {
-    return default_collector::make<T, Allocator>(std::forward<decltype(xs)>(xs)...);
-  }
+  template <typename T>
+  auto inline constexpr make = default_collector::maker<T>();
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;
 

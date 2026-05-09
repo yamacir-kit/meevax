@@ -9,7 +9,7 @@ auto main() -> int
 
   assert(make<pair>().is<pair>());
 
-  assert((make<pair, std::allocator<void>>().is<pair>()));
+  assert((make<pair>.with<std::allocator<void>>().is<pair>()));
 
   return EXIT_SUCCESS;
 }

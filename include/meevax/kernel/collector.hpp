@@ -19,11 +19,11 @@
 
 #include <concepts>
 #include <memory> // std::allocator
-#include <unordered_map>
 #include <vector>
 
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
+#include <meevax/memory/allocator.hpp>
 #include <meevax/memory/literal.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
 #include <meevax/memory/pointer_set.hpp>
@@ -86,8 +86,8 @@ namespace meevax::inline kernel
 
     auto static inline cleared = false;
 
-    template <typename Allocator>
-    struct stateful : public Allocator
+    template <typename A>
+    struct stateful : public A
     {
       ~stateful()
       {
@@ -103,11 +103,11 @@ namespace meevax::inline kernel
       }
     };
 
-    template <typename Bound, typename AllocatorTraits>
+    template <typename Bound, typename A>
     struct binder final : public virtual pair
                         , public Bound
     {
-      using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<Bound, AllocatorTraits>>>;
+      using allocator = stateful<typename std::allocator_traits<A>::template rebind_alloc<binder>>;
 
       auto static inline a = allocator();
 
@@ -179,10 +179,10 @@ namespace meevax::inline kernel
       }
     };
 
-    template <typename AllocatorTraits>
-    struct binder<pair, AllocatorTraits> final : public pair
+    template <typename A>
+    struct binder<pair, A> final : public pair
     {
-      using allocator = stateful<typename AllocatorTraits::template rebind_alloc<binder<pair, AllocatorTraits>>>;
+      using allocator = stateful<typename std::allocator_traits<A>::template rebind_alloc<binder>>;
 
       auto static inline a = allocator();
 
@@ -402,7 +402,7 @@ namespace meevax::inline kernel
 
     auto operator =(collector const&) -> collector & = delete;
 
-    template <typename T, typename Allocator = std::allocator<void>>
+    template <typename T, typename A>
     auto static make(auto&&... xs) -> mutator
     {
       if constexpr (std::is_class_v<T>)
@@ -412,7 +412,7 @@ namespace meevax::inline kernel
           collect();
         }
 
-        if (auto data = new binder<T, std::allocator_traits<Allocator>>(std::forward<decltype(xs)>(xs)...); data)
+        if (auto data = new binder<T, A>(std::forward<decltype(xs)>(xs)...); data)
         {
           objects.insert(data);
 
@@ -428,6 +428,29 @@ namespace meevax::inline kernel
         return { std::forward<decltype(xs)>(xs)... };
       }
     }
+
+    template <typename T>
+    struct maker
+    {
+      using default_allocator = std::conditional_t<std::is_same_v<T, pair>, segregated_storage_allocator<void>, std::allocator<void>>;
+
+      auto operator ()(auto&&... xs) const -> decltype(auto)
+      {
+        return make<T, default_allocator>(std::forward<decltype(xs)>(xs)...);
+      }
+
+      template <typename A>
+      struct maker_with_custom_allocator
+      {
+        auto operator ()(auto&&... xs) const -> decltype(auto)
+        {
+          return make<T, A>(std::forward<decltype(xs)>(xs)...);
+        }
+      };
+
+      template <typename A>
+      auto static inline constexpr with = maker_with_custom_allocator<A>();
+    };
 
     auto static clear() -> void
     {
