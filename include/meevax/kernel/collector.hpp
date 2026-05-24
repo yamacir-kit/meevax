@@ -158,8 +158,6 @@ namespace meevax::inline kernel
       auto virtual write(std::ostream &) const -> std::ostream &;
     };
 
-    auto static cleared() -> bool &;
-
     template <typename A>
     struct stateful : public A
     {
@@ -284,15 +282,6 @@ namespace meevax::inline kernel
     using pointer_set = memory::pointer_set<T const*, std::bit_width(0x7FFFu),
                                                       std::bit_width(0xFFFFu),
                                                       std::bit_width(0xFFFFu)>;
-
-    static inline pointer_set<pair> objects {};
-
-    static inline pointer_set<mutator> mutators {};
-
-    static inline std::size_t size = 0;
-
-    static inline std::size_t threshold = 16_MiB;
-
     collector() = delete;
 
     collector(collector &&) = delete;
@@ -310,14 +299,14 @@ namespace meevax::inline kernel
     {
       if constexpr (std::is_class_v<T>)
       {
-        if (size += sizeof(T); threshold < size)
+        if (size() += sizeof(T); threshold() < size())
         {
           collect();
         }
 
         if (auto data = new binder<T, A>(std::forward<decltype(xs)>(xs)...); data)
         {
-          objects.insert(data);
+          objects().insert(data);
 
           return data;
         }
@@ -355,102 +344,23 @@ namespace meevax::inline kernel
       auto static inline constexpr with = maker_with_custom_allocator<A>();
     };
 
-    auto static clear() -> void
-    {
-      for (auto const& object : objects)
-      {
-        delete object;
-        assert(objects.contains(object));
-        objects.erase(object);
-      }
-    }
+    auto static clear() -> void;
 
-    auto static collect() -> void
-    {
-      auto roots = pointer_set<mutator>();
+    auto static cleared() -> bool &;
 
-      for (auto m : mutators)
-      {
-        if (is_root(m))
-        {
-          roots.insert(m);
-        }
-      }
+    auto static collect() -> void;
 
-      size = 0;
+    auto static count() -> std::size_t;
 
-      auto reachables = pointer_set<pair>();
+    auto static is_root(mutator const*) noexcept -> bool;
 
-      for (auto root : roots)
-      {
-        auto static stack = std::vector<pair const*>();
+    auto static mutators() -> pointer_set<mutator> &; // TODO REMOVE THIS!!!
 
-        auto mark = [&](auto m)
-        {
-          assert(m);
-          assert(m->unsafe_get());
+    auto static objects() -> pointer_set<pair> &; // TODO REMOVE THIS!!!
 
-          if (auto p = m->unsafe_get(); not reachables.contains(p))
-          {
-            reachables.insert(p);
-            objects.erase(p);
-            stack.push_back(p);
-          }
-        };
+    auto static size() -> std::size_t &;
 
-        mark(root);
-
-        while (not stack.empty())
-        {
-          auto [base, size_] = stack.back()->extent();
-
-          stack.pop_back();
-
-          size += size_;
-
-          std::for_each(mutators.lower_bound(reinterpret_cast<mutator const*>(base)),
-                        mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
-                        mark);
-        }
-      }
-
-      for (auto object : objects)
-      {
-        delete object;
-      }
-
-      objects.swap(reachables);
-
-      threshold = std::max(threshold, size + (size / 2));
-    }
-
-    auto static count() noexcept -> std::size_t
-    {
-      return objects.size();
-    }
-
-    auto static is_root(mutator const* m) noexcept -> bool
-    {
-      /*
-         If the given mutator is a non-root object, then an object containing
-         this mutator as a data member exists somewhere in memory.
-
-         Containing the mutator as a data member means that the address of the
-         mutator is contained in the interval of the object's base-address ~
-         base-address + object-size. The pair is present to keep track of the
-         base-address and size of the object needed here.
-
-         The memory layout of the base class pair and Bound of the binder is
-         implementation-defined. That is, there is no guarantee that the
-         pointer value of pair const* is less than the pointer value of Bound
-         const*. Therefore, the iterator returned by lower_bound here points to
-         pair const*, which may be an iterator to the object itself, which may
-         contain m, or the next iterator of the object, which may contain m.
-      */
-      auto iterator = objects.lower_bound(reinterpret_cast<pair const*>(m));
-
-      return not ((iterator and (*iterator)->contains(m)) or (--iterator and (*iterator)->contains(m)));
-    }
+    auto static threshold() -> std::size_t &;
   };
 } // namespace meevax::kernel
 

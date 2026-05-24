@@ -18,9 +18,130 @@
 
 namespace meevax::inline kernel
 {
+  auto collector::clear() -> void
+  {
+    for (auto const& object : objects())
+    {
+      delete object;
+      assert(objects().contains(object));
+      objects().erase(object);
+    }
+  }
+
   auto collector::cleared() -> bool &
   {
     auto static cleared = false;
     return cleared;
+  }
+
+  auto collector::collect() -> void
+  {
+    auto roots = pointer_set<mutator>();
+
+    for (auto m : mutators())
+    {
+      if (is_root(m))
+      {
+        roots.insert(m);
+      }
+    }
+
+    size() = 0;
+
+    auto reachables = pointer_set<pair>();
+
+    for (auto root : roots)
+    {
+      auto static stack = std::vector<pair const*>();
+
+      auto mark = [&](auto m)
+      {
+        assert(m);
+        assert(m->unsafe_get());
+
+        if (auto p = m->unsafe_get(); not reachables.contains(p))
+        {
+          reachables.insert(p);
+          objects().erase(p);
+          stack.push_back(p);
+        }
+      };
+
+      mark(root);
+
+      while (not stack.empty())
+      {
+        auto [base, size_] = stack.back()->extent();
+
+        stack.pop_back();
+
+        size() += size_;
+
+        std::for_each(mutators().lower_bound(reinterpret_cast<mutator const*>(base)),
+                      mutators().lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
+                      mark);
+      }
+    }
+
+    for (auto object : objects())
+    {
+      delete object;
+    }
+
+    objects().swap(reachables);
+
+    threshold() = std::max(threshold(), size() + (size() / 2));
+  }
+
+  auto collector::count() -> std::size_t
+  {
+    return objects().size();
+  }
+
+  auto collector::is_root(mutator const* m) noexcept -> bool
+  {
+    /*
+       If the given mutator is a non-root object, then an object containing
+       this mutator as a data member exists somewhere in memory.
+
+       Containing the mutator as a data member means that the address of the
+       mutator is contained in the interval of the object's base-address ~
+       base-address + object-size. The pair is present to keep track of the
+       base-address and size of the object needed here.
+
+       The memory layout of the base class pair and Bound of the binder is
+       implementation-defined. That is, there is no guarantee that the
+       pointer value of pair const* is less than the pointer value of Bound
+       const*. Therefore, the iterator returned by lower_bound here points to
+       pair const*, which may be an iterator to the object itself, which may
+       contain m, or the next iterator of the object, which may contain m.
+    */
+    auto iterator = objects().lower_bound(reinterpret_cast<pair const*>(m));
+
+    return not ((iterator and (*iterator)->contains(m)) or (--iterator and (*iterator)->contains(m)));
+  }
+
+  auto collector::mutators() -> pointer_set<mutator> &
+  {
+    auto static mutators = collector::pointer_set<collector::mutator>();
+    return mutators;
+  }
+
+  auto collector::objects() -> pointer_set<pair> &
+  {
+    auto static objects = pointer_set<pair>();
+    return objects;
+  }
+
+  auto collector::size() -> std::size_t &
+  {
+    auto static size = std::size_t(0_MiB);
+    return size;
+  }
+
+  auto collector::threshold() -> std::size_t &
+  {
+    auto static threshold = std::size_t(16_MiB);
+    return threshold;
   }
 } // namespace meevax::kernel

@@ -27,8 +27,8 @@ namespace meevax::inline kernel
   {
     if (*this)
     {
-      assert(not mutators.contains(this));
-      mutators.insert(this);
+      assert(not mutators().contains(this));
+      mutators().insert(this);
     }
   }
 
@@ -37,8 +37,8 @@ namespace meevax::inline kernel
   {
     if (pair)
     {
-      assert(not mutators.contains(this));
-      mutators.insert(this);
+      assert(not mutators().contains(this));
+      mutators().insert(this);
     }
   }
 
@@ -46,8 +46,8 @@ namespace meevax::inline kernel
   {
     if (nan_boxing_pointer::operator bool() and not cleared())
     {
-      assert(mutators.contains(this));
-      mutators.erase(this);
+      assert(mutators().contains(this));
+      mutators().erase(this);
     }
   }
 
@@ -85,14 +85,14 @@ namespace meevax::inline kernel
     {
       if (not after)
       {
-        assert(mutators.contains(this));
-        mutators.erase(this);
+        assert(mutators().contains(this));
+        mutators().erase(this);
       }
     }
     else if (after)
     {
-      assert(not mutators.contains(this));
-      mutators.insert(this);
+      assert(not mutators().contains(this));
+      mutators().insert(this);
     }
   }
 
@@ -104,8 +104,8 @@ namespace meevax::inline kernel
 
     if (before)
     {
-      assert(mutators.contains(this));
-      mutators.erase(this);
+      assert(mutators().contains(this));
+      mutators().erase(this);
     }
   }
 
