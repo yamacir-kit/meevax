@@ -18,6 +18,120 @@
 
 namespace meevax::inline kernel
 {
+  collector::mutator::mutator(std::nullptr_t) noexcept
+  {}
+
+  collector::mutator::mutator(mutator const& other)
+    : nan_boxing_pointer { other }
+  {
+    if (*this)
+    {
+      assert(not mutators().contains(this));
+      mutators().insert(this);
+    }
+  }
+
+  collector::mutator::mutator(pair * pair)
+    : nan_boxing_pointer { pair }
+  {
+    if (pair)
+    {
+      assert(not mutators().contains(this));
+      mutators().insert(this);
+    }
+  }
+
+  collector::mutator::~mutator()
+  {
+    if (nan_boxing_pointer::operator bool() and not cleared())
+    {
+      assert(mutators().contains(this));
+      mutators().erase(this);
+    }
+  }
+
+  auto collector::mutator::operator =(mutator const& other) -> mutator &
+  {
+    reset(other);
+    return *this;
+  }
+
+  auto collector::mutator::operator =(std::nullptr_t) -> mutator &
+  {
+    reset();
+    return *this;
+  }
+
+  auto collector::mutator::eqv(mutator const& rhs) const -> bool
+  {
+    if (nan_boxing_pointer::dereferenceable())
+    {
+      return *this ? nan_boxing_pointer::unsafe_get()->eqv(rhs.get()) : rhs.is<std::nullptr_t>();
+    }
+    else
+    {
+      return nan_boxing_pointer::compare(rhs);
+    }
+  }
+
+  auto collector::mutator::reset(mutator const& after) -> void
+  {
+    auto const before = nan_boxing_pointer::operator bool();
+
+    nan_boxing_pointer::reset(after);
+
+    if (before)
+    {
+      if (not after)
+      {
+        assert(mutators().contains(this));
+        mutators().erase(this);
+      }
+    }
+    else if (after)
+    {
+      assert(not mutators().contains(this));
+      mutators().insert(this);
+    }
+  }
+
+  auto collector::mutator::reset(std::nullptr_t) -> void
+  {
+    auto const before = nan_boxing_pointer::operator bool();
+
+    nan_boxing_pointer::reset();
+
+    if (before)
+    {
+      assert(mutators().contains(this));
+      mutators().erase(this);
+    }
+  }
+
+  auto collector::mutator::type() const -> std::type_info const&
+  {
+    if (nan_boxing_pointer::dereferenceable())
+    {
+      return *this ? nan_boxing_pointer::unsafe_get()->type() : typeid(std::nullptr_t);
+    }
+    else
+    {
+      return nan_boxing_pointer::type();
+    }
+  }
+
+  auto collector::mutator::write(std::ostream & os) const -> std::ostream &
+  {
+    if (nan_boxing_pointer::dereferenceable())
+    {
+      return *this ? nan_boxing_pointer::unsafe_get()->write(os) : os << magenta("()");
+    }
+    else
+    {
+      return nan_boxing_pointer::write(os);
+    }
+  }
+
   auto collector::clear() -> void
   {
     for (auto const& object : objects())
