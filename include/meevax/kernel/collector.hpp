@@ -49,7 +49,6 @@ namespace meevax::inline kernel
      - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
      - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
   */
-  template <typename...>
   struct collector
   {
     struct pair;
@@ -135,7 +134,9 @@ namespace meevax::inline kernel
 
     struct pair : public std::pair<mutator, mutator>
     {
-      pair() = default;
+      pair()
+        : std::pair<mutator, mutator> { nullptr, nullptr }
+      {}
 
       template <typename T,
                 typename U = std::nullptr_t,
@@ -184,11 +185,11 @@ namespace meevax::inline kernel
 
       auto static inline a = allocator();
 
-      explicit constexpr binder(auto&&... xs)
+      explicit binder(auto&&... xs)
         : std::conditional_t<std::is_base_of_v<pair, Bound> and std::is_constructible_v<pair, decltype(xs)...>, pair, Bound>(std::forward<decltype(xs)>(xs)...)
       {}
 
-      explicit constexpr binder(with_braces_tag, auto&&... xs)
+      explicit binder(with_braces_tag, auto&&... xs)
         : std::conditional_t<std::is_base_of_v<pair, Bound> and std::is_constructible_v<pair, decltype(xs)...>, pair, Bound> { std::forward<decltype(xs)>(xs)... }
       {}
 
@@ -428,7 +429,7 @@ namespace meevax::inline kernel
       return objects.size();
     }
 
-    auto static is_root(mutator const* m) noexcept
+    auto static is_root(mutator const* m) noexcept -> bool
     {
       /*
          If the given mutator is a non-root object, then an object containing

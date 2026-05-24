@@ -19,12 +19,10 @@
 
 namespace meevax::inline kernel
 {
-  template <typename... Ts>
-  collector<Ts...>::mutator::mutator(std::nullptr_t) noexcept
+  collector::mutator::mutator(std::nullptr_t) noexcept
   {}
 
-  template <typename... Ts>
-  collector<Ts...>::mutator::mutator(mutator const& other)
+  collector::mutator::mutator(mutator const& other)
     : nan_boxing_pointer { other }
   {
     if (*this)
@@ -34,8 +32,7 @@ namespace meevax::inline kernel
     }
   }
 
-  template <typename... Ts>
-  collector<Ts...>::mutator::mutator(pair * pair)
+  collector::mutator::mutator(pair * pair)
     : nan_boxing_pointer { pair }
   {
     if (pair)
@@ -45,8 +42,7 @@ namespace meevax::inline kernel
     }
   }
 
-  template <typename... Ts>
-  collector<Ts...>::mutator::~mutator()
+  collector::mutator::~mutator()
   {
     if (nan_boxing_pointer::operator bool() and not cleared)
     {
@@ -55,22 +51,19 @@ namespace meevax::inline kernel
     }
   }
 
-  template <typename... Ts>
-  auto collector<Ts...>::mutator::operator =(mutator const& other) -> mutator &
+  auto collector::mutator::operator =(mutator const& other) -> mutator &
   {
     reset(other);
     return *this;
   }
 
-  template <typename... Ts>
-  auto collector<Ts...>::mutator::operator =(std::nullptr_t) -> mutator &
+  auto collector::mutator::operator =(std::nullptr_t) -> mutator &
   {
     reset();
     return *this;
   }
 
-  template <typename... Ts>
-  auto collector<Ts...>::mutator::eqv(mutator const& rhs) const -> bool
+  auto collector::mutator::eqv(mutator const& rhs) const -> bool
   {
     if (nan_boxing_pointer::dereferenceable())
     {
@@ -82,8 +75,7 @@ namespace meevax::inline kernel
     }
   }
 
-  template <typename... Ts>
-  auto collector<Ts...>::mutator::reset(mutator const& after) -> void
+  auto collector::mutator::reset(mutator const& after) -> void
   {
     auto const before = nan_boxing_pointer::operator bool();
 
@@ -104,8 +96,7 @@ namespace meevax::inline kernel
     }
   }
 
-  template <typename... Ts>
-  auto collector<Ts...>::mutator::reset(std::nullptr_t) -> void
+  auto collector::mutator::reset(std::nullptr_t) -> void
   {
     auto const before = nan_boxing_pointer::operator bool();
 
@@ -118,8 +109,7 @@ namespace meevax::inline kernel
     }
   }
 
-  template <typename... Ts>
-  auto collector<Ts...>::mutator::type() const -> std::type_info const&
+  auto collector::mutator::type() const -> std::type_info const&
   {
     if (nan_boxing_pointer::dereferenceable())
     {
@@ -131,8 +121,7 @@ namespace meevax::inline kernel
     }
   }
 
-  template <typename... Ts>
-  auto collector<Ts...>::mutator::write(std::ostream & os) const -> std::ostream &
+  auto collector::mutator::write(std::ostream & os) const -> std::ostream &
   {
     if (nan_boxing_pointer::dereferenceable())
     {
@@ -144,38 +133,31 @@ namespace meevax::inline kernel
     }
   }
 
-  template <typename... Ts>
-  auto collector<Ts...>::pair::eqv(pair const* x) const -> bool
+  auto collector::pair::eqv(pair const* x) const -> bool
   {
     return static_cast<pair const*>(this) == x and static_cast<pair const&>(*this) == *x;
   }
 
-  template <typename... Ts>
-  auto collector<Ts...>::pair::extent() const noexcept -> std::pair<void const*, std::size_t>
+  auto collector::pair::extent() const noexcept -> std::pair<void const*, std::size_t>
   {
     return { static_cast<pair const*>(this), sizeof(pair) };
   }
 
-  template <typename... Ts>
-  auto collector<Ts...>::pair::contains(void const* p) const noexcept -> bool
+  auto collector::pair::contains(void const* p) const noexcept -> bool
   {
     auto base = static_cast<pair const*>(this);
     return base <= p and p < reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + sizeof(pair));
   }
 
-  template <typename... Ts>
-  auto collector<Ts...>::pair::type() const noexcept -> std::type_info const&
+  auto collector::pair::type() const noexcept -> std::type_info const&
   {
     return typeid(pair);
   }
 
-  template <typename... Ts>
-  auto collector<Ts...>::pair::write(std::ostream & o) const -> std::ostream &
+  auto collector::pair::write(std::ostream & o) const -> std::ostream &
   {
     return o << static_cast<pair const&>(*this);
   }
-
-  template struct collector<void>;
 
   let unit = nullptr;
 

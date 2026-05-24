@@ -21,9 +21,7 @@
 
 namespace meevax::inline kernel
 {
-  extern template struct collector<void>;
-
-  using default_collector = collector<void>;
+  using default_collector = collector;
 
   using object = default_collector::mutator;
 
