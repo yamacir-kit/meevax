@@ -286,8 +286,8 @@ namespace meevax::inline kernel
 
     auto threshold() -> std::size_t &;
 
-    template <typename T, typename A>
-    auto static make_(auto&&... xs) -> mutator
+    template <typename T, typename A = std::conditional_t<std::is_same_v<T, pair>, segregated_storage_allocator<void>, std::allocator<void>>>
+    auto make(auto&&... xs) -> mutator
     {
       if constexpr (std::is_class_v<T>)
       {
@@ -312,29 +312,6 @@ namespace meevax::inline kernel
         return { std::forward<decltype(xs)>(xs)... };
       }
     }
-
-    template <typename T>
-    struct maker
-    {
-      using default_allocator = std::conditional_t<std::is_same_v<T, pair>, segregated_storage_allocator<void>, std::allocator<void>>;
-
-      auto operator ()(auto&&... xs) const -> decltype(auto)
-      {
-        return make_<T, default_allocator>(std::forward<decltype(xs)>(xs)...);
-      }
-
-      template <typename A>
-      struct maker_with_custom_allocator
-      {
-        auto operator ()(auto&&... xs) const -> decltype(auto)
-        {
-          return make_<T, A>(std::forward<decltype(xs)>(xs)...);
-        }
-      };
-
-      template <typename A>
-      auto static inline constexpr with = maker_with_custom_allocator<A>();
-    };
 
     auto count() -> std::size_t;
 

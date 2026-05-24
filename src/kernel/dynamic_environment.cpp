@@ -143,7 +143,7 @@ namespace meevax::inline kernel
         *  where <closure> = (c' . e)
         *
         * ------------------------------------------------------------------- */
-        s = cons(make<closure>.with<segregated_storage_allocator<void>>(cadr(c), e), s);
+        s = cons(make<closure, segregated_storage_allocator<void>>(cadr(c), e), s);
         c = cddr(c);
         goto fetch;
 
@@ -154,7 +154,7 @@ namespace meevax::inline kernel
         *  where <continuation> = (s e c' . d)
         *
         * ------------------------------------------------------------------- */
-        s = cons(list(make<continuation>.with<segregated_storage_allocator<void>>(s, cons(e, cons(cadr(c), d)))), s);
+        s = cons(list(make<continuation, segregated_storage_allocator<void>>(s, cons(e, cons(cadr(c), d)))), s);
         c = cddr(c);
         goto fetch;
 

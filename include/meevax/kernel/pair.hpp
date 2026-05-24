@@ -27,9 +27,6 @@ namespace meevax::inline kernel
 
   let extern unit;
 
-  template <typename T>
-  auto inline constexpr make = maker<T>();
-
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;
 
   template <typename T,
