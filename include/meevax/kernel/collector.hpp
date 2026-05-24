@@ -67,31 +67,15 @@ namespace meevax::inline kernel
 
       virtual ~pair() = default;
 
-      virtual auto eqv(pair const* x) const -> bool
-      {
-        return static_cast<pair const*>(this) == x and static_cast<pair const&>(*this) == *x;
-      }
+      auto virtual eqv(pair const*) const -> bool;
 
-      virtual auto extent() const noexcept -> std::pair<void const*, std::size_t>
-      {
-        return { static_cast<pair const*>(this), sizeof(pair) };
-      }
+      auto virtual extent() const noexcept -> std::pair<void const*, std::size_t>;
 
-      virtual auto contains(void const* p) const noexcept -> bool
-      {
-        auto base = static_cast<pair const*>(this);
-        return base <= p and p < reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + sizeof(pair));
-      }
+      auto virtual contains(void const*) const noexcept -> bool;
 
-      virtual auto type() const noexcept -> std::type_info const&
-      {
-        return typeid(pair);
-      }
+      auto virtual type() const noexcept -> std::type_info const&;
 
-      virtual auto write(std::ostream & o) const -> std::ostream &
-      {
-        return o << static_cast<pair const&>(*this);
-      }
+      auto virtual write(std::ostream &) const -> std::ostream &;
     };
 
     auto static inline cleared = false;

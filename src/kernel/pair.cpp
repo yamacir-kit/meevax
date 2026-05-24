@@ -19,6 +19,37 @@
 
 namespace meevax::inline kernel
 {
+  template <typename... Ts>
+  auto collector<Ts...>::pair::eqv(pair const* x) const -> bool
+  {
+    return static_cast<pair const*>(this) == x and static_cast<pair const&>(*this) == *x;
+  }
+
+  template <typename... Ts>
+  auto collector<Ts...>::pair::extent() const noexcept -> std::pair<void const*, std::size_t>
+  {
+    return { static_cast<pair const*>(this), sizeof(pair) };
+  }
+
+  template <typename... Ts>
+  auto collector<Ts...>::pair::contains(void const* p) const noexcept -> bool
+  {
+    auto base = static_cast<pair const*>(this);
+    return base <= p and p < reinterpret_cast<void const*>(reinterpret_cast<std::uintptr_t>(base) + sizeof(pair));
+  }
+
+  template <typename... Ts>
+  auto collector<Ts...>::pair::type() const noexcept -> std::type_info const&
+  {
+    return typeid(pair);
+  }
+
+  template <typename... Ts>
+  auto collector<Ts...>::pair::write(std::ostream & o) const -> std::ostream &
+  {
+    return o << static_cast<pair const&>(*this);
+  }
+
   template struct collector<void>;
 
   let unit = nullptr;
