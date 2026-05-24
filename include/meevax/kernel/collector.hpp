@@ -158,7 +158,7 @@ namespace meevax::inline kernel
       auto virtual write(std::ostream &) const -> std::ostream &;
     };
 
-    auto static inline cleared = false;
+    auto static cleared() -> bool &;
 
     template <typename A>
     struct stateful : public A
@@ -170,7 +170,7 @@ namespace meevax::inline kernel
            when the destructor of the collector executes clear, the collector
            may touch the freed memory of the stateful allocator.
         */
-        if (not std::exchange(cleared, true))
+        if (not std::exchange(cleared(), true))
         {
           clear();
         }

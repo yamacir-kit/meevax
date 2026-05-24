@@ -44,7 +44,7 @@ namespace meevax::inline kernel
 
   collector::mutator::~mutator()
   {
-    if (nan_boxing_pointer::operator bool() and not cleared)
+    if (nan_boxing_pointer::operator bool() and not cleared())
     {
       assert(mutators.contains(this));
       mutators.erase(this);
