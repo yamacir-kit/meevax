@@ -211,15 +211,15 @@ namespace meevax::inline kernel
       }
     };
 
-    using pointer = nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>;
+    using nan_boxing_pointer = memory::nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>;
 
-    struct mutator : public pointer
+    struct mutator : public nan_boxing_pointer
     {
       mutator(std::nullptr_t = nullptr) noexcept
       {}
 
       mutator(mutator const& other)
-        : pointer { other }
+        : nan_boxing_pointer { other }
       {
         if (*this)
         {
@@ -229,7 +229,7 @@ namespace meevax::inline kernel
       }
 
       mutator(pair * pair)
-        : pointer { pair }
+        : nan_boxing_pointer { pair }
       {
         if (pair)
         {
@@ -240,14 +240,14 @@ namespace meevax::inline kernel
 
       template <any_of<bool, small_integer, float, double, character, instruction> T>
       mutator(T const& datum)
-        : pointer { datum }
+        : nan_boxing_pointer { datum }
       {
-        assert(pointer::get() == nullptr);
+        assert(nan_boxing_pointer::get() == nullptr);
       }
 
       ~mutator()
       {
-        if (pointer::operator bool() and not cleared)
+        if (nan_boxing_pointer::operator bool() and not cleared)
         {
           assert(mutators.contains(this));
           mutators.erase(this);
@@ -268,9 +268,9 @@ namespace meevax::inline kernel
 
       auto reset(mutator const& after) -> void
       {
-        auto const before = pointer::operator bool();
+        auto const before = nan_boxing_pointer::operator bool();
 
-        pointer::reset(after);
+        nan_boxing_pointer::reset(after);
 
         if (before)
         {
@@ -289,9 +289,9 @@ namespace meevax::inline kernel
 
       auto reset(std::nullptr_t = nullptr) -> void
       {
-        auto const before = pointer::operator bool();
+        auto const before = nan_boxing_pointer::operator bool();
 
-        pointer::reset();
+        nan_boxing_pointer::reset();
 
         if (before)
         {
@@ -320,7 +320,7 @@ namespace meevax::inline kernel
         }
         else
         {
-          return m.pointer::template as<U>();
+          return m.nan_boxing_pointer::template as<U>();
         }
       }
 
@@ -330,13 +330,13 @@ namespace meevax::inline kernel
 
       auto eqv(mutator const& rhs) const -> bool
       {
-        if (pointer::dereferenceable())
+        if (nan_boxing_pointer::dereferenceable())
         {
-          return *this ? pointer::unsafe_get()->eqv(rhs.get()) : rhs.is<std::nullptr_t>();
+          return *this ? nan_boxing_pointer::unsafe_get()->eqv(rhs.get()) : rhs.is<std::nullptr_t>();
         }
         else
         {
-          return pointer::compare(rhs);
+          return nan_boxing_pointer::compare(rhs);
         }
       }
 
@@ -349,30 +349,30 @@ namespace meevax::inline kernel
       template <typename U, typename = std::enable_if_t<std::is_class_v<U>>>
       auto is_also() const
       {
-        return dynamic_cast<std::add_pointer_t<U>>(pointer::get()) != nullptr;
+        return dynamic_cast<std::add_pointer_t<U>>(nan_boxing_pointer::get()) != nullptr;
       }
 
       auto type() const -> std::type_info const&
       {
-        if (pointer::dereferenceable())
+        if (nan_boxing_pointer::dereferenceable())
         {
-          return *this ? pointer::unsafe_get()->type() : typeid(std::nullptr_t);
+          return *this ? nan_boxing_pointer::unsafe_get()->type() : typeid(std::nullptr_t);
         }
         else
         {
-          return pointer::type();
+          return nan_boxing_pointer::type();
         }
       }
 
       auto write(std::ostream & os) const -> std::ostream &
       {
-        if (pointer::dereferenceable())
+        if (nan_boxing_pointer::dereferenceable())
         {
-          return *this ? pointer::unsafe_get()->write(os) : os << magenta("()");
+          return *this ? nan_boxing_pointer::unsafe_get()->write(os) : os << magenta("()");
         }
         else
         {
-          return pointer::write(os);
+          return nan_boxing_pointer::write(os);
         }
       }
 
