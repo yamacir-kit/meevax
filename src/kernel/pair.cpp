@@ -20,6 +20,131 @@
 namespace meevax::inline kernel
 {
   template <typename... Ts>
+  collector<Ts...>::mutator::mutator(std::nullptr_t) noexcept
+  {}
+
+  template <typename... Ts>
+  collector<Ts...>::mutator::mutator(mutator const& other)
+    : nan_boxing_pointer { other }
+  {
+    if (*this)
+    {
+      assert(not mutators.contains(this));
+      mutators.insert(this);
+    }
+  }
+
+  template <typename... Ts>
+  collector<Ts...>::mutator::mutator(pair * pair)
+    : nan_boxing_pointer { pair }
+  {
+    if (pair)
+    {
+      assert(not mutators.contains(this));
+      mutators.insert(this);
+    }
+  }
+
+  template <typename... Ts>
+  collector<Ts...>::mutator::~mutator()
+  {
+    if (nan_boxing_pointer::operator bool() and not cleared)
+    {
+      assert(mutators.contains(this));
+      mutators.erase(this);
+    }
+  }
+
+  template <typename... Ts>
+  auto collector<Ts...>::mutator::operator =(mutator const& other) -> mutator &
+  {
+    reset(other);
+    return *this;
+  }
+
+  template <typename... Ts>
+  auto collector<Ts...>::mutator::operator =(std::nullptr_t) -> mutator &
+  {
+    reset();
+    return *this;
+  }
+
+  template <typename... Ts>
+  auto collector<Ts...>::mutator::eqv(mutator const& rhs) const -> bool
+  {
+    if (nan_boxing_pointer::dereferenceable())
+    {
+      return *this ? nan_boxing_pointer::unsafe_get()->eqv(rhs.get()) : rhs.is<std::nullptr_t>();
+    }
+    else
+    {
+      return nan_boxing_pointer::compare(rhs);
+    }
+  }
+
+  template <typename... Ts>
+  auto collector<Ts...>::mutator::reset(mutator const& after) -> void
+  {
+    auto const before = nan_boxing_pointer::operator bool();
+
+    nan_boxing_pointer::reset(after);
+
+    if (before)
+    {
+      if (not after)
+      {
+        assert(mutators.contains(this));
+        mutators.erase(this);
+      }
+    }
+    else if (after)
+    {
+      assert(not mutators.contains(this));
+      mutators.insert(this);
+    }
+  }
+
+  template <typename... Ts>
+  auto collector<Ts...>::mutator::reset(std::nullptr_t) -> void
+  {
+    auto const before = nan_boxing_pointer::operator bool();
+
+    nan_boxing_pointer::reset();
+
+    if (before)
+    {
+      assert(mutators.contains(this));
+      mutators.erase(this);
+    }
+  }
+
+  template <typename... Ts>
+  auto collector<Ts...>::mutator::type() const -> std::type_info const&
+  {
+    if (nan_boxing_pointer::dereferenceable())
+    {
+      return *this ? nan_boxing_pointer::unsafe_get()->type() : typeid(std::nullptr_t);
+    }
+    else
+    {
+      return nan_boxing_pointer::type();
+    }
+  }
+
+  template <typename... Ts>
+  auto collector<Ts...>::mutator::write(std::ostream & os) const -> std::ostream &
+  {
+    if (nan_boxing_pointer::dereferenceable())
+    {
+      return *this ? nan_boxing_pointer::unsafe_get()->write(os) : os << magenta("()");
+    }
+    else
+    {
+      return nan_boxing_pointer::write(os);
+    }
+  }
+
+  template <typename... Ts>
   auto collector<Ts...>::pair::eqv(pair const* x) const -> bool
   {
     return static_cast<pair const*>(this) == x and static_cast<pair const&>(*this) == *x;

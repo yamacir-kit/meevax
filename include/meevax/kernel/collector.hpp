@@ -199,28 +199,11 @@ namespace meevax::inline kernel
 
     struct mutator : public nan_boxing_pointer
     {
-      mutator(std::nullptr_t = nullptr) noexcept
-      {}
+      mutator(std::nullptr_t = nullptr) noexcept;
 
-      mutator(mutator const& other)
-        : nan_boxing_pointer { other }
-      {
-        if (*this)
-        {
-          assert(not mutators.contains(this));
-          mutators.insert(this);
-        }
-      }
+      mutator(mutator const&);
 
-      mutator(pair * pair)
-        : nan_boxing_pointer { pair }
-      {
-        if (pair)
-        {
-          assert(not mutators.contains(this));
-          mutators.insert(this);
-        }
-      }
+      mutator(pair *);
 
       template <any_of<bool, small_integer, float, double, character, instruction> T>
       mutator(T const& datum)
@@ -229,60 +212,15 @@ namespace meevax::inline kernel
         assert(nan_boxing_pointer::get() == nullptr);
       }
 
-      ~mutator()
-      {
-        if (nan_boxing_pointer::operator bool() and not cleared)
-        {
-          assert(mutators.contains(this));
-          mutators.erase(this);
-        }
-      }
+      ~mutator();
 
-      auto operator =(mutator const& other) -> auto &
-      {
-        reset(other);
-        return *this;
-      }
+      auto operator =(mutator const&) -> mutator &;
 
-      auto operator =(std::nullptr_t) -> auto &
-      {
-        reset();
-        return *this;
-      }
+      auto operator =(std::nullptr_t) -> mutator &;
 
-      auto reset(mutator const& after) -> void
-      {
-        auto const before = nan_boxing_pointer::operator bool();
+      auto reset(mutator const&) -> void;
 
-        nan_boxing_pointer::reset(after);
-
-        if (before)
-        {
-          if (not after)
-          {
-            assert(mutators.contains(this));
-            mutators.erase(this);
-          }
-        }
-        else if (after)
-        {
-          assert(not mutators.contains(this));
-          mutators.insert(this);
-        }
-      }
-
-      auto reset(std::nullptr_t = nullptr) -> void
-      {
-        auto const before = nan_boxing_pointer::operator bool();
-
-        nan_boxing_pointer::reset();
-
-        if (before)
-        {
-          assert(mutators.contains(this));
-          mutators.erase(this);
-        }
-      }
+      auto reset(std::nullptr_t = nullptr) -> void;
 
       template <typename U>
       auto static as(auto&& m) -> decltype(auto)
@@ -312,17 +250,7 @@ namespace meevax::inline kernel
       template <typename U> auto as        () const -> decltype(auto) { return as<U>                      (*this) ; }
       template <typename U> auto as_mutable() const -> decltype(auto) { return as<U>(const_cast<mutator &>(*this)); }
 
-      auto eqv(mutator const& rhs) const -> bool
-      {
-        if (nan_boxing_pointer::dereferenceable())
-        {
-          return *this ? nan_boxing_pointer::unsafe_get()->eqv(rhs.get()) : rhs.is<std::nullptr_t>();
-        }
-        else
-        {
-          return nan_boxing_pointer::compare(rhs);
-        }
-      }
+      auto eqv(mutator const&) const -> bool;
 
       template <typename U>
       auto is() const
@@ -336,29 +264,9 @@ namespace meevax::inline kernel
         return dynamic_cast<std::add_pointer_t<U>>(nan_boxing_pointer::get()) != nullptr;
       }
 
-      auto type() const -> std::type_info const&
-      {
-        if (nan_boxing_pointer::dereferenceable())
-        {
-          return *this ? nan_boxing_pointer::unsafe_get()->type() : typeid(std::nullptr_t);
-        }
-        else
-        {
-          return nan_boxing_pointer::type();
-        }
-      }
+      auto type() const -> std::type_info const&;
 
-      auto write(std::ostream & os) const -> std::ostream &
-      {
-        if (nan_boxing_pointer::dereferenceable())
-        {
-          return *this ? nan_boxing_pointer::unsafe_get()->write(os) : os << magenta("()");
-        }
-        else
-        {
-          return nan_boxing_pointer::write(os);
-        }
-      }
+      auto write(std::ostream &) const -> std::ostream &;
 
       auto friend operator <<(std::ostream & os, mutator const& datum) -> std::ostream &
       {
