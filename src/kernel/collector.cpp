@@ -150,7 +150,7 @@ namespace meevax::inline kernel
 
   auto collector::collect() -> void
   {
-    auto roots = pointer_set<mutator>();
+    auto roots = canonical_pointer_set<mutator>();
 
     for (auto m : mutators())
     {
@@ -162,7 +162,7 @@ namespace meevax::inline kernel
 
     size() = 0;
 
-    auto reachables = pointer_set<pair>();
+    auto reachables = canonical_pointer_set<pair>();
 
     for (auto root : roots)
     {
@@ -235,15 +235,15 @@ namespace meevax::inline kernel
     return not ((iterator and (*iterator)->contains(m)) or (--iterator and (*iterator)->contains(m)));
   }
 
-  auto collector::mutators() -> pointer_set<mutator> &
+  auto collector::mutators() -> canonical_pointer_set<mutator> &
   {
-    auto static mutators = collector::pointer_set<collector::mutator>();
+    auto static mutators = canonical_pointer_set<collector::mutator>();
     return mutators;
   }
 
-  auto collector::objects() -> pointer_set<pair> &
+  auto collector::objects() -> canonical_pointer_set<pair> &
   {
-    auto static objects = pointer_set<pair>();
+    auto static objects = canonical_pointer_set<pair>();
     return objects;
   }
 

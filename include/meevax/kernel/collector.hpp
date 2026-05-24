@@ -279,9 +279,9 @@ namespace meevax::inline kernel
        0x0000'0000'0000'0000 ~ 0x0000'7FFF'FFFF'FFFF
     */
     template <typename T>
-    using pointer_set = memory::pointer_set<T const*, std::bit_width(0x7FFFu),
-                                                      std::bit_width(0xFFFFu),
-                                                      std::bit_width(0xFFFFu)>;
+    using canonical_pointer_set = pointer_set<T const*, std::bit_width(0x7FFFu),
+                                                        std::bit_width(0xFFFFu),
+                                                        std::bit_width(0xFFFFu)>;
     collector() = delete;
 
     collector(collector &&) = delete;
@@ -354,9 +354,9 @@ namespace meevax::inline kernel
 
     auto static is_root(mutator const*) noexcept -> bool;
 
-    auto static mutators() -> pointer_set<mutator> &; // TODO REMOVE THIS!!!
+    auto static mutators() -> canonical_pointer_set<mutator> &; // TODO REMOVE THIS!!!
 
-    auto static objects() -> pointer_set<pair> &; // TODO REMOVE THIS!!!
+    auto static objects() -> canonical_pointer_set<pair> &; // TODO REMOVE THIS!!!
 
     auto static size() -> std::size_t &;
 
