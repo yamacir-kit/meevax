@@ -53,10 +53,10 @@ namespace meevax::inline kernel
   {
     struct pair;
 
-    using nan_boxing_pointer = memory::nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>;
-
-    struct mutator : public nan_boxing_pointer
+    struct mutator : public nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>
     {
+      using pointer = nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>;
+
       mutator(std::nullptr_t = nullptr) noexcept;
 
       mutator(mutator const&);
@@ -65,9 +65,9 @@ namespace meevax::inline kernel
 
       template <any_of<bool, small_integer, float, double, character, instruction> T>
       mutator(T const& datum)
-        : nan_boxing_pointer { datum }
+        : pointer { datum }
       {
-        assert(nan_boxing_pointer::get() == nullptr);
+        assert(pointer::get() == nullptr);
       }
 
       ~mutator();
@@ -100,7 +100,7 @@ namespace meevax::inline kernel
         }
         else
         {
-          return m.nan_boxing_pointer::template as<U>();
+          return m.pointer::template as<U>();
         }
       }
 
@@ -119,7 +119,7 @@ namespace meevax::inline kernel
       template <typename U, typename = std::enable_if_t<std::is_class_v<U>>>
       auto is_also() const
       {
-        return dynamic_cast<std::add_pointer_t<U>>(nan_boxing_pointer::get()) != nullptr;
+        return dynamic_cast<std::add_pointer_t<U>>(pointer::get()) != nullptr;
       }
 
       auto type() const -> std::type_info const&;
