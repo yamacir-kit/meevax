@@ -52,7 +52,86 @@ namespace meevax::inline kernel
   template <typename...>
   struct collector
   {
-    struct mutator;
+    struct pair;
+
+    using nan_boxing_pointer = memory::nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>;
+
+    struct mutator : public nan_boxing_pointer
+    {
+      mutator(std::nullptr_t = nullptr) noexcept;
+
+      mutator(mutator const&);
+
+      mutator(pair *);
+
+      template <any_of<bool, small_integer, float, double, character, instruction> T>
+      mutator(T const& datum)
+        : nan_boxing_pointer { datum }
+      {
+        assert(nan_boxing_pointer::get() == nullptr);
+      }
+
+      ~mutator();
+
+      auto operator =(mutator const&) -> mutator &;
+
+      auto operator =(std::nullptr_t) -> mutator &;
+
+      auto reset(mutator const&) -> void;
+
+      auto reset(std::nullptr_t = nullptr) -> void;
+
+      template <typename U>
+      auto static as(auto&& m) -> decltype(auto)
+      {
+        if constexpr (std::is_same_v<std::decay_t<U>, pair>)
+        {
+          return *m;
+        }
+        else if constexpr (std::is_class_v<std::decay_t<U>>)
+        {
+          if (auto data = dynamic_cast<std::add_pointer_t<U>>(m.get()); data)
+          {
+            return *data;
+          }
+          else
+          {
+            throw std::runtime_error("no viable conversion from " + demangle(m.type()) + " to " + demangle(typeid(U)));
+          }
+        }
+        else
+        {
+          return m.nan_boxing_pointer::template as<U>();
+        }
+      }
+
+      template <typename U> auto as        ()       -> decltype(auto) { return as<U>                      (*this) ; }
+      template <typename U> auto as        () const -> decltype(auto) { return as<U>                      (*this) ; }
+      template <typename U> auto as_mutable() const -> decltype(auto) { return as<U>(const_cast<mutator &>(*this)); }
+
+      auto eqv(mutator const&) const -> bool;
+
+      template <typename U>
+      auto is() const
+      {
+        return type() == typeid(std::decay_t<U>);
+      }
+
+      template <typename U, typename = std::enable_if_t<std::is_class_v<U>>>
+      auto is_also() const
+      {
+        return dynamic_cast<std::add_pointer_t<U>>(nan_boxing_pointer::get()) != nullptr;
+      }
+
+      auto type() const -> std::type_info const&;
+
+      auto write(std::ostream &) const -> std::ostream &;
+
+      auto friend operator <<(std::ostream & os, mutator const& datum) -> std::ostream &
+      {
+        return datum.write(os);
+      }
+    };
 
     struct pair : public std::pair<mutator, mutator>
     {
@@ -192,85 +271,6 @@ namespace meevax::inline kernel
       auto operator delete(void * data) noexcept -> void
       {
         a.deallocate(reinterpret_cast<typename std::allocator_traits<allocator>::pointer>(data), 1);
-      }
-    };
-
-    using nan_boxing_pointer = memory::nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>;
-
-    struct mutator : public nan_boxing_pointer
-    {
-      mutator(std::nullptr_t = nullptr) noexcept;
-
-      mutator(mutator const&);
-
-      mutator(pair *);
-
-      template <any_of<bool, small_integer, float, double, character, instruction> T>
-      mutator(T const& datum)
-        : nan_boxing_pointer { datum }
-      {
-        assert(nan_boxing_pointer::get() == nullptr);
-      }
-
-      ~mutator();
-
-      auto operator =(mutator const&) -> mutator &;
-
-      auto operator =(std::nullptr_t) -> mutator &;
-
-      auto reset(mutator const&) -> void;
-
-      auto reset(std::nullptr_t = nullptr) -> void;
-
-      template <typename U>
-      auto static as(auto&& m) -> decltype(auto)
-      {
-        if constexpr (std::is_same_v<std::decay_t<U>, pair>)
-        {
-          return *m;
-        }
-        else if constexpr (std::is_class_v<std::decay_t<U>>)
-        {
-          if (auto data = dynamic_cast<std::add_pointer_t<U>>(m.get()); data)
-          {
-            return *data;
-          }
-          else
-          {
-            throw std::runtime_error("no viable conversion from " + demangle(m.type()) + " to " + demangle(typeid(U)));
-          }
-        }
-        else
-        {
-          return m.nan_boxing_pointer::template as<U>();
-        }
-      }
-
-      template <typename U> auto as        ()       -> decltype(auto) { return as<U>                      (*this) ; }
-      template <typename U> auto as        () const -> decltype(auto) { return as<U>                      (*this) ; }
-      template <typename U> auto as_mutable() const -> decltype(auto) { return as<U>(const_cast<mutator &>(*this)); }
-
-      auto eqv(mutator const&) const -> bool;
-
-      template <typename U>
-      auto is() const
-      {
-        return type() == typeid(std::decay_t<U>);
-      }
-
-      template <typename U, typename = std::enable_if_t<std::is_class_v<U>>>
-      auto is_also() const
-      {
-        return dynamic_cast<std::add_pointer_t<U>>(nan_boxing_pointer::get()) != nullptr;
-      }
-
-      auto type() const -> std::type_info const&;
-
-      auto write(std::ostream &) const -> std::ostream &;
-
-      auto friend operator <<(std::ostream & os, mutator const& datum) -> std::ostream &
-      {
-        return datum.write(os);
       }
     };
 
