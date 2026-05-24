@@ -17,17 +17,10 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
-#include <meevax/kernel/character.hpp>
 #include <meevax/kernel/collector.hpp>
-#include <meevax/kernel/instruction.hpp>
 
 namespace meevax::inline kernel
 {
-  using null = std::nullptr_t;
-
-  using small_integer = std::int32_t; // Fixed sized integer that can be boxed.
-  using widen_integer = std::int64_t; // Fixed sized integer that is temporarily widened to prevent possible overflow.
-
   extern template struct collector<bool, small_integer, float, character, instruction>;
 
   using default_collector = collector<bool, small_integer, float, character, instruction>;

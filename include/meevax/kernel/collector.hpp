@@ -23,6 +23,8 @@
 
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
+#include <meevax/kernel/character.hpp>
+#include <meevax/kernel/instruction.hpp>
 #include <meevax/memory/allocator.hpp>
 #include <meevax/memory/literal.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
@@ -30,7 +32,15 @@
 
 namespace meevax::inline kernel
 {
+  using null = std::nullptr_t;
+
+  using small_integer = std::int32_t; // Fixed sized integer that can be boxed.
+  using widen_integer = std::int64_t; // Fixed sized integer that is temporarily widened to prevent possible overflow.
+
   inline constexpr struct with_braces_tag {} with_braces {};
+
+  template<typename T, typename... Ts>
+  concept any_of = (std::same_as<T, Ts> or ...);
 
   /*
      This mark-and-sweep garbage collector is based on the implementation of
@@ -39,7 +49,7 @@ namespace meevax::inline kernel
      - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
      - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
   */
-  template <typename... Ts>
+  template <typename...>
   struct collector
   {
     struct mutator;
@@ -201,10 +211,10 @@ namespace meevax::inline kernel
       }
     };
 
-    struct mutator : public nan_boxing_pointer<pair, Ts...>
-    {
-      using pointer = nan_boxing_pointer<pair, Ts...>;
+    using pointer = nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>;
 
+    struct mutator : public pointer
+    {
       mutator(std::nullptr_t = nullptr) noexcept
       {}
 
@@ -228,7 +238,7 @@ namespace meevax::inline kernel
         }
       }
 
-      template <typename T, typename = std::enable_if_t<(std::is_same_v<T, Ts> or ... or std::is_same_v<T, double>)>>
+      template <any_of<bool, small_integer, float, double, character, instruction> T>
       mutator(T const& datum)
         : pointer { datum }
       {
