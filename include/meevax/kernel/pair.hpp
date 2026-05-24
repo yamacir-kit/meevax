@@ -21,18 +21,14 @@
 
 namespace meevax::inline kernel
 {
-  using default_collector = collector;
-
-  using object = default_collector::mutator;
+  using object = mutator;
 
   using let = object;
 
   let extern unit;
 
-  using pair = default_collector::pair;
-
   template <typename T>
-  auto inline constexpr make = default_collector::maker<T>();
+  auto inline constexpr make = maker<T>();
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;
 

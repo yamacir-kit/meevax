@@ -18,10 +18,10 @@
 
 namespace meevax::inline kernel
 {
-  collector::mutator::mutator(std::nullptr_t) noexcept
+  mutator::mutator(std::nullptr_t) noexcept
   {}
 
-  collector::mutator::mutator(mutator const& other)
+  mutator::mutator(mutator const& other)
     : pointer { other }
   {
     if (*this)
@@ -31,7 +31,7 @@ namespace meevax::inline kernel
     }
   }
 
-  collector::mutator::mutator(pair * pair)
+  mutator::mutator(pair * pair)
     : pointer { pair }
   {
     if (pair)
@@ -41,7 +41,7 @@ namespace meevax::inline kernel
     }
   }
 
-  collector::mutator::~mutator()
+  mutator::~mutator()
   {
     if (pointer::operator bool() and not cleared())
     {
@@ -50,19 +50,19 @@ namespace meevax::inline kernel
     }
   }
 
-  auto collector::mutator::operator =(mutator const& other) -> mutator &
+  auto mutator::operator =(mutator const& other) -> mutator &
   {
     reset(other);
     return *this;
   }
 
-  auto collector::mutator::operator =(std::nullptr_t) -> mutator &
+  auto mutator::operator =(std::nullptr_t) -> mutator &
   {
     reset();
     return *this;
   }
 
-  auto collector::mutator::eqv(mutator const& rhs) const -> bool
+  auto mutator::eqv(mutator const& rhs) const -> bool
   {
     if (pointer::dereferenceable())
     {
@@ -74,7 +74,7 @@ namespace meevax::inline kernel
     }
   }
 
-  auto collector::mutator::reset(mutator const& after) -> void
+  auto mutator::reset(mutator const& after) -> void
   {
     auto const before = pointer::operator bool();
 
@@ -95,7 +95,7 @@ namespace meevax::inline kernel
     }
   }
 
-  auto collector::mutator::reset(std::nullptr_t) -> void
+  auto mutator::reset(std::nullptr_t) -> void
   {
     auto const before = pointer::operator bool();
 
@@ -108,7 +108,7 @@ namespace meevax::inline kernel
     }
   }
 
-  auto collector::mutator::type() const -> std::type_info const&
+  auto mutator::type() const -> std::type_info const&
   {
     if (pointer::dereferenceable())
     {
@@ -120,7 +120,7 @@ namespace meevax::inline kernel
     }
   }
 
-  auto collector::mutator::write(std::ostream & os) const -> std::ostream &
+  auto mutator::write(std::ostream & os) const -> std::ostream &
   {
     if (pointer::dereferenceable())
     {
@@ -132,7 +132,7 @@ namespace meevax::inline kernel
     }
   }
 
-  auto collector::clear() -> void
+  auto clear() -> void
   {
     for (auto const& object : objects())
     {
@@ -142,14 +142,22 @@ namespace meevax::inline kernel
     }
   }
 
-  auto collector::cleared() -> bool &
+  auto cleared() -> bool &
   {
     auto static cleared = false;
     return cleared;
   }
 
-  auto collector::collect() -> void
+  auto collect() -> void
   {
+    /*
+       This mark-and-sweep garbage collector is based on the `gc_ptr`
+       implementation developed and posted to CodeProject by William E. Kempf.
+
+       - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
+       - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
+    */
+
     auto roots = canonical_pointer_set<mutator>();
 
     for (auto m : mutators())
@@ -207,12 +215,12 @@ namespace meevax::inline kernel
     threshold() = std::max(threshold(), size() + (size() / 2));
   }
 
-  auto collector::count() -> std::size_t
+  auto count() -> std::size_t
   {
     return objects().size();
   }
 
-  auto collector::is_root(mutator const* m) noexcept -> bool
+  auto is_root(mutator const* m) noexcept -> bool
   {
     /*
        If the given mutator is a non-root object, then an object containing
@@ -235,25 +243,25 @@ namespace meevax::inline kernel
     return not ((iterator and (*iterator)->contains(m)) or (--iterator and (*iterator)->contains(m)));
   }
 
-  auto collector::mutators() -> canonical_pointer_set<mutator> &
+  auto mutators() -> canonical_pointer_set<mutator> &
   {
-    auto static mutators = canonical_pointer_set<collector::mutator>();
+    auto static mutators = canonical_pointer_set<mutator>();
     return mutators;
   }
 
-  auto collector::objects() -> canonical_pointer_set<pair> &
+  auto objects() -> canonical_pointer_set<pair> &
   {
     auto static objects = canonical_pointer_set<pair>();
     return objects;
   }
 
-  auto collector::size() -> std::size_t &
+  auto size() -> std::size_t &
   {
     auto static size = std::size_t(0_MiB);
     return size;
   }
 
-  auto collector::threshold() -> std::size_t &
+  auto threshold() -> std::size_t &
   {
     auto static threshold = std::size_t(16_MiB);
     return threshold;

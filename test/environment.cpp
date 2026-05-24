@@ -21,9 +21,9 @@ auto root_object_counts_by_type()
 
   auto count_of = std::map<std::type_index, std::size_t>();
 
-  for (auto const m : default_collector::mutators())
+  for (auto const m : mutators())
   {
-    if (default_collector::is_root(m))
+    if (is_root(m))
     {
       ++root_count;
       ++count_of[m->type()];
@@ -54,7 +54,7 @@ auto main() -> int
 {
   using namespace meevax;
 
-  default_collector::threshold() = std::numeric_limits<std::size_t>::max();
+  threshold() = std::numeric_limits<std::size_t>::max();
 
   assert(eof_object.is<eof>());
   assert(undefined.is<ghost>());
@@ -117,7 +117,7 @@ auto main() -> int
     assert(count_of[typeid(symbol                            )] >= 482);
   }
 
-  default_collector::collect();
+  collect();
 
   {
     auto [root_count, non_root_count, count_of] = root_object_counts_by_type();
@@ -141,7 +141,7 @@ auto main() -> int
 
   const_cast<object &>(core_syntactic_environment()).reset(); // DIRTY HACK!
 
-  default_collector::collect();
+  collect();
 
   {
     auto [root_count, non_root_count, count_of] = root_object_counts_by_type();
@@ -151,7 +151,7 @@ auto main() -> int
     assert(count_of[typeid(ghost)] == 2);
   }
 
-  assert(default_collector::count() == 3); // -1 is interaction_environment
+  assert(count() == 3); // -1 is interaction_environment
 
   return EXIT_SUCCESS;
 }

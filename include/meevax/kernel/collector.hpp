@@ -42,15 +42,6 @@ namespace meevax::inline kernel
   template<typename T, typename... Ts>
   concept any_of = (std::same_as<T, Ts> or ...);
 
-  /*
-     This mark-and-sweep garbage collector is based on the implementation of
-     gc_ptr written by William E. Kempf and posted to CodeProject.
-
-     - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
-     - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
-  */
-  struct collector
-  {
     struct pair;
 
     struct mutator : public nan_boxing_pointer<pair, bool, small_integer, float, character, instruction>
@@ -157,6 +148,10 @@ namespace meevax::inline kernel
 
       auto virtual write(std::ostream &) const -> std::ostream &;
     };
+
+    auto clear() -> void;
+
+    auto cleared() -> bool &;
 
     template <typename A>
     struct stateful : public A
@@ -282,20 +277,17 @@ namespace meevax::inline kernel
     using canonical_pointer_set = pointer_set<T const*, std::bit_width(0x7FFFu),
                                                         std::bit_width(0xFFFFu),
                                                         std::bit_width(0xFFFFu)>;
-    collector() = delete;
 
-    collector(collector &&) = delete;
+    auto collect() -> void;
 
-    collector(collector const&) = delete;
+    auto objects() -> canonical_pointer_set<pair> &; // TODO REMOVE THIS!!!
 
-    ~collector() = delete;
+    auto size() -> std::size_t &;
 
-    auto operator =(collector &&) -> collector & = delete;
-
-    auto operator =(collector const&) -> collector & = delete;
+    auto threshold() -> std::size_t &;
 
     template <typename T, typename A>
-    auto static make(auto&&... xs) -> mutator
+    auto static make_(auto&&... xs) -> mutator
     {
       if constexpr (std::is_class_v<T>)
       {
@@ -328,7 +320,7 @@ namespace meevax::inline kernel
 
       auto operator ()(auto&&... xs) const -> decltype(auto)
       {
-        return make<T, default_allocator>(std::forward<decltype(xs)>(xs)...);
+        return make_<T, default_allocator>(std::forward<decltype(xs)>(xs)...);
       }
 
       template <typename A>
@@ -336,7 +328,7 @@ namespace meevax::inline kernel
       {
         auto operator ()(auto&&... xs) const -> decltype(auto)
         {
-          return make<T, A>(std::forward<decltype(xs)>(xs)...);
+          return make_<T, A>(std::forward<decltype(xs)>(xs)...);
         }
       };
 
@@ -344,24 +336,11 @@ namespace meevax::inline kernel
       auto static inline constexpr with = maker_with_custom_allocator<A>();
     };
 
-    auto static clear() -> void;
+    auto count() -> std::size_t;
 
-    auto static cleared() -> bool &;
+    auto is_root(mutator const*) noexcept -> bool;
 
-    auto static collect() -> void;
-
-    auto static count() -> std::size_t;
-
-    auto static is_root(mutator const*) noexcept -> bool;
-
-    auto static mutators() -> canonical_pointer_set<mutator> &; // TODO REMOVE THIS!!!
-
-    auto static objects() -> canonical_pointer_set<pair> &; // TODO REMOVE THIS!!!
-
-    auto static size() -> std::size_t &;
-
-    auto static threshold() -> std::size_t &;
-  };
+    auto mutators() -> canonical_pointer_set<mutator> &; // TODO REMOVE THIS!!!
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_COLLECTOR_HPP
