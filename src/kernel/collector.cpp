@@ -18,6 +18,16 @@
 
 namespace meevax::inline kernel
 {
+  auto size = std::size_t(0_MiB);
+
+  auto capacity = std::size_t(16_MiB);
+
+  auto data = canonical_pointer_set<pair>();
+
+  auto mutators = canonical_pointer_set<mutator>();
+
+  auto cleared = false;
+
   mutator::mutator(std::nullptr_t) noexcept
   {}
 
@@ -26,8 +36,8 @@ namespace meevax::inline kernel
   {
     if (*this)
     {
-      assert(not mutators().contains(this));
-      mutators().insert(this);
+      assert(not mutators.contains(this));
+      mutators.insert(this);
     }
   }
 
@@ -36,17 +46,17 @@ namespace meevax::inline kernel
   {
     if (pair)
     {
-      assert(not mutators().contains(this));
-      mutators().insert(this);
+      assert(not mutators.contains(this));
+      mutators.insert(this);
     }
   }
 
   mutator::~mutator()
   {
-    if (pointer::operator bool() and not cleared())
+    if (pointer::operator bool() and not cleared)
     {
-      assert(mutators().contains(this));
-      mutators().erase(this);
+      assert(mutators.contains(this));
+      mutators.erase(this);
     }
   }
 
@@ -84,14 +94,14 @@ namespace meevax::inline kernel
     {
       if (not after)
       {
-        assert(mutators().contains(this));
-        mutators().erase(this);
+        assert(mutators.contains(this));
+        mutators.erase(this);
       }
     }
     else if (after)
     {
-      assert(not mutators().contains(this));
-      mutators().insert(this);
+      assert(not mutators.contains(this));
+      mutators.insert(this);
     }
   }
 
@@ -103,8 +113,8 @@ namespace meevax::inline kernel
 
     if (before)
     {
-      assert(mutators().contains(this));
-      mutators().erase(this);
+      assert(mutators.contains(this));
+      mutators.erase(this);
     }
   }
 
@@ -134,18 +144,20 @@ namespace meevax::inline kernel
 
   auto clear() -> void
   {
-    for (auto const& object : objects())
+    for (auto const& datum : data)
     {
-      delete object;
-      assert(objects().contains(object));
-      objects().erase(object);
+      delete datum;
+      assert(data.contains(datum));
+      data.erase(datum);
     }
   }
 
-  auto cleared() -> bool &
+  auto clear_once() -> void
   {
-    auto static cleared = false;
-    return cleared;
+    if (not std::exchange(cleared, true))
+    {
+      clear();
+    }
   }
 
   auto collect() -> void
@@ -160,7 +172,7 @@ namespace meevax::inline kernel
 
     auto roots = canonical_pointer_set<mutator>();
 
-    for (auto m : mutators())
+    for (auto m : mutators)
     {
       if (is_root(m))
       {
@@ -168,7 +180,7 @@ namespace meevax::inline kernel
       }
     }
 
-    size() = 0;
+    size = 0;
 
     auto reachables = canonical_pointer_set<pair>();
 
@@ -181,11 +193,11 @@ namespace meevax::inline kernel
         assert(m);
         assert(m->unsafe_get());
 
-        if (auto p = m->unsafe_get(); not reachables.contains(p))
+        if (auto datum = m->unsafe_get(); not reachables.contains(datum))
         {
-          reachables.insert(p);
-          objects().erase(p);
-          stack.push_back(p);
+          reachables.insert(datum);
+          data.erase(datum);
+          stack.push_back(datum);
         }
       };
 
@@ -197,27 +209,32 @@ namespace meevax::inline kernel
 
         stack.pop_back();
 
-        size() += size_;
+        size += size_;
 
-        std::for_each(mutators().lower_bound(reinterpret_cast<mutator const*>(base)),
-                      mutators().lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
+        std::for_each(mutators.lower_bound(reinterpret_cast<mutator const*>(base)),
+                      mutators.lower_bound(reinterpret_cast<mutator const*>(reinterpret_cast<std::uintptr_t>(base) + size_)),
                       mark);
       }
     }
 
-    for (auto object : objects())
+    for (auto datum : data)
     {
-      delete object;
+      delete datum;
     }
 
-    objects().swap(reachables);
+    data.swap(reachables);
 
-    threshold() = std::max(threshold(), size() + (size() / 2));
+    capacity = std::max(capacity, size + (size / 2));
   }
 
   auto count() -> std::size_t
   {
-    return objects().size();
+    return data.size();
+  }
+
+  auto insert(pair const* datum) -> void
+  {
+    data.insert(datum);
   }
 
   auto is_root(mutator const* m) noexcept -> bool
@@ -238,32 +255,29 @@ namespace meevax::inline kernel
        pair const*, which may be an iterator to the object itself, which may
        contain m, or the next iterator of the object, which may contain m.
     */
-    auto iterator = objects().lower_bound(reinterpret_cast<pair const*>(m));
+    auto iterator = data.lower_bound(reinterpret_cast<pair const*>(m));
 
     return not ((iterator and (*iterator)->contains(m)) or (--iterator and (*iterator)->contains(m)));
   }
 
-  auto mutators() -> canonical_pointer_set<mutator> &
+  auto request(std::size_t n) -> void
   {
-    auto static mutators = canonical_pointer_set<mutator>();
-    return mutators;
+    if (size += n; capacity < size)
+    {
+      collect();
+    }
   }
 
-  auto objects() -> canonical_pointer_set<pair> &
+  auto reserve(std::size_t n) -> void
   {
-    auto static objects = canonical_pointer_set<pair>();
-    return objects;
+    capacity = n;
   }
 
-  auto size() -> std::size_t &
+namespace backdoor
+{
+  auto mutators() -> canonical_pointer_set<mutator> const&
   {
-    auto static size = std::size_t(0_MiB);
-    return size;
+    return kernel::mutators;
   }
-
-  auto threshold() -> std::size_t &
-  {
-    auto static threshold = std::size_t(16_MiB);
-    return threshold;
-  }
+}
 } // namespace meevax::kernel

@@ -21,7 +21,7 @@ auto root_object_counts_by_type()
 
   auto count_of = std::map<std::type_index, std::size_t>();
 
-  for (auto const m : mutators())
+  for (auto const m : backdoor::mutators())
   {
     if (is_root(m))
     {
@@ -54,7 +54,7 @@ auto main() -> int
 {
   using namespace meevax;
 
-  threshold() = std::numeric_limits<std::size_t>::max();
+  reserve(std::numeric_limits<std::size_t>::max());
 
   assert(eof_object.is<eof>());
   assert(undefined.is<ghost>());

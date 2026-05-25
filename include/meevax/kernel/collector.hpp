@@ -149,7 +149,7 @@ namespace meevax::inline kernel
 
     auto clear() -> void;
 
-    auto cleared() -> bool &;
+    auto clear_once() -> void;
 
     template <typename A>
     struct stateful : public A
@@ -161,10 +161,7 @@ namespace meevax::inline kernel
            when the destructor of the collector executes clear, the collector
            may touch the freed memory of the stateful allocator.
         */
-        if (not std::exchange(cleared(), true))
-        {
-          clear();
-        }
+        clear_once();
       }
     };
 
@@ -278,27 +275,28 @@ namespace meevax::inline kernel
 
     auto collect() -> void;
 
-    auto objects() -> canonical_pointer_set<pair> &; // TODO REMOVE THIS!!!
+    auto count() -> std::size_t;
 
-    auto size() -> std::size_t &;
+    auto request(std::size_t) -> void;
 
-    auto threshold() -> std::size_t &;
+    auto reserve(std::size_t) -> void;
+
+    auto insert(pair const*) -> void;
+
+    auto is_root(mutator const*) noexcept -> bool;
 
     template <typename T, typename A = std::conditional_t<std::is_same_v<T, pair>, segregated_storage_allocator<void>, std::allocator<void>>>
     auto make(auto&&... xs) -> mutator
     {
       if constexpr (std::is_class_v<T>)
       {
-        if (size() += sizeof(T); threshold() < size())
-        {
-          collect();
-        }
+        request(sizeof(T));
 
-        if (auto data = new binder<T, A>(std::forward<decltype(xs)>(xs)...); data)
+        if (auto datum = new binder<T, A>(std::forward<decltype(xs)>(xs)...); datum)
         {
-          objects().insert(data);
+          insert(datum);
 
-          return data;
+          return datum;
         }
         else [[unlikely]]
         {
@@ -311,11 +309,10 @@ namespace meevax::inline kernel
       }
     }
 
-    auto count() -> std::size_t;
-
-    auto is_root(mutator const*) noexcept -> bool;
-
-    auto mutators() -> canonical_pointer_set<mutator> &; // TODO REMOVE THIS!!!
+namespace backdoor
+{
+  auto mutators() -> canonical_pointer_set<mutator> const&;
+}
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_COLLECTOR_HPP
