@@ -21,6 +21,7 @@
 #include <memory> // std::allocator
 #include <vector>
 
+#include <meevax/concepts/any_of.hpp>
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/character.hpp>
@@ -38,9 +39,6 @@ namespace meevax::inline kernel
   using widen_integer = std::int64_t; // Fixed sized integer that is temporarily widened to prevent possible overflow.
 
   inline constexpr struct with_braces_tag {} with_braces {};
-
-  template<typename T, typename... Ts>
-  concept any_of = (std::same_as<T, Ts> or ...);
 
     struct pair;
 
