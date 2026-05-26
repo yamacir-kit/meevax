@@ -15,6 +15,8 @@
 */
 
 #include <meevax/kernel/collector.hpp>
+#include <meevax/kernel/object.hpp>
+#include <vector>
 
 namespace meevax::inline kernel
 {
@@ -140,6 +142,11 @@ namespace meevax::inline kernel
     {
       return pointer::write(os);
     }
+  }
+
+  auto operator <<(std::ostream & os, object const& datum) -> std::ostream &
+  {
+    return datum.write(os);
   }
 
   auto clear() -> void
