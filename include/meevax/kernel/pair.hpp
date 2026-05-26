@@ -17,13 +17,35 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
-#include <meevax/kernel/collector.hpp>
+#include <meevax/kernel/object.hpp>
 
 namespace meevax::inline kernel
 {
-  using let = object;
+  struct pair : public std::pair<object, object>
+  {
+    pair()
+      : std::pair<object, object> { nullptr, nullptr }
+    {}
 
-  let extern unit;
+    template <typename T,
+              typename U = std::nullptr_t,
+              typename = std::enable_if_t<std::is_constructible_v<std::pair<object, object>, T, U>>>
+    explicit pair(T&& x, U&& y = nullptr)
+      : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
+    {}
+
+    virtual ~pair() = default;
+
+    auto virtual eqv(pair const*) const -> bool;
+
+    auto virtual extent() const noexcept -> std::pair<void const*, std::size_t>;
+
+    auto virtual contains(void const*) const noexcept -> bool;
+
+    auto virtual type() const noexcept -> std::type_info const&;
+
+    auto virtual write(std::ostream &) const -> std::ostream &;
+  };
 
   auto operator <<(std::ostream &, pair const&) -> std::ostream &;
 
@@ -96,14 +118,5 @@ namespace meevax::inline kernel
   inline auto caddddr = [](auto&& x) -> decltype(auto) { return car(cddddr(std::forward<decltype(x)>(x))); };
   inline auto cdddddr = [](auto&& x) -> decltype(auto) { return cdr(cddddr(std::forward<decltype(x)>(x))); };
 } // namespace meevax::kernel
-
-template <>
-struct std::hash<meevax::object>
-{
-  auto operator ()(meevax::object const& x) const noexcept
-  {
-    return std::hash<decltype(x.get())>()(x.get());
-  }
-};
 
 #endif // INCLUDED_MEEVAX_KERNEL_PAIR_HPP

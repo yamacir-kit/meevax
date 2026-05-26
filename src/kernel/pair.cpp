@@ -45,8 +45,6 @@ namespace meevax::inline kernel
     return o << static_cast<pair const&>(*this);
   }
 
-  let unit = nullptr;
-
   struct datum_labels
   {
     std::ostream & os;

@@ -19,7 +19,7 @@
 
 #include <meevax/iostream/escape_sequence.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
-#include <meevax/kernel/object.hpp>
+#include <meevax/kernel/pair.hpp>
 #include <meevax/memory/allocator.hpp>
 #include <meevax/memory/literal.hpp>
 #include <meevax/memory/pointer_set.hpp>
@@ -28,32 +28,6 @@
 namespace meevax::inline kernel
 {
   inline constexpr struct with_braces_tag {} with_braces {};
-
-    struct pair : public std::pair<object, object>
-    {
-      pair()
-        : std::pair<object, object> { nullptr, nullptr }
-      {}
-
-      template <typename T,
-                typename U = std::nullptr_t,
-                typename = std::enable_if_t<std::is_constructible_v<std::pair<object, object>, T, U>>>
-      explicit pair(T&& x, U&& y = nullptr)
-        : std::pair<object, object> { std::forward<decltype(x)>(x), std::forward<decltype(y)>(y) }
-      {}
-
-      virtual ~pair() = default;
-
-      auto virtual eqv(pair const*) const -> bool;
-
-      auto virtual extent() const noexcept -> std::pair<void const*, std::size_t>;
-
-      auto virtual contains(void const*) const noexcept -> bool;
-
-      auto virtual type() const noexcept -> std::type_info const&;
-
-      auto virtual write(std::ostream &) const -> std::ostream &;
-    };
 
     auto clear() -> void;
 

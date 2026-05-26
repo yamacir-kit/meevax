@@ -14,15 +14,9 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/collector.hpp>
-#include <meevax/kernel/eof.hpp>
+#include <meevax/kernel/object.hpp>
 
 namespace meevax::inline kernel
 {
-  let const eof_object = make<eof>();
-
-  auto operator <<(std::ostream & os, eof const&) -> std::ostream &
-  {
-    return os << magenta("#,(") << green("eof-object") << magenta(")");
-  }
-} // namespace meevax::kernel
+  let unit = nullptr;
+}

@@ -22,6 +22,7 @@
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/memory/nan_boxing_pointer.hpp>
+#include <meevax/utility/demangle.hpp>
 
 namespace meevax::inline kernel
 {
@@ -107,6 +108,22 @@ namespace meevax::inline kernel
   };
 
   auto operator <<(std::ostream & os, object const& datum) -> std::ostream &;
+
+  using let = object;
+
+  let extern unit;
 } // namespace meevax::kernel
+
+namespace std
+{
+  template <>
+  struct hash<meevax::object>
+  {
+    auto operator ()(meevax::object const& x) const noexcept
+    {
+      return hash<decltype(x.get())>()(x.get());
+    }
+  };
+}
 
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
